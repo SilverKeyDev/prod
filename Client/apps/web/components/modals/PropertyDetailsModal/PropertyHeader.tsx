@@ -1,4 +1,4 @@
-import { X, FileText, ExternalLink } from "lucide-react";
+import { X, FileText } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -8,7 +8,7 @@ import KeyLogo from "../../ui/asset/KeyLogo";
 import MiniLogo from "../../ui/asset/MiniLogo";
 
 import type { PropertyHeaderProps } from "./types";
-import { formatAddress, handleZillowOpen } from "./utils";
+import { formatAddress } from "./utils";
 
 export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   property,
@@ -60,7 +60,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 
       {/* Right side - Action buttons */}
       <div className="flex items-center gap-0.5 md:gap-3">
-        <Button
+        {/* <Button
           variant="outline"
           size="md"
           onClick={() => handleZillowOpen(property)}
@@ -68,7 +68,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           className="group border-blue-600 !text-blue-600 hover:!bg-transparent hover:!text-blue-600 transition-all duration-200"
         >
           Zillow
-        </Button>
+        </Button> */}
         {onGenerateReport && (
           <Button
             variant="outline"
@@ -89,10 +89,10 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 
         <button
           onClick={onClose}
-          className="-ml-1 p-2 hover:bg-gray-50 rounded-md transition-colors md:ml-0"
+          className="group relative -ml-1 p-2.5 rounded-lg transition-all duration-200 bg-white hover:bg-gray-100 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md md:ml-0"
           aria-label="Close modal"
         >
-          <X className="h-6 w-6 text-gray-600" />
+          <X className="h-5 w-5 text-gray-700 group-hover:text-gray-900 transition-colors" />
         </button>
       </div>
     </div>

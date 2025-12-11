@@ -1,13 +1,29 @@
-import { CheckCircle, AlertTriangle, TrendingUp, Shield } from "lucide-react";
+import {
+  CheckCircle,
+  TrendingUp,
+  Shield,
+  MapPin,
+  Home,
+  DollarSign,
+  UtensilsCrossed,
+} from "lucide-react";
 import React from "react";
 
 import type { PropertyWithAnalysis } from "../../../../../packages/schemas/property";
 import Card from "../../layout/Card";
+import { DEFAULT_REPORT_SECTIONS } from "../../../features/onboardpersonalize/lib/constants";
 
 import type { PropertyComponentProps } from "./types";
 
-export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
+type PropertyAnalysisProps = PropertyComponentProps & {
+  excludeSections?: string[];
+  userPriorities?: string[];
+};
+
+export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
   property,
+  excludeSections = [],
+  userPriorities = [],
 }) => {
   const propertyWithAnalysis = property as PropertyWithAnalysis;
   const propertyAnalysis = propertyWithAnalysis.property_analysis;
@@ -15,286 +31,183 @@ export const PropertyAnalysis: React.FC<PropertyComponentProps> = ({
   if (!propertyAnalysis) {
     return null;
   }
+  // Get section labels mapping
+  const sectionLabels: Record<string, string> = {};
+  DEFAULT_REPORT_SECTIONS.forEach((section: { key: string; label: string }) => {
+    sectionLabels[section.key] = section.label;
+  });
 
-  // ROI Explanation
-  const roiExplanation = propertyAnalysis.roi_explanation;
-  const neighborhoodOverview = propertyAnalysis.neighborhood_overview;
-  const { pros } = propertyAnalysis;
-  const { cons } = propertyAnalysis;
-  const crimeStats = propertyAnalysis.crime_stats;
-  const gentrificationIndex = propertyAnalysis.gentrification_index;
+  // Icon mapping for sections (new 8-section structure) - standardized color
+  const sectionIcons: Record<string, React.ReactNode> = {
+    affordability: <DollarSign className="h-5 w-5 text-brown" />,
+    neighborhood: <Shield className="h-5 w-5 text-brown" />,
+    commute: <MapPin className="h-5 w-5 text-brown" />,
+    family_friendly: <Home className="h-5 w-5 text-brown" />,
+    entertainment: <UtensilsCrossed className="h-5 w-5 text-brown" />,
+    investment: <TrendingUp className="h-5 w-5 text-brown" />,
+    climate_environmental_safety: <Shield className="h-5 w-5 text-brown" />,
+    convenience_walkability: <MapPin className="h-5 w-5 text-brown" />,
+  };
+
+  // Helper function to render dynamic section content
+  const renderSectionContent = (
+    _sectionKey: string,
+    sectionData: unknown
+  ): React.ReactNode => {
+    if (!sectionData || typeof sectionData !== "object") {
+      return null;
+    }
+
+    const data = sectionData as Record<string, unknown>;
+
+    // Render based on data structure
+    if (Array.isArray(data)) {
+      return (
+        <ul className="space-y-2">
+          {data.map((item, i) => (
+            <li key={i} className="text-sm text-brown/80">
+              {String(item)}
+            </li>
+          ))}
+        </ul>
+      );
+    }
+
+    // Render object fields
+    const entries = Object.entries(data).filter(
+      ([_, value]) => value !== null && value !== undefined && value !== ""
+    );
+
+    if (entries.length === 0) {
+      return <p className="text-sm text-brown/60">No data available</p>;
+    }
+
+    return (
+      <div className="space-y-4">
+        {entries.map(([key, value]) => {
+          const displayKey = key
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase());
+
+          if (Array.isArray(value)) {
+            return (
+              <div key={key}>
+                <h4 className="mb-2 font-medium text-brown">{displayKey}</h4>
+                <ul className="space-y-1 ml-4">
+                  {value.map((item, i) => (
+                    <li key={i} className="text-sm text-brown/80 list-disc">
+                      {String(item)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          }
+
+          if (typeof value === "object" && value !== null) {
+            return (
+              <div
+                key={key}
+                className="rounded-lg border border-beige/40 bg-beige/10 p-3"
+              >
+                <h4 className="mb-2 font-medium text-brown">{displayKey}</h4>
+                <div className="space-y-2 text-sm text-brown/70">
+                  {Object.entries(value as Record<string, unknown>).map(
+                    ([subKey, subValue]) => (
+                      <div key={subKey} className="flex flex-col">
+                        <span className="font-medium text-brown">
+                          {subKey
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (l) => l.toUpperCase())}
+                        </span>
+                        <span className="text-brown/80">
+                          {String(subValue)}
+                        </span>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div key={key} className="flex flex-col space-y-1">
+              <span className="text-sm font-medium text-brown">
+                {displayKey}
+              </span>
+              <span className="text-sm text-brown/80">{String(value)}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Identify which sections are core (hardcoded) vs dynamic (from report sections)
+  const coreSectionKeys = new Set(["neighborhood_overview"]);
+
+  // Sections that are rendered separately and should be excluded from dynamic sections
+  // - pros/cons: rendered in ProsAndCons component
+  // - commute: rendered in PropertyCommute component (with map) - but can be combined with analysis
+  // - family_friendly: rendered in PropertySchools component - but can be combined with analysis
+  const excludedSectionKeys = new Set(["pros", "cons", ...excludeSections]);
+
+  // Get all section keys from propertyAnalysis
+  const allSectionKeys = Object.keys(propertyAnalysis).filter(
+    (key) =>
+      propertyAnalysis[key] !== null && propertyAnalysis[key] !== undefined
+  );
+
+  // Create a priority map for fallback ordering using DEFAULT_REPORT_SECTIONS
+  const defaultPriorityMap = new Map<string, number>();
+  DEFAULT_REPORT_SECTIONS.forEach((section, index) => {
+    defaultPriorityMap.set(section.key, index);
+  });
+
+  // Separate core and dynamic sections, excluding pros/cons and any sections passed in excludeSections
+  // commute and family_friendly are included here but will be combined with dedicated components when both exist
+  const dynamicSections = allSectionKeys
+    .filter((key) => !coreSectionKeys.has(key) && !excludedSectionKeys.has(key))
+    .map((key) => {
+      const userPriorityIndex = userPriorities.indexOf(key);
+      const priority =
+        userPriorityIndex >= 0
+          ? userPriorityIndex
+          : 1000 + (defaultPriorityMap.get(key) ?? 9999); // Use default order as fallback
+
+      return {
+        key,
+        label:
+          sectionLabels[key] ||
+          key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+        data: propertyAnalysis[key],
+        icon: sectionIcons[key] || (
+          <CheckCircle className="h-5 w-5 text-brown" />
+        ),
+        priority,
+      };
+    })
+    .sort((a, b) => a.priority - b.priority);
 
   return (
     <div className="p-6">
-      {/* ROI Explanation */}
-      {roiExplanation && (
-        <div className="mb-8">
-          <div className="mb-4 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-gray-600" />
-            <h3 className="text-lg font-semibold text-brown">
-              Investment Analysis
-            </h3>
-          </div>
-          <Card className="p-4">
-            {(() => {
-              const sentences: string[] = roiExplanation
-                .split(/[.!?]+/)
-                .map((s: string) => s.trim())
-                .filter((s: string) => s.length > 0);
-              if (sentences.length === 0) {
-                return (
-                  <p className="text-sm leading-relaxed text-brown/80">
-                    No investment analysis available.
-                  </p>
-                );
-              }
-              const summary = sentences[0] + ".";
-              const bullets = sentences
-                .slice(1)
-                .filter((s: string) => s.length > 10);
-              return (
-                <div>
-                  <p className="mb-3 text-sm leading-relaxed text-brown/80">
-                    {summary}
-                  </p>
-                  {bullets.length > 0 && (
-                    <ul className="space-y-2">
-                      {bullets.map((point: string, i: number) => (
-                        <li
-                          key={i}
-                          className="text-sm leading-relaxed text-brown/80"
-                        >
-                          {point}.
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              );
-            })()}
-          </Card>
-        </div>
-      )}
-
-      {/* Neighborhood Overview */}
-      {neighborhoodOverview && (
-        <div className="mb-8">
-          <div className="mb-4 flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-gray-600" />
-            <h3 className="text-lg font-semibold text-brown">
-              Neighborhood Overview
-            </h3>
-          </div>
-          <Card className="p-4">
-            <div>
-              <p className="text-sm leading-relaxed text-brown/80">
-                {neighborhoodOverview.description}
-              </p>
+      {/* Dynamic Report Sections */}
+      {dynamicSections.length > 0 && (
+        <div className="grid grid-cols-1 gap-6">
+          {dynamicSections.map((section) => (
+            <div key={section.key}>
+              <div className="mb-4 flex items-center gap-2">
+                {section.icon}
+                <h3 className="text-lg font-semibold text-brown">
+                  {section.label}
+                </h3>
+              </div>
+              <Card className="p-4 mt-2">
+                {renderSectionContent(section.key, section.data)}
+              </Card>
             </div>
-            {neighborhoodOverview.vibe && (
-              <div>
-                <div className="rounded-lg border border-olive/20 bg-olive/10 px-3 py-2">
-                  {neighborhoodOverview.vibe}
-                </div>
-              </div>
-            )}
-          </Card>
-        </div>
-      )}
-
-      {/* Pros and Cons */}
-      {(pros ?? cons) && (
-        <div className="mb-8">
-          <div className="mb-4 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-gray-600" />
-            <h3 className="text-lg font-semibold text-brown">Pros & Cons</h3>
-            {/* Balance indicator */}
-            {pros && cons && Math.abs(pros.length - cons.length) > 2 && (
-              <div className="ml-auto flex items-center gap-1 rounded-full bg-yellow-50 px-2 py-1 text-xs text-yellow-700">
-                {pros.length > cons.length ? "More pros" : "More cons"}
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
-            {/* Pros Column */}
-            <Card
-              className={`p-3 sm:p-4 ${
-                pros && cons && pros.length > cons.length + 2
-                  ? "ring-1 ring-green-200 bg-green-50/30"
-                  : ""
-              }`}
-            >
-              <h4 className="mb-3 flex items-center gap-2 font-medium text-gray-600">
-                <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-600" />
-                Pros
-                {pros && (
-                  <span className="ml-1 text-xs text-gray-500">
-                    ({pros.length})
-                  </span>
-                )}
-              </h4>
-              <div className="space-y-3">
-                {pros && pros.length > 0 ? (
-                  pros.map((pro: string, i: number) => (
-                    <div
-                      key={i}
-                      className="flex items-start gap-2 text-sm text-gray-700"
-                    >
-                      <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
-                      {pro}
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <CheckCircle className="h-4 w-4 flex-shrink-0" />
-                    No pros identified
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            {/* Cons Column */}
-            <Card
-              className={`p-3 sm:p-4 ${
-                pros && cons && cons.length > pros.length + 2
-                  ? "ring-1 ring-red-200 bg-red-50/30"
-                  : ""
-              }`}
-            >
-              <h4 className="mb-3 flex items-center gap-2 font-medium text-gray-600">
-                <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-600" />
-                Cons
-                {cons && (
-                  <span className="ml-1 text-xs text-gray-500">
-                    ({cons.length})
-                  </span>
-                )}
-              </h4>
-              <div className="space-y-3">
-                {cons && cons.length > 0 ? (
-                  cons.map((con: string, i: number) => (
-                    <div
-                      key={i}
-                      className="flex items-start gap-2 text-sm text-gray-700"
-                    >
-                      <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
-                      {con}
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                    No cons identified
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {/* Crime & Gentrification */}
-      {(crimeStats ?? gentrificationIndex) && (
-        <div className="mb-8">
-          <div className="mb-4 flex items-center gap-2">
-            <Shield className="h-5 w-5 text-gray-600" />
-            <h3 className="text-lg font-semibold text-brown">
-              Safety & Development
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Crime Stats */}
-            {crimeStats && (
-              <div>
-                <div className="mb-4 flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-purple-600" />
-                  <h4 className="font-medium text-brown">Crime Statistics</h4>
-                </div>
-                <Card className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      Safety Score:
-                      {crimeStats.overall_safety_score}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      Crime Rate:
-                      {crimeStats.crime_rate}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      Recent Trends:
-                      {crimeStats.recent_trends}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      Data Source:
-                      {crimeStats.data_source}
-                    </div>
-                  </div>
-
-                  {crimeStats.specific_concerns &&
-                    crimeStats.specific_concerns.length > 0 && (
-                      <div className="rounded-lg border border-beige/40 bg-beige/10 p-4">
-                        <h4 className="mb-2 font-medium text-brown">
-                          Specific Concerns
-                        </h4>
-                        <div className="space-y-1 text-sm text-brown/70">
-                          {crimeStats.specific_concerns.map((c, i) => (
-                            <p key={i}>{c}</p>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                </Card>
-              </div>
-            )}
-
-            {/* Gentrification Index */}
-            {gentrificationIndex && (
-              <div>
-                <div className="mb-4 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-purple-600" />
-                  <h4 className="font-medium text-brown">
-                    Gentrification Index
-                  </h4>
-                </div>
-                <Card className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      Score:
-                      {gentrificationIndex.score}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      Trend:
-                      {gentrificationIndex.trend}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      Timeline:
-                      {gentrificationIndex.timeline}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      Property Impact:
-                      {gentrificationIndex.impact_on_property_value}
-                    </div>
-                  </div>
-
-                  {gentrificationIndex.indicators &&
-                    gentrificationIndex.indicators.length > 0 && (
-                      <div className="rounded-lg border border-beige/40 bg-beige/10 p-4">
-                        <h4 className="mb-2 font-medium text-brown">
-                          Key Indicators
-                        </h4>
-                        <div className="space-y-1 text-sm text-brown/70">
-                          {gentrificationIndex.indicators.map(
-                            (ind: string, i: number) => (
-                              <p key={i}>{ind}</p>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                </Card>
-              </div>
-            )}
-          </div>
+          ))}
         </div>
       )}
     </div>

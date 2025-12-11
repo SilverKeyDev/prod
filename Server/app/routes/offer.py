@@ -122,7 +122,7 @@ def generate_negotiation_strategy():
         try:
             
             # Import necessary modules for property data fetching
-            from ..services.reportgen.graphic_generation import fetch_travel_time, generate_static_map_url
+            from ..services.reportgen.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
             from ..models.user_preferences import UserPreferences
             from ..services.search_help import analyze_property_with_sonar_pro
             
@@ -173,6 +173,9 @@ def generate_negotiation_strategy():
                         if isinstance(locations_data, list):
                             important_locations = locations_data
                         
+                        # Prepare secondary locations for map generation
+                        secondary_locations = []
+                        
                         # Calculate travel times for each important location
                         for i, location in enumerate(important_locations):
                             if isinstance(location, dict) and 'address' in location:
@@ -188,6 +191,21 @@ def generate_negotiation_strategy():
                                     'commute_tolerance': location.get('commute_tolerance', 30)
                                 })
                                 
+                                # Prepare for map generation
+                                secondary_locations.append({
+                                    'name': location_name,
+                                    'address': location_address
+                                })
+                        
+                        # Generate static map URL with commute routes
+                        map_url = None
+                        if secondary_locations:
+                            try:
+                                map_url = generate_static_map_url(property_address, secondary_locations, GOOGLE_MAPS_API_KEY, map_id=GOOGLE_MAPS_ID)
+                            except Exception as e:
+                                current_app.logger.error(f"🗺️ [OFFER] Error generating map URL: {e}")
+                        
+                        commute_data['map_url'] = map_url
                     
                     # Get property analysis using Perplexity Sonar Pro
                     if user_preferences and isinstance(property_data, dict):
@@ -215,11 +233,8 @@ def generate_negotiation_strategy():
                             property_analysis = {
                                 'pros': analysis_result.pros,
                                 'cons': analysis_result.cons,
-                                'neighborhood_overview': analysis_result.neighborhood_overview,
-                                'crime_stats': analysis_result.crime_stats,
-                                'gentrification_index': analysis_result.gentrification_index,
-                                'roi_explanation': analysis_result.roi_explanation
                             }
+
                         else:
                             current_app.logger.warning(f"⚠️ [NEGOTIATION_STRATEGY] Property analysis returned no results")
                 else:

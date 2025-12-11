@@ -1,4 +1,3 @@
-import { useMutation } from "@tanstack/react-query";
 import { useState, useCallback } from "react";
 
 import { searchApi } from "../../config/api";
@@ -32,71 +31,119 @@ export type UsePropertyDetailsReturn = {
 };
 
 /**
- * Custom hook for fetching and managing property details with React Query
- * Provides loading state, error handling, and property data management
+ * Custom hook for fetching and managing property details with streaming support
+ * Opens modal immediately when basic info arrives, then updates as sections are generated
  */
 export function usePropertyDetails(): UsePropertyDetailsReturn {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null,
   );
-
-  // Fetch property details mutation
-  const fetchPropertyDetailsMutation = useMutation({
-    mutationFn: async (property: Property) => {
-      const response = await searchApi.getProperty({
-        address: property.address,
-      });
-
-      // The backend returns property data in response.data, not response.property
-      const detailedPropertyData = response.data ?? {};
-
-
-      const enhancedProperty = {
-        ...property,
-        ...detailedPropertyData, // Merge detailed data with existing property data
-        // Also include additional response fields
-        commute_data: response.commute_data,
-        property_analysis: response.property_analysis,
-        image_features: response.image_features,
-        zillow_url: response.zillow_url,
-        images: response.images,
-        features: response.features,
-      };
-
-      return enhancedProperty;
-    },
-    onSuccess: (enhancedProperty) => {
-      setSelectedProperty(enhancedProperty);
-    },
-    onError: (error, property) => {
-      console.error(
-        "❌ [USE_PROPERTY_DETAILS] Error fetching property details:",
-        error,
-      );
-      console.error("❌ [USE_PROPERTY_DETAILS] Error type:", typeof error);
-      console.error("❌ [USE_PROPERTY_DETAILS] Error message:", error.message);
-
-      // Fallback: use the original property data without detailed information
-      setSelectedProperty(property);
-    },
-  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchPropertyDetails = useCallback(
     async (property: Property) => {
-      await fetchPropertyDetailsMutation.mutateAsync(property);
+      setIsLoading(true);
+      setError(null);
+      
+      // Initialize with basic property info immediately so modal opens
+      setSelectedProperty(property);
+
+      try {
+        // Stream property updates
+        for await (const update of searchApi.streamProperty({
+          address: property.address,
+        })) {
+          if (update.type === "error") {
+            const errorData = update.data as { error?: string; message?: string };
+            throw new Error(errorData.error || errorData.message || "Unknown error");
+          }
+
+          if (update.type === "basic") {
+            const basicData = update.data as {
+              data?: unknown;
+              zillow_url?: string;
+            };
+            setSelectedProperty((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                ...(basicData.data as Record<string, unknown>),
+                zillow_url: basicData.zillow_url,
+              };
+            });
+          } else if (update.type === "commute_data") {
+            setSelectedProperty((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                commute_data: update.data,
+              };
+            });
+          } else if (update.type === "property_analysis" || update.type === "property_analysis_partial") {
+            setSelectedProperty((prev) => {
+              if (!prev) return prev;
+              const existingAnalysis = (prev.property_analysis as Record<string, unknown>) || {};
+              return {
+                ...prev,
+                property_analysis: {
+                  ...existingAnalysis,
+                  ...(update.data as Record<string, unknown>),
+                },
+              };
+            });
+          } else if (update.type === "images") {
+            setSelectedProperty((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                images: update.data as string[],
+              };
+            });
+          } else if (update.type === "image_features") {
+            setSelectedProperty((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                image_features: update.data,
+              };
+            });
+          } else if (update.type === "features") {
+            setSelectedProperty((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                features: update.data,
+              };
+            });
+          } else if (update.type === "complete") {
+            setIsLoading(false);
+          }
+        }
+      } catch (err) {
+        console.error(
+          "❌ [USE_PROPERTY_DETAILS] Error streaming property details:",
+          err,
+        );
+        setError(err instanceof Error ? err.message : "Failed to fetch property details");
+        setIsLoading(false);
+        // Keep the property with whatever data we have so far
+      }
     },
-    [fetchPropertyDetailsMutation],
+    [],
   );
 
   const clearSelectedProperty = useCallback(() => {
     setSelectedProperty(null);
+    setIsLoading(false);
+    setError(null);
   }, []);
 
   return {
-    isLoading: fetchPropertyDetailsMutation.isPending,
+    isLoading,
     selectedProperty,
     fetchPropertyDetails,
     clearSelectedProperty,
-    error: fetchPropertyDetailsMutation.error?.message ?? null,
+    error,
   };
 }

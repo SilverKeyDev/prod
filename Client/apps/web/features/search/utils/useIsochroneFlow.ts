@@ -133,6 +133,10 @@ export function useIsochroneFlow(params: {
 
   // Fetch isochrone polygon from backend
   const fetchIsochronePolygon = useCallback(async () => {
+    // Set searching state immediately when search starts
+    params.setIsSearching(true);
+    params.setSearchStage("Preparing search...");
+    
     try {
       // Auth is handled via HTTP-only cookies
       // Server will return 401 if not authenticated
@@ -173,6 +177,8 @@ export function useIsochroneFlow(params: {
             "⚠️ Isochrone API returned unsuccessful response:",
             data,
           );
+          params.setIsSearching(false);
+          params.setSearchStage("");
         }
       } else {
         console.warn(
@@ -180,6 +186,8 @@ export function useIsochroneFlow(params: {
           response.status,
           response.statusText,
         );
+        params.setIsSearching(false);
+        params.setSearchStage("");
       }
     } catch (error: unknown) {
       const err = error as Error;
@@ -188,9 +196,11 @@ export function useIsochroneFlow(params: {
         name: err.name,
         apiBaseUrl: params.env.apiBaseUrl,
       });
+      params.setIsSearching(false);
+      params.setSearchStage("");
     }
     return null;
-  }, [handleSearchPropertiesInIsochrone, params.env]);
+  }, [handleSearchPropertiesInIsochrone, params.env, params.setIsSearching, params.setSearchStage]);
 
   const primeIsochroneOverlay = useCallback(
     async (hasResults: boolean) => {

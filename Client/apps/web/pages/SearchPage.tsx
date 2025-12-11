@@ -599,7 +599,7 @@ export default function SearchPage({
             <div className="ml-4 px-2">
               <button
                 onClick={() => setIsCarouselCollapsed(!isCarouselCollapsed)}
-                className="cursor-help-hint p-1 text-gray-500 transition-colors hover:text-gray-700"
+                className="cursor-pointer p-1 text-gray-500 transition-colors hover:text-gray-700"
                 title={
                   isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"
                 }
@@ -681,7 +681,7 @@ export default function SearchPage({
       <div className="gap-responsive-md hidden h-full md:flex">
         {/* Sidebar */}
         <div className="flex w-64 flex-shrink-0 flex-col">
-          <div className="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-4">
+          <div className="flex h-full flex-col rounded-tr-lg border border-gray-200 bg-white p-4">
             {/* Tab Navigation */}
             <Tabs
               active={activeTab}
@@ -737,7 +737,7 @@ export default function SearchPage({
           </div>
 
           {/* Desktop Map - Takes remaining height */}
-          <div className="relative flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div className="relative flex-1 overflow-hidden rounded-tl-lg border border-gray-200 bg-white">
             {/* Loading overlay - shows until at least one property is available on map */}
             {(isSearching ||
               (hasSearched &&
@@ -746,7 +746,7 @@ export default function SearchPage({
               (!hasSearched &&
                 searchResults.length === 0 &&
                 savedHomes.length === 0)) && (
-              <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center overflow-hidden rounded-lg">
+              <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center overflow-hidden rounded-tl-lg">
                 <div className="absolute inset-0 z-0">
                   <RippleBackground />
                 </div>
@@ -767,7 +767,7 @@ export default function SearchPage({
             <div className="relative h-full w-full">
               <div
                 ref={desktopMapRef}
-                className="h-full w-full rounded-lg"
+                className="h-full w-full rounded-tl-lg"
                 style={{ minHeight: "400px" }}
               />
 

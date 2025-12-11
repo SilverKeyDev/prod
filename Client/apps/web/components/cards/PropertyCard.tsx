@@ -156,16 +156,12 @@ function PropertyCardImpl(props: PropertyCardProps) {
             </div>
           )}
 
-          {/* Top Content (e.g., HeartSave) - only show if price not below-address */}
-          {topContent && pricePosition !== "below-address" && (
-            <div
-              className={`absolute top-3 sm:top-4 ${
-                pricePosition === "top-left"
-                  ? "right-3 sm:right-4"
-                  : "left-3 sm:left-4"
-              }`}
-            >
-              {topContent}
+          {/* Top Content (e.g., HeartSave, CompareCheckbox) - always show on image overlay */}
+          {topContent && (
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="relative h-full w-full pointer-events-auto">
+                {topContent}
+              </div>
             </div>
           )}
         </div>
@@ -200,7 +196,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
           </div>
         )}
 
-        {/* Price and Heart Section - when price goes below address */}
+        {/* Price Section - when price goes below address */}
         {pricePosition === "below-address" && (
           <div className="flex w-full items-center gap-2">
             {showScore && score !== undefined ? (
@@ -218,23 +214,17 @@ function PropertyCardImpl(props: PropertyCardProps) {
                     />
                   </div>
                 </div>
-                {topContent && (
-                  <div className="flex-shrink-0">{topContent}</div>
-                )}
+                {/* Note: topContent is now rendered on image overlay, not here */}
               </>
             ) : (
               // When there's no score, center the price
               <>
-                {topContent && (
-                  <div className="flex-shrink-0">{topContent}</div>
-                )}
                 <div className="flex flex-1 justify-center">
                   <div className="text-lg font-bold text-brown sm:text-xl">
                     {formatPrice(price)}
                   </div>
                 </div>
-                <div className="flex-shrink-0 w-6"></div>{" "}
-                {/* Spacer to balance the heart button */}
+                {/* Note: topContent is now rendered on image overlay, not here */}
               </>
             )}
           </div>

@@ -83,7 +83,6 @@ export default function PersonalizationSidebar({
                   isLargeScreen ? "w-full" : ""
                 }`}
                 icon={<Save />}
-                loading={isSaving}
               >
                 {isLargeScreen ? (isSaving ? "Saving..." : "Save") : ""}
               </Button>

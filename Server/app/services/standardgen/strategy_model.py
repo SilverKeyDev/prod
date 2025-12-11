@@ -73,6 +73,7 @@ class MarketSection(BaseModel):
     local_market_stats: List[str] = Field(..., description="3-4 key local market statistics")
     buyer_leverage: str = Field(..., description="Overall buyer leverage assessment")
     national_snapshot: str = Field(..., description="Brief national market context")
+    neighborhood_snapshot: str = Field(..., description="Brief neighborhood-specific market context")
 
 
 class NegotiationStrategy(BaseModel):
@@ -266,9 +267,6 @@ class NegotiationStrategy(BaseModel):
         price_section = PriceSection(
             opening_offer=opening_offer,
             price_rationale=detailed_rationale,
-            credits_and_terms=credits_and_terms,
-            inspection_plan=inspection_plan,
-            timeline=timeline,
             offer_strength=offer_strength
         )
         
@@ -284,7 +282,8 @@ class NegotiationStrategy(BaseModel):
         market_section = MarketSection(
             local_market_stats=local_stats[:4],  # Limit to 4 stats
             buyer_leverage="Market conditions provide moderate buyer leverage with opportunity for strategic negotiations",
-            national_snapshot="National housing market showing signs of stabilization with regional variations"
+            national_snapshot="National housing market showing signs of stabilization with regional variations",
+            neighborhood_snapshot="Neighborhood market conditions reflect local trends and property characteristics"
         )
         
         # Apply any overrides

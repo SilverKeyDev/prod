@@ -23,6 +23,8 @@ import Loading from "../../components/ui/loading/Loading";
 type SortableReportSectionProps = {
   id: string;
   label: string;
+  description?: string;
+  question?: string;
   checked: boolean;
   onToggle: (checked: boolean) => void;
   priority?: number;
@@ -31,6 +33,8 @@ type SortableReportSectionProps = {
 const SortableReportSection: React.FC<SortableReportSectionProps> = ({
   id,
   label,
+  description,
+  question,
   checked,
   onToggle,
   priority,
@@ -70,65 +74,83 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center space-x-2 rounded-lg border border-gray-300 bg-gray-50 p-2 ${
+      className={`flex flex-col space-y-2 rounded-lg border border-gray-300 bg-gray-50 p-3 ${
         !checked ? "opacity-60" : ""
       } ${isDragging ? "border-brown/50 bg-white shadow-lg" : ""}`}
     >
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-drag touch-manipulation select-none rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-        title="Drag to reorder"
-        style={{ touchAction: "none" }}
-      >
-        <GripVertical className="h-4 w-4" />
-      </div>
-
-      <div className="flex items-center space-x-2">
-        {priority && (
-          <span className="text-sm font-semibold text-gray-600">
-            {priority}.
-          </span>
-        )}
-
-        <label
-          htmlFor={id}
-          className="flex flex-1 cursor-pointer items-center space-x-3"
+      <div className="flex items-start space-x-2">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-drag touch-manipulation select-none rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+          title="Drag to reorder"
+          style={{ touchAction: "none" }}
         >
-          <div className="relative">
-            <input
-              type="checkbox"
-              id={id}
-              checked={checked}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                onToggle(e.target.checked)
-              }
-              className="sr-only"
-            />
-            <div
-              className={`flex h-4 w-4 items-center justify-center rounded border-2 transition-all duration-200 ${
-                checked
-                  ? "border-olive bg-olive text-white shadow-sm"
-                  : "border-gray-300 bg-gray-100"
-              }`}
-            >
-              {checked && (
-                <svg
-                  className="h-2.5 w-2.5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+          <GripVertical className="h-4 w-4" />
+        </div>
+
+        <div className="flex flex-1 items-start space-x-2">
+          {priority && (
+            <span className="text-sm font-semibold text-gray-600">
+              {priority}.
+            </span>
+          )}
+
+          <label
+            htmlFor={id}
+            className="flex flex-1 cursor-pointer items-start space-x-3"
+          >
+            <div className="relative mt-0.5">
+              <input
+                type="checkbox"
+                id={id}
+                checked={checked}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  onToggle(e.target.checked)
+                }
+                className="sr-only"
+              />
+              <div
+                className={`flex h-4 w-4 items-center justify-center rounded border-2 transition-all duration-200 ${
+                  checked
+                    ? "border-olive bg-olive text-white shadow-sm"
+                    : "border-gray-300 bg-gray-100"
+                }`}
+              >
+                {checked && (
+                  <svg
+                    className="h-2.5 w-2.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium text-gray-900">
+                  {label}
+                </span>
+                {description && (
+                  <span className="hidden md:inline text-xs text-gray-500">
+                    {description}
+                  </span>
+                )}
+              </div>
+              {question && (
+                <p className="mt-1 text-xs italic text-gray-600">
+                  → {question}
+                </p>
               )}
             </div>
-          </div>
-          <span className="text-sm text-gray-600">{label}</span>
-        </label>
+          </label>
+        </div>
       </div>
     </div>
   );
@@ -138,7 +160,12 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
 type OnPerDragDropPrioritiesProps = {
   isEditMode: boolean;
   isLoading?: boolean;
-  orderedSections: Array<{ key: string; label: string }> | null;
+  orderedSections: Array<{
+    key: string;
+    label: string;
+    description?: string;
+    question?: string;
+  }> | null;
   formData: {
     report_section_priorities?: string[];
   };
@@ -162,7 +189,7 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    })
   );
 
   if (isLoading) {
@@ -179,7 +206,8 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
         Priorities
       </h2>
       <p className="mb-3 text-sm text-gray-600">
-        Section selection and order impacts your home-scoring algorithm and neighborhood reports
+        Section selection and order impacts your home-scoring algorithm and
+        neighborhood reports
       </p>
 
       <DndContext
@@ -195,7 +223,7 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
           strategy={verticalListSortingStrategy}
         >
           <div
-            className="grid grid-cols-1 gap-2 sm:grid-cols-2"
+            className="grid grid-cols-1 gap-3"
             style={{ touchAction: "manipulation" }}
           >
             {orderedSections?.map((section) => {
@@ -211,6 +239,8 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
                   key={section.key}
                   id={section.key}
                   label={section.label}
+                  description={section.description}
+                  question={section.question}
                   checked={isChecked}
                   onToggle={(checked) => {
                     onToggle(section.key, checked);
@@ -220,18 +250,18 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
               ) : (
                 <div
                   key={section.key}
-                  className={`flex items-center space-x-2 rounded-lg border border-gray-300 bg-gray-50 p-2 ${
+                  className={`flex flex-col space-y-2 rounded-lg border border-gray-300 bg-gray-50 p-3 ${
                     !isChecked ? "opacity-60" : ""
                   }`}
                 >
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-start space-x-2">
                     {priority && (
                       <span className="text-sm font-semibold text-gray-600">
                         {priority}.
                       </span>
                     )}
 
-                    <div className="relative">
+                    <div className="relative mt-0.5">
                       <div
                         className={`flex h-4 w-4 items-center justify-center rounded border-2 transition-all duration-200 ${
                           isChecked
@@ -255,9 +285,23 @@ const OnPerDragDropPriorities: React.FC<OnPerDragDropPrioritiesProps> = ({
                       </div>
                     </div>
 
-                    <span className="text-sm text-gray-600">
-                      {section.label}
-                    </span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-gray-900">
+                          {section.label}
+                        </span>
+                        {section.description && (
+                          <span className="hidden md:inline text-xs text-gray-500">
+                            {section.description}
+                          </span>
+                        )}
+                      </div>
+                      {section.question && (
+                        <p className="mt-1 text-xs italic text-gray-600">
+                          → {section.question}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

@@ -50,17 +50,56 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
             NeighborhoodOverview, Safety, CultureAndEvents, SocialCharacter,
             LocalAmenities, Commute, FamilyFriendly, NightlifeAndDating,
             Development, EnvironmentUtilities, FinancialInformation,
-            Schools, ExtraTips, LifestyleDNA
+            Schools, ExtraTips, LifestyleDNA,
+            # New 8-section models
+            Affordability, Neighborhood, CommuteSection, FamilyFriendlySection,
+            Entertainment, Investment, ClimateEnvironmentalSafety, ConvenienceWalkability, Home
         )
 
+        # Map old section names to new ones for backward compatibility
+        old_to_new_section_map = {
+            'financial_information': 'affordability',
+            'safety': 'neighborhood',
+            'social_character': 'neighborhood',
+            'neighborhood_overview': 'neighborhood',
+            'commute': 'commute',
+            'schools': 'family_friendly',
+            'family_friendly': 'family_friendly',
+            'culture_and_events': 'entertainment',
+            'local_amenities': 'entertainment',  # restaurants/bars/gyms go to entertainment
+            'nightlife_and_dating': 'entertainment',
+            'development': 'investment',
+            'environment_utilities': 'climate_environmental_safety',
+            'extra_tips': 'neighborhood',  # Merged into neighborhood section
+        }
+        
+        # Normalize section name (map old to new if needed)
+        normalized_section_name = old_to_new_section_map.get(section_name, section_name)
+        if normalized_section_name is None:
+            # Skip deprecated sections
+            logger.warning(f"⚠️ Section {section_name} is deprecated and will be skipped")
+            return {"error": f"Section {section_name} is deprecated"}
+        
+        # Use normalized name for model lookup
+        section_name = normalized_section_name
+
         section_model_map = {
+            # New 8-section models (primary)
+            'affordability': Affordability,
+            'neighborhood': Neighborhood,
+            'commute': CommuteSection,  # New consolidated commute model
+            'family_friendly': FamilyFriendlySection,  # New consolidated family model
+            'entertainment': Entertainment,
+            'investment': Investment,
+            'climate_environmental_safety': ClimateEnvironmentalSafety,
+            'convenience_walkability': ConvenienceWalkability,
+            'home': Home,
+            # Legacy models (for backward compatibility - will be deprecated)
             'neighborhood_overview': NeighborhoodOverview,
             'safety': Safety,
             'culture_and_events': CultureAndEvents,
             'social_character': SocialCharacter,
             'local_amenities': LocalAmenities,
-            'commute': Commute,
-            'family_friendly': FamilyFriendly,
             'nightlife_and_dating': NightlifeAndDating,
             'development': Development,
             'environment_utilities': EnvironmentUtilities,
@@ -209,15 +248,56 @@ def get_individual_section_schema(section_name: str, user_preferences: Dict[str,
             Commute, FamilyFriendly, NightlifeAndDating, Development, EnvironmentUtilities,
             FinancialInformation, Schools, ExtraTips, ComparisonField
         )
+        from app.models.report_models import (
+            # New 8-section models
+            Affordability, Neighborhood, CommuteSection, FamilyFriendlySection,
+            Entertainment, Investment, ClimateEnvironmentalSafety, ConvenienceWalkability, Home
+        )
+        
+        # Map old section names to new ones for backward compatibility
+        old_to_new_section_map = {
+            'financial_information': 'affordability',
+            'safety': 'neighborhood',
+            'social_character': 'neighborhood',
+            'neighborhood_overview': 'neighborhood',
+            'commute': 'commute',
+            'schools': 'family_friendly',
+            'family_friendly': 'family_friendly',
+            'culture_and_events': 'entertainment',
+            'local_amenities': 'entertainment',
+            'nightlife_and_dating': 'entertainment',
+            'development': 'investment',
+            'environment_utilities': 'climate_environmental_safety',
+            'extra_tips': 'neighborhood',  # Merged into neighborhood section
+        }
+        
+        # Normalize section name (map old to new if needed)
+        normalized_section_name = old_to_new_section_map.get(section_name, section_name)
+        if normalized_section_name is None:
+            logger.warning(f"⚠️ Section {section_name} is deprecated and will be skipped")
+            return {"error": f"Section {section_name} is deprecated"}
+        
+        section_name = normalized_section_name
         
         section_model_map = {
             'comparison_summary': ComparisonSummary,
+            # New 8-section models (primary)
+            'affordability': Affordability,
+            'neighborhood': Neighborhood,
+            'commute': CommuteSection,
+            'family_friendly': FamilyFriendlySection,
+            'entertainment': Entertainment,
+            'investment': Investment,
+            'climate_environmental_safety': ClimateEnvironmentalSafety,
+            'convenience_walkability': ConvenienceWalkability,
+            'home': Home,
+            # Legacy models (for backward compatibility)
             'neighborhood_overview': NeighborhoodOverview,
             'safety': Safety,
             'culture_and_events': CultureAndEvents,
             'social_character': SocialCharacter,
-            'commute': Commute,
-            'family_friendly': FamilyFriendly,
+            'commute_legacy': Commute,
+            'family_friendly_legacy': FamilyFriendly,
             'nightlife_and_dating': NightlifeAndDating,
             'development': Development,
             'environment_utilities': EnvironmentUtilities,

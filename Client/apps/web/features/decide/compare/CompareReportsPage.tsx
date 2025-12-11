@@ -1,37 +1,48 @@
 // React imports
 import { Download, Share, BarChart2, X, Settings } from "lucide-react";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 
 import { Card } from "../../../components/layout";
 import { Title, Subtitle } from "../../../components/ui";
 import Button from "../../../components/ui/button/Button";
 // Core
-import { ALL_METRIC_KEYS, type Report } from "../../../../../packages/schemas";
+import { ALL_METRIC_KEYS } from "../../../../../packages/schemas";
+import type { SavedHome } from "../../../../../packages/schemas";
 // Components
 import { ComparisonSpreadsheet, ManageRowsModal, type ComparisonRow } from ".";
 import type { DocumentWithBody } from "../../../../../packages/schemas/google-maps";
-import { reportsService } from "../../../../../packages/services";
 import { secureClipboardCopy } from "../../../../../packages/services/security/clipboardSecurity";
 import { captureError } from "../../../../../packages/services/security/errorReporting";
 import { log } from "../../../../../packages/services/security/secureLogger";
-import { useReportsStore, useUIStore } from "../../../../../packages/store";
-import { formatFilenameToAddress } from "../../../../../packages/utils/address";
+import { useUIStore } from "../../../../../packages/store";
+import { useSavedHomesStoreIntegration } from "../../../../../packages/hooks/store/useSavedHomesStoreIntegration";
 
 // Context imports
 
+type HomeUniversalData = {
+  id?: string;
+  address?: string;
+  price?: string;
+  beds?: string;
+  baths?: string;
+  sqft?: string;
+  lot_size?: string;
+  property_type?: string;
+  year_built?: string;
+  score?: number;
+  property_analysis?: Record<string, unknown>;
+  commute_data?: Record<string, unknown>;
+  features?: Record<string, unknown> | unknown[];
+  zillow_url?: string;
+  [key: string]: unknown;
+};
+
 export default function CompareReportsPage() {
-  // Use Reports store for reports management
-  const compareReports = useReportsStore((s) => s.compareReports);
+  // Use saved homes store instead of reports
+  const { savedHomes: homes, savedHomesLoading: loading } =
+    useSavedHomesStoreIntegration();
 
-  // Backend now filters to only return standard ('detailed') reports
-  // Extra client-side guard: filter out any comparison reports that may slip through
-  const reports = (compareReports ?? []).filter((r) => {
-    const address = (r?.address ?? "").toString();
-    // Exclude filenames/addresses that look like comparison outputs
-    return !/[_-]vs[_-]/i.test(address) && !/\svs\s/i.test(address);
-  });
-
-  const [selectedReports, setSelectedReports] = useState<Report[]>([]);
+  const [selectedHomes, setSelectedHomes] = useState<SavedHome[]>([]);
   const [isLoading, setIsLoading] = useState(false); // Only for comparison loading
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const [showRowModal, setShowRowModal] = useState(false);
@@ -43,17 +54,18 @@ export default function CompareReportsPage() {
 
   // Load comparison state from localStorage on mount
   useEffect(() => {
-    const savedState = localStorage.getItem("compareReportsState");
+    const savedState = localStorage.getItem("compareHomesState");
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState) as Record<string, unknown>;
-        // Type-safe parsing with proper type guards
         if (
-          "selectedReports" in parsed &&
-          parsed.selectedReports &&
-          Array.isArray(parsed.selectedReports)
+          "selectedHomeIds" in parsed &&
+          parsed.selectedHomeIds &&
+          Array.isArray(parsed.selectedHomeIds)
         ) {
-          setSelectedReports(parsed.selectedReports as Report[]);
+          const selectedIds = parsed.selectedHomeIds as string[];
+          const selected = homes.filter((h) => selectedIds.includes(h.home_id));
+          setSelectedHomes(selected);
         }
         if (
           "omittedRows" in parsed &&
@@ -78,33 +90,134 @@ export default function CompareReportsPage() {
           setManuallyEnabledRows(new Set<string>(manuallyEnabledRowsArray));
         }
       } catch {
-        console.warn("Invalid compare reports state data");
+        console.warn("Invalid compare homes state data");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save comparison state to localStorage when it changes
   useEffect(() => {
     const stateToSave = {
-      selectedReports,
+      selectedHomeIds: selectedHomes.map((h) => h.home_id),
       omittedRows: Array.from(omittedRows),
       manuallyEnabledRows: Array.from(manuallyEnabledRows),
     };
-    localStorage.setItem("compareReportsState", JSON.stringify(stateToSave));
-  }, [selectedReports, omittedRows, manuallyEnabledRows]);
+    localStorage.setItem("compareHomesState", JSON.stringify(stateToSave));
+  }, [selectedHomes, omittedRows, manuallyEnabledRows]);
+
+  // Build comparison table from home_universal data
+  const buildComparisonTable = useCallback(
+    (selected: SavedHome[]): ComparisonRow[] => {
+      return selected.map((home) => {
+        const homeData = home as unknown as HomeUniversalData;
+        const row: ComparisonRow = {
+          Address: home.address ?? home.description ?? "Unknown",
+        };
+
+        // Basic property data
+        row["Price"] = homeData.price ?? "-";
+        row["Bedrooms"] = homeData.beds ?? home.bedrooms?.toString() ?? "-";
+        row["Bathrooms"] = homeData.baths ?? home.bathrooms?.toString() ?? "-";
+        row["Living Area"] = homeData.sqft ?? home.sqft?.toString() ?? "-";
+        row["Property Type"] = homeData.property_type ?? "-";
+        row["Zillow URL"] = homeData.zillow_url ?? "-";
+
+        // Extract from property_analysis JSON
+        if (
+          homeData.property_analysis &&
+          typeof homeData.property_analysis === "object"
+        ) {
+          const analysis = homeData.property_analysis as Record<
+            string,
+            unknown
+          >;
+          // Map common analysis fields to metrics
+          if (analysis.neighborhood_vibe)
+            row["Neighborhood Vibe"] = String(analysis.neighborhood_vibe);
+          if (analysis.local_culture)
+            row["Local Culture"] = String(analysis.local_culture);
+          if (analysis.crime_rating)
+            row["Crime Rating"] = String(analysis.crime_rating);
+          if (analysis.safety_rating)
+            row["Safety Rating"] = String(analysis.safety_rating);
+          if (analysis.family_rating)
+            row["Family Rating"] = String(analysis.family_rating);
+          if (analysis.nightlife_rating)
+            row["Nightlife Rating"] = String(analysis.nightlife_rating);
+          if (analysis.environmental_rating)
+            row["Environmental Rating"] = String(analysis.environmental_rating);
+          if (analysis.financial_rating)
+            row["Financial Rating"] = String(analysis.financial_rating);
+          // Add more mappings as needed
+        }
+
+        // Extract from commute_data JSON
+        if (
+          homeData.commute_data &&
+          typeof homeData.commute_data === "object"
+        ) {
+          const commute = homeData.commute_data as Record<string, unknown>;
+          if (commute.public_transport)
+            row["Public Transport"] = String(commute.public_transport);
+          if (commute.traffic) row["Traffic"] = String(commute.traffic);
+          if (commute.walkability)
+            row["Walkability"] = String(commute.walkability);
+        }
+
+        // Extract from features JSON
+        if (homeData.features) {
+          if (Array.isArray(homeData.features)) {
+            row["Property Features"] = homeData.features.join(", ");
+          } else if (typeof homeData.features === "object") {
+            const features = homeData.features as Record<string, unknown>;
+            if (features.pet_friendly !== undefined)
+              row["Pet Friendly"] = String(features.pet_friendly);
+            if (features.parking) row["Parking"] = String(features.parking);
+          }
+        }
+
+        return row;
+      });
+    },
+    []
+  );
+
+  // Update comparison table when selected homes change
+  useEffect(() => {
+    if (selectedHomes.length === 0) {
+      setComparisonTable([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const table = buildComparisonTable(selectedHomes);
+      setComparisonTable(table);
+    } catch (error: unknown) {
+      log.error("COMPARE_HOMES", "Failed to build comparison table", error);
+      enqueueToast({
+        type: "error",
+        message: "Failed to build comparison table",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedHomes, buildComparisonTable, enqueueToast]);
 
   // Helper function to check if a row has any data for selected properties
   const hasDataForAnyProperty = (metric: string) => {
-    if (selectedReports.length === 0 || comparisonTable.length === 0) {
+    if (selectedHomes.length === 0 || comparisonTable.length === 0) {
       return false;
     }
 
-    return selectedReports.some((report) => {
+    return selectedHomes.some((home) => {
       const sanitize = (str: string) =>
         (str ?? "").toLowerCase().replace(/\s+/g, "_");
+      const address = home.address ?? home.description ?? "";
       const row = comparisonTable.find(
         (item: ComparisonRow) =>
-          sanitize(item.Address as string) === sanitize(report.address)
+          sanitize(item.Address as string) === sanitize(address)
       );
       const value = row ? row[metric] : null;
       // Consider a row to have data if it's not null, undefined, empty string, or just "-"
@@ -136,132 +249,38 @@ export default function CompareReportsPage() {
     (metric) => !allOmittedRows.has(metric)
   );
 
-  // Removed fetchReports - now using preloaded data from context
-  // Helper to compare
-  // Fetch comparison data whenever selection changes (2-5 selected)
-  const fetchComparison = useCallback(
-    async (keys: string[]) => {
-      if (keys.length === 0) {
-        enqueueToast({ type: "error", message: "Select a report to view" });
-        return;
-      }
-
-      // Simple validation - check if we have valid keys
-      if (!keys || keys.length === 0) {
-        enqueueToast({
-          type: "error",
-          message: "Invalid report keys provided",
-        });
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-
-        const response = await reportsService.compareReports(
-          selectedReports.map((r) => r.id),
-          keys
-        );
-
-        if (
-          response &&
-          typeof response === "object" &&
-          "success" in response &&
-          response.success &&
-          "table" in response &&
-          Array.isArray(response.table)
-        ) {
-          const normalized = (response.table as unknown[])
-            .filter(
-              (item: unknown) => typeof item === "object" && item !== null
-            )
-            .map((row: unknown) => {
-              const obj = row as Record<string, unknown>;
-              if (!("Address" in obj) && typeof obj["address"] === "string") {
-                obj["Address"] = obj["address"];
-              }
-              return obj as ComparisonRow;
-            });
-          setComparisonTable(normalized);
-        } else {
-          const errorMessage =
-            response &&
-            typeof response === "object" &&
-            "error" in response &&
-            typeof response.error === "string"
-              ? response.error
-              : "Comparison failed";
-          throw new Error(errorMessage);
-        }
-      } catch (error: unknown) {
-        log.error("COMPARE_REPORTS", "Comparison request failed", error);
-        enqueueToast({
-          type: "error",
-          message: error instanceof Error ? error.message : "Comparison failed",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [selectedReports, enqueueToast]
-  );
-
-  // Update comparison whenever selectedReports changes
-  useEffect(() => {
-    // No selection: clear table and exit quietly
-    if (selectedReports.length === 0) {
-      setComparisonTable([]);
-      return;
-    }
-
-    const pdfKeys = selectedReports.map((r) => r.s3Key ?? "");
-    // Simple transformation - use s3Key as jsonKey if available
-    const jsonKeys = pdfKeys.filter((key) => key && key.length > 0);
-
-    if (jsonKeys.length > 0) {
-      void fetchComparison(jsonKeys);
-    } else {
-      // Only warn when user has selected reports but we cannot derive keys
-      log.warn("COMPARE_REPORTS", "No s3 keys for selected reports", {
-        selectedCount: selectedReports.length,
-      });
-      setComparisonTable([]);
-    }
-  }, [selectedReports, fetchComparison]);
-
-  // Data is already preloaded by context - no need to fetch
-
-  const toggleReportSelection = (report: Report, e: React.MouseEvent) => {
+  const toggleHomeSelection = (home: SavedHome, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Set loading state when toggling selection since it triggers comparison fetch
-    setIsLoading(true);
-
-    setSelectedReports((prev) => {
-      const isSelected = prev.some((r) => r.id === report.id);
+    setSelectedHomes((prev) => {
+      const isSelected = prev.some((h) => h.home_id === home.home_id);
       if (isSelected) {
-        return prev.filter((r) => r.id !== report.id);
+        return prev.filter((h) => h.home_id !== home.home_id);
       } else {
-        return [...prev, report];
+        return [...prev, home];
       }
     });
   };
 
   // Export comparison table to CSV
   const exportToExcel = () => {
-    if (selectedReports.length === 0 || comparisonTable.length === 0) {
+    if (selectedHomes.length === 0 || comparisonTable.length === 0) {
       enqueueToast({ type: "error", message: "Select properties to export" });
       return;
     }
-    const header = ["Metric", ...selectedReports.map((r) => r.address)];
+    const header = [
+      "Metric",
+      ...selectedHomes.map((h) => h.address ?? h.description ?? "Unknown"),
+    ];
     const sanitize = (str: string) =>
       (str ?? "").toLowerCase().replace(/\s+/g, "_");
     const rows = visibleMetrics.map((metric: string) => {
-      const values = selectedReports.map((r) => {
+      const values = selectedHomes.map((h) => {
+        const address = h.address ?? h.description ?? "";
         const row = comparisonTable.find(
           (item: ComparisonRow) =>
-            sanitize(item.Address as string) === sanitize(r.address)
+            sanitize(item.Address as string) === sanitize(address)
         );
         return row ? ((row[metric] as string | number) ?? "-") : "-";
       });
@@ -285,19 +304,23 @@ export default function CompareReportsPage() {
 
   // Share comparison CSV
   const shareCSV = async () => {
-    if (selectedReports.length === 0 || comparisonTable.length === 0) {
+    if (selectedHomes.length === 0 || comparisonTable.length === 0) {
       enqueueToast({ type: "error", message: "Select properties to share" });
       return;
     }
 
-    const header = ["Metric", ...selectedReports.map((r) => r.address)];
+    const header = [
+      "Metric",
+      ...selectedHomes.map((h) => h.address ?? h.description ?? "Unknown"),
+    ];
     const sanitize = (str: string) =>
       (str ?? "").toLowerCase().replace(/\s+/g, "_");
     const rows = visibleMetrics.map((metric: string) => {
-      const values = selectedReports.map((r) => {
+      const values = selectedHomes.map((h) => {
+        const address = h.address ?? h.description ?? "";
         const row = comparisonTable.find(
           (item: ComparisonRow) =>
-            sanitize(item.Address as string) === sanitize(r.address)
+            sanitize(item.Address as string) === sanitize(address)
         );
         return row ? ((row[metric] as string | number) ?? "-") : "-";
       });
@@ -320,7 +343,7 @@ export default function CompareReportsPage() {
         });
         await navigator.share({
           title: "Property Comparison Report",
-          text: `Comparison of ${selectedReports.length} properties`,
+          text: `Comparison of ${selectedHomes.length} properties`,
           files: [file],
         });
         enqueueToast({ type: "success", message: "CSV shared successfully" });
@@ -366,27 +389,26 @@ export default function CompareReportsPage() {
     }
   };
 
-
   return (
     <div>
       <div className="overflow-x-auto">
         {/* Global toasts shown via ToastsPortal */}
 
-        {/* Reports Selection */}
-        <Card className="mb-8 sm:mb-8">
-          <div className="mb-2 flex flex-col space-y-4 sm:mb-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        {/* Homes Selection */}
+        <Card className="mb-responsive-lg">
+          <div className="mb-responsive-sm flex flex-col space-y-responsive-sm sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <div className="hidden sm:block">
               <Title size="md" className="font-medium">
-                Your Property Reports
+                Your Saved Homes
               </Title>
-              <Subtitle size="xs" muted className="mb-2 mt-1">
-                {selectedReports.length} of {reports.length} selected
+              <Subtitle size="xs" muted className="mb-responsive-xs mt-1">
+                {selectedHomes.length} of {homes.length} selected
               </Subtitle>
             </div>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:gap-3">
+            <div className="flex w-full flex-wrap items-center gap-responsive-sm sm:w-auto sm:flex-nowrap">
               <Button
-                onClick={() => setSelectedReports([])}
-                disabled={selectedReports.length === 0}
+                onClick={() => setSelectedHomes([])}
+                disabled={selectedHomes.length === 0}
                 variant="outline"
                 size="sm"
                 icon={<X />}
@@ -397,7 +419,7 @@ export default function CompareReportsPage() {
               <Button
                 onClick={exportToExcel}
                 disabled={
-                  selectedReports.length === 0 || comparisonTable.length === 0
+                  selectedHomes.length === 0 || comparisonTable.length === 0
                 }
                 variant="olive"
                 size="sm"
@@ -409,7 +431,7 @@ export default function CompareReportsPage() {
               <Button
                 onClick={shareCSV}
                 disabled={
-                  selectedReports.length === 0 || comparisonTable.length === 0
+                  selectedHomes.length === 0 || comparisonTable.length === 0
                 }
                 variant="filter"
                 size="sm"
@@ -421,28 +443,35 @@ export default function CompareReportsPage() {
             </div>
           </div>
 
-          {reports.length === 0 ? (
+          {loading ? (
+            <div className="py-responsive-lg text-center">
+              <BarChart2 className="mobile-icon-lg space-y-responsive-sm mx-auto text-black/30 animate-pulse" />
+              <Title size="sm" className="space-y-responsive-xs font-medium">
+                Loading homes...
+              </Title>
+            </div>
+          ) : homes.length === 0 ? (
             <div className="py-responsive-lg text-center">
               <BarChart2 className="mobile-icon-lg space-y-responsive-sm mx-auto text-black/30" />
               <Title size="sm" className="space-y-responsive-xs font-medium">
-                No reports found
+                No saved homes found
               </Title>
               <Subtitle
                 size="sm"
                 muted
                 className="space-y-responsive-sm px-responsive-sm"
               >
-                Generate your first property report to get started
+                Save homes to compare them
               </Subtitle>
             </div>
           ) : (
             <div
               className={`gap-responsive-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${
-                reports.length > 9 ? "custom-scrollbar overflow-y-auto" : ""
+                homes.length > 9 ? "custom-scrollbar overflow-y-auto" : ""
               }`}
               style={{
-                ...(reports.length > 9 ? { maxHeight: "16rem" } : {}),
-                ...(reports.length > 9
+                ...(homes.length > 9 ? { maxHeight: "16rem" } : {}),
+                ...(homes.length > 9
                   ? {
                       scrollbarWidth: "thin",
                       scrollbarColor: "#E8D5B560 #f3f4f6",
@@ -450,20 +479,22 @@ export default function CompareReportsPage() {
                   : {}),
               }}
             >
-              {reports.map((report: Report) => {
-                const isSelected = selectedReports.some(
-                  (r) => r.id === report.id
+              {homes.map((home: SavedHome) => {
+                const isSelected = selectedHomes.some(
+                  (h) => h.home_id === home.home_id
                 );
+                const address =
+                  home.address ?? home.description ?? "Unknown Address";
                 return (
                   <div
-                    key={report.id}
+                    key={home.home_id}
                     onClick={(e) => {
                       if (!isLoading) {
-                        toggleReportSelection(report, e);
+                        toggleHomeSelection(home, e);
                       }
                     }}
                     onMouseDown={(e) => e.preventDefault()} // Prevent focus/highlight on click
-                    className={`cursor-pointer touch-manipulation select-none rounded-xl border-2 p-2 transition-all duration-200 sm:p-3 ${
+                    className={`touch-friendly cursor-pointer select-none rounded-xl border-2 p-responsive-sm transition-all duration-200 ${
                       isLoading
                         ? "cursor-wait opacity-50"
                         : isSelected
@@ -476,7 +507,7 @@ export default function CompareReportsPage() {
                         <div className="min-w-0 flex-1 pr-2">
                           <h3
                             className="overflow-hidden text-xs font-medium leading-tight text-black sm:text-sm"
-                            title={report.address}
+                            title={address}
                             style={{
                               display: "-webkit-box",
                               WebkitLineClamp: 2,
@@ -485,7 +516,7 @@ export default function CompareReportsPage() {
                               hyphens: "auto",
                             }}
                           >
-                            {formatFilenameToAddress(report.address)}
+                            {address}
                           </h3>
                         </div>
                       </div>
@@ -498,8 +529,8 @@ export default function CompareReportsPage() {
         </Card>
 
         {/* Row Omission Controls Button */}
-        <Card className="mb-6 mt-8">
-          <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <Card className="mb-responsive-md mt-responsive-lg">
+          <div className="flex flex-col space-y-responsive-sm sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <div>
               <Title size="md" className="font-medium">
                 Customize Comparison
@@ -523,23 +554,25 @@ export default function CompareReportsPage() {
 
         {/* Comparison Table */}
         <ComparisonSpreadsheet
-          selectedReports={selectedReports}
+          selectedReports={selectedHomes.map((h) => ({
+            id: h.home_id,
+            address: h.address ?? h.description ?? "Unknown",
+          }))}
           comparisonTable={comparisonTable}
           visibleMetrics={visibleMetrics}
           isLoading={isLoading}
         />
 
         {/* Selection summary */}
-        {selectedReports.length > 0 && (
-          <div className="mt-6 text-center">
-            <p className="text-black/70">
-              {selectedReports.length}{" "}
-              {selectedReports.length === 1 ? "property" : "properties"}{" "}
-              selected
+        {selectedHomes.length > 0 && (
+          <div className="mt-responsive-md text-center">
+            <p className="text-responsive-sm text-black/70">
+              {selectedHomes.length}{" "}
+              {selectedHomes.length === 1 ? "property" : "properties"} selected
             </p>
             <button
-              onClick={() => setSelectedReports([])}
-              className="touch-friendly mt-1 py-0.5 text-sm font-normal tracking-tight text-black/70 underline hover:text-black sm:mt-2 sm:py-1"
+              onClick={() => setSelectedHomes([])}
+              className="touch-friendly mt-responsive-xs py-responsive-xs text-responsive-sm font-normal tracking-tight text-black/70 underline hover:text-black"
             >
               Clear selection
             </button>

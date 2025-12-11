@@ -10,10 +10,14 @@ import urllib.parse
 from PIL import Image as PILImage
 from io import BytesIO
 import re
+import os
 
 
 
 logger = logging.getLogger(__name__)
+
+# Get Google Maps Map ID - hardcoded for consistency with frontend
+GOOGLE_MAPS_ID = "20e2eb0b8f03975aaf072074"
 
 # Consistent font sizes for all charts
 TITLE_FONTSIZE = 16
@@ -330,11 +334,23 @@ def fetch_travel_time(origin, destination, api_key):
         return None
 
 
-def generate_static_map_url(primary_address, secondary_locations, api_key):
-    """Generate a styled static map URL with proper zoom to show all routes."""
+def generate_static_map_url(primary_address, secondary_locations, api_key, map_id=None):
+    """Generate a static map URL with proper zoom to show all routes.
+    
+    Args:
+        primary_address: The main property address
+        secondary_locations: List of dicts with 'name' and 'address' keys
+        api_key: Google Maps API key
+        map_id: Optional Google Maps map ID for cloud styling (matches search map styling).
+                If None, uses GOOGLE_MAPS_ID from environment variables.
+    """
     base_url = "https://maps.googleapis.com/maps/api/staticmap?"
     
-    # Enhanced parameters with custom styling
+    # Get map_id from parameter or module-level constant
+    if map_id is None:
+        map_id = GOOGLE_MAPS_ID
+    
+    # Map parameters
     params = {
         "size": "800x600",
         "maptype": "roadmap",
@@ -343,61 +359,40 @@ def generate_static_map_url(primary_address, secondary_locations, api_key):
         "scale": "2",  # High resolution for better quality
     }
     
-    # Custom map styling based on mapStyling.ts
-    custom_style = [
-        # Clean landscape
-        "style=feature:landscape%7Celement:geometry.fill%7Ccolor:0xf5f5f2",
-        "style=feature:landscape.man_made%7Celement:geometry.fill%7Ccolor:0xffffff",
-        
-        # Clean roads
-        "style=feature:road.highway%7Celement:geometry%7Ccolor:0xffffff%7Cvisibility:simplified",
-        "style=feature:road.arterial%7Celement:geometry%7Ccolor:0xffffff%7Cvisibility:simplified",
-        "style=feature:road.local%7Celement:geometry%7Ccolor:0xffffff",
-        
-        # Hide clutter
-        "style=feature:poi%7Celement:labels.icon%7Cvisibility:off",
-        "style=feature:road.local%7Celement:labels%7Cvisibility:off",
-        "style=feature:transit%7Cvisibility:off",
-        
-        # Water and parks
-        "style=feature:water%7Ccolor:0xa0d3d3",
-        "style=feature:poi.park%7Ccolor:0x91b65d",
-        
-        # Keep important labels
-        "style=feature:administrative.locality%7Celement:labels.text.fill%7Ccolor:0x4a4a4a%7Cvisibility:on",
-        "style=feature:road.highway%7Celement:labels.text.fill%7Ccolor:0x4a4a4a%7Cvisibility:on",
-    ]
+    # Use cloud-styled map if map_id is available (matches search map styling)
+    if map_id:
+        params["map_id"] = map_id
     
     markers = []
     paths = []
     all_addresses = [primary_address]
 
-    # Enhanced marker for primary address (property)
-    markers.append(f"color:red%7Clabel:P%7C{primary_address}")
+    # Marker for primary address (property) - using saddle brown to match theme
+    markers.append(f"color:0x8B4513%7Clabel:P%7C{primary_address}")
 
-    # Enhanced markers for secondary locations with different colors
-    colors = ["blue", "green", "orange", "purple", "yellow"]
+    # Markers for secondary locations with olive/brown theme colors
+    # Location 1: dark olive, Location 2: light olive, Location 3: medium brown, Location 4: olive drab, Location 5: tan
+    location_colors = ["0x556B2F", "0x9CAF88", "0xA0826D", "0x6B8E23", "0xBC8A5F"]  # dark olive, light olive, medium brown, olive drab, tan
     for i, loc in enumerate(secondary_locations):
-        color = colors[i % len(colors)]
+        color = location_colors[i % len(location_colors)]
         label = loc.get('name', f'L{i+1}')[:1].upper()  # Use first letter of location name
         markers.append(f"color:{color}%7Clabel:{label}%7C{loc['address']}")
         all_addresses.append(loc['address'])
         
-        # Enhanced path styling
+        # Path styling - use dark brown for drive between locations
         polyline = fetch_route_polyline(primary_address, loc['address'], api_key)
         if polyline:
-            # Use different colors for different routes
-            path_color = "0x4285F4" if i == 0 else "0x34A853" if i == 1 else "0xEA4335"
+            # Use dark brown for all routes
+            path_color = "0x654321"  # dark brown
             paths.append(f"color:{path_color}%7Cweight:4%7Cenc:{polyline}")
         else:
-            # Fallback straight line with styling
-            path_color = "0x888888"
+            # Fallback straight line - also use dark brown
+            path_color = "0x654321"  # dark brown
             paths.append(f"color:{path_color}%7Cweight:2%7C{primary_address}%7C{loc['address']}")
 
     # Auto-zoom: Let Google determine the best zoom to fit all markers
     # Don't set center or zoom, let Google auto-fit based on markers
     
-    params["style"] = custom_style
     params["markers"] = markers
     if paths:  # Only add paths if we have routes
         params["path"] = paths
@@ -484,7 +479,7 @@ def generate_commute_map(primary_address, user_preferences, api_key):
             })
         
         # Generate map URL and fetch image
-        map_url = generate_static_map_url(primary_address, important_locations, api_key)
+        map_url = generate_static_map_url(primary_address, important_locations, api_key, map_id=GOOGLE_MAPS_ID)
         
         buffer_result = save_map_as_buffer(map_url)
         

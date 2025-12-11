@@ -296,7 +296,7 @@ class Safety(BaseModel):
             "crime_rating": "Crime level assessment using AreaVibes, Neighborhood Scout, or local police data. Focus on safety factors most relevant to user's situation. Use FBI crime statistics or city crime reports.",
             "places_to_watch_out_for": "Specific areas using crime maps, police reports, or resident forums. Prioritize areas relevant to user's daily routines and family needs. Check City-Data forums or Nextdoor for local insights.",
             "police_presence": "Police patrol frequency using local police department data or community reports. Emphasize community policing and response times from official sources.",
-            "safety_rating": "Overall safety score using AreaVibes, Neighborhood Scout, or Niche safety ratings. Weight factors based on user's safety priorities and family situation.",
+            "safety_rating": "Overall safety score out of 10 using AreaVibes, Neighborhood Scout, or Niche safety ratings. MUST be a numeric value formatted as 'X.X/10' (e.g., '8.5/10', '7.2/10'). DO NOT use letter grades like A-, B+, C, etc. Weight factors based on user's safety priorities and family situation.",
             "image_prompt": f"Photo comparing safety features visible around each address including lighting, sidewalks, and security measures in both neighborhoods (emphasizing {safety_focus} safety concerns)."
         }
 

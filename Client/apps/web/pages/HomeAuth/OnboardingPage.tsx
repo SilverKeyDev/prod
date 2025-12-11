@@ -200,18 +200,31 @@ export default function OnboardingPage() {
   const handleReportSectionToggle = (sectionKey: string, checked: boolean) => {
     const currentPriorities = formData.report_section_priorities ?? [];
 
+    // Ensure we only work with valid sections from DEFAULT_REPORT_SECTIONS
+    const validSectionKeys = new Set(
+      DEFAULT_REPORT_SECTIONS.map((section) => section.key)
+    );
+
+    if (!validSectionKeys.has(sectionKey)) {
+      console.warn(`Attempted to toggle invalid section: ${sectionKey}`);
+      return;
+    }
+
     if (!checked) {
       // Remove from priorities when unchecked
       const newPriorities = currentPriorities.filter(
-        (key) => key !== sectionKey
+        (key) => key !== sectionKey && validSectionKeys.has(key)
       );
       updateFormData("report_section_priorities", newPriorities);
     } else {
       // Add to last priority (bottom of list) when checked (if not already there)
       if (!currentPriorities.includes(sectionKey)) {
-        // Add to the end of the list (last priority)
+        // Filter out any invalid sections and add the new one
+        const filteredPriorities = currentPriorities.filter((key) =>
+          validSectionKeys.has(key)
+        );
         updateFormData("report_section_priorities", [
-          ...currentPriorities,
+          ...filteredPriorities,
           sectionKey,
         ]);
       }
@@ -226,7 +239,19 @@ export default function OnboardingPage() {
         const parsed = JSON.parse(draft) as Record<string, unknown>;
         // Type-safe parsing with proper type guards
         if (parsed && typeof parsed === "object") {
-          setFormData(parsed as OnboardingData);
+          // Filter out legacy sections that aren't in DEFAULT_REPORT_SECTIONS
+          const validSectionKeys = new Set(
+            DEFAULT_REPORT_SECTIONS.map((section) => section.key)
+          );
+
+          const cleanedData = { ...parsed };
+          if (cleanedData.report_section_priorities) {
+            cleanedData.report_section_priorities = (
+              cleanedData.report_section_priorities as string[]
+            ).filter((key) => validSectionKeys.has(key));
+          }
+
+          setFormData(cleanedData as OnboardingData);
         }
       } catch {
         console.warn("Invalid onboarding draft data");
@@ -704,7 +729,7 @@ export default function OnboardingPage() {
                 >
                   {FIELD_LABELS.WALKABILITY_IMPORTANCE}
                 </OnPerLabel>
-                
+
                 <Dropdown
                   value={formData.walkability_importance ?? ""}
                   onChange={(value) =>

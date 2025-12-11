@@ -19,8 +19,20 @@ import json
 from typing import List, Dict, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import math
+import concurrent.futures
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
+
+# Perplexity API configuration for report sections
+PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
+PERPLEXITY_HEADERS = {
+    "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
+    "Content-Type": "application/json",
+} if PERPLEXITY_API_KEY else {}
+PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
+PERPLEXITY_MODEL = os.getenv("PERPLEXITY_MODEL", "sonar-pro")
 
 
 def _safe_json_parse(s: str) -> Dict[str, Any]:
@@ -198,11 +210,7 @@ class PropertyAnalysis(BaseModel):
     """Structured property analysis response from Perplexity Sonar Pro"""
     pros: List[str] = Field(description="2-5 key advantages of this property/location", min_items=2, max_items=5)
     cons: List[str] = Field(description="2-5 key disadvantages of this property/location", min_items=2, max_items=5)
-    neighborhood_overview: Dict[str, str] = Field(description="Neighborhood overview with description and vibe")
-    crime_stats: Dict[str, Any] = Field(description="Crime statistics and safety information for the area")
-    gentrification_index: Dict[str, Any] = Field(description="Gentrification analysis including score and trends")
-    roi_explanation: str = Field(description="Return on investment analysis and market outlook")
-
+   
 def extract_property_features(listing: Dict[str, Any]) -> Dict[str, List[str]]:
     rf: Dict[str, Any] = (listing.get("resoFacts") or {}) if isinstance(listing, dict) else {}
 
@@ -487,7 +495,7 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
         home_object: Property/home data object containing address, price, features, etc.
         
     Returns:
-        PropertyAnalysis object with pros, cons, crime stats, gentrification index, and ROI explanation
+        PropertyAnalysis object with pros, cons
         Returns None if API key is not configured or request fails
     """
     if not PERPLEXITY_API_KEY:
@@ -551,22 +559,7 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
             "neighborhood_overview": {{
                 "description": "2-3 sentence overview of the neighborhood character, demographics, and general atmosphere",
                 "vibe": "brief description of the neighborhood vibe/personality (e.g., trendy, family-friendly, artistic, professional, etc.)"
-            }},
-            "crime_stats": {{
-                "overall_safety_score": "letter grade only (e.g., A+, B+, C-, etc.) without additional description",
-                "crime_rate": "rate compared to national/local average",
-                "recent_trends": "improving/stable/declining",
-                "specific_concerns": ["list of specific safety concerns if any"],
-                "data_source": "source of crime data"
-            }},
-            "gentrification_index": {{
-                "score": "numerical score or rating",
-                "trend": "gentrifying/stable/declining",
-                "indicators": ["key gentrification indicators"],
-                "timeline": "expected timeline for changes",
-                "impact_on_property_value": "positive/neutral/negative impact"
-            }},
-            "roi_explanation": "Start with a clear summarizing sentence about the investment potential. Follow with 2-3 supporting sentences that provide specific details about market trends, appreciation outlook, rental potential if applicable, and financial factors. Structure as: 'Summary sentence. Supporting detail 1. Supporting detail 2. Supporting detail 3.' This will be formatted with the summary as a header and details as bullet points."
+            }}
         }}
 
         Focus on current, accurate data from reliable sources. Consider the buyer's specific needs, budget, and preferences in your analysis.
@@ -675,6 +668,169 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
     except Exception as e:
         logger.error(f"Failed to analyze property: {e}")
         return None
+
+def generate_report_sections_for_property(
+    section_names: List[str],
+    address: str,
+    user_preferences: Dict[str, Any],
+    property_data: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Generate report sections for property analysis using the same logic as reports.
+    
+    Args:
+        section_names: List of section names to generate (from report_section_priorities)
+        address: Property address
+        user_preferences: User preferences dict
+        property_data: Property data from Zillow API
+        
+    Returns:
+        Dict containing all generated sections
+    """
+    if not section_names or not PERPLEXITY_API_KEY:
+        return {}
+    
+    try:
+        from app.services.reportgen.schema_generator import get_individual_section_schema
+        from app.services.reportgen.report_generator import _safe_parse_json
+        
+        # Build payloads for each section
+        payloads = []
+        for section_name in section_names:
+            try:
+                section_schema = get_individual_section_schema(section_name, user_preferences, mode="report")
+                if "error" in section_schema:
+                    logger.warning(f"⚠️ [PROPERTY_ANALYSIS] Skipping section {section_name}: {section_schema.get('error')}")
+                    continue
+                    
+                payload = {
+                    "model": PERPLEXITY_MODEL,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": (
+                                f"You are a comprehensive PERSONALIZED property research assistant. "
+                                f"Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
+                                "RESEARCH:\n"
+                                "Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
+                                "CITATIONS:\n"
+                                "Do not include citations in the response\n"
+                                "STYLE & LENGTH:\n"
+                                "Each individual section field must be EXTREMELY SHORT - maximum one brief phrase. Keep responses as concise as possible—prioritize brevity and precision.\n"
+                                "SCORE FORMATTING:\n"
+                                "All rating/score fields must be formatted as a decimal to the tenths place (e.g., 8.5, 7.2, 9.0) without any additional text like '/10'. The score should appear as the first part of the field value.\n"
+                                "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
+                            )
+                        },
+                        {
+                            "role": "user",
+                            "content": f"Analyze the property at {address} based on my preferences. CRITICAL: Always provide a concrete answer, estimate, or just give your best guess\n"
+                        }
+                    ],
+                    "search_mode": "web",
+                    "reasoning_effort": "medium",
+                    "temperature": 0.1,
+                    "max_tokens": 2500,
+                    "stream": False,
+                    "return_images": False,
+                    "return_citations": False,
+                    "response_format": section_schema
+                }
+                payloads.append((payload, section_name))
+            except Exception as e:
+                logger.error(f"❌ [PROPERTY_ANALYSIS] Error building payload for section {section_name}: {e}")
+                continue
+        
+        if not payloads:
+            logger.warning("⚠️ [PROPERTY_ANALYSIS] No valid payloads generated")
+            return {}
+        
+        # Process sections concurrently
+        def process_section(payload_info, max_retries=1):
+            """Process a single section with retry logic"""
+            payload, section_name = payload_info
+            
+            for attempt in range(max_retries + 1):
+                try:
+                    session = requests.Session()
+                    retries = Retry(
+                        total=1,
+                        backoff_factor=0.5,
+                        status_forcelist=[429, 500, 502, 503, 504],
+                        raise_on_status=False
+                    )
+                    session.mount("https://", HTTPAdapter(max_retries=retries))
+                    
+                    response = session.post(
+                        PERPLEXITY_URL,
+                        headers=PERPLEXITY_HEADERS,
+                        json=payload,
+                        timeout=300
+                    )
+                    
+                    if response.status_code == 200:
+                        content = response.json()
+                        if "choices" not in content or not content["choices"]:
+                            if attempt < max_retries:
+                                continue
+                            return {"section": section_name, "success": False, "error": "Malformed API response"}
+                        
+                        raw_json_text = content["choices"][0]["message"]["content"]
+                        
+                        try:
+                            section_data = _safe_parse_json(raw_json_text, None)
+                            if section_name in section_data and section_data[section_name] is not None:
+                                return {"section": section_name, "success": True, "data": {section_name: section_data[section_name]}}
+                            elif section_data and len(section_data) > 0:
+                                return {"section": section_name, "success": True, "data": {section_name: section_data}}
+                            else:
+                                if attempt < max_retries:
+                                    continue
+                                return {"section": section_name, "success": False, "error": "Empty response"}
+                        except Exception as pe:
+                            if attempt < max_retries:
+                                continue
+                            return {"section": section_name, "success": False, "error": f"Parse error: {str(pe)}"}
+                    else:
+                        if attempt < max_retries and response.status_code in [429, 500, 502, 503, 504]:
+                            time.sleep(2 ** attempt)
+                            continue
+                        return {"section": section_name, "success": False, "error": f"API error {response.status_code}"}
+                        
+                except requests.exceptions.Timeout:
+                    if attempt < max_retries:
+                        continue
+                    return {"section": section_name, "success": False, "error": "Request timeout"}
+                except Exception as e:
+                    if attempt < max_retries:
+                        continue
+                    return {"section": section_name, "success": False, "error": f"Unexpected error: {str(e)}"}
+            
+            return {"section": section_name, "success": False, "error": "Max retries exceeded"}
+        
+        # Execute sections concurrently
+        combined_sections = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(payloads), 10)) as executor:
+            futures = {executor.submit(process_section, payload_info): payload_info[1] for payload_info in payloads}
+            
+            for future in concurrent.futures.as_completed(futures):
+                section_name = futures[future]
+                try:
+                    result = future.result()
+                    if result["success"]:
+                        combined_sections.update(result["data"])
+                    else:
+                        logger.warning(f"⚠️ [PROPERTY_ANALYSIS] Section {section_name} failed: {result.get('error')}")
+                except Exception as e:
+                    logger.error(f"❌ [PROPERTY_ANALYSIS] Exception processing section {section_name}: {e}")
+        
+        return combined_sections
+        
+    except Exception as e:
+        logger.error(f"❌ [PROPERTY_ANALYSIS] Error generating report sections: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return {}
 
 # ----------------------------- CLI -----------------------------
 

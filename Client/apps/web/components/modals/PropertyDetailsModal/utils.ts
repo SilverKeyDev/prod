@@ -50,7 +50,7 @@ export const formatAddress = (
   return "[Unknown]";
 };
 
-export const formatPrice = (price: string | number): string => {
+export const formatPrice = (price: string | number | undefined): string => {
   if (price === null || price === undefined || price === "")
     return "Price not available";
   const numPrice =

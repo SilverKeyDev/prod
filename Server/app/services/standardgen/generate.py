@@ -420,17 +420,12 @@ Commute Analysis:
             neighborhood = analysis.get('neighborhood_overview', '')
             crime_stats = analysis.get('crime_stats', '')
             gentrification = analysis.get('gentrification_index', '')
-            roi = analysis.get('roi_explanation', '')
             
             property_analysis_text = f"""
 
 Property Analysis:
 - Pros: {', '.join(pros) if pros else 'Not available'}
 - Cons: {', '.join(cons) if cons else 'Not available'}
-- Neighborhood: {neighborhood[:200] + '...' if len(neighborhood) > 200 else neighborhood}
-- Crime Stats: {crime_stats}
-- Gentrification Index: {gentrification}
-- ROI Potential: {roi[:200] + '...' if len(roi) > 200 else roi}
 """
         
         user_content = f"""

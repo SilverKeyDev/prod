@@ -180,6 +180,13 @@ export default function PersonalizationPage({
     calculateHomePrice,
   ]);
 
+  // Automatically collapse/expand affordability dropdown based on edit mode
+  useEffect(() => {
+    // When not in edit mode, collapse the dropdown (compact view)
+    // When in edit mode, expand the dropdown by default
+    setIsAffordabilityCollapsed(!isEditMode);
+  }, [isEditMode]);
+
   // Handle drag end for reordering
   const handleDragEnd = (event: DragEndEvent) => {
     handleDragEndUtil({
@@ -194,18 +201,31 @@ export default function PersonalizationPage({
   const handleReportSectionToggle = (sectionKey: string, checked: boolean) => {
     const currentPriorities = formData.report_section_priorities ?? [];
 
+    // Ensure we only work with valid sections from DEFAULT_REPORT_SECTIONS
+    const validSectionKeys = new Set(
+      DEFAULT_REPORT_SECTIONS.map((section) => section.key)
+    );
+
+    if (!validSectionKeys.has(sectionKey)) {
+      console.warn(`Attempted to toggle invalid section: ${sectionKey}`);
+      return;
+    }
+
     if (!checked) {
       // Remove from priorities when unchecked
       const newPriorities = currentPriorities.filter(
-        (key) => key !== sectionKey
+        (key) => key !== sectionKey && validSectionKeys.has(key)
       );
       updateFormData("report_section_priorities", newPriorities);
     } else {
       // Add to last priority (bottom of list) when checked (if not already there)
       if (!currentPriorities.includes(sectionKey)) {
-        // Add to the end of the list (last priority)
+        // Filter out any invalid sections and add the new one
+        const filteredPriorities = currentPriorities.filter((key) =>
+          validSectionKeys.has(key)
+        );
         updateFormData("report_section_priorities", [
-          ...currentPriorities,
+          ...filteredPriorities,
           sectionKey,
         ]);
       }
@@ -217,8 +237,20 @@ export default function PersonalizationPage({
       setIsLoading(true);
 
       if (userPreferences) {
-        setFormData(userPreferences as OnboardingData);
-        setOriginalData(userPreferences as OnboardingData);
+        // Filter out legacy sections that aren't in DEFAULT_REPORT_SECTIONS
+        const validSectionKeys = new Set(
+          DEFAULT_REPORT_SECTIONS.map((section) => section.key)
+        );
+
+        const cleanedPreferences = { ...userPreferences };
+        if (cleanedPreferences.report_section_priorities) {
+          cleanedPreferences.report_section_priorities = (
+            cleanedPreferences.report_section_priorities as string[]
+          ).filter((key) => validSectionKeys.has(key));
+        }
+
+        setFormData(cleanedPreferences as OnboardingData);
+        setOriginalData(cleanedPreferences as OnboardingData);
       }
     } catch (error: unknown) {
       console.error("Failed to load user preferences from context:", error);
@@ -381,7 +413,7 @@ export default function PersonalizationPage({
 
   // Handle mobile header actions based on screen size
   const isMobile = useMobile();
-  const isUltraSmallScreen = useMobile("(max-width: 768px)"); // Hide sidebar on ultra small screens
+  const isUltraSmallScreen = useMobile("(max-width: 768px)"); // Used for spacing adjustments
   const isDesktop = useMobile("(min-width: 768px)"); // Check if we're at or above md breakpoint
 
   useEffect(() => {
@@ -430,7 +462,7 @@ export default function PersonalizationPage({
     switch (sectionId) {
       case "financial":
         return (
-          <Card className="space-y-6">
+          <Card className="space-y-6 mb-64">
             <Title size="md" className="mb-6">
               Financial Information
             </Title>
@@ -969,7 +1001,7 @@ export default function PersonalizationPage({
 
       case "location":
         return (
-          <Card className="space-y-2 mb-64">
+          <Card className="space-y-2">
             <Title size="md">Location Preferences</Title>
 
             {/* Important Locations for Commute */}
@@ -1214,18 +1246,16 @@ export default function PersonalizationPage({
     <div className="min-h-screen bg-off-white">
       <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
         <div className="flex flex-row gap-6 lg:gap-8">
-          {/* Sidebar - Hidden below lg, completely hidden on ultra small screens */}
-          {!isUltraSmallScreen && (
-            <PersonalizationSidebar
-              activeSection={activeSection}
-              isEditMode={isEditMode}
-              isSaving={isSaving}
-              onEdit={() => setIsEditMode(true)}
-              onSave={handleSaveChanges}
-              onCancel={handleCancel}
-              onScrollToSection={scrollToSection}
-            />
-          )}
+          {/* Sidebar - Always visible */}
+          <PersonalizationSidebar
+            activeSection={activeSection}
+            isEditMode={isEditMode}
+            isSaving={isSaving}
+            onEdit={() => setIsEditMode(true)}
+            onSave={handleSaveChanges}
+            onCancel={handleCancel}
+            onScrollToSection={scrollToSection}
+          />
 
           {/* Main Content Area */}
           <main

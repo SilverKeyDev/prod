@@ -15,12 +15,30 @@ type ErrorProviderProps = {
 
 export function ErrorProvider({ children, fallback }: ErrorProviderProps) {
   const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
-    // Additional error handling logic can go here
-    reportError(error, {
-      componentStack: errorInfo.componentStack,
-      errorBoundary: true,
-      timestamp: new Date().toISOString(),
-    });
+    try {
+      // Log error details immediately for debugging
+      console.error("[ErrorProvider] Error caught:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+      });
+
+      // Additional error handling logic can go here
+      reportError(error, {
+        componentStack: errorInfo.componentStack,
+        errorBoundary: true,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (reportingError) {
+      // Fail silently to prevent infinite error loops
+      console.error(
+        "[ErrorProvider] Error reporting failed:",
+        reportingError instanceof Error
+          ? reportingError.message
+          : String(reportingError)
+      );
+    }
   };
 
   return (

@@ -17,6 +17,7 @@ export { default as CardImageContainer } from "./CardImageContainer";
 export { default as CardContentContainer } from "./CardContentContainer";
 export { default as CardMatchScore } from "./CardMatchScore";
 export { default as TrianglePointer } from "./TrianglePointer";
+export { default as CardCompareCheckbox } from "./CardCompareCheckbox";
 
 // Export types
 export type { CardAddressDisplayProps } from "./CardAddressDisplay";

@@ -79,6 +79,7 @@ export default function KeyTurnLoader({
     alignItems: "center",
     gap: "15px",
     animation: "fadeIn 0.5s ease-in-out",
+    marginLeft: "8px",
   };
 
   const keyStyle: React.CSSProperties = {

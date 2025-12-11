@@ -7,7 +7,7 @@ export type CardViewDetailsButtonProps = {
   /** Click handler - can be async */
   onClick: () => void | Promise<void>;
   /** Button size */
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   /** Button variant */
   variant?: "primary" | "secondary" | "muted";
   /** Full width button */
@@ -35,6 +35,11 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
   const [isUnlocking, setIsUnlocking] = useState(false);
   // Size variants using utilities.css classes
   const sizeStyles = {
+    xs: {
+      padding: "px-responsive-xs py-responsive-xs",
+      text: "btn-text-responsive",
+      icon: "mobile-icon-xs",
+    },
     sm: {
       padding: "px-responsive-sm py-responsive-xs",
       text: "btn-text-responsive",
@@ -59,7 +64,9 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
     muted: "muted-button-primary",
   };
 
-  const currentSizeStyles = sizeStyles[size];
+  // Ensure size is valid, fallback to "md" if invalid
+  const validSize = sizeStyles[size] ? size : "md";
+  const currentSizeStyles = sizeStyles[validSize];
   const currentVariantStyles = variantStyles[variant];
 
   const buttonClasses = [
@@ -148,11 +155,13 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
             className="flex items-center"
             style={{
               transform:
-                size === "sm"
-                  ? "scale(0.75)"
-                  : size === "lg"
-                    ? "scale(1.25)"
-                    : "scale(1)",
+                validSize === "xs"
+                  ? "scale(0.65)"
+                  : validSize === "sm"
+                    ? "scale(0.75)"
+                    : validSize === "lg"
+                      ? "scale(1.25)"
+                      : "scale(1)",
             }}
           >
             <KeyTurnLoader message="Loading..." variant="default" />

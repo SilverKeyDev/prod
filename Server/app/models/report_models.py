@@ -255,7 +255,7 @@ class Safety(BaseModel):
             "crime_rating": "Crime level assessment using categories: Nonexistent, Low, Moderate, High, Very High. Base on local crime statistics, police reports, and community safety data. Use sources like local police department crime maps, Neighborhood Scout, or AreaVibes crime data. Focus on safety factors most relevant to user's situation.",
             "places_to_watch_out_for": "Specific areas, intersections, or locations with higher risk or safety concerns. Include times of day when relevant. Use local knowledge from City-Data forums, Nextdoor, or police reports. Be specific with street names and locations. Prioritize areas relevant to user's daily routines and family needs.",
             "police_presence": "Describe frequency and visibility of police patrols, community policing programs, and response times. Source from local police department websites, community meetings, or resident feedback on Nextdoor/City-Data. Emphasize community policing and response times.",
-            "safety_rating": "Overall safety score out of 10 based on crime data, community perception, and safety infrastructure. Use data from AreaVibes, Neighborhood Scout, or local crime statistics. Format as 'X.X/10'. Weight factors based on user's safety priorities.",
+            "safety_rating": "Overall safety score out of 10 based on crime data, community perception, and safety infrastructure. Use data from AreaVibes, Neighborhood Scout, or local crime statistics. MUST be a numeric value formatted as 'X.X/10' (e.g., '8.5/10', '7.2/10'). DO NOT use letter grades like A-, B+, C, etc. Weight factors based on user's safety priorities.",
             "image_prompt": f"Safety map of the neighborhood around the address (emphasizing {safety_focus})",
             "image_prompt_2": f"Street-level view of safety features near the address (focusing on {safety_focus})"
         }
@@ -1096,20 +1096,456 @@ class ExtraTips(BaseModel):
             "other_notable_tips": "Local insider knowledge, best times to visit places, hidden gems, traffic patterns. Use local forums, Reddit, or Nextdoor for community insights."
         }
 
+# ============================================================================
+# NEW 8-SECTION MODELS (Consolidated from old sections)
+# ============================================================================
+
+class Affordability(BaseModel):
+    """Affordability, taxes, long-term costs, projected value"""
+    affordability_rating: str = Field(..., description="Overall affordability score as decimal to tenths place (e.g., 8.5, 7.2). This must be the first field and extremely brief.")
+    monthly_payment: str = Field(..., description="Estimated monthly mortgage payment for typical home in the area. Extremely brief.")
+    property_taxes: str = Field(..., description="Annual property tax rates and typical amounts. Extremely brief.")
+    long_term_costs: str = Field(..., description="Long-term cost considerations including maintenance, HOA, insurance. Extremely brief.")
+    projected_value: str = Field(..., description="Property value trends and projected appreciation/depreciation. Extremely brief.")
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate example based on user preferences"""
+        income = user_preferences.get("gross_income", 'middle') if user_preferences else 'middle'
+        budget_min = user_preferences.get("home_budget_min") if user_preferences else None
+        budget_max = user_preferences.get("home_budget_max") if user_preferences else None
+        
+        if budget_min and budget_max:
+            price_range = f"${int(budget_min):,}-${int(budget_max):,}"
+        else:
+            price_range = '$300,000-$500,000'
+        
+        return {
+            "affordability_rating": "8.7",
+            "monthly_payment": f"$3,200/month for median home in {price_range} with 20% down, 30-year fixed at 6.5%",
+            "property_taxes": "1.2% effective rate, approximately $7,200/year for median home value",
+            "long_term_costs": "Annual maintenance ~$4,000, HOA $200/month, insurance $1,500/year. Total annual costs ~$15,000",
+            "projected_value": "Values increased 8% last year, strong market with low inventory, projected 5-7% annual growth"
+        }
+    
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions"""
+        gross_income = user_preferences.get("gross_income", '$50,000-$75,000') if user_preferences else '$50,000-$75,000'
+        budget_min = user_preferences.get("home_budget_min") if user_preferences else None
+        budget_max = user_preferences.get("home_budget_max") if user_preferences else None
+        if budget_min and budget_max:
+            home_budget = f"${int(budget_min):,}-${int(budget_max):,}"
+        else:
+            home_budget = '$300,000-$500,000'
+        
+        return {
+            "affordability_rating": "Overall affordability score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight factors based on user's financial priorities and constraints.",
+            "monthly_payment": f"Estimated monthly mortgage payment for typical home in the area. Extremely brief. Consider user's income ({gross_income}) and budget ({home_budget}).",
+            "property_taxes": "Annual property tax rates and typical amounts. Extremely brief. Relate to user's financial capacity.",
+            "long_term_costs": "Long-term cost considerations including maintenance, HOA fees, insurance, and utilities. Extremely brief. Frame in context of user's budget.",
+            "projected_value": "Property value trends and projected appreciation/depreciation. Extremely brief. Consider market conditions and user's investment timeline."
+        }
+
+class Neighborhood(BaseModel):
+    """Safety, cleanliness, upkeep, community feel"""
+    neighborhood_rating: str = Field(..., description="Overall neighborhood quality score as decimal to tenths place (e.g., 8.5, 7.2). This must be the first field and extremely brief.")
+    safety_rating: str = Field(..., description="Overall safety score as decimal to tenths place out of 10, formatted as 'X.X/10' (e.g., 8.5/10, 7.2/10). MUST be numeric, NOT letter grades like A-, B+, etc. Extremely brief.")
+    crime_rating: str = Field(..., description="Crime level assessment. Extremely brief.")
+    places_to_watch_out_for: str = Field(..., description="Specific areas with higher risk or safety concerns. Extremely brief.")
+    cleanliness: str = Field(..., description="Overall cleanliness and upkeep of the area. Extremely brief.")
+    community_feel: str = Field(..., description="Community atmosphere, neighborliness, and social character. Extremely brief.")
+    police_presence: str = Field(..., description="Frequency and visibility of police patrols. Extremely brief.")
+    parking: str = Field(..., description="Street parking rules, permit requirements, garage availability. Extremely brief.")
+    pet_friendly: str = Field(..., description="Dog parks, pet stores, veterinarians, pet policies. Extremely brief.")
+    cell_service_quality: str = Field(..., description="Coverage quality for major carriers. Extremely brief.")
+    other_notable_tips: str = Field(..., description="Local insider knowledge, best times to visit places, hidden gems, traffic patterns. Extremely brief.")
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate example based on user preferences"""
+        pets = user_preferences.get("pets", "none") if user_preferences else "none"
+        age = user_preferences.get("age", 35) if user_preferences else 35
+        
+        has_pets = user_preferences.get('has_pets', False) if user_preferences else False
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
+        work_from_home = False
+        
+        if has_pets:
+            pet_info = "Extremely pet-friendly - 5 dog parks within walking distance, off-leash beach area, pet grooming services"
+        else:
+            pet_info = "Pet-friendly neighborhood - dog parks available, many residents have pets, vet clinic nearby"
+        
+        if work_from_home:
+            cell_info = "Outstanding connectivity - 5G coverage from all carriers, fiber internet backup options"
+            tips = "Best coffee for remote work at Quiet Corner Cafe, library has excellent WiFi, avoid construction noise on Oak St 9-11am"
+        elif occupation == 'nightlife':
+            tips = "Best late-night eats at 24/7 Diner, Uber/Lyft readily available, street lighting excellent for safety"
+        elif occupation == 'family':
+            tips = "Best family coffee at Corner Cafe, avoid Main St during school pickup 3-4pm, farmers market Saturdays 8am-2pm"
+        else:
+            tips = "Best coffee at Corner Cafe, avoid Main St during school pickup, farmers market Saturdays 8am-2pm"
+        
+        return {
+            "neighborhood_rating": "8.2",
+            "safety_rating": "7.8",
+            "crime_rating": "Low",
+            "places_to_watch_out_for": "Main St after 10pm, parking lots near the train station",
+            "cleanliness": "Well-maintained streets, regular trash collection, active neighborhood watch",
+            "community_feel": "Friendly neighbors, active community events, strong sense of community",
+            "police_presence": "Regular patrol cars, community policing program, quick response times",
+            "parking": "Street parking mostly free, 2-hour limits near shops, resident permits available for $50/year",
+            "pet_friendly": pet_info,
+            "cell_service_quality": "Excellent coverage for all major carriers, 5G available, minimal dead zones" if not work_from_home else cell_info,
+            "other_notable_tips": tips
+        }
+    
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions"""
+        pets = user_preferences.get("pets", "none") if user_preferences else "none"
+        age = user_preferences.get("age", 35) if user_preferences else 35
+        
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
+        has_pets = user_preferences.get('has_pets', False) if user_preferences else False
+        
+        return {
+            "neighborhood_rating": "Overall neighborhood quality score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight factors based on user's priorities.",
+            "safety_rating": "Overall safety score as decimal to tenths place out of 10, formatted as 'X.X/10' (e.g., 8.5/10, 7.2/10). MUST be numeric, NOT letter grades like A-, B+, etc. Extremely brief. Based on crime data, community perception, and safety infrastructure.",
+            "crime_rating": "Crime level assessment. Extremely brief. Use categories: Nonexistent, Low, Moderate, High, Very High.",
+            "places_to_watch_out_for": "Specific areas, intersections, or locations with higher risk or safety concerns. Extremely brief.",
+            "cleanliness": "Overall cleanliness and upkeep of streets, public spaces, and properties. Extremely brief.",
+            "community_feel": "Community atmosphere, neighborliness, social character, and sense of belonging. Extremely brief.",
+            "police_presence": "Frequency and visibility of police patrols, community policing programs, and response times. Extremely brief.",
+            "parking": "Street parking rules, permit requirements, garage availability. Extremely brief. Use Google Street View to assess parking density and local parking signs.",
+            "pet_friendly": "Dog parks, pet stores, veterinarians, pet policies. Extremely brief. Search '[neighborhood] dog park' or use Google Maps to find pet amenities.",
+            "cell_service_quality": "Coverage quality for major carriers. Extremely brief. Check carrier coverage maps or local forums for dead zone reports.",
+            "other_notable_tips": "Local insider knowledge, best times to visit places, hidden gems, traffic patterns. Extremely brief. Use local forums, Reddit, or Nextdoor for community insights."
+        }
+
+class CommuteSection(BaseModel):
+    """Driving time, public transit, road quality, infrastructure"""
+    commute_rating: str = Field(..., description="Overall commute convenience score as decimal to tenths place (e.g., 8.5, 7.2). This must be the first field and extremely brief.")
+    commute_times: str = Field(..., description="Commute times to key destinations. Extremely brief.")
+    public_transport: str = Field(..., description="Public transportation options and availability. Extremely brief.")
+    traffic: str = Field(..., description="Traffic patterns and congestion levels. Extremely brief.")
+    road_quality: str = Field(..., description="Road quality and infrastructure. Extremely brief.")
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate example based on user preferences"""
+        important_locations = user_preferences.get('important_locations', []) if user_preferences else []
+        
+        return {
+            "commute_rating": "8.5",
+            "commute_times": "Downtown: 25 min, Airport: 45 min, Business District: 30 min by car",
+            "public_transport": "Metro bus routes every 15 min, light rail station 0.5 miles away, bike share program",
+            "traffic": "Moderate rush hour congestion 7-9am and 5-7pm, generally light traffic otherwise",
+            "road_quality": "Well-maintained roads, good signage, bike lanes on main routes"
+        }
+    
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions"""
+        important_locations = user_preferences.get('important_locations', []) if user_preferences else []
+        
+        return {
+            "commute_rating": "Overall commute convenience score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight factors based on user's commute needs.",
+            "commute_times": "Commute times to key destinations including work, school, and important locations. Extremely brief.",
+            "public_transport": "Public transportation options including bus routes, rail, bike share, and frequency. Extremely brief.",
+            "traffic": "Traffic patterns, congestion levels, and peak hours. Extremely brief. Consider user's commute tolerance.",
+            "road_quality": "Road quality, infrastructure, bike lanes, and overall transportation infrastructure. Extremely brief."
+        }
+
+class FamilyFriendlySection(BaseModel):
+    """Schools, parks, healthcare, kid-friendly amenities"""
+    family_rating: str = Field(..., description="Overall family-friendliness score as decimal to tenths place (e.g., 8.5, 7.2). This must be the first field and extremely brief.")
+    parks_and_recreation: str = Field(..., description="Parks, playgrounds, and recreational facilities. Extremely brief.")
+    kid_friendly_amenities: str = Field(..., description="Kid-friendly amenities and activities. Extremely brief.")
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate example based on user preferences"""
+        pets = user_preferences.get("pets", 0) if user_preferences else 0
+        
+        return {
+            "family_rating": "9.2",
+            "parks_and_recreation": "3 parks within 1 mile, playgrounds, sports fields, community center with programs",
+            "kid_friendly_amenities": "Libraries, museums, family events, safe pedestrian areas, bike paths"
+        }
+    
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions"""
+        pets = user_preferences.get("pets", 0) if user_preferences else 0
+        
+        return {
+            "family_rating": "Overall family-friendliness score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight factors based on user's family needs.",
+            "schools_rating": "Overall school quality rating as decimal to tenths place (e.g., 8.5, 7.2). Extremely brief. Based on test scores, programs, and reputation.",
+            "school_details": "Details about nearby schools including ratings, special programs, and standout features. Extremely brief.",
+            "parks_and_recreation": "Parks, playgrounds, recreational facilities, and family activities available. Extremely brief.",
+            "healthcare_access": "Healthcare facilities including hospitals, clinics, pediatric care, and urgent care. Extremely brief.",
+            "kid_friendly_amenities": "Kid-friendly amenities including libraries, museums, safe areas, and activities. Extremely brief."
+        }
+
+class Entertainment(BaseModel):
+    """Restaurants, bars, gyms, activities, overall vibe"""
+    entertainment_rating: str = Field(..., description="Overall entertainment score as decimal to tenths place (e.g., 8.5, 7.2). This must be the first field and extremely brief.")
+    restaurants: str = Field(..., description="Restaurant scene and dining options. Extremely brief.")
+    bars_and_nightlife: str = Field(..., description="Bars, nightlife, and social venues. Extremely brief.")
+    gyms_and_fitness: str = Field(..., description="Gyms, fitness centers, and active lifestyle options. Extremely brief.")
+    activities: str = Field(..., description="Activities, events, and things to do. Extremely brief.")
+    overall_vibe: str = Field(..., description="Overall entertainment and social atmosphere. Extremely brief.")
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate example based on user preferences"""
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
+        age = user_preferences.get('age', 30) if user_preferences else 30
+        
+        return {
+            "entertainment_rating": "8.5",
+            "restaurants": "Diverse dining scene: farm-to-table, seafood, international cuisine, food trucks",
+            "bars_and_nightlife": "Trendy cocktail bars, craft breweries, live music venues, rooftop lounges",
+            "gyms_and_fitness": "Multiple gyms, yoga studios, CrossFit, outdoor fitness equipment, running trails",
+            "activities": "Art walks, farmers markets, outdoor concerts, beach activities, cultural events",
+            "overall_vibe": "Vibrant, social, active community with something for everyone"
+        }
+    
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions"""
+        occupation = user_preferences.get("occupation", 'balanced') if user_preferences else 'balanced'
+        
+        return {
+            "entertainment_rating": "Overall entertainment score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight factors based on user's interests.",
+            "restaurants": "Restaurant scene including types, quality, and diversity of dining options. Extremely brief.",
+            "bars_and_nightlife": "Bars, nightlife venues, and social spaces for evening entertainment. Extremely brief.",
+            "gyms_and_fitness": "Gyms, fitness centers, yoga studios, and active lifestyle options. Extremely brief.",
+            "activities": "Activities, events, cultural offerings, and things to do in the area. Extremely brief.",
+            "overall_vibe": "Overall entertainment and social atmosphere of the neighborhood. Extremely brief."
+        }
+
+class Investment(BaseModel):
+    """Future growth, job market stability, resale potential"""
+    investment_rating: str = Field(..., description="Overall investment score as decimal to tenths place (e.g., 8.5, 7.2). This must be the first field and extremely brief.")
+    future_growth: str = Field(..., description="Future growth prospects and development plans. Extremely brief.")
+    job_market: str = Field(..., description="Job market stability and employment opportunities. Extremely brief.")
+    resale_potential: str = Field(..., description="Resale potential and market trends. Extremely brief.")
+    market_outlook: str = Field(..., description="Overall market outlook and investment attractiveness. Extremely brief.")
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate example based on user preferences"""
+        return {
+            "investment_rating": "8.7",
+            "future_growth": "Strong growth projected: new transit line planned, tech companies expanding, population increasing",
+            "job_market": "Stable job market with diverse industries, low unemployment, growing tech sector",
+            "resale_potential": "High resale potential: strong demand, limited inventory, appreciating values",
+            "market_outlook": "Positive outlook: steady appreciation expected, rental yields 4-5%, strong fundamentals"
+        }
+    
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions"""
+        return {
+            "investment_rating": "Overall investment score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight factors based on user's investment goals.",
+            "future_growth": "Future growth prospects including planned developments, infrastructure, and population trends. Extremely brief.",
+            "job_market": "Job market stability, employment opportunities, and economic outlook. Extremely brief.",
+            "resale_potential": "Resale potential based on market trends, demand, and property appreciation. Extremely brief.",
+            "market_outlook": "Overall market outlook and investment attractiveness for the area. Extremely brief."
+        }
+
+class ClimateEnvironmentalSafety(BaseModel):
+    """Climate preference, flood/fire/hurricane risk"""
+    climate_rating: str = Field(..., description="Overall climate and environmental safety score as decimal to tenths place (e.g., 8.5, 7.2). This must be the first field and extremely brief.")
+    climate: str = Field(..., description="Climate characteristics and weather patterns. Extremely brief.")
+    flood_risk: str = Field(..., description="Flood risk assessment and flood zones. Extremely brief.")
+    fire_risk: str = Field(..., description="Fire risk assessment and wildfire danger. Extremely brief.")
+    hurricane_risk: str = Field(..., description="Hurricane/tornado risk assessment. Extremely brief.")
+    environmental_safety: str = Field(..., description="Overall environmental safety and natural disaster risk. Extremely brief.")
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate example based on user preferences"""
+        return {
+            "climate_rating": "9.0",
+            "climate": "Mediterranean climate: mild winters, warm summers, low humidity, 280 sunny days/year",
+            "flood_risk": "Low flood risk: not in flood zone, good drainage, elevated above sea level",
+            "fire_risk": "Moderate fire risk: some brush areas, but good fire department response, defensible space",
+            "hurricane_risk": "Very low hurricane risk: outside hurricane zone, minimal severe weather",
+            "environmental_safety": "Good air quality, low pollution, safe water supply, minimal environmental hazards"
+        }
+    
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions"""
+        return {
+            "climate_rating": "Overall climate and environmental safety score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight factors based on user's preferences.",
+            "climate": "Climate characteristics including temperature, precipitation, and weather patterns. Extremely brief.",
+            "flood_risk": "Flood risk assessment including flood zones, historical flooding, and mitigation measures. Extremely brief.",
+            "fire_risk": "Fire risk assessment including wildfire danger, defensible space, and fire department response. Extremely brief.",
+            "hurricane_risk": "Hurricane/tornado risk assessment and severe weather patterns. Extremely brief.",
+            "environmental_safety": "Overall environmental safety including air quality, water quality, and natural disaster risk. Extremely brief."
+        }
+
+class ConvenienceWalkability(BaseModel):
+    """Grocery, daily services, walkability, errands without a car"""
+    convenience_rating: str = Field(..., description="Overall convenience and walkability score as decimal to tenths place (e.g., 8.5, 7.2). This must be the first field and extremely brief.")
+    grocery_stores: str = Field(..., description="Grocery stores and food shopping options. Extremely brief.")
+    daily_services: str = Field(..., description="Daily services including banks, post office, pharmacies. Extremely brief.")
+    walkability: str = Field(..., description="Walkability score and pedestrian-friendliness. Extremely brief.")
+    errands_without_car: str = Field(..., description="Ability to complete errands without a car. Extremely brief.")
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate example based on user preferences"""
+        return {
+            "convenience_rating": "9.2",
+            "grocery_stores": "Whole Foods 0.5 miles, Trader Joe's 1 mile, local market 0.3 miles, multiple options within walking distance",
+            "daily_services": "Banks, post office, pharmacies, dry cleaners all within 1 mile, most walkable",
+            "walkability": "Walk Score 92/100 - Very walkable, pedestrian-priority streets, sidewalks throughout",
+            "errands_without_car": "Most errands easily accomplished on foot: grocery, pharmacy, bank, post office all walkable"
+        }
+    
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions"""
+        walkability_importance = user_preferences.get("walkability_importance", "neutral") if user_preferences else "neutral"
+        
+        return {
+            "convenience_rating": f"Overall convenience and walkability score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight factors based on user's walkability preference ({walkability_importance}).",
+            "grocery_stores": "Grocery stores and food shopping options including distance and quality. Extremely brief.",
+            "daily_services": "Daily services including banks, post office, pharmacies, and other essential services. Extremely brief.",
+            "walkability": "Walkability score and pedestrian-friendliness including sidewalks and pedestrian infrastructure. Extremely brief.",
+            "errands_without_car": "Ability to complete daily errands without a car, including distance and accessibility. Extremely brief."
+        }
+
+class Home(BaseModel):
+    """Features, layout, condition, style, deal breakers"""
+    home_match_rating: str = Field(..., description="Overall home match score as decimal to tenths place (e.g., 8.5, 7.2). This must be the first field and extremely brief.")
+    desired_features_match: str = Field(..., description="How well the home matches user's preferred home features. Extremely brief.")
+    deal_breakers_check: str = Field(..., description="Assessment of any deal breakers present or absent. Extremely brief.")
+    layout_and_size: str = Field(..., description="Bedrooms, bathrooms, square footage, and layout match to preferences. Extremely brief.")
+    condition_and_style: str = Field(..., description="Home age, architectural style, renovation needs, and overall condition. Extremely brief.")
+    property_features: str = Field(..., description="Lot size, parking, outdoor space, and other property-specific features. Extremely brief.")
+    
+    model_config = {
+        "populate_by_name": True,
+        "extra": "ignore",
+    }
+    
+    @classmethod
+    def get_example(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Generate example based on user preferences"""
+        preferred_features = user_preferences.get("preferred_home_features", []) if user_preferences else []
+        deal_breakers = user_preferences.get("deal_breakers", []) if user_preferences else []
+        bedrooms = user_preferences.get("preferred_bedrooms", 3) if user_preferences else 3
+        bathrooms = user_preferences.get("preferred_bathrooms", 2) if user_preferences else 2
+        
+        features_match = "Matches most desired features" if preferred_features else "Standard features present"
+        if preferred_features:
+            features_match = f"Has {', '.join(preferred_features[:3])}" + (f" and more" if len(preferred_features) > 3 else "")
+        
+        deal_breaker_check = "No major deal breakers present" if not deal_breakers else f"Note: Check for {', '.join(deal_breakers[:2])}"
+        
+        return {
+            "home_match_rating": "8.5",
+            "desired_features_match": features_match,
+            "deal_breakers_check": deal_breaker_check,
+            "layout_and_size": f"{bedrooms} bedrooms, {bathrooms} bathrooms, layout matches preferences",
+            "condition_and_style": "Well-maintained, modern updates, matches preferred architectural style",
+            "property_features": "Good lot size, driveway parking, fenced yard, outdoor space"
+        }
+    
+    @classmethod
+    def get_description(cls, user_preferences: Dict[str, Any] = None) -> Dict[str, str]:
+        """Generate personalized field descriptions"""
+        preferred_features = user_preferences.get("preferred_home_features", []) if user_preferences else []
+        deal_breakers = user_preferences.get("deal_breakers", []) if user_preferences else []
+        bedrooms = user_preferences.get("preferred_bedrooms") if user_preferences else None
+        bathrooms = user_preferences.get("preferred_bathrooms") if user_preferences else None
+        housing_type = user_preferences.get("preferred_housing_type", "") if user_preferences else ""
+        home_age = user_preferences.get("preferred_home_age", "") if user_preferences else ""
+        architectural_style = user_preferences.get("preferred_architectural_style", "") if user_preferences else ""
+        renovation_preference = user_preferences.get("renovation_preference", "") if user_preferences else ""
+        lot_size = user_preferences.get("preferred_lot_size", "") if user_preferences else ""
+        
+        features_text = f"User wants: {', '.join(preferred_features)}" if preferred_features else "No specific features requested"
+        deal_breakers_text = f"User's deal breakers: {', '.join(deal_breakers)}" if deal_breakers else "No deal breakers specified"
+        
+        return {
+            "home_match_rating": "Overall home match score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight based on how well home matches user's preferences.",
+            "desired_features_match": f"How well the home matches user's preferred features. {features_text}. Extremely brief.",
+            "deal_breakers_check": f"Assessment of any deal breakers present or absent. {deal_breakers_text}. Extremely brief.",
+            "layout_and_size": f"Bedrooms, bathrooms, square footage, and layout match to preferences. User wants: {bedrooms} bedrooms, {bathrooms} bathrooms, {housing_type}. Extremely brief.",
+            "condition_and_style": f"Home age, architectural style, renovation needs, and overall condition. User prefers: {home_age} age, {architectural_style} style, {renovation_preference} renovation level. Extremely brief.",
+            "property_features": f"Lot size, parking, outdoor space, and other property-specific features. User prefers: {lot_size} lot size. Extremely brief."
+        }
+
 class FullReport(BaseModel):
-    # === Main sections ===
-    neighborhood_overview: Optional[NeighborhoodOverview] = None
+    # === New 8-section structure (primary) ===
+    affordability: Optional[Affordability] = None
+    neighborhood: Optional[Neighborhood] = None
+    commute: Optional[CommuteSection] = None
+    family_friendly: Optional[FamilyFriendlySection] = None
+    entertainment: Optional[Entertainment] = None
+    investment: Optional[Investment] = None
+    climate_environmental_safety: Optional[ClimateEnvironmentalSafety] = None
+    convenience_walkability: Optional[ConvenienceWalkability] = None
+    home: Optional[Home] = None
     
     # === Demographic data (appears directly after neighborhood_overview without section titles) ===
     lifestyle_dna: Optional[LifestyleDNA] = None
     
-    # === Other report sections ===
+    # === Legacy sections (for backward compatibility - deprecated) ===
+    neighborhood_overview: Optional[NeighborhoodOverview] = None
     safety: Optional[Safety] = None
     culture_and_events: Optional[CultureAndEvents] = None
     social_character: Optional[SocialCharacter] = None
     local_amenities: Optional[LocalAmenities] = None
-    commute: Optional[Commute] = None
-    family_friendly: Optional[FamilyFriendly] = None
+    commute_legacy: Optional[Commute] = None
+    family_friendly_legacy: Optional[FamilyFriendly] = None
     nightlife_and_dating: Optional[NightlifeAndDating] = None
     development: Optional[Development] = None
     environment_utilities: Optional[EnvironmentUtilities] = None

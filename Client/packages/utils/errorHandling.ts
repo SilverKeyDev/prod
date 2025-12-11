@@ -401,6 +401,7 @@ export function logError(
       message: error.message,
       code: error.code,
       timestamp: error.timestamp,
+      stack: error.stack,
     },
     context: {
       ...error.context,
@@ -408,23 +409,33 @@ export function logError(
     },
   };
 
+  // Log with better formatting for debugging
+  const errorPrefix = `[${error.name}] ${error.message}`;
+  const errorDetails = {
+    id: error.id,
+    code: error.code,
+    timestamp: error.timestamp,
+    stack: error.stack,
+    context: logData.context,
+  };
+
   // Use different log levels based on error type
   switch (error.name) {
     case "ValidationError":
-      console.warn("Validation Error:", logData);
+      console.warn(errorPrefix, errorDetails);
       break;
     case "AuthenticationError":
     case "AuthorizationError":
-      console.warn("Auth Error:", logData);
+      console.warn(errorPrefix, errorDetails);
       break;
     case "NetworkError":
-      console.error("Network Error:", logData);
+      console.error(errorPrefix, errorDetails);
       break;
     case "BusinessLogicError":
-      console.error("Business Logic Error:", logData);
+      console.error(errorPrefix, errorDetails);
       break;
     default:
-      console.error("Error:", logData);
+      console.error(errorPrefix, errorDetails);
   }
 }
 

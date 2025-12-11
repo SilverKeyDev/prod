@@ -34,7 +34,7 @@ export function MapControls(props: {
         <button
           onClick={onZoomOut}
           disabled={disabled}
-          className="cursor-zoom flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:border-brown hover:text-brown hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
+          className="cursor-pointer flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:border-brown hover:text-brown hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
           title="Zoom out"
         >
           −
@@ -42,7 +42,7 @@ export function MapControls(props: {
         <button
           onClick={onZoomIn}
           disabled={disabled}
-          className="cursor-zoom flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:border-brown hover:text-brown hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
+          className="cursor-pointer flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:border-brown hover:text-brown hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brown/20 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
           title="Zoom in"
         >
           +

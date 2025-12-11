@@ -180,6 +180,74 @@ export const searchApi = {
   },
 
   /**
+   * Stream property details progressively using Server-Sent Events (SSE)
+   * Returns an async generator that yields property updates as sections are generated
+   */
+  streamProperty: async function* (
+    data: PropertyRequest,
+  ): AsyncGenerator<{ type: string; data: unknown }, void, unknown> {
+    const baseUrl = import.meta.env.DEV ? "" : "https://usesilverkey.com";
+    const url = `${baseUrl}/api/v1/search/property?stream=true`;
+    
+    console.log("🔎 [searchApi.streamProperty] Starting stream", { url, body: data });
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Stream failed: ${response.status} ${errorText}`);
+    }
+
+    if (!response.body) {
+      throw new Error("Response body is null");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const jsonStr = line.slice(6); // Remove "data: " prefix
+              const update = JSON.parse(jsonStr);
+              console.log("📡 [searchApi.streamProperty] Received update", {
+                type: update.type,
+                hasData: !!update.data,
+              });
+              
+              yield update;
+            } catch (parseError) {
+              console.error("❌ [searchApi.streamProperty] Failed to parse SSE data", {
+                line,
+                error: parseError,
+              });
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  },
+
+  /**
    * Search properties within a polygon area
    */
   searchByPolygon: (

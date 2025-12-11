@@ -277,6 +277,24 @@ export const authApi = {
             code_delivery: parsedBody.code_delivery,
           };
         }
+
+        // Extract actual error message from 401 response body
+        const errorMessage = parsedBody.message as string || parsedBody.error as string || "Authentication failed";
+        const errorCode = parsedBody.error as string || "AUTHENTICATION_FAILED";
+
+        log.warn("AUTH_LOGIN_401_ERROR", "Login failed with 401 error", {
+          requestId,
+          errorCode,
+          errorMessage,
+          duration: `${duration}ms`,
+        });
+
+        // Return response with actual error message from server
+        return {
+          success: false,
+          error: errorCode,
+          message: errorMessage,
+        };
       }
 
       // Log detailed error information

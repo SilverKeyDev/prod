@@ -76,7 +76,8 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
 
   // Determine if home is saved - use address for matching
   // Ensure address is a string before passing it
-  const propertyAddress = typeof property.address === "string" ? property.address : undefined;
+  const propertyAddress =
+    typeof property.address === "string" ? property.address : undefined;
   const isSaved = isHomeSaved
     ? isHomeSaved(property.id, propertyAddress)
     : false;
@@ -88,11 +89,6 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
         // Remove from saved homes - pass address for better matching
         if (removeSavedHome) {
           await removeSavedHome(property.id, propertyAddress);
-          const displayAddress = propertyAddress || property.id;
-          enqueueToast({
-            type: "success",
-            message: `Removed ${displayAddress} from favorites`,
-          });
         }
       } else {
         // Save home

@@ -48,7 +48,6 @@ const PersonalizationMobileHeader: React.FC<
         size="sm"
         className="flex-1"
         icon={<Save />}
-        loading={isSaving}
       >
         {isSaving ? "Saving..." : "Save"}
       </Button>

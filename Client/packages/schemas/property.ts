@@ -103,27 +103,14 @@ export type NeighborhoodStats = {
 };
 
 export type PropertyAnalysis = {
-  roi_explanation?: string;
   neighborhood_overview?: {
     description?: string;
     vibe?: string;
   };
   pros?: string[];
   cons?: string[];
-  crime_stats?: {
-    overall_safety_score?: string;
-    crime_rate?: string;
-    recent_trends?: string;
-    data_source?: string;
-    specific_concerns?: string[];
-  };
-  gentrification_index?: {
-    score?: string;
-    trend?: string;
-    timeline?: string;
-    impact_on_property_value?: string;
-    indicators?: string[];
-  };
+  // Allow any additional report sections (commute, schools, safety, etc.)
+  [key: string]: unknown;
 };
 
 export type PropertyWithAnalysis = {

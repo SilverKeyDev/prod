@@ -228,10 +228,191 @@ def _normalize_rating_value(value, field_name):
         logger.warning(f"⚠️ RATING: Error normalizing rating '{value}' for field '{field_name}': {e}")
         return str(value)  # Return original value if normalization fails
 
+def _fix_unterminated_strings(text: str, error_pos: int = None) -> str:
+    """
+    Attempt to fix unterminated strings in JSON by finding and escaping unescaped quotes.
+    """
+    if error_pos is None:
+        # Try to find the error position by parsing
+        try:
+            json.loads(text)
+            return text  # No error, return as-is
+        except json.JSONDecodeError as e:
+            error_pos = getattr(e, 'pos', len(text))
+    
+    # Find the start of the string that contains the error position
+    # Look backwards for the opening quote
+    start_pos = error_pos
+    in_string = False
+    escape_next = False
+    
+    # Scan backwards to find where the string started
+    for i in range(error_pos - 1, -1, -1):
+        char = text[i]
+        if escape_next:
+            escape_next = False
+            continue
+        if char == '\\':
+            escape_next = True
+            continue
+        if char == '"':
+            # Found a quote - check if it's the start of our problematic string
+            # Look ahead to see if this string is properly closed
+            j = i + 1
+            in_str = True
+            esc = False
+            while j < len(text):
+                if esc:
+                    esc = False
+                    j += 1
+                    continue
+                if text[j] == '\\':
+                    esc = True
+                    j += 1
+                    continue
+                if text[j] == '"':
+                    # Found closing quote
+                    if j >= error_pos:
+                        # This string spans the error position, might be the problem
+                        start_pos = i
+                        break
+                    in_str = False
+                    break
+                j += 1
+            if j >= len(text) and in_str:
+                # String is unterminated, this is likely our problem
+                start_pos = i
+                break
+    
+    # Try to fix by finding unescaped quotes and newlines within the string
+    # and escaping them
+    result = list(text)
+    i = start_pos + 1  # Start after opening quote
+    in_string = True
+    escape_next = False
+    
+    while i < len(result):
+        char = result[i]
+        
+        if escape_next:
+            escape_next = False
+            i += 1
+            continue
+        
+        if char == '\\':
+            escape_next = True
+            i += 1
+            continue
+        
+        if char == '"':
+            # Check if this is the end of the string (next char should be : or , or } or ] or whitespace)
+            if i + 1 < len(result):
+                next_char = result[i + 1]
+                if next_char in [':', ',', '}', ']', ' ', '\n', '\t', '\r']:
+                    # This is likely the closing quote
+                    in_string = False
+                    i += 1
+                    continue
+            
+            # If we're in a string and this quote isn't escaped, escape it
+            if in_string:
+                result.insert(i, '\\')
+                i += 2
+                continue
+        
+        # Escape control characters and newlines in strings
+        if in_string and char in ['\n', '\r', '\t']:
+            if char == '\n':
+                result[i] = '\\n'
+            elif char == '\r':
+                result[i] = '\\r'
+            elif char == '\t':
+                result[i] = '\\t'
+            i += 1
+            continue
+        
+        i += 1
+    
+    return ''.join(result)
+
+
+def _repair_json_aggressively(text: str) -> str:
+    """
+    Aggressively repair JSON by fixing common issues:
+    - Unescaped quotes in strings
+    - Control characters
+    - Trailing commas
+    - Missing quotes around keys
+    """
+    result = list(text)
+    i = 0
+    in_string = False
+    escape_next = False
+    
+    while i < len(result):
+        char = result[i]
+        
+        if escape_next:
+            escape_next = False
+            i += 1
+            continue
+        
+        if char == '\\':
+            escape_next = True
+            i += 1
+            continue
+        
+        if char == '"':
+            # Toggle string state
+            in_string = not in_string
+            i += 1
+            continue
+        
+        if in_string:
+            # Inside a string - escape problematic characters
+            if char == '\n':
+                result[i] = '\\n'
+            elif char == '\r':
+                result[i] = '\\r'
+            elif char == '\t':
+                result[i] = '\\t'
+            elif char == '\x00':
+                # Remove null bytes
+                result.pop(i)
+                continue
+            i += 1
+            continue
+        
+        # Outside strings - handle JSON structure
+        if char == '\n' or char == '\r':
+            # Keep newlines outside strings
+            i += 1
+            continue
+        
+        i += 1
+    
+    repaired = ''.join(result)
+    
+    # Final cleanup: remove trailing commas
+    repaired = re.sub(r',(\s*[}\]])', r'\1', repaired)
+    
+    return repaired
+
+
 def _safe_parse_json(text: str, report_customization: dict = None) -> dict:
+    """
+    Safely parse JSON from model output with multiple fallback strategies.
+    Handles common issues like unterminated strings, unescaped quotes, and markdown wrappers.
+    """
     try:
-        # Strip any non-JSON hallucinated wrappers just in case
-        cleaned = re.sub(r'(<think>.*?</think>|&lt;think&gt;.*?&lt;/think&gt;)', '', text, flags=re.DOTALL | re.IGNORECASE).strip()
+        # Strategy 0: Extract JSON from markdown code blocks if present
+        cleaned = text.strip()
+        json_block_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', cleaned, re.DOTALL | re.IGNORECASE)
+        if json_block_match:
+            cleaned = json_block_match.group(1).strip()
+        
+        # Strip any non-JSON hallucinated wrappers
+        cleaned = re.sub(r'(<think>.*?</think>|&lt;think&gt;.*?&lt;/think&gt;)', '', cleaned, flags=re.DOTALL | re.IGNORECASE).strip()
         cleaned = cleaned.replace("“", '"').replace("”", '"').replace("’", "'")
         cleaned = re.sub(r',(\s*[}\]])', r'\1', cleaned)
         # Try multiple parsing strategies for common Perplexity issues
@@ -241,9 +422,37 @@ def _safe_parse_json(text: str, report_customization: dict = None) -> dict:
             # Strategy 1: Direct JSON parsing
             parsed = json.loads(cleaned)
         except json.JSONDecodeError as e:
-           logger.error(f"🛑 Failed to parse structured JSON: {e}")
-           logger.error(f"🧵 Traceback:\n{traceback.format_exc()}")
-           raise ValueError("Failed to parse structured JSON from model output") from e
+            error_pos = getattr(e, 'pos', None)
+            error_msg = str(e)
+            
+            logger.warning(f"⚠️ Initial JSON parse failed: {error_msg}")
+            if error_pos is not None:
+                logger.debug(f"🔍 Error at position {error_pos}, context: {cleaned[max(0, error_pos-50):error_pos+50]}")
+            
+            # Strategy 2: Try to fix unterminated strings
+            try:
+                fixed = _fix_unterminated_strings(cleaned, error_pos)
+                parsed = json.loads(fixed)
+                logger.info("✅ Successfully fixed unterminated strings")
+            except (json.JSONDecodeError, Exception) as e2:
+                logger.warning(f"⚠️ String fixing failed: {e2}")
+                
+                # Strategy 3: Try to extract and repair JSON using regex
+                try:
+                    repaired = _repair_json_aggressively(cleaned)
+                    parsed = json.loads(repaired)
+                    logger.info("✅ Successfully repaired JSON using aggressive repair")
+                except (json.JSONDecodeError, Exception) as e3:
+                    logger.error(f"🛑 All JSON repair strategies failed")
+                    logger.error(f"🛑 Original error: {error_msg}")
+                    logger.error(f"🛑 String fix error: {e2}")
+                    logger.error(f"🛑 Aggressive repair error: {e3}")
+                    logger.error(f"🧵 Traceback:\n{traceback.format_exc()}")
+                    # Log a snippet of the problematic JSON for debugging
+                    logger.error(f"🔍 Problematic JSON snippet (first 500 chars): {cleaned[:500]}")
+                    if error_pos:
+                        logger.error(f"🔍 JSON around error position ({error_pos}): {cleaned[max(0, error_pos-100):error_pos+100]}")
+                    raise ValueError("Failed to parse structured JSON from model output after all repair attempts") from e
 
 
         # Remove empty fields (empty strings, null, empty arrays)

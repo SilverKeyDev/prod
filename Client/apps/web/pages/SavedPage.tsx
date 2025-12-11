@@ -4,11 +4,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import SavedLayout from "../app/layouts/SavedLayout";
 import { PropertyCard } from "../components/cards";
 import ReportCard from "../components/cards/ReportCard";
-import { CardHeartSave, CardViewDetailsButton } from "../components/cards/base";
+import {
+  CardHeartSave,
+  CardViewDetailsButton,
+  CardCompareCheckbox,
+} from "../components/cards/base";
 import DeleteModal from "../components/modals/DeleteModal";
 import PdfModal from "../components/modals/PdfModal";
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal";
 import { KeyTurnLoader } from "../components/ui";
+import CompareFloatingBar from "../components/ui/CompareFloatingBar";
 import GenerateReportPage from "../features/decide/generate/GenerateReport";
 import { reportApi } from "../../../packages/config/api";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
@@ -18,6 +23,7 @@ import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/use
 import type { SavedHome, Report } from "../../../packages/schemas";
 import { useUIStore } from "../../../packages/store";
 import CompareReportsPage from "../features/decide/compare/CompareReportsPage";
+import CompareHomesModal from "../components/modals/CompareHomesModal";
 import AIAssistant from "../features/decide/aiAssistant/AIAssistant";
 import ReportsSubViewNavigation from "../features/decide/ReportsSubViewNavigation";
 import useMobile from "../../../packages/hooks/ui/useMobile";
@@ -41,6 +47,10 @@ export default function SavedHomes({
     "reports" | "compare" | "chatbot"
   >("reports");
   const [isComparisonMode, setIsComparisonMode] = useState(false);
+  const [selectedHomesForComparison, setSelectedHomesForComparison] = useState<
+    Set<string>
+  >(new Set());
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
   // Use Zustand store for saved homes data (React Query integration)
@@ -86,6 +96,31 @@ export default function SavedHomes({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load selected homes from localStorage
+  useEffect(() => {
+    const savedSelections = localStorage.getItem("compareHomesState");
+    if (savedSelections) {
+      try {
+        const parsed = JSON.parse(savedSelections) as {
+          selectedIds?: string[];
+        };
+        if (parsed.selectedIds && Array.isArray(parsed.selectedIds)) {
+          setSelectedHomesForComparison(new Set(parsed.selectedIds));
+        }
+      } catch {
+        // Ignore parsing errors
+      }
+    }
+  }, []);
+
+  // Save selected homes to localStorage
+  useEffect(() => {
+    const stateToSave = {
+      selectedIds: Array.from(selectedHomesForComparison),
+    };
+    localStorage.setItem("compareHomesState", JSON.stringify(stateToSave));
+  }, [selectedHomesForComparison]);
 
   // Monitor comparison mode state from localStorage
   useEffect(() => {
@@ -254,6 +289,42 @@ export default function SavedHomes({
     [fetchPropertyDetails]
   );
 
+  // Comparison handlers
+  const handleToggleHomeSelection = useCallback((homeId: string) => {
+    setSelectedHomesForComparison((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(homeId)) {
+        newSet.delete(homeId);
+      } else {
+        newSet.add(homeId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleRemoveFromComparison = useCallback((homeId: string) => {
+    setSelectedHomesForComparison((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(homeId);
+      return newSet;
+    });
+  }, []);
+
+  const handleClearComparison = useCallback(() => {
+    setSelectedHomesForComparison(new Set());
+  }, []);
+
+  // Get selected homes data
+  const selectedHomesData = homes.filter((home) =>
+    selectedHomesForComparison.has(home.home_id)
+  );
+
+  const handleCompare = useCallback(() => {
+    if (selectedHomesData.length >= 2) {
+      setIsCompareModalOpen(true);
+    }
+  }, [selectedHomesData.length]);
+
   const filteredHomes = homes.filter((h: SavedHome) => {
     return (
       h.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -418,7 +489,7 @@ export default function SavedHomes({
           handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
         }
       />
-      <div className="space-y-8">
+      <div className="my-responsive-lg space-y-responsive-lg">
         {/* SavedLayout - Only show on desktop (mobile shows in topbar) */}
         {!isMobile && (
           <SavedLayout
@@ -469,71 +540,90 @@ export default function SavedHomes({
                 <KeyTurnLoader message="Loading saved homes..." />
               </div>
             ) : (
-              <div className="py-12 text-center">
-                <p className="text-gray-600">You have no saved homes yet.</p>
+              <div className="py-responsive-lg text-center">
+                <p className="text-responsive-sm text-gray-600">
+                  You have no saved homes yet.
+                </p>
               </div>
             )
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredHomes.map((home: SavedHome) => (
-                <PropertyCard
-                  key={home.home_id}
-                  id={home.home_id}
-                  imageUrl={home.image_url}
-                  address={
-                    typeof home.address === "string" ||
-                    typeof home.address === "number"
-                      ? home.address.toString()
-                      : (home.description ?? "[Invalid address]")
-                  }
-                  price={
-                    typeof home.price === "string" ||
-                    typeof home.price === "number"
-                      ? home.price.toString()
-                      : "[Invalid price]"
-                  }
-                  bedrooms={home.bedrooms}
-                  bathrooms={home.bathrooms}
-                  sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
-                  lotSize={
-                    typeof home.lot_size === "string"
-                      ? home.lot_size
-                      : undefined
-                  }
-                  pricePosition="below-address"
-                  cardType="searchpage"
-                  showScore={false}
-                  topContent={
-                    <CardHeartSave
-                      property={{
-                        id: home.home_id,
-                        address: home.address ?? home.description ?? "",
-                        price:
-                          typeof home.price === "string" ||
-                          typeof home.price === "number"
-                            ? String(home.price)
-                            : "",
-                        bedrooms: home.bedrooms ?? 0,
-                        bathrooms: home.bathrooms ?? 0,
-                        sqft: home.sqft ?? 0,
-                        lat: home.lat ?? 0,
-                        lng: home.lng ?? 0,
-                        images: home.image_url ? [home.image_url] : [],
-                      }}
-                      size="sm"
+            <div className="grid grid-cols-1 gap-responsive-md sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredHomes.map((home: SavedHome) => {
+                const isSelected = selectedHomesForComparison.has(home.home_id);
+                return (
+                  <div key={home.home_id} className="relative group">
+                    <PropertyCard
+                      id={home.home_id}
+                      imageUrl={home.image_url}
+                      address={
+                        typeof home.address === "string" ||
+                        typeof home.address === "number"
+                          ? home.address.toString()
+                          : (home.description ?? "[Invalid address]")
+                      }
+                      price={
+                        typeof home.price === "string" ||
+                        typeof home.price === "number"
+                          ? home.price.toString()
+                          : "[Invalid price]"
+                      }
+                      bedrooms={home.bedrooms}
+                      bathrooms={home.bathrooms}
+                      sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
+                      lotSize={
+                        typeof home.lot_size === "string"
+                          ? home.lot_size
+                          : undefined
+                      }
+                      pricePosition="below-address"
+                      cardType="searchpage"
+                      showScore={false}
+                      topContent={
+                        <>
+                          {/* Compare checkbox - top-left on image */}
+                          <CardCompareCheckbox
+                            isSelected={isSelected}
+                            onToggle={() =>
+                              handleToggleHomeSelection(home.home_id)
+                            }
+                            position="top-left"
+                            size="sm"
+                          />
+                          {/* Heart save - top-right on image */}
+                          <CardHeartSave
+                            property={{
+                              id: home.home_id,
+                              address: home.address ?? home.description ?? "",
+                              price:
+                                typeof home.price === "string" ||
+                                typeof home.price === "number"
+                                  ? String(home.price)
+                                  : "",
+                              bedrooms: home.bedrooms ?? 0,
+                              bathrooms: home.bathrooms ?? 0,
+                              sqft: home.sqft ?? 0,
+                              lat: home.lat ?? 0,
+                              lng: home.lng ?? 0,
+                              images: home.image_url ? [home.image_url] : [],
+                            }}
+                            position="top-right"
+                            size="sm"
+                          />
+                        </>
+                      }
+                      bottomContent={
+                        <CardViewDetailsButton
+                          onClick={() => handleUnlockHome(home)}
+                          size="sm"
+                          variant="primary"
+                          fullWidth
+                          text="Unlock"
+                        />
+                      }
                     />
-                  }
-                  bottomContent={
-                    <CardViewDetailsButton
-                      onClick={() => handleUnlockHome(home)}
-                      size="sm"
-                      variant="primary"
-                      fullWidth
-                      text="Unlock"
-                    />
-                  }
-                />
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )
         ) : /* Reports View */
@@ -547,8 +637,8 @@ export default function SavedHomes({
               <KeyTurnLoader message="Loading reports..." />
             </div>
           ) : (
-            <div className="py-12 text-center">
-              <p className="text-gray-600">
+            <div className="py-responsive-lg text-center">
+              <p className="text-responsive-sm text-gray-600">
                 {searchTerm
                   ? "No reports found matching your search"
                   : "You have no reports yet."}
@@ -556,7 +646,7 @@ export default function SavedHomes({
             </div>
           )
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-responsive-sm sm:grid-cols-2 lg:grid-cols-3">
             {filteredReports.map((report) => (
               <ReportCard
                 key={report.id}
@@ -578,6 +668,24 @@ export default function SavedHomes({
           <PropertyDetailsModal
             property={selectedProperty}
             onClose={clearSelectedProperty}
+          />
+        )}
+
+        {/* Compare Homes Modal */}
+        <CompareHomesModal
+          isOpen={isCompareModalOpen}
+          onClose={() => setIsCompareModalOpen(false)}
+          selectedHomes={selectedHomesData}
+          onRemove={handleRemoveFromComparison}
+        />
+
+        {/* Compare Floating Bar - Show when viewing homes list and >= 1 selected */}
+        {viewType === "homes" && selectedHomesData.length >= 1 && (
+          <CompareFloatingBar
+            selectedHomes={selectedHomesData}
+            onCompare={handleCompare}
+            onClear={handleClearComparison}
+            onRemove={handleRemoveFromComparison}
           />
         )}
       </div>

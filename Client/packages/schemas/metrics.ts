@@ -106,5 +106,5 @@ export const ALL_METRIC_KEYS: string[] = [
   "Parking",
   "Pet Friendly",
   "Cell Service Quality",
-  "Other Notable Tips",
+  "Other Notable Tips & Red Flags",
 ];

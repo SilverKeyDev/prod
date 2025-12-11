@@ -6,7 +6,7 @@ import {
   Home,
   MapPin,
   MessageSquare,
-  Check,
+  ListOrdered,
 } from "lucide-react";
 
 import type { StepConfig, OnboardingData, DropdownOption } from "./types";
@@ -18,20 +18,30 @@ export type { OnboardingData, DropdownOption };
 // Consolidated steps configuration for both onboarding and personalization flows
 export const STEPS: StepConfig[] = [
   { id: "demographics", title: "About You", icon: User },
-  { id: "financial", title: "Finances", icon: Building },
   { id: "housing", title: "Housing", icon: Home },
   { id: "location", title: "Location", icon: MapPin },
   { id: "communication", title: "Communication", icon: MessageSquare },
-  { id: "reportcustomization", title: "Your priorities", icon: Check },
+  { id: "reportcustomization", title: "Your priorities", icon: ListOrdered },
+  { id: "financial", title: "Finances", icon: Building },
 ];
 
 // Helper functions to get steps in different orders for different flows
-export const getOnboardingSteps = (): StepConfig[] => STEPS.filter(step => step.id !== "communication");
+export const getOnboardingSteps = (): StepConfig[] => {
+  const filtered = STEPS.filter(step => step.id !== "communication");
+  // Ensure financial is at the end
+  const financial = filtered.find(step => step.id === "financial");
+  const others = filtered.filter(step => step.id !== "financial");
+  return [...others, ...(financial ? [financial] : [])];
+};
 
-export const getPersonalizationSteps = (): StepConfig[] => [
-  STEPS.find(step => step.id === "reportcustomization")!,
-  ...STEPS.filter(step => step.id !== "reportcustomization" && step.id !== "communication" && step.id !== "demographics"),
-];
+export const getPersonalizationSteps = (): StepConfig[] => {
+  const reportCustomization = STEPS.find(step => step.id === "reportcustomization")!;
+  const others = STEPS.filter(step => step.id !== "reportcustomization" && step.id !== "communication" && step.id !== "demographics");
+  // Ensure financial is at the end
+  const financial = others.find(step => step.id === "financial");
+  const nonFinancial = others.filter(step => step.id !== "financial");
+  return [reportCustomization, ...nonFinancial, ...(financial ? [financial] : [])];
+};
 
 // Helper function to convert StepConfig to NavItem for sidebar navigation
 export const convertStepsToNavItems = (steps: StepConfig[]): NavItem[] => 
@@ -48,76 +58,76 @@ export const PERSONALIZATION_STEPS = getPersonalizationSteps();
 
 export const DEFAULT_REPORT_SECTIONS = [
   {
+    id: "affordability",
+    key: "affordability",
+    label: "Affordability",
+    priority: 1,
+    description: "Affordability, taxes, long-term costs, projected value",
+    question: "Can I comfortably afford to live here now and long term?",
+  },
+  {
+    id: "neighborhood",
+    key: "neighborhood",
+    label: "Neighborhood",
+    priority: 2,
+    description: "Safety, cleanliness, upkeep, community feel",
+    question: "Is the area safe, pleasant, and stable?",
+  },
+  {
     id: "commute",
     key: "commute",
-    label: "Location",
-    priority: 1,
-  },
-  {
-    id: "schools",
-    key: "schools",
-    label: "Schools",
-    priority: 2,
-  },
-  {
-    id: "safety",
-    key: "safety",
-    label: "Crime & Safety",
+    label: "Commute",
     priority: 3,
+    description: "Driving time, public transit, road quality, infrastructure",
+    question: "Is it easy and efficient to get around from here?",
   },
   {
     id: "family_friendly",
     key: "family_friendly",
-    label: "Family Friendly",
+    label: "Family-Friendly",
     priority: 4,
+    description: "Schools, parks, healthcare, kid-friendly amenities",
+    question: "Is this a good place to raise kids and meet family needs?",
   },
   {
-    id: "financial_information",
-    key: "financial_information",
-    label: "Financial Information",
+    id: "entertainment",
+    key: "entertainment",
+    label: "Entertainment",
     priority: 5,
+    description: "Restaurants, bars, gyms, activities, overall vibe",
+    question: "Are there enjoyable things to do nearby?",
   },
   {
-    id: "environment_utilities",
-    key: "environment_utilities",
-    label: "Environment & Utilities",
+    id: "investment",
+    key: "investment",
+    label: "Investment",
     priority: 6,
+    description: "Future growth, job market stability, resale potential",
+    question: "Is this area likely to appreciate or decline?",
   },
   {
-    id: "development",
-    key: "development",
-    label: "Future Development",
+    id: "climate_environmental_safety",
+    key: "climate_environmental_safety",
+    label: "Weather & Natural Risk",
     priority: 7,
+    description: "Climate preference, flood/fire/hurricane risk",
+    question: "Is the weather right for me, and is the area safe?",
   },
   {
-    id: "social_character",
-    key: "social_character",
-    label: "Social Character",
+    id: "convenience_walkability",
+    key: "convenience_walkability",
+    label: "Convenience & Walkability",
     priority: 8,
+    description: "Grocery, daily services, walkability, errands without a car",
+    question: "Is daily life here convenient and easy?",
   },
   {
-    id: "culture_and_events",
-    key: "culture_and_events",
-    label: "Culture & Events",
+    id: "home",
+    key: "home",
+    label: "Home Match",
     priority: 9,
-  },
-  {
-    id: "local_amenities",
-    key: "local_amenities",
-    label: "Local Amenities",
-    priority: 10,
-  },
-  {
-    id: "nightlife_and_dating",
-    key: "nightlife_and_dating",
-    label: "Nightlife & Dating",
-    priority: 11,
-  },
-  {
-    id: "extra_tips",
-    key: "extra_tips",
-    label: "Tips & Recommendations",
-    priority: 12,
+    description: "Features, layout, condition, style, deal breakers",
+    question: "Does this home match my desired preferences?",
   },
 ];
 

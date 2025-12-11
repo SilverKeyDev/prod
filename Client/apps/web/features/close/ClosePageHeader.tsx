@@ -77,23 +77,41 @@ export default function ClosePageHeader({
         {activeTab && onTabChange && (
           <div className="mt-2 lg:mt-3">
             <div className="flex justify-center items-center overflow-x-auto scrollbar-hide">
-              {tabs.map((tab, index) => (
-                <div key={tab.id} className="flex items-center flex-1 min-w-0">
-                  <button
-                    onClick={() => onTabChange(tab.id)}
-                    className={`flex-1 py-1 lg:py-1.5 text-[10px] lg:text-sm font-medium transition-all duration-200 whitespace-nowrap text-center ${
-                      activeTab === tab.id
-                        ? "text-olive border-b-2 border-olive"
-                        : "text-navy/70 hover:bg-olive/10 hover:text-olive hover:shadow-sm rounded-lg"
-                    }`}
+              {tabs.map((tab, index) => {
+                const isFirst = index === 0;
+                const isLast = index === tabs.length - 1;
+                return (
+                  <div
+                    key={tab.id}
+                    className="flex items-center flex-1 min-w-0"
                   >
-                    {tab.label}
-                  </button>
-                  {index < tabs.length - 1 && (
-                    <div className="h-4 lg:h-6 w-px bg-gray-300 flex-shrink-0" />
-                  )}
-                </div>
-              ))}
+                    <button
+                      onClick={() => onTabChange(tab.id)}
+                      className={`relative flex-1 py-1 lg:py-1.5 text-[10px] lg:text-sm font-medium transition-all duration-200 whitespace-nowrap text-center ${
+                        activeTab === tab.id
+                          ? "text-olive"
+                          : "text-navy/70 hover:bg-olive/10 hover:text-olive hover:shadow-sm rounded-lg"
+                      }`}
+                    >
+                      {tab.label}
+                      {activeTab === tab.id && (
+                        <span
+                          className={`absolute bottom-0 h-0.5 bg-olive ${
+                            isFirst
+                              ? "left-2 right-2 rounded-l-full"
+                              : isLast
+                                ? "left-2 right-2 rounded-r-full"
+                                : "left-2 right-2 rounded-full"
+                          }`}
+                        />
+                      )}
+                    </button>
+                    {index < tabs.length - 1 && (
+                      <div className="h-4 lg:h-6 w-px bg-gray-300 flex-shrink-0" />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

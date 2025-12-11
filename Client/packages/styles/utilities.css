@@ -537,16 +537,8 @@
     @apply cursor-not-allowed;
   }
 
-  .cursor-help-hint {
-    @apply cursor-help;
-  }
-
   .cursor-resize-handle {
     @apply cursor-col-resize;
-  }
-
-  .cursor-zoom {
-    @apply cursor-zoom-in hover:cursor-zoom-out;
   }
 
   /* Muted Image System */

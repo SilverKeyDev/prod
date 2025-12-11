@@ -739,21 +739,41 @@ def view_pdf_inline(user, report_id):
 
 @report_bp.route('/compare', methods=['POST'])
 def compare_reports_endpoint():
-    """Compare multiple report JSON files and return flattened table data."""
+    """Compare multiple homes from home_universal table - returns home data directly."""
     try:
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        
         data = request.get_json() or {}
         
-        s3_keys = data.get('s3Keys')
+        # Accept home_ids (from home_universal) or report_ids (treated as home_ids)
+        home_ids = data.get('home_ids') or data.get('homeIds') or data.get('report_ids')
         
-        if not s3_keys or not isinstance(s3_keys, list):
-            logger.warning("❌ Invalid s3Keys parameter")
-            return jsonify({'success': False, 'error': 's3Keys (list) is required'}), 400
-
-        from app.services.report_comparator import compare_reports
-        df = compare_reports(s3_keys)
-        table = df.reset_index().to_dict(orient='records')
+        if not home_ids or not isinstance(home_ids, list) or len(home_ids) == 0:
+            logger.warning("❌ Invalid parameters: home_ids or report_ids (list) is required")
+            return jsonify({'success': False, 'error': 'home_ids or report_ids (list) is required'}), 400
         
-        return jsonify({'success': True, 'table': table})
+        # Query home_universal directly, same as unlock/property endpoint
+        from app.models.home_universal import HomeUniversal
+        
+        homes = HomeUniversal.query.filter(
+            HomeUniversal.id.in_(home_ids),
+            HomeUniversal.user_id == str(user.id)
+        ).all()
+        
+        # Convert to dict format matching the property endpoint response
+        homes_data = []
+        for home in homes:
+            home_dict = home.to_dict()
+            # Include the JSON fields that are used for comparison
+            home_dict['features'] = home.features if home.features is not None else {}
+            home_dict['commute_data'] = home.commute_data if home.commute_data is not None else {}
+            home_dict['property_analysis'] = home.property_analysis if home.property_analysis is not None else {}
+            home_dict['raw_data'] = home.raw_data if home.raw_data is not None else {}
+            homes_data.append(home_dict)
+        
+        return jsonify({'success': True, 'homes': homes_data})
     except Exception as e:
         logger.error(f"❌ Error comparing reports: {str(e)}")
         logger.error(f"🔍 Error type: {type(e).__name__}")

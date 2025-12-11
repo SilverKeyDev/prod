@@ -1,6 +1,7 @@
 import type { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 
+import { DEFAULT_REPORT_SECTIONS } from "./constants";
 import type { OnboardingData } from "./types";
 
 export type ReportSection = {
@@ -42,9 +43,18 @@ export const handleDragEnd = ({
     const currentPriorities = formData.report_section_priorities ?? [];
     const reorderedSections = arrayMove(sections, oldIndex, newIndex);
 
-    // Only include sections that were previously selected (in priorities)
+    // Ensure we only work with valid sections from DEFAULT_REPORT_SECTIONS
+    const validSectionKeys = new Set(
+      DEFAULT_REPORT_SECTIONS.map((section) => section.key)
+    );
+
+    // Only include sections that were previously selected (in priorities) and are valid
     const newPriorities = reorderedSections
-      .filter((section) => currentPriorities.includes(section.key))
+      .filter(
+        (section) =>
+          currentPriorities.includes(section.key) &&
+          validSectionKeys.has(section.key)
+      )
       .map((section) => section.key);
 
     updateFormData("report_section_priorities", newPriorities);

@@ -163,7 +163,7 @@ export default function NegotiationStrategy() {
               <div className="flex justify-center">
                 <Loading
                   message={
-                    "We appreciate feedback! Want us to build a new feature, let us know!"
+                    "We appreciate feedback! jayce@usesilverkey.com"
                   }
                 />
               </div>

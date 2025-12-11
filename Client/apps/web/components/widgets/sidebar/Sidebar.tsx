@@ -121,7 +121,7 @@ const navigationStructure: NavigationStructure = {
     }>,
     items: [
       {
-        name: "Preferences",
+        name: "Settings",
         href: SIDEBAR_TABS.settings.href,
         icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
           className?: string;

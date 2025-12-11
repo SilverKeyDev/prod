@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, Response, stream_with_context
 from app.utils.locationPolygon import isochrone_union_for_addresses
 from app.utils.auth import get_current_user, SecurityException
 from app.utils.secure_errors import SecureErrorHandler
@@ -199,10 +199,11 @@ def get_property_via_address():
     Call RapidAPI Zillow /property using exactly one of:
     zpid, property_url, or address (address-only is fine).
     Enhanced with commute map visualization data.
+    Supports streaming via ?stream=true query parameter.
     """
     import os, time, json, requests
     from flask import current_app, jsonify, request as req
-    from ..services.reportgen.graphic_generation import fetch_travel_time, generate_static_map_url
+    from ..services.reportgen.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
     from ..models.user_preferences import UserPreferences
     from ..services.search_help import analyze_property_with_sonar_pro, extract_and_clean_features
 
@@ -214,6 +215,9 @@ def get_property_via_address():
     zpid = body.get("zpid")
     property_url = body.get("property_url")
     address = body.get("address")  # full address string, e.g., "935 Cumberland Rd NE, Atlanta, GA 30306"
+    
+    # Check if streaming is requested
+    stream_mode = req.args.get('stream', 'false').lower() == 'true' or req.headers.get('X-Stream', '').lower() == 'true'
 
     # Priority: zpid > property_url > address
     params = None
@@ -230,6 +234,22 @@ def get_property_via_address():
     if params is None:
         return jsonify({"success": False, "error": "BAD_REQUEST",
                         "message": "Provide one of: zpid, property_url, or address"}), 400
+    
+    # Streaming mode: yield chunks as they're generated
+    if stream_mode:
+        from ..services.search.property_stream import generate_property_stream
+        
+        return Response(
+            stream_with_context(generate_property_stream(params, address)),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no',
+                'Connection': 'keep-alive'
+            }
+        )
+    
+    # Non-streaming mode: continue with existing logic below
 
     # Fast-path: if we already have a fully populated HomeUniversal record for this
     # user and property, return it without calling external APIs or generating extras.
@@ -514,7 +534,7 @@ def get_property_via_address():
                     # Generate static map URL with commute routes
                     if secondary_locations:
                         try:
-                            map_url = generate_static_map_url(property_address, secondary_locations, GOOGLE_MAPS_API_KEY)
+                            map_url = generate_static_map_url(property_address, secondary_locations, GOOGLE_MAPS_API_KEY, map_id=GOOGLE_MAPS_ID)
                         except Exception as e:
                             current_app.logger.error(f"🗺️ [PROPERTY] Error generating map URL: {e}")
                     
@@ -529,6 +549,7 @@ def get_property_via_address():
         current_app.logger.info(f"[PROPERTY] ⏭️ Skipping commute_data generation, using cached data")
     
     # Enhanced: Add property analysis using Perplexity Sonar Pro
+    # Always generate: pros/cons, then generate additional sections based on user preferences
     # Use cached property_analysis if available, otherwise generate
     property_analysis = cached_property_analysis if cached_property_analysis else None
     
@@ -561,16 +582,16 @@ def get_property_via_address():
                     }
                     
                     # Parse JSON fields if they're strings
-                    for field in ['important_locations', 'preferred_home_features', 'deal_breakers']:
+                    for field in ['important_locations', 'preferred_home_features', 'deal_breakers', 'report_section_priorities']:
                         if hasattr(user_preferences, field):
                             field_value = getattr(user_preferences, field)
                             if isinstance(field_value, str):
                                 try:
                                     user_prefs_dict[field] = json.loads(field_value)
                                 except json.JSONDecodeError:
-                                    user_prefs_dict[field] = []
+                                    user_prefs_dict[field] = [] if field == 'report_section_priorities' else []
                             else:
-                                user_prefs_dict[field] = field_value or []
+                                user_prefs_dict[field] = field_value or ([] if field == 'report_section_priorities' else [])
                     
                     # Prepare home object for analysis
                     home_object = {
@@ -587,28 +608,49 @@ def get_property_via_address():
                         'state': data.get('state'),
                         'zipcode': data.get('zipcode')
                     }
-                                    
-                    # Call the property analysis function
+                    
+                    # Step 1: Always generate pros/cons (core property analysis)
+                    from ..services.search_help import analyze_property_with_sonar_pro, generate_report_sections_for_property
+                    
                     analysis_result = analyze_property_with_sonar_pro(user_prefs_dict, home_object)
                     
+                    # Initialize property_analysis with pros/cons
                     if analysis_result:
-                        # Convert Pydantic model to dict for JSON response
                         property_analysis = {
                             'pros': analysis_result.pros,
                             'cons': analysis_result.cons,
-                            'neighborhood_overview': analysis_result.neighborhood_overview,
-                            'crime_stats': analysis_result.crime_stats,
-                            'gentrification_index': analysis_result.gentrification_index,
-                            'roi_explanation': analysis_result.roi_explanation
                         }
-                    
-                        if not 'neighborhood_overview' in property_analysis:
-                            current_app.logger.warning(f"⚠️ [PROPERTY] neighborhood_overview missing from response to frontend")
                     else:
-                        current_app.logger.warning(f"⚠️ [PROPERTY] Perplexity analysis returned no results")
+                        property_analysis = {}
+                        current_app.logger.warning(f"⚠️ [PROPERTY] Pros/cons analysis returned no results")
+                    
+                    # Step 2: Generate additional report sections based on user preferences
+                    section_names = user_prefs_dict.get('report_section_priorities', [])
+                    if section_names and isinstance(section_names, list):
+                        current_app.logger.info(f"[PROPERTY] Generating {len(section_names)} additional report sections: {section_names}")
+                        additional_sections = generate_report_sections_for_property(
+                            section_names=section_names,
+                            address=property_address or data.get('streetAddress', 'Unknown address'),
+                            user_preferences=user_prefs_dict,
+                            property_data=data
+                        )
+                        
+                        # Merge additional sections into property_analysis
+                        if additional_sections:
+                            property_analysis.update(additional_sections)
+                            current_app.logger.info(f"[PROPERTY] ✅ Successfully generated {len(additional_sections)} additional sections")
+                        else:
+                            current_app.logger.warning(f"⚠️ [PROPERTY] No additional sections generated")
+                    else:
+                        current_app.logger.info(f"[PROPERTY] No report_section_priorities found, skipping additional section generation")
+                    
+                    if not 'neighborhood_overview' in property_analysis:
+                        current_app.logger.warning(f"⚠️ [PROPERTY] neighborhood_overview missing from response to frontend")
                     
         except Exception as e:
             current_app.logger.error(f"🔍 [PROPERTY] Error during property analysis: {e}")
+            import traceback
+            current_app.logger.error(traceback.format_exc())
             # Don't fail the entire request if analysis fails
             property_analysis = {'error': 'Failed to analyze property'}
     else:

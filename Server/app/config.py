@@ -107,7 +107,7 @@ class Config:
 
     # Google Calendar Settings
     GOOGLE_CALENDAR_SECRET = os.getenv('GOOGLE_CALENDAR_SECRET')
-    GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_ID = "24810096801-7e7o2ku0f6t053sid2a2o2l1be6orj01.apps.googleusercontent.com"
     GOOGLE_SCOPES = 'https://www.googleapis.com/auth/calendar'
     
     # Google OAuth Redirect URI - set as class attribute

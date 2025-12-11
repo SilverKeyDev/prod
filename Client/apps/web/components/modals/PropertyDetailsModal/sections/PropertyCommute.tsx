@@ -1,12 +1,19 @@
 import { MapPin } from "lucide-react";
 import React from "react";
 
-import Card from "../../layout/Card";
+import Card from "../../../layout/Card";
+import { DEFAULT_REPORT_SECTIONS } from "../../../../features/onboardpersonalize/lib/constants";
 
-import type { PropertyComponentProps } from "./types";
+import type { PropertyComponentProps } from "../types";
+import { SectionTintWrapper } from "./SectionTintWrapper";
 
-export const PropertyCommute: React.FC<PropertyComponentProps> = ({
+type PropertyCommuteProps = PropertyComponentProps & {
+  analysisContent?: unknown;
+};
+
+export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
   property,
+  analysisContent,
 }) => {
   const commute = (property as unknown as { commute_data?: unknown })
     .commute_data as
@@ -31,18 +38,66 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({
     Array.isArray(commute.travel_times) && commute.travel_times.length > 0;
   const hasSimple =
     commute.commute_time != null || commute.commute_distance != null;
-  if (!hasTravelTimes && !hasSimple) return null;
+  if (!hasTravelTimes && !hasSimple && !analysisContent) return null;
+
+  // Get section label
+  const sectionLabel =
+    DEFAULT_REPORT_SECTIONS.find(
+      (s: { key: string; label: string }) => s.key === "commute"
+    )?.label || "Commute Information";
+
+  // Helper to render analysis content
+  const renderAnalysisContent = (data: unknown): React.ReactNode => {
+    if (!data || typeof data !== "object") return null;
+
+    const dataObj = data as Record<string, unknown>;
+    const entries = Object.entries(dataObj).filter(
+      ([_, value]) => value !== null && value !== undefined && value !== ""
+    );
+
+    if (entries.length === 0) return null;
+
+    return (
+      <div className="mt-4 space-y-2 text-left">
+        {entries.map(([key, value]) => {
+          const displayKey = key
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase());
+
+          if (Array.isArray(value)) {
+            return (
+              <div key={key}>
+                <h4 className="mb-1 text-sm font-medium text-brown">
+                  {displayKey}
+                </h4>
+                <ul className="space-y-1 text-sm text-brown/80">
+                  {value.map((item, i) => (
+                    <li key={i}>• {String(item)}</li>
+                  ))}
+                </ul>
+              </div>
+            );
+          }
+
+          return (
+            <div key={key} className="flex justify-between text-sm">
+              <span className="text-brown/70">{displayKey}:</span>
+              <span className="font-medium text-brown">{String(value)}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center gap-2">
-        <MapPin className="h-5 w-5 text-gray-600" />
-        <h3 className="text-lg font-semibold text-brown">
-          Commute Information
-        </h3>
+        <MapPin className="h-5 w-5 text-brown" />
+        <h3 className="text-lg font-semibold text-brown">{sectionLabel}</h3>
       </div>
 
-      <div className="rounded-lg border border-beige bg-beige/20 p-6">
+      <SectionTintWrapper className="mt-2">
         {hasTravelTimes ? (
           <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
             <div>
@@ -137,7 +192,10 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({
             )}
           </div>
         )}
-      </div>
+        {analysisContent != null && (
+          <Card className="mt-4">{renderAnalysisContent(analysisContent)}</Card>
+        )}
+      </SectionTintWrapper>
     </div>
   );
 };
