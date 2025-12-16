@@ -8,25 +8,25 @@ from datetime import datetime, timezone
 from flask import Blueprint, request, redirect, session, jsonify, make_response
 from googleapiclient.errors import HttpError
 
-from ..services.google_calendar_service import google_calendar_service
-from ..services.security import (
-    redact_sensitive_data, 
-    validate_oauth_state, 
-    sanitize_error_message, 
+from ..services.calendar.google_calendar_service import google_calendar_service
+from ..utils.security.app_logging import get_logger
+from ..utils.security.security import (
+    security_error_response,
+    SecurityError,
+    rate_limit,
+    redact_sensitive_data,
+    validate_oauth_state,
+    sanitize_error_message,
     log_oauth_event,
     validate_event_data
 )
-from ..utils.app_logging import get_logger
-from ..utils.security import security_error_response, SecurityError, rate_limit
-from ..utils.secure_errors import SecureErrorHandler
+from ..utils.security.secure_errors import SecureErrorHandler
+from ..config import Config
 
 logger = get_logger()
 
 # Create blueprint
 google_calendar_bp = Blueprint("google_calendar", __name__, url_prefix="/api/v1/google")
-
-# Import configuration
-from app.config import Config
 
 
 @google_calendar_bp.route("/health", methods=["GET"])
@@ -61,7 +61,7 @@ def oauth_start():
                    Default is False (requests only calendar.events scope).
     """
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -85,7 +85,7 @@ def oauth_start():
 def oauth_callback():
     """Handle Google OAuth callback"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -138,7 +138,7 @@ def oauth_callback():
 def list_calendars():
     """List user's Google calendars"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -165,7 +165,7 @@ def list_calendars():
 def list_events():
     """List events from user's Google calendar"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -200,7 +200,7 @@ def list_events():
 def create_event():
     """Create a new event in user's Google calendar"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -234,7 +234,7 @@ def create_event():
 def update_event(event_id):
     """Update an existing event in user's Google calendar"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -268,7 +268,7 @@ def update_event(event_id):
 def delete_event(event_id):
     """Delete an event from user's Google calendar"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -297,7 +297,7 @@ def delete_event(event_id):
 def revoke():
     """Revoke Google OAuth access"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -322,7 +322,7 @@ def revoke():
 def create_calendar():
     """Create a secondary calendar (requires full calendar scope)"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -355,7 +355,7 @@ def create_calendar():
 def add_calendar_acl(calendar_id):
     """Add an ACL rule to a calendar (grant agent access)"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)

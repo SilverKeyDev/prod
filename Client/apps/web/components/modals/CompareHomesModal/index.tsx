@@ -1,0 +1,214 @@
+import { X, Download, Share, GitCompare } from "lucide-react";
+import React, { useMemo } from "react";
+
+import BaseModal from "../BaseModal";
+import IconButton from "../../ui/button/IconButton";
+import { Subtitle } from "../../ui";
+import type { SavedHome } from "../../../../../packages/schemas";
+import { usePropertyDetails } from "../../../../../packages/hooks/data/usePropertyDetails";
+import { useUIStore } from "../../../../../packages/store";
+import { usePropertyComparison } from "./usePropertyComparison";
+import { getAllComparisonFields } from "./comparisonFields";
+import { generateCSVContent, exportToCSV, shareCSV } from "./csvUtils";
+import { ComparisonTable } from "./ComparisonTable";
+import { PropertyCardsGrid } from "./PropertyCardsGrid";
+import type { CompareHomesModalProps, PropertyDetails } from "./types";
+
+const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
+  isOpen,
+  onClose,
+  selectedHomes,
+  onRemove,
+}) => {
+  const { fetchPropertyDetails } = usePropertyDetails();
+  const enqueueToast = useUIStore((s) => s.enqueueToast);
+  const { propertyDetails, loadingStates } = usePropertyComparison(
+    isOpen,
+    selectedHomes
+  );
+
+  const handleUnlockHome = async (home: SavedHome) => {
+    const propertyData = {
+      id: home.home_id,
+      address: String(home.address || home.description || ""),
+      price:
+        typeof home.price === "string"
+          ? home.price.startsWith("$")
+            ? home.price
+            : `$${home.price}`
+          : typeof home.price === "number"
+            ? `$${home.price.toLocaleString()}`
+            : "Price not available",
+      bedrooms: home.bedrooms ?? 0,
+      bathrooms: home.bathrooms ?? 0,
+      sqft: home.sqft ?? 0,
+      lat: home.lat ?? 0,
+      lng: home.lng ?? 0,
+      latitude: home.lat ?? 0,
+      longitude: home.lng ?? 0,
+      images: home.image_url ? [home.image_url] : undefined,
+    };
+
+    await fetchPropertyDetails(propertyData);
+  };
+
+  // Prepare comparison data for table view with all available fields
+  const comparisonData = useMemo(() => {
+    return selectedHomes.map((home) => {
+      const details = propertyDetails[home.home_id];
+      if (details) {
+        return details;
+      }
+
+      // Fallback to basic home data
+      return {
+        id: home.home_id,
+        address:
+          typeof home.address === "string" || typeof home.address === "number"
+            ? home.address.toString()
+            : (home.description ?? "Unknown"),
+        price:
+          typeof home.price === "string"
+            ? home.price
+            : typeof home.price === "number"
+              ? `$${home.price.toLocaleString()}`
+              : "N/A",
+        bedrooms: home.bedrooms ?? "—",
+        bathrooms: home.bathrooms ?? "—",
+        sqft: home.sqft && home.sqft > 0 ? home.sqft.toLocaleString() : "—",
+        lotSize: typeof home.lot_size === "string" ? home.lot_size : "—",
+        imageUrl: home.image_url,
+        isLoading: true,
+      } as PropertyDetails;
+    });
+  }, [selectedHomes, propertyDetails]);
+
+  const comparisonFields = useMemo(
+    () => getAllComparisonFields(comparisonData),
+    [comparisonData]
+  );
+
+  const handleExportToCSV = () => {
+    if (selectedHomes.length === 0) {
+      enqueueToast({ type: "error", message: "No homes to export" });
+      return;
+    }
+
+    const csvContent = generateCSVContent(comparisonData, comparisonFields);
+    exportToCSV(
+      csvContent,
+      () => {
+        enqueueToast({
+          type: "success",
+          message: "Comparison exported successfully",
+        });
+      },
+      (error) => {
+        enqueueToast({ type: "error", message: error });
+      }
+    );
+  };
+
+  const handleShareCSV = async () => {
+    if (selectedHomes.length === 0) {
+      enqueueToast({ type: "error", message: "No homes to share" });
+      return;
+    }
+
+    const csvContent = generateCSVContent(comparisonData, comparisonFields);
+    await shareCSV(
+      csvContent,
+      selectedHomes.length,
+      (message) => {
+        enqueueToast({ type: "success", message });
+      },
+      (error) => {
+        enqueueToast({ type: "error", message: error });
+      }
+    );
+  };
+
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="full"
+      showCloseButton={false}
+      headerContent={
+        <div className="flex w-full items-center justify-between gap-2 sm:gap-4">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <GitCompare className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+            <span className="truncate text-base font-medium text-gray-900 sm:text-lg">
+              Compare Properties
+            </span>
+          </div>
+          <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+            <IconButton
+              onClick={handleExportToCSV}
+              variant="ghost"
+              size="sm"
+              icon={<Download className="h-4 w-4 sm:h-4 sm:w-4" />}
+              disabled={selectedHomes.length === 0}
+              className="touch-manipulation text-gray-600 hover:text-gray-900"
+              aria-label="Export comparison"
+            />
+            <IconButton
+              onClick={handleShareCSV}
+              variant="ghost"
+              size="sm"
+              icon={<Share className="h-4 w-4 sm:h-4 sm:w-4" />}
+              disabled={selectedHomes.length === 0}
+              className="touch-manipulation text-gold hover:text-gold/80"
+              aria-label="Share comparison"
+            />
+            <IconButton
+              variant="ghost"
+              size="sm"
+              icon={<X className="h-4 w-4 sm:h-5 sm:w-5" />}
+              onClick={onClose}
+              className="flex-shrink-0 touch-manipulation text-gray-400 hover:text-gray-500"
+              aria-label="Close modal"
+            />
+          </div>
+        </div>
+      }
+      className="max-w-7xl"
+    >
+      <div className="space-y-responsive-md">
+        {/* Subtitle */}
+        <div>
+          <Subtitle size="sm" muted>
+            {selectedHomes.length} propert
+            {selectedHomes.length === 1 ? "y" : "ies"} selected
+          </Subtitle>
+        </div>
+
+        {/* Comparison Table */}
+        <ComparisonTable
+          comparisonData={comparisonData}
+          comparisonFields={comparisonFields}
+          loadingStates={loadingStates}
+          selectedHomesCount={selectedHomes.length}
+        />
+
+        {/* Property Cards Grid */}
+        <PropertyCardsGrid
+          selectedHomes={selectedHomes}
+          onRemove={onRemove}
+          onUnlock={handleUnlockHome}
+        />
+
+        {selectedHomes.length === 0 && (
+          <div className="py-responsive-lg text-center">
+            <p className="text-responsive-sm text-gray-600">
+              No homes selected for comparison.
+            </p>
+          </div>
+        )}
+      </div>
+    </BaseModal>
+  );
+};
+
+export default CompareHomesModal;
+export type { CompareHomesModalProps } from "./types";

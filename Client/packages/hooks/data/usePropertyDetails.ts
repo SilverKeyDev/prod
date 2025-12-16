@@ -55,8 +55,33 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
           address: property.address,
         })) {
           if (update.type === "error") {
-            const errorData = update.data as { error?: string; message?: string };
-            throw new Error(errorData.error || errorData.message || "Unknown error");
+            const errorData = update.data as {
+              error?: string;
+              message?: string;
+              details?: string;
+              status_code?: number;
+            };
+            
+            // Try to parse details as JSON if it looks like JSON
+            let errorMessage = errorData.details || errorData.message || errorData.error || "Unknown error";
+            if (errorData.details) {
+              try {
+                const parsed = JSON.parse(errorData.details);
+                if (parsed.message) {
+                  errorMessage = parsed.message;
+                } else if (typeof parsed === "string") {
+                  errorMessage = parsed;
+                }
+              } catch {
+                // If parsing fails, use the details as-is
+                errorMessage = errorData.details;
+              }
+            }
+            
+            const statusCode = errorData.status_code
+              ? ` (${errorData.status_code})`
+              : "";
+            throw new Error(`${errorMessage}${statusCode}`);
           }
 
           if (update.type === "basic") {

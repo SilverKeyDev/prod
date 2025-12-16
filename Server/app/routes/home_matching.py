@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from ..celery.tasks import find_best_matches_task
 from ..celery.celery_worker import celery
-from ..utils.app_logging import get_logger
+from ..utils.security.app_logging import get_logger
 
 # Configure logging
 logger = get_logger()

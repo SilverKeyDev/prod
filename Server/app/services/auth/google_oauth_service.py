@@ -13,7 +13,7 @@ from typing import Optional, Dict, Any
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from ..utils.app_logging import get_logger
+from app.utils.security.app_logging import get_logger
 
 logger = get_logger()
 

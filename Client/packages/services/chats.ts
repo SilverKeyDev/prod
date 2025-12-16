@@ -70,88 +70,11 @@ export class ChatService {
         return newChats;
       }
 
-      // Fallback: make API call if no shared data available
+      // Fallback: API endpoint removed - throw error if no shared data available
       console.log(
-        "[CHAT_SERVICE] 📡 No shared data available, calling reportApi.getAll()",
+        "[CHAT_SERVICE] ❌ No shared data available and API endpoint removed",
       );
-      const json = await reportApi.getAll();
-      console.log("[CHAT_SERVICE] 📥 API Response received:", {
-        success:
-          json && typeof json === "object" && "success" in json
-            ? json.success
-            : false,
-        reportsCount:
-          json &&
-          typeof json === "object" &&
-          "reports" in json &&
-          Array.isArray(json.reports)
-            ? json.reports.length
-            : 0,
-        hasReports:
-          json &&
-          typeof json === "object" &&
-          "reports" in json &&
-          Array.isArray(json.reports),
-        error:
-          json && typeof json === "object" && "error" in json
-            ? json.error
-            : undefined,
-      });
-
-      if (
-        json &&
-        typeof json === "object" &&
-        "success" in json &&
-        json.success &&
-        "reports" in json &&
-        Array.isArray(json.reports)
-      ) {
-        const reports =
-          json &&
-          typeof json === "object" &&
-          "reports" in json &&
-          Array.isArray(json.reports)
-            ? json.reports
-            : [];
-        const newChats: Chat[] = reports.map((report: unknown) => {
-          if (!report || typeof report !== "object") {
-            throw new Error("Invalid report data structure");
-          }
-          const reportData = report as Record<string, unknown>;
-          return {
-            id:
-              typeof reportData.id === "string"
-                ? reportData.id
-                : typeof reportData.id === "number"
-                  ? String(reportData.id)
-                  : "unknown",
-            title:
-              typeof reportData.address === "string"
-                ? formatFilenameToAddress(reportData.address)
-                : `Report ${typeof reportData.id === "string" ? reportData.id : typeof reportData.id === "number" ? String(reportData.id) : "unknown"}`,
-            propertyAddress:
-              typeof reportData.address === "string" ? reportData.address : "",
-            messages: [],
-            createdAt: new Date(
-              typeof reportData.generatedAt === "number"
-                ? reportData.generatedAt * 1000
-                : Date.now(),
-            ),
-          };
-        });
-        console.log("[CHAT_SERVICE] ✅ Successfully processed chats:", {
-          chatsCount: newChats.length,
-          chatIds: newChats.map((c) => c.id),
-        });
-        return newChats;
-      } else {
-        const errorMsg =
-          json && typeof json === "object" && "error" in json
-            ? json.error
-            : "Failed to fetch chat data";
-        console.log("[CHAT_SERVICE] ❌ API returned error:", errorMsg);
-        throw new Error(errorMsg);
-      }
+      throw new Error("No shared reports data available and API endpoint removed");
     } catch (e: unknown) {
       if (!isAbortError(e)) {
         console.error("[CHAT_SERVICE] ❌ fetchChats error:", {

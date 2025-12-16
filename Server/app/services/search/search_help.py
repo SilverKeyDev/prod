@@ -691,8 +691,8 @@ def generate_report_sections_for_property(
         return {}
     
     try:
-        from app.services.reportgen.schema_generator import get_individual_section_schema
-        from app.services.reportgen.report_generator import _safe_parse_json
+        from app.services.research.schema_generator import get_individual_section_schema
+        from app.services.research.report_generator import _safe_parse_json
         
         # Build payloads for each section
         payloads = []

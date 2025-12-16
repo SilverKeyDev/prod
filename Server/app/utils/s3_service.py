@@ -8,7 +8,7 @@ from io import BytesIO
 import traceback
 import time
 
-from ..utils.app_logging import get_logger
+from app.utils.security.app_logging import get_logger
 
 logger = get_logger()
 

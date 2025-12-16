@@ -35,15 +35,24 @@ class SecureErrorHandler:
     @staticmethod
     def log_error_details(error_id: str, error: Exception, context: Dict[str, Any] = None):
         """Log detailed error information for debugging (server-side only)."""
-        error_details = {
-            'error_id': error_id,
-            'error_type': type(error).__name__,
-            'error_message': str(error),
-            'traceback': traceback.format_exc(),
-            'context': context or {}
-        }
+        context_str = f" | Context: {context}" if context else ""
         
-        logger.error(f"Error {error_id}: {error_details}")
+        # Format traceback if available on the exception
+        tb_lines = []
+        if hasattr(error, '__traceback__') and error.__traceback__:
+            tb_lines = traceback.format_exception(type(error), error, error.__traceback__)
+        
+        # Log with full details
+        error_msg = f"Error {error_id} [{type(error).__name__}]: {str(error)}{context_str}"
+        if tb_lines:
+            logger.error(f"{error_msg}\n{'='*80}\n{''.join(tb_lines)}{'='*80}")
+        else:
+            # Try to use exc_info if we're still in exception context
+            import sys
+            if sys.exc_info()[0] is not None:
+                logger.error(error_msg, exc_info=True)
+            else:
+                logger.error(error_msg)
     
     @staticmethod
     def create_secure_response(

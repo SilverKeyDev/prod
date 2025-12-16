@@ -11,17 +11,17 @@ import requests
 from flask import current_app
 from datetime import datetime, timedelta
 
-from app.utils.auth import get_current_user, SecurityException
+from app.services.auth.current_user import get_current_user, SecurityException
 from app.models.user_preferences import UserPreferences
 from app.models.home_universal import HomeUniversal
-from app.services.reportgen.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
-from app.services.search_help import analyze_property_with_sonar_pro, extract_and_clean_features, extract_property_features, generate_report_sections_for_property
+from app.services.research.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
+from app.services.search.search_help import analyze_property_with_sonar_pro, extract_and_clean_features, extract_property_features, generate_report_sections_for_property
 from app.services.search.zillow_url import build_zillow_url, extract_address_fields_from_data
 from app.utils.address_format import normalize_address
 from app.utils.currency import format_currency
 from app import db
 
-RAPI_HOST = "zillow-com1.p.rapidapi.com"
+RAPI_HOST = "us-housing-market-data1.p.rapidapi.com"
 RAPI_KEY = os.getenv('RAPIDAPI_KEY')
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 

@@ -3,10 +3,9 @@ from .user import User
 from .pdf_document import PDFDocument
 from .user_preferences import UserPreferences
 from .home_universal import HomeUniversal
-from .plaid import PlaidItem, PlaidAssetReport
 
 # Initialize database
 def init_db():
     db.create_all()
 
-__all__ = ['User', 'PDFDocument', 'UserPreferences', 'HomeUniversal', 'PlaidItem', 'PlaidAssetReport', 'db']
+__all__ = ['User', 'PDFDocument', 'UserPreferences', 'HomeUniversal', 'db']

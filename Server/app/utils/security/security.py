@@ -1,12 +1,40 @@
-from flask import jsonify, current_app
-from functools import wraps
+"""
+Security utilities for authentication, authorization, rate limiting, and data redaction
+"""
+
+import re
 import time
-from collections import defaultdict, deque
 import threading
+from typing import Dict, Any, Optional
+from functools import wraps
+from collections import defaultdict, deque
+from flask import jsonify, current_app, request
+
+from .app_logging import get_logger
+
+logger = get_logger()
 
 # Thread-safe rate limiting storage
 rate_limit_storage = defaultdict(lambda: deque())
 storage_lock = threading.Lock()
+
+# Sensitive keys that should be redacted from logs
+SENSITIVE_KEYS = {
+    'access_token',
+    'refresh_token',
+    'client_secret',
+    'code',
+    'state',
+    'token',
+}
+
+# PII patterns for redaction
+PII_PATTERNS = {
+    'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+    'phone': r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
+    'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
+}
+
 
 class SecurityError:
     """Standardized security error codes and messages"""
@@ -31,6 +59,7 @@ class SecurityError:
     # Validation errors
     MISSING_FIELDS = ("MISSING_FIELDS", "Required fields are missing", 400)
     INVALID_INPUT = ("INVALID_INPUT", "Invalid input provided", 400)
+
 
 def security_error_response(error_type, additional_info=None):
     """
@@ -57,9 +86,11 @@ def security_error_response(error_type, additional_info=None):
     
     return jsonify(response), status_code
 
+
 def auth_error_response(message="Authentication required"):
     """Standardized authentication error response"""
     return security_error_response(SecurityError.UNAUTHORIZED)
+
 
 def rate_limit(max_requests=60, window_seconds=60, per='ip'):
     """
@@ -73,8 +104,6 @@ def rate_limit(max_requests=60, window_seconds=60, per='ip'):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            from flask import request
-            
             # Determine the key for rate limiting
             if per == 'ip':
                 key = f"rate_limit:{request.remote_addr}:{request.endpoint}"
@@ -117,6 +146,7 @@ def rate_limit(max_requests=60, window_seconds=60, per='ip'):
         return decorated_function
     return decorator
 
+
 def log_security_event(event_type, details=None, user_id=None):
     """
     Log security events for monitoring
@@ -126,8 +156,6 @@ def log_security_event(event_type, details=None, user_id=None):
         details: Additional details (non-sensitive)
         user_id: User ID if available
     """
-    from flask import request
-    
     log_data = {
         'event_type': event_type,
         'ip': request.remote_addr,
@@ -145,12 +173,14 @@ def log_security_event(event_type, details=None, user_id=None):
     
     current_app.logger.warning(f"🔒 SECURITY EVENT: {event_type} - {log_data}")
 
+
 def safe_user_lookup_error():
     """
     Return a safe error response for user lookup failures
     This prevents user enumeration attacks
     """
     return security_error_response(SecurityError.UNAUTHORIZED)
+
 
 def validate_required_fields(data, required_fields):
     """
@@ -175,3 +205,149 @@ def validate_required_fields(data, required_fields):
         )
     
     return None
+
+
+def redact_sensitive_data(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Redact sensitive data from dictionaries for safe logging.
+    
+    Args:
+        data: Dictionary to redact
+        
+    Returns:
+        Dictionary with sensitive values redacted
+    """
+    redacted = {}
+    
+    for key, value in data.items():
+        if key.lower() in SENSITIVE_KEYS:
+            redacted[key] = '[REDACTED]'
+        elif isinstance(value, dict):
+            redacted[key] = redact_sensitive_data(value)
+        elif isinstance(value, str) and len(value) > 50:
+            # Truncate long strings
+            redacted[key] = value[:50] + '...'
+        else:
+            redacted[key] = value
+    
+    return redacted
+
+
+def redact_pii(text: str) -> str:
+    """
+    Redact PII from text strings.
+    
+    Args:
+        text: Text to redact
+        
+    Returns:
+        Text with PII redacted
+    """
+    redacted_text = text
+    
+    for pii_type, pattern in PII_PATTERNS.items():
+        redacted_text = re.sub(pattern, f'[{pii_type.upper()}_REDACTED]', redacted_text)
+    
+    return redacted_text
+
+
+def validate_oauth_state(state: str, session_state: Optional[str]) -> bool:
+    """
+    Validate OAuth state parameter for CSRF protection.
+    
+    Args:
+        state: State parameter from request
+        session_state: State stored in session
+        
+    Returns:
+        True if state is valid, False otherwise
+    """
+    if not state or not session_state:
+        logger.warning("OAuth state validation failed: missing state")
+        return False
+    
+    if state != session_state:
+        logger.warning("OAuth state validation failed: state mismatch")
+        return False
+    
+    return True
+
+
+def sanitize_error_message(error: Exception) -> str:
+    """
+    Sanitize error messages to remove sensitive information.
+    
+    Args:
+        error: Exception to sanitize
+        
+    Returns:
+        Sanitized error message
+    """
+    error_msg = str(error)
+    
+    # Remove common sensitive patterns
+    error_msg = re.sub(r'token=[^&\s]+', 'token=[REDACTED]', error_msg)
+    error_msg = re.sub(r'client_secret=[^&\s]+', 'client_secret=[REDACTED]', error_msg)
+    error_msg = re.sub(r'code=[^&\s]+', 'code=[REDACTED]', error_msg)
+    
+    # Redact PII
+    error_msg = redact_pii(error_msg)
+    
+    return error_msg
+
+
+def log_oauth_event(event_type: str, user_id: Optional[str] = None, **kwargs):
+    """
+    Log OAuth events with proper redaction.
+    
+    Args:
+        event_type: Type of OAuth event
+        user_id: User identifier (optional)
+        **kwargs: Additional event data
+    """
+    log_data = {
+        'event_type': event_type,
+        'user_id': user_id,
+        **redact_sensitive_data(kwargs)
+    }
+    
+    logger.info(f"GOOGLE_OAUTH_{event_type.upper()}", extra=log_data)
+
+
+def validate_event_data(event_data: Dict[str, Any]) -> bool:
+    """
+    Validate Google Calendar event data.
+    
+    Args:
+        event_data: Event data to validate
+        
+    Returns:
+        True if valid, False otherwise
+    """
+    required_fields = ['summary', 'start', 'end']
+    
+    for field in required_fields:
+        if field not in event_data:
+            logger.warning(f"Event validation failed: missing required field '{field}'")
+            return False
+    
+    # Validate start/end structure
+    if not isinstance(event_data['start'], dict) or 'dateTime' not in event_data['start']:
+        logger.warning("Event validation failed: invalid start time structure")
+        return False
+    
+    if not isinstance(event_data['end'], dict) or 'dateTime' not in event_data['end']:
+        logger.warning("Event validation failed: invalid end time structure")
+        return False
+    
+    # Validate datetime format (basic ISO 8601 check)
+    datetime_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
+    if not re.match(datetime_pattern, event_data['start']['dateTime']):
+        logger.warning("Event validation failed: invalid start datetime format")
+        return False
+    
+    if not re.match(datetime_pattern, event_data['end']['dateTime']):
+        logger.warning("Event validation failed: invalid end datetime format")
+        return False
+    
+    return True

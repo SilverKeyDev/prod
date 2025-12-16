@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from flask import Blueprint, request, jsonify, current_app, Response, stream_with_context
-from app.utils.locationPolygon import isochrone_union_for_addresses
-from app.utils.auth import get_current_user, SecurityException
-from app.utils.secure_errors import SecureErrorHandler
+from ..services.search.locationPolygon import isochrone_union_for_addresses
+from ..services.auth.current_user import get_current_user, SecurityException
+from ..utils.security.secure_errors import SecureErrorHandler
+from ..utils.security.security import security_error_response
 import requests
 import os
 import redis
@@ -13,12 +14,11 @@ import re
 from typing import Dict, Any, List, Optional, Tuple
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
-from ..utils.locationPolygon import isochrone_union_for_addresses
-from ..services.search_help import extract_property_features
+from ..services.search.search_help import extract_property_features
 from ..home_matching.app.match import find_best_matches
 from ..services.search.zillow_url import build_zillow_url, extract_address_fields_from_data
 
-RAPI_HOST = "zillow-com1.p.rapidapi.com"
+RAPI_HOST = "us-housing-market-data1.p.rapidapi.com"
 RAPI_KEY = os.getenv('RAPIDAPI_KEY')
 
 
@@ -203,9 +203,9 @@ def get_property_via_address():
     """
     import os, time, json, requests
     from flask import current_app, jsonify, request as req
-    from ..services.reportgen.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
+    from ..services.research.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
     from ..models.user_preferences import UserPreferences
-    from ..services.search_help import analyze_property_with_sonar_pro, extract_and_clean_features
+    from ..services.search.search_help import analyze_property_with_sonar_pro, extract_and_clean_features
 
     start = time.time()
 
@@ -261,8 +261,8 @@ def get_property_via_address():
             existing_user = None
 
         if existing_user:
-            from app.models.home_universal import HomeUniversal
-            from app.utils.address_format import normalize_address
+            from ..models.home_universal import HomeUniversal
+            from ..utils.address_format import normalize_address
 
             candidate = None
             # Attempt match by zpid first if provided
@@ -396,8 +396,8 @@ def get_property_via_address():
             existing_user = None
             
         if existing_user:
-            from app.models.home_universal import HomeUniversal
-            from app.utils.address_format import normalize_address
+            from ..models.home_universal import HomeUniversal
+            from ..utils.address_format import normalize_address
             
             # Try to find existing record by zpid or address
             cached_record = None
@@ -610,7 +610,7 @@ def get_property_via_address():
                     }
                     
                     # Step 1: Always generate pros/cons (core property analysis)
-                    from ..services.search_help import analyze_property_with_sonar_pro, generate_report_sections_for_property
+                    from ..services.search.search_help import analyze_property_with_sonar_pro, generate_report_sections_for_property
                     
                     analysis_result = analyze_property_with_sonar_pro(user_prefs_dict, home_object)
                     
@@ -732,8 +732,8 @@ def get_property_via_address():
 
         if current_user:
             from app import db
-            from app.models.home_universal import HomeUniversal
-            from app.utils.address_format import normalize_address
+            from ..models.home_universal import HomeUniversal
+            from ..utils.address_format import normalize_address
 
             # Derive address parts from payload
             street, city, state, zipcode = extract_address_fields_from_data(data)
@@ -770,7 +770,7 @@ def get_property_via_address():
                         break
 
             # Map fields from response
-            from app.utils.currency import format_currency
+            from ..utils.currency import format_currency
             update_fields = {
                 'address': full_address,
                 'city': city or data.get('city'),
@@ -1143,7 +1143,6 @@ def search_properties_by_polygon():
             return jsonify({"success": False, "error": "USER_NOT_FOUND", "message": "User not found"}), 404
     except tuple as error_tuple:
         # Handle SecurityError tuples
-        from app.utils.security import security_error_response
         if len(error_tuple) == 3:
             return security_error_response(error_tuple)
         else:
@@ -1155,7 +1154,7 @@ def search_properties_by_polygon():
 
     try:
         # Get user preferences from the database, not from request body
-        from app.models.user_preferences import UserPreferences
+        from ..models.user_preferences import UserPreferences
         user_prefs_obj = UserPreferences.query.filter_by(user_id=user.id).first()
         
         if not user_prefs_obj:
@@ -1435,8 +1434,8 @@ def search_properties_by_polygon():
         # Persist current search results and prune user's unliked homes not in results
         try:
             from app import db
-            from app.models.home_universal import HomeUniversal
-            from app.utils.address_format import normalize_address
+            from ..models.home_universal import HomeUniversal
+            from ..utils.address_format import normalize_address
 
             # Build identity sets from current results
             result_norm_addrs = set()
@@ -1463,7 +1462,7 @@ def search_properties_by_polygon():
                         existing_by_norm[h.address.strip().lower()] = h
 
             # Create any missing records for current results (using shared service)
-            from app.services.search.search_db import add_or_update_home_basic
+            from ..services.search.search_db import add_or_update_home_basic
             created_count = 0
             for prop in scored_properties:
                 try:
@@ -1580,7 +1579,7 @@ def get_isochrone():
     try:
 
         # Get user preferences from the preferences table, not user profile
-        from app.models.user_preferences import UserPreferences
+        from ..models.user_preferences import UserPreferences
         user_prefs_obj = UserPreferences.query.filter_by(user_id=user.id).first()
         
         if not user_prefs_obj:

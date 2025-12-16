@@ -21,9 +21,10 @@ import traceback
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from .s3_service import s3_service
+from app.utils.s3_service import s3_service
 from urllib.parse import quote_plus
 from PIL import Image as PILImage, ImageEnhance
+from .pdf_creator import FLATTENED_FIELD_PATTERNS
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +160,7 @@ def _add_section(elements, data, styles, level=0):
     # Process flattened field groups first
     for pattern, group in flattened_groups.items():
         # Special handling for school fields vs other fields
+        is_school_field = pattern in ["preschool_", "elementary_", "middle_", "high_"]
         
         # For non-school fields, add a group header
         if level == 0:

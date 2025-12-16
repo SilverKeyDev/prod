@@ -417,44 +417,6 @@ export class HttpClient {
         const duration = Date.now() - startTime;
         this.logApiResponse(method, url, response.status, duration);
 
-        // PII-safe response body logging for specific endpoint
-        if (/\/api\/v1\/report\/all(?:[?#]|$)/.test(url) && method === "GET") {
-          try {
-            // Dynamically import to avoid circular deps
-            const { log } = await import("../security/secureLogger");
-            const body = responseData as unknown as {
-              success?: boolean;
-              reports?: Array<{
-                id?: string;
-                status?: string;
-                created_at?: string;
-                updated_at?: string;
-              }> | unknown;
-              error?: string;
-              message?: string;
-            };
-
-            const reportsArray = Array.isArray(body?.reports)
-              ? (body.reports as Array<Record<string, unknown>>)
-              : [];
-
-            // Only include non-PII fields
-            const summary = {
-              success: !!body?.success,
-              count: reportsArray.length,
-              sample: reportsArray.slice(0, 3).map((r) => ({
-                id: typeof r.id === "string" ? r.id : undefined,
-                status: typeof r.status === "string" ? r.status : undefined,
-              })),
-            };
-
-            log.info("API_RESPONSE", "GET /api/v1/report/all body", summary);
-
-          } catch {
-            // Best-effort logging; never block response
-          }
-        }
-
         return responseData;
       } catch {
         const duration = Date.now() - startTime;

@@ -26,42 +26,14 @@ export class ReportsService {
 
   /**
    * Fetch all reports data
+   * @deprecated API endpoint removed - this method no longer fetches data
    */
   public async fetchAllReportsData(): Promise<unknown> {
-    try {
-      const response = await reportApi.getAll();
-
-      if (response.success && response.reports) {
-        // Expose reports data globally for ChatsContext to use
-        (
-          window as unknown as { sharedReportsData: unknown }
-        ).sharedReportsData = {
-          reports: response.reports,
-          timestamp: Date.now(),
-        };
-        return response;
-      } else {
-        log.warn("REPORTS_SERVICE", "No reports data received from API");
-        (
-          window as unknown as { sharedReportsData: unknown }
-        ).sharedReportsData = null;
-        throw new Error(response.error ?? "No reports data received");
-      }
-    } catch (error: unknown) {
-      if (!isAbortError(error)) {
-        if (isAuthenticationError(error)) {
-          handleAuthenticationError(error as AuthenticationError);
-          return;
-        }
-
-        log.error("REPORTS_SERVICE", "Failed to fetch reports", error);
-        (
-          window as unknown as { sharedReportsData: unknown }
-        ).sharedReportsData = null;
-        throw error;
-      }
-      throw error;
-    }
+    log.warn("REPORTS_SERVICE", "fetchAllReportsData called but API endpoint removed");
+    (
+      window as unknown as { sharedReportsData: unknown }
+    ).sharedReportsData = null;
+    return { success: false, reports: [], error: "API endpoint removed" };
   }
 
   /**

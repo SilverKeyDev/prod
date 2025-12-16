@@ -6,7 +6,7 @@ Provides a DB-agnostic interface for storing and retrieving Google OAuth tokens.
 from typing import Optional, Dict, Any
 from flask import request
 from datetime import datetime, timezone
-from ..utils.app_logging import get_logger
+from app.utils.security.app_logging import get_logger
 
 logger = get_logger()
 

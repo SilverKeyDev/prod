@@ -89,40 +89,11 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
     if (disabled || isUnlocking) return;
 
     const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
-    console.log("🔓 [CARD VIEW DETAILS BUTTON] Unlock button clicked:", {
-      environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-      text,
-      disabled,
-      isUnlocking,
-      timestamp: new Date().toISOString(),
-    });
 
     try {
-      console.log(
-        "🔓 [CARD VIEW DETAILS BUTTON] Setting isUnlocking to true:",
-        {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          text,
-          timestamp: new Date().toISOString(),
-        }
-      );
       setIsUnlocking(true);
-
-      console.log("🔓 [CARD VIEW DETAILS BUTTON] Calling onClick handler:", {
-        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-        text,
-        timestamp: new Date().toISOString(),
-      });
       await onClick();
 
-      console.log(
-        "🔓 [CARD VIEW DETAILS BUTTON] onClick completed successfully:",
-        {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          text,
-          timestamp: new Date().toISOString(),
-        }
-      );
     } catch (error) {
       console.error("🔓 [CARD VIEW DETAILS BUTTON] Error during unlock:", {
         environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
@@ -131,14 +102,6 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
         timestamp: new Date().toISOString(),
       });
     } finally {
-      console.log(
-        "🔓 [CARD VIEW DETAILS BUTTON] Setting isUnlocking to false:",
-        {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          text,
-          timestamp: new Date().toISOString(),
-        }
-      );
       setIsUnlocking(false);
     }
   };

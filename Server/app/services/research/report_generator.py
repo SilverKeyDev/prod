@@ -5,7 +5,7 @@ import re
 from typing import Dict, Any
 import requests
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 import uuid
 import time
 import traceback
@@ -18,8 +18,8 @@ from app import db
 from .age_data import get_age_distribution, get_population_total
 
 # Import utilities
-from ...utils.app_logging import get_logger
-from ...utils.env_validator import get_env_var
+from app.utils.security.app_logging import get_logger
+from app.utils.security.env_validator import get_env_var
 
 # Configure logging using centralized utility
 logger = get_logger()
@@ -34,7 +34,16 @@ HEADERS = {
 
 # -------------------- UTILS --------------------
 
+try:
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import letter
+except ImportError:
+    canvas = None
+    letter = None
+
 def create_placeholder_pdf() -> bytes:
+    if canvas is None or letter is None:
+        raise ImportError("reportlab is required for PDF generation")
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     c.drawString(100, 750, "Report is generating...")
@@ -677,6 +686,7 @@ def inject_property_data_result(combined_report: dict, address: str, property_da
 
         # Wait for the property data collection to complete (with timeout)
         try:
+            import concurrent.futures
             property_data = property_data_future.result(timeout=60)  # 60 second timeout
             
             # Clean up the executor
@@ -958,7 +968,7 @@ def response_sort(report_responses: list, section_names: list) -> list:
 def _download_json_from_s3(file_path: str, address: str) -> Dict[str, Any]:
     """Download JSON report from S3."""
     try:
-        from app.services.s3_service import s3_service
+        from app.utils.s3_service import s3_service
         from flask import current_app
         from io import BytesIO
 

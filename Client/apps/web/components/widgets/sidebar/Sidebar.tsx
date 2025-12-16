@@ -184,22 +184,6 @@ export default function Sidebar({
   const displayUser = authUser;
   const isLoading = status === "booting" || !authReady;
 
-  // Debug logging for auth state
-  React.useEffect(() => {
-    if (import.meta.env?.DEV) {
-      const emailPreview = authUser?.email
-        ? `${authUser.email.substring(0, 3)}***${authUser.email.substring(Math.max(0, authUser.email.length - 3))}`
-        : null;
-      console.log("[SIDEBAR] auth state", {
-        status,
-        authReady,
-        isLoading,
-        hasUser: !!authUser,
-        userEmailPreview: emailPreview,
-      });
-    }
-  }, [status, authReady, isLoading, authUser]);
-
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
   const toggleCategoryInStore = useViewStore(
     (s: ViewState) => s.toggleCategory

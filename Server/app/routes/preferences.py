@@ -1,13 +1,20 @@
 from flask import Blueprint, request, jsonify, current_app
-from app.models.user import User
-from app.models.user_preferences import UserPreferences
-from app.utils.auth import get_current_user, SecurityException
-from app.utils.secure_errors import SecureErrorHandler
-from ..utils.security import security_error_response
+from ..models.user import User
+from ..models.user_preferences import UserPreferences
+from ..services.auth.current_user import (
+    get_current_user, 
+    SecurityException, 
+    get_signing_key_for_cognito_rs256 as get_signing_key,
+    AWS_COGNITO_ISSUER
+)
+from ..services.chatbot.chatbot_utils import generate_action_plan
+from ..utils.security.secure_errors import SecureErrorHandler
+from ..utils.security.security import security_error_response
 from .. import db
+from jose import jwt as jose_jwt
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
 import json
-from ..utils.app_logging import get_logger
+from ..utils.security.app_logging import get_logger
 
 logger = get_logger()
 preferences_bp = Blueprint('preferences', __name__, url_prefix='/api/v1/preferences')

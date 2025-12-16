@@ -1,15 +1,15 @@
 # routes/chatbot.py
 
 from flask import Blueprint, request, jsonify
-from app.models.user_preferences import UserPreferences
-from app.models.chat_history import ChatHistory
-from app.services.chatbot.chatbot_utils import get_preferences, summarize_user_message, get_chat_response
-from app.utils.auth import get_current_user
+from ..models.user_preferences import UserPreferences
+from ..models.chat_history import ChatHistory
+from ..services.chatbot.chatbot_utils import get_preferences, summarize_user_message, get_chat_response
+from ..services.auth.current_user import get_current_user
 from .. import db
 import json
 import traceback
 from datetime import datetime
-from ..utils.app_logging import get_logger
+from ..utils.security.app_logging import get_logger
 logger = get_logger()
 
 
@@ -75,7 +75,7 @@ def chat_for_address(report_id):
             # Continue with chat processing even if summary storage fails
 
         # Fetch the PDF document from the database to get the correct address and S3 path
-        from app.models.pdf_document import PDFDocument
+        from ..models.pdf_document import PDFDocument
         pdf_doc = PDFDocument.query.filter_by(id=report_id, user_id=user_id).first()
 
         if not pdf_doc:
@@ -104,7 +104,7 @@ def chat_for_address(report_id):
             else:
                 json_s3_key = pdf_path.replace('.pdf', '.json')
 
-            from app.services.report_comparator import _download_json_from_s3
+            from ..services.research.report_generator import _download_json_from_s3
             report_data = _download_json_from_s3(json_s3_key)
 
         except Exception as report_error:

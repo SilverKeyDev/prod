@@ -88,13 +88,7 @@ export const reportApi = {
     apiPost<GenerateReportResponse>("/api/v1/report/generate", data),
 
   /**
-   * Get all reports for current user
-   */
-  getAll: (): Promise<ReportsListResponse> =>
-    apiGet<ReportsListResponse>("/api/v1/report/all"),
-
-  /**
-   * List all reports (alias for getAll)
+   * List all reports
    */
   list: (): Promise<ReportsListResponse> =>
     apiGet<ReportsListResponse>("/api/v1/report/list"),

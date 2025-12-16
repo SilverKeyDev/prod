@@ -74,19 +74,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const currentPath = location.pathname;
       const isPublicRoute = authUtils.isPublicRoute(currentPath);
 
-      secureLogger.info(
-        "🔍 FRONTEND_AUTH_BOOTSTRAP_START",
-        "Initializing auth state",
-        {
-          requestId,
-          currentUrl: window.location.href,
-          currentPath,
-          isPublicRoute,
-          searchParams: window.location.search,
-          timestamp: new Date().toISOString(),
-        }
-      );
-
       // Start in checking state while we verify with server
       setStoreAuthStatus("checking");
       setStoreAuthReady(false);

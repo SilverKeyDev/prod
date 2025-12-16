@@ -6,7 +6,6 @@ import { reportApi } from "../../config/api/report";
 import { useFiltersQueryParams } from "../../config/query/adapters";
 import { queryKeys } from "../../config/query/keys";
 import type { Report, CompareReport } from "../../schemas";
-import { log } from "../../services/security/secureLogger";
 
 // Simple deserialization functions
 const deserializeReport = (r: unknown): Report => {
@@ -103,36 +102,10 @@ export const useReportsData = () => {
   } = useQuery({
     queryKey: queryKeys.reports.list(memoizedFilters),
     queryFn: async () => {
-      // Only log once per session to avoid spam
-      if (!sessionStorage.getItem("reports_fetch_logged")) {
-        sessionStorage.setItem("reports_fetch_logged", "true");
-      }
-      const response = await reportApi.getAll();
-      // PII-safe logging of route output
-      try {
-        log.info("REPORTS_QUERY", "Fetched /api/v1/report/all", {
-          success: response.success,
-          count: Array.isArray(response.reports) ? response.reports.length : 0,
-          sampleIds: Array.isArray(response.reports)
-            ? response.reports.slice(0, 3).map((r) => (r as { id?: string }).id)
-            : [],
-        });
-      } catch {}
-      if (!response.success || !response.reports) {
-        try {
-          log.error("REPORTS_QUERY", "Reports fetch failed", {
-            error: response.error ?? "Unknown error",
-          });
-        } catch {}
-        throw new Error(response.error ?? "Failed to fetch reports");
-      }
-      // Only log once per session to avoid spam
-      if (!sessionStorage.getItem("reports_loaded_logged")) {
-        sessionStorage.setItem("reports_loaded_logged", "true");
-      }
-      return response.reports;
+      // API endpoint removed - return empty array
+      return [];
     },
-    enabled: shouldLoadData,
+    enabled: false, // Disabled - endpoint removed
     // Ensure proper deduplication
     staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for this long
     gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer

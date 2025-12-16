@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from flask import Blueprint, request, jsonify, current_app
-from app.utils.auth import get_current_user
-from app.utils.secure_errors import SecureErrorHandler
+from ..services.auth.current_user import get_current_user
+from ..utils.security.secure_errors import SecureErrorHandler
 import requests
 import os
 import json
@@ -89,7 +89,7 @@ def generate_negotiation_strategy():
         
         # Import the strategy generation service
         try:
-            from ..services.standardgen.generate import generate_report
+            from ..services.research.generate import generate_report
         except ImportError as e:
             current_app.logger.error(f"Failed to import strategy generation service: {str(e)}")
             return SecureErrorHandler.handle_service_error(
@@ -122,12 +122,12 @@ def generate_negotiation_strategy():
         try:
             
             # Import necessary modules for property data fetching
-            from ..services.reportgen.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
+            from ..services.research.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
             from ..models.user_preferences import UserPreferences
-            from ..services.search_help import analyze_property_with_sonar_pro
+            from ..services.search.search_help import analyze_property_with_sonar_pro
             
             # Get API keys
-            RAPI_HOST = os.getenv("RAPIDAPI_HOST", "zillow-com1.p.rapidapi.com")
+            RAPI_HOST = os.getenv("RAPIDAPI_HOST", "us-housing-market-data1.p.rapidapi.com")
             RAPI_KEY = os.getenv("RAPIDAPI_KEY")
             GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
             
@@ -248,7 +248,7 @@ def generate_negotiation_strategy():
         
         # Call the strategy generation service
         try:
-            # Use the standardgen service to generate negotiation strategy
+            # Use the research service to generate negotiation strategy
             # Enhanced with property data, commute info, and property analysis
             enhanced_params = {
                 'strategy_type': 'comprehensive',

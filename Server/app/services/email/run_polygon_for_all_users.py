@@ -11,7 +11,7 @@ from flask import current_app
 from app import db
 from app.models.user import User
 from app.models.user_preferences import UserPreferences
-from app.services.minimal_token import minimal_token_service
+from app.services.auth.minimal_token import minimal_token_service
 
 
 def _iter_users_with_prefs(session, limit: Optional[int] = None, only_recently_logged_in: bool = True) -> Iterable[tuple[User, UserPreferences]]:

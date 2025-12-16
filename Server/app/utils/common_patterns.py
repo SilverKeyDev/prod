@@ -3,9 +3,9 @@ Common code patterns and utilities to reduce repetition across the application.
 """
 from functools import wraps
 from flask import jsonify, request
-from .auth import get_current_user
-from .app_logging import get_logger
-from .secure_errors import SecureErrorHandler
+from app.services.auth.current_user import get_current_user
+from app.utils.security.app_logging import get_logger
+from app.utils.security.secure_errors import SecureErrorHandler
 
 logger = get_logger()
 

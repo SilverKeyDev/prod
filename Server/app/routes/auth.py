@@ -5,9 +5,9 @@ import jwt
 import traceback
 from .. import db
 from ..models.user import User
-from ..services.auth import AWS_COGNITO_service
-from ..services.minimal_token import minimal_token_service
-from ..services.google_oauth_service import google_oauth_service
+from ..services.auth.auth import AWS_COGNITO_service
+from ..services.auth.minimal_token import minimal_token_service
+from ..services.auth.google_oauth_service import google_oauth_service
 
 # Blueprint setup
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -719,7 +719,7 @@ def google_oauth_callback():
                 'error': error
             })
             # Redirect to frontend with error
-            from app.config import Config
+            from ..config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=google_oauth_failed")
         
         # Get and validate state
@@ -731,7 +731,7 @@ def google_oauth_callback():
                 'request_id': request_id,
                 'has_session_state': bool(session_state)
             })
-            from app.config import Config
+            from ..config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=invalid_state")
         
         # Exchange code for tokens
@@ -754,7 +754,7 @@ def google_oauth_callback():
                 'request_id': request_id,
                 'email': user_info.get('email', '')[:3] + '***'
             })
-            from app.config import Config
+            from ..config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=email_not_verified")
         
         google_id = user_info['id']
@@ -871,12 +871,12 @@ def google_oauth_callback():
                 'error_type': type(token_error).__name__,
                 'traceback': traceback.format_exc()[:500]
             })
-            from app.config import Config
+            from ..config import Config
             return redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed")
         
         # Determine redirect destination based on whether this is a new signup
         # New Google signups should go to onboarding, existing users to dashboard
-        from app.config import Config
+        from ..config import Config
         redirect_path = "/onboarding" if is_new_signup else "/dashboard"
         
         current_app.logger.info(f"GOOGLE_AUTH_REDIRECT", extra={
@@ -947,5 +947,5 @@ def google_oauth_callback():
             'error_type': type(e).__name__,
             'traceback': traceback.format_exc()[:500]
         })
-        from app.config import Config
+        from ..config import Config
         return redirect(f"{Config.FRONTEND_URL}/login?error=google_oauth_failed")

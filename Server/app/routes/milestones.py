@@ -8,16 +8,18 @@ from flask import Blueprint, request, jsonify, make_response
 from googleapiclient.errors import HttpError
 
 from ..models.milestone import Milestone
-from ..services.google_calendar_service import google_calendar_service
-from ..services.security import (
+from ..services.calendar.google_calendar_service import google_calendar_service
+from ..utils.security.app_logging import get_logger
+from ..utils.security.security import (
+    security_error_response,
+    SecurityError,
+    rate_limit,
     sanitize_error_message,
     log_oauth_event,
     validate_event_data
 )
-from ..utils.app_logging import get_logger
-from ..utils.security import security_error_response, SecurityError, rate_limit
-from ..utils.secure_errors import SecureErrorHandler
-from app import db
+from ..utils.security.secure_errors import SecureErrorHandler
+from .. import db
 
 logger = get_logger()
 
@@ -30,7 +32,7 @@ milestones_bp = Blueprint("milestones", __name__, url_prefix="/api/v1/milestones
 def list_milestones():
     """List user's milestones"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -63,7 +65,7 @@ def list_milestones():
 def create_milestone():
     """Create a new milestone and optionally add to Google Calendar"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -159,7 +161,7 @@ def create_milestone():
 def update_milestone(milestone_id):
     """Update a milestone and optionally update Google Calendar event"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -249,7 +251,7 @@ def update_milestone(milestone_id):
 def delete_milestone(milestone_id):
     """Delete a milestone and optionally cancel Google Calendar event"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -294,7 +296,7 @@ def delete_milestone(milestone_id):
 def add_milestone_to_calendar(milestone_id):
     """Add an existing milestone to Google Calendar"""
     try:
-        from ..utils.auth import get_current_user
+        from ..services.auth.current_user import get_current_user
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)

@@ -1,17 +1,15 @@
 from flask import Blueprint, request, jsonify, current_app, send_from_directory
-from ..utils.auth import get_current_user, SecurityException
+from ..services.auth.current_user import get_current_user, SecurityException
 from ..utils.common_patterns import require_authenticated_user
-from ..utils.security import security_error_response, SecurityError, rate_limit
-from ..utils.secure_errors import SecureErrorHandler
+from ..utils.security.security import security_error_response, SecurityError, rate_limit
+from ..utils.security.secure_errors import SecureErrorHandler
 from jose.exceptions import JWTError, ExpiredSignatureError
 from ..models.pdf_document import PDFDocument
 from .. import db
-from app import db
 import os
 from sqlalchemy import or_
-from app.models.pdf_document import PDFDocument
-from app.services.s3_service import s3_service
-from ..utils.app_logging import get_logger
+from ..utils.s3_service import s3_service
+from ..utils.security.app_logging import get_logger
 import traceback
 import uuid
 import time
@@ -117,7 +115,7 @@ def generate_report_endpoint():
         # Start async task (lazy import to avoid circular import)
         # Always use the unified generate_report_async task, passing comparison_address (None for detailed reports)
         # Use preferences_user_id for report generation (could be agent's client or agent themselves)
-        from app.celery.tasks import generate_report_async
+        from ..celery.tasks import generate_report_async
         task = generate_report_async.delay(address, comparison_address, filenamee, pdf_doc.id, preferences_user_id, marketing_model)
         
         return jsonify({
@@ -755,7 +753,7 @@ def compare_reports_endpoint():
             return jsonify({'success': False, 'error': 'home_ids or report_ids (list) is required'}), 400
         
         # Query home_universal directly, same as unlock/property endpoint
-        from app.models.home_universal import HomeUniversal
+        from ..models.home_universal import HomeUniversal
         
         homes = HomeUniversal.query.filter(
             HomeUniversal.id.in_(home_ids),

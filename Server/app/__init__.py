@@ -46,7 +46,7 @@ def create_app(config=None):
         app.config.update(config)
     
     # Configure centralized logging for entire application
-    from .utils.app_logging import configure_app_logging
+    from .utils.security.app_logging import configure_app_logging
     configure_app_logging(app)
 
     # Initialize extensions
@@ -58,7 +58,7 @@ def create_app(config=None):
 
     # Initialize database within app context
     with app.app_context():
-        from .models import User, PDFDocument, HomeUniversal, PlaidItem, PlaidAssetReport
+        from .models import User, PDFDocument, HomeUniversal
         from .models.chat_history import ChatHistory
         from .models.milestone import Milestone
         db.create_all()
@@ -93,13 +93,13 @@ def create_app(config=None):
     # Initialize S3 service silently
     with app.app_context():
         try:
-            from .services.s3_service import s3_service
+            from .utils.s3_service import s3_service
             s3_service._initialize_s3_client(force_retry=True)
         except Exception:
             pass
 
     # Validate environment variables at startup
-    from .utils.env_validator import validate_environment, check_api_keys
+    from .utils.security.env_validator import validate_environment, check_api_keys
     try:
         validate_environment()
         api_status = check_api_keys()
@@ -109,7 +109,7 @@ def create_app(config=None):
     except Exception as e:
         logging.getLogger(__name__).warning(f"Environment validation warning: {e}")
 
-    from .services.minimal_token import minimal_token_service
+    from .services.auth.minimal_token import minimal_token_service
     flask_env = os.getenv('FLASK_ENV', 'development')
 
     # Register blueprints
@@ -125,7 +125,6 @@ def create_app(config=None):
     from .routes.secure_upload import secure_upload_bp
     from .routes.offer import offer_bp
     from .routes.google_calendar import google_calendar_bp
-    from .routes.plaid import plaid_bp
     from .routes.milestones import milestones_bp
 
     app.register_blueprint(report_bp)
@@ -140,7 +139,6 @@ def create_app(config=None):
     app.register_blueprint(secure_upload_bp)
     app.register_blueprint(offer_bp)
     app.register_blueprint(google_calendar_bp)
-    app.register_blueprint(plaid_bp)
     app.register_blueprint(milestones_bp)
 
     # ---------- Static asset routes (Vite build) ----------

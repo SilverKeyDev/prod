@@ -18,9 +18,9 @@ from google.auth.transport.requests import Request as GoogleRequest
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from ..utils.app_logging import get_logger
-from .tokens import tokens_get, tokens_upsert, tokens_delete
-from .security import (
+from app.utils.security.app_logging import get_logger
+from app.services.auth.tokens import tokens_get, tokens_upsert, tokens_delete
+from app.utils.security.security import (
     redact_sensitive_data, 
     validate_oauth_state, 
     sanitize_error_message, 

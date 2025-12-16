@@ -1,6 +1,6 @@
 from app.celery.celery_worker import celery
 from flask import current_app
-from app.services.reportgen.report_generator import generate_report
+from app.services.research.report_generator import generate_report
 from app.models.pdf_document import PDFDocument
 from app.models.user_preferences import UserPreferences
 from app import db
