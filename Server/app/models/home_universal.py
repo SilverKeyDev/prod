@@ -50,7 +50,6 @@ class HomeUniversal(db.Model):
     features = db.Column(db.JSON)
     property_analysis = db.Column(db.JSON)
     commute_data = db.Column(db.JSON)
-    zillow_url = db.Column(db.String(1024))
     raw_data = db.Column(db.JSON)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -91,6 +90,5 @@ class HomeUniversal(db.Model):
             "features": self.features,
             "property_analysis": self.property_analysis,
             "commute_data": self.commute_data,
-            "zillow_url": self.zillow_url,
             "raw_data": self.raw_data,
         }

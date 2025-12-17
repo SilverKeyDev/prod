@@ -17,7 +17,7 @@ research_bp = Blueprint('research', __name__, url_prefix='/api/v1/research')
 @research_bp.route('/property', methods=['POST'])
 def get_property_via_address():
     """
-    Call RapidAPI Zillow /property using exactly one of:
+    Call RapidAPI property /property using exactly one of:
     zpid, property_url, or address (address-only is fine).
     Enhanced with commute map visualization data.
     Supports streaming via ?stream=true query parameter.

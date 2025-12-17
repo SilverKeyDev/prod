@@ -31,7 +31,7 @@ export const PropertyInfo: React.FC<PropertyComponentProps> = ({
 
   return (
     <div className="p-6">
-      {/* Main Property Info Section - Zillow Style Layout */}
+      {/* Main Property Info Section */}
       <div className="mb-6 flex items-start justify-between">
         {/* Left Side - Price and Address */}
         <div className="flex-1">

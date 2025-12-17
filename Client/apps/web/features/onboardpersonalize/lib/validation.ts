@@ -133,9 +133,14 @@ const validateFormData = (
         if (!location.address || location.address.trim() === "") {
           missingFields.push(`${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} address`);
         }
-        if (!location.commute_tolerance || location.commute_tolerance <= 0) {
-          missingFields.push(
-            `${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} commute tolerance`,
+        // commute_tolerance is optional, but if provided must be >= 0
+        if (
+          location.commute_tolerance !== undefined &&
+          location.commute_tolerance !== null &&
+          location.commute_tolerance < 0
+        ) {
+          errors.push(
+            `${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} commute tolerance must be 0 or greater`,
           );
         }
       });

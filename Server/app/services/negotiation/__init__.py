@@ -12,6 +12,7 @@ from .strategy_model import (
     MarketSection,
     NegotiationStrategy,
 )
+from .strategy_generator import generate_negotiation_strategy
 
 __all__ = [
     'SellerReason',
@@ -22,4 +23,5 @@ __all__ = [
     'PriceSection',
     'MarketSection',
     'NegotiationStrategy',
+    'generate_negotiation_strategy',
 ]

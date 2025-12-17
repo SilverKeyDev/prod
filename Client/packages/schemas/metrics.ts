@@ -7,7 +7,6 @@ export const ALL_METRIC_KEYS: string[] = [
   "Bathrooms",
   "Living Area",
   "Property Type",
-  "Zillow URL",
 
   // Neighborhood Overview
   "Local Culture",
@@ -19,10 +18,7 @@ export const ALL_METRIC_KEYS: string[] = [
   "Population Total",
 
   // Safety
-  "Crime Rating",
   "Places to Watch Out For",
-  "Police Presence",
-  "Safety Rating",
 
   // Culture and Events
   "Local Events",

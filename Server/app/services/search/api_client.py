@@ -1,5 +1,5 @@
 """
-API client helper for Zillow/RapidAPI requests with retry logic and session management.
+API client helper for RapidAPI requests with retry logic and session management.
 """
 from __future__ import annotations
 

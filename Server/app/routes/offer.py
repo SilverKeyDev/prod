@@ -89,10 +89,10 @@ def generate_negotiation_strategy():
         
         # Import the strategy generation service
         try:
-            from ..services.research.generate import generate_report
+            from ..services.negotiation import generate_negotiation_strategy
         except ImportError as e:
             current_app.logger.error(f"Failed to import strategy generation service: {str(e)}")
-            return SecureErrorHandler.handle_service_error(
+            return SecureErrorHandler.handle_external_api_error(
                 e, 'Strategy Generation Service', {'operation': 'import_service'}
             )
         
@@ -132,7 +132,7 @@ def generate_negotiation_strategy():
             GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
             
             if RAPI_KEY:
-                # Call Zillow API to get property details
+                # Call property API to get property details
                 url = f"https://{RAPI_HOST}/property"
                 headers = {
                     "x-rapidapi-host": RAPI_HOST,
@@ -238,7 +238,7 @@ def generate_negotiation_strategy():
                         else:
                             current_app.logger.warning(f"⚠️ [NEGOTIATION_STRATEGY] Property analysis returned no results")
                 else:
-                    current_app.logger.warning(f"⚠️ [NEGOTIATION_STRATEGY] Zillow API call failed: {r.status_code}")
+                    current_app.logger.warning(f"⚠️ [NEGOTIATION_STRATEGY] Property API call failed: {r.status_code}")
             else:
                 current_app.logger.warning(f"⚠️ [NEGOTIATION_STRATEGY] RapidAPI key not configured, skipping property data fetch")
                 
@@ -262,13 +262,13 @@ def generate_negotiation_strategy():
             }
             
             
-            strategy_data = generate_report(
-                section_type="negotiation_strategy",
+            strategy_data = generate_negotiation_strategy(
                 address=address,
-                filename=filename,
-                user_id=preferences_user_id,
-                params=enhanced_params,
-                user_preferences=user_preferences
+                user_preferences=user_preferences,
+                property_data=property_data,
+                commute_data=commute_data,
+                property_analysis=property_analysis,
+                params=enhanced_params
             )
             
             

@@ -81,11 +81,6 @@ export type DeleteReportResponse = {
  * Report API client using centralized utilities
  */
 export const reportApi = {
-  /**
-   * Generate a property report
-   */
-  generate: (data: GenerateReportRequest): Promise<GenerateReportResponse> =>
-    apiPost<GenerateReportResponse>("/api/v1/report/generate", data),
 
   /**
    * List all reports
@@ -175,6 +170,14 @@ export const reportApi = {
       };
     }
   },
+
+  /**
+   * Generate a new report
+   */
+  generate: (
+    data: GenerateReportRequest,
+  ): Promise<GenerateReportResponse> =>
+    apiPost<GenerateReportResponse>("/api/v1/report/generate", data),
 
   /**
    * Compare multiple reports

@@ -13,10 +13,6 @@ class UserPreferences(db.Model):
     # === METADATA ===
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    solo_reports_created = db.Column(db.Integer, default=0)
-    solo_reports_addresses = db.Column(db.Text)  # JSON array of addresses
-    group_reports_created = db.Column(db.Integer, default=0)
-    group_reports_addresses = db.Column(db.Text)  # JSON array of addresses
     chat_sessions = db.Column(db.Text)  # JSON array of sentiments
     preferences_version = db.Column(db.String(10), default='1.0')
     last_updated_section = db.Column(db.String(50))
@@ -135,10 +131,6 @@ class UserPreferences(db.Model):
         # Metadata
         'created_at': self.created_at.isoformat() if self.created_at else None,
         'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-        'solo_reports_created': self.solo_reports_created,
-        'solo_reports_addresses': self._parse_json_field(self.solo_reports_addresses),
-        'group_reports_created': self.group_reports_created,
-        'group_reports_addresses': self._parse_json_field(self.group_reports_addresses),
         'chat_sessions': self._parse_json_field(self.chat_sessions),
         'preferences_version': self.preferences_version,
         'last_updated_section': self.last_updated_section,

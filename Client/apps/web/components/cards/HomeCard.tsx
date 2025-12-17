@@ -52,8 +52,12 @@ export default function HomeCard({
   isOnMap = false,
   onFocus,
 }: HomeCardProps) {
-  const { selectedProperty, fetchPropertyDetails, clearSelectedProperty } =
-    usePropertyDetails();
+  const {
+    selectedProperty,
+    fetchPropertyDetails,
+    clearSelectedProperty,
+    isLoading: isLoadingPropertyDetails,
+  } = usePropertyDetails();
 
   // Use actual address if available, otherwise format home_id
   const formattedAddress = formatFilenameToAddress(home.home_id);
@@ -174,6 +178,7 @@ export default function HomeCard({
             property={selectedProperty}
             onClose={clearSelectedProperty}
             onGenerateReport={handleGenerateReport}
+            isLoading={isLoadingPropertyDetails}
           />
         </ModalPortal>
       )}

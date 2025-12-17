@@ -15,6 +15,7 @@ import { ProsAndCons } from "./sections/ProsAndCons";
 import { PropertySchools } from "./sections/PropertySchools";
 import { PropertyNeighborhood } from "./sections/PropertyNeighborhood";
 import PrioritiesModal from "../PrioritiesModal";
+import { PropertyDetailsLoadingIndicator } from "./PropertyDetailsLoadingIndicator";
 import type { PropertyDetailsModalProps } from "./types";
 
 type SectionComponent = {
@@ -27,6 +28,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   property,
   onClose,
   onGenerateReport,
+  isLoading = false,
 }) => {
   // All hooks must be called before any conditional returns
   // This ensures consistent hook order across renders
@@ -258,6 +260,9 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
 
         {/* 4. Everything else ordered by user priorities */}
         {orderedSections.map((section) => section.component)}
+
+        {/* Loading indicator at the bottom */}
+        {isLoading && <PropertyDetailsLoadingIndicator />}
       </div>
 
       {/* Priorities Modal */}

@@ -5,6 +5,7 @@ export type PropertyDetailsModalProps = {
   property: Property | SearchResult | null;
   onClose: () => void;
   onGenerateReport?: (address: string) => void;
+  isLoading?: boolean;
 };
 
 export type PropertyComponentProps = {

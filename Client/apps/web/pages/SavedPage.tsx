@@ -1,31 +1,26 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 
 import SavedLayout from "../app/layouts/SavedLayout";
 import { PropertyCard } from "../components/cards";
-import ReportCard from "../components/cards/ReportCard";
 import {
   CardHeartSave,
   CardViewDetailsButton,
   CardCompareCheckbox,
 } from "../components/cards/base";
-import DeleteModal from "../components/modals/DeleteModal";
 import PdfModal from "../components/modals/PdfModal";
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal/PropertyDetailsModal";
 import { KeyTurnLoader } from "../components/ui";
 import CompareFloatingBar from "../components/ui/CompareFloatingBar";
-import GenerateReportPage from "../features/decide/generate/GenerateReport";
-import { reportApi } from "../../../packages/config/api";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
 import { usePropertyDetails } from "../../../packages/hooks/data/usePropertyDetails";
-import { useReportsData } from "../../../packages/hooks/data/useReportsData";
 import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
-import type { SavedHome, Report } from "../../../packages/schemas";
+import type { SavedHome } from "../../../packages/schemas";
 import { useUIStore } from "../../../packages/store";
-import CompareReportsPage from "../features/decide/compare/CompareReportsPage";
 import CompareHomesModal from "../components/modals/CompareHomesModal";
-import AIAssistant from "../features/decide/aiAssistant/AIAssistant";
-import ReportsSubViewNavigation from "../features/decide/ReportsSubViewNavigation";
+import ReportsSubViewNavigation, {
+  ReportsSubView,
+} from "../features/decide/ReportsSubViewNavigation";
 import useMobile from "../../../packages/hooks/ui/useMobile";
 
 type SavedHomesProps = {
@@ -38,15 +33,12 @@ export default function SavedHomes({
   setMobileHeaderActions,
 }: SavedHomesProps = {}) {
   const location = useLocation();
-  const navigate = useNavigate();
   const isMobile = useMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [viewType, setViewType] = useState<"homes" | "reports">("homes");
-  const [reportsSubView, setReportsSubView] = useState<
-    "reports" | "compare" | "chatbot"
-  >("reports");
-  const [isComparisonMode, setIsComparisonMode] = useState(false);
+  const [reportsSubView, setReportsSubView] =
+    useState<ReportsSubView>("reports");
   const [selectedHomesForComparison, setSelectedHomesForComparison] = useState<
     Set<string>
   >(new Set());
@@ -61,30 +53,17 @@ export default function SavedHomes({
     refreshSavedHomes,
   } = useSavedHomesStoreIntegration();
 
-  // Use reports data hook (same as Dashboard)
-  const { reports, reportsLoading, refreshReports } = useReportsData();
-
   // Use centralized document actions for reports
-  const {
-    loadingUrls,
-    handleViewDocument,
-    handleDownloadDocument,
-    handleShareDocument,
-    currentPdf,
-    currentDocumentId,
-    currentDocumentName,
-    closePdfModal,
-  } = useDocumentActions();
+  const { currentPdf, currentDocumentId, currentDocumentName, closePdfModal } =
+    useDocumentActions();
 
   // Use property details hook for unlock functionality
-  const { selectedProperty, fetchPropertyDetails, clearSelectedProperty } =
-    usePropertyDetails();
-
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [reportToDelete, setReportToDelete] = useState<{
-    id: string;
-    s3Key: string | null | undefined;
-  } | null>(null);
+  const {
+    selectedProperty,
+    fetchPropertyDetails,
+    clearSelectedProperty,
+    isLoading: isLoadingPropertyDetails,
+  } = usePropertyDetails();
 
   // Load data when page loads or view type changes
   useEffect(() => {
@@ -122,57 +101,6 @@ export default function SavedHomes({
     localStorage.setItem("compareHomesState", JSON.stringify(stateToSave));
   }, [selectedHomesForComparison]);
 
-  // Monitor comparison mode state from localStorage
-  useEffect(() => {
-    const checkComparisonMode = () => {
-      try {
-        const savedState = localStorage.getItem("generateReportState");
-        if (savedState) {
-          const parsed = JSON.parse(savedState) as {
-            reportType?: string;
-          };
-          setIsComparisonMode(parsed.reportType === "comparison");
-        }
-      } catch {
-        // Ignore parsing errors
-      }
-    };
-
-    // Check initially
-    checkComparisonMode();
-
-    // Listen for storage changes (when GenerateReportPage updates localStorage)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "generateReportState") {
-        checkComparisonMode();
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    // Also poll periodically to catch changes from same tab
-    const interval = setInterval(checkComparisonMode, 1000);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Keep URL in sync when viewType changes (no query params)
-  // useEffect(() => {
-  //   const params = new URLSearchParams(location.search);
-  //   const current = params.get("view");
-  //   if (current !== viewType) {
-  //     params.set("view", viewType);
-  //     navigate(
-  //       { pathname: "/saved", search: params.toString() },
-  //       { replace: true }
-  //     );
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [viewType]);
-
   // Reset reports subview when switching to homes
   useEffect(() => {
     if (viewType === "homes") setReportsSubView("reports");
@@ -185,78 +113,16 @@ export default function SavedHomes({
       (
         window as unknown as { refreshFavorites?: () => void }
       ).refreshFavorites = refreshSavedHomes;
-    } else if (viewType === "reports") {
-      // Expose refreshReports for GenerateReportPage to call (mobile + desktop)
-      (
-        window as unknown as {
-          refreshReportsAfterGenerate?: () => Promise<unknown>;
-        }
-      ).refreshReportsAfterGenerate = refreshReports;
     }
-    // Reports are automatically loaded by useReportsData hook
-  }, [refreshSavedHomes, refreshReports, viewType]);
+  }, [refreshSavedHomes, viewType]);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
     if (viewType === "homes") {
       await refreshSavedHomes();
-    } else {
-      await refreshReports();
     }
     setRefreshing(false);
-  }, [viewType, refreshSavedHomes, refreshReports]);
-
-  // Polling interval ref for report generation
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Clear polling interval on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
-    };
-  }, []);
-
-  // Handle report generation - auto-refresh reports list
-  const handleReportGenerated = useCallback(
-    async (documentId: string) => {
-      console.log(
-        `[SavedPage] Report generation started for document ID: ${documentId}`
-      );
-
-      // Clear any existing polling interval
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
-      }
-
-      // Initial refresh after 0.5 seconds
-      setTimeout(async () => {
-        console.log("[SavedPage] Initial refresh after report generation");
-        await refreshReports();
-      }, 500);
-
-      // Set up periodic polling every 30 seconds
-      pollingIntervalRef.current = setInterval(async () => {
-        console.log("[SavedPage] Periodic refresh for pending report");
-        await refreshReports();
-
-        // Check if the report is now complete
-        // This will be checked in the next interval cycle
-      }, 30000); // 30 seconds
-
-      // Stop polling after 10 minutes (reports typically take ~5 minutes)
-      setTimeout(() => {
-        if (pollingIntervalRef.current) {
-          console.log("[SavedPage] Stopping periodic refresh after 10 minutes");
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
-        }
-      }, 600000); // 10 minutes
-    },
-    [refreshReports]
-  );
+  }, [viewType, refreshSavedHomes]);
 
   // Handle unlocking a home - opens PropertyDetailsModal
   const handleUnlockHome = useCallback(
@@ -332,90 +198,6 @@ export default function SavedHomes({
     );
   });
 
-  // Sort reports: generating first, then completed, then error
-  const statusPriority = {
-    generating: 1,
-    completed: 2,
-    error: 3,
-  };
-
-  const filteredReports = reports
-    .filter((r: Report) =>
-      r.address?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      const statusA = statusPriority[a.status] || 99;
-      const statusB = statusPriority[b.status] || 99;
-      if (statusA !== statusB) {
-        return statusA - statusB;
-      }
-      // If status is the same, sort by date (most recent first)
-      return b.generatedAt.getTime() - a.generatedAt.getTime();
-    });
-
-  // Handle report actions
-  const handleShareReport = useCallback(
-    async (report: Report) => {
-      const result = await handleShareDocument(report.id, report.address);
-      if (result.success)
-        enqueueToast({ type: "success", message: result.message });
-      else enqueueToast({ type: "error", message: result.message });
-    },
-    [handleShareDocument, enqueueToast]
-  );
-
-  const openDeleteModal = (
-    reportId: string,
-    s3Key: string | null | undefined
-  ) => {
-    setReportToDelete({ id: reportId, s3Key });
-    setDeleteModalOpen(true);
-  };
-
-  const closeDeleteModal = () => {
-    setDeleteModalOpen(false);
-    setReportToDelete(null);
-  };
-
-  const handleDeleteReport = async (
-    reportId: string,
-    s3Key: string | null | undefined
-  ) => {
-    if (!reportId) {
-      console.error("[DELETE] Error: No report ID provided");
-      return;
-    }
-
-    try {
-      if (!s3Key) {
-        console.warn(
-          "[DELETE] No S3 key provided, will only delete from in-memory storage"
-        );
-      }
-
-      await reportApi.delete(reportId, s3Key ?? undefined);
-
-      closeDeleteModal();
-      enqueueToast({ type: "success", message: "Report deleted successfully" });
-
-      // Refresh the reports list
-      await refreshReports();
-    } catch (error: unknown) {
-      console.error("[DELETE] Error deleting report:", {
-        error,
-        reportId,
-        s3Key,
-        stack: error instanceof Error ? error.stack : "No stack trace",
-      });
-
-      enqueueToast({
-        type: "error",
-        message:
-          error instanceof Error ? error.message : "Failed to delete report",
-      });
-    }
-  };
-
   // Set mobile header actions with SavedLayout
   useEffect(() => {
     if (isMobile && setMobileHeaderActions) {
@@ -437,14 +219,12 @@ export default function SavedHomes({
           }
           onRefresh={refresh}
           isRefreshing={refreshing}
-          isLoading={viewType === "homes" ? loading : reportsLoading}
+          isLoading={loading}
           refreshTitle={
             viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
           }
           rightText={
-            viewType === "homes"
-              ? `${filteredHomes.length} saved`
-              : `${filteredReports.length} report${filteredReports.length !== 1 ? "s" : ""}`
+            viewType === "homes" ? `${filteredHomes.length} saved` : ""
           }
           viewType={viewType}
           onViewTypeChange={setViewType}
@@ -461,9 +241,7 @@ export default function SavedHomes({
     reportsSubView,
     refreshing,
     loading,
-    reportsLoading,
     filteredHomes.length,
-    filteredReports.length,
     refresh,
   ]);
 
@@ -481,15 +259,13 @@ export default function SavedHomes({
         reportId={currentDocumentId}
         onClose={closePdfModal}
       />
-      <DeleteModal
-        isOpen={deleteModalOpen}
-        onClose={closeDeleteModal}
-        onConfirm={() =>
-          reportToDelete &&
-          handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
-        }
-      />
-      <div className="mt-4 lg:mt-0 mb-responsive-lg space-y-responsive-lg">
+      <div
+        className={`mt-4 lg:mt-0 space-y-responsive-lg ${
+          viewType === "homes" && selectedHomesData.length >= 1
+            ? "mb-[140px] sm:mb-[160px]"
+            : "mb-responsive-lg"
+        }`}
+      >
         {/* SavedLayout - Only show on desktop (mobile shows in topbar) */}
         {!isMobile && (
           <SavedLayout
@@ -511,25 +287,16 @@ export default function SavedHomes({
             }
             onRefresh={refresh}
             isRefreshing={refreshing}
-            isLoading={viewType === "homes" ? loading : reportsLoading}
+            isLoading={loading}
             refreshTitle={
               viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
             }
             rightText={
-              viewType === "homes"
-                ? `${filteredHomes.length} saved`
-                : `${filteredReports.length} home${filteredReports.length !== 1 ? "s" : ""}`
+              viewType === "homes" ? `${filteredHomes.length} saved` : ""
             }
             viewType={viewType}
             onViewTypeChange={setViewType}
           />
-        )}
-
-        {/* Generate Report Component - Show only when Reports button is selected */}
-        {viewType === "reports" && reportsSubView === "reports" && (
-          <div className={`mb-6 ${isComparisonMode ? "-mt-16" : ""}`}>
-            <GenerateReportPage onReportGenerated={handleReportGenerated} />
-          </div>
         )}
 
         {/* Content */}
@@ -626,48 +393,14 @@ export default function SavedHomes({
               })}
             </div>
           )
-        ) : /* Reports View */
-        reportsSubView === "compare" ? (
-          <CompareReportsPage />
-        ) : reportsSubView === "chatbot" ? (
-          <AIAssistant />
-        ) : filteredReports.length === 0 ? (
-          reportsLoading ? (
-            <div className="py-responsive-lg flex justify-center">
-              <KeyTurnLoader message="Loading reports..." />
-            </div>
-          ) : (
-            <div className="py-responsive-lg text-center">
-              <p className="text-responsive-sm text-gray-600">
-                {searchTerm
-                  ? "No reports found matching your search"
-                  : "You have no reports yet."}
-              </p>
-            </div>
-          )
-        ) : (
-          <div className="grid grid-cols-1 gap-responsive-sm sm:grid-cols-2 lg:grid-cols-3">
-            {filteredReports.map((report) => (
-              <ReportCard
-                key={report.id}
-                report={report}
-                loadingUrls={loadingUrls}
-                viewMode="grid"
-                onView={handleViewDocument}
-                onDownload={handleDownloadDocument}
-                onShare={() => handleShareReport(report)}
-                onDelete={openDeleteModal}
-              />
-            ))}
-          </div>
-        )}
-        {/* Global toasts shown via ToastsPortal */}
+        ) : null}
 
         {/* Property Details Modal */}
         {selectedProperty && (
           <PropertyDetailsModal
             property={selectedProperty}
             onClose={clearSelectedProperty}
+            isLoading={isLoadingPropertyDetails}
           />
         )}
 

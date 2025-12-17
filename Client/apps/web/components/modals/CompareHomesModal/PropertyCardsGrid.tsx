@@ -22,7 +22,7 @@ export function PropertyCardsGrid({
 
   return (
     <div className="mb-responsive-md">
-      <Title size="sm" className="mb-responsive-sm font-medium">
+      <Title size="sm" className="mb-responsive-md font-medium">
         Property Details
       </Title>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">

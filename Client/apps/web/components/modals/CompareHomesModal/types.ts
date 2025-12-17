@@ -23,11 +23,15 @@ export type PropertyDetails = {
   listingStatus?: string;
   imageUrl?: string;
   images?: string[];
-  zillowUrl?: string;
   features?: unknown;
   propertyAnalysis?: Record<string, unknown>;
   commuteData?: unknown;
   imageFeatures?: unknown;
+  combinedFeatures?: {
+    combined_features: string[];
+    preferred_overlap: string[];
+    dealbreaker_overlap: string[];
+  };
   isLoading?: boolean;
   error?: string;
 };
@@ -36,5 +40,8 @@ export type ComparisonField = {
   key: string;
   label: string;
   getValue: (home: PropertyDetails) => string;
+  sectionKey?: string; // The section this field belongs to (e.g., "commute", "family_friendly")
+  isSectionHeader?: boolean; // True if this is a section header row
+  isLoading?: boolean; // True if this section is still loading for some homes
 };
 

@@ -109,9 +109,6 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
         except Exception:
             parsed_score = None
 
-    # Use zillow_url if already provided in home data
-    zillow_url = home.get("zillow_url") or home.get("zillowUrl")
-
     fields = {
         "address": address,
         "beds": str(home.get("bedrooms", "") or ""),
@@ -122,10 +119,6 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
         "image_url": image_url,
         "score": parsed_score,
     }
-    
-    # Only include zillow_url if we have a value
-    if zillow_url:
-        fields["zillow_url"] = zillow_url
 
     if existing:
         # Update only with non-empty incoming values

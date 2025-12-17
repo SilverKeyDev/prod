@@ -19,8 +19,7 @@ def build_update_fields(
     zillow_api_images: List[str],
     features: Dict[str, Any],
     property_analysis: Dict[str, Any],
-    commute_data: Dict[str, Any],
-    zillow_url: str
+    commute_data: Dict[str, Any]
 ) -> Dict[str, Any]:
     """
     Build update fields dict for HomeUniversal record.
@@ -34,7 +33,6 @@ def build_update_fields(
         features: Property features dict
         property_analysis: Property analysis dict
         commute_data: Commute data dict
-        zillow_url: Zillow URL
         
     Returns:
         Dict with update fields for HomeUniversal
@@ -79,7 +77,6 @@ def build_update_fields(
         'features': features,
         'property_analysis': property_analysis,
         'commute_data': commute_data,
-        'zillow_url': zillow_url,
         'raw_data': data,
     }
 
@@ -129,7 +126,6 @@ def persist_property_data(
     features: Dict[str, Any],
     property_analysis: Dict[str, Any],
     commute_data: Dict[str, Any],
-    zillow_url: str,
     primary_image: Optional[str]
 ) -> None:
     """
@@ -144,7 +140,6 @@ def persist_property_data(
         features: Property features dict
         property_analysis: Property analysis dict
         commute_data: Commute data dict
-        zillow_url: Zillow URL
         primary_image: Primary image URL
     """
     try:
@@ -185,8 +180,7 @@ def persist_property_data(
             zillow_api_images=zillow_api_images,
             features=features,
             property_analysis=property_analysis,
-            commute_data=commute_data,
-            zillow_url=zillow_url
+            commute_data=commute_data
         )
         
         # Update or create record

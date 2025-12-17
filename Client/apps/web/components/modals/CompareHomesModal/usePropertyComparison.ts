@@ -96,7 +96,6 @@ export function usePropertyComparison(
               if (update.type === "basic") {
                 const basicData = update.data as {
                   data?: Record<string, unknown>;
-                  zillow_url?: string;
                 };
                 if (basicData.data) {
                   const data = basicData.data;
@@ -131,7 +130,6 @@ export function usePropertyComparison(
                     propertyType: newPropertyType ?? updated.propertyType,
                     homeType: newHomeType ?? updated.homeType,
                     listingStatus: newListingStatus ?? updated.listingStatus,
-                    zillowUrl: basicData.zillow_url || updated.zillowUrl,
                   };
                 }
               } else if (update.type === "commute_data") {
@@ -146,12 +144,26 @@ export function usePropertyComparison(
                   ...existingAnalysis,
                   ...(update.data as Record<string, unknown>),
                 };
+              } else if (update.type === "property_analysis_section") {
+                // Handle individual section updates - merge into existing analysis
+                const existingAnalysis =
+                  (updated.propertyAnalysis as Record<string, unknown>) || {};
+                updated.propertyAnalysis = {
+                  ...existingAnalysis,
+                  ...(update.data as Record<string, unknown>),
+                };
               } else if (update.type === "images") {
                 updated.images = update.data as string[];
               } else if (update.type === "image_features") {
                 updated.imageFeatures = update.data;
               } else if (update.type === "features") {
                 updated.features = update.data;
+              } else if (update.type === "combined_features") {
+                updated.combinedFeatures = update.data as {
+                  combined_features: string[];
+                  preferred_overlap: string[];
+                  dealbreaker_overlap: string[];
+                };
               } else if (update.type === "complete") {
                 updated.isLoading = false;
               }

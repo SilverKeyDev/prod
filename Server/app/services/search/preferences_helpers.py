@@ -14,7 +14,7 @@ from ...utils.security.security import security_error_response
 
 
 def map_user_preferences_to_filters(user_preferences: Dict[str, Any], status_type: str = "ForSale") -> Dict[str, Any]:
-    """Map user preferences to Zillow API filters."""
+    """Map user preferences to property API filters."""
     filters = {}
     
     # Map budget to price filters using range

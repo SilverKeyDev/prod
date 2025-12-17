@@ -27,10 +27,6 @@ type PropertyWithPhotos = {
   photos?: PhotoSource[];
 };
 
-type PropertyWithZillow = {
-  zillow_url?: string;
-  zpid?: string | number;
-};
 
 export const formatAddress = (
   address: string | AddressObject | null | undefined,
@@ -120,48 +116,3 @@ export const getPropertyImages = (
   ];
 };
 
-export const handleZillowOpen = (property: Property | SearchResult): void => {
-  try {
-    const propertyWithZillow = property as PropertyWithZillow;
-    const { zillow_url: zillowUrl, zpid } = propertyWithZillow;
-
-    if (zillowUrl) {
-      window.open(zillowUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-    if (zpid) {
-      window.open(
-        `https://www.zillow.com/homedetails/${zpid}_zpid/`,
-        "_blank",
-        "noopener,noreferrer",
-      );
-      return;
-    }
-    // Fallback to address when neither zillow_url nor zpid is present
-    const addr = formatAddress(
-      ((property as unknown as { address?: unknown }).address as
-        | string
-        | AddressObject
-        | null
-        | undefined) ?? "",
-    );
-    window.open(
-      `https://www.zillow.com/homes/${encodeURIComponent(addr)}_rb/`,
-      "_blank",
-      "noopener,noreferrer",
-    );
-  } catch {
-    const addr = formatAddress(
-      ((property as unknown as { address?: unknown }).address as
-        | string
-        | AddressObject
-        | null
-        | undefined) ?? "",
-    );
-    window.open(
-      `https://www.zillow.com/homes/${encodeURIComponent(addr)}_rb/`,
-      "_blank",
-      "noopener,noreferrer",
-    );
-  }
-};

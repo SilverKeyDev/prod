@@ -1,10 +1,10 @@
 """
-Report models module - refactored from report_models.py for better organization.
+Report models module - exports all research model classes.
 
-This module exports only the 9 core models.
+This module exports the 9 core section models plus FullReport.
 """
 
-# Export only the 9 core models
+# Export all research models (9 core section models + FullReport)
 from .commute import CommuteSection
 from .neighborhood import Neighborhood
 from .financial import Affordability

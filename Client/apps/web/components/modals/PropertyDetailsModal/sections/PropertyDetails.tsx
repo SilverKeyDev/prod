@@ -44,11 +44,6 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({
       ? (property.parking as number | undefined)
       : undefined;
 
-  const propertyDaysOnZillow =
-    "daysOnZillow" in property
-      ? (property.daysOnZillow as number | string | undefined)
-      : undefined;
-
   const propertyZestimate =
     "zestimate" in property
       ? (property.zestimate as number | undefined)
@@ -137,11 +132,6 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({
           propertyPricePerSquareFoot.trim() !== ""))) ||
     (typeof propertyGarageSpaces === "number" && propertyGarageSpaces > 0) ||
     (typeof propertyParking === "number" && propertyParking > 0) ||
-    (propertyDaysOnZillow &&
-      ((typeof propertyDaysOnZillow === "number" && propertyDaysOnZillow > 0) ||
-        (typeof propertyDaysOnZillow === "string" &&
-          propertyDaysOnZillow !== "0" &&
-          propertyDaysOnZillow.trim() !== ""))) ||
     (typeof propertyZestimate === "number" && propertyZestimate > 0) ||
     (typeof propertyRentZestimate === "number" && propertyRentZestimate > 0);
 
@@ -222,17 +212,6 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({
                       : "N/A"}
                 </div>
               )}
-              {propertyDaysOnZillow &&
-              ((typeof propertyDaysOnZillow === "number" &&
-                propertyDaysOnZillow > 0) ||
-                (typeof propertyDaysOnZillow === "string" &&
-                  propertyDaysOnZillow !== "0" &&
-                  propertyDaysOnZillow.trim() !== "")) ? (
-                <div className="flex justify-between">
-                  Days on Market:
-                  {String(propertyDaysOnZillow)} days
-                </div>
-              ) : null}
               {typeof propertyZestimate === "number" &&
                 propertyZestimate > 0 && (
                   <div className="flex justify-between">

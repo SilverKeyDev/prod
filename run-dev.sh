@@ -90,7 +90,7 @@ trap cleanup SIGINT SIGTERM EXIT
 # Wait helpers
 # =========================
 wait_for_port() {
-  local host="$1" port="$2" retries="${3:-30}" delay="${4:-1}"
+  local host="$1" port="$2" retries="${3:-12}" delay="${4:-1}"
   for i in $(seq 1 "$retries"); do
     if nc -z "$host" "$port" 2>/dev/null; then
       log "${GREEN}✅ $host:$port is accepting TCP${NC}"
@@ -104,7 +104,7 @@ wait_for_port() {
 }
 
 wait_for_http() {
-  local url="$1" retries="${2:-30}" delay="${3:-1}"
+  local url="$1" retries="${2:-12}" delay="${3:-1}"
   for i in $(seq 1 "$retries"); do
     if NO_PROXY="localhost,127.0.0.1,::1" curl -4 --noproxy "localhost,127.0.0.1,::1" -fsS "$url" >/dev/null 2>&1; then
       log "${GREEN}✅ $url is ready${NC}"

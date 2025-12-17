@@ -1,7 +1,6 @@
 // React imports
 import { ChevronUp, ChevronDown } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 
 // Components
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal/PropertyDetailsModal";
@@ -60,7 +59,6 @@ export default function SearchPage({
   onSearchProperties,
   searchRef,
 }: SearchPageProps) {
-  const navigate = useNavigate();
   const { isLoaded: isGoogleMapsLoaded, createMap } = useGoogleMaps();
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const setFavoriteAddresses = useFiltersStore((s) => s.setFavoriteAddresses);
@@ -794,6 +792,7 @@ export default function SearchPage({
       <PropertyDetailsModal
         property={selectedProperty}
         onClose={clearSelectedProperty}
+        isLoading={isLoadingPropertyDetails}
       />
 
       {/* Preferences Modal */}

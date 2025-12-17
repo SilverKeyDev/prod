@@ -280,8 +280,6 @@ export type SearchResult = {
   propertyTypeDimension?: string;
   homeType?: string;
   homeStatus?: string;
-  timeOnZillow?: string;
-  daysOnZillow?: number;
   onMarketDate?: number;
 
   // Financial information

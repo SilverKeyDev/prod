@@ -39,7 +39,7 @@ search_bp = Blueprint('search', __name__, url_prefix='/api/v1/search')
 @search_bp.route('/propertyComps', methods=['GET'])
 def get_property_comps():
     """
-    Get property comparables using Zillow API.
+    Get property comparables using property API.
     Prioritizes address parameter, with zpid and property_url as fallbacks.
     """
     try:
@@ -83,7 +83,7 @@ def get_property_comps():
             current_app.logger.error(f"🏠 [PROPERTY_COMPS] API Error: {response.status_code}")
             return SecureErrorHandler.handle_external_api_error(
                 Exception(f"API returned status {response.status_code}"),
-                'Zillow API',
+                'Property API',
                 {'endpoint': 'propertyComps', 'status_code': response.status_code}
             )
         

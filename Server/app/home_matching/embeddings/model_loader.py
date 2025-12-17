@@ -5,9 +5,12 @@ Model loader for sentence-transformers, OpenAI, and Perplexity embeddings.
 import os
 import openai
 import numpy as np
+import time
+import re
 from typing import List, Optional, Dict, Any
 from sentence_transformers import SentenceTransformer
 import logging
+from openai import RateLimitError, APIError
 
 # Suppress verbose logging from sentence-transformers
 logging.getLogger('sentence_transformers').setLevel(logging.WARNING)
@@ -18,6 +21,64 @@ from ..config.settings import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _extract_retry_after_time(error_message: str) -> float:
+    """
+    Extract retry-after time from OpenAI rate limit error message.
+    
+    Error format: "Please try again in 68ms" or "Please try again in 1.5s"
+    Returns time in seconds, or None if not found.
+    """
+    pattern = r'Please try again in ([\d.]+)(ms|s|seconds?)'
+    match = re.search(pattern, error_message, re.IGNORECASE)
+    if match:
+        value = float(match.group(1))
+        unit = match.group(2).lower()
+        if unit == 'ms':
+            return value / 1000.0
+        else:
+            return value
+    return None
+
+
+def _make_openai_request_with_retry(request_func, max_retries: int = 3):
+    """Make OpenAI API request with retry logic that respects retry-after time."""
+    for attempt in range(max_retries):
+        try:
+            return request_func()
+        except RateLimitError as e:
+            error_str = str(e)
+            wait_time = _extract_retry_after_time(error_str)
+            
+            if wait_time is None:
+                wait_time = 2 ** attempt
+                logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s")
+            else:
+                wait_time = max(wait_time + 0.1, 0.1)
+                logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)...")
+            
+            if attempt < max_retries - 1:
+                time.sleep(wait_time)
+            else:
+                logger.error(f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
+                raise
+        except APIError as e:
+            wait_time = 2 ** attempt
+            if attempt < max_retries - 1:
+                logger.warning(f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry...")
+                time.sleep(wait_time)
+            else:
+                logger.error(f"❌ API error after {max_retries} attempts: {e}")
+                raise
+        except Exception as e:
+            if attempt == max_retries - 1:
+                logger.error(f"❌ Unexpected error after {max_retries} attempts: {e}")
+                raise
+            else:
+                logger.warning(f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s...")
+                time.sleep(1)
+
 
 class EmbeddingModelLoader:
     """Loads and manages different embedding models."""
@@ -60,10 +121,14 @@ class EmbeddingModelLoader:
         """Get embedding from OpenAI API."""
         try:
             client = self.load_openai_client()
-            response = client.embeddings.create(
-                input=text,
-                model=model
-            )
+            
+            def make_request():
+                return client.embeddings.create(
+                    input=text,
+                    model=model
+                )
+            
+            response = _make_openai_request_with_retry(make_request)
             embedding = np.array(response.data[0].embedding)
             return embedding
         except Exception as e:
@@ -74,10 +139,14 @@ class EmbeddingModelLoader:
         """Get multiple embeddings from OpenAI API."""
         try:
             client = self.load_openai_client()
-            response = client.embeddings.create(
-                input=texts,
-                model=model
-            )
+            
+            def make_request():
+                return client.embeddings.create(
+                    input=texts,
+                    model=model
+                )
+            
+            response = _make_openai_request_with_retry(make_request)
             embeddings = [np.array(data.embedding) for data in response.data]
             return embeddings
         except Exception as e:

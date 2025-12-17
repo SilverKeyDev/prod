@@ -80,11 +80,6 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
       ? (property.parking as number | undefined)
       : undefined;
 
-  const propertyDaysOnZillow: number | string | undefined =
-    "daysOnZillow" in property
-      ? (property.daysOnZillow as number | string | undefined)
-      : undefined;
-
   const propertyZestimate: number | undefined =
     "zestimate" in property
       ? (property.zestimate as number | undefined)
@@ -147,7 +142,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
 
   return (
     <div className="p-6">
-      {/* Main Property Info Section - Zillow Style Layout */}
+      {/* Main Property Info Section */}
       <div className="mb-6 flex items-start justify-between">
         {/* Left Side - Price and Address */}
         <div className="flex-1">
@@ -241,7 +236,6 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
                 }
                 propertyGarageSpaces={propertyGarageSpaces ?? undefined}
                 propertyParking={propertyParking ?? undefined}
-                propertyDaysOnZillow={propertyDaysOnZillow ?? undefined}
                 propertyZestimate={propertyZestimate ?? undefined}
                 propertyRentZestimate={propertyRentZestimate ?? undefined}
               />

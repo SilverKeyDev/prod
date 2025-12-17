@@ -14,6 +14,27 @@ from app.home_matching.config.settings import (
 logger = logging.getLogger(__name__)
 
 
+def _extract_retry_after_time(error_message: str) -> float:
+    """
+    Extract retry-after time from OpenAI rate limit error message.
+    
+    Error format: "Please try again in 68ms" or "Please try again in 1.5s"
+    Returns time in seconds.
+    """
+    # Look for patterns like "Please try again in 68ms" or "Please try again in 1.5s"
+    pattern = r'Please try again in ([\d.]+)(ms|s|seconds?)'
+    match = re.search(pattern, error_message, re.IGNORECASE)
+    if match:
+        value = float(match.group(1))
+        unit = match.group(2).lower()
+        if unit == 'ms':
+            return value / 1000.0  # Convert milliseconds to seconds
+        else:
+            return value  # Already in seconds
+    # Fallback to exponential backoff if we can't parse
+    return None
+
+
 class LLMClient:
     """Handles LLM API calls for home matching."""
 
@@ -134,9 +155,20 @@ class LLMClient:
                 return response
                 
             except RateLimitError as e:
-                wait_time = 2 ** attempt
+                # Try to extract retry-after time from error message
+                error_str = str(e)
+                wait_time = _extract_retry_after_time(error_str)
+                
+                # If we couldn't parse the time, fall back to exponential backoff
+                if wait_time is None:
+                    wait_time = 2 ** attempt
+                    logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s")
+                else:
+                    # Add a small buffer (100ms) to ensure we wait long enough
+                    wait_time = max(wait_time + 0.1, 0.1)
+                    logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)...")
+                
                 if attempt < max_retries - 1:
-                    logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time}s before retry...")
                     time.sleep(wait_time)
                 else:
                     logger.error(f"❌ Rate limit exceeded after {max_retries} attempts: {e}")

@@ -70,7 +70,7 @@ export const DEFAULT_REPORT_SECTIONS = [
     key: "neighborhood",
     label: "Neighborhood",
     priority: 2,
-    description: "Safety, cleanliness, upkeep, community feel",
+    description: "Safety, upkeep, community feel",
     question: "Is the area safe, pleasant, and stable?",
   },
   {

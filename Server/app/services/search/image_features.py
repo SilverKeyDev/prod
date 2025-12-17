@@ -5,13 +5,72 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List
 
-from openai import OpenAI
+from openai import OpenAI, RateLimitError, APIError
 
 client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
 logger = logging.getLogger(__name__)
+
+
+def _extract_retry_after_time(error_message: str) -> float:
+    """
+    Extract retry-after time from OpenAI rate limit error message.
+    
+    Error format: "Please try again in 68ms" or "Please try again in 1.5s"
+    Returns time in seconds, or None if not found.
+    """
+    pattern = r'Please try again in ([\d.]+)(ms|s|seconds?)'
+    match = re.search(pattern, error_message, re.IGNORECASE)
+    if match:
+        value = float(match.group(1))
+        unit = match.group(2).lower()
+        if unit == 'ms':
+            return value / 1000.0
+        else:
+            return value
+    return None
+
+
+def _make_openai_request_with_retry(request_func, max_retries: int = 3):
+    """Make OpenAI API request with retry logic that respects retry-after time."""
+    for attempt in range(max_retries):
+        try:
+            return request_func()
+        except RateLimitError as e:
+            error_str = str(e)
+            wait_time = _extract_retry_after_time(error_str)
+            
+            if wait_time is None:
+                wait_time = 2 ** attempt
+                logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s")
+            else:
+                wait_time = max(wait_time + 0.1, 0.1)
+                logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)...")
+            
+            if attempt < max_retries - 1:
+                time.sleep(wait_time)
+            else:
+                logger.error(f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
+                raise
+        except APIError as e:
+            wait_time = 2 ** attempt
+            if attempt < max_retries - 1:
+                logger.warning(f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry...")
+                time.sleep(wait_time)
+            else:
+                logger.error(f"❌ API error after {max_retries} attempts: {e}")
+                raise
+        except Exception as e:
+            if attempt == max_retries - 1:
+                logger.error(f"❌ Unexpected error after {max_retries} attempts: {e}")
+                raise
+            else:
+                logger.warning(f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s...")
+                time.sleep(1)
 
 
 def _safe_json_parse(s: str) -> Dict:
@@ -69,13 +128,16 @@ def extract_features_from_batch(image_batch: List[str], batch_num: int) -> List[
             }
         }
 
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",  # vision-capable + cheap
-            messages=[{"role": "user", "content": content}],
-            response_format={"type": "json_schema", "json_schema": schema},
-            max_tokens=600,
-            temperature=0
-        )
+        def make_request():
+            return client.chat.completions.create(
+                model="gpt-4o-mini",  # vision-capable + cheap
+                messages=[{"role": "user", "content": content}],
+                response_format={"type": "json_schema", "json_schema": schema},
+                max_tokens=600,
+                temperature=0
+            )
+        
+        resp = _make_openai_request_with_retry(make_request)
 
         content_str = resp.choices[0].message.content or "{}"
         data = _safe_json_parse(content_str)
@@ -171,16 +233,19 @@ def normalize_and_dedupe_features(raw_features: List[str]) -> List[str]:
         f"RAW FEATURES:\n{raw_features}"
     )
 
-    resp = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
-        response_format={"type": "json_schema", "json_schema": schema},
-        max_tokens=600,
-        temperature=0
-    )
+    def make_request():
+        return client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            response_format={"type": "json_schema", "json_schema": schema},
+            max_tokens=600,
+            temperature=0
+        )
+    
+    resp = _make_openai_request_with_retry(make_request)
 
     content_str = resp.choices[0].message.content or "{}"
     data = _safe_json_parse(content_str)

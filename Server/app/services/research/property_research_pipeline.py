@@ -307,9 +307,6 @@ def process_property_data(
         skip_pros_cons=skip_pros_cons
     )
     
-    # Extract Zillow URL from data if available
-    zillow_url = data.get("zillow_url") or data.get("zillowUrl") or data.get("url") or data.get("detailUrl") or data.get("homeDetailsUrl") or data.get("propertyUrl") or data.get("hdpUrl") or None
-    
     # Fetch images
     zpid_val = extract_zpid(params, data)
     zillow_api_images = fetch_zillow_images(zpid_val, rapidapi_key) if zpid_val else []
@@ -343,7 +340,6 @@ def process_property_data(
                 features=features,
                 property_analysis=property_analysis,
                 commute_data=commute_data,
-                zillow_url=zillow_url,
                 primary_image=primary_image
             )
     except SecurityException:
@@ -364,7 +360,6 @@ def process_property_data(
         "commute_data": commute_data,
         "property_analysis": property_analysis,
         "image_features": image_features,
-        "zillow_url": zillow_url,
         "images": zillow_api_images
     }
     

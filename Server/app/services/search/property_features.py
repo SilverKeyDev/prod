@@ -1,5 +1,5 @@
 """
-Extract categorized property features from Zillow-style JSON listing data.
+Extract categorized property features from property listing JSON data.
 """
 from __future__ import annotations
 import re
@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 def extract_property_features(listing: Dict[str, Any]) -> Dict[str, List[str]]:
     """
-    Extract categorized property features from a Zillow-style JSON listing.
+    Extract categorized property features from a property listing JSON.
     
     Args:
         listing: Property listing dict with resoFacts and other fields
@@ -67,7 +67,7 @@ def extract_property_features(listing: Dict[str, Any]) -> Dict[str, List[str]]:
         if rx.search(desc):
             add_to_category(cat, feat)
 
-    # ---------- Zillow "phrases" from homeInsights ----------
+    # ---------- Property "phrases" from homeInsights ----------
     try:
         insights = listing.get("homeInsights") or []
         phrases = []

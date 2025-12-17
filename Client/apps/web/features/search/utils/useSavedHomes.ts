@@ -71,9 +71,7 @@ export function useSavedHomes(params: {
                     !window.google?.maps ||
                     !params.isGoogleMapsLoaded
                   ) {
-                    console.warn(
-                      `⚠️ Google Maps API not loaded yet, skipping geocoding for ${homeData.address}`,
-                    );
+ 
                     lat = 33.749; // Atlanta fallback
                     lng = -84.388;
                   } else {

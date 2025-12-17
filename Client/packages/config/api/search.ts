@@ -29,7 +29,6 @@ export type PropertyResponse = {
   commute_data?: unknown;
   property_analysis?: unknown;
   image_features?: unknown;
-  zillow_url?: string;
   images?: string[];
   error?: string;
 };
@@ -115,7 +114,7 @@ export type IsochroneResponse = {
  */
 export const searchApi = {
   /**
-   * Get property comparables using Zillow API
+   * Get property comparables using property API
    */
   getPropertyComps: (
     params: PropertyCompsRequest,
@@ -125,7 +124,7 @@ export const searchApi = {
       radius: params.radius,
       count: params.count,
     });
-    console.log("🔎 [searchApi.getPropertyComps] Request", { url, params });
+
     return apiGet<PropertyCompsResponse>(url, {
       timeout: 300000, // 5 minutes for property comps search
     })
@@ -149,11 +148,10 @@ export const searchApi = {
   },
 
   /**
-   * Get property details via address using RapidAPI Zillow
+   * Get property details via address using RapidAPI
    */
   getProperty: (data: PropertyRequest): Promise<PropertyResponse> => {
     const url = "/api/v1/research/property";
-    console.log("🔎 [searchApi.getProperty] Request", { url, body: data });
     return apiPost<PropertyResponse>(url, data, {
       timeout: 300000, // 5 minutes for property search
     })
@@ -189,7 +187,6 @@ export const searchApi = {
     const baseUrl = import.meta.env.DEV ? "" : "https://usesilverkey.com";
     const url = `${baseUrl}/api/v1/research/property?stream=true`;
     
-    console.log("🔎 [searchApi.streamProperty] Starting stream", { url, body: data });
 
     const response = await fetch(url, {
       method: "POST",
@@ -257,8 +254,6 @@ export const searchApi = {
     const baseUrl = import.meta.env.DEV ? "" : "https://usesilverkey.com";
     const url = `${baseUrl}/api/v1/research/compare?stream=true`;
     
-    console.log("🔎 [searchApi.streamCompare] Starting stream", { url, body: data });
-
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -322,21 +317,6 @@ export const searchApi = {
     data: PolygonSearchRequest,
   ): Promise<PolygonSearchResponse> => {
     const url = "/api/v1/search/properties-by-polygon";
-    const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
-    const apiBaseUrl = isDev ? "localhost:5000" : "https://usesilverkey.com";
-    
-    console.log("🔎 [searchApi.searchByPolygon] Request", { 
-      environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-      apiBaseUrl,
-      url,
-      userPreferences: {
-        budget: data.user_preferences?.home_budget_max,
-        bedrooms: data.user_preferences?.preferred_bedrooms,
-        bathrooms: data.user_preferences?.preferred_bathrooms,
-        locationsCount: data.user_preferences?.important_locations?.length,
-      },
-    });
-    
     return apiPost<PolygonSearchResponse>(url, data, {
       timeout: 300000, // 5 minutes for polygon search
     })

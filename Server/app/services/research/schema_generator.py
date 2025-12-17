@@ -4,7 +4,7 @@ import logging
 import traceback
 import json
 
-from app.services.research.report_models import (
+from app.services.research.models import (
     Affordability, Neighborhood, CommuteSection, FamilyFriendlySection,
     Entertainment, Investment, ClimateEnvironmentalSafety, ConvenienceWalkability, Home
 )
@@ -111,7 +111,8 @@ def _process_schema_common_steps(
     model_class: type,
     section_name: str,
     user_preferences: Dict[str, Any] = None,
-    default_type_for_missing: str = "string"
+    default_type_for_missing: str = "string",
+    mode: str = "report"
 ) -> dict:
     """
     Common schema processing steps shared between report and comparison modes.
@@ -122,19 +123,48 @@ def _process_schema_common_steps(
         section_name: Name of the section
         user_preferences: Optional user preferences dict
         default_type_for_missing: Default type to use for properties without a type
+        mode: Schema mode ("report" or "comparison")
         
     Returns:
         Processed schema dict
     """
-    # Add field descriptions if available
-    if hasattr(model_class, 'get_description'):
+    # Add field descriptions - use comparison descriptions in comparison mode, otherwise regular descriptions
+    use_comparison = (mode == "comparison" and hasattr(model_class, 'get_comparison_description'))
+    description_method = 'get_comparison_description' if use_comparison else 'get_description'
+    
+    if hasattr(model_class, description_method):
         try:
-            descriptions = model_class.get_description(user_preferences or {})
+            if use_comparison:
+                descriptions = model_class.get_comparison_description(user_preferences or {})
+            else:
+                descriptions = model_class.get_description(user_preferences or {})
+            
+            original_properties = schema.get("properties", {}).copy()
+            filtered_properties = {}
+            
             for key, desc in descriptions.items():
-                if key in schema.get("properties", {}):
-                    schema["properties"][key]["description"] = desc
+                if key in original_properties:
+                    filtered_properties[key] = original_properties[key].copy()
+                    filtered_properties[key]["description"] = desc
+                else:
+                    logger.warning(f"⚠️ {description_method}() returned description for field '{key}' that doesn't exist in {section_name} model")
+            
+            # In comparison mode, only keep fields that have comparison descriptions (rating + up to 2 key fields)
+            if use_comparison:
+                schema["properties"] = filtered_properties
+                schema["required"] = [r for r in schema.get("required", []) if r in filtered_properties]
+                logger.info(f"📊 [SCHEMA] Comparison mode: filtered to {len(filtered_properties)} fields for {section_name}")
+            else:
+                # In report mode, use all fields but update descriptions
+                schema["properties"] = original_properties
+                for key, desc in descriptions.items():
+                    if key in schema["properties"]:
+                        schema["properties"][key]["description"] = desc
+                        
         except Exception as e:
             logger.warning(f"⚠️ Failed to add descriptions to {section_name} schema: {e}\n{traceback.format_exc()}")
+    else:
+        logger.warning(f"⚠️ Model {section_name} does not have {description_method}() method - descriptions will be missing")
     
     # Ensure required schema structure
     schema.setdefault("type", "object")
@@ -274,7 +304,7 @@ def get_individual_section_schema(
     Generate a flattened, Perplexity-compatible JSON schema for a given report section.
     
     This function intelligently determines what fields to include in the schema based on:
-    - Schema type (report/comparison/marketing)
+    - Schema type (report/comparison)
     - User priorities (which sections are most important)
     - Recent database entries (what was generated in the last 2 weeks)
     
@@ -309,15 +339,15 @@ def get_individual_section_schema(
         
         # Process common steps with "string" as default type
         return _process_schema_common_steps(
-            schema, model_class, section_name, user_preferences, default_type_for_missing="string"
+            schema, model_class, section_name, user_preferences, default_type_for_missing="string", mode="report"
         )
     
     elif mode == "comparison":
-        # Comparison mode: For comparing two properties in research reports.
-        # Excludes sections with long narrative text content for more concise comparisons.
-        # Process common steps with "object" as default type
+        # Comparison mode: Simplified schemas with rating + up to 2 key fields (max 6 words each)
+        # Uses get_comparison_description() to filter to only essential comparison fields
+        # Process common steps with "string" as default type (comparison descriptions handle filtering)
         return _process_schema_common_steps(
-            schema, model_class, section_name, user_preferences, default_type_for_missing="object"
+            schema, model_class, section_name, user_preferences, default_type_for_missing="string", mode="comparison"
         )
     
     else:

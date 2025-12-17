@@ -29,12 +29,9 @@ export function RemainingLikedHomes({
 
   return (
     <div>
-      <Title size="sm" className="mb-responsive-sm font-medium">
-        More Properties
-      </Title>
-      <p className="mb-responsive-sm text-responsive-sm text-gray-600">
+      <Title size="sm" className="mb-responsive-md font-medium text-black">
         Add more properties to compare
-      </p>
+      </Title>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {remainingHomes.map((home: SavedHome) => (
           <div key={home.home_id} className="scale-75 sm:scale-90 md:scale-100">

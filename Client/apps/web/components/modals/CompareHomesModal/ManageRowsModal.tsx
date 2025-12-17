@@ -1,7 +1,7 @@
 import React from "react";
 import { Check, X } from "lucide-react";
-import { Title, Subtitle } from "../../../components/ui";
-import { ALL_METRIC_KEYS } from "../../../../../packages/schemas";
+import { Title, Subtitle } from "../../ui";
+import type { ComparisonField, PropertyDetails } from "./types";
 
 interface ManageRowsModalProps {
   showRowModal: boolean;
@@ -10,8 +10,9 @@ interface ManageRowsModalProps {
   setOmittedRows: (rows: Set<string>) => void;
   manuallyEnabledRows: Set<string>;
   setManuallyEnabledRows: (rows: Set<string>) => void;
-  hasDataForAnyProperty: (metric: string) => boolean;
-  visibleMetrics: string[];
+  hasDataForAnyProperty: (fieldKey: string) => boolean;
+  visibleFields: ComparisonField[];
+  allFields: ComparisonField[];
 }
 
 export function ManageRowsModal({
@@ -22,11 +23,14 @@ export function ManageRowsModal({
   manuallyEnabledRows,
   setManuallyEnabledRows,
   hasDataForAnyProperty,
-  visibleMetrics,
+  visibleFields,
+  allFields,
 }: ManageRowsModalProps) {
   if (!showRowModal) {
     return null;
   }
+
+  const allFieldKeys = allFields.map((f) => f.key);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -35,10 +39,10 @@ export function ManageRowsModal({
         <div className="flex items-center justify-between border-b border-gray-200 p-6">
           <div>
             <Title size="md" className="font-semibold">
-              Manage Comparison Rows
+              Manage Comparison Fields
             </Title>
             <Subtitle size="xs" muted className="mt-1">
-              Select which metrics to include in your comparison table
+              Select which fields to include in your comparison table
             </Subtitle>
           </div>
           <button
@@ -56,15 +60,15 @@ export function ManageRowsModal({
             <button
               onClick={() => {
                 setOmittedRows(new Set());
-                setManuallyEnabledRows(new Set(ALL_METRIC_KEYS));
+                setManuallyEnabledRows(new Set(allFieldKeys));
               }}
               className="rounded-lg bg-olive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-olive-light"
             >
-              Show All ({ALL_METRIC_KEYS.length})
+              Show All ({allFieldKeys.length})
             </button>
             <button
               onClick={() => {
-                setOmittedRows(new Set(ALL_METRIC_KEYS));
+                setOmittedRows(new Set(allFieldKeys));
                 setManuallyEnabledRows(new Set());
               }}
               className="rounded-lg bg-beige px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-beige/80"
@@ -81,27 +85,26 @@ export function ManageRowsModal({
               Auto-Hide Empty
             </button>
             <div className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-black/60">
-              Showing: {visibleMetrics.length} / {ALL_METRIC_KEYS.length}{" "}
-              metrics
+              Showing: {visibleFields.length} / {allFieldKeys.length} fields
             </div>
           </div>
 
-          {/* Metrics List */}
+          {/* Fields List */}
           <div className="overflow-hidden rounded-lg border border-gray-200">
             <div className="custom-scrollbar max-h-96 overflow-y-auto">
-              {ALL_METRIC_KEYS.map((metric, index) => {
-                const isManuallyOmitted = omittedRows.has(metric);
+              {allFields.map((field, index) => {
+                const isManuallyOmitted = omittedRows.has(field.key);
                 const isAutoOmitted =
-                  !hasDataForAnyProperty(metric) &&
-                  !manuallyEnabledRows.has(metric);
+                  !hasDataForAnyProperty(field.key) &&
+                  !manuallyEnabledRows.has(field.key);
                 const isOmitted = isManuallyOmitted ?? isAutoOmitted;
-                const hasData = hasDataForAnyProperty(metric);
+                const hasData = hasDataForAnyProperty(field.key);
 
                 return (
                   <label
-                    key={metric}
+                    key={field.key}
                     className={`flex cursor-pointer items-center space-x-3 p-4 transition-colors hover:bg-beige/20 ${
-                      index !== ALL_METRIC_KEYS.length - 1
+                      index !== allFields.length - 1
                         ? "border-b border-gray-100"
                         : ""
                     }`}
@@ -112,9 +115,9 @@ export function ManageRowsModal({
                         checked={!isOmitted}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           if (e.target.checked) {
-                            // Enable the row
+                            // Enable the field
                             const newOmittedRows = new Set(omittedRows);
-                            newOmittedRows.delete(metric);
+                            newOmittedRows.delete(field.key);
                             setOmittedRows(newOmittedRows);
 
                             // If it was auto-omitted, mark as manually enabled
@@ -122,20 +125,20 @@ export function ManageRowsModal({
                               const newManuallyEnabled = new Set(
                                 manuallyEnabledRows
                               );
-                              newManuallyEnabled.add(metric);
+                              newManuallyEnabled.add(field.key);
                               setManuallyEnabledRows(newManuallyEnabled);
                             }
                           } else {
-                            // Disable the row
+                            // Disable the field
                             const newOmittedRows = new Set(omittedRows);
-                            newOmittedRows.add(metric);
+                            newOmittedRows.add(field.key);
                             setOmittedRows(newOmittedRows);
 
                             // Remove from manually enabled if it was there
                             const newManuallyEnabled = new Set(
                               manuallyEnabledRows
                             );
-                            newManuallyEnabled.delete(metric);
+                            newManuallyEnabled.delete(field.key);
                             setManuallyEnabledRows(newManuallyEnabled);
                           }
                         }}
@@ -161,16 +164,16 @@ export function ManageRowsModal({
                             : "text-black"
                         }`}
                       >
-                        {metric}
+                        {field.label}
                       </span>
                       {isAutoOmitted && (
-                        <span className="text-xs text-gray-500">
-                          auto-hidden: no data
+                        <span className="ml-2 text-xs text-gray-500">
+                          (auto-hidden: no data)
                         </span>
                       )}
-                      {!hasData && manuallyEnabledRows.has(metric) && (
-                        <span className="text-xs text-gray-500">
-                          manually enabled
+                      {!hasData && manuallyEnabledRows.has(field.key) && (
+                        <span className="ml-2 text-xs text-gray-500">
+                          (manually enabled)
                         </span>
                       )}
                     </div>

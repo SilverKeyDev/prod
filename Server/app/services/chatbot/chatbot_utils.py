@@ -1,6 +1,8 @@
 import os
 import logging
-from openai import OpenAI
+import time
+import re
+from openai import OpenAI, RateLimitError, APIError
 from app.models.user_preferences import UserPreferences
 import httpx
 
@@ -8,6 +10,63 @@ import httpx
 # Configure logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+def _extract_retry_after_time(error_message: str) -> float:
+    """
+    Extract retry-after time from OpenAI rate limit error message.
+    
+    Error format: "Please try again in 68ms" or "Please try again in 1.5s"
+    Returns time in seconds, or None if not found.
+    """
+    pattern = r'Please try again in ([\d.]+)(ms|s|seconds?)'
+    match = re.search(pattern, error_message, re.IGNORECASE)
+    if match:
+        value = float(match.group(1))
+        unit = match.group(2).lower()
+        if unit == 'ms':
+            return value / 1000.0
+        else:
+            return value
+    return None
+
+
+def _make_openai_request_with_retry(client, request_func, max_retries: int = 3):
+    """Make OpenAI API request with retry logic that respects retry-after time."""
+    for attempt in range(max_retries):
+        try:
+            return request_func()
+        except RateLimitError as e:
+            error_str = str(e)
+            wait_time = _extract_retry_after_time(error_str)
+            
+            if wait_time is None:
+                wait_time = 2 ** attempt
+                logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s")
+            else:
+                wait_time = max(wait_time + 0.1, 0.1)
+                logger.warning(f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)...")
+            
+            if attempt < max_retries - 1:
+                time.sleep(wait_time)
+            else:
+                logger.error(f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
+                raise
+        except APIError as e:
+            wait_time = 2 ** attempt
+            if attempt < max_retries - 1:
+                logger.warning(f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry...")
+                time.sleep(wait_time)
+            else:
+                logger.error(f"❌ API error after {max_retries} attempts: {e}")
+                raise
+        except Exception as e:
+            if attempt == max_retries - 1:
+                logger.error(f"❌ Unexpected error after {max_retries} attempts: {e}")
+                raise
+            else:
+                logger.warning(f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s...")
+                time.sleep(1)
 
 def get_preferences(user_id):
     """Get user preferences for the given user_id"""
@@ -59,16 +118,18 @@ Now respond helpfully to the user's question.
         http_client=httpx.Client()
         )
 
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_message}
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
+        def make_request():
+            return client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.7,
+                max_tokens=1000
+            )
 
+        response = _make_openai_request_with_retry(client, make_request)
         reply = response.choices[0].message.content
 
         return reply, None
@@ -100,15 +161,18 @@ Examples:
 
 Message to summarize:"""
         
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": SUMMARY_PROMPT},
-                {"role": "user", "content": user_message}
-            ],
-            temperature=0.3,  # Lower temperature for more consistent summaries
-            max_tokens=10     # Very short response needed
-        )
+        def make_request():
+            return client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": SUMMARY_PROMPT},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=0.3,  # Lower temperature for more consistent summaries
+                max_tokens=10     # Very short response needed
+            )
+        
+        response = _make_openai_request_with_retry(client, make_request)
         
         summary = response.choices[0].message.content.strip()
         
@@ -254,21 +318,24 @@ Create a comprehensive plan with the following structure:
 
 Keep tone friendly, expert, and strategic. Response should be specific and agent-usable. 450–550 words max."""
 
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a seasoned real estate strategist writing a customized buyer action plan and sales cheat sheet "
-                        "for a professional agent. Prioritize specificity, actionable guidance, and strategic insight."
-                    )
-                },
-                {"role": "user", "content": ACTION_PLAN_PROMPT}
-            ],
-            max_tokens=900,
-            temperature=0.7
-        )
+        def make_request():
+            return client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a seasoned real estate strategist writing a customized buyer action plan and sales cheat sheet "
+                            "for a professional agent. Prioritize specificity, actionable guidance, and strategic insight."
+                        )
+                    },
+                    {"role": "user", "content": ACTION_PLAN_PROMPT}
+                ],
+                max_tokens=900,
+                temperature=0.7
+            )
+        
+        response = _make_openai_request_with_retry(client, make_request)
 
         action_plan = response.choices[0].message.content.strip()
         return action_plan

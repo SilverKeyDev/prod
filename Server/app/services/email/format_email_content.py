@@ -129,10 +129,6 @@ class EmailFormatter:
             
             lines.append(" | ".join(parts))
             
-            # Add link if available
-            if getattr(home, "zillow_url", None):
-                lines.append(f"View Details: {home.zillow_url}")
-            
             lines.append("")
 
         # Add closing

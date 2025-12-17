@@ -1,6 +1,6 @@
 """
 Image fetching utilities for property research endpoints.
-Handles fetching images from Zillow API.
+Handles fetching images from property API.
 """
 from typing import List, Optional, Dict, Any
 import requests
@@ -14,10 +14,10 @@ def fetch_zillow_images(
     rapidapi_key: str
 ) -> List[str]:
     """
-    Fetch property images from Zillow images API.
+    Fetch property images from property images API.
     
     Args:
-        zpid: ZPID of the property
+        zpid: Property ID
         rapidapi_key: RapidAPI key
         
     Returns:
@@ -62,7 +62,7 @@ def fetch_zillow_images(
                                         break
         
     except Exception as e:
-        current_app.logger.warning(f"🖼️ [PROPERTY] Failed to fetch images from Zillow API: {e}")
+        current_app.logger.warning(f"🖼️ [PROPERTY] Failed to fetch images from API: {e}")
     
     return zillow_api_images
 
@@ -75,7 +75,7 @@ def extract_primary_image(
     Extract primary image URL from images list or property data.
     
     Args:
-        zillow_api_images: List of image URLs from Zillow API
+        zillow_api_images: List of image URLs from property API
         data: Property data dict
         
     Returns:

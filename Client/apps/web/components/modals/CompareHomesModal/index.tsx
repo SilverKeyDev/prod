@@ -1,5 +1,5 @@
-import { X, Download, Share, GitCompare } from "lucide-react";
-import React, { useMemo } from "react";
+import { X, Download, Share, GitCompare, Settings2 } from "lucide-react";
+import React, { useMemo, useState, useCallback } from "react";
 
 import BaseModal from "../BaseModal";
 import IconButton from "../../ui/button/IconButton";
@@ -13,7 +13,12 @@ import { generateCSVContent, exportToCSV, shareCSV } from "./csvUtils";
 import { ComparisonTable } from "./ComparisonTable";
 import { PropertyCardsGrid } from "./PropertyCardsGrid";
 import { RemainingLikedHomes } from "./RemainingLikedHomes";
-import type { CompareHomesModalProps, PropertyDetails } from "./types";
+import { ManageRowsModal } from "./ManageRowsModal";
+import type {
+  CompareHomesModalProps,
+  PropertyDetails,
+  ComparisonField,
+} from "./types";
 
 const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
   isOpen,
@@ -28,6 +33,13 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
   const { propertyDetails, loadingStates } = usePropertyComparison(
     isOpen,
     selectedHomes
+  );
+
+  // Field visibility management state
+  const [showRowModal, setShowRowModal] = useState(false);
+  const [omittedRows, setOmittedRows] = useState<Set<string>>(new Set());
+  const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(
+    new Set()
   );
 
   const handleUnlockHome = async (home: SavedHome) => {
@@ -108,10 +120,39 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
     });
   }, [selectedHomes, propertyDetails]);
 
-  const comparisonFields = useMemo(
-    () => getAllComparisonFields(comparisonData),
-    [comparisonData]
+  const allComparisonFields = useMemo(
+    () => getAllComparisonFields(comparisonData, loadingStates),
+    [comparisonData, loadingStates]
   );
+
+  // Helper function to check if any property has data for a field
+  const hasDataForAnyProperty = useCallback(
+    (fieldKey: string): boolean => {
+      return comparisonData.some((home) => {
+        const field = allComparisonFields.find((f) => f.key === fieldKey);
+        if (!field) return false;
+        const value = field.getValue(home);
+        return value !== "—" && value !== "" && value !== "N/A";
+      });
+    },
+    [comparisonData, allComparisonFields]
+  );
+
+  // Filter comparison fields based on visibility state
+  const visibleComparisonFields = useMemo(() => {
+    return allComparisonFields.filter((field) => {
+      const isManuallyOmitted = omittedRows.has(field.key);
+      const isAutoOmitted =
+        !hasDataForAnyProperty(field.key) &&
+        !manuallyEnabledRows.has(field.key);
+      return !isManuallyOmitted && !isAutoOmitted;
+    });
+  }, [
+    allComparisonFields,
+    omittedRows,
+    manuallyEnabledRows,
+    hasDataForAnyProperty,
+  ]);
 
   const handleExportToCSV = () => {
     if (selectedHomes.length === 0) {
@@ -119,7 +160,10 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
       return;
     }
 
-    const csvContent = generateCSVContent(comparisonData, comparisonFields);
+    const csvContent = generateCSVContent(
+      comparisonData,
+      visibleComparisonFields
+    );
     exportToCSV(
       csvContent,
       () => {
@@ -140,7 +184,10 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
       return;
     }
 
-    const csvContent = generateCSVContent(comparisonData, comparisonFields);
+    const csvContent = generateCSVContent(
+      comparisonData,
+      visibleComparisonFields
+    );
     await shareCSV(
       csvContent,
       selectedHomes.length,
@@ -168,6 +215,15 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
             </span>
           </div>
           <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+            <IconButton
+              onClick={() => setShowRowModal(true)}
+              variant="ghost"
+              size="sm"
+              icon={<Settings2 className="h-4 w-4 sm:h-4 sm:w-4" />}
+              disabled={selectedHomes.length === 0}
+              className="touch-manipulation text-gray-600 hover:text-gray-900"
+              aria-label="Manage comparison fields"
+            />
             <IconButton
               onClick={handleExportToCSV}
               variant="ghost"
@@ -211,7 +267,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
         {/* Comparison Table */}
         <ComparisonTable
           comparisonData={comparisonData}
-          comparisonFields={comparisonFields}
+          comparisonFields={visibleComparisonFields}
           loadingStates={loadingStates}
           selectedHomesCount={selectedHomes.length}
         />
@@ -241,6 +297,19 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* Manage Rows Modal */}
+      <ManageRowsModal
+        showRowModal={showRowModal}
+        setShowRowModal={setShowRowModal}
+        omittedRows={omittedRows}
+        setOmittedRows={setOmittedRows}
+        manuallyEnabledRows={manuallyEnabledRows}
+        setManuallyEnabledRows={setManuallyEnabledRows}
+        hasDataForAnyProperty={hasDataForAnyProperty}
+        visibleFields={visibleComparisonFields}
+        allFields={allComparisonFields}
+      />
     </BaseModal>
   );
 };

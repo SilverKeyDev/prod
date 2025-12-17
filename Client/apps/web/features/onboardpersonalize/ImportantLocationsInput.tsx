@@ -45,7 +45,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [locationAddress, setLocationAddress] = useState("");
-  const [commuteTime, setCommuteTime] = useState<number>(30);
+  const [commuteTime, setCommuteTime] = useState<string>("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
 
@@ -148,15 +148,25 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
 
   const handleAddLocation = () => {
     if (locationName.trim() && locationAddress.trim()) {
+      // Parse commute time - default to undefined if empty or invalid
+      const parsedCommuteTime = commuteTime.trim() === "" 
+        ? undefined 
+        : parseInt(commuteTime.trim(), 10);
+      
+      // Only add commute_tolerance if it's a valid number >= 0
+      const commuteTolerance = parsedCommuteTime !== undefined && !isNaN(parsedCommuteTime) && parsedCommuteTime >= 0
+        ? parsedCommuteTime
+        : undefined;
+
       const newLocation: ImportantLocation = {
         name: locationName.trim(),
         address: locationAddress.trim(),
-        commute_tolerance: commuteTime,
+        commute_tolerance: commuteTolerance,
       };
       onChange([...locations, newLocation]);
       setLocationName("");
       setLocationAddress("");
-      setCommuteTime(30);
+      setCommuteTime("");
       setIsAddingLocation(false);
       setHasSelected(false);
     }
@@ -170,7 +180,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   const handleCancel = () => {
     setLocationName("");
     setLocationAddress("");
-    setCommuteTime(30);
+    setCommuteTime("");
     setIsAddingLocation(false);
     setHasSelected(false);
     setSuggestions([]);
@@ -279,11 +289,16 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 label="Max Commute Time (minutes)"
                 type="number"
                 value={commuteTime}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setCommuteTime(parseInt(e.target.value) || 30)
-                }
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value;
+                  // Allow empty string or any numeric input (0-9 only, handled by type="number")
+                  // Only update if it's empty or contains valid numeric characters
+                  if (value === "" || /^\d*$/.test(value)) {
+                    setCommuteTime(value);
+                  }
+                }}
                 placeholder="30"
-                min="5"
+                min="0"
                 max="180"
                 leftIcon={<Clock className="h-4 w-4" />}
                 autoComplete="off"

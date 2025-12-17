@@ -28,7 +28,7 @@ AUTOPCT_FONTSIZE = 10
 
 def _slugify_address(street: str, city: str, state: str, zipcode: str | None = None) -> str:
     """
-    Make a Zillow-friendly slug: "1107-E-Beechwood-Dr-NW-Atlanta-GA-30327"
+    Make a property-friendly slug: "1107-E-Beechwood-Dr-NW-Atlanta-GA-30327"
     We keep directionals like NE/NW, collapse punctuation/whitespace to "-".
     """
     parts = [street or "", city or "", state or ""]

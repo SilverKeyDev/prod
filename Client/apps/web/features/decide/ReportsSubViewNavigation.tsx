@@ -1,7 +1,7 @@
-import { BarChart2, Bot, Home } from "lucide-react";
+import { BarChart2, Home } from "lucide-react";
 import Button from "../../components/ui/button/Button";
 
-export type ReportsSubView = "reports" | "compare" | "chatbot";
+export type ReportsSubView = "reports" | "compare";
 
 type ReportsSubViewNavigationProps = {
   currentView: ReportsSubView;
@@ -9,7 +9,7 @@ type ReportsSubViewNavigationProps = {
 };
 
 /**
- * Navigation buttons for switching between Reports, Compare, and Chatbot views
+ * Navigation buttons for switching between Reports and Compare views
  * Handles button click blur to prevent stuck hover states
  */
 export default function ReportsSubViewNavigation({

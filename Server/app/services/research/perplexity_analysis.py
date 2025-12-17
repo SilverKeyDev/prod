@@ -90,7 +90,6 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
             budget = f"Up to ${int(budget_max):,}"
         else:
             budget = 'Not specified'
-        occupation = user_preferences.get('occupation', 'Not specified')
         age = user_preferences.get('age', 'Not specified')
         important_locations = user_preferences.get('important_locations', [])
         preferred_features = user_preferences.get('preferred_home_features', [])
@@ -113,7 +112,6 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
 
         BUYER PROFILE:
         - Budget: {budget}
-        - Occupation: {occupation}
         - Age: {age}
         - Important Locations: {', '.join([loc.get('name', 'Unknown') for loc in important_locations]) if important_locations else 'None specified'}
         - Preferred Features: {', '.join(preferred_features) if preferred_features else 'None specified'}
@@ -256,7 +254,7 @@ def generate_report_sections_for_property(
         section_names: List of section names to generate (from report_section_priorities)
         address: Property address
         user_preferences: User preferences dict
-        property_data: Property data from Zillow API
+        property_data: Property data from property API
         recent_sections: Dict of recently generated sections with metadata (from last 2 weeks)
         mode: Schema mode ("report", "comparison", or "marketing")
         
@@ -427,6 +425,211 @@ def generate_report_sections_for_property(
             return synthesized
         
         return newly_generated_sections
+
+
+def generate_report_sections_for_property_streaming(
+    section_names: List[str],
+    address: str,
+    user_preferences: Dict[str, Any],
+    property_data: Dict[str, Any],
+    recent_sections: Dict[str, Dict[str, Any]] = None,
+    existing_sections: Dict[str, Any] = None,
+    mode: str = "report"
+):
+    """
+    Generator version that yields sections individually as they complete.
+    Same as generate_report_sections_for_property but yields sections progressively.
+    
+    Yields:
+        Dict with 'section_name' and 'section_data' for each completed section
+    """
+    if not section_names or not PERPLEXITY_API_KEY:
+        return
+    
+    try:
+        from app.services.research.schema_generator import get_individual_section_schema, synthesize_property_analysis_sections
+        
+        # Use section_names as priorities (ordered list)
+        section_priorities = section_names
+        
+        # Build payloads for each section
+        payloads = []
+        for section_name in section_names:
+            try:
+                # First check if section already exists (don't regenerate)
+                if existing_sections and section_name in existing_sections:
+                    existing_data = existing_sections[section_name]
+                    if existing_data is not None and existing_data != {}:
+                        logger.info(f"⏭️ [PROPERTY_ANALYSIS] Skipping {section_name} (already exists, not regenerating)")
+                        # Yield existing section immediately
+                        yield {
+                            'section_name': section_name,
+                            'section_data': existing_data,
+                            'from_cache': True
+                        }
+                        continue
+                
+                # Check if we should skip this section (if recent data exists and it's complete)
+                if recent_sections and section_name in recent_sections:
+                    recent_info = recent_sections[section_name]
+                    recent_data = recent_info.get('data', {})
+                    # Skip if recent data exists and section is not high priority
+                    if isinstance(recent_data, dict) and recent_data:
+                        priority_index = section_priorities.index(section_name) if section_name in section_priorities else 999
+                        # Only skip if low priority and data looks complete
+                        if priority_index >= 5 and len(recent_data) >= 3:
+                            logger.info(f"⏭️ [PROPERTY_ANALYSIS] Skipping {section_name} (recent complete data exists, low priority)")
+                            # Yield cached section immediately
+                            yield {
+                                'section_name': section_name,
+                                'section_data': recent_data,
+                                'from_cache': True
+                            }
+                            continue
+                
+                section_schema = get_individual_section_schema(
+                    section_name, 
+                    user_preferences, 
+                    mode=mode,
+                    recent_sections=recent_sections,
+                    section_priorities=section_priorities
+                )
+                if "error" in section_schema:
+                    logger.warning(f"⚠️ [PROPERTY_ANALYSIS] Skipping section {section_name}: {section_schema.get('error')}")
+                    continue
+                    
+                payload = {
+                    "model": PERPLEXITY_MODEL,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": (
+                                f"You are a comprehensive PERSONALIZED property research assistant. "
+                                f"Given an address, {address}, you must provide a detailed property report in valid JSON format.\n\n"
+                                "RESEARCH:\n"
+                                "Use the recommended sources first in research. If a decent answer is found, do not continue to search the web for that field\n"
+                                "CITATIONS:\n"
+                                "Do not include citations in the response\n"
+                                "STYLE & LENGTH:\n"
+                                "Each individual section field must be EXTREMELY SHORT - maximum one brief phrase. Keep responses as concise as possible—prioritize brevity and precision.\n"
+                                "SCORE FORMATTING:\n"
+                                "All rating/score fields must be formatted as a decimal to the tenths place (e.g., 8.5, 7.2, 9.0) without any additional text like '/10'. The score should appear as the first part of the field value.\n"
+                                "CRITICAL: Always provide a concrete answer, estimate, or educated guess.\n"
+                            )
+                        },
+                        {
+                            "role": "user",
+                            "content": f"Analyze the property at {address} based on my preferences. CRITICAL: Always provide a concrete answer, estimate, or just give your best guess\n"
+                        }
+                    ],
+                    "search_mode": "web",
+                    "reasoning_effort": "medium",
+                    "temperature": 0.1,
+                    "max_tokens": 2500,
+                    "stream": False,
+                    "return_images": False,
+                    "return_citations": False,
+                    "response_format": section_schema
+                }
+                payloads.append((payload, section_name))
+            except Exception as e:
+                logger.error(f"❌ [PROPERTY_ANALYSIS] Error building payload for section {section_name}: {e}")
+                continue
+        
+        if not payloads:
+            logger.warning("⚠️ [PROPERTY_ANALYSIS] No valid payloads generated")
+            return
+        
+        # Process sections concurrently and yield as they complete
+        def process_section(payload_info, max_retries=1):
+            """Process a single section with retry logic"""
+            payload, section_name = payload_info
+            
+            for attempt in range(max_retries + 1):
+                try:
+                    session = requests.Session()
+                    retries = Retry(
+                        total=1,
+                        backoff_factor=0.5,
+                        status_forcelist=[429, 500, 502, 503, 504],
+                        raise_on_status=False
+                    )
+                    session.mount("https://", HTTPAdapter(max_retries=retries))
+                    
+                    response = session.post(
+                        PERPLEXITY_URL,
+                        headers=PERPLEXITY_HEADERS,
+                        json=payload,
+                        timeout=300
+                    )
+                    
+                    if response.status_code == 200:
+                        content = response.json()
+                        if "choices" not in content or not content["choices"]:
+                            if attempt < max_retries:
+                                continue
+                            return {"section": section_name, "success": False, "error": "Malformed API response"}
+                        
+                        raw_json_text = content["choices"][0]["message"]["content"]
+                        
+                        try:
+                            section_data = _safe_parse_json(raw_json_text, None)
+                            if section_name in section_data and section_data[section_name] is not None:
+                                return {"section": section_name, "success": True, "data": {section_name: section_data[section_name]}}
+                            elif section_data and len(section_data) > 0:
+                                return {"section": section_name, "success": True, "data": {section_name: section_data}}
+                            else:
+                                if attempt < max_retries:
+                                    continue
+                                return {"section": section_name, "success": False, "error": "Empty response"}
+                        except Exception as pe:
+                            if attempt < max_retries:
+                                continue
+                            return {"section": section_name, "success": False, "error": f"Parse error: {str(pe)}"}
+                    else:
+                        if attempt < max_retries and response.status_code in [429, 500, 502, 503, 504]:
+                            time.sleep(2 ** attempt)
+                            continue
+                        return {"section": section_name, "success": False, "error": f"API error {response.status_code}"}
+                        
+                except requests.exceptions.Timeout:
+                    if attempt < max_retries:
+                        continue
+                    return {"section": section_name, "success": False, "error": "Request timeout"}
+                except Exception as e:
+                    if attempt < max_retries:
+                        continue
+                    return {"section": section_name, "success": False, "error": f"Unexpected error: {str(e)}"}
+            
+            return {"section": section_name, "success": False, "error": "Max retries exceeded"}
+        
+        # Execute sections concurrently and yield as they complete
+        newly_generated_sections = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(payloads), 10)) as executor:
+            futures = {executor.submit(process_section, payload_info): payload_info[1] for payload_info in payloads}
+            
+            for future in concurrent.futures.as_completed(futures):
+                section_name = futures[future]
+                try:
+                    result = future.result()
+                    if result["success"]:
+                        section_data = result["data"][section_name]
+                        newly_generated_sections[section_name] = section_data
+                        # Yield section immediately as it completes
+                        yield {
+                            'section_name': section_name,
+                            'section_data': section_data,
+                            'from_cache': False
+                        }
+                    else:
+                        logger.warning(f"⚠️ [PROPERTY_ANALYSIS] Section {section_name} failed: {result.get('error')}")
+                except Exception as e:
+                    logger.error(f"❌ [PROPERTY_ANALYSIS] Exception processing section {section_name}: {e}")
+        
+    except Exception as e:
+        logger.error(f"❌ [PROPERTY_ANALYSIS] Error generating report sections: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         
     except Exception as e:
         logger.error(f"❌ [PROPERTY_ANALYSIS] Error generating report sections: {e}")

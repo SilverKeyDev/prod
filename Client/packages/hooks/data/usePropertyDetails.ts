@@ -87,14 +87,12 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
           if (update.type === "basic") {
             const basicData = update.data as {
               data?: unknown;
-              zillow_url?: string;
             };
             setSelectedProperty((prev) => {
               if (!prev) return prev;
               return {
                 ...prev,
                 ...(basicData.data as Record<string, unknown>),
-                zillow_url: basicData.zillow_url,
               };
             });
           } else if (update.type === "commute_data") {

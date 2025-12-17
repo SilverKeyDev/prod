@@ -20,11 +20,6 @@ export type PropertyImages = {
   >;
 };
 
-export type PropertyWithZillow = {
-  zillow_url?: string;
-  zpid?: string;
-  address?: string | AddressObject;
-};
 
 export type PropertyWithPhotos = PropertyImages & {
   photos?: Array<

@@ -8,7 +8,6 @@ export interface PropertyDetailsListProps {
   propertyPricePerSquareFoot?: number | string;
   propertyGarageSpaces?: number;
   propertyParking?: number;
-  propertyDaysOnZillow?: number | string;
   propertyZestimate?: number;
   propertyRentZestimate?: number;
 }
@@ -21,7 +20,6 @@ export const PropertyDetailsList = ({
   propertyPricePerSquareFoot,
   propertyGarageSpaces,
   propertyParking,
-  propertyDaysOnZillow,
   propertyZestimate,
   propertyRentZestimate,
 }: PropertyDetailsListProps): JSX.Element => {
@@ -92,17 +90,6 @@ export const PropertyDetailsList = ({
                 : "N/A"}
           </div>
         )}
-        {propertyDaysOnZillow &&
-        ((typeof propertyDaysOnZillow === "number" &&
-          propertyDaysOnZillow > 0) ||
-          (typeof propertyDaysOnZillow === "string" &&
-            propertyDaysOnZillow !== "0" &&
-            propertyDaysOnZillow.trim() !== "")) ? (
-          <div className="flex justify-between">
-            Days on Market:
-            {String(propertyDaysOnZillow)} days
-          </div>
-        ) : null}
         {typeof propertyZestimate === "number" && propertyZestimate > 0 && (
           <div className="flex justify-between">
             Estimate: ${propertyZestimate.toLocaleString()}

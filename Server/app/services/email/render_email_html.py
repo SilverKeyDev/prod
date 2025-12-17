@@ -188,5 +188,4 @@ def convert_home_universal_to_listing_dict(home) -> Dict[str, Any]:
         "sqft": int(home.sqft) if home.sqft and home.sqft.isdigit() else None,
         "score": float(home.score) if home.score is not None else None,
         "imageUrl": home.image_url,
-        "zillowUrl": home.zillow_url,
     }

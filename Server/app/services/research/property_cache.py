@@ -149,7 +149,6 @@ def get_cached_data(
         "commute_data": record.commute_data if record.commute_data is not None else {},
         "property_analysis": record.property_analysis if record.property_analysis is not None else {},
         "image_features": None,  # not cached; can be added later if desired
-        "zillow_url": record.zillow_url or "",
         "images": record.image_urls or []
     }
     
