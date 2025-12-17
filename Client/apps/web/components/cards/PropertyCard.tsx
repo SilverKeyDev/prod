@@ -26,6 +26,7 @@ export type PropertyCardProps = {
   bathrooms?: number;
   sqft?: number;
   lotSize?: string;
+  propertyType?: string;
   status?: { text: string; className: string };
   /** Card actions */
   onViewDetails?: () => void;
@@ -65,6 +66,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
     bathrooms,
     sqft,
     lotSize,
+    propertyType,
     status,
     cardType = "regular",
     pricePosition = "top-right",
@@ -236,6 +238,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
             bathrooms={bathrooms}
             sqft={sqft}
             lotSize={lotSize}
+            propertyType={propertyType}
             variant="horizontal"
             hideSquareFootage={hideSquareFootage ?? isOnMap}
           />

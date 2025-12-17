@@ -1,5 +1,6 @@
-import { Bed, Bath, Square } from "lucide-react";
+import { Bed, Bath, Square, Home } from "lucide-react";
 import React from "react";
+import { formatSquareFootage } from "../../../../../packages/utils/address";
 
 export type CardPropertyDetailsProps = {
   /** Number of bedrooms */
@@ -10,6 +11,8 @@ export type CardPropertyDetailsProps = {
   sqft?: number;
   /** Lot size */
   lotSize?: string;
+  /** Property type (e.g., "CONDO", "APARTMENT", "SINGLE_FAMILY") */
+  propertyType?: string;
   /** Display variant */
   variant?: "horizontal" | "vertical" | "grid" | "modal";
   /** Whether to show icons */
@@ -25,6 +28,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   bathrooms,
   sqft,
   lotSize,
+  propertyType,
   variant = "horizontal",
   showIcons = true,
   hideSquareFootage = false,
@@ -45,6 +49,46 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   };
 
   const optimalSize = calculateOptimalSize();
+
+  // Check if property is apartment or condo (don't show lot size for these)
+  const isApartmentOrCondo = propertyType
+    ? propertyType.toLowerCase().includes("condo") ||
+      propertyType.toLowerCase().includes("apartment")
+    : false;
+
+  // Helper function to format lot size in acres
+  const formatLotSizeInAcres = (lotSizeStr: string): string | null => {
+    const lowerStr = lotSizeStr.toLowerCase();
+
+    // If already in acres format, check if it's 0.00
+    if (lowerStr.includes("acre")) {
+      const acreValue = parseFloat(lotSizeStr.replace(/[^\d.]/g, ""));
+      if (!isNaN(acreValue) && acreValue === 0) {
+        return null; // Return null to show em-dash
+      }
+      return lotSizeStr;
+    }
+
+    // Extract numeric value (handles strings like "5,000 sqft" or "5000")
+    const numValue = parseFloat(lotSizeStr.replace(/[^\d.]/g, ""));
+
+    if (isNaN(numValue) || numValue <= 0) {
+      return null; // Return null to show em-dash
+    }
+
+    // Convert square feet to acres (1 acre = 43,560 sqft)
+    const acres = numValue / 43560;
+
+    // Use formatSquareFootage helper to format with proper decimal places
+    const formatted = formatSquareFootage(acres, "acres");
+
+    // Check if result is "0.00 acres" and return null to show em-dash
+    if (formatted === "0.00 acres" || formatted === "0 acres") {
+      return null;
+    }
+
+    return formatted;
+  };
 
   // Size variants with smaller icons and light gray styling
   const sizeStyles = {
@@ -127,31 +171,53 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
 
         {/* Sqft on same line if it fits, otherwise it goes to second row */}
         {hasSqft && !shouldMoveSqftToSecondRow && (
-          <div
-            className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
-          >
-            {showIcons && (
-              <Square
-                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
-              />
+          <>
+            <div
+              className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
+            >
+              {showIcons && (
+                <Home
+                  className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
+                />
+              )}
+              <span>
+                {sqft === undefined || Number(sqft) <= 0
+                  ? "n/a sqft"
+                  : `${Math.round(Number(sqft)).toLocaleString()} sqft`}
+              </span>
+            </div>
+            {/* Lot size next to sqft - hide for apartments/condos */}
+            {!isApartmentOrCondo && (
+              <div
+                className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
+              >
+                {showIcons && (
+                  <Square
+                    className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
+                  />
+                )}
+                <span>
+                  {lotSize && lotSize !== "N/A" && lotSize.trim() !== ""
+                    ? (() => {
+                        const formatted = formatLotSizeInAcres(lotSize);
+                        return formatted ?? "—";
+                      })()
+                    : "—"}
+                </span>
+              </div>
             )}
-            <span>
-              {sqft === undefined || Number(sqft) <= 0
-                ? "n/a sqft"
-                : `${Math.round(Number(sqft)).toLocaleString()} sqft`}
-            </span>
-          </div>
+          </>
         )}
       </div>
 
       {/* Second row: square footage (only if moved here for spacing) */}
       {shouldMoveSqftToSecondRow && (
-        <div className="flex flex-shrink-0 items-center justify-center">
+        <div className="flex flex-shrink-0 items-center justify-center flex-nowrap gap-1 sm:gap-1.5">
           <div
             className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
           >
             {showIcons && (
-              <Square
+              <Home
                 className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
               />
             )}
@@ -161,6 +227,26 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
                 : `${Math.round(Number(sqft)).toLocaleString()} sqft`}
             </span>
           </div>
+          {/* Lot size next to sqft - hide for apartments/condos */}
+          {!isApartmentOrCondo && (
+            <div
+              className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
+            >
+              {showIcons && (
+                <Square
+                  className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
+                />
+              )}
+              <span>
+                {lotSize && lotSize !== "N/A" && lotSize.trim() !== ""
+                  ? (() => {
+                      const formatted = formatLotSizeInAcres(lotSize);
+                      return formatted ?? "—";
+                    })()
+                  : "—"}
+              </span>
+            </div>
+          )}
         </div>
       )}
 

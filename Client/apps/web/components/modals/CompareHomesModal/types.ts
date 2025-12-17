@@ -5,6 +5,8 @@ export type CompareHomesModalProps = {
   onClose: () => void;
   selectedHomes: SavedHome[];
   onRemove: (homeId: string) => void;
+  onAdd?: (homeId: string) => void;
+  allLikedHomes?: SavedHome[];
 };
 
 export type PropertyDetails = {

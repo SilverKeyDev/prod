@@ -10,7 +10,7 @@ import {
   formatLotSize,
 } from "../../../../packages/utils/address";
 import ModalPortal from "../modals/ModalPortal";
-import PropertyDetailsModal from "../modals/PropertyDetailsModal";
+import PropertyDetailsModal from "../modals/PropertyDetailsModal/PropertyDetailsModal";
 
 import { CardViewDetailsButton, CardHeartSave, TrianglePointer } from "./base";
 import PropertyCard from "./PropertyCard";

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { useAuth } from "../../../app/providers/auth/useAuth";
-import ConfirmationDialog from "../../modals/ConfirmationDialog";
+import ConfirmationDialog from "../../modals/dialogs/ConfirmationDialog";
 import WhiteLogo from "../../ui/asset/WhiteLogo";
 
 import { getButtonStyles, getSubItemStyles } from "./sidebarStyles";

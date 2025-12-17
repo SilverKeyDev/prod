@@ -12,11 +12,11 @@ export default function HomeConcierge() {
             className="w-[112px] md:w-[120px] rounded-lg border border-beige/30 flex-shrink-0"
             loading="lazy"
           />
-          <div className="flex flex-col flex-1 min-w-0 max-w-[72ch]">
+          <div className="flex flex-col flex-1 min-w-0 max-w-[72ch] self-stretch justify-between">
             <Subtitle
               size="sm"
               muted
-              className="mb-responsive-lg leading-relaxed md:text-base lg:text-lg"
+              className="leading-relaxed md:text-base lg:text-lg"
             >
               Compare movers, schedule services, transfer utilities, and handle
               logistics, all in one 30 minute call
@@ -24,7 +24,7 @@ export default function HomeConcierge() {
             <Subtitle
               size="xs"
               muted
-              className="hidden md:block mt-[6px] mb-responsive-md leading-relaxed md:text-xs lg:text-xs"
+              className="hidden md:block my-auto leading-relaxed md:text-xs lg:text-xs"
             >
               <strong>How is this possible?</strong> MoveConcierge takes
               commission from service providers, so it's free for you
@@ -38,7 +38,7 @@ export default function HomeConcierge() {
                 )
               }
               size="md"
-              className="text-olive hover:text-olive/80 mt-responsive-xs"
+              className="text-olive hover:text-olive/80 border border-dotted border-olive rounded px-2 py-1"
             >
               Start Today
             </NavigationButton>

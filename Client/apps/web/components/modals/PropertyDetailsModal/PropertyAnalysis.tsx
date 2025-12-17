@@ -6,6 +6,7 @@ import {
   Home,
   DollarSign,
   UtensilsCrossed,
+  Footprints,
 } from "lucide-react";
 import React from "react";
 
@@ -46,7 +47,7 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
     entertainment: <UtensilsCrossed className="h-5 w-5 text-brown" />,
     investment: <TrendingUp className="h-5 w-5 text-brown" />,
     climate_environmental_safety: <Shield className="h-5 w-5 text-brown" />,
-    convenience_walkability: <MapPin className="h-5 w-5 text-brown" />,
+    convenience_walkability: <Footprints className="h-5 w-5 text-brown" />,
   };
 
   // Helper function to render dynamic section content
@@ -151,6 +152,8 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
   // - pros/cons: rendered in ProsAndCons component
   // - commute: rendered in PropertyCommute component (with map) - but can be combined with analysis
   // - family_friendly: rendered in PropertySchools component - but can be combined with analysis
+  // - neighborhood_overview: rendered in PropertyNeighborhood component (with age_distribution) - but can be combined with analysis
+  // - age_distribution: rendered in PropertyNeighborhood component as part of neighborhood section
   const excludedSectionKeys = new Set(["pros", "cons", ...excludeSections]);
 
   // Get all section keys from propertyAnalysis

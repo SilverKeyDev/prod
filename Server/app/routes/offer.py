@@ -122,9 +122,9 @@ def generate_negotiation_strategy():
         try:
             
             # Import necessary modules for property data fetching
-            from ..services.research.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
+            from ..services.research.graphs.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
             from ..models.user_preferences import UserPreferences
-            from ..services.search.search_help import analyze_property_with_sonar_pro
+            from app.services.research.perplexity_analysis import analyze_property_with_sonar_pro
             
             # Get API keys
             RAPI_HOST = os.getenv("RAPIDAPI_HOST", "us-housing-market-data1.p.rapidapi.com")

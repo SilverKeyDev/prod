@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import type { SavedHome } from "../../../../../packages/schemas";
 import { PropertyCard } from "../../cards";
-import { CardHeartSave, CardViewDetailsButton } from "../../cards/base";
+import { CardHeartSave } from "../../cards/base";
 import IconButton from "../../ui/button/IconButton";
 import { Title } from "../../ui";
 
@@ -21,7 +21,7 @@ export function PropertyCardsGrid({
   }
 
   return (
-    <div>
+    <div className="mb-responsive-md">
       <Title size="sm" className="mb-responsive-sm font-medium">
         Property Details
       </Title>
@@ -52,7 +52,7 @@ export function PropertyCardsGrid({
               cardType="searchpage"
               showScore={false}
               topContent={
-                <div className="flex items-center gap-1">
+                <div className="flex items-center justify-between">
                   <CardHeartSave
                     property={{
                       id: home.home_id,
@@ -71,28 +71,18 @@ export function PropertyCardsGrid({
                     }}
                     size="sm"
                   />
-                  <IconButton
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onRemove(home.home_id);
                     }}
-                    variant="ghost"
-                    size="xs"
-                    rounded="full"
-                    icon={<X className="h-3 w-3" />}
-                    className="bg-white shadow-md ring-1 ring-black/5 hover:scale-105 hover:shadow-lg hover:ring-black/10 active:scale-95 text-gray-400 hover:text-red-500"
+                    className="group relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-black/5 transition-all duration-300 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 text-gray-400 hover:text-gray-600"
                     aria-label="Remove from comparison"
-                  />
+                  >
+                    <X className="h-4 w-4 transition-transform duration-200" />
+                  </button>
                 </div>
-              }
-              bottomContent={
-                <CardViewDetailsButton
-                  onClick={() => onUnlock(home)}
-                  size="xs"
-                  variant="primary"
-                  fullWidth
-                  text="Unlock"
-                />
               }
             />
           </div>

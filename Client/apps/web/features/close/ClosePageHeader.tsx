@@ -1,3 +1,5 @@
+import React from "react";
+import { FileText, ClipboardCheck, DollarSign, Home } from "lucide-react";
 import Card from "../../components/layout/Card";
 import MiniLogo from "../../components/ui/asset/MiniLogo";
 import {
@@ -15,11 +17,19 @@ type ClosePageHeaderProps = {
   onTabChange?: (tab: ChecklistTab) => void;
 };
 
-const tabs: Array<{ id: ChecklistTab; label: string }> = [
-  { id: "escrow", label: CHECKLIST_TITLES.escrow },
-  { id: "inspections", label: CHECKLIST_TITLES.inspections },
-  { id: "financing", label: CHECKLIST_TITLES.financing },
-  { id: "closing", label: CHECKLIST_TITLES.closing },
+const tabs: Array<{
+  id: ChecklistTab;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { id: "escrow", label: CHECKLIST_TITLES.escrow, icon: FileText },
+  {
+    id: "inspections",
+    label: CHECKLIST_TITLES.inspections,
+    icon: ClipboardCheck,
+  },
+  { id: "financing", label: CHECKLIST_TITLES.financing, icon: DollarSign },
+  { id: "closing", label: CHECKLIST_TITLES.closing, icon: Home },
 ];
 
 export default function ClosePageHeader({
@@ -87,12 +97,13 @@ export default function ClosePageHeader({
                   >
                     <button
                       onClick={() => onTabChange(tab.id)}
-                      className={`relative flex-1 py-1 lg:py-1.5 text-[10px] lg:text-sm font-medium transition-all duration-200 whitespace-nowrap text-center ${
+                      className={`relative flex-1 py-1 lg:py-1.5 text-[10px] lg:text-sm font-medium transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1 ${
                         activeTab === tab.id
                           ? "text-olive"
                           : "text-navy/70 hover:bg-olive/10 hover:text-olive hover:shadow-sm rounded-lg"
                       }`}
                     >
+                      <tab.icon className="w-[1em] h-[1em]" />
                       {tab.label}
                       {activeTab === tab.id && (
                         <span

@@ -12,6 +12,7 @@ import { getAllComparisonFields } from "./comparisonFields";
 import { generateCSVContent, exportToCSV, shareCSV } from "./csvUtils";
 import { ComparisonTable } from "./ComparisonTable";
 import { PropertyCardsGrid } from "./PropertyCardsGrid";
+import { RemainingLikedHomes } from "./RemainingLikedHomes";
 import type { CompareHomesModalProps, PropertyDetails } from "./types";
 
 const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
@@ -19,6 +20,8 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
   onClose,
   selectedHomes,
   onRemove,
+  onAdd,
+  allLikedHomes,
 }) => {
   const { fetchPropertyDetails } = usePropertyDetails();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
@@ -61,6 +64,13 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
       }
 
       // Fallback to basic home data
+      const homeWithExtras = home as {
+        lot_size?: string;
+        property_type?: string;
+        propertyType?: string;
+        listing_status?: string;
+        listingStatus?: string;
+      };
       return {
         id: home.home_id,
         address:
@@ -76,7 +86,22 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
         bedrooms: home.bedrooms ?? "—",
         bathrooms: home.bathrooms ?? "—",
         sqft: home.sqft && home.sqft > 0 ? home.sqft.toLocaleString() : "—",
-        lotSize: typeof home.lot_size === "string" ? home.lot_size : "—",
+        lotSize:
+          typeof homeWithExtras.lot_size === "string"
+            ? homeWithExtras.lot_size
+            : "—",
+        propertyType:
+          typeof homeWithExtras.property_type === "string"
+            ? homeWithExtras.property_type
+            : typeof homeWithExtras.propertyType === "string"
+              ? homeWithExtras.propertyType
+              : "—",
+        listingStatus:
+          typeof homeWithExtras.listing_status === "string"
+            ? homeWithExtras.listing_status
+            : typeof homeWithExtras.listingStatus === "string"
+              ? homeWithExtras.listingStatus
+              : "—",
         imageUrl: home.image_url,
         isLoading: true,
       } as PropertyDetails;
@@ -197,6 +222,16 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
           onRemove={onRemove}
           onUnlock={handleUnlockHome}
         />
+
+        {/* Remaining Liked Homes - Show homes not currently in comparison */}
+        {onAdd && allLikedHomes && allLikedHomes.length > 0 && (
+          <RemainingLikedHomes
+            allLikedHomes={allLikedHomes}
+            selectedHomes={selectedHomes}
+            onAdd={onAdd}
+            onUnlock={handleUnlockHome}
+          />
+        )}
 
         {selectedHomes.length === 0 && (
           <div className="py-responsive-lg text-center">

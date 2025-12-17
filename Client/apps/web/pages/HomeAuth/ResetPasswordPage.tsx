@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { PasswordValidation } from "../../components/feedback/PasswordValidation";
 import { usePasswordValidation } from "../../components/feedback/PasswordValidationUtils";
-import SuccessDialog from "../../components/modals/SuccessDialog";
+import SuccessDialog from "../../components/modals/dialogs/SuccessDialog";
 import { Input } from "../../components/ui";
 import { authApi } from "../../../../packages/config/api";
 import AuthButton from "../../features/homeauth/Auth/Button";
@@ -70,7 +70,7 @@ export default function ResetPasswordPage() {
     // Validate password using comprehensive validation
     if (!isPasswordValid) {
       setError(
-        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`,
+        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
       );
       setLoading(false);
       return;
@@ -80,7 +80,7 @@ export default function ResetPasswordPage() {
       const { success, error } = await authApi.resetPassword(
         email,
         code,
-        newPassword,
+        newPassword
       );
 
       if (!success) {

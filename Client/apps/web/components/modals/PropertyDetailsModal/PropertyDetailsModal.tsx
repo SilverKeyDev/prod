@@ -13,6 +13,8 @@ import { PropertyInfo } from "./sections/PropertyInfo";
 import { PropertyDetails } from "./sections/PropertyDetails";
 import { ProsAndCons } from "./sections/ProsAndCons";
 import { PropertySchools } from "./sections/PropertySchools";
+import { PropertyNeighborhood } from "./sections/PropertyNeighborhood";
+import PrioritiesModal from "../PrioritiesModal";
 import type { PropertyDetailsModalProps } from "./types";
 
 type SectionComponent = {
@@ -29,6 +31,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   // All hooks must be called before any conditional returns
   // This ensures consistent hook order across renders
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isPrioritiesModalOpen, setIsPrioritiesModalOpen] = useState(false);
   const userPreferences = useUserStore((state) => state.userPreferences);
 
   // Get user priorities
@@ -97,6 +100,19 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
     return (propertyAnalysis as Record<string, unknown>).family_friendly;
   }, [propertyAnalysis]);
 
+  const neighborhoodAnalysis = useMemo(() => {
+    if (!propertyAnalysis) return undefined;
+    return (propertyAnalysis as Record<string, unknown>).neighborhood_overview;
+  }, [propertyAnalysis]);
+
+  // Check if neighborhood section has data
+  const hasNeighborhood = useMemo(() => {
+    if (!propertyAnalysis) return false;
+    const neighborhood = (propertyAnalysis as Record<string, unknown>)
+      .neighborhood_overview;
+    return !!neighborhood;
+  }, [propertyAnalysis]);
+
   // Build ordered sections list (excluding fixed sections)
   const orderedSections = useMemo(() => {
     // Early return if property is null - hooks have already been called
@@ -134,8 +150,23 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
       });
     }
 
-    // Add analysis sections ( Neighborhood, Crime, Gentrification, Dynamic sections)
-    // Exclude commute and family_friendly if they're being rendered in dedicated components
+    // Add neighborhood section - combine with analysis if both exist
+    if (hasNeighborhood || neighborhoodAnalysis) {
+      sections.push({
+        key: "neighborhood",
+        component: (
+          <PropertyNeighborhood
+            key="neighborhood"
+            property={property}
+            analysisContent={neighborhoodAnalysis}
+          />
+        ),
+        priority: priorityMap.get("neighborhood") ?? 1000,
+      });
+    }
+
+    // Add analysis sections ( Crime, Gentrification, Dynamic sections)
+    // Exclude commute, family_friendly, and neighborhood if they're being rendered in dedicated components
     if (hasAnalysis) {
       const excludeSections: string[] = [];
       if (hasCommute || commuteAnalysis) {
@@ -143,6 +174,10 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
       }
       if (hasSchools || familyFriendlyAnalysis) {
         excludeSections.push("family_friendly");
+      }
+      if (hasNeighborhood || neighborhoodAnalysis) {
+        excludeSections.push("neighborhood_overview");
+        excludeSections.push("age_distribution");
       }
 
       sections.push({
@@ -168,9 +203,11 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
     priorityMap,
     hasCommute,
     hasSchools,
+    hasNeighborhood,
     hasAnalysis,
     commuteAnalysis,
     familyFriendlyAnalysis,
+    neighborhoodAnalysis,
   ]);
 
   // Return null AFTER all hooks have been called
@@ -194,6 +231,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
           property={nonNullProperty}
           onClose={onClose}
           onGenerateReport={onGenerateReport}
+          onOpenPriorities={() => setIsPrioritiesModalOpen(true)}
         />
 
         {/* Image Gallery */}
@@ -221,6 +259,17 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
         {/* 4. Everything else ordered by user priorities */}
         {orderedSections.map((section) => section.component)}
       </div>
+
+      {/* Priorities Modal */}
+      <PrioritiesModal
+        isOpen={isPrioritiesModalOpen}
+        onClose={() => setIsPrioritiesModalOpen(false)}
+        propertyAddress={nonNullProperty.address}
+        onRegenerateComplete={() => {
+          // Optionally refresh property data or show notification
+          setIsPrioritiesModalOpen(false);
+        }}
+      />
     </div>
   );
 };

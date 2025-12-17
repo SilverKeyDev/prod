@@ -104,11 +104,11 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
         {/* Modal */}
         <div
-          className={`relative max-h-[90vh] w-full transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:max-h-[85vh] sm:rounded-xl ${sizeStyles[size]} ${className}`}
+          className={`relative flex max-h-[90vh] w-full flex-col transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:max-h-[85vh] sm:rounded-xl ${sizeStyles[size]} ${className}`}
         >
           {/* Header */}
           {(title ?? headerContent ?? showCloseButton) && (
-            <div className="flex items-center justify-between border-b border-gray-200 p-3 sm:p-4 md:p-6">
+            <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-3 sm:p-4 md:p-6">
               <div className="min-w-0 flex-1">
                 {headerContent ??
                   (title && (
@@ -131,13 +131,13 @@ const BaseModal: React.FC<BaseModalProps> = ({
           )}
 
           {/* Content */}
-          <div className="max-h-[calc(90vh-120px)] overflow-y-auto p-3 sm:max-h-[calc(85vh-120px)] sm:p-4 md:p-6">
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
             {children}
           </div>
 
           {/* Footer */}
           {footerContent && (
-            <div className="border-t border-gray-200 p-3 sm:p-4 md:p-6">
+            <div className="flex-shrink-0 border-t border-gray-200 p-3 sm:p-4 md:p-6">
               {footerContent}
             </div>
           )}

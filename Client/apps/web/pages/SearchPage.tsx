@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Components
-import PropertyDetailsModal from "../components/modals/PropertyDetailsModal";
+import PropertyDetailsModal from "../components/modals/PropertyDetailsModal/PropertyDetailsModal";
+import PreferencesModal from "../components/modals/PreferencesModal";
 import KeyTurnLoader from "../components/ui/loading/KeyTurnLoader";
 import RippleBackground from "../features/homeauth/RippleBackground";
 
@@ -82,18 +83,12 @@ export default function SearchPage({
   const isCarouselCollapsed = useUIStore((s) => s.isCarouselCollapsed);
   const setIsCarouselCollapsed = useUIStore((s) => s.setCarouselCollapsed);
   const PROPERTIES_PER_PAGE = 1; // Keep at 1 for mobile single-property navigation
+  const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
 
   // Mobile header button handlers
   const handlePreferences = useCallback(() => {
-    // Use a more direct approach for mobile navigation
-    if (window.innerWidth < 1024) {
-      // For mobile, use window.location to ensure navigation works
-      window.location.href = "/settings";
-    } else {
-      // For desktop, use React Router
-      navigate("/settings");
-    }
-  }, [navigate]);
+    setIsPreferencesModalOpen(true);
+  }, []);
 
   const activeTab = useFiltersStore((s) => s.activeTab);
   const setActiveTab = useFiltersStore((s) => s.setActiveTab);
@@ -751,14 +746,16 @@ export default function SearchPage({
                   <RippleBackground />
                 </div>
                 <div className="relative z-10 flex flex-col items-center gap-4">
-                  <KeyTurnLoader
-                    message={
-                      isSearching
-                        ? (searchStage ?? "Searching properties...")
-                        : "Loading map..."
-                    }
-                    variant={isSearching ? "gray" : "default"}
-                  />
+                  <div className="rounded-full bg-white px-6 py-3 shadow-md">
+                    <KeyTurnLoader
+                      message={
+                        isSearching
+                          ? (searchStage ?? "Searching properties...")
+                          : "Loading map..."
+                      }
+                      variant={isSearching ? "gray" : "default"}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -797,6 +794,13 @@ export default function SearchPage({
       <PropertyDetailsModal
         property={selectedProperty}
         onClose={clearSelectedProperty}
+      />
+
+      {/* Preferences Modal */}
+      <PreferencesModal
+        isOpen={isPreferencesModalOpen}
+        onClose={() => setIsPreferencesModalOpen(false)}
+        onPreferencesChanged={handleSearchUpdated}
       />
     </div>
   );

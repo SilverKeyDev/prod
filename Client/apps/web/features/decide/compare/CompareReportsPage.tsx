@@ -16,6 +16,7 @@ import { captureError } from "../../../../../packages/services/security/errorRep
 import { log } from "../../../../../packages/services/security/secureLogger";
 import { useUIStore } from "../../../../../packages/store";
 import { useSavedHomesStoreIntegration } from "../../../../../packages/hooks/store/useSavedHomesStoreIntegration";
+import { formatPropertyType } from "../../../../../packages/utils/property";
 
 // Context imports
 
@@ -120,7 +121,10 @@ export default function CompareReportsPage() {
         row["Bedrooms"] = homeData.beds ?? home.bedrooms?.toString() ?? "-";
         row["Bathrooms"] = homeData.baths ?? home.bathrooms?.toString() ?? "-";
         row["Living Area"] = homeData.sqft ?? home.sqft?.toString() ?? "-";
-        row["Property Type"] = homeData.property_type ?? "-";
+        row["Property Type"] =
+          homeData.property_type && homeData.property_type !== "-"
+            ? formatPropertyType(homeData.property_type)
+            : "-";
         row["Zillow URL"] = homeData.zillow_url ?? "-";
 
         // Extract from property_analysis JSON

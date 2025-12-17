@@ -1,5 +1,6 @@
 import type { Property } from "../../../../../packages/hooks/data/usePropertyDetails";
 import type { SearchResult } from "../../../../../packages/schemas/search";
+import { formatPropertyType as formatPropertyTypeUtil } from "../../../../../packages/utils/property";
 
 // Local minimal type definitions to avoid dependency on non-existent schema file
 export type AddressObject = {
@@ -66,13 +67,8 @@ export const formatPrice = (price: string | number | undefined): string => {
   }).format(numPrice);
 };
 
-export const formatPropertyType = (type?: string): string => {
-  if (!type) return "N/A";
-  return type
-    .split("_")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(" ");
-};
+// Re-export the utility function from packages/utils for backward compatibility
+export const formatPropertyType = formatPropertyTypeUtil;
 
 export const getPropertyImages = (
   property: Property | SearchResult,

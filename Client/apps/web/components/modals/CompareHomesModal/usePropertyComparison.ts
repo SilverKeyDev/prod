@@ -68,8 +68,8 @@ export function usePropertyComparison(
             [homeId]: { ...initialData, isLoading: true },
           }));
 
-          // Stream property updates
-          for await (const update of searchApi.streamProperty({ address })) {
+          // Stream property updates (using compare endpoint to skip pros/cons)
+          for await (const update of searchApi.streamCompare({ address })) {
             if (update.type === "error") {
               const errorData = update.data as {
                 error?: string;

@@ -411,7 +411,7 @@ export default function DashboardLayout({
 
         {/* Desktop Header (consistent width) - Hidden on mobile and search pages */}
         <div
-          className={`hidden lg:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch ? "!hidden" : ""}`}
+          className={`hidden lg:block mx-auto w-full ${isSaved || isNegotiation ? "" : "pt-8"} ${isSearch ? "!hidden" : ""}`}
           style={{
             maxWidth: `calc((100vw - 208px) * ${computedMaxWidthVW} / 100)`,
           }}

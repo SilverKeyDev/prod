@@ -11,6 +11,7 @@ import {
   getMatchScore,
   type SearchResult,
 } from "../../../../../packages/schemas/search";
+import { formatPropertyType } from "../../../../../packages/utils/property";
 
 export function SidebarList(props: {
   items: SearchResult[];
@@ -99,8 +100,8 @@ export function SidebarList(props: {
                     {typeof property.propertyType === "string" &&
                       property.propertyType.toLowerCase() !==
                         "single_family" && (
-                        <span className="text-xs text-gray-500 capitalize">
-                          {property.propertyType}
+                        <span className="text-xs text-gray-500">
+                          {formatPropertyType(property.propertyType)}
                         </span>
                       )}
                   </div>

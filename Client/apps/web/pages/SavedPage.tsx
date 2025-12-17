@@ -11,7 +11,7 @@ import {
 } from "../components/cards/base";
 import DeleteModal from "../components/modals/DeleteModal";
 import PdfModal from "../components/modals/PdfModal";
-import PropertyDetailsModal from "../components/modals/PropertyDetailsModal";
+import PropertyDetailsModal from "../components/modals/PropertyDetailsModal/PropertyDetailsModal";
 import { KeyTurnLoader } from "../components/ui";
 import CompareFloatingBar from "../components/ui/CompareFloatingBar";
 import GenerateReportPage from "../features/decide/generate/GenerateReport";
@@ -489,7 +489,7 @@ export default function SavedHomes({
           handleDeleteReport(reportToDelete.id, reportToDelete.s3Key)
         }
       />
-      <div className="my-responsive-lg space-y-responsive-lg">
+      <div className="mt-4 lg:mt-0 mb-responsive-lg space-y-responsive-lg">
         {/* SavedLayout - Only show on desktop (mobile shows in topbar) */}
         {!isMobile && (
           <SavedLayout
@@ -677,6 +677,8 @@ export default function SavedHomes({
           onClose={() => setIsCompareModalOpen(false)}
           selectedHomes={selectedHomesData}
           onRemove={handleRemoveFromComparison}
+          onAdd={handleToggleHomeSelection}
+          allLikedHomes={homes}
         />
 
         {/* Compare Floating Bar - Show when viewing homes list and >= 1 selected */}

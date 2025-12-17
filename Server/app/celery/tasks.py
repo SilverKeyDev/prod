@@ -1,170 +1,11 @@
 from app.celery.celery_worker import celery
 from flask import current_app
-from app.services.research.report_generator import generate_report
 from app.models.pdf_document import PDFDocument
 from app.models.user_preferences import UserPreferences
 from app import db
-import traceback
-import json
-import time
 from sqlalchemy.exc import OperationalError, DisconnectionError
-
-
-@celery.task(name="tasks.generate_report_async")
-def generate_report_async(address, comparison_address, filename, document_id, user_id, marketing_model=False):
-    """Asynchronously generate a property report with robust DB session management"""
-    try:        
-        # Generate the report (this does not depend on db.session)
-        result_data = generate_report(address, comparison_address, filename, user_id, marketing_model)
-
-        # Use a fresh app context and db session for all database operations
-        with current_app.app_context():
-            try:
-                pdf_doc = db.session.get(PDFDocument, document_id)
-                if pdf_doc:
-                    pdf_doc.status = 'processed'
-                    pdf_doc.file_size = len(str(result_data).encode('utf-8'))
-
-                    # Handle user preferences
-                    user_prefs = UserPreferences.query.filter_by(user_id=user_id).first()
-                    if user_prefs:
-                        user_prefs.solo_reports_created = (user_prefs.solo_reports_created or 0) + 1
-
-                        # Maintain unique addresses
-                        current_addresses = []
-                        if user_prefs.solo_reports_addresses:
-                            try:
-                                current_addresses = json.loads(user_prefs.solo_reports_addresses)
-                            except (json.JSONDecodeError, TypeError):
-                                pass  # Treat as empty
-
-                        if address not in current_addresses:
-                            current_addresses.append(address)
-
-                        user_prefs.solo_reports_addresses = json.dumps(current_addresses)
-
-                    
-                    # Dispose engine before database operations for better reliability
-                    try:
-                        db.engine.dispose()
-                    except Exception as e:
-                        current_app.logger.warning(f"⚠️ Failed to dispose engine in Celery task: {str(e)}")
-                    
-                    # Commit everything with retry logic
-                    max_retries = 3
-                    retry_delay = 1
-                    
-                    for attempt in range(max_retries):
-                        try:
-                            db.session.commit()
-
-                            break  # Success, exit retry loop
-                        except (OperationalError, DisconnectionError) as e:
-                            current_app.logger.warning(f"🔄 Celery DB commit error on attempt {attempt + 1}/{max_retries}: {str(e)}")
-                            
-                            # Clean up session
-                            try:
-                                db.session.rollback()
-                                db.session.remove()
-                            except Exception:
-                                pass
-                            
-                            # Dispose engine to force reconnection
-                            try:
-                                db.engine.dispose()
-                            except Exception:
-                                pass
-                            
-                            if attempt < max_retries - 1:
-                                time.sleep(retry_delay)
-                                retry_delay *= 2  # Exponential backoff
-                            else:
-                                current_app.logger.error(f"❌ Max retries exceeded for Celery DB commit")
-                                raise
-                        except Exception as e:
-                            current_app.logger.error(f"❌ Non-connection error in Celery DB commit: {str(e)}")
-                            try:
-                                db.session.rollback()
-                            except Exception:
-                                pass
-                            raise
-
-            except Exception as db_error:
-                current_app.logger.error(f"❌ DB error in Celery task: {str(db_error)}")
-                current_app.logger.error(traceback.format_exc())
-                db.session.rollback()
-                raise
-
-            finally:
-                db.session.remove()
-
-        return {'success': True, 'result': result_data, 'document_id': document_id}
-
-    except Exception as e:
-        current_app.logger.error(f"❌ Celery task failed: {str(e)}")
-        current_app.logger.error(traceback.format_exc())
-
-        # Attempt best-effort recovery update to DB with reliability improvements
-        try:
-            with current_app.app_context():
-                # Dispose engine before error recovery operation
-                try:
-                    db.engine.dispose()
-                except Exception as e:
-                    current_app.logger.warning(f"⚠️ Failed to dispose engine in error recovery: {str(e)}")
-                
-                pdf_doc = db.session.get(PDFDocument, document_id)
-                if pdf_doc:
-                    pdf_doc.status = 'error'
-                    
-                    # Error recovery commit with retry logic
-                    max_retries = 3
-                    retry_delay = 1
-                    
-                    for attempt in range(max_retries):
-                        try:
-                            db.session.commit()
-                            current_app.logger.info(f"📝 Updated status to 'error' for document_id: {document_id}")
-                            break  # Success, exit retry loop
-                        except (OperationalError, DisconnectionError) as e:
-                            current_app.logger.warning(f"🔄 Error recovery DB commit error on attempt {attempt + 1}/{max_retries}: {str(e)}")
-                            
-                            # Clean up session
-                            try:
-                                db.session.rollback()
-                                db.session.remove()
-                            except Exception:
-                                pass
-                            
-                            # Dispose engine to force reconnection
-                            try:
-                                db.engine.dispose()
-                            except Exception:
-                                pass
-                            
-                            if attempt < max_retries - 1:
-                                time.sleep(retry_delay)
-                                retry_delay *= 2  # Exponential backoff
-                            else:
-                                current_app.logger.error(f"❌ Max retries exceeded for error recovery DB commit")
-                                raise
-                        except Exception as e:
-                            current_app.logger.error(f"❌ Non-connection error in error recovery DB commit: {str(e)}")
-                            try:
-                                db.session.rollback()
-                            except Exception:
-                                pass
-                            raise
-        except Exception as fail_update_error:
-            current_app.logger.error(f"❌ Failed to update error status: {str(fail_update_error)}")
-            try:
-                db.session.rollback()
-            except Exception:
-                pass
-        finally:
-            db.session.remove()
-
-        return {'success': False, 'error': str(e), 'document_id': document_id}
+import os
+import time
 
 
 # Home Matching Tasks
@@ -234,4 +75,156 @@ def find_best_matches_task(self, user_data, homes_data, top_k=10, include_explan
             'success': False,
             'error': str(e),
             'user_id': user_data.get('user_id', 'unknown')
+        }
+
+
+# Property Research Tasks
+@celery.task(name="tasks.research_property_task", bind=True)
+def research_property_task(self, params, address=None, skip_pros_cons=False):
+    """
+    Celery task to research a property.
+    
+    Args:
+        params: API parameters dict (zpid, property_url, or address)
+        address: Optional address string
+        skip_pros_cons: If True, skip pros/cons generation
+    
+    Returns:
+        Dict containing property research data
+    """
+    try:
+        start_time = time.time()
+        GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+        RAPI_KEY = os.getenv('RAPIDAPI_KEY')
+        
+        # Update task progress
+        self.update_state(
+            state='PROGRESS',
+            meta={'status': 'Initializing property research', 'progress': 5}
+        )
+        
+        # Import the research pipeline function
+        from ..services.research.property_research_pipeline import handle_property_request_non_streaming
+        
+        # Update progress
+        self.update_state(
+            state='PROGRESS',
+            meta={'status': 'Processing property data', 'progress': 30}
+        )
+        
+        # Call the research pipeline
+        response_data, status_code = handle_property_request_non_streaming(
+            params=params,
+            address=address,
+            google_maps_api_key=GOOGLE_MAPS_API_KEY,
+            rapidapi_key=RAPI_KEY,
+            start_time=start_time,
+            log_prefix="[PROPERTY]",
+            skip_pros_cons=skip_pros_cons
+        )
+        
+        # Update progress
+        self.update_state(
+            state='PROGRESS',
+            meta={'status': 'Finalizing results', 'progress': 95}
+        )
+        
+        elapsed = time.time() - start_time
+        current_app.logger.info(
+            f"[PROPERTY] ✅ Task completed in {elapsed:.2f}s"
+        )
+        
+        return {
+            'success': True,
+            'response_data': response_data,
+            'status_code': status_code,
+            'elapsed_time': elapsed
+        }
+        
+    except Exception as e:
+        current_app.logger.error(f"[PROPERTY] Task error: {e}", exc_info=True)
+        return {
+            'success': False,
+            'error': str(e),
+            'response_data': {
+                'success': False,
+                'error': 'TASK_ERROR',
+                'message': str(e)
+            },
+            'status_code': 500
+        }
+
+
+@celery.task(name="tasks.compare_property_task", bind=True)
+def compare_property_task(self, params, address=None):
+    """
+    Celery task to compare a property (same as research but skips pros/cons).
+    
+    Args:
+        params: API parameters dict (zpid, property_url, or address)
+        address: Optional address string
+    
+    Returns:
+        Dict containing property comparison data
+    """
+    try:
+        start_time = time.time()
+        GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+        RAPI_KEY = os.getenv('RAPIDAPI_KEY')
+        
+        # Update task progress
+        self.update_state(
+            state='PROGRESS',
+            meta={'status': 'Initializing property comparison', 'progress': 5}
+        )
+        
+        # Import the research pipeline function
+        from ..services.research.property_research_pipeline import handle_property_request_non_streaming
+        
+        # Update progress
+        self.update_state(
+            state='PROGRESS',
+            meta={'status': 'Processing property data', 'progress': 30}
+        )
+        
+        # Call the research pipeline with skip_pros_cons=True
+        response_data, status_code = handle_property_request_non_streaming(
+            params=params,
+            address=address,
+            google_maps_api_key=GOOGLE_MAPS_API_KEY,
+            rapidapi_key=RAPI_KEY,
+            start_time=start_time,
+            log_prefix="[COMPARE]",
+            skip_pros_cons=True
+        )
+        
+        # Update progress
+        self.update_state(
+            state='PROGRESS',
+            meta={'status': 'Finalizing results', 'progress': 95}
+        )
+        
+        elapsed = time.time() - start_time
+        current_app.logger.info(
+            f"[COMPARE] ✅ Task completed in {elapsed:.2f}s"
+        )
+        
+        return {
+            'success': True,
+            'response_data': response_data,
+            'status_code': status_code,
+            'elapsed_time': elapsed
+        }
+        
+    except Exception as e:
+        current_app.logger.error(f"[COMPARE] Task error: {e}", exc_info=True)
+        return {
+            'success': False,
+            'error': str(e),
+            'response_data': {
+                'success': False,
+                'error': 'TASK_ERROR',
+                'message': str(e)
+            },
+            'status_code': 500
         }

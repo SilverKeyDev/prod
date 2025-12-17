@@ -1,4 +1,4 @@
-import { X, FileText } from "lucide-react";
+import { X, FileText, ListOrdered } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,6 +14,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   property,
   onClose,
   onGenerateReport,
+  onOpenPriorities,
 }) => {
   const navigate = useNavigate();
 
@@ -52,10 +53,27 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 
   return (
     <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4">
-      {/* Left side - Logo */}
+      {/* Left side - Logo and Title */}
       <div className="flex items-center">
         <MiniLogo size="sm" className="md:hidden" />
         <KeyLogo size="sm" className="hidden md:block" />
+        {propertyAddress && (
+          <h1 className="ml-3 text-base sm:text-lg font-semibold text-gray-900 truncate">
+            {typeof propertyAddress === "string"
+              ? propertyAddress
+              : typeof propertyAddress === "object" &&
+                  propertyAddress !== null &&
+                  "streetAddress" in propertyAddress
+                ? formatAddress(
+                    propertyAddress as
+                      | string
+                      | import("./utils").AddressObject
+                      | null
+                      | undefined
+                  )
+                : null}
+          </h1>
+        )}
       </div>
 
       {/* Right side - Action buttons */}
@@ -69,6 +87,17 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
         >
           Zillow
         </Button> */}
+        {onOpenPriorities && (
+          <Button
+            variant="outline"
+            size="md"
+            onClick={onOpenPriorities}
+            icon={<ListOrdered className="h-5 w-5 text-gray-600" />}
+            className="border-gray-600 text-gray-600 hover:bg-gray-50"
+          >
+            Priorities
+          </Button>
+        )}
         {onGenerateReport && (
           <Button
             variant="outline"

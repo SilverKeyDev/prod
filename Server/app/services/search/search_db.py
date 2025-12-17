@@ -6,7 +6,6 @@ from app import db
 from app.models.home_universal import HomeUniversal
 from app.utils.address_format import normalize_address
 from app.utils.currency import format_currency
-from app.services.search.zillow_url import build_zillow_url
 
 
 def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool = False) -> HomeUniversal:
@@ -110,19 +109,8 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
         except Exception:
             parsed_score = None
 
-    # Build Zillow URL if not already provided
+    # Use zillow_url if already provided in home data
     zillow_url = home.get("zillow_url") or home.get("zillowUrl")
-    if not zillow_url:
-        # Construct zillow_url from property data using helper function
-        # Extract zpid for params if available
-        params = None
-        zpid = home.get("zpid")
-        if zpid:
-            try:
-                params = {"zpid": str(zpid).strip()}
-            except Exception:
-                params = None
-        zillow_url = build_zillow_url(home, params)
 
     fields = {
         "address": address,

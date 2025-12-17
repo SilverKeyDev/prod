@@ -14,6 +14,7 @@ export type PropertyComponentProps = {
 export type PropertyHeaderProps = PropertyComponentProps & {
   onClose: () => void;
   onGenerateReport?: (address: string) => void;
+  onOpenPriorities?: () => void;
 };
 
 export type PropertyImageGalleryProps = PropertyComponentProps & {

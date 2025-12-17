@@ -113,29 +113,27 @@ def create_app(config=None):
     flask_env = os.getenv('FLASK_ENV', 'development')
 
     # Register blueprints
-    from .routes.report import report_bp
     from .routes.dashboard import dashboard_bp
     from .routes.auth import auth_bp
     from .routes.user import user_bp
     from .routes.preferences import preferences_bp
-    from .routes.chatbot import chatbot_bp
     from .routes.home_matching import home_matching_bp
     from .routes.maps import maps_bp
     from .routes.search import search_bp
+    from .routes.research import research_bp
     from .routes.secure_upload import secure_upload_bp
     from .routes.offer import offer_bp
     from .routes.google_calendar import google_calendar_bp
     from .routes.milestones import milestones_bp
 
-    app.register_blueprint(report_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(preferences_bp)
-    app.register_blueprint(chatbot_bp)
     app.register_blueprint(home_matching_bp)
     app.register_blueprint(maps_bp)
     app.register_blueprint(search_bp)
+    app.register_blueprint(research_bp)
     app.register_blueprint(secure_upload_bp)
     app.register_blueprint(offer_bp)
     app.register_blueprint(google_calendar_bp)
