@@ -125,6 +125,7 @@ def create_app(config=None):
     from .routes.offer import offer_bp
     from .routes.google_calendar import google_calendar_bp
     from .routes.milestones import milestones_bp
+    from .routes.agent import agent_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
@@ -138,6 +139,7 @@ def create_app(config=None):
     app.register_blueprint(offer_bp)
     app.register_blueprint(google_calendar_bp)
     app.register_blueprint(milestones_bp)
+    app.register_blueprint(agent_bp)
 
     # ---------- Static asset routes (Vite build) ----------
     # Serve /assets/* out of the Vite dist directory with correct MIME types.

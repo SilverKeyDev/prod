@@ -13,6 +13,7 @@ import {
 } from "../../../../../packages/store/view.slice";
 import { SIDEBAR_TABS } from "../../../../../packages/schemas/sidebar";
 import type { UserProfile } from "../../../../../packages/schemas/user";
+import { useUserData } from "../../../../../packages/hooks/data/useUserData";
 type SidebarProps = {
   user?: UserProfile;
   onLogout: () => void;
@@ -129,10 +130,25 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
+  agent: {
+    name: SIDEBAR_TABS.agent.name,
+    icon: SIDEBAR_TABS.agent.icon as unknown as React.FC<{
+      className?: string;
+    }>,
+    items: [
+      {
+        name: SIDEBAR_TABS.agent.name,
+        href: SIDEBAR_TABS.agent.href,
+        icon: SIDEBAR_TABS.agent.icon as unknown as React.FC<{
+          className?: string;
+        }>,
+      },
+    ],
+  },
 };
 
 // Function to generate navigation array based on user type
-const getNavigation = (): NavigationStructure => {
+const getNavigation = (isAgent: boolean): NavigationStructure => {
   // Create a proper copy of the navigation structure
   const navigation: NavigationStructure = {
     // dashboard: {
@@ -167,6 +183,15 @@ const getNavigation = (): NavigationStructure => {
     },
   };
 
+  // Add agent tab if user is an agent or has an assigned agent
+  if (isAgent || navigationStructure.agent) {
+    navigation.agent = {
+      name: navigationStructure.agent.name,
+      icon: navigationStructure.agent.icon,
+      items: [...navigationStructure.agent.items],
+    };
+  }
+
   return navigation;
 };
 
@@ -184,14 +209,19 @@ export default function Sidebar({
   const displayUser = authUser;
   const isLoading = status === "booting" || !authReady;
 
+  // Get user profile to check is_agent flag
+  const { userProfile } = useUserData();
+  const isAgent = userProfile?.is_agent ?? false;
+  const hasAgent = userProfile?.agent_id ? true : false;
+
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
   const toggleCategoryInStore = useViewStore(
     (s: ViewState) => s.toggleCategory
   );
   const location = useLocation();
 
-  // Get userProfile from UserContext for agent check
-  // Already destructured above.
+  // Show agent tab if user is an agent OR has an assigned agent
+  const shouldShowAgentTab = isAgent || hasAgent;
 
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -277,16 +307,17 @@ export default function Sidebar({
           {/* Navigation - Scrollable middle section */}
           <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
             <nav className="mt-4 pb-4">
-              {Object.entries(getNavigation()).map(
+              {Object.entries(getNavigation(shouldShowAgentTab)).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
-                    {/* Render certain categories as direct links (dashboard, search, decide, negotiate, close, settings) */}
-                    {/* categoryKey === "dashboard" || */}
+                    {/* Render certain categories as direct links (dashboard, search, decide, negotiate, close, settings, agent) */}
+                    {/* Agent is always a direct link, never a dropdown */}
                     {categoryKey === "search" ||
                     categoryKey === "decide" ||
                     categoryKey === "negotiate" ||
                     categoryKey === "close" ||
-                    categoryKey === "settings" ? (
+                    categoryKey === "settings" ||
+                    categoryKey === "agent" ? (
                       (() => {
                         const firstItem = category.items[0];
                         const ItemIcon = firstItem?.icon;

@@ -1,18 +1,10 @@
-import {
-  CheckCircle,
-  TrendingUp,
-  Shield,
-  MapPin,
-  Home,
-  DollarSign,
-  UtensilsCrossed,
-  Footprints,
-} from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import React from "react";
 
 import type { PropertyWithAnalysis } from "../../../../../packages/schemas/property";
 import Card from "../../layout/Card";
 import { DEFAULT_REPORT_SECTIONS } from "../../../features/onboardpersonalize/lib/constants";
+import { renderSectionIcon } from "../CompareHomesModal/sectionIcons";
 
 import type { PropertyComponentProps } from "./types";
 
@@ -37,18 +29,6 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
   DEFAULT_REPORT_SECTIONS.forEach((section: { key: string; label: string }) => {
     sectionLabels[section.key] = section.label;
   });
-
-  // Icon mapping for sections (new 8-section structure) - standardized color
-  const sectionIcons: Record<string, React.ReactNode> = {
-    affordability: <DollarSign className="h-5 w-5 text-brown" />,
-    neighborhood: <Shield className="h-5 w-5 text-brown" />,
-    commute: <MapPin className="h-5 w-5 text-brown" />,
-    family_friendly: <Home className="h-5 w-5 text-brown" />,
-    entertainment: <UtensilsCrossed className="h-5 w-5 text-brown" />,
-    investment: <TrendingUp className="h-5 w-5 text-brown" />,
-    climate_environmental_safety: <Shield className="h-5 w-5 text-brown" />,
-    convenience_walkability: <Footprints className="h-5 w-5 text-brown" />,
-  };
 
   // Helper function to render dynamic section content
   const renderSectionContent = (
@@ -185,9 +165,7 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
           sectionLabels[key] ||
           key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
         data: propertyAnalysis[key],
-        icon: sectionIcons[key] || (
-          <CheckCircle className="h-5 w-5 text-brown" />
-        ),
+        icon: renderSectionIcon(key, "h-5 w-5 text-brown"),
         priority,
       };
     })

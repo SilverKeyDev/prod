@@ -1,6 +1,7 @@
 import type { PropertyDetails, ComparisonField } from "./types";
 import { KeyTurnLoader } from "../../ui";
 import { DEFAULT_REPORT_SECTIONS } from "../../../features/onboardpersonalize/lib/constants";
+import { renderSectionIcon } from "./sectionIcons";
 
 type ComparisonTableProps = {
   comparisonData: PropertyDetails[];
@@ -67,64 +68,60 @@ export function ComparisonTable({
             const isSectionHeader = field.isSectionHeader === true;
             const isSectionField = field.sectionKey && !isSectionHeader;
 
-            // Check if this is the first field after a section header
-            const prevField = index > 0 ? comparisonFields[index - 1] : null;
-            const isFirstFieldAfterSection =
-              prevField?.isSectionHeader === true;
-
             const bgClass = isSectionHeader
-              ? "bg-brown/10"
+              ? "bg-[#F5F1E8]"
               : isEven
                 ? "bg-white"
                 : "bg-beige/5";
             const stickyBgClass = isSectionHeader
-              ? "bg-brown/10"
+              ? "bg-[#F5F1E8]"
               : isEven
                 ? "bg-white/80"
                 : "bg-beige/5";
             const isPrice = field.key === "price";
 
+            // Get section title for section headers
+            const sectionTitle =
+              isSectionHeader && field.sectionKey
+                ? DEFAULT_REPORT_SECTIONS.find(
+                    (s: { key: string }) => s.key === field.sectionKey
+                  )?.label || field.label
+                : null;
+
+            // Render row (section headers and regular fields use the same structure)
             return (
               <tr
-                key={field.key}
-                className={`relative ${bgClass} ${
+                key={`${isSectionHeader ? "section-header" : "field"}-${field.key}-${index}`}
+                className={`relative ${
                   isSectionHeader
-                    ? "border-t-[4px] border-brown border-b-[2px] border-brown/30"
-                    : isFirstFieldAfterSection
-                      ? "border-t border-brown/20"
-                      : "border-t border-gray-200"
+                    ? "bg-[#F5F1E8]"
+                    : `${bgClass} border-t border-gray-200`
                 }`}
               >
                 <td
-                  className={`sticky left-0 z-10 ${stickyBgClass} px-1 py-1 font-medium text-black backdrop-blur sm:px-2 sm:py-2 md:px-4 md:py-3 ${
+                  className={`sticky left-0 z-10 ${stickyBgClass} backdrop-blur ${
                     isSectionHeader
-                      ? "bg-brown/10 font-bold text-brown text-sm sm:text-base md:text-lg py-2 sm:py-3 md:py-4"
-                      : isSectionField
-                        ? "pl-4 sm:pl-6 md:pl-8 text-xs sm:text-sm"
-                        : ""
+                      ? "px-2 py-2.5 font-semibold text-xs sm:text-sm md:text-base sm:px-3 sm:py-3 md:px-4 md:py-3.5 border-t-2 border-b border-gray-200"
+                      : `px-1 py-1 font-medium text-black sm:px-2 sm:py-2 md:px-4 md:py-3 ${
+                          isSectionField
+                            ? "pl-4 sm:pl-6 md:pl-8 text-xs sm:text-sm"
+                            : ""
+                        }`
                   }`}
                   style={{ width: "25%" }}
                 >
-                  {isSectionField && (
-                    <span className="text-brown/60 mr-1">└</span>
+                  {isSectionHeader ? (
+                    <div className="flex items-center gap-2">
+                      {field.sectionKey &&
+                        renderSectionIcon(
+                          field.sectionKey,
+                          "h-4 w-4 sm:h-5 sm:w-5 text-[#D4C5AA]"
+                        )}
+                      <span className="text-[#D4C5AA]">{sectionTitle}</span>
+                    </div>
+                  ) : (
+                    <span>{field.label}</span>
                   )}
-                  <div
-                    className={`flex items-center gap-2 ${isSectionHeader ? "flex-col sm:flex-row items-start sm:items-center" : ""}`}
-                  >
-                    {isSectionHeader && field.sectionKey && (
-                      <span className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-brown/20 text-brown font-bold text-xs sm:text-sm md:text-base mr-0 sm:mr-2 flex-shrink-0">
-                        {DEFAULT_REPORT_SECTIONS.findIndex(
-                          (s: { key: string }) => s.key === field.sectionKey
-                        ) + 1}
-                      </span>
-                    )}
-                    <span className={isSectionHeader ? "font-bold" : ""}>
-                      {field.label}
-                    </span>
-                    {isSectionHeader && field.isLoading && (
-                      <KeyTurnLoader message="" variant="gray" />
-                    )}
-                  </div>
                 </td>
                 {comparisonData.map((home) => {
                   const value = field.getValue(home);
@@ -133,39 +130,35 @@ export function ComparisonTable({
                   return (
                     <td
                       key={`${field.key}-${home.id}`}
-                      className={`relative px-1 py-1 text-center sm:px-2 sm:py-2 md:px-4 md:py-3 ${
+                      className={`relative px-1 py-1 sm:px-2 sm:py-2 md:px-4 md:py-3 ${
                         selectedHomesCount >= 3
                           ? "min-w-[80px] sm:min-w-[100px] md:min-w-[120px]"
                           : "min-w-[100px] sm:min-w-[120px] md:min-w-[150px]"
-                      } ${isPrice ? "font-medium text-brown" : "text-black/90"} ${
-                        isSectionHeader ? "bg-brown/10" : ""
+                      } ${
+                        isSectionHeader
+                          ? "bg-[#F5F1E8] border-t-2 border-b border-gray-200"
+                          : `${isPrice ? "font-medium text-[#D4C5AA]" : "text-black/90"} text-center`
                       }`}
                     >
-                      {/* Loading overlay - covers everything when section is loading */}
-                      {isSectionHeader && field.isLoading ? (
-                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/95 backdrop-blur-sm">
-                          <KeyTurnLoader message="" variant="gray" />
+                      {isSectionHeader ? (
+                        // Empty cell for section headers
+                        <div />
+                      ) : (
+                        <div>
+                          {isLoading && value === "—" ? (
+                            <div className="flex items-center justify-center">
+                              <KeyTurnLoader message="" variant="gray" />
+                            </div>
+                          ) : (
+                            <span
+                              className="text-[9px] sm:text-[10px] md:text-xs whitespace-pre-wrap break-words"
+                              title={value.length > 50 ? value : undefined}
+                            >
+                              {value}
+                            </span>
+                          )}
                         </div>
-                      ) : null}
-                      {/* Show content (will be visible if not loading, or dimmed if loading) */}
-                      <div
-                        className={
-                          isSectionHeader && field.isLoading ? "opacity-30" : ""
-                        }
-                      >
-                        {isLoading && value === "—" && !isSectionHeader ? (
-                          <div className="flex items-center justify-center">
-                            <KeyTurnLoader message="" variant="gray" />
-                          </div>
-                        ) : (
-                          <span
-                            className="text-[9px] sm:text-[10px] md:text-xs whitespace-pre-wrap break-words"
-                            title={value.length > 50 ? value : undefined}
-                          >
-                            {value}
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </td>
                   );
                 })}

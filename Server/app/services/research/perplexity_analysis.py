@@ -425,6 +425,9 @@ def generate_report_sections_for_property(
             return synthesized
         
         return newly_generated_sections
+    except Exception as e:
+        logger.error(f"❌ [PROPERTY_ANALYSIS] Error generating report sections: {e}")
+        return {}
 
 
 def generate_report_sections_for_property_streaming(

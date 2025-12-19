@@ -1,11 +1,12 @@
-import { X, FileText, ListOrdered } from "lucide-react";
-import React from "react";
+import { X, FileText, ListOrdered, Share2 } from "lucide-react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Button from "../../ui/button/Button";
 import { CardHeartSave } from "../../cards/base";
 import KeyLogo from "../../ui/asset/KeyLogo";
 import MiniLogo from "../../ui/asset/MiniLogo";
+import ShareHomeModal from "../ShareHomeModal";
 
 import type { PropertyHeaderProps } from "./types";
 import { formatAddress } from "./utils";
@@ -17,6 +18,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   onOpenPriorities,
 }) => {
   const navigate = useNavigate();
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const propertyAddress = (property as unknown as { address: unknown }).address;
 
@@ -109,6 +111,15 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
             Generate Report
           </Button>
         )}
+        <Button
+          variant="outline"
+          size="md"
+          onClick={() => setIsShareModalOpen(true)}
+          icon={<Share2 className="h-5 w-5 text-gray-600" />}
+          className="border-gray-600 text-gray-600 hover:bg-gray-50"
+        >
+          Share
+        </Button>
 
         <CardHeartSave
           property={property}
@@ -124,6 +135,16 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           <X className="h-5 w-5 text-gray-700 group-hover:text-gray-900 transition-colors" />
         </button>
       </div>
+
+      {/* Share Home Modal */}
+      <ShareHomeModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        property={property}
+        onShareSuccess={() => {
+          // Optionally show a success message or refresh data
+        }}
+      />
     </div>
   );
 };

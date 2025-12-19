@@ -5,7 +5,8 @@ import { DEFAULT_REPORT_SECTIONS } from "../../../features/onboardpersonalize/li
 
 export function getAllComparisonFields(
   comparisonData: PropertyDetails[],
-  loadingStates?: Record<string, boolean>
+  loadingStates?: Record<string, boolean>,
+  orderedSections?: Array<{ key: string; label: string }>
 ): ComparisonField[] {
   const fields: ComparisonField[] = [
     {
@@ -344,9 +345,14 @@ export function getAllComparisonFields(
     });
   }
 
-  // Add fields for each of the 9 priority sections
-  // Create a section header row and individual rows for each field within the section
-  DEFAULT_REPORT_SECTIONS.forEach((section) => {
+  // Determine which sections to process (use orderedSections if provided, otherwise DEFAULT_REPORT_SECTIONS)
+  const sectionsToProcess = orderedSections && orderedSections.length > 0
+    ? orderedSections
+    : DEFAULT_REPORT_SECTIONS;
+
+  // Add section headers and their fields in priority order
+  // Each section header is added first, then its fields (as they load) right after it
+  sectionsToProcess.forEach((section) => {
     const sectionKey = section.key;
     
     // Check if any home has this section loaded
@@ -388,8 +394,19 @@ export function getAllComparisonFields(
       hasExplicitLoading ||
       (homesWithSection.length > 0 && homesWithoutSection.length > 0);
 
-    // Show section if it has data OR if it's loading
-    if (hasSectionData || isSectionLoading) {
+    // Always add section header (placeholder with empty data)
+    // This ensures all sections show up in the table immediately
+    fields.push({
+      key: `section_header_${sectionKey}`,
+      label: section.label,
+      getValue: () => "", // Empty value for placeholder header row
+      sectionKey: sectionKey,
+      isSectionHeader: true,
+      isLoading: isSectionLoading,
+    });
+
+    // Then add fields for this section if it has data
+    if (hasSectionData) {
       // Collect fields from ALL homes that have this section (to handle different structures)
       // Use a Set to track unique field keys
       const allSectionFieldsMap = new Map<string, {
@@ -418,32 +435,20 @@ export function getAllComparisonFields(
 
       const sectionFields = Array.from(allSectionFieldsMap.values());
 
-
-      // Add section header row (always show if section exists or is loading)
-      if (hasSectionData || isSectionLoading) {
-        fields.push({
-          key: `section_header_${sectionKey}`,
-          label: section.label,
-          getValue: () => "", // Empty value for header row
-          sectionKey: sectionKey,
-          isSectionHeader: true,
-          isLoading: isSectionLoading,
-        });
-
-        // Add individual field rows if we have section data (even if still loading for some homes)
-        // This allows users to see data as it comes in, with loading indicators for missing data
-        if (hasSectionData && sectionFields.length > 0) {
-          sectionFields.forEach((field) => {
-            fields.push({
-              key: field.fieldKey,
-              label: field.label,
-              getValue: field.getValue,
-              sectionKey: sectionKey,
-              isSectionHeader: false,
-              isLoading: false,
-            });
+      // Add individual field rows if we have section data (even if still loading for some homes)
+      // This allows users to see data as it comes in, with loading indicators for missing data
+      // Note: Section header was already added above as a placeholder
+      if (hasSectionData && sectionFields.length > 0) {
+        sectionFields.forEach((field) => {
+          fields.push({
+            key: field.fieldKey,
+            label: field.label,
+            getValue: field.getValue,
+            sectionKey: sectionKey,
+            isSectionHeader: false,
+            isLoading: false,
           });
-        }
+        });
       }
     }
   });

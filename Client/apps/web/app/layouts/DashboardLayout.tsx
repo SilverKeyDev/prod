@@ -3,7 +3,6 @@ import React, { useState, useMemo, useCallback, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 // Headers
-import PageHeader from "../../components/widgets/header/PageHeader.tsx";
 import ClosePageHeader from "../../features/close/ClosePageHeader.tsx";
 import DashboardButtonHeader from "../../features/dashboard/DashboardButtonHeader.tsx";
 import MobileTopBar from "../../components/widgets/header/MobileTopBar";
@@ -15,6 +14,7 @@ import NegotiationStrategy from "../../pages/NegotiationPage.tsx";
 import PersonalizationPage from "../../pages/SettingsPage.tsx";
 import SavedHomes from "../../pages/SavedPage.tsx";
 import SearchPage from "../../pages/SearchPage.tsx";
+import AgentPage from "../../pages/AgentPage.tsx";
 
 // Stores
 import {
@@ -64,6 +64,7 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/negotiation-strategy": 90,
   "/settings": 90,
   "/saved": 90,
+  "/agent": 90,
 };
 
 // Mobile-specific width configuration
@@ -74,6 +75,7 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/negotiation-strategy": 90,
   "/settings": 90,
   "/saved": 90,
+  "/agent": 90,
 };
 
 // Buyer checklist tabs
@@ -109,6 +111,7 @@ export default function DashboardLayout({
   const isPersonalization = path.startsWith("/settings");
   const isNegotiation = path.startsWith("/negotiation-strategy");
   const isSaved = path.startsWith("/saved");
+  const isAgent = path.startsWith("/agent");
 
   // Sidebar state
   const sidebarExpanded = useViewStore((s: ViewState) => s.sidebarExpanded);
@@ -224,6 +227,10 @@ export default function DashboardLayout({
       return { type: "none" };
     }
 
+    if (isAgent) {
+      return { type: "none" };
+    }
+
     // Default: no special header
     return { type: "none" };
   }, [
@@ -265,7 +272,7 @@ export default function DashboardLayout({
     }
 
     if (config.type === "rheader" && config.title && !isNegotiation) {
-      return <PageHeader title={config.title} subtitle={config.subtitle} />;
+      return null;
     }
 
     return null;
@@ -336,7 +343,7 @@ export default function DashboardLayout({
     );
     if (overrideKey) return mobileOverrides[overrideKey];
 
-    if (config.title) return <PageHeader title={config.title} />;
+    if (config.title) return null;
 
     return null;
   }, [
@@ -392,7 +399,7 @@ export default function DashboardLayout({
               <div
                 className={`flex flex-grow items-center justify-center text-center ${MOBILE_SIDE_PX}`}
               >
-                {mobileHeaderContent ?? <PageHeader title="SilverKey" />}
+                {mobileHeaderContent ?? null}
               </div>
             </MobileTopBar>
           </div>
@@ -462,6 +469,9 @@ export default function DashboardLayout({
           )}
           {isSaved && (
             <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
+          )}
+          {isAgent && (
+            <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
           )}
           {isDashboard && <DashboardPage />}
         </div>

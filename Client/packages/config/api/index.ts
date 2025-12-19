@@ -1,6 +1,7 @@
 // Central API exports for SilverKey application
 // All API clients use the centralized utilities from ./utils.ts
 
+export { agentApi } from "./agent";
 export { authApi } from "./auth";
 export { chatbotApi } from "./chatbot";
 export { dashboardApi } from "./dashboard";
@@ -30,6 +31,28 @@ export {
 } from "../../services/http/compatibility";
 
 // Re-export types from individual API modules
+export type {
+  AgentClient,
+  AgentConversation,
+  AgentChatMessage,
+  AgentClientsResponse,
+  AgentConversationsResponse,
+  AgentChatHistoryResponse,
+  SendMessageRequest,
+  SendMessageResponse,
+  CreateConversationRequest,
+  CreateConversationResponse,
+  AgentSearchResult,
+  ClientSearchResult,
+  AgentConnectionRequest,
+  SearchAgentsResponse,
+  SearchClientsResponse,
+  ConnectionRequestsResponse,
+  CreateConnectionRequestRequest,
+  CreateConnectionRequestResponse,
+  RespondToConnectionRequestRequest,
+  RespondToConnectionRequestResponse,
+} from "./agent";
 export type { SignupData, LoginData, AuthResponse } from "./auth";
 export type {
   ChatMessage,

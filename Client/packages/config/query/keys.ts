@@ -106,6 +106,17 @@ export const queryKeys = {
     statementDownload: (statementId: string) =>
       [...queryKeys.plaid.all, "statementDownload", statementId] as const,
   },
+
+  // Agent domain
+  agent: {
+    all: ["agent"] as const,
+    clients: () => [...queryKeys.agent.all, "clients"] as const,
+    conversations: () => [...queryKeys.agent.all, "conversations"] as const,
+    conversation: (clientId?: string) =>
+      [...queryKeys.agent.conversations(), clientId] as const,
+    history: (conversationId: string) =>
+      [...queryKeys.agent.all, "history", conversationId] as const,
+  },
 } as const;
 
 // Type helper for extracting query key types

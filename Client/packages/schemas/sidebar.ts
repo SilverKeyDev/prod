@@ -3,6 +3,7 @@ import {
   Handshake,
   Home,
   Key,
+  MessageSquare,
   Search,
   Settings,
   Split,
@@ -15,7 +16,8 @@ export type SidebarTabKey =
   | "decide"
   | "negotiate"
   | "close"
-  | "settings";
+  | "settings"
+  | "agent";
 
 export type SidebarSubStep = {
   label: string;
@@ -117,6 +119,20 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
       },
     ],
   },
+  agent: {
+    key: "agent",
+    name: "Agent",
+    description: "Communicate with your agent",
+    icon: MessageSquare,
+    href: "/agent",
+    subSteps: [
+      {
+        label: "Agent",
+        to: "/agent",
+        icon: MessageSquare,
+      },
+    ],
+  },
 };
 
 export const getTabByPath = (pathname: string): SidebarTab | undefined => {
@@ -128,6 +144,7 @@ export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   if (pathname.startsWith("/negotiation-strategy"))
     return SIDEBAR_TABS.negotiate;
   if (pathname.startsWith("/buyer-checklists")) return SIDEBAR_TABS.close;
+  if (pathname.startsWith("/agent")) return SIDEBAR_TABS.agent;
   return undefined;
 };
 

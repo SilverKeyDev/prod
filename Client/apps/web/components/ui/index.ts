@@ -42,9 +42,6 @@ export { default as PriceRangeSlider } from "../../features/onboardpersonalize/P
 // Home Auth
 export { default as RippleBackground } from "../../features/homeauth/RippleBackground";
 
-// Layout Components
-export { default as PageHeader } from "../widgets/header/PageHeader";
-
 // Modal Components
 export { default as BaseModal } from "../modals/BaseModal";
 
