@@ -190,7 +190,15 @@ def google_oauth_start():
         # Generate auth URL and state
         auth_url, state = google_oauth_service.build_auth_url()
         session['google_oauth_state'] = state
+        # Mark session as permanent to ensure it persists across redirects
+        session.permanent = True
         
+        # Log session state for debugging
+        current_app.logger.info(f"GOOGLE_OAUTH_START_STATE_STORED", extra={
+            'request_id': request_id,
+            'has_state': bool(state),
+            'session_permanent': session.permanent
+        })
         
         return redirect(auth_url)
         
@@ -215,22 +223,34 @@ def google_oauth_callback():
         current_app.logger.info(f"GOOGLE_OAUTH_CALLBACK", extra={
             'request_id': request_id,
             'has_code': bool(request.args.get('code')),
-            'has_error': bool(request.args.get('error'))
+            'has_error': bool(request.args.get('error')),
+            'has_state': bool(request.args.get('state')),
+            'session_keys': list(session.keys()) if session else [],
+            'has_session_state': 'google_oauth_state' in session if session else False
         })
         
+        # Pass session as dict but handler will also check Flask session directly if needed
         resp = handle_google_oauth_callback(
             request_args=dict(request.args),
-            session_data=dict(session),
+            session_data=dict(session),  # Pass snapshot, but handler accesses session directly as fallback
             request_id=request_id
         )
         return resp
         
     except Exception as e:
+        # Log full traceback for debugging
+        full_traceback = traceback.format_exc()
         current_app.logger.error(f"GOOGLE_OAUTH_CALLBACK_ERROR", extra={
             'request_id': request_id,
             'error': str(e),
             'error_type': type(e).__name__,
-            'traceback': traceback.format_exc()[:500]
+            'traceback': full_traceback[:1000],  # Increased from 500 to 1000
+            'has_code': bool(request.args.get('code')),
+            'has_state': bool(request.args.get('state')),
+            'has_error_param': bool(request.args.get('error')),
+            'session_keys': list(session.keys()) if session else []
         })
+        # Also log full traceback to console for immediate visibility
+        current_app.logger.error(f"Full traceback: {full_traceback}")
         from ..config import Config
         return redirect(f"{Config.FRONTEND_URL}/login?error=google_oauth_failed")

@@ -22,6 +22,7 @@ from .auth_helpers import (
     decode_cognito_token,
     mask_email
 )
+from .minimal_token import minimal_token_service
 
 
 def handle_signup(data: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
@@ -315,7 +316,7 @@ def handle_google_oauth_callback(request_args: Dict[str, Any], session_data: Dic
     Handle Google OAuth callback flow.
     Returns redirect response.
     """
-    from ..config import Config
+    from app.config import Config
     
     # Check for OAuth errors
     error = request_args.get('error')
@@ -326,23 +327,62 @@ def handle_google_oauth_callback(request_args: Dict[str, Any], session_data: Dic
         })
         return redirect(f"{Config.FRONTEND_URL}/login?error=google_oauth_failed")
     
-    # Validate state
+    # Validate state - access Flask session directly to ensure we get the persisted session
     state = request_args.get('state')
-    session_state = session_data.get('google_oauth_state')
+    # Try to get from passed session_data first, but fall back to Flask session directly
+    session_state = session_data.get('google_oauth_state') if session_data else None
+    if not session_state:
+        # Access Flask session directly as fallback
+        session_state = session.get('google_oauth_state')
     
     if not google_oauth_service.validate_state(state, session_state):
         current_app.logger.warning(f"GOOGLE_OAUTH_INVALID_STATE", extra={
             'request_id': request_id,
-            'has_session_state': bool(session_state)
+            'has_state': bool(state),
+            'has_session_state': bool(session_state),
+            'state_match': state == session_state if state and session_state else False
         })
         return redirect(f"{Config.FRONTEND_URL}/login?error=invalid_state")
     
     # Exchange code for tokens
     code = request_args.get('code')
-    tokens = google_oauth_service.exchange_code_for_tokens(code)
+    if not code:
+        current_app.logger.error(f"GOOGLE_OAUTH_MISSING_CODE", extra={
+            'request_id': request_id,
+            'request_args_keys': list(request_args.keys())
+        })
+        return redirect(f"{Config.FRONTEND_URL}/login?error=missing_code")
+    
+    try:
+        tokens = google_oauth_service.exchange_code_for_tokens(code)
+    except Exception as token_exchange_error:
+        current_app.logger.error(f"GOOGLE_TOKEN_EXCHANGE_ERROR_IN_FLOW", extra={
+            'request_id': request_id,
+            'error': str(token_exchange_error),
+            'error_type': type(token_exchange_error).__name__,
+            'traceback': traceback.format_exc()[:500]
+        })
+        return redirect(f"{Config.FRONTEND_URL}/login?error=token_exchange_failed")
+    
+    # Validate tokens response
+    if not tokens or 'access_token' not in tokens:
+        current_app.logger.error(f"GOOGLE_TOKEN_MISSING_ACCESS_TOKEN", extra={
+            'request_id': request_id,
+            'tokens_keys': list(tokens.keys()) if tokens else None
+        })
+        return redirect(f"{Config.FRONTEND_URL}/login?error=invalid_tokens")
     
     # Get user info from Google
-    user_info = google_oauth_service.get_user_info(tokens['access_token'])
+    try:
+        user_info = google_oauth_service.get_user_info(tokens['access_token'])
+    except Exception as userinfo_error:
+        current_app.logger.error(f"GOOGLE_USERINFO_ERROR_IN_FLOW", extra={
+            'request_id': request_id,
+            'error': str(userinfo_error),
+            'error_type': type(userinfo_error).__name__,
+            'traceback': traceback.format_exc()[:500]
+        })
+        return redirect(f"{Config.FRONTEND_URL}/login?error=userinfo_failed")
     
     current_app.logger.info(f"GOOGLE_USERINFO_RECEIVED", extra={
         'request_id': request_id,
@@ -359,7 +399,14 @@ def handle_google_oauth_callback(request_args: Dict[str, Any], session_data: Dic
         })
         return redirect(f"{Config.FRONTEND_URL}/login?error=email_not_verified")
     
-    # Extract user info
+    # Extract user info - validate required fields
+    if 'id' not in user_info or 'email' not in user_info:
+        current_app.logger.error(f"GOOGLE_USERINFO_MISSING_FIELDS", extra={
+            'request_id': request_id,
+            'user_info_keys': list(user_info.keys()) if user_info else None
+        })
+        return redirect(f"{Config.FRONTEND_URL}/login?error=invalid_userinfo")
+    
     google_id = user_info['id']
     email = user_info['email']
     name = user_info.get('name', '').strip() if user_info.get('name') else email.split('@')[0]
@@ -413,19 +460,55 @@ def handle_google_oauth_callback(request_args: Dict[str, Any], session_data: Dic
         user.last_logged_in = datetime.utcnow()
         db.session.commit()
     
-    # Create tokens
-    user_name = user.name if user.name and user.name.strip() else email.split('@')[0]
-    if not user_name or not user_name.strip():
-        user_name = "User"
-    user_name = user_name.strip() if user_name else "User"
-    
+    # Create tokens - match old approach: create access token directly, ID token is optional
     try:
-        minimal_access_token, minimal_id_token = create_minimal_tokens(
+        # Generate minimal access token (required)
+        minimal_access_token = minimal_token_service.create_minimal_access_token(
             user_id=str(user.id),
             user_email=email,
-            user_name=user_name,
             expires_in_hours=8
         )
+        
+        # Generate minimal ID token (optional - don't block if it fails)
+        # Use email prefix as fallback if name is missing, with additional fallbacks
+        user_name = user.name if user.name and user.name.strip() else email.split('@')[0]
+        
+        # Additional fallback: if email prefix is empty, use a default
+        if not user_name or not user_name.strip():
+            user_name = "User"
+        
+        # Ensure user_name is not None and not empty
+        user_name = user_name.strip() if user_name else "User"
+        
+        # ID token creation - optional (don't block cookie issuance)
+        minimal_id_token = None
+        try:
+            minimal_id_token = minimal_token_service.create_minimal_id_token(
+                user_id=str(user.id),
+                user_email=email,
+                user_name=user_name,
+                expires_in_hours=8
+            )
+        except Exception as id_token_error:
+            # Log info (not warning/error) - ID token is optional, access token is sufficient
+            current_app.logger.error(f"🔧 GOOGLE_ID_TOKEN_OPTIONAL_MISSING", extra={
+                'request_id': request_id,
+                'user_id': str(user.id),
+                'user_email': mask_email(email),
+                'user_name': user_name[:10] + '***' if user_name else 'missing',
+                'user_name_length': len(user_name) if user_name else 0,
+                'error': str(id_token_error),
+                'error_type': type(id_token_error).__name__,
+                'note': 'ID token creation skipped - access token is sufficient for authentication'
+            })
+            # Continue without ID token - access token is sufficient
+        
+        current_app.logger.info(f"GOOGLE_TOKENS_CREATED_SUCCESSFULLY", extra={
+            'request_id': request_id,
+            'user_id': str(user.id),
+            'has_id_token': bool(minimal_id_token)
+        })
+        
     except Exception as token_error:
         current_app.logger.error(f"🔧 GOOGLE_TOKEN_CREATION_ERROR", extra={
             'request_id': request_id,
