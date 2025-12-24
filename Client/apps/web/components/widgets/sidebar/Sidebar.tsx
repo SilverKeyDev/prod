@@ -40,21 +40,21 @@ type NavigationStructure = Record<string, NavCategory>;
 
 // Navigation structure with categories and dropdown items based on schema
 const navigationStructure: NavigationStructure = {
-  // dashboard: {
-  //   name: SIDEBAR_TABS.dashboard.name,
-  //   icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
-  //     className?: string;
-  //   }>,
-  //   items: [
-  //     {
-  //       name: SIDEBAR_TABS.dashboard.name,
-  //       href: SIDEBAR_TABS.dashboard.href,
-  //       icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
-  //         className?: string;
-  //       }>,
-  //     },
-  //   ],
-  // },
+  dashboard: {
+    name: SIDEBAR_TABS.dashboard.name,
+    icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
+      className?: string;
+    }>,
+    items: [
+      {
+        name: SIDEBAR_TABS.dashboard.name,
+        href: SIDEBAR_TABS.dashboard.href,
+        icon: SIDEBAR_TABS.dashboard.icon as unknown as React.FC<{
+          className?: string;
+        }>,
+      },
+    ],
+  },
   search: {
     name: SIDEBAR_TABS.search.name,
     icon: SIDEBAR_TABS.search.icon as unknown as React.FC<{
@@ -148,43 +148,57 @@ const navigationStructure: NavigationStructure = {
 };
 
 // Function to generate navigation array based on user type
-const getNavigation = (isAgent: boolean): NavigationStructure => {
+const getNavigation = (
+  isAgent: boolean,
+  hasAgent: boolean
+): NavigationStructure => {
   // Create a proper copy of the navigation structure
-  const navigation: NavigationStructure = {
-    // dashboard: {
-    //   name: navigationStructure.dashboard.name,
-    //   icon: navigationStructure.dashboard.icon,
-    //   items: [...navigationStructure.dashboard.items],
-    // },
-    search: {
-      name: navigationStructure.search.name,
-      icon: navigationStructure.search.icon,
-      items: [...navigationStructure.search.items],
-    },
-    decide: {
-      name: navigationStructure.decide.name,
-      icon: navigationStructure.decide.icon,
-      items: [...navigationStructure.decide.items],
-    },
-    negotiate: {
-      name: navigationStructure.negotiate.name,
-      icon: navigationStructure.negotiate.icon,
-      items: [...navigationStructure.negotiate.items],
-    },
-    close: {
-      name: navigationStructure.close.name,
-      icon: navigationStructure.close.icon,
-      items: [...navigationStructure.close.items],
-    },
-    settings: {
-      name: navigationStructure.settings.name,
-      icon: navigationStructure.settings.icon,
-      items: [...navigationStructure.settings.items],
-    },
+  const navigation: NavigationStructure = {};
+
+  // If user is an agent, add dashboard as first option (redirects to /agent)
+  if (isAgent) {
+    navigation.dashboard = {
+      name: navigationStructure.dashboard.name,
+      icon: navigationStructure.dashboard.icon,
+      items: [
+        {
+          name: navigationStructure.dashboard.name,
+          href: "/agent", // Dashboard redirects to /agent for agents
+          icon: navigationStructure.dashboard.icon,
+        },
+      ],
+    };
+  }
+
+  // Add other navigation items
+  navigation.search = {
+    name: navigationStructure.search.name,
+    icon: navigationStructure.search.icon,
+    items: [...navigationStructure.search.items],
+  };
+  navigation.decide = {
+    name: navigationStructure.decide.name,
+    icon: navigationStructure.decide.icon,
+    items: [...navigationStructure.decide.items],
+  };
+  navigation.negotiate = {
+    name: navigationStructure.negotiate.name,
+    icon: navigationStructure.negotiate.icon,
+    items: [...navigationStructure.negotiate.items],
+  };
+  navigation.close = {
+    name: navigationStructure.close.name,
+    icon: navigationStructure.close.icon,
+    items: [...navigationStructure.close.items],
+  };
+  navigation.settings = {
+    name: navigationStructure.settings.name,
+    icon: navigationStructure.settings.icon,
+    items: [...navigationStructure.settings.items],
   };
 
-  // Add agent tab if user is an agent or has an assigned agent
-  if (isAgent || navigationStructure.agent) {
+  // Add agent tab only if user is NOT an agent but has an assigned agent
+  if (!isAgent && hasAgent) {
     navigation.agent = {
       name: navigationStructure.agent.name,
       icon: navigationStructure.agent.icon,
@@ -213,15 +227,13 @@ export default function Sidebar({
   const { userProfile } = useUserData();
   const isAgent = userProfile?.is_agent ?? false;
   const hasAgent = userProfile?.agent_id ? true : false;
+  const shouldShowAgentTab = !isAgent && hasAgent;
 
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
   const toggleCategoryInStore = useViewStore(
     (s: ViewState) => s.toggleCategory
   );
   const location = useLocation();
-
-  // Show agent tab if user is an agent OR has an assigned agent
-  const shouldShowAgentTab = isAgent || hasAgent;
 
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -307,12 +319,13 @@ export default function Sidebar({
           {/* Navigation - Scrollable middle section */}
           <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
             <nav className="mt-4 pb-4">
-              {Object.entries(getNavigation(shouldShowAgentTab)).map(
+              {Object.entries(getNavigation(isAgent, hasAgent)).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
                     {/* Render certain categories as direct links (dashboard, search, decide, negotiate, close, settings, agent) */}
                     {/* Agent is always a direct link, never a dropdown */}
-                    {categoryKey === "search" ||
+                    {categoryKey === "dashboard" ||
+                    categoryKey === "search" ||
                     categoryKey === "decide" ||
                     categoryKey === "negotiate" ||
                     categoryKey === "close" ||

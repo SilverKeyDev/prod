@@ -26,6 +26,19 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Free up disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+
+          # Remove large, unused SDKs commonly preinstalled on GitHub runners
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/lib/android
+
+          echo "Disk space after cleanup:"
+          df -h
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -35,6 +48,7 @@ jobs:
 
       - name: Install jq (for JSON parsing)
         run: sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y jq >/dev/null 2>&1
+
       - name: Load app env from AWS Secrets Manager (custom, no prefixes)
         shell: bash
         run: |
@@ -104,6 +118,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          # Caching pip can increase disk usage; you can re-enable if needed later
           cache: "pip"
           cache-dependency-path: Server/requirements.txt
 
@@ -123,8 +138,9 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip >/dev/null
-          pip install -r Server/requirements.txt
-          pip install boto3 >/dev/null
+          # Use --no-cache-dir to avoid filling disk with pip cache
+          pip install --no-cache-dir -r Server/requirements.txt
+          pip install --no-cache-dir boto3 >/dev/null
 
       - name: Install frontend dependencies
         working-directory: Client
@@ -133,8 +149,8 @@ jobs:
           echo "Installing frontend dependencies with pnpm..."
           echo "pnpm version: $(pnpm --version)"
           echo "Lockfile exists: $([ -f pnpm-lock.yaml ] && echo 'yes' || echo 'no')"
-          # pnpm will auto-detect packageManager from package.json and use correct version
           pnpm install --frozen-lockfile
+
       - name: Run email listings orchestrator (search + email)
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
