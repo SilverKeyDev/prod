@@ -1,4 +1,7 @@
 import { Button, Img, Text } from "@react-email/components";
+// React is required at runtime for server-side rendering, even though TypeScript's new JSX transform doesn't require it in scope
+// @ts-ignore - React is needed at runtime for React Email rendering
+import React from "react";
 import { emailColors } from "./colors";
 
 export type Listing = {
