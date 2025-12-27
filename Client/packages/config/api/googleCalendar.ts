@@ -102,9 +102,12 @@ export const googleCalendarApi = {
   /**
    * Start Google OAuth flow
    */
-  startOAuth: async (): Promise<void> => {
+  startOAuth: async (useSchedulingScopes: boolean = false): Promise<void> => {
     // Redirect to backend OAuth endpoint
-    window.location.href = "/api/v1/google/oauth/start";
+    const url = useSchedulingScopes
+      ? "/api/v1/google/oauth/start?scheduling=true"
+      : "/api/v1/google/oauth/start";
+    window.location.href = url;
   },
 
   /**
@@ -302,5 +305,51 @@ export const googleCalendarApi = {
   clearConnectionStatus: (): void => {
     document.cookie =
       "google_calendar_connected=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+  },
+
+  /**
+   * Query free/busy information for calendars
+   */
+  queryFreebusy: async (
+    request: import("../../schemas/scheduling").FreebusyRequest,
+  ): Promise<
+    GoogleCalendarApiResponse<import("../../schemas/scheduling").FreebusyResponse>
+  > => {
+    try {
+      const response = await apiPost<
+        GoogleCalendarApiResponse<import("../../schemas/scheduling").FreebusyResponse>
+      >("/api/v1/google/me/freebusy", request);
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to query freebusy",
+      };
+    }
+  },
+
+  /**
+   * Get or create the SilverKey calendar
+   */
+  getOrCreateSilverKeyCalendar: async (
+    buyerName?: string,
+  ): Promise<GoogleCalendarApiResponse<GoogleCalendar>> => {
+    try {
+      const response = await apiPost<
+        GoogleCalendarApiResponse<GoogleCalendar>
+      >("/api/v1/google/me/silverkey-calendar", {
+        buyerName: buyerName,
+      });
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get or create SilverKey calendar",
+      };
+    }
   },
 };

@@ -88,23 +88,25 @@ export default function ConnectionRequestsInbox({
                 </p>
               </div>
             </div>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex gap-3">
               <Button
+                variant="olive"
                 onClick={() => handleRespond(request.id, true)}
                 disabled={isResponding}
-                variant="primary"
-                className="flex-1"
+                className="flex-1 hover:bg-olive/90"
+                icon={<Check />}
+                iconPosition="left"
               >
-                <Check className="mr-2 h-4 w-4" />
                 Accept
               </Button>
               <Button
+                variant="ghost"
                 onClick={() => handleRespond(request.id, false)}
+                className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-200"
                 disabled={isResponding}
-                variant="secondary"
-                className="flex-1"
+                icon={<X />}
+                iconPosition="left"
               >
-                <X className="mr-2 h-4 w-4" />
                 Reject
               </Button>
             </div>

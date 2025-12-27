@@ -100,7 +100,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ghost:
         "text-brand-accent hover:bg-brand-accent/10 focus:ring-brand-accent/20 disabled:text-brand-accent/30 disabled:hover:bg-transparent",
       danger:
-        "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/20 disabled:bg-red-600/50 disabled:text-white/70",
+        "bg-rose text-white hover:bg-rose-light focus:ring-rose/20 disabled:bg-rose/50 disabled:text-white/70",
       success:
         "bg-brand-secondary text-white hover:bg-brand-secondary/90 focus:ring-brand-secondary/20 disabled:bg-brand-secondary/50 disabled:text-white/70",
       warning:

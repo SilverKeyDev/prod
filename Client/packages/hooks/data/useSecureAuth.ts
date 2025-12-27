@@ -220,7 +220,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
             return { success: false, needsVerification: true };
           }
           setNeedsVerification(false);
-          setError(response.message ?? response.error ?? "Login failed");
+          setError(response.error ?? "Login failed");
           isLoggingInRef.current = false;
           return { success: false };
         }

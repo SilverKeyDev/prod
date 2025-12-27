@@ -601,7 +601,11 @@ export function logApiRequest(method: string, url: string) {
   // Import dynamically to avoid circular dependencies
   import("../security/secureLogger")
     .then(({ log }) => {
-      log.info("API_REQUEST", `${method} ${url.replace(/\/\d+/g, "/:id")}`);
+      // Replace UUIDs and numeric IDs with :id for logging
+      const sanitizedUrl = url
+        .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+        .replace(/\/\d+/g, "/:id");
+      log.info("API_REQUEST", `${method} ${sanitizedUrl}`);
     })
     .catch(console.error);
 }
@@ -615,10 +619,14 @@ export function logApiResponse(
   // Import dynamically to avoid circular dependencies
   import("../security/secureLogger")
     .then(({ log }) => {
+      // Replace UUIDs and numeric IDs with :id for logging
+      const sanitizedUrl = url
+        .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+        .replace(/\/\d+/g, "/:id");
       const durationText = duration ? ` (${duration}ms)` : "";
       log.info(
         "API_RESPONSE",
-        `${method} ${url.replace(/\/\d+/g, "/:id")} - ${status}${durationText}`,
+        `${method} ${sanitizedUrl} - ${status}${durationText}`,
       );
     })
     .catch(console.error);

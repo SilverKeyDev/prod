@@ -32,7 +32,7 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     error,
     refetch: refetchRequests,
   } = useQuery({
-    queryKey: queryKeys.agent.all.concat(["connection-requests"]),
+    queryKey: [...queryKeys.agent.all, "connection-requests"] as const,
     queryFn: async () => {
       const response = await agentApi.getConnectionRequests();
       if (!response.success) {
@@ -64,7 +64,7 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.agent.all.concat(["connection-requests"]),
+        queryKey: [...queryKeys.agent.all, "connection-requests"] as const,
       });
     },
   });
@@ -86,7 +86,7 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.agent.all.concat(["connection-requests"]),
+        queryKey: [...queryKeys.agent.all, "connection-requests"] as const,
       });
       // Also invalidate conversations and clients since accepting creates a connection
       void queryClient.invalidateQueries({

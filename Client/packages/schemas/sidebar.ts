@@ -1,12 +1,10 @@
 import {
   Bookmark,
-  Handshake,
   Home,
   Key,
-  MessageSquare,
   Search,
+  Send,
   Settings,
-  Split,
   type LucideIcon,
 } from "lucide-react";
 
@@ -14,7 +12,6 @@ export type SidebarTabKey =
   | "dashboard"
   | "search"
   | "decide"
-  | "negotiate"
   | "close"
   | "settings"
   | "agent";
@@ -77,20 +74,6 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
       },
     ],
   },
-  negotiate: {
-    key: "negotiate",
-    name: "Negotiate",
-    description: "Plan strategy and craft compelling offers",
-    icon: Handshake,
-    href: "/negotiation-strategy",
-    subSteps: [
-      {
-        label: "Negotiation",
-        to: "/negotiation-strategy",
-        icon: Handshake,
-      },
-    ],
-  },
   close: {
     key: "close",
     name: "Buyer Checklists",
@@ -121,15 +104,15 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   },
   agent: {
     key: "agent",
-    name: "Agent",
+    name: "Messaging",
     description: "Communicate with your agent",
-    icon: MessageSquare,
+    icon: Send,
     href: "/agent",
     subSteps: [
       {
-        label: "Agent",
+        label: "Messaging",
         to: "/agent",
-        icon: MessageSquare,
+        icon: Send,
       },
     ],
   },
@@ -141,8 +124,6 @@ export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   if (pathname.startsWith("/search")) return SIDEBAR_TABS.search;
   if (pathname.startsWith("/saved") || pathname.startsWith("/compare-reports"))
     return SIDEBAR_TABS.decide;
-  if (pathname.startsWith("/negotiation-strategy"))
-    return SIDEBAR_TABS.negotiate;
   if (pathname.startsWith("/buyer-checklists")) return SIDEBAR_TABS.close;
   if (pathname.startsWith("/agent")) return SIDEBAR_TABS.agent;
   return undefined;

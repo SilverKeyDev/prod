@@ -66,12 +66,12 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       ghost:
         "text-brown hover:bg-brown/10 focus:ring-brown/20 disabled:text-brown/30 disabled:hover:bg-transparent",
       danger:
-        "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/20 disabled:bg-red-600/50 disabled:text-white/70",
+        "bg-rose text-white hover:bg-rose-light focus:ring-rose/20 disabled:bg-rose/50 disabled:text-white/70",
       success:
         "bg-olive text-white hover:bg-olive/90 focus:ring-olive/20 disabled:bg-olive/50 disabled:text-white/70",
       warning:
         "bg-gold text-white hover:bg-gold/90 focus:ring-gold/20 disabled:bg-gold/50 disabled:text-white/70",
-      info: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500/20 disabled:bg-gray-600/50 disabled:text-white/70",
+      info: "bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500/20 disabled:bg-neutral-600/50 disabled:text-white/70",
     };
 
     // Touch-friendly class for mobile

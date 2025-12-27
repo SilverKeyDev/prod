@@ -139,9 +139,9 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
                   typeof tolerance === "number"
                 ) {
                   if (travelTimeMinutes > tolerance * 1.2) {
-                    colorClass = "text-red-600 bg-red-50";
+                    colorClass = "text-rose bg-rose-50";
                   } else if (travelTimeMinutes > tolerance) {
-                    colorClass = "text-amber-600 bg-amber-50";
+                    colorClass = "text-yellow bg-yellow-50";
                   }
                 }
 

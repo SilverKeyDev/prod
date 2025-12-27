@@ -117,19 +117,26 @@ class GoogleCalendarService:
         """Validate OAuth state parameter"""
         return validate_oauth_state(state, session_state)
     
-    def build_auth_url(self, user_id: str, request_full_scope: bool = False) -> str:
+    def build_auth_url(self, user_id: str, request_full_scope: bool = False, use_scheduling_scopes: bool = False) -> str:
         """Build Google OAuth authorization URL with incremental authorization
         
         Args:
             user_id: User ID
             request_full_scope: If True, request full calendar scope (for agent sharing).
                               If False, request only calendar.events scope (default).
+            use_scheduling_scopes: If True, request calendar.app.created and calendar.freebusy scopes (for scheduling MVP).
         """
         state = self.generate_state(user_id)
         
         # Use incremental authorization: start with calendar.events, only request full calendar scope when needed
         if request_full_scope:
             requested_scopes = ["https://www.googleapis.com/auth/calendar"]
+        elif use_scheduling_scopes:
+            # Request minimal scopes for scheduling MVP: calendar.app.created and calendar.freebusy
+            requested_scopes = [
+                "https://www.googleapis.com/auth/calendar.app.created",
+                "https://www.googleapis.com/auth/calendar.freebusy"
+            ]
         else:
             requested_scopes = ["https://www.googleapis.com/auth/calendar.events"]
         
@@ -431,6 +438,94 @@ class GoogleCalendarService:
             error_msg = sanitize_error_message(e)
             log_oauth_event("calendar_acl_error", user_id, calendar_id=calendar_id, error=error_msg)
             logger.error(f"Error adding ACL to calendar {calendar_id} for user {user_id}: {error_msg}", exc_info=True)
+            raise
+    
+    def query_freebusy(self, user_id: str, time_min: str, time_max: str, 
+                      calendar_ids: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Query free/busy information for specified calendars
+        
+        Args:
+            user_id: User ID
+            time_min: Start time in ISO 8601 format
+            time_max: End time in ISO 8601 format
+            calendar_ids: List of calendar IDs to check (defaults to ["primary"])
+        
+        Returns:
+            Dictionary with calendar IDs as keys and busy time blocks as values
+        """
+        try:
+            creds = self.load_credentials(user_id)
+            service = build("calendar", "v3", credentials=creds, cache_discovery=False)
+            
+            # Default to primary calendar if not specified
+            if not calendar_ids:
+                calendar_ids = ["primary"]
+            
+            freebusy_request = {
+                "timeMin": time_min,
+                "timeMax": time_max,
+                "items": [{"id": cal_id} for cal_id in calendar_ids]
+            }
+            
+            freebusy_response = service.freebusy().query(body=freebusy_request).execute()
+            
+            log_oauth_event("freebusy_queried", user_id, 
+                          time_min=time_min, time_max=time_max, 
+                          calendar_count=len(calendar_ids))
+            return freebusy_response.get("calendars", {})
+            
+        except Exception as e:
+            error_msg = sanitize_error_message(e)
+            log_oauth_event("freebusy_query_error", user_id, error=error_msg)
+            logger.error(f"Error querying freebusy for user {user_id}: {error_msg}", exc_info=True)
+            raise
+    
+    def get_or_create_silverkey_calendar(self, user_id: str, buyer_name: Optional[str] = None) -> Dict[str, Any]:
+        """Get or create the SilverKey calendar for a user
+        
+        Args:
+            user_id: User ID
+            buyer_name: Optional buyer name to include in calendar name
+        
+        Returns:
+            Calendar dictionary with id, summary, etc.
+        """
+        try:
+            creds = self.load_credentials(user_id)
+            service = build("calendar", "v3", credentials=creds, cache_discovery=False)
+            
+            # Try to find existing SilverKey calendar
+            calendar_list = service.calendarList().list().execute()
+            silverkey_calendars = [
+                cal for cal in calendar_list.get("items", [])
+                if cal.get("summary", "").startswith("SilverKey")
+            ]
+            
+            if silverkey_calendars:
+                # Return the first SilverKey calendar found
+                log_oauth_event("silverkey_calendar_found", user_id, 
+                              calendar_id=silverkey_calendars[0].get("id"))
+                return silverkey_calendars[0]
+            
+            # Create new SilverKey calendar
+            calendar_name = f"SilverKey – {buyer_name}" if buyer_name else "SilverKey Home Tours"
+            calendar_body = {
+                "summary": calendar_name,
+                "description": "Calendar created by SilverKey for managing home tours and real estate events",
+                "timeZone": "America/Los_Angeles"  # Default, can be made configurable
+            }
+            
+            created_calendar = service.calendars().insert(body=calendar_body).execute()
+            
+            log_oauth_event("silverkey_calendar_created", user_id, 
+                          calendar_id=created_calendar.get("id"),
+                          calendar_name=calendar_name)
+            return created_calendar
+            
+        except Exception as e:
+            error_msg = sanitize_error_message(e)
+            log_oauth_event("silverkey_calendar_error", user_id, error=error_msg)
+            logger.error(f"Error getting/creating SilverKey calendar for user {user_id}: {error_msg}", exc_info=True)
             raise
     
     def revoke_access(self, user_id: str) -> bool:

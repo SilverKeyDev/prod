@@ -2,8 +2,6 @@ import {
   MessageCircle,
   User as UserIcon,
   ChevronLeft,
-  Menu,
-  Search,
   Plus,
 } from "lucide-react";
 import { useState } from "react";
@@ -74,9 +72,6 @@ export default function ClientManagement({
             )}
           </div>
         </div>
-        <p className="text-sm text-black/60">
-          Select a client to start messaging
-        </p>
       </div>
 
       {/* Scrollable Client List */}

@@ -69,12 +69,12 @@ export function ComparisonTable({
             const isSectionField = field.sectionKey && !isSectionHeader;
 
             const bgClass = isSectionHeader
-              ? "bg-[#F5F1E8]"
+              ? "bg-beige/20"
               : isEven
                 ? "bg-white"
                 : "bg-beige/5";
             const stickyBgClass = isSectionHeader
-              ? "bg-[#F5F1E8]"
+              ? "bg-beige/20"
               : isEven
                 ? "bg-white/80"
                 : "bg-beige/5";
@@ -94,7 +94,7 @@ export function ComparisonTable({
                 key={`${isSectionHeader ? "section-header" : "field"}-${field.key}-${index}`}
                 className={`relative ${
                   isSectionHeader
-                    ? "bg-[#F5F1E8]"
+                    ? "bg-beige/20"
                     : `${bgClass} border-t border-gray-200`
                 }`}
               >
@@ -115,9 +115,9 @@ export function ComparisonTable({
                       {field.sectionKey &&
                         renderSectionIcon(
                           field.sectionKey,
-                          "h-4 w-4 sm:h-5 sm:w-5 text-[#D4C5AA]"
+                          "h-4 w-4 sm:h-5 sm:w-5 text-beige"
                         )}
-                      <span className="text-[#D4C5AA]">{sectionTitle}</span>
+                      <span className="text-beige">{sectionTitle}</span>
                     </div>
                   ) : (
                     <span>{field.label}</span>
@@ -136,8 +136,8 @@ export function ComparisonTable({
                           : "min-w-[100px] sm:min-w-[120px] md:min-w-[150px]"
                       } ${
                         isSectionHeader
-                          ? "bg-[#F5F1E8] border-t-2 border-b border-gray-200"
-                          : `${isPrice ? "font-medium text-[#D4C5AA]" : "text-black/90"} text-center`
+                          ? "bg-beige/20 border-t-2 border-b border-neutral-200"
+                          : `${isPrice ? "font-medium text-beige" : "text-black/90"} text-center`
                       }`}
                     >
                       {isSectionHeader ? (

@@ -10,7 +10,6 @@ import MobileTopBar from "../../components/widgets/header/MobileTopBar";
 // Pages
 import BuyerChecklists from "../../pages/BuyerChecklistsPage.tsx";
 import DashboardPage from "../../pages/DashboardPage.tsx";
-import NegotiationStrategy from "../../pages/NegotiationPage.tsx";
 import PersonalizationPage from "../../pages/SettingsPage.tsx";
 import SavedHomes from "../../pages/SavedPage.tsx";
 import SearchPage from "../../pages/SearchPage.tsx";
@@ -61,7 +60,6 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
   "/buyer-checklists": 90,
   "/dashboard": 90,
-  "/negotiation-strategy": 90,
   "/settings": 90,
   "/saved": 90,
   "/agent": 90,
@@ -72,7 +70,6 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
   "/buyer-checklists": 90,
   "/dashboard": 90,
-  "/negotiation-strategy": 90,
   "/settings": 90,
   "/saved": 90,
   "/agent": 90,
@@ -109,7 +106,6 @@ export default function DashboardLayout({
   const isBuyerChecklists = path.startsWith("/buyer-checklists");
   const isDashboard = path.startsWith("/dashboard");
   const isPersonalization = path.startsWith("/settings");
-  const isNegotiation = path.startsWith("/negotiation-strategy");
   const isSaved = path.startsWith("/saved");
   const isAgent = path.startsWith("/agent");
 
@@ -200,16 +196,6 @@ export default function DashboardLayout({
       };
     }
 
-    if (isNegotiation) {
-      const tab = getTabByPath(path);
-      return {
-        type: "rheader",
-        title: tab?.name ?? "Negotiation Strategy",
-        subtitle:
-          tab?.description ?? "Develop winning strategies for your offers",
-      };
-    }
-
     if (isBuyerChecklists) {
       return {
         type: "rheader",
@@ -237,7 +223,6 @@ export default function DashboardLayout({
     header,
     isSearch,
     isPersonalization,
-    isNegotiation,
     isBuyerChecklists,
     isSaved,
     path,
@@ -271,7 +256,7 @@ export default function DashboardLayout({
       );
     }
 
-    if (config.type === "rheader" && config.title && !isNegotiation) {
+    if (config.type === "rheader" && config.title) {
       return null;
     }
 
@@ -280,7 +265,6 @@ export default function DashboardLayout({
     isSearch,
     isDashboard,
     isBuyerChecklists,
-    isNegotiation,
     closePageHeaderData,
     buyerChecklistsActiveTab,
     config,
@@ -418,7 +402,7 @@ export default function DashboardLayout({
 
         {/* Desktop Header (consistent width) - Hidden on mobile and search pages */}
         <div
-          className={`hidden lg:block mx-auto w-full ${isSaved || isNegotiation ? "" : "pt-8"} ${isSearch ? "!hidden" : ""}`}
+          className={`hidden lg:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch ? "!hidden" : ""}`}
           style={{
             maxWidth: `calc((100vw - 208px) * ${computedMaxWidthVW} / 100)`,
           }}
@@ -459,7 +443,6 @@ export default function DashboardLayout({
               setMobileHeaderActions={setMobileHeaderActions}
             />
           )}
-          {isNegotiation && <NegotiationStrategy />}
           {isBuyerChecklists && (
             <BuyerChecklists
               setClosePageHeaderData={setClosePageHeaderData}

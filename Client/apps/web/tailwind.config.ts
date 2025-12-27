@@ -46,6 +46,45 @@ export default {
           lighter: "hsl(45, 30%, 80%)",
           muted: "hsl(45, 20%, 70%)", // Low saturation gold
         },
+        rose: {
+          DEFAULT: "#F43F5E", // Standard rose
+          light: "#FB7185", // Lighter rose
+          muted: "hsl(340, 20%, 55%)", // Low saturation rose
+          50: "hsl(340, 20%, 95%)", // Very light rose
+          100: "hsl(340, 20%, 90%)", // Light rose
+          800: "hsl(340, 20%, 25%)", // Dark rose
+        },
+        green: {
+          DEFAULT: "#16a34a", // Standard green
+          light: "#22c55e", // Lighter green
+          muted: "hsl(142, 20%, 50%)", // Low saturation green
+          50: "hsl(142, 20%, 95%)", // Very light green
+          100: "hsl(142, 20%, 90%)", // Light green
+          200: "hsl(142, 20%, 85%)", // Lighter green
+          500: "hsl(142, 20%, 50%)", // Medium green
+          600: "hsl(142, 20%, 40%)", // Medium-dark green
+          700: "hsl(142, 20%, 35%)", // Dark green
+          800: "hsl(142, 20%, 25%)", // Darker green
+        },
+        yellow: {
+          DEFAULT: "#eab308", // Standard yellow
+          light: "#facc15", // Lighter yellow
+          muted: "hsl(45, 20%, 60%)", // Low saturation yellow
+          50: "hsl(45, 20%, 95%)", // Very light yellow
+          100: "hsl(45, 20%, 90%)", // Light yellow
+          700: "hsl(45, 20%, 40%)", // Medium-dark yellow
+          800: "hsl(45, 20%, 30%)", // Dark yellow
+        },
+        blue: {
+          DEFAULT: "#2563eb", // Standard blue
+          light: "#3b82f6", // Lighter blue
+          muted: "hsl(217, 20%, 50%)", // Low saturation blue
+          50: "hsl(217, 20%, 95%)", // Very light blue
+          100: "hsl(217, 20%, 90%)", // Light blue
+          500: "hsl(217, 20%, 50%)", // Medium blue
+          600: "hsl(217, 20%, 40%)", // Medium-dark blue
+          800: "hsl(217, 20%, 25%)", // Dark blue
+        },
         // Muted Neutrals
         neutral: {
           50: "hsl(0, 0%, 98%)", // Off-white

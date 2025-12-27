@@ -39,6 +39,8 @@ export class NegotiationService {
     strategy: "negotiationStrategy",
     comps: "negotiationComps",
   };
+  private isGenerating: boolean = false;
+  private currentGenerationPromise: Promise<void> | null = null;
 
   private constructor() {
     this.state = {
@@ -114,14 +116,51 @@ export class NegotiationService {
    * Handle home selection
    */
   public selectHome(home: unknown): void {
+    // Extract address from the new home
+    let newAddress: string | undefined;
+    if (
+      home &&
+      typeof home === "object" &&
+      "address" in home &&
+      typeof home.address === "string"
+    ) {
+      newAddress = home.address;
+    } else if (
+      home &&
+      typeof home === "object" &&
+      "full_address" in home &&
+      typeof (home as Record<string, unknown>).full_address === "string"
+    ) {
+      newAddress = (home as Record<string, unknown>).full_address as string;
+    }
+
+    // Extract address from currently selected home
+    let currentAddress: string | undefined;
+    if (
+      this.state.selectedHome &&
+      typeof this.state.selectedHome === "object" &&
+      "address" in this.state.selectedHome &&
+      typeof this.state.selectedHome.address === "string"
+    ) {
+      currentAddress = this.state.selectedHome.address as string;
+    } else if (
+      this.state.selectedHome &&
+      typeof this.state.selectedHome === "object" &&
+      "full_address" in this.state.selectedHome &&
+      typeof (this.state.selectedHome as Record<string, unknown>)
+        .full_address === "string"
+    ) {
+      currentAddress = (this.state.selectedHome as Record<string, unknown>)
+        .full_address as string;
+    }
+
+    // Skip if selecting the same home (by address)
+    if (newAddress && currentAddress && newAddress === currentAddress) {
+      return;
+    }
+
     log.info("NEGOTIATION_SERVICE", "Home selected", {
-      homeAddress:
-        home &&
-        typeof home === "object" &&
-        "address" in home &&
-        typeof home.address === "string"
-          ? home.address
-          : undefined,
+      homeAddress: newAddress,
     });
 
     this.updateState({
@@ -150,6 +189,11 @@ export class NegotiationService {
    * Generate negotiation strategy and property comps
    */
   public async generateStrategy(): Promise<void> {
+    // Prevent concurrent calls - if already generating, return the existing promise
+    if (this.isGenerating && this.currentGenerationPromise) {
+      return this.currentGenerationPromise;
+    }
+
     if (!this.state.selectedHome) {
       const error = "No home selected";
       this.updateState({ error });
@@ -162,6 +206,22 @@ export class NegotiationService {
       return;
     }
 
+    // Set generating flag and create promise
+    this.isGenerating = true;
+    this.currentGenerationPromise = this._doGenerateStrategy();
+
+    try {
+      await this.currentGenerationPromise;
+    } finally {
+      this.isGenerating = false;
+      this.currentGenerationPromise = null;
+    }
+  }
+
+  /**
+   * Internal method to actually perform the strategy generation
+   */
+  private async _doGenerateStrategy(): Promise<void> {
     this.updateState({
       isLoading: true,
       error: null,

@@ -19,6 +19,7 @@ export type UseAgentChatsReturn = {
     conversationId: string
   ) => Promise<{ messages: AgentChatMessage[]; conversation?: AgentConversation }>;
   isSendingMessage: boolean;
+  lastFetchedAt: number | null;
 };
 
 /**
@@ -36,6 +37,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     isLoading,
     error,
     refetch: refetchChats,
+    dataUpdatedAt,
   } = useQuery({
     queryKey: queryKeys.agent.conversation(clientId),
     queryFn: async () => {
@@ -105,5 +107,6 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     sendMessage,
     getChatHistory,
     isSendingMessage: sendMessageMutation.isPending,
+    lastFetchedAt: dataUpdatedAt > 0 ? dataUpdatedAt : null,
   };
 }

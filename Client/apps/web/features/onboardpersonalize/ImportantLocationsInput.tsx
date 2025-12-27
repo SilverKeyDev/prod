@@ -212,7 +212,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
               {isEditMode && (
                 <button
                   onClick={() => handleRemoveLocation(index)}
-                  className="cursor-pointer rounded p-1 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
+                  className="cursor-pointer rounded p-1 text-rose transition-colors hover:bg-rose-50 hover:text-rose-light"
                   title="Remove location"
                 >
                   <X className="h-4 w-4" />

@@ -436,12 +436,42 @@ export class HttpClient {
         // Handle auth error
         this.handleAuthenticationError(error);
       } else {
-        console.error("API_REQUEST", `${method} ${url} - Network Error`, {
+        // Sanitize URL for logging (replace UUIDs and numeric IDs)
+        const sanitizedUrl = url
+          .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+          .replace(/\/\d+/g, "/:id");
+        
+        // Determine error type for better debugging
+        const errorType = error instanceof Error ? error.name : "Unknown";
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const isTimeout = error instanceof Error && (
+          error.name === "TimeoutError" || 
+          error.message.includes("timeout") ||
+          error.message.includes("aborted")
+        );
+        const isAbort = error instanceof Error && error.name === "AbortError";
+        const isNetworkError = error instanceof Error && (
+          error.message.includes("Failed to fetch") ||
+          error.message.includes("NetworkError") ||
+          error.message.includes("network") ||
+          error.message.includes("CORS") ||
+          error.message.includes("load failed")
+        );
+        
+        console.error("API_REQUEST", `${method} ${sanitizedUrl} - Network Error`, {
           method,
-          url: url.replace(/\/\d+/g, "/:id"),
-          error: error instanceof Error ? error.message : String(error),
+          url: sanitizedUrl,
+          originalUrl: url, // Include original URL for debugging
+          errorType,
+          errorMessage,
+          error: errorMessage,
           duration: `${duration}ms`,
           timestamp: new Date().toISOString(),
+          isTimeout,
+          isAbort,
+          isNetworkError,
+          // Include full error object for debugging (will show in console)
+          fullError: error,
         });
       }
 
@@ -624,9 +654,13 @@ export class HttpClient {
     // Import dynamically to avoid circular dependencies
     import("../security/secureLogger")
       .then(({ secureLogger }) => {
+        // Replace UUIDs and numeric IDs with :id for logging
+        const sanitizedUrl = url
+          .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+          .replace(/\/\d+/g, "/:id");
         secureLogger.info(
           "API_REQUEST",
-          `${method} ${url.replace(/\/\d+/g, "/:id")}`,
+          `${method} ${sanitizedUrl}`,
         );
       })
       .catch(console.error);
@@ -641,10 +675,14 @@ export class HttpClient {
     // Import dynamically to avoid circular dependencies
     import("../security/secureLogger")
       .then(({ secureLogger }) => {
+        // Replace UUIDs and numeric IDs with :id for logging
+        const sanitizedUrl = url
+          .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+          .replace(/\/\d+/g, "/:id");
         const durationText = duration ? ` (${duration}ms)` : "";
         secureLogger.info(
           "API_RESPONSE",
-          `${method} ${url.replace(/\/\d+/g, "/:id")} - ${status}${durationText}`,
+          `${method} ${sanitizedUrl} - ${status}${durationText}`,
         );
       })
       .catch(console.error);

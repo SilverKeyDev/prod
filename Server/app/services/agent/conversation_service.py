@@ -25,6 +25,10 @@ def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
         List of conversation dictionaries with metadata
     """
     try:
+        if not user_id:
+            logger.warning("get_conversations called with empty user_id")
+            return []
+        
         if is_agent:
             # Get all conversations where user is the agent
             conversations = AgentConversation.query.filter_by(agent_id=user_id).all()
@@ -34,15 +38,15 @@ def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
         
         result = []
         for conv in conversations:
-            # Get the other party's info
-            if is_agent:
-                other_party = User.query.filter_by(id=conv.client_id).first()
-                other_party_name = other_party.name if other_party else "Unknown"
-                other_party_email = other_party.email if other_party else ""
-            else:
-                other_party = User.query.filter_by(id=conv.agent_id).first()
-                other_party_name = other_party.name if other_party else "Unknown"
-                other_party_email = other_party.email if other_party else ""
+            # Get the client's info (always needed for client_name/client_email)
+            client = User.query.filter_by(id=conv.client_id).first()
+            client_name = client.name if client else "Unknown"
+            client_email = client.email if client else ""
+            
+            # Get the agent's info (for display purposes)
+            agent = User.query.filter_by(id=conv.agent_id).first()
+            agent_name = agent.name if agent else "Unknown"
+            agent_email = agent.email if agent else ""
             
             # Get last message
             last_message_obj = ChatHistory.query.filter_by(
@@ -53,8 +57,10 @@ def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
                 'id': conv.id,
                 'agent_id': conv.agent_id,
                 'client_id': conv.client_id,
-                'client_name': other_party_name if not is_agent else (User.query.filter_by(id=conv.client_id).first().name if User.query.filter_by(id=conv.client_id).first() else ""),
-                'client_email': other_party_email if not is_agent else (User.query.filter_by(id=conv.client_id).first().email if User.query.filter_by(id=conv.client_id).first() else ""),
+                'client_name': client_name,
+                'client_email': client_email,
+                'agent_name': agent_name,
+                'agent_email': agent_email,
                 'last_message': last_message_obj.message if last_message_obj else None,
                 'last_message_at': last_message_obj.timestamp.isoformat() if last_message_obj and last_message_obj.timestamp else None,
                 'created_at': conv.created_at.isoformat() if conv.created_at else None,
@@ -213,12 +219,19 @@ def send_message(conversation_id: str, sender_id: str, message: str, role: str, 
         Dictionary with message_id
     """
     try:
+        if not conversation_id:
+            raise ValueError("conversation_id is required")
+        if not sender_id:
+            raise ValueError("sender_id is required")
+        if not message:
+            raise ValueError("message is required")
+        
         conversation = AgentConversation.query.filter_by(id=conversation_id).first()
         if not conversation:
             raise ValueError(f"Conversation {conversation_id} not found")
         
         # Verify sender is part of the conversation
-        if sender_id != conversation.agent_id and sender_id != conversation.client_id:
+        if str(sender_id) != str(conversation.agent_id) and str(sender_id) != str(conversation.client_id):
             raise ValueError(f"User {sender_id} is not part of conversation {conversation_id}")
         
         # Create message

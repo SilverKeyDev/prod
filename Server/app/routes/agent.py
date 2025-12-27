@@ -68,8 +68,16 @@ def get_chats():
         # Optional client_id filter for agents
         client_id = request.args.get('client_id')
         
+        # Validate user.id exists
+        if not user.id:
+            logger.error("User ID is None in get_chats")
+            return jsonify({
+                'success': False,
+                'error': 'Invalid user session'
+            }), 401
+        
         # Get conversations - pass is_agent flag
-        conversations = get_conversations(user.id, bool(user.is_agent))
+        conversations = get_conversations(str(user.id), bool(user.is_agent))
         
         # Filter by client_id if provided (for agents)
         if client_id and user.is_agent:
@@ -210,6 +218,13 @@ def send_message():
         
         # If conversation doesn't exist yet, create it first
         if not conversation_id or conversation_id == "new":
+            if not user.id:
+                logger.error("User ID is None when creating conversation")
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid user session'
+                }), 401
+            
             if user.is_agent:
                 # Agent creating conversation with a client
                 client_id = data.get('client_id')
@@ -219,7 +234,7 @@ def send_message():
                         'error': 'client_id is required to create conversation'
                     }), 400
                 
-                conversation = create_conversation(user.id, client_id)
+                conversation = create_conversation(str(user.id), str(client_id))
                 conversation_id = conversation['id']
             else:
                 # Client creating conversation - need to get agent_id from user's agent_id field
@@ -238,10 +253,17 @@ def send_message():
                         'error': 'No agent assigned. Please contact support.'
                     }), 400
                 
-                conversation = create_conversation(agent_id, user.id)
+                conversation = create_conversation(str(agent_id), str(user.id))
                 conversation_id = conversation['id']
         else:
             # Verify user has access to this conversation
+            if not user.id:
+                logger.error("User ID is None when checking conversation access")
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid user session'
+                }), 401
+            
             conversation = get_conversation(conversation_id)
             if not conversation:
                 return jsonify({
@@ -249,16 +271,24 @@ def send_message():
                     'error': 'Conversation not found'
                 }), 404
             
-            # Check if user is part of the conversation
-            if conversation['agent_id'] != user.id and conversation['client_id'] != user.id:
+            # Check if user is part of the conversation (convert to strings for comparison)
+            if str(conversation['agent_id']) != str(user.id) and str(conversation['client_id']) != str(user.id):
                 return jsonify({
                     'success': False,
                     'error': 'Access denied'
                 }), 403
         
+        # Validate user.id exists
+        if not user.id:
+            logger.error("User ID is None in send_message")
+            return jsonify({
+                'success': False,
+                'error': 'Invalid user session'
+            }), 401
+        
         result = send_conversation_message(
             conversation_id,
-            user.id,
+            str(user.id),
             message,
             role,
             shared_home_id=shared_home_id

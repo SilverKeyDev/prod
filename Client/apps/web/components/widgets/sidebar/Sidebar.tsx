@@ -5,12 +5,14 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../../app/providers/auth/useAuth";
 import ConfirmationDialog from "../../modals/dialogs/ConfirmationDialog";
 import WhiteLogo from "../../ui/asset/WhiteLogo";
+import NotificationBadge from "../../ui/NotificationBadge";
 
 import { getButtonStyles, getSubItemStyles } from "./sidebarStyles";
 import {
   useViewStore,
   type ViewState,
 } from "../../../../../packages/store/view.slice";
+import { useNotificationStore } from "../../../../../packages/store/notifications.slice";
 import { SIDEBAR_TABS } from "../../../../../packages/schemas/sidebar";
 import type { UserProfile } from "../../../../../packages/schemas/user";
 import { useUserData } from "../../../../../packages/hooks/data/useUserData";
@@ -85,21 +87,6 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
-  negotiate: {
-    name: SIDEBAR_TABS.negotiate.name,
-    icon: SIDEBAR_TABS.negotiate.icon as unknown as React.FC<{
-      className?: string;
-    }>,
-    items: [
-      {
-        name: "Negotiation",
-        href: SIDEBAR_TABS.negotiate.href,
-        icon: SIDEBAR_TABS.negotiate.icon as unknown as React.FC<{
-          className?: string;
-        }>,
-      },
-    ],
-  },
   close: {
     name: SIDEBAR_TABS.close.name,
     icon: SIDEBAR_TABS.close.icon as unknown as React.FC<{
@@ -147,30 +134,15 @@ const navigationStructure: NavigationStructure = {
   },
 };
 
-// Function to generate navigation array based on user type
+// Function to generate navigation array - messaging always available for all users
 const getNavigation = (
-  isAgent: boolean,
-  hasAgent: boolean
+  _isAgent: boolean,
+  _hasAgent: boolean
 ): NavigationStructure => {
   // Create a proper copy of the navigation structure
   const navigation: NavigationStructure = {};
 
-  // If user is an agent, add dashboard as first option (redirects to /agent)
-  if (isAgent) {
-    navigation.dashboard = {
-      name: navigationStructure.dashboard.name,
-      icon: navigationStructure.dashboard.icon,
-      items: [
-        {
-          name: navigationStructure.dashboard.name,
-          href: "/agent", // Dashboard redirects to /agent for agents
-          icon: navigationStructure.dashboard.icon,
-        },
-      ],
-    };
-  }
-
-  // Add other navigation items
+  // Add navigation items - no dashboard/home button, messaging always available
   navigation.search = {
     name: navigationStructure.search.name,
     icon: navigationStructure.search.icon,
@@ -181,11 +153,14 @@ const getNavigation = (
     icon: navigationStructure.decide.icon,
     items: [...navigationStructure.decide.items],
   };
-  navigation.negotiate = {
-    name: navigationStructure.negotiate.name,
-    icon: navigationStructure.negotiate.icon,
-    items: [...navigationStructure.negotiate.items],
+
+  // Messaging tab - always available regardless of agent status
+  navigation.agent = {
+    name: navigationStructure.agent.name,
+    icon: navigationStructure.agent.icon,
+    items: [...navigationStructure.agent.items],
   };
+
   navigation.close = {
     name: navigationStructure.close.name,
     icon: navigationStructure.close.icon,
@@ -196,15 +171,6 @@ const getNavigation = (
     icon: navigationStructure.settings.icon,
     items: [...navigationStructure.settings.items],
   };
-
-  // Add agent tab only if user is NOT an agent but has an assigned agent
-  if (!isAgent && hasAgent) {
-    navigation.agent = {
-      name: navigationStructure.agent.name,
-      icon: navigationStructure.agent.icon,
-      items: [...navigationStructure.agent.items],
-    };
-  }
 
   return navigation;
 };
@@ -227,13 +193,13 @@ export default function Sidebar({
   const { userProfile } = useUserData();
   const isAgent = userProfile?.is_agent ?? false;
   const hasAgent = userProfile?.agent_id ? true : false;
-  const shouldShowAgentTab = !isAgent && hasAgent;
 
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
   const toggleCategoryInStore = useViewStore(
     (s: ViewState) => s.toggleCategory
   );
   const location = useLocation();
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
 
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -322,12 +288,11 @@ export default function Sidebar({
               {Object.entries(getNavigation(isAgent, hasAgent)).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
-                    {/* Render certain categories as direct links (dashboard, search, decide, negotiate, close, settings, agent) */}
+                    {/* Render certain categories as direct links (dashboard, search, decide, close, settings, agent) */}
                     {/* Agent is always a direct link, never a dropdown */}
                     {categoryKey === "dashboard" ||
                     categoryKey === "search" ||
                     categoryKey === "decide" ||
-                    categoryKey === "negotiate" ||
                     categoryKey === "close" ||
                     categoryKey === "settings" ||
                     categoryKey === "agent" ? (
@@ -346,11 +311,19 @@ export default function Sidebar({
                             title={!expanded ? firstItem?.name : ""}
                           >
                             {ItemIcon && (
-                              <ItemIcon
-                                className={`h-6 w-6 transition-all duration-200 ${
-                                  expanded ? "mr-3" : ""
-                                }`}
-                              />
+                              <div className="relative inline-flex items-center">
+                                <ItemIcon
+                                  className={`h-6 w-6 transition-all duration-200 ${
+                                    expanded ? "mr-3" : ""
+                                  }`}
+                                />
+                                {categoryKey === "agent" && unreadCount > 0 && (
+                                  <NotificationBadge
+                                    count={unreadCount}
+                                    className="absolute -top-1 -right-1 sm:-top-0.5 sm:-right-0.5"
+                                  />
+                                )}
+                              </div>
                             )}
                             {expanded && (
                               <span className="text-sm font-medium">

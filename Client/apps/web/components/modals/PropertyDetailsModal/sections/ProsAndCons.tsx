@@ -75,7 +75,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
         <Card
           className={`p-3 sm:p-4 ${
             pros && cons && cons.length > pros.length + 2
-              ? "ring-1 ring-red-200 bg-red-50/30"
+              ? "ring-1 ring-rose-100 bg-rose-50/30"
               : ""
           }`}
         >

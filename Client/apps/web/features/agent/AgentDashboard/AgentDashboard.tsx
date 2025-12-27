@@ -1,34 +1,82 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAgentClients } from "../../../../../packages/hooks/data/useAgentClients";
-import ClientManagement from "./ClientManagement";
+import { useAgentChats } from "../../../../../packages/hooks/data/useAgentChats";
 import AgentMessaging from "../AgentMessaging";
-import type { AgentClient } from "../../../../../packages/config/api/agent";
 
 export default function AgentDashboard() {
   const { clients, isLoading } = useAgentClients();
+  const { conversations } = useAgentChats();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
 
   const handleClientSelect = (clientId: string) => {
     setSelectedClientId(clientId);
+    // Store in localStorage for next time
+    localStorage.setItem("agent_last_selected_client", clientId);
   };
 
-  return (
-    <div className="mx-auto h-[calc(100vh-10rem)] max-w-7xl md:mt-0">
-      <div className="relative flex h-full overflow-hidden rounded-xl shadow-lg">
-        {/* Left Sidebar - Client List */}
-        <ClientManagement
-          clients={clients}
-          isLoading={isLoading}
-          selectedClientId={selectedClientId}
-          onClientSelect={handleClientSelect}
-        />
+  // Auto-select the conversation where the agent last sent a message
+  useEffect(() => {
+    if (hasAutoSelected || isLoading || conversations.length === 0 || !clients.length || selectedClientId) {
+      return;
+    }
 
-        {/* Right Side - Messaging */}
-        <AgentMessaging
-          selectedClientId={selectedClientId}
-          selectedClient={clients.find((c) => c.id === selectedClientId)}
-        />
-      </div>
-    </div>
+    const findLastConversation = async () => {
+      try {
+        // First, try to restore from localStorage
+        const lastSelectedClientId = localStorage.getItem("agent_last_selected_client");
+        if (lastSelectedClientId && clients.some((c) => c.id === lastSelectedClientId)) {
+          const lastConversation = conversations.find((c) => c.client_id === lastSelectedClientId);
+          if (lastConversation && lastConversation.last_message_at) {
+            // If conversation exists and has messages, use it
+            setSelectedClientId(lastSelectedClientId);
+            setHasAutoSelected(true);
+            return;
+          }
+        }
+
+        // Find conversation with most recent message
+        // Sort conversations by last_message_at descending
+        const sortedConversations = [...conversations]
+          .filter((c) => c.last_message_at) // Only consider conversations with messages
+          .sort((a, b) => {
+            const aTime = new Date(a.last_message_at!).getTime();
+            const bTime = new Date(b.last_message_at!).getTime();
+            return bTime - aTime;
+          });
+
+        // Select the most recent conversation
+        if (sortedConversations.length > 0) {
+          const mostRecent = sortedConversations[0];
+          setSelectedClientId(mostRecent.client_id);
+          localStorage.setItem("agent_last_selected_client", mostRecent.client_id);
+        } else if (conversations.length > 0) {
+          // Fallback: select first conversation if none have messages yet
+          setSelectedClientId(conversations[0].client_id);
+          localStorage.setItem("agent_last_selected_client", conversations[0].client_id);
+        }
+
+        setHasAutoSelected(true);
+      } catch (error) {
+        // If anything fails, just select the first available conversation
+        console.warn("[AgentDashboard] Error in auto-selection:", error);
+        if (conversations.length > 0) {
+          setSelectedClientId(conversations[0].client_id);
+        }
+        setHasAutoSelected(true);
+      }
+    };
+
+    void findLastConversation();
+  }, [conversations, clients, isLoading, hasAutoSelected, selectedClientId]);
+
+  return (
+    <AgentMessaging
+      clients={clients}
+      isLoadingClients={isLoading}
+      selectedClientId={selectedClientId}
+      selectedClient={clients.find((c) => c.id === selectedClientId)}
+      onClientSelect={handleClientSelect}
+    />
   );
 }

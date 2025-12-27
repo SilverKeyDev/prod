@@ -126,10 +126,12 @@ export default function ClientSearchModal({
                         <Button
                           onClick={() => handleSendRequest(client.id)}
                           disabled={isCreatingRequest}
-                          variant="primary"
-                          className="flex-1"
+                          variant="outline"
+                          size="md"
+                          icon={<Send />}
+                          iconPosition="left"
+                          className="flex-1 bg-gold-lighter text-white hover:bg-gold hover:text-white border-gold-lighter"
                         >
-                          <Send className="mr-2 h-4 w-4" />
                           Send Request
                         </Button>
                         <Button
@@ -137,7 +139,11 @@ export default function ClientSearchModal({
                             setSelectedClientId(null);
                             setMessage("");
                           }}
-                          variant="secondary"
+                          variant="outline"
+                          size="md"
+                          icon={<X />}
+                          iconPosition="left"
+                          className="bg-neutral-200 text-neutral-700 hover:bg-neutral-200/80 border-neutral-200"
                         >
                           Cancel
                         </Button>

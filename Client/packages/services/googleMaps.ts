@@ -256,11 +256,44 @@ export class GoogleMapsService {
       script.defer = true;
       script.id = "google-maps-api"; // Add unique ID to prevent duplicates
 
+      // Suppress CSP test endpoint errors (gen_204) - these are non-critical
+      const originalErrorHandler = window.onerror;
+      const errorListener = (event: ErrorEvent) => {
+        // Ignore Google Maps CSP test endpoint errors (gen_204)
+        if (
+          event.message?.includes("gen_204") ||
+          event.filename?.includes("gen_204") ||
+          event.message?.includes("ERR_CONNECTION_CLOSED")
+        ) {
+          event.preventDefault();
+          return true;
+        }
+        return false;
+      };
+      window.addEventListener("error", errorListener, { once: true });
+
       script.onload = () => {
+        window.removeEventListener("error", errorListener);
         resolve();
       };
 
       script.onerror = (error) => {
+        window.removeEventListener("error", errorListener);
+        // Check if this is a CSP test endpoint error (non-critical)
+        const errorMessage = error instanceof ErrorEvent 
+          ? error.message 
+          : String(error);
+        if (errorMessage.includes("gen_204") || errorMessage.includes("ERR_CONNECTION_CLOSED")) {
+          // CSP test endpoint errors are non-critical, log as warning instead
+          console.warn(
+            "🗺️ [GMAPS_SERVICE] ⚠️ Google Maps CSP test endpoint error (non-critical):",
+            errorMessage,
+          );
+          // Still resolve since the main script may have loaded successfully
+          resolve();
+          return;
+        }
+        
         console.error(
           "🗺️ [GMAPS_SERVICE] ❌ Failed to load Google Maps script:",
           error,

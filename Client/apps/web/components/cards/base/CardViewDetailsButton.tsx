@@ -59,8 +59,8 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
 
   // Variant styles
   const variantStyles = {
-    primary: "bg-[#D4C5AA] text-white hover:bg-[#D4C5AA]/90 border-[#D4C5AA]",
-    secondary: "bg-white text-[#D4C5AA] border-[#D4C5AA] hover:bg-[#D4C5AA]/5",
+    primary: "bg-beige text-white hover:bg-beige/90 border-beige",
+    secondary: "bg-white text-beige border-beige hover:bg-beige/5",
     muted: "muted-button-primary",
   };
 

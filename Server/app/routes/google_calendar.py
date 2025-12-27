@@ -59,6 +59,7 @@ def oauth_start():
     Query params:
         full_scope: If 'true', request full calendar scope (for agent sharing).
                    Default is False (requests only calendar.events scope).
+        scheduling: If 'true', request calendar.app.created and calendar.freebusy scopes (for scheduling MVP).
     """
     try:
         from ..services.auth.current_user import get_current_user
@@ -72,9 +73,15 @@ def oauth_start():
     
     # Check if full scope is requested (for agent sharing)
     request_full_scope = request.args.get("full_scope", "false").lower() == "true"
+    # Check if scheduling scopes are requested (for scheduling MVP)
+    use_scheduling_scopes = request.args.get("scheduling", "false").lower() == "true"
     
     # Generate auth URL and state
-    auth_url, state = google_calendar_service.build_auth_url(str(user_id), request_full_scope=request_full_scope)
+    auth_url, state = google_calendar_service.build_auth_url(
+        str(user_id), 
+        request_full_scope=request_full_scope,
+        use_scheduling_scopes=use_scheduling_scopes
+    )
     session["google_oauth_state"] = state
     
     return redirect(auth_url)
@@ -110,6 +117,31 @@ def oauth_callback():
     # Exchange code for tokens using service
     try:
         tokens = google_calendar_service.exchange_code_for_tokens(code, user_id)
+        
+        # Check if scheduling scopes were granted and create SilverKey calendar if needed
+        granted_scopes = tokens.get("scope", "").split() if tokens.get("scope") else []
+        has_scheduling_scopes = (
+            "https://www.googleapis.com/auth/calendar.app.created" in granted_scopes or
+            "calendar.app.created" in " ".join(granted_scopes)
+        )
+        
+        if has_scheduling_scopes:
+            try:
+                # Get user's name if available for calendar naming
+                buyer_name = None
+                try:
+                    from ..services.auth.current_user import get_current_user
+                    current_user = get_current_user()
+                    if current_user and hasattr(current_user, 'name'):
+                        buyer_name = current_user.name
+                except:
+                    pass
+                
+                # Create SilverKey calendar if it doesn't exist
+                google_calendar_service.get_or_create_silverkey_calendar(user_id, buyer_name)
+            except Exception as e:
+                # Log but don't fail OAuth if calendar creation fails
+                logger.warning(f"Failed to create SilverKey calendar during OAuth: {str(e)}")
         
         # Log successful OAuth completion
         log_oauth_event("callback_success", user_id)
@@ -383,6 +415,82 @@ def add_calendar_acl(calendar_id):
     except Exception as e:
         logger.error(f"Error adding calendar ACL: {str(e)}", exc_info=True)
         return SecureErrorHandler.handle_error(e, "Failed to add calendar ACL")
+
+
+@google_calendar_bp.route("/me/freebusy", methods=["POST"])
+@rate_limit(max_requests=100, window_seconds=60)
+def query_freebusy():
+    """Query free/busy information for user's calendars"""
+    try:
+        from ..services.auth.current_user import get_current_user
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        user_id = str(user.id)
+    except Exception as e:
+        logger.error(f"Authentication error: {str(e)}")
+        return security_error_response(SecurityError.UNAUTHORIZED)
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return make_response(("Request body is required", 400))
+        
+        time_min = data.get("timeMin")
+        time_max = data.get("timeMax")
+        calendar_ids = data.get("calendarIds", ["primary"])
+        
+        if not time_min or not time_max:
+            return make_response(("timeMin and timeMax are required", 400))
+        
+        freebusy_result = google_calendar_service.query_freebusy(
+            user_id, time_min, time_max, calendar_ids
+        )
+        
+        return jsonify({"calendars": freebusy_result})
+        
+    except RuntimeError as e:
+        return make_response((str(e), 401))
+    except HttpError as e:
+        logger.error(f"Google API error in query_freebusy: {str(e)}")
+        return SecureErrorHandler.handle_error(e, "Failed to query freebusy")
+    except Exception as e:
+        logger.error(f"Error querying freebusy: {str(e)}", exc_info=True)
+        return SecureErrorHandler.handle_error(e, "Failed to query freebusy")
+
+
+@google_calendar_bp.route("/me/silverkey-calendar", methods=["GET", "POST"])
+@rate_limit(max_requests=20, window_seconds=60)
+def get_or_create_silverkey_calendar():
+    """Get or create the SilverKey calendar for the user"""
+    try:
+        from ..services.auth.current_user import get_current_user
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        user_id = str(user.id)
+    except Exception as e:
+        logger.error(f"Authentication error: {str(e)}")
+        return security_error_response(SecurityError.UNAUTHORIZED)
+    
+    try:
+        buyer_name = None
+        if request.method == "POST":
+            data = request.get_json()
+            if data:
+                buyer_name = data.get("buyerName")
+        
+        calendar = google_calendar_service.get_or_create_silverkey_calendar(user_id, buyer_name)
+        return jsonify(calendar)
+        
+    except RuntimeError as e:
+        return make_response((str(e), 401))
+    except HttpError as e:
+        logger.error(f"Google API error in get_or_create_silverkey_calendar: {str(e)}")
+        return SecureErrorHandler.handle_error(e, "Failed to get or create SilverKey calendar")
+    except Exception as e:
+        logger.error(f"Error getting/creating SilverKey calendar: {str(e)}", exc_info=True)
+        return SecureErrorHandler.handle_error(e, "Failed to get or create SilverKey calendar")
 
 
 @google_calendar_bp.route("/calendar/webhook", methods=["POST"])

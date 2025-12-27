@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo } from "react";
 // Re-enable by wrapping App with <StrictMode> in main.tsx when debugging React issues
 
 import ToastsPortal from "../components/feedback/ToastsPortal";
-import { SessionTimeoutWarning } from "../components/security/SessionTimeoutWarning";
 import { useGoogleMapsStoreIntegration } from "../../../packages/hooks/store/useGoogleMapsStoreIntegration";
 import { useSessionTimeout } from "../../../packages/hooks/ui/useSessionTimeout";
+import { useMessagePolling } from "../../../packages/hooks/data/useMessagePolling";
 import type { UserProfile } from "../../../packages/schemas/user";
 import MaintenanceScreen from "../pages/HomeAuth/MaintenanceScreenPage";
 
@@ -17,6 +17,8 @@ import { AppRoutes } from "./routes";
 // Component that handles store integrations after Router is ready
 function StoreIntegrations() {
   useGoogleMapsStoreIntegration();
+  // Initialize message polling for notifications
+  useMessagePolling();
   return null;
 }
 
@@ -54,16 +56,12 @@ function App() {
     () => ({
       idleTimeoutMs: 30 * 60 * 1000, // 30 minutes idle
       maxSessionMs: 8 * 60 * 60 * 1000, // 8 hours max
-      warningTimeMs: 5 * 60 * 1000, // 5 minute warning
     }),
     []
   );
 
-  const sessionTimeout = useSessionTimeout(sessionTimeoutConfig) as {
-    timeRemaining: number;
-    extendSession: () => void;
-    showWarning: boolean;
-  };
+  // Initialize session timeout (auto-logout when timeout is reached)
+  useSessionTimeout(sessionTimeoutConfig);
 
   // Health check
   useEffect(() => {
@@ -152,16 +150,6 @@ function App() {
       ) : (
         <div className="min-h-screen bg-off-white">
           <AppWithStoreIntegrations user={user} handleLogout={logout} />
-
-          {/* Session timeout warning for authenticated users */}
-          {user && (
-            <SessionTimeoutWarning
-              timeRemaining={sessionTimeout.timeRemaining}
-              onExtendSession={sessionTimeout.extendSession}
-              onLogout={logout}
-              isVisible={sessionTimeout.showWarning}
-            />
-          )}
 
           {/* Global toasts */}
           <ToastsPortal />

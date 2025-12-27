@@ -5,21 +5,18 @@ import { clearAuthTokens } from "../../utils/auth";
 type SessionTimeoutConfig = {
   idleTimeoutMs?: number; // Default: 30 minutes
   maxSessionMs?: number; // Default: 8 hours
-  warningTimeMs?: number; // Default: 5 minutes before timeout
   checkIntervalMs?: number; // Default: 1 minute
 };
 
 type SessionTimeoutState = {
   isIdle: boolean;
   timeRemaining: number;
-  showWarning: boolean;
   sessionExpired: boolean;
 };
 
 const DEFAULT_CONFIG: Required<SessionTimeoutConfig> = {
   idleTimeoutMs: 30 * 60 * 1000, // 30 minutes
   maxSessionMs: 8 * 60 * 60 * 1000, // 8 hours
-  warningTimeMs: 5 * 60 * 1000, // 5 minutes
   checkIntervalMs: 60 * 1000, // 1 minute
 };
 
@@ -39,7 +36,6 @@ const ACTIVITY_EVENTS = [
 export function useSessionTimeout(
   config: SessionTimeoutConfig = {},
 ): SessionTimeoutState & {
-  extendSession: () => void;
   logout: () => void;
 } {
   const fullConfig = useMemo(
@@ -50,14 +46,12 @@ export function useSessionTimeout(
   const [state, setState] = useState<SessionTimeoutState>({
     isIdle: false,
     timeRemaining: fullConfig.idleTimeoutMs,
-    showWarning: false,
     sessionExpired: false,
   });
 
   const lastActivityRef = useRef<number>(Date.now());
   const sessionStartRef = useRef<number>(Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
-  const warningShownRef = useRef<boolean>(false);
 
   // Force logout and cleanup
   const logout = useCallback(() => {
@@ -110,36 +104,18 @@ export function useSessionTimeout(
     setState({
       isIdle: true,
       timeRemaining: 0,
-      showWarning: false,
       sessionExpired: true,
     });
   }, []); // Refs are stable and don't need to be dependencies
-
-  // Extend session (reset timers)
-  const extendSession = useCallback(() => {
-    console.log("🔄 Session extended by user action");
-    sessionStartRef.current = Date.now();
-    lastActivityRef.current = Date.now();
-    warningShownRef.current = false;
-
-    setState((prev) => ({
-      ...prev,
-      isIdle: false,
-      showWarning: false,
-      timeRemaining: fullConfig.idleTimeoutMs,
-    }));
-  }, [fullConfig.idleTimeoutMs]); // Refs are stable and don't need to be dependencies
 
   // Set up activity listeners and session checking
   useEffect(() => {
     const handleActivity = () => {
       lastActivityRef.current = Date.now();
-      warningShownRef.current = false;
 
       setState((prev) => ({
         ...prev,
         isIdle: false,
-        showWarning: false,
         timeRemaining: fullConfig.idleTimeoutMs,
       }));
     };
@@ -158,24 +134,16 @@ export function useSessionTimeout(
 
       // Check idle timeout
       if (timeSinceActivity >= fullConfig.idleTimeoutMs) {
-        console.warn("😴 Idle timeout exceeded");
+        console.warn("😴 Idle timeout exceeded - auto-logging out");
         logout();
         return;
       }
 
-      // Check if warning should be shown
       const timeUntilTimeout = fullConfig.idleTimeoutMs - timeSinceActivity;
-      const shouldShowWarning = timeUntilTimeout <= fullConfig.warningTimeMs;
-
-      if (shouldShowWarning && !warningShownRef.current) {
-        console.warn("⚠️ Session timeout warning shown");
-        warningShownRef.current = true;
-      }
 
       setState((prev) => ({
         ...prev,
         timeRemaining: Math.max(0, timeUntilTimeout),
-        showWarning: shouldShowWarning,
         isIdle: timeSinceActivity > fullConfig.idleTimeoutMs / 2,
       }));
     };
@@ -213,7 +181,6 @@ export function useSessionTimeout(
 
   return {
     ...state,
-    extendSession,
     logout,
   };
 }

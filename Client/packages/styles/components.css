@@ -26,7 +26,7 @@
     @apply btn-responsive-md border border-brown bg-transparent text-brown hover:bg-brown hover:text-white active:scale-95;
   }
   .btn-danger {
-    @apply btn-responsive-md border border-red-600 bg-white text-red-600 shadow-sm hover:bg-red-500 hover:text-white hover:shadow-md active:scale-95;
+    @apply btn-responsive-md border border-rose bg-white text-rose shadow-sm hover:bg-rose-light hover:text-white hover:shadow-md active:scale-95;
   }
   .btn-success {
     @apply btn-responsive-md bg-olive text-white shadow-sm hover:bg-olive/90 hover:shadow-md active:scale-95;
@@ -35,7 +35,7 @@
     @apply btn-responsive-md bg-gold text-white shadow-sm hover:bg-gold/90 hover:shadow-md active:scale-95;
   }
   .btn-info {
-    @apply btn-responsive-md bg-gray-600 text-white shadow-sm hover:bg-gray-700 hover:shadow-md active:scale-95;
+    @apply btn-responsive-md bg-neutral-600 text-white shadow-sm hover:bg-neutral-700 hover:shadow-md active:scale-95;
   }
 
   /* Card */

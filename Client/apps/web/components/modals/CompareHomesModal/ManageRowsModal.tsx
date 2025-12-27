@@ -80,7 +80,7 @@ export function ManageRowsModal({
                 setOmittedRows(new Set());
                 setManuallyEnabledRows(new Set());
               }}
-              className="rounded-lg bg-[#D4C5AA] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#D4C5AA]/80"
+              className="rounded-lg bg-beige px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-beige/80"
             >
               Auto-Hide Empty
             </button>
@@ -147,8 +147,8 @@ export function ManageRowsModal({
                       <div
                         className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all duration-200 ${
                           !isOmitted
-                            ? "border-[#D4C5AA] bg-[#D4C5AA] text-white shadow-sm"
-                            : "border-beige bg-white hover:border-[#D4C5AA]/50"
+                            ? "border-beige bg-beige text-white shadow-sm"
+                            : "border-beige bg-white hover:border-beige/50"
                         }`}
                       >
                         {!isOmitted && (

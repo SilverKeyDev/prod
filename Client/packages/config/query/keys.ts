@@ -90,6 +90,25 @@ export const queryKeys = {
       [...queryKeys.googleCalendar.events(), "list", params] as const,
   },
 
+  // Scheduling domain
+  scheduling: {
+    all: ["scheduling"] as const,
+    availability: (
+      timeMin: string,
+      timeMax: string,
+      calendarIds?: string[],
+    ) =>
+      [
+        ...queryKeys.scheduling.all,
+        "availability",
+        timeMin,
+        timeMax,
+        calendarIds,
+      ] as const,
+    silverKeyCalendar: () =>
+      [...queryKeys.scheduling.all, "silverKeyCalendar"] as const,
+  },
+
   // Plaid domain
   plaid: {
     all: ["plaid"] as const,

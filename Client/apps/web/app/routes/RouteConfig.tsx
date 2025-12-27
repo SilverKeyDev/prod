@@ -9,12 +9,11 @@ import { MinimalAuthProviders } from "../providers/auth/MinimalAuthProviders";
 // Page-specific providers
 import { DocsOnly } from "../providers/page/DocsOnly";
 import { MapsOnly } from "../providers/page/MapsOnly";
-import { NegotiationOnly } from "../providers/page/NegotiationOnly";
 
 // Route configuration types
 export type RouteConfig = {
   path: string;
-  providerType?: "maps" | "negotiation" | "docs" | "billing";
+  providerType?: "maps" | "docs" | "billing";
 };
 
 export type RouteCategory = "lightweight" | "standard" | "specialized";
@@ -26,8 +25,6 @@ function createProviderWrapper(providerType: RouteConfig["providerType"]) {
     switch (providerType) {
       case "maps":
         return <MapsOnly>{children}</MapsOnly>;
-      case "negotiation":
-        return <NegotiationOnly>{children}</NegotiationOnly>;
       case "docs":
         return <DocsOnly>{children}</DocsOnly>;
       default:
@@ -73,6 +70,5 @@ export const ROUTE_CONFIGS = {
 
   specialized: [
     { path: "/search", providerType: "maps" as const },
-    { path: "/negotiation-strategy/*", providerType: "negotiation" as const },
   ],
 } as const;

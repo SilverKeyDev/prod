@@ -15,6 +15,8 @@ export type AgentConversation = {
   client_id: string;
   client_name?: string;
   client_email?: string;
+  agent_name?: string;
+  agent_email?: string;
   last_message?: string;
   last_message_at?: string;
   created_at: string;

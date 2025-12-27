@@ -1,42 +1,18 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 
-import { useAgentChats } from "../../../../../packages/hooks/data/useAgentChats";
 import { useUserData } from "../../../../../packages/hooks/data/useUserData";
-import { AgentSearchModal } from "../modals";
-import ClientMessagingSidebar from "./ClientMessagingSidebar";
-import ClientChatHeader from "./ClientChatHeader";
-import ClientMessagesList from "./ClientMessagesList";
-import ClientMessageInput from "./ClientMessageInput";
-
-type ChatMessage = {
-  id: string;
-  content: string;
-  role: "user" | "agent";
-  timestamp: Date;
-  shared_home_id?: string | null;
-};
+import { useMessaging } from "../../../../../packages/hooks/data/useMessaging";
+import { useMessageScroll } from "../../../../../packages/hooks/ui/useMessageScroll";
+import { ClientSearchModal } from "../modals";
+import UnifiedMessagingSidebar from "../components/UnifiedMessagingSidebar";
+import UnifiedMessagesList from "../components/UnifiedMessagesList";
+import UnifiedMessageInput from "../components/UnifiedMessageInput";
+import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
 
 export default function ClientMessaging() {
   const { userProfile } = useUserData();
-  const { conversations, sendMessage, getChatHistory, refreshChats } =
-    useAgentChats();
 
-  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string>("");
-  const [message, setMessage] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [showSearchModal, setShowSearchModal] = useState(false);
-  const [showInbox, setShowInbox] = useState(false);
-
-  // Default: sidebar NOT extended (collapsed) on both mobile and desktop
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const loadedHistoryIdsRef = useRef<Set<string>>(new Set());
-  const getChatHistoryRef = useRef(getChatHistory);
-
-  // Get agent info from userProfile if available, or from conversation
+  // Get agent info from userProfile if available
   const agentId = useMemo(() => {
     let id: string | undefined;
     if (userProfile?.agent_id) {
@@ -55,164 +31,62 @@ export default function ClientMessaging() {
     return id;
   }, [userProfile?.agent_id]);
 
-  // Find conversation where current user is the client
-  const activeConversation = useMemo(() => {
-    if (!userProfile?.id || conversations.length === 0) return undefined;
-    return conversations.find((c) => c.client_id === userProfile.id);
-  }, [conversations, userProfile?.id]);
+  // Use shared messaging hook
+  const {
+    localMessages,
+    activeConversationId,
+    isLoadingHistory,
+    activeConversation,
+    sendMessage: sendMessageApi,
+    setActiveConversationId,
+    formatTime,
+    canSendMessage,
+  } = useMessaging({
+    mode: "client",
+    conversationSelector: userProfile?.id,
+    agentId: agentId ?? null,
+  });
 
-  // Set active conversation ID when conversation is found
-  const prevConversationIdRef = useRef<string>("");
-  useEffect(() => {
-    const newId = activeConversation?.id ?? "";
-    if (prevConversationIdRef.current !== newId) {
-      prevConversationIdRef.current = newId;
-      setActiveConversationId(newId);
-    }
-  }, [activeConversation?.id]);
+  const [message, setMessage] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isTyping, _setIsTyping] = useState(false); // Kept for component interface compatibility, but typing indicator is disabled
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showInbox, setShowInbox] = useState(false);
 
-  // Update agentId from conversation if not in userProfile
-  useEffect(() => {
-    if (!agentId && activeConversation?.agent_id) {
-      // Agent ID will be available through activeConversation
-    }
-  }, [agentId, activeConversation?.agent_id]);
+  // Default: sidebar NOT extended (collapsed) on both mobile and desktop
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
-  // Keep ref updated with latest getChatHistory function
-  useEffect(() => {
-    getChatHistoryRef.current = getChatHistory;
-  }, [getChatHistory]);
+  // Auto-scroll to bottom when messages change
+  const { messagesEndRef } = useMessageScroll(localMessages);
 
-  // Load chat history when conversation changes
-  useEffect(() => {
-    if (!activeConversationId) {
-      setLocalMessages([]);
-      return;
-    }
-
-    if (loadedHistoryIdsRef.current.has(activeConversationId)) {
-      return;
-    }
-
-    let cancelled = false;
-    const loadHistory = async () => {
-      setIsLoadingHistory(true);
-      try {
-        const data = await getChatHistoryRef.current(activeConversationId);
-        if (!cancelled) {
-          loadedHistoryIdsRef.current.add(activeConversationId);
-          const messages: ChatMessage[] = (data.messages ?? []).map((msg) => ({
-            id: msg.id,
-            content: msg.message,
-            role: msg.role === "agent" ? "agent" : "user",
-            timestamp: new Date(msg.timestamp),
-            shared_home_id: msg.shared_home_id ?? null,
-          }));
-          setLocalMessages(messages);
-        }
-      } catch (err) {
-        // Error is handled by the query's error state
-      } finally {
-        if (!cancelled) {
-          setIsLoadingHistory(false);
-        }
-      }
-    };
-
-    void loadHistory();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [activeConversationId]);
-
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [localMessages, scrollToBottom]);
-
+  // Handle sending messages (client mode)
   const handleSendMessage = useCallback(async () => {
     if (!message.trim()) return;
-
-    // If no conversation exists but agent is assigned, create one
-    let conversationId = activeConversationId;
-    if (!conversationId && agentId) {
-      conversationId = "new";
-    }
-
-    if (!conversationId && !agentId) return;
-
-    const userMessage = message.trim();
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: userMessage,
-      role: "user",
-      timestamp: new Date(),
-    };
-
-    // Optimistic append
-    setLocalMessages((prev) => [...prev, newMessage]);
+    const messageToSend = message.trim();
+    // Clear input immediately (optimistically)
     setMessage("");
-    setIsTyping(true);
+    await sendMessageApi(messageToSend);
+  }, [message, sendMessageApi]);
 
-    try {
-      await sendMessage(conversationId, userMessage);
-
-      // Reload conversations to get the new conversation ID if it was created
-      await refreshChats();
-
-      // Reload history to get server response
-      if (conversationId !== "new") {
-        const data = await getChatHistoryRef.current(conversationId);
-        const messages: ChatMessage[] = (data.messages ?? []).map((msg) => ({
-          id: msg.id,
-          content: msg.message,
-          role: msg.role === "agent" ? "agent" : "user",
-          timestamp: new Date(msg.timestamp),
-          shared_home_id: msg.shared_home_id ?? null,
-        }));
-        setLocalMessages(messages);
-      } else {
-        // If we created a new conversation, refresh conversations to get it
-        await refreshChats();
-        // Clear loaded history cache so it reloads
-        loadedHistoryIdsRef.current.clear();
-      }
-    } catch (error) {
-      // Remove optimistic message on error
-      setLocalMessages((prev) => prev.slice(0, -1));
-    } finally {
-      setIsTyping(false);
-    }
-  }, [message, activeConversationId, agentId, sendMessage, refreshChats]);
-
-  const formatTime = (date: Date) => {
-    const d =
-      date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
-    return d.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+  const getHeaderMode = () => {
+    // Don't show "Connection Requests" in main chat header - it's already in sidebar header
+    if (showInbox) return "no-agent";
+    if (!agentId) return "no-agent";
+    return "chat";
   };
-
-  // Determine if user can send messages
-  const canSendMessage = !!(activeConversationId || agentId);
 
   return (
     <div className="mx-auto h-[calc(100vh-10rem)] max-w-7xl md:mt-0">
       <div className="relative flex h-full overflow-hidden rounded-xl shadow-lg bg-white">
         {/* Sidebar */}
-        <ClientMessagingSidebar
+        <UnifiedMessagingSidebar
+          mode="client"
           isSidebarExpanded={isSidebarExpanded}
           setIsSidebarExpanded={setIsSidebarExpanded}
           showInbox={showInbox}
           setShowInbox={setShowInbox}
           agentId={agentId}
-          activeConversation={activeConversation}
+          activeConversation={activeConversation ?? undefined}
           activeConversationId={activeConversationId}
           setActiveConversationId={setActiveConversationId}
           localMessages={localMessages}
@@ -228,17 +102,19 @@ export default function ClientMessaging() {
         >
           <div className="flex flex-1 flex-col min-h-0">
             {/* Chat Header */}
-            <ClientChatHeader
+            <UnifiedMessagingHeader
+              mode={getHeaderMode()}
               isSidebarExpanded={isSidebarExpanded}
               setIsSidebarExpanded={setIsSidebarExpanded}
-              hasAgent={!!(activeConversation || agentId)}
               onSearchClick={() => setShowSearchModal(true)}
+              agentName={activeConversation?.agent_name}
             />
 
             {/* Messages Container */}
             <div className="flex-1 overflow-hidden min-h-0">
               <div className="scrollbar-hide h-full space-y-3 overflow-y-auto p-3 min-h-0">
-                <ClientMessagesList
+                <UnifiedMessagesList
+                  mode="client"
                   canSendMessage={canSendMessage}
                   isLoadingHistory={isLoadingHistory}
                   localMessages={localMessages}
@@ -251,7 +127,8 @@ export default function ClientMessaging() {
             </div>
 
             {/* Message Input */}
-            <ClientMessageInput
+            <UnifiedMessageInput
+              mode="client"
               message={message}
               setMessage={setMessage}
               isTyping={isTyping}
@@ -262,7 +139,7 @@ export default function ClientMessaging() {
       </div>
 
       {/* Search Modal */}
-      <AgentSearchModal
+      <ClientSearchModal
         isOpen={showSearchModal}
         onClose={() => setShowSearchModal(false)}
       />

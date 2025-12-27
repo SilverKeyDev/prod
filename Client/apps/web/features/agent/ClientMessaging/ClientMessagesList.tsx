@@ -96,7 +96,7 @@ export default function ClientMessagesList({
           <div
             className={`max-w-lg rounded-xl px-4 py-3 ${
               msg.role === "agent"
-                ? "bg-gray-100 text-black"
+                ? "bg-neutral-100 text-black"
                 : "bg-olive text-white"
             }`}
           >
@@ -130,7 +130,8 @@ export default function ClientMessagesList({
         </div>
       ))}
 
-      {isTyping && (
+      {/* Typing indicator disabled - agent-client messaging should not show typing animations */}
+      {/* {isTyping && (
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gold">
             <Bot className="h-4 w-4 text-black" />
@@ -149,7 +150,7 @@ export default function ClientMessagesList({
             </div>
           </div>
         </div>
-      )}
+      )} */}
       <div ref={messagesEndRef} />
     </>
   );

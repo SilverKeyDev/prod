@@ -34,15 +34,26 @@ export default function ClientMessagingSidebar({
   localMessages,
 }: ClientMessagingSidebarProps) {
   return (
-    <aside
-      className={`${
-        isSidebarExpanded
-          ? "flex translate-x-0 z-10"
-          : "hidden -translate-x-full"
-      } flex-col transition-transform duration-300 ease-in-out xl:flex xl:w-80 xl:translate-x-0 xl:z-0 ${
-        isSidebarExpanded ? "rounded-xl shadow-xl" : ""
-      } xl:rounded-l-xl xl:shadow-none`}
-    >
+    <>
+      {/* Backdrop for mobile - only show when sidebar is expanded on mobile */}
+      {isSidebarExpanded && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ease-in-out xl:hidden"
+          onClick={() => setIsSidebarExpanded(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`${
+          isSidebarExpanded
+            ? "fixed left-0 top-0 flex h-full w-80 translate-x-0 z-50 xl:relative xl:z-0"
+            : "hidden -translate-x-full xl:flex xl:translate-x-0"
+        } flex-col transition-transform duration-300 ease-in-out xl:w-80 ${
+          isSidebarExpanded ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none" : ""
+        }`}
+      >
       {/* Fixed Header */}
       <UnifiedMessagingHeader
         mode={showInbox ? "connection-requests" : "inbox"}
@@ -57,7 +68,7 @@ export default function ClientMessagingSidebar({
 
       {/* Scrollable Agent List */}
       <div
-        className={`flex-1 overflow-y-auto bg-white border-r border-gray-200 ${
+        className={`flex-1 overflow-y-auto bg-white border-r border-neutral-200 ${
           isSidebarExpanded ? "rounded-b-xl" : ""
         } xl:rounded-bl-xl xl:rounded-br-none`}
       >
@@ -106,5 +117,6 @@ export default function ClientMessagingSidebar({
         )}
       </div>
     </aside>
+    </>
   );
 }

@@ -10,6 +10,7 @@ import {
 } from "../components/cards/base";
 import PdfModal from "../components/modals/PdfModal";
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal/PropertyDetailsModal";
+import NegotiationModal from "../components/modals/NegotiationModal";
 import { KeyTurnLoader } from "../components/ui";
 import CompareFloatingBar from "../components/ui/CompareFloatingBar";
 import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
@@ -43,6 +44,9 @@ export default function SavedHomes({
     Set<string>
   >(new Set());
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [isNegotiationModalOpen, setIsNegotiationModalOpen] = useState(false);
+  const [selectedHomeForNegotiation, setSelectedHomeForNegotiation] =
+    useState<SavedHome | null>(null);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
   // Use Zustand store for saved homes data (React Query integration)
@@ -76,29 +80,44 @@ export default function SavedHomes({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Load selected homes from localStorage
+  // Load selected homes from localStorage (only restore valid selections on initial load)
   useEffect(() => {
-    const savedSelections = localStorage.getItem("compareHomesState");
-    if (savedSelections) {
-      try {
-        const parsed = JSON.parse(savedSelections) as {
-          selectedIds?: string[];
-        };
-        if (parsed.selectedIds && Array.isArray(parsed.selectedIds)) {
-          setSelectedHomesForComparison(new Set(parsed.selectedIds));
+    if (homes.length > 0 && selectedHomesForComparison.size === 0) {
+      const savedSelections = localStorage.getItem("compareHomesState");
+      if (savedSelections) {
+        try {
+          const parsed = JSON.parse(savedSelections) as {
+            selectedIds?: string[];
+          };
+          if (parsed.selectedIds && Array.isArray(parsed.selectedIds)) {
+            // Only restore IDs that exist in the current homes list
+            const validHomeIds = new Set(homes.map((h) => h.home_id));
+            const validSelections = parsed.selectedIds.filter((id) =>
+              validHomeIds.has(id)
+            );
+            if (validSelections.length > 0) {
+              setSelectedHomesForComparison(new Set(validSelections));
+            }
+          }
+        } catch {
+          // Ignore parsing errors
         }
-      } catch {
-        // Ignore parsing errors
       }
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [homes.length]);
 
   // Save selected homes to localStorage
   useEffect(() => {
-    const stateToSave = {
-      selectedIds: Array.from(selectedHomesForComparison),
-    };
-    localStorage.setItem("compareHomesState", JSON.stringify(stateToSave));
+    if (selectedHomesForComparison.size > 0) {
+      const stateToSave = {
+        selectedIds: Array.from(selectedHomesForComparison),
+      };
+      localStorage.setItem("compareHomesState", JSON.stringify(stateToSave));
+    } else {
+      // Clear localStorage if no selections
+      localStorage.removeItem("compareHomesState");
+    }
   }, [selectedHomesForComparison]);
 
   // Reset reports subview when switching to homes
@@ -154,6 +173,44 @@ export default function SavedHomes({
     },
     [fetchPropertyDetails]
   );
+
+  // Convert SavedHome to FavoriteHome format for negotiation
+  const convertToFavoriteHome = useCallback((home: SavedHome) => {
+    return {
+      user_id: "",
+      address: String(home.address || home.description || ""),
+      beds: String(home.bedrooms ?? ""),
+      baths: String(home.bathrooms ?? ""),
+      sqft: String(home.sqft ?? ""),
+      lot_size: typeof home.lot_size === "string" ? home.lot_size : "",
+      price:
+        typeof home.price === "string"
+          ? home.price.startsWith("$")
+            ? home.price
+            : `$${home.price}`
+          : typeof home.price === "number"
+            ? `$${home.price.toLocaleString()}`
+            : "",
+      image_url: home.image_url || "",
+      created_at: "",
+      updated_at: "",
+    };
+  }, []);
+
+  // Handle opening negotiation modal
+  const handleOpenNegotiation = useCallback(
+    (home: SavedHome) => {
+      setSelectedHomeForNegotiation(home);
+      setIsNegotiationModalOpen(true);
+    },
+    []
+  );
+
+  // Handle closing negotiation modal
+  const handleCloseNegotiation = useCallback(() => {
+    setIsNegotiationModalOpen(false);
+    setSelectedHomeForNegotiation(null);
+  }, []);
 
   // Comparison handlers
   const handleToggleHomeSelection = useCallback((homeId: string) => {
@@ -379,13 +436,22 @@ export default function SavedHomes({
                         </>
                       }
                       bottomContent={
-                        <CardViewDetailsButton
-                          onClick={() => handleUnlockHome(home)}
-                          size="sm"
-                          variant="primary"
-                          fullWidth
-                          text="Unlock"
-                        />
+                        <div className="flex flex-col gap-2">
+                          <CardViewDetailsButton
+                            onClick={() => handleUnlockHome(home)}
+                            size="sm"
+                            variant="primary"
+                            fullWidth
+                            text="Unlock"
+                          />
+                          <CardViewDetailsButton
+                            onClick={() => handleOpenNegotiation(home)}
+                            size="sm"
+                            variant="secondary"
+                            fullWidth
+                            text="Negotiate"
+                          />
+                        </div>
                       }
                     />
                   </div>
@@ -412,6 +478,17 @@ export default function SavedHomes({
           onRemove={handleRemoveFromComparison}
           onAdd={handleToggleHomeSelection}
           allLikedHomes={homes}
+        />
+
+        {/* Negotiation Modal */}
+        <NegotiationModal
+          isOpen={isNegotiationModalOpen}
+          onClose={handleCloseNegotiation}
+          initialHome={
+            selectedHomeForNegotiation
+              ? convertToFavoriteHome(selectedHomeForNegotiation)
+              : null
+          }
         />
 
         {/* Compare Floating Bar - Show when viewing homes list and >= 1 selected */}
