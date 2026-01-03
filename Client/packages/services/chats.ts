@@ -1,5 +1,4 @@
 import { chatbotApi } from "../config/api/chatbot";
-import { reportApi } from "../config/api/report";
 import type { Chat } from "../schemas";
 import { formatFilenameToAddress } from "../utils/address";
 

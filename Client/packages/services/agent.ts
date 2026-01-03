@@ -57,7 +57,6 @@ export class AgentService {
      ========================= */
 
   async fetchChats(clientId?: string): Promise<AgentConversation[]> {
-    console.log("[AGENT_SERVICE] 🚀 Starting fetchChats", { clientId });
 
     try {
       const response = await agentApi.getChats(clientId);
@@ -85,8 +84,6 @@ export class AgentService {
         throw e;
       }
       throw e;
-    } finally {
-      console.log("[AGENT_SERVICE] 🏁 fetchChats completed");
     }
   }
 

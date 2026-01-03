@@ -135,20 +135,10 @@ export const googleCalendarApi = {
    */
   listCalendars: async (): Promise<
     GoogleCalendarApiResponse<GoogleCalendarListResponse>
-  > => {
-    try {
-      const response = await apiGet<
-        GoogleCalendarApiResponse<GoogleCalendarListResponse>
-      >("/api/v1/google/me/calendars");
-      return response;
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to list calendars",
-      };
-    }
-  },
+  > =>
+    apiGet<GoogleCalendarApiResponse<GoogleCalendarListResponse>>(
+      "/api/v1/google/me/calendars",
+    ),
 
   /**
    * List events from a calendar
@@ -314,42 +304,21 @@ export const googleCalendarApi = {
     request: import("../../schemas/scheduling").FreebusyRequest,
   ): Promise<
     GoogleCalendarApiResponse<import("../../schemas/scheduling").FreebusyResponse>
-  > => {
-    try {
-      const response = await apiPost<
-        GoogleCalendarApiResponse<import("../../schemas/scheduling").FreebusyResponse>
-      >("/api/v1/google/me/freebusy", request);
-      return response;
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to query freebusy",
-      };
-    }
-  },
+  > =>
+    apiPost<
+      GoogleCalendarApiResponse<import("../../schemas/scheduling").FreebusyResponse>
+    >("/api/v1/google/me/freebusy", request),
 
   /**
    * Get or create the SilverKey calendar
    */
   getOrCreateSilverKeyCalendar: async (
     buyerName?: string,
-  ): Promise<GoogleCalendarApiResponse<GoogleCalendar>> => {
-    try {
-      const response = await apiPost<
-        GoogleCalendarApiResponse<GoogleCalendar>
-      >("/api/v1/google/me/silverkey-calendar", {
+  ): Promise<GoogleCalendarApiResponse<GoogleCalendar>> =>
+    apiPost<GoogleCalendarApiResponse<GoogleCalendar>>(
+      "/api/v1/google/me/silverkey-calendar",
+      {
         buyerName: buyerName,
-      });
-      return response;
-    } catch (error) {
-      return {
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to get or create SilverKey calendar",
-      };
-    }
-  },
+      },
+    ),
 };

@@ -109,15 +109,6 @@ export default function DashboardLayout({
   const isSaved = path.startsWith("/saved");
   const isAgent = path.startsWith("/agent");
 
-  // Sidebar state
-  const sidebarExpanded = useViewStore((s: ViewState) => s.sidebarExpanded);
-  const setSidebarExpanded = useViewStore(
-    (s: ViewState) => s.setSidebarExpanded
-  );
-  const toggleSidebar = useCallback(
-    () => setSidebarExpanded(!sidebarExpanded),
-    [setSidebarExpanded, sidebarExpanded]
-  );
 
   // Persisted buyer-checklists tab state
   const persistedTab = useViewStore(
@@ -346,40 +337,36 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-off-white">
-      {/* Desktop Sidebar - Hidden on mobile, always expanded */}
-      <div className="hidden lg:block">
+      {/* Desktop Sidebar - Hidden only when mobile bottom nav appears (< 768px) */}
+      <div className="hidden md:block">
         <Sidebar
           user={user}
           onLogout={onLogout}
           expanded={true}
-          onToggleExpanded={toggleSidebar}
           isMobile={false}
           onLinkClick={undefined}
         />
       </div>
 
-      {/* Mobile Sidebar - Hidden on desktop */}
-      <div className="block lg:hidden">
+      {/* Mobile Sidebar - Only on mobile (< 768px) */}
+      <div className="block md:hidden">
         <MobileSidebar
           user={user}
           onLogout={onLogout}
-          expanded={sidebarExpanded}
-          onToggleExpanded={toggleSidebar}
         />
       </div>
 
-      <main className="ml-0 flex-1 transition-all duration-200 lg:ml-52">
-        {/* Mobile Header - Hidden on desktop */}
-        <div className="lg:hidden">
+      <main className="ml-0 flex-1 transition-all duration-200 md:ml-52 max-md:pb-20">
+        {/* Mobile Header - Hidden when desktop sidebar is visible (>= 768px) */}
+        <div className="md:hidden">
           <div
             className={isSearch ? "w-full" : "mx-auto"}
             style={isSearch ? {} : { maxWidth: "95vw" }}
           >
             <MobileTopBar
-              sidebarExpanded={sidebarExpanded}
               dynamicHeight={isSaved && mobileHeaderActions !== null}
             >
-              {/* Center the dynamic header content between the back/menu + actions, like in the reference */}
+              {/* Center the dynamic header content */}
               <div
                 className={`flex flex-grow items-center justify-center text-center ${MOBILE_SIDE_PX}`}
               >
@@ -391,18 +378,14 @@ export default function DashboardLayout({
           {/* Spacer to keep content clear of the fixed MobileTopBar */}
           <div
             className={`${MOBILE_TOP_SPACER_CLASS} ${
-              sidebarExpanded
-                ? "h-0"
-                : isSaved && mobileHeaderActions !== null
-                  ? "h-16"
-                  : "h-24"
+              isSaved && mobileHeaderActions !== null ? "h-16" : "h-24"
             }`}
           />
         </div>
 
-        {/* Desktop Header (consistent width) - Hidden on mobile and search pages */}
+        {/* Desktop Header (consistent width) - Hidden when mobile header is visible (< 768px) */}
         <div
-          className={`hidden lg:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch ? "!hidden" : ""}`}
+          className={`hidden md:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch ? "!hidden" : ""}`}
           style={{
             maxWidth: `calc((100vw - 208px) * ${computedMaxWidthVW} / 100)`,
           }}
@@ -415,12 +398,12 @@ export default function DashboardLayout({
           className={`dashboard-content w-full ${
             isSearch
               ? // Full-height search canvas; full width on mobile and desktop, no side margins
-                `h-[calc(100vh-80px)] lg:h-[calc(100vh-0px)] mx-0`
+                `h-[calc(100vh-80px)] md:h-[calc(100vh-0px)] mx-0`
               : isBuyerChecklists
                 ? // Buyer checklists keeps its own internal spacing; still align sides on mobile
-                  `mx-auto ${MOBILE_SIDE_PX} lg:px-0`
+                  `mx-auto ${MOBILE_SIDE_PX} md:px-0`
                 : // Default pages: standard padding on desktop; on mobile align with top bar button
-                  `mx-auto p-4 sm:p-6 lg:p-8 lg:pt-8 ${MOBILE_SIDE_PX} lg:px-0`
+                  `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
           }`}
           style={
             isSearch

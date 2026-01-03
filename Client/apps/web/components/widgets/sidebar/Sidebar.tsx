@@ -20,7 +20,6 @@ type SidebarProps = {
   user?: UserProfile;
   onLogout: () => void;
   expanded: boolean;
-  onToggleExpanded: () => void;
   isMobile?: boolean;
   onLinkClick?: () => void;
 };
@@ -178,7 +177,6 @@ const getNavigation = (
 export default function Sidebar({
   onLogout,
   expanded,
-  onToggleExpanded: _onToggleExpanded,
   isMobile: _isMobile,
   onLinkClick,
 }: SidebarProps) {
