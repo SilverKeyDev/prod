@@ -1,6 +1,7 @@
 import { Send } from "lucide-react";
 import Button from "../../../components/ui/button/Button";
 import { getMessagingConfig, type MessagingMode } from "../config/messagingConfig";
+import AttachmentMenu from "./AttachmentMenu";
 
 type UnifiedMessageInputProps = {
   mode: MessagingMode;
@@ -11,6 +12,8 @@ type UnifiedMessageInputProps = {
   disabled?: boolean;
   placeholder?: string;
   selectedClientName?: string;
+  onAttachmentHome?: () => void;
+  onAttachmentCalendar?: () => void;
 };
 
 export default function UnifiedMessageInput({
@@ -22,6 +25,8 @@ export default function UnifiedMessageInput({
   disabled = false,
   placeholder,
   selectedClientName,
+  onAttachmentHome,
+  onAttachmentCalendar,
 }: UnifiedMessageInputProps) {
   const config = getMessagingConfig(mode);
   const finalPlaceholder =
@@ -33,6 +38,14 @@ export default function UnifiedMessageInput({
   return (
     <div className="flex-shrink-0 border-t border-beige bg-white p-4">
       <div className="flex items-center gap-3">
+        {/* Attachment button */}
+        {(onAttachmentHome || onAttachmentCalendar) && (
+          <AttachmentMenu
+            onSelectHome={onAttachmentHome || (() => {})}
+            onSelectCalendar={onAttachmentCalendar || (() => {})}
+            disabled={isTyping || disabled}
+          />
+        )}
         <div className="flex flex-1">
           <textarea
             value={message}

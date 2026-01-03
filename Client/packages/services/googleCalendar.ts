@@ -32,13 +32,14 @@ export type GoogleCalendarServiceCallbacks = {
 export class GoogleCalendarService {
   private static instance: GoogleCalendarService;
   private state: GoogleCalendarState;
-  private callbacks: GoogleCalendarServiceCallbacks = {};
+  private callbacks: GoogleCalendarServiceCallbacks[] = []; // Array to support multiple callbacks
   private localStorageKeys = {
     calendars: "googleCalendarCalendars",
     events: "googleCalendarEvents",
     connectionStatus: "googleCalendarConnected",
   };
   private isFetchingEvents = false; // Prevent concurrent event fetches
+  private isCheckingConnection = false; // Prevent concurrent connection checks
 
   private constructor() {
     this.state = {
@@ -65,9 +66,26 @@ export class GoogleCalendarService {
 
   /**
    * Set callbacks for state changes
+   * Supports multiple callbacks by maintaining an array
    */
   public setCallbacks(callbacks: GoogleCalendarServiceCallbacks): void {
-    this.callbacks = { ...this.callbacks, ...callbacks };
+    // Remove existing callbacks with same reference if re-registering
+    // Otherwise add to array to support multiple components
+    const existingIndex = this.callbacks.findIndex(
+      (cb) => cb === callbacks
+    );
+    if (existingIndex >= 0) {
+      this.callbacks[existingIndex] = callbacks;
+    } else {
+      this.callbacks.push(callbacks);
+    }
+  }
+
+  /**
+   * Remove callbacks
+   */
+  public removeCallbacks(callbacks: GoogleCalendarServiceCallbacks): void {
+    this.callbacks = this.callbacks.filter((cb) => cb !== callbacks);
   }
 
   /**
@@ -115,16 +133,23 @@ export class GoogleCalendarService {
   }
 
   /**
-   * Update state and notify callbacks
+   * Update state and notify all callbacks
    */
   private updateState(updates: Partial<GoogleCalendarState>): void {
     this.state = { ...this.state, ...updates };
-    if (
-      this.callbacks.onStateChange &&
-      typeof this.callbacks.onStateChange === "function"
-    ) {
-      this.callbacks.onStateChange(this.getState());
-    }
+    // Notify all registered callbacks
+    this.callbacks.forEach((callback) => {
+      if (
+        callback.onStateChange &&
+        typeof callback.onStateChange === "function"
+      ) {
+        try {
+          callback.onStateChange(this.getState());
+        } catch (error) {
+          console.error("Error in Google Calendar callback:", error);
+        }
+      }
+    });
   }
 
   /**
@@ -137,8 +162,40 @@ export class GoogleCalendarService {
 
   /**
    * Check if Google Calendar is connected
+   * Verifies with backend to ensure accuracy
    */
-  public isConnected(): boolean {
+  public async isConnected(): Promise<boolean> {
+    // If already checking, return current state
+    if (this.isCheckingConnection) {
+      return this.state.isConnected;
+    }
+
+    // Check backend for actual connection status
+    try {
+      this.isCheckingConnection = true;
+      const response = await fetch("/api/v1/google/connection-status", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const backendConnected = data.data?.isConnected ?? false;
+        
+        // Update state if different
+        if (backendConnected !== this.state.isConnected) {
+          this.setConnectionStatus(backendConnected);
+        }
+        
+        return backendConnected;
+      }
+    } catch (error) {
+      log.warn("GOOGLE_CALENDAR_SERVICE", "Failed to check connection status with backend", error);
+      // Fall back to local state
+    } finally {
+      this.isCheckingConnection = false;
+    }
+
     return this.state.isConnected;
   }
 
@@ -169,15 +226,21 @@ export class GoogleCalendarService {
    * Fetch user's Google calendars
    */
   public async fetchCalendars(): Promise<void> {
-    if (!this.state.isConnected) {
+    // Verify connection status with backend
+    const connected = await this.isConnected();
+    if (!connected) {
       const error = "Google Calendar not connected";
       this.updateState({ error });
-      if (
-        this.callbacks.onError &&
-        typeof this.callbacks.onError === "function"
-      ) {
-        this.callbacks.onError(error);
-      }
+      // Notify all error callbacks
+      this.callbacks.forEach((callback) => {
+        if (callback.onError && typeof callback.onError === "function") {
+          try {
+            callback.onError(error);
+          } catch (err) {
+            console.error("Error in Google Calendar error callback:", err);
+          }
+        }
+      });
       return;
     }
 
@@ -198,7 +261,32 @@ export class GoogleCalendarService {
       const response = await googleCalendarApi.listCalendars();
 
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch calendars");
+        const errorMsg = response.error ?? "Failed to fetch calendars";
+        
+        // Check if this is a Google Calendar connection error
+        if (
+          errorMsg.includes("Google Calendar not connected") ||
+          errorMsg.includes("401") ||
+          errorMsg.includes("UNAUTHORIZED")
+        ) {
+          log.warn(
+            "GOOGLE_CALENDAR_SERVICE",
+            "Google Calendar connection error detected - resetting connection status and triggering OAuth",
+          );
+          this.setConnectionStatus(false);
+          
+          // Automatically trigger OAuth flow instead of throwing error
+          log.info(
+            "GOOGLE_CALENDAR_SERVICE",
+            "Automatically starting OAuth flow for reconnection",
+          );
+          this.startOAuth();
+          
+          // Return early - don't throw error since we're redirecting
+          return;
+        }
+        
+        throw new Error(errorMsg);
       }
 
       const calendars = response.data?.items || [];
@@ -211,13 +299,16 @@ export class GoogleCalendarService {
       // Persist to localStorage
       this.saveToLocalStorage(this.localStorageKeys.calendars, calendars);
 
-      // Notify success callback
-      if (
-        this.callbacks.onSuccess &&
-        typeof this.callbacks.onSuccess === "function"
-      ) {
-        this.callbacks.onSuccess({ calendars });
-      }
+      // Notify all success callbacks
+      this.callbacks.forEach((callback) => {
+        if (callback.onSuccess && typeof callback.onSuccess === "function") {
+          try {
+            callback.onSuccess({ calendars });
+          } catch (error) {
+            console.error("Error in Google Calendar success callback:", error);
+          }
+        }
+      });
 
       log.info("GOOGLE_CALENDAR_SERVICE", "Calendars fetched successfully", {
         count: calendars.length,
@@ -242,19 +333,32 @@ export class GoogleCalendarService {
         }
       }
 
-      // Check if this is a 401 error - Google Calendar connection is invalid
+      // Check if this is a 401 error or Google Calendar not connected - reset connection status
       const errorString =
         err instanceof Error ? err.message : String(err ?? "");
       const isUnauthorized =
-        errorString.includes("401") || errorString.includes("UNAUTHORIZED");
+        errorString.includes("401") ||
+        errorString.includes("UNAUTHORIZED") ||
+        errorString.includes("Google Calendar not connected");
 
       if (isUnauthorized) {
         log.warn(
           "GOOGLE_CALENDAR_SERVICE",
-          "401 error detected - resetting connection status",
+          "Google Calendar connection error detected - resetting connection status and triggering OAuth",
         );
         this.setConnectionStatus(false);
-        errorMessage = "Google Calendar connection expired. Please reconnect.";
+        
+        // Automatically trigger OAuth flow instead of showing error
+        // This provides a seamless reconnection experience
+        log.info(
+          "GOOGLE_CALENDAR_SERVICE",
+          "Automatically starting OAuth flow for reconnection",
+        );
+        this.startOAuth();
+        
+        // Don't set error message or call onError callback since we're redirecting
+        // The user will be redirected to Google OAuth and then back to the app
+        return;
       }
 
       this.updateState({
@@ -279,24 +383,30 @@ export class GoogleCalendarService {
     timeMin?: string;
     timeMax?: string;
   }): Promise<void> {
-    if (!this.state.isConnected) {
-      const error = "Google Calendar not connected";
-      this.updateState({ error });
-      if (
-        this.callbacks.onError &&
-        typeof this.callbacks.onError === "function"
-      ) {
-        this.callbacks.onError(error);
-      }
-      return;
-    }
-
     // Prevent concurrent fetches
     if (this.isFetchingEvents) {
       log.info(
         "GOOGLE_CALENDAR_SERVICE",
         "Events fetch already in progress, skipping",
       );
+      return;
+    }
+
+    // Verify connection status with backend
+    const connected = await this.isConnected();
+    if (!connected) {
+      const error = "Google Calendar not connected";
+      this.updateState({ error });
+      // Notify all error callbacks
+      this.callbacks.forEach((callback) => {
+        if (callback.onError && typeof callback.onError === "function") {
+          try {
+            callback.onError(error);
+          } catch (err) {
+            console.error("Error in Google Calendar error callback:", err);
+          }
+        }
+      });
       return;
     }
 
@@ -362,19 +472,33 @@ export class GoogleCalendarService {
         }
       }
 
-      // Check if this is a 401 error - Google Calendar connection is invalid
+      // Check if this is a 401 error or Google Calendar not connected - reset connection status
       const errorString =
         err instanceof Error ? err.message : String(err ?? "");
       const isUnauthorized =
-        errorString.includes("401") || errorString.includes("UNAUTHORIZED");
+        errorString.includes("401") ||
+        errorString.includes("UNAUTHORIZED") ||
+        errorString.includes("Google Calendar not connected");
 
       if (isUnauthorized) {
         log.warn(
           "GOOGLE_CALENDAR_SERVICE",
-          "401 error detected - resetting connection status",
+          "Google Calendar connection error detected - resetting connection status and triggering OAuth",
         );
         this.setConnectionStatus(false);
-        errorMessage = "Google Calendar connection expired. Please reconnect.";
+        
+        // Automatically trigger OAuth flow instead of showing error
+        // This provides a seamless reconnection experience
+        log.info(
+          "GOOGLE_CALENDAR_SERVICE",
+          "Automatically starting OAuth flow for reconnection",
+        );
+        this.startOAuth();
+        
+        // Don't set error message or call onError callback since we're redirecting
+        // The user will be redirected to Google OAuth and then back to the app
+        this.isFetchingEvents = false;
+        return;
       }
 
       this.updateState({
@@ -397,15 +521,21 @@ export class GoogleCalendarService {
    * Create a new event
    */
   public async createEvent(event: unknown): Promise<unknown> {
-    if (!this.state.isConnected) {
+    // Verify connection status with backend
+    const connected = await this.isConnected();
+    if (!connected) {
       const error = "Google Calendar not connected";
       this.updateState({ error });
-      if (
-        this.callbacks.onError &&
-        typeof this.callbacks.onError === "function"
-      ) {
-        this.callbacks.onError(error);
-      }
+      // Notify all error callbacks
+      this.callbacks.forEach((callback) => {
+        if (callback.onError && typeof callback.onError === "function") {
+          try {
+            callback.onError(error);
+          } catch (err) {
+            console.error("Error in Google Calendar error callback:", err);
+          }
+        }
+      });
       throw new Error(error);
     }
 

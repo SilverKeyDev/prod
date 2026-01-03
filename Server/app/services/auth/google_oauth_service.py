@@ -12,7 +12,10 @@ from urllib.parse import urlencode
 from typing import Optional, Dict, Any
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from datetime import datetime, timezone, timedelta
 
+from app import db
+from app.models.oauth_state import OAuthState
 from app.utils.security.app_logging import get_logger
 
 logger = get_logger()
@@ -93,24 +96,66 @@ class GoogleOAuthService:
         data = f"google_auth:{timestamp}:{random_data}"
         return base64.urlsafe_b64encode(data.encode()).decode()
     
-    def validate_state(self, state: str, session_state: Optional[str]) -> bool:
-        """Validate OAuth state parameter"""
-        if not state or not session_state:
+    def validate_state(self, state: str, session_state: Optional[str] = None) -> bool:
+        """
+        Validate OAuth state parameter from database.
+        Falls back to session_state for backward compatibility, but DB is preferred.
+        """
+        if not state:
             return False
-        return state == session_state
+        
+        # Try DB first (preferred method)
+        try:
+            state_record = OAuthState.query.filter_by(state=state, oauth_type='auth', used=False).first()
+            if state_record:
+                # Check if expired
+                if state_record.is_expired():
+                    logger.warning(f"OAuth state expired: {state[:20]}...")
+                    return False
+                # Mark as used
+                state_record.used = True
+                db.session.commit()
+                return True
+        except Exception as e:
+            logger.warning(f"Error validating state from DB, falling back to session: {str(e)}")
+        
+        # Fallback to session-based validation (backward compatibility)
+        if session_state:
+            return state == session_state
+        
+        return False
     
     def build_auth_url(self) -> tuple[str, str]:
-        """Build Google OAuth authorization URL"""
+        """
+        Build Google OAuth authorization URL with offline access and consent prompt.
+        Stores state in database for reliable validation.
+        """
         state = self.generate_state()
+        
+        # Store state in database for reliable validation (works even if cookies fail)
+        try:
+            state_record = OAuthState(
+                state=state,
+                oauth_type='auth',
+                user_id=None,  # Auth flow happens before user exists
+                used=False
+            )
+            db.session.add(state_record)
+            db.session.commit()
+            logger.info(f"Stored OAuth state in DB: {state[:20]}...")
+        except Exception as e:
+            logger.error(f"Failed to store OAuth state in DB: {str(e)}", exc_info=True)
+            # Continue anyway - will fall back to session if DB fails
         
         params = {
             "client_id": self.client_id,
             "redirect_uri": self.redirect_uri,
             "response_type": "code",
             "scope": " ".join(self.scopes),
-            "access_type": "online",
+            "access_type": "offline",  # Critical: required for refresh_token
+            "prompt": "consent",  # Critical: forces consent screen to ensure refresh_token
+            "include_granted_scopes": "true",  # Enable incremental authorization
             "state": state,
-            "prompt": "select_account"  # Always show account selection
         }
         
         
@@ -143,6 +188,21 @@ class GoogleOAuthService:
             
             tokens = response.json()
             
+            # Log refresh_token presence for debugging
+            has_refresh_token = bool(tokens.get('refresh_token'))
+            logger.info(f"GOOGLE_TOKEN_EXCHANGE_SUCCESS", extra={
+                'request_id': request_id,
+                'has_refresh_token': has_refresh_token,
+                'has_access_token': bool(tokens.get('access_token')),
+                'expires_in': tokens.get('expires_in'),
+                'token_type': tokens.get('token_type')
+            })
+            
+            if not has_refresh_token:
+                logger.warning(f"GOOGLE_TOKEN_EXCHANGE_NO_REFRESH_TOKEN", extra={
+                    'request_id': request_id,
+                    'note': 'Google did not return refresh_token. This may happen if user already granted consent. Ensure access_type=offline and prompt=consent are set.'
+                })
             
             return tokens
             

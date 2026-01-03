@@ -66,9 +66,8 @@ export const ROUTE_CONFIGS = {
     "/dashboard",
     "/buyer-checklists",
     "/agent",
+    "/calendar",
   ],
 
-  specialized: [
-    { path: "/search", providerType: "maps" as const },
-  ],
+  specialized: [{ path: "/search", providerType: "maps" as const }],
 } as const;

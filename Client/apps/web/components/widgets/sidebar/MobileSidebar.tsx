@@ -47,6 +47,10 @@ export default function MobileSidebar({
       key: "settings",
       ...SIDEBAR_TABS.settings,
     },
+    {
+      key: "calendar",
+      ...SIDEBAR_TABS.calendar,
+    },
   ];
 
   return (

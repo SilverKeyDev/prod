@@ -3,11 +3,15 @@ import { useState, useCallback, useMemo } from "react";
 import { useUserData } from "../../../../../packages/hooks/data/useUserData";
 import { useMessaging } from "../../../../../packages/hooks/data/useMessaging";
 import { useMessageScroll } from "../../../../../packages/hooks/ui/useMessageScroll";
+import { useAgentChats } from "../../../../../packages/hooks/data/useAgentChats";
 import { ClientSearchModal } from "../modals";
+import SelectHomeModal from "../modals/SelectHomeModal";
+import CalendarEventRequestModal from "../modals/CalendarEventRequestModal";
 import UnifiedMessagingSidebar from "../components/UnifiedMessagingSidebar";
 import UnifiedMessagesList from "../components/UnifiedMessagesList";
 import UnifiedMessageInput from "../components/UnifiedMessageInput";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
+import type { SavedHome } from "../../../../../packages/schemas/property";
 
 export default function ClientMessaging() {
   const { userProfile } = useUserData();
@@ -52,9 +56,14 @@ export default function ClientMessaging() {
   const [isTyping, _setIsTyping] = useState(false); // Kept for component interface compatibility, but typing indicator is disabled
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showInbox, setShowInbox] = useState(false);
+  const [showSelectHomeModal, setShowSelectHomeModal] = useState(false);
+  const [showCalendarEventModal, setShowCalendarEventModal] = useState(false);
 
   // Default: sidebar NOT extended (collapsed) on both mobile and desktop
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+
+  // Get sendMessage function for attachments
+  const { sendMessage: sendMessageWithAttachment } = useAgentChats();
 
   // Auto-scroll to bottom when messages change
   const { messagesEndRef } = useMessageScroll(localMessages);
@@ -74,6 +83,30 @@ export default function ClientMessaging() {
     if (!agentId) return "no-agent";
     return "chat";
   };
+
+  // Handle home selection from attachment menu
+  const handleSelectHome = useCallback(
+    async (home: SavedHome) => {
+      if (!activeConversationId && !agentId) return;
+
+      const conversationId = activeConversationId || "new";
+      const propertyId = home.home_id || home.address || "";
+      const message = `Check out ${home.address || "this property"}!`;
+
+      try {
+        await sendMessageWithAttachment(conversationId, message, undefined, propertyId);
+        setShowSelectHomeModal(false);
+      } catch (error) {
+        console.error("Error sharing home:", error);
+      }
+    },
+    [activeConversationId, agentId, sendMessageWithAttachment]
+  );
+
+  // Handle calendar event request
+  const handleCalendarEventSuccess = useCallback(() => {
+    setShowCalendarEventModal(false);
+  }, []);
 
   return (
     <div className="mx-auto h-[calc(100vh-10rem)] max-w-7xl md:mt-0">
@@ -133,6 +166,8 @@ export default function ClientMessaging() {
               setMessage={setMessage}
               isTyping={isTyping}
               onSendMessage={handleSendMessage}
+              onAttachmentHome={() => setShowSelectHomeModal(true)}
+              onAttachmentCalendar={() => setShowCalendarEventModal(true)}
             />
           </div>
         </section>
@@ -142,6 +177,20 @@ export default function ClientMessaging() {
       <ClientSearchModal
         isOpen={showSearchModal}
         onClose={() => setShowSearchModal(false)}
+      />
+
+      {/* Select Home Modal */}
+      <SelectHomeModal
+        isOpen={showSelectHomeModal}
+        onClose={() => setShowSelectHomeModal(false)}
+        onSelect={handleSelectHome}
+      />
+
+      {/* Calendar Event Request Modal */}
+      <CalendarEventRequestModal
+        isOpen={showCalendarEventModal}
+        onClose={() => setShowCalendarEventModal(false)}
+        onSuccess={handleCalendarEventSuccess}
       />
     </div>
   );

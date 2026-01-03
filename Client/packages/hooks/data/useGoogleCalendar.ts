@@ -169,13 +169,13 @@ export function useGoogleEvents(params?: {
 
   // Fetch events when connected
   useEffect(() => {
-    if (
-      authReady &&
-      isAuthenticated &&
-      googleCalendarService.isConnected() &&
-      events.length === 0
-    ) {
-      googleCalendarService.fetchEvents(memoizedParams);
+    if (authReady && isAuthenticated && events.length === 0) {
+      // Check connection status asynchronously
+      void googleCalendarService.isConnected().then((connected) => {
+        if (connected) {
+          googleCalendarService.fetchEvents(memoizedParams);
+        }
+      });
     }
   }, [authReady, isAuthenticated, events.length, memoizedParams]);
 

@@ -2,15 +2,13 @@
 Secure file upload route with enhanced validation and virus scanning.
 """
 from flask import Blueprint, request, jsonify, current_app
-from werkzeug.datastructures import FileStorage
-from ..services.auth.current_user import get_current_user
+
 from ..utils.common_patterns import require_authenticated_user
 from ..utils.security.file_security import validate_file_upload, FileSecurityError, create_secure_upload_directory, get_file_hash
 from ..utils.security.secure_errors import SecureErrorHandler
 from ..utils.s3_service import s3_service
 from .. import db
 import os
-import tempfile
 from ..utils.security.app_logging import get_logger
 
 logger = get_logger()

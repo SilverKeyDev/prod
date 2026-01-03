@@ -1,0 +1,50 @@
+from datetime import datetime, timezone
+import uuid
+from app import db
+
+
+class GoogleOAuthToken(db.Model):
+    """Stores Google OAuth tokens for users"""
+    __tablename__ = 'user_google_tokens'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True)
+    
+    # Token data
+    access_token = db.Column(db.Text, nullable=False)
+    refresh_token = db.Column(db.Text, nullable=True)  # May be None if not provided
+    token_uri = db.Column(db.String(255), nullable=False)
+    client_id = db.Column(db.String(255), nullable=False)
+    client_secret = db.Column(db.String(255), nullable=False)
+    scopes = db.Column(db.Text, nullable=False)  # Space-separated list of scopes
+    expiry = db.Column(db.DateTime, nullable=True)  # Token expiration time
+    
+    # Metadata
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('google_oauth_token', uselist=False, lazy='select'))
+    
+    def __init__(self, **kwargs):
+        super(GoogleOAuthToken, self).__init__(**kwargs)
+        if not self.id:
+            self.id = str(uuid.uuid4())
+    
+    def to_dict(self):
+        """Convert to dictionary format expected by token service"""
+        return {
+            "access_token": self.access_token,
+            "refresh_token": self.refresh_token,
+            "token_uri": self.token_uri,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "scopes": self.scopes,
+            "expiry": self.expiry,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+    
+    def __repr__(self):
+        return f'<GoogleOAuthToken user_id={self.user_id}>'
+

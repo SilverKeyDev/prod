@@ -3,7 +3,7 @@
  * Handles Google Calendar OAuth and API operations
  */
 
-import { apiGet, apiPost } from "../../services/http/compatibility";
+import { apiGet, apiPost, HttpError } from "../../services/http/compatibility";
 
 // Types
 export interface GoogleCalendar {
@@ -49,6 +49,7 @@ export interface GoogleEvent {
       };
     };
   };
+  calendarId?: string; // ID of the calendar this event belongs to
 }
 
 export interface GoogleCalendarListResponse {
@@ -135,10 +136,32 @@ export const googleCalendarApi = {
    */
   listCalendars: async (): Promise<
     GoogleCalendarApiResponse<GoogleCalendarListResponse>
-  > =>
-    apiGet<GoogleCalendarApiResponse<GoogleCalendarListResponse>>(
-      "/api/v1/google/me/calendars",
-    ),
+  > => {
+    try {
+      return await apiGet<GoogleCalendarApiResponse<GoogleCalendarListResponse>>(
+        "/api/v1/google/me/calendars",
+      );
+    } catch (error) {
+      // If the error is an HttpError with a parsed body containing our error format, return it
+      if (error instanceof HttpError && error.parsedBody) {
+        const parsedBody = error.parsedBody as unknown;
+        if (
+          parsedBody &&
+          typeof parsedBody === "object" &&
+          "success" in parsedBody &&
+          "error" in parsedBody
+        ) {
+          return parsedBody as GoogleCalendarApiResponse<GoogleCalendarListResponse>;
+        }
+      }
+      // Otherwise, return a generic error response
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to fetch calendars",
+      };
+    }
+  },
 
   /**
    * List events from a calendar
@@ -283,10 +306,18 @@ export const googleCalendarApi = {
   },
 
   /**
-   * Check if Google Calendar is connected
+   * Check if Google Calendar is connected (checks backend)
    */
-  isConnected: (): boolean => {
-    return document.cookie.includes("google_calendar_connected=true");
+  isConnected: async (): Promise<boolean> => {
+    try {
+      const response = await apiGet<GoogleCalendarApiResponse<{ isConnected: boolean }>>(
+        "/api/v1/google/connection-status",
+      );
+      return response.success && response.data?.isConnected === true;
+    } catch (error) {
+      // Fallback to cookie check
+      return document.cookie.includes("google_calendar_connected=true");
+    }
   },
 
   /**

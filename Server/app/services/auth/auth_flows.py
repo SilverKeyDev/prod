@@ -327,20 +327,21 @@ def handle_google_oauth_callback(request_args: Dict[str, Any], session_data: Dic
         })
         return redirect(f"{Config.FRONTEND_URL}/login?error=google_oauth_failed")
     
-    # Validate state - access Flask session directly to ensure we get the persisted session
+    # Validate state - use DB-based validation (works even if cookies/sessions fail)
     state = request_args.get('state')
-    # Try to get from passed session_data first, but fall back to Flask session directly
-    session_state = session_data.get('google_oauth_state') if session_data else None
+    # Try DB first, fall back to session for backward compatibility
+    session_state = session_data.get('google_auth_oauth_state') if session_data else None
     if not session_state:
         # Access Flask session directly as fallback
-        session_state = session.get('google_oauth_state')
+        session_state = session.get('google_auth_oauth_state')
     
     if not google_oauth_service.validate_state(state, session_state):
         current_app.logger.warning(f"GOOGLE_OAUTH_INVALID_STATE", extra={
             'request_id': request_id,
             'has_state': bool(state),
             'has_session_state': bool(session_state),
-            'state_match': state == session_state if state and session_state else False
+            'state_match': state == session_state if state and session_state else False,
+            'note': 'State validation failed - could be expired, already used, or mismatch'
         })
         return redirect(f"{Config.FRONTEND_URL}/login?error=invalid_state")
     
@@ -371,6 +372,15 @@ def handle_google_oauth_callback(request_args: Dict[str, Any], session_data: Dic
             'tokens_keys': list(tokens.keys()) if tokens else None
         })
         return redirect(f"{Config.FRONTEND_URL}/login?error=invalid_tokens")
+    
+    # Log refresh_token presence for debugging
+    has_refresh_token = bool(tokens.get('refresh_token'))
+    current_app.logger.info(f"GOOGLE_TOKENS_RECEIVED", extra={
+        'request_id': request_id,
+        'has_refresh_token': has_refresh_token,
+        'has_access_token': bool(tokens.get('access_token')),
+        'expires_in': tokens.get('expires_in')
+    })
     
     # Get user info from Google
     try:

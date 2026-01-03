@@ -14,6 +14,7 @@ import PersonalizationPage from "../../pages/SettingsPage.tsx";
 import SavedHomes from "../../pages/SavedPage.tsx";
 import SearchPage from "../../pages/SearchPage.tsx";
 import AgentPage from "../../pages/AgentPage.tsx";
+import { Calendar } from "../../features/dashboard/calendar";
 
 // Stores
 import {
@@ -63,6 +64,7 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/settings": 90,
   "/saved": 90,
   "/agent": 90,
+  "/calendar": 90,
 };
 
 // Mobile-specific width configuration
@@ -73,6 +75,7 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/settings": 90,
   "/saved": 90,
   "/agent": 90,
+  "/calendar": 90,
 };
 
 // Buyer checklist tabs
@@ -108,7 +111,7 @@ export default function DashboardLayout({
   const isPersonalization = path.startsWith("/settings");
   const isSaved = path.startsWith("/saved");
   const isAgent = path.startsWith("/agent");
-
+  const isCalendar = path.startsWith("/calendar");
 
   // Persisted buyer-checklists tab state
   const persistedTab = useViewStore(
@@ -208,6 +211,10 @@ export default function DashboardLayout({
       return { type: "none" };
     }
 
+    if (isCalendar) {
+      return { type: "none" };
+    }
+
     // Default: no special header
     return { type: "none" };
   }, [
@@ -216,6 +223,7 @@ export default function DashboardLayout({
     isPersonalization,
     isBuyerChecklists,
     isSaved,
+    isCalendar,
     path,
     search,
   ]);
@@ -350,10 +358,7 @@ export default function DashboardLayout({
 
       {/* Mobile Sidebar - Only on mobile (< 768px) */}
       <div className="block md:hidden">
-        <MobileSidebar
-          user={user}
-          onLogout={onLogout}
-        />
+        <MobileSidebar user={user} onLogout={onLogout} />
       </div>
 
       <main className="ml-0 flex-1 transition-all duration-200 md:ml-52 max-md:pb-20">
@@ -439,6 +444,7 @@ export default function DashboardLayout({
           {isAgent && (
             <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
           )}
+          {isCalendar && <Calendar />}
           {isDashboard && <DashboardPage />}
         </div>
       </main>

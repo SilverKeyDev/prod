@@ -131,6 +131,21 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
+  calendar: {
+    name: SIDEBAR_TABS.calendar.name,
+    icon: SIDEBAR_TABS.calendar.icon as unknown as React.FC<{
+      className?: string;
+    }>,
+    items: [
+      {
+        name: SIDEBAR_TABS.calendar.name,
+        href: SIDEBAR_TABS.calendar.href,
+        icon: SIDEBAR_TABS.calendar.icon as unknown as React.FC<{
+          className?: string;
+        }>,
+      },
+    ],
+  },
 };
 
 // Function to generate navigation array - messaging always available for all users
@@ -169,6 +184,11 @@ const getNavigation = (
     name: navigationStructure.settings.name,
     icon: navigationStructure.settings.icon,
     items: [...navigationStructure.settings.items],
+  };
+  navigation.calendar = {
+    name: navigationStructure.calendar.name,
+    icon: navigationStructure.calendar.icon,
+    items: [...navigationStructure.calendar.items],
   };
 
   return navigation;
@@ -293,7 +313,8 @@ export default function Sidebar({
                     categoryKey === "decide" ||
                     categoryKey === "close" ||
                     categoryKey === "settings" ||
-                    categoryKey === "agent" ? (
+                    categoryKey === "agent" ||
+                    categoryKey === "calendar" ? (
                       (() => {
                         const firstItem = category.items[0];
                         const ItemIcon = firstItem?.icon;

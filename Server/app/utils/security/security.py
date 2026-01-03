@@ -59,6 +59,9 @@ class SecurityError:
     # Validation errors
     MISSING_FIELDS = ("MISSING_FIELDS", "Required fields are missing", 400)
     INVALID_INPUT = ("INVALID_INPUT", "Invalid input provided", 400)
+    
+    # Google OAuth errors
+    GOOGLE_RECONNECT_REQUIRED = ("GOOGLE_RECONNECT_REQUIRED", "Google Calendar reconnection required. Please reconnect your Google Calendar account.", 401)
 
 
 def security_error_response(error_type, additional_info=None):

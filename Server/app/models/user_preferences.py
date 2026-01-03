@@ -57,17 +57,12 @@ class UserPreferences(db.Model):
 
     # === Report Customization ===
     report_section_priorities = db.Column(db.Text)  # JSON stringified list
-   
-    
-    # === PERSONALIZATION INSIGHTS (AI) ===
-    content_feedback_log = db.Column(db.Text)  # JSON of how they rated or reacted to prior reports
-    agent_interaction_history = db.Column(db.Text)  # JSON list of touchpoints or agent name → type → feedback
-    personality_insights = db.Column(db.Text)  # JSON with MBTI or Big 5 profile extracted from responses
-    additional_context = db.Column(db.Text)  # Additional context or notes from user
-    
     
     # === REPORT CUSTOMIZATION ===
     report_section_priorities = db.Column(db.Text)  # JSON array of section keys in priority order
+    
+    # === CALENDAR SETTINGS ===
+    disabled_calendars = db.Column(db.Text)  # JSON array of disabled calendar IDs
     
     # Relationship
     user = db.relationship('User', back_populates='user_preferences', lazy='select')
@@ -136,11 +131,8 @@ class UserPreferences(db.Model):
         'last_updated_section': self.last_updated_section,
         'data_sources': self._parse_json_field(self.data_sources),
 
-        # Personalization Insights (AI)
-        'content_feedback_log': self._parse_json_field(self.content_feedback_log),
-        'agent_interaction_history': self._parse_json_field(self.agent_interaction_history),
-        'personality_insights': self._parse_json_field(self.personality_insights),
-        'additional_context': self.additional_context
+        # Calendar Settings
+        'disabled_calendars': self._parse_json_field(self.disabled_calendars)
     }
 
  

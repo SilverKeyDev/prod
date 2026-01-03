@@ -51,15 +51,50 @@ def health_check():
         }), 500
 
 
+@google_calendar_bp.route("/connection-status", methods=["GET"])
+@rate_limit(max_requests=100, window_seconds=60)
+def connection_status():
+    """Check if Google Calendar is connected for the current user"""
+    try:
+        from ..services.auth.current_user import get_current_user
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        user_id = str(user.id)
+    except Exception as e:
+        logger.error(f"Authentication error in connection_status: {str(e)}")
+        return security_error_response(SecurityError.UNAUTHORIZED)
+    
+    try:
+        from ..services.auth.tokens import tokens_get
+        token_data = tokens_get(user_id)
+        is_connected = token_data is not None
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "isConnected": is_connected
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error checking connection status for user {user_id}: {str(e)}", exc_info=True)
+        return jsonify({
+            "success": False,
+            "error": "Failed to check connection status"
+        }), 500
+
+
 @google_calendar_bp.route("/oauth/start", methods=["GET"])
 @rate_limit(max_requests=10, window_seconds=60)
 def oauth_start():
     """Start Google OAuth flow with incremental authorization
     
     Query params:
-        full_scope: If 'true', request full calendar scope (for agent sharing).
-                   Default is False (requests only calendar.events scope).
-        scheduling: If 'true', request calendar.app.created and calendar.freebusy scopes (for scheduling MVP).
+        full_scope: If 'true', request calendar.app.created scope for creating/updating events.
+                   Non-sensitive, no OAuth verification required. Default is False.
+        scheduling: If 'true', request calendar.app.created and calendar.freebusy scopes.
+                   Note: calendar.freebusy requires OAuth verification.
+                   Default uses only calendar.app.created (non-sensitive, no verification required).
     """
     try:
         from ..services.auth.current_user import get_current_user
@@ -82,7 +117,8 @@ def oauth_start():
         request_full_scope=request_full_scope,
         use_scheduling_scopes=use_scheduling_scopes
     )
-    session["google_oauth_state"] = state
+    # Use separate session key for calendar flow to avoid conflicts with auth OAuth
+    session["google_calendar_oauth_state"] = state
     
     return redirect(auth_url)
 
@@ -109,8 +145,8 @@ def oauth_callback():
     if error:
         return make_response((f"OAuth error: {error}", 400))
     
-    # Validate state
-    if not google_calendar_service.validate_state(state, session.get("google_oauth_state")):
+    # Validate state - use separate session key for calendar flow
+    if not google_calendar_service.validate_state(state, session.get("google_calendar_oauth_state")):
         log_oauth_event("callback_failed", user_id, reason="invalid_state")
         return make_response(("Invalid state", 400))
     
@@ -137,8 +173,8 @@ def oauth_callback():
                 except:
                     pass
                 
-                # Create SilverKey calendar if it doesn't exist
-                google_calendar_service.get_or_create_silverkey_calendar(user_id, buyer_name)
+                # Create SilverKey calendar if it doesn't exist (buyer_name is ignored, always creates "SilverKey")
+                google_calendar_service.get_or_create_silverkey_calendar(user_id, None)
             except Exception as e:
                 # Log but don't fail OAuth if calendar creation fails
                 logger.warning(f"Failed to create SilverKey calendar during OAuth: {str(e)}")
@@ -181,9 +217,20 @@ def list_calendars():
     
     try:
         calendars = google_calendar_service.list_calendars(user_id)
-        return jsonify({"items": calendars})
+        return jsonify({
+            "success": True,
+            "data": {"items": calendars}
+        })
     except RuntimeError as e:
-        return make_response((str(e), 401))
+        error_msg = str(e)
+        # Check if this is a reconnection required error
+        if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
+            return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
+        return jsonify({
+            "success": False,
+            "error": "authentication_failed",
+            "message": error_msg
+        }), 401
     except HttpError as e:
         logger.error(f"Google API error in list_calendars: {str(e)}")
         return SecureErrorHandler.handle_error(e, "Failed to list calendars")
@@ -210,29 +257,73 @@ def list_events():
         calendar_id = request.args.get("calendarId", "primary")
         time_min = request.args.get("timeMin")
         time_max = request.args.get("timeMax")
-        max_results = int(request.args.get("maxResults", 100))
+        
+        # Safely parse maxResults with validation
+        max_results_str = request.args.get("maxResults", "100")
+        try:
+            max_results = int(max_results_str)
+            # Clamp between 1 and 2500 (Google Calendar API limit)
+            max_results = max(1, min(max_results, 2500))
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid maxResults value: {max_results_str}, using default 100")
+            max_results = 100
         
         events = google_calendar_service.list_events(
             user_id, calendar_id, time_min, time_max, max_results
         )
-        return jsonify({"items": events})
+        
+        # Ensure events is a list (handle None or unexpected response format)
+        if events is None:
+            events = []
+        elif not isinstance(events, list):
+            logger.warning(f"Unexpected events format for user {user_id}: {type(events)}")
+            events = []
+        
+        return jsonify({
+            "success": True,
+            "data": {"items": events}
+        })
         
     except RuntimeError as e:
-        return make_response((str(e), 401))
+        error_msg = str(e)
+        logger.warning(f"RuntimeError in list_events for user {user_id}: {error_msg}")
+        # Check if this is a reconnection required error
+        if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
+            return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
+        return jsonify({
+            "success": False,
+            "error": "authentication_failed",
+            "message": error_msg
+        }), 401
     except HttpError as e:
-        logger.error(f"Google API error in list_events: {str(e)}")
+        error_msg = str(e)
+        logger.error(f"Google API error in list_events for user {user_id}: {error_msg}", exc_info=True)
+        # Check if it's an authentication/authorization error
+        if hasattr(e, 'resp') and e.resp:
+            status_code = e.resp.status
+            if status_code in [401, 403]:
+                return jsonify({
+                    "success": False,
+                    "error": "authentication_failed",
+                    "message": "Google Calendar authentication failed. Please reconnect your account."
+                }), 401
         return SecureErrorHandler.handle_error(e, "Failed to list events")
     except Exception as e:
-        logger.error(f"Error listing events: {str(e)}", exc_info=True)
+        error_msg = str(e)
+        logger.error(f"Error listing events for user {user_id}: {error_msg}", exc_info=True)
         return SecureErrorHandler.handle_error(e, "Failed to list events")
 
 
 @google_calendar_bp.route("/me/events", methods=["POST"])
 @rate_limit(max_requests=50, window_seconds=60)
 def create_event():
-    """Create a new event in user's Google calendar"""
+    """Create a new event in user's Google calendar and save to database"""
     try:
         from ..services.auth.current_user import get_current_user
+        from ..models.calendar_event import CalendarEvent
+        from ..models.calendar import Calendar
+        from .. import db
+        
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
@@ -247,17 +338,108 @@ def create_event():
         if not validate_event_data(event_data):
             return make_response(("Invalid event data", 400))
         
+        # Extract calendar ID and event type if provided
         calendar_id = event_data.pop("calendarId", "primary")
-        event = google_calendar_service.create_event(user_id, event_data, calendar_id)
-        return jsonify(event), 201
+        event_type = event_data.pop("eventType", None)  # Optional event type from frontend
+        
+        # Create event in Google Calendar
+        google_event = google_calendar_service.create_event(user_id, event_data, calendar_id)
+        
+        # Find or get the Calendar record for this calendar
+        calendar_record = None
+        if calendar_id != "primary":
+            # Try to find calendar by google_calendar_id
+            calendar_record = Calendar.query.filter_by(
+                user_id=user_id,
+                google_calendar_id=calendar_id
+            ).first()
+        
+        # If not found, try to find by calendar name (e.g., "SilverKey")
+        if not calendar_record:
+            calendar_record = Calendar.query.filter_by(
+                user_id=user_id,
+                calendar_name="SilverKey"
+            ).first() if calendar_id != "primary" else None
+        
+        # Parse start and end datetime from Google event response
+        start_datetime = None
+        end_datetime = None
+        timezone_str = "UTC"
+        
+        if google_event.get("start") and google_event["start"].get("dateTime"):
+            try:
+                # Try ISO format parsing (Python 3.7+)
+                start_datetime = datetime.fromisoformat(google_event["start"]["dateTime"].replace('Z', '+00:00'))
+            except (ValueError, AttributeError):
+                # Fallback to manual parsing if needed
+                try:
+                    from dateutil import parser as date_parser
+                    start_datetime = date_parser.parse(google_event["start"]["dateTime"])
+                except ImportError:
+                    # Last resort: use datetime.strptime for common formats
+                    start_datetime = datetime.strptime(google_event["start"]["dateTime"][:19], "%Y-%m-%dT%H:%M:%S")
+            timezone_str = google_event["start"].get("timeZone", "UTC")
+        
+        if google_event.get("end") and google_event["end"].get("dateTime"):
+            try:
+                end_datetime = datetime.fromisoformat(google_event["end"]["dateTime"].replace('Z', '+00:00'))
+            except (ValueError, AttributeError):
+                try:
+                    from dateutil import parser as date_parser
+                    end_datetime = date_parser.parse(google_event["end"]["dateTime"])
+                except ImportError:
+                    end_datetime = datetime.strptime(google_event["end"]["dateTime"][:19], "%Y-%m-%dT%H:%M:%S")
+        
+        # Create CalendarEvent record in database
+        calendar_event = CalendarEvent(
+            user_id=user_id,
+            calendar_id=calendar_record.id if calendar_record else None,
+            google_event_id=google_event.get("id"),
+            summary=google_event.get("summary", event_data.get("summary", "")),
+            description=google_event.get("description") or event_data.get("description"),
+            location=google_event.get("location") or event_data.get("location"),
+            event_type=event_type,
+            creator_id=user_id,  # User who created the event
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            timezone=timezone_str,
+            attendees=google_event.get("attendees"),
+            reminders=google_event.get("reminders"),
+            status=google_event.get("status", "confirmed"),
+            is_synced=True,
+            last_synced_at=datetime.now(timezone.utc),
+            sync_source="google"
+        )
+        
+        # Calculate duration
+        calendar_event.calculate_duration()
+        
+        # Save to database
+        db.session.add(calendar_event)
+        db.session.commit()
+        
+        logger.info(f"Event created and saved to database: {calendar_event.id} for user {user_id}")
+        
+        return jsonify({
+            "success": True,
+            "data": google_event
+        }), 201
         
     except RuntimeError as e:
-        return make_response((str(e), 401))
+        error_msg = str(e)
+        if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
+            return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
+        return jsonify({
+            "success": False,
+            "error": "authentication_failed",
+            "message": error_msg
+        }), 401
     except HttpError as e:
         logger.error(f"Google API error in create_event: {str(e)}")
         return SecureErrorHandler.handle_error(e, "Failed to create event")
     except Exception as e:
         logger.error(f"Error creating event: {str(e)}", exc_info=True)
+        db.session.rollback()
         return SecureErrorHandler.handle_error(e, "Failed to create event")
 
 
@@ -283,10 +465,20 @@ def update_event(event_id):
         
         calendar_id = event_data.pop("calendarId", "primary")
         event = google_calendar_service.update_event(user_id, event_id, event_data, calendar_id)
-        return jsonify(event), 200
+        return jsonify({
+            "success": True,
+            "data": event
+        }), 200
         
     except RuntimeError as e:
-        return make_response((str(e), 401))
+        error_msg = str(e)
+        if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
+            return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
+        return jsonify({
+            "success": False,
+            "error": "authentication_failed",
+            "message": error_msg
+        }), 401
     except HttpError as e:
         logger.error(f"Google API error in update_event: {str(e)}")
         return SecureErrorHandler.handle_error(e, "Failed to update event")
@@ -312,10 +504,20 @@ def delete_event(event_id):
     try:
         calendar_id = request.args.get("calendarId", "primary")
         success = google_calendar_service.delete_event(user_id, event_id, calendar_id)
-        return jsonify({"ok": success}), 200
+        return jsonify({
+            "success": True,
+            "data": {"ok": success}
+        }), 200
         
     except RuntimeError as e:
-        return make_response((str(e), 401))
+        error_msg = str(e)
+        if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
+            return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
+        return jsonify({
+            "success": False,
+            "error": "authentication_failed",
+            "message": error_msg
+        }), 401
     except HttpError as e:
         logger.error(f"Google API error in delete_event: {str(e)}")
         return SecureErrorHandler.handle_error(e, "Failed to delete event")
@@ -340,7 +542,10 @@ def revoke():
     
     try:
         success = google_calendar_service.revoke_access(user_id)
-        return jsonify({"ok": success})
+        return jsonify({
+            "success": True,
+            "data": {"ok": success}
+        })
         
     except Exception as e:
         error_msg = sanitize_error_message(e)
@@ -370,10 +575,20 @@ def create_calendar():
             return make_response(("Calendar name is required", 400))
         
         calendar = google_calendar_service.create_calendar(user_id, calendar_name)
-        return jsonify(calendar), 201
+        return jsonify({
+            "success": True,
+            "data": calendar
+        }), 201
         
     except RuntimeError as e:
-        return make_response((str(e), 401))
+        error_msg = str(e)
+        if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
+            return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
+        return jsonify({
+            "success": False,
+            "error": "authentication_failed",
+            "message": error_msg
+        }), 401
     except HttpError as e:
         logger.error(f"Google API error in create_calendar: {str(e)}")
         return SecureErrorHandler.handle_error(e, "Failed to create calendar")
@@ -405,10 +620,20 @@ def add_calendar_acl(calendar_id):
             return make_response(("Agent email is required", 400))
         
         acl_rule = google_calendar_service.add_calendar_acl(user_id, calendar_id, agent_email, role)
-        return jsonify(acl_rule), 201
+        return jsonify({
+            "success": True,
+            "data": acl_rule
+        }), 201
         
     except RuntimeError as e:
-        return make_response((str(e), 401))
+        error_msg = str(e)
+        if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
+            return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
+        return jsonify({
+            "success": False,
+            "error": "authentication_failed",
+            "message": error_msg
+        }), 401
     except HttpError as e:
         logger.error(f"Google API error in add_calendar_acl: {str(e)}")
         return SecureErrorHandler.handle_error(e, "Failed to add calendar ACL")
@@ -447,10 +672,20 @@ def query_freebusy():
             user_id, time_min, time_max, calendar_ids
         )
         
-        return jsonify({"calendars": freebusy_result})
+        return jsonify({
+            "success": True,
+            "data": {"calendars": freebusy_result}
+        })
         
     except RuntimeError as e:
-        return make_response((str(e), 401))
+        error_msg = str(e)
+        if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
+            return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
+        return jsonify({
+            "success": False,
+            "error": "authentication_failed",
+            "message": error_msg
+        }), 401
     except HttpError as e:
         logger.error(f"Google API error in query_freebusy: {str(e)}")
         return SecureErrorHandler.handle_error(e, "Failed to query freebusy")
@@ -481,10 +716,20 @@ def get_or_create_silverkey_calendar():
                 buyer_name = data.get("buyerName")
         
         calendar = google_calendar_service.get_or_create_silverkey_calendar(user_id, buyer_name)
-        return jsonify(calendar)
+        return jsonify({
+            "success": True,
+            "data": calendar
+        })
         
     except RuntimeError as e:
-        return make_response((str(e), 401))
+        error_msg = str(e)
+        if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
+            return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
+        return jsonify({
+            "success": False,
+            "error": "authentication_failed",
+            "message": error_msg
+        }), 401
     except HttpError as e:
         logger.error(f"Google API error in get_or_create_silverkey_calendar: {str(e)}")
         return SecureErrorHandler.handle_error(e, "Failed to get or create SilverKey calendar")

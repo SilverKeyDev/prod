@@ -9,6 +9,7 @@ import json
 import uuid
 import base64
 import hashlib
+import threading
 import requests
 from urllib.parse import urlencode
 from datetime import datetime, timezone, timedelta
@@ -30,6 +31,10 @@ from app.utils.security.security import (
 
 logger = get_logger()
 
+# Lock for preventing concurrent token refreshes per user
+_refresh_locks: Dict[str, threading.Lock] = {}
+_refresh_locks_lock = threading.Lock()  # Lock for managing refresh locks
+
 
 class GoogleCalendarService:
     """Service for Google Calendar operations"""
@@ -41,9 +46,10 @@ class GoogleCalendarService:
         self.client_id = Config.GOOGLE_CLIENT_ID
         self.client_secret = Config.GOOGLE_CALENDAR_SECRET
         self.redirect_uri = Config.GOOGLE_REDIRECT_URI
+        # Default to calendar.app.created (non-sensitive scope) - no OAuth verification required
+        # This allows managing only calendars/events created by the app
         self.scopes = Config.GOOGLE_SCOPES.split() if Config.GOOGLE_SCOPES else [
-            "https://www.googleapis.com/auth/calendar.events",
-            "https://www.googleapis.com/auth/calendar.readonly"
+            "https://www.googleapis.com/auth/calendar.app.created"
         ]
         self.auth_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"
         self.token_endpoint = "https://oauth2.googleapis.com/token"
@@ -117,28 +123,33 @@ class GoogleCalendarService:
         """Validate OAuth state parameter"""
         return validate_oauth_state(state, session_state)
     
-    def build_auth_url(self, user_id: str, request_full_scope: bool = False, use_scheduling_scopes: bool = False) -> str:
+    def build_auth_url(self, user_id: str, request_full_scope: bool = False, use_scheduling_scopes: bool = False) -> tuple[str, str]:
         """Build Google OAuth authorization URL with incremental authorization
         
         Args:
             user_id: User ID
-            request_full_scope: If True, request full calendar scope (for agent sharing).
-                              If False, request only calendar.events scope (default).
-            use_scheduling_scopes: If True, request calendar.app.created and calendar.freebusy scopes (for scheduling MVP).
+            request_full_scope: If True, request calendar.app.created scope for creating/updating events.
+                              Non-sensitive, no OAuth verification required.
+            use_scheduling_scopes: If True, request calendar.app.created and calendar.freebusy scopes.
+                                 Note: calendar.freebusy is sensitive and requires verification.
         """
         state = self.generate_state(user_id)
         
-        # Use incremental authorization: start with calendar.events, only request full calendar scope when needed
+        # Default to calendar.app.created (non-sensitive, no verification required)
+        # This allows managing only calendars/events created by the app
         if request_full_scope:
-            requested_scopes = ["https://www.googleapis.com/auth/calendar"]
+            # Use calendar.app.created for creating and updating events (non-sensitive, no verification required)
+            requested_scopes = ["https://www.googleapis.com/auth/calendar.app.created"]
         elif use_scheduling_scopes:
-            # Request minimal scopes for scheduling MVP: calendar.app.created and calendar.freebusy
+            # Request calendar.app.created (non-sensitive) and calendar.freebusy (sensitive)
+            # Note: calendar.freebusy requires OAuth verification
             requested_scopes = [
                 "https://www.googleapis.com/auth/calendar.app.created",
                 "https://www.googleapis.com/auth/calendar.freebusy"
             ]
         else:
-            requested_scopes = ["https://www.googleapis.com/auth/calendar.events"]
+            # Default: calendar.app.created (non-sensitive, no verification required)
+            requested_scopes = ["https://www.googleapis.com/auth/calendar.app.created"]
         
         params = {
             "client_id": self.client_id,
@@ -146,6 +157,7 @@ class GoogleCalendarService:
             "response_type": "code",
             "scope": " ".join(requested_scopes),
             "access_type": "offline",
+            "prompt": "consent",  # Force consent screen to ensure refresh_token is issued
             "include_granted_scopes": "true",  # Enable incremental authorization
             "state": state,
         }
@@ -198,10 +210,28 @@ class GoogleCalendarService:
             if not granted_scopes:
                 granted_scopes = self.scopes
             
+            # Get existing tokens to preserve refresh_token if Google doesn't return one
+            existing_tokens = tokens_get(user_id)
+            existing_refresh_token = existing_tokens.get("refresh_token") if existing_tokens else None
+            
+            # Google may not return refresh_token on subsequent consents
+            # Preserve existing refresh_token if new one is not provided (handle None and empty string)
+            new_refresh_token = tokens.get("refresh_token")
+            # Treat empty string as missing (Google shouldn't return this, but be defensive)
+            if not new_refresh_token or (isinstance(new_refresh_token, str) and not new_refresh_token.strip()):
+                if existing_refresh_token:
+                    logger.info(f"Google did not return refresh_token, preserving existing one for user {user_id}")
+                    new_refresh_token = existing_refresh_token
+                else:
+                    logger.warning(f"Google did not return refresh_token and no existing refresh_token found for user {user_id}")
+                    new_refresh_token = None
+            else:
+                logger.info(f"Google returned new refresh_token for user {user_id}")
+            
             # Store tokens with actual granted scopes
             token_data = {
                 "access_token": tokens["access_token"],
-                "refresh_token": tokens.get("refresh_token"),
+                "refresh_token": new_refresh_token,  # Will be None if no existing token and Google didn't return one
                 "token_uri": self.token_endpoint,
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
@@ -214,7 +244,9 @@ class GoogleCalendarService:
             logger.info(f"GOOGLE_TOKEN_EXCHANGE_SUCCESS", extra={
                 'request_id': request_id,
                 'user_id': user_id,
-                'has_refresh_token': bool(tokens.get("refresh_token")),
+                'has_refresh_token': bool(new_refresh_token),
+                'google_returned_refresh_token': bool(tokens.get("refresh_token")),
+                'preserved_existing_refresh_token': bool(existing_refresh_token and not tokens.get("refresh_token")),
                 'expires_in': tokens.get("expires_in"),
                 'granted_scopes': granted_scopes
             })
@@ -232,44 +264,229 @@ class GoogleCalendarService:
             log_oauth_event("token_exchange_error", user_id, error=error_msg)
             raise
     
+    def _get_refresh_lock(self, user_id: str) -> threading.Lock:
+        """Get or create a lock for a specific user to prevent concurrent refreshes"""
+        with _refresh_locks_lock:
+            if user_id not in _refresh_locks:
+                _refresh_locks[user_id] = threading.Lock()
+            return _refresh_locks[user_id]
+    
     def load_credentials(self, user_id: str) -> Credentials:
-        """Load and refresh Google credentials for a user"""
+        """Load and refresh Google credentials for a user
+        
+        Uses per-user locking to prevent race conditions when multiple requests
+        try to refresh the token simultaneously.
+        
+        Raises:
+            RuntimeError: If tokens are missing or invalid, with message indicating reconnection needed
+        """
         token_data = tokens_get(user_id)
         if not token_data:
             raise RuntimeError("Google Calendar not connected")
         
+        # Ensure all required fields are present, using service defaults as fallback
+        refresh_token = token_data.get("refresh_token")
+        token_uri = token_data.get("token_uri") or self.token_endpoint
+        client_id = token_data.get("client_id") or self.client_id
+        client_secret = token_data.get("client_secret") or self.client_secret
+        scopes = token_data.get("scopes", "").split() if token_data.get("scopes") else self.scopes
+        
+        # Validate that we have the minimum required fields
+        if not token_data.get("access_token"):
+            raise RuntimeError("Google Calendar not connected: missing access token")
+        
+        # Early validation: Check if refresh_token is missing (critical for token refresh)
+        # This prevents 500 errors when Google tries to refresh expired tokens
+        if not refresh_token:
+            logger.warning(f"Missing refresh_token for user {user_id} - reconnection required")
+            raise RuntimeError("GOOGLE_RECONNECT_REQUIRED: Missing refresh token. Please reconnect your Google Calendar account.")
+        
+        # Validate that all required credential fields are present
+        if not all([token_uri, client_id, client_secret]):
+            logger.warning(f"Missing required credential fields for user {user_id} - reconnection required")
+            raise RuntimeError("GOOGLE_RECONNECT_REQUIRED: Missing required credential fields. Please reconnect your Google Calendar account.")
+        
         creds = Credentials(
             token=token_data["access_token"],
-            refresh_token=token_data.get("refresh_token"),
-            token_uri=token_data["token_uri"],
-            client_id=token_data["client_id"],
-            client_secret=token_data["client_secret"],
-            scopes=token_data["scopes"].split(),
+            refresh_token=refresh_token,
+            token_uri=token_uri,
+            client_id=client_id,
+            client_secret=client_secret,
+            scopes=scopes,
         )
         
-        # Refresh if expired
-        if creds.expired and creds.refresh_token:
+        # Refresh if expired or about to expire (within 5 minutes)
+        # This proactive refresh helps prevent expiration errors
+        expiry = token_data.get("expiry")
+        if expiry:
             try:
-                creds.refresh(GoogleRequest())
+                from datetime import datetime, timezone
+                expiry_dt = expiry if isinstance(expiry, datetime) else datetime.fromisoformat(str(expiry).replace('Z', '+00:00'))
+                now = datetime.now(timezone.utc)
+                # Refresh if expired or expiring within 5 minutes
+                should_refresh = (expiry_dt - now).total_seconds() < 300
+            except Exception:
+                # If we can't parse expiry, check if creds.expired
+                should_refresh = creds.expired
+        else:
+            should_refresh = creds.expired
+        
+        if should_refresh and creds.refresh_token:
+            # Use per-user lock to prevent concurrent refreshes
+            user_lock = self._get_refresh_lock(user_id)
+            
+            with user_lock:
+                # Re-check token data after acquiring lock (another thread may have refreshed it)
+                token_data = tokens_get(user_id)
+                if not token_data:
+                    raise RuntimeError("Google Calendar not connected")
                 
-                # Update stored tokens
-                updated_tokens = {
-                    "access_token": creds.token,
-                    "refresh_token": creds.refresh_token,
-                    "token_uri": token_data["token_uri"],
-                    "client_id": token_data["client_id"],
-                    "client_secret": token_data["client_secret"],
-                    "scopes": token_data["scopes"],
-                    "expiry": creds.expiry
-                }
-                tokens_upsert(user_id, updated_tokens)
-                log_oauth_event("tokens_refreshed", user_id)
+                # Check if token was already refreshed by another thread
+                expiry = token_data.get("expiry")
+                if expiry:
+                    try:
+                        from datetime import datetime, timezone
+                        expiry_dt = expiry if isinstance(expiry, datetime) else datetime.fromisoformat(str(expiry).replace('Z', '+00:00'))
+                        now = datetime.now(timezone.utc)
+                        should_refresh = (expiry_dt - now).total_seconds() < 300
+                    except Exception:
+                        should_refresh = creds.expired
+                else:
+                    should_refresh = creds.expired
                 
-            except Exception as e:
-                logger.error(f"Failed to refresh credentials for user {user_id}: {str(e)}")
-                raise RuntimeError(f"Failed to refresh Google credentials: {str(e)}")
+                # Only refresh if still needed
+                if should_refresh:
+                    try:
+                        # Ensure all required fields are present for refresh
+                        refresh_token = token_data.get("refresh_token")
+                        if not refresh_token:
+                            raise RuntimeError("Google Calendar not connected: missing refresh token. Please reconnect.")
+                        
+                        token_uri = token_data.get("token_uri") or self.token_endpoint
+                        client_id = token_data.get("client_id") or self.client_id
+                        client_secret = token_data.get("client_secret") or self.client_secret
+                        scopes = token_data.get("scopes", "").split() if token_data.get("scopes") else self.scopes
+                        
+                        # Recreate creds with latest token data and validated fields
+                        creds = Credentials(
+                            token=token_data["access_token"],
+                            refresh_token=refresh_token,
+                            token_uri=token_uri,
+                            client_id=client_id,
+                            client_secret=client_secret,
+                            scopes=scopes,
+                        )
+                        
+                        # Validate that all required fields are present before refresh
+                        if not all([creds.refresh_token, creds.token_uri, creds.client_id, creds.client_secret]):
+                            raise RuntimeError("Google Calendar not connected: missing required credential fields. Please reconnect.")
+                        
+                        creds.refresh(GoogleRequest())
+                        
+                        # CRITICAL: Preserve the refresh_token from stored data, not from creds
+                        # The Google Credentials object may not preserve refresh_token after refresh
+                        # Always use the refresh_token from token_data (which we validated exists above)
+                        stored_refresh_token = token_data.get("refresh_token")
+                        if not stored_refresh_token:
+                            # Fallback to creds.refresh_token, but this should not happen
+                            stored_refresh_token = creds.refresh_token
+                            logger.warning(f"Using refresh_token from Credentials object for user {user_id} (unexpected)")
+                        
+                        # Update stored tokens - explicitly preserve refresh_token
+                        updated_tokens = {
+                            "access_token": creds.token,
+                            "refresh_token": stored_refresh_token,  # Preserve from stored data, not creds
+                            "token_uri": token_data["token_uri"],
+                            "client_id": token_data["client_id"],
+                            "client_secret": token_data["client_secret"],
+                            "scopes": token_data["scopes"],
+                            "expiry": creds.expiry
+                        }
+                        tokens_upsert(user_id, updated_tokens)
+                        logger.info(f"Tokens refreshed for user {user_id}, refresh_token preserved: {bool(stored_refresh_token)}")
+                        log_oauth_event("tokens_refreshed", user_id)
+                        
+                    except Exception as e:
+                        error_str = str(e).lower()
+                        # Check if this is a refresh token error (invalid_grant, invalid_token, etc.)
+                        is_refresh_error = any(
+                            keyword in error_str 
+                            for keyword in [
+                                "invalid_grant", 
+                                "invalid_token", 
+                                "token has been revoked", 
+                                "invalid_request",
+                                "refresh error",
+                                "necessary fields",
+                                "refresh_token",
+                                "token_uri",
+                                "client_id",
+                                "client_secret"
+                            ]
+                        )
+                        
+                        if is_refresh_error:
+                            # Refresh token is invalid/revoked or missing required fields - clear tokens and indicate reconnection needed
+                            logger.warning(f"Refresh token invalid or missing required fields for user {user_id}, clearing tokens: {str(e)}")
+                            tokens_delete(user_id)
+                            log_oauth_event("tokens_cleared_after_refresh_failure", user_id, error=str(e))
+                            raise RuntimeError("Google Calendar not connected. Please reconnect your Google Calendar account.")
+                        else:
+                            # Other errors (network, etc.) - log and re-raise
+                            logger.error(f"Failed to refresh credentials for user {user_id}: {str(e)}", exc_info=True)
+                            raise RuntimeError(f"Failed to refresh Google credentials: {str(e)}")
+                else:
+                    # Token was refreshed by another thread, reload with fresh data
+                    refresh_token = token_data.get("refresh_token")
+                    token_uri = token_data.get("token_uri") or self.token_endpoint
+                    client_id = token_data.get("client_id") or self.client_id
+                    client_secret = token_data.get("client_secret") or self.client_secret
+                    scopes = token_data.get("scopes", "").split() if token_data.get("scopes") else self.scopes
+                    
+                    creds = Credentials(
+                        token=token_data["access_token"],
+                        refresh_token=refresh_token,
+                        token_uri=token_uri,
+                        client_id=client_id,
+                        client_secret=client_secret,
+                        scopes=scopes,
+                    )
         
         return creds
+    
+    def _resolve_calendar_id(self, user_id: str, calendar_id: str) -> str:
+        """Resolve calendar ID based on user's scopes
+        
+        If user has calendar.app.created scope (restricted) and requests "primary",
+        automatically use SilverKey calendar instead since primary calendar is not accessible.
+        
+        Args:
+            user_id: User ID
+            calendar_id: Requested calendar ID (may be "primary")
+        
+        Returns:
+            Resolved calendar ID (SilverKey calendar ID if restricted scope and primary requested)
+        """
+        if calendar_id == "primary":
+            # Check if user has restricted scope (calendar.app.created)
+            token_data = tokens_get(user_id)
+            if token_data:
+                scopes = token_data.get("scopes", "").split() if token_data.get("scopes") else []
+                has_restricted_scope = (
+                    "https://www.googleapis.com/auth/calendar.app.created" in scopes
+                )
+                
+                if has_restricted_scope:
+                    # User has restricted scope - can't access primary, use SilverKey calendar
+                    try:
+                        silverkey_cal = self.get_or_create_silverkey_calendar(user_id)
+                        resolved_id = silverkey_cal.get("id")
+                        logger.debug(f"Resolved 'primary' to SilverKey calendar {resolved_id} for user {user_id} (restricted scope)")
+                        return resolved_id
+                    except Exception as e:
+                        logger.warning(f"Failed to get SilverKey calendar for user {user_id}, using requested calendar_id: {str(e)}")
+        
+        return calendar_id
     
     def list_calendars(self, user_id: str) -> List[Dict[str, Any]]:
         """List user's Google calendars"""
@@ -292,6 +509,9 @@ class GoogleCalendarService:
                    max_results: int = 100) -> List[Dict[str, Any]]:
         """List events from user's Google calendar"""
         try:
+            # Resolve calendar_id (convert "primary" to SilverKey if using restricted scope)
+            calendar_id = self._resolve_calendar_id(user_id, calendar_id)
+            
             creds = self.load_credentials(user_id)
             service = build("calendar", "v3", credentials=creds, cache_discovery=False)
             
@@ -307,16 +527,26 @@ class GoogleCalendarService:
             if time_max:
                 params["timeMax"] = time_max
             
-            events = service.events().list(**params).execute()
+            events_response = service.events().list(**params).execute()
+            
+            # Safely extract items from response
+            if not events_response:
+                logger.warning(f"Empty response from Google Calendar API for user {user_id}, calendar {calendar_id}")
+                return []
+            
+            items = events_response.get("items", [])
+            if not isinstance(items, list):
+                logger.warning(f"Unexpected items format from Google Calendar API for user {user_id}: {type(items)}")
+                return []
             
             log_oauth_event("events_listed", user_id, calendar_id=calendar_id, 
-                          count=len(events.get("items", [])))
-            return events.get("items", [])
+                          count=len(items))
+            return items
             
         except Exception as e:
             error_msg = sanitize_error_message(e)
             log_oauth_event("events_list_error", user_id, calendar_id=calendar_id, error=error_msg)
-            logger.error(f"Error listing events for user {user_id}: {error_msg}", exc_info=True)
+            logger.error(f"Error listing events for user {user_id}, calendar {calendar_id}: {error_msg}", exc_info=True)
             raise
     
     def create_event(self, user_id: str, event_data: Dict[str, Any], 
@@ -326,6 +556,9 @@ class GoogleCalendarService:
             # Validate event data
             if not validate_event_data(event_data):
                 raise ValueError("Invalid event data")
+            
+            # Resolve calendar_id (convert "primary" to SilverKey if using restricted scope)
+            calendar_id = self._resolve_calendar_id(user_id, calendar_id)
             
             creds = self.load_credentials(user_id)
             service = build("calendar", "v3", credentials=creds, cache_discovery=False)
@@ -352,6 +585,9 @@ class GoogleCalendarService:
             if not validate_event_data(event_data):
                 raise ValueError("Invalid event data")
             
+            # Resolve calendar_id (convert "primary" to SilverKey if using restricted scope)
+            calendar_id = self._resolve_calendar_id(user_id, calendar_id)
+            
             creds = self.load_credentials(user_id)
             service = build("calendar", "v3", credentials=creds, cache_discovery=False)
             
@@ -374,6 +610,9 @@ class GoogleCalendarService:
                     calendar_id: str = "primary") -> bool:
         """Delete an event from user's Google calendar"""
         try:
+            # Resolve calendar_id (convert "primary" to SilverKey if using restricted scope)
+            calendar_id = self._resolve_calendar_id(user_id, calendar_id)
+            
             creds = self.load_credentials(user_id)
             service = build("calendar", "v3", credentials=creds, cache_discovery=False)
             
@@ -485,7 +724,7 @@ class GoogleCalendarService:
         
         Args:
             user_id: User ID
-            buyer_name: Optional buyer name to include in calendar name
+            buyer_name: Ignored - calendar is always named "SilverKey"
         
         Returns:
             Calendar dictionary with id, summary, etc.
@@ -494,11 +733,11 @@ class GoogleCalendarService:
             creds = self.load_credentials(user_id)
             service = build("calendar", "v3", credentials=creds, cache_discovery=False)
             
-            # Try to find existing SilverKey calendar
+            # Try to find existing SilverKey calendar (exact name match)
             calendar_list = service.calendarList().list().execute()
             silverkey_calendars = [
                 cal for cal in calendar_list.get("items", [])
-                if cal.get("summary", "").startswith("SilverKey")
+                if cal.get("summary", "") == "SilverKey"
             ]
             
             if silverkey_calendars:
@@ -507,8 +746,8 @@ class GoogleCalendarService:
                               calendar_id=silverkey_calendars[0].get("id"))
                 return silverkey_calendars[0]
             
-            # Create new SilverKey calendar
-            calendar_name = f"SilverKey – {buyer_name}" if buyer_name else "SilverKey Home Tours"
+            # Create new SilverKey calendar with exact name "SilverKey"
+            calendar_name = "SilverKey"
             calendar_body = {
                 "summary": calendar_name,
                 "description": "Calendar created by SilverKey for managing home tours and real estate events",

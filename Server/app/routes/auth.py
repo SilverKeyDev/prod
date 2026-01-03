@@ -188,15 +188,17 @@ def google_oauth_start():
         })
         
         # Generate auth URL and state
+        # State is stored in DB by build_auth_url() for reliable validation
+        # Session storage kept as fallback for backward compatibility
         auth_url, state = google_oauth_service.build_auth_url()
-        session['google_oauth_state'] = state
-        # Mark session as permanent to ensure it persists across redirects
+        session['google_auth_oauth_state'] = state  # Fallback if DB fails
         session.permanent = True
         
-        # Log session state for debugging
+        # Log state storage for debugging
         current_app.logger.info(f"GOOGLE_OAUTH_START_STATE_STORED", extra={
             'request_id': request_id,
             'has_state': bool(state),
+            'storage_method': 'DB (with session fallback)',
             'session_permanent': session.permanent
         })
         
@@ -226,7 +228,7 @@ def google_oauth_callback():
             'has_error': bool(request.args.get('error')),
             'has_state': bool(request.args.get('state')),
             'session_keys': list(session.keys()) if session else [],
-            'has_session_state': 'google_oauth_state' in session if session else False
+            'has_session_state': 'google_auth_oauth_state' in session if session else False
         })
         
         # Pass session as dict but handler will also check Flask session directly if needed

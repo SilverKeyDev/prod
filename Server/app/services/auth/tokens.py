@@ -1,48 +1,60 @@
 """
 Google OAuth Token Storage Interface
 Provides a DB-agnostic interface for storing and retrieving Google OAuth tokens.
+Now uses database-backed storage for persistence across sessions.
 """
 
 from typing import Optional, Dict, Any
 from flask import request
 from datetime import datetime, timezone
 from app.utils.security.app_logging import get_logger
+from app import db
+from app.models.google_oauth_token import GoogleOAuthToken
 
 logger = get_logger()
-
-# In-memory storage for development/testing
-# TODO: Replace with actual database implementation
-_token_store: Dict[str, Dict[str, Any]] = {}
 
 
 def tokens_get(user_id: str) -> Optional[Dict[str, Any]]:
     """
-    Retrieve Google OAuth tokens for a user.
+    Retrieve Google OAuth tokens for a user from the database.
     
     Args:
-        user_id: User identifier
+        user_id: User identifier (must be a valid UUID string)
         
     Returns:
         Dictionary containing token data or None if not found
     """
     if not user_id:
+        logger.debug("tokens_get called with empty user_id")
         return None
         
-    tokens = _token_store.get(user_id)
-    if tokens:
-        logger.info(f"Retrieved tokens for user {user_id}")
-    else:
-        logger.info(f"No tokens found for user {user_id}")
-    return tokens
+    try:
+        token_record = GoogleOAuthToken.query.filter_by(user_id=user_id).first()
+        if token_record:
+            logger.debug(f"Retrieved tokens for user {user_id}")
+            return token_record.to_dict()
+        else:
+            logger.debug(f"No tokens found for user {user_id}")
+            return None
+    except Exception as e:
+        logger.error(f"Error retrieving tokens for user {user_id}: {str(e)}", exc_info=True)
+        return None
 
 
 def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
     """
-    Store or update Google OAuth tokens for a user.
+    Store or update Google OAuth tokens for a user in the database.
     
     Args:
-        user_id: User identifier
-        token_data: Dictionary containing token information
+        user_id: User identifier (must be a valid UUID string)
+        token_data: Dictionary containing token information with required fields:
+                   - access_token (required)
+                   - token_uri (required)
+                   - client_id (required)
+                   - client_secret (required)
+                   - scopes (required, can be empty string)
+                   - refresh_token (optional)
+                   - expiry (optional)
         
     Returns:
         True if successful, False otherwise
@@ -50,24 +62,90 @@ def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
     if not user_id:
         logger.error("Cannot store tokens: user_id is required")
         return False
+    
+    # Validate required fields
+    required_fields = ["access_token", "token_uri", "client_id", "client_secret", "scopes"]
+    missing_fields = [field for field in required_fields if field not in token_data or token_data[field] is None]
+    if missing_fields:
+        logger.error(f"Cannot store tokens for user {user_id}: missing required fields: {', '.join(missing_fields)}")
+        return False
+    
+    # Ensure scopes is a string (can be empty string)
+    if not isinstance(token_data.get("scopes"), str):
+        if isinstance(token_data.get("scopes"), list):
+            token_data["scopes"] = " ".join(token_data["scopes"])
+        else:
+            token_data["scopes"] = str(token_data.get("scopes", ""))
+    
+    # Verify user exists (foreign key constraint will also check, but this gives better error)
+    try:
+        from app.models.user import User
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            logger.error(f"Cannot store tokens: user {user_id} does not exist")
+            return False
+    except Exception as e:
+        logger.error(f"Error verifying user {user_id} exists: {str(e)}", exc_info=True)
+        return False
         
     try:
-        # Add metadata
-        token_data['updated_at'] = datetime.now(timezone.utc)
-        if user_id not in _token_store:
-            token_data['created_at'] = datetime.now(timezone.utc)
+        # Check if token record already exists
+        token_record = GoogleOAuthToken.query.filter_by(user_id=user_id).first()
+        
+        if token_record:
+            # Update existing record
+            token_record.access_token = token_data["access_token"]
+            # Preserve existing refresh_token if new one is not provided
+            # Google may not return refresh_token on subsequent token refreshes
+            new_refresh_token = token_data.get("refresh_token")
+            # Normalize empty strings to None (defensive programming)
+            if isinstance(new_refresh_token, str) and not new_refresh_token.strip():
+                new_refresh_token = None
+            if new_refresh_token:
+                token_record.refresh_token = new_refresh_token
+            # If new_refresh_token is None or empty, keep the existing one (don't overwrite with None)
+            token_record.token_uri = token_data["token_uri"]
+            token_record.client_id = token_data["client_id"]
+            token_record.client_secret = token_data["client_secret"]
+            token_record.scopes = token_data["scopes"] if token_data["scopes"] else ""
+            token_record.expiry = token_data.get("expiry")
+            token_record.updated_at = datetime.now(timezone.utc)
+        else:
+            # Create new record
+            # Normalize empty strings to None for refresh_token
+            refresh_token = token_data.get("refresh_token")
+            if isinstance(refresh_token, str) and not refresh_token.strip():
+                refresh_token = None
             
-        _token_store[user_id] = token_data
+            token_record = GoogleOAuthToken(
+                user_id=user_id,
+                access_token=token_data["access_token"],
+                refresh_token=refresh_token,
+                token_uri=token_data["token_uri"],
+                client_id=token_data["client_id"],
+                client_secret=token_data["client_secret"],
+                scopes=token_data["scopes"] if token_data.get("scopes") else "",
+                expiry=token_data.get("expiry"),
+            )
+            db.session.add(token_record)
+        
+        db.session.commit()
         logger.info(f"Stored tokens for user {user_id}")
         return True
     except Exception as e:
-        logger.error(f"Failed to store tokens for user {user_id}: {str(e)}")
+        db.session.rollback()
+        # Check for foreign key constraint violation
+        error_str = str(e).lower()
+        if "foreign key" in error_str or "constraint" in error_str:
+            logger.error(f"Failed to store tokens for user {user_id}: user does not exist in database")
+        else:
+            logger.error(f"Failed to store tokens for user {user_id}: {str(e)}", exc_info=True)
         return False
 
 
 def tokens_delete(user_id: str) -> bool:
     """
-    Delete Google OAuth tokens for a user.
+    Delete Google OAuth tokens for a user from the database.
     
     Args:
         user_id: User identifier
@@ -80,14 +158,17 @@ def tokens_delete(user_id: str) -> bool:
         return False
         
     try:
-        if user_id in _token_store:
-            del _token_store[user_id]
+        token_record = GoogleOAuthToken.query.filter_by(user_id=user_id).first()
+        if token_record:
+            db.session.delete(token_record)
+            db.session.commit()
             logger.info(f"Deleted tokens for user {user_id}")
         else:
             logger.info(f"No tokens to delete for user {user_id}")
         return True
     except Exception as e:
-        logger.error(f"Failed to delete tokens for user {user_id}: {str(e)}")
+        db.session.rollback()
+        logger.error(f"Failed to delete tokens for user {user_id}: {str(e)}", exc_info=True)
         return False
 
 
@@ -96,24 +177,11 @@ def tokens_list() -> Dict[str, Dict[str, Any]]:
     List all stored tokens (for debugging/admin purposes).
     
     Returns:
-        Dictionary of all stored tokens
+        Dictionary of all stored tokens keyed by user_id
     """
-    return _token_store.copy()
-
-
-# TODO: Implement database-backed storage
-# Example schema for future database implementation:
-"""
-CREATE TABLE user_google_tokens (
-    user_id UUID PRIMARY KEY,
-    access_token TEXT NOT NULL,
-    refresh_token TEXT,
-    token_uri TEXT NOT NULL,
-    client_id TEXT NOT NULL,
-    client_secret TEXT NOT NULL,
-    scopes TEXT NOT NULL,
-    expiry TIMESTAMP WITH TIME ZONE NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-"""
+    try:
+        all_tokens = GoogleOAuthToken.query.all()
+        return {token.user_id: token.to_dict() for token in all_tokens}
+    except Exception as e:
+        logger.error(f"Error listing tokens: {str(e)}", exc_info=True)
+        return {}

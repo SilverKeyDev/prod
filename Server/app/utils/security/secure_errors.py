@@ -186,6 +186,41 @@ class SecureErrorHandler:
             503,
             error_id
         )
+    
+    @staticmethod
+    def handle_error(error: Exception, message: str = None, context: Dict[str, Any] = None) -> tuple:
+        """Generic error handler that securely handles any exception."""
+        error_id = SecureErrorHandler.generate_error_id()
+        SecureErrorHandler.log_error_details(error_id, error, context)
+        
+        # Determine error type based on exception
+        error_type = 'server_error'
+        status_code = 500
+        
+        # Check for specific error types
+        error_str = str(error).lower()
+        if 'authentication' in error_str or 'unauthorized' in error_str:
+            error_type = 'authentication_failed'
+            status_code = 401
+        elif 'authorization' in error_str or 'forbidden' in error_str:
+            error_type = 'authorization_failed'
+            status_code = 403
+        elif 'not found' in error_str:
+            error_type = 'resource_not_found'
+            status_code = 404
+        elif 'validation' in error_str or 'invalid' in error_str:
+            error_type = 'validation_error'
+            status_code = 400
+        
+        # Use provided message or generic message
+        response = {
+            'success': False,
+            'error': error_type,
+            'message': message or GENERIC_ERROR_MESSAGES.get(error_type, GENERIC_ERROR_MESSAGES['server_error']),
+            'error_id': error_id
+        }
+        
+        return jsonify(response), status_code
 
 def sanitize_error_message(message: str) -> str:
     """

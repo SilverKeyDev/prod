@@ -1,5 +1,6 @@
 import {
   Bookmark,
+  Calendar,
   Home,
   Key,
   Search,
@@ -14,7 +15,8 @@ export type SidebarTabKey =
   | "decide"
   | "close"
   | "settings"
-  | "agent";
+  | "agent"
+  | "calendar";
 
 export type SidebarSubStep = {
   label: string;
@@ -116,6 +118,20 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
       },
     ],
   },
+  calendar: {
+    key: "calendar",
+    name: "Calendar",
+    description: "View and manage your calendar events",
+    icon: Calendar,
+    href: "/calendar",
+    subSteps: [
+      {
+        label: "Calendar",
+        to: "/calendar",
+        icon: Calendar,
+      },
+    ],
+  },
 };
 
 export const getTabByPath = (pathname: string): SidebarTab | undefined => {
@@ -126,6 +142,7 @@ export const getTabByPath = (pathname: string): SidebarTab | undefined => {
     return SIDEBAR_TABS.decide;
   if (pathname.startsWith("/buyer-checklists")) return SIDEBAR_TABS.close;
   if (pathname.startsWith("/agent")) return SIDEBAR_TABS.agent;
+  if (pathname.startsWith("/calendar")) return SIDEBAR_TABS.calendar;
   return undefined;
 };
 

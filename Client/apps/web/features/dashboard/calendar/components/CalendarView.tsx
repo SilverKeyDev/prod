@@ -6,12 +6,14 @@ type CalendarViewProps = {
   currentDate: Date;
   events: GoogleEvent[];
   onDateClick?: (date: Date) => void;
+  silverKeyCalendarId?: string | null;
 };
 
 export function CalendarView({
   currentDate,
   events,
   onDateClick,
+  silverKeyCalendarId,
 }: CalendarViewProps) {
   // Group events by date
   const eventsByDate = useMemo(() => {
@@ -54,6 +56,7 @@ export function CalendarView({
       date: Date;
       isCurrentMonth: boolean;
       isToday: boolean;
+      isPast: boolean;
       events: GoogleEvent[];
     }> = [];
 
@@ -63,11 +66,13 @@ export function CalendarView({
     // Previous month days
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const date = new Date(year, month - 1, daysInPrevMonth - i);
+      date.setHours(0, 0, 0, 0);
       const dateKey = date.toISOString().split("T")[0];
       days.push({
         date,
         isCurrentMonth: false,
         isToday: date.getTime() === today.getTime(),
+        isPast: date.getTime() < today.getTime(),
         events: eventsByDate[dateKey] || [],
       });
     }
@@ -75,11 +80,13 @@ export function CalendarView({
     // Current month days
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0);
       const dateKey = date.toISOString().split("T")[0];
       days.push({
         date,
         isCurrentMonth: true,
         isToday: date.getTime() === today.getTime(),
+        isPast: date.getTime() < today.getTime(),
         events: eventsByDate[dateKey] || [],
       });
     }
@@ -88,11 +95,13 @@ export function CalendarView({
     const remainingCells = 42 - days.length;
     for (let day = 1; day <= remainingCells; day++) {
       const date = new Date(year, month + 1, day);
+      date.setHours(0, 0, 0, 0);
       const dateKey = date.toISOString().split("T")[0];
       days.push({
         date,
         isCurrentMonth: false,
         isToday: date.getTime() === today.getTime(),
+        isPast: date.getTime() < today.getTime(),
         events: eventsByDate[dateKey] || [],
       });
     }
@@ -129,7 +138,8 @@ export function CalendarView({
               className={`
                 relative min-h-[60px] sm:min-h-[80px] rounded border p-1 text-left transition-colors
                 ${day.isCurrentMonth ? "border-beige/30 bg-white" : "border-gray-100 bg-gray-50/50"}
-                ${day.isToday ? "border-brown bg-brown/5" : ""}
+                ${day.isToday ? "border-amber-500 bg-amber-50/30" : ""}
+                ${day.isPast ? "opacity-50" : ""}
                 hover:border-brown/50 hover:bg-brown/5
                 ${onDateClick ? "cursor-pointer" : "cursor-default"}
               `}
@@ -138,8 +148,8 @@ export function CalendarView({
               <div
                 className={`
                   mb-1 text-xs font-medium sm:text-sm
-                  ${day.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
-                  ${day.isToday ? "text-brown font-semibold" : ""}
+                  ${day.isPast ? "text-gray-400" : day.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
+                  ${day.isToday ? "text-amber-600 font-semibold" : ""}
                 `}
               >
                 {dayNumber}
@@ -147,12 +157,22 @@ export function CalendarView({
 
               {/* Events */}
               <div className="space-y-0.5">
-                {day.events.slice(0, 3).map((event, eventIndex) => (
-                  <div
-                    key={event.id || `event-${eventIndex}`}
-                    className="truncate rounded px-1 py-0.5 text-[10px] sm:text-xs bg-olive/10 text-olive font-medium border-l-2 border-olive"
-                    title={event.summary}
-                  >
+                {day.events.slice(0, 3).map((event, eventIndex) => {
+                  const isSilverKeyEvent = silverKeyCalendarId && event.calendarId === silverKeyCalendarId;
+                  return (
+                    <div
+                      key={event.id || `event-${eventIndex}`}
+                      className={`truncate rounded px-1 py-0.5 text-[10px] sm:text-xs font-medium border-l-2 ${
+                        day.isPast
+                          ? isSilverKeyEvent
+                            ? "bg-amber-50 text-amber-700 border-amber-400"
+                            : "bg-gray-100 text-gray-400 border-gray-300"
+                          : isSilverKeyEvent
+                          ? "bg-amber-50 text-amber-700 border-amber-500"
+                          : "bg-olive/10 text-olive border-olive"
+                      }`}
+                      title={event.summary}
+                    >
                     {event.start.dateTime && (
                       <>
                         {new Date(event.start.dateTime).toLocaleTimeString(
@@ -165,11 +185,12 @@ export function CalendarView({
                         )}{" "}
                       </>
                     )}
-                    {event.summary || "Untitled"}
-                  </div>
-                ))}
+                      {event.summary || "Untitled"}
+                    </div>
+                  );
+                })}
                 {day.events.length > 3 && (
-                  <div className="text-[10px] text-gray-500 px-1">
+                  <div className={`text-[10px] px-1 ${day.isPast ? "text-gray-400" : "text-gray-500"}`}>
                     +{day.events.length - 3} more
                   </div>
                 )}
