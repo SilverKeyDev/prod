@@ -5,7 +5,10 @@ import Input from "../../../../components/ui/form/Input";
 import Label from "../../../../components/ui/text/Label";
 import { Textarea } from "../../../../components/ui/form/FormField";
 import { googleCalendarApi } from "../../../../../../packages/config/api/googleCalendar";
-import type { GoogleEvent, GoogleCalendar } from "../../../../../../packages/config/api/googleCalendar";
+import type {
+  GoogleEvent,
+  GoogleCalendar,
+} from "../../../../../../packages/config/api/googleCalendar";
 import { useUIStore } from "../../../../../../packages/store";
 import type { UIState } from "../../../../../../packages/store/ui.slice";
 
@@ -21,8 +24,12 @@ type CreateEventModalProps = {
 // Helper function to detect event type from title
 function detectEventType(title: string): string | undefined {
   const lowerTitle = title.toLowerCase();
-  
-  if (lowerTitle.includes("viewing") || lowerTitle.includes("tour") || lowerTitle.includes("showing")) {
+
+  if (
+    lowerTitle.includes("viewing") ||
+    lowerTitle.includes("tour") ||
+    lowerTitle.includes("showing")
+  ) {
     return "property_viewing";
   }
   if (lowerTitle.includes("inspection")) {
@@ -40,7 +47,7 @@ function detectEventType(title: string): string | undefined {
   if (lowerTitle.includes("open house")) {
     return "open_house";
   }
-  
+
   return undefined; // Let backend handle default
 }
 
@@ -53,7 +60,7 @@ export function CreateEventModal({
   onEventCreated,
 }: CreateEventModalProps) {
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
-  
+
   const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventLocation, setEventLocation] = useState("");
@@ -61,7 +68,8 @@ export function CreateEventModal({
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [selectedCalendarId, setSelectedCalendarId] = useState<string>("primary");
+  const [selectedCalendarId, setSelectedCalendarId] =
+    useState<string>("primary");
   const [isCreating, setIsCreating] = useState(false);
 
   // Initialize form with initial date if provided
@@ -69,17 +77,18 @@ export function CreateEventModal({
     if (initialDate && isOpen) {
       const dateStr = initialDate.toISOString().split("T")[0];
       // If the date has a meaningful time (not midnight), use it; otherwise default to 9 AM
-      const hasTime = initialDate.getHours() !== 0 || initialDate.getMinutes() !== 0;
+      const hasTime =
+        initialDate.getHours() !== 0 || initialDate.getMinutes() !== 0;
       const defaultHour = hasTime ? initialDate.getHours() : 9;
       const defaultMinute = hasTime ? initialDate.getMinutes() : 0;
-      
+
       const startDateTime = new Date(initialDate);
       startDateTime.setHours(defaultHour, defaultMinute, 0, 0);
       const timeStr = `${String(defaultHour).padStart(2, "0")}:${String(defaultMinute).padStart(2, "0")}`;
-      
+
       setStartDate(dateStr);
       setStartTime(timeStr);
-      
+
       // Set end time to 1 hour later by default
       const endDateTime = new Date(startDateTime);
       endDateTime.setHours(endDateTime.getHours() + 1);
@@ -90,10 +99,10 @@ export function CreateEventModal({
       const now = new Date();
       const dateStr = now.toISOString().split("T")[0];
       const timeStr = now.toTimeString().slice(0, 5);
-      
+
       setStartDate(dateStr);
       setStartTime(timeStr);
-      
+
       const endDateTime = new Date(now);
       endDateTime.setHours(endDateTime.getHours() + 1);
       setEndDate(endDateTime.toISOString().split("T")[0]);
@@ -106,14 +115,17 @@ export function CreateEventModal({
     if (calendars.length > 0 && isOpen) {
       if (defaultCalendarId) {
         // Use SilverKey calendar if available
-        const silverKeyCalendar = calendars.find((cal) => cal.id === defaultCalendarId);
+        const silverKeyCalendar = calendars.find(
+          (cal) => cal.id === defaultCalendarId
+        );
         if (silverKeyCalendar) {
           setSelectedCalendarId(defaultCalendarId);
           return;
         }
       }
       // Otherwise use primary calendar or first available
-      const primaryCalendar = calendars.find((cal) => cal.primary) || calendars[0];
+      const primaryCalendar =
+        calendars.find((cal) => cal.primary) || calendars[0];
       if (primaryCalendar) {
         setSelectedCalendarId(primaryCalendar.id);
       }
@@ -131,7 +143,13 @@ export function CreateEventModal({
   }, [isOpen]);
 
   const handleCreate = async () => {
-    if (!eventTitle.trim() || !startDate || !startTime || !endDate || !endTime) {
+    if (
+      !eventTitle.trim() ||
+      !startDate ||
+      !startTime ||
+      !endDate ||
+      !endTime
+    ) {
       enqueueToast({
         type: "error",
         message: "Please fill in all required fields",
@@ -142,7 +160,7 @@ export function CreateEventModal({
     // Validate that end time is after start time
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${endDate}T${endTime}`);
-    
+
     if (endDateTime <= startDateTime) {
       enqueueToast({
         type: "error",
@@ -185,12 +203,12 @@ export function CreateEventModal({
           type: "success",
           message: "Event created successfully",
         });
-        
+
         // Call callback to refresh events
         if (onEventCreated) {
           onEventCreated();
         }
-        
+
         onClose();
       } else {
         enqueueToast({
@@ -202,14 +220,16 @@ export function CreateEventModal({
       console.error("Error creating event:", error);
       enqueueToast({
         type: "error",
-        message: error instanceof Error ? error.message : "Failed to create event",
+        message:
+          error instanceof Error ? error.message : "Failed to create event",
       });
     } finally {
       setIsCreating(false);
     }
   };
 
-  const canCreate = eventTitle.trim() && startDate && startTime && endDate && endTime;
+  const canCreate =
+    eventTitle.trim() && startDate && startTime && endDate && endTime;
 
   return (
     <BaseModal
@@ -346,7 +366,7 @@ export function CreateEventModal({
             Cancel
           </Button>
           <Button
-            variant="primary"
+            variant="olive"
             onClick={handleCreate}
             disabled={!canCreate || isCreating}
             loading={isCreating}
@@ -359,4 +379,3 @@ export function CreateEventModal({
     </BaseModal>
   );
 }
-

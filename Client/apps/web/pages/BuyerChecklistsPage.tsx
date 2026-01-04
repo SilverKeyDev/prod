@@ -4,7 +4,6 @@ import EscrowLegalLogistics from "../features/close/subheaders/EscrowLegalLogist
 import InspectionsDueDiligence from "../features/close/subheaders/InspectionsDueDiligence";
 import FinancingInsurance from "../features/close/subheaders/FinancingInsurance";
 import ClosingMovingIn from "../features/close/subheaders/ClosingMovingIn";
-import ScheduleButton from "../components/ui/button/ScheduleButton";
 // Removed store coupling; tab state is now managed by DashboardLayout
 
 type ClosePageHeaderData = {
@@ -73,15 +72,7 @@ export default function BuyerChecklists({
   return (
     <div className={`h-full w-full bg-off-white`}>
       {/* Content */}
-      <div className="mx-auto w-full max-w-7xl mt-6">
-        {/* Schedule Button - Top Right */}
-        <div className="flex justify-end mb-4 px-responsive-md">
-          <ScheduleButton variant="primary" size="md">
-            Schedule Event
-          </ScheduleButton>
-        </div>
-        {renderTabContent()}
-      </div>
+      <div className="mx-auto w-full max-w-7xl mt-6">{renderTabContent()}</div>
     </div>
   );
 }

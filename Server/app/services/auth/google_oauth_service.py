@@ -24,6 +24,9 @@ logger = get_logger()
 class GoogleOAuthService:
     """Service for Google OAuth authentication"""
     
+    # Counter for periodic cleanup of expired OAuth states
+    _validation_count = 0
+    
     def __init__(self):
         """Initialize the Google OAuth service"""
         from app.config import Config
@@ -103,6 +106,16 @@ class GoogleOAuthService:
         """
         if not state:
             return False
+        
+        # Periodic cleanup of expired/used states (every 10th validation)
+        GoogleOAuthService._validation_count += 1
+        if GoogleOAuthService._validation_count % 10 == 0:
+            try:
+                deleted = OAuthState.cleanup_expired(older_than_hours=1)
+                if deleted > 0:
+                    logger.debug(f"Cleaned up {deleted} expired/used OAuth states")
+            except Exception as e:
+                logger.warning(f"Error during OAuth state cleanup: {str(e)}")
         
         # Try DB first (preferred method)
         try:

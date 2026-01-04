@@ -21,9 +21,10 @@ from googleapiclient.errors import HttpError
 
 from app.utils.security.app_logging import get_logger
 from app.services.auth.tokens import tokens_get, tokens_upsert, tokens_delete
+from app.models.oauth_state import OAuthState
+from app import db
 from app.utils.security.security import (
     redact_sensitive_data, 
-    validate_oauth_state, 
     sanitize_error_message, 
     log_oauth_event,
     validate_event_data
@@ -38,6 +39,9 @@ _refresh_locks_lock = threading.Lock()  # Lock for managing refresh locks
 
 class GoogleCalendarService:
     """Service for Google Calendar operations"""
+    
+    # Counter for periodic cleanup of expired OAuth states
+    _validation_count = 0
     
     def __init__(self):
         """Initialize the Google Calendar service"""
@@ -119,9 +123,44 @@ class GoogleCalendarService:
         data = f"{user_id}:{timestamp}:{random_data}"
         return base64.urlsafe_b64encode(data.encode()).decode()
     
-    def validate_state(self, state: str, session_state: Optional[str]) -> bool:
-        """Validate OAuth state parameter"""
-        return validate_oauth_state(state, session_state)
+    def validate_state(self, state: str, session_state: Optional[str] = None) -> bool:
+        """
+        Validate OAuth state parameter from database.
+        Falls back to session_state for backward compatibility, but DB is preferred.
+        """
+        if not state:
+            return False
+        
+        # Periodic cleanup of expired/used states (every 10th validation)
+        GoogleCalendarService._validation_count += 1
+        if GoogleCalendarService._validation_count % 10 == 0:
+            try:
+                deleted = OAuthState.cleanup_expired(older_than_hours=1)
+                if deleted > 0:
+                    logger.debug(f"Cleaned up {deleted} expired/used OAuth states")
+            except Exception as e:
+                logger.warning(f"Error during OAuth state cleanup: {str(e)}")
+        
+        # Try DB first (preferred method)
+        try:
+            state_record = OAuthState.query.filter_by(state=state, oauth_type='calendar', used=False).first()
+            if state_record:
+                # Check if expired
+                if state_record.is_expired():
+                    logger.warning(f"OAuth state expired: {state[:20]}...")
+                    return False
+                # Mark as used
+                state_record.used = True
+                db.session.commit()
+                return True
+        except Exception as e:
+            logger.warning(f"Error validating state from DB, falling back to session: {str(e)}")
+        
+        # Fallback to session-based validation (backward compatibility)
+        if session_state:
+            return state == session_state
+        
+        return False
     
     def build_auth_url(self, user_id: str, request_full_scope: bool = False, use_scheduling_scopes: bool = False) -> tuple[str, str]:
         """Build Google OAuth authorization URL with incremental authorization
@@ -134,6 +173,21 @@ class GoogleCalendarService:
                                  Note: calendar.freebusy is sensitive and requires verification.
         """
         state = self.generate_state(user_id)
+        
+        # Store state in database for reliable validation (works even if cookies fail)
+        try:
+            state_record = OAuthState(
+                state=state,
+                oauth_type='calendar',
+                user_id=user_id,
+                used=False
+            )
+            db.session.add(state_record)
+            db.session.commit()
+            logger.debug(f"Stored OAuth state in DB for calendar flow: {state[:20]}...")
+        except Exception as e:
+            logger.warning(f"Failed to store OAuth state in DB for calendar flow: {str(e)}")
+            # Continue anyway - will fall back to session if DB fails
         
         # Default to calendar.app.created (non-sensitive, no verification required)
         # This allows managing only calendars/events created by the app
@@ -229,12 +283,13 @@ class GoogleCalendarService:
                 logger.info(f"Google returned new refresh_token for user {user_id}")
             
             # Store tokens with actual granted scopes
+            # Note: client_secret is not stored - always use config value
             token_data = {
                 "access_token": tokens["access_token"],
                 "refresh_token": new_refresh_token,  # Will be None if no existing token and Google didn't return one
                 "token_uri": self.token_endpoint,
                 "client_id": self.client_id,
-                "client_secret": self.client_secret,
+                # client_secret removed - always use config value
                 "scopes": " ".join(granted_scopes),
                 "expiry": datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600))
             }
@@ -285,10 +340,11 @@ class GoogleCalendarService:
             raise RuntimeError("Google Calendar not connected")
         
         # Ensure all required fields are present, using service defaults as fallback
+        # client_secret always comes from config (not stored in DB)
         refresh_token = token_data.get("refresh_token")
         token_uri = token_data.get("token_uri") or self.token_endpoint
         client_id = token_data.get("client_id") or self.client_id
-        client_secret = token_data.get("client_secret") or self.client_secret
+        client_secret = self.client_secret  # Always use config value
         scopes = token_data.get("scopes", "").split() if token_data.get("scopes") else self.scopes
         
         # Validate that we have the minimum required fields
@@ -364,7 +420,7 @@ class GoogleCalendarService:
                         
                         token_uri = token_data.get("token_uri") or self.token_endpoint
                         client_id = token_data.get("client_id") or self.client_id
-                        client_secret = token_data.get("client_secret") or self.client_secret
+                        client_secret = self.client_secret  # Always use config value
                         scopes = token_data.get("scopes", "").split() if token_data.get("scopes") else self.scopes
                         
                         # Recreate creds with latest token data and validated fields
@@ -393,12 +449,13 @@ class GoogleCalendarService:
                             logger.warning(f"Using refresh_token from Credentials object for user {user_id} (unexpected)")
                         
                         # Update stored tokens - explicitly preserve refresh_token
+                        # client_secret not stored - always use config value
                         updated_tokens = {
                             "access_token": creds.token,
                             "refresh_token": stored_refresh_token,  # Preserve from stored data, not creds
                             "token_uri": token_data["token_uri"],
                             "client_id": token_data["client_id"],
-                            "client_secret": token_data["client_secret"],
+                            # client_secret removed - always use config value
                             "scopes": token_data["scopes"],
                             "expiry": creds.expiry
                         }
@@ -440,7 +497,7 @@ class GoogleCalendarService:
                     refresh_token = token_data.get("refresh_token")
                     token_uri = token_data.get("token_uri") or self.token_endpoint
                     client_id = token_data.get("client_id") or self.client_id
-                    client_secret = token_data.get("client_secret") or self.client_secret
+                    client_secret = self.client_secret  # Always use config value
                     scopes = token_data.get("scopes", "").split() if token_data.get("scopes") else self.scopes
                     
                     creds = Credentials(

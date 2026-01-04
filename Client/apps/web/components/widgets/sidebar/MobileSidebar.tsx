@@ -43,10 +43,10 @@ export default function MobileSidebar({
       key: "close",
       ...SIDEBAR_TABS.close,
     },
-    {
-      key: "settings",
-      ...SIDEBAR_TABS.settings,
-    },
+    // {
+    //   key: "settings",
+    //   ...SIDEBAR_TABS.settings,
+    // },
     {
       key: "calendar",
       ...SIDEBAR_TABS.calendar,
@@ -69,9 +69,7 @@ export default function MobileSidebar({
                 <Link
                   to={item.href}
                   className={`flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-200 ${
-                    active
-                      ? "text-gold"
-                      : "text-white/70 active:text-white/90"
+                    active ? "text-gold" : "text-white/70 active:text-white/90"
                   }`}
                   aria-label={item.name}
                 >
@@ -98,9 +96,7 @@ export default function MobileSidebar({
                   </span>
                 </Link>
                 {/* Thin off-white divider between items */}
-                {!isLast && (
-                  <div className="h-8 w-px bg-off-white/20" />
-                )}
+                {!isLast && <div className="h-8 w-px bg-off-white/20" />}
               </Fragment>
             );
           })}

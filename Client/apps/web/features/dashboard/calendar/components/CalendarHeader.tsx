@@ -1,4 +1,9 @@
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalendarIcon,
+  Plus,
+} from "lucide-react";
 import { Button } from "../../../../components/ui";
 import { CalendarDropdown } from "./CalendarDropdown";
 import type { GoogleCalendar } from "../../../../../../packages/config/api/googleCalendar";
@@ -69,7 +74,8 @@ export function CalendarHeader({
               <span>Connected</span>
               {calendars.length > 0 && (
                 <span className="text-gray-400">
-                  ({calendars.length} {calendars.length === 1 ? "calendar" : "calendars"})
+                  ({calendars.length}{" "}
+                  {calendars.length === 1 ? "calendar" : "calendars"})
                 </span>
               )}
               <CalendarDropdown
@@ -81,7 +87,7 @@ export function CalendarHeader({
             </div>
             {onCreateEvent && (
               <Button
-                variant="primary"
+                variant="olive"
                 size="sm"
                 onClick={onCreateEvent}
                 icon={<Plus className="h-4 w-4" />}
@@ -101,4 +107,3 @@ export function CalendarHeader({
     </div>
   );
 }
-

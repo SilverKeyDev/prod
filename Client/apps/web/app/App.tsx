@@ -4,39 +4,13 @@ import { useState, useEffect, useMemo } from "react";
 // Re-enable by wrapping App with <StrictMode> in main.tsx when debugging React issues
 
 import ToastsPortal from "../components/feedback/ToastsPortal";
-import { useGoogleMapsStoreIntegration } from "../../../packages/hooks/store/useGoogleMapsStoreIntegration";
 import { useSessionTimeout } from "../../../packages/hooks/ui/useSessionTimeout";
-import { useMessagePolling } from "../../../packages/hooks/data/useMessagePolling";
 import type { UserProfile } from "../../../packages/schemas/user";
 import MaintenanceScreen from "../pages/HomeAuth/MaintenanceScreenPage";
 
 import { useAuthStore } from "../../../packages/store/auth.slice";
 import { useAuthStoreIntegration } from "../../../packages/hooks/store/useAuthStoreIntegration";
 import { AppRoutes } from "./routes";
-
-// Component that handles store integrations after Router is ready
-function StoreIntegrations() {
-  useGoogleMapsStoreIntegration();
-  // Initialize message polling for notifications
-  useMessagePolling();
-  return null;
-}
-
-// Wrapper component that ensures StoreIntegrations runs within Router context
-function AppWithStoreIntegrations({
-  user,
-  handleLogout,
-}: {
-  user: UserProfile | null;
-  handleLogout: () => void;
-}) {
-  return (
-    <>
-      <StoreIntegrations />
-      <AppRoutes user={user} handleLogout={handleLogout} />
-    </>
-  );
-}
 
 function App() {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -149,7 +123,7 @@ function App() {
         <MaintenanceScreen />
       ) : (
         <div className="min-h-screen bg-off-white">
-          <AppWithStoreIntegrations user={user} handleLogout={logout} />
+          <AppRoutes user={user} handleLogout={logout} />
 
           {/* Global toasts */}
           <ToastsPortal />

@@ -15,7 +15,7 @@ class GoogleOAuthToken(db.Model):
     refresh_token = db.Column(db.Text, nullable=True)  # May be None if not provided
     token_uri = db.Column(db.String(255), nullable=False)
     client_id = db.Column(db.String(255), nullable=False)
-    client_secret = db.Column(db.String(255), nullable=False)
+    # client_secret removed - always use config value (same for all users)
     scopes = db.Column(db.Text, nullable=False)  # Space-separated list of scopes
     expiry = db.Column(db.DateTime, nullable=True)  # Token expiration time
     
@@ -38,7 +38,7 @@ class GoogleOAuthToken(db.Model):
             "refresh_token": self.refresh_token,
             "token_uri": self.token_uri,
             "client_id": self.client_id,
-            "client_secret": self.client_secret,
+            # client_secret removed - always use config value
             "scopes": self.scopes,
             "expiry": self.expiry,
             "created_at": self.created_at,

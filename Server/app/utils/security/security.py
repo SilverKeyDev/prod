@@ -254,28 +254,6 @@ def redact_pii(text: str) -> str:
     return redacted_text
 
 
-def validate_oauth_state(state: str, session_state: Optional[str]) -> bool:
-    """
-    Validate OAuth state parameter for CSRF protection.
-    
-    Args:
-        state: State parameter from request
-        session_state: State stored in session
-        
-    Returns:
-        True if state is valid, False otherwise
-    """
-    if not state or not session_state:
-        logger.warning("OAuth state validation failed: missing state")
-        return False
-    
-    if state != session_state:
-        logger.warning("OAuth state validation failed: state mismatch")
-        return False
-    
-    return True
-
-
 def sanitize_error_message(error: Exception) -> str:
     """
     Sanitize error messages to remove sensitive information.

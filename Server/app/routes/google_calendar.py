@@ -15,7 +15,6 @@ from ..utils.security.security import (
     SecurityError,
     rate_limit,
     redact_sensitive_data,
-    validate_oauth_state,
     sanitize_error_message,
     log_oauth_event,
     validate_event_data
@@ -321,7 +320,6 @@ def create_event():
     try:
         from ..services.auth.current_user import get_current_user
         from ..models.calendar_event import CalendarEvent
-        from ..models.calendar import Calendar
         from .. import db
         
         user = get_current_user()
@@ -344,22 +342,6 @@ def create_event():
         
         # Create event in Google Calendar
         google_event = google_calendar_service.create_event(user_id, event_data, calendar_id)
-        
-        # Find or get the Calendar record for this calendar
-        calendar_record = None
-        if calendar_id != "primary":
-            # Try to find calendar by google_calendar_id
-            calendar_record = Calendar.query.filter_by(
-                user_id=user_id,
-                google_calendar_id=calendar_id
-            ).first()
-        
-        # If not found, try to find by calendar name (e.g., "SilverKey")
-        if not calendar_record:
-            calendar_record = Calendar.query.filter_by(
-                user_id=user_id,
-                calendar_name="SilverKey"
-            ).first() if calendar_id != "primary" else None
         
         # Parse start and end datetime from Google event response
         start_datetime = None
@@ -393,7 +375,7 @@ def create_event():
         # Create CalendarEvent record in database
         calendar_event = CalendarEvent(
             user_id=user_id,
-            calendar_id=calendar_record.id if calendar_record else None,
+            calendar_id=calendar_id,  # Store Google Calendar ID directly (e.g., "primary" or calendar ID)
             google_event_id=google_event.get("id"),
             summary=google_event.get("summary", event_data.get("summary", "")),
             description=google_event.get("description") or event_data.get("description"),

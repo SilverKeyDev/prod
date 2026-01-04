@@ -9,7 +9,7 @@ class CalendarEvent(db.Model):
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
-    calendar_id = db.Column(db.String(36), db.ForeignKey('calendars.id'), nullable=True)
+    calendar_id = db.Column(db.String(255), nullable=True)  # Google Calendar ID (e.g., "primary" or calendar ID)
     
     # Event identification
     google_event_id = db.Column(db.String(255), unique=True, nullable=True)  # Google Calendar event ID
@@ -52,7 +52,6 @@ class CalendarEvent(db.Model):
     # Relationships
     user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('calendar_events', lazy=True))
     creator = db.relationship('User', foreign_keys=[creator_id], backref=db.backref('created_events', lazy=True))
-    calendar = db.relationship('Calendar', backref=db.backref('events', lazy=True))
     
     def __init__(self, **kwargs):
         super(CalendarEvent, self).__init__(**kwargs)

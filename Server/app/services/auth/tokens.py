@@ -51,10 +51,10 @@ def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
                    - access_token (required)
                    - token_uri (required)
                    - client_id (required)
-                   - client_secret (required)
                    - scopes (required, can be empty string)
                    - refresh_token (optional)
                    - expiry (optional)
+                   Note: client_secret is no longer stored - always use config value
         
     Returns:
         True if successful, False otherwise
@@ -63,8 +63,8 @@ def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
         logger.error("Cannot store tokens: user_id is required")
         return False
     
-    # Validate required fields
-    required_fields = ["access_token", "token_uri", "client_id", "client_secret", "scopes"]
+    # Validate required fields (client_secret removed - always use config)
+    required_fields = ["access_token", "token_uri", "client_id", "scopes"]
     missing_fields = [field for field in required_fields if field not in token_data or token_data[field] is None]
     if missing_fields:
         logger.error(f"Cannot store tokens for user {user_id}: missing required fields: {', '.join(missing_fields)}")
@@ -106,7 +106,7 @@ def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
             # If new_refresh_token is None or empty, keep the existing one (don't overwrite with None)
             token_record.token_uri = token_data["token_uri"]
             token_record.client_id = token_data["client_id"]
-            token_record.client_secret = token_data["client_secret"]
+            # client_secret removed - always use config value
             token_record.scopes = token_data["scopes"] if token_data["scopes"] else ""
             token_record.expiry = token_data.get("expiry")
             token_record.updated_at = datetime.now(timezone.utc)
@@ -123,7 +123,7 @@ def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
                 refresh_token=refresh_token,
                 token_uri=token_data["token_uri"],
                 client_id=token_data["client_id"],
-                client_secret=token_data["client_secret"],
+                # client_secret removed - always use config value
                 scopes=token_data["scopes"] if token_data.get("scopes") else "",
                 expiry=token_data.get("expiry"),
             )
@@ -171,17 +171,3 @@ def tokens_delete(user_id: str) -> bool:
         logger.error(f"Failed to delete tokens for user {user_id}: {str(e)}", exc_info=True)
         return False
 
-
-def tokens_list() -> Dict[str, Dict[str, Any]]:
-    """
-    List all stored tokens (for debugging/admin purposes).
-    
-    Returns:
-        Dictionary of all stored tokens keyed by user_id
-    """
-    try:
-        all_tokens = GoogleOAuthToken.query.all()
-        return {token.user_id: token.to_dict() for token in all_tokens}
-    except Exception as e:
-        logger.error(f"Error listing tokens: {str(e)}", exc_info=True)
-        return {}

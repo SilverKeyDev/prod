@@ -101,21 +101,21 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
-  settings: {
-    name: SIDEBAR_TABS.settings.name,
-    icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
-      className?: string;
-    }>,
-    items: [
-      {
-        name: "Settings",
-        href: SIDEBAR_TABS.settings.href,
-        icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
-          className?: string;
-        }>,
-      },
-    ],
-  },
+  // settings: {
+  //   name: SIDEBAR_TABS.settings.name,
+  //   icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
+  //     className?: string;
+  //   }>,
+  //   items: [
+  //     {
+  //       name: "Settings",
+  //       href: SIDEBAR_TABS.settings.href,
+  //       icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
+  //         className?: string;
+  //       }>,
+  //     },
+  //   ],
+  // },
   agent: {
     name: SIDEBAR_TABS.agent.name,
     icon: SIDEBAR_TABS.agent.icon as unknown as React.FC<{
@@ -180,11 +180,11 @@ const getNavigation = (
     icon: navigationStructure.close.icon,
     items: [...navigationStructure.close.items],
   };
-  navigation.settings = {
-    name: navigationStructure.settings.name,
-    icon: navigationStructure.settings.icon,
-    items: [...navigationStructure.settings.items],
-  };
+  // navigation.settings = {
+  //   name: navigationStructure.settings.name,
+  //   icon: navigationStructure.settings.icon,
+  //   items: [...navigationStructure.settings.items],
+  // };
   navigation.calendar = {
     name: navigationStructure.calendar.name,
     icon: navigationStructure.calendar.icon,
@@ -312,7 +312,7 @@ export default function Sidebar({
                     categoryKey === "search" ||
                     categoryKey === "decide" ||
                     categoryKey === "close" ||
-                    categoryKey === "settings" ||
+                    // categoryKey === "settings" ||
                     categoryKey === "agent" ||
                     categoryKey === "calendar" ? (
                       (() => {

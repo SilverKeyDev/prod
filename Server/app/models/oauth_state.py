@@ -27,6 +27,23 @@ class OAuthState(db.Model):
         """Check if state has expired"""
         return datetime.utcnow() > self.expires_at
     
+    @classmethod
+    def cleanup_expired(cls, older_than_hours: int = 1):
+        """Delete expired or used states older than specified hours
+        
+        Args:
+            older_than_hours: Delete states that expired or were used more than this many hours ago
+            
+        Returns:
+            Number of records deleted
+        """
+        cutoff = datetime.utcnow() - timedelta(hours=older_than_hours)
+        deleted = cls.query.filter(
+            (cls.expires_at < cutoff) | (cls.used == True)
+        ).delete(synchronize_session=False)
+        db.session.commit()
+        return deleted
+    
     def __repr__(self):
         return f'<OAuthState state={self.state[:20]}... oauth_type={self.oauth_type} used={self.used}>'
 
