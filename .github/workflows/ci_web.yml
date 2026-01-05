@@ -102,7 +102,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
-          install: true
 
       # Free up disk on runner, but DO NOT prune Docker images (keeps action images like appleboy)
       - name: Free up disk space on runner
