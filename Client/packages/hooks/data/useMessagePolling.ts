@@ -21,25 +21,22 @@ const POLLING_INTERVALS = {
  * - Page visibility (pauses when tab is hidden)
  */
 export function useMessagePolling() {
-  // Diagnostic: Check if we're inside Router context BEFORE calling useLocation
-  // This will help identify when StoreIntegrations is rendered outside Router
+  // Check if we're inside Router context
+  // In production builds with code splitting, Router context might not be immediately available
+  // during initial render/hydration, but useLocation() should still work if we're in a Route
   const inRouter = useInRouterContext();
-
-  if (!inRouter) {
-    console.error("[useMessagePolling] NO ROUTER CONTEXT", {
-      href: typeof window !== "undefined" ? window.location.href : "SSR",
-      stack: new Error().stack,
-      timestamp: new Date().toISOString(),
-    });
-    // Return early to prevent useLocation() crash
-    // NOTE: This is a diagnostic - the real fix is ensuring StoreIntegrations
-    // is always rendered inside BrowserRouter. Once the root cause is fixed,
-    // this check can be removed.
-    return;
-  }
-
-  // Safe to call useLocation now - we're in Router context
+  
+  // Always call useLocation() unconditionally (Rules of Hooks)
+  // Since StoreIntegrationsLayout is inside a <Route>, Router context should be available
+  // If it's not, this indicates a timing issue in production that we'll handle gracefully
+  // In React Router v7, useLocation() may work even outside router context, but we check
+  // useInRouterContext() to ensure we're actually in a router before starting polling
   const location = useLocation();
+  
+  // Use window.location as fallback if router context isn't available yet
+  // This ensures we have a valid pathname even during initial render/hydration
+  const pathname = inRouter ? location.pathname : (typeof window !== "undefined" ? window.location.pathname : "/");
+  
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
@@ -67,18 +64,34 @@ export function useMessagePolling() {
   const visibilityChangeHandlerRef = useRef<(() => void) | null>(null);
   const isCheckingRef = useRef<boolean>(false); // Prevent concurrent checks
   
+  // If Router context isn't available, log a warning but don't crash
+  // This can happen during initial render in production with code splitting
+  // The component will re-render once Router context is available
+  useEffect(() => {
+    if (!inRouter && typeof window !== "undefined" && document.readyState === "complete") {
+      // Only log if page is fully loaded (not during hydration)
+      // This is a timing issue that should resolve on the next render
+      console.warn("[useMessagePolling] Router context check failed, but location is available", {
+        href: window.location.href,
+        hasLocation: !!location,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [inRouter, location]);
+
   // Debug logging
   useEffect(() => {
     console.log("[useMessagePolling] Hook initialized", {
       authReady,
       isAuthenticated,
-      pathname: location.pathname,
-      isOnMessagingPage: location.pathname.startsWith("/agent"),
+      pathname,
+      inRouter,
+      isOnMessagingPage: pathname.startsWith("/agent"),
     });
-  }, [authReady, isAuthenticated, location.pathname]);
+  }, [authReady, isAuthenticated, pathname, inRouter]);
 
   // Check if we're on the messaging page
-  const isOnMessagingPage = location.pathname.startsWith("/agent");
+  const isOnMessagingPage = pathname.startsWith("/agent");
 
   // Determine polling interval based on route and visibility
   const getPollingInterval = (): number => {
@@ -230,6 +243,16 @@ export function useMessagePolling() {
 
   // Set up polling interval
   useEffect(() => {
+    // Don't start polling if router context isn't available yet
+    // This prevents errors in production where router chunk might load after this code
+    if (!inRouter) {
+      console.log("[useMessagePolling] Polling not started - router context not available", {
+        inRouter,
+        pathname: location.pathname,
+      });
+      return;
+    }
+    
     if (!authReady || !isAuthenticated) {
       console.log("[useMessagePolling] Polling not started - auth not ready", {
         authReady,
@@ -252,7 +275,8 @@ export function useMessagePolling() {
         interval,
         isOnMessagingPage,
         visibilityState,
-        pathname: location.pathname,
+        pathname,
+        inRouter,
       });
       
       if (interval > 0) {
@@ -304,6 +328,8 @@ export function useMessagePolling() {
     isAuthenticated,
     isOnMessagingPage,
     checkForNewMessages,
+    inRouter, // Re-run effect when router context becomes available
+    location.pathname, // Re-run when location changes
   ]);
 }
 

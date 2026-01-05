@@ -71,8 +71,10 @@ export default defineConfig({
             if (id.includes("react") || id.includes("react-dom")) {
               return "react-vendor";
             }
+            // Don't split react-router into separate chunk - keep it with main bundle
+            // to prevent timing issues where router context isn't available when hooks run
             if (id.includes("react-router")) {
-              return "router-vendor";
+              return undefined; // Include in main bundle to ensure router context is always available
             }
             if (id.includes("@tanstack")) {
               return "query-vendor";
@@ -85,6 +87,10 @@ export default defineConfig({
             id.includes("app/routes") &&
             (id.includes("routes.tsx") || id.includes("StoreIntegrations"))
           ) {
+            return undefined; // Include in main bundle
+          }
+          // Ensure hooks that use router are in main bundle
+          if (id.includes("packages/hooks") && id.includes("useMessagePolling")) {
             return undefined; // Include in main bundle
           }
         },
