@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useInRouterContext } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "../../config/query/keys";
@@ -21,6 +21,24 @@ const POLLING_INTERVALS = {
  * - Page visibility (pauses when tab is hidden)
  */
 export function useMessagePolling() {
+  // Diagnostic: Check if we're inside Router context BEFORE calling useLocation
+  // This will help identify when StoreIntegrations is rendered outside Router
+  const inRouter = useInRouterContext();
+
+  if (!inRouter) {
+    console.error("[useMessagePolling] NO ROUTER CONTEXT", {
+      href: typeof window !== "undefined" ? window.location.href : "SSR",
+      stack: new Error().stack,
+      timestamp: new Date().toISOString(),
+    });
+    // Return early to prevent useLocation() crash
+    // NOTE: This is a diagnostic - the real fix is ensuring StoreIntegrations
+    // is always rendered inside BrowserRouter. Once the root cause is fixed,
+    // this check can be removed.
+    return;
+  }
+
+  // Safe to call useLocation now - we're in Router context
   const location = useLocation();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
