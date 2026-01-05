@@ -45,7 +45,7 @@
     "react-phone-number-input": "^3.2.20",
     "react-plaid-link": "^4.1.1",
     "react-responsive-carousel": "^3.2.23",
-    "react-router-dom": "^6.20.1",
+    "react-router-dom": "^7.9.3",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

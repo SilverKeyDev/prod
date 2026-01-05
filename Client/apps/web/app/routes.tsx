@@ -16,6 +16,9 @@ type AppRoutesProps = {
 
 // Component that handles store integrations - must be inside Router context
 // This component renders the Outlet (child routes) and initializes store integrations
+// IMPORTANT: This component is imported synchronously (not lazy-loaded) to ensure
+// Router context is always available when hooks execute, preventing timing issues
+// in production builds with code splitting.
 function StoreIntegrationsLayout() {
   useGoogleMapsStoreIntegration();
   // Initialize message polling for notifications

@@ -45,19 +45,67 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ["react", "react-dom"],
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@tanstack/react-query",
+      "zustand",
+    ],
     exclude: ["@types/*"],
   },
   build: {
     target: "es2020",
-    sourcemap: false,
-    minify: false,
+    // Enable sourcemaps for production debugging (consistent with dev behavior)
+    sourcemap: true,
+    // Enable minification for production (standard practice)
+    minify: "esbuild",
     outDir: path.resolve(__dirname, "../../dist"),
+    // Configure code splitting for consistent behavior
+    rollupOptions: {
+      output: {
+        // Ensure consistent chunk naming and splitting
+        manualChunks: (id) => {
+          // Vendor chunks for better caching
+          if (id.includes("node_modules")) {
+            if (id.includes("react") || id.includes("react-dom")) {
+              return "react-vendor";
+            }
+            if (id.includes("react-router")) {
+              return "router-vendor";
+            }
+            if (id.includes("@tanstack")) {
+              return "query-vendor";
+            }
+            // Other vendor code
+            return "vendor";
+          }
+          // Critical Router-dependent code should not be split
+          if (
+            id.includes("app/routes") &&
+            (id.includes("routes.tsx") || id.includes("StoreIntegrations"))
+          ) {
+            return undefined; // Include in main bundle
+          }
+        },
+        // Consistent chunk file naming
+        chunkFileNames: "assets/[name]-[hash].js",
+        entryFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash].[ext]",
+      },
+    },
+    // Ensure consistent module resolution
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+    },
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
       packages: path.resolve(__dirname, "../../packages"),
     },
+    // Ensure consistent module resolution
+    dedupe: ["react", "react-dom", "react-router-dom"],
   },
 });
