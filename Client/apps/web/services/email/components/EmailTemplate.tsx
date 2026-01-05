@@ -9,10 +9,8 @@ import {
 import { Tailwind } from "@react-email/tailwind";
 import React from "react";
 import { tailwindConfig } from "./colors";
-import { Logo } from "./Logo";
 
 type EmailTemplateProps = {
-  logoUrl?: string;
   title: string;
   subtitle: string;
   children: React.ReactNode;
@@ -20,7 +18,6 @@ type EmailTemplateProps = {
 };
 
 export function EmailTemplate({
-  logoUrl,
   title,
   subtitle,
   children,
@@ -54,8 +51,6 @@ export function EmailTemplate({
                 borderBottom: "3px solid #D4AF37",
               }}
             >
-              <Logo logoUrl={logoUrl} />
-
               {/* Greeting */}
               <Text
                 style={{

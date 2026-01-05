@@ -9,14 +9,12 @@ export type NewPropertiesEmailProps = {
   recipientEmail: string;
   properties: NewProperty[];
   maxItems?: number;
-  logoUrl?: string;
 };
 
 export default function NewPropertiesEmail({
   recipientEmail,
   properties,
   maxItems = 10,
-  logoUrl = "https://silverkey.com/logo.png",
 }: NewPropertiesEmailProps) {
   const displayProperties = properties.slice(0, maxItems);
   const newListingsCount = displayProperties.filter((p) => p.isNewListing).length;
@@ -98,7 +96,6 @@ export default function NewPropertiesEmail({
 
   return (
     <EmailTemplate
-      logoUrl={logoUrl}
       title="New Properties & Price Updates"
       subtitle={getSubtitle()}
       footerContent={footerContent}

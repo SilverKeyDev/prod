@@ -20,7 +20,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["vite/client", "react", "react-dom"]
+    "types": ["vite/client", "react"]
   },
   "include": [
     "apps/web",

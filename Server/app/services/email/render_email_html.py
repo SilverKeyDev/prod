@@ -8,6 +8,7 @@ import json
 import os
 import subprocess
 import logging
+import base64
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 
@@ -26,6 +27,40 @@ def get_workspace_root() -> Path:
     # Go up to Server/, then up to workspace root
     workspace_root = server_app_dir.parent.parent
     return workspace_root
+
+
+def get_logo_data_url() -> Optional[str]:
+    """
+    Get the logo file as a base64 data URL for embedding in emails.
+    
+    Returns:
+        Base64 data URL string (e.g., "data:image/png;base64,...") or None if logo not found
+    """
+    try:
+        workspace_root = get_workspace_root()
+        logo_path = workspace_root / "Client" / "public" / "logo.png"
+        
+        if not logo_path.exists():
+            logger.warning(f"Logo file not found at {logo_path}")
+            return None
+        
+        # Read the logo file and convert to base64
+        with open(logo_path, "rb") as f:
+            logo_data = f.read()
+        
+        # Determine MIME type based on file extension
+        mime_type = "image/png"  # logo.png is PNG
+        
+        # Encode as base64 data URL
+        base64_data = base64.b64encode(logo_data).decode("utf-8")
+        data_url = f"data:{mime_type};base64,{base64_data}"
+        
+        logger.debug(f"Successfully loaded logo as data URL ({len(data_url)} chars)")
+        return data_url
+        
+    except Exception as e:
+        logger.warning(f"Failed to load logo as data URL: {e}")
+        return None
 
 
 def render_email_html(template_name: str, props: Dict[str, Any]) -> str:
