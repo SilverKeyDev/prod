@@ -21,7 +21,7 @@ from googleapiclient.errors import HttpError
 
 from app.utils.security.app_logging import get_logger
 from app.services.auth.tokens import tokens_get, tokens_upsert, tokens_delete
-from app.models.oauth_state import OAuthState
+from app.models import OAuthState
 from app import db
 from app.utils.security.security import (
     redact_sensitive_data, 

@@ -179,6 +179,44 @@ export class AgentService {
   }
 
   /* =========================
+     Mark Messages as Read
+     ========================= */
+
+  async markMessagesAsRead(conversationId: string): Promise<{ marked_count: number }> {
+    console.log("[AGENT_SERVICE] ✅ Starting markMessagesAsRead", { conversationId });
+
+    try {
+      const response = await agentApi.markMessagesAsRead(conversationId);
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to mark messages as read");
+      }
+
+      const markedCount = response.marked_count ?? 0;
+      console.log("[AGENT_SERVICE] ✅ markMessagesAsRead success:", {
+        markedCount,
+      });
+
+      return { marked_count: markedCount };
+    } catch (e: unknown) {
+      if (!isAbortError(e)) {
+        console.error("[AGENT_SERVICE] ❌ markMessagesAsRead error:", {
+          conversationId,
+          error: e,
+          message:
+            e &&
+            typeof e === "object" &&
+            "message" in e &&
+            typeof e.message === "string"
+              ? e.message
+              : "Unknown error",
+        });
+        throw e;
+      }
+      throw e;
+    }
+  }
+
+  /* =========================
      Create Conversation
      ========================= */
 

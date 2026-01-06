@@ -4,7 +4,7 @@ import numpy as np
 import logging
 import requests
 from app import db
-from app.models.user_preferences import UserPreferences
+from app.models import UserPreferences
 import requests
 import urllib.parse
 from PIL import Image as PILImage

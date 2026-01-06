@@ -14,7 +14,7 @@ __version__ = "1.0.0"
 __author__ = "SilverKey Team"
 
 # Main entry point for the home matching system
-from .app.match import (
+from .config.match import (
     find_best_matches,
     score_single_match,
     compare_homes_for_user,

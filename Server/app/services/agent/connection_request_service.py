@@ -6,9 +6,7 @@ import logging
 from typing import List, Dict, Optional
 from datetime import datetime
 from ..auth.current_user import get_current_user
-from ...models.user import User
-from ...models.agent_connection_request import AgentConnectionRequest
-from ...models.agent_conversation import AgentConversation
+from ...models import User, AgentConnectionRequest, AgentConnections
 from ... import db
 
 logger = logging.getLogger(__name__)
@@ -246,13 +244,13 @@ def respond_to_connection_request(
         # If accepted, create a conversation
         if accept:
             # Check if conversation already exists
-            existing_conv = AgentConversation.query.filter_by(
+            existing_conv = AgentConnections.query.filter_by(
                 agent_id=request.agent_id,
                 client_id=request.client_id
             ).first()
             
             if not existing_conv:
-                conversation = AgentConversation(
+                conversation = AgentConnections(
                     agent_id=request.agent_id,
                     client_id=request.client_id
                 )

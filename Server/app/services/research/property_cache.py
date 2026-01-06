@@ -6,7 +6,7 @@ from typing import Optional, Dict, Any, Tuple
 from datetime import datetime, timedelta
 from flask import current_app
 
-from app.models.home_universal import HomeUniversal
+from app.models import HomeUniversal
 from app.utils.address_format import normalize_address
 
 

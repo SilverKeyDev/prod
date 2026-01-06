@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional, List
 from flask import current_app
 
 from app import db
-from app.models.home_universal import HomeUniversal
+from app.models import HomeUniversal
 from app.utils.address_format import normalize_address
 from app.utils.currency import format_currency
 

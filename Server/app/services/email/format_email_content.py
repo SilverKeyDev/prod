@@ -11,7 +11,7 @@ from typing import List, Tuple, Optional, Dict, Any
 import logging
 import os
 
-from app.models.home_universal import HomeUniversal
+from app.models import HomeUniversal
 
 logger = logging.getLogger(__name__)
 

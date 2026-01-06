@@ -9,7 +9,7 @@ import time
 from typing import Dict, Any, List
 from flask import current_app
 
-from ...home_matching.app.match import find_best_matches
+from ...home_matching.config.match import find_best_matches
 
 
 def score_and_sort_properties(

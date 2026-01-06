@@ -40,6 +40,10 @@ def get_metadata():
     return a list of all MetaData objects so Alembic will detect models
     on non-default binds as well.
     """
+    # Import all models so Alembic can detect them
+    # This must happen within the app context (which Flask-Migrate provides)
+    import app.models  # This imports all models via __init__.py
+    
     if hasattr(target_db, "metadatas"):
         # Flask-SQLAlchemy exposes metadatas as a {bind_key: MetaData} dict
         return list(target_db.metadatas.values())

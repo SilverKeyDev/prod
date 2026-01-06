@@ -7,6 +7,7 @@ import openai
 import numpy as np
 import time
 import re
+import warnings
 from typing import List, Optional, Dict, Any
 from sentence_transformers import SentenceTransformer
 import logging
@@ -15,9 +16,17 @@ from openai import RateLimitError, APIError
 # Suppress verbose logging from sentence-transformers
 logging.getLogger('sentence_transformers').setLevel(logging.WARNING)
 
+# Suppress FutureWarning about deprecated resume_download parameter in huggingface_hub
+# This is a known issue in sentence-transformers 2.6.1 that will be fixed in future versions
+warnings.filterwarnings(
+    'ignore',
+    message='.*resume_download.*is deprecated.*',
+    category=FutureWarning,
+    module='huggingface_hub'
+)
+
 from ..config.settings import (
-    EMBEDDING_MODEL, OPENAI_KEY, PERPLEXITY_API_KEY,
-    EMBEDDING_DIMENSION
+    EMBEDDING_MODEL, OPENAI_KEY
 )
 
 logger = logging.getLogger(__name__)

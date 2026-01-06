@@ -1,16 +1,28 @@
 from ..extensions import db
-from .user import User
-from .pdf_document import PDFDocument
-from .user_preferences import UserPreferences
-from .home_universal import HomeUniversal
-from .agent_conversation import AgentConversation
-from .agent_connection_request import AgentConnectionRequest
-from .calendar_event import CalendarEvent
-from .google_oauth_token import GoogleOAuthToken
-from .oauth_state import OAuthState
+
+# Import from organized subfolders for backward compatibility
+from .auth import User, UserPreferences, OAuthState, GoogleOAuthToken
+from .property import HomeUniversal, HomeLikes, Search
+from .agent import AgentConnections, AgentConnectionRequest, ChatHistory
+from .documents import PDFDocument
+from .calendar import CalendarEvent
 
 # Initialize database
 def init_db():
     db.create_all()
 
-__all__ = ['User', 'PDFDocument', 'UserPreferences', 'HomeUniversal', 'AgentConversation', 'AgentConnectionRequest', 'CalendarEvent', 'GoogleOAuthToken', 'OAuthState', 'db']
+__all__ = [
+    'User', 
+    'PDFDocument', 
+    'UserPreferences', 
+    'HomeUniversal', 
+    'HomeLikes', 
+    'Search',
+    'AgentConnections', 
+    'AgentConnectionRequest', 
+    'ChatHistory',
+    'CalendarEvent', 
+    'GoogleOAuthToken', 
+    'OAuthState', 
+    'db'
+]

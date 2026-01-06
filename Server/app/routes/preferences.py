@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
-from ..models.user import User
-from ..models.user_preferences import UserPreferences
+from ..models import User, UserPreferences
 from ..services.auth.current_user import (
     get_current_user, 
     SecurityException, 

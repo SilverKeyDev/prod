@@ -3,7 +3,7 @@ import logging
 import time
 import re
 from openai import OpenAI, RateLimitError, APIError
-from app.models.user_preferences import UserPreferences
+from app.models import UserPreferences
 import httpx
 
 

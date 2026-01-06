@@ -36,6 +36,7 @@ export default function AgentMessaging({
     isLoadingHistory,
     conversations,
     sendMessage: sendMessageApi,
+    retryMessage,
     formatTime,
     canSendMessage,
   } = useMessaging({
@@ -158,6 +159,7 @@ export default function AgentMessaging({
                   formatTime={formatTime}
                   messagesEndRef={messagesEndRef}
                   selectedClientName={selectedClient?.name}
+                  onRetryMessage={retryMessage}
                 />
               </div>
             </div>

@@ -9,7 +9,7 @@ from flask import request
 from datetime import datetime, timezone
 from app.utils.security.app_logging import get_logger
 from app import db
-from app.models.google_oauth_token import GoogleOAuthToken
+from app.models import GoogleOAuthToken
 
 logger = get_logger()
 
@@ -79,7 +79,7 @@ def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
     
     # Verify user exists (foreign key constraint will also check, but this gives better error)
     try:
-        from app.models.user import User
+        from app.models import User
         user = User.query.filter_by(id=user_id).first()
         if not user:
             logger.error(f"Cannot store tokens: user {user_id} does not exist")

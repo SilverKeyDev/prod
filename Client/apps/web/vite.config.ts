@@ -13,7 +13,7 @@ export default defineConfig({
   },
   server: {
     host: "localhost", // Changed from 0.0.0.0 to localhost for cookie consistency
-    port: 5173,
+    port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT, 10) : 5173,
     strictPort: true,
     watch: {
       usePolling: true,
@@ -22,12 +22,12 @@ export default defineConfig({
     hmr: {
       protocol: "ws",
       host: "localhost",
-      port: 5173,
-      clientPort: 5173,
+      port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT, 10) : 5173,
+      clientPort: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT, 10) : 5173,
     },
     proxy: {
       "/api": {
-        target: "http://localhost:5000",
+        target: process.env.VITE_API_PROXY || "http://localhost:5000",
         changeOrigin: true,
         secure: false,
         configure: (proxy) => {
@@ -38,7 +38,7 @@ export default defineConfig({
         },
       },
       "/healthz": {
-        target: "http://localhost:5000",
+        target: process.env.VITE_API_PROXY || "http://localhost:5000",
         changeOrigin: true,
         secure: false,
       },

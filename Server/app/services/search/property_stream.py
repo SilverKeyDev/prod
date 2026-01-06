@@ -12,8 +12,7 @@ from flask import current_app
 from datetime import datetime, timedelta
 
 from app.services.auth.current_user import get_current_user, SecurityException
-from app.models.user_preferences import UserPreferences
-from app.models.home_universal import HomeUniversal
+from app.models import UserPreferences, HomeUniversal
 from app.services.research.graphs.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
 from app.services.search.image_features import extract_and_clean_features
 from app.services.search.property_features import extract_property_features

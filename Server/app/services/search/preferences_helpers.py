@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from flask import current_app, jsonify
 
 from .locationPolygon import isochrone_union_for_addresses
-from ...models.user_preferences import UserPreferences
+from ...models import UserPreferences
 from ...services.auth.current_user import get_current_user
 from ...utils.security.security import security_error_response
 

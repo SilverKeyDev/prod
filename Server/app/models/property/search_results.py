@@ -21,7 +21,6 @@ class Search(db.Model):
 
     # relationships
     user = db.relationship('User', backref=db.backref('search_sessions', lazy='dynamic'))
-    results = db.relationship('SearchResult', back_populates='search_session', cascade='all, delete-orphan', lazy='select', passive_deletes=True)
 
     def __init__(self, **kwargs):
         super(Search, self).__init__(**kwargs)
@@ -35,4 +34,3 @@ class Search(db.Model):
             'query_params': self.query_params,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
-

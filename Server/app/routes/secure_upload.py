@@ -6,7 +6,7 @@ from flask import Blueprint, request, jsonify, current_app
 from ..utils.common_patterns import require_authenticated_user
 from ..utils.security.file_security import validate_file_upload, FileSecurityError, create_secure_upload_directory, get_file_hash
 from ..utils.security.secure_errors import SecureErrorHandler
-from ..utils.s3_service import s3_service
+from ..services.documents import s3_service
 from .. import db
 import os
 from ..utils.security.app_logging import get_logger
@@ -80,7 +80,7 @@ def upload_document(user):
                 })
         
         # Store file metadata in database
-        from ..models.pdf_document import PDFDocument
+        from ..models import PDFDocument
         
         document = PDFDocument(
             user_id=user.id,

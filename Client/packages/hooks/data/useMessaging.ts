@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAgentChats } from "./useAgentChats";
 import { useNotificationStore } from "../../store/notifications.slice";
+import { agentService } from "../../services/agent";
 import type { AgentConversation } from "../../config/api/agent";
 
 export type ChatMessage = {
@@ -9,6 +10,9 @@ export type ChatMessage = {
   role: "user" | "agent";
   timestamp: Date;
   shared_home_id?: string | null;
+  is_read?: boolean;
+  read_at?: string | null;
+  status?: "sending" | "delivered" | "failed";
 };
 
 export type UseMessagingConfig = {
@@ -41,6 +45,7 @@ export type UseMessagingReturn = {
   
   // Actions
   sendMessage: (message: string) => Promise<void>;
+  retryMessage: (messageId: string) => Promise<void>;
   setActiveConversationId: (id: string) => void;
   
   // Utilities
@@ -110,13 +115,16 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
   const isLoadingRef = useRef<boolean>(false);
 
   // Helper function to map API messages to ChatMessage format
-  const mapApiMessagesToChatMessages = useCallback((apiMessages: Array<{ id: string; message: string; role: string; timestamp: string; shared_home_id?: string | null }>): ChatMessage[] => {
+  const mapApiMessagesToChatMessages = useCallback((apiMessages: Array<{ id: string; message: string; role: string; timestamp: string; shared_home_id?: string | null; is_read?: boolean; read_at?: string | null }>): ChatMessage[] => {
     return apiMessages.map((msg) => ({
       id: msg.id,
       content: msg.message,
       role: msg.role === "agent" ? "agent" : "user",
       timestamp: new Date(msg.timestamp),
       shared_home_id: msg.shared_home_id ?? null,
+      is_read: msg.is_read ?? false,
+      read_at: msg.read_at ?? null,
+      status: "delivered" as const, // Messages from server are always delivered
     }));
   }, []);
 
@@ -164,6 +172,10 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     if (!shouldReload) {
       // Still mark as read even if already loaded
       markConversationRead(activeConversationId);
+      // Mark messages as read on backend
+      void agentService.markMessagesAsRead(activeConversationId).catch((err) => {
+        console.error("Failed to mark messages as read:", err);
+      });
       return;
     }
 
@@ -199,6 +211,13 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
 
           // Mark conversation as read when messages are loaded
           markConversationRead(activeConversationId);
+
+          // Mark messages as read on backend
+          try {
+            await agentService.markMessagesAsRead(activeConversationId);
+          } catch (err) {
+            console.error("Failed to mark messages as read:", err);
+          }
 
           // Update last read timestamp to the latest message timestamp
           if (messages.length > 0) {
@@ -258,14 +277,16 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     if (mode === "agent" && !conversationId && !clientIdForSending) return;
 
     const userMessage = messageText.trim();
+    const tempMessageId = `temp-${Date.now()}`;
     const newMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: tempMessageId,
       content: userMessage,
       role: messageRole,
       timestamp: new Date(),
+      status: "sending",
     };
 
-    // Optimistic append
+    // Optimistic append with "sending" status
     setLocalMessages((prev) => [...prev, newMessage]);
 
     try {
@@ -278,14 +299,40 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
         await sendMessageApi(conversationId, userMessage);
       }
 
+      // Mark message as delivered
+      setLocalMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === tempMessageId ? { ...msg, status: "delivered" as const } : msg
+        )
+      );
+
       // Reload conversations to get the new conversation ID if it was created
       await refreshChats();
 
-      // Reload history to get server response
+      // Reload history to get server response and replace temp message with real one
       if (conversationId !== "new") {
         const data = await getChatHistoryRef.current(conversationId);
         const messages = mapApiMessagesToChatMessages(data.messages ?? []);
-        setLocalMessages(messages);
+        
+        // Preserve the original timestamp from temp message when replacing
+        setLocalMessages((prev) => {
+          const tempMessage = prev.find((msg) => msg.id === tempMessageId);
+          const tempTimestamp = tempMessage?.timestamp;
+          
+          return messages.map((msg) => {
+            // If this is the message we just sent (matches content and is user message),
+            // and we have a temp message timestamp, preserve it to avoid timezone issues
+            if (
+              tempTimestamp &&
+              msg.role === "user" &&
+              msg.content === userMessage &&
+              Math.abs(msg.timestamp.getTime() - tempTimestamp.getTime()) < 60000 // Within 1 minute
+            ) {
+              return { ...msg, timestamp: tempTimestamp };
+            }
+            return msg;
+          });
+        });
       } else {
         // If we created a new conversation, refresh conversations to get it
         await refreshChats();
@@ -293,8 +340,12 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
         loadedHistoryIdsRef.current.clear();
       }
     } catch (error) {
-      // Remove optimistic message on error
-      setLocalMessages((prev) => prev.slice(0, -1));
+      // Mark message as failed instead of removing it
+      setLocalMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === tempMessageId ? { ...msg, status: "failed" as const } : msg
+        )
+      );
     }
   }, [
     activeConversationId,
@@ -314,6 +365,33 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
   const formatTime = useCallback((date: Date) => {
     const d =
       date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
+    
+    const now = new Date();
+    const diffInMs = now.getTime() - d.getTime();
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+    
+    // If message is older than 24 hours, show date
+    if (diffInHours > 24) {
+      // Check if it's from this year
+      const isThisYear = d.getFullYear() === now.getFullYear();
+      
+      if (isThisYear) {
+        // Show month and day (e.g., "Jan 15")
+        return d.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+      } else {
+        // Show month, day, and year (e.g., "Jan 15, 2023")
+        return d.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+      }
+    }
+    
+    // Within 24 hours, show time
     return d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
@@ -324,6 +402,100 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
   // Determine if user can send messages based on mode
   // Client mode: can send if conversation exists OR agent is assigned (can create conversation)
   // Agent mode: can send if a client is selected
+  const retryMessage = useCallback(async (messageId: string) => {
+    const failedMessage = localMessages.find((msg) => msg.id === messageId && msg.status === "failed");
+    if (!failedMessage) return;
+
+    // Update message status to sending
+    setLocalMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, status: "sending" as const } : msg
+      )
+    );
+
+    // Determine conversation ID and role based on mode
+    let conversationId = activeConversationId;
+    const messageRole: "user" | "agent" = mode === "client" ? "user" : "agent";
+
+    // For client mode: if no conversation exists but agent is assigned, create one
+    if (mode === "client" && !conversationId && agentId) {
+      conversationId = "new";
+    }
+
+    // For agent mode: if no conversation exists, create one
+    if (mode === "agent" && !conversationId && clientIdForSending) {
+      conversationId = "new";
+    }
+
+    // Validate we can send
+    if (mode === "client" && !conversationId && !agentId) return;
+    if (mode === "agent" && !conversationId && !clientIdForSending) return;
+
+    try {
+      // Send message with appropriate parameters based on mode
+      if (mode === "agent") {
+        await sendMessageApi(conversationId, failedMessage.content, clientIdForSending || undefined);
+      } else {
+        await sendMessageApi(conversationId, failedMessage.content);
+      }
+
+      // Mark message as delivered
+      setLocalMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, status: "delivered" as const } : msg
+        )
+      );
+
+      // Reload conversations to get the new conversation ID if it was created
+      await refreshChats();
+
+      // Reload history to get server response
+      if (conversationId !== "new") {
+        const data = await getChatHistoryRef.current(conversationId);
+        const messages = mapApiMessagesToChatMessages(data.messages ?? []);
+        
+        // Preserve the original timestamp from failed message when replacing
+        setLocalMessages((prev) => {
+          const failedMessage = prev.find((msg) => msg.id === messageId);
+          const failedTimestamp = failedMessage?.timestamp;
+          
+          return messages.map((msg) => {
+            // If this is the message we just retried (matches content and is user message),
+            // and we have a failed message timestamp, preserve it to avoid timezone issues
+            if (
+              failedTimestamp &&
+              msg.role === "user" &&
+              msg.content === failedMessage.content &&
+              Math.abs(msg.timestamp.getTime() - failedTimestamp.getTime()) < 60000 // Within 1 minute
+            ) {
+              return { ...msg, timestamp: failedTimestamp };
+            }
+            return msg;
+          });
+        });
+      } else {
+        await refreshChats();
+        loadedHistoryIdsRef.current.clear();
+      }
+    } catch (error) {
+      // Mark message as failed again
+      setLocalMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, status: "failed" as const } : msg
+        )
+      );
+    }
+  }, [
+    localMessages,
+    activeConversationId,
+    mode,
+    agentId,
+    clientIdForSending,
+    sendMessageApi,
+    refreshChats,
+    mapApiMessagesToChatMessages,
+  ]);
+
   const canSendMessage = useMemo(() => {
     if (mode === "client") {
       return !!(activeConversationId || agentId);
@@ -340,6 +512,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     activeConversation,
     conversations,
     sendMessage,
+    retryMessage,
     setActiveConversationId,
     formatTime,
     canSendMessage,

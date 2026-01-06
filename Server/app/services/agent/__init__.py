@@ -9,6 +9,8 @@ from .conversation_service import (
     create_conversation,
     get_conversation_history,
     send_message,
+    get_unread_count,
+    mark_messages_as_read,
 )
 from .connection_request_service import (
     search_agents,
@@ -26,6 +28,8 @@ __all__ = [
     'create_conversation',
     'get_conversation_history',
     'send_message',
+    'get_unread_count',
+    'mark_messages_as_read',
     'search_agents',
     'search_clients',
     'get_connection_requests',

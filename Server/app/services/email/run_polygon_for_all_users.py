@@ -9,8 +9,7 @@ from flask import current_app
 
 # App imports
 from app import db
-from app.models.user import User
-from app.models.user_preferences import UserPreferences
+from app.models import User, UserPreferences
 from app.services.auth.minimal_token import minimal_token_service
 
 

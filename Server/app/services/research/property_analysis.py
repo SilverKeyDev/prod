@@ -7,7 +7,7 @@ import json
 import logging
 from flask import current_app
 
-from app.models.user_preferences import UserPreferences
+from app.models import UserPreferences
 from app.services.auth.current_user import get_current_user, SecurityException
 from app.services.research.perplexity_analysis import (
     analyze_property_with_sonar_pro,

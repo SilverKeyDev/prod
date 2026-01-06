@@ -58,8 +58,7 @@ def create_app(config=None):
 
     # Initialize database within app context
     with app.app_context():
-        from .models import User, PDFDocument, HomeUniversal
-        from .models.chat_history import ChatHistory
+        from .models import User, PDFDocument, HomeUniversal, ChatHistory
         db.create_all()
 
     # CORS Configuration with runtime origins list
@@ -83,7 +82,7 @@ def create_app(config=None):
     )
 
     # Register login manager loader
-    from .models.user import User
+    from .models import User
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -92,7 +91,7 @@ def create_app(config=None):
     # Initialize S3 service silently
     with app.app_context():
         try:
-            from .utils.s3_service import s3_service
+            from .services.documents import s3_service
             s3_service._initialize_s3_client(force_retry=True)
         except Exception:
             pass

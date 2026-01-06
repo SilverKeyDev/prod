@@ -1,4 +1,4 @@
-import { MessageCircle, User as UserIcon } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { KeyTurnLoader } from "../../../components/ui";
 import UnifiedMessagingHeader from "../ClientMessaging/UnifiedMessagingHeader";
 import { ConnectionRequestsInbox } from "../modals";
@@ -168,9 +168,6 @@ export default function UnifiedMessagingSidebar({
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-beige">
-                    <UserIcon className="h-5 w-5 text-black" />
-                  </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="mb-1 truncate text-sm font-medium text-black">
                       {client.name}

@@ -59,7 +59,7 @@ def configure_app_logging(app):
     verbose_loggers = [
         'botocore', 'boto3', 'urllib3', 's3transfer', 'matplotlib',
         'celery', 'werkzeug', 'openai', 'httpx', 'httpcore',
-        'requests.packages.urllib3', 'PIL'
+        'requests.packages.urllib3', 'PIL', 'google_auth_httplib2'
     ]
     
     for logger_name in verbose_loggers:

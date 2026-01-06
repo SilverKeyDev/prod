@@ -42,6 +42,7 @@ export default function ClientMessaging() {
     isLoadingHistory,
     activeConversation,
     sendMessage: sendMessageApi,
+    retryMessage,
     setActiveConversationId,
     formatTime,
     canSendMessage,
@@ -155,6 +156,7 @@ export default function ClientMessaging() {
                   formatTime={formatTime}
                   onSearchClick={() => setShowSearchModal(true)}
                   messagesEndRef={messagesEndRef}
+                  onRetryMessage={retryMessage}
                 />
               </div>
             </div>

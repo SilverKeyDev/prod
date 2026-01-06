@@ -13,6 +13,7 @@ from ..services.agent import (
     create_conversation,
     get_conversation_history,
     send_message as send_conversation_message,
+    mark_messages_as_read,
     search_agents,
     search_clients,
     get_connection_requests,
@@ -166,7 +167,15 @@ def get_chat_history(conversation_id):
                 'error': 'Access denied'
             }), 403
         
-        history = get_conversation_history(conversation_id)
+        # Validate user.id exists
+        if not user.id:
+            logger.error("User ID is None in get_chat_history")
+            return jsonify({
+                'success': False,
+                'error': 'Invalid user session'
+            }), 401
+        
+        history = get_conversation_history(conversation_id, user_id=str(user.id))
         
         return jsonify({
             'success': True,
@@ -507,5 +516,58 @@ def respond_to_connection_request_endpoint(request_id):
     except Exception as e:
         return SecureErrorHandler.handle_database_error(e, {
             'function': 'respond_to_connection_request',
+            'user_id': 'unknown'
+        })
+
+
+@agent_bp.route('/chats/<conversation_id>/read', methods=['POST'])
+@rate_limit(max_requests=100, window_seconds=60)
+def mark_chat_as_read(conversation_id):
+    """Mark all messages in a conversation as read"""
+    try:
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        
+        # Verify user has access to this conversation
+        conversation = get_conversation(conversation_id)
+        if not conversation:
+            return jsonify({
+                'success': False,
+                'error': 'Conversation not found'
+            }), 404
+        
+        # Check if user is part of the conversation
+        if conversation['agent_id'] != user.id and conversation['client_id'] != user.id:
+            return jsonify({
+                'success': False,
+                'error': 'Access denied'
+            }), 403
+        
+        # Validate user.id exists
+        if not user.id:
+            logger.error("User ID is None in mark_chat_as_read")
+            return jsonify({
+                'success': False,
+                'error': 'Invalid user session'
+            }), 401
+        
+        result = mark_messages_as_read(conversation_id, str(user.id))
+        
+        return jsonify({
+            'success': True,
+            **result
+        })
+        
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+    except Exception as e:
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'mark_chat_as_read',
             'user_id': 'unknown'
         })

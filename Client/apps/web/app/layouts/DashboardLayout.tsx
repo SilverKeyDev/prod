@@ -78,7 +78,7 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/calendar": 90,
 };
 
-// Buyer checklist tabs
+// Checklist tabs
 type ChecklistTab = "escrow" | "inspections" | "financing" | "closing";
 const CHECKLIST_TABS: ChecklistTab[] = [
   "escrow",
@@ -405,7 +405,7 @@ export default function DashboardLayout({
               ? // Full-height search canvas; full width on mobile and desktop, no side margins
                 `h-[calc(100vh-80px)] md:h-[calc(100vh-0px)] mx-0`
               : isBuyerChecklists
-                ? // Buyer checklists keeps its own internal spacing; still align sides on mobile
+                ? // Checklists keeps its own internal spacing; still align sides on mobile
                   `mx-auto ${MOBILE_SIDE_PX} md:px-0`
                 : // Default pages: standard padding on desktop; on mobile align with top bar button
                   `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`

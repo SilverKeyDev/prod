@@ -1,7 +1,12 @@
+import React from "react";
 import { MessageCircle, Search } from "lucide-react";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
 import SharedHomeCard from "../../../components/cards/SharedHomeCard";
-import { getMessagingConfig, type MessagingMode } from "../config/messagingConfig";
+import {
+  getMessagingConfig,
+  type MessagingMode,
+} from "../config/messagingConfig";
+import { getDateDividerText } from "../utils/messageDateUtils";
 
 type ChatMessage = {
   id: string;
@@ -9,6 +14,9 @@ type ChatMessage = {
   role: "user" | "agent";
   timestamp: Date;
   shared_home_id?: string | null;
+  is_read?: boolean;
+  read_at?: string | null;
+  status?: "sending" | "delivered" | "failed";
 };
 
 type UnifiedMessagesListProps = {
@@ -21,6 +29,7 @@ type UnifiedMessagesListProps = {
   onSearchClick?: () => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
   selectedClientName?: string;
+  onRetryMessage?: (messageId: string) => void;
 };
 
 export default function UnifiedMessagesList({
@@ -28,15 +37,12 @@ export default function UnifiedMessagesList({
   canSendMessage,
   isLoadingHistory,
   localMessages,
-  isTyping,
-  formatTime,
   onSearchClick,
   messagesEndRef,
   selectedClientName,
+  onRetryMessage,
 }: UnifiedMessagesListProps) {
   const config = getMessagingConfig(mode);
-  const MessageIcon = config.messageStyles.agent.icon;
-  const UserIcon = config.messageStyles.user.icon;
 
   if (!canSendMessage) {
     // In agent mode, when canSendMessage is false, just show the same empty state as no messages
@@ -118,65 +124,99 @@ export default function UnifiedMessagesList({
 
   return (
     <>
-      {localMessages.map((msg) => {
+      {localMessages.map((msg, index) => {
         const messageConfig =
           msg.role === "agent"
             ? config.messageStyles.agent
             : config.messageStyles.user;
-        const Icon = messageConfig.icon;
+        const isMostRecentMessage = index === localMessages.length - 1;
+        // Determine which role represents the current user based on mode
+        const currentUserRole = mode === "client" ? "user" : "agent";
+        const isCurrentUserMessage = msg.role === currentUserRole;
+        const shouldShowDelivered =
+          isCurrentUserMessage &&
+          msg.status === "delivered" &&
+          isMostRecentMessage;
+
+        // Get previous message for date divider logic
+        const previousMessage = index > 0 ? localMessages[index - 1] : null;
+        const dateDividerText = getDateDividerText(
+          msg.timestamp,
+          previousMessage?.timestamp ?? null
+        );
 
         return (
-          <div
-            key={msg.id}
-            className={`flex items-center gap-2 ${
-              messageConfig.justify === "end" ? "justify-end" : "justify-start"
-            }`}
-          >
-            {msg.role === "agent" && (
-              <div
-                className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${config.messageStyles.agent.iconBg}`}
-              >
-                <MessageIcon className="h-4 w-4 text-black" />
+          <React.Fragment key={msg.id}>
+            {/* Date divider */}
+            {dateDividerText && (
+              <div className="flex items-center justify-center py-2">
+                <div className="rounded-full bg-black/5 px-3 py-1">
+                  <span className="text-xs font-medium text-black/60">
+                    {dateDividerText}
+                  </span>
+                </div>
               </div>
             )}
-
-            <div className={`max-w-lg rounded-xl px-4 py-3 ${messageConfig.bgColor}`}>
-              {/* Show shared home card if present */}
-              {msg.shared_home_id && (
-                <div className="mb-2">
-                  <SharedHomeCard
-                    homeId={msg.shared_home_id}
-                    address={msg.content || undefined}
-                  />
-                </div>
-              )}
-              {/* Show message content if not just a shared home */}
-              {(!msg.shared_home_id || msg.content.trim()) && (
-                <p className="whitespace-pre-line text-sm">{msg.content}</p>
-              )}
-              <p
-                className={`mt-2 text-xs ${
-                  msg.role === "agent"
-                    ? config.messageStyles.agent.textColor === "text-white"
-                      ? "text-white/70"
-                      : "text-black/60"
-                    : config.messageStyles.user.textColor === "text-white"
-                      ? "text-white/70"
-                      : "text-black/60"
+            <div
+              className={`flex flex-col ${
+                messageConfig.justify === "end" ? "items-end" : "items-start"
+              }`}
+            >
+              <div
+                className={`flex items-center gap-2 ${
+                  messageConfig.justify === "end"
+                    ? "justify-end"
+                    : "justify-start"
                 }`}
               >
-                {formatTime(msg.timestamp)}
-              </p>
-            </div>
-
-            {msg.role === "user" && (
-              <div
-                className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${config.messageStyles.user.iconBg}`}
-              >
-                <UserIcon className="h-4 w-4 text-black" />
+                <div
+                  className={`max-w-lg rounded-xl px-4 py-3 ${messageConfig.bgColor}`}
+                >
+                  {/* Show shared home card if present */}
+                  {msg.shared_home_id && (
+                    <div className="mb-2">
+                      <SharedHomeCard
+                        homeId={msg.shared_home_id}
+                        address={msg.content || undefined}
+                      />
+                    </div>
+                  )}
+                  {/* Show message content if not just a shared home */}
+                  {(!msg.shared_home_id || msg.content.trim()) && (
+                    <p className="whitespace-pre-line text-sm">{msg.content}</p>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+
+              {/* Status text for current user's messages only - below the entire message row */}
+              {isCurrentUserMessage && msg.status && (
+                <div className="mt-1 flex items-center justify-end gap-1.5 pr-10">
+                  {msg.status === "failed" && onRetryMessage && (
+                    <button
+                      onClick={() => onRetryMessage(msg.id)}
+                      className="text-xs font-medium text-red-500 underline hover:text-red-600"
+                      aria-label="Retry sending message"
+                    >
+                      Retry
+                    </button>
+                  )}
+                  <span
+                    className={`text-xs font-medium ${
+                      msg.status === "failed" ? "text-red-500" : "text-black/60"
+                    }`}
+                  >
+                    {msg.status === "sending"
+                      ? "Sending..."
+                      : shouldShowDelivered
+                        ? "Delivered"
+                        : msg.status === "delivered"
+                          ? ""
+                          : "Failed to send"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </React.Fragment>
         );
       })}
 
@@ -208,4 +248,3 @@ export default function UnifiedMessagesList({
     </>
   );
 }
-

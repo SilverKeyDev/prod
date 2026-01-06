@@ -22,7 +22,7 @@ from app.services.research.property_images import fetch_zillow_images, extract_p
 from app.services.research.property_persistence import persist_property_data
 from app.services.search.image_features import extract_and_clean_features
 from app.services.search.property_features import extract_property_features
-from app.models.home_universal import HomeUniversal
+from app.models import HomeUniversal
 
 RAPI_HOST = "us-housing-market-data1.p.rapidapi.com"
 

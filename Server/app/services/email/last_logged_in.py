@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Dict
 from app import db
-from app.models.user import User
+from app.models import User
 
 
 def get_recently_logged_in_users_with_preferences() -> List[Dict[str, str]]:

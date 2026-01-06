@@ -13,7 +13,7 @@ PROCESSED_DATA_DIR = DATA_DIR / "processed"
 SAMPLES_DIR = DATA_DIR / "samples"
 
 # Model paths
-TABULAR_MODEL_PATH = BASE_DIR / "tabular_model" / "model.pkl"
+# (No tabular model - removed)
 
 # API Keys (from environment variables)
 OPENAI_KEY = os.getenv("OPENAI_KEY")
@@ -23,8 +23,7 @@ PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # sentence-transformers model
 EMBEDDING_DIMENSION = 384
 
-# Tabular model settings
-TABULAR_MODEL_TYPE = "xgboost"  # or "lightgbm"
+# Model settings
 RANDOM_STATE = 42
 
 # LLM settings
@@ -39,9 +38,9 @@ MAX_SIMILARITY_SCORE = 1.0
 DEFAULT_TOP_K = 10
 
 # Ensemble weights
-EMBEDDING_WEIGHT = 0.4
-TABULAR_WEIGHT = 0.4
-LLM_WEIGHT = 0.2
+# Embedding and LLM weights are set to 0.5 each (50/50 split)
+EMBEDDING_WEIGHT = 0.5
+LLM_WEIGHT = 0.5
 
 # Text processing settings
 MAX_TEXT_LENGTH = 2000  # Maximum text length for embeddings

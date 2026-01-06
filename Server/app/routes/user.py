@@ -188,7 +188,7 @@ def favorite_homes():
 
     if request.method == 'GET':
         # Return liked homes and all listings for this user
-        from ..models.home_universal import HomeUniversal
+        from ..models import HomeUniversal
         liked_homes = HomeUniversal.query.filter_by(user_id=str(user.id), is_liked=True).all()
         all_homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
         favorites = [home.to_dict() for home in liked_homes]
@@ -201,13 +201,17 @@ def favorite_homes():
         if not isinstance(data, list):
             return jsonify({'success': False, 'error': 'Expected JSON array'}), 400
         
-        from ..models.home_universal import HomeUniversal
-        from ..services.search.search_db import add_or_update_home_basic
+        from ..models import HomeUniversal
+        from ..services.search.search_db import add_or_update_home_basic, sync_to_home_likes
 
         # Strategy: mark all existing as not liked, then upsert input list as liked
         existing = HomeUniversal.query.filter_by(user_id=str(user.id)).all()
         for h in existing:
+            was_liked = h.is_liked
             h.is_liked = False
+            # Sync to HomeLikes with unlike history if it was previously liked
+            if was_liked:
+                sync_to_home_likes(h, action="unliked")
 
         existing_by_norm = {}
         for h in existing:
@@ -255,7 +259,7 @@ def add_favorite_home():
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
 
         from ..services.search.search_db import add_or_update_home_basic
-        from ..models.home_universal import HomeUniversal
+        from ..models import HomeUniversal
         add_or_update_home_basic(user_id=str(user.id), home=home, set_liked=True)
         
         # Return all HomeUniversal rows for this user
@@ -289,8 +293,9 @@ def remove_favorite_home():
         if not address or not isinstance(address, str):
             return jsonify({'success': False, 'error': 'Address is required and must be a string'}), 400
         
-        from ..models.home_universal import HomeUniversal
+        from ..models import HomeUniversal
         from ..utils.address_format import normalize_address
+        from ..services.search.search_db import sync_to_home_likes
         
         # Find matching record using normalized address
         normalized_target = None
@@ -317,6 +322,9 @@ def remove_favorite_home():
         # Mark as unliked, do not delete
         existing_home.is_liked = False
         db.session.commit()
+        
+        # Sync to HomeLikes with unlike history
+        sync_to_home_likes(existing_home, action="unliked")
 
         # Return all HomeUniversal rows for this user
         homes = HomeUniversal.query.filter_by(user_id=str(user.id)).all()

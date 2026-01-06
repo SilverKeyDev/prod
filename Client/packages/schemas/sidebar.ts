@@ -78,7 +78,7 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   },
   close: {
     key: "close",
-    name: "Buyer Checklists",
+    name: "Checklists",
     description: "Track steps to close confidently",
     icon: Key,
     href: "/buyer-checklists",

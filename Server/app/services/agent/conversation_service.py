@@ -2,12 +2,11 @@
 Service functions for managing agent-client conversations
 """
 import logging
+import json
 from typing import List, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from ..auth.current_user import get_current_user
-from ...models.user import User
-from ...models.agent_conversation import AgentConversation
-from ...models.chat_history import ChatHistory
+from ...models import User, AgentConnections, ChatHistory
 from ... import db
 
 logger = logging.getLogger(__name__)
@@ -31,10 +30,10 @@ def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
         
         if is_agent:
             # Get all conversations where user is the agent
-            conversations = AgentConversation.query.filter_by(agent_id=user_id).all()
+            conversations = AgentConnections.query.filter_by(agent_id=user_id).all()
         else:
             # Get all conversations where user is the client
-            conversations = AgentConversation.query.filter_by(client_id=user_id).all()
+            conversations = AgentConnections.query.filter_by(client_id=user_id).all()
         
         result = []
         for conv in conversations:
@@ -53,6 +52,23 @@ def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
                 conversation_id=conv.id
             ).order_by(ChatHistory.timestamp.desc()).first()
             
+            # Calculate unread count for this user
+            unread_count = get_unread_count(conv.id, user_id)
+            
+            # Get last read timestamp for this user
+            last_read = conv.get_last_read(user_id)
+            
+            # Helper function to format datetime as timezone-aware UTC ISO string
+            def format_timestamp(dt):
+                if not dt:
+                    return None
+                if dt.tzinfo is None:
+                    # Naive datetime - assume UTC and make it timezone-aware
+                    dt_aware = dt.replace(tzinfo=timezone.utc)
+                else:
+                    dt_aware = dt.astimezone(timezone.utc)
+                return dt_aware.isoformat()
+            
             conv_dict = {
                 'id': conv.id,
                 'agent_id': conv.agent_id,
@@ -62,9 +78,11 @@ def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
                 'agent_name': agent_name,
                 'agent_email': agent_email,
                 'last_message': last_message_obj.message if last_message_obj else None,
-                'last_message_at': last_message_obj.timestamp.isoformat() if last_message_obj and last_message_obj.timestamp else None,
-                'created_at': conv.created_at.isoformat() if conv.created_at else None,
-                'updated_at': conv.updated_at.isoformat() if conv.updated_at else None,
+                'last_message_at': format_timestamp(last_message_obj.timestamp if last_message_obj else None),
+                'created_at': format_timestamp(conv.created_at),
+                'updated_at': format_timestamp(conv.updated_at),
+                'unread_count': unread_count,
+                'last_read_at': format_timestamp(last_read),
             }
             result.append(conv_dict)
         
@@ -75,29 +93,23 @@ def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
         raise
 
 
-def get_conversation(conversation_id: str) -> Optional[Dict]:
+def get_conversation(conversation_id: str, user_id: str = None) -> Optional[Dict]:
     """
     Get a specific conversation by ID
     
     Args:
         conversation_id: The ID of the conversation
+        user_id: Optional user ID to include last_read_at for that user
         
     Returns:
         Conversation dictionary or None if not found
     """
     try:
-        conv = AgentConversation.query.filter_by(id=conversation_id).first()
+        conv = AgentConnections.query.filter_by(id=conversation_id).first()
         if not conv:
             return None
         
-        return {
-            'id': conv.id,
-            'agent_id': conv.agent_id,
-            'client_id': conv.client_id,
-            'created_at': conv.created_at.isoformat() if conv.created_at else None,
-            'updated_at': conv.updated_at.isoformat() if conv.updated_at else None,
-            'last_message_at': conv.last_message_at.isoformat() if conv.last_message_at else None,
-        }
+        return conv.to_dict(user_id=user_id)
         
     except Exception as e:
         logger.error(f"Error fetching conversation {conversation_id}: {e}", exc_info=True)
@@ -117,7 +129,7 @@ def create_conversation(agent_id: str, client_id: str) -> Dict:
     """
     try:
         # Check if conversation already exists
-        existing = AgentConversation.query.filter_by(
+        existing = AgentConnections.query.filter_by(
             agent_id=agent_id,
             client_id=client_id
         ).first()
@@ -147,7 +159,7 @@ def create_conversation(agent_id: str, client_id: str) -> Dict:
                     raise ValueError(f"Client {client_id} is not assigned to agent {agent_id}")
         
         # Create conversation
-        conversation = AgentConversation(
+        conversation = AgentConnections(
             agent_id=agent_id,
             client_id=client_id
         )
@@ -162,18 +174,19 @@ def create_conversation(agent_id: str, client_id: str) -> Dict:
         raise
 
 
-def get_conversation_history(conversation_id: str) -> Dict:
+def get_conversation_history(conversation_id: str, user_id: str = None) -> Dict:
     """
     Get chat history for a conversation
     
     Args:
         conversation_id: The ID of the conversation
+        user_id: Optional user ID to include read status for messages
         
     Returns:
         Dictionary with messages array and conversation info
     """
     try:
-        conversation = AgentConversation.query.filter_by(id=conversation_id).first()
+        conversation = AgentConnections.query.filter_by(id=conversation_id).first()
         if not conversation:
             raise ValueError(f"Conversation {conversation_id} not found")
         
@@ -184,19 +197,53 @@ def get_conversation_history(conversation_id: str) -> Dict:
         
         message_list = []
         for msg in messages:
-            message_list.append({
+            # Determine the other participant's ID for read receipt display
+            other_user_id = None
+            if user_id and conversation:
+                if str(user_id) == str(conversation.agent_id):
+                    other_user_id = conversation.client_id
+                elif str(user_id) == str(conversation.client_id):
+                    other_user_id = conversation.agent_id
+            
+            # Get read status
+            is_read = False
+            read_at = None
+            if other_user_id:
+                is_read = msg.is_read_by(other_user_id)
+                if msg.read_at:
+                    try:
+                        read_at_dict = msg.read_at if isinstance(msg.read_at, dict) else (json.loads(msg.read_at) if isinstance(msg.read_at, str) else {})
+                        read_at = read_at_dict.get(other_user_id)
+                    except:
+                        pass
+            
+            # Format timestamp as timezone-aware UTC ISO string
+            timestamp_str = None
+            if msg.timestamp:
+                # Convert naive datetime to timezone-aware UTC, then format
+                if msg.timestamp.tzinfo is None:
+                    # Naive datetime - assume UTC and make it timezone-aware
+                    timestamp_aware = msg.timestamp.replace(tzinfo=timezone.utc)
+                else:
+                    timestamp_aware = msg.timestamp.astimezone(timezone.utc)
+                timestamp_str = timestamp_aware.isoformat()
+            
+            message_dict = {
                 'id': msg.id,
                 'conversation_id': msg.conversation_id,
                 'sender_id': msg.sender_id,
                 'role': msg.role,
                 'message': msg.message,
                 'shared_home_id': msg.shared_home_id,
-                'timestamp': msg.timestamp.isoformat() if msg.timestamp else None,
-            })
+                'timestamp': timestamp_str,
+                'is_read': is_read,
+                'read_at': read_at,
+            }
+            message_list.append(message_dict)
         
         return {
             'messages': message_list,
-            'conversation': conversation.to_dict(),
+            'conversation': conversation.to_dict(user_id=user_id),
         }
         
     except Exception as e:
@@ -226,7 +273,7 @@ def send_message(conversation_id: str, sender_id: str, message: str, role: str, 
         if not message:
             raise ValueError("message is required")
         
-        conversation = AgentConversation.query.filter_by(id=conversation_id).first()
+        conversation = AgentConnections.query.filter_by(id=conversation_id).first()
         if not conversation:
             raise ValueError(f"Conversation {conversation_id} not found")
         
@@ -234,7 +281,7 @@ def send_message(conversation_id: str, sender_id: str, message: str, role: str, 
         if str(sender_id) != str(conversation.agent_id) and str(sender_id) != str(conversation.client_id):
             raise ValueError(f"User {sender_id} is not part of conversation {conversation_id}")
         
-        # Create message
+        # Create message with timezone-aware UTC timestamp
         chat_message = ChatHistory(
             user_id=sender_id,
             conversation_id=conversation_id,
@@ -242,12 +289,13 @@ def send_message(conversation_id: str, sender_id: str, message: str, role: str, 
             role=role,
             message=message,
             shared_home_id=shared_home_id,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
         
-        # Update conversation's last_message_at
-        conversation.last_message_at = datetime.utcnow()
-        conversation.updated_at = datetime.utcnow()
+        # Update conversation's last_message_at with timezone-aware UTC timestamp
+        now_utc = datetime.now(timezone.utc)
+        conversation.last_message_at = now_utc
+        conversation.updated_at = now_utc
         
         db.session.add(chat_message)
         db.session.commit()
@@ -259,4 +307,103 @@ def send_message(conversation_id: str, sender_id: str, message: str, role: str, 
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error sending message: {e}", exc_info=True)
+        raise
+
+
+def get_unread_count(conversation_id: str, user_id: str) -> int:
+    """
+    Get the number of unread messages for a user in a conversation
+    
+    Args:
+        conversation_id: The ID of the conversation
+        user_id: The ID of the user
+        
+    Returns:
+        Number of unread messages
+    """
+    try:
+        conversation = AgentConnections.query.filter_by(id=conversation_id).first()
+        if not conversation:
+            return 0
+        
+        # Get the last read timestamp for this user
+        last_read = conversation.get_last_read(user_id)
+        
+        # Count messages sent by the other participant after last_read
+        if str(user_id) == str(conversation.agent_id):
+            # User is agent, count messages from client
+            other_user_id = conversation.client_id
+        elif str(user_id) == str(conversation.client_id):
+            # User is client, count messages from agent
+            other_user_id = conversation.agent_id
+        else:
+            return 0
+        
+        query = ChatHistory.query.filter_by(
+            conversation_id=conversation_id,
+            sender_id=other_user_id
+        )
+        
+        if last_read:
+            query = query.filter(ChatHistory.timestamp > last_read)
+        
+        unread_count = query.count()
+        return unread_count
+        
+    except Exception as e:
+        logger.error(f"Error calculating unread count for conversation {conversation_id}, user {user_id}: {e}", exc_info=True)
+        return 0
+
+
+def mark_messages_as_read(conversation_id: str, user_id: str) -> Dict:
+    """
+    Mark all messages in a conversation as read by a user
+    
+    Args:
+        conversation_id: The ID of the conversation
+        user_id: The ID of the user marking messages as read
+        
+    Returns:
+        Dictionary with success status and count of marked messages
+    """
+    try:
+        conversation = AgentConnections.query.filter_by(id=conversation_id).first()
+        if not conversation:
+            raise ValueError(f"Conversation {conversation_id} not found")
+        
+        # Verify user is part of the conversation
+        if str(user_id) != str(conversation.agent_id) and str(user_id) != str(conversation.client_id):
+            raise ValueError(f"User {user_id} is not part of conversation {conversation_id}")
+        
+        # Get the other participant's ID (messages from them should be marked as read)
+        if str(user_id) == str(conversation.agent_id):
+            other_user_id = conversation.client_id
+        else:
+            other_user_id = conversation.agent_id
+        
+        # Get all unread messages from the other participant
+        messages = ChatHistory.query.filter_by(
+            conversation_id=conversation_id,
+            sender_id=other_user_id
+        ).all()
+        
+        marked_count = 0
+        for msg in messages:
+            if not msg.is_read_by(user_id):
+                msg.mark_as_read(user_id)
+                marked_count += 1
+        
+        # Update conversation's last_read_at for this user
+        conversation.update_last_read(user_id)
+        
+        db.session.commit()
+        
+        return {
+            'success': True,
+            'marked_count': marked_count
+        }
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error marking messages as read: {e}", exc_info=True)
         raise

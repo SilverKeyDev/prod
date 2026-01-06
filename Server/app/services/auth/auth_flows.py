@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional, Tuple
 from flask import Response, current_app, redirect, session
 from flask import make_response
 from app import db
-from app.models.user import User
+from app.models import User
 from .auth import AWS_COGNITO_service
 from .google_oauth_service import google_oauth_service
 from .auth_helpers import (

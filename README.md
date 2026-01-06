@@ -360,7 +360,7 @@ Main web application entry point.
   - `search/`: Property search
   - `dashboard/`: Dashboard
   - `negotiate/`: Negotiation tools
-  - `close/`: Buyer checklists
+  - `close/`: Checklists
   - `decide/`: Report comparison
 - **`pages/`**: Page-level components
 

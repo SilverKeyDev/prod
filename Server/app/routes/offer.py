@@ -104,7 +104,7 @@ def generate_negotiation_strategy():
         # Fetch user preferences for personalized strategy generation
         user_preferences = None
         try:
-            from ..models.user_preferences import UserPreferences
+            from ..models import UserPreferences
             user_prefs_obj = UserPreferences.query.filter_by(user_id=preferences_user_id).first()
             if user_prefs_obj:
                 user_preferences = user_prefs_obj.to_dict()
@@ -123,7 +123,7 @@ def generate_negotiation_strategy():
             
             # Import necessary modules for property data fetching
             from ..services.research.graphs.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
-            from ..models.user_preferences import UserPreferences
+            from ..models import UserPreferences
             from app.services.research.perplexity_analysis import analyze_property_with_sonar_pro
             
             # Get API keys

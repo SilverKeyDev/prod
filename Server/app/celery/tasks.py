@@ -1,7 +1,6 @@
 from app.celery.celery_worker import celery
 from flask import current_app
-from app.models.pdf_document import PDFDocument
-from app.models.user_preferences import UserPreferences
+from app.models import PDFDocument, UserPreferences
 from app import db
 from sqlalchemy.exc import OperationalError, DisconnectionError
 import os
@@ -35,7 +34,7 @@ def find_best_matches_task(self, user_data, homes_data, top_k=10, include_explan
         )
         
         # Import the home matching function
-        from ..home_matching.app.match import find_best_matches
+        from ..home_matching.config.match import find_best_matches
         
         # Update progress
         self.update_state(

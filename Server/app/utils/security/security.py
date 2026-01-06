@@ -286,6 +286,11 @@ def log_oauth_event(event_type: str, user_id: Optional[str] = None, **kwargs):
         user_id: User identifier (optional)
         **kwargs: Additional event data
     """
+    # Skip logging for routine operations that happen frequently
+    routine_events = ['events_listed', 'calendars_listed', 'freebusy_queried']
+    if event_type in routine_events:
+        return
+    
     log_data = {
         'event_type': event_type,
         'user_id': user_id,

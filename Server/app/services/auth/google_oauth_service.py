@@ -15,7 +15,7 @@ from urllib3.util.retry import Retry
 from datetime import datetime, timezone, timedelta
 
 from app import db
-from app.models.oauth_state import OAuthState
+from app.models import OAuthState
 from app.utils.security.app_logging import get_logger
 
 logger = get_logger()

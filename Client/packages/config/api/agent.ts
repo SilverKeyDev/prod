@@ -21,6 +21,8 @@ export type AgentConversation = {
   last_message_at?: string;
   created_at: string;
   updated_at: string;
+  unread_count?: number;
+  last_read_at?: string;
 };
 
 export type AgentChatMessage = {
@@ -31,6 +33,8 @@ export type AgentChatMessage = {
   message: string;
   shared_home_id?: string | null;
   timestamp: string;
+  is_read?: boolean;
+  read_at?: string | null;
 };
 
 export type AgentClientsResponse = {
@@ -153,6 +157,13 @@ export type RespondToConnectionRequestResponse = {
   error?: string;
 };
 
+export type MarkMessagesAsReadResponse = {
+  success: boolean;
+  marked_count?: number;
+  message?: string;
+  error?: string;
+};
+
 /**
  * Agent API client using centralized utilities
  */
@@ -253,5 +264,16 @@ export const agentApi = {
     apiPost<RespondToConnectionRequestResponse>(
       `/api/v1/agent/connection-requests/${requestId}/respond`,
       { accept }
+    ),
+
+  /**
+   * Mark all messages in a conversation as read
+   */
+  markMessagesAsRead: (
+    conversationId: string
+  ): Promise<MarkMessagesAsReadResponse> =>
+    apiPost<MarkMessagesAsReadResponse>(
+      `/api/v1/agent/chats/${conversationId}/read`,
+      {}
     ),
 };

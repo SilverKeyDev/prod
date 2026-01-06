@@ -5,7 +5,7 @@ import requests
 import logging
 from jose import jwk, jwt as jose_jwt
 from jose.exceptions import JWTError, JWTClaimsError, ExpiredSignatureError
-from app.models.user import User
+from app.models import User
 from app import db
 from app.utils.security.security import SecurityError, log_security_event, safe_user_lookup_error, security_error_response
 from app.services.auth.minimal_token import minimal_token_service

@@ -2,7 +2,7 @@ import os
 from typing import Dict, List, Tuple, Optional
 
 from app import create_app, db
-from app.models.home_universal import HomeUniversal
+from app.models import HomeUniversal, User
 from app.services.email.last_logged_in import get_recently_logged_in_users_with_preferences
 from app.services.email.send_test_emails_via_ses import send_personalized_emails_via_ses
 from app.services.email.format_email_content import EmailFormatter
@@ -33,6 +33,20 @@ def build_messages_for_recent_users(
         use_html: If True, render HTML email using React Email (default: True)
     """
     users = get_recently_logged_in_users_with_preferences() or []
+    
+    # Filter to test email if TEST_EMAIL is set
+    test_email = os.getenv("TEST_EMAIL", "").strip()
+    if test_email:
+        users = [u for u in users if (u.get("email", "") or "").strip().lower() == test_email.lower()]
+        # If not found in recently logged in users, try to find by email directly
+        if not users:
+            print(f"TEST_EMAIL={test_email} specified but no matching user found in recently logged in users. Looking up by email directly...")
+            user = User.query.filter_by(email=test_email).first()
+            if user and user.has_preferences:
+                users = [{'user_id': user.id, 'email': user.email}]
+                print(f"Found user {user.email} by direct email lookup.")
+            else:
+                print(f"User with email {test_email} not found or does not have preferences.")
     
     # Initialize email formatter
     formatter = EmailFormatter(use_llm=use_llm)

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from flask_login import login_required, current_user
-from ..models.pdf_document import PDFDocument
+from ..models import PDFDocument
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/api/dashboard')
 

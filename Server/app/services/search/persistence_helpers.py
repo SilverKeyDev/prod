@@ -7,7 +7,7 @@ from typing import List, Dict, Any
 from flask import current_app
 
 from app import db
-from app.models.home_universal import HomeUniversal
+from app.models import HomeUniversal
 from app.utils.address_format import normalize_address
 from .search_db import add_or_update_home_basic
 
