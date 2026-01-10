@@ -3,6 +3,7 @@ import {
   apiPost,
   buildApiUrl,
 } from "../../services/http/compatibility";
+import { log, LOG_CATEGORIES } from "../../../logger";
 
 // Types for search API
 export type PropertyCompsRequest = {
@@ -14,22 +15,6 @@ export type PropertyCompsRequest = {
 export type PropertyCompsResponse = {
   success: boolean;
   comps?: unknown[];
-  error?: string;
-};
-
-export type PropertyRequest = {
-  address: string;
-};
-
-export type PropertyResponse = {
-  success: boolean;
-  query?: unknown;
-  data?: unknown;
-  features?: unknown;
-  commute_data?: unknown;
-  property_analysis?: unknown;
-  image_features?: unknown;
-  images?: string[];
   error?: string;
 };
 
@@ -130,7 +115,7 @@ export const searchApi = {
     })
       .then((resp) => {
         const respWithComps = resp as typeof resp & { comps?: unknown[] };
-        console.log("✅ [searchApi.getPropertyComps] Response", {
+        log.debug(LOG_CATEGORIES.API, "getPropertyComps response", {
           success: resp?.success,
           compsCount: Array.isArray(respWithComps?.comps)
             ? respWithComps.comps.length
@@ -140,174 +125,11 @@ export const searchApi = {
         return resp;
       })
       .catch((error) => {
-        console.error("❌ [searchApi.getPropertyComps] Error", {
+        log.error(LOG_CATEGORIES.ERRORS, "getPropertyComps error", {
           message: String(error),
         });
         throw error;
       });
-  },
-
-  /**
-   * Get property details via address using RapidAPI
-   */
-  getProperty: (data: PropertyRequest): Promise<PropertyResponse> => {
-    const url = "/api/v1/research/property";
-    return apiPost<PropertyResponse>(url, data, {
-      timeout: 300000, // 5 minutes for property search
-    })
-      .then((resp) => {
-        console.log("✅ [searchApi.getProperty] Response", {
-          success: resp?.success,
-          hasData: !!resp?.data,
-          hasFeatures: !!resp?.features,
-          hasCommute: !!resp?.commute_data,
-          hasAnalysis: !!resp?.property_analysis,
-          imagesCount: Array.isArray(resp?.images)
-            ? resp?.images?.length
-            : undefined,
-          hasError: !!resp?.error,
-        });
-        return resp;
-      })
-      .catch((error) => {
-        console.error("❌ [searchApi.getProperty] Error", {
-          message: String(error),
-        });
-        throw error;
-      });
-  },
-
-  /**
-   * Stream property details progressively using Server-Sent Events (SSE)
-   * Returns an async generator that yields property updates as sections are generated
-   */
-  streamProperty: async function* (
-    data: PropertyRequest,
-  ): AsyncGenerator<{ type: string; data: unknown }, void, unknown> {
-    const baseUrl = import.meta.env.DEV ? "" : "https://usesilverkey.com";
-    const url = `${baseUrl}/api/v1/research/property?stream=true`;
-    
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Stream failed: ${response.status} ${errorText}`);
-    }
-
-    if (!response.body) {
-      throw new Error("Response body is null");
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || ""; // Keep incomplete line in buffer
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const jsonStr = line.slice(6); // Remove "data: " prefix
-              const update = JSON.parse(jsonStr);
-              console.log("📡 [searchApi.streamProperty] Received update", {
-                type: update.type,
-                hasData: !!update.data,
-              });
-              
-              yield update;
-            } catch (parseError) {
-              console.error("❌ [searchApi.streamProperty] Failed to parse SSE data", {
-                line,
-                error: parseError,
-              });
-            }
-          }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
-  },
-
-  /**
-   * Stream property details for comparison (without pros/cons generation)
-   * Returns an async generator that yields property updates as sections are generated
-   */
-  streamCompare: async function* (
-    data: PropertyRequest,
-  ): AsyncGenerator<{ type: string; data: unknown }, void, unknown> {
-    const baseUrl = import.meta.env.DEV ? "" : "https://usesilverkey.com";
-    const url = `${baseUrl}/api/v1/research/compare?stream=true`;
-    
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Stream failed: ${response.status} ${errorText}`);
-    }
-
-    if (!response.body) {
-      throw new Error("Response body is null");
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || ""; // Keep incomplete line in buffer
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const jsonStr = line.slice(6); // Remove "data: " prefix
-              const update = JSON.parse(jsonStr);
-              console.log("📡 [searchApi.streamCompare] Received update", {
-                type: update.type,
-                hasData: !!update.data,
-              });
-              
-              yield update;
-            } catch (parseError) {
-              console.error("❌ [searchApi.streamCompare] Failed to parse SSE data", {
-                line,
-                error: parseError,
-              });
-            }
-          }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
   },
 
   /**
@@ -324,7 +146,7 @@ export const searchApi = {
         return resp;
       })
       .catch((error) => {
-        console.error("Search API error:", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Search API error", error);
         throw error;
       });
   },
@@ -341,7 +163,7 @@ export const searchApi = {
         return resp;
       })
       .catch((error) => {
-        console.error("Isochrone API error:", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Isochrone API error", error);
         throw error;
       });
   },

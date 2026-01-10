@@ -18,6 +18,7 @@ export type NotificationState = {
 
   // Actions
   setUnreadCount: (conversationId: string, count: number) => void;
+  setTotalUnreadCount: (count: number) => void;
   markConversationRead: (conversationId: string) => void;
   incrementUnreadCount: (conversationId: string) => void;
   updateLastReadTimestamp: (conversationId: string, timestamp: number) => void;
@@ -60,6 +61,9 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (set) => 
         unreadCount: newUnreadCount,
       };
     }),
+
+  setTotalUnreadCount: (count: number) =>
+    set({ unreadCount: Math.max(0, count) }),
 
   markConversationRead: (conversationId: string) =>
     set((state: NotificationState) => {
@@ -146,6 +150,8 @@ const withReset = withResettable<NotificationState>(baseCreator, (set) => ({
         unreadCount: newUnreadCount,
       };
     }),
+  setTotalUnreadCount: (count: number) =>
+    set({ unreadCount: Math.max(0, count) }),
   markConversationRead: (conversationId: string) =>
     set((state: NotificationState) => {
       const newUnreadByConversation = {
@@ -223,15 +229,16 @@ const withPersist = persistSafe<NotificationState>(withReset, {
     if (!persisted) {
       return {
         ...base,
-        setUnreadCount: () => {},
-        markConversationRead: () => {},
-        incrementUnreadCount: () => {},
-        updateLastReadTimestamp: () => {},
-        updateLastSeenMessageTimestamp: () => {},
-        setActiveConversationId: () => {},
-        resetNotifications: () => {},
-        reset: () => {},
-      } as unknown as NotificationState;
+      setUnreadCount: () => {},
+      setTotalUnreadCount: () => {},
+      markConversationRead: () => {},
+      incrementUnreadCount: () => {},
+      updateLastReadTimestamp: () => {},
+      updateLastSeenMessageTimestamp: () => {},
+      setActiveConversationId: () => {},
+      resetNotifications: () => {},
+      reset: () => {},
+    } as unknown as NotificationState;
     }
     const pd = persisted as Record<string, unknown>;
     const unreadByConversation = (pd.unreadByConversation as Record<string, number>) ?? {};
@@ -245,6 +252,7 @@ const withPersist = persistSafe<NotificationState>(withReset, {
       // activeConversationId is always null on load (transient state)
       activeConversationId: null,
       setUnreadCount: () => {},
+      setTotalUnreadCount: () => {},
       markConversationRead: () => {},
       incrementUnreadCount: () => {},
       updateLastReadTimestamp: () => {},

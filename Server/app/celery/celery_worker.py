@@ -1,9 +1,17 @@
 from celery import Celery
+from celery.schedules import crontab
 from celery.signals import worker_process_init, worker_process_shutdown
 import socket
 import os
+import sys
 from dotenv import load_dotenv
 from app.config import Config
+
+# Initialize centralized logger
+server_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if server_dir not in sys.path:
+    sys.path.insert(0, server_dir)
+from logger import log, LOG_CATEGORIES
 
 # Load environment variables from .env file
 load_dotenv()
@@ -25,6 +33,15 @@ celery.conf.update({
     # Fix for macOS Objective-C fork issue - use threads instead of prefork
     "worker_pool": "threads",
     "worker_concurrency": 4,  # Number of threads
+    # Celery Beat schedule for periodic tasks
+    "beat_schedule": {
+        "train-all-user-weights-daily": {
+            "task": "tasks.train_all_eligible_users_task",
+            "schedule": crontab(hour=2, minute=0),  # Run daily at 2:00 AM
+            "kwargs": {"limit": 100},  # Process up to 100 users per run
+        },
+    },
+    "timezone": "UTC",
 })
 
 # Context-aware Celery task base with robust database handling
@@ -67,15 +84,15 @@ class ContextTask(celery.Task):
                         pass
                     
                     if attempt < max_retries - 1:
-                        print(f"⏳ Retrying in {retry_delay} seconds...")
+                        log.warn(LOG_CATEGORIES["API"], f"Database connection retry in {retry_delay} seconds", {"attempt": attempt + 1, "max_retries": max_retries})
                         time.sleep(retry_delay)
                         retry_delay *= 2  # Exponential backoff
                     else:
-                        print("❌ Max retries exceeded, failing task")
+                        log.error(LOG_CATEGORIES["ERRORS"], "Max database connection retries exceeded, failing task", {"max_retries": max_retries})
                         raise
                         
                 except Exception as e:
-                    print(f"❌ Non-connection error in Celery task: {str(e)}")
+                    log.error(LOG_CATEGORIES["ERRORS"], "Non-connection error in Celery task", e)
                     try:
                         db.session.rollback()
                     except Exception:
@@ -96,11 +113,11 @@ celery.Task = ContextTask
 # Optional lifecycle logging
 @worker_process_init.connect
 def worker_started(**_):
-    print(" Celery worker process started")
+    log.info(LOG_CATEGORIES["API"], "Celery worker process started")
 
 @worker_process_shutdown.connect
 def worker_stopped(**_):
-    print(" Celery worker process shutting down")
+    log.info(LOG_CATEGORIES["API"], "Celery worker process shutting down")
 
 # Register all tasks
 import app.celery.tasks

@@ -25,9 +25,11 @@ from ..services.search.api_client import (
 from ..services.search.scoring_helpers import score_and_sort_properties
 from ..services.search.persistence_helpers import persist_and_prune_search_results
 from ..services.search.search_loop_helpers import search_properties_paginated
+from ..services.search.is_search_recent import is_search_cache_valid
 
 import time
 import json
+from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
 # Build session for API requests
@@ -132,6 +134,85 @@ def search_properties_by_polygon():
         return auth_error
 
     try:
+        # Check cache validity before performing search
+        cache_valid, cached_results = is_search_cache_valid(str(user.id))
+        
+        if cache_valid and cached_results:
+            # Return cached results immediately
+            total_time = time.time() - start_time
+            
+            # Calculate cache age for metadata
+            from app.models import HomeUniversal
+            most_recent_home = HomeUniversal.query.filter(
+                HomeUniversal.user_id == str(user.id),
+                HomeUniversal.current == True
+            ).order_by(HomeUniversal.updated_at.desc()).first()
+            
+            cache_age_days = None
+            if most_recent_home and most_recent_home.updated_at:
+                age_delta = datetime.utcnow() - most_recent_home.updated_at
+                cache_age_days = age_delta.days
+            
+            current_app.logger.info(
+                f"[POLYGON_SEARCH] ✅ {request_id} - Cache HIT for user {user.id}. "
+                f"Returning {len(cached_results)} cached results (age: {cache_age_days} days)"
+            )
+            
+            response_data = {
+                "success": True,
+                "properties": cached_results,
+                "total_count": len(cached_results),
+                "has_more": False,
+                "meta": {
+                    "cached": True,
+                    "cacheAge": f"{cache_age_days} days" if cache_age_days is not None else "unknown",
+                    "requestsMade": 0,
+                    "deduped": len(cached_results),
+                    "errors": [],
+                    "status_type": "ForSale",
+                    "pagesTried": 0,
+                    "searchTime": round(total_time, 2),
+                    "scored": len(cached_results) > 0 and cached_results[0].get("_score", 0.0) > 0,
+                    "requestId": request_id,
+                    "limit": TARGET_LIMIT
+                }
+            }
+            
+            return jsonify(response_data), 200
+        
+        # Cache miss - check if we should only return cached results
+        if only_cached:
+            # Only return cached results, don't perform search
+            current_app.logger.info(
+                f"[POLYGON_SEARCH] ⚠️ {request_id} - Cache MISS for user {user.id}. "
+                f"onlyCached=true, returning empty results"
+            )
+            total_time = time.time() - start_time
+            response_data = {
+                "success": True,
+                "properties": [],
+                "total_count": 0,
+                "has_more": False,
+                "meta": {
+                    "cached": False,
+                    "requestsMade": 0,
+                    "deduped": 0,
+                    "errors": [],
+                    "status_type": "ForSale",
+                    "pagesTried": 0,
+                    "searchTime": round(total_time, 2),
+                    "scored": False,
+                    "requestId": request_id,
+                    "limit": TARGET_LIMIT
+                }
+            }
+            return jsonify(response_data), 200
+        
+        # Cache miss - proceed with normal search
+        current_app.logger.info(
+            f"[POLYGON_SEARCH] ⚠️ {request_id} - Cache MISS for user {user.id}. Performing new search"
+        )
+        
         # Get and parse user preferences
         user_preferences, pref_error = get_user_preferences_parsed(str(user.id))
         if pref_error:
@@ -141,6 +222,7 @@ def search_properties_by_polygon():
         data = request.get_json(silent=True) or {}
         status_type = "ForSale"
         per_pages = max(0, min(int(data.get("perBucketPages", 20)), 20))
+        only_cached = data.get("onlyCached", False)  # Only return cached results, don't perform search
 
         # ---- Generate polygon ----
         polygon = generate_isochrone_polygon_from_preferences(user_preferences)
@@ -189,6 +271,7 @@ def search_properties_by_polygon():
             "total_count": len(scored_properties),
             "has_more": False,
             "meta": {
+                "cached": False,
                 "requestsMade": requests_made,
                 "deduped": len(scored_properties),
                 "errors": errors[:20],

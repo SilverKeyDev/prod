@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiDelete } from "../../services/http/compatibility";
+import { apiGet, apiDelete } from "../../services/http/compatibility";
 import { secureClipboardCopy } from "../../services/security/clipboardSecurity";
 import { captureError } from "../../services/security/errorReporting";
 import { log } from "../../services/security/secureLogger";
@@ -170,20 +170,6 @@ export const reportApi = {
       };
     }
   },
-
-  /**
-   * Generate a new report
-   */
-  generate: (
-    data: GenerateReportRequest,
-  ): Promise<GenerateReportResponse> =>
-    apiPost<GenerateReportResponse>("/api/v1/report/generate", data),
-
-  /**
-   * Compare multiple reports
-   */
-  compare: (data: CompareReportsRequest): Promise<CompareReportsResponse> =>
-    apiPost<CompareReportsResponse>("/api/v1/report/compare", data),
 
   /**
    * Delete a report

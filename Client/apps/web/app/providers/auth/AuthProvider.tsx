@@ -1,54 +1,32 @@
 /**
  * Authentication Provider
  * Gates the app on deterministic bootstrap that completes before routes mount
- * Implements tri-state auth: 'booting' | 'authenticated' | 'unauthenticated'
+ * Handles initial auth verification with server
  */
 
 import { useEffect, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useAuthStore } from "../../../../../packages/store/auth.slice";
-import { useAuthStoreIntegration } from "../../../../../packages/hooks/store/useAuthStoreIntegration";
 import { secureLogger } from "../../../../../packages/services/security/secureLogger";
 import { authUtils } from "../../../../../packages/config/auth";
 import type { UserProfile } from "../../../../../packages/schemas/user";
-
-import { AuthContext } from "./AuthContext";
 
 type AuthProviderProps = {
   children: ReactNode;
 };
 
-export type AuthBootstrapStatus =
-  | "booting"
-  | "authenticated"
-  | "unauthenticated";
-
 export function AuthProvider({ children }: AuthProviderProps) {
-  // Initialize auth system - this calls useSecureAuth() once for the entire app
-  // Get logout from useAuthStoreIntegration which uses the correct useSecureAuth.logout
-  const { logout: authLogout } = useAuthStoreIntegration();
-
   // Get current location to check if route is public
   const location = useLocation();
 
-  // Get auth state directly from store (not from useAuthState which checks localStorage)
-  const user = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  // Get auth state directly from store
   const authReady = useAuthStore((s) => s.authReady);
   const storeAuthStatus = useAuthStore((s) => s.authStatus);
   const setStoreAuthStatus = useAuthStore((s) => s.setAuthStatus);
   const setStoreAuthReady = useAuthStore((s) => s.setAuthReady);
   const setStoreUser = useAuthStore((s) => s.setUser);
   const setIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
-
-  // Map store authStatus to bootstrap status
-  const status: AuthBootstrapStatus =
-    storeAuthStatus === "checking"
-      ? "booting"
-      : storeAuthStatus === "authenticated"
-        ? "authenticated"
-        : "unauthenticated";
 
   // Initialize auth state with server verification
   useEffect(() => {
@@ -81,15 +59,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         // Skip API call for public routes - no need to verify session
         if (isPublicRoute) {
-          secureLogger.info(
-            "🔍 FRONTEND_AUTH_BOOTSTRAP_SKIP_PUBLIC_ROUTE",
-            "Skipping session verification for public route",
-            {
-              requestId,
-              currentPath,
-              isPublicRoute,
-            }
-          );
 
           // Set as unauthenticated for public routes
           setStoreUser(null);
@@ -203,25 +172,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, [setIsAuthenticated, setStoreAuthReady, setStoreAuthStatus, setStoreUser]);
 
-  // Wrap logout to ensure it returns Promise<void> for context type compatibility
-  const logout = async (): Promise<void> => {
-    await authLogout();
-  };
-
-  const contextValue = {
-    user,
-    isAuthenticated,
-    authReady,
-    status, // Expose bootstrap status (derived from store)
-    logout,
-  };
-
   // Gate rendering on bootstrap completion
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {status === "booting" ? null : children}
-    </AuthContext.Provider>
-  );
+  // Only render children when auth is ready (not checking)
+  if (!authReady || storeAuthStatus === "checking") {
+    return null;
+  }
+
+  return <>{children}</>;
 }
 
 export default AuthProvider;

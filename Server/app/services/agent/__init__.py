@@ -11,6 +11,7 @@ from .conversation_service import (
     send_message,
     get_unread_count,
     mark_messages_as_read,
+    get_notification_counter,
 )
 from .connection_request_service import (
     search_agents,
@@ -18,6 +19,12 @@ from .connection_request_service import (
     get_connection_requests,
     create_connection_request,
     respond_to_connection_request,
+)
+from .todo_service import (
+    get_agent_todos,
+    create_todo,
+    update_todo,
+    delete_todo,
 )
 
 __all__ = [
@@ -30,9 +37,14 @@ __all__ = [
     'send_message',
     'get_unread_count',
     'mark_messages_as_read',
+    'get_notification_counter',
     'search_agents',
     'search_clients',
     'get_connection_requests',
     'create_connection_request',
     'respond_to_connection_request',
+    'get_agent_todos',
+    'create_todo',
+    'update_todo',
+    'delete_todo',
 ]

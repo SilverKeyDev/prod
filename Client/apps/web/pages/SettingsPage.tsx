@@ -45,11 +45,15 @@ import {
 import { handleSubmit as handleSubmitUtil } from "../features/onboardpersonalize/lib/submitHandler";
 import { validateSettingsData } from "../features/onboardpersonalize/lib/validation";
 import PersonalizationMobileHeader from "../features/onboardpersonalize/personalization/MobileHeader";
-import PersonalizationSidebar from "../features/onboardpersonalize/personalization/Sidebar";
+import SettingsSidebar from "../components/ui/sidebar/SettingsSidebar";
+import { convertStepsToNavItems } from "../features/onboardpersonalize/lib/constants";
 import PriceRangeSlider from "../features/onboardpersonalize/PriceRangeSlider";
 import BudgetRangeSlider from "../features/onboardpersonalize/BudgetRangeSlider";
 
 // Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
+
+// Export SettingsModal for use in other components
+export { default as SettingsModal } from "../features/agent/modals/SettingsModal";
 
 type PersonalizationPageProps = {
   setMobileHeaderActions: React.Dispatch<
@@ -855,7 +859,8 @@ export default function PersonalizationPage({
       <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
         <div className="flex flex-row gap-6 lg:gap-8">
           {/* Sidebar - Always visible */}
-          <PersonalizationSidebar
+          <SettingsSidebar
+            items={convertStepsToNavItems(STEPS)}
             activeSection={activeSection}
             isEditMode={isEditMode}
             isSaving={isSaving}

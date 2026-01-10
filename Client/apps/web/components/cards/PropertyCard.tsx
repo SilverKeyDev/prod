@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { useWhyRender } from "../../../../packages/hooks/ui/useWhy";
 
@@ -6,9 +6,13 @@ import {
   CardAddressDisplay,
   CardPropertyDetails,
   CardMatchScore,
+  CardNotInterested,
 } from "./base";
 import { StyledImage } from "./base/CardImageStyles";
 import BaseCard from "./BaseCard";
+import WhyNotInterestedCard from "./WhyNotInterestedCard";
+import type { SearchResult } from "../../../../packages/schemas/search";
+import type { Property } from "../../../../packages/schemas/property";
 
 export type PropertyCardProps = {
   /** Stable ID for memoization */
@@ -53,6 +57,14 @@ export type PropertyCardProps = {
   isOnMap?: boolean;
   /** Whether to hide the image section (for mobile carousel) */
   hideImage?: boolean;
+  /** Property object for not interested functionality */
+  property?: SearchResult | Property;
+  /** Callback when reason is selected for not interested */
+  onSelectNotInterestedReason?: (why: string) => Promise<void>;
+  /** Callback when not interested is undone */
+  onUndoNotInterested?: () => Promise<void>;
+  /** Whether to show not interested button (only in results tab) */
+  showNotInterested?: boolean;
 };
 
 function PropertyCardImpl(props: PropertyCardProps) {
@@ -80,7 +92,13 @@ function PropertyCardImpl(props: PropertyCardProps) {
     showTrianglePointer = false,
     isOnMap = false,
     hideImage = false,
+    property,
+    onSelectNotInterestedReason,
+    onUndoNotInterested,
+    showNotInterested = false,
   } = props;
+
+  const [showReasonCard, setShowReasonCard] = useState(false);
 
   if (import.meta.env.DEV) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -105,6 +123,51 @@ function PropertyCardImpl(props: PropertyCardProps) {
     return priceStr.startsWith("$") ? priceStr : `$${priceStr}`;
   };
 
+  // Handle reason selection
+  const handleSelectReason = async (why: string) => {
+    if (onSelectNotInterestedReason) {
+      try {
+        await onSelectNotInterestedReason(why);
+        setShowReasonCard(false);
+      } catch (error) {
+        console.error("Failed to update reason:", error);
+        throw error;
+      }
+    }
+  };
+
+  // Handle undo
+  const handleUndo = async () => {
+    if (onUndoNotInterested) {
+      try {
+        await onUndoNotInterested();
+        setShowReasonCard(false);
+      } catch (error) {
+        console.error("Failed to undo:", error);
+        throw error;
+      }
+    }
+  };
+
+  // If showing reason card, render WhyNotInterestedCard instead (instant transition)
+  if (
+    showReasonCard &&
+    property &&
+    onSelectNotInterestedReason &&
+    onUndoNotInterested
+  ) {
+    return (
+      <div onClick={(e) => e.stopPropagation()} className="transition-none">
+        <WhyNotInterestedCard
+          property={property}
+          onSelectReason={handleSelectReason}
+          onUndo={handleUndo}
+          cardType={cardType}
+        />
+      </div>
+    );
+  }
+
   return (
     <BaseCard
       hover
@@ -113,7 +176,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
       padding="none"
       cardType={cardType}
       className={className}
-      onClick={onClick}
+      onClick={showReasonCard ? undefined : onClick}
     >
       {/* Image container - only render if imageUrl is provided and not hidden */}
       {imageUrl && !hideImage && (
@@ -159,9 +222,17 @@ function PropertyCardImpl(props: PropertyCardProps) {
           )}
 
           {/* Top Content (e.g., HeartSave, CompareCheckbox) - always show on image overlay */}
-          {topContent && (
+          {(topContent || (showNotInterested && property)) && (
             <div className="absolute inset-0 pointer-events-none">
               <div className="relative h-full w-full pointer-events-auto">
+                {showNotInterested && property && (
+                  <CardNotInterested
+                    property={property}
+                    size="sm"
+                    position="top-left"
+                    onMarkNotInterested={() => setShowReasonCard(true)}
+                  />
+                )}
                 {topContent}
               </div>
             </div>
@@ -176,8 +247,18 @@ function PropertyCardImpl(props: PropertyCardProps) {
             <div className="text-lg font-bold text-brown sm:text-xl">
               {formatPrice(price)}
             </div>
-            {topContent && (
-              <div className="absolute right-0 flex-shrink-0">{topContent}</div>
+            {(topContent || (showNotInterested && property)) && (
+              <div className="absolute right-0 flex-shrink-0">
+                {showNotInterested && property && (
+                  <CardNotInterested
+                    property={property}
+                    size="sm"
+                    position="top-left"
+                    onMarkNotInterested={() => setShowReasonCard(true)}
+                  />
+                )}
+                {topContent}
+              </div>
             )}
           </div>
         )}

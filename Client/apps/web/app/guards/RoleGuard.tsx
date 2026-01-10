@@ -10,7 +10,8 @@ import { Navigate } from "react-router-dom";
 import Card from "../../components/layout/Card";
 import Button from "../../components/ui/button/Button";
 import type { UserRole } from "../../../../packages/schemas/user";
-import { useAuth } from "../providers";
+import { ROUTES } from "../../../../packages/schemas/nav";
+import { useAuthStoreIntegration } from "../../../../packages/hooks/store/useAuthStoreIntegration";
 
 type RoleGuardProps = {
   children: ReactNode;
@@ -29,7 +30,7 @@ export function RoleGuard({
   fallback,
   requireAll = false,
 }: RoleGuardProps) {
-  const { isAuthenticated, user, authReady } = useAuth();
+  const { isAuthenticated, user, authReady } = useAuthStoreIntegration();
 
   // Wait for auth to be ready
   if (!authReady) {
@@ -38,7 +39,7 @@ export function RoleGuard({
 
   // User must be authenticated first
   if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
   // Type guard to check if user has roles property

@@ -2,7 +2,7 @@ import { Edit, Save, X } from "lucide-react";
 
 import Card from "../../../components/layout/Card";
 import Button from "../../../components/ui/button/Button";
-import type { NavItem } from "../../../../../packages/schemas/navigation";
+import type { NavItem } from "../../../../../packages/schemas/nav";
 import useMobile from "../../../../../packages/hooks/ui/useMobile";
 import {
   getPersonalizationSteps,

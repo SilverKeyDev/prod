@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { authApi } from "../../config/api";
 import type { UserProfile } from "../../schemas/user";
 import { reportSecurityEvent } from "../../services/security/errorReporting";
-import { secureLogger } from "../../services/security/secureLogger";
+import { log, LOG_CATEGORIES } from "../../../logger";
 import { useAuthStore, type AuthState } from "../../store/auth.slice";
 import { useUserStore, type UserState } from "../../store/user.slice";
 import { asError } from "../../utils/error";
@@ -91,8 +91,8 @@ export function useSecureAuth(): UseSecureAuthReturn {
           setAccessToken("authenticated");
 
           // Log successful authentication (no token storage)
-          secureLogger.info(
-            "AUTH_SUCCESS",
+          log.info(
+            LOG_CATEGORIES.AUTH,
             "Authentication successful via HTTP-only cookies",
             {
               storageMethod: "http_only_cookies",
@@ -134,7 +134,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
 
             // Log the mapping for debugging (dev only)
             if (process.env.NODE_ENV === "development") {
-              secureLogger.debug("SECURE_AUTH_DEV", "User mapping", {
+              log.debug(LOG_CATEGORIES.AUTH, "User mapping", {
                 responseUserId: response.user.id,
                 responseUserSub:
                   "user_sub" in response.user
@@ -164,7 +164,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
 
             // Additional logging to debug the user state (dev only)
             if (process.env.NODE_ENV === "development") {
-              secureLogger.debug("SECURE_AUTH_DEV", "User state after login", {
+              log.debug(LOG_CATEGORIES.AUTH, "User state after login", {
                 localUser: mappedUser,
                 localUserId: mappedUser.id,
                 localUserEmail: mappedUser.email,
@@ -184,8 +184,8 @@ export function useSecureAuth(): UseSecureAuthReturn {
           // Ensure auth state is immediately available for route guards
           // This prevents race conditions where ProtectedRoute checks before state updates
           if (process.env.NODE_ENV === "development") {
-            secureLogger.security(
-              "SECURE_AUTH",
+            log.security(
+              LOG_CATEGORIES.AUTH,
               "Auth state updated synchronously",
               {
                 authenticated: true,
@@ -196,7 +196,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
           }
 
           if (process.env.NODE_ENV === "development") {
-            secureLogger.security("SECURE_AUTH", "Login successful", {
+            log.security(LOG_CATEGORIES.AUTH, "Login successful", {
               userId:
                 response.user?.id ||
                 (response.user && "user_sub" in response.user
@@ -257,16 +257,16 @@ export function useSecureAuth(): UseSecureAuthReturn {
    * Secure logout with complete token cleanup
    */
   const logout = useCallback(async () => {
-    secureLogger.info("SECURE_AUTH", "Logout initiated");
+    log.info(LOG_CATEGORIES.AUTH, "Logout initiated");
 
     try {
       // Call server logout endpoint to clear HTTP-only cookies
       await authApi.logout();
-      secureLogger.info("LOGOUT_SUCCESS", "Server logout successful");
+      log.info(LOG_CATEGORIES.AUTH, "Server logout successful");
     } catch (error) {
       // Log error but continue with client cleanup
-      secureLogger.warn(
-        "LOGOUT_ERROR",
+      log.warn(
+        LOG_CATEGORIES.AUTH,
         "Server logout failed, continuing with client cleanup",
         {
           error: asError(error).message,
@@ -297,12 +297,12 @@ export function useSecureAuth(): UseSecureAuthReturn {
     sessionStorage.removeItem("auth_restored_logged");
     sessionStorage.removeItem("user_restored_logged");
 
-    secureLogger.security(
-      "SECURE_AUTH",
+    log.security(
+      LOG_CATEGORIES.AUTH,
       "User logged out - HTTP-only cookies cleared by server",
     );
 
-    secureLogger.info("SECURE_AUTH", "Logout complete, navigating to /login");
+    log.info(LOG_CATEGORIES.AUTH, "Logout complete, navigating to /login");
     // Use window.location.href for reliable navigation during logout
     // This prevents AuthGuard redirect loops that can occur with React Router navigation
     window.location.href = "/login";
@@ -320,8 +320,8 @@ export function useSecureAuth(): UseSecureAuthReturn {
   const refreshToken = useCallback(async (): Promise<boolean> => {
     // Token refresh is handled automatically by HTTP-only cookies
     // The server will manage token expiration and refresh
-    secureLogger.debug(
-      "SECURE_AUTH",
+    log.debug(
+      LOG_CATEGORIES.AUTH,
       "Token refresh handled by HTTP-only cookies",
     );
     return true;
@@ -366,8 +366,8 @@ export function useSecureAuth(): UseSecureAuthReturn {
       if (document.hidden) {
         // Only log security checkpoint if user is authenticated
         if (user && accessToken) {
-          secureLogger.security(
-            "SECURE_AUTH",
+          log.security(
+            LOG_CATEGORIES.AUTH,
             "Page hidden - security checkpoint",
           );
         }
@@ -403,8 +403,8 @@ export function useSecureAuth(): UseSecureAuthReturn {
             try {
               window.dispatchEvent(authReadyEvent);
             } catch (dispatchError) {
-              secureLogger.warn(
-                "SECURE_AUTH",
+              log.warn(
+                LOG_CATEGORIES.AUTH,
                 "Auth ready event dispatch failed",
                 { error: asError(dispatchError).message },
               );
@@ -412,14 +412,14 @@ export function useSecureAuth(): UseSecureAuthReturn {
           }, 0);
         } catch (eventCreationError) {
           // Prevent errors in event creation from causing stack traces
-          secureLogger.warn("SECURE_AUTH", "Auth ready event creation failed", {
+          log.warn(LOG_CATEGORIES.AUTH, "Auth ready event creation failed", {
             error: asError(eventCreationError).message,
           });
         }
 
         // Log auth ready without throwing errors
         if (process.env.NODE_ENV === "development") {
-          secureLogger.debug("SECURE_AUTH_DEV", "Auth ready event dispatched", {
+          log.debug(LOG_CATEGORIES.AUTH, "Auth ready event dispatched", {
             userId: user?.id || "unknown",
             userEmail: user?.email || "unknown",
           });
@@ -495,8 +495,8 @@ export const secureTokenUtils = {
     const totalSize = accessTokenSize + refreshTokenSize + idTokenSize;
 
     // Log security event with size information (no token values logged)
-    secureLogger.security(
-      "SECURE_TOKEN_UTILS",
+    log.security(
+      LOG_CATEGORIES.AUTH,
       "Token metadata logged (tokens NOT stored - using HTTP-only cookies)",
       {
         hasAccessToken: !!tokens.access_token,
@@ -518,8 +518,8 @@ export const secureTokenUtils = {
   clearAllTokens: () => {
     // Tokens are in HTTP-only cookies - no client-side clearing needed
     // Server must be called to clear cookies via /logout endpoint
-    secureLogger.security(
-      "SECURE_TOKEN_UTILS",
+    log.security(
+      LOG_CATEGORIES.AUTH,
       "Token clearing delegated to server",
       {
         note: "HTTP-only cookies can only be cleared by server",

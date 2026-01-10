@@ -199,6 +199,25 @@ def normalize_address(address: str) -> str:
     return address.replace(' ', '_').replace(',', '_')
 
 
+def safe_normalize_address(address: str) -> str:
+    """
+    Normalize address with fallback to simple lowercase strip if normalization fails.
+    This wrapper prevents errors when normalize_address() fails.
+    
+    Args:
+        address: Original address string
+        
+    Returns:
+        str: Normalized address string or fallback to stripped lowercase
+    """
+    if not address:
+        return ""
+    try:
+        return normalize_address(address)
+    except Exception:
+        return address.strip().lower()
+
+
 def denormalize_address(normalized_address: str) -> str:
     """
     Convert normalized address back to readable format using the filename formatter.

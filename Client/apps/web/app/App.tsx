@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 
 import ToastsPortal from "../components/feedback/ToastsPortal";
 import { useSessionTimeout } from "../../../packages/hooks/ui/useSessionTimeout";
-import type { UserProfile } from "../../../packages/schemas/user";
+import { useHealthCheck } from "../../../packages/hooks/ui/useHealthCheck";
 import MaintenanceScreen from "../pages/HomeAuth/MaintenanceScreenPage";
 
 import { useAuthStore } from "../../../packages/store/auth.slice";
@@ -13,10 +13,7 @@ import { useAuthStoreIntegration } from "../../../packages/hooks/store/useAuthSt
 import { AppRoutes } from "./routes";
 
 function App() {
-  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [maintenance, setMaintenance] = useState(false); // Only show maintenance if health check fails
-  const [healthCheckComplete, setHealthCheckComplete] = useState(false);
 
   // Read from auth store directly to avoid multiple instances of useSecureAuth
   const authReady = useAuthStore((s) => s.authReady);
@@ -24,6 +21,9 @@ function App() {
 
   // Get logout function from useAuthStoreIntegration (uses correct useSecureAuth.logout)
   const { logout: authLogout } = useAuthStoreIntegration();
+
+  // Health check
+  const { maintenance, healthCheckComplete } = useHealthCheck();
 
   // Memoize session timeout config to prevent recreating on every render
   const sessionTimeoutConfig = useMemo(
@@ -36,54 +36,6 @@ function App() {
 
   // Initialize session timeout (auto-logout when timeout is reached)
   useSessionTimeout(sessionTimeoutConfig);
-
-  // Health check
-  useEffect(() => {
-    let isMounted = true;
-    fetch("/healthz", { method: "GET" })
-      .then((res) => {
-        if (!res.ok) {
-          console.error("/healthz responded with status:", res.status);
-          throw new Error(`Healthz failed with status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data: unknown) => {
-        if (isMounted) {
-          if (
-            data &&
-            typeof data === "object" &&
-            data !== null &&
-            "status" in data &&
-            (data as { status: string }).status === "ok"
-          ) {
-            setMaintenance(false);
-          } else {
-            setMaintenance(true);
-            console.warn("/healthz returned unexpected data:");
-          }
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          setMaintenance(true);
-          console.error("Error fetching /healthz:", err);
-        }
-      })
-      .finally(() => {
-        if (isMounted) setHealthCheckComplete(true);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Initialize error reporting on app start
-  useEffect(() => {
-    // TODO: Add Sentry DSN to environment configuration when needed
-    // For now, error reporting is handled by ErrorBoundary components
-    console.log("Error reporting initialized via ErrorBoundary");
-  }, []);
 
   // Wait for both health check and auth store to be ready before showing routes
   useEffect(() => {
@@ -98,18 +50,6 @@ function App() {
     }
   }, [healthCheckComplete, authReady]);
 
-  // Sync auth user with local state
-  useEffect(() => {
-    if (authUser) {
-      setUser(authUser);
-    } else {
-      setUser(null);
-    }
-  }, [authUser]);
-
-  // Get logout function from Zustand auth store
-  const logout = authLogout;
-
   // Show loading state if any of these conditions are true
   const isLoading = loading || !authReady;
 
@@ -123,7 +63,7 @@ function App() {
         <MaintenanceScreen />
       ) : (
         <div className="min-h-screen bg-off-white">
-          <AppRoutes user={user} handleLogout={logout} />
+          <AppRoutes user={authUser} handleLogout={authLogout} />
 
           {/* Global toasts */}
           <ToastsPortal />

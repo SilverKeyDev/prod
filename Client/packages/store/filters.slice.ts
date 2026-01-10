@@ -13,6 +13,7 @@ export type FiltersState = {
   favoriteAddresses: string[];
   searchStage: string;
   isSearching: boolean;
+  hasSearched: boolean;
 
   // Actions
   setActiveTab: (tab: ActiveTab) => void;
@@ -20,6 +21,7 @@ export type FiltersState = {
   setFavoriteAddresses: (addresses: string[]) => void;
   setSearchStage: (stage: string) => void;
   setIsSearching: (searching: boolean) => void;
+  setHasSearched: (searched: boolean) => void;
 
   // Utils
   isHomeSaved: (propertyId: string) => boolean;
@@ -34,6 +36,7 @@ const initialState = (): Omit<
   | "setFavoriteAddresses"
   | "setSearchStage"
   | "setIsSearching"
+  | "setHasSearched"
   | "isHomeSaved"
   | "reset"
 > => ({
@@ -42,6 +45,7 @@ const initialState = (): Omit<
   favoriteAddresses: [],
   searchStage: "",
   isSearching: false,
+  hasSearched: false,
 });
 
 const baseCreator: import("zustand").StateCreator<FiltersState> = (
@@ -55,6 +59,7 @@ const baseCreator: import("zustand").StateCreator<FiltersState> = (
     set({ favoriteAddresses: [...addresses] }),
   setSearchStage: (stage) => set({ searchStage: stage }),
   setIsSearching: (searching) => set({ isSearching: searching }),
+  setHasSearched: (searched) => set({ hasSearched: searched }),
   isHomeSaved: (propertyId: string) => {
     const state = get();
     return state.favoriteAddresses.includes(propertyId);
@@ -73,6 +78,7 @@ const withReset = withResettable<FiltersState>(
       set({ favoriteAddresses: [...addresses] }),
     setSearchStage: (stage) => set({ searchStage: stage }),
     setIsSearching: (searching) => set({ isSearching: searching }),
+    setHasSearched: (searched) => set({ hasSearched: searched }),
     isHomeSaved: () => false,
     reset: () => {},
   }),
@@ -88,6 +94,7 @@ const withPersist = persistSafe<FiltersState>(withReset, {
     currentPage: state.currentPage,
     favoriteAddresses: state.favoriteAddresses,
     searchStage: state.searchStage,
+    hasSearched: state.hasSearched,
   }),
   migrate: (persisted: unknown) =>
     ({ ...initialState(), ...(persisted as object) }) as FiltersState,

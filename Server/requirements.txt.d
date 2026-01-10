@@ -67,3 +67,6 @@ pytest-cov==5.0.0
 # --- Monitoring ---
 psutil==5.9.8
 memory-profiler==0.61.0
+
+# --- Code Quality & Linting ---
+ruff>=0.8.0

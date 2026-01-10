@@ -1,5 +1,6 @@
-import { X } from "lucide-react";
 import { createPortal } from "react-dom";
+
+import { BodyText, Button, CancelButton, CloseButton, Title } from "../../ui";
 
 type ConfirmationDialogProps = {
   isOpen: boolean;
@@ -44,42 +45,45 @@ export default function ConfirmationDialog({
           style={{ maxWidth: "320px" }}
         >
           {/* Close button */}
-          <button
-            type="button"
+          <CloseButton
             onClick={onCancel}
-            className="touch-friendly absolute right-2 top-2 text-gray-400 hover:text-gray-500"
-          >
-            <X className="mobile-icon-md" aria-hidden="true" />
-          </button>
+            size="sm"
+            className="absolute right-2 top-2"
+            aria-label="Close dialog"
+          />
 
           {/* Content */}
           <div className="flex items-start justify-center">
             <div className="mt-3 w-full text-center">
-              <h3 className="text-responsive-lg font-medium leading-6 text-gray-900">
+              <Title size="lg" as="h3">
                 {title}
-              </h3>
+              </Title>
               <div className="mt-2">
-                <p className="text-responsive-sm text-gray-500">{message}</p>
+                <BodyText size="sm" muted>
+                  {message}
+                </BodyText>
               </div>
             </div>
           </div>
 
           {/* Actions */}
           <div className="gap-responsive-sm mt-5 flex flex-col justify-center sm:mt-6 sm:flex-row">
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="md"
               onClick={onConfirm}
-              className="px-responsive-lg py-responsive-sm text-responsive-sm touch-friendly inline-flex w-full min-w-[100px] justify-center rounded-md border border-transparent bg-brown font-medium text-white shadow-sm hover:bg-brown/90 focus:outline-none focus:ring-2 focus:ring-brown/50 focus:ring-offset-2 sm:w-auto"
+              className="w-full sm:w-auto"
             >
               {confirmText}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <CancelButton
               onClick={onCancel}
-              className="px-responsive-lg py-responsive-sm text-responsive-sm touch-friendly inline-flex w-full min-w-[100px] justify-center rounded-md border border-gray-300 bg-white font-medium text-black shadow-sm hover:bg-gray-50 hover:text-black focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2 sm:w-auto"
+              size="md"
+              className="w-full sm:w-auto"
             >
               {cancelText}
-            </button>
+            </CancelButton>
           </div>
         </div>
       </div>

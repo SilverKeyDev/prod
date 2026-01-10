@@ -1,0 +1,55 @@
+import React from "react";
+import { AlertTriangle, AlertCircle, Info } from "lucide-react";
+import type { AlertSeverity } from "../../../../../packages/schemas/agent";
+
+type RiskFlagProps = {
+  severity: AlertSeverity;
+  message: string;
+  className?: string;
+};
+
+const RiskFlag: React.FC<RiskFlagProps> = ({
+  severity,
+  message,
+  className = "",
+}) => {
+  const severityConfig: Record<
+    AlertSeverity,
+    { icon: React.ReactNode; color: string; bgColor: string }
+  > = {
+    low: {
+      icon: <Info className="h-3 w-3 sm:h-4 sm:w-4" />,
+      color: "text-navy",
+      bgColor: "bg-neutral-100",
+    },
+    medium: {
+      icon: <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />,
+      color: "text-gold",
+      bgColor: "bg-gold/10",
+    },
+    high: {
+      icon: <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />,
+      color: "text-olive",
+      bgColor: "bg-olive/10",
+    },
+    critical: {
+      icon: <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />,
+      color: "text-rose-600",
+      bgColor: "bg-rose-50",
+    },
+  };
+
+  const config = severityConfig[severity];
+
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 sm:gap-2 rounded-full px-2 py-1 sm:px-3 sm:py-1.5 ${config.bgColor} ${config.color} ${className}`}
+      title={message}
+    >
+      {config.icon}
+      <span className="text-xs sm:text-sm font-medium">{message}</span>
+    </div>
+  );
+};
+
+export default RiskFlag;

@@ -5,7 +5,7 @@ Main entry point for home matching system.
 from typing import Dict, List, Any, Optional, Union
 import logging
 
-from ..ensemble.blend_scores import EnsembleScorer
+from ..postprocessing.blend_scores import EnsembleScorer
 from .settings import DEFAULT_TOP_K
 from ..utils.io import load_multiple_homes, load_user_data
 
@@ -18,7 +18,12 @@ def find_best_matches(
     include_explanations: bool = False,
     method_weights: Optional[Dict[str, float]] = None,
     embedding_provider: str = "sentence_transformer",
-    llm_provider: str = "openai"
+    llm_provider: str = "openai",
+    request_id: Optional[str] = None,
+    experiment_key: Optional[str] = None,
+    experiment_variant: Optional[str] = None,
+    session_id: Optional[str] = None,
+    track_to_db: bool = True
 ) -> List[Dict[str, Any]]:
     """
     Find the best home matches for a user.
@@ -31,6 +36,11 @@ def find_best_matches(
         method_weights: Custom weights for ensemble methods
         embedding_provider: Embedding model provider ("sentence_transformer" or "openai")
         llm_provider: LLM provider ("openai")
+        request_id: Request ID for tracking scoring events
+        experiment_key: Experiment key for A/B testing
+        experiment_variant: Experiment variant (A/B)
+        session_id: Session ID for tracking
+        track_to_db: Whether to track scoring events to database
     
     Returns:
         List of top-k home matches with scores and explanations
@@ -38,18 +48,25 @@ def find_best_matches(
     try:
         top_k = top_k or DEFAULT_TOP_K
         
+        # Extract user_id from user_data for learned weight retrieval
+        user_id = user_data.get('user_id')
+        
         # Initialize ensemble scorer with custom weights if provided
         if method_weights:
             ensemble = EnsembleScorer(
                 embedding_weight=method_weights.get('embedding', 0.5),
                 llm_weight=method_weights.get('llm', 0.5),
                 embedding_provider=embedding_provider,
-                llm_provider=llm_provider
+                llm_provider=llm_provider,
+                user_id=user_id,
+                use_learned_weights=(method_weights is None)  # Only use learned weights if no explicit weights provided
             )
         else:
             ensemble = EnsembleScorer(
                 embedding_provider=embedding_provider,
-                llm_provider=llm_provider
+                llm_provider=llm_provider,
+                user_id=user_id,
+                use_learned_weights=True
             )
         
         # Get ranked matches
@@ -57,7 +74,12 @@ def find_best_matches(
             user_data, 
             homes_data, 
             top_k=top_k,
-            include_explanations=include_explanations
+            include_explanations=include_explanations,
+            request_id=request_id,
+            experiment_key=experiment_key,
+            experiment_variant=experiment_variant,
+            session_id=session_id,
+            track_to_db=track_to_db
         )
         
 
@@ -86,14 +108,22 @@ def score_single_match(
         Detailed scoring result with individual method scores and explanations
     """
     try:
+        # Extract user_id from user_data for learned weight retrieval
+        user_id = user_data.get('user_id')
+        
         # Initialize ensemble scorer
         if method_weights:
             ensemble = EnsembleScorer(
                 embedding_weight=method_weights.get('embedding', 0.5),
-                llm_weight=method_weights.get('llm', 0.5)
+                llm_weight=method_weights.get('llm', 0.5),
+                user_id=user_id,
+                use_learned_weights=(method_weights is None)
             )
         else:
-            ensemble = EnsembleScorer()
+            ensemble = EnsembleScorer(
+                user_id=user_id,
+                use_learned_weights=True
+            )
         
         # Score the pair
         result = ensemble.score_user_home_pair(
@@ -290,85 +320,14 @@ def get_system_info() -> Dict[str, Any]:
         logger.error(f"Error getting system info: {e}")
         return {'error': str(e)}
 
-def create_sample_user() -> Dict[str, Any]:
-    """Create sample user data for testing."""
-    return {
-        'user_id': 'sample_user_001',
-        'preferences': {
-            'budget_min': 400000,
-            'budget_max': 800000,
-            'preferred_bedrooms': 3,
-            'preferred_bathrooms': 2.5,
-            'min_sqft': 1800,
-            'max_commute_minutes': 30,
-            'preferred_home_types': ['house', 'townhouse'],
-            'preferred_neighborhoods': ['Downtown', 'Midtown', 'Suburbs'],
-            'must_have_amenities': ['garage', 'yard'],
-            'nice_to_have_amenities': ['pool', 'gym'],
-            'lifestyle': 'Active professional with young family',
-            'family_status': 'Married with 2 children',
-            'work_style': 'Hybrid remote/office',
-            'hobbies': 'Running, cooking, gardening',
-            'pet_friendly': True,
-            'parking_required': True,
-            'outdoor_space_required': True,
-            'location_preference': 'suburban',
-            'commute_preference': 'driving',
-            'notes': 'Looking for a family-friendly neighborhood with good schools'
-        }
-    }
-
-def create_sample_home() -> Dict[str, Any]:
-    """Create sample home data for testing."""
-    return {
-        'home_id': 'sample_home_001',
-        'address': '123 Main Street, Anytown, ST 12345',
-        'price': 650000,
-        'bedrooms': 3,
-        'bathrooms': 2.5,
-        'sqft': 2100,
-        'lot_size': 8000,
-        'home_type': 'house',
-        'style': 'colonial',
-        'year_built': 2015,
-        'condition': 'excellent',
-        'neighborhood': 'Suburbs',
-        'school_district': 'Excellent School District',
-        'commute_minutes': 25,
-        'walkability_score': 75,
-        'transit_score': 60,
-        'bike_score': 70,
-        'amenities': ['garage', 'yard', 'updated_kitchen', 'hardwood_floors'],
-        'features': ['fireplace', 'deck', 'basement', 'central_air'],
-        'has_garage': True,
-        'has_yard': True,
-        'has_pool': False,
-        'pet_friendly': True,
-        'recently_renovated': False,
-        'description': 'Beautiful colonial home in family-friendly neighborhood with excellent schools. Features updated kitchen, hardwood floors throughout, and large backyard perfect for children and pets.',
-        'neighborhood_info': 'Quiet suburban neighborhood with tree-lined streets, parks nearby, and highly rated schools.',
-        'nearby_amenities': ['elementary_school', 'park', 'shopping_center', 'restaurants']
-    }
-
 # Main execution for testing
 if __name__ == "__main__":
     # Set up logging
     logging.basicConfig(level=logging.INFO)
     
-    # Create sample data
-    user = create_sample_user()
-    homes = [create_sample_home()]
-    
-    # Test the matching system
+    # Note: Use real data from database via preprocessing module instead of sample data
     print("Testing Home Matching System...")
-    
-    # Test single match scoring
-    result = score_single_match(user, homes[0], include_explanations=True)
-    print(f"Single match score: {result.get('final_score', 0.0):.3f}")
-    
-    # Test finding best matches
-    matches = find_best_matches(user, homes, top_k=1, include_explanations=True)
-    print(f"Found {len(matches)} matches")
+    print("Note: Use real data from database via preprocessing module for testing")
     
     # Get system info
     info = get_system_info()

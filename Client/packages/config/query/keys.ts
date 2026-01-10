@@ -32,6 +32,7 @@ export const queryKeys = {
   homes: {
     all: ["homes"] as const,
     favorites: () => [...queryKeys.homes.all, "favorites"] as const,
+    notInterested: () => [...queryKeys.homes.all, "notInterested"] as const,
     saved: (propertyId: string) =>
       [...queryKeys.homes.all, "saved", propertyId] as const,
   },
@@ -135,6 +136,17 @@ export const queryKeys = {
       [...queryKeys.agent.conversations(), clientId] as const,
     history: (conversationId: string) =>
       [...queryKeys.agent.all, "history", conversationId] as const,
+    notificationCounter: () =>
+      [...queryKeys.agent.all, "notification-counter"] as const,
+    todos: (includeCompleted?: boolean) =>
+      [...queryKeys.agent.all, "todos", includeCompleted] as const,
+  },
+
+  // Search domain
+  search: {
+    all: ["search"] as const,
+    results: () => [...queryKeys.search.all, "results"] as const,
+    isochrone: () => [...queryKeys.search.all, "isochrone"] as const,
   },
 } as const;
 

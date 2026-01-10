@@ -5,9 +5,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { PasswordValidation } from "../../components/feedback/PasswordValidation";
 import { usePasswordValidation } from "../../components/feedback/PasswordValidationUtils";
 import SuccessDialog from "../../components/modals/dialogs/SuccessDialog";
-import { Input } from "../../components/ui";
-import { authApi } from "../../../../packages/config/api";
-import AuthButton from "../../features/homeauth/Auth/Button";
+import { Button, Input } from "../../components/ui";
+import { useForgotPassword, useResetPassword } from "../../../../packages/hooks/data/useAuthActions";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
 
@@ -17,11 +16,16 @@ export default function ResetPasswordPage() {
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [step, setStep] = useState<"request" | "reset">("request");
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const navigate = useNavigate();
+
+  const { forgotPassword, isLoading: isForgotPasswordLoading, error: forgotPasswordError } = useForgotPassword();
+  const { resetPassword, isLoading: isResetPasswordLoading, error: resetPasswordError } = useResetPassword();
+  const [localError, setLocalError] = useState("");
+  
+  const loading = isForgotPasswordLoading || isResetPasswordLoading;
+  const error = forgotPasswordError || resetPasswordError || localError;
 
   // Password validation
   const { isValid: isPasswordValid, errors: passwordErrors } = (
@@ -33,70 +37,33 @@ export default function ResetPasswordPage() {
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
 
-    try {
-      const { success, error } = await authApi.forgotPassword(email);
-
-      if (!success) {
-        throw new Error(error ?? "Failed to send reset code");
-      }
-
+    const result = await forgotPassword(email);
+    if (result.success) {
       setStep("reset");
-    } catch (error: unknown) {
-      console.error("Forgot password error:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to send reset code. Please try again.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
+    setLocalError("");
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
+      setLocalError("Passwords do not match");
       return;
     }
 
     // Validate password using comprehensive validation
     if (!isPasswordValid) {
-      setError(
+      setLocalError(
         `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
       );
-      setLoading(false);
       return;
     }
 
-    try {
-      const { success, error } = await authApi.resetPassword(
-        email,
-        code,
-        newPassword
-      );
-
-      if (!success) {
-        throw new Error(error ?? "Failed to reset password");
-      }
-
+    const result = await resetPassword(email, code, newPassword);
+    if (result.success) {
       setShowSuccessDialog(true);
-    } catch (error: unknown) {
-      console.error("Reset password error:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to reset password. Please try again.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -211,9 +178,16 @@ export default function ResetPasswordPage() {
         )}
 
         {/* Submit Button */}
-        <AuthButton type="submit" loading={loading} disabled={loading}>
+        <Button
+          type="submit"
+          variant="olive"
+          size="md"
+          fullWidth
+          loading={loading}
+          disabled={loading}
+        >
           {step === "request" ? "Send reset code" : "Reset password"}
-        </AuthButton>
+        </Button>
 
         <div className="text-responsive-xs text-center">
           Remember your password?

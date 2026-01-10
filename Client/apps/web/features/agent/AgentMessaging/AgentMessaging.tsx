@@ -58,7 +58,7 @@ export default function AgentMessaging({
   const { sendMessage: sendMessageWithAttachment } = useAgentChats();
 
   // Auto-scroll to bottom when messages change
-  const { messagesEndRef } = useMessageScroll(localMessages);
+  const { messagesEndRef } = useMessageScroll(localMessages, activeConversationId, isLoadingHistory);
 
   const config = getMessagingConfig("agent");
 

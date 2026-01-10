@@ -1,0 +1,12 @@
+{
+  "polling": true,
+  "initialApiCalls": true,
+  "pages": true,
+  "hooks": true,
+  "auth": true,
+  "http": true,
+  "api": true,
+  "errors": true,
+  "security": true,
+  "logLevel": "DEBUG"
+}

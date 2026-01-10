@@ -1,6 +1,8 @@
 // UI Components - Buttons
 export { default as Button } from "./button/Button";
+export { default as CancelButton } from "./button/CancelButton";
 export { default as CircularButton } from "./button/CircularButton";
+export { default as CloseButton } from "./button/CloseButton";
 export { default as IconButton } from "./button/IconButton";
 export { default as NavigationButton } from "./button/NavigationButton";
 export { default as NavigationButtons } from "./button/NavigationButtons";
@@ -18,6 +20,7 @@ export { default as OliveCheckbox } from "./form/OliveCheckbox";
 export { default as Toggle } from "./form/Toggle";
 
 // UI Components - Text
+export { default as BodyText } from "./text/BodyText";
 export { default as Label } from "./text/Label";
 export { default as Subtitle } from "./text/Subtitle";
 export { default as Title } from "./text/Title";
@@ -45,14 +48,22 @@ export { default as RippleBackground } from "../../features/homeauth/RippleBackg
 // Modal Components
 export { default as BaseModal } from "../modals/BaseModal";
 
-// Feature Components
-export { default as DashboardButtonHeader } from "../../features/dashboard/DashboardButtonHeader";
+// UI Components - Sidebar
+export { default as SidebarNavigation } from "./sidebar/SidebarNavigation";
+export { default as SettingsSidebar } from "./sidebar/SettingsSidebar";
+export { default as ClientInfoSidebar } from "./sidebar/ClientInfoSidebar";
+
+// UI Components - Client Selector
+export { default as ClientSelector } from "./ClientSelector";
 
 // Re-export types
 export type { ButtonProps } from "./button/Button";
+export type { CancelButtonProps } from "./button/CancelButton";
+export type { CloseButtonProps } from "./button/CloseButton";
 export type { IconButtonProps } from "./button/IconButton";
 export type { BaseCardProps } from "../cards/BaseCard";
 export type { BaseModalProps } from "../modals/BaseModal";
 export type { PropertyCardProps } from "../cards/PropertyCard";
+export type { BodyTextProps } from "./text/BodyText";
 export type { LabelProps } from "./text/Label";
 export type { StatusBadgeProps } from "./asset/StatusBadge";

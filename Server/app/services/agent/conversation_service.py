@@ -1,15 +1,21 @@
 """
 Service functions for managing agent-client conversations
 """
-import logging
 import json
+import sys
+import os
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
 from ..auth.current_user import get_current_user
 from ...models import User, AgentConnections, ChatHistory
 from ... import db
+from .connection_request_service import get_connection_requests
 
-logger = logging.getLogger(__name__)
+# Initialize centralized logger
+server_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+if server_dir not in sys.path:
+    sys.path.insert(0, server_dir)
+from logger import log, LOG_CATEGORIES
 
 
 def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
@@ -25,7 +31,7 @@ def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
     """
     try:
         if not user_id:
-            logger.warning("get_conversations called with empty user_id")
+            log.warn(LOG_CATEGORIES["API"], "get_conversations called with empty user_id")
             return []
         
         if is_agent:
@@ -89,7 +95,7 @@ def get_conversations(user_id: str, is_agent: bool) -> List[Dict]:
         return result
         
     except Exception as e:
-        logger.error(f"Error fetching conversations for user {user_id}: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], f"Error fetching conversations for user {user_id}", e)
         raise
 
 
@@ -112,7 +118,7 @@ def get_conversation(conversation_id: str, user_id: str = None) -> Optional[Dict
         return conv.to_dict(user_id=user_id)
         
     except Exception as e:
-        logger.error(f"Error fetching conversation {conversation_id}: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], f"Error fetching conversation {conversation_id}", e)
         raise
 
 
@@ -170,7 +176,7 @@ def create_conversation(agent_id: str, client_id: str) -> Dict:
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error creating conversation: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], "Error creating conversation", e)
         raise
 
 
@@ -247,7 +253,7 @@ def get_conversation_history(conversation_id: str, user_id: str = None) -> Dict:
         }
         
     except Exception as e:
-        logger.error(f"Error fetching conversation history for {conversation_id}: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], f"Error fetching conversation history for {conversation_id}", e)
         raise
 
 
@@ -306,7 +312,7 @@ def send_message(conversation_id: str, sender_id: str, message: str, role: str, 
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error sending message: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], "Error sending message", e)
         raise
 
 
@@ -351,7 +357,7 @@ def get_unread_count(conversation_id: str, user_id: str) -> int:
         return unread_count
         
     except Exception as e:
-        logger.error(f"Error calculating unread count for conversation {conversation_id}, user {user_id}: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], f"Error calculating unread count for conversation {conversation_id}, user {user_id}", e)
         return 0
 
 
@@ -405,5 +411,41 @@ def mark_messages_as_read(conversation_id: str, user_id: str) -> Dict:
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error marking messages as read: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], "Error marking messages as read", e)
         raise
+
+
+def get_notification_counter(user_id: str, is_agent: bool) -> int:
+    """
+    Get total notification count (unread messages + pending connection requests)
+    
+    Args:
+        user_id: The ID of the user
+        is_agent: Whether the user is an agent
+        
+    Returns:
+        Total count of unread messages and pending requests
+    """
+    try:
+        if not user_id:
+            log.warn(LOG_CATEGORIES["API"], "get_notification_counter called with empty user_id")
+            return 0
+        
+        # Get all conversations for the user
+        conversations = get_conversations(user_id, is_agent)
+        
+        # Sum unread counts from all conversations
+        total_unread_messages = sum(conv.get('unread_count', 0) for conv in conversations)
+        
+        # Get pending connection requests
+        connection_requests = get_connection_requests(user_id, is_agent)
+        pending_requests_count = len([req for req in connection_requests if req.get('status') == 'pending'])
+        
+        # Return total count
+        total_count = total_unread_messages + pending_requests_count
+                
+        return total_count
+        
+    except Exception as e:
+        log.error(LOG_CATEGORIES["ERRORS"], f"Error calculating notification counter for user {user_id}", e)
+        return 0

@@ -9,7 +9,10 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 import Card from "../../components/layout/Card.tsx";
 import Button from "../../components/ui/button/Button.tsx";
 
-import { reportError, normalizeError } from "./errorUtils.ts";
+import {
+  reportError,
+  normalizeError,
+} from "../../../../packages/utils/errorHandling";
 
 type Props = {
   children: ReactNode;

@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.aws.env
 
 # C extensions
 *.so
@@ -154,4 +155,4 @@ venv/
 .cursorignore
 .cursorindexingignore
 .cursorignore
-.env.aws
+.aws.env

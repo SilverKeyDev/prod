@@ -19,8 +19,6 @@ from .config.match import (
     score_single_match,
     compare_homes_for_user,
     batch_match_users,
-    create_sample_user,
-    create_sample_home,
     get_system_info
 )
 
@@ -29,7 +27,5 @@ __all__ = [
     "score_single_match",
     "compare_homes_for_user",
     "batch_match_users",
-    "create_sample_user",
-    "create_sample_home",
     "get_system_info"
 ]

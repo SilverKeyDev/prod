@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-import { searchApi } from "../../config/api";
+import { researchApi } from "../../config/api";
 
 export type Property = {
   id: string;
@@ -51,7 +51,7 @@ export function usePropertyDetails(): UsePropertyDetailsReturn {
 
       try {
         // Stream property updates
-        for await (const update of searchApi.streamProperty({
+        for await (const update of researchApi.streamProperty({
           address: property.address,
         })) {
           if (update.type === "error") {

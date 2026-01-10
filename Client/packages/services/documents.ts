@@ -16,60 +16,9 @@ export class DocumentService {
      ========================= */
 
   async fetchDocuments(): Promise<Document[]> {
-    try {
-      const response = await dashboardApi.getDocuments();
-      if (response.success && response.documents) {
-        // Transform server response to client Document format
-        const documents = response.documents as unknown[];
-        return documents.filter(isDocumentData).map((doc: unknown) => {
-          const docData = doc as Record<string, unknown>;
-          return {
-            id:
-              typeof docData.id === "string" || typeof docData.id === "number"
-                ? String(docData.id)
-                : "",
-            name:
-              typeof docData.filename === "string" ||
-              typeof docData.filename === "number"
-                ? String(docData.filename)
-                : "",
-            file_path:
-              typeof docData.file_path === "string" ||
-              typeof docData.file_path === "number"
-                ? String(docData.file_path)
-                : "",
-            file_size: 0, // Not provided by server
-            file_type: "application/pdf", // Server only handles PDFs
-            category: "report", // Default category for server documents
-            property_id: undefined,
-            offer_id: undefined,
-            uploaded_by:
-              typeof docData.user_id === "string" ||
-              typeof docData.user_id === "number"
-                ? String(docData.user_id)
-                : "",
-            uploaded_at: new Date(
-              typeof docData.created_at === "string" ||
-              typeof docData.created_at === "number"
-                ? String(docData.created_at)
-                : "",
-            ),
-            is_signed: false,
-            expiry_date: undefined,
-            status:
-              String(docData.status) === "completed" ? "approved" : "pending",
-          };
-        });
-      } else {
-        return [];
-      }
-    } catch (e: unknown) {
-      if (!isAbortError(e)) {
-        console.error("Failed to fetch documents", e);
-        throw e;
-      }
-      throw e;
-    }
+    // getDocuments should not be called - return empty array
+    console.warn("fetchDocuments called but getDocuments should not be used");
+    return [];
   }
 
   fetchCategories(): Promise<DocumentCategory[]> {

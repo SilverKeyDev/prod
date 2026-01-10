@@ -7,7 +7,7 @@ from typing import Dict, List, Any, Optional
 import logging
 
 from .model_loader import model_loader
-from ..utils.preprocessing import DataPreprocessor
+from ..preprocessing.models.embedding_input import EmbeddingUserInput
 
 logger = logging.getLogger(__name__)
 
@@ -17,56 +17,6 @@ class UserEncoder:
     def __init__(self, embedding_provider: str = "sentence_transformer", model: str = None):
         self.embedding_provider = embedding_provider
         self.model = model
-        self.preprocessor = DataPreprocessor()
-    
-    def _extract_text_features(self, user_data: Dict[str, Any]) -> str:
-        """Extract and combine text features from user data."""
-        preferences = user_data.get('preferences', {})
-        
-        text_parts = []
-        
-        # Lifestyle and personal info
-        if 'lifestyle' in preferences:
-            text_parts.append(f"Lifestyle: {preferences['lifestyle']}")
-        
-        if 'work_style' in preferences:
-            text_parts.append(f"Work style: {preferences['work_style']}")
-        
-        if 'hobbies' in preferences:
-            text_parts.append(f"Hobbies: {preferences['hobbies']}")
-        
-        if 'family_status' in preferences:
-            text_parts.append(f"Family: {preferences['family_status']}")
-        
-        # Housing preferences
-        if 'preferred_home_types' in preferences:
-            types = ', '.join(preferences['preferred_home_types'])
-            text_parts.append(f"Preferred home types: {types}")
-        
-        if 'preferred_neighborhoods' in preferences:
-            neighborhoods = ', '.join(preferences['preferred_neighborhoods'])
-            text_parts.append(f"Preferred neighborhoods: {neighborhoods}")
-        
-        if 'must_have_amenities' in preferences:
-            amenities = ', '.join(preferences['must_have_amenities'])
-            text_parts.append(f"Must have amenities: {amenities}")
-        
-        if 'nice_to_have_amenities' in preferences:
-            amenities = ', '.join(preferences['nice_to_have_amenities'])
-            text_parts.append(f"Nice to have amenities: {amenities}")
-        
-        # Location preferences
-        if 'location_preference' in preferences:
-            text_parts.append(f"Location preference: {preferences['location_preference']}")
-        
-        if 'commute_preference' in preferences:
-            text_parts.append(f"Commute preference: {preferences['commute_preference']}")
-        
-        # Additional notes
-        if 'notes' in preferences:
-            text_parts.append(f"Additional notes: {preferences['notes']}")
-        
-        return ' '.join(text_parts)
     
     def _extract_structured_features(self, user_data: Dict[str, Any]) -> np.ndarray:
         """Extract structured numerical features from user data using shared config."""
@@ -76,11 +26,11 @@ class UserEncoder:
     def encode_user(self, user_data: Dict[str, Any]) -> np.ndarray:
         """Encode user data into embedding."""
         try:
-            # Preprocess user data
-            processed_data = self.preprocessor.preprocess_user_data(user_data)
+            # Convert to preprocessing model
+            embedding_user = EmbeddingUserInput.from_dict(user_data)
             
-            # Extract text features and get text embedding
-            text_features = self._extract_text_features(processed_data)
+            # Extract text features using the model's method
+            text_features = embedding_user.extract_text_features()
             
             if text_features.strip():
                 text_embedding = model_loader.get_embedding(
@@ -94,28 +44,11 @@ class UserEncoder:
                 embedding_dim = model_info.get('dimension', 384)
                 text_embedding = np.zeros(embedding_dim)
             
-            # Extract structured features
-            structured_features = self._extract_structured_features(processed_data)
+            # Extract structured features using the model's method
+            structured_features = self._extract_structured_features(embedding_user.to_dict())
             
             # Combine text and structured embeddings
-            # Method 1: Concatenate (simple approach)
             combined_embedding = np.concatenate([text_embedding, structured_features])
-            
-            # Method 2: Weighted combination (alternative)
-            # text_weight = 0.8
-            # struct_weight = 0.2
-            # if len(structured_features) > 0:
-            #     # Pad or truncate structured features to match text embedding dimension
-            #     if len(structured_features) < len(text_embedding):
-            #         structured_padded = np.pad(structured_features, 
-            #                                   (0, len(text_embedding) - len(structured_features)))
-            #     else:
-            #         structured_padded = structured_features[:len(text_embedding)]
-            #     
-            #     combined_embedding = (text_weight * text_embedding + 
-            #                          struct_weight * structured_padded)
-            # else:
-            #     combined_embedding = text_embedding
             
             return combined_embedding
             
@@ -128,14 +61,15 @@ class UserEncoder:
         try:
             embeddings = []
             
-            # Extract all text features first
+            # Extract all text features first using preprocessing models
             text_features_list = []
             structured_features_list = []
             
             for user_data in users_data:
-                processed_data = self.preprocessor.preprocess_user_data(user_data)
-                text_features = self._extract_text_features(processed_data)
-                structured_features = self._extract_structured_features(processed_data)
+                # Convert to preprocessing model
+                embedding_user = EmbeddingUserInput.from_dict(user_data)
+                text_features = embedding_user.extract_text_features()
+                structured_features = self._extract_structured_features(embedding_user.to_dict())
                 
                 text_features_list.append(text_features)
                 structured_features_list.append(structured_features)

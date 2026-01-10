@@ -3,9 +3,13 @@ import type {
   AgentClient,
   AgentConversation,
   AgentChatMessage,
+  TodoItem,
+  CreateTodoRequest,
+  UpdateTodoRequest,
 } from "../config/api/agent";
 
 import { createAbortManager, isAbortError } from "./http";
+import { log, LOG_CATEGORIES } from "../../logger";
 
 /* =========================
    Agent Service
@@ -19,7 +23,7 @@ export class AgentService {
      ========================= */
 
   async fetchClients(): Promise<AgentClient[]> {
-    console.log("[AGENT_SERVICE] 🚀 Starting fetchClients");
+    log.debug(LOG_CATEGORIES.API, "Starting fetchClients");
 
     try {
       const response = await agentApi.getClients();
@@ -28,13 +32,13 @@ export class AgentService {
       }
 
       const clients = response.clients ?? [];
-      console.log("[AGENT_SERVICE] ✅ fetchClients success:", {
+      log.info(LOG_CATEGORIES.API, "fetchClients success", {
         clientsCount: clients.length,
       });
       return clients;
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("[AGENT_SERVICE] ❌ fetchClients error:", {
+        log.error(LOG_CATEGORIES.ERRORS, "fetchClients error", {
           error: e,
           message:
             e &&
@@ -48,7 +52,7 @@ export class AgentService {
       }
       throw e;
     } finally {
-      console.log("[AGENT_SERVICE] 🏁 fetchClients completed");
+      log.debug(LOG_CATEGORIES.API, "fetchClients completed");
     }
   }
 
@@ -65,13 +69,13 @@ export class AgentService {
       }
 
       const conversations = response.conversations ?? [];
-      console.log("[AGENT_SERVICE] ✅ fetchChats success:", {
+      log.info(LOG_CATEGORIES.API, "fetchChats success", {
         conversationsCount: conversations.length,
       });
       return conversations;
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("[AGENT_SERVICE] ❌ fetchChats error:", {
+        log.error(LOG_CATEGORIES.ERRORS, "fetchChats error", {
           error: e,
           message:
             e &&
@@ -94,7 +98,7 @@ export class AgentService {
   async getChatHistory(
     conversationId: string
   ): Promise<{ messages: AgentChatMessage[]; conversation?: AgentConversation }> {
-    console.log("[AGENT_SERVICE] 📜 Starting getChatHistory", { conversationId });
+    log.debug(LOG_CATEGORIES.API, "Starting getChatHistory", { conversationId });
 
     try {
       const response = await agentApi.getChatHistory(conversationId);
@@ -103,7 +107,7 @@ export class AgentService {
       }
 
       const messages = response.messages ?? [];
-      console.log("[AGENT_SERVICE] ✅ getChatHistory success:", {
+      log.info(LOG_CATEGORIES.API, "getChatHistory success", {
         messagesCount: messages.length,
       });
 
@@ -113,7 +117,7 @@ export class AgentService {
       };
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("[AGENT_SERVICE] ❌ getChatHistory error:", {
+        log.error(LOG_CATEGORIES.ERRORS, "getChatHistory error", {
           conversationId,
           error: e,
           message:
@@ -140,7 +144,7 @@ export class AgentService {
     clientId?: string,
     sharedHomeId?: string
   ): Promise<{ message_id: string }> {
-    console.log("[AGENT_SERVICE] 💬 Starting sendMessage", {
+    log.debug(LOG_CATEGORIES.API, "Starting sendMessage", {
       conversationId,
       messageLength: message.length,
       clientId,
@@ -154,14 +158,14 @@ export class AgentService {
       }
 
       const messageId = response.message_id ?? String(Date.now());
-      console.log("[AGENT_SERVICE] ✅ sendMessage success:", {
+      log.info(LOG_CATEGORIES.API, "sendMessage success", {
         messageId,
       });
 
       return { message_id: messageId };
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("[AGENT_SERVICE] ❌ sendMessage error:", {
+        log.error(LOG_CATEGORIES.ERRORS, "sendMessage error", {
           conversationId,
           error: e,
           message:
@@ -183,7 +187,7 @@ export class AgentService {
      ========================= */
 
   async markMessagesAsRead(conversationId: string): Promise<{ marked_count: number }> {
-    console.log("[AGENT_SERVICE] ✅ Starting markMessagesAsRead", { conversationId });
+    log.debug(LOG_CATEGORIES.API, "Starting markMessagesAsRead", { conversationId });
 
     try {
       const response = await agentApi.markMessagesAsRead(conversationId);
@@ -192,14 +196,14 @@ export class AgentService {
       }
 
       const markedCount = response.marked_count ?? 0;
-      console.log("[AGENT_SERVICE] ✅ markMessagesAsRead success:", {
+      log.info(LOG_CATEGORIES.API, "markMessagesAsRead success", {
         markedCount,
       });
 
       return { marked_count: markedCount };
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("[AGENT_SERVICE] ❌ markMessagesAsRead error:", {
+        log.error(LOG_CATEGORIES.ERRORS, "markMessagesAsRead error", {
           conversationId,
           error: e,
           message:
@@ -221,7 +225,7 @@ export class AgentService {
      ========================= */
 
   async createConversation(clientId: string): Promise<AgentConversation> {
-    console.log("[AGENT_SERVICE] 🆕 Starting createConversation", { clientId });
+    log.debug(LOG_CATEGORIES.API, "Starting createConversation", { clientId });
 
     try {
       const response = await agentApi.createConversation(clientId);
@@ -229,15 +233,119 @@ export class AgentService {
         throw new Error(response.error ?? "Failed to create conversation");
       }
 
-      console.log("[AGENT_SERVICE] ✅ createConversation success:", {
+      log.info(LOG_CATEGORIES.API, "createConversation success", {
         conversationId: response.conversation.id,
       });
 
       return response.conversation;
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("[AGENT_SERVICE] ❌ createConversation error:", {
+        log.error(LOG_CATEGORIES.ERRORS, "createConversation error", {
           clientId,
+          error: e,
+          message:
+            e &&
+            typeof e === "object" &&
+            "message" in e &&
+            typeof e.message === "string"
+              ? e.message
+              : "Unknown error",
+        });
+        throw e;
+      }
+      throw e;
+    }
+  }
+
+  /* =========================
+     Todo Management
+     ========================= */
+
+  async fetchTodos(includeCompleted: boolean = false): Promise<TodoItem[]> {
+    log.debug(LOG_CATEGORIES.API, "Starting fetchTodos", { includeCompleted });
+
+    try {
+      const response = await agentApi.getTodos(includeCompleted);
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to fetch todos");
+      }
+
+      const todos = response.todos ?? [];
+      log.info(LOG_CATEGORIES.API, "fetchTodos success", {
+        todosCount: todos.length,
+      });
+      return todos;
+    } catch (e: unknown) {
+      if (!isAbortError(e)) {
+        log.error(LOG_CATEGORIES.ERRORS, "fetchTodos error", {
+          error: e,
+          message:
+            e &&
+            typeof e === "object" &&
+            "message" in e &&
+            typeof e.message === "string"
+              ? e.message
+              : undefined,
+        });
+        throw e;
+      }
+      throw e;
+    }
+  }
+
+  async createTodo(data: CreateTodoRequest): Promise<TodoItem> {
+    log.debug(LOG_CATEGORIES.API, "Starting createTodo", { title: data.title });
+
+    try {
+      const response = await agentApi.createTodo(data);
+      if (!response.success || !response.todo) {
+        throw new Error(response.error ?? "Failed to create todo");
+      }
+
+      log.info(LOG_CATEGORIES.API, "createTodo success", {
+        todoId: response.todo.id,
+      });
+
+      return response.todo;
+    } catch (e: unknown) {
+      if (!isAbortError(e)) {
+        log.error(LOG_CATEGORIES.ERRORS, "createTodo error", {
+          error: e,
+          message:
+            e &&
+            typeof e === "object" &&
+            "message" in e &&
+            typeof e.message === "string"
+              ? e.message
+              : "Unknown error",
+        });
+        throw e;
+      }
+      throw e;
+    }
+  }
+
+  async updateTodo(
+    todoId: string,
+    data: UpdateTodoRequest
+  ): Promise<TodoItem> {
+    log.debug(LOG_CATEGORIES.API, "Starting updateTodo", { todoId });
+
+    try {
+      const response = await agentApi.updateTodo(todoId, data);
+      if (!response.success || !response.todo) {
+        throw new Error(response.error ?? "Failed to update todo");
+      }
+
+      log.info(LOG_CATEGORIES.API, "updateTodo success", {
+        todoId: response.todo.id,
+      });
+
+      return response.todo;
+    } catch (e: unknown) {
+      if (!isAbortError(e)) {
+        log.error(LOG_CATEGORIES.ERRORS, "updateTodo error", {
+          todoId,
           error: e,
           message:
             e &&

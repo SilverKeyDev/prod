@@ -36,13 +36,13 @@ export type SidebarTab = {
 export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   dashboard: {
     key: "dashboard",
-    name: "Home",
+    name: "Dashboard",
     description: "Overview and quick access to key actions",
     icon: Home,
     href: "/dashboard",
     subSteps: [
       {
-        label: "Home",
+        label: "Dashboard",
         to: "/dashboard",
         icon: Home,
       },
@@ -109,11 +109,11 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     name: "Messaging",
     description: "Communicate with your agent",
     icon: Send,
-    href: "/agent",
+    href: "/messaging",
     subSteps: [
       {
         label: "Messaging",
-        to: "/agent",
+        to: "/messaging",
         icon: Send,
       },
     ],
@@ -141,7 +141,7 @@ export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   if (pathname.startsWith("/saved") || pathname.startsWith("/compare-reports"))
     return SIDEBAR_TABS.decide;
   if (pathname.startsWith("/buyer-checklists")) return SIDEBAR_TABS.close;
-  if (pathname.startsWith("/agent")) return SIDEBAR_TABS.agent;
+  if (pathname.startsWith("/messaging")) return SIDEBAR_TABS.agent;
   if (pathname.startsWith("/calendar")) return SIDEBAR_TABS.calendar;
   return undefined;
 };

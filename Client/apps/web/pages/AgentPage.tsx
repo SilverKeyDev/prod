@@ -29,7 +29,8 @@ export default function AgentPage({
     };
   }, [setMobileHeaderActions]);
 
-  if (userProfileLoading) {
+  // Only show loader if no profile exists AND is loading
+  if (!userProfile && userProfileLoading) {
     return (
       <div className="py-responsive-lg flex justify-center">
         <KeyTurnLoader message="Loading..." />

@@ -6,11 +6,12 @@ export { authApi } from "./auth";
 export { chatbotApi } from "./chatbot";
 export { dashboardApi } from "./dashboard";
 export { googleCalendarApi } from "./googleCalendar";
-export { homeMatchingApi } from "./homeMatching";
 export { mapsApi } from "./maps";
 export { offerApi } from "./offer";
 export { preferencesApi } from "./preferences";
+export { plaidApi } from "./plaid";
 export { reportApi } from "./report";
+export { researchApi } from "./research";
 export { searchApi } from "./search";
 export { secureUploadApi } from "./secureUpload";
 export { userApi } from "./user";
@@ -73,11 +74,6 @@ export type {
   GoogleEventCreateResponse,
   GoogleCalendarApiResponse,
 } from "./googleCalendar";
-export type {
-  HomeMatchingRequest,
-  HomeMatchingResponse,
-  TaskStatusResponse,
-} from "./homeMatching";
 export type { MapsScriptResponse } from "./maps";
 export type {
   NegotiationStrategyRequest,
@@ -91,9 +87,7 @@ export type {
   ClientsResponse,
 } from "./preferences";
 export type {
-  GenerateReportRequest,
   ReportDocument,
-  GenerateReportResponse,
   ReportsListResponse,
   PollReportResponse,
   DownloadUrlResponse,
@@ -103,10 +97,13 @@ export type {
   DeleteReportResponse,
 } from "./report";
 export type {
-  PropertyCompsRequest,
-  PropertyCompsResponse,
   PropertyRequest,
   PropertyResponse,
+  TaskStatusResponse,
+} from "./research";
+export type {
+  PropertyCompsRequest,
+  PropertyCompsResponse,
   PolygonSearchRequest,
   PolygonSearchResponse,
   IsochroneResponse,

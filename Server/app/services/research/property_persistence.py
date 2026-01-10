@@ -188,8 +188,10 @@ def persist_property_data(
             # Preserve like state
             for k, v in update_fields.items():
                 setattr(existing, k, v)
+            # Mark as current when updating
+            existing.current = True
         else:
-            record = HomeUniversal(user_id=str(user_id), **update_fields)
+            record = HomeUniversal(user_id=str(user_id), current=True, **update_fields)
             db.session.add(record)
         
         db.session.commit()

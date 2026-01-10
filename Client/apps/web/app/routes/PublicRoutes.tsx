@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Route } from "react-router-dom";
 
+import { ROUTES } from "../../../../packages/schemas/nav";
 import { AuthGuard } from "../guards";
 
 // Lazy-load public pages
@@ -25,12 +26,12 @@ const ContactUs = lazy(() => import("../../pages/HomeAuth/ContactUsPage"));
 export function PublicRoutes() {
   return [
     /* Root route - always show homepage */
-    <Route key="home" path="/" element={<HomePage />} />,
+    <Route key="home" path={ROUTES.HOME} element={<HomePage />} />,
 
     /* Public Routes */
     <Route
       key="signup"
-      path="/signup"
+      path={ROUTES.SIGNUP}
       element={
         <AuthGuard requireAuth={false}>
           <SignupPage />
@@ -39,7 +40,7 @@ export function PublicRoutes() {
     />,
     <Route
       key="login"
-      path="/login"
+      path={ROUTES.LOGIN}
       element={
         <AuthGuard requireAuth={false}>
           <LoginPage />
@@ -48,17 +49,17 @@ export function PublicRoutes() {
     />,
     <Route
       key="forgot-password"
-      path="/forgot-password"
+      path={ROUTES.FORGOT_PASSWORD}
       element={<ResetPasswordPage />}
     />,
-    <Route key="onboarding" path="/onboarding" element={<OnboardingPage />} />,
+    <Route key="onboarding" path={ROUTES.ONBOARDING} element={<OnboardingPage />} />,
     <Route
       key="verification"
-      path="/verification"
+      path={ROUTES.VERIFICATION}
       element={<VerificationPage />}
     />,
-    <Route key="privacy" path="/privacy" element={<PrivacyPolicy />} />,
-    <Route key="terms" path="/terms" element={<TermsOfService />} />,
-    <Route key="contact" path="/contact" element={<ContactUs />} />,
+    <Route key="privacy" path={ROUTES.PRIVACY} element={<PrivacyPolicy />} />,
+    <Route key="terms" path={ROUTES.TERMS} element={<TermsOfService />} />,
+    <Route key="contact" path={ROUTES.CONTACT} element={<ContactUs />} />,
   ];
 }

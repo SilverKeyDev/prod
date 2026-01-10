@@ -13,31 +13,21 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
   const userProfile = user ?? undefined;
 
   return [
-    /* Lightweight Protected Routes - Minimal providers only (no reports/chats) */
+    /* Lightweight Protected Routes */
     ...ROUTE_CONFIGS.lightweight.map((path) => (
       <Route
         key={path}
         path={path}
-        element={createProtectedRoute(
-          userProfile,
-          handleLogout,
-          undefined,
-          "minimal",
-        )}
+        element={createProtectedRoute(userProfile, handleLogout)}
       />
     )),
 
-    /* Standard Protected Routes - Full providers with ReportsProvider and ChatsProvider */
+    /* Standard Protected Routes */
     ...ROUTE_CONFIGS.standard.map((path) => (
       <Route
         key={path}
         path={path}
-        element={createProtectedRoute(
-          userProfile,
-          handleLogout,
-          undefined,
-          "full",
-        )}
+        element={createProtectedRoute(userProfile, handleLogout)}
       />
     )),
 
@@ -46,12 +36,7 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
       <Route
         key={path}
         path={path}
-        element={createProtectedRoute(
-          userProfile,
-          handleLogout,
-          providerType,
-          "full",
-        )}
+        element={createProtectedRoute(userProfile, handleLogout, providerType)}
       />
     )),
   ];

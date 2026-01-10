@@ -4,6 +4,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .venv/
+.aws.env
 
 # Distribution / packaging
 .Python

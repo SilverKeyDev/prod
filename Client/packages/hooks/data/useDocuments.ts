@@ -5,7 +5,7 @@ import { useAuthStore } from "../../store/auth.slice";
 import { useFiltersQueryParams } from "../../config/query/adapters";
 import { queryKeys } from "../../config/query/keys";
 import type { Document } from "../../schemas";
-import { documentService } from "../../services/documents";
+import { documentService } from "../../services";
 
 type UploadEntry = {
   id: string;
@@ -27,25 +27,19 @@ export const useDocuments = () => {
   // For now, always load documents since we don't have a forms page yet
   const shouldLoadDocuments = true;
 
-  // Documents query
+  // Documents query - disabled, getDocuments should not be called
   const {
-    data: documentsData,
+    data: documentsResponse,
     isLoading: documentsLoading,
     error: documentsError,
     refetch: refetchDocuments,
   } = useQuery({
     queryKey: queryKeys.documents.list(filters),
     queryFn: async () => {
-      try {
-        const documentsData = await documentService.fetchDocuments();
-        return documentsData;
-      } catch {
-        // If documents endpoint doesn't exist, return empty array
-        console.warn("Documents endpoint not available, returning empty array");
-        return [];
-      }
+      // getDocuments should not be called - return empty array
+      return [];
     },
-    enabled: shouldLoadDocuments && authReady && !!user?.id,
+    enabled: false, // Disabled - getDocuments should not be called
     select: (data) => data,
     // Ensure proper deduplication
     staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for this long
@@ -54,6 +48,9 @@ export const useDocuments = () => {
     refetchOnMount: false, // Don't refetch if data exists
     refetchOnReconnect: false, // Don't refetch on reconnect
   });
+
+  // Extract documents data from response
+  const documentsData = useMemo(() => documentsResponse ?? [], [documentsResponse]);
 
   // Categories query
   const {

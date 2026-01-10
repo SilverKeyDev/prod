@@ -5,14 +5,18 @@ import { useSavedHomesStoreIntegration } from "../../../../../packages/hooks/sto
 
 /**
  * Full auth shell providers for standard and specialized routes
- * Includes reports and saved homes store integration for authenticated routes
- * These integrations fetch and initialize data when the component mounts
+ * 
+ * Note: Data is now prefetched on login via useDataInitialization hook.
+ * These store integrations sync React Query cache to Zustand stores for components
+ * that access data via store selectors. They do not trigger data fetching.
  */
 export function AuthShellProviders({ children }: { children: ReactNode }) {
-  // Initialize reports data for authenticated routes
+  // Sync reports data from React Query cache to Zustand store
+  // Data is already prefetched on login, this just syncs to store
   useReportsStoreIntegration();
 
-  // Initialize saved homes data for authenticated routes
+  // Sync saved homes data from React Query cache to Zustand store
+  // Data is already prefetched on login, this just syncs to store
   useSavedHomesStoreIntegration();
 
   return <>{children}</>;

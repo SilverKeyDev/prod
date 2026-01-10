@@ -21,8 +21,9 @@ import { useUIStore } from "../../../packages/store";
 import CompareHomesModal from "../components/modals/CompareHomesModal";
 import ReportsSubViewNavigation, {
   ReportsSubView,
-} from "../features/decide/ReportsSubViewNavigation";
+} from "../features/dashboard/ReportsSubViewNavigation";
 import useMobile from "../../../packages/hooks/ui/useMobile";
+import { ClientSelector } from "../components/ui";
 
 type SavedHomesProps = {
   setMobileHeaderActions?: React.Dispatch<
@@ -32,7 +33,7 @@ type SavedHomesProps = {
 
 export default function SavedHomes({
   setMobileHeaderActions,
-}: SavedHomesProps = {}) {
+}: SavedHomesProps) {
   const location = useLocation();
   const isMobile = useMobile();
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,6 +48,7 @@ export default function SavedHomes({
   const [isNegotiationModalOpen, setIsNegotiationModalOpen] = useState(false);
   const [selectedHomeForNegotiation, setSelectedHomeForNegotiation] =
     useState<SavedHome | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
   // Use Zustand store for saved homes data (React Query integration)
@@ -251,7 +253,7 @@ export default function SavedHomes({
   const filteredHomes = homes.filter((h: SavedHome) => {
     return (
       h.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      h.home_id.toLowerCase().includes(searchTerm.toLowerCase())
+      h.home_id?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -259,33 +261,41 @@ export default function SavedHomes({
   useEffect(() => {
     if (isMobile && setMobileHeaderActions) {
       setMobileHeaderActions(
-        <SavedLayout
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          searchPlaceholder={
-            viewType === "homes" ? "Search saved homes..." : "Filter by address"
-          }
-          showSearch={viewType !== "reports"}
-          leftContent={
-            viewType === "reports" ? (
-              <ReportsSubViewNavigation
-                currentView={reportsSubView}
-                onViewChange={setReportsSubView}
-              />
-            ) : null
-          }
-          onRefresh={refresh}
-          isRefreshing={refreshing}
-          isLoading={loading}
-          refreshTitle={
-            viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
-          }
-          rightText={
-            viewType === "homes" ? `${filteredHomes.length} saved` : ""
-          }
-          viewType={viewType}
-          onViewTypeChange={setViewType}
-        />
+        <div className="space-y-2">
+          <div className="px-4">
+            <ClientSelector
+              selectedClientId={selectedClientId}
+              onClientChange={setSelectedClientId}
+            />
+          </div>
+          <SavedLayout
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder={
+              viewType === "homes" ? "Search saved homes..." : "Filter by address"
+            }
+            showSearch={viewType !== "reports"}
+            leftContent={
+              viewType === "reports" ? (
+                <ReportsSubViewNavigation
+                  currentView={reportsSubView}
+                  onViewChange={setReportsSubView}
+                />
+              ) : null
+            }
+            onRefresh={refresh}
+            isRefreshing={refreshing}
+            isLoading={loading}
+            refreshTitle={
+              viewType === "homes" ? "Refresh saved homes" : "Refresh reports"
+            }
+            rightText={
+              viewType === "homes" ? `${filteredHomes.length} saved` : ""
+            }
+            viewType={viewType}
+            onViewTypeChange={setViewType}
+          />
+        </div>
       );
     } else if (setMobileHeaderActions) {
       setMobileHeaderActions(null);
@@ -300,6 +310,7 @@ export default function SavedHomes({
     loading,
     filteredHomes.length,
     refresh,
+    selectedClientId,
   ]);
 
   // overlay toast component
@@ -323,6 +334,15 @@ export default function SavedHomes({
             : "mb-responsive-lg"
         }`}
       >
+        {/* Client Selector - Desktop */}
+        {!isMobile && (
+          <div className="mb-4">
+            <ClientSelector
+              selectedClientId={selectedClientId}
+              onClientChange={setSelectedClientId}
+            />
+          </div>
+        )}
         {/* SavedLayout - Only show on desktop (mobile shows in topbar) */}
         {!isMobile && (
           <SavedLayout

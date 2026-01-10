@@ -4,6 +4,7 @@ import json
 import logging
 
 from ..services.auth.current_user import get_current_user, SecurityException
+from ..utils.common_patterns import require_authenticated_user, require_agent_access, handle_exceptions_with_logging
 from ..utils.security.security import security_error_response, SecurityError, rate_limit
 from ..utils.security.secure_errors import SecureErrorHandler
 from ..services.agent import (
@@ -14,11 +15,16 @@ from ..services.agent import (
     get_conversation_history,
     send_message as send_conversation_message,
     mark_messages_as_read,
+    get_notification_counter,
     search_agents,
     search_clients,
     get_connection_requests,
     create_connection_request,
     respond_to_connection_request,
+    get_agent_todos,
+    create_todo,
+    update_todo,
+    delete_todo,
 )
 
 logger = logging.getLogger(__name__)
@@ -28,119 +34,92 @@ agent_bp = Blueprint('agent', __name__, url_prefix='/api/v1/agent')
 
 @agent_bp.route('/clients', methods=['GET'])
 @rate_limit(max_requests=200, window_seconds=60)
-def get_clients():
+@handle_exceptions_with_logging
+@require_agent_access
+def get_clients(user):
     """Get list of clients for authenticated agent"""
-    try:
-        user = get_current_user()
-        if not user:
-            return security_error_response(SecurityError.UNAUTHORIZED)
-        
-        if not user.is_agent:
-            return jsonify({
-                'success': False,
-                'error': 'Only agents can access this endpoint'
-            }), 403
-        
-        clients = get_agent_clients(user.id)
-        
-        return jsonify({
-            'success': True,
-            'clients': clients
-        })
-        
-    except (SecurityException, ExpiredSignatureError, JWTError) as e:
-        return jsonify({'success': False, 'error': 'Authentication required'}), 401
-    except Exception as e:
-        return SecureErrorHandler.handle_database_error(e, {
-            'function': 'get_clients',
-            'user_id': 'unknown'
-        })
+    clients = get_agent_clients(user.id)
+    
+    return jsonify({
+        'success': True,
+        'clients': clients
+    })
 
 
 @agent_bp.route('/chats', methods=['GET'])
 @rate_limit(max_requests=200, window_seconds=60)
-def get_chats():
+@handle_exceptions_with_logging
+@require_authenticated_user
+def get_chats(user):
     """Get list of conversations for authenticated user (agent or client)"""
-    try:
-        user = get_current_user()
-        if not user:
-            return security_error_response(SecurityError.UNAUTHORIZED)
-        
-        # Optional client_id filter for agents
-        client_id = request.args.get('client_id')
-        
-        # Validate user.id exists
-        if not user.id:
-            logger.error("User ID is None in get_chats")
-            return jsonify({
-                'success': False,
-                'error': 'Invalid user session'
-            }), 401
-        
-        # Get conversations - pass is_agent flag
-        conversations = get_conversations(str(user.id), bool(user.is_agent))
-        
-        # Filter by client_id if provided (for agents)
-        if client_id and user.is_agent:
-            conversations = [c for c in conversations if c.get('client_id') == client_id]
-        
+    # Optional client_id filter for agents
+    client_id = request.args.get('client_id')
+    
+    # Validate user.id exists
+    if not user.id:
+        logger.error("User ID is None in get_chats")
         return jsonify({
-            'success': True,
-            'conversations': conversations
-        })
-        
-    except (SecurityException, ExpiredSignatureError, JWTError) as e:
-        return jsonify({'success': False, 'error': 'Authentication required'}), 401
-    except Exception as e:
-        return SecureErrorHandler.handle_database_error(e, {
-            'function': 'get_chats',
-            'user_id': 'unknown'
-        })
+            'success': False,
+            'error': 'Invalid user session'
+        }), 401
+    
+    # Get conversations - pass is_agent flag
+    conversations = get_conversations(str(user.id), bool(user.is_agent))
+    
+    # Filter by client_id if provided (for agents)
+    if client_id and user.is_agent:
+        conversations = [c for c in conversations if c.get('client_id') == client_id]
+    
+    return jsonify({
+        'success': True,
+        'conversations': conversations
+    })
 
 
 @agent_bp.route('/chats', methods=['POST'])
 @rate_limit(max_requests=100, window_seconds=60)
-def create_chat():
+@handle_exceptions_with_logging
+@require_agent_access
+def create_chat(user):
     """Create a new conversation between agent and client"""
     try:
-        user = get_current_user()
-        if not user:
-            return security_error_response(SecurityError.UNAUTHORIZED)
-        
-        if not user.is_agent:
-            return jsonify({
-                'success': False,
-                'error': 'Only agents can create conversations'
-            }), 403
-        
         data = request.get_json(force=True)
         client_id = data.get('client_id')
-        
+
         if not client_id:
             return jsonify({
                 'success': False,
                 'error': 'client_id is required'
             }), 400
-        
+
         conversation = create_conversation(user.id, client_id)
-        
+
         return jsonify({
             'success': True,
             'conversation': conversation
-        })
-        
-    except (SecurityException, ExpiredSignatureError, JWTError) as e:
-        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+        }), 201
+
+    except (SecurityException, ExpiredSignatureError, JWTError):
+        return jsonify({
+            'success': False,
+            'error': 'Authentication required'
+        }), 401
+
     except ValueError as e:
         return jsonify({
             'success': False,
             'error': str(e)
         }), 400
+
     except Exception as e:
-        return SecureErrorHandler.handle_database_error(e, {
-            'function': 'create_chat',
-            'user_id': 'unknown'
-        })
+        return SecureErrorHandler.handle_database_error(
+            e,
+            {
+                'function': 'create_chat',
+                'user_id': user.id if user else 'unknown'
+            }
+        )
+
 
 
 @agent_bp.route('/chats/<conversation_id>/history', methods=['GET'])
@@ -520,6 +499,28 @@ def respond_to_connection_request_endpoint(request_id):
         })
 
 
+@agent_bp.route('/notification-counter', methods=['GET'])
+@rate_limit(max_requests=200, window_seconds=60)
+@handle_exceptions_with_logging
+@require_authenticated_user
+def get_notification_counter_endpoint(user):
+    """Get total notification count (unread messages + pending requests)"""
+    # Validate user.id exists
+    if not user.id:
+        logger.error("User ID is None in get_notification_counter")
+        return jsonify({
+            'success': False,
+            'error': 'Invalid user session'
+        }), 401
+    
+    total_count = get_notification_counter(str(user.id), bool(user.is_agent))
+    
+    return jsonify({
+        'success': True,
+        'total_count': total_count
+    })
+
+
 @agent_bp.route('/chats/<conversation_id>/read', methods=['POST'])
 @rate_limit(max_requests=100, window_seconds=60)
 def mark_chat_as_read(conversation_id):
@@ -569,5 +570,208 @@ def mark_chat_as_read(conversation_id):
     except Exception as e:
         return SecureErrorHandler.handle_database_error(e, {
             'function': 'mark_chat_as_read',
+            'user_id': 'unknown'
+        })
+
+
+@agent_bp.route('/todos', methods=['GET'])
+@rate_limit(max_requests=200, window_seconds=60)
+def get_todos():
+    """Get list of todos for authenticated agent"""
+    try:
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        
+        if not user.is_agent:
+            return jsonify({
+                'success': False,
+                'error': 'Only agents can access this endpoint'
+            }), 403
+        
+        include_completed = request.args.get('include_completed', 'false').lower() == 'true'
+        todos = get_agent_todos(str(user.id), include_completed=include_completed)
+        
+        return jsonify({
+            'success': True,
+            'todos': todos
+        })
+        
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+    except Exception as e:
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'get_todos',
+            'user_id': 'unknown'
+        })
+
+
+@agent_bp.route('/todos', methods=['POST'])
+@rate_limit(max_requests=100, window_seconds=60)
+def create_todo_endpoint():
+    """Create a new todo"""
+    try:
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        
+        if not user.is_agent:
+            return jsonify({
+                'success': False,
+                'error': 'Only agents can create todos'
+            }), 403
+        
+        data = request.get_json(force=True)
+        title = data.get('title')
+        due_date_str = data.get('due_date')
+        priority = data.get('priority', 'medium')
+        todo_type = data.get('type', 'manual')
+        client_id = data.get('client_id')
+        description = data.get('description')
+        
+        if not title:
+            return jsonify({
+                'success': False,
+                'error': 'title is required'
+            }), 400
+        
+        if not due_date_str:
+            return jsonify({
+                'success': False,
+                'error': 'due_date is required'
+            }), 400
+        
+        try:
+            from datetime import datetime
+            due_date = datetime.fromisoformat(due_date_str.replace('Z', '+00:00'))
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid due_date format: {str(e)}'
+            }), 400
+        
+        todo = create_todo(
+            agent_id=str(user.id),
+            title=title,
+            due_date=due_date,
+            priority=priority,
+            todo_type=todo_type,
+            client_id=client_id,
+            description=description
+        )
+        
+        return jsonify({
+            'success': True,
+            'todo': todo
+        })
+        
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+    except Exception as e:
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'create_todo',
+            'user_id': 'unknown'
+        })
+
+
+@agent_bp.route('/todos/<todo_id>', methods=['PUT'])
+@rate_limit(max_requests=100, window_seconds=60)
+def update_todo_endpoint(todo_id):
+    """Update a todo"""
+    try:
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        
+        if not user.is_agent:
+            return jsonify({
+                'success': False,
+                'error': 'Only agents can update todos'
+            }), 403
+        
+        data = request.get_json(force=True)
+        
+        # Parse due_date if provided
+        update_data = {}
+        if 'title' in data:
+            update_data['title'] = data['title']
+        if 'description' in data:
+            update_data['description'] = data['description']
+        if 'priority' in data:
+            update_data['priority'] = data['priority']
+        if 'type' in data:
+            update_data['type'] = data['type']
+        if 'due_date' in data:
+            try:
+                from datetime import datetime
+                due_date = datetime.fromisoformat(data['due_date'].replace('Z', '+00:00'))
+                update_data['due_date'] = due_date
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'Invalid due_date format: {str(e)}'
+                }), 400
+        if 'completed' in data:
+            update_data['completed'] = bool(data['completed'])
+        if 'client_id' in data:
+            update_data['client_id'] = data['client_id']
+        
+        todo = update_todo(todo_id, str(user.id), **update_data)
+        
+        return jsonify({
+            'success': True,
+            'todo': todo
+        })
+        
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+    except Exception as e:
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'update_todo',
+            'user_id': 'unknown'
+        })
+
+
+@agent_bp.route('/todos/<todo_id>', methods=['DELETE'])
+@rate_limit(max_requests=50, window_seconds=60)
+def delete_todo_endpoint(todo_id):
+    """Delete a todo"""
+    try:
+        user = get_current_user()
+        if not user:
+            return security_error_response(SecurityError.UNAUTHORIZED)
+        
+        if not user.is_agent:
+            return jsonify({
+                'success': False,
+                'error': 'Only agents can delete todos'
+            }), 403
+        
+        delete_todo(todo_id, str(user.id))
+        
+        return jsonify({
+            'success': True
+        })
+        
+    except (SecurityException, ExpiredSignatureError, JWTError) as e:
+        return jsonify({'success': False, 'error': 'Authentication required'}), 401
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+    except Exception as e:
+        return SecureErrorHandler.handle_database_error(e, {
+            'function': 'delete_todo',
             'user_id': 'unknown'
         })

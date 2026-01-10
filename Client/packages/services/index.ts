@@ -72,6 +72,9 @@ export { SavedHomesService, savedHomesService } from "./savedHomes";
 // Agent Services
 export { AgentService, agentService } from "./agent";
 
+// Document Services
+export { DocumentService, documentService } from "./documents";
+
 // Type exports for consumers
 export type { ErrorContext, SerializedError } from "./security/errorUtils";
 export type {

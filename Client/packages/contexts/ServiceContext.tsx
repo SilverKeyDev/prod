@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from "react";
+import React, { createContext, useContext, type ReactNode } from "react";
 
 import { userApi, preferencesApi } from "../config/api";
 import { chatService } from "../services/chats";

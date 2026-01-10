@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
 
-import { agentService } from "../../services/agent";
+import { agentApi } from "../../config/api/agent";
 import { queryKeys } from "../../config/query/keys";
 import { useAuthStore } from "../../store/auth.slice";
 import type { AgentClient } from "../../config/api/agent";
@@ -18,20 +18,33 @@ export type UseAgentClientsReturn = {
  * Only works for authenticated agents
  */
 export function useAgentClients(): UseAgentClientsReturn {
+  const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
+  const isAgent = useAuthStore((s) => s.user?.is_agent ?? false);
+
+  // Check cache first when enabled becomes true (cache-first strategy)
+  const shouldLoadData = useMemo(() => authReady && isAuthenticated && isAgent, [authReady, isAuthenticated, isAgent]);
 
   const {
-    data: clients,
+    data: clientsResponse,
     isLoading,
     error,
     refetch: refetchClients,
   } = useQuery({
     queryKey: queryKeys.agent.clients(),
     queryFn: async () => {
-      return await agentService.fetchClients();
+      const response = await agentApi.getClients();
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to fetch clients");
+      }
+      return response.clients ?? [];
     },
-    enabled: authReady && isAuthenticated,
+    enabled: shouldLoadData,
+    // Use placeholderData function to check cache reactively when enabled changes
+    placeholderData: () => {
+      return queryClient.getQueryData<AgentClient[]>(queryKeys.agent.clients());
+    },
     staleTime: 3 * 60 * 1000, // 3 minutes
     refetchOnMount: false,
   });
@@ -41,7 +54,7 @@ export function useAgentClients(): UseAgentClientsReturn {
   }, [refetchClients]);
 
   return {
-    clients: clients ?? [],
+    clients: clientsResponse ?? [],
     isLoading,
     error: error?.message ?? null,
     refetch,

@@ -1,7 +1,7 @@
 import { apiPost } from "../../services/http/compatibility";
 import { HttpError } from "../../services/http/compatibility";
 import { reportSecurityEvent } from "../../services/security/errorReporting";
-import { log } from "../../services/security/secureLogger";
+import { log, LOG_CATEGORIES } from "../../../logger";
 import type { UserProfile } from "../../schemas/user";
 
 // Types for authentication API
@@ -96,7 +96,7 @@ export const authApi = {
     const requestId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Log detailed verification request
-    log.info("AUTH_VERIFY_REQUEST", "Starting email verification request", {
+    log.info(LOG_CATEGORIES.AUTH, "Starting email verification request", {
       requestId,
       email: email
         ? `${email.substring(0, 3)}***${email.substring(email.length - 3)}`
@@ -106,7 +106,7 @@ export const authApi = {
       timestamp: new Date().toISOString(),
     });
 
-    console.log("🔵 AUTH_VERIFY_API_CALL", {
+    log.debug(LOG_CATEGORIES.AUTH, "🔵 AUTH_VERIFY_API_CALL", {
       requestId,
       url: "/api/v1/auth/verify",
       method: "POST",
@@ -124,7 +124,7 @@ export const authApi = {
       });
       const duration = Date.now() - startTime;
 
-      console.log("✅ AUTH_VERIFY_RESPONSE", {
+      log.debug(LOG_CATEGORIES.AUTH, "✅ AUTH_VERIFY_RESPONSE", {
         requestId,
         success: response.success,
         verificationComplete: response.verification_complete,
@@ -136,14 +136,14 @@ export const authApi = {
       });
 
       if (response.success) {
-        log.info("AUTH_VERIFY_SUCCESS", "Email verification successful", {
+        log.info(LOG_CATEGORIES.AUTH, "Email verification successful", {
           requestId,
           verificationComplete: response.verification_complete,
           loginFailed: response.login_failed,
           duration: `${duration}ms`,
         });
       } else {
-        log.warn("AUTH_VERIFY_FAILED", "Email verification failed", {
+        log.warn(LOG_CATEGORIES.AUTH, "Email verification failed", {
           requestId,
           error: response.error,
           message: response.message,
@@ -168,7 +168,7 @@ export const authApi = {
       const duration = Date.now() - startTime;
       const err = error as Error;
 
-      console.error("❌ AUTH_VERIFY_ERROR", {
+      log.error(LOG_CATEGORIES.AUTH, "❌ AUTH_VERIFY_ERROR", {
         requestId,
         errorType: err?.constructor?.name || "Unknown",
         errorMessage: err?.message || "Unknown error",
@@ -176,7 +176,7 @@ export const authApi = {
         timestamp: new Date().toISOString(),
       });
 
-      log.error("AUTH_VERIFY_ERROR", "Verification request failed with exception", {
+      log.error(LOG_CATEGORIES.AUTH, "Verification request failed with exception", {
         requestId,
         errorMessage: err?.message || "Unknown error",
         duration: `${duration}ms`,
@@ -206,7 +206,7 @@ export const authApi = {
     const requestId = `login_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Log only essential login request
-    log.info("AUTH_LOGIN_REQUEST", "Starting login request", {
+    log.info(LOG_CATEGORIES.AUTH, "Starting login request", {
       requestId,
       email: data.email
         ? `${data.email.substring(0, 3)}***${data.email.substring(data.email.length - 3)}`
@@ -221,7 +221,7 @@ export const authApi = {
       // Only report authentication failure when the response explicitly indicates failure
       // Skip reporting if user just needs verification (expected behavior)
       if (!response.success && !response.needs_verification) {
-        log.warn("AUTH_LOGIN_FAILED", "Login request failed", {
+        log.warn(LOG_CATEGORIES.AUTH, "Login request failed", {
           requestId,
           error: response.error,
           message: response.message,
@@ -242,7 +242,7 @@ export const authApi = {
           },
         });
       } else if (response.needs_verification) {
-        log.info("AUTH_LOGIN_NEEDS_VERIFICATION", "User needs email verification", {
+        log.info(LOG_CATEGORIES.AUTH, "User needs email verification", {
           requestId,
           email: data.email
             ? `${data.email.substring(0, 3)}***${data.email.substring(data.email.length - 3)}`
@@ -260,7 +260,7 @@ export const authApi = {
       if (error instanceof HttpError && error.status === 401 && error.parsedBody) {
         const parsedBody = error.parsedBody as Record<string, unknown>;
         if (parsedBody.needs_verification === true) {
-          log.info("AUTH_LOGIN_NEEDS_VERIFICATION", "User needs email verification", {
+          log.info(LOG_CATEGORIES.AUTH, "User needs email verification", {
             requestId,
             email: data.email
               ? `${data.email.substring(0, 3)}***${data.email.substring(data.email.length - 3)}`
@@ -282,7 +282,7 @@ export const authApi = {
         const errorMessage = parsedBody.message as string || parsedBody.error as string || "Authentication failed";
         const errorCode = parsedBody.error as string || "AUTHENTICATION_FAILED";
 
-        log.warn("AUTH_LOGIN_401_ERROR", "Login failed with 401 error", {
+        log.warn(LOG_CATEGORIES.AUTH, "Login failed with 401 error", {
           requestId,
           errorCode,
           errorMessage,
@@ -298,7 +298,7 @@ export const authApi = {
       }
 
       // Log detailed error information
-      log.error("AUTH_LOGIN_ERROR", "Login request failed with exception", {
+      log.error(LOG_CATEGORIES.AUTH, "Login request failed with exception", {
         requestId,
         errorType: err?.constructor?.name || "Unknown",
         errorMessage: err?.message || "Unknown error",
@@ -319,7 +319,7 @@ export const authApi = {
       const errWithDetails = err as ErrorWithDetails;
 
       if (errWithDetails?.status === "502" || errWithDetails?.status === 502) {
-        log.error("AUTH_LOGIN_502_ERROR", "Bad Gateway error during login", {
+        log.error(LOG_CATEGORIES.AUTH, "Bad Gateway error during login", {
           requestId,
           errorDetails: {
             status: errWithDetails.status,
@@ -348,7 +348,7 @@ export const authApi = {
         typeof errWithDetails.status === "number" &&
         errWithDetails.status >= 500
       ) {
-        log.error("AUTH_LOGIN_SERVER_ERROR", "Server error during login", {
+        log.error(LOG_CATEGORIES.AUTH, "Server error during login", {
           requestId,
           status: errWithDetails.status,
           message: errWithDetails.message,
@@ -359,7 +359,7 @@ export const authApi = {
         typeof errWithDetails.status === "number" &&
         errWithDetails.status >= 400
       ) {
-        log.warn("AUTH_LOGIN_CLIENT_ERROR", "Client error during login", {
+        log.warn(LOG_CATEGORIES.AUTH, "Client error during login", {
           requestId,
           status: errWithDetails.status,
           message: errWithDetails.message,
@@ -412,7 +412,7 @@ export const authApi = {
     );
 
     if (response.success) {
-      log.security("AUTH_API", "Password reset successful", { email });
+      log.security(LOG_CATEGORIES.AUTH, "Password reset successful", { email });
     } else {
       reportSecurityEvent({
         type: "authentication_failure",
@@ -433,9 +433,9 @@ export const authApi = {
       const response = await apiPost<AuthResponse>("/api/v1/auth/logout", {});
 
       if (response.success) {
-        log.info("AUTH_LOGOUT", "Logout successful - cookies cleared");
+        log.info(LOG_CATEGORIES.AUTH, "Logout successful - cookies cleared");
       } else {
-        log.warn("AUTH_LOGOUT_FAILED", "Logout request failed", {
+        log.warn(LOG_CATEGORIES.AUTH, "Logout request failed", {
           error: response.error,
         });
       }
@@ -443,7 +443,7 @@ export const authApi = {
       return response;
     } catch (error: unknown) {
       const err = error as Error;
-      log.error("AUTH_LOGOUT_ERROR", "Logout request failed with exception", {
+      log.error(LOG_CATEGORIES.AUTH, "Logout request failed with exception", {
         errorMessage: err?.message || "Unknown error",
       });
       // Return a generic error response
@@ -471,17 +471,7 @@ export const authApi = {
     
       
       const { apiGet } = await import("../../services/http/compatibility");
-      
-      // Log the exact API call being made
-      log.info("🔍 FRONTEND_VERIFY_API_CALL", "Making verify session API call", {
-        requestId,
-        url: "/api/v1/user/profile",
-        method: "GET",
-        includeCredentials: true,
-        includeAuth: false,
-        useCors: false
-      });
-      
+       
       // Use profile endpoint to verify session
       const response = await apiGet<
         AuthResponse & { data?: Record<string, unknown> }
@@ -507,7 +497,7 @@ export const authApi = {
         };
       }
 
-      log.info("🔍 FRONTEND_VERIFY_NO_SESSION", "No valid session found", {
+      log.info(LOG_CATEGORIES.AUTH, "🔍 No valid session found", {
         requestId,
         responseSuccess: response.success,
         hasData: !!response.data,
@@ -525,7 +515,7 @@ export const authApi = {
         .map((c) => c.trim().split("=")[0])
         .filter(Boolean);
       
-      log.error("🔍 FRONTEND_VERIFY_ERROR", "Session verification failed with error", {
+      log.error(LOG_CATEGORIES.AUTH, "🔍 Session verification failed with error", {
         requestId,
         error: err?.message || "Unknown error",
         errorType: err?.constructor?.name || "Unknown",

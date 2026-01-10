@@ -1,0 +1,19 @@
+{
+  "polling": false,
+  "initialApiCalls": false,
+  "pages": true,
+  "hooks": true,
+  "auth": false,
+  "http": true,
+  "api": true,
+  "errors": true,
+  "security": true,
+  "search": true,
+  "mapRendering": true,
+  "negotiation": true,
+  "checklists": true,
+  "calendar": true,
+  "dashboard": true,
+  "messages": true,
+  "logLevel": "DEBUG"
+}

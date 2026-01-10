@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 
 from app import db
-from app.models import HomeUniversal, HomeLikes
+from app.models import HomeUniversal, HomeLikes, HomeNotInterested
 from app.utils.address_format import normalize_address
 from app.utils.currency import format_currency
 
@@ -42,36 +42,17 @@ def sync_to_home_likes(home_universal: HomeUniversal, action: str = "liked") -> 
                 existing_likes = rec
                 break
     
-    # Prepare all fields from HomeUniversal
+    # Prepare only fields that exist in HomeLikes model
+    # HomeLikes only supports: user_id, is_liked, address, zpid, mls_home_id, score, latitude, longitude
     fields = {
         "user_id": str(home_universal.user_id),
         "is_liked": home_universal.is_liked,
         "address": home_universal.address,
-        "city": home_universal.city,
-        "state": home_universal.state,
-        "zipcode": home_universal.zipcode,
-        "beds": home_universal.beds,
-        "baths": home_universal.baths,
-        "sqft": home_universal.sqft,
-        "lot_size": home_universal.lot_size,
-        "price": home_universal.price,
-        "image_url": home_universal.image_url,
-        "image_urls": home_universal.image_urls,
         "zpid": home_universal.zpid,
-        "listing_status": home_universal.listing_status,
-        "property_type": home_universal.property_type,
-        "home_type": home_universal.home_type,
-        "year_built": home_universal.year_built,
+        "mls_home_id": home_universal.mls_home_id,
         "score": home_universal.score,
         "latitude": home_universal.latitude,
         "longitude": home_universal.longitude,
-        "living_area": home_universal.living_area,
-        "lot_area_value": home_universal.lot_area_value,
-        "lot_area_unit": home_universal.lot_area_unit,
-        "features": home_universal.features,
-        "property_analysis": home_universal.property_analysis,
-        "commute_data": home_universal.commute_data,
-        "raw_data": home_universal.raw_data,
     }
     
     # Add timestamp entry to like_history
@@ -100,12 +81,93 @@ def sync_to_home_likes(home_universal: HomeUniversal, action: str = "liked") -> 
         return record
 
 
-def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool = False) -> HomeUniversal:
+def sync_to_home_not_interested(home_universal: HomeUniversal, action: str = "not_interested", why: Optional[str] = None) -> HomeNotInterested:
+    """
+    Sync a HomeUniversal record to HomeNotInterested and add a timestamp entry to not_interested_history.
+    
+    Args:
+        home_universal: The HomeUniversal record to sync
+        action: Either "not_interested" or "undo"
+        why: Optional reason why not interested
+    
+    Returns:
+        The HomeNotInterested record (created or updated)
+    """
+    if action not in ("not_interested", "undo"):
+        raise ValueError("action must be 'not_interested' or 'undo'")
+    
+    # Find existing HomeNotInterested record by normalized address
+    existing_not_interested: Optional[HomeNotInterested] = None
+    if home_universal.address:
+        try:
+            norm = normalize_address(home_universal.address)
+        except Exception:
+            norm = home_universal.address.strip().lower()
+        
+        for rec in HomeNotInterested.query.filter_by(user_id=str(home_universal.user_id)).all():
+            if not rec.address:
+                continue
+            try:
+                rec_norm = normalize_address(rec.address)
+            except Exception:
+                rec_norm = rec.address.strip().lower()
+            if rec_norm == norm:
+                existing_not_interested = rec
+                break
+    
+    # Prepare fields from HomeUniversal (only fields that exist in HomeNotInterested)
+    fields = {
+        "user_id": str(home_universal.user_id),
+        "is_not_interested": action == "not_interested",
+        "address": home_universal.address,
+        "zpid": home_universal.zpid,
+        "mls_home_id": home_universal.mls_home_id,
+        "score": home_universal.score,
+        "latitude": home_universal.latitude,
+        "longitude": home_universal.longitude,
+    }
+    
+    # Add timestamp entry to not_interested_history
+    timestamp_entry = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "action": action
+    }
+    if why and action == "not_interested":
+        timestamp_entry["why"] = why
+    
+    if existing_not_interested:
+        # Update existing record
+        for k, v in fields.items():
+            setattr(existing_not_interested, k, v)
+        # Update why field if provided
+        if why and action == "not_interested":
+            existing_not_interested.why = why
+        # Initialize not_interested_history if None
+        if existing_not_interested.not_interested_history is None:
+            existing_not_interested.not_interested_history = []
+        # Add new timestamp entry
+        existing_not_interested.not_interested_history.append(timestamp_entry)
+        db.session.commit()
+        return existing_not_interested
+    else:
+        # Create new record
+        not_interested_history = [timestamp_entry]
+        record_fields = fields.copy()
+        if why and action == "not_interested":
+            record_fields["why"] = why
+        record = HomeNotInterested(not_interested_history=not_interested_history, **record_fields)
+        db.session.add(record)
+        db.session.commit()
+        return record
+
+
+def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool = False, ranking: Optional[int] = None) -> HomeUniversal:
     """
     Add or update a minimal home record for a user using basic/search fields.
     - De-dupes by normalized address per user
     - Updates known fields if record exists
     - Optionally sets is_liked to True
+    - Optionally sets ranking (position in search results, 1-based)
 
     Expected keys in `home`:
       address, bedrooms, bathrooms, sqft, lotSize, price, image_url/imageUrl/imgSrc
@@ -123,7 +185,7 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
     except Exception:
         norm = address.lower()
 
-    # Find existing by normalized address
+    # Find existing by normalized address (check both current and non-current)
     existing: Optional[HomeUniversal] = None
     for rec in HomeUniversal.query.filter_by(user_id=str(user_id)).all():
         if not rec.address:
@@ -221,6 +283,11 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
             else:
                 if v is not None:
                     setattr(existing, k, v)
+        # Mark as current when updating
+        existing.current = True
+        # Set ranking if provided
+        if ranking is not None:
+            existing.ranking = ranking
         # If caller requests to like, ensure flag is set on existing record
         if set_liked:
             existing.is_liked = True
@@ -230,7 +297,7 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
             sync_to_home_likes(existing, action="liked")
         return existing
 
-    record = HomeUniversal(user_id=str(user_id), **fields)
+    record = HomeUniversal(user_id=str(user_id), current=True, ranking=ranking, **fields)
     if set_liked:
         record.is_liked = True
     db.session.add(record)

@@ -3,6 +3,8 @@ from flask_login import login_required, current_user
 from ..celery.tasks import find_best_matches_task
 from ..celery.celery_worker import celery
 from ..utils.security.app_logging import get_logger
+from ..home_matching.preprocessing.user_input_data import get_user_data_from_dict
+from ..home_matching.preprocessing.home_input_data import format_homes_data_from_api
 
 # Configure logging
 logger = get_logger()
@@ -82,6 +84,12 @@ def find_matches():
         # Add current user info to user_data if not present
         if 'user_id' not in user_data and current_user:
             user_data['user_id'] = str(current_user.id)
+        
+        # Format user data using the new module for consistency
+        user_data = get_user_data_from_dict(user_data)
+        
+        # Format homes data using the new module for consistency
+        homes_data = format_homes_data_from_api(homes_data)
         
         # Start the Celery task
         task = find_best_matches_task.delay(

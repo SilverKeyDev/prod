@@ -90,7 +90,7 @@ export default defineConfig({
             return undefined; // Include in main bundle
           }
           // Ensure hooks that use router are in main bundle
-          if (id.includes("packages/hooks") && id.includes("useMessagePolling")) {
+          if (id.includes("packages/hooks") && id.includes("useDataPolling")) {
             return undefined; // Include in main bundle
           }
         },

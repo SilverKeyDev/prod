@@ -55,9 +55,9 @@ export default function SelectHomeModal({
           </div>
         ) : (
           <div className="max-h-96 space-y-2 overflow-y-auto">
-            {savedHomes.map((home) => (
+            {savedHomes.map((home, index) => (
               <button
-                key={home.home_id}
+                key={home.home_id || `home-${index}`}
                 onClick={() => setSelectedHomeId(home.home_id)}
                 className={`w-full rounded-lg border p-3 text-left transition-colors ${
                   selectedHomeId === home.home_id

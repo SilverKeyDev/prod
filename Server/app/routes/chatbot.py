@@ -3,7 +3,7 @@
 from flask import Blueprint, request, jsonify
 from app.models import UserPreferences, ChatHistory
 from app.services.chatbot.chatbot_utils import get_preferences, summarize_user_message, get_chat_response
-from app.utils.auth import get_current_user
+from app.services.auth.current_user import get_current_user
 from .. import db
 import json
 import traceback

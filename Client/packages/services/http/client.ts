@@ -9,6 +9,7 @@
 // Import auth token directly to avoid circular dependencies
 // Note: getAuthToken will be used by the configured client in config.ts
 import { asError } from "../../utils/error";
+import { log, LOG_CATEGORIES } from "../../../logger";
 
 // Module-scope single-flight verification state and auth event broadcast
 let verifyingPromise: Promise<{ success?: boolean } | null> | null = null;
@@ -305,7 +306,7 @@ export class HttpClient {
 
       // Special logging for auth responses
       if (url.includes("/auth/") || response.status === 401) {
-        console.log("🔐 AUTH_RESPONSE_DETECTED", {
+        log.debug(LOG_CATEGORIES.HTTP, "🔐 AUTH_RESPONSE_DETECTED", {
           url,
           status: response.status,
           cookiesBefore: allCookies,
@@ -344,7 +345,7 @@ export class HttpClient {
                 message?: string;
               };
 
-              console.error("❌ AUTH_ERROR_401", {
+              log.error(LOG_CATEGORIES.HTTP, "❌ AUTH_ERROR_401", {
                 url,
                 errorCode: errorBody.error,
                 message: errorBody.message,
@@ -377,7 +378,7 @@ export class HttpClient {
 
         // Enhanced logging for 502 Bad Gateway errors
         if (response.status === 502) {
-          console.error("HTTP_502_BAD_GATEWAY", {
+          log.error(LOG_CATEGORIES.HTTP, "HTTP_502_BAD_GATEWAY", {
             method,
             url,
             status: response.status,
@@ -458,7 +459,7 @@ export class HttpClient {
           error.message.includes("load failed")
         );
         
-        console.error("API_REQUEST", `${method} ${sanitizedUrl} - Network Error`, {
+        log.error(LOG_CATEGORIES.HTTP, `${method} ${sanitizedUrl} - Network Error`, {
           method,
           url: sanitizedUrl,
           originalUrl: url, // Include original URL for debugging
@@ -651,19 +652,14 @@ export class HttpClient {
      ========================= */
 
   private logApiRequest(method: string, url: string): void {
-    // Import dynamically to avoid circular dependencies
-    import("../security/secureLogger")
-      .then(({ secureLogger }) => {
-        // Replace UUIDs and numeric IDs with :id for logging
-        const sanitizedUrl = url
-          .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
-          .replace(/\/\d+/g, "/:id");
-        secureLogger.info(
-          "API_REQUEST",
-          `${method} ${sanitizedUrl}`,
-        );
-      })
-      .catch(console.error);
+    // Replace UUIDs and numeric IDs with :id for logging
+    const sanitizedUrl = url
+      .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+      .replace(/\/\d+/g, "/:id");
+    log.info(
+      LOG_CATEGORIES.HTTP,
+      `${method} ${sanitizedUrl}`,
+    );
   }
 
   private logApiResponse(
@@ -672,32 +668,22 @@ export class HttpClient {
     status: number,
     duration?: number,
   ): void {
-    // Import dynamically to avoid circular dependencies
-    import("../security/secureLogger")
-      .then(({ secureLogger }) => {
-        // Replace UUIDs and numeric IDs with :id for logging
-        const sanitizedUrl = url
-          .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
-          .replace(/\/\d+/g, "/:id");
-        const durationText = duration ? ` (${duration}ms)` : "";
-        secureLogger.info(
-          "API_RESPONSE",
-          `${method} ${sanitizedUrl} - ${status}${durationText}`,
-        );
-      })
-      .catch(console.error);
+    // Replace UUIDs and numeric IDs with :id for logging
+    const sanitizedUrl = url
+      .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+      .replace(/\/\d+/g, "/:id");
+    const durationText = duration ? ` (${duration}ms)` : "";
+    log.info(
+      LOG_CATEGORIES.HTTP,
+      `${method} ${sanitizedUrl} - ${status}${durationText}`,
+    );
   }
 
   private handleAuthenticationError(error: AuthenticationError): void {
-    // Import dynamically to avoid circular dependencies
-    import("../security/secureLogger")
-      .then(({ secureLogger }) => {
-        secureLogger.security("AUTH", "Authentication error detected", {
-          errorCode: error.errorCode,
-          message: error.message,
-        });
-      })
-      .catch(console.error);
+    log.security(LOG_CATEGORIES.AUTH, "Authentication error detected", {
+      errorCode: error.errorCode,
+      message: error.message,
+    });
 
     try {
       // With HTTP-only cookies, we need to call the server logout endpoint
@@ -726,8 +712,9 @@ export class HttpClient {
         try {
           window.dispatchEvent(authErrorEvent);
         } catch (dispatchError) {
-          console.warn(
-            "Authentication error event dispatch failed:",
+          log.warn(
+            LOG_CATEGORIES.HTTP,
+            "Authentication error event dispatch failed",
             dispatchError,
           );
         }

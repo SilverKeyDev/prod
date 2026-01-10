@@ -1,7 +1,11 @@
 // External libraries
 import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Internal config and utilities
+import { searchApi } from "../../../../../packages/config/api/search";
+import { queryKeys } from "../../../../../packages/config/query/keys";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 
 // Internal features
@@ -35,65 +39,59 @@ export function useIsochroneFlow(params: {
   setShowPropertyModals: (b: boolean) => void;
   saveSearchResultsToLocalStorage: (r: SearchResult[]) => Promise<void>;
   mapFocusOnCurrentProperty: () => void;
+  cachedIsochroneData?: Record<string, unknown> | null;
+  fetchCachedIsochrone?: () => Promise<Record<string, unknown> | null>;
 }): {
   primeIsochroneOverlay: (hasResults: boolean) => Promise<void>;
   runIsochroneSearch: () => Promise<void>;
   fetchIsochroneForMapOnly: () => Promise<Record<string, unknown> | null>;
 } {
+  const queryClient = useQueryClient();
+
   // Fetch isochrone polygon from backend for map population only (no property search)
   const fetchIsochroneForMapOnly = useCallback(async () => {
+    // Check cache first if available
+    if (params.cachedIsochroneData) {
+      return params.cachedIsochroneData;
+    }
+    
+    // Try to fetch from cache via hook if available
+    if (params.fetchCachedIsochrone) {
+      const cached = await params.fetchCachedIsochrone();
+      if (cached) {
+        return cached;
+      }
+    }
+
+    // If not in cache, fetch from API
     try {
       // Auth is handled via HTTP-only cookies
       // Server will return 401 if not authenticated
 
-      const { apiBaseUrl } = params.env;
-      const base = apiBaseUrl || ""; // In dev, empty string uses Vite proxy
-      const response = await fetch(`${base}/api/v1/search/isochrone`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include", // Send HTTP-only cookies
-      });
+      const response = await searchApi.getIsochrone();
 
-      if (response.ok) {
-        const data = (await response.json()) as unknown;
-
-        if (
-          data &&
-          typeof data === "object" &&
-          "success" in data &&
-          data.success &&
-          "data" in data &&
-          data.data
-        ) {
-          return data.data as Record<string, unknown>;
-        } else {
-          if (console && typeof console.warn === "function") {
-            console.warn("⚠️ Invalid isochrone response structure:", data);
-          }
-          return null;
-        }
+      if (response.success && response.data) {
+        const data = response.data as Record<string, unknown>;
+        // Update cache when data is fetched
+        queryClient.setQueryData(queryKeys.search.isochrone(), data);
+        return data;
       } else {
-        const errorText = await response.text();
-        if (console && typeof console.error === "function") {
-          console.error("❌ Isochrone API error:", response.status, errorText);
-        }
+        log.warn(LOG_CATEGORIES.API, "Invalid isochrone response structure", {
+          success: response.success,
+          hasData: !!response.data,
+        });
         return null;
       }
     } catch (error: unknown) {
       const err = error as Error;
-      if (console && typeof console.error === "function") {
-        console.error("❌ Error fetching isochrone polygon:", {
-          message: err.message,
-          name: err.name,
-          apiBaseUrl: params.env.apiBaseUrl,
-        });
-      }
+      log.error(LOG_CATEGORIES.ERRORS, "Error fetching isochrone polygon", {
+        message: err.message,
+        name: err.name,
+        apiBaseUrl: params.env.apiBaseUrl,
+      });
       return null;
     }
-  }, [params.env]);
+  }, [params.env, params.cachedIsochroneData, params.fetchCachedIsochrone, queryClient]);
 
   // Automatically search for properties within the isochrone polygon
   const handleSearchPropertiesInIsochrone = useCallback(
@@ -167,11 +165,13 @@ export function useIsochroneFlow(params: {
           data.data &&
           typeof data.data === "object"
         ) {
-          await handleSearchPropertiesInIsochrone(
-            data.data as Record<string, unknown>,
-          );
+          const isochroneData = data.data as Record<string, unknown>;
+          // Update cache when data is fetched
+          queryClient.setQueryData(queryKeys.search.isochrone(), isochroneData);
+          
+          await handleSearchPropertiesInIsochrone(isochroneData);
 
-          return data.data as Record<string, unknown>;
+          return isochroneData;
         } else {
           console.warn(
             "⚠️ Isochrone API returned unsuccessful response:",
@@ -200,10 +200,28 @@ export function useIsochroneFlow(params: {
       params.setSearchStage("");
     }
     return null;
-  }, [handleSearchPropertiesInIsochrone, params.env, params.setIsSearching, params.setSearchStage]);
+  }, [handleSearchPropertiesInIsochrone, params.env, params.setIsSearching, params.setSearchStage, queryClient]);
 
   const primeIsochroneOverlay = useCallback(
     async (hasResults: boolean) => {
+      // Check cache first if available
+      if (params.cachedIsochroneData) {
+        params.renderIsochronePolygon(params.cachedIsochroneData);
+        await params.renderImportantLocationMarkers(params.cachedIsochroneData);
+        return;
+      }
+
+      // Try to fetch from cache via hook if available
+      if (params.fetchCachedIsochrone) {
+        const cached = await params.fetchCachedIsochrone();
+        if (cached) {
+          params.renderIsochronePolygon(cached);
+          await params.renderImportantLocationMarkers(cached);
+          return;
+        }
+      }
+
+      // If not in cache, fetch from API
       const fetcher = hasResults
         ? fetchIsochroneForMapOnly
         : fetchIsochronePolygon;
@@ -227,6 +245,8 @@ export function useIsochroneFlow(params: {
       fetchIsochronePolygon,
       params.renderIsochronePolygon,
       params.renderImportantLocationMarkers,
+      params.cachedIsochroneData,
+      params.fetchCachedIsochrone,
     ],
   );
 

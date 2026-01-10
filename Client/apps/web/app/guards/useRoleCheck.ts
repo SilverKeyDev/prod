@@ -1,11 +1,11 @@
 import type { UserRole, UserProfile } from "../../../../packages/schemas/user";
-import { useAuth } from "../providers/auth/useAuth.ts";
+import { useAuthStoreIntegration } from "../../../../packages/hooks/store/useAuthStoreIntegration";
 
 /**
  * Hook to check if current user has specific roles
  */
 export function useRoleCheck() {
-  const { user } = useAuth();
+  const { user } = useAuthStoreIntegration();
 
   // Type guard to check if user has roles property
   const hasRoles = (

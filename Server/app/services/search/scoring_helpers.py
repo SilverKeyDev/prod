@@ -10,6 +10,7 @@ from typing import Dict, Any, List
 from flask import current_app
 
 from ...home_matching.config.match import find_best_matches
+from ...home_matching.preprocessing.home_input_data import format_homes_data_from_api
 
 
 def score_and_sort_properties(
@@ -29,25 +30,8 @@ def score_and_sort_properties(
     
     try:
         # Convert properties to format expected by home matching system
-        homes_data = []
-        for prop in properties:
-            home_data = {
-                "zpid": prop.get("zpid"),
-                "address": prop.get("address", ""),
-                "price": prop.get("price"),
-                "bedrooms": prop.get("bedrooms"),
-                "bathrooms": prop.get("bathrooms"),
-                "livingArea": prop.get("livingArea"),
-                "lotAreaValue": prop.get("lotAreaValue"),
-                "propertyType": prop.get("propertyType"),
-                "latitude": prop.get("latitude"),
-                "longitude": prop.get("longitude"),
-                "listingStatus": prop.get("listingStatus"),
-                "yearBuilt": prop.get("yearBuilt"),
-                "homeType": prop.get("homeType"),
-                "raw_data": prop
-            }
-            homes_data.append(home_data)
+        # Use the new home_input_data module for consistent formatting
+        homes_data = format_homes_data_from_api(properties)
         
         # Get scored matches
         scored_matches = find_best_matches(
@@ -56,7 +40,9 @@ def score_and_sort_properties(
             top_k=len(homes_data),
             include_explanations=False,
             embedding_provider="sentence_transformer",
-            llm_provider="openai"
+            llm_provider="openai",
+            request_id=request_id,
+            track_to_db=True
         )
         
         # Build score map

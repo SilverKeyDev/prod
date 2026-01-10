@@ -1,12 +1,10 @@
 // Internal API clients
 import { offerApi, searchApi } from "../config/api";
+import { authApi } from "../config/api/auth";
 // Internal utilities
-import { useNegotiationStore } from "../store/negotiation.slice";
-import { useAuthStore } from "../store/auth.slice";
 import { asError } from "../utils/error";
 import { isObject, hasProperty } from "../utils/typeGuards";
-
-import { log } from "./security/secureLogger";
+import { log, LOG_CATEGORIES } from "../../logger";
 
 // Internal services
 
@@ -83,7 +81,7 @@ export class NegotiationService {
       const item = sessionStorage.getItem(key);
       return item ? JSON.parse(item) : null;
     } catch (error: unknown) {
-      console.warn(`Failed to load ${key} from sessionStorage:`, error);
+      log.warn(LOG_CATEGORIES.API, `Failed to load ${key} from sessionStorage`, error);
       return null;
     }
   }
@@ -95,7 +93,7 @@ export class NegotiationService {
     try {
       sessionStorage.setItem(key, JSON.stringify(value));
     } catch (error: unknown) {
-      console.warn(`Failed to save ${key} to sessionStorage:`, error);
+      log.warn(LOG_CATEGORIES.API, `Failed to save ${key} to sessionStorage`, error);
     }
   }
 
@@ -159,7 +157,7 @@ export class NegotiationService {
       return;
     }
 
-    log.info("NEGOTIATION_SERVICE", "Home selected", {
+    log.info(LOG_CATEGORIES.API, "Home selected", {
       homeAddress: newAddress,
     });
 
@@ -170,10 +168,7 @@ export class NegotiationService {
       error: null,
     });
 
-    // Update Zustand store
-    const store = useNegotiationStore.getState();
-    store.setSelectedHome(home as import("../schemas").SavedHome);
-    store.setStrategyData(null);
+    // State is managed internally; hooks will sync to store if needed
     store.setCompsData(null);
     store.setStrategyTextContent("");
     store.setCompsTextContent("");
@@ -230,9 +225,9 @@ export class NegotiationService {
     });
 
     try {
-      // Check authentication status using auth store
-      const authStore = useAuthStore.getState();
-      if (!authStore.isAuthenticated) {
+      // Check authentication status using auth API
+      const authCheck = await authApi.verifySession();
+      if (!authCheck.success) {
         throw new Error("Authentication required. Please log in.");
       }
 
@@ -268,7 +263,7 @@ export class NegotiationService {
         throw new Error("No valid address found for selected home");
       }
 
-      log.info("NEGOTIATION_SERVICE", "Generating strategy and comps", {
+      log.info(LOG_CATEGORIES.API, "Generating strategy and comps", {
         address,
       });
 
@@ -300,7 +295,7 @@ export class NegotiationService {
         !compsResponseData.success
       ) {
         if (log && typeof log.warn === "function") {
-          log.warn("NEGOTIATION_SERVICE", "Property comps API failed", {
+          log.warn(LOG_CATEGORIES.API, "Property comps API failed", {
             error:
               "error" in compsResponseData &&
               typeof compsResponseData.error === "string"
@@ -317,13 +312,13 @@ export class NegotiationService {
           : {};
       
       // Debug logging for price section
-      console.log("[NEGOTIATION SERVICE] strategyResponse.strategy:", strategyResponse.strategy);
-      console.log("[NEGOTIATION SERVICE] parsedStrategyData:", parsedStrategyData);
-      if (parsedStrategyData && typeof parsedStrategyData === "object" && "data" in parsedStrategyData) {
-        console.log("[NEGOTIATION SERVICE] parsedStrategyData.data:", (parsedStrategyData as Record<string, unknown>).data);
-      }
+      log.debug(LOG_CATEGORIES.API, "Strategy response data", {
+        hasStrategy: !!strategyResponse.strategy,
+        hasParsedData: !!parsedStrategyData,
+        hasDataField: parsedStrategyData && typeof parsedStrategyData === "object" && "data" in parsedStrategyData,
+      });
       
-      log.info("NEGOTIATION_SERVICE", "Strategy generated successfully", {
+      log.info(LOG_CATEGORIES.API, "Strategy generated successfully", {
         strategyId:
           "strategy_id" in strategyResponse &&
           typeof strategyResponse.strategy_id === "string"
@@ -344,11 +339,7 @@ export class NegotiationService {
         isLoading: false,
       });
 
-      // Update Zustand store
-      const store = useNegotiationStore.getState();
-      store.setStrategyData(parsedStrategyData ?? {});
-      store.setCompsData(compsResponseData ?? {});
-      store.setStrategyTextContent(strategyTextContent);
+      // State is managed internally; hooks will sync to store if needed
       store.setCompsTextContent(compsTextContent);
       store.setLoading(false);
       store.setError(null);
@@ -380,7 +371,7 @@ export class NegotiationService {
       );
     } catch (err: unknown) {
       const error = asError(err);
-      log.error("NEGOTIATION_SERVICE", "Error generating strategy", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Error generating strategy", error);
 
       // Handle different error types
       let errorMessage = "Failed to generate strategy. Please try again.";
@@ -411,10 +402,7 @@ export class NegotiationService {
         isLoading: false,
       });
 
-      // Update Zustand store with error
-      const store = useNegotiationStore.getState();
-      store.setLoading(false);
-      store.setError(errorMessage);
+      // State is managed internally; hooks will sync to store if needed
 
       if (
         this.callbacks.onError &&
@@ -474,7 +462,7 @@ export class NegotiationService {
    */
   public downloadStrategyJson(): void {
     if (!this.state.strategyData) {
-      log.warn("NEGOTIATION_SERVICE", "No strategy data to download");
+      log.warn(LOG_CATEGORIES.API, "No strategy data to download");
       return;
     }
 
@@ -518,7 +506,7 @@ export class NegotiationService {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      log.info("NEGOTIATION_SERVICE", "Strategy JSON downloaded successfully");
+      log.info(LOG_CATEGORIES.API, "Strategy JSON downloaded successfully");
     } catch (error: unknown) {
       log.error(
         "NEGOTIATION_SERVICE",
@@ -533,7 +521,7 @@ export class NegotiationService {
    */
   public async shareStrategyJson(): Promise<void> {
     if (!this.state.strategyData) {
-      log.warn("NEGOTIATION_SERVICE", "No strategy data to share");
+      log.warn(LOG_CATEGORIES.API, "No strategy data to share");
       return;
     }
 
@@ -627,7 +615,7 @@ export class NegotiationService {
         "Strategy copied to clipboard as fallback",
       );
     } catch (error: unknown) {
-      log.error("NEGOTIATION_SERVICE", "Failed to share strategy", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to share strategy", error);
     }
   }
 
@@ -652,7 +640,7 @@ export class NegotiationService {
         textArea.remove();
       }
     } catch (error: unknown) {
-      log.error("NEGOTIATION_SERVICE", "Failed to copy to clipboard", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to copy to clipboard", error);
       throw error;
     }
   }
@@ -668,16 +656,14 @@ export class NegotiationService {
       error: null,
     });
 
-    // Clear Zustand store
-    const store = useNegotiationStore.getState();
-    store.clearData();
+    // State is managed internally; hooks will sync to store if needed
 
     // Clear localStorage
     Object.values(this.localStorageKeys).forEach((key) => {
       localStorage.removeItem(key);
     });
 
-    log.info("NEGOTIATION_SERVICE", "All data cleared");
+    log.info(LOG_CATEGORIES.API, "All data cleared");
   }
 
   /**

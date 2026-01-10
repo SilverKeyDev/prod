@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import EscrowLegalLogistics from "../features/close/subheaders/EscrowLegalLogistics";
 import InspectionsDueDiligence from "../features/close/subheaders/InspectionsDueDiligence";
 import FinancingInsurance from "../features/close/subheaders/FinancingInsurance";
 import ClosingMovingIn from "../features/close/subheaders/ClosingMovingIn";
+import { ClientSelector } from "../components/ui";
 // Removed store coupling; tab state is now managed by DashboardLayout
 
 type ClosePageHeaderData = {
@@ -31,6 +32,7 @@ export default function BuyerChecklists({
 }: BuyerChecklistsProps) {
   const [closePageHeaderData, setClosePageHeaderDataState] =
     React.useState<ClosePageHeaderData | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   // Update the parent component's header data
   useEffect(() => {
@@ -71,6 +73,13 @@ export default function BuyerChecklists({
 
   return (
     <div className={`h-full w-full bg-off-white`}>
+      {/* Client Selector */}
+      <div className="mx-auto w-full max-w-7xl mt-6 mb-4">
+        <ClientSelector
+          selectedClientId={selectedClientId}
+          onClientChange={setSelectedClientId}
+        />
+      </div>
       {/* Content */}
       <div className="mx-auto w-full max-w-7xl mt-6">{renderTabContent()}</div>
     </div>

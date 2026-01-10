@@ -1,9 +1,11 @@
 /**
  * Centralized Error Handling Utilities
  * Builds upon existing error handling patterns and provides consistent error management
+ * 
+ * NOTE: This module is framework-agnostic. For React-specific error boundaries,
+ * see the ErrorBoundary component in apps/web/app/error/ErrorBoundary.tsx
  */
 
-import React from "react";
 import {
   extractErrorDetails,
   isApiError,
@@ -12,6 +14,7 @@ import {
   isObject,
   isString,
 } from "./typeGuards";
+import { log, LOG_CATEGORIES } from "../../logger";
 
 // ============================================================================
 // ERROR TYPES AND INTERFACES
@@ -422,20 +425,20 @@ export function logError(
   // Use different log levels based on error type
   switch (error.name) {
     case "ValidationError":
-      console.warn(errorPrefix, errorDetails);
+      log.warn(LOG_CATEGORIES.ERRORS, errorPrefix, errorDetails);
       break;
     case "AuthenticationError":
     case "AuthorizationError":
-      console.warn(errorPrefix, errorDetails);
+      log.warn(LOG_CATEGORIES.AUTH, errorPrefix, errorDetails);
       break;
     case "NetworkError":
-      console.error(errorPrefix, errorDetails);
+      log.error(LOG_CATEGORIES.HTTP, errorPrefix, errorDetails);
       break;
     case "BusinessLogicError":
-      console.error(errorPrefix, errorDetails);
+      log.error(LOG_CATEGORIES.ERRORS, errorPrefix, errorDetails);
       break;
     default:
-      console.error(errorPrefix, errorDetails);
+      log.error(LOG_CATEGORIES.ERRORS, errorPrefix, errorDetails);
   }
 }
 
@@ -506,50 +509,6 @@ export function getUserFriendlyMessage(error: AppError): string {
     default:
       return "Something went wrong. Please try again later.";
   }
-}
-
-// ============================================================================
-// ERROR BOUNDARY HELPERS
-// ============================================================================
-
-/**
- * Creates an error boundary component for React
- * @param fallback - Fallback component to render on error
- * @returns Error boundary component
- */
-export function createErrorBoundary(
-  fallback: (error: AppError, retry: () => void) => React.ReactNode,
-) {
-  return class ErrorBoundary extends React.Component<
-    { children: React.ReactNode },
-    { error: AppError | null }
-  > {
-    constructor(props: { children: React.ReactNode }) {
-      super(props);
-      this.state = { error: null };
-    }
-
-    static getDerivedStateFromError(error: unknown): { error: AppError } {
-      return { error: normalizeError(error) };
-    }
-
-    componentDidCatch(error: unknown, errorInfo: React.ErrorInfo) {
-      const normalizedError = normalizeError(error, {
-        componentStack: errorInfo.componentStack,
-      });
-
-      logError(normalizedError);
-      reportError(normalizedError);
-    }
-
-    render() {
-      if (this.state.error) {
-        return fallback(this.state.error, () => this.setState({ error: null }));
-      }
-
-      return this.props.children;
-    }
-  };
 }
 
 // ============================================================================

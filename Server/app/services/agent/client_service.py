@@ -97,3 +97,113 @@ def get_client_info(client_id: str) -> Optional[Dict]:
     except Exception as e:
         logger.error(f"Error fetching client info for {client_id}: {e}", exc_info=True)
         raise
+
+
+def validate_agent_client_relationship(agent_id: str, client_id: str) -> bool:
+    """
+    Validate that an agent-client relationship exists
+    
+    Args:
+        agent_id: The ID of the agent
+        client_id: The ID of the client
+        
+    Returns:
+        True if relationship exists, False otherwise
+    """
+    try:
+        agent = User.query.filter_by(id=agent_id, is_agent=True).first()
+        if not agent:
+            return False
+        
+        if not agent.client_ids:
+            return False
+        
+        # Parse client_ids (stored as JSON string or comma-separated string)
+        try:
+            if isinstance(agent.client_ids, str):
+                try:
+                    client_id_list = json.loads(agent.client_ids)
+                except json.JSONDecodeError:
+                    client_id_list = [cid.strip() for cid in agent.client_ids.split(',') if cid.strip()]
+            else:
+                client_id_list = agent.client_ids if isinstance(agent.client_ids, list) else []
+        except Exception as e:
+            logger.error(f"Error parsing client_ids for agent {agent_id}: {e}")
+            return False
+        
+        return client_id in client_id_list
+        
+    except Exception as e:
+        logger.error(f"Error validating agent-client relationship: {e}", exc_info=True)
+        return False
+
+
+def get_user_agent_id(user_id: str) -> Optional[str]:
+    """
+    Get the primary agent ID for a client user
+    
+    Args:
+        user_id: The ID of the client user
+        
+    Returns:
+        Agent ID if found, None otherwise
+    """
+    try:
+        client = User.query.filter_by(id=user_id, is_agent=False).first()
+        if not client or not client.agent_id:
+            return None
+        
+        # Parse agent_id (stored as JSON string or comma-separated string)
+        try:
+            if isinstance(client.agent_id, str):
+                try:
+                    agent_id_list = json.loads(client.agent_id)
+                except json.JSONDecodeError:
+                    agent_id_list = [aid.strip() for aid in client.agent_id.split(',') if aid.strip()]
+            else:
+                agent_id_list = client.agent_id if isinstance(client.agent_id, list) else []
+        except Exception as e:
+            logger.error(f"Error parsing agent_id for client {user_id}: {e}")
+            return None
+        
+        # Return first agent ID (primary agent)
+        return agent_id_list[0] if agent_id_list else None
+        
+    except Exception as e:
+        logger.error(f"Error getting agent ID for user {user_id}: {e}", exc_info=True)
+        return None
+
+
+def get_agent_client_ids(agent_id: str) -> List[str]:
+    """
+    Get all client IDs for an agent
+    
+    Args:
+        agent_id: The ID of the agent
+        
+    Returns:
+        List of client IDs
+    """
+    try:
+        agent = User.query.filter_by(id=agent_id, is_agent=True).first()
+        if not agent or not agent.client_ids:
+            return []
+        
+        # Parse client_ids (stored as JSON string or comma-separated string)
+        try:
+            if isinstance(agent.client_ids, str):
+                try:
+                    client_id_list = json.loads(agent.client_ids)
+                except json.JSONDecodeError:
+                    client_id_list = [cid.strip() for cid in agent.client_ids.split(',') if cid.strip()]
+            else:
+                client_id_list = agent.client_ids if isinstance(agent.client_ids, list) else []
+        except Exception as e:
+            logger.error(f"Error parsing client_ids for agent {agent_id}: {e}")
+            return []
+        
+        return client_id_list if isinstance(client_id_list, list) else []
+        
+    except Exception as e:
+        logger.error(f"Error getting client IDs for agent {agent_id}: {e}", exc_info=True)
+        return []

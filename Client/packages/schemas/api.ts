@@ -132,12 +132,28 @@ export type SearchByPolygonRequest = {
     }>;
   };
   perBucketPages?: number;
+  onlyCached?: boolean; // Only return cached results, don't perform search if cache is invalid
 };
 
 export type SearchByPolygonResponse = {
   success: boolean;
   properties?: PropertySearchResult[];
+  total_count?: number;
+  has_more?: boolean;
   error?: string;
+  meta?: {
+    cached?: boolean;
+    cacheAge?: string;
+    requestsMade?: number;
+    deduped?: number;
+    errors?: unknown[];
+    status_type?: string;
+    pagesTried?: number;
+    searchTime?: number;
+    scored?: boolean;
+    requestId?: string;
+    limit?: number;
+  };
 };
 
 export type FavoriteHomesResponse = {

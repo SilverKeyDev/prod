@@ -1,4 +1,5 @@
 import { userApi } from "../config/api/user";
+import { authApi } from "../config/api/auth";
 import type { SavedHome } from "../schemas";
 import type {
   HomeUniversal,
@@ -7,11 +8,10 @@ import type {
   FavoriteHomeResponse,
 } from "../schemas/api";
 import { isObject, isNumber } from "../utils/typeGuards";
-import { useAuthStore } from "../store/auth.slice";
 
 import type { AuthenticationError } from "./http";
 import { isAuthenticationError, handleAuthenticationError } from "./http";
-import { log } from "./security/secureLogger";
+import { log, LOG_CATEGORIES } from "../../logger";
 
 /**
  * Map home data to SavedHome format
@@ -122,16 +122,17 @@ export class SavedHomesService {
   /**
    * Check if user is authenticated
    */
-  private isUserAuthenticated(): boolean {
-    // Use auth store to check authentication status
-    return useAuthStore.getState().isAuthenticated;
+  private async isUserAuthenticated(): Promise<boolean> {
+    // Use auth API to check authentication status
+    const authCheck = await authApi.verifySession();
+    return authCheck.success;
   }
 
   /**
    * Fetch saved homes data
    */
   public async fetchSavedHomes(): Promise<SavedHome[]> {
-    if (!this.isUserAuthenticated()) {
+    if (!(await this.isUserAuthenticated())) {
       throw new Error("User not authenticated");
     }
 
@@ -172,11 +173,9 @@ export class SavedHomesService {
           typeof typedResponse.error === "string"
             ? typedResponse.error
             : "Failed to load favorite homes";
-        if (log && typeof log.error === "function") {
-          log.error("SAVED_HOMES_SERVICE", "Failed to fetch saved homes", {
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch saved homes", {
             error: errorMsg,
           });
-        }
         throw new Error(errorMsg);
       }
     } catch (error: unknown) {
@@ -185,9 +184,7 @@ export class SavedHomesService {
         throw error;
       }
 
-      if (log && typeof log.error === "function") {
-        log.error("SAVED_HOMES_SERVICE", "Error fetching saved homes", error);
-      }
+      log.error(LOG_CATEGORIES.ERRORS, "Error fetching saved homes", error);
       throw error;
     }
   }
@@ -223,20 +220,16 @@ export class SavedHomesService {
           typeof typedResponse.error === "string"
             ? typedResponse.error
             : "Failed to save home";
-        if (log && typeof log.error === "function") {
-          log.error("SAVED_HOMES_SERVICE", "Failed to save home", {
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to save home", {
             error: errorMsg,
           });
-        }
         return {
           success: false,
           error: errorMsg,
         };
       }
     } catch (error: unknown) {
-      if (log && typeof log.error === "function") {
-        log.error("SAVED_HOMES_SERVICE", "Error saving home", error);
-      }
+      log.error(LOG_CATEGORIES.ERRORS, "Error saving home", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to save home",
@@ -278,20 +271,16 @@ export class SavedHomesService {
           typeof typedResponse.error === "string"
             ? typedResponse.error
             : "Failed to remove home";
-        if (log && typeof log.error === "function") {
-          log.error("SAVED_HOMES_SERVICE", "Failed to remove home", {
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to remove home", {
             error: errorMsg,
           });
-        }
         return {
           success: false,
           error: errorMsg,
         };
       }
     } catch (error: unknown) {
-      if (log && typeof log.error === "function") {
-        log.error("SAVED_HOMES_SERVICE", "Error removing home", error);
-      }
+      log.error(LOG_CATEGORIES.ERRORS, "Error removing home", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to remove home",

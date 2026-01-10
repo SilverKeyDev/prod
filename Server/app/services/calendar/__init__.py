@@ -11,6 +11,7 @@ from .event_helpers import (
     validate_max_results,
     extract_calendar_id_from_request
 )
+from .google_calendar_service import google_calendar_service
 
 __all__ = [
     "get_authenticated_user",
@@ -21,4 +22,5 @@ __all__ = [
     "extract_event_datetimes",
     "validate_max_results",
     "extract_calendar_id_from_request",
+    "google_calendar_service",
 ]

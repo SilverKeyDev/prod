@@ -1,5 +1,7 @@
 import { createPortal } from "react-dom";
 
+import { BodyText, Button, Title } from "../../ui";
+
 type SuccessDialogProps = {
   isOpen: boolean;
   title: string;
@@ -56,21 +58,24 @@ export default function SuccessDialog({
 
           {/* Content */}
           <div className="text-center">
-            <h3 className="text-responsive-lg mb-2 font-medium leading-6 text-gray-900">
+            <Title size="lg" as="h3" className="mb-2">
               {title}
-            </h3>
-            <p className="text-responsive-sm mb-6 text-gray-500">{message}</p>
+            </Title>
+            <BodyText size="sm" muted className="mb-6">
+              {message}
+            </BodyText>
           </div>
 
           {/* Action */}
           <div className="flex justify-center">
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="md"
               onClick={onConfirm}
-              className="px-responsive-lg py-responsive-sm text-responsive-sm touch-friendly inline-flex min-w-[120px] justify-center rounded-md border border-transparent bg-brown font-medium text-white shadow-sm hover:bg-brown/90 focus:outline-none focus:ring-2 focus:ring-brown/50 focus:ring-offset-2"
             >
               {confirmText}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

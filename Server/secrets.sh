@@ -4,7 +4,7 @@
 #   ./scripts/load-all-secrets.sh [region] [profile]
 #
 # Behavior:
-# - If AWS_* env vars are not set and no profile is given, will source ./.env.aws.
+# - If AWS_* env vars are not set and no profile is given, will source ./.aws.env.
 # - Each secret may be:
 #     (a) flat JSON object -> expands to KEY=VALUE lines
 #     (b) dotenv text -> KEY=VALUE lines (even if \n-escaped in SecretString)
@@ -94,10 +94,10 @@ looks_like_dotenv() {
 
 # ---- credentials ----
 if [ -z "${AWS_ACCESS_KEY_ID:-}" ] && [ -z "${PROFILE:-}" ]; then
-  if [ -f ".env.aws" ]; then
+  if [ -f ".aws.env" ]; then
     # shellcheck disable=SC1091
-    . ./.env.aws
-    log "Loaded AWS creds from ./.env.aws"
+    . ./.aws.env
+    log "Loaded AWS creds from ./.aws.env"
   fi
 fi
 

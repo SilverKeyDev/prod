@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { plaidService } from "../../services/plaid";
+import { plaidApi } from "../../config/api";
 import type {
   PlaidItem,
   PlaidAssetReport,
@@ -71,7 +71,7 @@ export function usePlaidItems(): UsePlaidItemsReturn {
   } = useQuery({
     queryKey: queryKeys.plaid.items(),
     queryFn: async () => {
-      const response = await plaidService.getItems();
+      const response = await plaidApi.getItems();
       if (!response.success) {
         throw new Error(response.error ?? "Failed to fetch plaid items");
       }
@@ -108,7 +108,7 @@ export function usePlaidLinkToken(): UsePlaidLinkTokenReturn {
   } = useQuery({
     queryKey: queryKeys.plaid.linkToken(),
     queryFn: async () => {
-      const response = await plaidService.createLinkToken();
+      const response = await plaidApi.createLinkToken();
       if (!response.success) {
         throw new Error(response.error ?? "Failed to create link token");
       }
@@ -120,7 +120,7 @@ export function usePlaidLinkToken(): UsePlaidLinkTokenReturn {
 
   const createLinkTokenMutation = useMutation({
     mutationFn: async (products?: string[]) => {
-      const response = await plaidService.createLinkToken({ products });
+      const response = await plaidApi.createLinkToken({ products });
       if (!response.success) {
         throw new Error(response.error ?? "Failed to create link token");
       }
@@ -159,7 +159,7 @@ export function usePlaidTokenExchange() {
 
   return useMutation({
     mutationFn: async (publicToken: string) => {
-      const response = await plaidService.exchangeToken({
+      const response = await plaidApi.exchangeToken({
         public_token: publicToken,
       });
       if (!response.success) {
@@ -203,7 +203,7 @@ export function usePlaidAssetReports(): UsePlaidAssetReportsReturn {
 
   const createAssetReportMutation = useMutation({
     mutationFn: async (days?: number) => {
-      const response = await plaidService.createAssetReport({
+      const response = await plaidApi.createAssetReport({
         days_requested: days,
       });
       if (!response.success) {
@@ -263,7 +263,7 @@ export function usePlaidAssetReport(
     queryKey: queryKeys.plaid.assetReport(assetReportToken || ""),
     queryFn: async () => {
       if (!assetReportToken) return null;
-      const response = await plaidService.getAssetReport(assetReportToken);
+      const response = await plaidApi.getAssetReport(assetReportToken);
       if (!response.success) {
         throw new Error(response.error ?? "Failed to fetch asset report");
       }
@@ -281,7 +281,7 @@ export function usePlaidAssetReport(
     if (!assetReportToken) return;
 
     try {
-      const blob = await plaidService.getAssetReportPdf(assetReportToken);
+      const blob = await plaidApi.getAssetReportPdf(assetReportToken);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -322,7 +322,7 @@ export function usePlaidStatements(
   } = useQuery({
     queryKey: queryKeys.plaid.statementsList(accountId),
     queryFn: async () => {
-      const response = await plaidService.getStatements();
+      const response = await plaidApi.getStatements();
       if (!response.success) {
         throw new Error(response.error ?? "Failed to fetch statements");
       }
@@ -338,7 +338,7 @@ export function usePlaidStatements(
 
   const downloadStatement = useCallback(async (statementId: string) => {
     try {
-      const blob = await plaidService.downloadStatement(statementId);
+      const blob = await plaidApi.downloadStatement(statementId);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -370,7 +370,7 @@ export function usePlaidItemDisconnect() {
 
   return useMutation({
     mutationFn: async (itemId: string) => {
-      const response = await plaidService.disconnectItem(itemId);
+      const response = await plaidApi.disconnectItem(itemId);
       if (!response.success) {
         throw new Error(response.error ?? "Failed to disconnect item");
       }

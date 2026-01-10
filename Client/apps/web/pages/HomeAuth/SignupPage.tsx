@@ -8,11 +8,10 @@ import {
   PasswordValidation,
   usePasswordValidation,
 } from "../../components/feedback";
-import { Input, FieldShell } from "../../components/ui";
+import { Button, Input, FieldShell } from "../../components/ui";
 import { getSharedInputTextStyles } from "../../components/ui/form/InputStyleUtils";
-import { authApi } from "../../../../packages/config/api";
+import { useSignup } from "../../../../packages/hooks/data/useAuthActions";
 import { showErrorToast } from "../../../../packages/hooks/ui/useToast";
-import AuthButton from "../../features/homeauth/Auth/Button";
 import AuthDivider from "../../features/homeauth/Auth/Divider";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
@@ -71,7 +70,7 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
 
   // If the value looks like an email (common autofill quirk), ignore
   if (phoneNumber.includes("@")) {
-    console.log("Phone autofill received email value, ignoring:", phoneNumber);
+    // Phone autofill received email value, ignoring
     return undefined;
   }
 
@@ -79,10 +78,7 @@ const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
 
   // Basic phone validation: digits and optional leading +
   if (!/^[+]?[\d]+$/.test(cleaned)) {
-    console.log(
-      "Phone autofill received invalid format, ignoring:",
-      phoneNumber
-    );
+    // Phone autofill received invalid format, ignoring
     return undefined;
   }
 
@@ -104,7 +100,7 @@ export default function SignupPage(_props: SignupPageProps) {
   const lastFocusRef = useRef<FieldKey>("all"); // tracks which field initiated sync intent
 
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const { signup, isLoading: isSignupLoading } = useSignup();
 
   // DOM getters
   const getDomEls = () => {
@@ -233,38 +229,28 @@ export default function SignupPage(_props: SignupPageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     if (!isPasswordValid) {
       showErrorToast(
         `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
       );
-      setLoading(false);
       return;
     }
 
-    try {
-      const { success, error } = await authApi.signup({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        phone: phoneValue ?? undefined, // E.164
-        agency_name: formData.agencyName ?? undefined,
-      });
-      if (!success) throw new Error(error ?? "Failed to sign up");
+    const result = await signup({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      phone: phoneValue ?? undefined, // E.164
+      agency_name: formData.agencyName ?? undefined,
+    });
 
+    if (result.success) {
       localStorage.setItem("signupEmail", formData.email);
       localStorage.setItem("signupPassword", formData.password);
       navigate("/verification", { state: { email: formData.email } });
-    } catch (error: unknown) {
-      console.error("Signup error:", error);
-      showErrorToast(
-        error instanceof Error
-          ? error.message
-          : "Failed to sign up. Please try again."
-      );
-    } finally {
-      setLoading(false);
+    } else if (result.error) {
+      showErrorToast(result.error);
     }
   };
 
@@ -459,9 +445,16 @@ export default function SignupPage(_props: SignupPageProps) {
           />
         </div>
 
-        <AuthButton type="submit" loading={loading} disabled={loading}>
+        <Button
+          type="submit"
+          variant="olive"
+          size="md"
+          fullWidth
+          loading={isSignupLoading}
+          disabled={isSignupLoading}
+        >
           Create account
-        </AuthButton>
+        </Button>
 
         <AuthDivider />
 

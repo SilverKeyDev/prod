@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
 import type { UserProfile } from "../../../../packages/schemas/user";
+import { ROUTES } from "../../../../packages/schemas/nav";
 import { ProtectedRoute } from "../guards";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { AuthShellProviders } from "../providers/auth/AuthShellProviders";
-import { MinimalAuthProviders } from "../providers/auth/MinimalAuthProviders";
 
 // Page-specific providers
 import { DocsOnly } from "../providers/page/DocsOnly";
@@ -17,7 +17,6 @@ export type RouteConfig = {
 };
 
 export type RouteCategory = "lightweight" | "standard" | "specialized";
-export type ProviderLevel = "minimal" | "full";
 
 // Provider factory function
 function createProviderWrapper(providerType: RouteConfig["providerType"]) {
@@ -37,8 +36,7 @@ function createProviderWrapper(providerType: RouteConfig["providerType"]) {
 export function createProtectedRoute(
   user?: UserProfile,
   onLogout?: () => void,
-  providerType?: RouteConfig["providerType"],
-  providerLevel: ProviderLevel = "full"
+  providerType?: RouteConfig["providerType"]
 ) {
   const dashboard = (
     <DashboardLayout user={user} onLogout={onLogout ?? (() => {})} />
@@ -47,27 +45,24 @@ export function createProtectedRoute(
     ? createProviderWrapper(providerType)(dashboard)
     : dashboard;
 
-  const AuthProviders =
-    providerLevel === "minimal" ? MinimalAuthProviders : AuthShellProviders;
-
   return (
     <ProtectedRoute>
-      <AuthProviders>{wrappedDashboard}</AuthProviders>
+      <AuthShellProviders>{wrappedDashboard}</AuthShellProviders>
     </ProtectedRoute>
   );
 }
 
 // Route configurations by category
 export const ROUTE_CONFIGS = {
-  lightweight: ["/settings"],
+  lightweight: [ROUTES.SETTINGS],
 
   standard: [
-    "/saved/*",
-    "/dashboard",
-    "/buyer-checklists",
-    "/agent",
-    "/calendar",
+    ROUTES.SAVED,
+    ROUTES.DASHBOARD,
+    ROUTES.BUYER_CHECKLISTS,
+    ROUTES.MESSAGING,
+    ROUTES.CALENDAR,
   ],
 
-  specialized: [{ path: "/search", providerType: "maps" as const }],
+  specialized: [{ path: ROUTES.SEARCH, providerType: "maps" as const }],
 } as const;

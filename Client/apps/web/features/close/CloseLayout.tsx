@@ -1,10 +1,9 @@
 import { CheckSquare } from "lucide-react";
-import React, { useState, useEffect, type ReactNode } from "react";
+import React, { useEffect, type ReactNode } from "react";
 
 import Card from "../../components/layout/Card";
 import ChecklistCheckbox from "../../components/ui/form/ChecklistCheckbox";
-import { apiRequest } from "../../../../packages/services/http";
-import { asError } from "../../../../packages/utils/error";
+import { useChecklistData, type ChecklistType } from "../../../../packages/hooks/data/useChecklistData";
 
 // Shared CSS classes - now using Card component instead with mobile-first responsive design
 const sectionTitle =
@@ -65,66 +64,35 @@ export default function CloseLayout({
   showMinLoadingText = false,
   setClosePageHeaderData,
 }: CloseLayoutProps) {
-  const [checked, setChecked] = useState<{ [id: number]: boolean }>({});
-  const [loading, setLoading] = useState(false);
-
-  // Utility function to convert checked state to array of IDs
-  const idsFromChecked = (state: { [id: number]: boolean }) =>
-    Object.entries(state)
-      .filter(([_, v]) => v)
-      .map(([k]) => Number(k));
-
-  // Fetch existing checklist from API
-  const fetchChecklist = async () => {
-    try {
-      setLoading(true);
-      const res = await apiRequest<{ success: boolean; data: number[] }>(
-        apiEndpoint
-      );
-
-      // Handle backend response format: {success: true, data: [1, 3, 5]}
-      const checklist = res?.data ?? res;
-
-      if (Array.isArray(checklist)) {
-        const mapping: { [id: number]: boolean } = {};
-        checklist.forEach((id: number) => (mapping[id] = true));
-        setChecked(mapping);
+  // Extract checklist type from apiEndpoint (e.g., "/api/v1/user/close?type=escrow" -> "escrow")
+  const checklistType = React.useMemo<ChecklistType>(() => {
+    const match = apiEndpoint.match(/type=(\w+)/);
+    if (match && match[1]) {
+      const type = match[1] as ChecklistType;
+      if (["escrow", "financing", "closing", "insurance"].includes(type)) {
+        return type;
       }
-    } catch (err: unknown) {
-      const error = asError(err);
-      console.error(`❌ Failed to fetch ${apiEndpoint} checklist`, error);
-    } finally {
-      setLoading(false);
     }
-  };
+    // Fallback to escrow if extraction fails
+    return "escrow";
+  }, [apiEndpoint]);
 
-  // Update checklist via API
-  const updateChecklist = async (newState: { [id: number]: boolean }) => {
-    try {
-      const body = idsFromChecked(newState);
-      await apiRequest(apiEndpoint, {
-        method: "PUT",
-        body: JSON.stringify(body),
-      });
-    } catch (err: unknown) {
-      const error = asError(err);
-      console.error(`❌ Failed to update ${apiEndpoint} checklist`, error);
-    }
-  };
+  // Use React Query hook for checklist data (uses prefetched data when available)
+  const { checkedIds, isLoading: loading, toggleItem } = useChecklistData(checklistType);
 
-  // Toggle checkbox state with optimistic update
-  const toggle = (id: number) =>
-    setChecked((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      void updateChecklist(next);
-      return next;
+  // Convert checkedIds array to checked state object
+  const checked = React.useMemo(() => {
+    const mapping: { [id: number]: boolean } = {};
+    checkedIds.forEach((id: number) => {
+      mapping[id] = true;
     });
+    return mapping;
+  }, [checkedIds]);
 
-  // Fetch checklist on component mount
-  useEffect(() => {
-    void fetchChecklist();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Toggle checkbox state
+  const toggle = (id: number) => {
+    void toggleItem(id);
+  };
 
   // Update header data when checklist state changes
   useEffect(() => {
@@ -152,7 +120,8 @@ export default function CloseLayout({
   }, [setClosePageHeaderData]);
 
   // Show loading screen for pages that need it
-  if (loading && showLoadingScreen) {
+  // Only show if no data exists AND is loading
+  if (showLoadingScreen && loading && checkedIds.length === 0) {
     return (
       <div className="flex items-center justify-center bg-off-white text-navy">
         Loading checklist...

@@ -68,7 +68,7 @@ export const searchPropertiesInIsochrone = async (
   setHasSearched: (searched: boolean) => void,
   setCurrentPage: (page: number) => void,
   setShowPropertyModals: (show: boolean) => void,
-  saveSearchResultsToLocalStorage: (results: SearchResult[]) => Promise<void>,
+  _saveSearchResultsToLocalStorage: (results: SearchResult[]) => Promise<void>, // Deprecated: kept for backward compatibility, no longer used
 ): Promise<void> => {
   setIsSearching(true);
   setSearchStage("Locating homes in your area...");
@@ -98,11 +98,28 @@ export const searchPropertiesInIsochrone = async (
       throw new Error(searchResult.error ?? "Search failed");
     }
 
-    // Show evaluating scores stage
-    setSearchStage("Evaluating scores...");
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    // Log cache status if available
+    if (searchResult.meta?.cached !== undefined) {
+      if (searchResult.meta.cached) {
+        console.log(
+          `✅ [POLYGON_SEARCH] Cache HIT - Using cached results (age: ${searchResult.meta.cacheAge ?? "unknown"})`,
+        );
+      } else {
+        console.log("🔄 [POLYGON_SEARCH] Cache MISS - Performing new search");
+      }
+    }
 
-    setSearchStage("Scoring homes based on your preferences...");
+    // Show evaluating scores stage (skip for cached results to speed up display)
+    if (!searchResult.meta?.cached) {
+      setSearchStage("Evaluating scores...");
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      setSearchStage("Scoring homes based on your preferences...");
+    } else {
+      // For cached results, show a brief message
+      setSearchStage("Loading cached results...");
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
 
 
 
@@ -171,14 +188,8 @@ export const searchPropertiesInIsochrone = async (
     setSearchStage("Finalizing results...");
 
     // Update search results and mark as searched
+    // React Query cache is updated via setSearchResults (which uses the hook's mutation)
     setSearchResults(transformedResults);
-
-    // Save search results to localStorage
-    try {
-      await saveSearchResultsToLocalStorage(transformedResults);
-    } catch (error: unknown) {
-      console.error("❌ Failed to save search results to localStorage:", error);
-    }
 
     setHasSearched(true);
     setIsSearching(false);

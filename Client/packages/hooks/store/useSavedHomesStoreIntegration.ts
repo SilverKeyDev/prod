@@ -23,6 +23,7 @@ export function useSavedHomesStoreIntegration() {
     refreshSavedHomes,
     saveHome,
     removeSavedHome,
+    isHomeSaved,
   } = savedHomesResult;
 
   const { setSavedHomes, setSavedHomesLoading, setSavedHomesError } =
@@ -76,5 +77,6 @@ export function useSavedHomesStoreIntegration() {
     refreshSavedHomes,
     saveHome,
     removeSavedHome,
+    isHomeSaved,
   };
 }

@@ -515,8 +515,10 @@ def generate_property_stream(params: dict, address: str | None = None):
                 if existing:
                     for k, v in update_fields.items():
                         setattr(existing, k, v)
+                    # Mark as current when updating
+                    existing.current = True
                 else:
-                    record = HomeUniversal(user_id=str(current_user.id), **update_fields)
+                    record = HomeUniversal(user_id=str(current_user.id), current=True, **update_fields)
                     db.session.add(record)
 
                 db.session.commit()
@@ -1043,8 +1045,10 @@ def generate_property_stream_compare(params: dict, address: str | None = None):
                 if existing:
                     for k, v in update_fields.items():
                         setattr(existing, k, v)
+                    # Mark as current when updating
+                    existing.current = True
                 else:
-                    record = HomeUniversal(user_id=str(current_user.id), **update_fields)
+                    record = HomeUniversal(user_id=str(current_user.id), current=True, **update_fields)
                     db.session.add(record)
 
                 db.session.commit()

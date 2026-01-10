@@ -2,8 +2,10 @@ import { Suspense } from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 import type { UserProfile } from "../../../packages/schemas/user";
+import { ROUTES } from "../../../packages/schemas/nav";
 import { useGoogleMapsStoreIntegration } from "../../../packages/hooks/store/useGoogleMapsStoreIntegration";
-import { useMessagePolling } from "../../../packages/hooks/data/useMessagePolling";
+import { useDataPolling } from "../../../packages/hooks/data/useDataPolling";
+import { useDataInitialization } from "../../../packages/hooks/data/useDataInitialization";
 
 // Modular route components
 import { DynamicRoutes } from "./routes/DynamicRoutes";
@@ -19,10 +21,12 @@ type AppRoutesProps = {
 // IMPORTANT: This component is imported synchronously (not lazy-loaded) to ensure
 // Router context is always available when hooks execute, preventing timing issues
 // in production builds with code splitting.
-function StoreIntegrationsLayout() {
+function AppLayout() {
   useGoogleMapsStoreIntegration();
-  // Initialize message polling for notifications
-  useMessagePolling();
+  // Initialize data polling (including messages) for notifications
+  useDataPolling();
+  // Initialize data prefetch and background polling on login
+  useDataInitialization();
   // Render child routes
   return <Outlet />;
 }
@@ -36,7 +40,7 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
         <Routes>
           {/* Layout route that wraps all routes to ensure Router context is available */}
           {/* This prevents React 18 concurrent rendering issues in production builds */}
-          <Route element={<StoreIntegrationsLayout />}>
+          <Route element={<AppLayout />}>
             {/* Public Routes */}
             {PublicRoutes()}
 
@@ -44,10 +48,13 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
             {DynamicRoutes({ user, handleLogout })}
 
             {/* Legacy redirect */}
-            <Route path="/app/*" element={<Navigate to="/search" replace />} />
+            <Route
+              path={ROUTES.APP}
+              element={<Navigate to={ROUTES.SEARCH} replace />}
+            />
 
             {/* 404 catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Route>
         </Routes>
       </Suspense>

@@ -14,6 +14,27 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 instance_dir = os.path.join(basedir, 'instance')
 os.makedirs(instance_dir, exist_ok=True)
 
+def get_google_redirect_uri():
+    """Get Google OAuth redirect URI based on environment"""
+    # Check if we're in development (localhost) or production
+    flask_env = os.getenv('FLASK_ENV', 'development')
+    
+    if flask_env == 'production':
+        return 'https://usesilverkey.com/api/v1/google/oauth/callback'
+    else:
+        # Development: use localhost with port 5173 (Vite dev server)
+        return 'http://localhost:5173/api/v1/google/oauth/callback'
+
+def get_frontend_url():
+    """Get frontend URL based on environment"""
+    flask_env = os.getenv('FLASK_ENV', 'development')
+    
+    if flask_env == 'production':
+        return 'https://usesilverkey.com'
+    else:
+        # Development: use localhost with port 5173 (Vite dev server)
+        return 'http://localhost:5173'
+
 class Config:
 
     # Celery Configuration
@@ -50,7 +71,9 @@ class Config:
     #   port (optional, defaults: PostgreSQL=5432, MySQL=3306)
     #   dbInstanceIdentifier (required, database name)
     #   sslmode (optional; e.g., "require", "prefer", "disable")
-    database_url = os.getenv('DATABASE_URL')    
+    database_url = os.getenv('DATABASE_URL')
+    if not database_url:
+        raise RuntimeError("DATABASE_URL environment variable must be set")
     SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
@@ -113,62 +136,14 @@ class Config:
     GOOGLE_SCOPES = 'https://www.googleapis.com/auth/calendar.app.created'
     
     # Google OAuth Redirect URI - set as class attribute
-    GOOGLE_REDIRECT_URI = None  # Will be set below
-    
-    # Environment-based redirect URI
-    @classmethod
-    def get_google_redirect_uri(cls):
-        """Get Google OAuth redirect URI based on environment"""
-        # Check if we're in development (localhost) or production
-        flask_env = os.getenv('FLASK_ENV', 'development')
-        
-        if flask_env == 'production':
-            return 'https://usesilverkey.com/api/v1/google/oauth/callback'
-        else:
-            # Development: use localhost with port 5173 (Vite dev server)
-            return 'http://localhost:5173/api/v1/google/oauth/callback'
-    
-    # Set the redirect URI using a function call
-    def _get_google_redirect_uri():
-        """Get Google OAuth redirect URI based on environment"""
-        flask_env = os.getenv('FLASK_ENV', 'development')
-        
-        if flask_env == 'production':
-            return 'https://usesilverkey.com/api/v1/google/oauth/callback'
-        else:
-            # Development: use localhost with port 5173 (Vite dev server)
-            return 'http://localhost:5173/api/v1/google/oauth/callback'
-    
-    GOOGLE_REDIRECT_URI = _get_google_redirect_uri()
+    GOOGLE_REDIRECT_URI = get_google_redirect_uri()
 
     UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
     MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
     ALLOWED_FILE_TYPES = {'application/pdf'}
 
-    # Environment-based frontend URL
-    @classmethod
-    def get_frontend_url(cls):
-        """Get frontend URL based on environment"""
-        flask_env = os.getenv('FLASK_ENV', 'development')
-        
-        if flask_env == 'production':
-            return 'https://usesilverkey.com'
-        else:
-            # Development: use localhost with port 5173 (Vite dev server)
-            return 'http://localhost:5173'
-    
-    # Set the frontend URL using a function call
-    def _get_frontend_url():
-        """Get frontend URL based on environment"""
-        flask_env = os.getenv('FLASK_ENV', 'development')
-        
-        if flask_env == 'production':
-            return 'https://usesilverkey.com'
-        else:
-            # Development: use localhost with port 5173 (Vite dev server)
-            return 'http://localhost:5173'
-    
-    FRONTEND_URL = _get_frontend_url()
+    # Set the frontend URL
+    FRONTEND_URL = get_frontend_url()
     
     # CORS Origins Configuration
     # Support comma-separated CORS_ORIGINS environment variable

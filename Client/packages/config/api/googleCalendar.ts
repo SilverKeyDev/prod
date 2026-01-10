@@ -183,9 +183,48 @@ export const googleCalendarApi = {
         await apiGet<GoogleCalendarApiResponse<GoogleEventListResponse>>(url);
       return response;
     } catch (error) {
+      // Extract error code from HttpError parsedBody if available
+      if (error instanceof HttpError && error.parsedBody) {
+        const parsedBody = error.parsedBody as { error?: string; message?: string };
+        return {
+          success: false,
+          error: parsedBody.error || parsedBody.message || "Failed to list events",
+        };
+      }
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to list events",
+      };
+    }
+  },
+
+  /**
+   * List events from a calendar for today only
+   */
+  listTodayEvents: async (params?: {
+    calendarId?: string;
+  }): Promise<GoogleCalendarApiResponse<GoogleEventListResponse>> => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.calendarId)
+        queryParams.append("calendarId", params.calendarId);
+
+      const url = `/api/v1/google/me/events/today${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+      const response =
+        await apiGet<GoogleCalendarApiResponse<GoogleEventListResponse>>(url);
+      return response;
+    } catch (error) {
+      // Extract error code from HttpError parsedBody if available
+      if (error instanceof HttpError && error.parsedBody) {
+        const parsedBody = error.parsedBody as { error?: string; message?: string };
+        return {
+          success: false,
+          error: parsedBody.error || parsedBody.message || "Failed to list today's events",
+        };
+      }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to list today's events",
       };
     }
   },

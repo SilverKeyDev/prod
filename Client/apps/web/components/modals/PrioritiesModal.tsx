@@ -1,23 +1,14 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Check } from "lucide-react";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 import BaseModal from "./BaseModal";
 import OnPerDragDropPriorities from "../../features/onboardpersonalize/DragDropPriorities";
-import { reportApi } from "../../../../packages/config/api/report";
 import { useUserPreferences } from "../../../../packages/hooks/data/useUserData";
 import { useAutoSavePreferences } from "../../../../packages/hooks/data/useAutoSavePreferences";
 import { DEFAULT_REPORT_SECTIONS } from "../../features/onboardpersonalize/lib/constants";
 import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/lib/dragEndHandler";
 import type { OnboardingData } from "../../features/onboardpersonalize/lib/types";
-import { formatAddress } from "./PropertyDetailsModal/utils";
-import { showErrorToast } from "../../../../packages/hooks/ui/useToast";
 
 type PrioritiesModalProps = {
   isOpen: boolean;
@@ -29,15 +20,11 @@ type PrioritiesModalProps = {
 const PrioritiesModal: React.FC<PrioritiesModalProps> = ({
   isOpen,
   onClose,
-  propertyAddress,
-  onRegenerateComplete,
+  propertyAddress: _propertyAddress,
+  onRegenerateComplete: _onRegenerateComplete,
 }) => {
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const [formData, setFormData] = useState<Partial<OnboardingData>>({});
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const regenerateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isInitialLoadRef = useRef(true);
-  const previousPrioritiesRef = useRef<string[]>([]);
 
   // Use auto-save hook
   const { saveStatus, updateFormData: updateFormDataWithAutoSave } =
@@ -68,11 +55,6 @@ const PrioritiesModal: React.FC<PrioritiesModalProps> = ({
       setFormData({
         report_section_priorities: priorities,
       });
-      previousPrioritiesRef.current = priorities;
-      // Mark initial load as complete after first render
-      if (isInitialLoadRef.current) {
-        isInitialLoadRef.current = false;
-      }
     }
   }, [userPreferences]);
 
@@ -173,84 +155,9 @@ const PrioritiesModal: React.FC<PrioritiesModalProps> = ({
     [formData.report_section_priorities, updateFormData]
   );
 
-  // Auto-regenerate report when priorities change
-  const autoRegenerate = useCallback(async () => {
-    if (!propertyAddress || isInitialLoadRef.current) {
-      return;
-    }
-
-    // Clear existing timeout
-    if (regenerateTimeoutRef.current) {
-      clearTimeout(regenerateTimeoutRef.current);
-    }
-
-    // Debounce regeneration by 2 seconds after last change
-    regenerateTimeoutRef.current = setTimeout(async () => {
-      setIsRegenerating(true);
-      try {
-        // Handle { address: string } format
-        const addressToFormat =
-          typeof propertyAddress === "object" &&
-          propertyAddress !== null &&
-          "address" in propertyAddress
-            ? propertyAddress.address
-            : propertyAddress;
-        const address = formatAddress(addressToFormat);
-        if (!address) {
-          throw new Error("Invalid property address");
-        }
-
-        const response = await reportApi.generate({
-          address,
-        });
-
-        if (!response.success) {
-          throw new Error(response.error ?? "Failed to generate report");
-        }
-
-        // Call callback if provided
-        if (onRegenerateComplete) {
-          onRegenerateComplete();
-        }
-
-        // Close modal after successful regeneration start
-        onClose();
-      } catch (error) {
-        console.error("Failed to regenerate report:", error);
-        showErrorToast(
-          error instanceof Error
-            ? error.message
-            : "Failed to regenerate report. Please try again."
-        );
-      } finally {
-        setIsRegenerating(false);
-      }
-    }, 2000);
-  }, [propertyAddress, onRegenerateComplete, onClose]);
-
-  // Watch for changes in priorities and trigger auto-regeneration
-  useEffect(() => {
-    const currentPriorities = formData.report_section_priorities ?? [];
-    const previousPriorities = previousPrioritiesRef.current;
-
-    // Check if priorities actually changed (not just initial load)
-    if (
-      !isInitialLoadRef.current &&
-      JSON.stringify(currentPriorities) !== JSON.stringify(previousPriorities)
-    ) {
-      previousPrioritiesRef.current = currentPriorities;
-      void autoRegenerate();
-    }
-  }, [formData.report_section_priorities, autoRegenerate]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (regenerateTimeoutRef.current) {
-        clearTimeout(regenerateTimeoutRef.current);
-      }
-    };
-  }, []);
+  // Auto-regeneration disabled - the /api/v1/report/generate endpoint no longer exists
+  // Report generation should be done manually via the "Generate Report" button
+  // The research endpoint (/api/v1/research/property) is used for fetching property data when unlocking
 
   return (
     <BaseModal
@@ -279,19 +186,12 @@ const PrioritiesModal: React.FC<PrioritiesModalProps> = ({
         {/* Priorities Component */}
         <OnPerDragDropPriorities
           isEditMode={true}
-          isLoading={isRegenerating}
+          isLoading={false}
           orderedSections={orderedSections}
           formData={formData}
           onDragEnd={handleDragEnd}
           onToggle={handleReportSectionToggle}
         />
-
-        {/* Regeneration Status */}
-        {isRegenerating && (
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-600 border-t border-gray-200 pt-4">
-            <span>Regenerating report...</span>
-          </div>
-        )}
       </div>
     </BaseModal>
   );

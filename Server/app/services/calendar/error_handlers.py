@@ -38,14 +38,32 @@ def handle_google_api_error(
     if "GOOGLE_RECONNECT_REQUIRED" in error_msg:
         return security_error_response(SecurityError.GOOGLE_RECONNECT_REQUIRED)
     
-    # Handle RuntimeError (usually authentication/connection issues)
+    # Handle RuntimeError (could be authentication/connection issues or calendar access issues)
     if isinstance(error, RuntimeError):
         logger.warning(f"RuntimeError in {operation} for user {user_id}: {error_msg}")
-        return jsonify({
-            "success": False,
-            "error": "authentication_failed",
-            "message": error_msg
-        }), 401
+        
+        # Check if this is a calendar access issue (404-like) vs authentication issue (401-like)
+        # Calendar access issues typically mention "not found", "not accessible", or "calendar"
+        is_calendar_access_issue = (
+            "not found" in error_msg.lower() or
+            "not accessible" in error_msg.lower() or
+            ("calendar" in error_msg.lower() and "cannot access" in error_msg.lower())
+        )
+        
+        if is_calendar_access_issue:
+            # Calendar access issue - return 404
+            return jsonify({
+                "success": False,
+                "error": "calendar_not_found",
+                "message": error_msg
+            }), 404
+        else:
+            # Authentication/connection issue - return 401
+            return jsonify({
+                "success": False,
+                "error": "authentication_failed",
+                "message": error_msg
+            }), 401
     
     # Handle HttpError (Google API errors)
     if isinstance(error, HttpError):
@@ -54,12 +72,37 @@ def handle_google_api_error(
         # Check if it's an authentication/authorization error
         if hasattr(error, 'resp') and error.resp:
             status_code = error.resp.status
-            if status_code in [401, 403]:
+            if status_code == 401:
+                # 401 = authentication failed (invalid/expired token)
                 return jsonify({
                     "success": False,
                     "error": "authentication_failed",
                     "message": "Google Calendar authentication failed. Please reconnect your account."
                 }), 401
+            elif status_code == 403:
+                # 403 = access denied (permissions issue, might be calendar-specific)
+                error_msg = sanitize_error_message(error)
+                # Check if it's a calendar access issue or general auth issue
+                if "calendar" in error_msg.lower() or "permission" in error_msg.lower():
+                    return jsonify({
+                        "success": False,
+                        "error": "calendar_access_denied",
+                        "message": "Access denied to this calendar. You may not have permission to access it."
+                    }), 403
+                else:
+                    # General authentication/authorization failure
+                    return jsonify({
+                        "success": False,
+                        "error": "authentication_failed",
+                        "message": "Google Calendar authentication failed. Please reconnect your account."
+                    }), 401
+            elif status_code == 404:
+                # Calendar not found - could be due to restricted scope trying to access primary
+                return jsonify({
+                    "success": False,
+                    "error": "calendar_not_found",
+                    "message": "Calendar not found or not accessible. If you're using a restricted scope, ensure your SilverKey calendar is set up."
+                }), 404
         
         return SecureErrorHandler.handle_error(error, f"Failed to {operation}")
     

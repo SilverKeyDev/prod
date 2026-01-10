@@ -9,7 +9,7 @@ import { type ReactNode } from "react";
 
 import Card from "../../components/layout/Card";
 import Button from "../../components/ui/button/Button";
-import { useAuth } from "../providers/auth/useAuth";
+import { useAuthStoreIntegration } from "../../../../packages/hooks/store/useAuthStoreIntegration";
 
 type AuthGuardProps = {
   children: ReactNode;
@@ -26,10 +26,10 @@ export function AuthGuard({
   fallback,
   requireAuth = true,
 }: AuthGuardProps) {
-  const { status } = useAuth();
+  const { authStatus } = useAuthStoreIntegration();
 
-  // Show loading state while booting
-  if (status === "booting") {
+  // Show loading state while checking
+  if (authStatus === "checking") {
     return (
       fallback ?? (
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -46,7 +46,7 @@ export function AuthGuard({
 
   // If authentication is required but user is not authenticated
   // Show inline prompt - do NOT redirect (that's ProtectedRoute's job)
-  if (requireAuth && status === "unauthenticated") {
+  if (requireAuth && authStatus === "unauthenticated") {
     return (
       fallback ?? (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">

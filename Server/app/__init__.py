@@ -48,6 +48,15 @@ def create_app(config=None):
     # Configure centralized logging for entire application
     from .utils.security.app_logging import configure_app_logging
     configure_app_logging(app)
+    
+    # Initialize centralized logger (category-based with PII scrubbing)
+    import sys
+    server_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if server_dir not in sys.path:
+        sys.path.insert(0, server_dir)
+    from logger import get_logger, LOG_CATEGORIES
+    logger = get_logger()
+    logger.info(LOG_CATEGORIES["API"], "Centralized logger initialized")
 
     # Initialize extensions
     db.init_app(app)    
@@ -97,15 +106,19 @@ def create_app(config=None):
             pass
 
     # Validate environment variables at startup
-    from .utils.security.env_validator import validate_environment, check_api_keys
+    from .utils.config_validator import validate_and_raise
+    from .utils.security.env_validator import check_api_keys
     try:
-        validate_environment()
+        validate_and_raise()  # Raises RuntimeError if required vars are missing
         api_status = check_api_keys()
         missing_apis = [name for name, status in api_status.items() if not status]
         if missing_apis:
-            logging.getLogger(__name__).warning(f"Missing API keys: {', '.join(missing_apis)}")
+            logger.warn(LOG_CATEGORIES["SECURITY"], f"Missing API keys: {', '.join(missing_apis)}")
+    except RuntimeError as e:
+        # Re-raise RuntimeError from config validation (critical)
+        raise
     except Exception as e:
-        logging.getLogger(__name__).warning(f"Environment validation warning: {e}")
+        logger.warn(LOG_CATEGORIES["SECURITY"], f"Environment validation warning: {str(e)}")
 
     from .services.auth.minimal_token import minimal_token_service
     flask_env = os.getenv('FLASK_ENV', 'development')
@@ -123,6 +136,7 @@ def create_app(config=None):
     from .routes.offer import offer_bp
     from .routes.google_calendar import google_calendar_bp
     from .routes.agent import agent_bp
+    from .routes.report import report_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
@@ -136,6 +150,7 @@ def create_app(config=None):
     app.register_blueprint(offer_bp)
     app.register_blueprint(google_calendar_bp)
     app.register_blueprint(agent_bp)
+    app.register_blueprint(report_bp)
 
     # ---------- Static asset routes (Vite build) ----------
     # Serve /assets/* out of the Vite dist directory with correct MIME types.

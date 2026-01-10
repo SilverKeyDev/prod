@@ -1,6 +1,7 @@
 """
 Common code patterns and utilities to reduce repetition across the application.
 """
+import json
 from functools import wraps
 from flask import jsonify, request
 from app.services.auth.current_user import get_current_user
@@ -8,6 +9,36 @@ from app.utils.security.app_logging import get_logger
 from app.utils.security.secure_errors import SecureErrorHandler
 
 logger = get_logger()
+
+
+def safe_json_loads(value, default=None):
+    """
+    Safely parse JSON string or return default value.
+    Handles string parsing, type checking, and error cases.
+    
+    Args:
+        value: Value to parse (string, dict, list, or None)
+        default: Default value to return if parsing fails or value is None/empty
+        
+    Returns:
+        Parsed JSON value or default
+    """
+    if not value:
+        return default
+    
+    # If already a dict or list, return as-is
+    if isinstance(value, (dict, list)):
+        return value
+    
+    # If not a string, return default
+    if not isinstance(value, str):
+        return default
+    
+    # Try to parse JSON string
+    try:
+        return json.loads(value)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return default
 
 def require_authenticated_user(f):
     """
@@ -110,10 +141,7 @@ def require_agent_access(f):
         
         if target_user_id:
             try:
-                import json
-                client_ids = []
-                if user.client_ids:
-                    client_ids = json.loads(user.client_ids) if isinstance(user.client_ids, str) else user.client_ids
+                client_ids = safe_json_loads(user.client_ids, default=[])
                 
                 if target_user_id not in client_ids:
                     logger.warning(f"🚫 Agent {user.id} attempted to access client {target_user_id} not in their list")

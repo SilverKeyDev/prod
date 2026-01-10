@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import type { StepConfig, OnboardingData, DropdownOption } from "./types";
-import type { NavItem } from "../../../../../packages/schemas/navigation";
+import type { NavItem } from "../../../../../packages/schemas/nav";
 
 // Re-export types for convenience
 export type { OnboardingData, DropdownOption };

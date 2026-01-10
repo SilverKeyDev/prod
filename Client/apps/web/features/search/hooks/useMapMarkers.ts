@@ -6,6 +6,7 @@ import type { Property } from "../../../../../packages/schemas/property";
 import type { IsochroneData } from "../../../../../packages/schemas/api";
 import { renderImportantLocationMarkers } from "../utils/importantLocationRenderer";
 import { calculatePropertyCardCenter } from "../utils/MapZoomController";
+import { log } from "../../../../../logger";
 
 // Google Maps types
 interface GoogleMap {
@@ -188,9 +189,11 @@ export const useMapMarkers = ({
       clearMapMarkers();
 
       // Re-render important location markers FIRST (so they appear behind home markers)
+      // Use cached isochrone data immediately if available
       if (isochroneData) {
         handleRenderImportantLocationMarkers(isochroneData);
       } else {
+        // Only fetch if no cached data exists
         const data = await fetchIsochroneForMapOnly();
         if (data && typeof data === "object") {
           setIsochroneData(data);
@@ -206,7 +209,7 @@ export const useMapMarkers = ({
       // Check if Google Maps API and AdvancedMarkerElement are available
 
       if (!window.google?.maps?.marker?.AdvancedMarkerElement) {
-        console.error("❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update");
+        log.error("MAP_RENDERING", "❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update");
         setIsUpdatingMarkers(false);
         return;
       }
@@ -227,7 +230,7 @@ export const useMapMarkers = ({
           // Log score issues for debugging
           const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
           if (score === 0 || score === undefined || score === null) {
-            console.warn("⚠️ [MARKER DATA] Property has no score:", {
+            log.warn("MAP_RENDERING", "⚠️ [MARKER DATA] Property has no score:", {
               environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
               propertyId: result.id,
               address: result.address,
@@ -263,7 +266,7 @@ export const useMapMarkers = ({
             calculatedScore: hasValidScore ? score : undefined,
           };
 
-          console.log("📍 [MARKER DATA] Property data for MapPropertyCard:", {
+          log.debug("MAP_RENDERING", "📍 [MARKER DATA] Property data for MapPropertyCard:", {
             environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
             propertyId: result.id,
             address: result.address?.substring(0, 30) + "...",
@@ -281,7 +284,7 @@ export const useMapMarkers = ({
               isSaved: isHomeSaved(result.id, result.address),
               contextKey,
               onUnlock: onUnlockClick ? async () => {
-                console.log("🗺️ [USE MAP MARKERS] Unlock button clicked in map marker:", {
+                log.debug("MAP_RENDERING", "🗺️ [USE MAP MARKERS] Unlock button clicked in map marker:", {
                   environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",
                   propertyId: result.id,
                   address: result.address?.substring(0, 30) + "...",
@@ -291,18 +294,13 @@ export const useMapMarkers = ({
 
                 try {
                   await onUnlockClick(result);
-                  console.log("🗺️ [USE MAP MARKERS] onUnlockClick completed successfully:", {
+                  log.debug("MAP_RENDERING", "🗺️ [USE MAP MARKERS] onUnlockClick completed successfully:", {
                     environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",
                     propertyId: result.id,
                     timestamp: new Date().toISOString(),
                   });
                 } catch (error) {
-                  console.error("🗺️ [USE MAP MARKERS] Error in onUnlockClick:", {
-                    environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",
-                    propertyId: result.id,
-                    error: error instanceof Error ? error.message : String(error),
-                    timestamp: new Date().toISOString(),
-                  });
+                  log.error("MAP_RENDERING", "🗺️ [USE MAP MARKERS] Error in onUnlockClick:", error);
                   throw error; // Re-throw to ensure CardViewDetailsButton handles the error
                 }
               } : undefined,
@@ -312,7 +310,7 @@ export const useMapMarkers = ({
               removeSavedHome,
             });
           } catch (error) {
-            console.error(`❌ [MARKER POSITION UPDATE] Error rendering MapPropertyCard for property ${i + 1}:`, error);
+            log.error("MAP_RENDERING", `❌ [MARKER POSITION UPDATE] Error rendering MapPropertyCard for property ${i + 1}:`, error);
             // Create fallback content if rendering fails
             markerElement.innerHTML = `
               <div style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 8px; min-width: 120px;">
@@ -325,7 +323,7 @@ export const useMapMarkers = ({
           // Validate position data before creating marker
           if (typeof result.lat !== 'number' || typeof result.lng !== 'number' || 
               isNaN(result.lat) || isNaN(result.lng)) {
-            console.error(`❌ [MARKER POSITION UPDATE] Invalid position data for property ${i + 1}:`, {
+            log.error("MAP_RENDERING", `❌ [MARKER POSITION UPDATE] Invalid position data for property ${i + 1}:`, {
               lat: result.lat,
               lng: result.lng,
               address: result.address
@@ -344,7 +342,7 @@ export const useMapMarkers = ({
             
             // Add proper click event listener using addListener()
             marker.addListener('click', () => {
-              console.log('🗺️ [MARKER_CLICK] Marker clicked:', {
+              log.debug("MAP_RENDERING", '🗺️ [MARKER_CLICK] Marker clicked:', {
                 propertyId: result.id,
                 address: result.address,
                 coordinates: { lat: result.lat, lng: result.lng },
@@ -359,7 +357,7 @@ export const useMapMarkers = ({
             
             markersRef.current.push(marker);
           } catch (error) {
-            console.error(`❌ [MARKER POSITION UPDATE] Error creating marker for property ${i + 1}:`, error);
+            log.error("MAP_RENDERING", `❌ [MARKER POSITION UPDATE] Error creating marker for property ${i + 1}:`, error);
             // Clean up the marker element if marker creation fails
             // Defer cleanup to avoid race conditions during React rendering
             setTimeout(() => {

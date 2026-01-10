@@ -55,22 +55,22 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       full: "rounded-full",
     };
 
-    // Color variants
+    // Color variants - using brand tokens to match Button component
     const variantStyles = {
       primary:
-        "bg-brown text-white hover:bg-brown/90 focus:ring-brown/20 disabled:bg-brown/50 disabled:text-white/70",
+        "bg-brand-accent text-white hover:bg-brand-accent/90 focus:ring-brand-accent/20 disabled:bg-brand-accent/50 disabled:text-white/70",
       secondary:
-        "bg-beige text-brown hover:bg-beige/80 focus:ring-beige/20 disabled:bg-beige/50 disabled:text-brown/50",
+        "bg-brand-tertiary text-brand-primary hover:bg-brand-tertiary/80 focus:ring-brand-tertiary/20 disabled:bg-brand-tertiary/50 disabled:text-brand-primary/50",
       outline:
-        "border border-brown text-brown bg-white hover:bg-brown hover:text-white focus:ring-brown/20 disabled:border-brown/30 disabled:text-brown/30 disabled:hover:bg-white disabled:hover:text-brown/30",
+        "border border-brand-accent text-brand-accent bg-white hover:bg-brand-accent hover:text-white focus:ring-brand-accent/20 disabled:border-brand-accent/30 disabled:text-brand-accent/30 disabled:hover:bg-white disabled:hover:text-brand-accent/30",
       ghost:
-        "text-brown hover:bg-brown/10 focus:ring-brown/20 disabled:text-brown/30 disabled:hover:bg-transparent",
+        "text-brand-accent hover:bg-brand-accent/10 focus:ring-brand-accent/20 disabled:text-brand-accent/30 disabled:hover:bg-transparent",
       danger:
         "bg-rose text-white hover:bg-rose-light focus:ring-rose/20 disabled:bg-rose/50 disabled:text-white/70",
       success:
-        "bg-olive text-white hover:bg-olive/90 focus:ring-olive/20 disabled:bg-olive/50 disabled:text-white/70",
+        "bg-brand-secondary text-white hover:bg-brand-secondary/90 focus:ring-brand-secondary/20 disabled:bg-brand-secondary/50 disabled:text-white/70",
       warning:
-        "bg-gold text-white hover:bg-gold/90 focus:ring-gold/20 disabled:bg-gold/50 disabled:text-white/70",
+        "bg-gold-muted text-white hover:bg-gold-muted/90 focus:ring-gold-muted/20 disabled:bg-gold-muted/50 disabled:text-white/70",
       info: "bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500/20 disabled:bg-neutral-600/50 disabled:text-white/70",
     };
 

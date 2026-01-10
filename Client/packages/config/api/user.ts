@@ -44,6 +44,20 @@ export type RemoveFavoriteRequest = {
   address: string;
 };
 
+export type AddNotInterestedRequest = {
+  home: unknown;
+  why?: string;
+};
+
+export type RemoveNotInterestedRequest = {
+  address: string;
+};
+
+export type UpdateNotInterestedRequest = {
+  address: string;
+  why: string;
+};
+
 /**
  * User API client using centralized utilities
  */
@@ -83,6 +97,36 @@ export const userApi = {
     apiPost<FavoriteHomesResponse>("/api/v1/user/favorite-homes/remove", data),
 
   /**
+   * Get user's not-interested homes
+   */
+  getNotInterestedHomes: (): Promise<FavoriteHomesResponse> =>
+    apiGet<FavoriteHomesResponse>("/api/v1/user/not-interested-homes"),
+
+  /**
+   * Mark a home as not interested
+   */
+  addNotInterestedHome: (
+    data: AddNotInterestedRequest,
+  ): Promise<FavoriteHomesResponse> =>
+    apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/add", data),
+
+  /**
+   * Remove a home from not-interested list (undo)
+   */
+  removeNotInterestedHome: (
+    data: RemoveNotInterestedRequest,
+  ): Promise<FavoriteHomesResponse> =>
+    apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/remove", data),
+
+  /**
+   * Update the reason for a not-interested home
+   */
+  updateNotInterestedHome: (
+    data: UpdateNotInterestedRequest,
+  ): Promise<FavoriteHomesResponse> =>
+    apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/update", data),
+
+  /**
    * Get assigned agent for current user
    */
   getAssignedAgent: (): Promise<{
@@ -92,18 +136,6 @@ export const userApi = {
   }> =>
     apiGet<{ success: boolean; data?: unknown; message?: string }>(
       "/api/v1/user/assigned-agent",
-    ),
-
-  /**
-   * Get client list for agents
-   */
-  getClientList: (): Promise<{
-    success: boolean;
-    clients?: unknown[];
-    message?: string;
-  }> =>
-    apiGet<{ success: boolean; clients?: unknown[]; message?: string }>(
-      "/api/v1/agent/clients",
     ),
 
   /**

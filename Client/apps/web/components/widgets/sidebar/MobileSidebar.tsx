@@ -39,10 +39,6 @@ export default function MobileSidebar({
       key: "agent",
       ...SIDEBAR_TABS.agent,
     },
-    {
-      key: "close",
-      ...SIDEBAR_TABS.close,
-    },
     // {
     //   key: "settings",
     //   ...SIDEBAR_TABS.settings,
@@ -50,6 +46,10 @@ export default function MobileSidebar({
     {
       key: "calendar",
       ...SIDEBAR_TABS.calendar,
+    },
+    {
+      key: "close",
+      ...SIDEBAR_TABS.close,
     },
   ];
 

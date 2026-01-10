@@ -2,10 +2,10 @@ from ..extensions import db
 
 # Import from organized subfolders for backward compatibility
 from .auth import User, UserPreferences, OAuthState, GoogleOAuthToken
-from .property import HomeUniversal, HomeLikes, Search
-from .agent import AgentConnections, AgentConnectionRequest, ChatHistory
+from .property import HomeUniversal, HomeLikes, HomeNotInterested, Search, ScoringResultsTracker, UserScoreWeights
+from .agent import AgentConnections, AgentConnectionRequest, ChatHistory, Todo
 from .documents import PDFDocument
-from .calendar import CalendarEvent
+from .calendar import CalendarEvent, CalendarShare
 
 # Initialize database
 def init_db():
@@ -17,11 +17,16 @@ __all__ = [
     'UserPreferences', 
     'HomeUniversal', 
     'HomeLikes', 
+    'HomeNotInterested',
     'Search',
+    'ScoringResultsTracker',
+    'UserScoreWeights',
     'AgentConnections', 
     'AgentConnectionRequest', 
     'ChatHistory',
-    'CalendarEvent', 
+    'Todo',
+    'CalendarEvent',
+    'CalendarShare',
     'GoogleOAuthToken', 
     'OAuthState', 
     'db'

@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 
 import ErrorBoundary from "../error/ErrorBoundary";
-import { reportError } from "../error/errorUtils";
+import { reportError } from "../../../../packages/utils/errorHandling";
 
 type ErrorProviderProps = {
   children: ReactNode;

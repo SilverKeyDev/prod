@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 
 import type { SearchResult } from "../../../../../packages/schemas/search";
+import { log } from "../../../../../logger";
 
 export type MapZoomControllerProps = {
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;
@@ -63,7 +64,7 @@ export const calculatePropertyCardCenter = (lat: number, lng: number, propertyId
     lng: lng + randomLngOffset,  // Random east/west offset
   };
 
-  console.log("🗺️ [CENTER CALCULATION]", {
+  log.debug("MAP_RENDERING", "🗺️ [CENTER CALCULATION]", {
     propertyId: propertyId || "none",
     baseLat: lat,
     baseLng: lng,

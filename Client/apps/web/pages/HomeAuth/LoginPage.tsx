@@ -2,9 +2,8 @@ import { Mail, Lock } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { Input } from "../../components/ui";
+import { Button, Input } from "../../components/ui";
 import { useSecureAuth } from "../../../../packages/hooks/data/useSecureAuth";
-import AuthButton from "../../features/homeauth/Auth/Button";
 import AuthDivider from "../../features/homeauth/Auth/Divider";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
@@ -97,9 +96,16 @@ export default function LoginPage() {
           className="autofill-gold"
         />
 
-        <AuthButton type="submit" loading={isLoading} disabled={isLoading}>
+        <Button
+          type="submit"
+          variant="olive"
+          size="md"
+          fullWidth
+          loading={isLoading}
+          disabled={isLoading}
+        >
           Login
-        </AuthButton>
+        </Button>
 
         <AuthDivider />
 

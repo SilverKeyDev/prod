@@ -1,11 +1,10 @@
 // Internal API clients
 import { googleCalendarApi } from "../config/api";
+import { authApi } from "../config/api/auth";
 // Internal utilities
-import { useAuthStore } from "../store/auth.slice";
 import { asError } from "../utils/error";
 import { isObject, hasProperty } from "../utils/typeGuards";
-
-import { log } from "./security/secureLogger";
+import { log, LOG_CATEGORIES } from "../../logger";
 
 // Internal services
 
@@ -103,7 +102,7 @@ export class GoogleCalendarService {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : null;
     } catch (error: unknown) {
-      console.warn(`Failed to load ${key} from localStorage:`, error);
+      log.warn(LOG_CATEGORIES.API, `Failed to load ${key} from localStorage`, error);
       return null;
     }
   }
@@ -115,7 +114,7 @@ export class GoogleCalendarService {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error: unknown) {
-      console.warn(`Failed to save ${key} to localStorage:`, error);
+      log.warn(LOG_CATEGORIES.API, `Failed to save ${key} to localStorage`, error);
     }
   }
 
@@ -146,7 +145,7 @@ export class GoogleCalendarService {
         try {
           callback.onStateChange(this.getState());
         } catch (error) {
-          console.error("Error in Google Calendar callback:", error);
+          log.error(LOG_CATEGORIES.ERRORS, "Error in Google Calendar callback", error);
         }
       }
     });
@@ -156,7 +155,7 @@ export class GoogleCalendarService {
    * Start Google OAuth flow
    */
   public startOAuth(): void {
-    log.info("GOOGLE_CALENDAR_SERVICE", "Starting OAuth flow");
+      log.info(LOG_CATEGORIES.API, "Starting OAuth flow");
     googleCalendarApi.startOAuth();
   }
 
@@ -173,24 +172,16 @@ export class GoogleCalendarService {
     // Check backend for actual connection status
     try {
       this.isCheckingConnection = true;
-      const response = await fetch("/api/v1/google/connection-status", {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const backendConnected = data.data?.isConnected ?? false;
+      const backendConnected = await googleCalendarApi.isConnected();
         
-        // Update state if different
-        if (backendConnected !== this.state.isConnected) {
-          this.setConnectionStatus(backendConnected);
-        }
-        
-        return backendConnected;
+      // Update state if different
+      if (backendConnected !== this.state.isConnected) {
+        this.setConnectionStatus(backendConnected);
       }
+        
+      return backendConnected;
     } catch (error) {
-      log.warn("GOOGLE_CALENDAR_SERVICE", "Failed to check connection status with backend", error);
+      log.warn(LOG_CATEGORIES.API, "Failed to check connection status with backend", error);
       // Fall back to local state
     } finally {
       this.isCheckingConnection = false;
@@ -203,7 +194,7 @@ export class GoogleCalendarService {
    * Set connection status
    */
   public setConnectionStatus(connected: boolean): void {
-    log.info("GOOGLE_CALENDAR_SERVICE", "Connection status changed", {
+      log.info(LOG_CATEGORIES.API, "Connection status changed", {
       connected,
     });
 
@@ -223,6 +214,29 @@ export class GoogleCalendarService {
   }
 
   /**
+   * Set calendars directly (used for syncing with React Query cache)
+   */
+  public setCalendars(calendars: unknown[]): void {
+    log.info(LOG_CATEGORIES.API, "Calendars updated", {
+      count: calendars.length,
+    });
+
+    this.updateState({ calendars });
+    this.saveToLocalStorage(this.localStorageKeys.calendars, calendars);
+
+    // Notify all success callbacks
+    this.callbacks.forEach((callback) => {
+      if (callback.onSuccess && typeof callback.onSuccess === "function") {
+        try {
+          callback.onSuccess({ calendars });
+        } catch (error) {
+          log.error(LOG_CATEGORIES.ERRORS, "Error in Google Calendar success callback", error);
+        }
+      }
+    });
+  }
+
+  /**
    * Fetch user's Google calendars
    */
   public async fetchCalendars(): Promise<void> {
@@ -237,7 +251,7 @@ export class GoogleCalendarService {
           try {
             callback.onError(error);
           } catch (err) {
-            console.error("Error in Google Calendar error callback:", err);
+            log.error(LOG_CATEGORIES.ERRORS, "Error in Google Calendar error callback", err);
           }
         }
       });
@@ -250,13 +264,13 @@ export class GoogleCalendarService {
     });
 
     try {
-      // Check authentication status using auth store
-      const authStore = useAuthStore.getState();
-      if (!authStore.isAuthenticated) {
+      // Check authentication status using auth API
+      const authCheck = await authApi.verifySession();
+      if (!authCheck.success) {
         throw new Error("Authentication required. Please log in.");
       }
 
-      log.info("GOOGLE_CALENDAR_SERVICE", "Fetching calendars");
+      log.info(LOG_CATEGORIES.API, "Fetching calendars");
 
       const response = await googleCalendarApi.listCalendars();
 
@@ -277,7 +291,7 @@ export class GoogleCalendarService {
           
           // Automatically trigger OAuth flow instead of throwing error
           log.info(
-            "GOOGLE_CALENDAR_SERVICE",
+            LOG_CATEGORIES.API,
             "Automatically starting OAuth flow for reconnection",
           );
           this.startOAuth();
@@ -305,17 +319,17 @@ export class GoogleCalendarService {
           try {
             callback.onSuccess({ calendars });
           } catch (error) {
-            console.error("Error in Google Calendar success callback:", error);
+            log.error(LOG_CATEGORIES.ERRORS, "Error in Google Calendar success callback", error);
           }
         }
       });
 
-      log.info("GOOGLE_CALENDAR_SERVICE", "Calendars fetched successfully", {
+      log.info(LOG_CATEGORIES.API, "Calendars fetched successfully", {
         count: calendars.length,
       });
     } catch (err: unknown) {
       const error = asError(err);
-      log.error("GOOGLE_CALENDAR_SERVICE", "Error fetching calendars", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Error fetching calendars", error);
 
       let errorMessage = "Failed to fetch calendars. Please try again.";
 
@@ -343,7 +357,7 @@ export class GoogleCalendarService {
 
       if (isUnauthorized) {
         log.warn(
-          "GOOGLE_CALENDAR_SERVICE",
+          LOG_CATEGORIES.API,
           "Google Calendar connection error detected - resetting connection status and triggering OAuth",
         );
         this.setConnectionStatus(false);
@@ -386,7 +400,7 @@ export class GoogleCalendarService {
     // Prevent concurrent fetches
     if (this.isFetchingEvents) {
       log.info(
-        "GOOGLE_CALENDAR_SERVICE",
+        LOG_CATEGORIES.API,
         "Events fetch already in progress, skipping",
       );
       return;
@@ -403,7 +417,7 @@ export class GoogleCalendarService {
           try {
             callback.onError(error);
           } catch (err) {
-            console.error("Error in Google Calendar error callback:", err);
+            log.error(LOG_CATEGORIES.ERRORS, "Error in Google Calendar error callback", err);
           }
         }
       });
@@ -417,13 +431,13 @@ export class GoogleCalendarService {
     });
 
     try {
-      // Check authentication status using auth store
-      const authStore = useAuthStore.getState();
-      if (!authStore.isAuthenticated) {
+      // Check authentication status using auth API
+      const authCheck = await authApi.verifySession();
+      if (!authCheck.success) {
         throw new Error("Authentication required. Please log in.");
       }
 
-      log.info("GOOGLE_CALENDAR_SERVICE", "Fetching events", params);
+      log.info(LOG_CATEGORIES.API, "Fetching events", params);
 
       const response = await googleCalendarApi.listEvents(params);
 
@@ -449,12 +463,12 @@ export class GoogleCalendarService {
         this.callbacks.onSuccess({ events });
       }
 
-      log.info("GOOGLE_CALENDAR_SERVICE", "Events fetched successfully", {
+      log.info(LOG_CATEGORIES.API, "Events fetched successfully", {
         count: events.length,
       });
     } catch (err: unknown) {
       const error = asError(err);
-      log.error("GOOGLE_CALENDAR_SERVICE", "Error fetching events", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Error fetching events", error);
 
       let errorMessage = "Failed to fetch events. Please try again.";
 
@@ -482,7 +496,7 @@ export class GoogleCalendarService {
 
       if (isUnauthorized) {
         log.warn(
-          "GOOGLE_CALENDAR_SERVICE",
+          LOG_CATEGORIES.API,
           "Google Calendar connection error detected - resetting connection status and triggering OAuth",
         );
         this.setConnectionStatus(false);
@@ -532,7 +546,7 @@ export class GoogleCalendarService {
           try {
             callback.onError(error);
           } catch (err) {
-            console.error("Error in Google Calendar error callback:", err);
+            log.error(LOG_CATEGORIES.ERRORS, "Error in Google Calendar error callback", err);
           }
         }
       });
@@ -540,13 +554,13 @@ export class GoogleCalendarService {
     }
 
     try {
-      // Check authentication status using auth store
-      const authStore = useAuthStore.getState();
-      if (!authStore.isAuthenticated) {
+      // Check authentication status using auth API
+      const authCheck = await authApi.verifySession();
+      if (!authCheck.success) {
         throw new Error("Authentication required. Please log in.");
       }
 
-      log.info("GOOGLE_CALENDAR_SERVICE", "Creating event", {
+      log.info(LOG_CATEGORIES.API, "Creating event", {
         summary:
           isObject(event) && hasProperty(event, "summary")
             ? event.summary
@@ -568,7 +582,7 @@ export class GoogleCalendarService {
       this.updateState({ events: updatedEvents });
       this.saveToLocalStorage(this.localStorageKeys.events, updatedEvents);
 
-      log.info("GOOGLE_CALENDAR_SERVICE", "Event created successfully", {
+      log.info(LOG_CATEGORIES.API, "Event created successfully", {
         eventId:
           isObject(createdEvent) && hasProperty(createdEvent, "id")
             ? createdEvent.id
@@ -578,7 +592,7 @@ export class GoogleCalendarService {
       return createdEvent;
     } catch (err: unknown) {
       const error = asError(err);
-      log.error("GOOGLE_CALENDAR_SERVICE", "Error creating event", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Error creating event", error);
 
       let errorMessage = "Failed to create event. Please try again.";
 
@@ -614,7 +628,7 @@ export class GoogleCalendarService {
    */
   public async revokeAccess(): Promise<void> {
     try {
-      log.info("GOOGLE_CALENDAR_SERVICE", "Revoking access");
+      log.info(LOG_CATEGORIES.API, "Revoking access");
 
       const response = await googleCalendarApi.revokeAccess();
 
@@ -626,10 +640,10 @@ export class GoogleCalendarService {
       this.setConnectionStatus(false);
       googleCalendarApi.clearConnectionStatus();
 
-      log.info("GOOGLE_CALENDAR_SERVICE", "Access revoked successfully");
+      log.info(LOG_CATEGORIES.API, "Access revoked successfully");
     } catch (err: unknown) {
       const error = asError(err);
-      log.error("GOOGLE_CALENDAR_SERVICE", "Error revoking access", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Error revoking access", error);
 
       let errorMessage = "Failed to revoke access. Please try again.";
 
@@ -665,7 +679,7 @@ export class GoogleCalendarService {
       localStorage.removeItem(key);
     });
 
-    log.info("GOOGLE_CALENDAR_SERVICE", "All data cleared");
+    log.info(LOG_CATEGORIES.API, "All data cleared");
   }
 
   /**

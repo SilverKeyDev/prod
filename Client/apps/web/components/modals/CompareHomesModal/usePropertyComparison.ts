@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { SavedHome } from "../../../../../packages/schemas";
-import { searchApi } from "../../../../../packages/config/api";
+import { researchApi } from "../../../../../packages/config/api";
 import type { PropertyDetails } from "./types";
 
 // Helper functions to safely convert unknown values to specific types
@@ -69,7 +69,7 @@ export function usePropertyComparison(
           }));
 
           // Stream property updates (using compare endpoint to skip pros/cons)
-          for await (const update of searchApi.streamCompare({ address })) {
+          for await (const update of researchApi.streamCompare({ address })) {
             if (update.type === "error") {
               const errorData = update.data as {
                 error?: string;

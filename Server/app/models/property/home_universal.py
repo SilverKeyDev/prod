@@ -10,6 +10,7 @@ class HomeUniversal(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = db.Column(db.String(36), nullable=False)
     is_liked = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text('false'))
+    current = db.Column(db.Boolean, nullable=False, default=True, server_default=db.text('true'))
 
     # Basic address and summary fields
     address = db.Column(db.String(500))
@@ -29,13 +30,22 @@ class HomeUniversal(db.Model):
 
     # Identifiers and metadata
     zpid = db.Column(db.String(64))
+    mls_home_id = db.Column(db.String(64))
     listing_status = db.Column(db.String(64))
     property_type = db.Column(db.String(64))
     home_type = db.Column(db.String(64))
     year_built = db.Column(db.String(16))
     
+    # MLS and Agent Information
+    mls_agent_id = db.Column(db.String(64))
+    listing_agent_phone = db.Column(db.String(32))
+    listing_agent_email = db.Column(db.String(255))
+    brokerage = db.Column(db.String(255))
+    mls_region = db.Column(db.String(64))
+    
     # Ranking/Scoring
     score = db.Column(db.Float)
+    ranking = db.Column(db.Integer)  # Position in search results (1-based, 1 = best/highest score)
 
     # Geo
     latitude = db.Column(db.Float)
@@ -64,7 +74,9 @@ class HomeUniversal(db.Model):
             "user_id": self.user_id,
             "address": self.address,
             "isLiked": self.is_liked,
+            "current": self.current,
             "score": self.score,
+            "ranking": self.ranking,
             "city": self.city,
             "state": self.state,
             "zipcode": self.zipcode,
@@ -78,10 +90,16 @@ class HomeUniversal(db.Model):
             "image_url": self.image_url,
             "image_urls": self.image_urls,
             "zpid": self.zpid,
+            "mls_home_id": self.mls_home_id,
             "listing_status": self.listing_status,
             "property_type": self.property_type,
             "home_type": self.home_type,
             "year_built": self.year_built,
+            "mls_agent_id": self.mls_agent_id,
+            "listing_agent_phone": self.listing_agent_phone,
+            "listing_agent_email": self.listing_agent_email,
+            "brokerage": self.brokerage,
+            "mls_region": self.mls_region,
             "latitude": self.latitude,
             "longitude": self.longitude,
             "living_area": self.living_area,

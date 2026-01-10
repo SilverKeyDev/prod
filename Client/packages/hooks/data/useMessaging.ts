@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAgentChats } from "./useAgentChats";
 import { useNotificationStore } from "../../store/notifications.slice";
-import { agentService } from "../../services/agent";
-import type { AgentConversation } from "../../config/api/agent";
+import { agentApi } from "../../config/api/agent";
+import { queryKeys } from "../../config/query/keys";
+import type { AgentConversation, AgentChatMessage } from "../../config/api/agent";
 
 export type ChatMessage = {
   id: string;
@@ -59,15 +61,15 @@ export type UseMessagingReturn = {
  */
 export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
   const { mode, conversationSelector, clientIdForSending, agentId } = config;
+  const queryClient = useQueryClient();
   
   const { conversations, sendMessage: sendMessageApi, getChatHistory, refreshChats } =
     useAgentChats(mode === "agent" ? conversationSelector ?? undefined : undefined);
   
-  const {
-    markConversationRead,
-    updateLastReadTimestamp,
-    setActiveConversationId: setActiveConversationIdInStore,
-  } = useNotificationStore();
+  // Use selectors to get store actions - these are stable references
+  const markConversationRead = useNotificationStore((s) => s.markConversationRead);
+  const updateLastReadTimestamp = useNotificationStore((s) => s.updateLastReadTimestamp);
+  const setActiveConversationIdInStore = useNotificationStore((s) => s.setActiveConversationId);
 
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const [activeConversationId, setActiveConversationIdState] = useState<string>("");
@@ -144,6 +146,12 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
       return;
     }
 
+    // Check for cached chat history first
+    const cachedHistory = queryClient.getQueryData<{
+      messages: AgentChatMessage[];
+      conversation?: AgentConversation;
+    }>(queryKeys.agent.history(activeConversationId));
+
     // Use memoized timestamp to avoid unnecessary recalculations
     const currentLastMessageAt = currentConversationLastMessageAt;
 
@@ -160,6 +168,56 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     // vs a polling update (same conversation, already loaded, just checking for new messages)
     const isInitialLoad = conversationChanged || !loadedHistoryIdsRef.current.has(activeConversationId);
     
+    // If we have cached history and this is an initial load, show it immediately
+    if (cachedHistory && isInitialLoad) {
+      const cachedMessages = mapApiMessagesToChatMessages(cachedHistory.messages ?? []);
+      setLocalMessages(cachedMessages);
+      loadedHistoryIdsRef.current.add(activeConversationId);
+      
+      // Update last known timestamp from cached messages
+      if (cachedMessages.length > 0) {
+        const latestMessage = cachedMessages[cachedMessages.length - 1];
+        lastKnownMessageTimestampRef.current = latestMessage.timestamp.getTime();
+        lastMessageAtRef.current = latestMessage.timestamp.getTime();
+      }
+      
+      // Mark conversation as read
+      markConversationRead(activeConversationId);
+      void agentApi.markMessagesAsRead(activeConversationId).catch((err) => {
+        console.error("Failed to mark messages as read:", err);
+      });
+      
+      // Update last read timestamp
+      if (cachedMessages.length > 0) {
+        const latestMessage = cachedMessages[cachedMessages.length - 1];
+        updateLastReadTimestamp(
+          activeConversationId,
+          latestMessage.timestamp.getTime()
+        );
+      }
+      
+      // Update refs
+      lastConversationIdRef.current = activeConversationId;
+      
+      // Still fetch fresh data in background (but don't show loading)
+      void getChatHistoryRef.current(activeConversationId).then((data) => {
+        if (lastConversationIdRef.current === activeConversationId) {
+          const messages = mapApiMessagesToChatMessages(data.messages ?? []);
+          setLocalMessages(messages);
+          
+          if (messages.length > 0) {
+            const latestMessage = messages[messages.length - 1];
+            lastKnownMessageTimestampRef.current = latestMessage.timestamp.getTime();
+            lastMessageAtRef.current = latestMessage.timestamp.getTime();
+          }
+        }
+      }).catch(() => {
+        // Error handled silently - we already have cached data
+      });
+      
+      return;
+    }
+    
     // Only reload if:
     // 1. Conversation changed, OR
     // 2. We haven't loaded this conversation yet, OR
@@ -173,7 +231,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
       // Still mark as read even if already loaded
       markConversationRead(activeConversationId);
       // Mark messages as read on backend
-      void agentService.markMessagesAsRead(activeConversationId).catch((err) => {
+      void agentApi.markMessagesAsRead(activeConversationId).catch((err) => {
         console.error("Failed to mark messages as read:", err);
       });
       return;
@@ -191,8 +249,8 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
 
     let cancelled = false;
     const loadHistory = async () => {
-      // Only show loading indicator for initial loads, not polling updates
-      if (isInitialLoad) {
+      // Only show loading indicator for initial loads without cache, not polling updates
+      if (isInitialLoad && !cachedHistory) {
         setIsLoadingHistory(true);
       }
       try {
@@ -214,7 +272,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
 
           // Mark messages as read on backend
           try {
-            await agentService.markMessagesAsRead(activeConversationId);
+            await agentApi.markMessagesAsRead(activeConversationId);
           } catch (err) {
             console.error("Failed to mark messages as read:", err);
           }
@@ -232,8 +290,8 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
         // Error is handled by the query's error state
       } finally {
         if (!cancelled) {
-          // Only hide loading indicator if we showed it (initial load)
-          if (isInitialLoad) {
+          // Only hide loading indicator if we showed it (initial load without cache)
+          if (isInitialLoad && !cachedHistory) {
             setIsLoadingHistory(false);
           }
           isLoadingRef.current = false;
@@ -253,6 +311,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     markConversationRead,
     updateLastReadTimestamp,
     mapApiMessagesToChatMessages,
+    queryClient,
   ]);
 
   const sendMessage = useCallback(async (messageText: string) => {

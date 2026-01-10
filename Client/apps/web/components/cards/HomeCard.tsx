@@ -158,7 +158,7 @@ export default function HomeCard({
         showScore={showScore}
         isOnMap={isOnMap}
         topContent={
-          <CardHeartSave property={convertToProperty(home)} size="sm" />
+          <CardHeartSave property={convertToProperty(home)} size="sm" position="top-right" />
         }
         bottomContent={
           <CardViewDetailsButton

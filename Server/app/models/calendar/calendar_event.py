@@ -23,6 +23,10 @@ class CalendarEvent(db.Model):
     # Creator information
     creator_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)  # ID of user who created the event
     
+    # Calendar sharing information
+    target_user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)  # ID of user whose calendar the event was created in (if different from creator)
+    shared_with_user_ids = db.Column(db.JSON, nullable=True)  # Array of user IDs the event is shared with (for tracking bidirectional sharing with multiple users)
+    
     # Date and time
     start_datetime = db.Column(db.DateTime, nullable=False)
     end_datetime = db.Column(db.DateTime, nullable=False)
@@ -52,6 +56,7 @@ class CalendarEvent(db.Model):
     # Relationships
     user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('calendar_events', lazy=True))
     creator = db.relationship('User', foreign_keys=[creator_id], backref=db.backref('created_events', lazy=True))
+    target_user = db.relationship('User', foreign_keys=[target_user_id], backref=db.backref('target_calendar_events', lazy=True))
     
     def __init__(self, **kwargs):
         super(CalendarEvent, self).__init__(**kwargs)
@@ -83,6 +88,8 @@ class CalendarEvent(db.Model):
             'location': self.location,
             'event_type': self.event_type,
             'creator_id': self.creator_id,
+            'target_user_id': self.target_user_id,
+            'shared_with_user_ids': self.shared_with_user_ids,
             'start_datetime': self.start_datetime.isoformat() if self.start_datetime else None,
             'end_datetime': self.end_datetime.isoformat() if self.end_datetime else None,
             'timezone': self.timezone,

@@ -294,6 +294,28 @@ def respond_to_connection_request(
                             client.agent_id = ','.join(agent_ids)
                 else:
                     client.agent_id = json.dumps([request.agent_id])
+            
+            # Set up calendar sharing between agent and client
+            try:
+                from ...services.calendar.google_calendar_service import google_calendar_service
+                
+                sharing_result = google_calendar_service.setup_agent_client_calendar_sharing(
+                    agent_id=request.agent_id,
+                    client_id=request.client_id,
+                    agent_email=agent.email,
+                    client_email=client.email,
+                    db_session=db.session
+                )
+                
+                if sharing_result.get("success"):
+                    logger.info(f"Calendar sharing set up successfully between agent {request.agent_id} and client {request.client_id}")
+                else:
+                    # Log but don't fail the relationship creation
+                    errors = sharing_result.get("errors", [])
+                    logger.warning(f"Calendar sharing setup had issues for agent {request.agent_id} and client {request.client_id}: {errors}")
+            except Exception as e:
+                # Log but don't fail the relationship creation if calendar setup fails
+                logger.error(f"Error setting up calendar sharing for agent {request.agent_id} and client {request.client_id}: {e}", exc_info=True)
         
         db.session.commit()
         

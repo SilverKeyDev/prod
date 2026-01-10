@@ -3,6 +3,7 @@ import type { Chat } from "../schemas";
 import { formatFilenameToAddress } from "../utils/address";
 
 import { createAbortManager, isAbortError } from "./http";
+import { log, LOG_CATEGORIES } from "../../logger";
 
 /* =========================
    Chat Service
@@ -16,7 +17,7 @@ export class ChatService {
      ========================= */
 
   async fetchChats(): Promise<Chat[]> {
-    console.log("[CHAT_SERVICE] 🚀 Starting fetchChats");
+    log.debug(LOG_CATEGORIES.API, "Starting fetchChats");
 
     try {
       // Check for shared reports data from ReportsContext first
@@ -27,7 +28,7 @@ export class ChatService {
       const CACHE_TTL = 30000; // 30 seconds
 
       if (sharedData && Date.now() - sharedData.timestamp < CACHE_TTL) {
-        console.log(
+        log.debug(LOG_CATEGORIES.API,
           "[CHAT_SERVICE] 📋 Using shared reports data from ReportsContext",
         );
         const { reports } = sharedData;
@@ -59,7 +60,7 @@ export class ChatService {
           };
         });
 
-        console.log(
+        log.debug(LOG_CATEGORIES.API,
           "[CHAT_SERVICE] ✅ Successfully processed chats from shared data:",
           {
             chatsCount: newChats.length,
@@ -76,7 +77,7 @@ export class ChatService {
       throw new Error("No shared reports data available and API endpoint removed");
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("[CHAT_SERVICE] ❌ fetchChats error:", {
+        log.error(LOG_CATEGORIES.ERRORS, "fetchChats error", {
           error: e,
           message:
             e &&
@@ -97,7 +98,7 @@ export class ChatService {
       }
       throw e;
     } finally {
-      console.log("[CHAT_SERVICE] 🏁 fetchChats completed");
+      log.debug(LOG_CATEGORIES.API, "fetchChats completed");
     }
   }
 
@@ -106,7 +107,7 @@ export class ChatService {
      ========================= */
 
   async sendMessage(reportId: string, message: string): Promise<unknown> {
-    console.log("[CHAT_SERVICE] 💬 Starting sendMessage", {
+    log.debug(LOG_CATEGORIES.API, "Starting sendMessage", {
       reportId,
       messageLength: message.length,
     });
@@ -115,7 +116,7 @@ export class ChatService {
         typeof reportId === "string"
           ? reportId.replace(/\.(pdf|json)$/, "")
           : String(reportId);
-      console.log("[CHAT_SERVICE] 📡 Calling chatbotApi.chatForAddress", {
+      log.debug(LOG_CATEGORIES.API, "Calling chatbotApi.chatForAddress", {
         cleanReportId,
       });
 
@@ -123,7 +124,7 @@ export class ChatService {
       if (!response || typeof response !== "object") {
         throw new Error("Invalid API response structure");
       }
-      console.log("[CHAT_SERVICE] ✅ sendMessage response:", {
+      log.info(LOG_CATEGORIES.API, "sendMessage response", {
         hasResponse:
           response &&
           typeof response === "object" &&
@@ -147,7 +148,7 @@ export class ChatService {
 
       return response;
     } catch (error: unknown) {
-      console.error("[CHAT_SERVICE] ❌ sendMessage error:", {
+      log.error(LOG_CATEGORIES.ERRORS, "sendMessage error", {
         reportId,
         cleanReportId:
           typeof reportId === "string"
@@ -167,13 +168,13 @@ export class ChatService {
   }
 
   async getChatHistory(reportId: string): Promise<unknown> {
-    console.log("[CHAT_SERVICE] 📜 Starting getChatHistory", { reportId });
+    log.debug(LOG_CATEGORIES.API, "Starting getChatHistory", { reportId });
     try {
       const cleanReportId =
         typeof reportId === "string"
           ? reportId.replace(/\.(pdf|json)$/, "")
           : String(reportId);
-      console.log("[CHAT_SERVICE] 📡 Calling chatbotApi.getChatHistory", {
+      log.debug(LOG_CATEGORIES.API, "Calling chatbotApi.getChatHistory", {
         cleanReportId,
       });
 
@@ -182,7 +183,7 @@ export class ChatService {
         throw new Error("Invalid API response structure");
       }
       const typedResponse = response as Record<string, unknown>;
-      console.log("[CHAT_SERVICE] ✅ getChatHistory response:", {
+      log.info(LOG_CATEGORIES.API, "getChatHistory response", {
         messagesCount:
           "messages" in typedResponse && Array.isArray(typedResponse.messages)
             ? typedResponse.messages.length
@@ -193,7 +194,7 @@ export class ChatService {
 
       return response;
     } catch (error: unknown) {
-      console.error("[CHAT_SERVICE] ❌ getChatHistory error:", {
+        log.error(LOG_CATEGORIES.ERRORS, "getChatHistory error", {
         reportId,
         cleanReportId:
           typeof reportId === "string"

@@ -67,7 +67,7 @@ export default function ClientMessaging() {
   const { sendMessage: sendMessageWithAttachment } = useAgentChats();
 
   // Auto-scroll to bottom when messages change
-  const { messagesEndRef } = useMessageScroll(localMessages);
+  const { messagesEndRef } = useMessageScroll(localMessages, activeConversationId, isLoadingHistory);
 
   // Handle sending messages (client mode)
   const handleSendMessage = useCallback(async () => {

@@ -1,27 +1,19 @@
 // React imports
-import React, { useState, useMemo, useCallback, type ReactNode } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useMemo, type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 
 // Headers
 import ClosePageHeader from "../../features/close/ClosePageHeader.tsx";
-import DashboardButtonHeader from "../../features/dashboard/DashboardButtonHeader.tsx";
-import MobileTopBar from "../../components/widgets/header/MobileTopBar";
 
-// Pages
-import BuyerChecklists from "../../pages/BuyerChecklistsPage.tsx";
-import DashboardPage from "../../pages/DashboardPage.tsx";
-import PersonalizationPage from "../../pages/SettingsPage.tsx";
-import SavedHomes from "../../pages/SavedPage.tsx";
-import SearchPage from "../../pages/SearchPage.tsx";
-import AgentPage from "../../pages/AgentPage.tsx";
-import { Calendar } from "../../features/dashboard/calendar";
+// Layout components
+import { DashboardHeader } from "./DashboardHeader";
+import { DashboardContent } from "./DashboardContent";
 
 // Stores
 import {
   useViewStore,
   type ViewState,
 } from "../../../../packages/store/view.slice";
-import { useFiltersStore } from "../../../../packages/store";
 
 // Hooks
 import useMobile from "../../../../packages/hooks/ui/useMobile";
@@ -63,7 +55,7 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/dashboard": 90,
   "/settings": 90,
   "/saved": 90,
-  "/agent": 90,
+  "/messaging": 90,
   "/calendar": 90,
 };
 
@@ -74,7 +66,7 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/dashboard": 90,
   "/settings": 90,
   "/saved": 90,
-  "/agent": 90,
+  "/messaging": 90,
   "/calendar": 90,
 };
 
@@ -87,10 +79,6 @@ const CHECKLIST_TABS: ChecklistTab[] = [
   "closing",
 ];
 
-// Mobile layout constants to match MobileTopBar / sidebar button spacing
-const MOBILE_SIDE_PX = "px-4"; // keep children aligned with the button padding
-const MOBILE_TOP_SPACER_CLASS = "transition-all duration-300 ease-in-out"; // matches old pattern
-
 export default function DashboardLayout({
   user,
   onLogout,
@@ -99,7 +87,6 @@ export default function DashboardLayout({
   maxWidth = 85, // Default to 85% if not specified
 }: DashboardProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const path = location.pathname;
   const search = location.search;
   const isMobile = useMobile();
@@ -110,7 +97,7 @@ export default function DashboardLayout({
   const isDashboard = path.startsWith("/dashboard");
   const isPersonalization = path.startsWith("/settings");
   const isSaved = path.startsWith("/saved");
-  const isAgent = path.startsWith("/agent");
+  const isAgent = path.startsWith("/messaging");
   const isCalendar = path.startsWith("/calendar");
 
   // Persisted buyer-checklists tab state
@@ -147,22 +134,9 @@ export default function DashboardLayout({
     useState<ClosePageHeaderData | null>(null);
 
   // Search functionality
-  const isSearching = useFiltersStore((s) => s.isSearching);
   const searchPageRef = React.useRef<{
     triggerSearch: () => Promise<void>;
   } | null>(null);
-
-  // Search handlers
-  const handleUpdatePreferences = useCallback(() => {
-    navigate("/settings");
-  }, [navigate]);
-
-  const handleSearchProperties = useCallback(async () => {
-    // Trigger search through the SearchPage ref
-    if (searchPageRef.current) {
-      await searchPageRef.current.triggerSearch();
-    }
-  }, []);
 
   // Page width percentage (0-100) - CSS calc() accounts for sidebar on desktop
   const computedMaxWidthVW = useMemo(() => {
@@ -230,15 +204,6 @@ export default function DashboardLayout({
 
   // Desktop header content
   const headerContent = useMemo(() => {
-    if (isDashboard) {
-      return (
-        <DashboardButtonHeader
-          variant="horizontal"
-          completedStepKey={undefined}
-        />
-      );
-    }
-
     if (isBuyerChecklists) {
       return (
         <ClosePageHeader
@@ -261,86 +226,10 @@ export default function DashboardLayout({
 
     return null;
   }, [
-    isSearch,
-    isDashboard,
     isBuyerChecklists,
     closePageHeaderData,
     buyerChecklistsActiveTab,
     config,
-    handleUpdatePreferences,
-    handleSearchProperties,
-    isSearching,
-  ]);
-
-  // Removed isSavedReportsView - SavedLayout is now shown in mobile topbar via mobileHeaderActions
-
-  // Mobile header content
-  const mobileHeaderContent = useMemo(() => {
-    // For Search on mobile, use mobile header actions from SearchPage
-    if (isSearch && mobileHeaderActions) {
-      return mobileHeaderActions;
-    }
-
-    // For Search pages on mobile, don't show fallback header while waiting for mobile actions
-    if (isSearch && isMobile && !mobileHeaderActions) {
-      return null;
-    }
-
-    if (mobileHeaderActions) return mobileHeaderActions;
-
-    if (isDashboard) {
-      return (
-        <DashboardButtonHeader
-          variant="horizontal"
-          completedStepKey={undefined}
-        />
-      );
-    }
-
-    if (isBuyerChecklists) {
-      return (
-        <ClosePageHeader
-          title={closePageHeaderData?.title ?? SIDEBAR_TABS.close.name}
-          subtitle={
-            closePageHeaderData?.subtitle ?? SIDEBAR_TABS.close.description
-          }
-          completedCount={closePageHeaderData?.completedCount ?? 0}
-          totalCount={closePageHeaderData?.totalCount ?? 0}
-          loading={closePageHeaderData?.loading ?? true}
-          activeTab={buyerChecklistsActiveTab}
-          onTabChange={setBuyerChecklistsActiveTab}
-        />
-      );
-    }
-
-    // For personalization, ensure no other header content is shown when actions are not present
-    if (isPersonalization) return null;
-
-    // Explicitly passed mobileHeader for other pages
-    if (mobileHeader) return mobileHeader;
-
-    // Mobile overrides placeholder (extend as needed)
-    const mobileOverrides: Record<string, React.ReactNode> = {};
-    const overrideKey = Object.keys(mobileOverrides).find((k) =>
-      path.startsWith(k)
-    );
-    if (overrideKey) return mobileOverrides[overrideKey];
-
-    if (config.title) return null;
-
-    return null;
-  }, [
-    isSearch,
-    isMobile,
-    mobileHeaderActions,
-    isDashboard,
-    isBuyerChecklists,
-    isPersonalization,
-    mobileHeader,
-    path,
-    config,
-    closePageHeaderData,
-    buyerChecklistsActiveTab,
   ]);
 
   return (
@@ -362,91 +251,38 @@ export default function DashboardLayout({
       </div>
 
       <main className="ml-0 flex-1 transition-all duration-200 md:ml-52 max-md:pb-20">
-        {/* Mobile Header - Hidden when desktop sidebar is visible (>= 768px) */}
-        <div className="md:hidden">
-          <div
-            className={isSearch ? "w-full" : "mx-auto"}
-            style={isSearch ? {} : { maxWidth: "95vw" }}
-          >
-            <MobileTopBar
-              dynamicHeight={isSaved && mobileHeaderActions !== null}
-            >
-              {/* Center the dynamic header content */}
-              <div
-                className={`flex flex-grow items-center justify-center text-center ${MOBILE_SIDE_PX}`}
-              >
-                {mobileHeaderContent ?? null}
-              </div>
-            </MobileTopBar>
-          </div>
+        <DashboardHeader
+          isMobile={isMobile}
+          isSearch={isSearch}
+          isSaved={isSaved}
+          isAgent={isAgent}
+          isCalendar={isCalendar}
+          isBuyerChecklists={isBuyerChecklists}
+          isPersonalization={isPersonalization}
+          mobileHeaderActions={mobileHeaderActions}
+          mobileHeader={mobileHeader}
+          closePageHeaderData={closePageHeaderData}
+          buyerChecklistsActiveTab={buyerChecklistsActiveTab}
+          onTabChange={setBuyerChecklistsActiveTab}
+          headerContent={headerContent}
+          computedMaxWidthVW={computedMaxWidthVW}
+        />
 
-          {/* Spacer to keep content clear of the fixed MobileTopBar */}
-          <div
-            className={`${MOBILE_TOP_SPACER_CLASS} ${
-              isSaved && mobileHeaderActions !== null ? "h-16" : "h-24"
-            }`}
-          />
-        </div>
-
-        {/* Desktop Header (consistent width) - Hidden when mobile header is visible (< 768px) */}
-        <div
-          className={`hidden md:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch ? "!hidden" : ""}`}
-          style={{
-            maxWidth: `calc((100vw - 208px) * ${computedMaxWidthVW} / 100)`,
-          }}
-        >
-          {headerContent}
-        </div>
-
-        {/* Content area with centralized width parameter */}
-        <div
-          className={`dashboard-content w-full ${
-            isSearch
-              ? // Full-height search canvas; full width on mobile and desktop, no side margins
-                `h-[calc(100vh-80px)] md:h-[calc(100vh-0px)] mx-0`
-              : isBuyerChecklists
-                ? // Checklists keeps its own internal spacing; still align sides on mobile
-                  `mx-auto ${MOBILE_SIDE_PX} md:px-0`
-                : // Default pages: standard padding on desktop; on mobile align with top bar button
-                  `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
-          }`}
-          style={
-            isSearch
-              ? ({
-                  "--max-width-desktop": "100",
-                } as React.CSSProperties & { "--max-width-desktop": string })
-              : ({
-                  "--max-width-desktop": `${computedMaxWidthVW}`,
-                } as React.CSSProperties & { "--max-width-desktop": string })
-          }
-        >
-          {isSearch && (
-            <SearchPage
-              setMobileHeaderActions={setMobileHeaderActions}
-              searchRef={searchPageRef}
-            />
-          )}
-          {isPersonalization && (
-            <PersonalizationPage
-              setMobileHeaderActions={setMobileHeaderActions}
-            />
-          )}
-          {isBuyerChecklists && (
-            <BuyerChecklists
-              setClosePageHeaderData={setClosePageHeaderData}
-              activeTab={buyerChecklistsActiveTab}
-              onTabChange={setBuyerChecklistsActiveTab}
-            />
-          )}
-          {isSaved && (
-            <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
-          )}
-          {isAgent && (
-            <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
-          )}
-          {isCalendar && <Calendar />}
-          {isDashboard && <DashboardPage />}
-        </div>
+        <DashboardContent
+          isSearch={isSearch}
+          isBuyerChecklists={isBuyerChecklists}
+          isPersonalization={isPersonalization}
+          isSaved={isSaved}
+          isAgent={isAgent}
+          isCalendar={isCalendar}
+          isDashboard={isDashboard}
+          computedMaxWidthVW={computedMaxWidthVW}
+          setMobileHeaderActions={setMobileHeaderActions}
+          searchPageRef={searchPageRef}
+          setClosePageHeaderData={setClosePageHeaderData}
+          buyerChecklistsActiveTab={buyerChecklistsActiveTab}
+          onTabChange={setBuyerChecklistsActiveTab}
+        />
       </main>
     </div>
   );

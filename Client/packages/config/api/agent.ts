@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from "../../services/http/compatibility";
+import { apiGet, apiPost, apiPut } from "../../services/http/compatibility";
 
 // Types for agent API
 export type AgentClient = {
@@ -164,6 +164,67 @@ export type MarkMessagesAsReadResponse = {
   error?: string;
 };
 
+export type NotificationCounterResponse = {
+  success: boolean;
+  total_count: number;
+  error?: string;
+};
+
+export type TodoItem = {
+  id: string;
+  agent_id: string;
+  client_id?: string;
+  title: string;
+  description?: string;
+  priority: "low" | "medium" | "high" | "urgent";
+  type: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
+  due_date: string;
+  completed: boolean;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type GetTodosResponse = {
+  success: boolean;
+  todos?: TodoItem[];
+  message?: string;
+  error?: string;
+};
+
+export type CreateTodoRequest = {
+  title: string;
+  due_date: string;
+  priority?: "low" | "medium" | "high" | "urgent";
+  type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
+  client_id?: string;
+  description?: string;
+};
+
+export type CreateTodoResponse = {
+  success: boolean;
+  todo?: TodoItem;
+  message?: string;
+  error?: string;
+};
+
+export type UpdateTodoRequest = {
+  title?: string;
+  description?: string;
+  priority?: "low" | "medium" | "high" | "urgent";
+  type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
+  due_date?: string;
+  completed?: boolean;
+  client_id?: string;
+};
+
+export type UpdateTodoResponse = {
+  success: boolean;
+  todo?: TodoItem;
+  message?: string;
+  error?: string;
+};
+
 /**
  * Agent API client using centralized utilities
  */
@@ -276,4 +337,35 @@ export const agentApi = {
       `/api/v1/agent/chats/${conversationId}/read`,
       {}
     ),
+
+  /**
+   * Get total notification count (unread messages + pending requests)
+   */
+  getNotificationCounter: (): Promise<NotificationCounterResponse> =>
+    apiGet<NotificationCounterResponse>("/api/v1/agent/notification-counter"),
+
+  /**
+   * Get todos for authenticated agent
+   */
+  getTodos: (includeCompleted?: boolean): Promise<GetTodosResponse> => {
+    const params = includeCompleted
+      ? `?include_completed=true`
+      : "";
+    return apiGet<GetTodosResponse>(`/api/v1/agent/todos${params}`);
+  },
+
+  /**
+   * Create a new todo
+   */
+  createTodo: (data: CreateTodoRequest): Promise<CreateTodoResponse> =>
+    apiPost<CreateTodoResponse>("/api/v1/agent/todos", data),
+
+  /**
+   * Update a todo
+   */
+  updateTodo: (
+    todoId: string,
+    data: UpdateTodoRequest
+  ): Promise<UpdateTodoResponse> =>
+    apiPut<UpdateTodoResponse>(`/api/v1/agent/todos/${todoId}`, data),
 };

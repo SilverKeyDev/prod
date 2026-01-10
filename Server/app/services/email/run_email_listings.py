@@ -58,8 +58,8 @@ def build_messages_for_recent_users(
         if not user_id or not email:
             continue
 
-        # Prefer highest score, then most recently updated
-        q = HomeUniversal.query.filter_by(user_id=user_id)
+        # Prefer highest score, then most recently updated (only current homes)
+        q = HomeUniversal.query.filter_by(user_id=user_id, current=True)
         if HAVE_SA_HELPERS:
             # More portable nulls-last ordering if needed
             try:

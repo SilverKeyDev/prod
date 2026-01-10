@@ -137,26 +137,6 @@ export const useReportsData = () => {
   const compareReportsLoading = reportsLoading;
   const compareReportsError = reportsError;
 
-  // Generate report mutation
-  const generateReportMutation = useMutation({
-    mutationFn: async (data: {
-      address: string;
-      comparisonAddress?: string;
-      user_id?: string;
-      marketing_model?: boolean;
-    }) => {
-      const response = await reportApi.generate(data);
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to generate report");
-      }
-      return response;
-    },
-    onSuccess: () => {
-      // Invalidate and refetch reports after successful generation
-      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
-    },
-  });
-
   // Delete report mutation
   const deleteReportMutation = useMutation({
     mutationFn: async ({
@@ -281,18 +261,6 @@ export const useReportsData = () => {
     }
   }, []); // No dependencies to prevent re-creation
 
-  const generateReport = useCallback(
-    async (data: {
-      address: string;
-      comparisonAddress?: string;
-      user_id?: string;
-      marketing_model?: boolean;
-    }) => {
-      return generateReportMutation.mutateAsync(data);
-    },
-    [generateReportMutation],
-  );
-
   const deleteReport = useCallback(
     async (reportId: string, s3Key?: string) => {
       return deleteReportMutation.mutateAsync({ reportId, s3Key });
@@ -340,7 +308,6 @@ export const useReportsData = () => {
     // Methods
     refreshReports,
     refreshCompareReports,
-    generateReport,
     deleteReport,
     shareReport,
     compareReportsData,

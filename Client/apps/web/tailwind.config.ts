@@ -99,6 +99,7 @@ export default {
           900: "hsl(0, 0%, 9%)", // Almost black
         },
         "off-white": "#FAF9F6",
+        "off-white-gray": "hsl(0, 0%, 96%)", // Off-white with very light gray tint
         navy: "#1A1F36",
         "dark-green": "#405541",
         "gray-brown": "#B8B3AB",

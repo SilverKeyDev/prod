@@ -42,7 +42,7 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     },
     enabled: authReady && isAuthenticated,
     staleTime: 1 * 60 * 1000, // 1 minute
-    refetchOnMount: true,
+    refetchOnMount: false, // Don't refetch if data exists (use cached data from initial load)
   });
 
   // Create request mutation

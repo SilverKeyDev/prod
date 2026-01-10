@@ -17,6 +17,7 @@ class Search(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     query_params = db.Column(JSONB, nullable=False)
+    mls_home_id = db.Column(db.String(64))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # relationships
@@ -32,5 +33,6 @@ class Search(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'query_params': self.query_params,
+            'mls_home_id': self.mls_home_id,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }

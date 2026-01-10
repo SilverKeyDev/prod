@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useGoogleCalendarStoreIntegration } from "../../../../../packages/hooks/store/useGoogleCalendarStoreIntegration";
 import { useUserPreferences } from "../../../../../packages/hooks/data/useUserData";
 import { preferencesApi } from "../../../../../packages/config/api/preferences";
@@ -10,9 +11,11 @@ import { CalendarView } from "./components/CalendarView";
 import { EventList } from "./components/EventList";
 import { CreateEventModal } from "./components/CreateEventModal";
 import { googleCalendarApi } from "../../../../../packages/config/api/googleCalendar";
+import { queryKeys } from "../../../../../packages/config/query/keys";
 import type { GoogleEvent } from "../../../../../packages/config/api/googleCalendar";
 
 export function Calendar() {
+  const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(new Set());
   const [isCreateEventModalOpen, setIsCreateEventModalOpen] = useState(false);
@@ -35,72 +38,162 @@ export function Calendar() {
     refreshCalendars,
     refreshEvents,
     connectGoogleCalendar,
-    disconnectGoogleCalendar,
   } = useGoogleCalendarStoreIntegration();
 
-  // Fetch events from all enabled calendars
-  const [allEvents, setAllEvents] = useState<GoogleEvent[]>([]);
-  const [fetchingEvents, setFetchingEvents] = useState(false);
+  // Calculate date range to cover current month view and upcoming events
+  const dateRange = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const monthStart = new Date(year, month, 1);
+    monthStart.setHours(0, 0, 0, 0);
+    
+    // Get end of current month and extend a bit for upcoming events view
+    const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
+    const now = new Date();
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const timeMax = sevenDaysFromNow > monthEnd ? sevenDaysFromNow : monthEnd;
+    
+    return {
+      timeMin: monthStart.toISOString(),
+      timeMax: timeMax.toISOString(),
+    };
+  }, [currentDate]);
+
+  // Read cached events synchronously during render for instant display
+  const cachedEvents = useMemo(() => {
+    if (!isConnected || calendars.length === 0 || enabledCalendarIds.size === 0) {
+      return [];
+    }
+
+    const cachedEventsByCalendar: GoogleEvent[][] = [];
+    
+    Array.from(enabledCalendarIds).forEach((calendarId) => {
+      const cacheKey = queryKeys.googleCalendar.eventsList({
+        calendarId,
+        timeMin: dateRange.timeMin,
+        timeMax: dateRange.timeMax,
+      });
+      const cached = queryClient.getQueryData<GoogleEvent[]>(cacheKey);
+      // Include cached data even if empty (calendar has no events)
+      if (cached !== undefined) {
+        cachedEventsByCalendar.push(
+          cached.map((event) => ({
+            ...event,
+            calendarId,
+          }))
+        );
+      }
+    });
+
+    return cachedEventsByCalendar.flat();
+  }, [isConnected, calendars, enabledCalendarIds, dateRange, queryClient]);
 
   // Fetch events from all enabled calendars
+  const [fetchedEvents, setFetchedEvents] = useState<GoogleEvent[]>([]);
+  const [fetchingEvents, setFetchingEvents] = useState(false);
+
+  // Use cached events if available, otherwise use fetched events
+  const allEvents = cachedEvents.length > 0 ? cachedEvents : fetchedEvents;
+
+  // Check if we have cached data for all enabled calendars
+  const hasAllCachedData = useMemo(() => {
+    if (!isConnected || calendars.length === 0 || enabledCalendarIds.size === 0) {
+      return false;
+    }
+    
+    // Check if we have cached data for all enabled calendars
+    // Allow empty arrays (calendar has no events) - cached !== undefined means we've fetched before
+    return Array.from(enabledCalendarIds).every((calendarId) => {
+      const cacheKey = queryKeys.googleCalendar.eventsList({
+        calendarId,
+        timeMin: dateRange.timeMin,
+        timeMax: dateRange.timeMax,
+      });
+      const cached = queryClient.getQueryData<GoogleEvent[]>(cacheKey);
+      return cached !== undefined; // Cached data exists (even if empty array)
+    });
+  }, [isConnected, calendars, enabledCalendarIds, dateRange, queryClient]);
+
+  // Fetch events from all enabled calendars (background fetch to update cache)
   useEffect(() => {
     if (!isConnected || calendars.length === 0 || enabledCalendarIds.size === 0) {
-      setAllEvents([]);
+      setFetchedEvents([]);
+      setFetchingEvents(false);
       return;
     }
 
-    const fetchAllEvents = async () => {
+    // Only show loading if we don't have cached data for all calendars
+    if (!hasAllCachedData) {
       setFetchingEvents(true);
-      try {
-        // Calculate date range to cover current month view and upcoming events
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const monthStart = new Date(year, month, 1);
-        monthStart.setHours(0, 0, 0, 0);
-        
-        // Get end of current month and extend a bit for upcoming events view
-        const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
-        const now = new Date();
-        const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        const timeMax = sevenDaysFromNow > monthEnd ? sevenDaysFromNow : monthEnd;
-        
-        const timeMin = monthStart.toISOString();
-        const timeMaxISO = timeMax.toISOString();
+    }
 
-        // Fetch events from all enabled calendars
-        const eventPromises = Array.from(enabledCalendarIds).map(async (calendarId) => {
-          try {
-            const response = await googleCalendarApi.listEvents({
-              calendarId,
-              timeMin,
-              timeMax: timeMaxISO,
-            });
-            if (response.success && response.data?.items) {
-              // Tag each event with its calendarId
-              return response.data.items.map((event) => ({
+    // Only fetch if we don't have all cached data
+    // If we have cached data (even if stale), use it immediately and skip API calls
+    if (!hasAllCachedData) {
+      const fetchAllEvents = async () => {
+        try {
+          // Fetch events from all enabled calendars
+          const eventPromises = Array.from(enabledCalendarIds).map(async (calendarId) => {
+            try {
+              const cacheKey = queryKeys.googleCalendar.eventsList({
+                calendarId,
+                timeMin: dateRange.timeMin,
+                timeMax: dateRange.timeMax,
+              });
+              
+              // Check if we have cached data first - use it even if stale
+              const cached = queryClient.getQueryData<GoogleEvent[]>(cacheKey);
+              if (cached) {
+                // Return cached data immediately, no API call
+                return cached.map((event) => ({
+                  ...event,
+                  calendarId,
+                }));
+              }
+              
+              // No cached data, fetch now
+              const response = await googleCalendarApi.listEvents({
+                calendarId,
+                timeMin: dateRange.timeMin,
+                timeMax: dateRange.timeMax,
+              });
+              if (!response.success) {
+                throw new Error(response.error ?? "Failed to fetch events");
+              }
+              
+              const events = response.data?.items ?? [];
+              
+              // Cache the events
+              queryClient.setQueryData(cacheKey, events);
+              
+              return events.map((event) => ({
                 ...event,
                 calendarId,
               }));
+            } catch (error) {
+              console.error(`Failed to fetch events from calendar ${calendarId}:`, error);
+              return [];
             }
-            return [];
-          } catch (error) {
-            console.error(`Failed to fetch events from calendar ${calendarId}:`, error);
-            return [];
-          }
-        });
+          });
 
-        const eventArrays = await Promise.all(eventPromises);
-        const allFetchedEvents = eventArrays.flat();
-        setAllEvents(allFetchedEvents);
-      } catch (error) {
-        console.error("Error fetching events from enabled calendars:", error);
-      } finally {
-        setFetchingEvents(false);
-      }
-    };
-
-    void fetchAllEvents();
-  }, [isConnected, calendars, enabledCalendarIds, currentDate]);
+          const eventArrays = await Promise.all(eventPromises);
+          const allFetchedEvents = eventArrays.flat();
+          setFetchedEvents(allFetchedEvents);
+        } catch (error) {
+          console.error("Error fetching events from enabled calendars:", error);
+        } finally {
+          setFetchingEvents(false);
+        }
+      };
+      
+      void fetchAllEvents();
+    } else {
+      // We have all cached data, so no need to fetch
+      // Just set fetchedEvents to empty since we're using cachedEvents
+      setFetchedEvents([]);
+      setFetchingEvents(false);
+    }
+  }, [isConnected, calendars, enabledCalendarIds, dateRange, queryClient, hasAllCachedData]);
 
   // Use fetched events if available, otherwise fall back to baseEvents
   const events = allEvents.length > 0 ? allEvents : baseEvents;
@@ -212,31 +305,28 @@ export function Calendar() {
     setFetchingEvents(true);
     const fetchAllEvents = async () => {
       try {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const monthStart = new Date(year, month, 1);
-        monthStart.setHours(0, 0, 0, 0);
-        
-        const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
-        const now = new Date();
-        const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        const timeMax = sevenDaysFromNow > monthEnd ? sevenDaysFromNow : monthEnd;
-        
-        const timeMin = monthStart.toISOString();
-        const timeMaxISO = timeMax.toISOString();
-
         const eventPromises = Array.from(enabledCalendarIds).map(async (calendarId) => {
           try {
             const response = await googleCalendarApi.listEvents({
               calendarId,
-              timeMin,
-              timeMax: timeMaxISO,
+              timeMin: dateRange.timeMin,
+              timeMax: dateRange.timeMax,
             });
             if (response.success && response.data?.items) {
-              return response.data.items.map((event) => ({
+              const events = response.data.items.map((event) => ({
                 ...event,
                 calendarId,
               }));
+              
+              // Cache the events in React Query
+              const cacheKey = queryKeys.googleCalendar.eventsList({
+                calendarId,
+                timeMin: dateRange.timeMin,
+                timeMax: dateRange.timeMax,
+              });
+              queryClient.setQueryData(cacheKey, response.data.items);
+              
+              return events;
             }
             return [];
           } catch (error) {
@@ -247,7 +337,7 @@ export function Calendar() {
 
         const eventArrays = await Promise.all(eventPromises);
         const allFetchedEvents = eventArrays.flat();
-        setAllEvents(allFetchedEvents);
+        setFetchedEvents(allFetchedEvents);
       } catch (error) {
         console.error("Error fetching events from enabled calendars:", error);
       } finally {
@@ -255,7 +345,7 @@ export function Calendar() {
       }
     };
     void fetchAllEvents();
-  }, [currentDate, enabledCalendarIds, refreshEvents]);
+  }, [dateRange, enabledCalendarIds, refreshEvents, queryClient]);
 
 
   const handleConnect = useCallback(() => {

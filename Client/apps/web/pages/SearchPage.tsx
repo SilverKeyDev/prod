@@ -13,6 +13,7 @@ import { env } from "../../../packages/config";
 import { userApi } from "../../../packages/config/api/user";
 import { useGoogleMaps } from "../../../packages/hooks/data/useGoogleMaps";
 import { usePropertyDetails } from "../../../packages/hooks/data/usePropertyDetails";
+import { useIsochroneData } from "../../../packages/hooks/data/useIsochroneData";
 import type { SearchResult } from "../../../packages/schemas/search";
 import { useFiltersStore, useUIStore } from "../../../packages/store";
 import type {
@@ -27,7 +28,6 @@ import {
   type GoogleAdvancedMarkerElement,
 } from "../features/search/utils/importantLocationRenderer";
 import { renderIsochronePolygon } from "../features/search/utils/isochroneRenderer";
-import { saveSearchResults } from "../features/search/utils/localStorage";
 import { useMapZoomController } from "../features/search/utils/MapZoomController";
 import { MapControls } from "../features/search/components/MapControls";
 import { PropertyCarousel } from "../features/search/components/PropertyCarousel";
@@ -39,10 +39,12 @@ import { useMapMarkers } from "../features/search/hooks/useMapMarkers";
 import { useMarkerUpdates } from "../features/search/utils/useMarkerUpdates";
 import useMobileHeaderActions from "../features/search/utils/useMobileHeaderActions";
 import { usePropertyFocus } from "../features/search/utils/usePropertyFocus";
-import { useSavedHomes } from "../features/search/utils/useSavedHomes";
-import { useSearchBootstrap } from "../features/search/utils/useSearchBootstrap";
+import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
+import type { SavedHome } from "../../../packages/schemas/property";
+import { useSearchResultsData } from "../../../packages/hooks/data/useSearchResultsData";
 import { searchPropertiesInIsochrone } from "../features/search/services/propertySearch";
 import SearchHeader from "../features/search/components/SearchHeader";
+import { ClientSelector } from "../components/ui";
 
 type SearchPageProps = {
   setMobileHeaderActions: React.Dispatch<
@@ -60,20 +62,29 @@ export default function SearchPage({
   searchRef,
 }: SearchPageProps) {
   const { isLoaded: isGoogleMapsLoaded, createMap } = useGoogleMaps();
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const {
+    searchResults,
+    setSearchResults,
+    isLoading: isLoadingSearchResults,
+  } = useSearchResultsData();
   const setFavoriteAddresses = useFiltersStore((s) => s.setFavoriteAddresses);
   const isSearching = useFiltersStore((s) => s.isSearching);
   const setIsSearching = useFiltersStore((s) => s.setIsSearching);
   const searchStage = useFiltersStore((s) => s.searchStage);
   const setSearchStage = useFiltersStore((s) => s.setSearchStage);
+  const hasSearched = useFiltersStore((s) => s.hasSearched);
+  const setHasSearched = useFiltersStore((s) => s.setHasSearched);
   const {
     isLoading: isLoadingPropertyDetails,
     selectedProperty,
     fetchPropertyDetails,
     clearSelectedProperty,
   } = usePropertyDetails();
-  const [hasSearched, setHasSearched] = useState(false);
-  const [isochroneData, setIsochroneData] = useState<unknown>(null);
+  const {
+    isochroneData,
+    isLoading: isLoadingIsochrone,
+    fetchIsochrone,
+  } = useIsochroneData();
   const currentPage = useFiltersStore((s) => s.currentPage);
   const setCurrentPage = useFiltersStore((s) => s.setCurrentPage);
   const showPropertyModals = useUIStore((s) => s.showPropertyModals);
@@ -82,6 +93,7 @@ export default function SearchPage({
   const setIsCarouselCollapsed = useUIStore((s) => s.setCarouselCollapsed);
   const PROPERTIES_PER_PAGE = 1; // Keep at 1 for mobile single-property navigation
   const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   // Mobile header button handlers
   const handlePreferences = useCallback(() => {
@@ -141,14 +153,14 @@ export default function SearchPage({
     [fetchPropertyDetails]
   );
 
-  // Initialize hooks
-  const { isLocalStorageLoaded } = useSearchBootstrap({
-    env,
-    setSearchResults,
-    setHasSearched,
-    setCurrentPage,
-    setShowPropertyModals,
-  });
+  // Initialize search results from cache (React Query handles this automatically)
+  useEffect(() => {
+    // If we have cached search results, mark as searched
+    if (searchResults.length > 0 && !hasSearched) {
+      setHasSearched(true);
+      setShowPropertyModals(true);
+    }
+  }, [searchResults.length, hasSearched, setHasSearched, setShowPropertyModals]);
 
   const mobileMapRef = useRef<HTMLDivElement>(null);
   const desktopMapRef = useRef<HTMLDivElement>(null);
@@ -156,18 +168,49 @@ export default function SearchPage({
   const individualPolygonsRef = useRef<google.maps.Polygon[]>([]);
 
   const { googleMapRef } = useMapInitAndResize({
-    isLocalStorageLoaded,
+    isLocalStorageLoaded: true, // No longer using localStorage, always ready
     isGoogleMapsLoaded,
     createMap: createMap as (container: HTMLElement) => google.maps.Map | null,
     mobileMapRef,
     desktopMapRef,
   });
 
-  const { savedHomes, isHomeSaved, saveHome, removeSavedHome } = useSavedHomes({
-    userApi,
-    setFavoriteAddresses,
-    isGoogleMapsLoaded,
-  });
+  // Convert SavedHome[] to SearchResult[] for compatibility with SearchPage
+  const convertSavedHomeToSearchResult = useCallback(
+    (savedHome: SavedHome): SearchResult => {
+      return {
+        id: savedHome.home_id ?? savedHome.address ?? `home_${Date.now()}`,
+        address: savedHome.address ?? "",
+        price:
+          typeof savedHome.price === "number"
+            ? savedHome.price.toLocaleString()
+            : savedHome.price ?? "",
+        bedrooms: savedHome.bedrooms ?? 0,
+        bathrooms: savedHome.bathrooms ?? 0,
+        sqft: savedHome.sqft ?? 0,
+        lat: savedHome.lat ?? 0,
+        lng: savedHome.lng ?? 0,
+        lotSize: typeof savedHome.lot_size === "string" ? savedHome.lot_size : undefined,
+        propertyType: "SINGLE_FAMILY", // Default
+        listingStatus: "FOR_SALE", // Default
+        imageUrl: savedHome.image_url,
+      };
+    },
+    []
+  );
+
+  const {
+    savedHomes: savedHomesRaw,
+    isHomeSaved,
+    saveHome,
+    removeSavedHome,
+  } = useSavedHomesStoreIntegration();
+
+  // Convert SavedHome[] to SearchResult[] for SearchPage compatibility
+  const savedHomes = React.useMemo(
+    () => savedHomesRaw.map(convertSavedHomeToSearchResult),
+    [savedHomesRaw, convertSavedHomeToSearchResult]
+  );
 
   // Handle navigation to property (focus on property instead of opening details)
   const handleNavigateToProperty = useCallback(
@@ -250,59 +293,11 @@ export default function SearchPage({
     [resetToDefaultZoom, googleMapRef]
   );
 
-  // Save search results to localStorage with preferences version
+  // Search results are now cached in React Query, no need for localStorage
+  // Create a no-op function for backward compatibility with useIsochroneFlow
   const saveSearchResultsToLocalStorage = useCallback(
-    async (results: SearchResult[]) => {
-      try {
-        // Fetch current user preferences to get the version
-        let preferencesVersion = "1.0"; // Default version
-
-        try {
-          const { apiBaseUrl } = env;
-
-          // Use fetch with credentials to send HTTP-only cookies
-          const response = await fetch(`${apiBaseUrl}/api/v1/preferences`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include", // Send HTTP-only cookies
-          });
-
-          if (response?.ok) {
-            const data = (await response.json()) as Record<string, unknown>;
-            preferencesVersion =
-              data.preferences &&
-              typeof data.preferences === "object" &&
-              "preferences_version" in data.preferences
-                ? (data.preferences as { preferences_version: string })
-                    .preferences_version
-                : "1.0";
-          }
-        } catch (prefError: unknown) {
-          const error = asError(prefError);
-          console.warn(
-            "⚠️ Could not fetch preferences version, using default:",
-            error
-          );
-        }
-
-        const searchData = {
-          results,
-          timestamp: new Date().toISOString(),
-          totalCount: results.length,
-          preferencesVersion,
-          searchMetadata: {
-            hasSearched: true,
-            currentPage: 0,
-            propertiesPerPage: PROPERTIES_PER_PAGE,
-          },
-        };
-
-        saveSearchResults(searchData);
-      } catch (error: unknown) {
-        console.error("❌ Error saving search results to localStorage:", error);
-      }
+    async (_results: SearchResult[]) => {
+      // No-op: React Query handles caching automatically via setSearchResults
     },
     []
   );
@@ -324,7 +319,7 @@ export default function SearchPage({
       // Pass empty object - backend will use database values
       const userPrefs: UserPreferencesData = {};
 
-      // Use the service function
+      // Use the service function (no longer needs localStorage save function)
       await searchPropertiesInIsochrone(
         isochroneData as IsochroneData,
         userPrefs,
@@ -345,6 +340,11 @@ export default function SearchPage({
     setShowPropertyModals,
     saveSearchResultsToLocalStorage,
     mapFocusOnCurrentProperty,
+    cachedIsochroneData: isochroneData as Record<string, unknown> | null,
+    fetchCachedIsochrone: async () => {
+      const data = await fetchIsochrone();
+      return data as Record<string, unknown> | null;
+    },
   });
 
   // Update handleSearch to use runIsochroneSearch or external handler with enhanced logging
@@ -453,9 +453,15 @@ export default function SearchPage({
     googleMapRef,
     currentPage,
     propertiesPerPage: PROPERTIES_PER_PAGE,
-    isochroneData,
-    setIsochroneData,
-    fetchIsochroneForMapOnly,
+    isochroneData: isochroneData ?? null,
+    setIsochroneData: () => {}, // No-op: isochrone data is managed by hook
+    fetchIsochroneForMapOnly: async () => {
+      // Use cached isochrone data if available, otherwise fetch
+      if (isochroneData) {
+        return isochroneData as unknown;
+      }
+      return await fetchIsochrone();
+    },
     calculatePropertyScore,
     isHomeSaved,
     saveHome,
@@ -547,16 +553,25 @@ export default function SearchPage({
   const hasInitializedIsochrone = useRef(false);
 
   useEffect(() => {
-    if (!isLocalStorageLoaded || !isGoogleMapsLoaded) return;
+    if (!isGoogleMapsLoaded) return;
     if (hasInitializedIsochrone.current) return;
+    if (!googleMapRef.current) return;
 
     hasInitializedIsochrone.current = true;
 
     // ---------- Isochrone overlay logic ----------
-    setTimeout(() => {
-      void primeIsochroneOverlay(searchResults.length > 0);
-    }, 100);
-  }, [isLocalStorageLoaded, isGoogleMapsLoaded, searchResults.length]);
+    // Check if we have cached isochrone data first
+    if (isochroneData) {
+      // Use cached data immediately
+      renderIsochronePolygonWrapper(isochroneData);
+      void renderImportantLocationMarkersWrapper(isochroneData);
+    } else {
+      // Only fetch if no cached data exists
+      setTimeout(() => {
+        void primeIsochroneOverlay(searchResults.length > 0);
+      }, 100);
+    }
+  }, [isGoogleMapsLoaded, searchResults.length, isochroneData, googleMapRef, primeIsochroneOverlay, renderIsochronePolygonWrapper, renderImportantLocationMarkersWrapper]);
 
   return (
     <div className="h-full">
@@ -564,6 +579,13 @@ export default function SearchPage({
       <div className="flex h-full flex-col md:hidden">
         {/* Mobile Carousel for Properties */}
         <div className="flex-shrink-0 border-b border-gray-200 bg-white">
+          {/* Client Selector - Mobile */}
+          <div className="px-4 py-2 border-b border-gray-200">
+            <ClientSelector
+              selectedClientId={selectedClientId}
+              onClientChange={setSelectedClientId}
+            />
+          </div>
           {/* Tab Navigation with Expand Button */}
           <div className="flex items-center justify-center border-b border-gray-200">
             <Tabs
@@ -619,6 +641,28 @@ export default function SearchPage({
                 onViewDetails={handleViewPropertyDetails}
                 onSlideChange={(index) => setCurrentPage(index)}
                 infiniteLoop={false}
+                activeTab={activeTab}
+                isHomeSaved={isHomeSaved}
+                saveHome={async (p) => {
+                  // saveHome from useSavedHomesStoreIntegration accepts SavedHome format
+                  // Convert SearchResult to SavedHome format
+                  const savedHome: SavedHome = {
+                    home_id: p.id,
+                    address: p.address,
+                    price: typeof p.price === "string" ? p.price : p.price.toString(),
+                    bedrooms: p.bedrooms,
+                    bathrooms: p.bathrooms,
+                    sqft: p.sqft,
+                    lat: p.lat,
+                    lng: p.lng,
+                    lot_size: p.lotSize,
+                    image_url: p.imageUrl,
+                  };
+                  await saveHome(savedHome);
+                }}
+                removeSavedHome={async (id, address) => {
+                  await removeSavedHome(id, address);
+                }}
               />
             </div>
           </div>
@@ -626,8 +670,8 @@ export default function SearchPage({
 
         {/* Mobile Map - Takes majority of screen */}
         <div className="relative flex-1">
-          {/* Loading overlay - Only show when actively searching */}
-          {isSearching && (
+          {/* Loading overlay - Only show when actively searching and no cached data */}
+          {isSearching && !hasSearched && searchResults.length === 0 && (
             <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center overflow-hidden rounded-t-2xl">
               <div className="absolute inset-0 z-0">
                 <RippleBackground />
@@ -722,23 +766,25 @@ export default function SearchPage({
         <div className="flex flex-1 flex-col">
           {/* Search Header */}
           <div className="hidden flex-shrink-0 lg:block">
-            <SearchHeader
-              onUpdatePreferences={handlePreferences}
-              onSearchProperties={handleSearchUpdated}
-              isSearching={isSearching}
-            />
+            <div className="mb-4 flex items-center justify-between">
+              <ClientSelector
+                selectedClientId={selectedClientId}
+                onClientChange={setSelectedClientId}
+              />
+              <SearchHeader
+                onUpdatePreferences={handlePreferences}
+                onSearchProperties={handleSearchUpdated}
+                isSearching={isSearching}
+              />
+            </div>
           </div>
 
           {/* Desktop Map - Takes remaining height */}
           <div className="relative flex-1 overflow-hidden rounded-tl-lg border border-gray-200 bg-white">
-            {/* Loading overlay - shows until at least one property is available on map */}
-            {(isSearching ||
-              (hasSearched &&
-                searchResults.length === 0 &&
-                savedHomes.length === 0) ||
-              (!hasSearched &&
-                searchResults.length === 0 &&
-                savedHomes.length === 0)) && (
+            {/* Loading overlay - Only show when actively searching and no cached data */}
+            {((isSearching && !hasSearched && searchResults.length === 0 && savedHomes.length === 0) ||
+              (isLoadingSearchResults && searchResults.length === 0 && savedHomes.length === 0) ||
+              (isLoadingIsochrone && !isochroneData && !hasSearched)) && (
               <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center overflow-hidden rounded-tl-lg">
                 <div className="absolute inset-0 z-0">
                   <RippleBackground />

@@ -1,7 +1,6 @@
-import { Search, RefreshCw, ChevronDown } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
+import { Search } from "lucide-react";
+import React from "react";
 import Card from "../../components/layout/Card.tsx";
-import { RefreshButton } from "../../components/ui";
 import useMobile from "../../../../packages/hooks/ui/useMobile";
 
 export type ViewMode = "grid" | "list";
@@ -34,81 +33,10 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   viewMode = "grid",
   onViewModeChange,
   showViewToggle = true,
-  onRefresh,
-  isRefreshing = false,
-  isLoading = false,
-  refreshTitle = "Refresh",
   rightText,
   viewType,
-  onViewTypeChange,
 }) => {
   const isMobile = useMobile();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const handleRefresh = () => {
-    if (onRefresh && !isRefreshing && !isLoading) onRefresh();
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    if (isDropdownOpen)
-      document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isDropdownOpen]);
-
-  // const Dropdown = (
-  //   <div className="relative" ref={dropdownRef}>
-  //     <button
-  //       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-  //       className="mobile-input flex h-11 min-w-[100px] max-w-[120px] sm:max-w-none items-center justify-between gap-1 sm:gap-2 px-4 py-2 text-sm font-medium font-sans hover:border-brown/50 focus:border-brown"
-  //     >
-  //       <span className="capitalize">{viewType}</span>
-  //       <ChevronDown
-  //         className={`ml-auto h-4 w-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-  //       />
-  //     </button>
-
-  //     {isDropdownOpen && (
-  //       <div className="absolute right-0 top-full z-50 mt-1 w-full rounded-lg border bg-white shadow-lg">
-  //         <button
-  //           onClick={() => {
-  //             onViewTypeChange?.("homes");
-  //             setIsDropdownOpen(false);
-  //           }}
-  //           className={`w-full px-4 py-3 text-left text-sm hover:bg-brown/5 ${
-  //             viewType === "homes"
-  //               ? "bg-brown/10 font-medium text-brown"
-  //               : "text-black"
-  //           }`}
-  //         >
-  //           Homes
-  //         </button>
-  //         <button
-  //           onClick={() => {
-  //             onViewTypeChange?.("reports");
-  //             setIsDropdownOpen(false);
-  //           }}
-  //           className={`w-full border-t px-4 py-3 text-left text-sm hover:bg-brown/5 ${
-  //             viewType === "reports"
-  //               ? "bg-brown/10 font-medium text-brown"
-  //               : "text-black"
-  //           }`}
-  //         >
-  //           Reports
-  //         </button>
-  //       </div>
-  //     )}
-  //   </div>
-  // );
 
   const ViewToggle = showViewToggle && onViewModeChange && (
     <div className="hidden items-center gap-2 sm:flex">
@@ -202,43 +130,6 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
                   {rightText}
                 </div>
               )}
-
-              {/* {onRefresh && viewType === "reports" ? (
-                <RefreshButton
-                  onClick={handleRefresh}
-                  disabled={isRefreshing || isLoading}
-                  loading={isRefreshing || isLoading}
-                  title={refreshTitle}
-                  size="md"
-                  variant="default"
-                />
-              ) : (
-                onRefresh && (
-                  <button
-                    onClick={handleRefresh}
-                    disabled={isRefreshing || isLoading}
-                    className={`touch-friendly flex items-center justify-center rounded px-3 py-2.5 ${
-                      isRefreshing
-                        ? "cursor-not-allowed bg-gray-300 text-gray-600"
-                        : "bg-gray-300 text-gray-600 hover:bg-gray-500 hover:text-white"
-                    }`}
-                  >
-                    <RefreshCw
-                      className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-                    />
-                  </button>
-                )
-              )} */}
-
-              {/* Dropdown for reports view on desktop (when showSearch is false) - appears after reports number and refresh button */}
-              {/* {!isMobile && viewType && onViewTypeChange && !showSearch && (
-                <div>{Dropdown}</div>
-              )} */}
-
-              {/* Dropdown for homes view (when showSearch is true) */}
-              {/* {viewType && onViewTypeChange && showSearch && (
-                <div className="ml-auto sm:ml-0">{Dropdown}</div>
-              )} */}
             </div>
           </div>
         </div>

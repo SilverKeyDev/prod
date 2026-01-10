@@ -2,7 +2,7 @@ import { ChevronDown, ChevronRight, LogOut } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { useAuth } from "../../../app/providers/auth/useAuth";
+import { useAuthStoreIntegration } from "../../../../../packages/hooks/store/useAuthStoreIntegration";
 import ConfirmationDialog from "../../modals/dialogs/ConfirmationDialog";
 import WhiteLogo from "../../ui/asset/WhiteLogo";
 import NotificationBadge from "../../ui/NotificationBadge";
@@ -101,21 +101,6 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
-  // settings: {
-  //   name: SIDEBAR_TABS.settings.name,
-  //   icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
-  //     className?: string;
-  //   }>,
-  //   items: [
-  //     {
-  //       name: "Settings",
-  //       href: SIDEBAR_TABS.settings.href,
-  //       icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
-  //         className?: string;
-  //       }>,
-  //     },
-  //   ],
-  // },
   agent: {
     name: SIDEBAR_TABS.agent.name,
     icon: SIDEBAR_TABS.agent.icon as unknown as React.FC<{
@@ -146,17 +131,42 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
+  settings: {
+    name: SIDEBAR_TABS.settings.name,
+    icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
+      className?: string;
+    }>,
+    items: [
+      {
+        name: SIDEBAR_TABS.settings.name,
+        href: SIDEBAR_TABS.settings.href,
+        icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
+          className?: string;
+        }>,
+      },
+    ],
+  },
 };
 
 // Function to generate navigation array - messaging always available for all users
 const getNavigation = (
-  _isAgent: boolean,
-  _hasAgent: boolean
+  isAgent: boolean,
+  _hasAgent: boolean,
+  isMobile: boolean
 ): NavigationStructure => {
   // Create a proper copy of the navigation structure
   const navigation: NavigationStructure = {};
 
-  // Add navigation items - no dashboard/home button, messaging always available
+  // Dashboard only for agents
+  if (isAgent) {
+    navigation.dashboard = {
+      name: navigationStructure.dashboard.name,
+      icon: navigationStructure.dashboard.icon,
+      items: [...navigationStructure.dashboard.items],
+    };
+  }
+
+  // Add navigation items - messaging always available
   navigation.search = {
     name: navigationStructure.search.name,
     icon: navigationStructure.search.icon,
@@ -175,21 +185,29 @@ const getNavigation = (
     items: [...navigationStructure.agent.items],
   };
 
-  navigation.close = {
-    name: navigationStructure.close.name,
-    icon: navigationStructure.close.icon,
-    items: [...navigationStructure.close.items],
-  };
-  // navigation.settings = {
-  //   name: navigationStructure.settings.name,
-  //   icon: navigationStructure.settings.icon,
-  //   items: [...navigationStructure.settings.items],
-  // };
   navigation.calendar = {
     name: navigationStructure.calendar.name,
     icon: navigationStructure.calendar.icon,
     items: [...navigationStructure.calendar.items],
   };
+
+  // Checklists (close) should appear after calendar for non-agents
+  if (!isAgent) {
+    navigation.close = {
+      name: navigationStructure.close.name,
+      icon: navigationStructure.close.icon,
+      items: [...navigationStructure.close.items],
+    };
+  }
+
+  // Settings - only show on non-mobile
+  if (!isMobile) {
+    navigation.settings = {
+      name: navigationStructure.settings.name,
+      icon: navigationStructure.settings.icon,
+      items: [...navigationStructure.settings.items],
+    };
+  }
 
   return navigation;
 };
@@ -197,15 +215,15 @@ const getNavigation = (
 export default function Sidebar({
   onLogout,
   expanded,
-  isMobile: _isMobile,
+  isMobile = false,
   onLinkClick,
 }: SidebarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  // Get user from AuthProvider which uses /api/v1/user/profile during bootstrap
-  const { user: authUser, authReady, status } = useAuth();
+  // Get user from auth store integration
+  const { user: authUser, authReady, authStatus } = useAuthStoreIntegration();
 
   const displayUser = authUser;
-  const isLoading = status === "booting" || !authReady;
+  const isLoading = authStatus === "checking" || !authReady;
 
   // Get user profile to check is_agent flag
   const { userProfile } = useUserData();
@@ -303,7 +321,7 @@ export default function Sidebar({
           {/* Navigation - Scrollable middle section */}
           <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
             <nav className="mt-4 pb-4">
-              {Object.entries(getNavigation(isAgent, hasAgent)).map(
+              {Object.entries(getNavigation(isAgent, hasAgent, isMobile)).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
                     {/* Render certain categories as direct links (dashboard, search, decide, close, settings, agent) */}
@@ -312,7 +330,7 @@ export default function Sidebar({
                     categoryKey === "search" ||
                     categoryKey === "decide" ||
                     categoryKey === "close" ||
-                    // categoryKey === "settings" ||
+                    categoryKey === "settings" ||
                     categoryKey === "agent" ||
                     categoryKey === "calendar" ? (
                       (() => {
