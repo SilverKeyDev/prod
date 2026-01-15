@@ -6,14 +6,12 @@ import type { UIState } from "../../../../../packages/store/ui.slice";
 import { CalendarConnectionPrompt } from "./components/CalendarConnectionPrompt";
 import { CalendarHeader } from "./components/CalendarHeader";
 import { CalendarView } from "./components/CalendarView";
-import { EventList } from "./components/EventList";
 import { CreateEventModal } from "./components/CreateEventModal";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 import ClientSelector from "../../../components/ui/ClientSelector";
 import {
   useClientEvents,
   useGoogleCalendarPermissions,
-  useGoogleEvents,
   useCalendarPreferences,
 } from "../../../../../packages/hooks/data/calendar";
 import {
@@ -25,10 +23,6 @@ import {
   initializeEnabledCalendars,
   getCalendarsKey,
 } from "../../../../../packages/utils/calendar/calendar";
-import {
-  filterEventsByCalendars,
-  filterUpcomingEvents,
-} from "../../../../../packages/utils/calendar/eventFiltering";
 
 export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -71,39 +65,11 @@ export function Calendar() {
     permissions,
   } = useGoogleCalendarPermissions();
 
-  // Recalculate daily to ensure we always have the current week's range
-  // This ensures cache hits even if prefetch happened days ago
-  // Track date string in state to trigger recalculation only when date changes
-  const [todayDateString, setTodayDateString] = useState(() =>
-    new Date().toDateString()
-  );
-  const lastCheckedDateRef = useRef<string>(todayDateString);
-
-  // Update date string only when it changes to a new day (check periodically)
-  useEffect(() => {
-    const checkDate = () => {
-      const currentDateString = new Date().toDateString();
-      if (currentDateString !== lastCheckedDateRef.current) {
-        lastCheckedDateRef.current = currentDateString;
-        setTodayDateString(currentDateString);
-      }
-    };
-
-    // Check immediately
-    checkDate();
-
-    // Check every hour to catch date changes
-    const interval = setInterval(checkDate, 60 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, []); // Empty deps - only run on mount/unmount
-
   const dateRange = useMemo(() => {
     return calculateCalendarDateRange(currentDate);
   }, [currentDate]);
 
   const {
-    events: clientEvents,
     availability: clientAvailability,
     isLoading: clientEventsLoading,
     error: clientEventsError,
@@ -281,70 +247,6 @@ export function Calendar() {
     };
   }, []);
 
-  // Note: CalendarView handles its own event reading from cache
-  // We still need upcoming events for the EventList component
-  // Read from cache only (no fetching on navigation)
-  // Use standard 5-week range, then filter to next 7 days
-  // Reuse the same todayDateString state to avoid duplicate state
-  const upcomingDateRange = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-    nextWeek.setHours(23, 59, 59, 999);
-    return {
-      timeMin: today.toISOString(),
-      timeMax: nextWeek.toISOString(),
-    };
-  }, [todayDateString]);
-
-  // Read upcoming events using React Query hook (cache-only)
-  // Events are prefetched by initialDataLoader on page load
-  const { events: upcomingEventsRaw } = useGoogleEvents({
-    calendarIds: Array.from(enabledCalendarIds),
-    timeMin: upcomingDateRange.timeMin,
-    timeMax: upcomingDateRange.timeMax,
-    enabled:
-      isConnected &&
-      calendars &&
-      calendars.length > 0 &&
-      enabledCalendarIds.size > 0,
-  });
-
-  // Merge agent events with client events when viewing a client for upcoming events
-  const allUpcomingEvents = useMemo(() => {
-    if (selectedClientId !== null && clientEvents.length > 0) {
-      // Add client events with a marker to distinguish them
-      const clientEventsWithMarker = clientEvents.map((event) => ({
-        ...event,
-        calendarId: event.calendarId || "client-primary",
-        isClientEvent: true,
-      }));
-      return [...upcomingEventsRaw, ...clientEventsWithMarker];
-    }
-    return upcomingEventsRaw;
-  }, [upcomingEventsRaw, clientEvents, selectedClientId]);
-
-  // Filter upcoming events
-  const filteredUpcomingEvents = useMemo(
-    () =>
-      filterEventsByCalendars(
-        allUpcomingEvents,
-        enabledCalendarIds,
-        calendars || []
-      ),
-    [allUpcomingEvents, enabledCalendarIds, calendars]
-  );
-
-  const upcomingEvents = useMemo(
-    () =>
-      filterUpcomingEvents(
-        filteredUpcomingEvents,
-        silverKeyCalendarIdRef.current
-      ),
-    [filteredUpcomingEvents]
-  );
-
   // Date navigation handlers
   const handlePreviousWeek = useCallback(() => {
     setCurrentDate((prev) => navigateDate(prev, -1));
@@ -427,16 +329,6 @@ export function Calendar() {
           className="w-full sm:w-auto"
         />
       </div>
-
-      {isViewingOwnCalendar && upcomingEvents.length > 0 && (
-        <div className="mb-8">
-          <EventList
-            events={upcomingEvents}
-            title="Upcoming Events (Next 7 Days)"
-            emptyMessage="No upcoming events"
-          />
-        </div>
-      )}
 
       <CalendarHeader
         currentDate={currentDate}

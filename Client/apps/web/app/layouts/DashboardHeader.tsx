@@ -16,8 +16,8 @@ type DashboardHeaderProps = {
   isMobile: boolean;
   isSearch: boolean;
   isSaved: boolean;
-  isAgent: boolean;
-  isCalendar: boolean;
+  isMessagingRoute: boolean;
+  isDashboard: boolean;
   isBuyerChecklists: boolean;
   isPersonalization: boolean;
   mobileHeaderActions: ReactNode | null;
@@ -36,8 +36,8 @@ export function DashboardHeader({
   isMobile,
   isSearch,
   isSaved,
-  isAgent,
-  isCalendar,
+  isMessagingRoute,
+  isDashboard,
   isBuyerChecklists,
   mobileHeaderActions,
   mobileHeader,
@@ -49,7 +49,7 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   // Mobile header content
   const mobileHeaderContent =
-    isAgent || isCalendar
+    isMessagingRoute || isDashboard
       ? null
       : isSearch && mobileHeaderActions
         ? mobileHeaderActions
@@ -75,8 +75,8 @@ export function DashboardHeader({
 
   return (
     <>
-      {/* Mobile Header - Hidden when desktop sidebar is visible (>= 768px) or on messaging/calendar pages */}
-      {!(isAgent || isCalendar) && (
+      {/* Mobile Header - Hidden when desktop sidebar is visible (>= 768px) or on messaging/dashboard pages */}
+      {!(isMessagingRoute || isDashboard) && (
         <div className="md:hidden">
           <div
             className={isSearch ? "w-full" : "mx-auto"}
@@ -104,7 +104,7 @@ export function DashboardHeader({
 
       {/* Desktop Header (consistent width) - Hidden when mobile header is visible (< 768px) */}
       <div
-        className={`hidden md:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch || isAgent ? "!hidden" : ""}`}
+        className={`hidden md:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch || isMessagingRoute ? "!hidden" : ""}`}
         style={{
           maxWidth: `calc((100vw - 208px) * ${computedMaxWidthVW} / 100)`,
         }}

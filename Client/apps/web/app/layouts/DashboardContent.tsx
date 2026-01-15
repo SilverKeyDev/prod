@@ -6,7 +6,6 @@ import PersonalizationPage from "../../pages/SettingsPage";
 import SavedHomes from "../../pages/SavedPage";
 import SearchPage from "../../pages/SearchPage";
 import AgentPage from "../../pages/AgentPage";
-import CalendarPage from "../../pages/CalendarPage";
 
 type ClosePageHeaderData = {
   title: string;
@@ -23,8 +22,7 @@ type DashboardContentProps = {
   isBuyerChecklists: boolean;
   isPersonalization: boolean;
   isSaved: boolean;
-  isAgent: boolean;
-  isCalendar: boolean;
+  isMessagingRoute: boolean;
   isDashboard: boolean;
   computedMaxWidthVW: number;
   setMobileHeaderActions: React.Dispatch<
@@ -47,8 +45,7 @@ export function DashboardContent({
   isBuyerChecklists,
   isPersonalization,
   isSaved,
-  isAgent,
-  isCalendar,
+  isMessagingRoute,
   isDashboard,
   computedMaxWidthVW,
   setMobileHeaderActions,
@@ -64,18 +61,16 @@ export function DashboardContent({
           ? `h-[calc(100vh-80px)] md:h-[calc(100vh-0px)] mx-0`
           : isBuyerChecklists
             ? `mx-auto ${MOBILE_SIDE_PX} md:px-0`
-            : isAgent
+            : isMessagingRoute
               ? `relative h-full w-full mx-0 overflow-hidden`
-              : isCalendar
-                ? `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
-                : `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
+              : `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
       }`}
       style={
         isSearch
           ? ({
               "--max-width-desktop": "100",
             } as React.CSSProperties & { "--max-width-desktop": string })
-          : isAgent
+          : isMessagingRoute
             ? ({
                 "--max-width-desktop": "100",
               } as React.CSSProperties & { "--max-width-desktop": string })
@@ -103,11 +98,12 @@ export function DashboardContent({
       {isSaved && (
         <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
       )}
-      {isAgent && <AgentPage setMobileHeaderActions={setMobileHeaderActions} />}
-      {isCalendar && (
-        <CalendarPage setMobileHeaderActions={setMobileHeaderActions} />
+      {isMessagingRoute && (
+        <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
       )}
-      {isDashboard && <DashboardPage />}
+      {isDashboard && (
+        <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
+      )}
     </div>
   );
 }

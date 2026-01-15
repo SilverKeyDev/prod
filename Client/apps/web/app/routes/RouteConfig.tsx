@@ -61,7 +61,6 @@ export const ROUTE_CONFIGS = {
     ROUTES.DASHBOARD,
     ROUTES.BUYER_CHECKLISTS,
     ROUTES.MESSAGING,
-    ROUTES.CALENDAR,
   ],
 
   specialized: [{ path: ROUTES.SEARCH, providerType: "maps" as const }],

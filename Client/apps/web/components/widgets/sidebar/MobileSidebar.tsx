@@ -29,6 +29,9 @@ export default function MobileSidebar({
   // Navigation items for bottom bar - main tabs only
   const navItems = [
     {
+      ...SIDEBAR_TABS.dashboard,
+    },
+    {
       ...SIDEBAR_TABS.search,
     },
     {
@@ -40,9 +43,6 @@ export default function MobileSidebar({
     // {
     //   ...SIDEBAR_TABS.settings,
     // },
-    {
-      ...SIDEBAR_TABS.calendar,
-    },
     {
       ...SIDEBAR_TABS.close,
     },

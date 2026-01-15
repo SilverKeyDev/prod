@@ -8,6 +8,18 @@ type EventCardProps = {
 };
 
 export function EventCard({ event, onClick }: EventCardProps) {
+  const formatDate = (date: Date) => {
+    try {
+      return date.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "";
+    }
+  };
+
   const formatTime = (date: Date) => {
     try {
       return date.toLocaleTimeString("en-US", {
@@ -31,11 +43,11 @@ export function EventCard({ event, onClick }: EventCardProps) {
       
       // Same day event
       if (start.toDateString() === end.toDateString()) {
-        return `${formatTime(start)} - ${formatTime(end)}`;
+        return `${formatDate(start)} • ${formatTime(start)} - ${formatTime(end)}`;
       }
       
       // Multi-day event
-      return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+      return `${formatDate(start)} ${formatTime(start)} - ${formatDate(end)} ${formatTime(end)}`;
     } catch {
       return "";
     }
@@ -46,7 +58,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
       padding="sm"
       hover={!!onClick}
       onClick={onClick}
-      className="mb-2 w-full cursor-pointer border-l-4 border-l-olive transition-all hover:shadow-md"
+      className="mb-2 w-full cursor-pointer border-l-4 border-l-gold transition-all hover:shadow-md"
     >
       <div className="flex flex-col gap-1">
         <h4 className="font-medium text-gray-900">{event.summary || "Untitled Event"}</h4>

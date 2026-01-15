@@ -6,9 +6,10 @@ import Button from "../ui/button/Button";
 import KeyTurnLoader from "../ui/loading/KeyTurnLoader";
 import { useAgentChats } from "../../../../packages/hooks/data/chat/useAgentChats";
 import { useAgentClients } from "../../../../packages/hooks/data/agent/useAgentClients";
-import { useUserData } from "../../../../packages/hooks/data/auth/useUserData";
+import { useIsAgent } from "../../../../packages/hooks/store/auth/useIsAgent";
 import type { Property } from "../../../../packages/schemas/property";
 import type { SearchResult } from "../../../../packages/schemas/search";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 type ShareHomeModalProps = {
   isOpen: boolean;
@@ -23,8 +24,7 @@ export default function ShareHomeModal({
   property,
   onShareSuccess,
 }: ShareHomeModalProps) {
-  const { userProfile } = useUserData();
-  const isAgent = userProfile?.is_agent ?? false;
+  const isAgent = useIsAgent();
 
   // For agents: get list of clients
   const { clients, isLoading: isLoadingClients } = useAgentClients();

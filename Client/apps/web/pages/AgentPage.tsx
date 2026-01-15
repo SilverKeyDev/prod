@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
-import { useUserData } from "../../../packages/hooks/data/auth/useUserData";
+import { useAuthStore } from "../../../packages/store/auth.slice";
+import { useIsAgent } from "../../../packages/hooks/store/auth/useIsAgent";
 import { KeyTurnLoader } from "../components/ui";
 import AgentDashboard from "../features/agent/AgentDashboard";
 import ClientMessaging from "../features/agent/ClientMessaging";
@@ -14,8 +15,8 @@ type AgentPageProps = {
 export default function AgentPage({
   setMobileHeaderActions,
 }: AgentPageProps = {}) {
-  const { userProfile, userProfileLoading } = useUserData();
-  const isAgent = userProfile?.is_agent ?? false;
+  const authReady = useAuthStore((s) => s.authReady);
+  const isAgent = useIsAgent();
 
   // Set mobile header actions
   useEffect(() => {
@@ -29,8 +30,8 @@ export default function AgentPage({
     };
   }, [setMobileHeaderActions]);
 
-  // Only show loader if no profile exists AND is loading
-  if (!userProfile && userProfileLoading) {
+  // Avoid flicker: don't render a potentially incorrect experience before auth bootstrap completes
+  if (!authReady) {
     return (
       <div className="py-responsive-lg flex justify-center">
         <KeyTurnLoader message="Loading..." />

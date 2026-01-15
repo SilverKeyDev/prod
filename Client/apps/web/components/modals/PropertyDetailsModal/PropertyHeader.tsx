@@ -34,7 +34,6 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
     // Save the address to localStorage for the GenerateReportPage
     const generateReportState = {
       address,
-      comparisonAddress: "",
       reportType: "detailed",
       selectedClientId: "",
     };

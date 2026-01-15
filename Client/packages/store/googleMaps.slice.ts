@@ -27,7 +27,7 @@ export type GoogleMapsState = {
 
   // Service integration
   loadGoogleMaps: () => Promise<void>;
-  createMap: (container: HTMLElement) => google.maps.GoogleMap | null;
+  createMap: (container: HTMLElement) => google.maps.Map | null;
   getServiceState: () => {
     isLoaded: boolean;
     isLoading: boolean;

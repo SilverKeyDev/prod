@@ -59,7 +59,7 @@ def _enhance_image_for_pdf(pil_img: PILImage.Image) -> PILImage.Image:
     pil_img = _adjust_contrast_and_brightness(pil_img, contrast=0.96, brightness=0.96)
     return pil_img
 
-def _create_pdf(report: dict, address: str, filename: str, comparison_address: str = None, user_preferences: dict = None) -> str:
+def _create_pdf(report: dict, address: str, filename: str, user_preferences: dict = None) -> str:
     if not report:
         logger.error("No report data provided")
         raise ValueError("Report data is required")
@@ -92,33 +92,11 @@ def _create_pdf(report: dict, address: str, filename: str, comparison_address: s
         elements = []
 
         # Add main title with address (different for comparison reports)
-        if comparison_address and comparison_address.strip():
-            title = f"{address} vs"
-            elements.append(Paragraph(title, styles["MainTitleComparison"]))
-            elements.append(Spacer(1, 1))
-            elements.append(Paragraph(comparison_address, styles["MainTitleComparison"]))
-            elements.append(Spacer(1, 1))
-            elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
-            elements.append(Spacer(1, 20))
-            
-            # Add property headers for comparison
-            property_table = Table([[
-                Paragraph(f"Property A: <font color='black'>{address}</font>", styles["SubHeader"]),
-                Paragraph(f"Property B: <font color='black'>{comparison_address}</font>", styles["SubHeader"])
-            ]], colWidths=[doc.width/2.0-15, doc.width/2.0-15])
-            property_table.setStyle(TableStyle([
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-            ]))
-            elements.append(property_table)
-            elements.append(Spacer(1, 10))
-        else:
-            title = address
-            elements.append(Paragraph(title, styles["MainTitle"]))
-            elements.append(Spacer(1, 1))
-            elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
-            elements.append(Spacer(1, 20))
+        title = address
+        elements.append(Paragraph(title, styles["MainTitle"]))
+        elements.append(Spacer(1, 1))
+        elements.append(HRFlowable(width="100%", thickness=1.2, color="#D8CAB8"))
+        elements.append(Spacer(1, 20))
 
         
        

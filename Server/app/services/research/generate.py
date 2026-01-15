@@ -21,7 +21,7 @@ except Exception:  # pragma: no cover
     letter = None
 
 # If you have your own PDF module, keep this import.
-# Expecting a function named `_create_pdf(data, address, filename, comparison_address=None, user_preferences=None)`
+# Expecting a function named `_create_pdf(data, address, filename, user_preferences=None)`
 try:
     from .pdf import _pdf  # type: ignore
 except Exception:
@@ -530,7 +530,6 @@ def generate_report(
     *,
     params: Optional[dict] = None,
     report_customization: Optional[dict] = None,
-    comparison_address: Optional[str] = None,
     user_preferences: Optional[dict] = None,
     max_retries: int = 2,
 ) -> Dict:

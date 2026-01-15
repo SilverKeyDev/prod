@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 
 import type { SearchResult } from "../../../../../packages/schemas/search";
+import { screenPx } from "../../../../../packages/schemas/ui/screens";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export type MapZoomControllerProps = {
@@ -33,7 +34,11 @@ const seededRandom = (seed: string): number => {
 // Utility function to calculate map center for property card positioning
 export const calculatePropertyCardCenter = (lat: number, lng: number, propertyId?: string) => {
   // Detect if mobile (using same breakpoint as other parts of the codebase)
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+  const lgPx = screenPx("lg");
+  const isMobile =
+    typeof window !== "undefined" &&
+    Number.isFinite(lgPx) &&
+    window.innerWidth < lgPx;
   
   // Create cache key that includes device type to ensure correct offset per device
   const cacheKey = propertyId ? `${propertyId}:${isMobile ? "mobile" : "desktop"}` : undefined;

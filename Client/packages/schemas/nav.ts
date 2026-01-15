@@ -32,7 +32,6 @@ export const ROUTES = {
   DASHBOARD: "/dashboard/*",
   BUYER_CHECKLISTS: "/buyer-checklists",
   MESSAGING: "/messaging",
-  CALENDAR: "/calendar",
   SEARCH: "/search",
 
   // Legacy redirects

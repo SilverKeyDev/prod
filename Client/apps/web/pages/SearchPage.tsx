@@ -43,7 +43,6 @@ import type { SavedHome } from "../../../packages/schemas/property";
 import { useSearchResultsData } from "../../../packages/hooks/data/search/useSearchResultsData";
 import { searchPropertiesInIsochrone } from "../features/search/services/propertySearch";
 import SearchHeader from "../features/search/components/SearchHeader";
-import { ClientSelector } from "../components/ui";
 import { log, LOG_CATEGORIES } from "../../../logger";
 
 type SearchPageProps = {
@@ -530,6 +529,8 @@ export default function SearchPage({
     isSearching,
     onPreferences: handlePreferences,
     onSearch: handleSearchUpdated,
+    selectedClientId,
+    onClientChange: setSelectedClientId,
   });
 
   // Reset to first page when switching tabs and save to localStorage with enhanced logging
@@ -574,13 +575,6 @@ export default function SearchPage({
       <div className="flex h-full flex-col md:hidden">
         {/* Mobile Carousel for Properties */}
         <div className="flex-shrink-0 border-b border-gray-200 bg-white">
-          {/* Client Selector - Mobile */}
-          <div>
-            <ClientSelector
-              selectedClientId={selectedClientId}
-              onClientChange={setSelectedClientId}
-            />
-          </div>
           {/* Tab Navigation with Expand Button */}
           <div className="flex items-center justify-center border-b border-gray-200">
             <Tabs
@@ -764,14 +758,12 @@ export default function SearchPage({
           {/* Search Header */}
           <div className="hidden flex-shrink-0 lg:block">
             <div className="mb-4 flex items-center justify-between">
-              <ClientSelector
-                selectedClientId={selectedClientId}
-                onClientChange={setSelectedClientId}
-              />
               <SearchHeader
                 onUpdatePreferences={handlePreferences}
                 onSearchProperties={handleSearchUpdated}
                 isSearching={isSearching}
+                selectedClientId={selectedClientId}
+                onClientChange={setSelectedClientId}
               />
             </div>
           </div>

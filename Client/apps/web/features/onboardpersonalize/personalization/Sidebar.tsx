@@ -3,7 +3,7 @@ import { Edit, Save, X } from "lucide-react";
 import Card from "../../../components/layout/Card";
 import Button from "../../../components/ui/button/Button";
 import type { NavItem } from "../../../../../packages/schemas/nav";
-import useMobile from "../../../../../packages/hooks/ui/useMobile";
+import { useResponsive } from "../../../../../packages/hooks/ui";
 import {
   getPersonalizationSteps,
   convertStepsToNavItems,
@@ -30,8 +30,9 @@ export default function PersonalizationSidebar({
   onCancel,
   onScrollToSection,
 }: PersonalizationSidebarProps) {
-  const isMobile = useMobile(); // Uses "(max-width: 1024px)" by default
-  const isLargeScreen = !isMobile;
+  // This sidebar historically treated "mobile" as `< lg` (<=1024px). Preserve that intent.
+  const { isLgUp } = useResponsive();
+  const isLargeScreen = isLgUp;
   // Default to the first step when no active section is provided
   const currentActiveSection = activeSection || STEPS[0]?.key;
 

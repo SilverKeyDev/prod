@@ -20,7 +20,7 @@ import {
 import { useGoogleMapsStore } from "../../../packages/store/googleMaps.slice";
 import { showErrorToast } from "../../../packages/hooks/ui/useToast";
 import { useUserPreferences } from "../../../packages/hooks/data/auth/useUserData";
-import useMobile from "../../../packages/hooks/ui/useMobile";
+import { useResponsive } from "../../../packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "../../../logger";
 
 // Features
@@ -415,9 +415,10 @@ export default function PersonalizationPage({
   }, [originalData]);
 
   // Handle mobile header actions based on screen size
-  const isMobile = useMobile();
-  const isUltraSmallScreen = useMobile("(max-width: 768px)"); // Used for spacing adjustments
-  const isDesktop = useMobile("(min-width: 768px)"); // Check if we're at or above md breakpoint
+  const { isMdDown, isMdUp } = useResponsive();
+  const isMobile = isMdDown; // canonical: strictly < md
+  const isUltraSmallScreen = isMdDown; // used for spacing adjustments (Tailwind `md:*` aligned)
+  const isDesktop = isMdUp; // >= md
 
   useEffect(() => {
     if (isMobile) {

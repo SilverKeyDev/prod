@@ -8,7 +8,7 @@ import Label from "../../../components/ui/text/Label";
 import { Textarea } from "../../../components/ui/form/FormField";
 import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
 import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
-import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
+import { useIsAgent } from "../../../../../packages/hooks/store/auth/useIsAgent";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 type CalendarEventRequestModalProps = {
@@ -22,8 +22,7 @@ export default function CalendarEventRequestModal({
   onClose,
   onSuccess,
 }: CalendarEventRequestModalProps) {
-  const { userProfile } = useUserData();
-  const isAgent = userProfile?.is_agent ?? false;
+  const isAgent = useIsAgent();
   const { clients, isLoading: isLoadingClients } = useAgentClients();
   const { conversations, sendMessage } = useAgentChats();
 

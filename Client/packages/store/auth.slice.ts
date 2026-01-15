@@ -1,12 +1,14 @@
 import { create } from "zustand";
 
-import type { UserProfile } from "../schemas/user";
+import type { UserProfile } from "../schemas";
 
 import { withDevtools } from "./middleware/devtools";
 import { persistSafe } from "./middleware/persistSafe";
 import { withResettable } from "./middleware/resettable";
 
 export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
+
+export type LoginResult = { success: boolean; needsVerification?: boolean };
 
 export type AuthState = {
   // Auth state
@@ -26,7 +28,7 @@ export type AuthState = {
   setAuthStatus: (status: AuthStatus) => void;
 
   // Auth actions (will be implemented by hooks)
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => void;
   refreshToken: () => Promise<boolean>;
   clearError: () => void;
@@ -69,7 +71,7 @@ const baseCreator: import("zustand").StateCreator<AuthState> = (set) => ({
   // Auth actions will be implemented by hooks that use this store
   login: () => {
     // login should be implemented by useAuthStoreIntegration hook
-    return Promise.resolve(false);
+    return Promise.resolve({ success: false });
   },
   logout: () => {
     // logout should be implemented by useAuthStoreIntegration hook
@@ -94,7 +96,7 @@ const withReset = withResettable<AuthState>(baseCreator, (set) => ({
   setError: (error) => set({ error }),
   setAuthReady: (authReady) => set({ authReady }),
   setAuthStatus: (authStatus) => set({ authStatus }),
-  login: async () => false,
+  login: async () => ({ success: false }),
   logout: () => {},
   refreshToken: async () => false,
   clearError: () => set({ error: null }),

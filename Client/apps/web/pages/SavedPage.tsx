@@ -22,7 +22,7 @@ import CompareHomesModal from "../components/modals/CompareHomesModal";
 import ReportsSubViewNavigation, {
   ReportsSubView,
 } from "../features/dashboard/ReportsSubViewNavigation";
-import useMobile from "../../../packages/hooks/ui/useMobile";
+import { useIsMobile } from "../../../packages/hooks/ui";
 import { ClientSelector } from "../components/ui";
 
 type SavedHomesProps = {
@@ -35,7 +35,7 @@ export default function SavedHomes({
   setMobileHeaderActions,
 }: SavedHomesProps) {
   const location = useLocation();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [viewType, setViewType] = useState<"homes" | "reports">("homes");

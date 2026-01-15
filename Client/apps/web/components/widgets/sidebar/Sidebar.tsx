@@ -16,6 +16,7 @@ import { useNotificationStore } from "../../../../../packages/store/notification
 import { SIDEBAR_TABS } from "../../../../../packages/schemas/auth/sidebar";
 import type { UserProfile } from "../../../../../packages/schemas/user";
 import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
+import { useIsAgent } from "../../../../../packages/hooks/store/auth/useIsAgent";
 type SidebarProps = {
   user?: UserProfile;
   onLogout: () => void;
@@ -116,21 +117,6 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
-  calendar: {
-    name: SIDEBAR_TABS.calendar.name,
-    icon: SIDEBAR_TABS.calendar.icon as unknown as React.FC<{
-      className?: string;
-    }>,
-    items: [
-      {
-        name: SIDEBAR_TABS.calendar.name,
-        href: SIDEBAR_TABS.calendar.href,
-        icon: SIDEBAR_TABS.calendar.icon as unknown as React.FC<{
-          className?: string;
-        }>,
-      },
-    ],
-  },
   settings: {
     name: SIDEBAR_TABS.settings.name,
     icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
@@ -157,14 +143,12 @@ const getNavigation = (
   // Create a proper copy of the navigation structure
   const navigation: NavigationStructure = {};
 
-  // Dashboard only for agents
-  if (isAgent) {
-    navigation.dashboard = {
-      name: navigationStructure.dashboard.name,
-      icon: navigationStructure.dashboard.icon,
-      items: [...navigationStructure.dashboard.items],
-    };
-  }
+  // Dashboard (unified calendar experience) for all users
+  navigation.dashboard = {
+    name: navigationStructure.dashboard.name,
+    icon: navigationStructure.dashboard.icon,
+    items: [...navigationStructure.dashboard.items],
+  };
 
   // Add navigation items - messaging always available
   navigation.search = {
@@ -185,13 +169,7 @@ const getNavigation = (
     items: [...navigationStructure.agent.items],
   };
 
-  navigation.calendar = {
-    name: navigationStructure.calendar.name,
-    icon: navigationStructure.calendar.icon,
-    items: [...navigationStructure.calendar.items],
-  };
-
-  // Checklists (close) should appear after calendar for non-agents
+  // Checklists (close) should appear for non-agents
   if (!isAgent) {
     navigation.close = {
       name: navigationStructure.close.name,
@@ -227,7 +205,7 @@ export default function Sidebar({
 
   // Get user profile to check is_agent flag
   const { userProfile } = useUserData();
-  const isAgent = userProfile?.is_agent ?? false;
+  const isAgent = useIsAgent();
   const hasAgent = userProfile?.agent_id ? true : false;
 
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
@@ -332,8 +310,7 @@ export default function Sidebar({
                     categoryKey === "decide" ||
                     categoryKey === "close" ||
                     categoryKey === "settings" ||
-                    categoryKey === "agent" ||
-                    categoryKey === "calendar" ? (
+                    categoryKey === "agent" ? (
                       (() => {
                         const firstItem = category.items[0];
                         const ItemIcon = firstItem?.icon;

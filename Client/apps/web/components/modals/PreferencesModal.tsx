@@ -8,7 +8,7 @@ import { parseUserPreferencesArrays } from "../../features/onboardpersonalize/li
 import { useUserPreferences } from "../../../../packages/hooks/data/auth/useUserData";
 import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
 import { useAutoSavePreferences } from "../../../../packages/hooks/data/auth/useAutoSavePreferences";
-import useMobile from "../../../../packages/hooks/ui/useMobile";
+import { useResponsive } from "../../../../packages/hooks/ui";
 import type { OnboardingData } from "../../features/onboardpersonalize/lib/types";
 
 type PreferencesModalProps = {
@@ -24,7 +24,8 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({
 }) => {
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const { isLoaded: googleMapsLoaded } = useGoogleMaps();
-  const isDesktop = useMobile("(min-width: 768px)");
+  const { isMdUp } = useResponsive();
+  const isDesktop = isMdUp;
   const [formData, setFormData] = useState<Partial<OnboardingData>>({});
   const initialFormDataRef = useRef<Partial<OnboardingData>>({});
   const hasCapturedInitialStateRef = useRef(false);

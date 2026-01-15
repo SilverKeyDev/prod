@@ -1,9 +1,12 @@
 import SearchActions from "./SearchActions";
+import ClientSelector from "../../../components/ui/ClientSelector";
 
 type SearchHeaderProps = {
   onUpdatePreferences: () => void;
   onSearchProperties: () => void;
   isSearching: boolean;
+  selectedClientId?: string | null;
+  onClientChange?: (clientId: string | null) => void;
   onPreviousProperty?: () => void;
   onNextProperty?: () => void;
   currentPage?: number;
@@ -16,9 +19,20 @@ export default function SearchHeader({
   onUpdatePreferences,
   onSearchProperties,
   isSearching,
+  selectedClientId,
+  onClientChange,
 }: SearchHeaderProps) {
   return (
-    <div className="mt-6 mb-responsive-md mb-6 flex-shrink-0 flex items-center justify-end">
+    <div className="mt-6 mb-responsive-md mb-6 flex flex-shrink-0 items-center justify-between gap-3">
+      {selectedClientId !== undefined && onClientChange ? (
+        <ClientSelector
+          selectedClientId={selectedClientId}
+          onClientChange={onClientChange}
+        />
+      ) : (
+        <div />
+      )}
+
       <SearchActions
         onUpdatePreferences={onUpdatePreferences}
         onSearchProperties={onSearchProperties}

@@ -16,7 +16,7 @@ import {
 } from "../../../../packages/store/view.slice";
 
 // Hooks
-import useMobile from "../../../../packages/hooks/ui/useMobile";
+import { useIsMobile } from "../../../../packages/hooks/ui";
 
 // Sidebar
 import {
@@ -56,7 +56,6 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/settings": 90,
   "/saved": 90,
   "/messaging": 100,
-  "/calendar": 90,
 };
 
 // Mobile-specific width configuration
@@ -67,7 +66,6 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/settings": 90,
   "/saved": 90,
   "/messaging": 100,
-  "/calendar": 90,
 };
 
 // Checklist tabs
@@ -89,7 +87,7 @@ export default function DashboardLayout({
   const location = useLocation();
   const path = location.pathname;
   const search = location.search;
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   // Route helpers
   const isSearch = path.startsWith("/search");
@@ -97,8 +95,7 @@ export default function DashboardLayout({
   const isDashboard = path.startsWith("/dashboard");
   const isPersonalization = path.startsWith("/settings");
   const isSaved = path.startsWith("/saved");
-  const isAgent = path.startsWith("/messaging");
-  const isCalendar = path.startsWith("/calendar");
+  const isMessagingRoute = path.startsWith("/messaging");
 
   // Persisted buyer-checklists tab state
   const persistedTab = useViewStore(
@@ -181,11 +178,12 @@ export default function DashboardLayout({
       return { type: "none" };
     }
 
-    if (isAgent) {
+    if (isMessagingRoute) {
       return { type: "none" };
     }
 
-    if (isCalendar) {
+    // Dashboard is the unified calendar-based experience
+    if (isDashboard) {
       return { type: "none" };
     }
 
@@ -197,7 +195,8 @@ export default function DashboardLayout({
     isPersonalization,
     isBuyerChecklists,
     isSaved,
-    isCalendar,
+    isMessagingRoute,
+    isDashboard,
     path,
     search,
   ]);
@@ -233,7 +232,7 @@ export default function DashboardLayout({
   ]);
 
   return (
-    <div className={`flex ${isAgent ? "h-screen" : "min-h-screen"} bg-off-white`}>
+    <div className={`flex ${isMessagingRoute ? "h-screen" : "min-h-screen"} bg-off-white`}>
       {/* Desktop Sidebar - Hidden only when mobile bottom nav appears (< 768px) */}
       <div className="hidden md:block">
         <Sidebar
@@ -250,13 +249,13 @@ export default function DashboardLayout({
         <MobileSidebar user={user} onLogout={onLogout} />
       </div>
 
-      <main className={`ml-0 flex-1 transition-all duration-200 md:ml-52 max-md:pb-20 ${isAgent ? "h-full flex flex-col" : ""}`}>
+      <main className={`ml-0 flex-1 transition-all duration-200 md:ml-52 max-md:pb-20 ${isMessagingRoute ? "h-full flex flex-col" : ""}`}>
         <DashboardHeader
           isMobile={isMobile}
           isSearch={isSearch}
           isSaved={isSaved}
-          isAgent={isAgent}
-          isCalendar={isCalendar}
+          isMessagingRoute={isMessagingRoute}
+          isDashboard={isDashboard}
           isBuyerChecklists={isBuyerChecklists}
           isPersonalization={isPersonalization}
           mobileHeaderActions={mobileHeaderActions}
@@ -273,8 +272,7 @@ export default function DashboardLayout({
           isBuyerChecklists={isBuyerChecklists}
           isPersonalization={isPersonalization}
           isSaved={isSaved}
-          isAgent={isAgent}
-          isCalendar={isCalendar}
+          isMessagingRoute={isMessagingRoute}
           isDashboard={isDashboard}
           computedMaxWidthVW={computedMaxWidthVW}
           setMobileHeaderActions={setMobileHeaderActions}

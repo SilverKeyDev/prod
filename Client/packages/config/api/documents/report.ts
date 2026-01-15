@@ -7,7 +7,6 @@ import { asError } from "../../../utils/error";
 // Types for report API
 export type GenerateReportRequest = {
   address: string;
-  comparisonAddress?: string;
   user_id?: string; // For agent client selection
   marketing_model?: boolean;
 };
@@ -21,7 +20,6 @@ export type ReportDocument = {
   updated_at: string;
   status: "generating" | "completed" | "error" | "processed";
   primary_address?: string;
-  comparison_address?: string;
   report_type?: string;
 };
 

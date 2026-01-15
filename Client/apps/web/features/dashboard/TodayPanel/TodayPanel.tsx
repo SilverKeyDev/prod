@@ -1,16 +1,19 @@
 import React from "react";
 import TodoList from "./TodoList";
 import { useAgentTodos } from "../../../../../packages/hooks/data/agent/useAgentTodos";
+import { useIsAgent } from "../../../../../packages/hooks/store/auth/useIsAgent";
 import type {
   TodoPriority,
   TodoType,
-} from "../../../../../packages/schemas/agent";
+} from "../../../../../packages/schemas/agent/agent";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 const TodayPanel: React.FC = () => {
   const { todos, createTodo, updateTodo } = useAgentTodos(false);
+  const isAgent = useIsAgent();
 
   const handleToggleTodo = async (id: string) => {
+    if (!isAgent) return;
     const todo = todos.find((t) => t.id === id);
     if (!todo) return;
 
@@ -28,6 +31,7 @@ const TodayPanel: React.FC = () => {
     priority: TodoPriority,
     type: TodoType
   ) => {
+    if (!isAgent) return;
     try {
       // Set due date to end of today by default
       const dueDate = new Date();
@@ -45,6 +49,7 @@ const TodayPanel: React.FC = () => {
   };
 
   const handleUpdatePriority = async (id: string, priority: TodoPriority) => {
+    if (!isAgent) return;
     try {
       await updateTodo(id, {
         priority,
@@ -67,6 +72,7 @@ const TodayPanel: React.FC = () => {
           onToggleComplete={handleToggleTodo}
           onAddTodo={handleAddTodo}
           onUpdatePriority={handleUpdatePriority}
+          canEdit={isAgent}
         />
       </div>
 

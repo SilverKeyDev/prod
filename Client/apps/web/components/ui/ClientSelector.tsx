@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, User } from "lucide-react";
-import { useUserData } from "../../../../packages/hooks/data/auth/useUserData";
 import { useAgentClients } from "../../../../packages/hooks/data/agent/useAgentClients";
+import { useIsAgent } from "../../../../packages/hooks/store/auth/useIsAgent";
 
 type ClientSelectorProps = {
   selectedClientId: string | null;
@@ -14,11 +14,10 @@ export default function ClientSelector({
   onClientChange,
   className = "",
 }: ClientSelectorProps) {
-  const { userProfile } = useUserData();
   const { clients, isLoading } = useAgentClients();
   const [isOpen, setIsOpen] = useState(false);
 
-  const isAgent = userProfile?.is_agent ?? false;
+  const isAgent = useIsAgent();
 
   // Don't show if user is not an agent
   if (!isAgent) {

@@ -455,7 +455,6 @@ def generate_report(
     *,
     params: Optional[dict] = None,
     report_customization: Optional[dict] = None,
-    comparison_address: Optional[str] = None,
     user_preferences: Optional[dict] = None,
     max_retries: int = 2,
 ) -> Dict:

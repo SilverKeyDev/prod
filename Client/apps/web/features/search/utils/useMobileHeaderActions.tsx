@@ -1,6 +1,8 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useMemo } from "react";
 
 import SearchMobileHeader from "../components/SearchMobileHeader";
+import { screenDown } from "../../../../../packages/schemas/ui/screens";
+import { useMediaQuery } from "../../../../../packages/hooks/ui";
 
 export default function useMobileHeaderActions(params: {
   setMobileHeaderActions: React.Dispatch<
@@ -9,66 +11,37 @@ export default function useMobileHeaderActions(params: {
   isSearching: boolean;
   onPreferences: () => void;
   onSearch: () => void;
+  selectedClientId: string | null;
+  onClientChange: (clientId: string | null) => void;
 }): void {
-  // Simple wrapper for preferences handler
-  const wrappedOnPreferences = useCallback(() => {
-    params.onPreferences();
-  }, [params.onPreferences]);
+  // Preserve historical behavior: show mobile header actions for `< lg` (<=1024px)
+  // because Search's layout is tuned for the compact header at those widths.
+  const isCompactHeader = useMediaQuery(screenDown("lg"));
 
-  // Mobile header actions setup
+  const mobileHeaderActions = useMemo(() => {
+    if (!isCompactHeader) return null;
+    return (
+      <SearchMobileHeader
+        onPreferences={params.onPreferences}
+        onSearch={params.onSearch}
+        isSearching={params.isSearching}
+        selectedClientId={params.selectedClientId}
+        onClientChange={params.onClientChange}
+      />
+    );
+  }, [
+    isCompactHeader,
+    params.isSearching,
+    params.onPreferences,
+    params.onSearch,
+    params.selectedClientId,
+    params.onClientChange,
+  ]);
+
   useEffect(() => {
-    // Cleanup actions when component unmounts
+    params.setMobileHeaderActions(mobileHeaderActions);
     return () => {
       params.setMobileHeaderActions(null);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.setMobileHeaderActions]);
-
-  const handleResize = useCallback(() => {
-    if (typeof window === "undefined") return; // SSR-safe guard
-
-    const isMobile = window.innerWidth < 1024;
-    let newMobileHeaderActions: React.ReactNode | null = null;
-
-    if (isMobile) {
-      newMobileHeaderActions = (
-        <SearchMobileHeader
-          onPreferences={wrappedOnPreferences}
-          onSearch={params.onSearch}
-          isSearching={params.isSearching}
-        />
-      );
-    }
-
-    // Always update mobile header actions when screen size changes
-
-    params.setMobileHeaderActions(newMobileHeaderActions);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    params.setMobileHeaderActions,
-    wrappedOnPreferences,
-    params.onSearch,
-    params.isSearching,
-  ]);
-
-  // Handle mobile header actions based on screen size (SSR-safe)
-  useEffect(() => {
-    // Set initial state immediately
-    handleResize();
-
-    // Also set it after a small delay to ensure it's set even if resize doesn't fire
-    const timeoutId = setTimeout(() => {
-      handleResize();
-    }, 100);
-
-    // Add event listener
-    window.addEventListener("resize", handleResize);
-
-    // Cleanup
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [handleResize]);
+  }, [mobileHeaderActions, params.setMobileHeaderActions]);
 }

@@ -122,7 +122,11 @@ export function useSecureAuth(): UseSecureAuthReturn {
               has_subscription: false,
               subscription: null,
               has_preferences: false,
-              is_agent: false,
+              // Prefer backend-provided flag when present; never infer from routes/features
+              is_agent:
+                ("is_agent" in response.user
+                  ? (response.user.is_agent ?? false)
+                  : false) ?? false,
               auth_method: ("auth_method" in response.user ? response.user.auth_method : undefined) as "cognito" | "google" | "both" | "unknown" | undefined,
             };
 

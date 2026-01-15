@@ -1,6 +1,6 @@
 import Card from "../../layout/Card";
 import type { NavItem } from "../../../../../packages/schemas/nav";
-import useMobile from "../../../../../packages/hooks/ui/useMobile";
+import { useResponsive } from "../../../../../packages/hooks/ui";
 
 type SidebarNavigationProps = {
   items: NavItem[];
@@ -17,8 +17,10 @@ export default function SidebarNavigation({
   headerContent,
   className = "",
 }: SidebarNavigationProps) {
-  const isMobile = useMobile(); // Uses "(max-width: 1024px)" by default
-  const isLargeScreen = !isMobile;
+  // This component previously treated "mobile" as `< lg` (<=1024px). Preserve that
+  // intent explicitly to avoid changing UX at ~tablet widths.
+  const { isLgUp } = useResponsive();
+  const isLargeScreen = isLgUp;
   // Default to the first item when no active item is provided
   const currentActiveItem = activeItem || items[0]?.key;
 

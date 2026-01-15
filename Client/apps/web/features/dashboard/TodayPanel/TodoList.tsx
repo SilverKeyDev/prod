@@ -7,13 +7,14 @@ import type {
   TodoItem,
   TodoPriority,
   TodoType,
-} from "../../../../../packages/schemas/agent";
+} from "../../../../../packages/schemas/agent/agent";
 
 type TodoListProps = {
   todos: TodoItem[];
   onToggleComplete: (id: string) => void;
   onAddTodo: (title: string, priority: TodoPriority, type: TodoType) => void;
   onUpdatePriority?: (id: string, priority: TodoPriority) => void;
+  canEdit?: boolean;
 };
 
 const TodoList: React.FC<TodoListProps> = ({
@@ -21,6 +22,7 @@ const TodoList: React.FC<TodoListProps> = ({
   onToggleComplete,
   onAddTodo,
   onUpdatePriority,
+  canEdit = true,
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTodoTitle, setNewTodoTitle] = useState("");
@@ -78,11 +80,14 @@ const TodoList: React.FC<TodoListProps> = ({
               className="flex items-start gap-3 p-3 rounded-lg border border-beige/30 bg-white hover:bg-beige/5 transition-colors"
             >
               <button
-                onClick={() => onToggleComplete(todo.id)}
+                onClick={() => (canEdit ? onToggleComplete(todo.id) : undefined)}
+                disabled={!canEdit}
                 className={`flex-shrink-0 mt-0.5 w-5 h-5 sm:w-6 sm:h-6 rounded border-2 flex items-center justify-center transition-colors ${
                   todo.completed
                     ? "bg-olive border-olive text-white"
-                    : "border-beige/50 hover:border-gold"
+                    : canEdit
+                      ? "border-beige/50 hover:border-gold"
+                      : "border-beige/50"
                 }`}
               >
                 {todo.completed && <Check className="h-3 w-3 sm:h-4 sm:w-4" />}
@@ -96,7 +101,7 @@ const TodoList: React.FC<TodoListProps> = ({
                   {todo.title}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  {onUpdatePriority && !todo.completed ? (
+                  {canEdit && onUpdatePriority && !todo.completed ? (
                     <div className="w-24">
                       <Dropdown<TodoPriority>
                         options={[
@@ -130,7 +135,7 @@ const TodoList: React.FC<TodoListProps> = ({
       </div>
 
       {/* Add Todo Form */}
-      {showAddForm ? (
+      {!canEdit ? null : showAddForm ? (
         <div className="mt-4 p-3 rounded-lg border border-beige/30 bg-beige/5">
           <input
             type="text"

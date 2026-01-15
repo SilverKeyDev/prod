@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 import React from "react";
 import Card from "../../components/layout/Card.tsx";
-import useMobile from "../../../../packages/hooks/ui/useMobile";
+import { useIsMobile } from "../../../../packages/hooks/ui";
 
 export type ViewMode = "grid" | "list";
 export type SortBy = "date" | "address";
@@ -36,7 +36,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   rightText,
   viewType,
 }) => {
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   const ViewToggle = showViewToggle && onViewModeChange && (
     <div className="hidden items-center gap-2 sm:flex">
