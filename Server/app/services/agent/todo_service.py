@@ -1,14 +1,19 @@
 """
 Service functions for managing agent todos
 """
-import logging
+import sys
+import os
 from typing import List, Dict, Optional
 from datetime import datetime
 from ..auth.current_user import get_current_user
 from ...models import User, Todo
 from ... import db
 
-logger = logging.getLogger(__name__)
+# Initialize centralized logger
+server_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+if server_dir not in sys.path:
+    sys.path.insert(0, server_dir)
+from logger import log, LOG_CATEGORIES
 
 
 def get_agent_todos(agent_id: str, include_completed: bool = False) -> List[Dict]:
@@ -28,12 +33,30 @@ def get_agent_todos(agent_id: str, include_completed: bool = False) -> List[Dict
         if not include_completed:
             query = query.filter_by(completed=False)
         
-        todos = query.order_by(Todo.due_date.asc()).all()
+        # Order by due_date, handling potential None values by putting them last
+        # Use nullslast() to handle any edge cases where due_date might be None
+        try:
+            from sqlalchemy import nullslast
+            todos = query.order_by(nullslast(Todo.due_date.asc())).all()
+        except (ImportError, AttributeError):
+            # Fallback for older SQLAlchemy versions or if nullslast is not available
+            # Since due_date is nullable=False in the model, this should rarely be needed
+            todos = query.order_by(Todo.due_date.asc()).all()
         
-        return [todo.to_dict() for todo in todos]
+        # Convert todos to dictionaries, handling any potential serialization errors
+        result = []
+        for todo in todos:
+            try:
+                result.append(todo.to_dict())
+            except Exception as e:
+                log.error(LOG_CATEGORIES["ERRORS"], f"Error serializing todo {todo.id} to dict", e)
+                # Continue with other todos even if one fails
+                continue
+        
+        return result
         
     except Exception as e:
-        logger.error(f"Error getting todos for agent {agent_id}: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], f"Error getting todos for agent {agent_id}", e)
         raise
 
 
@@ -84,7 +107,7 @@ def create_todo(
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error creating todo: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], "Error creating todo", e)
         raise
 
 
@@ -133,7 +156,7 @@ def update_todo(todo_id: str, agent_id: str, **kwargs) -> Dict:
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error updating todo {todo_id}: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], f"Error updating todo {todo_id}", e)
         raise
 
 
@@ -160,5 +183,5 @@ def delete_todo(todo_id: str, agent_id: str) -> bool:
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error deleting todo {todo_id}: {e}", exc_info=True)
+        log.error(LOG_CATEGORIES["ERRORS"], f"Error deleting todo {todo_id}", e)
         raise

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useAgentClients } from "../../../../../packages/hooks/data/useAgentClients";
-import { useAgentChats } from "../../../../../packages/hooks/data/useAgentChats";
+import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
+import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
 import AgentMessaging from "../AgentMessaging";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export default function AgentDashboard() {
   const { clients, isLoading } = useAgentClients();
@@ -59,7 +60,7 @@ export default function AgentDashboard() {
         setHasAutoSelected(true);
       } catch (error) {
         // If anything fails, just select the first available conversation
-        console.warn("[AgentDashboard] Error in auto-selection:", error);
+        log.warn(LOG_CATEGORIES.DASHBOARD, "Error in auto-selection", error);
         if (conversations.length > 0) {
           setSelectedClientId(conversations[0].client_id);
         }

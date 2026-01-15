@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, User } from "lucide-react";
-import { useUserData } from "../../../../packages/hooks/data/useUserData";
-import { useAgentClients } from "../../../../packages/hooks/data/useAgentClients";
+import { useUserData } from "../../../../packages/hooks/data/auth/useUserData";
+import { useAgentClients } from "../../../../packages/hooks/data/agent/useAgentClients";
 
 type ClientSelectorProps = {
   selectedClientId: string | null;

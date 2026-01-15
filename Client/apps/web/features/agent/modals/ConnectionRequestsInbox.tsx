@@ -1,5 +1,5 @@
 import { Check, X, User as UserIcon, MessageSquare } from "lucide-react";
-import { useConnectionRequests } from "../../../../../packages/hooks/data/useConnectionRequests";
+import { useConnectionRequests } from "../../../../../packages/hooks/data/agent/useConnectionRequests";
 import { useUIStore } from "../../../../../packages/store";
 import Button from "../../../components/ui/button/Button";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";

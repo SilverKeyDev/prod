@@ -133,6 +133,7 @@ export type SearchByPolygonRequest = {
   };
   perBucketPages?: number;
   onlyCached?: boolean; // Only return cached results, don't perform search if cache is invalid
+  forceSearch?: boolean; // Force new search, ignore cache (for search button)
 };
 
 export type SearchByPolygonResponse = {

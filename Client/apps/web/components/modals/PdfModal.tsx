@@ -2,13 +2,13 @@ import { Download, Share, X, ExternalLink } from "lucide-react";
 import React, { useRef, useEffect, useMemo } from "react";
 
 import useMobile from "../../../../packages/hooks/ui/useMobile";
-import { formatFilenameToAddress } from "../../../../packages/utils/address";
+import { formatFilenameToAddress } from "../../../../packages/utils/search/address";
 import {
   generateOptimizedPdfUrl,
   getPdfIframeSandbox,
   getPdfIframeAllow,
   getPdfViewerStyles,
-} from "../../../../packages/utils/pdf";
+} from "../../../../packages/utils/documents/pdf";
 import MiniLogo from "../ui/asset/MiniLogo";
 
 export type PdfModalProps = {

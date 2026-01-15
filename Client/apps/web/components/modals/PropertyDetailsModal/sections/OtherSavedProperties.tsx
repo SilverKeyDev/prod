@@ -2,8 +2,8 @@ import { Plus } from "lucide-react";
 import React from "react";
 
 import { StyledImage } from "../../../cards/base";
-import { useSavedHomesData } from "../../../../../../packages/hooks/data/useSavedHomesData";
-import { usePropertyDetails } from "../../../../../../packages/hooks/data/usePropertyDetails";
+import { useSavedHomesData } from "../../../../../../packages/hooks/data/search/useSavedHomesData";
+import { usePropertyDetails } from "../../../../../../packages/hooks/data/search/usePropertyDetails";
 import type { PropertyComponentProps } from "../../types";
 
 export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({

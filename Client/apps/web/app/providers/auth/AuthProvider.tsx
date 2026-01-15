@@ -69,9 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         // Import authApi dynamically to avoid circular dependencies
-        const { authApi } = await import(
-          "../../../../../packages/config/api/auth"
-        );
+        const { authApi } = await import("../../../../../packages/config/api");
 
         // Verify session with server using HTTP-only cookies
         // This will gracefully handle unauthenticated users without throwing errors

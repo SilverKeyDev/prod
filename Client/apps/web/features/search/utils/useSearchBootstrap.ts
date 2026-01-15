@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import { asError } from "../../../../../packages/utils/error";
 import { loadSearchResults } from "./localStorage";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export function useSearchBootstrap(params: {
   env: { apiBaseUrl: string };
@@ -41,10 +42,7 @@ export function useSearchBootstrap(params: {
           }
         } catch (prefError: unknown) {
           const error = asError(prefError);
-          console.warn(
-            "⚠️ Could not fetch current preferences version, using default:",
-            error,
-          );
+          log.warn(LOG_CATEGORIES.SEARCH, "Could not fetch current preferences version, using default", error);
         }
 
         // Check localStorage for saved search results
@@ -67,7 +65,7 @@ export function useSearchBootstrap(params: {
           params.setShowPropertyModals(true);
         }
       } catch (error: unknown) {
-        console.error("❌ Error in search results initialization:", error);
+        log.error(LOG_CATEGORIES.SEARCH, "Error in search results initialization", error);
         // Fallback: try to load any saved data regardless of version
         const savedSearchData = loadSearchResults();
         if (savedSearchData?.results && savedSearchData.results.length > 0) {

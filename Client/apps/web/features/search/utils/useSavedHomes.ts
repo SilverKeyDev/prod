@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 // Internal API clients
-import type { userApi } from "../../../../../packages/config/api/user";
+import { userApi } from "../../../../../packages/config/api";
 // Internal utilities
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import type { Property } from "../../../../../packages/schemas/property";
@@ -13,6 +13,7 @@ import type {
   RemoveFavoriteHomeRequest,
   FavoriteHomeResponse,
 } from "../../../../../packages/schemas/api";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 // Internal types
 
@@ -42,7 +43,7 @@ export function useSavedHomes(params: {
           (await params.userApi.getFavoriteHomes()) as FavoriteHomesResponse;
 
         if (!favoritesData.success) {
-          console.error("🏠 API returned success=false:", favoritesData.error);
+          log.error(LOG_CATEGORIES.SEARCH, "API returned success=false", { error: favoritesData.error });
           return;
         }
 
@@ -62,18 +63,14 @@ export function useSavedHomes(params: {
                 try {
                   // SSR-safe guard
                   if (typeof window === "undefined") {
-                    console.warn(
-                      `⚠️ Window not available (SSR), skipping geocoding for ${homeData.address}`,
-                    );
+                    log.warn(LOG_CATEGORIES.SEARCH, "Window not available (SSR), skipping geocoding", { address: homeData.address });
                     lat = 33.749; // Atlanta fallback
                     lng = -84.388;
                   } else if (
                     !window.google?.maps ||
                     !params.isGoogleMapsLoaded
                   ) {
-                    console.warn(
-                      `⚠️ Google Maps API not loaded yet, skipping geocoding for ${homeData.address}`,
-                    );
+                    log.warn(LOG_CATEGORIES.SEARCH, "Google Maps API not loaded yet, skipping geocoding", { address: homeData.address });
                     lat = 33.749; // Atlanta fallback
                     lng = -84.388;
                   } else {
@@ -90,18 +87,13 @@ export function useSavedHomes(params: {
                       lat = location.lat();
                       lng = location.lng();
                     } else {
-                      console.warn(
-                        `⚠️ Could not geocode ${homeData.address}, using fallback coordinates`,
-                      );
+                      log.warn(LOG_CATEGORIES.SEARCH, "Could not geocode address, using fallback coordinates", { address: homeData.address });
                       lat = 33.749; // Atlanta fallback
                       lng = -84.388;
                     }
                   }
                 } catch (error: unknown) {
-                  console.error(
-                    `❌ Geocoding error for ${homeData.address}:`,
-                    error,
-                  );
+                  log.error(LOG_CATEGORIES.SEARCH, "Geocoding error", { address: homeData.address, error });
                   lat = 33.749; // Atlanta fallback
                   lng = -84.388;
                 }
@@ -140,7 +132,7 @@ export function useSavedHomes(params: {
           setSavedHomes(savedHomesData);
         }
       } catch (error: unknown) {
-        console.error("❌ Error loading saved homes:", error);
+        log.error(LOG_CATEGORIES.SEARCH, "Error loading saved homes", error);
       }
     };
 
@@ -231,14 +223,14 @@ export function useSavedHomes(params: {
             params.setFavoriteAddresses(response.favorites);
           }
         } else {
-          console.error("❌ Backend API returned failure:", response.error);
+          log.error(LOG_CATEGORIES.SEARCH, "Backend API returned failure", { error: response.error });
           // Rollback optimistic add
           if (rollbackNeeded && optimisticAddedId) {
             setSavedHomes((prev) => prev.filter((h) => h.id !== optimisticAddedId));
           }
         }
       } catch (error: unknown) {
-        console.error("❌ Error adding favorite:", error);
+        log.error(LOG_CATEGORIES.SEARCH, "Error adding favorite", error);
         // Rollback optimistic add on error
         if (rollbackNeeded && optimisticAddedId) {
           setSavedHomes((prev) => prev.filter((h) => h.id !== optimisticAddedId));
@@ -267,11 +259,7 @@ export function useSavedHomes(params: {
         }
         
         if (!property) {
-          console.error(
-            "❌ Property not found in local savedHomes state:",
-            propertyId,
-            propertyAddress,
-          );
+          log.error(LOG_CATEGORIES.SEARCH, "Property not found in local savedHomes state", { propertyId, propertyAddress });
           return;
         }
 
@@ -292,14 +280,14 @@ export function useSavedHomes(params: {
             params.setFavoriteAddresses(response.favorites);
           }
         } else {
-          console.error("❌ Backend API returned failure:", response.error);
+          log.error(LOG_CATEGORIES.SEARCH, "Backend API returned failure", { error: response.error });
           // Rollback optimistic removal
           if (rollbackSnapshot) {
             setSavedHomes(rollbackSnapshot);
           }
         }
       } catch (error: unknown) {
-        console.error("❌ Error removing favorite:", error);
+        log.error(LOG_CATEGORIES.SEARCH, "Error removing favorite", error);
         // Rollback optimistic removal on error
         if (rollbackSnapshot) {
           setSavedHomes(rollbackSnapshot);

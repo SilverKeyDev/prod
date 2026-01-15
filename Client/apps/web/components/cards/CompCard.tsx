@@ -4,7 +4,7 @@ import {
   formatPrice,
   formatAgentName,
   formatLotSize,
-} from "../../../../packages/utils/address";
+} from "../../../../packages/utils/search/address";
 
 export type CompData = {
   address: {

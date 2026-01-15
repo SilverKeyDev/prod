@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+import { log, LOG_CATEGORIES } from "../../../logger";
+
 /**
  * Hook to check application health status
  * Returns maintenance state and completion status
@@ -13,7 +15,7 @@ export function useHealthCheck() {
     fetch("/healthz", { method: "GET" })
       .then((res) => {
         if (!res.ok) {
-          console.error("/healthz responded with status:", res.status);
+          log.error(LOG_CATEGORIES.ERRORS, "/healthz responded with status", { status: res.status });
           throw new Error(`Healthz failed with status: ${res.status}`);
         }
         return res.json();
@@ -30,14 +32,14 @@ export function useHealthCheck() {
             setMaintenance(false);
           } else {
             setMaintenance(true);
-            console.warn("/healthz returned unexpected data:");
+            log.warn(LOG_CATEGORIES.ERRORS, "/healthz returned unexpected data");
           }
         }
       })
       .catch((err) => {
         if (isMounted) {
           setMaintenance(true);
-          console.error("Error fetching /healthz:", err);
+          log.error(LOG_CATEGORIES.ERRORS, "Error fetching /healthz", err);
         }
       })
       .finally(() => {

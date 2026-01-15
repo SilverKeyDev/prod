@@ -10,16 +10,16 @@ export * from "./billing";
 export * from "./chat";
 
 // Document types
-export * from "./documents";
+export * from "./documents/documents";
 
 // Offer types
 export * from "./offers";
 
 // Property types
-export * from "./property";
+export * from "./search/property";
 
 // Report types
-export * from "./reports";
+export * from "./documents/reports";
 
 // Search types (with explicit exports to avoid conflicts)
 export type {
@@ -47,7 +47,7 @@ export type {
   RequiredFields,
   OptionalFields,
   SearchResult,
-} from "./search";
+} from "./search/search";
 
 // Re-export search utility functions
 export {
@@ -55,10 +55,10 @@ export {
   isApiResponse as isSearchApiResponse,
   isMapPosition,
   getMatchScore,
-} from "./search";
+} from "./search/search";
 
 // User types
-export * from "./user";
+export * from "./auth/user";
 
 // Metrics types
 export * from "./metrics";
@@ -77,3 +77,6 @@ export type {
 
 // Checklists
 export * from "./checklists";
+
+// Calendar types
+export * from "./calendar/calendar";

@@ -9,7 +9,6 @@ from typing import Dict
 class LogCategory(str, Enum):
     """Log category enumeration matching frontend categories"""
     POLLING = "POLLING"
-    INITIAL_API_CALLS = "INITIAL_API_CALLS"
     PAGES = "PAGES"
     HOOKS = "HOOKS"
     AUTH = "AUTH"
@@ -22,7 +21,6 @@ class LogCategory(str, Enum):
 # Constant dict for easy access
 LOG_CATEGORIES: Dict[str, LogCategory] = {
     "POLLING": LogCategory.POLLING,
-    "INITIAL_API_CALLS": LogCategory.INITIAL_API_CALLS,
     "PAGES": LogCategory.PAGES,
     "HOOKS": LogCategory.HOOKS,
     "AUTH": LogCategory.AUTH,
@@ -41,11 +39,10 @@ def category_to_config_key(category: LogCategory) -> str:
         category: Log category enum
         
     Returns:
-        Config key string (e.g., "initialApiCalls")
+        Config key string (e.g., "pages")
     """
     mapping: Dict[LogCategory, str] = {
         LogCategory.POLLING: "polling",
-        LogCategory.INITIAL_API_CALLS: "initialApiCalls",
         LogCategory.PAGES: "pages",
         LogCategory.HOOKS: "hooks",
         LogCategory.AUTH: "auth",

@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from "react";
 
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import { calculatePropertyCardCenter } from "./MapZoomController";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export function useMarkerUpdates(params: {
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;
@@ -17,7 +18,7 @@ export function useMarkerUpdates(params: {
   // NOTE: This hook should NOT control map position/zoom - that's handled by usePropertyFocus
   const refreshMarkers = useCallback((current?: SearchResult) => {
     if (!params.googleMapRef.current) {
-      console.warn("Map not available for marker refresh");
+      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map not available for marker refresh");
       return;
     }
 

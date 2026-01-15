@@ -9,7 +9,7 @@ import { type ReactNode } from "react";
 
 import Card from "../../components/layout/Card";
 import Button from "../../components/ui/button/Button";
-import { useAuthStoreIntegration } from "../../../../packages/hooks/store/useAuthStoreIntegration";
+import { useAuthStoreIntegration } from "../../../../packages/hooks/store/auth/useAuthStoreIntegration";
 
 type AuthGuardProps = {
   children: ReactNode;

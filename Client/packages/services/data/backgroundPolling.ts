@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
-import type { UserProfile } from "../../schemas/user";
+import type { UserProfile } from "../../schemas";
 import { log, LOG_CATEGORIES } from "../../../logger";
 import { getPollingRoutes, DATA_ROUTES } from "./dataConfig";
 
@@ -63,8 +63,6 @@ export class BackgroundPolling {
       return;
     }
 
-    log.info(LOG_CATEGORIES.POLLING, "🛑 Stopping background polling");
-
     this.intervals.forEach((interval) => clearInterval(interval));
     this.intervals.clear();
     this.isPolling = false;
@@ -120,7 +118,6 @@ export class BackgroundPolling {
           queryFn: () => route.queryFn(this.user),
           staleTime: 0, // Always fetch fresh when polling
         });
-        log.info(LOG_CATEGORIES.POLLING, `✅ ${route.key} polled`);
       } catch (error) {
         log.error(LOG_CATEGORIES.POLLING, `❌ ${route.key} poll failed`, error);
       }
@@ -181,10 +178,8 @@ export class BackgroundPolling {
         // Pause all polling
         this.intervals.forEach((interval) => clearInterval(interval));
         this.intervals.clear();
-        log.info(LOG_CATEGORIES.POLLING, "⏸️ Polling paused (tab hidden)");
       } else {
         // Resume polling
-        log.info(LOG_CATEGORIES.POLLING, "▶️ Polling resumed (tab visible)");
         this.start(this.user, this.currentPathname);
       }
     });

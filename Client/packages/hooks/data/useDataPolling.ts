@@ -4,9 +4,10 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "../../config/query/keys";
 import { useNotificationStore } from "../../store/notifications.slice";
-import type { AgentConversation } from "../../config/api/agent";
+import type { AgentConversation } from "../../config/api";
 import { useAuthStore } from "../../store/auth.slice";
-import { agentApi } from "../../config/api/agent";
+import { agentApi } from "../../config/api";
+import { log, LOG_CATEGORIES } from "../../../logger";
 
 // Polling intervals in milliseconds
 const POLLING_INTERVALS = {
@@ -72,7 +73,7 @@ export function useDataPolling() {
     if (!inRouter && typeof window !== "undefined" && document.readyState === "complete") {
       // Only log if page is fully loaded (not during hydration)
       // This is a timing issue that should resolve on the next render
-      console.warn("[useDataPolling] Router context check failed, but location is available", {
+      log.warn(LOG_CATEGORIES.POLLING, "Router context check failed, but location is available", {
         href: window.location.href,
         hasLocation: !!location,
         timestamp: new Date().toISOString(),
@@ -80,16 +81,6 @@ export function useDataPolling() {
     }
   }, [inRouter, location]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log("[useDataPolling] Hook initialized", {
-      authReady,
-      isAuthenticated,
-      pathname,
-      inRouter,
-      isOnMessagingPage: pathname.startsWith("/messaging"),
-    });
-  }, [authReady, isAuthenticated, pathname, inRouter]);
 
   // Check if we're on the messaging page
   const isOnMessagingPage = pathname.startsWith("/messaging");
@@ -110,31 +101,24 @@ export function useDataPolling() {
   // Check for new data updates (including messages) and update notifications
   const checkForNewMessages = useCallback(async () => {
     if (!authReady || !isAuthenticated) {
-      console.log("[useDataPolling] Skipping check - not ready", {
-        authReady,
-        isAuthenticated,
-      });
       return;
     }
 
     // Prevent concurrent checks
     if (isCheckingRef.current) {
-      console.log("[useDataPolling] Check already in progress, skipping");
       return;
     }
 
     isCheckingRef.current = true;
-    console.log("[useDataPolling] Checking for new data...");
+
     
     try {
       // Always fetch fresh data for polling to get latest message timestamps
       const queryKey = queryKeys.agent.conversations();
-      console.log("[useDataPolling] Fetching conversations with queryKey:", queryKey);
       
       const result = await queryClient.fetchQuery({
         queryKey,
         queryFn: async () => {
-          console.log("[useDataPolling] Executing queryFn to fetch chats");
           const response = await agentApi.getChats(); // Fetch all conversations for polling
           if (!response.success) {
             throw new Error(response.error ?? "Failed to fetch conversations");
@@ -145,10 +129,6 @@ export function useDataPolling() {
       });
       
       const conversations = (result as AgentConversation[]) ?? [];
-      console.log("[useDataPolling] Fetched conversations:", {
-        count: conversations.length,
-        conversationIds: conversations.map((c) => c.id),
-      });
 
       // Compare with previous conversations to detect new messages
       const previousConversations = previousConversationsRef.current;
@@ -222,19 +202,16 @@ export function useDataPolling() {
         }
       }
       
-      if (conversationsWithActualNewMessages.length > 0) {
-        console.log("[useDataPolling] Updated cache for conversations with new messages:", conversationsWithActualNewMessages);
-      }
 
       // Update previous conversations ref
       previousConversationsRef.current = conversations;
-      console.log("[useDataPolling] Check complete", {
+      log.debug(LOG_CATEGORIES.POLLING, "Check complete", {
         conversationsCount: conversations.length,
         previousCount: previousConversationsRef.current.length,
         newMessagesCount: conversationsWithActualNewMessages.length,
       });
     } catch (error) {
-      console.error("[useDataPolling] Error checking for new data:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Error checking for new data", error);
     } finally {
       isCheckingRef.current = false;
     }
@@ -251,7 +228,7 @@ export function useDataPolling() {
     // Don't start polling if router context isn't available yet
     // This prevents errors in production where router chunk might load after this code
     if (!inRouter) {
-      console.log("[useDataPolling] Polling not started - router context not available", {
+      log.debug(LOG_CATEGORIES.POLLING, "Polling not started - router context not available", {
         inRouter,
         pathname: location.pathname,
       });
@@ -259,7 +236,7 @@ export function useDataPolling() {
     }
     
     if (!authReady || !isAuthenticated) {
-      console.log("[useDataPolling] Polling not started - auth not ready", {
+      log.debug(LOG_CATEGORIES.POLLING, "Polling not started - auth not ready", {
         authReady,
         isAuthenticated,
       });
@@ -276,7 +253,7 @@ export function useDataPolling() {
       const interval = getPollingInterval();
       const visibilityState = typeof document !== "undefined" ? document.visibilityState : "unknown";
       
-      console.log("[useDataPolling] Starting polling", {
+      log.info(LOG_CATEGORIES.POLLING, "Starting polling", {
         interval,
         isOnMessagingPage,
         visibilityState,
@@ -286,16 +263,16 @@ export function useDataPolling() {
       
       if (interval > 0) {
         // Initial check
-        console.log("[useDataPolling] Running initial check");
+        log.debug(LOG_CATEGORIES.POLLING, "Running initial check");
         checkForNewMessages();
         
         // Set up interval
         pollingIntervalRef.current = setInterval(() => {
-          console.log("[useDataPolling] Polling interval tick");
+          log.debug(LOG_CATEGORIES.POLLING, "Polling interval tick");
           checkForNewMessages();
         }, interval);
       } else {
-        console.log("[useDataPolling] Polling paused (interval is 0)");
+        log.debug(LOG_CATEGORIES.POLLING, "Polling paused (interval is 0)");
       }
     };
 
@@ -304,7 +281,7 @@ export function useDataPolling() {
     // Handle visibility changes
     const handleVisibilityChange = () => {
       const visibilityState = typeof document !== "undefined" ? document.visibilityState : "unknown";
-      console.log("[useDataPolling] Visibility changed", {
+      log.debug(LOG_CATEGORIES.POLLING, "Visibility changed", {
         visibilityState,
         willRestart: visibilityState === "visible",
       });
@@ -315,7 +292,7 @@ export function useDataPolling() {
     visibilityChangeHandlerRef.current = handleVisibilityChange;
 
     return () => {
-      console.log("[useDataPolling] Cleaning up polling");
+      log.debug(LOG_CATEGORIES.POLLING, "Cleaning up polling");
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
@@ -349,7 +326,13 @@ export function useDataPolling() {
       const cachedCounter = queryClient.getQueryData<number>(
         queryKeys.agent.notificationCounter()
       );
-      if (cachedCounter !== undefined) {
+      // Only set if valid number >= 0, otherwise don't update (defaults to 0)
+      if (
+        cachedCounter !== undefined &&
+        typeof cachedCounter === "number" &&
+        !isNaN(cachedCounter) &&
+        cachedCounter >= 0
+      ) {
         setTotalUnreadCount(cachedCounter);
       }
     };
@@ -366,7 +349,13 @@ export function useDataPolling() {
         event.query.queryKey[1] === "notification-counter"
       ) {
         const data = event.query.state.data as number | undefined;
-        if (data !== undefined) {
+        // Only set if valid number >= 0, otherwise don't update (defaults to 0)
+        if (
+          data !== undefined &&
+          typeof data === "number" &&
+          !isNaN(data) &&
+          data >= 0
+        ) {
           setTotalUnreadCount(data);
         }
       }

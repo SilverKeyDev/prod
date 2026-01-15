@@ -3,7 +3,10 @@ import React, { useEffect, type ReactNode } from "react";
 
 import Card from "../../components/layout/Card";
 import ChecklistCheckbox from "../../components/ui/form/ChecklistCheckbox";
-import { useChecklistData, type ChecklistType } from "../../../../packages/hooks/data/useChecklistData";
+import {
+  useChecklistData,
+  type ChecklistType,
+} from "../../../../packages/hooks/data/auth/useChecklistData";
 
 // Shared CSS classes - now using Card component instead with mobile-first responsive design
 const sectionTitle =
@@ -100,7 +103,7 @@ export default function CloseLayout({
       const completedCount = Object.values(checked).filter(Boolean).length;
       const totalCount = items.length;
 
-      void void setClosePageHeaderData({
+      setClosePageHeaderData({
         title,
         subtitle,
         completedCount,

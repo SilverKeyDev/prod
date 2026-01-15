@@ -3,6 +3,7 @@ import type { Document, DocumentCategory } from "../schemas";
 import { isDocumentData } from "../utils/typeGuards";
 
 import { createAbortManager, isAbortError } from "./http";
+import { log, LOG_CATEGORIES } from "../../logger";
 
 /* =========================
    Document Service
@@ -17,7 +18,7 @@ export class DocumentService {
 
   async fetchDocuments(): Promise<Document[]> {
     // getDocuments should not be called - return empty array
-    console.warn("fetchDocuments called but getDocuments should not be used");
+    log.warn(LOG_CATEGORIES.API, "fetchDocuments called but getDocuments should not be used");
     return [];
   }
 
@@ -92,7 +93,7 @@ export class DocumentService {
         throw new Error(result.error ?? "Upload failed");
       }
     } catch (error: unknown) {
-      console.error("Upload error:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Upload error", error);
       throw error;
     }
   }
@@ -118,7 +119,7 @@ export class DocumentService {
       }
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("Failed to update document status", e);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to update document status", e);
         throw e;
       }
       throw e;
@@ -143,7 +144,7 @@ export class DocumentService {
       }
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("Failed to sign document", e);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to sign document", e);
         throw e;
       }
       throw e;
@@ -155,7 +156,7 @@ export class DocumentService {
       await secureUploadApi.downloadDocument(docId);
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("Failed to download document", e);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to download document", e);
         throw e;
       }
       throw e;
@@ -171,7 +172,7 @@ export class DocumentService {
       }
     } catch (e: unknown) {
       if (!isAbortError(e)) {
-        console.error("Failed to delete document", e);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to delete document", e);
         throw e;
       }
       throw e;

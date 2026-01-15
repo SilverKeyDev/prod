@@ -89,6 +89,7 @@ export const queryKeys = {
     events: () => [...queryKeys.googleCalendar.all, "events"] as const,
     eventsList: (params?: Record<string, unknown>) =>
       [...queryKeys.googleCalendar.events(), "list", params] as const,
+    permissions: () => [...queryKeys.googleCalendar.all, "permissions"] as const,
   },
 
   // Scheduling domain

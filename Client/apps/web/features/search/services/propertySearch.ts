@@ -1,4 +1,4 @@
-import { searchApi } from "../../../../../packages/config/api/search";
+import { searchApi } from "../../../../../packages/config/api";
 import type {
   IsochroneData,
   UserPreferencesData,
@@ -6,6 +6,7 @@ import type {
   SearchByPolygonResponse,
   PropertySearchResult,
 } from "../../../../../packages/schemas/api";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export type LatLng = {
   lat: number;
@@ -75,7 +76,7 @@ export const searchPropertiesInIsochrone = async (
   setSearchResults([]);
 
   if (!isochroneData?.isochrone?.geometry) {
-    console.warn("❌ No isochrone geometry available for property search");
+    log.warn(LOG_CATEGORIES.SEARCH, "No isochrone geometry available for property search");
     setIsSearching(false);
     return;
   }
@@ -84,11 +85,13 @@ export const searchPropertiesInIsochrone = async (
     setSearchStage("Extracting property data...");
 
     // Backend now pulls user preferences from database, so we only send perBucketPages
+    // forceSearch=true ensures we always perform a new search when search button is clicked
     const searchRequest: SearchByPolygonRequest = {
       perBucketPages: 20,
+      forceSearch: true, // Force new search, ignore cache (for search button)
     };
 
-    console.log("🔍 [POLYGON_SEARCH] Making API request:", searchRequest);
+    log.debug(LOG_CATEGORIES.SEARCH, "Making API request", searchRequest);
 
     const searchResult = (await searchApi.searchByPolygon(
       searchRequest,
@@ -101,11 +104,11 @@ export const searchPropertiesInIsochrone = async (
     // Log cache status if available
     if (searchResult.meta?.cached !== undefined) {
       if (searchResult.meta.cached) {
-        console.log(
-          `✅ [POLYGON_SEARCH] Cache HIT - Using cached results (age: ${searchResult.meta.cacheAge ?? "unknown"})`,
-        );
+        log.info(LOG_CATEGORIES.SEARCH, "Cache HIT - Using cached results", {
+          cacheAge: searchResult.meta.cacheAge ?? "unknown",
+        });
       } else {
-        console.log("🔄 [POLYGON_SEARCH] Cache MISS - Performing new search");
+        log.info(LOG_CATEGORIES.SEARCH, "Cache MISS - Performing new search");
       }
     }
 
@@ -126,7 +129,7 @@ export const searchPropertiesInIsochrone = async (
     // Log first property raw data to inspect _score field
     if (searchResult.properties && searchResult.properties.length > 0) {
       const firstProp = searchResult.properties[0];
-      console.log("📊 [PROPERTY SEARCH] First Property Raw Data:", {
+      log.debug(LOG_CATEGORIES.SEARCH, "First Property Raw Data", {
         zpid: firstProp.zpid,
         address: firstProp.address,
         _score: firstProp._score,
@@ -144,7 +147,7 @@ export const searchPropertiesInIsochrone = async (
       
       // Log any properties with missing or zero scores
       if (score === 0 || score === undefined || score === null) {
-        console.warn("⚠️ [PROPERTY SEARCH] Property missing score:", {
+        log.warn(LOG_CATEGORIES.SEARCH, "Property missing score", {
           zpid: property.zpid,
           address: property.address,
           _score: property._score,
@@ -196,12 +199,12 @@ export const searchPropertiesInIsochrone = async (
     setCurrentPage(0);
     setShowPropertyModals(true);
 
-    console.log(
-      `✅ [POLYGON_SEARCH] Successfully found ${transformedResults.length} properties`,
-    );
+    log.info(LOG_CATEGORIES.SEARCH, "Successfully found properties", {
+      count: transformedResults.length,
+    });
   } catch (error: unknown) {
-    console.error("❌ Error in automatic isochrone property search:", error);
-    console.error("❌ Error details:", {
+    log.error(LOG_CATEGORIES.ERRORS, "Error in automatic isochrone property search", error);
+    log.error(LOG_CATEGORIES.ERRORS, "Error details", {
       message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
       isochroneData,

@@ -1,20 +1,19 @@
 // Central API exports for SilverKey application
 // All API clients use the centralized utilities from ./utils.ts
 
-export { agentApi } from "./agent";
-export { authApi } from "./auth";
-export { chatbotApi } from "./chatbot";
+export { agentApi } from "./agent/agent";
+export { authApi } from "./auth/auth";
+export { chatbotApi } from "./chat/chatbot";
 export { dashboardApi } from "./dashboard";
-export { googleCalendarApi } from "./googleCalendar";
+export { googleCalendarApi } from "./calendar/googleCalendar";
 export { mapsApi } from "./maps";
 export { offerApi } from "./offer";
-export { preferencesApi } from "./preferences";
-export { plaidApi } from "./plaid";
-export { reportApi } from "./report";
-export { researchApi } from "./research";
-export { searchApi } from "./search";
-export { secureUploadApi } from "./secureUpload";
-export { userApi } from "./user";
+export { preferencesApi } from "./auth/preferences";
+export { reportApi } from "./documents/report";
+export { researchApi } from "./search/research";
+export { searchApi } from "./search/search";
+export { secureUploadApi } from "./documents/secureUpload";
+export { userApi } from "./auth/user";
 
 // Note: HTTP utility functions are now imported directly where needed
 // to avoid circular dependencies between config/api and services/http
@@ -43,6 +42,9 @@ export type {
   SendMessageResponse,
   CreateConversationRequest,
   CreateConversationResponse,
+  TodoItem,
+  CreateTodoRequest,
+  UpdateTodoRequest,
   AgentSearchResult,
   ClientSearchResult,
   AgentConnectionRequest,
@@ -53,14 +55,14 @@ export type {
   CreateConnectionRequestResponse,
   RespondToConnectionRequestRequest,
   RespondToConnectionRequestResponse,
-} from "./agent";
-export type { SignupData, LoginData, AuthResponse } from "./auth";
+} from "./agent/agent";
+export type { SignupData, LoginData, AuthResponse } from "./auth/auth";
 export type {
   ChatMessage,
   ChatResponse,
   ChatHistoryMessage,
   ChatHistoryResponse,
-} from "./chatbot";
+} from "./chat/chatbot";
 export type {
   PDFDocument,
   DashboardResponse,
@@ -73,7 +75,7 @@ export type {
   GoogleEventListResponse,
   GoogleEventCreateResponse,
   GoogleCalendarApiResponse,
-} from "./googleCalendar";
+} from "./calendar/googleCalendar";
 export type { MapsScriptResponse } from "./maps";
 export type {
   NegotiationStrategyRequest,
@@ -85,7 +87,7 @@ export type {
   PreferencesResponse,
   ClientInfo,
   ClientsResponse,
-} from "./preferences";
+} from "./auth/preferences";
 export type {
   ReportDocument,
   ReportsListResponse,
@@ -95,24 +97,24 @@ export type {
   CompareReportsRequest,
   CompareReportsResponse,
   DeleteReportResponse,
-} from "./report";
+} from "./documents/report";
 export type {
   PropertyRequest,
   PropertyResponse,
   TaskStatusResponse,
-} from "./research";
+} from "./search/research";
 export type {
   PropertyCompsRequest,
   PropertyCompsResponse,
   PolygonSearchRequest,
   PolygonSearchResponse,
   IsochroneResponse,
-} from "./search";
-export type { UploadResponse } from "./secureUpload";
+} from "./search/search";
+export type { UploadResponse } from "./documents/secureUpload";
 export type {
   User,
   UserResponse,
   FavoriteHomesResponse,
   AddFavoriteRequest,
   RemoveFavoriteRequest,
-} from "./user";
+} from "./auth/user";

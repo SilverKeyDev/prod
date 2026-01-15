@@ -1,0 +1,79 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
+
+import { agentApi } from "../../../config/api";
+import { queryKeys } from "../../../config/query/keys";
+import { useAuthStore } from "../../../store/auth.slice";
+import { HttpError } from "../../../services/http/compatibility";
+import type { AgentClient } from "../../../config/api";
+
+export type UseAgentClientsReturn = {
+  clients: AgentClient[];
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+};
+
+/**
+ * Hook to fetch agent's clients
+ * Only works for authenticated agents
+ */
+export function useAgentClients(): UseAgentClientsReturn {
+  const queryClient = useQueryClient();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authReady = useAuthStore((s) => s.authReady);
+  const isAgent = useAuthStore((s) => s.user?.is_agent ?? false);
+
+  // Check cache first when enabled becomes true (cache-first strategy)
+  const shouldLoadData = useMemo(() => authReady && isAuthenticated && isAgent, [authReady, isAuthenticated, isAgent]);
+
+  const {
+    data: clientsResponse,
+    isLoading,
+    error,
+    refetch: refetchClients,
+  } = useQuery({
+    queryKey: queryKeys.agent.clients(),
+    queryFn: async () => {
+      const response = await agentApi.getClients();
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to fetch clients");
+      }
+      return response.clients ?? [];
+    },
+    enabled: shouldLoadData,
+    // Use placeholderData function to check cache reactively when enabled changes
+    placeholderData: () => {
+      return queryClient.getQueryData<AgentClient[]>(queryKeys.agent.clients());
+    },
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    refetchOnMount: false,
+    // Don't retry on client errors (4xx), but retry once on server errors (5xx)
+    retry: (failureCount, error) => {
+      // Check HttpError status directly
+      if (error instanceof HttpError) {
+        // Don't retry on client errors (4xx)
+        if (error.status >= 400 && error.status < 500) {
+          return false;
+        }
+        // Retry once on server errors (5xx) - they might be transient
+        if (error.status >= 500) {
+          return failureCount < 1;
+        }
+      }
+      // For other errors, retry once
+      return failureCount < 1;
+    },
+  });
+
+  const refetch = useCallback(async () => {
+    await refetchClients();
+  }, [refetchClients]);
+
+  return {
+    clients: clientsResponse ?? [],
+    isLoading,
+    error: error?.message ?? null,
+    refetch,
+  };
+}

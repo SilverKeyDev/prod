@@ -6,59 +6,64 @@ import {
 } from "lucide-react";
 import { Button } from "../../../../components/ui";
 import { CalendarDropdown } from "./CalendarDropdown";
-import type { GoogleCalendar } from "../../../../../../packages/config/api/googleCalendar";
+import type { GoogleCalendar } from "../../../../../../packages/config/api";
+import { CalendarDateRange } from "./CalendarDateRange";
+import { getVisibleDateRange } from "../../../../../../packages/utils/calendar/date";
 
 type CalendarHeaderProps = {
   currentDate: Date;
-  onPreviousMonth: () => void;
-  onNextMonth: () => void;
+  onPreviousWeek: () => void;
+  onNextWeek: () => void;
   isConnected: boolean;
   calendars?: GoogleCalendar[];
   enabledCalendarIds?: Set<string>;
   onToggleCalendar?: (calendarId: string, enabled: boolean) => void;
   silverKeyCalendarId?: string | null;
   onCreateEvent?: () => void;
+  visibleDateRange?: { firstDate: Date; lastDate: Date } | null;
 };
 
 export function CalendarHeader({
   currentDate,
-  onPreviousMonth,
-  onNextMonth,
+  onPreviousWeek,
+  onNextWeek,
   isConnected,
   calendars = [],
   enabledCalendarIds = new Set(),
   onToggleCalendar,
   silverKeyCalendarId,
   onCreateEvent,
+  visibleDateRange,
 }: CalendarHeaderProps) {
-  const monthYear = currentDate.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  // Use visible dates from CalendarView if available, otherwise fallback to calculated range
+  const fallbackRange = getVisibleDateRange(currentDate);
+  const displayFirstDate = visibleDateRange?.firstDate ?? fallbackRange.start;
+  const displayLastDate = visibleDateRange?.lastDate ?? fallbackRange.end;
 
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      {/* Month/Year and Navigation */}
+      {/* Week Range and Navigation */}
       <div className="flex items-center gap-2 sm:gap-4">
-        <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
-          {monthYear}
-        </h2>
+        <CalendarDateRange
+          firstDate={displayFirstDate}
+          lastDate={displayLastDate}
+        />
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
-            onClick={onPreviousMonth}
+            onClick={onPreviousWeek}
             className="h-8 w-8 p-0"
-            aria-label="Previous month"
+            aria-label="Previous week"
           >
             <ChevronLeft className="h-4 w-4 text-gray-500" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            onClick={onNextMonth}
+            onClick={onNextWeek}
             className="h-8 w-8 p-0"
-            aria-label="Next month"
+            aria-label="Next week"
           >
             <ChevronRight className="h-4 w-4 text-gray-500" />
           </Button>

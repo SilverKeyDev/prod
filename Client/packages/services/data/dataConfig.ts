@@ -1,11 +1,9 @@
 import { queryKeys } from "../../config/query/keys";
-import { userApi } from "../../config/api/user";
-import { preferencesApi } from "../../config/api/preferences";
-import { agentApi } from "../../config/api/agent";
-import { googleCalendarApi } from "../../config/api/googleCalendar";
-import { agentService } from "../agent";
+import { agentApi, googleCalendarApi, preferencesApi, userApi } from "../../config/api";
+import { agentService } from "../agent/agent";
 import { apiGet } from "../http/compatibility";
-import type { UserProfile } from "../../schemas/user";
+import type { UserProfile } from "../../schemas";
+import { calculateCalendarDateRange } from "../../utils/calendar/date";
 
 /**
  * Configuration for a data route
@@ -119,7 +117,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     pollingInterval: 3 * 60 * 1000, // 3 minutes
     staleTime: 3 * 60 * 1000, // 3 minutes
     userType: "agent",
-    initialLoad: true,
+    initialLoad: false,
   },
 
   agentTodos: {
@@ -191,7 +189,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
   },
 
   // ============================================
-  // Calendar (All Users)
+  // Calendar (Agent Only)
   // ============================================
 
   googleCalendars: {
@@ -206,8 +204,8 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     },
     shouldPoll: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    userType: "all",
-    initialLoad: true,
+    userType: "agent",
+    initialLoad: false,
   },
 
   googleCalendarConnection: {
@@ -223,9 +221,34 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     initialLoad: true,
   },
 
+  googleCalendarPermissions: {
+    key: "googleCalendarPermissions",
+    queryKey: () => queryKeys.googleCalendar.permissions(),
+    queryFn: async () => {
+      // Only fetch permissions if user is connected
+      const isConnected = await googleCalendarApi.isConnected();
+      if (!isConnected) {
+        // Return null to indicate not connected (will be handled by hook)
+        return null;
+      }
+      const response = await googleCalendarApi.getPermissions();
+      if (!response.success || !response.data) {
+        throw new Error(response.error || "Failed to fetch permissions");
+      }
+      return response.data;
+    },
+    shouldPoll: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    userType: "all",
+    initialLoad: true, // Load on initial page load to check permissions
+  },
+
   googleEvents: {
     key: "googleEvents",
-    queryKey: () => queryKeys.googleCalendar.eventsList({ calendarId: "primary" }),
+    queryKey: () => {
+      // This route prefetches events for all calendars
+      return [...queryKeys.googleCalendar.events(), "prefetch"] as const;
+    },
     queryFn: async (_user: UserProfile | null) => {
       // Check if user is connected first
       const isConnected = await googleCalendarApi.isConnected();
@@ -235,28 +258,62 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
         return [];
       }
 
-      // Fetch events for the primary calendar with a reasonable time range
-      // Default to next 30 days if no time range specified
-      const now = new Date();
-      const timeMin = now.toISOString();
-      const timeMax = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-      const response = await googleCalendarApi.listEvents({
-        calendarId: "primary",
-        timeMin,
-        timeMax,
-      });
-
-      if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch events");
+      // Fetch all calendars first
+      // Note: This only returns the authenticated user's own calendars (not client calendars)
+      // Agents should use the availability endpoint to view client calendars
+      const calendarsResponse = await googleCalendarApi.listCalendars();
+      if (!calendarsResponse.success || !calendarsResponse.data?.items) {
+        return [];
       }
 
-      return response.data?.items ?? [];
+      const calendars = calendarsResponse.data.items;
+
+      // Calculate 5-week date range aligned to week boundaries (same as Calendar.tsx)
+      const { timeMin, timeMax } = calculateCalendarDateRange();
+
+      // Fetch events for all calendars using /api/v1/google/me/events? for each calendar
+      const eventPromises = calendars.map(async (calendar) => {
+        try {
+          const response = await googleCalendarApi.listEvents({
+            calendarId: calendar.id,
+            timeMin,
+            timeMax,
+          });
+
+          if (!response.success) {
+            throw new Error(response.error ?? "Failed to fetch events");
+          }
+
+          return {
+            calendarId: calendar.id,
+            events: response.data?.items ?? [],
+            timeMin,
+            timeMax,
+          };
+        } catch (error) {
+          // Silently fail for individual calendars - return empty array
+          return {
+            calendarId: calendar.id,
+            events: [],
+            timeMin,
+            timeMax,
+          };
+        }
+      });
+
+      const results = await Promise.all(eventPromises);
+
+      // Return results with calendar info for proper caching in initialDataLoader
+      // Also include calendars so they can be stored in cache for "primary" resolution
+      return {
+        calendars,
+        events: results,
+      };
     },
     shouldPoll: false,
     staleTime: 2 * 60 * 1000, // 2 minutes - events can change frequently
-    userType: "all",
-    initialLoad: true,
+    userType: "all", // Prefetch for all users, not just agents
+    initialLoad: true, 
   },
 
   // ============================================

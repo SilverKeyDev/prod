@@ -4,8 +4,8 @@ import type { DragEndEvent } from "@dnd-kit/core";
 
 import BaseModal from "./BaseModal";
 import OnPerDragDropPriorities from "../../features/onboardpersonalize/DragDropPriorities";
-import { useUserPreferences } from "../../../../packages/hooks/data/useUserData";
-import { useAutoSavePreferences } from "../../../../packages/hooks/data/useAutoSavePreferences";
+import { useUserPreferences } from "../../../../packages/hooks/data/auth/useUserData";
+import { useAutoSavePreferences } from "../../../../packages/hooks/data/auth/useAutoSavePreferences";
 import { DEFAULT_REPORT_SECTIONS } from "../../features/onboardpersonalize/lib/constants";
 import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/lib/dragEndHandler";
 import type { OnboardingData } from "../../features/onboardpersonalize/lib/types";
@@ -94,7 +94,7 @@ const PrioritiesModal: React.FC<PrioritiesModalProps> = ({
 
       return orderedSections;
     } catch (error: unknown) {
-      console.error("Error in getOrderedReportSections:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Error in getOrderedReportSections", error);
       return [];
     }
   }, [formData]);
@@ -136,7 +136,7 @@ const PrioritiesModal: React.FC<PrioritiesModalProps> = ({
       );
 
       if (!validSectionKeys.has(sectionKey)) {
-        console.warn(`Attempted to toggle invalid section: ${sectionKey}`);
+        log.warn(LOG_CATEGORIES.ERRORS, "Attempted to toggle invalid section", { sectionKey });
         return;
       }
 

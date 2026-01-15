@@ -5,7 +5,7 @@ import { ConnectionRequestsInbox } from "../modals";
 import type {
   AgentConversation,
   AgentClient,
-} from "../../../../../packages/config/api/agent";
+} from "../../../../../packages/config/api";
 import {
   getMessagingConfig,
   type MessagingMode,
@@ -204,10 +204,10 @@ export default function UnifiedMessagingSidebar({
 
   return (
     <>
-      {/* Backdrop for mobile - only show when sidebar is expanded on mobile */}
+      {/* Backdrop for mobile - only show when sidebar is expanded on mobile, positioned relative to messaging container */}
       {isSidebarExpanded && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ease-in-out xl:hidden"
+          className="absolute inset-0 z-40 bg-black/50 transition-opacity duration-300 ease-in-out xl:hidden"
           onClick={() => setIsSidebarExpanded(false)}
           aria-hidden="true"
         />
@@ -217,7 +217,7 @@ export default function UnifiedMessagingSidebar({
       <aside
         className={`${
           isSidebarExpanded
-            ? "fixed left-0 top-0 flex h-full w-80 translate-x-0 z-50 xl:relative xl:z-0"
+            ? "absolute left-0 top-0 bottom-0 flex h-full w-80 translate-x-0 z-50 xl:relative xl:z-0"
             : "hidden -translate-x-full xl:flex xl:translate-x-0"
         } flex-col transition-transform duration-300 ease-in-out xl:w-80 ${
           isSidebarExpanded

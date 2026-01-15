@@ -23,6 +23,7 @@ export function useDataInitialization() {
 
   useEffect(() => {
     // Only initialize once when user becomes authenticated
+    // Note: location.pathname is NOT in deps to prevent re-initialization on route changes
     if (!authReady || !isAuthenticated || !user || hasInitializedRef.current) {
       return;
     }
@@ -37,7 +38,7 @@ export function useDataInitialization() {
       pollingRef.current = new BackgroundPolling(queryClient);
     }
 
-    // Prefetch all data
+    // Prefetch all data (only once on initial mount)
     dataLoaderRef.current.prefetchAllData(user).catch((error) => {
       log.error(LOG_CATEGORIES.HOOKS, "Prefetch failed", error);
     });
@@ -50,7 +51,7 @@ export function useDataInitialization() {
       pollingRef.current?.stop();
       hasInitializedRef.current = false;
     };
-  }, [authReady, isAuthenticated, user, queryClient, location.pathname]);
+  }, [authReady, isAuthenticated, user, queryClient]); // Removed location.pathname to prevent re-initialization
 
   // Update polling pathname when route changes
   useEffect(() => {

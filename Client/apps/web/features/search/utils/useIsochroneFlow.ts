@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 // Internal config and utilities
-import { searchApi } from "../../../../../packages/config/api/search";
+import { searchApi } from "../../../../../packages/config/api";
 import { queryKeys } from "../../../../../packages/config/query/keys";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 import type { SearchResult } from "../../../../../packages/schemas/search";
@@ -76,7 +76,7 @@ export function useIsochroneFlow(params: {
         queryClient.setQueryData(queryKeys.search.isochrone(), data);
         return data;
       } else {
-        log.warn(LOG_CATEGORIES.API, "Invalid isochrone response structure", {
+        log.warn(LOG_CATEGORIES.SEARCH, "Invalid isochrone response structure", {
           success: response.success,
           hasData: !!response.data,
         });
@@ -173,25 +173,21 @@ export function useIsochroneFlow(params: {
 
           return isochroneData;
         } else {
-          console.warn(
-            "⚠️ Isochrone API returned unsuccessful response:",
-            data,
-          );
+          log.warn(LOG_CATEGORIES.SEARCH, "Isochrone API returned unsuccessful response", data);
           params.setIsSearching(false);
           params.setSearchStage("");
         }
       } else {
-        console.warn(
-          "⚠️ Isochrone API error:",
-          response.status,
-          response.statusText,
-        );
+        log.warn(LOG_CATEGORIES.SEARCH, "Isochrone API error", {
+          status: response.status,
+          statusText: response.statusText,
+        });
         params.setIsSearching(false);
         params.setSearchStage("");
       }
     } catch (error: unknown) {
       const err = error as Error;
-      console.error("❌ Error fetching isochrone polygon:", {
+      log.error(LOG_CATEGORIES.ERRORS, "Error fetching isochrone polygon", {
         message: err.message,
         name: err.name,
         apiBaseUrl: params.env.apiBaseUrl,
@@ -232,11 +228,7 @@ export function useIsochroneFlow(params: {
           data as Record<string, unknown>,
         );
       } else {
-        if (console && typeof console.warn === "function") {
-          console.warn(
-            "⚠️ No isochrone data received, polygon will not be displayed",
-          );
-        }
+        log.warn(LOG_CATEGORIES.SEARCH, "No isochrone data received, polygon will not be displayed");
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

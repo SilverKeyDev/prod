@@ -1,5 +1,5 @@
 import type { PropertyDetails, ComparisonField } from "./types";
-import { formatPropertyType } from "../../../../../packages/utils/property";
+import { formatPropertyType } from "../../../../../packages/utils/search/property";
 import { formatPrice } from "../PropertyDetailsModal/utils";
 import { DEFAULT_REPORT_SECTIONS } from "../../../features/onboardpersonalize/lib/constants";
 

@@ -2,6 +2,7 @@ import { Eye } from "lucide-react";
 import React, { useState } from "react";
 
 import KeyTurnLoader from "../../ui/loading/KeyTurnLoader";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export type CardViewDetailsButtonProps = {
   /** Click handler - can be async */
@@ -95,7 +96,7 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
       await onClick();
 
     } catch (error) {
-      console.error("🔓 [CARD VIEW DETAILS BUTTON] Error during unlock:", {
+      log.error(LOG_CATEGORIES.SEARCH, "CardViewDetailsButton error during unlock", {
         environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
         text,
         error: error instanceof Error ? error.message : String(error),

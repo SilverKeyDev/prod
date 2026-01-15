@@ -1,15 +1,15 @@
-import type { GoogleEvent } from "../../../../../../packages/config/api/googleCalendar";
+import type { ExtendedGoogleEvent } from "../../../../../../packages/schemas/calendar";
+import { getEventStartDate, getEventEndDate } from "../../../../../../packages/utils/calendar/eventParsing";
 import Card from "../../../../components/layout/Card";
 
 type EventCardProps = {
-  event: GoogleEvent;
+  event: ExtendedGoogleEvent;
   onClick?: () => void;
 };
 
 export function EventCard({ event, onClick }: EventCardProps) {
-  const formatTime = (dateTime: string) => {
+  const formatTime = (date: Date) => {
     try {
-      const date = new Date(dateTime);
       return date.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "2-digit",
@@ -22,12 +22,16 @@ export function EventCard({ event, onClick }: EventCardProps) {
 
   const formatDateRange = () => {
     try {
-      const start = new Date(event.start.dateTime);
-      const end = new Date(event.end.dateTime);
+      const start = getEventStartDate(event);
+      const end = getEventEndDate(event);
+      
+      if (!start || !end) {
+        return "";
+      }
       
       // Same day event
       if (start.toDateString() === end.toDateString()) {
-        return `${formatTime(event.start.dateTime)} - ${formatTime(event.end.dateTime)}`;
+        return `${formatTime(start)} - ${formatTime(end)}`;
       }
       
       // Multi-day event

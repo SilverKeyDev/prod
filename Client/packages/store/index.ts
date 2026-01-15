@@ -11,7 +11,6 @@ export { useNegotiationStore } from "./negotiation.slice";
 export { useGoogleMapsStore } from "./googleMaps.slice";
 export { useGoogleCalendarStore } from "./googleCalendar.slice";
 export { useSchedulingStore } from "./scheduling.slice";
-export { usePlaidStore } from "./plaid.slice";
 
 // Consolidated search store (recommended for new code)
 export {

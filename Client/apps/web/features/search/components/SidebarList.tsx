@@ -12,12 +12,13 @@ import WhyNotInterestedCard from "../../../components/cards/WhyNotInterestedCard
 import { KeyTurnLoader } from "../../../components/ui";
 import {
   useNotInterestedHomesData,
-} from "../../../../../packages/hooks/data/useNotInterestedHomesData";
+} from "../../../../../packages/hooks/data/search/useNotInterestedHomesData";
 import {
   getMatchScore,
   type SearchResult,
-} from "../../../../../packages/schemas/search";
-import { formatPropertyType } from "../../../../../packages/utils/property";
+} from "../../../../../packages/schemas/search/search";
+import { formatPropertyType } from "../../../../../packages/utils/search/property";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export function SidebarList(props: {
   items: SearchResult[];
@@ -83,7 +84,7 @@ export function SidebarList(props: {
       await updateNotInterestedReason(propertyAddress, why);
       setReasonCardPropertyId(null);
     } catch (error) {
-      console.error("Failed to update reason:", error);
+      log.error(LOG_CATEGORIES.SEARCH, "Failed to update reason", error);
       throw error;
     }
   };
@@ -97,7 +98,7 @@ export function SidebarList(props: {
       await removeNotInterested(property.id, propertyAddress);
       setReasonCardPropertyId(null);
     } catch (error) {
-      console.error("Failed to undo:", error);
+      log.error(LOG_CATEGORIES.SEARCH, "Failed to undo", error);
       throw error;
     }
   };

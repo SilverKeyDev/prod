@@ -47,7 +47,6 @@ Data hooks use React Query to fetch and manage data from the API. These hooks:
 
 ### Scheduling
 - `useScheduling.ts` - Scheduling data
-- `useGoogleCalendar.ts` - Google Calendar integration
 
 ### Maps
 - `useGoogleMaps.ts` - Google Maps integration

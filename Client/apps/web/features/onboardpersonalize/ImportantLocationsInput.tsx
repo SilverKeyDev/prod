@@ -9,6 +9,7 @@ import {
   hasProperty,
   isFunction,
 } from "../../../../packages/utils/typeGuards";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 type ImportantLocation = {
   name: string;
@@ -90,7 +91,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
         setSuggestions(built);
       } catch (err: unknown) {
         const error = asError(err);
-        console.error("Autocomplete fetch error:", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Autocomplete fetch error", error);
         setSuggestions([]);
       }
     };
@@ -133,7 +134,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           });
         }
       } catch (error) {
-        console.warn("Error fetching place fields:", error);
+        log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields", error);
       }
 
       if (

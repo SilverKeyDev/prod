@@ -10,7 +10,7 @@ import {
   MessageSquare,
   AlertTriangle,
 } from "lucide-react";
-import { useAgentClients } from "../../../../../packages/hooks/data/useAgentClients";
+import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
 import Button from "../../../components/ui/button/Button";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
 import ClientInfoSidebar from "../../../components/ui/sidebar/ClientInfoSidebar";
@@ -32,7 +32,7 @@ import {
   generateMockDecisionLog,
   generateMockNotes,
   generateMockTimelineEvents,
-} from "../../../../../packages/services/agentDashboard";
+} from "../../../../../packages/services/agent/agentDashboard";
 
 type ClientHubProps = {
   clientId: string;

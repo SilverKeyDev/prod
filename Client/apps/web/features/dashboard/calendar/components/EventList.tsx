@@ -1,12 +1,12 @@
-import type { GoogleEvent } from "../../../../../../packages/config/api/googleCalendar";
+import type { ExtendedGoogleEvent } from "../../../../../../packages/schemas/calendar";
 import { EventCard } from "./EventCard";
 import Card from "../../../../components/layout/Card";
 
 type EventListProps = {
-  events: GoogleEvent[];
+  events: ExtendedGoogleEvent[];
   title?: string;
   emptyMessage?: string;
-  onEventClick?: (event: GoogleEvent) => void;
+  onEventClick?: (event: ExtendedGoogleEvent) => void;
 };
 
 export function EventList({

@@ -16,6 +16,9 @@ export type NotificationState = {
   // Active conversation ID (currently being viewed)
   activeConversationId: string | null;
 
+  // Loading state - true when data has been loaded from API
+  isLoaded: boolean;
+
   // Actions
   setUnreadCount: (conversationId: string, count: number) => void;
   setTotalUnreadCount: (count: number) => void;
@@ -35,12 +38,14 @@ const initialState = (): Pick<
   | "lastReadTimestamp"
   | "lastSeenMessageTimestamp"
   | "activeConversationId"
+  | "isLoaded"
 > => ({
   unreadCount: 0,
   unreadByConversation: {},
   lastReadTimestamp: {},
   lastSeenMessageTimestamp: {},
   activeConversationId: null,
+  isLoaded: false,
 });
 
 const baseCreator: import("zustand").StateCreator<NotificationState> = (set) => ({
@@ -63,7 +68,13 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (set) => 
     }),
 
   setTotalUnreadCount: (count: number) =>
-    set({ unreadCount: Math.max(0, count) }),
+    set({
+      unreadCount:
+        typeof count === "number" && !isNaN(count) && count >= 0
+          ? count
+          : 0,
+      isLoaded: true, // Mark as loaded when we receive data from API
+    }),
 
   markConversationRead: (conversationId: string) =>
     set((state: NotificationState) => {
@@ -151,7 +162,10 @@ const withReset = withResettable<NotificationState>(baseCreator, (set) => ({
       };
     }),
   setTotalUnreadCount: (count: number) =>
-    set({ unreadCount: Math.max(0, count) }),
+    set({ 
+      unreadCount: Math.max(0, count),
+      isLoaded: true, // Mark as loaded when we receive data from API
+    }),
   markConversationRead: (conversationId: string) =>
     set((state: NotificationState) => {
       const newUnreadByConversation = {
@@ -242,11 +256,13 @@ const withPersist = persistSafe<NotificationState>(withReset, {
     }
     const pd = persisted as Record<string, unknown>;
     const unreadByConversation = (pd.unreadByConversation as Record<string, number>) ?? {};
-    const unreadCount = Object.values(unreadByConversation).reduce((sum, val) => sum + val, 0);
+    // Don't use persisted unreadCount - reset to 0 and wait for API to load
+    // This prevents showing stale data on page reload
     return {
       ...base,
       unreadByConversation,
-      unreadCount,
+      unreadCount: 0, // Always start at 0, wait for API to load
+      isLoaded: false, // Not loaded until API responds
       lastReadTimestamp: (pd.lastReadTimestamp as Record<string, number>) ?? {},
       lastSeenMessageTimestamp: (pd.lastSeenMessageTimestamp as Record<string, number>) ?? {},
       // activeConversationId is always null on load (transient state)

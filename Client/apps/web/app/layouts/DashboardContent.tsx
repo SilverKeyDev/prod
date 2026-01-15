@@ -6,7 +6,7 @@ import PersonalizationPage from "../../pages/SettingsPage";
 import SavedHomes from "../../pages/SavedPage";
 import SearchPage from "../../pages/SearchPage";
 import AgentPage from "../../pages/AgentPage";
-import { Calendar } from "../../features/dashboard/calendar";
+import CalendarPage from "../../pages/CalendarPage";
 
 type ClosePageHeaderData = {
   title: string;
@@ -15,6 +15,8 @@ type ClosePageHeaderData = {
   totalCount: number;
   loading: boolean;
 };
+
+type ChecklistTab = "escrow" | "inspections" | "financing" | "closing";
 
 type DashboardContentProps = {
   isSearch: boolean;
@@ -25,13 +27,17 @@ type DashboardContentProps = {
   isCalendar: boolean;
   isDashboard: boolean;
   computedMaxWidthVW: number;
-  setMobileHeaderActions: (actions: ReactNode | null) => void;
+  setMobileHeaderActions: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
   searchPageRef: React.RefObject<{
     triggerSearch: () => Promise<void>;
   }>;
-  setClosePageHeaderData: (data: ClosePageHeaderData | null) => void;
-  buyerChecklistsActiveTab: "escrow" | "inspections" | "financing" | "closing";
-  onTabChange: (tab: "escrow" | "inspections" | "financing" | "closing") => void;
+  setClosePageHeaderData: React.Dispatch<
+    React.SetStateAction<ClosePageHeaderData | null>
+  >;
+  buyerChecklistsActiveTab: ChecklistTab;
+  onTabChange: React.Dispatch<React.SetStateAction<ChecklistTab>>;
 };
 
 const MOBILE_SIDE_PX = "px-4";
@@ -58,18 +64,24 @@ export function DashboardContent({
           ? `h-[calc(100vh-80px)] md:h-[calc(100vh-0px)] mx-0`
           : isBuyerChecklists
             ? `mx-auto ${MOBILE_SIDE_PX} md:px-0`
-            : isAgent || isCalendar
-              ? `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
-              : `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
+            : isAgent
+              ? `relative h-full w-full mx-0 overflow-hidden`
+              : isCalendar
+                ? `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
+                : `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
       }`}
       style={
         isSearch
           ? ({
               "--max-width-desktop": "100",
             } as React.CSSProperties & { "--max-width-desktop": string })
-          : ({
-              "--max-width-desktop": `${computedMaxWidthVW}`,
-            } as React.CSSProperties & { "--max-width-desktop": string })
+          : isAgent
+            ? ({
+                "--max-width-desktop": "100",
+              } as React.CSSProperties & { "--max-width-desktop": string })
+            : ({
+                "--max-width-desktop": `${computedMaxWidthVW}`,
+              } as React.CSSProperties & { "--max-width-desktop": string })
       }
     >
       {isSearch && (
@@ -88,9 +100,13 @@ export function DashboardContent({
           onTabChange={onTabChange}
         />
       )}
-      {isSaved && <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />}
+      {isSaved && (
+        <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
+      )}
       {isAgent && <AgentPage setMobileHeaderActions={setMobileHeaderActions} />}
-      {isCalendar && <Calendar />}
+      {isCalendar && (
+        <CalendarPage setMobileHeaderActions={setMobileHeaderActions} />
+      )}
       {isDashboard && <DashboardPage />}
     </div>
   );

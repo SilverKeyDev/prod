@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { Button, OliveCheckbox } from "../../../../components/ui";
-import type { GoogleCalendar } from "../../../../../../packages/config/api/googleCalendar";
+import type { GoogleCalendar } from "../../../../../../packages/config/api";
 
 type CalendarDropdownProps = {
   calendars: GoogleCalendar[];

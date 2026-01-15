@@ -1,15 +1,15 @@
 type NotificationBadgeProps = {
-  count: number;
+  count?: number;
   className?: string;
 };
 
 export default function NotificationBadge({
-  count,
+  count = 0,
   className = "",
 }: NotificationBadgeProps) {
   if (count <= 0) return null;
 
-  const displayCount = count > 99 ? "99+" : count.toString();
+  const displayCount = count > 9 ? "9+" : count.toString();
 
   return (
     <div
@@ -22,4 +22,3 @@ export default function NotificationBadge({
     </div>
   );
 }
-

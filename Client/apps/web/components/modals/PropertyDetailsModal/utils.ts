@@ -1,6 +1,6 @@
-import type { Property } from "../../../../../packages/hooks/data/usePropertyDetails";
+import type { Property } from "../../../../../packages/hooks/data/search/usePropertyDetails";
 import type { SearchResult } from "../../../../../packages/schemas/search";
-import { formatPropertyType as formatPropertyTypeUtil } from "../../../../../packages/utils/property";
+import { formatPropertyType as formatPropertyTypeUtil } from "../../../../../packages/utils/search/property";
 
 // Local minimal type definitions to avoid dependency on non-existent schema file
 export type AddressObject = {

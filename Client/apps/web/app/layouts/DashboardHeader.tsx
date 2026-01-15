@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import ClosePageHeader from "../../features/close/ClosePageHeader";
 import MobileTopBar from "../../components/widgets/header/MobileTopBar";
-import { SIDEBAR_TABS } from "../../../../packages/schemas/sidebar";
+import { SIDEBAR_TABS } from "../../../../packages/schemas/auth/sidebar";
 
 type ClosePageHeaderData = {
   title: string;
@@ -104,7 +104,7 @@ export function DashboardHeader({
 
       {/* Desktop Header (consistent width) - Hidden when mobile header is visible (< 768px) */}
       <div
-        className={`hidden md:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch ? "!hidden" : ""}`}
+        className={`hidden md:block mx-auto w-full ${isSaved ? "" : "pt-8"} ${isSearch || isAgent ? "!hidden" : ""}`}
         style={{
           maxWidth: `calc((100vw - 208px) * ${computedMaxWidthVW} / 100)`,
         }}

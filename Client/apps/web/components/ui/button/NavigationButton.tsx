@@ -2,6 +2,7 @@ import { ChevronRight, ArrowRight } from "lucide-react";
 import React from "react";
 
 import KeyTurnLoader from "../loading/KeyTurnLoader";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export type NavigationButtonProps = {
   /** Click handler */
@@ -95,7 +96,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
     .join(" ");
 
   const handleClick = () => {
-    console.log("🔧 [NAVIGATION_BUTTON] Button clicked:", {
+    log.debug(LOG_CATEGORIES.HOOKS, "NavigationButton clicked", {
       children: typeof children === "string" ? children : "React element",
       disabled,
       loading,
@@ -105,9 +106,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
     if (!disabled && !loading) {
       onClick();
     } else {
-      console.log(
-        "🔧 [NAVIGATION_BUTTON] Click ignored - button disabled or loading"
-      );
+      log.debug(LOG_CATEGORIES.HOOKS, "NavigationButton click ignored - button disabled or loading");
     }
   };
 

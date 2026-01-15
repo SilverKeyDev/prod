@@ -3,6 +3,7 @@
  */
 
 import type { IsochroneData } from "../../../../../packages/schemas/api";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 // Google Maps types
 interface GoogleMap {
@@ -95,23 +96,16 @@ export const renderImportantLocationMarkers = (
   const { map, importantMarkersRef, setImportantLocationMarkers } = options;
 
   if (!map || !isochroneData?.center) {
-    console.warn(
-      "❌ Cannot render important location markers: map or data not available",
-    );
-    console.warn("📊 Map ref available:", !!map);
-    console.warn(
-      "📊 Isochrone center data:",
-      JSON.stringify(isochroneData?.center, null, 2),
-    );
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Cannot render important location markers: map or data not available");
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map ref available", { mapAvailable: !!map });
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Isochrone center data", { center: isochroneData?.center });
     return;
   }
 
   // Check if Google Maps API and AdvancedMarkerElement are available
   if (!window.google?.maps?.marker?.AdvancedMarkerElement) {
-    console.warn(
-      "❌ AdvancedMarkerElement not available for important location markers",
-    );
-    console.warn("Google Maps API status:", {
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "AdvancedMarkerElement not available for important location markers");
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Maps API status", {
       google: !!window.google,
       maps: !!window.google?.maps,
       marker: !!window.google?.maps?.marker,

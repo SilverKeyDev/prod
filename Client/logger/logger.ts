@@ -17,11 +17,12 @@
  * and checked against the config.
  */
 
-import type { LogCategory } from "./categories";
+import type { LogCategory, ApiSubcategory } from "./categories";
 import {
   LOG_CATEGORIES,
   categoryToConfigKey,
   isAlwaysEnabled,
+  apiSubcategoryToConfigKey,
 } from "./categories";
 import {
   scrubPII,
@@ -31,14 +32,20 @@ import {
 
 type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
+export interface ApiSubcategoryConfig {
+  initialLoad: boolean;
+  polling: boolean;
+  pageMount: boolean;
+  other: boolean;
+}
+
 export interface LoggerConfig {
   polling: boolean;
-  initialApiCalls: boolean;
   pages: boolean;
   hooks: boolean;
   auth: boolean;
   http: boolean;
-  api: boolean;
+  api: boolean | ApiSubcategoryConfig;
   errors: boolean;
   security: boolean;
   search?: boolean;
@@ -49,7 +56,7 @@ export interface LoggerConfig {
   messages?: boolean;
   logLevel: LogLevel;
   // Allow additional category flags for future categories
-  [key: string]: boolean | LogLevel | undefined;
+  [key: string]: boolean | LogLevel | ApiSubcategoryConfig | undefined;
 }
 
 const LOG_LEVELS: Record<LogLevel, number> = {
@@ -93,12 +100,16 @@ class Logger {
     // Default config
     const defaultConfig: LoggerConfig = {
       polling: true,
-      initialApiCalls: true,
       pages: true,
       hooks: true,
       auth: true,
       http: true,
-      api: true,
+      api: {
+        initialLoad: true,
+        polling: true,
+        pageMount: true,
+        other: true,
+      },
       errors: true,
       security: true,
       logLevel: "DEBUG",
@@ -145,10 +156,19 @@ class Logger {
   /**
    * Check if a category is enabled
    * Handles both defined categories (from categories.ts) and future categories (from config JSON)
+   * Supports API subcategories when category is "API"
    */
-  private isCategoryEnabled(category: LogCategory | string): boolean {
+  private isCategoryEnabled(
+    category: LogCategory | string,
+    subcategory?: ApiSubcategory,
+  ): boolean {
+    // Safety check: handle undefined/null categories
+    if (!category || typeof category !== "string") {
+      return false;
+    }
+
     // Check if it's a known category that's always enabled
-    if (typeof category === "string" && category in LOG_CATEGORIES) {
+    if (category in LOG_CATEGORIES) {
       const logCategory = category as LogCategory;
       if (isAlwaysEnabled(logCategory)) {
         return true;
@@ -158,11 +178,11 @@ class Logger {
     // Try to get config key from category mapping (for defined categories)
     let configKey: string;
     try {
-      if (typeof category === "string" && category in LOG_CATEGORIES) {
+      if (category in LOG_CATEGORIES) {
         configKey = categoryToConfigKey(category as LogCategory);
       } else {
         // For future categories not yet in categories.ts, convert to camelCase
-        // e.g., "SEARCH" -> "search", "INITIAL_API_CALLS" -> "initialApiCalls"
+        // e.g., "SEARCH" -> "search"
         configKey = category
           .toLowerCase()
           .split("_")
@@ -184,8 +204,31 @@ class Logger {
         .join("");
     }
 
-    // Check config - default to false if not found
+    // Check config
     const configValue = this.config[configKey as keyof LoggerConfig];
+
+    // Handle API subcategories
+    if (category === "API" || configKey === "api") {
+      // If API config is an object (subcategories), check the subcategory
+      if (typeof configValue === "object" && configValue !== null) {
+        const apiConfig = configValue as ApiSubcategoryConfig;
+        if (subcategory) {
+          const subcategoryKey = apiSubcategoryToConfigKey(subcategory);
+          return apiConfig[subcategoryKey as keyof ApiSubcategoryConfig] === true;
+        }
+        // If no subcategory specified, check if any subcategory is enabled
+        return (
+          apiConfig.initialLoad === true ||
+          apiConfig.polling === true ||
+          apiConfig.pageMount === true ||
+          apiConfig.other === true
+        );
+      }
+      // Backward compatibility: if API config is a boolean, use it directly
+      return configValue === true;
+    }
+
+    // For other categories, check boolean value - default to false if not found
     return configValue === true;
   }
 
@@ -234,13 +277,25 @@ class Logger {
   /**
    * Debug logging
    */
-  debug(category: LogCategory, message: string, data?: unknown): void {
-    if (!this.isCategoryEnabled(category) || !this.isLevelEnabled("DEBUG")) {
+  debug(
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ): void {
+    if (
+      !this.isCategoryEnabled(category, subcategory) ||
+      !this.isLevelEnabled("DEBUG")
+    ) {
       return;
     }
 
     try {
-      const formatted = this.formatMessage("DEBUG", category, message, data);
+      const categoryLabel =
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
+      const formatted = this.formatMessage("DEBUG", categoryLabel, message, data);
       this.originalConsole.debug(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Debug error:", error);
@@ -250,13 +305,25 @@ class Logger {
   /**
    * Info logging
    */
-  info(category: LogCategory, message: string, data?: unknown): void {
-    if (!this.isCategoryEnabled(category) || !this.isLevelEnabled("INFO")) {
+  info(
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ): void {
+    if (
+      !this.isCategoryEnabled(category, subcategory) ||
+      !this.isLevelEnabled("INFO")
+    ) {
       return;
     }
 
     try {
-      const formatted = this.formatMessage("INFO", category, message, data);
+      const categoryLabel =
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
+      const formatted = this.formatMessage("INFO", categoryLabel, message, data);
       this.originalConsole.info(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Info error:", error);
@@ -266,13 +333,25 @@ class Logger {
   /**
    * Warning logging
    */
-  warn(category: LogCategory, message: string, data?: unknown): void {
-    if (!this.isCategoryEnabled(category) || !this.isLevelEnabled("WARN")) {
+  warn(
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ): void {
+    if (
+      !this.isCategoryEnabled(category, subcategory) ||
+      !this.isLevelEnabled("WARN")
+    ) {
       return;
     }
 
     try {
-      const formatted = this.formatMessage("WARN", category, message, data);
+      const categoryLabel =
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
+      const formatted = this.formatMessage("WARN", categoryLabel, message, data);
       this.originalConsole.warn(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Warn error:", error);
@@ -282,8 +361,16 @@ class Logger {
   /**
    * Error logging
    */
-  error(category: LogCategory, message: string, error?: unknown): void {
-    if (!this.isCategoryEnabled(category) || !this.isLevelEnabled("ERROR")) {
+  error(
+    category: LogCategory,
+    message: string,
+    error?: unknown,
+    subcategory?: ApiSubcategory,
+  ): void {
+    if (
+      !this.isCategoryEnabled(category, subcategory) ||
+      !this.isLevelEnabled("ERROR")
+    ) {
       return;
     }
 
@@ -299,9 +386,13 @@ class Logger {
         };
       }
 
+      const categoryLabel =
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
       const formatted = this.formatMessage(
         "ERROR",
-        category,
+        categoryLabel,
         message,
         errorData,
       );
@@ -314,12 +405,21 @@ class Logger {
   /**
    * Security event logging (always logs)
    */
-  security(category: LogCategory, event: string, data?: unknown): void {
+  security(
+    category: LogCategory,
+    event: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ): void {
     try {
       const scrubbedData = data ? createSafeLogObject(data) : undefined;
+      const categoryLabel =
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
       const formatted = this.formatMessage(
         "WARN",
-        category,
+        categoryLabel,
         `🔒 ${event}`,
         scrubbedData,
       );
@@ -335,16 +435,36 @@ export const logger = new Logger();
 
 // Convenience exports
 export const log = {
-  debug: (category: LogCategory, message: string, data?: unknown) =>
-    logger.debug(category, message, data),
-  info: (category: LogCategory, message: string, data?: unknown) =>
-    logger.info(category, message, data),
-  warn: (category: LogCategory, message: string, data?: unknown) =>
-    logger.warn(category, message, data),
-  error: (category: LogCategory, message: string, error?: unknown) =>
-    logger.error(category, message, error),
-  security: (category: LogCategory, event: string, data?: unknown) =>
-    logger.security(category, event, data),
+  debug: (
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.debug(category, message, data, subcategory),
+  info: (
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.info(category, message, data, subcategory),
+  warn: (
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.warn(category, message, data, subcategory),
+  error: (
+    category: LogCategory,
+    message: string,
+    error?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.error(category, message, error, subcategory),
+  security: (
+    category: LogCategory,
+    event: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.security(category, event, data, subcategory),
   reloadConfig: () => logger.reloadConfig(),
   updateConfig: (updates: Partial<LoggerConfig>) =>
     logger.updateConfig(updates),

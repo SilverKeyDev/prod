@@ -9,7 +9,7 @@
 // Import auth token directly to avoid circular dependencies
 // Note: getAuthToken will be used by the configured client in config.ts
 import { asError } from "../../utils/error";
-import { log, LOG_CATEGORIES } from "../../../logger";
+import { log, LOG_CATEGORIES, API_SUBCATEGORIES } from "../../../logger";
 
 // Module-scope single-flight verification state and auth event broadcast
 let verifyingPromise: Promise<{ success?: boolean } | null> | null = null;
@@ -276,7 +276,7 @@ export class HttpClient {
         const now = Date.now();
         if (!verifyingPromise && now - lastAuthEventAt > AUTH_COOLDOWN_MS) {
           lastAuthEventAt = now;
-          verifyingPromise = import("../../config/api/auth")
+          verifyingPromise = import("../../config/api")
             .then(({ authApi }) => authApi.verifySession())
             .catch(() => null)
             .finally(() => {
@@ -651,15 +651,55 @@ export class HttpClient {
      Logging Methods
      ========================= */
 
+  /**
+   * Determine if a URL is a polling endpoint
+   * Polling endpoints are those that are regularly fetched in the background
+   */
+  private isPollingEndpoint(url: string): boolean {
+    // List of known polling endpoints
+    const pollingEndpoints = [
+      "/api/v1/agent/notification-counter",
+      "/api/v1/agent/conversations",
+      "/api/v1/user/preferences",
+      "/api/v1/user/saved-homes",
+      "/api/v1/user/favorite-homes",
+    ];
+    return pollingEndpoints.some((endpoint) => url.includes(endpoint));
+  }
+
+  /**
+   * Determine the API subcategory for a given URL
+   */
+  private getApiSubcategory(url: string): typeof API_SUBCATEGORIES[keyof typeof API_SUBCATEGORIES] | undefined {
+    if (this.isPollingEndpoint(url)) {
+      return API_SUBCATEGORIES.POLLING;
+    }
+    // Could add more logic here for initialLoad, pageMount, etc.
+    // For now, only polling is detected
+    return undefined;
+  }
+
   private logApiRequest(method: string, url: string): void {
     // Replace UUIDs and numeric IDs with :id for logging
     const sanitizedUrl = url
       .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
       .replace(/\/\d+/g, "/:id");
-    log.info(
-      LOG_CATEGORIES.HTTP,
-      `${method} ${sanitizedUrl}`,
-    );
+    
+    // Check if this is an API endpoint that should use API subcategories
+    const apiSubcategory = this.getApiSubcategory(url);
+    if (apiSubcategory) {
+      log.info(
+        LOG_CATEGORIES.API,
+        `${method} ${sanitizedUrl}`,
+        undefined,
+        apiSubcategory,
+      );
+    } else {
+      log.info(
+        LOG_CATEGORIES.HTTP,
+        `${method} ${sanitizedUrl}`,
+      );
+    }
   }
 
   private logApiResponse(
@@ -673,10 +713,22 @@ export class HttpClient {
       .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
       .replace(/\/\d+/g, "/:id");
     const durationText = duration ? ` (${duration}ms)` : "";
-    log.info(
-      LOG_CATEGORIES.HTTP,
-      `${method} ${sanitizedUrl} - ${status}${durationText}`,
-    );
+    
+    // Check if this is an API endpoint that should use API subcategories
+    const apiSubcategory = this.getApiSubcategory(url);
+    if (apiSubcategory) {
+      log.info(
+        LOG_CATEGORIES.API,
+        `${method} ${sanitizedUrl} - ${status}${durationText}`,
+        undefined,
+        apiSubcategory,
+      );
+    } else {
+      log.info(
+        LOG_CATEGORIES.HTTP,
+        `${method} ${sanitizedUrl} - ${status}${durationText}`,
+      );
+    }
   }
 
   private handleAuthenticationError(error: AuthenticationError): void {

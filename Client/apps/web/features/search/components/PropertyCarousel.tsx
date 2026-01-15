@@ -1,7 +1,7 @@
 import { PropertyCard } from "../../../components/cards";
 import { CardCarousel } from "../../../components/cards/base";
 import { CardHeartSave } from "../../../components/cards/base";
-import { useNotInterestedHomesData } from "../../../../../packages/hooks/data/useNotInterestedHomesData";
+import { useNotInterestedHomesData } from "../../../../../packages/hooks/data/search/useNotInterestedHomesData";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 
 export function PropertyCarousel(props: {

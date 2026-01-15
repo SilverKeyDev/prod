@@ -1,5 +1,6 @@
 import { DEFAULT_REPORT_SECTIONS } from "../../../../features/onboardpersonalize/lib/constants";
 import type { OnboardingData } from "../../../../features/onboardpersonalize/lib/constants";
+import { log, LOG_CATEGORIES } from "../../../../../../logger";
 
 export function getOrderedReportSections(
   formData: OnboardingData
@@ -38,7 +39,7 @@ export function getOrderedReportSections(
 
     return orderedSections;
   } catch (error: unknown) {
-    console.error("Error in getOrderedReportSections:", error);
+    log.error(LOG_CATEGORIES.ERRORS, "Error in getOrderedReportSections", error);
     return [];
   }
 }

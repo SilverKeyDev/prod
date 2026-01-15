@@ -6,7 +6,10 @@ import { PasswordValidation } from "../../components/feedback/PasswordValidation
 import { usePasswordValidation } from "../../components/feedback/PasswordValidationUtils";
 import SuccessDialog from "../../components/modals/dialogs/SuccessDialog";
 import { Button, Input } from "../../components/ui";
-import { useForgotPassword, useResetPassword } from "../../../../packages/hooks/data/useAuthActions";
+import {
+  useForgotPassword,
+  useResetPassword,
+} from "../../../../packages/hooks/data/auth/useAuthActions";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
 

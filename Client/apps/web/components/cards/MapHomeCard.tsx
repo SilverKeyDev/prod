@@ -2,7 +2,7 @@ import {
   formatFilenameToAddress,
   truncateText,
   formatLotSize,
-} from "../../../../packages/utils/address";
+} from "../../../../packages/utils/search/address";
 import { CardHeartSave, CardViewDetailsButton, TrianglePointer } from "./base";
 import PropertyCard from "./PropertyCard";
 // (types removed: SearchResult, Property) - no longer used in props

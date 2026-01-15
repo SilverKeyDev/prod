@@ -9,7 +9,7 @@ import { useHealthCheck } from "../../../packages/hooks/ui/useHealthCheck";
 import MaintenanceScreen from "../pages/HomeAuth/MaintenanceScreenPage";
 
 import { useAuthStore } from "../../../packages/store/auth.slice";
-import { useAuthStoreIntegration } from "../../../packages/hooks/store/useAuthStoreIntegration";
+import { useAuthStoreIntegration } from "../../../packages/hooks/store/auth/useAuthStoreIntegration";
 import { AppRoutes } from "./routes";
 
 function App() {

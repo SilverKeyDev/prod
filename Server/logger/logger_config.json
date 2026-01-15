@@ -1,6 +1,5 @@
 {
   "polling": true,
-  "initialApiCalls": true,
   "pages": true,
   "hooks": true,
   "auth": true,

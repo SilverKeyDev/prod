@@ -8,9 +8,9 @@ import { useState } from "react";
 
 import MiniLogo from "../../../components/ui/asset/MiniLogo";
 import { KeyTurnLoader } from "../../../components/ui";
-import { useAgentChats } from "../../../../../packages/hooks/data/useAgentChats";
+import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
 import { ClientSearchModal } from "../modals";
-import type { AgentClient } from "../../../../../packages/config/api/agent";
+import type { AgentClient } from "../../../../../packages/config/api";
 
 type ClientManagementProps = {
   clients: AgentClient[];

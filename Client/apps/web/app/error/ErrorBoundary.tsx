@@ -13,6 +13,7 @@ import {
   reportError,
   normalizeError,
 } from "../../../../packages/utils/errorHandling";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 type Props = {
   children: ReactNode;
@@ -56,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
     });
 
     // Log error details for debugging
-    console.error("[ErrorBoundary] Caught error:", {
+    log.error(LOG_CATEGORIES.ERRORS, "ErrorBoundary caught error", {
       message: error.message,
       name: error.name,
       stack: error.stack,

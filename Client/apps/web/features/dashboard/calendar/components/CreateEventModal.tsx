@@ -4,13 +4,14 @@ import Button from "../../../../components/ui/button/Button";
 import Input from "../../../../components/ui/form/Input";
 import Label from "../../../../components/ui/text/Label";
 import { Textarea } from "../../../../components/ui/form/FormField";
-import { googleCalendarApi } from "../../../../../../packages/config/api/googleCalendar";
+import { googleCalendarApi } from "../../../../../../packages/config/api";
 import type {
   GoogleEvent,
   GoogleCalendar,
-} from "../../../../../../packages/config/api/googleCalendar";
+} from "../../../../../../packages/config/api";
 import { useUIStore } from "../../../../../../packages/store";
 import type { UIState } from "../../../../../../packages/store/ui.slice";
+import { log, LOG_CATEGORIES } from "../../../../../../logger";
 
 type CreateEventModalProps = {
   isOpen: boolean;
@@ -217,7 +218,7 @@ export function CreateEventModal({
         });
       }
     } catch (error) {
-      console.error("Error creating event:", error);
+      log.error(LOG_CATEGORIES.CALENDAR, "Error creating event", error);
       enqueueToast({
         type: "error",
         message:

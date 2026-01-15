@@ -13,9 +13,9 @@ import PropertyDetailsModal from "../components/modals/PropertyDetailsModal/Prop
 import NegotiationModal from "../components/modals/NegotiationModal";
 import { KeyTurnLoader } from "../components/ui";
 import CompareFloatingBar from "../components/ui/CompareFloatingBar";
-import { useDocumentActions } from "../../../packages/hooks/data/useDocumentActions";
-import { usePropertyDetails } from "../../../packages/hooks/data/usePropertyDetails";
-import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
+import { useDocumentActions } from "../../../packages/hooks/data/documents/useDocumentActions";
+import { usePropertyDetails } from "../../../packages/hooks/data/search/usePropertyDetails";
+import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/search/useSavedHomesStoreIntegration";
 import type { SavedHome } from "../../../packages/schemas";
 import { useUIStore } from "../../../packages/store";
 import CompareHomesModal from "../components/modals/CompareHomesModal";

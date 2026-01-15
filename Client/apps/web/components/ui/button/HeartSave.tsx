@@ -2,10 +2,11 @@ import { Heart, Sparkles } from "lucide-react";
 import React from "react";
 
 import { getCardBubbleSizeClasses } from "../../cards/base/CardBubbleStyles.tsx";
-import { useSavedHomesData } from "../../../../../packages/hooks/data/useSavedHomesData";
+import { useSavedHomesData } from "../../../../../packages/hooks/data/search/useSavedHomesData";
 import { useUIStore } from "../../../../../packages/store";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import type { Property } from "../../../../../packages/schemas/property";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export type CardHeartSaveProps = {
   property: SearchResult | Property;
@@ -99,7 +100,7 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      console.error("❌ [FAVORITES] Error updating favorites:", {
+      log.error(LOG_CATEGORIES.SEARCH, "Error updating favorites", {
         propertyId: property.id,
         address: propertyAddress,
         action: isSaved ? "remove" : "add",

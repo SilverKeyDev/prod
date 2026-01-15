@@ -1,7 +1,7 @@
 import { MessageCircle } from "lucide-react";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
 import { ConnectionRequestsInbox } from "../modals";
-import type { AgentConversation } from "../../../../../packages/config/api/agent";
+import type { AgentConversation } from "../../../../../packages/config/api";
 
 type ChatMessage = {
   id: string;

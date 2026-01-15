@@ -1,6 +1,6 @@
 import React from "react";
 
-import { formatStructuredAddress } from "../../../../../../packages/utils/address";
+import { formatStructuredAddress } from "../../../../../../packages/utils/search/address";
 
 import type { PropertyComponentProps } from "../types";
 import { formatPrice } from "../utils";

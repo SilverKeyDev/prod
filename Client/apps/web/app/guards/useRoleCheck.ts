@@ -1,5 +1,5 @@
 import type { UserRole, UserProfile } from "../../../../packages/schemas/user";
-import { useAuthStoreIntegration } from "../../../../packages/hooks/store/useAuthStoreIntegration";
+import { useAuthStoreIntegration } from "../../../../packages/hooks/store/auth/useAuthStoreIntegration";
 
 /**
  * Hook to check if current user has specific roles

@@ -1,19 +1,23 @@
 {
   "polling": false,
-  "initialApiCalls": false,
-  "pages": true,
-  "hooks": true,
+  "pages": false,
+  "hooks": false,
   "auth": false,
-  "http": true,
-  "api": true,
+  "http": false,
+  "api": {
+    "initialLoad": true,
+    "polling": false,
+    "pageMount": true,
+    "other": false
+  },
   "errors": true,
   "security": true,
   "search": true,
-  "mapRendering": true,
-  "negotiation": true,
-  "checklists": true,
+  "mapRendering": false,
+  "negotiation": false,
+  "checklists": false,
   "calendar": true,
-  "dashboard": true,
-  "messages": true,
+  "dashboard": false,
+  "messages": false,
   "logLevel": "DEBUG"
 }

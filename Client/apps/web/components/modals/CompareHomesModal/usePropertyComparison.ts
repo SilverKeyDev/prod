@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { SavedHome } from "../../../../../packages/schemas";
 import { researchApi } from "../../../../../packages/config/api";
 import type { PropertyDetails } from "./types";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 // Helper functions to safely convert unknown values to specific types
 const toNumberOrString = (
@@ -177,10 +178,7 @@ export function usePropertyComparison(
 
           setLoadingStates((prev) => ({ ...prev, [homeId]: false }));
         } catch (error) {
-          console.error(
-            `Error fetching property details for ${address}:`,
-            error
-          );
+          log.error(LOG_CATEGORIES.SEARCH, "Error fetching property details", { address, error });
           setPropertyDetails((prev) => ({
             ...prev,
             [homeId]: {

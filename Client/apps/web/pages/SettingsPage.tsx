@@ -19,8 +19,9 @@ import {
 // Core
 import { useGoogleMapsStore } from "../../../packages/store/googleMaps.slice";
 import { showErrorToast } from "../../../packages/hooks/ui/useToast";
-import { useUserPreferences } from "../../../packages/hooks/data/useUserData";
+import { useUserPreferences } from "../../../packages/hooks/data/auth/useUserData";
 import useMobile from "../../../packages/hooks/ui/useMobile";
+import { log, LOG_CATEGORIES } from "../../../logger";
 
 // Features
 import OnPerDragDropPriorities from "../features/onboardpersonalize/DragDropPriorities";
@@ -152,7 +153,7 @@ export default function PersonalizationPage({
 
       return orderedSections;
     } catch (error: unknown) {
-      console.error("Error in getOrderedReportSections:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Error in getOrderedReportSections", error);
       return [];
     }
   };
@@ -209,7 +210,7 @@ export default function PersonalizationPage({
     );
 
     if (!validSectionKeys.has(sectionKey)) {
-      console.warn(`Attempted to toggle invalid section: ${sectionKey}`);
+      log.warn(LOG_CATEGORIES.ERRORS, "Attempted to toggle invalid section", { sectionKey });
       return;
     }
 
@@ -255,7 +256,7 @@ export default function PersonalizationPage({
         setOriginalData(cleanedPreferences as OnboardingData);
       }
     } catch (error: unknown) {
-      console.error("Failed to load user preferences from context:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
     } finally {
       setIsLoading(false);
     }
@@ -356,7 +357,7 @@ export default function PersonalizationPage({
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      console.error("❌ Google Maps loading error:", googleMapsError);
+      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
       void void setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -399,10 +400,10 @@ export default function PersonalizationPage({
         setFormData(updatedFormData);
         setOriginalData(updatedFormData);
         setIsEditMode(false);
-        console.log("Preferences saved successfully");
+        log.info(LOG_CATEGORIES.API, "Preferences saved successfully");
       },
       onError: (error) => {
-        console.error("Failed to update preferences:", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to update preferences", error);
         showErrorToast("Failed to update preferences. Please try again.");
       },
     });

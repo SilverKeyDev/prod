@@ -129,29 +129,51 @@ def require_agent_access(f):
     Eliminates repeated agent authorization patterns.
     """
     @wraps(f)
-    def decorated_function(user, *args, **kwargs):
-        # Check if user is an agent
-        if not user.is_agent:
-            logger.warning(f"🚫 Non-agent user {user.id} attempted to access agent endpoint {f.__name__}")
-            return jsonify({'error': 'Only agents can access this endpoint', 'success': False}), 403
-        
-        # If there's a target_user_id in the request, validate agent has access
-        data = request.get_json() if request.is_json else {}
-        target_user_id = data.get('user_id') or data.get('target_user_id')
-        
-        if target_user_id:
-            try:
-                client_ids = safe_json_loads(user.client_ids, default=[])
-                
-                if target_user_id not in client_ids:
-                    logger.warning(f"🚫 Agent {user.id} attempted to access client {target_user_id} not in their list")
-                    return jsonify({'error': 'Access denied: User is not your client', 'success': False}), 403
-                                
-            except (json.JSONDecodeError, TypeError) as e:
-                logger.error(f"❌ Failed to parse agent's client_ids: {str(e)}")
-                return jsonify({'error': 'Invalid agent client configuration', 'success': False}), 500
-        
-        return f(user, *args, **kwargs)
+    def decorated_function(*args, **kwargs):
+        try:
+            # Get the current authenticated user
+            user = get_current_user()
+            if not user:
+                logger.warning(f"🚫 Unauthorized request to {f.__name__}: user not found in token")
+                return jsonify({'error': 'Unauthorized', 'success': False}), 401
+            
+            # Check if user is an agent
+            if not user.is_agent:
+                logger.warning(f"🚫 Non-agent user {user.id} attempted to access agent endpoint {f.__name__}")
+                return jsonify({'error': 'Only agents can access this endpoint', 'success': False}), 403
+            
+            # If there's a target_user_id in the request, validate agent has access
+            # Use silent=True to avoid raising exceptions on empty/invalid JSON
+            data = request.get_json(silent=True) or {}
+            # Also check query parameters for GET requests
+            target_user_id = (
+                data.get('user_id') or 
+                data.get('target_user_id') or 
+                request.args.get('user_id') or 
+                request.args.get('target_user_id')
+            )
+            
+            if target_user_id:
+                try:
+                    client_ids = safe_json_loads(user.client_ids, default=[])
+                    
+                    if target_user_id not in client_ids:
+                        logger.warning(f"🚫 Agent {user.id} attempted to access client {target_user_id} not in their list")
+                        return jsonify({'error': 'Access denied: User is not your client', 'success': False}), 403
+                                    
+                except (json.JSONDecodeError, TypeError) as e:
+                    logger.error(f"❌ Failed to parse agent's client_ids: {str(e)}")
+                    return jsonify({'error': 'Invalid agent client configuration', 'success': False}), 500
+            
+            # Pass user as first argument to the decorated function
+            return f(user, *args, **kwargs)
+            
+        except Exception as e:
+            logger.error(f"❌ Authentication/authorization error in {f.__name__}: {str(e)}")
+            return SecureErrorHandler.handle_database_error(e, {
+                'function': f.__name__,
+                'endpoint': request.endpoint
+            })
     
     return decorated_function
 

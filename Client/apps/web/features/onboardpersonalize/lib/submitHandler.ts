@@ -1,6 +1,6 @@
 import { preferencesApi } from "../../../../../packages/config/api";
 import { showErrorToast } from "../../../../../packages/hooks/ui/useToast";
-import { log } from "../../../../../packages/services/security/secureLogger";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 import type { OnboardingData } from "./types";
 import { validateOnboardingData, type ValidationResult } from "./validation";
@@ -46,11 +46,10 @@ export const handleSubmit = async ({
       setShowValidationWarning(true);
     } else {
       // Fallback to console warning if validation UI not available
-      console.warn(
-        "Validation failed:",
-        validation.missingFields,
-        validation.errors,
-      );
+      log.warn(LOG_CATEGORIES.ERRORS, "Validation failed", {
+        missingFields: validation.missingFields,
+        errors: validation.errors,
+      });
     }
     return;
   }
@@ -58,7 +57,7 @@ export const handleSubmit = async ({
   setLoading(true);
   try {
     const result = await preferencesApi.createOrUpdate(formData);
-    log.info("ONBOARDING", "Preferences submitted successfully", {
+    log.info(LOG_CATEGORIES.API, "Preferences submitted successfully", {
       success: result.success,
     });
 
@@ -70,18 +69,14 @@ export const handleSubmit = async ({
       }
     } else {
       const errorMsg = result.error ?? "Failed to generate report";
-      console.error(
-        "[SubmitHandler] Server returned unsuccessful result:",
-        result,
-      );
+      log.error(LOG_CATEGORIES.ERRORS, "Server returned unsuccessful result", result);
       throw new Error(result.message ?? errorMsg);
     }
   } catch (error: unknown) {
-    console.error("[SubmitHandler] Error in handleSubmit:", error);
-    console.error(
-      "[SubmitHandler] Error stack:",
-      error instanceof Error ? error.stack : "No stack trace",
-    );
+    log.error(LOG_CATEGORIES.ERRORS, "Error in handleSubmit", error);
+    log.error(LOG_CATEGORIES.ERRORS, "Error stack", {
+      stack: error instanceof Error ? error.stack : "No stack trace",
+    });
 
     // More user-friendly error message
     let userMessage = "Failed to generate report. Please try again.";

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Optional, Dict, Any
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any, List, Tuple
+from flask import current_app
 
 from app import db
-from app.models import HomeUniversal, HomeLikes, HomeNotInterested
+from app.models import HomeUniversal, HomeLikes, HomeNotInterested, UserPreferences
 from app.utils.address_format import normalize_address
 from app.utils.currency import format_currency
 
@@ -263,12 +264,26 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
         except Exception:
             parsed_score = None
 
+    # Extract lot area value and unit - handle both string and numeric values
+    lot_area_value_raw = home.get("lotAreaValue") or home.get("lotSize") or ""
+    lot_area_unit = home.get("lotAreaUnit") or ""
+    
+    # Convert lot_area_value to string if it's a number
+    lot_area_value = ""
+    if lot_area_value_raw:
+        try:
+            lot_area_value = str(lot_area_value_raw)
+        except Exception:
+            lot_area_value = ""
+    
     fields = {
         "address": address,
         "beds": str(home.get("bedrooms", "") or ""),
         "baths": str(home.get("bathrooms", "") or ""),
         "sqft": str(home.get("sqft", home.get("livingArea", "")) or ""),
-        "lot_size": str(home.get("lotSize", home.get("lotAreaValue", "")) or ""),
+        "lot_size": lot_area_value,
+        "lot_area_value": lot_area_value if lot_area_value else None,
+        "lot_area_unit": str(lot_area_unit) if lot_area_unit else None,
         "price": format_currency(home.get("price", "")),
         "image_url": image_url,
         "score": parsed_score,
@@ -309,4 +324,271 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
     
     return record
 
+
+def get_cached_search_results(user_id: str) -> List[Dict[str, Any]]:
+    """
+    Retrieve cached search results from HomeUniversal table.
+    
+    Args:
+        user_id: User ID to get cached results for
+        
+    Returns:
+        List of property dictionaries in API response format
+    """
+    try:
+        # Query current homes ordered by ranking (1 = best)
+        homes = HomeUniversal.query.filter(
+            HomeUniversal.user_id == str(user_id),
+            HomeUniversal.current == True
+        ).order_by(HomeUniversal.ranking.asc()).all()
+        
+        results = []
+        for home in homes:
+            # Transform HomeUniversal to PropertySearchResult format
+            property_dict: Dict[str, Any] = {}
+            
+            # Basic identifiers
+            if home.zpid:
+                property_dict['zpid'] = str(home.zpid)
+            if home.mls_home_id:
+                property_dict['mls_home_id'] = home.mls_home_id
+            
+            # Address
+            if home.address:
+                property_dict['address'] = home.address
+            
+            # Price - convert string to number if possible
+            if home.price:
+                try:
+                    # Remove commas and dollar signs, then convert
+                    price_str = str(home.price).replace(',', '').replace('$', '').strip()
+                    property_dict['price'] = int(float(price_str))
+                except (ValueError, TypeError):
+                    # If conversion fails, keep as string in raw_data
+                    property_dict['price'] = None
+            
+            # Bedrooms and bathrooms - convert string to int if possible
+            if home.beds:
+                try:
+                    property_dict['bedrooms'] = int(float(str(home.beds)))
+                except (ValueError, TypeError):
+                    property_dict['bedrooms'] = None
+            
+            if home.baths:
+                try:
+                    property_dict['bathrooms'] = int(float(str(home.baths)))
+                except (ValueError, TypeError):
+                    property_dict['bathrooms'] = None
+            
+            # Living area (sqft) - convert string to number
+            if home.sqft or home.living_area:
+                sqft_value = home.sqft or home.living_area
+                try:
+                    sqft_str = str(sqft_value).replace(',', '').strip()
+                    property_dict['livingArea'] = int(float(sqft_str))
+                except (ValueError, TypeError):
+                    property_dict['livingArea'] = None
+            
+            # Coordinates
+            if home.latitude is not None:
+                property_dict['latitude'] = float(home.latitude)
+            if home.longitude is not None:
+                property_dict['longitude'] = float(home.longitude)
+            
+            # Lot area
+            if home.lot_area_value:
+                try:
+                    lot_value_str = str(home.lot_area_value).replace(',', '').strip()
+                    property_dict['lotAreaValue'] = float(lot_value_str)
+                except (ValueError, TypeError):
+                    property_dict['lotAreaValue'] = None
+            
+            if home.lot_area_unit:
+                property_dict['lotAreaUnit'] = str(home.lot_area_unit)
+            
+            # Property type and status
+            if home.property_type:
+                property_dict['propertyType'] = home.property_type
+            if home.listing_status:
+                property_dict['listingStatus'] = home.listing_status
+            
+            # Image
+            if home.image_url:
+                property_dict['imgSrc'] = home.image_url
+            
+            # Score - map score to _score (backend uses _score)
+            if home.score is not None:
+                property_dict['_score'] = float(home.score)
+            else:
+                property_dict['_score'] = 0.0
+            
+            # Include raw_data if available for additional fields
+            if home.raw_data and isinstance(home.raw_data, dict):
+                # Merge any additional fields from raw_data
+                for key, value in home.raw_data.items():
+                    if key not in property_dict:
+                        property_dict[key] = value
+            
+            results.append(property_dict)
+        
+        current_app.logger.debug(
+            f"[CACHE] Retrieved {len(results)} cached results for user {user_id}"
+        )
+        return results
+        
+    except Exception as e:
+        current_app.logger.error(
+            f"[CACHE] ❌ Error retrieving cached results for user {user_id}: {e}",
+            exc_info=True
+        )
+        return []
+
+
+def get_cached_results_with_age(user_id: str) -> Tuple[List[Dict[str, Any]], Optional[int]]:
+    """
+    Retrieve cached search results with cache age information.
+    
+    Args:
+        user_id: User ID to get cached results for
+        
+    Returns:
+        Tuple of (results: List[Dict], cache_age_days: Optional[int]):
+        - results: List of property dictionaries
+        - cache_age_days: Age of cache in days, or None if no results
+    """
+    results = get_cached_search_results(user_id)
+    
+    if not results:
+        return [], None
+    
+    # Calculate cache age from most recent home
+    most_recent_home = HomeUniversal.query.filter(
+        HomeUniversal.user_id == str(user_id),
+        HomeUniversal.current == True
+    ).order_by(HomeUniversal.updated_at.desc()).first()
+    
+    cache_age_days = None
+    if most_recent_home and most_recent_home.updated_at:
+        age_delta = datetime.utcnow() - most_recent_home.updated_at
+        cache_age_days = age_delta.days
+    
+    return results, cache_age_days
+
+
+def is_search_cache_valid(user_id: str) -> Tuple[bool, Optional[List[Dict[str, Any]]]]:
+    """
+    Check if search results cache is valid for a user.
+    
+    Cache is valid if:
+    1. User has search results (HomeUniversal records with current=True)
+    2. User preferences haven't changed in the last 7 days (UserPreferences.updated_at within 7 days)
+    
+    Args:
+        user_id: User ID to check cache for
+        
+    Returns:
+        Tuple of (is_valid: bool, cached_results: Optional[List[Dict]]):
+        - If cache is valid, returns (True, cached_results)
+        - If cache is invalid, returns (False, None)
+    """
+    try:
+        # Calculate 7 days ago threshold for user preferences check
+        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        
+        # Check if user has current search results (age doesn't matter)
+        current_homes = HomeUniversal.query.filter(
+            HomeUniversal.user_id == str(user_id),
+            HomeUniversal.current == True
+        ).order_by(HomeUniversal.ranking.asc()).all()
+        
+        if not current_homes:
+            current_app.logger.debug(f"[CACHE] No current search results found for user {user_id}")
+            return False, None
+        
+        # Check if user preferences have been updated within last 7 days
+        user_prefs = UserPreferences.query.filter_by(user_id=str(user_id)).first()
+        
+        if not user_prefs:
+            current_app.logger.debug(f"[CACHE] No user preferences found for user {user_id}")
+            return False, None
+        
+        if not user_prefs.updated_at or user_prefs.updated_at < seven_days_ago:
+            current_app.logger.debug(
+                f"[CACHE] User preferences too old for user {user_id}. "
+                f"Updated: {user_prefs.updated_at}, threshold: {seven_days_ago}"
+            )
+            return False, None
+        
+        # Both conditions met - cache is valid
+        cached_results = get_cached_search_results(user_id)
+        current_app.logger.info(
+            f"[CACHE] ✅ Cache valid for user {user_id}. "
+            f"Returning {len(cached_results)} cached results"
+        )
+        return True, cached_results
+        
+    except Exception as e:
+        current_app.logger.error(
+            f"[CACHE] ❌ Error checking cache validity for user {user_id}: {e}",
+            exc_info=True
+        )
+        return False, None
+
+
+def get_cached_results_for_only_cached(user_id: str) -> Tuple[Optional[List[Dict[str, Any]]], Optional[int]]:
+    """
+    Get cached results with age when onlyCached=true, even if cache is invalid.
+    This ensures the route never returns empty results - returns DB data if available.
+    
+    Args:
+        user_id: User ID to get cached results for
+        
+    Returns:
+        Tuple of (results: Optional[List[Dict]], cache_age_days: Optional[int]):
+        - results: List of property dictionaries if found, None if no results exist
+        - cache_age_days: Age of cache in days, or None if no results
+    """
+    results, cache_age_days = get_cached_results_with_age(user_id)
+    return (results if results else None, cache_age_days)
+
+
+def mark_past_search_results_as_not_current(user_id: str) -> int:
+    """
+    Mark all past search results for a user as not current (current=False).
+    This should be called at the start of a new search to ensure old results
+    are properly archived before new results are saved.
+    
+    Args:
+        user_id: User ID to mark past results for
+        
+    Returns:
+        Number of records updated
+    """
+    try:
+        # Find all current homes for this user
+        current_homes = HomeUniversal.query.filter(
+            HomeUniversal.user_id == str(user_id),
+            HomeUniversal.current == True
+        ).all()
+        
+        count = len(current_homes)
+        if count > 0:
+            # Mark all as not current
+            for home in current_homes:
+                home.current = False
+            
+            db.session.commit()
+            current_app.logger.debug(
+                f"[CACHE] Marked {count} past search results as not current for user {user_id}"
+            )
+        
+        return count
+        
+    except Exception as e:
+        current_app.logger.error(
+            f"[CACHE] ❌ Error marking past search results as not current for user {user_id}: {e}",
+            exc_info=True
+        )
+        db.session.rollback()
+        return 0
 

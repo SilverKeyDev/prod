@@ -43,11 +43,14 @@ class GoogleOAuthService:
             # This must match what's configured in Google Cloud Console
             self.redirect_uri = 'http://localhost:5000/api/v1/auth/google/callback'
         
+        # Import permissions constants to ensure only allowed scopes are used
+        from app.services.calendar.permissions.constants import permissions
+        
         # OAuth scopes for user profile and email
         self.scopes = [
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile",
-            "openid"
+            permissions['userinfo_email']['scope_url'],
+            permissions['userinfo_profile']['scope_url'],
+            permissions['openid']['scope_url']
         ]
         
         self.auth_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"

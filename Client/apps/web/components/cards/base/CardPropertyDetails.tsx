@@ -1,6 +1,6 @@
 import { Bed, Bath, Square, Home } from "lucide-react";
 import React from "react";
-import { formatSquareFootage } from "../../../../../packages/utils/address";
+import { formatSquareFootage } from "../../../../../packages/utils/search/address";
 
 export type CardPropertyDetailsProps = {
   /** Number of bedrooms */

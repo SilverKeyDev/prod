@@ -1,7 +1,7 @@
 import React from "react";
 import { MessageSquare, FileText, CheckCircle } from "lucide-react";
 import SectionCard from "../../../components/layout/SectionCard";
-import { useAgentChats } from "../../../../../packages/hooks/data/useAgentChats";
+import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
 import type { DecisionLogEntry, AgentNote } from "../../../../../packages/schemas/agent";
 
 type CommunicationLogProps = {

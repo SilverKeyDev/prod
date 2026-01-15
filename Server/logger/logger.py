@@ -27,7 +27,6 @@ class LoggerConfig:
     """Logger configuration dataclass"""
     def __init__(self, config_dict: Dict[str, Any]):
         self.polling: bool = config_dict.get("polling", True)
-        self.initialApiCalls: bool = config_dict.get("initialApiCalls", True)
         self.pages: bool = config_dict.get("pages", True)
         self.hooks: bool = config_dict.get("hooks", True)
         self.auth: bool = config_dict.get("auth", True)
@@ -41,7 +40,6 @@ class LoggerConfig:
         """Convert config to dictionary"""
         return {
             "polling": self.polling,
-            "initialApiCalls": self.initialApiCalls,
             "pages": self.pages,
             "hooks": self.hooks,
             "auth": self.auth,
@@ -113,7 +111,6 @@ class Logger:
         """
         default_config = {
             "polling": True,
-            "initialApiCalls": True,
             "pages": True,
             "hooks": True,
             "auth": True,

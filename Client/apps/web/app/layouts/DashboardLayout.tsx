@@ -22,7 +22,7 @@ import useMobile from "../../../../packages/hooks/ui/useMobile";
 import {
   getTabByPath,
   SIDEBAR_TABS,
-} from "../../../../packages/schemas/sidebar";
+} from "../../../../packages/schemas/auth/sidebar";
 import MobileSidebar from "../../components/widgets/sidebar/MobileSidebar.tsx";
 import Sidebar from "../../components/widgets/sidebar/Sidebar.tsx";
 import type { UserProfile } from "../../../../packages/schemas/user";
@@ -55,7 +55,7 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/dashboard": 90,
   "/settings": 90,
   "/saved": 90,
-  "/messaging": 90,
+  "/messaging": 100,
   "/calendar": 90,
 };
 
@@ -66,7 +66,7 @@ const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/dashboard": 90,
   "/settings": 90,
   "/saved": 90,
-  "/messaging": 90,
+  "/messaging": 100,
   "/calendar": 90,
 };
 
@@ -233,7 +233,7 @@ export default function DashboardLayout({
   ]);
 
   return (
-    <div className="flex min-h-screen bg-off-white">
+    <div className={`flex ${isAgent ? "h-screen" : "min-h-screen"} bg-off-white`}>
       {/* Desktop Sidebar - Hidden only when mobile bottom nav appears (< 768px) */}
       <div className="hidden md:block">
         <Sidebar
@@ -250,7 +250,7 @@ export default function DashboardLayout({
         <MobileSidebar user={user} onLogout={onLogout} />
       </div>
 
-      <main className="ml-0 flex-1 transition-all duration-200 md:ml-52 max-md:pb-20">
+      <main className={`ml-0 flex-1 transition-all duration-200 md:ml-52 max-md:pb-20 ${isAgent ? "h-full flex flex-col" : ""}`}>
         <DashboardHeader
           isMobile={isMobile}
           isSearch={isSearch}

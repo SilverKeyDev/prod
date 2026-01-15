@@ -3,6 +3,7 @@ import { arrayMove } from "@dnd-kit/sortable";
 
 import { DEFAULT_REPORT_SECTIONS } from "./constants";
 import type { OnboardingData } from "./types";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export type ReportSection = {
   key: string;
@@ -59,6 +60,6 @@ export const handleDragEnd = ({
 
     updateFormData("report_section_priorities", newPriorities);
   } catch (error: unknown) {
-    console.error("Error in handleDragEnd:", error);
+    log.error(LOG_CATEGORIES.ERRORS, "Error in handleDragEnd", error);
   }
 };

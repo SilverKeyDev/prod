@@ -5,9 +5,9 @@ import BaseModal from "./BaseModal";
 import HousingSection from "../../features/onboardpersonalize/HousingSection";
 import LocationSection from "../../features/onboardpersonalize/LocationSection";
 import { parseUserPreferencesArrays } from "../../features/onboardpersonalize/lib/preferencesUtils";
-import { useUserPreferences } from "../../../../packages/hooks/data/useUserData";
+import { useUserPreferences } from "../../../../packages/hooks/data/auth/useUserData";
 import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
-import { useAutoSavePreferences } from "../../../../packages/hooks/data/useAutoSavePreferences";
+import { useAutoSavePreferences } from "../../../../packages/hooks/data/auth/useAutoSavePreferences";
 import useMobile from "../../../../packages/hooks/ui/useMobile";
 import type { OnboardingData } from "../../features/onboardpersonalize/lib/types";
 

@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { useAgentClients } from "../../../../../packages/hooks/data/useAgentClients";
+import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
 import Card from "../../../components/layout/Card";
 import Dropdown from "../../../components/ui/form/Dropdown";
 import type { DropdownOption } from "../../../components/ui/form/Dropdown";
 import ClientRow from "./ClientRow";
 import {
   enhanceClientWithDealInfo,
-} from "../../../../../packages/services/agentDashboard";
+} from "../../../../../packages/services/agent/agentDashboard";
 import type { ClientDealInfo, DealStage } from "../../../../../packages/schemas/agent";
 
 type ClientListProps = {

@@ -4,9 +4,9 @@ import { useState } from "react";
 import BaseModal from "./BaseModal";
 import Button from "../ui/button/Button";
 import KeyTurnLoader from "../ui/loading/KeyTurnLoader";
-import { useAgentChats } from "../../../../packages/hooks/data/useAgentChats";
-import { useAgentClients } from "../../../../packages/hooks/data/useAgentClients";
-import { useUserData } from "../../../../packages/hooks/data/useUserData";
+import { useAgentChats } from "../../../../packages/hooks/data/chat/useAgentChats";
+import { useAgentClients } from "../../../../packages/hooks/data/agent/useAgentClients";
+import { useUserData } from "../../../../packages/hooks/data/auth/useUserData";
 import type { Property } from "../../../../packages/schemas/property";
 import type { SearchResult } from "../../../../packages/schemas/search";
 
@@ -118,7 +118,7 @@ export default function ShareHomeModal({
       }
       onClose();
     } catch (error) {
-      console.error("Error sharing home:", error);
+      log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
     } finally {
       setIsSharing(false);
     }

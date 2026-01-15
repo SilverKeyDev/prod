@@ -1,4 +1,4 @@
-import type { Property } from "../../../../../packages/hooks/data/usePropertyDetails";
+import type { Property } from "../../../../../packages/hooks/data/search/usePropertyDetails";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 
 export type PropertyDetailsModalProps = {

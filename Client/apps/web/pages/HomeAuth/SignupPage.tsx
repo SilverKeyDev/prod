@@ -10,7 +10,7 @@ import {
 } from "../../components/feedback";
 import { Button, Input, FieldShell } from "../../components/ui";
 import { getSharedInputTextStyles } from "../../components/ui/form/InputStyleUtils";
-import { useSignup } from "../../../../packages/hooks/data/useAuthActions";
+import { useSignup } from "../../../../packages/hooks/data/auth/useAuthActions";
 import { showErrorToast } from "../../../../packages/hooks/ui/useToast";
 import AuthDivider from "../../features/homeauth/Auth/Divider";
 import AuthLink from "../../features/homeauth/Auth/Link";

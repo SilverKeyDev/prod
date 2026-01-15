@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, X, User as UserIcon, Send } from "lucide-react";
-import { useClientSearch } from "../../../../../packages/hooks/data/useAgentSearch";
-import { useConnectionRequests } from "../../../../../packages/hooks/data/useConnectionRequests";
-import { useUserData } from "../../../../../packages/hooks/data/useUserData";
+import { useClientSearch } from "../../../../../packages/hooks/data/agent/useAgentSearch";
+import { useConnectionRequests } from "../../../../../packages/hooks/data/agent/useConnectionRequests";
+import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
 import { useUIStore } from "../../../../../packages/store";
 import Button from "../../../components/ui/button/Button";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";

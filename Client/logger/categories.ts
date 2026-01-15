@@ -5,18 +5,25 @@
 
 export type LogCategory =
   | "POLLING"
-  | "INITIAL_API_CALLS"
   | "PAGES"
   | "HOOKS"
   | "AUTH"
   | "HTTP"
   | "API"
   | "ERRORS"
-  | "SECURITY";
+  | "SECURITY"
+  | "SEARCH"
+  | "MAP_RENDERING"
+  | "NEGOTIATION"
+  | "CHECKLISTS"
+  | "CALENDAR"
+  | "DASHBOARD"
+  | "MESSAGES";
+
+export type ApiSubcategory = "INITIAL_LOAD" | "POLLING" | "PAGE_MOUNT" | "OTHER";
 
 export const LOG_CATEGORIES = {
   POLLING: "POLLING",
-  INITIAL_API_CALLS: "INITIAL_API_CALLS",
   PAGES: "PAGES",
   HOOKS: "HOOKS",
   AUTH: "AUTH",
@@ -24,7 +31,34 @@ export const LOG_CATEGORIES = {
   API: "API",
   ERRORS: "ERRORS",
   SECURITY: "SECURITY",
+  SEARCH: "SEARCH",
+  MAP_RENDERING: "MAP_RENDERING",
+  NEGOTIATION: "NEGOTIATION",
+  CHECKLISTS: "CHECKLISTS",
+  CALENDAR: "CALENDAR",
+  DASHBOARD: "DASHBOARD",
+  MESSAGES: "MESSAGES",
 } as const;
+
+export const API_SUBCATEGORIES = {
+  INITIAL_LOAD: "INITIAL_LOAD",
+  POLLING: "POLLING",
+  PAGE_MOUNT: "PAGE_MOUNT",
+  OTHER: "OTHER",
+} as const;
+
+/**
+ * Map API subcategory to config key
+ */
+export function apiSubcategoryToConfigKey(subcategory: ApiSubcategory): string {
+  const mapping: Record<ApiSubcategory, string> = {
+    INITIAL_LOAD: "initialLoad",
+    POLLING: "polling",
+    PAGE_MOUNT: "pageMount",
+    OTHER: "other",
+  };
+  return mapping[subcategory];
+}
 
 /**
  * Map category to config key
@@ -32,7 +66,6 @@ export const LOG_CATEGORIES = {
 export function categoryToConfigKey(category: LogCategory): string {
   const mapping: Record<LogCategory, string> = {
     POLLING: "polling",
-    INITIAL_API_CALLS: "initialApiCalls",
     PAGES: "pages",
     HOOKS: "hooks",
     AUTH: "auth",
@@ -40,6 +73,13 @@ export function categoryToConfigKey(category: LogCategory): string {
     API: "api",
     ERRORS: "errors",
     SECURITY: "security",
+    SEARCH: "search",
+    MAP_RENDERING: "mapRendering",
+    NEGOTIATION: "negotiation",
+    CHECKLISTS: "checklists",
+    CALENDAR: "calendar",
+    DASHBOARD: "dashboard",
+    MESSAGES: "messages",
   };
   return mapping[category];
 }

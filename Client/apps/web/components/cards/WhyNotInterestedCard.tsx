@@ -6,6 +6,7 @@ import Card from "../layout/Card";
 import type { SearchResult } from "../../../../packages/schemas/search";
 import type { Property } from "../../../../packages/schemas/property";
 import { StyledImage } from "./base/CardImageStyles";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 export type NotInterestedReason = {
   id: string;
@@ -81,7 +82,7 @@ export default function WhyNotInterestedCard({
     try {
       await onSelectReason(why);
     } catch (error) {
-      console.error("Failed to submit reason:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to submit reason", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -92,7 +93,7 @@ export default function WhyNotInterestedCard({
     try {
       await onUndo();
     } catch (error) {
-      console.error("Failed to undo:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to undo", error);
     } finally {
       setIsUndoing(false);
     }

@@ -1,27 +1,108 @@
-import { useMemo } from "react";
-import type { GoogleEvent } from "../../../../../../packages/config/api/googleCalendar";
+import { useMemo, useEffect, useRef, useState } from "react";
+import type { ExtendedGoogleEvent } from "../../../../../../packages/schemas/calendar";
+import type { FreebusyTimeBlock } from "../../../../../../packages/schemas/scheduling";
 import Card from "../../../../components/layout/Card";
+import { useGoogleCalendarStoreIntegration } from "../../../../../../packages/hooks/store/calendar/useGoogleCalendarStoreIntegration";
+import { useUserPreferences } from "../../../../../../packages/hooks/data/auth/useUserData";
+import { useGoogleEvents } from "../../../../../../packages/hooks/data/calendar";
+import {
+  calculateCalendarDateRange,
+  getVisibleDateRange,
+} from "../../../../../../packages/utils/calendar/date";
+import { filterCurrentPeriodEvents } from "../../../../../../packages/utils/calendar/eventFiltering";
+import {
+  findSilverKeyCalendar,
+  initializeEnabledCalendars,
+  getCalendarsKey,
+} from "../../../../../../packages/utils/calendar/calendar";
+import type { DateRange } from "../../../../../../packages/schemas/calendar";
 
 type CalendarViewProps = {
   currentDate: Date;
-  events: GoogleEvent[];
+  availability?: FreebusyTimeBlock[];
   onDateClick?: (date: Date) => void;
   silverKeyCalendarId?: string | null;
+  onVisibleDatesChange?: (firstDate: Date, lastDate: Date) => void;
 };
 
 export function CalendarView({
   currentDate,
-  events,
+  availability,
   onDateClick,
   silverKeyCalendarId,
+  onVisibleDatesChange,
 }: CalendarViewProps) {
+  const { isConnected, calendars } = useGoogleCalendarStoreIntegration();
+
+  const { userPreferences } = useUserPreferences();
+
+  // Initialize enabled calendars from preferences (similar to Calendar.tsx)
+  const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(
+    new Set()
+  );
+  const initializedFromPreferencesRef = useRef(false);
+  const lastCalendarsRef = useRef<string>("");
+
+  useEffect(() => {
+    if (!calendars || calendars.length === 0) {
+      return;
+    }
+
+    const calendarsKey = getCalendarsKey(calendars);
+    const calendarsChanged = lastCalendarsRef.current !== calendarsKey;
+
+    const disabledCalendars = userPreferences?.disabled_calendars;
+    const hasDisabledCalendars = Array.isArray(disabledCalendars);
+
+    const silverKeyCalendar = findSilverKeyCalendar(calendars);
+    const silverKeyCalendarIdValue =
+      silverKeyCalendar?.id || silverKeyCalendarId || null;
+
+    if (!initializedFromPreferencesRef.current || calendarsChanged) {
+      const enabledSet = initializeEnabledCalendars(
+        calendars,
+        hasDisabledCalendars ? disabledCalendars : undefined,
+        silverKeyCalendarIdValue
+      );
+      setEnabledCalendarIds(enabledSet);
+      initializedFromPreferencesRef.current = true;
+      lastCalendarsRef.current = calendarsKey;
+    }
+  }, [calendars, userPreferences, silverKeyCalendarId]);
+
+  // Calculate date range based on currentDate (the month being viewed)
+  // This ensures we fetch events for the correct period when navigating months
+  const dateRange: DateRange = useMemo(() => {
+    return calculateCalendarDateRange(currentDate);
+  }, [currentDate]);
+
+  // Read events using React Query hook (cache-only)
+  // Events are prefetched by initialDataLoader on page load
+  const { events: allEvents } = useGoogleEvents({
+    calendarIds: Array.from(enabledCalendarIds),
+    timeMin: dateRange.timeMin,
+    timeMax: dateRange.timeMax,
+    enabled:
+      isConnected &&
+      calendars &&
+      calendars.length > 0 &&
+      enabledCalendarIds.size > 0,
+  });
+
+  // Filter events for current visible period
+  const events = useMemo(() => {
+    return filterCurrentPeriodEvents(allEvents, currentDate);
+  }, [allEvents, currentDate]);
+
   // Group events by date
   const eventsByDate = useMemo(() => {
-    const grouped: Record<string, GoogleEvent[]> = {};
+    const grouped: Record<string, ExtendedGoogleEvent[]> = {};
 
     events.forEach((event) => {
       try {
-        const eventDate = new Date(event.start.dateTime);
+        const eventStart = event.start?.dateTime ?? event.start?.date;
+        if (!eventStart) return;
+        const eventDate = new Date(eventStart);
         const dateKey = eventDate.toISOString().split("T")[0]; // YYYY-MM-DD
         if (!grouped[dateKey]) {
           grouped[dateKey] = [];
@@ -35,79 +116,77 @@ export function CalendarView({
     return grouped;
   }, [events]);
 
-  // Get calendar grid data
+  // Group availability blocks by date
+  const availabilityByDate = useMemo(() => {
+    if (!availability) return {};
+
+    const grouped: Record<string, FreebusyTimeBlock[]> = {};
+
+    availability.forEach((block) => {
+      try {
+        const blockStart = new Date(block.start);
+        const dateKey = blockStart.toISOString().split("T")[0]; // YYYY-MM-DD
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey].push(block);
+      } catch {
+        // Skip invalid dates
+      }
+    });
+
+    return grouped;
+  }, [availability]);
+
+  // Get calendar grid data using utility function (defaults to 5-week month view)
   const calendarGrid = useMemo(() => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+    // Generate calendar grid days using getVisibleDateRange utility
+    const { gridDays } = getVisibleDateRange(currentDate, "month");
 
-    // First day of month
-    const firstDay = new Date(year, month, 1);
-    const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday
-
-    // Last day of month
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-
-    // Days from previous month to show
-    const prevMonth = new Date(year, month, 0);
-    const daysInPrevMonth = prevMonth.getDate();
-
-    const days: Array<{
-      date: Date;
-      isCurrentMonth: boolean;
-      isToday: boolean;
-      isPast: boolean;
-      events: GoogleEvent[];
-    }> = [];
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Previous month days
-    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-      const date = new Date(year, month - 1, daysInPrevMonth - i);
-      date.setHours(0, 0, 0, 0);
-      const dateKey = date.toISOString().split("T")[0];
-      days.push({
-        date,
-        isCurrentMonth: false,
-        isToday: date.getTime() === today.getTime(),
-        isPast: date.getTime() < today.getTime(),
-        events: eventsByDate[dateKey] || [],
-      });
+    if (!gridDays) {
+      return [];
     }
 
-    // Current month days
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      date.setHours(0, 0, 0, 0);
-      const dateKey = date.toISOString().split("T")[0];
-      days.push({
-        date,
-        isCurrentMonth: true,
-        isToday: date.getTime() === today.getTime(),
-        isPast: date.getTime() < today.getTime(),
+    // Map grid days to include events and availability
+    return gridDays.map((day) => {
+      const dateKey = day.date.toISOString().split("T")[0];
+      return {
+        ...day,
         events: eventsByDate[dateKey] || [],
-      });
-    }
+        availability: availabilityByDate[dateKey] || [],
+      };
+    });
+  }, [currentDate, eventsByDate, availabilityByDate]);
 
-    // Next month days to fill the grid (42 cells = 6 weeks)
-    const remainingCells = 42 - days.length;
-    for (let day = 1; day <= remainingCells; day++) {
-      const date = new Date(year, month + 1, day);
-      date.setHours(0, 0, 0, 0);
-      const dateKey = date.toISOString().split("T")[0];
-      days.push({
-        date,
-        isCurrentMonth: false,
-        isToday: date.getTime() === today.getTime(),
-        isPast: date.getTime() < today.getTime(),
-        events: eventsByDate[dateKey] || [],
-      });
-    }
+  // Notify parent of visible date range changes
+  // Use utility function to calculate first and last dates directly from currentDate
+  // to avoid depending on calendarGrid which gets recreated when eventsByDate or availabilityByDate change
+  const visibleDateRange = useMemo(() => {
+    const { start, end } = getVisibleDateRange(currentDate);
+    return { firstDate: start, lastDate: end };
+  }, [currentDate]);
 
-    return days;
-  }, [currentDate, eventsByDate]);
+  const lastNotifiedDatesRef = useRef<{
+    firstDate: Date;
+    lastDate: Date;
+  } | null>(null);
+
+  useEffect(() => {
+    if (onVisibleDatesChange && visibleDateRange) {
+      const { firstDate, lastDate } = visibleDateRange;
+
+      // Only notify if dates have actually changed
+      const lastNotified = lastNotifiedDatesRef.current;
+      if (
+        !lastNotified ||
+        firstDate.getTime() !== lastNotified.firstDate.getTime() ||
+        lastDate.getTime() !== lastNotified.lastDate.getTime()
+      ) {
+        lastNotifiedDatesRef.current = { firstDate, lastDate };
+        onVisibleDatesChange(firstDate, lastDate);
+      }
+    }
+  }, [visibleDateRange, onVisibleDatesChange]);
 
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -136,9 +215,8 @@ export function CalendarView({
               key={`${dateKey}-${index}`}
               onClick={() => onDateClick?.(day.date)}
               className={`
-                relative min-h-[60px] sm:min-h-[80px] rounded border p-1 text-left transition-colors
-                ${day.isCurrentMonth ? "border-beige/30 bg-white" : "border-gray-100 bg-gray-50/50"}
-                ${day.isToday ? "border-amber-500 bg-amber-50/30" : ""}
+                relative min-h-[60px] sm:min-h-[80px] rounded p-1 text-left transition-colors
+                ${day.isFirstOfMonth ? "border-2 border-gold bg-white" : day.isToday ? "border border-olive bg-olive/10" : "border border-beige/30 bg-white"}
                 ${day.isPast ? "opacity-50" : ""}
                 hover:border-brown/50 hover:bg-brown/5
                 ${onDateClick ? "cursor-pointer" : "cursor-default"}
@@ -148,17 +226,21 @@ export function CalendarView({
               <div
                 className={`
                   mb-1 text-xs font-medium sm:text-sm
-                  ${day.isPast ? "text-gray-400" : day.isCurrentMonth ? "text-gray-900" : "text-gray-400"}
-                  ${day.isToday ? "text-amber-600 font-semibold" : ""}
+                  ${day.isPast ? "text-gray-400" : "text-gray-900"}
+                  ${day.isToday ? "text-olive font-semibold" : ""}
                 `}
               >
                 {dayNumber}
               </div>
 
-              {/* Events */}
+              {/* Events and/or Availability */}
               <div className="space-y-0.5">
+                {/* Display events (agent's calendar and client's calendar) */}
                 {day.events.slice(0, 3).map((event, eventIndex) => {
-                  const isSilverKeyEvent = silverKeyCalendarId && event.calendarId === silverKeyCalendarId;
+                  const isSilverKeyEvent =
+                    silverKeyCalendarId &&
+                    event.calendarId === silverKeyCalendarId;
+                  const isClientEvent = event.isClientEvent === true;
                   return (
                     <div
                       key={event.id || `event-${eventIndex}`}
@@ -166,32 +248,76 @@ export function CalendarView({
                         day.isPast
                           ? isSilverKeyEvent
                             ? "bg-amber-50 text-amber-700 border-amber-400"
-                            : "bg-gray-100 text-gray-400 border-gray-300"
+                            : isClientEvent
+                              ? "bg-blue-50 text-blue-600 border-blue-400"
+                              : "bg-gray-100 text-gray-400 border-gray-300"
                           : isSilverKeyEvent
-                          ? "bg-amber-50 text-amber-700 border-amber-500"
-                          : "bg-olive/10 text-olive border-olive"
+                            ? "bg-amber-50 text-amber-700 border-amber-500"
+                            : isClientEvent
+                              ? "bg-blue-50 text-blue-700 border-blue-500"
+                              : "bg-olive/10 text-olive border-olive"
                       }`}
-                      title={event.summary}
+                      title={
+                        isClientEvent
+                          ? `Client: ${event.summary}`
+                          : event.summary
+                      }
                     >
-                    {event.start.dateTime && (
-                      <>
-                        {new Date(event.start.dateTime).toLocaleTimeString(
-                          "en-US",
-                          {
-                            hour: "numeric",
-                            minute: "2-digit",
-                            hour12: true,
-                          }
-                        )}{" "}
-                      </>
-                    )}
+                      {event.start.dateTime && (
+                        <>
+                          {new Date(event.start.dateTime).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hour12: true,
+                            }
+                          )}{" "}
+                        </>
+                      )}
                       {event.summary || "Untitled"}
                     </div>
                   );
                 })}
-                {day.events.length > 3 && (
-                  <div className={`text-[10px] px-1 ${day.isPast ? "text-gray-400" : "text-gray-500"}`}>
-                    +{day.events.length - 3} more
+                {/* Display availability blocks (client's busy time) */}
+                {availability &&
+                  day.availability.slice(0, 3).map((block, blockIndex) => {
+                    const startTime = new Date(block.start);
+                    const endTime = new Date(block.end);
+                    const timeStr = `${startTime.toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    })} - ${endTime.toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true,
+                    })}`;
+                    return (
+                      <div
+                        key={`availability-${blockIndex}`}
+                        className={`truncate rounded px-1 py-0.5 text-[10px] sm:text-xs font-medium border-l-2 ${
+                          day.isPast
+                            ? "bg-gray-100 text-gray-500 border-gray-300"
+                            : "bg-red-50 text-red-700 border-red-400"
+                        }`}
+                        title={`Client Busy: ${timeStr}`}
+                      >
+                        {timeStr}
+                      </div>
+                    );
+                  })}
+                {/* Show "more" indicator if there are more than 3 items total */}
+                {(day.events.length > 3 ||
+                  (availability && day.availability.length > 3)) && (
+                  <div
+                    className={`text-[10px] px-1 ${day.isPast ? "text-gray-400" : "text-gray-500"}`}
+                  >
+                    +
+                    {day.events.length +
+                      (availability ? day.availability.length : 0) -
+                      3}{" "}
+                    more
                   </div>
                 )}
               </div>

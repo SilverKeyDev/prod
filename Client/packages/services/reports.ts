@@ -1,4 +1,4 @@
-import { reportApi } from "../config/api/report";
+import { reportApi } from "../config/api/documents/report";
 import { log } from "./security/secureLogger";
 
 /**

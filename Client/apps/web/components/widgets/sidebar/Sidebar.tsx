@@ -2,7 +2,7 @@ import { ChevronDown, ChevronRight, LogOut } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { useAuthStoreIntegration } from "../../../../../packages/hooks/store/useAuthStoreIntegration";
+import { useAuthStoreIntegration } from "../../../../../packages/hooks/store/auth/useAuthStoreIntegration";
 import ConfirmationDialog from "../../modals/dialogs/ConfirmationDialog";
 import WhiteLogo from "../../ui/asset/WhiteLogo";
 import NotificationBadge from "../../ui/NotificationBadge";
@@ -13,9 +13,9 @@ import {
   type ViewState,
 } from "../../../../../packages/store/view.slice";
 import { useNotificationStore } from "../../../../../packages/store/notifications.slice";
-import { SIDEBAR_TABS } from "../../../../../packages/schemas/sidebar";
+import { SIDEBAR_TABS } from "../../../../../packages/schemas/auth/sidebar";
 import type { UserProfile } from "../../../../../packages/schemas/user";
-import { useUserData } from "../../../../../packages/hooks/data/useUserData";
+import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
 type SidebarProps = {
   user?: UserProfile;
   onLogout: () => void;
@@ -236,6 +236,7 @@ export default function Sidebar({
   );
   const location = useLocation();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const isLoaded = useNotificationStore((s) => s.isLoaded);
 
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -354,7 +355,7 @@ export default function Sidebar({
                                     expanded ? "mr-3" : ""
                                   }`}
                                 />
-                                {categoryKey === "agent" && unreadCount > 0 && (
+                                {categoryKey === "agent" && isLoaded && (
                                   <NotificationBadge
                                     count={unreadCount}
                                     className="absolute -top-1 -right-1 sm:-top-0.5 sm:-right-0.5"

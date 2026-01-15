@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 
-import { useScheduling } from "../../../../packages/hooks/data/useScheduling";
-import { useGoogleCalendar } from "../../../../packages/hooks/data/useGoogleCalendar";
+import { useScheduling } from "../../../../packages/hooks/data/calendar/useScheduling";
+import { useGoogleCalendarStore } from "../../../../packages/store/googleCalendar.slice";
 import { googleCalendarApi } from "../../../../packages/config/api";
 import type { ScheduleEventRequest } from "../../../../packages/schemas/scheduling";
 import { TimeSlotPicker } from "./components/TimeSlotPicker";
 import { SchedulingForm } from "./components/SchedulingForm";
 import Button from "../../components/ui/button/Button";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 interface SchedulingModalProps {
   onClose: () => void;
@@ -14,7 +15,7 @@ interface SchedulingModalProps {
 }
 
 export function SchedulingModal({ onClose }: SchedulingModalProps) {
-  const { isConnected } = useGoogleCalendar();
+  const isConnected = useGoogleCalendarStore((s) => s.isConnected);
   const [step, setStep] = useState<"connect" | "select" | "form">("connect");
 
   // Calculate date range (next 14 days)
@@ -53,7 +54,7 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
       // Success - close modal or show success message
       onClose();
     } catch (error) {
-      console.error("Failed to schedule event:", error);
+      log.error(LOG_CATEGORIES.CALENDAR, "Failed to schedule event", error);
       // Error handling is done in the hook
     }
   };

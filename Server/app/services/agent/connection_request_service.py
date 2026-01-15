@@ -297,7 +297,7 @@ def respond_to_connection_request(
             
             # Set up calendar sharing between agent and client
             try:
-                from ...services.calendar.google_calendar_service import google_calendar_service
+                from ...services.calendar.core import google_calendar_service
                 
                 sharing_result = google_calendar_service.setup_agent_client_calendar_sharing(
                     agent_id=request.agent_id,

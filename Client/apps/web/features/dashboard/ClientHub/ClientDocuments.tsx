@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { useDocumentsStoreIntegration } from "../../../../../packages/hooks/store/useDocumentsStoreIntegration";
+import { useDocumentsStoreIntegration } from "../../../../../packages/hooks/store/documents/useDocumentsStoreIntegration";
 import { KeyTurnLoader } from "../../../components/ui";
 import PdfModal from "../../../components/modals/PdfModal";
-import { useDocumentActions } from "../../../../../packages/hooks/data/useDocumentActions";
+import { useDocumentActions } from "../../../../../packages/hooks/data/documents/useDocumentActions";
 import { useUIStore } from "../../../../../packages/store";
 
 type ClientDocumentsProps = {

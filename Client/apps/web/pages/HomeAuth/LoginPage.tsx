@@ -3,11 +3,12 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { Button, Input } from "../../components/ui";
-import { useSecureAuth } from "../../../../packages/hooks/data/useSecureAuth";
+import { useSecureAuth } from "../../../../packages/hooks/data/auth/useSecureAuth";
 import AuthDivider from "../../features/homeauth/Auth/Divider";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
 import GoogleSignInButton from "../../components/auth/GoogleSignInButton";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,7 +50,7 @@ export default function LoginPage() {
       localStorage.setItem("signupPassword", password);
       navigate("/verification", { state: { email, fromLogin: true } });
     } else {
-      console.error("🔐 [LOGIN] Login failed, not navigating");
+      log.error(LOG_CATEGORIES.AUTH, "Login failed, not navigating");
     }
   };
 

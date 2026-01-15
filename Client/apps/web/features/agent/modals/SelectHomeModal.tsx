@@ -4,7 +4,7 @@ import { useState } from "react";
 import BaseModal from "../../../components/modals/BaseModal";
 import Button from "../../../components/ui/button/Button";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
-import { useSavedHomesData } from "../../../../../packages/hooks/data/useSavedHomesData";
+import { useSavedHomesData } from "../../../../../packages/hooks/data/search/useSavedHomesData";
 import type { SavedHome } from "../../../../../packages/schemas/property";
 
 type SelectHomeModalProps = {

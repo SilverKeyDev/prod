@@ -87,6 +87,9 @@ def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
     except Exception as e:
         logger.error(f"Error verifying user {user_id} exists: {str(e)}", exc_info=True)
         return False
+    
+    # Lazy import to avoid circular dependency with calendar.permissions
+    from app.services.calendar.permissions import update_token_permissions_from_scopes
         
     try:
         # Check if token record already exists
@@ -109,6 +112,8 @@ def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
             # client_secret removed - always use config value
             token_record.scopes = token_data["scopes"] if token_data["scopes"] else ""
             token_record.expiry = token_data.get("expiry")
+            # Update permission flags from scopes
+            update_token_permissions_from_scopes(token_record, token_record.scopes)
             token_record.updated_at = datetime.now(timezone.utc)
         else:
             # Create new record
@@ -127,6 +132,8 @@ def tokens_upsert(user_id: str, token_data: Dict[str, Any]) -> bool:
                 scopes=token_data["scopes"] if token_data.get("scopes") else "",
                 expiry=token_data.get("expiry"),
             )
+            # Update permission flags from scopes
+            update_token_permissions_from_scopes(token_record, token_record.scopes)
             db.session.add(token_record)
         
         db.session.commit()

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useUserData } from "../../../packages/hooks/data/useUserData";
+import { useUserData } from "../../../packages/hooks/data/auth/useUserData";
 import { KeyTurnLoader } from "../components/ui";
 import AgentDashboard from "../features/agent/AgentDashboard";
 import ClientMessaging from "../features/agent/ClientMessaging";
@@ -39,5 +39,5 @@ export default function AgentPage({
   }
 
   // Show agent dashboard if user is an agent, otherwise show client messaging
-  return <div>{isAgent ? <AgentDashboard /> : <ClientMessaging />}</div>;
+  return <div className="h-full w-full">{isAgent ? <AgentDashboard /> : <ClientMessaging />}</div>;
 }

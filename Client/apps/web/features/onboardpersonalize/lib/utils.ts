@@ -2,6 +2,7 @@
 
 import { DEFAULT_REPORT_SECTIONS } from "./constants";
 import type { OnboardingData } from "./types";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 /**
  * Updates form data with a new field value
@@ -93,7 +94,7 @@ export const getOrderedReportSections = (formData: OnboardingData) => {
 
     return orderedSections;
   } catch (error: unknown) {
-    console.error("Error in getOrderedReportSections:", error);
+    log.error(LOG_CATEGORIES.ERRORS, "Error in getOrderedReportSections", error);
     return [];
   }
 };

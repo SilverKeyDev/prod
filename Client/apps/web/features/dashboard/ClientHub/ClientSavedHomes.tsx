@@ -8,12 +8,12 @@ import PdfModal from "../../../components/modals/PdfModal";
 import PropertyDetailsModal from "../../../components/modals/PropertyDetailsModal/PropertyDetailsModal";
 import NegotiationModal from "../../../components/modals/NegotiationModal";
 import { KeyTurnLoader } from "../../../components/ui";
-import { useDocumentActions } from "../../../../../packages/hooks/data/useDocumentActions";
+import { useDocumentActions } from "../../../../../packages/hooks/data/documents/useDocumentActions";
 import {
   usePropertyDetails,
   type Property,
-} from "../../../../../packages/hooks/data/usePropertyDetails";
-import { useSavedHomesStoreIntegration } from "../../../../../packages/hooks/store/useSavedHomesStoreIntegration";
+} from "../../../../../packages/hooks/data/search/usePropertyDetails";
+import { useSavedHomesStoreIntegration } from "../../../../../packages/hooks/store/search/useSavedHomesStoreIntegration";
 import type { SavedHome } from "../../../../../packages/schemas";
 import { useUIStore } from "../../../../../packages/store";
 

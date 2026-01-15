@@ -93,9 +93,12 @@ def score_home_batch(
                 # Calculate latency for this home
                 latency_ms = int((time.time() - home_start_time) * 1000)
                 
+                # Get home_id with proper None handling - use fallback if None or missing
+                home_id = home_data.get('home_id') or f'home_{original_idx}'
+                
                 result = {
                     'home_data': home_data,
-                    'home_id': home_data.get('home_id', f'home_{original_idx}'),
+                    'home_id': home_id,
                     'scores': {
                         'embedding': embedding_score,
                         'llm': llm_score
@@ -108,12 +111,13 @@ def score_home_batch(
                     result['llm_explanation'] = llm_explanation
                 
                 # Track to database if requested
-                if track_to_db and request_id:
+                # Only track if home_id is valid (not None and not empty)
+                if track_to_db and request_id and home_id and home_id != f'home_{original_idx}':
                     try:
                         _track_batch_scoring_event(
                             request_id=request_id,
                             user_id=user_data.get('user_id', 'unknown'),
-                            home_id=result['home_id'],
+                            home_id=home_id,
                             embedding_score=embedding_score,
                             llm_score=llm_score,
                             final_score=final_score,
@@ -135,9 +139,11 @@ def score_home_batch(
                 
             except Exception as e:
                 logger.error(f"Error scoring home {batch_start_idx + i}: {e}")
+                # Get home_id with proper None handling
+                home_id = home_data.get('home_id') or f'home_{batch_start_idx + i}'
                 batch_results.append({
                     'home_data': home_data,
-                    'home_id': home_data.get('home_id', f'home_{batch_start_idx + i}'),
+                    'home_id': home_id,
                     'final_score': 0.0,
                     'error': str(e)
                 })
@@ -149,9 +155,11 @@ def score_home_batch(
         # Return error results for all homes in the batch
         error_results = []
         for i, home_data in enumerate(batch_homes):
+            # Get home_id with proper None handling
+            home_id = home_data.get('home_id') or f'home_{batch_start_idx + i}'
             error_results.append({
                 'home_data': home_data,
-                'home_id': home_data.get('home_id', f'home_{batch_start_idx + i}'),
+                'home_id': home_id,
                 'final_score': 0.0,
                 'error': str(e)
             })
@@ -177,6 +185,11 @@ def _track_batch_scoring_event(
     session_id: Optional[str] = None
 ) -> None:
     """Track a batch scoring event to the database."""
+    # Skip tracking if home_id is None or empty (required by database)
+    if not home_id:
+        logger.debug(f"Skipping batch scoring event tracking: home_id is None or empty")
+        return
+    
     try:
         from flask import has_app_context
         from app.models import ScoringResultsTracker
@@ -239,6 +252,11 @@ def _track_batch_scoring_event_internal(
     """Internal helper to track a batch scoring event (assumes app context exists)."""
     from app.models import ScoringResultsTracker
     from app import db
+    
+    # Validate required fields - home_id cannot be None or empty (database constraint)
+    if not home_id:
+        logger.warning(f"Skipping batch scoring event tracking: home_id is None or empty (request_id={request_id}, user_id={user_id})")
+        return
     
     # Get embedding model name if not provided
     embedding_model_name = embedding_model

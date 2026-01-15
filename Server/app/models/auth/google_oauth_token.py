@@ -19,6 +19,15 @@ class GoogleOAuthToken(db.Model):
     scopes = db.Column(db.Text, nullable=False)  # Space-separated list of scopes
     expiry = db.Column(db.DateTime, nullable=True)  # Token expiration time
     
+    # Permission flags (boolean fields for each scope)
+    has_userinfo_email = db.Column(db.Boolean, default=False, nullable=False)
+    has_userinfo_profile = db.Column(db.Boolean, default=False, nullable=False)
+    has_openid = db.Column(db.Boolean, default=False, nullable=False)
+    has_calendar_freebusy = db.Column(db.Boolean, default=False, nullable=False)
+    has_calendar_app_created = db.Column(db.Boolean, default=False, nullable=False)
+    has_calendar_calendarlist_readonly = db.Column(db.Boolean, default=False, nullable=False)
+    has_calendar_events_freebusy = db.Column(db.Boolean, default=False, nullable=False)
+    
     # Metadata
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -43,6 +52,14 @@ class GoogleOAuthToken(db.Model):
             "expiry": self.expiry,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
+            # Permission flags
+            "has_userinfo_email": self.has_userinfo_email,
+            "has_userinfo_profile": self.has_userinfo_profile,
+            "has_openid": self.has_openid,
+            "has_calendar_freebusy": self.has_calendar_freebusy,
+            "has_calendar_app_created": self.has_calendar_app_created,
+            "has_calendar_calendarlist_readonly": self.has_calendar_calendarlist_readonly,
+            "has_calendar_events_freebusy": self.has_calendar_events_freebusy,
         }
     
     def __repr__(self):

@@ -67,10 +67,10 @@ export { NegotiationService, negotiationService } from "./negotiation";
 export { ReportsService, reportsService } from "./reports";
 
 // SavedHomes Services
-export { SavedHomesService, savedHomesService } from "./savedHomes";
+export { SavedHomesService, savedHomesService } from "./search/savedHomes";
 
 // Agent Services
-export { AgentService, agentService } from "./agent";
+export { AgentService, agentService } from "./agent/agent";
 
 // Document Services
 export { DocumentService, documentService } from "./documents";

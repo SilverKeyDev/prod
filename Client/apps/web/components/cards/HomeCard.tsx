@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import {
   usePropertyDetails,
   type Property,
-} from "../../../../packages/hooks/data/usePropertyDetails";
+} from "../../../../packages/hooks/data/search/usePropertyDetails";
 import {
   formatFilenameToAddress,
   truncateText,
   formatLotSize,
-} from "../../../../packages/utils/address";
+} from "../../../../packages/utils/search/address";
 import ModalPortal from "../modals/ModalPortal";
 import PropertyDetailsModal from "../modals/PropertyDetailsModal/PropertyDetailsModal";
 

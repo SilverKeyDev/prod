@@ -320,11 +320,13 @@ class EnsembleScorer:
                 home['rank'] = i + 1
                 
                 # Track to database if requested (update rank_position)
-                if track_to_db and request_id and 'home_id' in home:
+                # Only update if home_id exists and is not None
+                home_id = home.get('home_id')
+                if track_to_db and request_id and home_id:
                     try:
                         self._update_rank_position(
                             request_id=request_id,
-                            home_id=home.get('home_id'),
+                            home_id=home_id,
                             rank_position=i + 1
                         )
                     except Exception as e:
@@ -383,6 +385,11 @@ class EnsembleScorer:
         session_id: Optional[str] = None
     ) -> None:
         """Track a scoring event to the database."""
+        # Skip tracking if home_id is None or empty (required by database)
+        if not home_id:
+            logger.debug(f"Skipping scoring event tracking: home_id is None or empty (request_id={request_id}, user_id={user_id})")
+            return
+        
         try:
             from app.models import ScoringResultsTracker
             from app import db

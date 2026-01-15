@@ -10,8 +10,9 @@ import { Loading } from "../../../components/ui";
 // Core
 import { useGoogleMapsStore } from "../../../../../packages/store/googleMaps.slice";
 import { showErrorToast } from "../../../../../packages/hooks/ui/useToast";
-import { useUserPreferences } from "../../../../../packages/hooks/data/useUserData";
+import { useUserPreferences } from "../../../../../packages/hooks/data/auth/useUserData";
 import useMobile from "../../../../../packages/hooks/ui/useMobile";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 // Features
 import HousingSection from "../../../features/onboardpersonalize/HousingSection";
@@ -115,7 +116,7 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
         setOriginalData(cleanedPreferences as OnboardingData);
       }
     } catch (error: unknown) {
-      console.error("Failed to load user preferences from context:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
     } finally {
       setIsLoading(false);
     }
@@ -216,7 +217,7 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      console.error("❌ Google Maps loading error:", googleMapsError);
+      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
       setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -259,10 +260,10 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
         setFormData(updatedFormData);
         setOriginalData(updatedFormData);
         setIsEditMode(false);
-        console.log("Preferences saved successfully");
+        log.info(LOG_CATEGORIES.API, "Preferences saved successfully");
       },
       onError: (error) => {
-        console.error("Failed to update preferences:", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to update preferences", error);
         showErrorToast("Failed to update preferences. Please try again.");
       },
     });

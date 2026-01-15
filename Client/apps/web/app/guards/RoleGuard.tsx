@@ -11,7 +11,7 @@ import Card from "../../components/layout/Card";
 import Button from "../../components/ui/button/Button";
 import type { UserRole } from "../../../../packages/schemas/user";
 import { ROUTES } from "../../../../packages/schemas/nav";
-import { useAuthStoreIntegration } from "../../../../packages/hooks/store/useAuthStoreIntegration";
+import { useAuthStoreIntegration } from "../../../../packages/hooks/store/auth/useAuthStoreIntegration";
 
 type RoleGuardProps = {
   children: ReactNode;

@@ -10,17 +10,16 @@ import RippleBackground from "../features/homeauth/RippleBackground";
 
 // Core
 import { env } from "../../../packages/config";
-import { userApi } from "../../../packages/config/api/user";
 import { useGoogleMaps } from "../../../packages/hooks/data/useGoogleMaps";
-import { usePropertyDetails } from "../../../packages/hooks/data/usePropertyDetails";
-import { useIsochroneData } from "../../../packages/hooks/data/useIsochroneData";
+import { usePropertyDetails } from "../../../packages/hooks/data/search/usePropertyDetails";
+import { useIsochroneData } from "../../../packages/hooks/data/search/useIsochroneData";
 import type { SearchResult } from "../../../packages/schemas/search";
 import { useFiltersStore, useUIStore } from "../../../packages/store";
 import type {
   IsochroneData,
   UserPreferencesData,
 } from "../../../packages/schemas/api";
-import { asError } from "../../../packages/utils/error";
+import type { Property } from "../../../packages/schemas/property";
 
 // Features
 import {
@@ -39,12 +38,13 @@ import { useMapMarkers } from "../features/search/hooks/useMapMarkers";
 import { useMarkerUpdates } from "../features/search/utils/useMarkerUpdates";
 import useMobileHeaderActions from "../features/search/utils/useMobileHeaderActions";
 import { usePropertyFocus } from "../features/search/utils/usePropertyFocus";
-import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
+import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/search/useSavedHomesStoreIntegration";
 import type { SavedHome } from "../../../packages/schemas/property";
-import { useSearchResultsData } from "../../../packages/hooks/data/useSearchResultsData";
+import { useSearchResultsData } from "../../../packages/hooks/data/search/useSearchResultsData";
 import { searchPropertiesInIsochrone } from "../features/search/services/propertySearch";
 import SearchHeader from "../features/search/components/SearchHeader";
 import { ClientSelector } from "../components/ui";
+import { log, LOG_CATEGORIES } from "../../../logger";
 
 type SearchPageProps = {
   setMobileHeaderActions: React.Dispatch<
@@ -67,7 +67,6 @@ export default function SearchPage({
     setSearchResults,
     isLoading: isLoadingSearchResults,
   } = useSearchResultsData();
-  const setFavoriteAddresses = useFiltersStore((s) => s.setFavoriteAddresses);
   const isSearching = useFiltersStore((s) => s.isSearching);
   const setIsSearching = useFiltersStore((s) => s.setIsSearching);
   const searchStage = useFiltersStore((s) => s.searchStage);
@@ -107,7 +106,7 @@ export default function SearchPage({
   const handleViewPropertyDetails = useCallback(
     async (property: SearchResult) => {
       const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
-      console.log("🏠 [SEARCH PAGE] handleViewPropertyDetails called:", {
+      log.debug(LOG_CATEGORIES.SEARCH, "handleViewPropertyDetails called", {
         environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
         propertyId: property.id,
         address: property.address?.substring(0, 30) + "...",
@@ -124,7 +123,7 @@ export default function SearchPage({
       };
 
       try {
-        console.log("🏠 [SEARCH PAGE] Calling fetchPropertyDetails:", {
+        log.debug(LOG_CATEGORIES.SEARCH, "Calling fetchPropertyDetails", {
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
           propertyId: propertyForDetails.id,
           timestamp: new Date().toISOString(),
@@ -132,16 +131,13 @@ export default function SearchPage({
 
         await fetchPropertyDetails(propertyForDetails);
 
-        console.log(
-          "🏠 [SEARCH PAGE] fetchPropertyDetails completed successfully:",
-          {
-            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-            propertyId: propertyForDetails.id,
-            timestamp: new Date().toISOString(),
-          }
-        );
+        log.debug(LOG_CATEGORIES.SEARCH, "fetchPropertyDetails completed successfully", {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          propertyId: propertyForDetails.id,
+          timestamp: new Date().toISOString(),
+        });
       } catch (error) {
-        console.error("🏠 [SEARCH PAGE] Failed to fetch property details:", {
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch property details", {
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
           propertyId: property.id,
           error: error instanceof Error ? error.message : String(error),
@@ -222,16 +218,13 @@ export default function SearchPage({
       if (propertyIndex !== -1) {
         setCurrentPage(propertyIndex);
       } else {
-        console.error(
-          "🎯 [PROPERTY_NAVIGATION] Property not found in current data:",
-          {
-            propertyId: property.id,
-            activeTab,
-            searchResultsCount: searchResults.length,
-            savedHomesCount: savedHomes.length,
-            timestamp: new Date().toISOString(),
-          }
-        );
+        log.error(LOG_CATEGORIES.SEARCH, "Property not found in current data", {
+          propertyId: property.id,
+          activeTab,
+          searchResultsCount: searchResults.length,
+          savedHomesCount: savedHomes.length,
+          timestamp: new Date().toISOString(),
+        });
       }
     },
     [activeTab, searchResults, savedHomes, setCurrentPage]
@@ -255,7 +248,7 @@ export default function SearchPage({
   const renderIsochronePolygonWrapper = useCallback(
     (isochroneData: unknown) => {
       if (!googleMapRef.current) {
-        console.warn("❌ Google Map not initialized yet");
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Map not initialized yet");
         return;
       }
 
@@ -273,9 +266,7 @@ export default function SearchPage({
   const renderImportantLocationMarkersWrapper = useCallback(
     (isochroneData: unknown) => {
       if (!googleMapRef.current) {
-        console.warn(
-          "❌ Cannot render important location markers: map not available"
-        );
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Cannot render important location markers: map not available");
         return;
       }
 
@@ -305,7 +296,6 @@ export default function SearchPage({
   const {
     primeIsochroneOverlay,
     runIsochroneSearch,
-    fetchIsochroneForMapOnly,
   } = useIsochroneFlow({
     env,
     googleMapRef,
@@ -384,11 +374,10 @@ export default function SearchPage({
       if (property) {
         void handleViewPropertyDetails(property);
       } else {
-        console.error("🗺️ MAP MODAL: Property not found with ID:", propertyId);
-        console.error(
-          "🗺️ MAP MODAL: Available properties:",
-          currentData.map((p) => ({ id: p.id, address: p.address }))
-        );
+        log.error(LOG_CATEGORIES.SEARCH, "MAP MODAL: Property not found with ID", {
+          propertyId,
+          availableProperties: currentData.map((p) => ({ id: p.id, address: p.address })),
+        });
       }
     },
     [activeTab, searchResults, savedHomes, handleViewPropertyDetails]
@@ -464,8 +453,14 @@ export default function SearchPage({
     },
     calculatePropertyScore,
     isHomeSaved,
-    saveHome,
-    removeSavedHome,
+    saveHome: async (property: SearchResult | Property) => {
+      // Wrap saveHome to return Promise<void> instead of Promise<FavoriteHomesResponse>
+      await saveHome(property);
+    },
+    removeSavedHome: async (propertyId: string, propertyAddress?: string) => {
+      // Wrap removeSavedHome to return Promise<void> instead of Promise<FavoriteHomesResponse>
+      await removeSavedHome(propertyId, propertyAddress);
+    },
     contextKey: activeTab,
     onMarkerClick: handleNavigateToProperty,
     onUnlockClick: handleViewPropertyDetails,
@@ -580,7 +575,7 @@ export default function SearchPage({
         {/* Mobile Carousel for Properties */}
         <div className="flex-shrink-0 border-b border-gray-200 bg-white">
           {/* Client Selector - Mobile */}
-          <div className="px-4 py-2 border-b border-gray-200">
+          <div>
             <ClientSelector
               selectedClientId={selectedClientId}
               onClientChange={setSelectedClientId}
@@ -646,10 +641,12 @@ export default function SearchPage({
                 saveHome={async (p) => {
                   // saveHome from useSavedHomesStoreIntegration accepts SavedHome format
                   // Convert SearchResult to SavedHome format
+                  const priceString = p.price != null ? String(p.price) : "";
+                  
                   const savedHome: SavedHome = {
                     home_id: p.id,
                     address: p.address,
-                    price: typeof p.price === "string" ? p.price : p.price.toString(),
+                    price: priceString,
                     bedrooms: p.bedrooms,
                     bathrooms: p.bathrooms,
                     sqft: p.sqft,
@@ -751,7 +748,7 @@ export default function SearchPage({
                 activeTab={activeTab}
                 isHomeSaved={isHomeSaved}
                 saveHome={async (p) => {
-                  // Ensure we pass a SearchResult-shaped object
+                  // Wrap saveHome to return Promise<void> instead of Promise<FavoriteHomesResponse>
                   await saveHome(p as SearchResult);
                 }}
                 removeSavedHome={async (id, address) => {

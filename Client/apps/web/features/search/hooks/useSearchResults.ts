@@ -8,6 +8,7 @@ import type { SearchResult } from "../../../../../packages/schemas/search";
 import { useFiltersStore } from "../../../../../packages/store/filters.slice";
 import { useUserStore } from "../../../../../packages/store/user.slice";
 import { createGuardedSetter } from "../../../../../packages/utils/array";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 type UseSearchResultsReturn = {
   // State
@@ -87,7 +88,7 @@ export const useSearchResults = (): UseSearchResultsReturn => {
               userPreferences.preferences_version ?? "1.0";
           }
         } catch (error: unknown) {
-          console.warn("❌ Error accessing user preferences:", error);
+          log.warn(LOG_CATEGORIES.SEARCH, "Error accessing user preferences", error);
         }
 
         // Load saved search results from localStorage
@@ -116,27 +117,23 @@ export const useSearchResults = (): UseSearchResultsReturn => {
               );
 
               if (validResults.length > 0) {
-                console.log(
-                  "✅ Loaded search results from localStorage:",
-                  validResults.length,
-                  "properties",
-                );
+                log.info(LOG_CATEGORIES.SEARCH, "Loaded search results from localStorage", {
+                  count: validResults.length,
+                });
                 setSearchResults(validResults);
                 setHasSearched(true);
               }
             }
           } catch (error: unknown) {
-            console.warn("❌ Error parsing saved search results:", error);
+            log.warn(LOG_CATEGORIES.SEARCH, "Error parsing saved search results", error);
           }
         } else {
-          console.log(
-            "🔄 Preferences version mismatch or no saved results. Will run fresh search.",
-          );
+          log.info(LOG_CATEGORIES.SEARCH, "Preferences version mismatch or no saved results. Will run fresh search");
         }
 
         setIsLocalStorageLoaded(true);
       } catch (error: unknown) {
-        console.error("❌ Error initializing search results:", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Error initializing search results", error);
         setIsLocalStorageLoaded(true);
       }
     };

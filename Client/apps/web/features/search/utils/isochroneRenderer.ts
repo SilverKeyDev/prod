@@ -2,6 +2,8 @@
  * Utility functions for rendering isochrone polygons on Google Maps
  */
 
+import { log, LOG_CATEGORIES } from "../../../../../logger";
+
 export type IsochroneRenderOptions = {
   map: google.maps.Map;
   polygonRef: React.MutableRefObject<google.maps.Polygon | null>;
@@ -20,7 +22,7 @@ export const renderIsochronePolygon = (
     options;
 
   if (!map) {
-    console.warn("❌ Google Map not initialized yet");
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Map not initialized yet");
     return;
   }
 
@@ -32,11 +34,8 @@ export const renderIsochronePolygon = (
     !isochroneDataTyped?.isochrone ||
     !(isochroneDataTyped.isochrone as { geometry?: unknown })?.geometry
   ) {
-    console.warn("❌ No isochrone geometry data available for map rendering");
-    console.warn(
-      "📊 Isochrone data structure:",
-      JSON.stringify(isochroneData, null, 2),
-    );
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "No isochrone geometry data available for map rendering");
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Isochrone data structure", { data: isochroneData });
     return;
   }
 
@@ -115,7 +114,7 @@ export const renderIsochronePolygon = (
       const coords = geometry.coordinates as number[][][][];
       [coordinates] = coords;
     } else {
-      console.warn("❌ Unsupported geometry type:", geometry.type);
+      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Unsupported geometry type", { type: geometry.type });
       return;
     }
 
@@ -158,8 +157,8 @@ export const renderIsochronePolygon = (
       }
     }, 100);
   } catch (error: unknown) {
-    console.error("❌ Error rendering isochrone polygon:", error);
-    console.error("❌ Error details:", {
+    log.error(LOG_CATEGORIES.MAP_RENDERING, "Error rendering isochrone polygon", error);
+    log.error(LOG_CATEGORIES.MAP_RENDERING, "Error details", {
       message: (error as Error).message,
       stack: (error as Error).stack,
       isochroneData,

@@ -8,6 +8,7 @@ import {
   type OnboardingData,
 } from "../../../../features/onboardpersonalize/lib/constants";
 import { handleDragEnd as handleDragEndUtil } from "../../../../features/onboardpersonalize/lib/dragEndHandler";
+import { log, LOG_CATEGORIES } from "../../../../../../logger";
 
 type ReportCustomizationSectionProps = {
   formData: OnboardingData;
@@ -44,7 +45,7 @@ export default function ReportCustomizationSection({
     );
 
     if (!validSectionKeys.has(sectionKey)) {
-      console.warn(`Attempted to toggle invalid section: ${sectionKey}`);
+      log.warn(LOG_CATEGORIES.ERRORS, "Attempted to toggle invalid section", { sectionKey });
       return;
     }
 

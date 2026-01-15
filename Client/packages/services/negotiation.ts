@@ -1,6 +1,6 @@
 // Internal API clients
 import { offerApi, searchApi } from "../config/api";
-import { authApi } from "../config/api/auth";
+import { authApi } from "../config/api";
 // Internal utilities
 import { asError } from "../utils/error";
 import { isObject, hasProperty } from "../utils/typeGuards";
@@ -157,7 +157,7 @@ export class NegotiationService {
       return;
     }
 
-    log.info(LOG_CATEGORIES.API, "Home selected", {
+    log.info(LOG_CATEGORIES.NEGOTIATION, "Home selected", {
       homeAddress: newAddress,
     });
 
@@ -263,7 +263,7 @@ export class NegotiationService {
         throw new Error("No valid address found for selected home");
       }
 
-      log.info(LOG_CATEGORIES.API, "Generating strategy and comps", {
+      log.info(LOG_CATEGORIES.NEGOTIATION, "Generating strategy and comps", {
         address,
       });
 
@@ -295,7 +295,7 @@ export class NegotiationService {
         !compsResponseData.success
       ) {
         if (log && typeof log.warn === "function") {
-          log.warn(LOG_CATEGORIES.API, "Property comps API failed", {
+          log.warn(LOG_CATEGORIES.NEGOTIATION, "Property comps API failed", {
             error:
               "error" in compsResponseData &&
               typeof compsResponseData.error === "string"
@@ -312,13 +312,13 @@ export class NegotiationService {
           : {};
       
       // Debug logging for price section
-      log.debug(LOG_CATEGORIES.API, "Strategy response data", {
+      log.debug(LOG_CATEGORIES.NEGOTIATION, "Strategy response data", {
         hasStrategy: !!strategyResponse.strategy,
         hasParsedData: !!parsedStrategyData,
         hasDataField: parsedStrategyData && typeof parsedStrategyData === "object" && "data" in parsedStrategyData,
       });
       
-      log.info(LOG_CATEGORIES.API, "Strategy generated successfully", {
+      log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy generated successfully", {
         strategyId:
           "strategy_id" in strategyResponse &&
           typeof strategyResponse.strategy_id === "string"
@@ -365,10 +365,7 @@ export class NegotiationService {
         });
       }
 
-      log.info(
-        "NEGOTIATION_SERVICE",
-        "Data saved to localStorage successfully",
-      );
+      log.info(LOG_CATEGORIES.NEGOTIATION, "Data saved to localStorage successfully");
     } catch (err: unknown) {
       const error = asError(err);
       log.error(LOG_CATEGORIES.ERRORS, "Error generating strategy", error);
@@ -462,7 +459,7 @@ export class NegotiationService {
    */
   public downloadStrategyJson(): void {
     if (!this.state.strategyData) {
-      log.warn(LOG_CATEGORIES.API, "No strategy data to download");
+      log.warn(LOG_CATEGORIES.NEGOTIATION, "No strategy data to download");
       return;
     }
 
@@ -506,7 +503,7 @@ export class NegotiationService {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      log.info(LOG_CATEGORIES.API, "Strategy JSON downloaded successfully");
+      log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy JSON downloaded successfully");
     } catch (error: unknown) {
       log.error(
         "NEGOTIATION_SERVICE",
@@ -521,7 +518,7 @@ export class NegotiationService {
    */
   public async shareStrategyJson(): Promise<void> {
     if (!this.state.strategyData) {
-      log.warn(LOG_CATEGORIES.API, "No strategy data to share");
+      log.warn(LOG_CATEGORIES.NEGOTIATION, "No strategy data to share");
       return;
     }
 
@@ -552,19 +549,12 @@ export class NegotiationService {
         if (navigator.canShare(shareData)) {
           try {
             await navigator.share(shareData);
-            log.info(
-              "NEGOTIATION_SERVICE",
-              "Strategy shared successfully via Web Share API",
-            );
+            log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy shared successfully via Web Share API");
             return;
           } catch (err: unknown) {
             const error = asError(err);
             if (error instanceof Error && error.name !== "AbortError") {
-              log.warn(
-                "NEGOTIATION_SERVICE",
-                "Web Share API failed, trying text share",
-                error,
-              );
+              log.warn(LOG_CATEGORIES.NEGOTIATION, "Web Share API failed, trying text share", error);
             } else {
               // User cancelled sharing
               return;
@@ -588,19 +578,12 @@ export class NegotiationService {
             title: "Negotiation Strategy",
             text: `Negotiation strategy for ${address}:\n\n${dataStr}`,
           });
-          log.info(
-            "NEGOTIATION_SERVICE",
-            "Strategy shared as text via Web Share API",
-          );
+          log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy shared as text via Web Share API");
           return;
         } catch (err: unknown) {
           const error = asError(err);
           if (error instanceof Error && error.name !== "AbortError") {
-            log.warn(
-              "NEGOTIATION_SERVICE",
-              "Text share also failed, falling back to clipboard",
-              error,
-            );
+            log.warn(LOG_CATEGORIES.NEGOTIATION, "Text share also failed, falling back to clipboard", error);
           } else {
             // User cancelled sharing
             return;
@@ -610,10 +593,7 @@ export class NegotiationService {
 
       // Final fallback: Copy to clipboard
       await this.copyToClipboard(dataStr);
-      log.info(
-        "NEGOTIATION_SERVICE",
-        "Strategy copied to clipboard as fallback",
-      );
+      log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy copied to clipboard as fallback");
     } catch (error: unknown) {
       log.error(LOG_CATEGORIES.ERRORS, "Failed to share strategy", error);
     }
@@ -663,7 +643,7 @@ export class NegotiationService {
       localStorage.removeItem(key);
     });
 
-    log.info(LOG_CATEGORIES.API, "All data cleared");
+    log.info(LOG_CATEGORIES.NEGOTIATION, "All data cleared");
   }
 
   /**

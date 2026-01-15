@@ -18,6 +18,7 @@ import { GripVertical } from "lucide-react";
 import React from "react";
 
 import Loading from "../../components/ui/loading/Loading";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 // Sortable Report Section Component
 type SortableReportSectionProps = {
@@ -55,7 +56,7 @@ const SortableReportSection: React.FC<SortableReportSectionProps> = ({
     (!id || !label) ??
     (typeof checked !== "boolean" || typeof onToggle !== "function")
   ) {
-    console.warn("SortableReportSection received invalid props:", {
+    log.warn(LOG_CATEGORIES.ERRORS, "SortableReportSection received invalid props", {
       id,
       label,
       checked,

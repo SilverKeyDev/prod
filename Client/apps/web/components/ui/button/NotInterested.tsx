@@ -2,11 +2,12 @@ import { X, Sparkles } from "lucide-react";
 import React, { useState } from "react";
 
 import { getCardBubbleSizeClasses } from "../../cards/base/CardBubbleStyles.tsx";
-import { useNotInterestedHomesData } from "../../../../../packages/hooks/data/useNotInterestedHomesData";
+import { useNotInterestedHomesData } from "../../../../../packages/hooks/data/search/useNotInterestedHomesData";
 import { useUIStore } from "../../../../../packages/store";
 import type { SearchResult } from "../../../../../packages/schemas/search";
 import type { Property } from "../../../../../packages/schemas/property";
 import NotInterestedModal from "../../modals/NotInterestedModal";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export type CardNotInterestedProps = {
   property: SearchResult | Property;
@@ -100,7 +101,7 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      console.error("❌ [NOT_INTERESTED] Error updating not-interested:", {
+      log.error(LOG_CATEGORIES.SEARCH, "Error updating not-interested", {
         propertyId: property.id,
         address: propertyAddress,
         action: isNotInterested ? "remove" : "add",
@@ -123,7 +124,7 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      console.error("❌ [NOT_INTERESTED] Error marking as not-interested:", {
+      log.error(LOG_CATEGORIES.SEARCH, "Error marking as not-interested", {
         propertyId: property.id,
         address: propertyAddress,
         why,

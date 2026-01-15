@@ -13,6 +13,7 @@ import BaseCard from "./BaseCard";
 import WhyNotInterestedCard from "./WhyNotInterestedCard";
 import type { SearchResult } from "../../../../packages/schemas/search";
 import type { Property } from "../../../../packages/schemas/property";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 export type PropertyCardProps = {
   /** Stable ID for memoization */
@@ -130,7 +131,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
         await onSelectNotInterestedReason(why);
         setShowReasonCard(false);
       } catch (error) {
-        console.error("Failed to update reason:", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to update reason", error);
         throw error;
       }
     }
@@ -143,7 +144,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
         await onUndoNotInterested();
         setShowReasonCard(false);
       } catch (error) {
-        console.error("Failed to undo:", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to undo", error);
         throw error;
       }
     }

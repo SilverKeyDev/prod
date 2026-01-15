@@ -125,18 +125,18 @@ def create_app(config=None):
 
     # Register blueprints
     from .routes.dashboard import dashboard_bp
-    from .routes.auth import auth_bp
-    from .routes.user import user_bp
-    from .routes.preferences import preferences_bp
-    from .routes.home_matching import home_matching_bp
+    from .routes.auth.auth import auth_bp
+    from .routes.auth.user import user_bp
+    from .routes.auth.preferences import preferences_bp
+    from .routes.search.home_matching import home_matching_bp
     from .routes.maps import maps_bp
-    from .routes.search import search_bp
-    from .routes.research import research_bp
-    from .routes.secure_upload import secure_upload_bp
+    from .routes.search.search import search_bp
+    from .routes.search.research import research_bp
+    from .routes.documents.secure_upload import secure_upload_bp
     from .routes.offer import offer_bp
-    from .routes.google_calendar import google_calendar_bp
-    from .routes.agent import agent_bp
-    from .routes.report import report_bp
+    from .routes.calendar.google_calendar import google_calendar_bp
+    from .routes.agent.agent import agent_bp
+    from .routes.documents.report import report_bp
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)

@@ -6,9 +6,10 @@ import Button from "../../../components/ui/button/Button";
 import Input from "../../../components/ui/form/Input";
 import Label from "../../../components/ui/text/Label";
 import { Textarea } from "../../../components/ui/form/FormField";
-import { useAgentChats } from "../../../../../packages/hooks/data/useAgentChats";
-import { useAgentClients } from "../../../../../packages/hooks/data/useAgentClients";
-import { useUserData } from "../../../../../packages/hooks/data/useUserData";
+import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
+import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
+import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 type CalendarEventRequestModalProps = {
   isOpen: boolean;
@@ -104,7 +105,7 @@ export default function CalendarEventRequestModal({
       }
       onClose();
     } catch (error) {
-      console.error("Error sending event request:", error);
+      log.error(LOG_CATEGORIES.CALENDAR, "Error sending event request", error);
     } finally {
       setIsSending(false);
     }

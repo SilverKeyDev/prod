@@ -18,6 +18,7 @@ import {
 //import { SkipButton } from "../../components/ui/button/NavigationButtons";
 // Core
 import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 // Features
 import OnPerBuyersAgent from "../../features/onboardpersonalize/BuyersAgent";
 import OnPerDragDropPriorities from "../../features/onboardpersonalize/DragDropPriorities";
@@ -181,7 +182,7 @@ export default function OnboardingPage() {
 
       return orderedSections;
     } catch (error: unknown) {
-      console.error("Error in getOrderedReportSections:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Error in getOrderedReportSections", error);
       return [];
     }
   };
@@ -206,7 +207,7 @@ export default function OnboardingPage() {
     );
 
     if (!validSectionKeys.has(sectionKey)) {
-      console.warn(`Attempted to toggle invalid section: ${sectionKey}`);
+      log.warn(LOG_CATEGORIES.ERRORS, "Attempted to toggle invalid section", { sectionKey });
       return;
     }
 
@@ -254,7 +255,7 @@ export default function OnboardingPage() {
           setFormData(cleanedData as OnboardingData);
         }
       } catch {
-        console.warn("Invalid onboarding draft data");
+        log.warn(LOG_CATEGORIES.ERRORS, "Invalid onboarding draft data");
       }
     } else {
       // If no draft exists, initialize with first 6 priorities auto-selected
@@ -287,7 +288,7 @@ export default function OnboardingPage() {
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      console.error("❌ Google Maps loading error:", googleMapsError);
+      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
       void void setLoadError("Failed to load Google Maps script.");
       return;
     }

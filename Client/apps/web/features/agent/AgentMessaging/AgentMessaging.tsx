@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 
-import { useMessaging } from "../../../../../packages/hooks/data/useMessaging";
+import { useMessaging } from "../../../../../packages/hooks/data/chat/useMessaging";
 import { useMessageScroll } from "../../../../../packages/hooks/ui/useMessageScroll";
-import { useAgentChats } from "../../../../../packages/hooks/data/useAgentChats";
+import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
 import { ClientSearchModal } from "../modals";
 import SelectHomeModal from "../modals/SelectHomeModal";
 import CalendarEventRequestModal from "../modals/CalendarEventRequestModal";
@@ -11,8 +11,9 @@ import UnifiedMessagesList from "../components/UnifiedMessagesList";
 import UnifiedMessageInput from "../components/UnifiedMessageInput";
 import UnifiedMessagingHeader from "../ClientMessaging/UnifiedMessagingHeader";
 import { getMessagingConfig } from "../config/messagingConfig";
-import type { AgentClient } from "../../../../../packages/config/api/agent";
+import type { AgentClient } from "../../../../../packages/config/api";
 import type { SavedHome } from "../../../../../packages/schemas/property";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 type AgentMessagingProps = {
   clients?: AgentClient[];
@@ -95,7 +96,7 @@ export default function AgentMessaging({
         );
         setShowSelectHomeModal(false);
       } catch (error) {
-        console.error("Error sharing home:", error);
+        log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
       }
     },
     [selectedClientId, activeConversationId, sendMessageWithAttachment]
@@ -107,8 +108,8 @@ export default function AgentMessaging({
   }, []);
 
   return (
-    <div className="mx-auto h-[calc(100vh-10rem)] max-w-7xl md:mt-0">
-      <div className="relative flex h-full overflow-hidden rounded-xl shadow-lg bg-white">
+    <div className="flex h-full w-full overflow-hidden">
+      <div className="relative flex h-full w-full overflow-hidden">
         {/* Sidebar */}
         <UnifiedMessagingSidebar
           mode="agent"
@@ -127,11 +128,7 @@ export default function AgentMessaging({
 
         {/* Main Chat Section */}
         <section
-          className={`relative flex flex-1 flex-col h-full bg-white transition-all duration-300 ease-in-out ${
-            isSidebarExpanded
-              ? "hidden xl:flex xl:rounded-r-xl"
-              : "flex rounded-xl xl:rounded-l-none xl:rounded-r-xl"
-          }`}
+          className="relative flex flex-1 flex-col h-full transition-all duration-300 ease-in-out"
         >
           <div className="flex flex-1 flex-col min-h-0">
             {/* Chat Header */}

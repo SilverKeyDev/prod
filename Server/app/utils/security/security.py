@@ -287,7 +287,7 @@ def log_oauth_event(event_type: str, user_id: Optional[str] = None, **kwargs):
         **kwargs: Additional event data
     """
     # Skip logging for routine operations that happen frequently
-    routine_events = ['events_listed', 'calendars_listed', 'freebusy_queried']
+    routine_events = ['events_listed', 'calendars_listed', 'freebusy_queried', 'silverkey_calendar_found']
     if event_type in routine_events:
         return
     
