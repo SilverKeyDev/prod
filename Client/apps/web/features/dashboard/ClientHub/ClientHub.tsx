@@ -24,6 +24,7 @@ import ClientSavedHomes from "./ClientSavedHomes";
 import ClientDocuments from "./ClientDocuments";
 import ClientChecklists from "./ClientChecklists";
 import ClientCalendar from "./ClientCalendar";
+import ClientAgreements from "./ClientAgreements";
 import type { NavItem } from "../../../../../packages/schemas/nav";
 import {
   enhanceClientWithDealInfo,
@@ -42,6 +43,7 @@ type ClientHubTab =
   | "overview"
   | "liked-homes"
   | "documents"
+  | "agreements"
   | "checklists"
   | "calendar";
 type OverviewSection =
@@ -184,6 +186,7 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
     { id: "overview", label: "Overview" },
     { id: "liked-homes", label: "Liked Homes" },
     { id: "documents", label: "Documents" },
+    { id: "agreements", label: "Agreements" },
     { id: "checklists", label: "Checklists" },
     { id: "calendar", label: "Calendar" },
   ];
@@ -347,6 +350,8 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
                 />
               </div>
             )}
+
+            {activeTab === "agreements" && <ClientAgreements clientId={clientId} />}
 
             {activeTab === "calendar" && <ClientCalendar userId={clientId} />}
           </div>

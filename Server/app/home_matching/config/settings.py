@@ -26,21 +26,10 @@ EMBEDDING_DIMENSION = 384
 # Model settings
 RANDOM_STATE = 42
 
-# LLM settings
-LLM_MODEL = "gpt-4o-mini" 
-#CHANGE TO GROK LATER ON
-LLM_TEMPERATURE = 0.1
-LLM_MAX_TOKENS = 1000
-
 # Scoring thresholds
 MIN_SIMILARITY_SCORE = 0.0
 MAX_SIMILARITY_SCORE = 1.0
 DEFAULT_TOP_K = 10
-
-# Ensemble weights
-# Embedding and LLM weights are set to 0.5 each (50/50 split)
-EMBEDDING_WEIGHT = 0.5
-LLM_WEIGHT = 0.5
 
 # Text processing settings
 MAX_TEXT_LENGTH = 2000  # Maximum text length for embeddings

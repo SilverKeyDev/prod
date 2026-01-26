@@ -126,8 +126,9 @@ const mapHomeUniversalToSavedHome = (
 
 /**
  * Hook for managing saved homes data with React Query
+ * @param clientId - Optional client ID for agents to view client's saved homes
  */
-export const useSavedHomesData = () => {
+export const useSavedHomesData = (clientId?: string) => {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
@@ -142,11 +143,11 @@ export const useSavedHomesData = () => {
     error: savedHomesError,
     refetch: refetchSavedHomes,
   } = useQuery({
-    // Use exact query key format from dataConfig.ts (no spread)
-    queryKey: queryKeys.homes.favorites(),
+    // Include clientId in query key for proper caching
+    queryKey: queryKeys.homes.favorites(clientId),
     queryFn: async () => {
       // Check cache first - if we have processed SavedHome[] data, return it
-      const cached = queryClient.getQueryData<SavedHome[]>(queryKeys.homes.favorites());
+      const cached = queryClient.getQueryData<SavedHome[]>(queryKeys.homes.favorites(clientId));
       if (cached && Array.isArray(cached) && cached.length > 0) {
         // Check if it's already processed (has home_id and other SavedHome properties)
         const isProcessed = cached.every(
@@ -162,7 +163,7 @@ export const useSavedHomesData = () => {
       if (!sessionStorage.getItem("saved_homes_fetch_logged")) {
         sessionStorage.setItem("saved_homes_fetch_logged", "true");
       }
-      const response = await userApi.getFavoriteHomes();
+      const response = await userApi.getFavoriteHomes(clientId);
       if (!response.success) {
         throw new Error(response.error ?? "Failed to load favorite homes");
       }
@@ -232,7 +233,7 @@ export const useSavedHomesData = () => {
     // Use placeholderData to provide cached data immediately when query becomes enabled
     placeholderData: (previousValue) => {
       // Check cache - this will be used if query is loading
-      const cached = queryClient.getQueryData(queryKeys.homes.favorites());
+      const cached = queryClient.getQueryData(queryKeys.homes.favorites(clientId));
       if (cached && Array.isArray(cached) && cached.length > 0) {
         // Check if it's already processed (SavedHome[])
         const isProcessed = cached.every(
@@ -283,6 +284,8 @@ export const useSavedHomesData = () => {
     },
     onMutate: async (property: unknown) => {
       // Optimistic update - add the home to cache immediately
+      // Note: We need to get the current clientId from the query context
+      // For now, we'll use the query key without clientId for mutations
       const previousHomes = queryClient.getQueryData<SavedHome[]>(
         queryKeys.homes.favorites(),
       );
@@ -305,7 +308,7 @@ export const useSavedHomesData = () => {
       };
 
       queryClient.setQueryData(
-        [...queryKeys.homes.favorites()],
+        queryKeys.homes.favorites(clientId),
         (old: SavedHome[] | undefined) => {
           if (!old) return [optimisticHome];
           // Check if home already exists to avoid duplicates
@@ -322,7 +325,7 @@ export const useSavedHomesData = () => {
       // Rollback on error
       if (context?.previousHomes) {
         queryClient.setQueryData(
-          queryKeys.homes.favorites(),
+          queryKeys.homes.favorites(clientId),
           context.previousHomes,
         );
       }
@@ -350,10 +353,10 @@ export const useSavedHomesData = () => {
     onMutate: ({ propertyId }) => {
       // Optimistic update - remove the home from cache
       const previousHomes = queryClient.getQueryData<SavedHome[]>(
-        queryKeys.homes.favorites(),
+        queryKeys.homes.favorites(clientId),
       );
       queryClient.setQueryData(
-        queryKeys.homes.favorites(),
+        queryKeys.homes.favorites(clientId),
         (old: SavedHome[] | undefined) => {
           if (!old) return old;
           return old.filter((home) => home.home_id !== propertyId);
@@ -365,7 +368,7 @@ export const useSavedHomesData = () => {
       // Rollback on error
       if (context?.previousHomes) {
         queryClient.setQueryData(
-          queryKeys.homes.favorites(),
+          queryKeys.homes.favorites(clientId),
           context.previousHomes,
         );
       }
@@ -373,7 +376,7 @@ export const useSavedHomesData = () => {
     onSettled: () => {
       // Always refetch after mutation settles
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.homes.favorites(),
+        queryKey: queryKeys.homes.favorites(clientId),
       });
     },
   });
@@ -399,7 +402,7 @@ export const useSavedHomesData = () => {
       // Find the home to get its address - use the same query key structure as the query
       const homes =
         queryClient.getQueryData<SavedHome[]>(
-          queryKeys.homes.favorites(),
+          queryKeys.homes.favorites(clientId),
         ) ?? [];
 
       // Try to find by ID first, then by address if provided
@@ -417,7 +420,7 @@ export const useSavedHomesData = () => {
       if (!home) {
         // Try to get data from any cached favorites query as fallback
         const allCachedData = queryClient.getQueriesData({
-          queryKey: queryKeys.homes.favorites(),
+          queryKey: queryKeys.homes.favorites(clientId),
         });
 
         // Look through all cached data to find the home
@@ -461,7 +464,7 @@ export const useSavedHomesData = () => {
     (propertyId: string, propertyAddress?: string) => {
       const homes =
         queryClient.getQueryData<SavedHome[]>(
-          queryKeys.homes.favorites(),
+          queryKeys.homes.favorites(clientId),
         ) ?? [];
       // Try to match by ID first, then by address if provided
       if (propertyAddress && typeof propertyAddress === "string") {
@@ -483,11 +486,11 @@ export const useSavedHomesData = () => {
     (propertyId: string) => {
       const homes =
         queryClient.getQueryData<SavedHome[]>(
-          queryKeys.homes.favorites(),
+          queryKeys.homes.favorites(clientId),
         ) ?? [];
       return homes.find((home) => home.home_id === propertyId);
     },
-    [queryClient],
+    [queryClient, clientId],
   );
 
   return {

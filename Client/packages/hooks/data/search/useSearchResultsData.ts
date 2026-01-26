@@ -5,7 +5,7 @@ import { queryKeys } from "../../../config/query/keys";
 import { searchApi } from "../../../config/api/search/search";
 import { transformSearchResponse } from "../../../services/search/search";
 import { log, LOG_CATEGORIES } from "../../../../logger";
-import type { SearchResult } from "../../schemas/search";
+import type { SearchResult } from "../../../schemas/search/search";
 
 export type UseSearchResultsDataReturn = {
   searchResults: SearchResult[];
@@ -45,11 +45,11 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
       try {
         log.debug(
           LOG_CATEGORIES.SEARCH,
-          "Fetching cached search results on mount",
+          "Fetching cached search results",
         );
         const response = await searchApi.searchByPolygon({
           perBucketPages: 20,
-          onlyCached: true, // Only fetch cached results on mount, don't trigger search
+          onlyCached: true, // Only fetch cached results, don't trigger search
         });
 
         if (!response.success) {
@@ -70,7 +70,7 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
         if (response.meta?.cached) {
           log.info(
             LOG_CATEGORIES.SEARCH,
-            "Loaded cached search results on mount",
+            "Loaded cached search results",
             {
               count: transformedResults.length,
               cacheAge: response.meta.cacheAge,
@@ -94,7 +94,7 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
       }
     },
     enabled: shouldLoadData,
-    // Use placeholderData to check cache reactively when enabled changes
+    // Use placeholderData to provide cached data immediately when query becomes enabled
     placeholderData: (previousValue) => {
       const cached = queryClient.getQueryData<SearchResult[]>(
         queryKeys.search.results(),
@@ -104,7 +104,7 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
     staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for this long
     gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
     refetchOnWindowFocus: false,
-    refetchOnMount: true, // Fetch on mount to get cached results
+    refetchOnMount: false, // Don't refetch if data exists (cached from initial load)
     refetchOnReconnect: false,
   });
 

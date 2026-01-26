@@ -1,17 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 import { useDocumentsStore } from "../../../store/documents.slice";
 import { useDocuments as useDocumentsHook } from "../../data/documents/useDocuments";
-import { useAuthStore } from "../../../store/auth.slice";
 
 /**
  * Hook that integrates useDocuments with useDocumentsStore
  * This replaces the DocumentsContext functionality
  */
 export function useDocumentsStoreIntegration() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authReady = useAuthStore((s) => s.authReady);
-
   // Always call useDocuments hook to maintain hook order consistency
   // The hook itself will handle the Router context requirements
   const documentsResult = useDocumentsHook();
@@ -45,6 +41,15 @@ export function useDocumentsStoreIntegration() {
     setDocumentsError,
     setCategoriesError,
   } = useDocumentsStore();
+
+  // Wrap refetch functions to match store signature (() => Promise<void>)
+  const refreshDocumentsWrapped = useCallback(async (): Promise<void> => {
+    await refreshDocuments();
+  }, [refreshDocuments]);
+
+  const refreshCategoriesWrapped = useCallback(async (): Promise<void> => {
+    await refreshCategories();
+  }, [refreshCategories]);
 
   // Sync hook data with store (guard against redundant updates)
   const lastDocumentsRef = useRef<typeof documents>();
@@ -121,16 +126,16 @@ export function useDocumentsStoreIntegration() {
     store.updateDocumentStatus = updateDocumentStatus;
     store.signDocument = signDocument;
     store.downloadDocument = downloadDocument;
-    store.refreshDocuments = refreshDocuments;
-    store.refreshCategories = refreshCategories;
+    store.refreshDocuments = refreshDocumentsWrapped;
+    store.refreshCategories = refreshCategoriesWrapped;
   }, [
     uploadDocument,
     deleteDocument,
     updateDocumentStatus,
     signDocument,
     downloadDocument,
-    refreshDocuments,
-    refreshCategories,
+    refreshDocumentsWrapped,
+    refreshCategoriesWrapped,
   ]);
 
   return {
@@ -146,8 +151,8 @@ export function useDocumentsStoreIntegration() {
     updateDocumentStatus,
     signDocument,
     downloadDocument,
-    refreshDocuments,
-    refreshCategories,
+    refreshDocuments: refreshDocumentsWrapped,
+    refreshCategories: refreshCategoriesWrapped,
     getDocumentsByCategory,
     getDocumentsByProperty,
     getDocumentsByOffer,

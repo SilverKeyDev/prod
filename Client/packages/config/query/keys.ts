@@ -31,7 +31,8 @@ export const queryKeys = {
   // Saved Homes domain
   homes: {
     all: ["homes"] as const,
-    favorites: () => [...queryKeys.homes.all, "favorites"] as const,
+    favorites: (clientId?: string) => 
+      [...queryKeys.homes.all, "favorites", clientId ?? null] as const,
     notInterested: () => [...queryKeys.homes.all, "notInterested"] as const,
     saved: (propertyId: string) =>
       [...queryKeys.homes.all, "saved", propertyId] as const,
@@ -51,8 +52,8 @@ export const queryKeys = {
   documents: {
     all: ["documents"] as const,
     lists: () => [...queryKeys.documents.all, "list"] as const,
-    list: (filters?: Record<string, unknown>) =>
-      [...queryKeys.documents.lists(), filters] as const,
+    list: (filters?: Record<string, unknown>, clientId?: string) =>
+      [...queryKeys.documents.lists(), filters, clientId ?? null] as const,
     categories: () => [...queryKeys.documents.all, "categories"] as const,
     byCategory: (category: string) =>
       [...queryKeys.documents.all, "byCategory", category] as const,
@@ -148,6 +149,21 @@ export const queryKeys = {
     all: ["search"] as const,
     results: () => [...queryKeys.search.all, "results"] as const,
     isochrone: () => [...queryKeys.search.all, "isochrone"] as const,
+  },
+
+  // DocuSign domain
+  docusign: {
+    all: ["docusign"] as const,
+    agreements: () => [...queryKeys.docusign.all, "agreements"] as const,
+    agreementsList: (filters?: Record<string, unknown>) =>
+      [...queryKeys.docusign.agreements(), "list", filters] as const,
+    agreement: (agreementId: string) =>
+      [...queryKeys.docusign.agreements(), agreementId] as const,
+    templates: () => [...queryKeys.docusign.all, "templates"] as const,
+    templatesList: (filters?: Record<string, unknown>) =>
+      [...queryKeys.docusign.templates(), "list", filters] as const,
+    oauth: () => [...queryKeys.docusign.all, "oauth"] as const,
+    oauthStatus: () => [...queryKeys.docusign.oauth(), "status"] as const,
   },
 } as const;
 

@@ -1,8 +1,8 @@
 import { useRef, useCallback, useState } from "react";
 
 import { renderMapPropertyCard, cleanupMapPropertyCard } from "../../../components/cards";
-import type { SearchResult } from "../../../../../packages/schemas/search";
-import type { Property } from "../../../../../packages/schemas/property";
+import type { SearchResult } from "../../../../../packages/schemas";
+import type { Property } from "../../../../../packages/schemas";
 import type { IsochroneData } from "../../../../../packages/schemas/api";
 import { renderImportantLocationMarkers } from "../utils/importantLocationRenderer";
 import { calculatePropertyCardCenter } from "../utils/MapZoomController";
@@ -206,6 +206,16 @@ export const useMapMarkers = ({
       const endIndex = startIndex + propertiesPerPage;
       const paginatedData = results.slice(startIndex, endIndex);
 
+      // Zoom to first property immediately (before creating markers)
+      if (paginatedData.length > 0 && googleMapRef.current) {
+        const firstProperty = paginatedData[0];
+        if (firstProperty && firstProperty.lat && firstProperty.lng) {
+          const center = calculatePropertyCardCenter(firstProperty.lat, firstProperty.lng, firstProperty.id);
+          googleMapRef.current.setCenter(center);
+          googleMapRef.current.setZoom(13);
+        }
+      }
+
       // Check if Google Maps API and AdvancedMarkerElement are available
 
       if (!window.google?.maps?.marker?.AdvancedMarkerElement) {
@@ -370,16 +380,7 @@ export const useMapMarkers = ({
         if (endIndex < data.length) {
           requestAnimationFrame(() => createMarkersBatch(data, endIndex));
         } else {
-          // All markers created, fit map to show current page markers
-          if (results.length > 0) {
-            const firstProperty = results[0];
-            if (firstProperty && googleMapRef.current) {
-              const center = calculatePropertyCardCenter(firstProperty.lat, firstProperty.lng, firstProperty.id);
-              googleMapRef.current.setCenter(center);
-              googleMapRef.current.setZoom(13);
-            }
-          }
-
+          // All markers created
           setIsUpdatingMarkers(false);
         }
       };

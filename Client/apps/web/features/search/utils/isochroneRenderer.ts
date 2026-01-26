@@ -18,8 +18,7 @@ export const renderIsochronePolygon = (
   isochroneData: unknown,
   options: IsochroneRenderOptions,
 ) => {
-  const { map, polygonRef, individualPolygonsRef, focusOnCurrentProperty } =
-    options;
+  const { map, polygonRef, individualPolygonsRef } = options;
 
   if (!map) {
     log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Map not initialized yet");
@@ -141,21 +140,8 @@ export const renderIsochronePolygon = (
     polygon.setMap(map);
     polygonRef.current = polygon;
 
-    // Fit the map to include the polygon bounds
-    const bounds = new google.maps.LatLngBounds();
-    paths[0].forEach((point: { lat: number; lng: number }) => {
-      bounds.extend(point);
-    });
-
-    map.fitBounds(bounds);
-
-    // Add some padding to the bounds
-    setTimeout(() => {
-      if (map) {
-        // Use MapZoomController for consistent zoom behavior
-        focusOnCurrentProperty();
-      }
-    }, 100);
+    // Do not fit bounds or animate - map center/zoom is already set in useMapMarkers
+    // Removing fitBounds to prevent animation on initial load
   } catch (error: unknown) {
     log.error(LOG_CATEGORIES.MAP_RENDERING, "Error rendering isochrone polygon", error);
     log.error(LOG_CATEGORIES.MAP_RENDERING, "Error details", {

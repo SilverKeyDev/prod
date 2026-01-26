@@ -1,6 +1,8 @@
 import { Search } from "lucide-react";
 import React from "react";
 import Card from "../../components/layout/Card.tsx";
+import Dropdown from "../../components/ui/form/Dropdown";
+import type { DropdownOption } from "../../components/ui/form/Dropdown";
 import { useIsMobile } from "../../../../packages/hooks/ui";
 
 export type ViewMode = "grid" | "list";
@@ -20,8 +22,10 @@ type SavedLayoutProps = {
   isLoading?: boolean;
   refreshTitle?: string;
   rightText?: string;
-  viewType?: "homes" | "reports";
-  onViewTypeChange?: (type: "homes" | "reports") => void;
+  viewType?: "homes" | "documents";
+  onViewTypeChange?: (type: "homes" | "documents") => void;
+  eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
+  onEventTypeFilterChange?: (eventType: "listed" | "price_change" | "sold" | "withdrawn" | "") => void;
 };
 
 const SavedLayout: React.FC<SavedLayoutProps> = ({
@@ -35,8 +39,20 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   showViewToggle = true,
   rightText,
   viewType,
+  onViewTypeChange,
+  eventTypeFilter = "",
+  onEventTypeFilterChange,
 }) => {
   const isMobile = useIsMobile();
+
+  // Event type options for filtering documents
+  const eventTypeOptions: DropdownOption<"listed" | "price_change" | "sold" | "withdrawn" | "">[] = [
+    { value: "", label: "All Events" },
+    { value: "listed", label: "Listed" },
+    { value: "price_change", label: "Price Change" },
+    { value: "sold", label: "Sold" },
+    { value: "withdrawn", label: "Withdrawn" },
+  ];
 
   const ViewToggle = showViewToggle && onViewModeChange && (
     <div className="hidden items-center gap-2 sm:flex">
@@ -72,11 +88,38 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
     </div>
   );
 
+  // Tab navigation for homes/documents
+  const TabNavigation = viewType && onViewTypeChange && (
+    <div className="flex items-center gap-2 mb-3 border-b border-gray-200">
+      <button
+        onClick={() => onViewTypeChange("homes")}
+        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+          viewType === "homes"
+            ? "border-brown text-brown"
+            : "border-transparent text-gray-500 hover:text-gray-700"
+        }`}
+      >
+        Homes
+      </button>
+      <button
+        onClick={() => onViewTypeChange("documents")}
+        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+          viewType === "documents"
+            ? "border-brown text-brown"
+            : "border-transparent text-gray-500 hover:text-gray-700"
+        }`}
+      >
+        Documents
+      </button>
+    </div>
+  );
+
   return (
-    <div className="w-full">
+    <div className="w-full mb-6">
+      {TabNavigation}
       <Card padding="none" className="w-full p-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Separate div for chatbot/compare/report buttons (ReportsSubViewNavigation) */}
+          {/* Separate div for left content */}
           {leftContent && !showSearch && (
             <div className="flex shrink-0 items-center">
               {leftContent}
@@ -90,7 +133,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
           {/* Separate div for everything else (search, dropdown, refresh, view toggle, etc.) */}
           <div
             className={`flex flex-1 flex-wrap items-center justify-between ${
-              isMobile && viewType !== "homes" ? "hidden" : ""
+              isMobile && viewType !== "homes" && viewType !== "documents" ? "hidden" : ""
             }`}
           >
             {/* Left side: Search input or empty space */}
@@ -110,7 +153,22 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
                 </div>
               ) : null}
 
-              {rightText && viewType !== "reports" && (
+              {/* Event type filter - only show when viewing documents */}
+              {/* {viewType === "documents" && onEventTypeFilterChange && (
+                <div className="w-full sm:w-auto min-w-[150px]">
+                  <Dropdown
+                    options={eventTypeOptions}
+                    value={eventTypeFilter}
+                    onChange={(value) =>
+                      onEventTypeFilterChange(value as "listed" | "price_change" | "sold" | "withdrawn" | "")
+                    }
+                    placeholder="Filter by event..."
+                    variant="mobile"
+                  />
+                </div>
+              )} */}
+
+              {rightText && (
                 <div className="whitespace-nowrap text-sm text-gray-600 mr-2">
                   {rightText}
                 </div>
@@ -125,11 +183,6 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
             >
               {ViewToggle}
 
-              {!isMobile && rightText && viewType === "reports" && (
-                <div className="whitespace-nowrap text-sm text-gray-600">
-                  {rightText}
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -32,6 +32,7 @@ export type AgentChatMessage = {
   role: "user" | "agent" | "assistant";
   message: string;
   shared_home_id?: string | null;
+  shared_document_id?: string | null;
   timestamp: string;
   is_read?: boolean;
   read_at?: string | null;
@@ -64,6 +65,7 @@ export type SendMessageRequest = {
   message: string;
   client_id?: string; // Required when conversation_id is "new" and user is an agent
   shared_home_id?: string;
+  shared_document_id?: string;
 };
 
 export type SendMessageResponse = {
@@ -254,18 +256,54 @@ export const agentApi = {
   /**
    * Send a message in a conversation
    */
-  sendMessage: (
+  sendMessage: async (
     conversationId: string,
     message: string,
     clientId?: string,
-    sharedHomeId?: string
-  ): Promise<SendMessageResponse> =>
-    apiPost<SendMessageResponse>("/api/v1/agent/chats/message", {
+    sharedHomeId?: string,
+    sharedDocumentId?: string
+  ): Promise<SendMessageResponse> => {
+    // Import log here to avoid circular dependencies
+    const { log, LOG_CATEGORIES } = await import("../../../../logger");
+    
+    const requestBody = {
       conversation_id: conversationId,
       message,
       ...(clientId && { client_id: clientId }),
       ...(sharedHomeId && { shared_home_id: sharedHomeId }),
-    }),
+      ...(sharedDocumentId && { shared_document_id: sharedDocumentId }),
+    };
+
+    log.debug(LOG_CATEGORIES.API, "Sending message request", {
+      endpoint: "/api/v1/agent/chats/message",
+      requestBody,
+      conversationId,
+      messageLength: message.length,
+      hasClientId: !!clientId,
+      hasSharedHomeId: !!sharedHomeId,
+      hasSharedDocumentId: !!sharedDocumentId,
+    });
+
+    try {
+      const response = await apiPost<SendMessageResponse>("/api/v1/agent/chats/message", requestBody);
+      
+      log.debug(LOG_CATEGORIES.API, "Message request response", {
+        success: response.success,
+        hasError: !!response.error,
+        error: response.error,
+        message_id: response.message_id,
+      });
+
+      return response;
+    } catch (error) {
+      log.error(LOG_CATEGORIES.API, "Message request failed", {
+        error,
+        requestBody,
+        conversationId,
+      });
+      throw error;
+    }
+  },
 
   /**
    * Create a new conversation between agent and client

@@ -13,6 +13,7 @@ export type ChatMessage = {
   role: "user" | "agent";
   timestamp: Date;
   shared_home_id?: string | null;
+  shared_document_id?: string | null;
   is_read?: boolean;
   read_at?: string | null;
   status?: "sending" | "delivered" | "failed";
@@ -118,13 +119,14 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
   const isLoadingRef = useRef<boolean>(false);
 
   // Helper function to map API messages to ChatMessage format
-  const mapApiMessagesToChatMessages = useCallback((apiMessages: Array<{ id: string; message: string; role: string; timestamp: string; shared_home_id?: string | null; is_read?: boolean; read_at?: string | null }>): ChatMessage[] => {
+  const mapApiMessagesToChatMessages = useCallback((apiMessages: Array<{ id: string; message: string; role: string; timestamp: string; shared_home_id?: string | null; shared_document_id?: string | null; is_read?: boolean; read_at?: string | null }>): ChatMessage[] => {
     return apiMessages.map((msg) => ({
       id: msg.id,
       content: msg.message,
       role: msg.role === "agent" ? "agent" : "user",
       timestamp: new Date(msg.timestamp),
       shared_home_id: msg.shared_home_id ?? null,
+      shared_document_id: msg.shared_document_id ?? null,
       is_read: msg.is_read ?? false,
       read_at: msg.read_at ?? null,
       status: "delivered" as const, // Messages from server are always delivered

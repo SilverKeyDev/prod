@@ -111,7 +111,9 @@ export default function CloseLayout({
         loading,
       });
     }
-  }, [checked, loading, title, subtitle, items.length, setClosePageHeaderData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // setClosePageHeaderData is a setState function from useState and is stable by React's guarantee
+  }, [checked, loading, title, subtitle, items.length]);
 
   // Cleanup header data when component unmounts
   useEffect(() => {
@@ -120,7 +122,9 @@ export default function CloseLayout({
         setClosePageHeaderData(null);
       }
     };
-  }, [setClosePageHeaderData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // setClosePageHeaderData is a setState function from useState and is stable by React's guarantee
+  }, []);
 
   // Show loading screen for pages that need it
   // Only show if no data exists AND is loading

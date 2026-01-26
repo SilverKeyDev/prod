@@ -1,7 +1,10 @@
 import React from "react";
 import { MessageCircle, Search, Check, CheckCheck } from "lucide-react";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
-import SharedHomeCard from "../../../components/cards/SharedHomeCard";
+import HomeCard from "../../../components/cards/HomeCard";
+import SharedDocumentCard from "../../../components/cards/documents/SharedDocumentCard";
+import { useSavedHomesData } from "../../../../../packages/hooks/data/search/useSavedHomesData";
+import { useDocumentsData } from "../../../../../packages/hooks/data/documents/useDocumentsData";
 import {
   getDateDividerText,
   shouldShowMessageTimestamp,
@@ -13,6 +16,7 @@ type ChatMessage = {
   role: "user" | "agent";
   timestamp: Date;
   shared_home_id?: string | null;
+  shared_document_id?: string | null;
   is_read?: boolean;
   read_at?: string | null;
   status?: "sending" | "delivered" | "failed";
@@ -39,6 +43,8 @@ export default function ClientMessagesList({
   messagesEndRef,
   onRetryMessage,
 }: ClientMessagesListProps) {
+  const { getSavedHome } = useSavedHomesData();
+  const { documents } = useDocumentsData();
   if (!canSendMessage) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -138,23 +144,49 @@ export default function ClientMessagesList({
                 }`}
               >
             <div
-              className={`max-w-lg rounded-xl px-4 py-3 ${
-                msg.role === "agent"
-                  ? "bg-neutral-100 text-black"
-                  : "bg-olive text-white"
+              className={`max-w-lg rounded-xl ${
+                msg.shared_home_id || msg.shared_document_id
+                  ? ""
+                  : `px-4 py-3 ${
+                      msg.role === "agent"
+                        ? "bg-neutral-100 text-black"
+                        : "bg-olive text-white"
+                    }`
               }`}
             >
               {/* Show shared home card if present */}
-              {msg.shared_home_id && (
-                <div className="mb-2">
-                  <SharedHomeCard
-                    homeId={msg.shared_home_id}
-                    address={msg.content || undefined}
-                  />
-                </div>
-              )}
-              {/* Show message content if not just a shared home */}
-              {(!msg.shared_home_id || msg.content.trim()) && (
+              {msg.shared_home_id && (() => {
+                const savedHome = getSavedHome(msg.shared_home_id);
+                const homeData = savedHome || {
+                  home_id: msg.shared_home_id,
+                  address: msg.content || undefined,
+                };
+                return (
+                  <div className="mb-2">
+                    <HomeCard home={homeData} />
+                  </div>
+                );
+              })()}
+              {/* Show shared document card if present */}
+              {msg.shared_document_id && (() => {
+                const document = documents.find((d) => d.id === msg.shared_document_id);
+                if (!document) {
+                  return (
+                    <div className="mb-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                      <p className="text-sm text-gray-500">
+                        Document not found or has been deleted.
+                      </p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="mb-2">
+                    <SharedDocumentCard doc={document} />
+                  </div>
+                );
+              })()}
+              {/* Show message content only if there's no shared home or document */}
+              {!msg.shared_home_id && !msg.shared_document_id && msg.content.trim() && (
                 <p className="whitespace-pre-line text-sm">{msg.content}</p>
               )}
             </div>

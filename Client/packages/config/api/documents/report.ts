@@ -1,4 +1,4 @@
-import { apiGet, apiDelete } from "../../../services/http/compatibility";
+import { apiGet, apiPost, apiDelete } from "../../../services/http/compatibility";
 import { secureClipboardCopy } from "../../../services/security/clipboardSecurity";
 import { captureError } from "../../../services/security/errorReporting";
 import { log } from "../../../services/security/secureLogger";
@@ -19,8 +19,9 @@ export type ReportDocument = {
   created_at: string;
   updated_at: string;
   status: "generating" | "completed" | "error" | "processed";
-  primary_address?: string;
-  report_type?: string;
+  address?: string;
+  document_type?: string;
+  event_type?: "listed" | "price_change" | "sold" | "withdrawn" | null;
 };
 
 export type GenerateReportResponse = {
@@ -179,13 +180,39 @@ export const reportApi = {
 
   /**
    * Get user documents
+   * Note: Backend returns 'documents' field, not 'reports'
+   * @param clientId - Optional client ID for agents to view client's documents
    */
-  getDocuments: (): Promise<ReportsListResponse> =>
-    apiGet<ReportsListResponse>("/api/v1/report/documents"),
+  getDocuments: (clientId?: string): Promise<{
+    success: boolean;
+    documents?: ReportDocument[];
+    reports?: ReportDocument[]; // For backward compatibility
+    count?: number;
+    message?: string;
+    error?: string;
+  }> => {
+    const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
+    return apiGet<{
+      success: boolean;
+      documents?: ReportDocument[];
+      reports?: ReportDocument[];
+      count?: number;
+      message?: string;
+      error?: string;
+    }>(`/api/v1/report/documents${params}`);
+  },
 
   /**
    * Serve static report file (fallback for local files)
    */
   getStaticReport: (filename: string): Promise<Blob> =>
     apiGet<Blob>(`/api/v1/report/static/reports/${filename}`),
+
+  /**
+   * Compare multiple reports
+   */
+  compare: (
+    request: CompareReportsRequest,
+  ): Promise<CompareReportsResponse> =>
+    apiPost<CompareReportsResponse>("/api/v1/report/compare", request),
 };

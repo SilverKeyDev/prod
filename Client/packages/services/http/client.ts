@@ -196,6 +196,13 @@ export class HttpClient {
       ...normalizeHeaders(fetchOptions.headers),
     };
 
+    // If body is FormData, remove Content-Type to let browser set it with boundary
+    const isFormData = fetchOptions.body instanceof FormData;
+    if (isFormData) {
+      delete mergedHeaders["Content-Type"];
+      delete mergedHeaders["content-type"];
+    }
+
     // Build request options
     const requestOptions: RequestInit = {
       ...fetchOptions,

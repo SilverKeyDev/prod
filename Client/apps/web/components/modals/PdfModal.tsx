@@ -31,6 +31,17 @@ const PdfModal: React.FC<PdfModalProps> = ({
   const { isSmDown } = useResponsive();
   const isMobile = isSmDown;
 
+  // Debug: Log when props change
+  useEffect(() => {
+    console.log("[PdfModal] Props updated", {
+      currentPdf: currentPdf ? `${currentPdf.substring(0, 50)}...` : null,
+      currentReportAddress,
+      reportId,
+      willRender: !!currentPdf,
+      timestamp: new Date().toISOString(),
+    });
+  }, [currentPdf, currentReportAddress, reportId]);
+
   // Monitor network requests to diagnose PDF loading issues
   useEffect(() => {
     if (!currentPdf || !reportId) return;

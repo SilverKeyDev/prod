@@ -1,5 +1,5 @@
 import BaseModal from "./BaseModal";
-import { SchedulingModal as SchedulingModalContent } from "../../features/scheduling";
+import { SchedulingModal as SchedulingModalContent } from "../../features/dashboard/calendar/scheduling";
 
 interface SchedulingModalProps {
   isOpen: boolean;

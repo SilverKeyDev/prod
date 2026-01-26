@@ -3,7 +3,7 @@ from ...services.auth.current_user import get_current_user, SecurityException
 from ...utils.common_patterns import require_authenticated_user
 from ...utils.security import rate_limit
 from jose.exceptions import JWTError, ExpiredSignatureError
-from ...models import PDFDocument
+from ...models import Document
 from ... import db
 import os
 from sqlalchemy import or_
@@ -30,11 +30,11 @@ def list_reports():
             return jsonify({'error': 'User not found', 'success': False}), 404
 
         # Get generating and processed reports from database
-        generating_reports = PDFDocument.query.filter(
-            PDFDocument.user_id == user.id,
+        generating_reports = Document.query.filter(
+            Document.user_id == user.id,
             or_(
-                PDFDocument.status == 'generating',
-                PDFDocument.status == 'error'
+                Document.status == 'generating',
+                Document.status == 'error'
             )
         ).all()
         
@@ -65,9 +65,9 @@ def list_reports():
                 continue
 
             # Try to find the corresponding database record to get the proper UUID
-            db_report = PDFDocument.query.filter(
-                PDFDocument.user_id == user.id,
-                PDFDocument.file_path == s3_key
+            db_report = Document.query.filter(
+                Document.user_id == user.id,
+                Document.file_path == s3_key
             ).first()
             
             # Use database ID if found, otherwise fall back to filename (for legacy reports)
@@ -112,7 +112,7 @@ def list_reports():
 def get_download_url(user, report_id):
     """Generate a fresh presigned URL for downloading a specific report."""
     try:
-        report = PDFDocument.query.filter_by(id=report_id, user_id=user.id).first()
+        report = Document.query.filter_by(id=report_id, user_id=user.id).first()
         if not report or not report.file_path:
             return jsonify({'error': 'Report not found'}), 404
 
@@ -138,7 +138,7 @@ def get_download_url(user, report_id):
 def get_view_url(user, report_id):
     """Generate a fresh presigned URL for viewing a specific report inline in browser."""
     try:
-        report = PDFDocument.query.filter_by(id=report_id, user_id=user.id).first()
+        report = Document.query.filter_by(id=report_id, user_id=user.id).first()
         if not report or not report.file_path:
             return jsonify({'error': 'Report not found'}), 404
 
@@ -159,7 +159,7 @@ def get_view_url(user, report_id):
 def view_pdf_inline(user, report_id):
     """Serve PDF with iframe-friendly headers for inline viewing."""
     try:
-        report = PDFDocument.query.filter_by(id=report_id, user_id=user.id).first()
+        report = Document.query.filter_by(id=report_id, user_id=user.id).first()
         if not report or not report.file_path:
             return jsonify({'error': 'Report not found'}), 404
 
@@ -206,7 +206,7 @@ def delete_report(user, report_id):
             s3_deleted = deletion_result['pdf_deleted'] or deletion_result['json_deleted']
         
         # Delete from database
-        pdf_doc = PDFDocument.query.get(report_id)
+        pdf_doc = Document.query.get(report_id)
         if not pdf_doc or pdf_doc.user_id != user.id:
             return jsonify({'error': 'Report not found'}), 404
         
@@ -231,7 +231,7 @@ def delete_report(user, report_id):
 def get_user_documents(user):
     """Get all documents for the authenticated user."""
     try:
-        documents = PDFDocument.query.filter_by(user_id=user.id).all()
+        documents = Document.query.filter_by(user_id=user.id).all()
         
         documents_data = [{
             'id': doc.id,
@@ -241,8 +241,8 @@ def get_user_documents(user):
             'created_at': doc.created_at.isoformat() if doc.created_at else None,
             'updated_at': doc.updated_at.isoformat() if doc.updated_at else None,
             'user_id': doc.user_id,
-            'report_type': getattr(doc, 'report_type', None),
-            'address': getattr(doc, 'primary_address', None),
+            'document_type': getattr(doc, 'document_type', None),
+            'address': getattr(doc, 'address', None),
         } for doc in documents]
                 
         return jsonify({

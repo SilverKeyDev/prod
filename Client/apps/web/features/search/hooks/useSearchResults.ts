@@ -4,7 +4,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 
-import type { SearchResult } from "../../../../../packages/schemas/search";
+import type { SearchResult } from "../../../../../packages/schemas";
 import { useFiltersStore } from "../../../../../packages/store/filters.slice";
 import { useUserStore } from "../../../../../packages/store/user.slice";
 import { createGuardedSetter } from "../../../../../packages/utils/array";

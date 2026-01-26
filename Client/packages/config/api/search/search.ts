@@ -4,6 +4,10 @@ import {
   buildApiUrl,
 } from "../../../services/http/compatibility";
 import { log, LOG_CATEGORIES } from "../../../../logger";
+import type {
+  SearchByPolygonRequest,
+  SearchByPolygonResponse,
+} from "../../schemas/api";
 
 // Types for search API
 export type PropertyCompsRequest = {
@@ -18,38 +22,9 @@ export type PropertyCompsResponse = {
   error?: string;
 };
 
-export type PolygonSearchRequest = {
-  // user_preferences is now optional - backend pulls from database
-  user_preferences?: {
-    home_budget_min?: number;
-    home_budget_max?: number;
-    preferred_bedrooms?: number;
-    preferred_bathrooms?: number;
-    preferred_housing_type?: string;
-    preferred_home_age?: string;
-    preferred_lot_size?: string;
-    preferred_home_features?: string[];
-    deal_breakers?: string[];
-    important_locations?: Array<{
-      name: string;
-      address: string;
-      commute_tolerance: number;
-      lat: number | null;
-      lng: number | null;
-    }>;
-  };
-  perBucketPages?: number;
-  onlyCached?: boolean; // Only return cached results, don't perform search if cache is invalid
-  forceSearch?: boolean; // Force new search, ignore cache (for search button)
-};
-
-export type PolygonSearchResponse = {
-  success: boolean;
-  properties?: unknown[];
-  total_count?: number;
-  has_more?: boolean;
-  error?: string;
-};
+// Re-export for convenience
+export type PolygonSearchRequest = SearchByPolygonRequest;
+export type PolygonSearchResponse = SearchByPolygonResponse;
 
 export type IsochroneResponse = {
   success: boolean;

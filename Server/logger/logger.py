@@ -34,6 +34,7 @@ class LoggerConfig:
         self.api: bool = config_dict.get("api", True)
         self.errors: bool = config_dict.get("errors", True)
         self.security: bool = config_dict.get("security", True)
+        self.docusign: bool = config_dict.get("docusign", True)
         self.logLevel: LogLevel = config_dict.get("logLevel", "DEBUG")
     
     def to_dict(self) -> Dict[str, Any]:
@@ -47,6 +48,7 @@ class LoggerConfig:
             "api": self.api,
             "errors": self.errors,
             "security": self.security,
+            "docusign": self.docusign,
             "logLevel": self.logLevel,
         }
     
@@ -118,6 +120,7 @@ class Logger:
             "api": True,
             "errors": True,
             "security": True,
+            "docusign": True,
             "logLevel": "DEBUG",
         }
         

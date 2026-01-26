@@ -1,5 +1,6 @@
 import React from "react";
 
+import { Title, BodyText } from "../../components/ui";
 import RippleBackground from "../../features/homeauth/RippleBackground";
 
 const MaintenanceScreen: React.FC = () => (
@@ -12,14 +13,14 @@ const MaintenanceScreen: React.FC = () => (
       <div className="relative z-10 w-full max-w-xs text-center sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
         <div className="rounded-lg bg-white p-6 shadow-lg sm:rounded-xl sm:p-8 md:p-10 lg:p-12">
           <div className="mb-4 flex items-center justify-center gap-2 sm:mb-6 sm:gap-3">
-            <h1 className="font-serif text-2xl font-black leading-tight text-olive sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
+            <Title size="xl" as="h1" className="text-olive">
               We'll be back soon!
-            </h1>
+            </Title>
           </div>
-          <p className="text-xs leading-relaxed text-gray-600 sm:text-sm md:text-base">
+          <BodyText size="sm" muted>
             SilverKey is undergoing scheduled maintenance, please check back in
             a few minutes.
-          </p>
+          </BodyText>
         </div>
       </div>
     </main>

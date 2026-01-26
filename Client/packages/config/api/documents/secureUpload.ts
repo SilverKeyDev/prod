@@ -3,13 +3,23 @@ import { apiUpload, apiRequest } from "../../../services/http/compatibility";
 // Types for secure upload API
 export type UploadResponse = {
   success: boolean;
+  message?: string;
+  error?: string;
+  // Backend returns document nested in response
+  document?: {
+    id: string;
+    filename: string;
+    size: number;
+    type: string;
+    hash?: string;
+    uploaded_at?: string;
+  };
+  // Legacy fields for backward compatibility
   file_id?: string;
   file_url?: string;
   filename?: string;
   file_size?: number;
   content_type?: string;
-  message?: string;
-  error?: string;
 };
 
 /**
@@ -18,15 +28,17 @@ export type UploadResponse = {
 export const secureUploadApi = {
   /**
    * Upload a document file
+   * @param file - The file to upload
+   * @param address - Optional address associated with the document
    */
   uploadDocument: (
     file: File,
-    metadata?: Record<string, unknown>,
+    address?: string,
   ): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("file", file);
-    if (metadata) {
-      formData.append("metadata", JSON.stringify(metadata));
+    if (address) {
+      formData.append("address", address);
     }
     return apiUpload<UploadResponse>("/api/v1/upload/document", formData);
   },

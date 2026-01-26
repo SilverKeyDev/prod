@@ -79,9 +79,12 @@ export const userApi = {
 
   /**
    * Get user's favorite homes
+   * @param clientId - Optional client ID for agents to view client's saved homes
    */
-  getFavoriteHomes: (): Promise<FavoriteHomesResponse> =>
-    apiGet<FavoriteHomesResponse>("/api/v1/user/favorite-homes"),
+  getFavoriteHomes: (clientId?: string): Promise<FavoriteHomesResponse> => {
+    const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
+    return apiGet<FavoriteHomesResponse>(`/api/v1/user/favorite-homes${params}`);
+  },
 
   /**
    * Add a home to favorites

@@ -6,8 +6,7 @@ from typing import Dict, List, Any
 import logging
 
 from .batch_scoring import (
-    get_embedding_scores_batch,
-    get_llm_scores_batch
+    get_embedding_scores_batch
 )
 
 logger = logging.getLogger(__name__)
@@ -15,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 def calculate_score_correlations(
     embedding_scores: List[float],
-    llm_scores: List[float],
     ensemble_scores: List[float]
 ) -> Dict[str, float]:
     """Calculate correlations between different scoring methods."""
@@ -24,13 +22,10 @@ def calculate_score_correlations(
         
         # Convert to numpy arrays
         emb_arr = np.array(embedding_scores)
-        llm_arr = np.array(llm_scores)
         ens_arr = np.array(ensemble_scores)
         
         # Calculate correlations
-        correlations['embedding_vs_llm'] = float(np.corrcoef(emb_arr, llm_arr)[0, 1])
         correlations['embedding_vs_ensemble'] = float(np.corrcoef(emb_arr, ens_arr)[0, 1])
-        correlations['llm_vs_ensemble'] = float(np.corrcoef(llm_arr, ens_arr)[0, 1])
         
         # Handle NaN values (when all scores are the same)
         for key, value in correlations.items():
@@ -65,26 +60,21 @@ def compare_scoring_methods(
     user_data: Dict[str, Any],
     homes_data: List[Dict[str, Any]],
     embedding_scorer,
-    llm_scorer,
-    blend_scores_func,
-    method_weights: Dict[str, float]
+    blend_scores_func
 ) -> Dict[str, Any]:
     """Compare how different scoring methods rank the same homes."""
     try:
         if not homes_data:
             return {'error': 'No homes provided'}
         
-        # Get scores from all methods
+        # Get scores from embedding method
         embedding_scores = get_embedding_scores_batch(embedding_scorer, user_data, homes_data)
-        llm_scores = get_llm_scores_batch(llm_scorer, user_data, homes_data)
         
-        # Calculate ensemble scores
+        # Calculate ensemble scores (scaled to 0-100)
         ensemble_scores = []
         for i in range(len(homes_data)):
             emb_score = embedding_scores[i] if i < len(embedding_scores) else 0.0
-            llm_score = llm_scores[i] if i < len(llm_scores) else 0.0
-            
-            ensemble_score = blend_scores_func(emb_score, llm_score)
+            ensemble_score = blend_scores_func(emb_score)
             ensemble_scores.append(ensemble_score)
         
         # Create comparison data
@@ -93,27 +83,24 @@ def compare_scoring_methods(
             comparison_data.append({
                 'home_id': home_data.get('home_id', f'home_{i}'),
                 'embedding_score': embedding_scores[i] if i < len(embedding_scores) else 0.0,
-                'llm_score': llm_scores[i] if i < len(llm_scores) else 0.0,
                 'ensemble_score': ensemble_scores[i]
             })
         
         # Calculate correlations
         correlations = calculate_score_correlations(
-            embedding_scores, llm_scores, ensemble_scores
+            embedding_scores, ensemble_scores
         )
         
         # Rank by each method
         rankings = {
             'embedding': rank_by_scores(comparison_data, 'embedding_score'),
-            'llm': rank_by_scores(comparison_data, 'llm_score'),
             'ensemble': rank_by_scores(comparison_data, 'ensemble_score')
         }
         
         return {
             'comparison_data': comparison_data,
             'correlations': correlations,
-            'rankings': rankings,
-            'method_weights': method_weights
+            'rankings': rankings
         }
         
     except Exception as e:

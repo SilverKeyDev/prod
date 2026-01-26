@@ -1,7 +1,7 @@
 import { Mail, ArrowLeft } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { KeyTurnLoader, MiniLogo, Input } from "../../components/ui";
+import { Button, Title, BodyText, KeyTurnLoader, MiniLogo, Input } from "../../components/ui";
 import { authApi } from "../../../../packages/config/api";
 import Card from "../../components/layout/Card";
 
@@ -304,31 +304,32 @@ export default function VerificationPage() {
         <Card className="space-y-responsive-md">
           {/* Back Button - Hidden when coming from signup */}
           {!isFromSignup && (
-            <button
+            <Button
               onClick={handleBack}
-              className="space-y-responsive-md flex items-center text-black/60 transition-colors hover:text-black"
+              variant="ghost"
+              icon={<ArrowLeft className="mobile-icon-sm" />}
+              iconPosition="left"
             >
-              <ArrowLeft className="mobile-icon-sm mr-1" />
               Back
-            </button>
+            </Button>
           )}
 
           {/* Header */}
           <div className="text-center">
-            <h2 className="text-responsive-xl space-y-responsive-xs gap-responsive-xs flex items-center justify-center font-serif text-black mb-4">
+            <Title size="lg" as="h2" className="mb-4 flex items-center justify-center gap-2">
               <MiniLogo size="md" />
               {activeStep === "email"
                 ? "Verify your email"
                 : "Enter verification code"}
-            </h2>
+            </Title>
           </div>
 
           {/* Instructions */}
-          <p className="text-responsive-sm font-light text-black/60 text-center mb-4">
+          <BodyText size="sm" muted className="text-center mb-4">
             {activeStep === "email"
               ? "We'll send you a code to verify your email"
               : `Enter the 6-digit code sent to ${email}`}
-          </p>
+          </BodyText>
 
           {/* Warning Message - shown when redirected from login */}
           {isFromLogin && !error && (
@@ -369,17 +370,16 @@ export default function VerificationPage() {
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
+                variant="olive"
+                size="md"
+                fullWidth
+                loading={loading}
                 disabled={loading}
-                className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? (
-                  <KeyTurnLoader message="Sending..." />
-                ) : (
-                  "Send verification code"
-                )}
-              </button>
+                Send verification code
+              </Button>
             </form>
           )}
 
@@ -395,47 +395,31 @@ export default function VerificationPage() {
 
               <div className="text-responsive-sm text-center text-black/60">
                 Didn't receive a code?{" "}
-                <button
+                <Button
                   type="button"
                   onClick={handleResendCode}
+                  variant="ghost"
+                  size="sm"
                   disabled={!canResend || loading}
-                  className={`${
-                    canResend ? "text-gold hover:text-gold/80" : "text-black/40"
-                  } font-medium transition-colors`}
+                  loading={loading}
+                  className={canResend ? "text-gold hover:text-gold/80" : "text-black/40"}
                 >
-                  {loading ? (
-                    <div className="flex items-center">
-                      <div className="mr-1">
-                        <KeyTurnLoader message="" />
-                      </div>
-                      Sending...
-                    </div>
-                  ) : canResend ? (
-                    "Resend code"
-                  ) : (
-                    `Resend in ${countdown}s`
-                  )}
-                </button>
+                  {loading ? "Sending..." : canResend ? "Resend code" : `Resend in ${countdown}s`}
+                </Button>
               </div>
 
               <div className="flex justify-center mt-6">
-                <button
+                <Button
                   type="button"
                   onClick={handleVerify}
-                  disabled={loading ?? code.join("").length !== 6}
-                  className="btn-primary w-72 disabled:cursor-not-allowed disabled:opacity-50"
+                  variant="olive"
+                  size="md"
+                  loading={loading}
+                  disabled={loading || code.join("").length !== 6}
+                  className="w-72"
                 >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="mr-2">
-                        <KeyTurnLoader message="" />
-                      </div>
-                      Verifying...
-                    </div>
-                  ) : (
-                    "Verify"
-                  )}
-                </button>
+                  Verify
+                </Button>
               </div>
             </form>
           )}

@@ -11,6 +11,8 @@ export * from "./chat";
 
 // Document types
 export * from "./documents/documents";
+export * from "./documents/types";
+export * from "./documents/docusign";
 
 // Offer types
 export * from "./offers";

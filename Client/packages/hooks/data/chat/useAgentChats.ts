@@ -15,7 +15,7 @@ export type UseAgentChatsReturn = {
   isLoading: boolean;
   error: string | null;
   refreshChats: () => Promise<void>;
-  sendMessage: (conversationId: string, message: string, clientId?: string, sharedHomeId?: string) => Promise<void>;
+  sendMessage: (conversationId: string, message: string, clientId?: string, sharedHomeId?: string, sharedDocumentId?: string) => Promise<void>;
   getChatHistory: (
     conversationId: string
   ) => Promise<{ messages: AgentChatMessage[]; conversation?: AgentConversation }>;
@@ -107,13 +107,37 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       message,
       clientId,
       sharedHomeId,
+      sharedDocumentId,
     }: {
       conversationId: string;
       message: string;
       clientId?: string;
       sharedHomeId?: string;
+      sharedDocumentId?: string;
     }) => {
-      const response = await agentApi.sendMessage(conversationId, message, clientId, sharedHomeId);
+      // Import log here to avoid circular dependencies
+      const { log, LOG_CATEGORIES } = await import("../../../../logger");
+      
+      log.debug(LOG_CATEGORIES.MESSAGES, "sendMessageMutation called", {
+        conversationId,
+        messageLength: message.length,
+        hasClientId: !!clientId,
+        hasSharedHomeId: !!sharedHomeId,
+        hasSharedDocumentId: !!sharedDocumentId,
+        clientId,
+        sharedHomeId,
+        sharedDocumentId,
+      });
+
+      const response = await agentApi.sendMessage(conversationId, message, clientId, sharedHomeId, sharedDocumentId);
+      
+      log.debug(LOG_CATEGORIES.MESSAGES, "sendMessage API response", {
+        success: response.success,
+        hasError: !!response.error,
+        error: response.error,
+        message_id: response.message_id,
+      });
+
       if (!response.success) {
         throw new Error(response.error ?? "Failed to send message");
       }
@@ -152,8 +176,8 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
   }, [refetchChats]);
 
   const sendMessage = useCallback(
-    async (conversationId: string, message: string, clientId?: string, sharedHomeId?: string) => {
-      await sendMessageMutation.mutateAsync({ conversationId, message, clientId, sharedHomeId });
+    async (conversationId: string, message: string, clientId?: string, sharedHomeId?: string, sharedDocumentId?: string) => {
+      await sendMessageMutation.mutateAsync({ conversationId, message, clientId, sharedHomeId, sharedDocumentId });
     },
     [sendMessageMutation]
   );

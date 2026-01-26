@@ -2,6 +2,7 @@
 Secure file upload route with enhanced validation and virus scanning.
 """
 from flask import Blueprint, request, jsonify, current_app
+import uuid
 
 from ...utils.common_patterns import require_authenticated_user
 from ...utils.security.file_security import validate_file_upload, FileSecurityError, create_secure_upload_directory, get_file_hash
@@ -80,17 +81,26 @@ def upload_document(user):
                 })
         
         # Store file metadata in database
-        from ...models import PDFDocument
+        from ...models import Document
         
-        document = PDFDocument(
+        # Generate UUID for document ID
+        document_id = str(uuid.uuid4())
+        
+        # Use S3 URL if available, otherwise use temp file path
+        # Note: file_path is required, so we store the S3 URL there if S3 is used
+        final_file_path = s3_url if s3_url else temp_file_path
+        
+        # Get optional address from form data
+        address = request.form.get('address') or None
+        
+        document = Document(
+            id=document_id,
             user_id=user.id,
             filename=safe_filename,
-            original_filename=file.filename,
-            file_path=temp_file_path if not s3_url else None,
-            s3_url=s3_url,
+            file_path=final_file_path,
             file_size=os.path.getsize(temp_file_path),
-            mime_type=validated_mime_type,
-            file_hash=file_hash
+            status='uploaded',
+            address=address
         )
         
         db.session.add(document)

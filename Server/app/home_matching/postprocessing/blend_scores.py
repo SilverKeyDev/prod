@@ -1,41 +1,29 @@
 """
-Ensemble blending logic to combine scores from embedding and LLM methods.
+Ensemble scoring logic using embedding-based methods.
 """
 from typing import Dict, List, Any, Optional
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from ..config.settings import EMBEDDING_WEIGHT, LLM_WEIGHT, DEFAULT_TOP_K
+from ..config.settings import DEFAULT_TOP_K
 from ..embeddings.scorer import EmbeddingScorer
-from ..llm_scorer.scorer import LLMScorer
 
 from .batch_scoring import score_home_batch
 from .comparison import compare_scoring_methods
 from .stats import get_ensemble_stats
-from .weight_service import weight_service
 
 logger = logging.getLogger(__name__)
 
 
 class EnsembleScorer:
     """
-    Combines scores from embedding and LLM models using weighted averaging.
-    
-    Supports both static weights (explicitly provided or from config) and learned
-    weights (trained per-user or per-cohort based on interaction history).
+    Scoring system using embedding-based methods.
     
     Args:
-        embedding_weight: Weight for embedding scores (0-1). If None, uses learned
-            weights or default from config.
-        llm_weight: Weight for LLM scores (0-1). If None, uses learned weights or
-            default from config.
         embedding_provider: Provider for embedding model (default: "sentence_transformer")
         embedding_model: Specific embedding model name (optional)
-        llm_provider: Provider for LLM model (default: "openai")
-        llm_model: Specific LLM model name (optional)
-        user_id: User ID for loading learned weights (optional)
-        use_learned_weights: Whether to use learned weights if available (default: True)
+        user_id: User ID for tracking (optional)
     
     Example:
         >>> ensemble = EnsembleScorer(user_id="user_123")
@@ -45,86 +33,39 @@ class EnsembleScorer:
     
     def __init__(
         self,
-        embedding_weight: float = None,
-        llm_weight: float = None,
         embedding_provider: str = "sentence_transformer",
         embedding_model: str = None,
-        llm_provider: str = "openai",
-        llm_model: str = None,
-        user_id: Optional[str] = None,
-        use_learned_weights: bool = True
+        user_id: Optional[str] = None
     ):
-        # Try to load learned weights if user_id provided
         self.user_id = user_id
-        learned_weights = None
         
-        if user_id and use_learned_weights:
-            try:
-                learned_weights = weight_service.get_or_compute_weights(user_id)
-                if learned_weights:
-                    logger.info(f"Using learned weights for user {user_id}: "
-                               f"embedding={learned_weights['embedding_weight']:.3f}, "
-                               f"llm={learned_weights['llm_weight']:.3f}")
-            except Exception as e:
-                logger.warning(f"Failed to load learned weights for user {user_id}: {e}")
-        
-        # Set weights (learned weights take precedence, then explicit params, then defaults)
-        if learned_weights:
-            self.embedding_weight = learned_weights['embedding_weight']
-            self.llm_weight = learned_weights['llm_weight']
-        elif embedding_weight is not None or llm_weight is not None:
-            self.embedding_weight = embedding_weight or EMBEDDING_WEIGHT
-            self.llm_weight = llm_weight or LLM_WEIGHT
-        else:
-            self.embedding_weight = EMBEDDING_WEIGHT
-            self.llm_weight = LLM_WEIGHT
-        
-        # Normalize weights to sum to 1
-        total_weight = self.embedding_weight + self.llm_weight
-        if total_weight != 1.0 and total_weight > 0:
-            self.embedding_weight /= total_weight
-            self.llm_weight /= total_weight
-            logger.info(f"Normalized weights - Embedding: {self.embedding_weight:.3f}, LLM: {self.llm_weight:.3f}")
-        
-        # Initialize scorers
+        # Initialize scorer
         self.embedding_scorer = EmbeddingScorer(embedding_provider, embedding_model)
-        self.llm_scorer = LLMScorer(llm_provider, llm_model)
         
         # Store provider/model info for tracking
         self.embedding_provider = embedding_provider
         self.embedding_model = embedding_model
-        self.llm_provider = llm_provider
-        self.llm_model = llm_model
         
         # Performance tracking
         self.score_history = []
     
     def blend_scores(
         self,
-        embedding_score: float,
-        llm_score: float
+        embedding_score: float
     ) -> float:
-        """Blend scores using weighted average and post-process to 0-100 scale."""
+        """Scale embedding score to 0-100 scale."""
         try:
-            # Ensure scores are in [0, 1] range
+            # Ensure score is in [0, 1] range
             embedding_score = max(0.0, min(1.0, embedding_score))
-            llm_score = max(0.0, min(1.0, llm_score))
             
-            # Calculate weighted contributions
-            embedding_contribution = self.embedding_weight * embedding_score
-            llm_contribution = self.llm_weight * llm_score
-            
-            # Calculate final weighted average (0-1 range)
-            final_score = embedding_contribution + llm_contribution
-            
-            # Post-process: scale to 0-100 and round to exactly one decimal place
-            scaled_score = final_score * 100.0
+            # Scale to 0-100 and round to exactly one decimal place
+            scaled_score = embedding_score * 100.0
             rounded_score = round(scaled_score, 1)
             
             return float(rounded_score)
             
         except Exception as e:
-            logger.error(f"Error blending scores: {e}")
+            logger.error(f"Error scaling score: {e}")
             return 0.0
     
     def score_user_home_pair(
@@ -140,18 +81,14 @@ class EnsembleScorer:
         session_id: Optional[str] = None,
         track_to_db: bool = True
     ) -> Dict[str, Any]:
-        """Score a single user-home pair using embedding and LLM methods."""
+        """Score a single user-home pair using embedding methods."""
         start_time = time.time()
         try:
             result = {
                 'user_id': user_data.get('user_id', 'unknown'),
                 'home_id': home_data.get('home_id', 'unknown'),
                 'scores': {},
-                'final_score': 0.0,
-                'method_weights': {
-                    'embedding': self.embedding_weight,
-                    'llm': self.llm_weight
-                }
+                'final_score': 0.0
             }
             
             # Get embedding score
@@ -164,27 +101,8 @@ class EnsembleScorer:
                 result['errors'] = result.get('errors', {})
                 result['errors']['embedding'] = str(e)
             
-            # Get LLM score
-            try:
-                if include_explanations:
-                    llm_result = self.llm_scorer.llm_score_with_explanation(user_data, home_data)
-                    llm_score = llm_result.get('score', 0.0)
-                    result['llm_explanation'] = llm_result
-                else:
-                    llm_score = self.llm_scorer.llm_score(user_data, home_data)
-                
-                result['scores']['llm'] = llm_score
-            except Exception as e:
-                logger.error(f"LLM scoring failed: {e}")
-                result['scores']['llm'] = 0.0
-                result['errors'] = result.get('errors', {})
-                result['errors']['llm'] = str(e)
-            
-            # Blend scores
-            final_score = self.blend_scores(
-                result['scores']['embedding'],
-                result['scores']['llm']
-            )
+            # Scale score to 0-100
+            final_score = self.blend_scores(result['scores']['embedding'])
             result['final_score'] = final_score
             
             # Calculate latency
@@ -198,7 +116,6 @@ class EnsembleScorer:
                         user_id=result['user_id'],
                         home_id=result['home_id'],
                         embedding_score=result['scores'].get('embedding'),
-                        llm_score=result['scores'].get('llm'),
                         final_score=final_score,
                         rank_position=rank_position,
                         candidate_set_size=candidate_set_size,
@@ -213,7 +130,6 @@ class EnsembleScorer:
             # Track performance
             self.score_history.append({
                 'embedding': result['scores']['embedding'],
-                'llm': result['scores']['llm'],
                 'final': final_score
             })
             
@@ -268,15 +184,11 @@ class EnsembleScorer:
                         batch_start_idx,
                         batch_homes,
                         self.embedding_scorer,
-                        self.llm_scorer,
                         self.blend_scores,
                         include_explanations,
                         request_id=request_id,
                         embedding_provider=self.embedding_provider,
                         embedding_model=self.embedding_model,
-                        llm_provider=self.llm_provider,
-                        llm_model=self.llm_model,
-                        weights={'embedding': self.embedding_weight, 'llm': self.llm_weight},
                         candidate_set_size=len(homes_data),
                         experiment_key=experiment_key,
                         experiment_variant=experiment_variant,
@@ -351,22 +263,13 @@ class EnsembleScorer:
             user_data,
             homes_data,
             self.embedding_scorer,
-            self.llm_scorer,
-            self.blend_scores,
-            {
-                'embedding': self.embedding_weight,
-                'llm': self.llm_weight
-            }
+            self.blend_scores
         )
     
     def get_ensemble_stats(self) -> Dict[str, Any]:
         """Get statistics about ensemble performance."""
         return get_ensemble_stats(
-            self.score_history,
-            {
-                'embedding': self.embedding_weight,
-                'llm': self.llm_weight
-            }
+            self.score_history
         )
     
     def _track_scoring_event(
@@ -375,7 +278,6 @@ class EnsembleScorer:
         user_id: str,
         home_id: str,
         embedding_score: Optional[float] = None,
-        llm_score: Optional[float] = None,
         final_score: float = 0.0,
         rank_position: Optional[int] = None,
         candidate_set_size: Optional[int] = None,
@@ -401,22 +303,19 @@ class EnsembleScorer:
                 model_info = model_loader.get_model_info(self.embedding_provider, self.embedding_model)
                 embedding_model_name = model_info.get('model_name', self.embedding_model)
             
-            # Get LLM model name
-            llm_model_name = self.llm_model or (self.llm_scorer.model if hasattr(self.llm_scorer, 'model') else None)
-            
             event = ScoringResultsTracker.create_from_scoring_result(
                 request_id=request_id,
                 user_id=user_id,
                 home_id=home_id,
                 embedding_score=embedding_score,
-                llm_score=llm_score,
+                llm_score=None,
                 final_score=final_score,
                 embedding_model=embedding_model_name,
                 embedding_provider=self.embedding_provider,
-                llm_model=llm_model_name,
-                llm_provider=self.llm_provider,
-                prompt_version=None,  # Could be extracted from prompt builder if needed
-                weights={'embedding': self.embedding_weight, 'llm': self.llm_weight},
+                llm_model=None,
+                llm_provider=None,
+                prompt_version=None,
+                weights=None,
                 rank_position=rank_position,
                 candidate_set_size=candidate_set_size,
                 latency_ms=latency_ms,
@@ -465,10 +364,10 @@ class EnsembleScorer:
 
 
 # Convenience functions
-def blend_scores(embedding_score: float, llm_score: float) -> float:
-    """Convenience function for blending scores with default weights."""
+def blend_scores(embedding_score: float) -> float:
+    """Convenience function for scaling embedding score to 0-100."""
     ensemble = EnsembleScorer()
-    return ensemble.blend_scores(embedding_score, llm_score)
+    return ensemble.blend_scores(embedding_score)
 
 
 def score_user_home_pair(user_data: Dict[str, Any], home_data: Dict[str, Any]) -> Dict[str, Any]:

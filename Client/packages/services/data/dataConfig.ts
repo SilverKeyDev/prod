@@ -1,9 +1,10 @@
 import { queryKeys } from "../../config/query/keys";
-import { agentApi, googleCalendarApi, preferencesApi, userApi } from "../../config/api";
+import { agentApi, googleCalendarApi, preferencesApi, userApi, searchApi } from "../../config/api";
 import { agentService } from "../agent/agent";
 import { apiGet } from "../http/compatibility";
 import type { UserProfile } from "../../schemas";
 import { calculateCalendarDateRange } from "../../utils/calendar/date";
+import { transformSearchResponse } from "../search/search";
 
 /**
  * Configuration for a data route
@@ -98,6 +99,58 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     },
     shouldPoll: true,
     pollingInterval: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    userType: "all",
+    initialLoad: true,
+  },
+
+  isochrone: {
+    key: "isochrone",
+    queryKey: () => queryKeys.search.isochrone(),
+    queryFn: async () => {
+      const response = await searchApi.getIsochrone();
+      if (!response.success || !response.data) {
+        throw new Error(response.error ?? "Failed to fetch isochrone data");
+      }
+      // Transform API response to match IsochroneData schema (lon -> lng)
+      return {
+        ...response.data,
+        center: {
+          lat: response.data.center.lat,
+          lng: response.data.center.lon,
+        },
+      };
+    },
+    shouldPoll: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    userType: "all",
+    initialLoad: true,
+  },
+
+  searchResults: {
+    key: "searchResults",
+    queryKey: () => queryKeys.search.results(),
+    queryFn: async () => {
+      // Fetch cached search results on initial load
+      // Backend handles cache validation and returns cached or empty results
+      try {
+        const response = await searchApi.searchByPolygon({
+          perBucketPages: 20,
+          onlyCached: true, // Only fetch cached results on initial load
+        });
+
+        if (!response.success) {
+          return [];
+        }
+
+        // Transform API response to SearchResult format
+        return transformSearchResponse(response);
+      } catch (error) {
+        // Silently fail - return empty array
+        return [];
+      }
+    },
+    shouldPoll: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     userType: "all",
     initialLoad: true,

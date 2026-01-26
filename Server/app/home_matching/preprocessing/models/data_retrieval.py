@@ -8,7 +8,6 @@ functions in user_input_data.py and home_input_data.py.
 from typing import Dict, Any, Optional
 
 from .embedding_input import EmbeddingUserInput, EmbeddingHomeInput
-from .llm_input import LLMUserInput, LLMHomeInput
 
 
 class UserDataRetriever:
@@ -72,18 +71,6 @@ class UserDataRetriever:
         """
         return EmbeddingUserInput.from_dict(user_data)
     
-    @staticmethod
-    def to_llm_input(user_data: Dict[str, Any]) -> LLMUserInput:
-        """
-        Convert user data dictionary to LLM input.
-        
-        Args:
-            user_data: User data dictionary
-        
-        Returns:
-            LLMUserInput instance
-        """
-        return LLMUserInput.from_dict(user_data)
 
 
 class HomeDataRetriever:
@@ -176,15 +163,3 @@ class HomeDataRetriever:
         """
         return EmbeddingHomeInput.from_dict(home_data)
     
-    @staticmethod
-    def to_llm_input(home_data: Dict[str, Any]) -> LLMHomeInput:
-        """
-        Convert home data dictionary to LLM input.
-        
-        Args:
-            home_data: Home data dictionary
-        
-        Returns:
-            LLMHomeInput instance
-        """
-        return LLMHomeInput.from_dict(home_data)

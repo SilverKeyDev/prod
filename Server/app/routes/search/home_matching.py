@@ -24,9 +24,7 @@ def find_matches():
         "homes_data": [...],
         "top_k": 10,
         "include_explanations": false,
-        "method_weights": {"embedding": 0.4, "tabular": 0.4, "llm": 0.2},
-        "embedding_provider": "sentence_transformer",
-        "llm_provider": "openai"
+        "embedding_provider": "sentence_transformer"
     }
     
     Returns:
@@ -64,9 +62,7 @@ def find_matches():
         homes_data = data['homes_data']
         top_k = data.get('top_k', 10)
         include_explanations = data.get('include_explanations', False)
-        method_weights = data.get('method_weights')
         embedding_provider = data.get('embedding_provider', 'sentence_transformer')
-        llm_provider = data.get('llm_provider', 'openai')
         
         # Validate data types
         if not isinstance(homes_data, list):
@@ -97,9 +93,7 @@ def find_matches():
             homes_data=homes_data,
             top_k=top_k,
             include_explanations=include_explanations,
-            method_weights=method_weights,
-            embedding_provider=embedding_provider,
-            llm_provider=llm_provider
+            embedding_provider=embedding_provider
         )
                 
         return jsonify({

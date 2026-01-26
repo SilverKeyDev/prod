@@ -22,27 +22,6 @@ def get_embedding_scores_batch(
         return [0.0] * len(homes_data)
 
 
-def get_llm_scores_batch(
-    llm_scorer,
-    user_data: Dict[str, Any],
-    homes_data: List[Dict[str, Any]],
-    include_explanations: bool = False
-) -> List[Union[float, Dict[str, Any]]]:
-    """Get LLM scores for multiple homes."""
-    try:
-        if include_explanations:
-            # Get detailed explanations (slower)
-            scored_results = llm_scorer.score_user_against_homes(user_data, homes_data)
-            return [explanation for _, _, explanation in scored_results]
-        else:
-            # Get just scores (faster)
-            return llm_scorer.batch_score_homes(user_data, homes_data)
-    except Exception as e:
-        logger.error(f"Batch LLM scoring failed: {e}")
-        if include_explanations:
-            return [{'score': 0.0, 'error': str(e)}] * len(homes_data)
-        else:
-            return [0.0] * len(homes_data)
 
 
 def score_home_batch(
@@ -50,15 +29,11 @@ def score_home_batch(
     batch_start_idx: int,
     batch_homes: List[Dict[str, Any]],
     embedding_scorer,
-    llm_scorer,
     blend_scores_func,
     include_explanations: bool = False,
     request_id: Optional[str] = None,
     embedding_provider: Optional[str] = None,
     embedding_model: Optional[str] = None,
-    llm_provider: Optional[str] = None,
-    llm_model: Optional[str] = None,
-    weights: Optional[Dict[str, float]] = None,
     candidate_set_size: Optional[int] = None,
     experiment_key: Optional[str] = None,
     experiment_variant: Optional[str] = None,
@@ -70,7 +45,6 @@ def score_home_batch(
     try:
         # Get scores for this batch using existing batch methods
         embedding_scores = get_embedding_scores_batch(embedding_scorer, user_data, batch_homes)
-        llm_scores = get_llm_scores_batch(llm_scorer, user_data, batch_homes, include_explanations)
         
         # Combine scores for each home in the batch
         batch_results = []
@@ -80,15 +54,8 @@ def score_home_batch(
                 original_idx = batch_start_idx + i
                 embedding_score = embedding_scores[i] if i < len(embedding_scores) else 0.0
                 
-                if include_explanations and isinstance(llm_scores[i], dict):
-                    llm_score = llm_scores[i].get('score', 0.0)
-                    llm_explanation = llm_scores[i]
-                else:
-                    llm_score = llm_scores[i] if i < len(llm_scores) else 0.0
-                    llm_explanation = None
-                
-                # Blend scores
-                final_score = blend_scores_func(embedding_score, llm_score)
+                # Scale score to 0-100
+                final_score = blend_scores_func(embedding_score)
                 
                 # Calculate latency for this home
                 latency_ms = int((time.time() - home_start_time) * 1000)
@@ -100,15 +67,11 @@ def score_home_batch(
                     'home_data': home_data,
                     'home_id': home_id,
                     'scores': {
-                        'embedding': embedding_score,
-                        'llm': llm_score
+                        'embedding': embedding_score
                     },
                     'final_score': final_score,
                     'rank': 0  # Will be set after sorting
                 }
-                
-                if llm_explanation:
-                    result['llm_explanation'] = llm_explanation
                 
                 # Track to database if requested
                 # Only track if home_id is valid (not None and not empty)
@@ -119,13 +82,9 @@ def score_home_batch(
                             user_id=user_data.get('user_id', 'unknown'),
                             home_id=home_id,
                             embedding_score=embedding_score,
-                            llm_score=llm_score,
                             final_score=final_score,
                             embedding_provider=embedding_provider,
                             embedding_model=embedding_model,
-                            llm_provider=llm_provider,
-                            llm_model=llm_model,
-                            weights=weights,
                             candidate_set_size=candidate_set_size,
                             latency_ms=latency_ms,
                             experiment_key=experiment_key,
@@ -171,13 +130,9 @@ def _track_batch_scoring_event(
     user_id: str,
     home_id: str,
     embedding_score: float,
-    llm_score: float,
     final_score: float,
     embedding_provider: Optional[str] = None,
     embedding_model: Optional[str] = None,
-    llm_provider: Optional[str] = None,
-    llm_model: Optional[str] = None,
-    weights: Optional[Dict[str, float]] = None,
     candidate_set_size: Optional[int] = None,
     latency_ms: Optional[int] = None,
     experiment_key: Optional[str] = None,
@@ -203,9 +158,9 @@ def _track_batch_scoring_event(
             app_context.push()
             try:
                 _track_batch_scoring_event_internal(
-                    request_id, user_id, home_id, embedding_score, llm_score,
-                    final_score, embedding_provider, embedding_model, llm_provider,
-                    llm_model, weights, candidate_set_size, latency_ms,
+                    request_id, user_id, home_id, embedding_score,
+                    final_score, embedding_provider, embedding_model,
+                    candidate_set_size, latency_ms,
                     experiment_key, experiment_variant, session_id
                 )
             finally:
@@ -213,9 +168,9 @@ def _track_batch_scoring_event(
         else:
             # We already have an app context, use it directly
             _track_batch_scoring_event_internal(
-                request_id, user_id, home_id, embedding_score, llm_score,
-                final_score, embedding_provider, embedding_model, llm_provider,
-                llm_model, weights, candidate_set_size, latency_ms,
+                request_id, user_id, home_id, embedding_score,
+                final_score, embedding_provider, embedding_model,
+                candidate_set_size, latency_ms,
                 experiment_key, experiment_variant, session_id
             )
         
@@ -236,13 +191,9 @@ def _track_batch_scoring_event_internal(
     user_id: str,
     home_id: str,
     embedding_score: float,
-    llm_score: float,
     final_score: float,
     embedding_provider: Optional[str] = None,
     embedding_model: Optional[str] = None,
-    llm_provider: Optional[str] = None,
-    llm_model: Optional[str] = None,
-    weights: Optional[Dict[str, float]] = None,
     candidate_set_size: Optional[int] = None,
     latency_ms: Optional[int] = None,
     experiment_key: Optional[str] = None,
@@ -273,14 +224,14 @@ def _track_batch_scoring_event_internal(
         user_id=user_id,
         home_id=home_id,
         embedding_score=embedding_score,
-        llm_score=llm_score,
+        llm_score=None,
         final_score=final_score,
         embedding_model=embedding_model_name,
         embedding_provider=embedding_provider,
-        llm_model=llm_model,
-        llm_provider=llm_provider,
+        llm_model=None,
+        llm_provider=None,
         prompt_version=None,
-        weights=weights,
+        weights=None,
         rank_position=None,  # Will be updated after sorting
         candidate_set_size=candidate_set_size,
         latency_ms=latency_ms,

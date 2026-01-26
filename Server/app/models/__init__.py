@@ -4,7 +4,16 @@ from ..extensions import db
 from .auth import User, UserPreferences, OAuthState, GoogleOAuthToken
 from .property import HomeUniversal, HomeLikes, HomeNotInterested, Search, ScoringResultsTracker, UserScoreWeights
 from .agent import AgentConnections, AgentConnectionRequest, ChatHistory, Todo
-from .documents import PDFDocument
+from .documents import (
+    Document,
+    Agreement,
+    AgreementRevision,
+    AgreementParticipant,
+    AgreementEvent,
+    DocusignConnectEvent,
+    DocusignTemplate,
+    DocusignOAuthToken
+)
 from .calendar import CalendarEvent, CalendarShare
 
 # Initialize database
@@ -13,7 +22,14 @@ def init_db():
 
 __all__ = [
     'User', 
-    'PDFDocument', 
+    'Document',
+    'Agreement',
+    'AgreementRevision',
+    'AgreementParticipant',
+    'AgreementEvent',
+    'DocusignConnectEvent',
+    'DocusignTemplate',
+    'DocusignOAuthToken',
     'UserPreferences', 
     'HomeUniversal', 
     'HomeLikes', 

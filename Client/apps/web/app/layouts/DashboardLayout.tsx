@@ -130,6 +130,20 @@ export default function DashboardLayout({
   const [closePageHeaderData, setClosePageHeaderData] =
     useState<ClosePageHeaderData | null>(null);
 
+  // Clear mobile header actions when navigating to pages that don't use them
+  React.useEffect(() => {
+    if (isBuyerChecklists || isDashboard || isMessagingRoute) {
+      setMobileHeaderActions(null);
+    }
+  }, [isBuyerChecklists, isDashboard, isMessagingRoute]);
+
+  // Clear close page header data when navigating away from BuyerChecklists
+  React.useEffect(() => {
+    if (!isBuyerChecklists) {
+      setClosePageHeaderData(null);
+    }
+  }, [isBuyerChecklists]);
+
   // Search functionality
   const searchPageRef = React.useRef<{
     triggerSearch: () => Promise<void>;

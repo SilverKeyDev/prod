@@ -5,6 +5,7 @@ export { agentApi } from "./agent/agent";
 export { authApi } from "./auth/auth";
 export { chatbotApi } from "./chat/chatbot";
 export { dashboardApi } from "./dashboard";
+export { docusignApi } from "./documents/docusign";
 export { googleCalendarApi } from "./calendar/googleCalendar";
 export { mapsApi } from "./maps";
 export { offerApi } from "./offer";
@@ -64,10 +65,36 @@ export type {
   ChatHistoryResponse,
 } from "./chat/chatbot";
 export type {
-  PDFDocument,
+  Document as DashboardDocument,
   DashboardResponse,
   ReportsResponse,
 } from "./dashboard";
+export type {
+  Agreement,
+  AgreementRevision,
+  AgreementParticipant,
+  AgreementEvent,
+  DocusignTemplate,
+  AgreementStatus,
+  AgreementType,
+  ParticipantRole,
+  SigningMethod,
+  ParticipantStatus,
+  CreateAgreementRequest,
+  CreateAgreementResponse,
+  GetAgreementResponse,
+  ListAgreementsResponse,
+  CreateRevisionResponse,
+  SendAgreementRequest,
+  SendAgreementResponse,
+  VoidAgreementRequest,
+  VoidAgreementResponse,
+  GetSigningUrlRequest,
+  GetSigningUrlResponse,
+  ListTemplatesResponse,
+  SyncTemplatesResponse,
+  OAuthStartResponse,
+} from "./documents/docusign";
 export type {
   GoogleCalendar,
   GoogleEvent,

@@ -5,15 +5,15 @@ import {
   BarChart2,
   Lightbulb,
   FolderLock,
-  X,
   Lock,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import KeyLogo from "/logo.png?url";
 import type { AutocompleteSuggestion } from "../../../../packages/schemas/google-maps";
 import { asError } from "../../../../packages/utils/error";
+import { Button, CloseButton, Title, BodyText } from "../../components/ui";
 import RippleBackground from "../../features/homeauth/RippleBackground";
 
 type Suggestion = {
@@ -29,6 +29,7 @@ declare global {
 }
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [address] = useState("");
   const [, setSuggestions] = useState<Suggestion[]>([]);
@@ -147,19 +148,21 @@ export default function HomePage() {
         <div className="relative z-10 mx-auto flex w-full max-w-[85%] flex-col items-center">
           <div className="mx-auto w-full max-w-3xl text-center">
             <div className="rounded-lg bg-white p-6 shadow-lg sm:p-8">
-              <h1 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl lg:text-5xl">
+              <Title size="xl" as="h1" className="mb-4">
                 Discover a New Way to Buy
-              </h1>
-              <p className="mb-6 text-lg text-gray-600 sm:text-xl">
+              </Title>
+              <BodyText size="lg" className="mb-6">
                 Onboard, Search, Decide, Negotiate, Close
-              </p>
+              </BodyText>
               <div className="mt-4 sm:mt-8">
-                <button
+                <Button
                   onClick={() => setShowAuthModal(true)}
-                  className="py-responsive-sm px-responsive-lg text-responsive-sm touch-friendly w-1/2 rounded-lg bg-olive font-semibold text-white transition hover:bg-olive-light"
+                  variant="olive"
+                  size="md"
+                  className="w-1/2"
                 >
                   Start Now
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -197,12 +200,12 @@ export default function HomePage() {
                 className="touch-friendly flex cursor-pointer flex-col items-center rounded-xl bg-white p-4 text-center shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-5"
               >
                 <div className="mb-2">{f.icon}</div>
-                <h3 className="text-responsive-md mb-3 w-[87%] font-semibold text-black">
+                <Title size="md" as="h3" className="mb-3 w-[87%]">
                   {f.title}
-                </h3>
-                <p className="w-[87%] text-xs text-gray-600 sm:text-sm">
+                </Title>
+                <BodyText size="sm" muted className="w-[87%]">
                   {f.description}
-                </p>
+                </BodyText>
               </div>
             ))}
           </div>
@@ -240,26 +243,34 @@ export default function HomePage() {
                 <Lock className="mobile-icon-sm text-gray-600" />
                 Account Required
               </div>
-              <button onClick={() => setShowAuthModal(false)}>
-                <X className="mobile-icon-sm text-black" />
-              </button>
+              <CloseButton onClick={() => setShowAuthModal(false)} />
             </div>
-            <p className="space-y-responsive-md text-responsive-sm mb-4 text-center text-gray-600">
+            <BodyText size="sm" muted className="mb-4 text-center">
               Please log in or create an account to generate a report.
-            </p>
+            </BodyText>
             <div className="flex gap-2 sm:gap-3">
-              <Link
-                to="/login"
-                className="text-responsive-sm touch-friendly flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-center transition-colors hover:underline sm:px-4 sm:py-3 md:px-5"
+              <Button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  navigate("/login");
+                }}
+                variant="outline"
+                size="md"
+                fullWidth
               >
                 Login
-              </Link>
-              <Link
-                to="/signup"
-                className="text-responsive-sm touch-friendly flex-1 rounded-lg bg-gold py-2.5 text-center text-white transition-colors hover:bg-gold/90 sm:py-3"
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  navigate("/signup");
+                }}
+                variant="primary"
+                size="md"
+                fullWidth
               >
                 Sign Up
-              </Link>
+              </Button>
             </div>
           </div>
         </div>

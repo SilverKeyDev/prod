@@ -67,8 +67,17 @@ def create_app(config=None):
 
     # Initialize database within app context
     with app.app_context():
-        from .models import User, PDFDocument, HomeUniversal, ChatHistory
+        from .models import User, Document, HomeUniversal, ChatHistory
         db.create_all()
+        
+        # Validate SQLAlchemy mapper configuration at startup (fail fast)
+        try:
+            from sqlalchemy.orm import configure_mappers
+            configure_mappers()
+            logger.info(LOG_CATEGORIES["API"], "SQLAlchemy mappers configured successfully")
+        except Exception as mapper_error:
+            logger.error(LOG_CATEGORIES["ERRORS"], f"SQLAlchemy mapper configuration failed: {mapper_error}")
+            raise RuntimeError(f"Database model configuration error: {mapper_error}") from mapper_error
 
     # CORS Configuration with runtime origins list
     raw = os.getenv("CORS_ALLOWED_ORIGINS", "")
@@ -124,7 +133,6 @@ def create_app(config=None):
     flask_env = os.getenv('FLASK_ENV', 'development')
 
     # Register blueprints
-    from .routes.dashboard import dashboard_bp
     from .routes.auth.auth import auth_bp
     from .routes.auth.user import user_bp
     from .routes.auth.preferences import preferences_bp
@@ -138,7 +146,6 @@ def create_app(config=None):
     from .routes.agent.agent import agent_bp
     from .routes.documents.report import report_bp
 
-    app.register_blueprint(dashboard_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(preferences_bp)
@@ -151,6 +158,15 @@ def create_app(config=None):
     app.register_blueprint(google_calendar_bp)
     app.register_blueprint(agent_bp)
     app.register_blueprint(report_bp)
+    
+    # Try to register DocuSign routes (optional dependency)
+    try:
+        from .routes.documents.docusign import docusign_bp, webhook_bp
+        app.register_blueprint(docusign_bp)
+        app.register_blueprint(webhook_bp)
+        app.logger.info("DocuSign routes registered successfully")
+    except ImportError as e:
+        app.logger.warning(f"DocuSign routes not available: {e}")
 
     # ---------- Static asset routes (Vite build) ----------
     # Serve /assets/* out of the Vite dist directory with correct MIME types.

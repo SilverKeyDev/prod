@@ -215,6 +215,7 @@ def get_authenticated_user() -> Tuple[Optional[Any], Optional[Tuple]]:
         Tuple of (user_object, error_response_tuple)
         If error_response_tuple is not None, return it as HTTP response.
     """
+    from app.services.auth.current_user import SecurityException
     try:
         user = get_current_user()
         if not user:
@@ -223,17 +224,9 @@ def get_authenticated_user() -> Tuple[Optional[Any], Optional[Tuple]]:
                 "error": "USER_NOT_FOUND",
                 "message": "User not found"
             }), 404)
-    except tuple as error_tuple:
-        # Handle SecurityError tuples
-        if len(error_tuple) == 3:
-            return None, security_error_response(error_tuple)
-        else:
-            current_app.logger.error(f"❌ Invalid SecurityError tuple: {error_tuple}")
-            return None, (jsonify({
-                "success": False,
-                "error": "AUTH_ERROR",
-                "message": "Authentication failed"
-            }), 401)
+    except SecurityException as se:
+        # Handle SecurityException (wraps SecurityError tuples)
+        return None, security_error_response(se.error_tuple)
     except Exception as auth_error:
         current_app.logger.error(f"❌ Authentication error: {str(auth_error)}")
         return None, (jsonify({

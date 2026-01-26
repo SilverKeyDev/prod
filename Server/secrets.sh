@@ -9,7 +9,7 @@
 #     (a) flat JSON object -> expands to KEY=VALUE lines
 #     (b) dotenv text -> KEY=VALUE lines (even if \n-escaped in SecretString)
 #     (c) scalar -> falls back to SECRET_NAME=<value>
-# - Rewrites ./.env (backs up to .env.bak-YYYYmmdd-HHMMSS)
+# - Rewrites ./.env
 
 set -eu
 
@@ -26,6 +26,7 @@ perplexity
 plaid
 serp
 rapidapi
+docusign
 "
 
 REGION="${1:-${AWS_REGION:-us-east-2}}"
@@ -40,7 +41,7 @@ have_cmd() { command -v "$1" >/dev/null 2>&1; }
 # jq JSON -> KEY=VALUE lines (flat object)
 json_to_env_lines() {
   if have_cmd jq; then
-    jq -r 'if type=="object" then to_entries[]|"\(.key)=\(.value|tostring)" else empty end'
+    jq -r 'if type=="object" then to_entries[]|"\(.key)=\"\(.value|tostring)\"" else empty end'
   else
     python3 - <<'PY'
 import sys,json
@@ -50,7 +51,7 @@ except Exception:
     sys.exit(0)
 if isinstance(obj, dict):
     for k,v in obj.items():
-        print(f"{k}={v}")
+        print(f'{k}="{v}"')
 PY
   fi
 }
@@ -148,27 +149,31 @@ for SECRET_ID in $DEFAULT_SECRETS; do
   elif looks_like_dotenv "$payload"; then
     {
       echo "# From secret: $SECRET_ID (dotenv)"
-      # Normalize: remove blank lines and comments-only lines
-      printf '%s\n' "$payload" | awk 'NF && $0 !~ /^[[:space:]]*#/'
+      # Normalize: remove blank lines and comments-only lines, then quote values
+      printf '%s\n' "$payload" | awk 'NF && $0 !~ /^[[:space:]]*#/ {
+        if (match($0, /^([^=]+)=(.*)$/, arr)) {
+          key = arr[1]
+          val = arr[2]
+          # Remove existing quotes if present
+          gsub(/^["'\'']|["'\'']$/, "", val)
+          print key "=\"" val "\""
+        } else {
+          print
+        }
+      }'
       echo
     } >> "$tmp_env"
   else
     key="$(printf '%s' "$SECRET_ID" | tr ' ' '_' )"
     {
       echo "# From secret: $SECRET_ID (scalar)"
-      echo "${key}=${payload}"
+      echo "${key}=\"${payload}\""
       echo
     } >> "$tmp_env"
   fi
 done
 
-# ---- rewrite .env with backup ----
-if [ -f ".env" ]; then
-  ts="$(date +"%Y%m%d-%H%M%S")"
-  cp .env ".env.bak-$ts"
-  log "Backed up existing .env to .env.bak-$ts"
-fi
-
+# ---- rewrite .env ----
 mv "$tmp_env" .env
 chmod 600 .env || true
 log "Wrote fresh .env."

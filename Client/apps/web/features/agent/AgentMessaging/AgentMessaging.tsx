@@ -5,6 +5,8 @@ import { useMessageScroll } from "../../../../../packages/hooks/ui/useMessageScr
 import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
 import { ClientSearchModal } from "../modals";
 import SelectHomeModal from "../modals/SelectHomeModal";
+import SelectDocumentModal from "../modals/SelectDocumentModal";
+import SelectAgreementModal from "../modals/SelectAgreementModal";
 import CalendarEventRequestModal from "../modals/CalendarEventRequestModal";
 import UnifiedMessagingSidebar from "../components/UnifiedMessagingSidebar";
 import UnifiedMessagesList from "../components/UnifiedMessagesList";
@@ -13,6 +15,7 @@ import UnifiedMessagingHeader from "../ClientMessaging/UnifiedMessagingHeader";
 import { getMessagingConfig } from "../config/messagingConfig";
 import type { AgentClient } from "../../../../../packages/config/api";
 import type { SavedHome } from "../../../../../packages/schemas/property";
+import type { DocumentData } from "../../../components/cards/documents/DocumentCard";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 type AgentMessagingProps = {
@@ -51,6 +54,8 @@ export default function AgentMessaging({
   const [showInbox, setShowInbox] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showSelectHomeModal, setShowSelectHomeModal] = useState(false);
+  const [showSelectDocumentModal, setShowSelectDocumentModal] = useState(false);
+  const [showSelectAgreementModal, setShowSelectAgreementModal] = useState(false);
   const [showCalendarEventModal, setShowCalendarEventModal] = useState(false);
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
@@ -85,7 +90,7 @@ export default function AgentMessaging({
 
       const conversationId = activeConversationId || "new";
       const propertyId = home.home_id || home.address || "";
-      const message = `Check out ${home.address || "this property"}!`;
+      const message = "";
 
       try {
         await sendMessageWithAttachment(
@@ -100,6 +105,52 @@ export default function AgentMessaging({
       }
     },
     [selectedClientId, activeConversationId, sendMessageWithAttachment]
+  );
+
+  // Handle document selection from attachment menu
+  const handleSelectDocument = useCallback(
+    async (document: DocumentData) => {
+      if (!selectedClientId) return;
+
+      const conversationId = activeConversationId || "new";
+      const documentId = document.id;
+      const message = "";
+
+      try {
+        await sendMessageWithAttachment(
+          conversationId,
+          message,
+          selectedClientId,
+          undefined,
+          documentId
+        );
+        setShowSelectDocumentModal(false);
+      } catch (error) {
+        log.error(LOG_CATEGORIES.MESSAGES, "Error sharing document", error);
+      }
+    },
+    [selectedClientId, activeConversationId, sendMessageWithAttachment]
+  );
+
+  // Handle agreement selection from attachment menu
+  const handleSelectAgreement = useCallback(
+    async (agreement: any) => {
+      if (!selectedClientId) return;
+
+      const conversationId = activeConversationId || "new";
+      const agreementId = agreement.id;
+      const message = "";
+
+      try {
+        // TODO: Update sendMessageWithAttachment to support agreement_id
+        // For now, we'll send a text message with agreement info
+        await sendMessageApi(`Shared agreement: ${agreement.title}`);
+        setShowSelectAgreementModal(false);
+      } catch (error) {
+        log.error(LOG_CATEGORIES.MESSAGES, "Error sharing agreement", error);
+      }
+    },
+    [selectedClientId, activeConversationId, sendMessageApi]
   );
 
   // Handle calendar event request
@@ -171,6 +222,8 @@ export default function AgentMessaging({
               disabled={!selectedClientId}
               selectedClientName={selectedClient?.name}
               onAttachmentHome={() => setShowSelectHomeModal(true)}
+              onAttachmentDocument={() => setShowSelectDocumentModal(true)}
+              onAttachmentAgreement={() => setShowSelectAgreementModal(true)}
               onAttachmentCalendar={() => setShowCalendarEventModal(true)}
             />
           </div>
@@ -188,6 +241,21 @@ export default function AgentMessaging({
         isOpen={showSelectHomeModal}
         onClose={() => setShowSelectHomeModal(false)}
         onSelect={handleSelectHome}
+      />
+
+      {/* Select Document Modal */}
+      <SelectDocumentModal
+        isOpen={showSelectDocumentModal}
+        onClose={() => setShowSelectDocumentModal(false)}
+        onSelect={handleSelectDocument}
+      />
+
+      {/* Select Agreement Modal */}
+      <SelectAgreementModal
+        isOpen={showSelectAgreementModal}
+        onClose={() => setShowSelectAgreementModal(false)}
+        onSelect={handleSelectAgreement}
+        clientId={selectedClientId ?? undefined}
       />
 
       {/* Calendar Event Request Modal */}

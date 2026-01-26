@@ -66,6 +66,8 @@ export type PropertyCardProps = {
   onUndoNotInterested?: () => Promise<void>;
   /** Whether to show not interested button (only in results tab) */
   showNotInterested?: boolean;
+  /** Card width override */
+  width?: "auto" | "full" | "standard" | "wide" | "narrow";
 };
 
 function PropertyCardImpl(props: PropertyCardProps) {
@@ -97,6 +99,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
     onSelectNotInterestedReason,
     onUndoNotInterested,
     showNotInterested = false,
+    width,
   } = props;
 
   const [showReasonCard, setShowReasonCard] = useState(false);
@@ -176,6 +179,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
       loading={loading}
       padding="none"
       cardType={cardType}
+      width={width}
       className={className}
       onClick={showReasonCard ? undefined : onClick}
     >

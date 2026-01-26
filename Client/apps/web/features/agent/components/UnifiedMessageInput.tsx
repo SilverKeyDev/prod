@@ -14,6 +14,8 @@ type UnifiedMessageInputProps = {
   selectedClientName?: string;
   onAttachmentHome?: () => void;
   onAttachmentCalendar?: () => void;
+  onAttachmentDocument?: () => void;
+  onAttachmentAgreement?: () => void;
 };
 
 export default function UnifiedMessageInput({
@@ -27,6 +29,8 @@ export default function UnifiedMessageInput({
   selectedClientName,
   onAttachmentHome,
   onAttachmentCalendar,
+  onAttachmentDocument,
+  onAttachmentAgreement,
 }: UnifiedMessageInputProps) {
   const config = getMessagingConfig(mode);
   const finalPlaceholder =
@@ -39,10 +43,12 @@ export default function UnifiedMessageInput({
     <div className="flex-shrink-0 border-t border-beige bg-white p-4">
       <div className="flex items-center gap-3">
         {/* Attachment button */}
-        {(onAttachmentHome || onAttachmentCalendar) && (
+        {(onAttachmentHome || onAttachmentCalendar || onAttachmentDocument || onAttachmentAgreement) && (
           <AttachmentMenu
             onSelectHome={onAttachmentHome || (() => {})}
             onSelectCalendar={onAttachmentCalendar || (() => {})}
+            onSelectDocument={onAttachmentDocument}
+            onSelectAgreement={onAttachmentAgreement}
             disabled={isTyping || disabled}
           />
         )}

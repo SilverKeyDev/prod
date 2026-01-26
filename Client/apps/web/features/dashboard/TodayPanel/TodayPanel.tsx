@@ -1,5 +1,6 @@
 import React from "react";
 import TodoList from "./TodoList";
+import DocuSignWidget from "../widgets/DocuSignWidget";
 import { useAgentTodos } from "../../../../../packages/hooks/data/agent/useAgentTodos";
 import { useIsAgent } from "../../../../../packages/hooks/store/auth/useIsAgent";
 import type {
@@ -64,18 +65,26 @@ const TodayPanel: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-      {/* Todo List - Left */}
-      <div className="md:col-span-1">
-        <TodoList
-          todos={todos}
-          onToggleComplete={handleToggleTodo}
-          onAddTodo={handleAddTodo}
-          onUpdatePriority={handleUpdatePriority}
-          canEdit={isAgent}
-        />
+    <div className="space-y-6 mb-6 sm:mb-8">
+      {/* Top Row - Todos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="md:col-span-2">
+          <TodoList
+            todos={todos}
+            onToggleComplete={handleToggleTodo}
+            onAddTodo={handleAddTodo}
+            onUpdatePriority={handleUpdatePriority}
+            canEdit={isAgent}
+          />
+        </div>
       </div>
 
+      {/* DocuSign Widget - Only show for agents */}
+      {isAgent && (
+        <div>
+          <DocuSignWidget />
+        </div>
+      )}
     </div>
   );
 };

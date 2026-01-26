@@ -246,14 +246,16 @@ export function apiUpload<T = unknown>(
   options: Omit<ApiRequestOptions, "method" | "body"> = {},
 ): Promise<T> {
   const plain = toPlainHeaderObject(options.headers);
-  // Ensure browser sets proper multipart boundary
+  // Ensure browser sets proper multipart boundary - remove Content-Type completely
   delete plain["Content-Type"];
+  delete plain["content-type"];
 
   return apiRequest<T>(endpoint, {
     ...options,
     method: "POST",
     headers: plain,
     body: formData,
+    // Don't stringify FormData - pass it directly
   });
 }
 

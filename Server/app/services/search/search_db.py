@@ -521,10 +521,7 @@ def is_search_cache_valid(user_id: str) -> Tuple[bool, Optional[List[Dict[str, A
         
         # Both conditions met - cache is valid
         cached_results = get_cached_search_results(user_id)
-        current_app.logger.info(
-            f"[CACHE] ✅ Cache valid for user {user_id}. "
-            f"Returning {len(cached_results)} cached results"
-        )
+        
         return True, cached_results
         
     except Exception as e:

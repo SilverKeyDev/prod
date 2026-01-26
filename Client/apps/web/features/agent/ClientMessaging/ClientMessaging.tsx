@@ -6,12 +6,14 @@ import { useMessageScroll } from "../../../../../packages/hooks/ui/useMessageScr
 import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
 import { ClientSearchModal } from "../modals";
 import SelectHomeModal from "../modals/SelectHomeModal";
+import SelectDocumentModal from "../modals/SelectDocumentModal";
 import CalendarEventRequestModal from "../modals/CalendarEventRequestModal";
 import UnifiedMessagingSidebar from "../components/UnifiedMessagingSidebar";
 import UnifiedMessagesList from "../components/UnifiedMessagesList";
 import UnifiedMessageInput from "../components/UnifiedMessageInput";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
 import type { SavedHome } from "../../../../../packages/schemas/property";
+import type { DocumentData } from "../../../components/cards/documents/DocumentCard";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export default function ClientMessaging() {
@@ -59,6 +61,7 @@ export default function ClientMessaging() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showInbox, setShowInbox] = useState(false);
   const [showSelectHomeModal, setShowSelectHomeModal] = useState(false);
+  const [showSelectDocumentModal, setShowSelectDocumentModal] = useState(false);
   const [showCalendarEventModal, setShowCalendarEventModal] = useState(false);
 
   // Default: sidebar NOT extended (collapsed) on both mobile and desktop
@@ -93,13 +96,57 @@ export default function ClientMessaging() {
 
       const conversationId = activeConversationId || "new";
       const propertyId = home.home_id || home.address || "";
-      const message = `Check out ${home.address || "this property"}!`;
+      const message = "";
 
       try {
         await sendMessageWithAttachment(conversationId, message, undefined, propertyId);
         setShowSelectHomeModal(false);
       } catch (error) {
         log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
+      }
+    },
+    [activeConversationId, agentId, sendMessageWithAttachment]
+  );
+
+  // Handle document selection from attachment menu
+  const handleSelectDocument = useCallback(
+    async (document: DocumentData) => {
+      if (!activeConversationId && !agentId) {
+        log.error(LOG_CATEGORIES.MESSAGES, "Cannot share document: missing conversation or agent", {
+          hasActiveConversationId: !!activeConversationId,
+          hasAgentId: !!agentId,
+        });
+        return;
+      }
+
+      const conversationId = activeConversationId || "new";
+      const documentId = document.id;
+      const message = "";
+
+      log.debug(LOG_CATEGORIES.MESSAGES, "Sharing document", {
+        conversationId,
+        documentId,
+        document: {
+          id: document.id,
+          address: document.address,
+          filename: document.filename,
+          document_type: document.document_type,
+        },
+        agentId,
+        activeConversationId,
+      });
+
+      try {
+        await sendMessageWithAttachment(conversationId, message, undefined, undefined, documentId);
+        log.info(LOG_CATEGORIES.MESSAGES, "Document shared successfully", { documentId, conversationId });
+        setShowSelectDocumentModal(false);
+      } catch (error) {
+        log.error(LOG_CATEGORIES.MESSAGES, "Error sharing document", {
+          error,
+          documentId,
+          conversationId,
+          agentId,
+        });
       }
     },
     [activeConversationId, agentId, sendMessageWithAttachment]
@@ -166,6 +213,7 @@ export default function ClientMessaging() {
               isTyping={isTyping}
               onSendMessage={handleSendMessage}
               onAttachmentHome={() => setShowSelectHomeModal(true)}
+              onAttachmentDocument={() => setShowSelectDocumentModal(true)}
               onAttachmentCalendar={() => setShowCalendarEventModal(true)}
             />
           </div>
@@ -183,6 +231,13 @@ export default function ClientMessaging() {
         isOpen={showSelectHomeModal}
         onClose={() => setShowSelectHomeModal(false)}
         onSelect={handleSelectHome}
+      />
+
+      {/* Select Document Modal */}
+      <SelectDocumentModal
+        isOpen={showSelectDocumentModal}
+        onClose={() => setShowSelectDocumentModal(false)}
+        onSelect={handleSelectDocument}
       />
 
       {/* Calendar Event Request Modal */}

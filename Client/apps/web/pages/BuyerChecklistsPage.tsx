@@ -37,7 +37,9 @@ export default function BuyerChecklists({
   // Update the parent component's header data
   useEffect(() => {
     setClosePageHeaderData(closePageHeaderData);
-  }, [closePageHeaderData, setClosePageHeaderData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // setClosePageHeaderData is a setState function from useState and is stable by React's guarantee
+  }, [closePageHeaderData]);
 
   // Render the active tab content
   const renderTabContent = () => {

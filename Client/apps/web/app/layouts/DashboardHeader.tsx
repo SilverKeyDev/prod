@@ -30,7 +30,6 @@ type DashboardHeaderProps = {
 };
 
 const MOBILE_SIDE_PX = "px-4";
-const MOBILE_TOP_SPACER_CLASS = "transition-all duration-300 ease-in-out";
 
 export function DashboardHeader({
   isMobile,
@@ -92,13 +91,6 @@ export function DashboardHeader({
               </div>
             </MobileTopBar>
           </div>
-
-          {/* Spacer to keep content clear of the fixed MobileTopBar */}
-          <div
-            className={`${MOBILE_TOP_SPACER_CLASS} ${
-              isSaved && mobileHeaderActions !== null ? "h-16" : "h-24"
-            }`}
-          />
         </div>
       )}
 

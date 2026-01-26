@@ -69,9 +69,7 @@ class EmailFormatter:
         Currently not implemented - placeholder for future functionality.
         """
         try:
-            # Future: Import and initialize LLM client
-            # from app.home_matching.llm_scorer.llm_client import LLMClient
-            # self._llm_client = LLMClient()
+            # LLM client removed - using embedding-based scoring only
             logger.info("[EMAIL_FORMATTER] LLM client initialization deferred (not yet implemented)")
             pass
         except Exception as e:

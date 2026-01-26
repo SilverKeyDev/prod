@@ -241,6 +241,7 @@ def get_conversation_history(conversation_id: str, user_id: str = None) -> Dict:
                 'role': msg.role,
                 'message': msg.message,
                 'shared_home_id': msg.shared_home_id,
+                'shared_document_id': msg.shared_document_id,
                 'timestamp': timestamp_str,
                 'is_read': is_read,
                 'read_at': read_at,
@@ -257,7 +258,7 @@ def get_conversation_history(conversation_id: str, user_id: str = None) -> Dict:
         raise
 
 
-def send_message(conversation_id: str, sender_id: str, message: str, role: str, shared_home_id: Optional[str] = None) -> Dict:
+def send_message(conversation_id: str, sender_id: str, message: str, role: str, shared_home_id: Optional[str] = None, shared_document_id: Optional[str] = None) -> Dict:
     """
     Send a message in a conversation
     
@@ -267,6 +268,7 @@ def send_message(conversation_id: str, sender_id: str, message: str, role: str, 
         message: The message content
         role: The role of the sender ('user' for client, 'agent' for agent)
         shared_home_id: Optional ID of a shared home/property
+        shared_document_id: Optional ID of a shared document
         
     Returns:
         Dictionary with message_id
@@ -295,6 +297,7 @@ def send_message(conversation_id: str, sender_id: str, message: str, role: str, 
             role=role,
             message=message,
             shared_home_id=shared_home_id,
+            shared_document_id=shared_document_id,
             timestamp=datetime.now(timezone.utc)
         )
         

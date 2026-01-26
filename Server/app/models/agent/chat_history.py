@@ -13,6 +13,7 @@ class ChatHistory(db.Model):
     role = db.Column(db.String(10), nullable=False)  # 'user', 'assistant', or 'agent'
     message = db.Column(db.Text, nullable=False)
     shared_home_id = db.Column(db.String(255), nullable=True)  # ID of shared home/property (zpid, address, or home_id)
+    shared_document_id = db.Column(db.String(255), nullable=True)  # ID of shared document
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Read receipt fields

@@ -188,17 +188,37 @@ def send_message():
         conversation_id = data.get('conversation_id')
         message = data.get('message')
         shared_home_id = data.get('shared_home_id')  # Optional: ID of shared home
+        shared_document_id = data.get('shared_document_id')  # Optional: ID of shared document
+        
+        # Debug logging for troubleshooting
+        logger.info(f"[SEND_MESSAGE] Request data: conversation_id={conversation_id}, "
+                   f"message_length={len(message) if message else 0}, "
+                   f"has_shared_home={bool(shared_home_id)}, "
+                   f"has_shared_document={bool(shared_document_id)}, "
+                   f"user_id={user.id}, is_agent={user.is_agent}")
         
         if not conversation_id:
+            logger.warning("[SEND_MESSAGE] Missing conversation_id")
             return jsonify({
                 'success': False,
                 'error': 'conversation_id is required'
             }), 400
         
-        if not message or not isinstance(message, str):
+        # Validate message type and content
+        if message is None or not isinstance(message, str):
+            logger.warning(f"[SEND_MESSAGE] Invalid message type: {type(message)}")
             return jsonify({
                 'success': False,
-                'error': 'message is required and must be a string'
+                'error': 'message must be a string'
+            }), 400
+        
+        # Allow empty message only if there's an attachment
+        has_attachment = bool(shared_home_id or shared_document_id)
+        if not message.strip() and not has_attachment:
+            logger.warning("[SEND_MESSAGE] Empty message without attachment")
+            return jsonify({
+                'success': False,
+                'error': 'message cannot be empty unless sharing a home or document'
             }), 400
         
         # Determine role based on user type
@@ -279,7 +299,8 @@ def send_message():
             str(user.id),
             message,
             role,
-            shared_home_id=shared_home_id
+            shared_home_id=shared_home_id,
+            shared_document_id=shared_document_id
         )
         
         logger.info(f"Message sent successfully in conversation {conversation_id} by user {user.id}")

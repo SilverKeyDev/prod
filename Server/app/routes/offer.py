@@ -34,11 +34,12 @@ def generate_negotiation_strategy():
     """
     try:
         # Get current user with proper error handling
+        from app.services.auth.current_user import SecurityException
         try:
             user = get_current_user()
-        except tuple as error_tuple:
-            current_app.logger.error(f"🔐 [NEGOTIATION_STRATEGY] Authentication failed: {error_tuple}")
-            return SecureErrorHandler.security_error_response(error_tuple)
+        except SecurityException as se:
+            current_app.logger.error(f"🔐 [NEGOTIATION_STRATEGY] Authentication failed: {se.error_tuple}")
+            return SecureErrorHandler.security_error_response(se.error_tuple)
         except Exception as e:
             current_app.logger.error(f"🔐 [NEGOTIATION_STRATEGY] Unexpected auth error: {e}")
             return jsonify({'error': 'Authentication failed', 'success': False}), 401

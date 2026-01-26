@@ -36,6 +36,17 @@ MAX_FILE_SIZES = {
     'application/msword': 25 * 1024 * 1024  # 25MB for DOC
 }
 
+# Binary file types that should skip text-based pattern scanning
+# These files can contain byte sequences that match text patterns but aren't malicious
+BINARY_FILE_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/msword'
+]
+
 # Dangerous file patterns to reject
 DANGEROUS_PATTERNS = [
     rb'<script[^>]*>',  # JavaScript
@@ -112,19 +123,27 @@ def validate_file_content(file_path: str, expected_mime_type: str) -> bool:
         logger.error(f"File content validation failed: {str(e)}")
         raise FileSecurityError(f"Content validation failed: {str(e)}")
 
-def scan_for_malicious_patterns(file_path: str) -> bool:
+def scan_for_malicious_patterns(file_path: str, mime_type: str) -> bool:
     """
     Scan file for known malicious patterns.
     
+    Only scans text-based files. Binary files (PDFs, images, DOCX) are skipped
+    as they can contain byte sequences that match text patterns but aren't malicious.
+    
     Args:
         file_path: Path to file to scan
+        mime_type: MIME type of the file
         
     Returns:
-        True if file is clean
+        True if file is clean or skipped
         
     Raises:
-        FileSecurityError: If malicious patterns found
+        FileSecurityError: If malicious patterns found in text files
     """
+    # Skip pattern scanning for binary files
+    if mime_type in BINARY_FILE_TYPES:
+        return True
+    
     try:
         with open(file_path, 'rb') as f:
             content = f.read(1024 * 1024)  # Read first 1MB for pattern matching
@@ -244,8 +263,8 @@ def validate_file_upload(file: FileStorage, allowed_types: Optional[Dict[str, li
         # Content validation
         validate_file_content(temp_path, actual_mime_type)
         
-        # Malicious pattern scanning
-        scan_for_malicious_patterns(temp_path)
+        # Malicious pattern scanning (skips binary files)
+        scan_for_malicious_patterns(temp_path, actual_mime_type)
         
         # Virus scanning
         scan_with_clamav(temp_path)

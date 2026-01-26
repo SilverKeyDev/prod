@@ -11,7 +11,8 @@ export type IconButtonProps = {
     | "danger"
     | "success"
     | "warning"
-    | "info";
+    | "info"
+    | "olive";
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   loading?: boolean;
   icon: React.ReactNode;
@@ -72,6 +73,8 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       warning:
         "bg-gold-muted text-white hover:bg-gold-muted/90 focus:ring-gold-muted/20 disabled:bg-gold-muted/50 disabled:text-white/70",
       info: "bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500/20 disabled:bg-neutral-600/50 disabled:text-white/70",
+      olive:
+        "bg-olive text-white hover:bg-olive-light focus:ring-olive/20 disabled:bg-olive/50 disabled:text-white/70",
     };
 
     // Touch-friendly class for mobile

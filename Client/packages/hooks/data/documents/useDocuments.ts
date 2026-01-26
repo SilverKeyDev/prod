@@ -6,6 +6,7 @@ import { useFiltersQueryParams } from "../../../config/query/adapters";
 import { queryKeys } from "../../../config/query/keys";
 import type { Document } from "../../../schemas";
 import { documentService } from "../../../services";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 type UploadEntry = {
   id: string;
@@ -87,17 +88,20 @@ export const useDocuments = () => {
       category,
       propertyId,
       offerId,
+      address,
     }: {
       file: File;
       category: string;
       propertyId?: string;
       offerId?: string;
+      address?: string;
     }) => {
       const newDocument = await documentService.uploadDocument(
         file,
         category,
         propertyId,
         offerId,
+        address,
       );
       return newDocument;
     },
@@ -208,6 +212,7 @@ export const useDocuments = () => {
       category: string,
       propertyId?: string,
       offerId?: string,
+      address?: string,
     ): Promise<Document> => {
       // Create upload tracking entry
       const uploadId = `${Date.now()}-${file.name}`;
@@ -230,6 +235,7 @@ export const useDocuments = () => {
           category,
           propertyId,
           offerId,
+          address,
         });
 
         // Update upload status to completed

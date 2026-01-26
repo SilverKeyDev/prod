@@ -214,6 +214,8 @@ def _verify_minimal_token(token: str) -> User:
     """
     Verify a minimal token and return the associated user
     """
+    from sqlalchemy.exc import InvalidRequestError, SQLAlchemyError
+    
     # Verify minimal token
     claims = minimal_token_service.verify_minimal_token(token)
 
@@ -224,16 +226,25 @@ def _verify_minimal_token(token: str) -> User:
         raise SecurityException(SecurityError.INVALID_TOKEN)
 
     # Find user by ID (minimal tokens use database ID as sub)
-    user = User.query.filter_by(id=user_id).first()
-    if not user:
-        # Fallback: try to find by email
-        user_email = claims.get('email')
-        if user_email:
-            user = User.query.filter_by(email=user_email).first()
-            if user:
-                # Update user ID to match token (only if your schema supports this)
-                user.id = user_id
-                db.session.commit()
+    try:
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            # Fallback: try to find by email
+            user_email = claims.get('email')
+            if user_email:
+                user = User.query.filter_by(email=user_email).first()
+                if user:
+                    # Update user ID to match token (only if your schema supports this)
+                    user.id = user_id
+                    db.session.commit()
+    except InvalidRequestError as e:
+        # Mapper / configuration issue: this is a 500, not an auth error
+        logger.error(f"SQLAlchemy mapper init failed during auth: {e}")
+        raise  # Re-raise as 500 error, not auth error
+    except SQLAlchemyError as e:
+        # Other DB error during auth
+        logger.error(f"Database error during minimal token auth: {e}")
+        raise  # Re-raise as 500 error, not auth error
 
     if not user:
         log_security_event('auth_minimal_token_user_not_found', {'user_id': f"{str(user_id)[:8]}..."})
@@ -361,6 +372,7 @@ def get_current_user():
         raise SecurityException(SecurityError.INVALID_TOKEN)
 
     # -------- Cognito verification path (RS256) --------
+    from sqlalchemy.exc import InvalidRequestError, SQLAlchemyError
     try:
         current_app.logger.debug("Verifying as Cognito token...")
 
@@ -420,15 +432,24 @@ def get_current_user():
             log_security_event('auth_missing_sub')
             raise SecurityException(SecurityError.INVALID_TOKEN)
 
-        user = User.query.filter_by(cognito_id=sub).first()
-        if not user:
-            user_email = claims.get('email')
-            if user_email:
-                # Try to find by email, then link cognito_id
-                user = User.query.filter_by(email=user_email).first()
-                if user:
-                    user.cognito_id = sub
-                    db.session.commit()
+        try:
+            user = User.query.filter_by(cognito_id=sub).first()
+            if not user:
+                user_email = claims.get('email')
+                if user_email:
+                    # Try to find by email, then link cognito_id
+                    user = User.query.filter_by(email=user_email).first()
+                    if user:
+                        user.cognito_id = sub
+                        db.session.commit()
+        except InvalidRequestError as e:
+            # Mapper / configuration issue: this is a 500, not an auth error
+            current_app.logger.error(f"SQLAlchemy mapper init failed during Cognito auth: {e}")
+            raise  # Re-raise as 500 error, not auth error
+        except SQLAlchemyError as e:
+            # Other DB error during auth
+            current_app.logger.error(f"Database error during Cognito auth: {e}")
+            raise  # Re-raise as 500 error, not auth error
 
         if not user:
             log_security_event('auth_user_not_found', {'cognito_id': f"{sub[:8]}..."})

@@ -4,7 +4,7 @@ Preprocessing module for home matching system.
 This module provides functions to retrieve and format user and home data
 from various sources (database, API) for use in the home matching system.
 
-Includes typed model classes for embeddings and LLM scorers.
+Includes typed model classes for embeddings.
 """
 
 # Import existing functions for backward compatibility
@@ -32,9 +32,6 @@ from .models import (
     # Embedding models
     EmbeddingUserInput,
     EmbeddingHomeInput,
-    # LLM models
-    LLMUserInput,
-    LLMHomeInput,
     # Data retrieval
     UserDataRetriever,
     HomeDataRetriever,
@@ -58,8 +55,6 @@ __all__ = [
     'BaseInputModel',
     'EmbeddingUserInput',
     'EmbeddingHomeInput',
-    'LLMUserInput',
-    'LLMHomeInput',
     # Data retrieval
     'UserDataRetriever',
     'HomeDataRetriever',

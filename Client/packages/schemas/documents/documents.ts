@@ -14,6 +14,8 @@ export type Document = {
   is_signed?: boolean;
   expiry_date?: Date;
   status: "pending" | "approved" | "rejected" | "expired";
+  address?: string;
+  document_type?: string;
 };
 
 export type DocumentCategory = {

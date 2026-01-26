@@ -40,7 +40,6 @@ def score_and_sort_properties(
             top_k=len(homes_data),
             include_explanations=False,
             embedding_provider="sentence_transformer",
-            llm_provider="openai",
             request_id=request_id,
             track_to_db=True
         )

@@ -2,7 +2,7 @@ import { dashboardApi, secureUploadApi } from "../config/api";
 import type { Document, DocumentCategory } from "../schemas";
 import { isDocumentData } from "../utils/typeGuards";
 
-import { createAbortManager, isAbortError } from "./http";
+import { createAbortManager, isAbortError, HttpError } from "./http";
 import { log, LOG_CATEGORIES } from "../../logger";
 
 /* =========================
@@ -62,39 +62,65 @@ export class DocumentService {
     category: string,
     propertyId?: string,
     offerId?: string,
+    address?: string,
   ): Promise<Document> {
     try {
-      const metadata = {
-        category,
-        ...(propertyId && { property_id: propertyId }),
-        ...(offerId && { offer_id: offerId }),
-      };
+      // Upload file with optional address
+      const result = await secureUploadApi.uploadDocument(file, address);
 
-      const result = await secureUploadApi.uploadDocument(file, metadata);
-
-      if (result.success && result.file_id) {
+      // Backend returns: { success: true, document: { id, filename, size, type, hash, uploaded_at } }
+      if (result.success && result.document?.id) {
         const newDocument: Document = {
-          id: result.file_id ?? `doc-${Date.now()}`,
+          id: result.document.id,
           name: file.name,
-          file_path: result.file_url ?? "",
-          file_size: result.file_size ?? file.size,
-          file_type: result.content_type ?? file.type,
+          file_path: result.document.filename ?? "",
+          file_size: result.document.size ?? file.size,
+          file_type: result.document.type ?? file.type,
           category,
           property_id: propertyId,
           offer_id: offerId,
           uploaded_by: "", // Will be set by backend
-          uploaded_at: new Date(),
+          uploaded_at: result.document.uploaded_at
+            ? new Date(result.document.uploaded_at)
+            : new Date(),
           expiry_date: undefined,
           status: "pending",
         };
 
         return newDocument;
       } else {
-        throw new Error(result.error ?? "Upload failed");
+        throw new Error(result.error ?? result.message ?? "Upload failed");
       }
     } catch (error: unknown) {
       log.error(LOG_CATEGORIES.ERRORS, "Upload error", error);
-      throw error;
+
+      // Improved error message extraction
+      let errorMessage = "Upload failed";
+
+      if (error instanceof HttpError) {
+        // Try parsedBody first (already parsed JSON)
+        if (error.parsedBody && typeof error.parsedBody === "object") {
+          const body = error.parsedBody as { message?: string; error?: string };
+          errorMessage = body.message || body.error || errorMessage;
+        }
+        // Fall back to parsing bodyPreview
+        else if (error.bodyPreview) {
+          try {
+            const errorBody = JSON.parse(error.bodyPreview);
+            if (errorBody.message) {
+              errorMessage = errorBody.message;
+            } else if (errorBody.error) {
+              errorMessage = errorBody.error;
+            }
+          } catch {
+            // If parsing fails, use generic message
+          }
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
     }
   }
 

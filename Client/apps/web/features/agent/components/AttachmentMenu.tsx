@@ -1,15 +1,19 @@
-import { Calendar, Home, X } from "lucide-react";
+import { Calendar, Home, FileText, FileSignature, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 type AttachmentMenuProps = {
   onSelectHome: () => void;
   onSelectCalendar: () => void;
+  onSelectDocument?: () => void;
+  onSelectAgreement?: () => void;
   disabled?: boolean;
 };
 
 export default function AttachmentMenu({
   onSelectHome,
   onSelectCalendar,
+  onSelectDocument,
+  onSelectAgreement,
   disabled = false,
 }: AttachmentMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -46,6 +50,16 @@ export default function AttachmentMenu({
   const handleSelectCalendar = () => {
     setIsOpen(false);
     onSelectCalendar();
+  };
+
+  const handleSelectDocument = () => {
+    setIsOpen(false);
+    onSelectDocument?.();
+  };
+
+  const handleSelectAgreement = () => {
+    setIsOpen(false);
+    onSelectAgreement?.();
   };
 
   return (
@@ -86,6 +100,40 @@ export default function AttachmentMenu({
                 </div>
               </div>
             </button>
+
+            {onSelectDocument && (
+              <button
+                onClick={handleSelectDocument}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-beige/20">
+                  <FileText className="h-4 w-4 text-brown" />
+                </div>
+                <div>
+                  <div className="font-medium">Share Document</div>
+                  <div className="text-xs text-gray-500">
+                    Send a document
+                  </div>
+                </div>
+              </button>
+            )}
+
+            {onSelectAgreement && (
+              <button
+                onClick={handleSelectAgreement}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
+                  <FileSignature className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <div className="font-medium">Share Agreement</div>
+                  <div className="text-xs text-gray-500">
+                    Send a DocuSign agreement
+                  </div>
+                </div>
+              </button>
+            )}
 
             <button
               onClick={handleSelectCalendar}

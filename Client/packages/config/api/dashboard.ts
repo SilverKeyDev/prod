@@ -1,7 +1,7 @@
 import type { UserProfile, Document } from "../../schemas";
 import { apiGet, apiPost, apiDelete } from "../../services/http/compatibility";
 
-export type PDFDocument = {
+export type Document = {
   id: string;
   user_id: string;
   filename: string;
@@ -19,7 +19,7 @@ export type DashboardResponse = {
 
 export type ReportsResponse = {
   success: boolean;
-  documents: PDFDocument[];
+  documents: Document[];
 };
 
 export type DocumentsResponse = {

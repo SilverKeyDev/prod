@@ -74,8 +74,8 @@ def chat_for_address(report_id):
             # Continue with chat processing even if summary storage fails
 
         # Fetch the PDF document from the database to get the correct address and S3 path
-        from app.models import PDFDocument
-        pdf_doc = PDFDocument.query.filter_by(id=report_id, user_id=user_id).first()
+        from app.models import Document
+        pdf_doc = Document.query.filter_by(id=report_id, user_id=user_id).first()
 
         if not pdf_doc:
             logger.warning(f"[CHAT_ROUTE] PDF document not found for report_id: {report_id}, user_id: {user_id}")

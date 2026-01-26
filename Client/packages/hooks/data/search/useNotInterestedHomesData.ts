@@ -40,7 +40,7 @@ export const useNotInterestedHomesData = () => {
     isLoading: notInterestedHomesLoading,
     error: notInterestedHomesError,
     refetch: refetchNotInterestedHomes,
-  } = useQuery({
+  } = useQuery<SavedHome[], Error>({
     // Use exact query key format from dataConfig.ts (no spread)
     queryKey: queryKeys.homes.notInterested(),
     queryFn: async () => {

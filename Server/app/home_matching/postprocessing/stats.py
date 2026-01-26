@@ -9,8 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_ensemble_stats(
-    score_history: List[Dict[str, float]],
-    method_weights: Dict[str, float]
+    score_history: List[Dict[str, float]]
 ) -> Dict[str, Any]:
     """Get statistics about ensemble performance."""
     try:
@@ -19,7 +18,6 @@ def get_ensemble_stats(
         
         # Convert to numpy arrays
         embedding_scores = [s['embedding'] for s in score_history]
-        llm_scores = [s['llm'] for s in score_history]
         final_scores = [s['final'] for s in score_history]
         
         stats = {
@@ -31,20 +29,13 @@ def get_ensemble_stats(
                     'min': float(np.min(embedding_scores)),
                     'max': float(np.max(embedding_scores))
                 },
-                'llm': {
-                    'mean': float(np.mean(llm_scores)),
-                    'std': float(np.std(llm_scores)),
-                    'min': float(np.min(llm_scores)),
-                    'max': float(np.max(llm_scores))
-                },
                 'ensemble': {
                     'mean': float(np.mean(final_scores)),
                     'std': float(np.std(final_scores)),
                     'min': float(np.min(final_scores)),
                     'max': float(np.max(final_scores))
                 }
-            },
-            'method_weights': method_weights
+            }
         }
         
         return stats

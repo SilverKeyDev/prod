@@ -92,7 +92,7 @@ def build_s3_key_path(user_id: str, report_type: str, filename: str) -> str:
     
     Args:
         user_id: User ID
-        report_type: Type of report (standard, comparison, marketing)
+        report_type: Type of report (detailed, standard)
         filename: Filename
         
     Returns:

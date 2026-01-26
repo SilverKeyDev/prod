@@ -14,7 +14,6 @@ from flask import current_app
 
 from ...models import User, UserPreferences
 from .models.embedding_input import EmbeddingUserInput
-from .models.llm_input import LLMUserInput
 
 logger = logging.getLogger(__name__)
 

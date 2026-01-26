@@ -3,7 +3,7 @@ from app.celery.celery_worker import celery
 
 # Home Matching Tasks
 @celery.task(name="tasks.find_best_matches_task", bind=True)
-def find_best_matches_task(self, user_data, homes_data, top_k=10, include_explanations=False, method_weights=None, embedding_provider="sentence_transformer", llm_provider="openai"):
+def find_best_matches_task(self, user_data, homes_data, top_k=10, include_explanations=False, embedding_provider="sentence_transformer"):
     """
     Celery task to find the best home matches for a user.
     
@@ -11,13 +11,11 @@ def find_best_matches_task(self, user_data, homes_data, top_k=10, include_explan
         user_data: User preferences and profile data
         homes_data: List of home listings to match against
         top_k: Number of top matches to return
-        include_explanations: Whether to include LLM explanations
-        method_weights: Custom weights for ensemble methods
+        include_explanations: Whether to include explanations (currently unused)
         embedding_provider: Embedding model provider
-        llm_provider: LLM provider
     
     Returns:
-        List of top-k home matches with scores and explanations
+        List of top-k home matches with scores
     """
     try:
         
@@ -42,9 +40,7 @@ def find_best_matches_task(self, user_data, homes_data, top_k=10, include_explan
             homes_data=homes_data,
             top_k=top_k,
             include_explanations=include_explanations,
-            method_weights=method_weights,
-            embedding_provider=embedding_provider,
-            llm_provider=llm_provider
+            embedding_provider=embedding_provider
         )
         
         # Update progress

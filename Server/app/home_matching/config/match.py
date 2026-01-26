@@ -16,9 +16,7 @@ def find_best_matches(
     homes_data: List[Dict[str, Any]],
     top_k: int = None,
     include_explanations: bool = False,
-    method_weights: Optional[Dict[str, float]] = None,
     embedding_provider: str = "sentence_transformer",
-    llm_provider: str = "openai",
     request_id: Optional[str] = None,
     experiment_key: Optional[str] = None,
     experiment_variant: Optional[str] = None,
@@ -32,10 +30,8 @@ def find_best_matches(
         user_data: User preferences and profile data
         homes_data: List of home listings to match against
         top_k: Number of top matches to return (default: 10)
-        include_explanations: Whether to include LLM explanations (slower)
-        method_weights: Custom weights for ensemble methods
+        include_explanations: Whether to include explanations (currently unused)
         embedding_provider: Embedding model provider ("sentence_transformer" or "openai")
-        llm_provider: LLM provider ("openai")
         request_id: Request ID for tracking scoring events
         experiment_key: Experiment key for A/B testing
         experiment_variant: Experiment variant (A/B)
@@ -43,31 +39,19 @@ def find_best_matches(
         track_to_db: Whether to track scoring events to database
     
     Returns:
-        List of top-k home matches with scores and explanations
+        List of top-k home matches with scores
     """
     try:
         top_k = top_k or DEFAULT_TOP_K
         
-        # Extract user_id from user_data for learned weight retrieval
+        # Extract user_id from user_data for tracking
         user_id = user_data.get('user_id')
         
-        # Initialize ensemble scorer with custom weights if provided
-        if method_weights:
-            ensemble = EnsembleScorer(
-                embedding_weight=method_weights.get('embedding', 0.5),
-                llm_weight=method_weights.get('llm', 0.5),
-                embedding_provider=embedding_provider,
-                llm_provider=llm_provider,
-                user_id=user_id,
-                use_learned_weights=(method_weights is None)  # Only use learned weights if no explicit weights provided
-            )
-        else:
-            ensemble = EnsembleScorer(
-                embedding_provider=embedding_provider,
-                llm_provider=llm_provider,
-                user_id=user_id,
-                use_learned_weights=True
-            )
+        # Initialize ensemble scorer
+        ensemble = EnsembleScorer(
+            embedding_provider=embedding_provider,
+            user_id=user_id
+        )
         
         # Get ranked matches
         matches = ensemble.rank_homes_for_user(
@@ -92,8 +76,7 @@ def find_best_matches(
 def score_single_match(
     user_data: Dict[str, Any],
     home_data: Dict[str, Any],
-    include_explanations: bool = True,
-    method_weights: Optional[Dict[str, float]] = None
+    include_explanations: bool = True
 ) -> Dict[str, Any]:
     """
     Score a single user-home pair.
@@ -101,29 +84,19 @@ def score_single_match(
     Args:
         user_data: User preferences and profile data
         home_data: Home listing data
-        include_explanations: Whether to include detailed explanations
-        method_weights: Custom weights for ensemble methods
+        include_explanations: Whether to include detailed explanations (currently unused)
     
     Returns:
-        Detailed scoring result with individual method scores and explanations
+        Detailed scoring result with individual method scores
     """
     try:
-        # Extract user_id from user_data for learned weight retrieval
+        # Extract user_id from user_data for tracking
         user_id = user_data.get('user_id')
         
         # Initialize ensemble scorer
-        if method_weights:
-            ensemble = EnsembleScorer(
-                embedding_weight=method_weights.get('embedding', 0.5),
-                llm_weight=method_weights.get('llm', 0.5),
-                user_id=user_id,
-                use_learned_weights=(method_weights is None)
-            )
-        else:
-            ensemble = EnsembleScorer(
-                user_id=user_id,
-                use_learned_weights=True
-            )
+        ensemble = EnsembleScorer(
+            user_id=user_id
+        )
         
         # Score the pair
         result = ensemble.score_user_home_pair(
@@ -163,9 +136,6 @@ def compare_homes_for_user(
     try:
         ensemble = EnsembleScorer()
         
-        # Get LLM-based comparison
-        llm_comparison = ensemble.llm_scorer.compare_homes_for_user(user_data, homes_data)
-        
         # Get ensemble rankings
         ensemble_rankings = ensemble.rank_homes_for_user(
             user_data, 
@@ -177,7 +147,6 @@ def compare_homes_for_user(
         result = {
             'user_id': user_data.get('user_id', 'unknown'),
             'total_homes_compared': len(homes_data),
-            'llm_comparison': llm_comparison,
             'ensemble_rankings': ensemble_rankings
         }
         
@@ -290,13 +259,8 @@ def get_system_info() -> Dict[str, Any]:
         info = {
             'system_name': 'SilverKey Home Matching System',
             'version': '1.0.0',
-            'ensemble_weights': {
-                'embedding': ensemble.embedding_weight,
-                'llm': ensemble.llm_weight
-            },
             'components': {
-                'embedding_scorer': ensemble.embedding_scorer.__class__.__name__,
-                'llm_scorer': ensemble.llm_scorer.__class__.__name__
+                'embedding_scorer': ensemble.embedding_scorer.__class__.__name__
             },
             'default_top_k': DEFAULT_TOP_K
         }
@@ -308,11 +272,6 @@ def get_system_info() -> Dict[str, Any]:
             }
         except:
             info['embedding_info'] = {'status': 'not available'}
-        
-        try:
-            info['llm_info'] = ensemble.llm_scorer.get_scorer_info()
-        except:
-            info['llm_info'] = {'status': 'not available'}
         
         return info
         

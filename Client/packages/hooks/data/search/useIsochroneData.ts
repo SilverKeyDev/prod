@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { useAuthStore } from "../../../store/auth.slice";
 import { queryKeys } from "../../../config/query/keys";
@@ -38,36 +38,34 @@ export function useIsochroneData(): UseIsochroneDataReturn {
     queryFn: async () => {
       const response = await searchApi.getIsochrone();
       if (response.success && response.data) {
-        return response.data as IsochroneData;
+        // Transform API response to match IsochroneData schema (lon -> lng)
+        return {
+          ...response.data,
+          center: {
+            lat: response.data.center.lat,
+            lng: response.data.center.lon,
+          },
+        } as IsochroneData;
       }
       throw new Error(response.error ?? "Failed to fetch isochrone data");
     },
-    enabled: false, // Don't auto-fetch, use fetchIsochrone function instead
-    // Use placeholderData to check cache reactively when enabled changes
+    enabled: shouldLoadData, // Auto-fetch when authenticated (matches other initial load hooks)
+    // Use placeholderData to provide cached data immediately when query becomes enabled
     placeholderData: (previousValue) => {
       const cached = queryClient.getQueryData<IsochroneData>(
         queryKeys.search.isochrone()
       );
-      return cached ?? previousValue ?? null;
+      return cached ?? previousValue;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for this long
     gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
     refetchOnWindowFocus: false,
-    refetchOnMount: false, // Don't refetch if data exists
+    refetchOnMount: false, // Don't refetch if data exists (cached from initial load)
     refetchOnReconnect: false,
   });
 
-  // Mutation to set isochrone data (updates cache)
-  const setIsochroneDataMutation = useMutation({
-    mutationFn: async (data: IsochroneData) => {
-      // Update cache directly
-      queryClient.setQueryData(queryKeys.search.isochrone(), data);
-      return data;
-    },
-  });
-
   // Fetch isochrone data (checks cache first, then fetches if needed)
-  const fetchIsochrone = useCallback(async () => {
+  const fetchIsochrone = useCallback(async (): Promise<IsochroneData | null> => {
     // Check cache first
     const cached = queryClient.getQueryData<IsochroneData>(
       queryKeys.search.isochrone()
