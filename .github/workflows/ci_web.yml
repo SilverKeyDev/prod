@@ -59,6 +59,7 @@ jobs:
           plaid_json="$(fetch_json plaid)"
           serp_json="$(fetch_json serp)"
           rapidapi_json="$(fetch_json rapidapi)"
+          docusign_json="$(fetch_json docusign)"
 
           export_if_present () {
             local json="$1"
@@ -97,6 +98,12 @@ jobs:
 
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
+
+          export_if_present "$docusign_json" "DOCUSIGN_INTEGRATION_KEY" "DOCUSIGN_INTEGRATION_KEY"
+          export_if_present "$docusign_json" "DOCUSIGN_USER_CONNECT_HMAC_SECRET" "DOCUSIGN_USER_CONNECT_HMAC_SECRET"
+          export_if_present "$docusign_json" "DOCUSIGN_ORG_CONNECT_HMAC_SECRET" "DOCUSIGN_ORG_CONNECT_HMAC_SECRET"
+          export_if_present "$docusign_json" "DOCUSIGN_ORG_CLIENT_SECRET" "DOCUSIGN_ORG_CLIENT_SECRET"
+          export_if_present "$docusign_json" "DOCUSIGN_USER_CLIENT_SECRET" "DOCUSIGN_USER_CLIENT_SECRET"
 
       - name: Set up Docker Buildx (container driver)
         uses: docker/setup-buildx-action@v3
@@ -180,6 +187,11 @@ jobs:
           VITE_PLAID_CLIENT_ID: ${{ env.VITE_PLAID_CLIENT_ID }}
           SERP_API: ${{ env.SERP_API }}
           RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY }}
+          DOCUSIGN_INTEGRATION_KEY: ${{ env.DOCUSIGN_INTEGRATION_KEY }}
+          DOCUSIGN_USER_CONNECT_HMAC_SECRET: ${{ env.DOCUSIGN_USER_CONNECT_HMAC_SECRET }}
+          DOCUSIGN_ORG_CONNECT_HMAC_SECRET: ${{ env.DOCUSIGN_ORG_CONNECT_HMAC_SECRET }}
+          DOCUSIGN_ORG_CLIENT_SECRET: ${{ env.DOCUSIGN_ORG_CLIENT_SECRET }}
+          DOCUSIGN_USER_CLIENT_SECRET: ${{ env.DOCUSIGN_USER_CLIENT_SECRET }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
@@ -191,7 +203,8 @@ jobs:
             GOOGLE_MAPS_API_KEY,GOOGLE_CALENDAR_SECRET,GOOGLE_CLIENT_ID,
             CENSUS_API_KEY,MAPBOX_API_KEY,OPENAI_KEY,PERPLEXITY_API_KEY,
             PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,
-            SERP_API,RAPIDAPI_KEY
+            SERP_API,RAPIDAPI_KEY,
+            DOCUSIGN_INTEGRATION_KEY,DOCUSIGN_USER_CONNECT_HMAC_SECRET,DOCUSIGN_ORG_CONNECT_HMAC_SECRET,DOCUSIGN_ORG_CLIENT_SECRET,DOCUSIGN_USER_CLIENT_SECRET
           script: |
             set -euo pipefail
 
@@ -270,8 +283,33 @@ jobs:
               --health-interval=30s --health-timeout=10s --health-retries=3 --health-start-period=30s \
               redis:7-alpine >/dev/null
 
+            echo "⏳ Waiting for Redis to start..."
+            sleep 3
+
+            # Check if Redis crashed immediately
+            REDIS_STATE=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
+            if [ "$REDIS_STATE" != "running" ]; then
+              echo "❌ Redis container is not running! Status: $REDIS_STATE"
+              echo "📋 Container logs:"
+              sudo docker logs redis 2>&1 | tail -50 || true
+              EXIT_CODE=$(sudo docker inspect --format='{{.State.ExitCode}}' redis 2>/dev/null || echo "unknown")
+              echo "❌ Container exit code: $EXIT_CODE"
+              exit 1
+            fi
+
             echo "⏳ Waiting for Redis to be healthy..."
-            timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}}" redis 2>/dev/null | grep -q "healthy"; do sleep 2; done' >/dev/null 2>&1 || echo "Redis health check timeout (continuing anyway)"
+            if ! timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}}" redis 2>/dev/null | grep -q "healthy"; do sleep 2; done'; then
+              echo "❌ Redis health check failed or timed out"
+              REDIS_STATE=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
+              REDIS_HEALTH=$(sudo docker inspect --format='{{.State.Health.Status}}' redis 2>/dev/null || echo "unknown")
+              EXIT_CODE=$(sudo docker inspect --format='{{.State.ExitCode}}' redis 2>/dev/null || echo "unknown")
+              echo "📋 Container status: $REDIS_STATE"
+              echo "📋 Health status: $REDIS_HEALTH"
+              echo "📋 Exit code: $EXIT_CODE"
+              echo "📋 Container logs (last 50 lines):"
+              sudo docker logs redis 2>&1 | tail -50 || true
+              exit 1
+            fi
 
             # 2) App
             echo "🚀 Starting App..."
@@ -302,10 +340,40 @@ jobs:
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
+              -e DOCUSIGN_INTEGRATION_KEY="${DOCUSIGN_INTEGRATION_KEY}" \
+              -e DOCUSIGN_USER_CONNECT_HMAC_SECRET="${DOCUSIGN_USER_CONNECT_HMAC_SECRET}" \
+              -e DOCUSIGN_ORG_CONNECT_HMAC_SECRET="${DOCUSIGN_ORG_CONNECT_HMAC_SECRET}" \
+              -e DOCUSIGN_ORG_CLIENT_SECRET="${DOCUSIGN_ORG_CLIENT_SECRET}" \
+              -e DOCUSIGN_USER_CLIENT_SECRET="${DOCUSIGN_USER_CLIENT_SECRET}" \
               "$IMAGE" >/dev/null
 
+            echo "⏳ Waiting for App to start..."
+            sleep 5
+
+            # Check if container crashed immediately
+            APP_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_app 2>/dev/null || echo "missing")
+            if [ "$APP_STATE" != "running" ]; then
+              echo "❌ App container is not running! Status: $APP_STATE"
+              echo "📋 Container logs:"
+              sudo docker logs cre_app 2>&1 | tail -100 || true
+              EXIT_CODE=$(sudo docker inspect --format='{{.State.ExitCode}}' cre_app 2>/dev/null || echo "unknown")
+              echo "❌ Container exit code: $EXIT_CODE"
+              exit 1
+            fi
+
             echo "⏳ Waiting for App to be healthy..."
-            timeout 90s bash -c 'until docker inspect --format="{{.State.Health.Status}}" cre_app 2>/dev/null | grep -q "healthy"; do sleep 2; done' >/dev/null 2>&1 || echo "App health check timeout (continuing anyway)"
+            if ! timeout 90s bash -c 'until docker inspect --format="{{.State.Health.Status}}" cre_app 2>/dev/null | grep -q "healthy"; do sleep 2; done'; then
+              echo "❌ App health check failed or timed out"
+              APP_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_app 2>/dev/null || echo "missing")
+              APP_HEALTH=$(sudo docker inspect --format='{{.State.Health.Status}}' cre_app 2>/dev/null || echo "unknown")
+              EXIT_CODE=$(sudo docker inspect --format='{{.State.ExitCode}}' cre_app 2>/dev/null || echo "unknown")
+              echo "📋 Container status: $APP_STATE"
+              echo "📋 Health status: $APP_HEALTH"
+              echo "📋 Exit code: $EXIT_CODE"
+              echo "📋 Container logs (last 100 lines):"
+              sudo docker logs cre_app 2>&1 | tail -100 || true
+              exit 1
+            fi
 
             # 3) Worker
             echo "🚀 Starting Worker..."
@@ -335,8 +403,27 @@ jobs:
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
+              -e DOCUSIGN_INTEGRATION_KEY="${DOCUSIGN_INTEGRATION_KEY}" \
+              -e DOCUSIGN_USER_CONNECT_HMAC_SECRET="${DOCUSIGN_USER_CONNECT_HMAC_SECRET}" \
+              -e DOCUSIGN_ORG_CONNECT_HMAC_SECRET="${DOCUSIGN_ORG_CONNECT_HMAC_SECRET}" \
+              -e DOCUSIGN_ORG_CLIENT_SECRET="${DOCUSIGN_ORG_CLIENT_SECRET}" \
+              -e DOCUSIGN_USER_CLIENT_SECRET="${DOCUSIGN_USER_CLIENT_SECRET}" \
               "$IMAGE" \
               celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1
+
+            echo "⏳ Waiting for Worker to start..."
+            sleep 5
+
+            # Check if Worker crashed immediately
+            WORKER_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_worker 2>/dev/null || echo "missing")
+            if [ "$WORKER_STATE" != "running" ]; then
+              echo "❌ Worker container is not running! Status: $WORKER_STATE"
+              echo "📋 Container logs:"
+              sudo docker logs cre_worker 2>&1 | tail -100 || true
+              EXIT_CODE=$(sudo docker inspect --format='{{.State.ExitCode}}' cre_worker 2>/dev/null || echo "unknown")
+              echo "❌ Container exit code: $EXIT_CODE"
+              exit 1
+            fi
 
             # ---- Export built frontend WITHOUT docker cp (avoids hangs) ----
             # Use a bounded tar stream from container -> host; skip if dist missing.
@@ -352,13 +439,53 @@ jobs:
               echo "⚠️ /app/Client/dist not found in container; skipping export."
             fi
 
-            # Health checks (succinct)
-            echo "✅ Health status:"
-            echo "Redis:" && sudo docker inspect --format='{{.State.Health.Status}}' redis || true
-            echo "App:" && sudo docker inspect --format='{{.State.Health.Status}}' cre_app || true
-            echo "Worker:" && sudo docker inspect --format='{{.State.Health.Status}}' cre_worker || true
+            # Final health checks - fail if any container is unhealthy or crashed
+            echo "🔍 Final container status check..."
+            FAILED_CONTAINERS=()
 
-            echo "✅ Deployment complete!"
+            # Check Redis
+            REDIS_STATE=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
+            REDIS_HEALTH=$(sudo docker inspect --format='{{.State.Health.Status}}' redis 2>/dev/null || echo "unknown")
+            if [ "$REDIS_STATE" != "running" ] || [ "$REDIS_HEALTH" != "healthy" ]; then
+              echo "❌ Redis is not healthy! Status: $REDIS_STATE, Health: $REDIS_HEALTH"
+              FAILED_CONTAINERS+=("redis")
+            else
+              echo "✅ Redis: $REDIS_STATE ($REDIS_HEALTH)"
+            fi
+
+            # Check App
+            APP_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_app 2>/dev/null || echo "missing")
+            APP_HEALTH=$(sudo docker inspect --format='{{.State.Health.Status}}' cre_app 2>/dev/null || echo "unknown")
+            APP_EXIT_CODE=$(sudo docker inspect --format='{{.State.ExitCode}}' cre_app 2>/dev/null || echo "unknown")
+            if [ "$APP_STATE" != "running" ] || [ "$APP_HEALTH" != "healthy" ]; then
+              echo "❌ App is not healthy! Status: $APP_STATE, Health: $APP_HEALTH, Exit Code: $APP_EXIT_CODE"
+              echo "📋 App container logs (last 100 lines):"
+              sudo docker logs cre_app 2>&1 | tail -100 || true
+              FAILED_CONTAINERS+=("cre_app")
+            else
+              echo "✅ App: $APP_STATE ($APP_HEALTH)"
+            fi
+
+            # Check Worker
+            WORKER_STATE=$(sudo docker inspect --format='{{.State.Status}}' cre_worker 2>/dev/null || echo "missing")
+            WORKER_HEALTH=$(sudo docker inspect --format='{{.State.Health.Status}}' cre_worker 2>/dev/null || echo "unknown")
+            WORKER_EXIT_CODE=$(sudo docker inspect --format='{{.State.ExitCode}}' cre_worker 2>/dev/null || echo "unknown")
+            if [ "$WORKER_STATE" != "running" ] || [ "$WORKER_HEALTH" != "healthy" ]; then
+              echo "❌ Worker is not healthy! Status: $WORKER_STATE, Health: $WORKER_HEALTH, Exit Code: $WORKER_EXIT_CODE"
+              echo "📋 Worker container logs (last 100 lines):"
+              sudo docker logs cre_worker 2>&1 | tail -100 || true
+              FAILED_CONTAINERS+=("cre_worker")
+            else
+              echo "✅ Worker: $WORKER_STATE ($WORKER_HEALTH)"
+            fi
+
+            # Fail if any containers are unhealthy
+            if [ ${#FAILED_CONTAINERS[@]} -gt 0 ]; then
+              echo "❌ Deployment failed! Unhealthy containers: ${FAILED_CONTAINERS[*]}"
+              exit 1
+            fi
+
+            echo "✅ Deployment complete! All containers are healthy."
 
       - name: Final cleanup (safe)
         if: always()
