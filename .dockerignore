@@ -1,19 +1,254 @@
 # .dockerignore
+# Comprehensive ignore patterns for Docker build context
 
-node_modules
+# ============================================
+# Dependencies
+# ============================================
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+develop-eggs/
+downloads/
+eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg
+.installed.cfg
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+Server/.venv/
+Client/.venv/
+
+# ============================================
+# Environment & Configuration
+# ============================================
 .env
-.vite
-.vite-cache
-__pycache__
+.env.*
+!.env.example
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+.aws.env
+
+# ============================================
+# Build Artifacts & Cache
+# ============================================
+# Frontend build outputs (will be built in Docker)
+Client/dist/
+Client/apps/web/dist/
+Client/.vite/
+Client/.vite-cache/
+Client/.next/
+Client/out/
+Client/build/
+Client/.turbo/
+Client/.cache/
+
+# TypeScript
+*.tsbuildinfo
+.tsbuildinfo
+
+# Python build
 *.pyc
 *.pyo
 *.pyd
-*.log
-*.db
+*.whl
+
+# ============================================
+# Testing & Coverage
+# ============================================
+coverage/
+**/coverage/
+.nyc_output/
+*.lcov
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+Client/coverage/
+Client/playwright-report/
+Client/playwright/.cache/
+*.spec.ts
+*.spec.tsx
+*.test.ts
+*.test.tsx
+*.test.py
+*_test.py
+tests/
+test/
+
+# ============================================
+# IDE & Editor Files
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 .DS_Store
-.git
+Thumbs.db
+ehthumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# Cursor IDE
+.cursor/
+.cursorignore
+.cursorindexingignore
+
+# ============================================
+# Git
+# ============================================
+.git/
 .gitignore
-Client/.git
-Client/node_modules
-Server/.venv
-Server/.env
+.gitattributes
+.gitmodules
+.git/
+Client/.git/
+Server/.git/
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================
+# Database Files
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+dump.rdb
+
+# ============================================
+# Temporary Files
+# ============================================
+*.tmp
+*.temp
+.tmp/
+.temp/
+.cache/
+tmp/
+temp/
+*.bak
+*.swp
+*~
+
+# ============================================
+# OS Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ============================================
+# Documentation (not needed in production)
+# ============================================
+*.md
+!README.md
+docs/
+documentation/
+ARCHITECTURE.md
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+LICENSE.txt
+
+# ============================================
+# Development Scripts & Tools
+# ============================================
+clean.sh
+run-dev.sh
+run-multiple-dev.sh
+*.sh
+!Dockerfile*
+.dockerignore
+
+# ============================================
+# CI/CD (not needed in Docker image)
+# ============================================
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+Jenkinsfile
+
+# ============================================
+# Jupyter Notebooks
+# ============================================
+*.ipynb
+.ipynb_checkpoints/
+
+# ============================================
+# Celery
+# ============================================
+celerybeat-schedule
+celerybeat.pid
+
+# ============================================
+# Security & Keys
+# ============================================
+key.pem
+*.pem
+*.key
+*.crt
+*.cert
+secrets/
+.secrets/
+
+# ============================================
+# Misc
+# ============================================
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+.docker/
+docker-compose*.yml
+!docker-compose.production.yml
