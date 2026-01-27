@@ -10,7 +10,7 @@ import { useLocation } from "react-router-dom";
 import { useAuthStore } from "../../../../../packages/store/auth.slice";
 import { secureLogger } from "../../../../../packages/services/security/secureLogger";
 import { authUtils } from "../../../../../packages/config/auth";
-import type { UserProfile } from "../../../../../packages/schemas/user";
+import type { UserProfile } from "../../../../../packages/schemas/auth/user";
 
 type AuthProviderProps = {
   children: ReactNode;
@@ -52,6 +52,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const currentPath = location.pathname;
       const isPublicRoute = authUtils.isPublicRoute(currentPath);
 
+      // Log bootstrap start
+      secureLogger.info(
+        "🔍 FRONTEND_AUTH_BOOTSTRAP_START",
+        "Starting auth bootstrap process",
+        {
+          requestId,
+          currentPath,
+          
+          isPublicRoute,
+          timestamp: new Date().toISOString(),
+        }
+      );
+
       // Start in checking state while we verify with server
       setStoreAuthStatus("checking");
       setStoreAuthReady(false);
@@ -59,6 +72,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         // Skip API call for public routes - no need to verify session
         if (isPublicRoute) {
+          secureLogger.info(
+            "🔍 FRONTEND_AUTH_BOOTSTRAP_PUBLIC_ROUTE",
+            "Skipping session verification for public route",
+            {
+              requestId,
+              currentPath,
+            }
+          );
 
           // Set as unauthenticated for public routes
           setStoreUser(null);
@@ -73,6 +94,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Verify session with server using HTTP-only cookies
         // This will gracefully handle unauthenticated users without throwing errors
+        secureLogger.info(
+          "🔍 FRONTEND_AUTH_BOOTSTRAP_VERIFYING",
+          "Verifying session with server",
+          {
+            requestId,
+            currentPath,
+          }
+        );
         let sessionResult = await authApi.verifySession();
 
         // If session verification fails, attempt silent refresh
@@ -118,6 +147,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const user = sessionResult.user;
           if ("created_at" in user && "is_active" in user) {
             // Full UserProfile from session verification
+            secureLogger.info(
+              "🔍 FRONTEND_AUTH_BOOTSTRAP_SUCCESS",
+              "Session verified successfully, user authenticated",
+              {
+                requestId,
+                userId: user.id,
+                userEmail: user.email ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}` : "missing",
+                isAgent: user.is_agent || false,
+                hasSubscription: user.has_subscription || false,
+              }
+            );
 
             setStoreUser(user as UserProfile);
           } else {

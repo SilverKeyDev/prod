@@ -490,10 +490,20 @@ export const authApi = {
       const newCookies = cookiesAfter.filter((c) => !allCookies.includes(c));
 
       if (response.success && response.data) {
+        const user = response.data as UserProfile;
+        log.info(LOG_CATEGORIES.AUTH, "🔍 Session verification successful", {
+          requestId,
+          userId: user.id,
+          userEmail: user.email ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}` : "missing",
+          isAgent: user.is_agent || false,
+          cookieCountBefore: allCookies.length,
+          cookieCountAfter: cookiesAfter.length,
+          newCookies: newCookies.length > 0 ? newCookies : undefined,
+        });
        
         return {
           success: true,
-          user: response.data as UserProfile,
+          user: user,
         };
       }
 

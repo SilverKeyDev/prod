@@ -17,7 +17,30 @@ user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
 @require_authenticated_user
 def get_user_profile(user):
     """Get the current user's profile information"""
+    import time
+    request_id = getattr(request, 'request_id', f'profile_{int(time.time() * 1000)}')
+    start_time = time.time()
+    
+    # Log profile request (used for session verification)
+    current_app.logger.info("🔍 BACKEND_PROFILE_REQUEST", extra={
+        'request_id': request_id,
+        'user_id': str(user.id),
+        'email': (user.email[:3] + '***' + user.email[-3:]) if user.email else 'missing',
+        'is_agent': getattr(user, 'is_agent', False),
+        'endpoint': 'profile',
+        'method': 'GET',
+    })
+    
     user_data = user.to_dict()
+    
+    duration_ms = int((time.time() - start_time) * 1000)
+    current_app.logger.debug("🔍 BACKEND_PROFILE_RESPONSE", extra={
+        'request_id': request_id,
+        'user_id': str(user.id),
+        'duration_ms': duration_ms,
+        'has_user_data': bool(user_data),
+    })
+    
     return jsonify({
         'success': True,
         'data': user_data

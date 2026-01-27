@@ -50,11 +50,14 @@ def _log_expired_once(ip: str, endpoint: str, interval: int = 60):
 # =========================
 # Core: current user resolver
 # =========================
-def _verify_minimal_token(token: str) -> User:
+def _verify_minimal_token(token: str, start_time: float = None) -> User:
     """
     Verify a minimal token and return the associated user
     """
     from sqlalchemy.exc import InvalidRequestError, SQLAlchemyError
+    
+    if start_time is None:
+        start_time = time.time()
     
     # Verify minimal token
     claims = verify_minimal_token_claims(token)
@@ -90,7 +93,20 @@ def _verify_minimal_token(token: str) -> User:
         log_security_event('auth_minimal_token_user_not_found', {'user_id': f"{str(user_id)[:8]}..."})
         raise SecurityException(SecurityError.UNAUTHORIZED)
 
-    # Log successful minimal token verification
+    # Log successful minimal token verification at DEBUG level (too verbose for INFO)
+    # Only log at INFO for profile endpoint (used for bootstrap verification)
+    duration_ms = int((time.time() - start_time) * 1000)
+    request_id = getattr(request, 'request_id', f'session_{int(time.time() * 1000)}')
+    endpoint = request.endpoint or 'unknown'
+    log_level = current_app.logger.debug if endpoint != 'user.get_user_profile' else current_app.logger.info
+    log_level("🔍 BACKEND_SESSION_VERIFICATION_SUCCESS", extra={
+        'request_id': request_id,
+        'user_id': str(getattr(user, "id", None)),
+        'email': (user.email[:3] + '***' + user.email[-3:]) if getattr(user, "email", None) else 'missing',
+        'token_type': 'minimal',
+        'is_agent': getattr(user, 'is_agent', False),
+        'duration_ms': duration_ms,
+    })
     logger.debug("MINIMAL_TOKEN_VERIFIED_SUCCESSFULLY", extra={
         'user_id': getattr(user, "id", None),
         'email': (user.email[:3] + '***' + user.email[-3:]) if getattr(user, "email", None) else 'missing',
@@ -105,26 +121,70 @@ def get_current_user():
     Get current user from Cognito JWT token with comprehensive validation and fallback.
     Supports both HttpOnly cookies (preferred) and Authorization header (fallback).
     """
+    import time
+    start_time = time.time()
+    request_id = getattr(request, 'request_id', f'session_{int(time.time() * 1000)}')
+    endpoint = request.endpoint or 'unknown'
+    
+    # Log session verification start at DEBUG level (too verbose for INFO)
+    # Only log at INFO for profile endpoint (used for bootstrap verification)
+    log_level = current_app.logger.debug if endpoint != 'user.get_user_profile' else current_app.logger.info
+    log_level("🔍 BACKEND_SESSION_VERIFICATION_START", extra={
+        'request_id': request_id,
+        'endpoint': endpoint,
+        'path': request.path,
+        'has_session_cookie': 'session' in request.cookies,
+        'has_refresh_cookie': 'refresh_token' in request.cookies,
+        'has_authorization_header': 'Authorization' in request.headers,
+    })
+    
     token = None
     
     # Try to get token from HttpOnly cookie first (preferred method)
     session_cookie = request.cookies.get('session')
     if session_cookie:
         token = session_cookie
+        # Token source logging is already at DEBUG level - keep it
+        current_app.logger.debug("🔍 BACKEND_SESSION_TOKEN_SOURCE", extra={
+            'request_id': request_id,
+            'source': 'http_only_cookie',
+            'token_length': len(token) if token else 0,
+        })
     else:
         # Fallback to Authorization header for backward compatibility
         auth = request.headers.get("Authorization", "")
         parts = auth.split()
         if len(parts) == 2 and parts[0].lower() == "bearer":
             token = parts[1]
+            # Token source logging is already at DEBUG level - keep it
+            current_app.logger.debug("🔍 BACKEND_SESSION_TOKEN_SOURCE", extra={
+                'request_id': request_id,
+                'source': 'authorization_header',
+                'token_length': len(token) if token else 0,
+            })
         else:
             if not auth:
+                current_app.logger.warning("🔍 BACKEND_SESSION_MISSING_TOKEN", extra={
+                    'request_id': request_id,
+                    'endpoint': endpoint,
+                    'reason': 'no_auth_header_or_cookie',
+                })
                 log_security_event('auth_missing_token')
                 raise SecurityException(SecurityError.UNAUTHORIZED)
+            current_app.logger.warning("🔍 BACKEND_SESSION_INVALID_HEADER", extra={
+                'request_id': request_id,
+                'endpoint': endpoint,
+                'reason': 'invalid_header_format',
+            })
             log_security_event('auth_invalid_header_format')
             raise SecurityException(SecurityError.INVALID_TOKEN)
     
     if not token:
+        current_app.logger.warning("🔍 BACKEND_SESSION_MISSING_TOKEN", extra={
+            'request_id': request_id,
+            'endpoint': endpoint,
+            'reason': 'token_is_none',
+        })
         log_security_event('auth_missing_token')
         raise SecurityException(SecurityError.UNAUTHORIZED)
 
@@ -139,7 +199,7 @@ def get_current_user():
         
         if token_kind == "minimal":
             try:
-                return _verify_minimal_token(token)
+                return _verify_minimal_token(token, start_time)
             except Exception as minimal_verify_error:
                 error_type = type(minimal_verify_error).__name__
                 current_app.logger.error("🔍 MINIMAL_TOKEN_VERIFICATION_FAILED", extra={
@@ -294,6 +354,22 @@ def get_current_user():
         if not user:
             log_security_event('auth_user_not_found', {'cognito_id': f"{sub[:8]}..."})
             raise SecurityException(SecurityError.UNAUTHORIZED)
+
+        # Log successful Cognito token verification at DEBUG level (too verbose for INFO)
+        # Only log at INFO for profile endpoint (used for bootstrap verification)
+        duration_ms = int((time.time() - start_time) * 1000)
+        request_id = getattr(request, 'request_id', f'session_{int(time.time() * 1000)}')
+        endpoint = request.endpoint or 'unknown'
+        log_level = current_app.logger.debug if endpoint != 'user.get_user_profile' else current_app.logger.info
+        log_level("🔍 BACKEND_SESSION_VERIFICATION_SUCCESS", extra={
+            'request_id': request_id,
+            'user_id': str(getattr(user, "id", None)),
+            'email': (user.email[:3] + '***' + user.email[-3:]) if getattr(user, "email", None) else 'missing',
+            'token_type': 'cognito',
+            'token_use': token_use,
+            'is_agent': getattr(user, 'is_agent', False),
+            'duration_ms': duration_ms,
+        })
 
         return user
 

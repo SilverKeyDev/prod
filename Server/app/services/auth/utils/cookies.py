@@ -41,6 +41,18 @@ def set_auth_cookies(
             max_age=60 * 60 * 24 * 30  # 30 days
         )
         
+        # Log successful cookie setting
+        current_app.logger.info("🔍 BACKEND_AUTH_COOKIES_SET", extra={
+            'request_id': request_id or 'unknown',
+            'session_cookie_set': True,
+            'refresh_cookie_set': True,
+            'session_max_age_hours': 8,
+            'refresh_max_age_days': 30,
+            'secure': is_production,
+            'httponly': True,
+            'samesite': 'Lax',
+        })
+        
     except Exception as cookie_error:
         if request_id:
             current_app.logger.error(f"Cookie setting error", extra={
