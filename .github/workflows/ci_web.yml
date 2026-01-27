@@ -59,7 +59,7 @@ jobs:
           plaid_json="$(fetch_json plaid)"
           serp_json="$(fetch_json serp)"
           rapidapi_json="$(fetch_json rapidapi)"
-          docusign_json="$(fetch_json docusign)"
+          docusign_json="$(fetch_json docusign-integration)"
 
           export_if_present () {
             local json="$1"
