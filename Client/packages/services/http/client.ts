@@ -278,25 +278,41 @@ export class HttpClient {
         signal,
       });
 
-      // Centralized 401 handling with single-flight re-verify; avoid loops on auth endpoints
+      // Centralized 401 handling with refresh token attempt before logout
       if (response.status === 401 && !isAuthEndpoint(url)) {
         const now = Date.now();
         if (!verifyingPromise && now - lastAuthEventAt > AUTH_COOLDOWN_MS) {
           lastAuthEventAt = now;
+          
+          // First, attempt to refresh the token
           verifyingPromise = import("../../config/api")
-            .then(({ authApi }) => authApi.verifySession())
+            .then(({ authApi }) => {
+              // Try refresh first
+              return authApi.refreshToken().then((refreshResult) => {
+                if (refreshResult.success) {
+                  // Refresh succeeded, retry session verification
+                  return authApi.verifySession();
+                } else {
+                  // Refresh failed, verify session anyway (will likely fail)
+                  return authApi.verifySession();
+                }
+              });
+            })
             .catch(() => null)
             .finally(() => {
               verifyingPromise = null;
             });
+          
           verifyingPromise.then((v) => {
             if (!v?.success) {
+              // Both refresh and verify failed - user must log in
               try {
                 getAuthBC()?.postMessage({ type: "logout" });
               } catch {
                 /* ignore */
               }
             }
+            // If refresh succeeded, the original request should be retried by the caller
           });
         }
         // Return original 401; callers handle unauthenticated state

@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify, current_app
 from ...models import User, UserPreferences
-from ...services.auth.current_user import (
+from ...services.auth import (
     get_current_user, 
-    SecurityException, 
+    SecurityException
+)
+from ...services.auth.tokens import (
     get_signing_key_for_cognito_rs256 as get_signing_key,
     AWS_COGNITO_ISSUER
 )

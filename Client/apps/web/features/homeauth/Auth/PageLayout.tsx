@@ -26,6 +26,10 @@ type AuthPageLayoutProps = {
   // Error handling
   error?: string;
   errorClassName?: string;
+
+  // Back button configuration
+  backButtonTo?: string;
+  backButtonText?: string;
 };
 
 export default function AuthPageLayout({
@@ -40,6 +44,8 @@ export default function AuthPageLayout({
   children,
   error,
   errorClassName = "space-y-responsive-md space-responsive-sm bg-red-50 text-red-600 text-responsive-sm rounded-md",
+  backButtonTo = "/",
+  backButtonText = "Back to Home",
 }: AuthPageLayoutProps) {
   const containerWidth =
     variant === "wide"
@@ -65,8 +71,8 @@ export default function AuthPageLayout({
 
         {/* Content */}
         <div className="mt-8">
-          <BackButton to="/" className="mb-4 pl-0">
-            Back to Home
+          <BackButton to={backButtonTo} className="mb-4 pl-0">
+            {backButtonText}
           </BackButton>
           {children}
         </div>

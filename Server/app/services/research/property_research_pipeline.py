@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import requests
 import time
 
-from app.services.auth.current_user import get_current_user, SecurityException
+from app.services.auth import get_current_user, SecurityException
 from app.services.research.property_cache import find_cached_property, get_cached_data, get_cached_details
 from app.services.research.property_params import (
     build_property_params,

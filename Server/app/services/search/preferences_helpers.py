@@ -9,7 +9,7 @@ from flask import current_app, jsonify
 
 from .locationPolygon import isochrone_union_for_addresses
 from ...models import UserPreferences
-from ...services.auth.current_user import get_current_user
+from ...services.auth import get_current_user
 from ...utils.security.security import security_error_response
 
 
@@ -215,7 +215,7 @@ def get_authenticated_user() -> Tuple[Optional[Any], Optional[Tuple]]:
         Tuple of (user_object, error_response_tuple)
         If error_response_tuple is not None, return it as HTTP response.
     """
-    from app.services.auth.current_user import SecurityException
+    from app.services.auth import SecurityException
     try:
         user = get_current_user()
         if not user:

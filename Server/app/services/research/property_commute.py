@@ -8,7 +8,7 @@ from flask import current_app
 
 from app.models import UserPreferences
 from .graphs.graphic_generation import fetch_travel_time, generate_static_map_url, GOOGLE_MAPS_ID
-from app.services.auth.current_user import get_current_user, SecurityException
+from app.services.auth import get_current_user, SecurityException
 
 
 def generate_commute_data(

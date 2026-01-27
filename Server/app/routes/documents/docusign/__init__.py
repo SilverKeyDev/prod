@@ -5,7 +5,7 @@ DocuSign routes
 from flask import Blueprint, request, jsonify, session, redirect
 import uuid
 
-from app.services.auth.current_user import get_current_user
+from app.services.auth import get_current_user
 from app.services.docusign import (
     AgreementLifecycleService,
     RevisionService,

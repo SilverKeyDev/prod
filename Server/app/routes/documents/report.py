@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, Response
-from ...services.auth.current_user import get_current_user, SecurityException
+from ...services.auth import get_current_user, SecurityException
 from ...utils.common_patterns import require_authenticated_user
 from ...utils.security import rate_limit
 from jose.exceptions import JWTError, ExpiredSignatureError

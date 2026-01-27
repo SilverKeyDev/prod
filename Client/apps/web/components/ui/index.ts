@@ -18,6 +18,7 @@ export { default as Input } from "./form/Input";
 export { default as InputStyles } from "./form/InputStyles";
 export { default as OliveCheckbox } from "./form/OliveCheckbox";
 export { default as Toggle } from "./form/Toggle";
+export { default as VerificationCodeInput } from "./form/VerificationCodeInput";
 
 // UI Components - Text
 export { default as BodyText } from "./text/BodyText";

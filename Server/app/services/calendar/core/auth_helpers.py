@@ -6,7 +6,7 @@ Extracts common authentication patterns
 from typing import Optional, Tuple
 from flask import Response
 
-from app.services.auth.current_user import get_current_user
+from app.services.auth import get_current_user
 from app.utils.security.security import security_error_response, SecurityError
 from app.utils.security.app_logging import get_logger
 

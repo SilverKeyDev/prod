@@ -129,7 +129,7 @@ def create_app(config=None):
     except Exception as e:
         logger.warn(LOG_CATEGORIES["SECURITY"], f"Environment validation warning: {str(e)}")
 
-    from .services.auth.minimal_token import minimal_token_service
+    from .services.auth import minimal_token_service
     flask_env = os.getenv('FLASK_ENV', 'development')
 
     # Register blueprints

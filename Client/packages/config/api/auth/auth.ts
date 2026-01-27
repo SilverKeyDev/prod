@@ -526,4 +526,81 @@ export const authApi = {
       return { success: false };
     }
   },
+
+  /**
+   * Refresh access token using refresh token from HttpOnly cookie
+   */
+  refreshToken: async (): Promise<AuthResponse> => {
+    const requestId = `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    try {
+      log.info(LOG_CATEGORIES.AUTH, "Starting token refresh", {
+        requestId,
+      });
+
+      const { apiPost } = await import("../../../services/http/compatibility");
+      
+      const response = await apiPost<AuthResponse>(
+        "/api/v1/auth/refresh-token",
+        {},
+        {
+          includeCredentials: true,
+          includeAuth: false,
+          useCors: false,
+        } as unknown as import("../../../services/http/compatibility").ApiRequestOptions
+      );
+
+      if (response.success) {
+        log.info(LOG_CATEGORIES.AUTH, "Token refresh successful", {
+          requestId,
+          hasUser: !!response.user,
+        });
+      } else {
+        log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed", {
+          requestId,
+          error: response.error,
+          message: response.message,
+        });
+
+        // Report security event for refresh failures
+        if (response.error === "REFRESH_TOKEN_EXPIRED" || response.error === "REFRESH_TOKEN_INVALID") {
+          reportSecurityEvent({
+            type: "authentication_failure",
+            severity: "medium",
+            description: "Token refresh failed - refresh token expired or invalid",
+            metadata: {
+              error: response.error,
+              requestId,
+            },
+          });
+        }
+      }
+
+      return response;
+    } catch (error: unknown) {
+      const err = error as Error;
+      
+      log.error(LOG_CATEGORIES.AUTH, "Token refresh request failed with exception", {
+        requestId,
+        error: err?.message || "Unknown error",
+        errorType: err?.constructor?.name || "Unknown",
+      });
+
+      reportSecurityEvent({
+        type: "authentication_failure",
+        severity: "high",
+        description: "Token refresh exception",
+        metadata: {
+          error: err?.message,
+          requestId,
+        },
+      });
+
+      return {
+        success: false,
+        error: "REFRESH_FAILED",
+        message: "Failed to refresh token. Please log in again.",
+      };
+    }
+  },
 };

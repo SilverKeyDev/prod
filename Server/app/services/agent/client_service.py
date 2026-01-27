@@ -4,7 +4,7 @@ Service functions for managing agent clients
 import json
 import logging
 from typing import List, Dict, Optional
-from ..auth.current_user import get_current_user
+from ..auth import get_current_user
 from ...models import User
 
 logger = logging.getLogger(__name__)

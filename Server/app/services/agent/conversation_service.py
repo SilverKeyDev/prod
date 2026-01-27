@@ -6,7 +6,7 @@ import sys
 import os
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
-from ..auth.current_user import get_current_user
+from ..auth import get_current_user
 from ...models import User, AgentConnections, ChatHistory
 from ... import db
 from .connection_request_service import get_connection_requests

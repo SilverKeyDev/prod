@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from flask import Blueprint, request, jsonify, current_app
-from ..services.auth.current_user import get_current_user
+from ..services.auth import get_current_user
 from ..utils.security.secure_errors import SecureErrorHandler
 import requests
 import os
@@ -34,7 +34,7 @@ def generate_negotiation_strategy():
     """
     try:
         # Get current user with proper error handling
-        from app.services.auth.current_user import SecurityException
+        from app.services.auth import SecurityException
         try:
             user = get_current_user()
         except SecurityException as se:

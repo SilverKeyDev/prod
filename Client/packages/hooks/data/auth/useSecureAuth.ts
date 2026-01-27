@@ -319,17 +319,91 @@ export function useSecureAuth(): UseSecureAuthReturn {
   ]); // include Zustand setters (stable) in deps
 
   /**
+   * Check if token is expired or expires soon
+   */
+  const isTokenExpiringSoon = useCallback((token: string | null, bufferMinutes: number = 5): boolean => {
+    if (!token) return true;
+    
+    try {
+      // Decode token without verification to check expiry
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const decoded = JSON.parse(jsonPayload);
+      const expiresAt = decoded.exp * 1000; // Convert to milliseconds
+      const expiresIn = expiresAt - Date.now();
+      const bufferMs = bufferMinutes * 60 * 1000;
+      
+      return expiresIn < bufferMs;
+    } catch (error) {
+      // If we can't decode, assume it's expired
+      log.warn(LOG_CATEGORIES.AUTH, "Failed to decode token for expiry check", {
+        error: asError(error).message,
+      });
+      return true;
+    }
+  }, []);
+
+  /**
    * Refresh access token using refresh token
    */
   const refreshToken = useCallback(async (): Promise<boolean> => {
-    // Token refresh is handled automatically by HTTP-only cookies
-    // The server will manage token expiration and refresh
-    log.debug(
-      LOG_CATEGORIES.AUTH,
-      "Token refresh handled by HTTP-only cookies",
-    );
-    return true;
-  }, []);
+    log.info(LOG_CATEGORIES.AUTH, "Attempting token refresh");
+    
+    try {
+      const { authApi } = await import("../../../config/api");
+      const response = await authApi.refreshToken();
+      
+      if (response.success) {
+        // Update access token state
+        setAccessToken("authenticated");
+        
+        // Update user if provided
+        if (response.user) {
+          setUser(response.user);
+          setStoreUser(response.user);
+        }
+        
+        log.info(LOG_CATEGORIES.AUTH, "Token refresh successful");
+        return true;
+      } else {
+        // Refresh failed - check if refresh token is expired
+        if (
+          response.error === "REFRESH_TOKEN_EXPIRED" ||
+          response.error === "REFRESH_TOKEN_INVALID" ||
+          response.error === "REFRESH_TOKEN_MISSING"
+        ) {
+          log.warn(LOG_CATEGORIES.AUTH, "Refresh token expired or invalid - user must log in again", {
+            error: response.error,
+          });
+          
+          // Clear auth state
+          setAccessToken(null);
+          setUser(null);
+          setStoreUser(null);
+          setStoreIsAuthenticated(false);
+          setStoreAuthStatus("unauthenticated");
+        } else {
+          log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed", {
+            error: response.error,
+            message: response.message,
+          });
+        }
+        
+        return false;
+      }
+    } catch (error) {
+      log.error(LOG_CATEGORIES.AUTH, "Token refresh exception", {
+        error: asError(error).message,
+      });
+      return false;
+    }
+  }, [setStoreUser, setStoreIsAuthenticated, setStoreAuthStatus]);
 
   /**
    * Clear error state
@@ -345,22 +419,25 @@ export function useSecureAuth(): UseSecureAuthReturn {
    */
 
   /**
-   * Auto-refresh token on mount and periodically
+   * Proactive token refresh - check expiry and refresh before token expires
    */
   useEffect(() => {
-    const refreshInterval = setInterval(
-      () => {
-        if (accessToken) {
-          void refreshToken();
-        }
-      },
-      14 * 60 * 1000,
-    ); // Refresh every 14 minutes
+    if (!accessToken || !user) return;
+    
+    // Check token expiry every 5 minutes
+    const checkInterval = setInterval(() => {
+      // Get token from cookie (we can't read HttpOnly cookies, but we can check if we should refresh)
+      // Since we can't read the actual token, we'll refresh proactively based on time
+      // The server will handle actual expiry validation
+      
+      // Refresh proactively - the interval handles timing
+      void refreshToken();
+    }, 5 * 60 * 1000); // Check every 5 minutes
 
     return () => {
-      clearInterval(refreshInterval);
+      clearInterval(checkInterval);
     };
-  }, [accessToken, refreshToken]);
+  }, [accessToken, user, refreshToken]);
 
   /**
    * Handle page visibility changes (security feature)

@@ -1,0 +1,380 @@
+"""
+Google OAuth Service for Authentication
+Handles Google OAuth sign-up and sign-in flow
+"""
+
+import os
+import time
+import uuid
+import base64
+import requests
+from urllib.parse import urlencode
+from typing import Optional, Dict, Any
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+from datetime import datetime, timezone, timedelta
+
+from app import db
+from app.models import OAuthState
+from app.utils.security.app_logging import get_logger
+
+logger = get_logger()
+
+
+class GoogleOAuthService:
+    """Service for Google OAuth authentication"""
+    
+    # Counter for periodic cleanup of expired OAuth states
+    _validation_count = 0
+    
+    def __init__(self):
+        """Initialize the Google OAuth service"""
+        from app.config import Config
+        
+        self.client_id = Config.GOOGLE_CLIENT_ID
+        self.client_secret = Config.GOOGLE_CALENDAR_SECRET  # Same secret as calendar
+        
+        # Determine redirect URI based on environment
+        flask_env = os.getenv('FLASK_ENV', 'development')
+        if flask_env == 'production':
+            self.redirect_uri = 'https://usesilverkey.com/api/v1/auth/google/callback'
+        else:
+            # Backend URL for OAuth callback (not frontend)
+            # This must match what's configured in Google Cloud Console
+            self.redirect_uri = 'http://localhost:5000/api/v1/auth/google/callback'
+        
+        # Scopes are loaded lazily to avoid circular import with calendar.permissions
+        self._scopes = None
+        
+        self.auth_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"
+        self.token_endpoint = "https://oauth2.googleapis.com/token"
+        self.userinfo_endpoint = "https://www.googleapis.com/oauth2/v2/userinfo"
+        
+        # Configuration validation
+        self._validate_configuration()
+        
+        # Initialize request session with retry logic
+        self._initialize_session()
+    
+    @property
+    def scopes(self):
+        """Lazy-load OAuth scopes to avoid circular import with calendar.permissions"""
+        if self._scopes is None:
+            # Import permissions constants to ensure only allowed scopes are used
+            # This import is deferred to break circular dependency
+            from app.services.calendar.permissions.constants import permissions
+            
+            # OAuth scopes for user profile and email
+            self._scopes = [
+                permissions['userinfo_email']['scope_url'],
+                permissions['userinfo_profile']['scope_url'],
+                permissions['openid']['scope_url']
+            ]
+        return self._scopes
+    
+    def _validate_configuration(self):
+        """Validate required configuration"""
+        missing_vars = []
+        
+        if not self.client_id:
+            missing_vars.append("GOOGLE_CLIENT_ID")
+        if not self.client_secret:
+            missing_vars.append("GOOGLE_CALENDAR_SECRET")
+        
+        if missing_vars:
+            logger.error(f"Google OAuth service missing required environment variables: {', '.join(missing_vars)}")
+            raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+    
+    def _initialize_session(self):
+        """Initialize requests session with retry logic"""
+        self.session = requests.Session()
+        
+        # Configure retry strategy
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            raise_on_status=False
+        )
+        
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+        
+        # Set default timeout
+        self.session.timeout = 15
+    
+    def generate_state(self) -> str:
+        """Generate CSRF state parameter"""
+        timestamp = str(int(time.time()))
+        random_data = str(uuid.uuid4())
+        data = f"google_auth:{timestamp}:{random_data}"
+        return base64.urlsafe_b64encode(data.encode()).decode()
+    
+    def validate_state(self, state: str, session_state: Optional[str] = None) -> bool:
+        """
+        Validate OAuth state parameter from database.
+        Falls back to session_state for backward compatibility, but DB is preferred.
+        """
+        if not state:
+            return False
+        
+        # Periodic cleanup of expired/used states (every 10th validation)
+        GoogleOAuthService._validation_count += 1
+        if GoogleOAuthService._validation_count % 10 == 0:
+            try:
+                deleted = OAuthState.cleanup_expired(older_than_hours=1)
+                if deleted > 0:
+                    logger.debug(f"Cleaned up {deleted} expired/used OAuth states")
+            except Exception as e:
+                logger.warning(f"Error during OAuth state cleanup: {str(e)}")
+        
+        # Try DB first (preferred method)
+        try:
+            state_record = OAuthState.query.filter_by(state=state, oauth_type='auth', used=False).first()
+            if state_record:
+                # Check if expired
+                if state_record.is_expired():
+                    logger.warning(f"OAuth state expired: {state[:20]}...")
+                    return False
+                # Mark as used
+                state_record.used = True
+                db.session.commit()
+                return True
+        except Exception as e:
+            logger.warning(f"Error validating state from DB, falling back to session: {str(e)}")
+        
+        # Fallback to session-based validation (backward compatibility)
+        if session_state:
+            return state == session_state
+        
+        return False
+    
+    def build_auth_url(self) -> tuple[str, str]:
+        """
+        Build Google OAuth authorization URL with offline access and consent prompt.
+        Stores state in database for reliable validation.
+        """
+        state = self.generate_state()
+        
+        # Store state in database for reliable validation (works even if cookies fail)
+        try:
+            state_record = OAuthState(
+                state=state,
+                oauth_type='auth',
+                user_id=None,  # Auth flow happens before user exists
+                used=False
+            )
+            db.session.add(state_record)
+            db.session.commit()
+            logger.info(f"Stored OAuth state in DB: {state[:20]}...")
+        except Exception as e:
+            logger.error(f"Failed to store OAuth state in DB: {str(e)}", exc_info=True)
+            # Continue anyway - will fall back to session if DB fails
+        
+        params = {
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_uri,
+            "response_type": "code",
+            "scope": " ".join(self.scopes),
+            "access_type": "offline",  # Critical: required for refresh_token
+            "prompt": "consent",  # Critical: forces consent screen to ensure refresh_token
+            "include_granted_scopes": "true",  # Enable incremental authorization
+            "state": state,
+        }
+        
+        
+        return f"{self.auth_endpoint}?{urlencode(params)}", state
+    
+    def exchange_code_for_tokens(self, code: str) -> Dict[str, Any]:
+        """Exchange authorization code for access tokens"""
+        request_id = str(uuid.uuid4())[:8]
+        
+        
+        try:
+            token_data = {
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": self.redirect_uri,
+            }
+            
+            response = self.session.post(self.token_endpoint, data=token_data)
+            
+            
+            if response.status_code != 200:
+                logger.error(f"GOOGLE_TOKEN_EXCHANGE_FAILED", extra={
+                    'request_id': request_id,
+                    'status_code': response.status_code,
+                    'response_text': response.text[:200]
+                })
+                raise RuntimeError(f"Token exchange failed: {response.text}")
+            
+            tokens = response.json()
+            
+            # Log refresh_token presence for debugging
+            has_refresh_token = bool(tokens.get('refresh_token'))
+            logger.info(f"GOOGLE_TOKEN_EXCHANGE_SUCCESS", extra={
+                'request_id': request_id,
+                'has_refresh_token': has_refresh_token,
+                'has_access_token': bool(tokens.get('access_token')),
+                'expires_in': tokens.get('expires_in'),
+                'token_type': tokens.get('token_type')
+            })
+            
+            if not has_refresh_token:
+                logger.warning(f"GOOGLE_TOKEN_EXCHANGE_NO_REFRESH_TOKEN", extra={
+                    'request_id': request_id,
+                    'note': 'Google did not return refresh_token. This may happen if user already granted consent. Ensure access_type=offline and prompt=consent are set.'
+                })
+            
+            return tokens
+            
+        except Exception as e:
+            logger.error(f"GOOGLE_TOKEN_EXCHANGE_ERROR", extra={
+                'request_id': request_id,
+                'error': str(e)
+            }, exc_info=True)
+            raise
+    
+    def get_user_info(self, access_token: str) -> Dict[str, Any]:
+        """Get user information from Google"""
+        request_id = str(uuid.uuid4())[:8]
+        
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {access_token}"
+            }
+            
+            response = self.session.get(self.userinfo_endpoint, headers=headers)
+            
+            
+            if response.status_code != 200:
+                logger.error(f"GOOGLE_USERINFO_FAILED", extra={
+                    'request_id': request_id,
+                    'status_code': response.status_code,
+                    'response_text': response.text[:200]
+                })
+                raise RuntimeError(f"Failed to get user info: {response.text}")
+            
+            user_info = response.json()
+            
+            
+            return user_info
+            
+        except Exception as e:
+            logger.error(f"GOOGLE_USERINFO_ERROR", extra={
+                'request_id': request_id,
+                'error': str(e)
+            }, exc_info=True)
+            raise
+    
+    def refresh_access_token(self, refresh_token: str) -> Dict[str, Any]:
+        """Refresh Google OAuth access token using refresh token"""
+        request_id = str(uuid.uuid4())[:8]
+        start_time = time.time()
+        
+        try:
+            if not refresh_token:
+                logger.error(f"GOOGLE_REFRESH_VALIDATION_ERROR", extra={
+                    'request_id': request_id,
+                    'error': 'Missing refresh token',
+                    'duration_ms': int((time.time() - start_time) * 1000)
+                })
+                return {
+                    'success': False,
+                    'error': 'MISSING_REFRESH_TOKEN',
+                    'message': 'Refresh token is required',
+                    'refresh_failed': True
+                }
+            
+            token_data = {
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token"
+            }
+            
+            response = self.session.post(self.token_endpoint, data=token_data)
+            duration_ms = int((time.time() - start_time) * 1000)
+            
+            if response.status_code != 200:
+                error_data = {}
+                try:
+                    error_data = response.json()
+                except:
+                    error_data = {'error': response.text[:200]}
+                
+                error_code = error_data.get('error', 'UNKNOWN_ERROR')
+                error_description = error_data.get('error_description', response.text[:200])
+                
+                logger.error(f"GOOGLE_REFRESH_FAILED", extra={
+                    'request_id': request_id,
+                    'status_code': response.status_code,
+                    'error_code': error_code,
+                    'error_description': error_description,
+                    'duration_ms': duration_ms
+                })
+                
+                # Map Google errors to our error codes
+                if error_code == 'invalid_grant':
+                    return {
+                        'success': False,
+                        'error': 'GOOGLE_REFRESH_TOKEN_EXPIRED',
+                        'message': 'Google refresh token has expired. Please log in again.',
+                        'refresh_failed': True
+                    }
+                elif error_code == 'invalid_token':
+                    return {
+                        'success': False,
+                        'error': 'GOOGLE_REFRESH_TOKEN_INVALID',
+                        'message': 'Invalid Google refresh token. Please log in again.',
+                        'refresh_failed': True
+                    }
+                else:
+                    return {
+                        'success': False,
+                        'error': 'GOOGLE_REFRESH_FAILED',
+                        'message': f'Google token refresh failed: {error_description}',
+                        'refresh_failed': True
+                    }
+            
+            tokens = response.json()
+            
+            logger.info(f"GOOGLE_REFRESH_SUCCESS", extra={
+                'request_id': request_id,
+                'has_access_token': bool(tokens.get('access_token')),
+                'has_refresh_token': bool(tokens.get('refresh_token')),
+                'expires_in': tokens.get('expires_in'),
+                'duration_ms': duration_ms
+            })
+            
+            return {
+                'success': True,
+                'access_token': tokens.get('access_token'),
+                'refresh_token': tokens.get('refresh_token'),  # May not be returned
+                'expires_in': tokens.get('expires_in', 3600),
+                'token_type': tokens.get('token_type', 'Bearer')
+            }
+            
+        except Exception as e:
+            duration_ms = int((time.time() - start_time) * 1000)
+            logger.error(f"GOOGLE_REFRESH_UNEXPECTED_ERROR", extra={
+                'request_id': request_id,
+                'error_type': type(e).__name__,
+                'error_message': str(e),
+                'duration_ms': duration_ms
+            }, exc_info=True)
+            return {
+                'success': False,
+                'error': 'INTERNAL_ERROR',
+                'message': 'An unexpected error occurred during Google token refresh. Please try again.',
+                'refresh_failed': True
+            }
+
+
+# Singleton instance
+google_oauth_service = GoogleOAuthService()
+

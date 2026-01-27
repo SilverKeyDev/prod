@@ -3,7 +3,7 @@ from jose.exceptions import ExpiredSignatureError, JWTError
 import json
 import logging
 
-from ...services.auth.current_user import get_current_user, SecurityException
+from ...services.auth import get_current_user, SecurityException
 from ...utils.common_patterns import require_authenticated_user, require_agent_access, handle_exceptions_with_logging
 from ...utils.security.security import security_error_response, SecurityError, rate_limit
 from ...utils.security.secure_errors import SecureErrorHandler

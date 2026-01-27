@@ -4,7 +4,7 @@ Common code patterns and utilities to reduce repetition across the application.
 import json
 from functools import wraps
 from flask import jsonify, request
-from app.services.auth.current_user import get_current_user
+from app.services.auth import get_current_user
 from app.utils.security.app_logging import get_logger
 from app.utils.security.secure_errors import SecureErrorHandler
 

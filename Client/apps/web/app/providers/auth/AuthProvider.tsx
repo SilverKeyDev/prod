@@ -73,7 +73,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Verify session with server using HTTP-only cookies
         // This will gracefully handle unauthenticated users without throwing errors
-        const sessionResult = await authApi.verifySession();
+        let sessionResult = await authApi.verifySession();
+
+        // If session verification fails, attempt silent refresh
+        if (!sessionResult.success) {
+          secureLogger.info(
+            "🔍 FRONTEND_AUTH_SESSION_INVALID",
+            "Session invalid, attempting silent refresh",
+            {
+              requestId,
+              currentPath,
+            }
+          );
+
+          // Attempt to refresh token
+          const refreshResult = await authApi.refreshToken();
+
+          if (refreshResult.success) {
+            // Retry session verification after successful refresh
+            secureLogger.info(
+              "🔍 FRONTEND_AUTH_REFRESH_SUCCESS",
+              "Token refresh successful, retrying session verification",
+              {
+                requestId,
+              }
+            );
+            sessionResult = await authApi.verifySession();
+          } else {
+            // Refresh failed - refresh token expired or invalid
+            secureLogger.info(
+              "🔍 FRONTEND_AUTH_REFRESH_FAILED",
+              "Token refresh failed, user must log in",
+              {
+                requestId,
+                error: refreshResult.error,
+              }
+            );
+          }
+        }
 
         if (sessionResult.success && sessionResult.user) {
           // User is authenticated, update store with user data

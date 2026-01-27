@@ -5,7 +5,7 @@ import sys
 import os
 from typing import List, Dict, Optional
 from datetime import datetime
-from ..auth.current_user import get_current_user
+from ..auth import get_current_user
 from ...models import User, Todo
 from ... import db
 
