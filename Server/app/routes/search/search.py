@@ -187,10 +187,6 @@ def search_properties_by_polygon():
                 
                 if db_results:
                     # Found homes in database, return them even if cache is "invalid"
-                    current_app.logger.info(
-                        f"[POLYGON_SEARCH] ⚠️ {request_id} - Cache invalid but found {len(db_results)} homes in DB for user {user.id}. "
-                        f"onlyCached=true, returning database results"
-                    )
                     
                     total_time = time.time() - start_time
                     response_data = {
@@ -213,13 +209,6 @@ def search_properties_by_polygon():
                         }
                     }
                     return jsonify(response_data), 200
-                else:
-                    # No homes in database - must perform search (route should never return empty)
-                    current_app.logger.info(
-                        f"[POLYGON_SEARCH] ⚠️ {request_id} - Cache MISS and no DB results for user {user.id}. "
-                        f"onlyCached=true but no data exists, performing search to avoid empty results"
-                    )
-                    # Fall through to search logic below
         
         # Mark all past search results as not current before starting new search
         mark_past_search_results_as_not_current(str(user.id))
@@ -232,10 +221,6 @@ def search_properties_by_polygon():
         elif only_cached:
             # This case was already logged above when we detected no DB results
             pass
-        else:
-            current_app.logger.info(
-                f"[POLYGON_SEARCH] ⚠️ {request_id} - Cache MISS for user {user.id}. Performing new search"
-            )
         
         # Get and parse user preferences
         user_preferences, pref_error = get_user_preferences_parsed(str(user.id))

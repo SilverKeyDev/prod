@@ -52,14 +52,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const currentPath = location.pathname;
       const isPublicRoute = authUtils.isPublicRoute(currentPath);
 
-      // Log bootstrap start
+      // Log bootstrap start (always verify session so returning users auto-login)
       secureLogger.info(
         "🔍 FRONTEND_AUTH_BOOTSTRAP_START",
-        "Starting auth bootstrap process",
+        "Starting auth bootstrap process (always verifying session for auto-login)",
         {
           requestId,
           currentPath,
-          
           isPublicRoute,
           timestamp: new Date().toISOString(),
         }
@@ -70,39 +69,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setStoreAuthReady(false);
 
       try {
-        // Skip API call for public routes - no need to verify session
-        if (isPublicRoute) {
-          secureLogger.info(
-            "🔍 FRONTEND_AUTH_BOOTSTRAP_PUBLIC_ROUTE",
-            "Skipping session verification for public route",
-            {
-              requestId,
-              currentPath,
-            }
-          );
-
-          // Set as unauthenticated for public routes
-          setStoreUser(null);
-          setIsAuthenticated(false);
-          setStoreAuthStatus("unauthenticated");
-          setStoreAuthReady(true);
-          return;
-        }
-
-        // Import authApi dynamically to avoid circular dependencies
+        // Always verify session on bootstrap, even on public routes, so returning
+        // users with valid HTTP-only cookies get auto-logged in.
         const { authApi } = await import("../../../../../packages/config/api");
 
-        // Verify session with server using HTTP-only cookies
-        // This will gracefully handle unauthenticated users without throwing errors
         secureLogger.info(
           "🔍 FRONTEND_AUTH_BOOTSTRAP_VERIFYING",
-          "Verifying session with server",
+          "Verifying session with server (all routes)",
           {
             requestId,
             currentPath,
+            isPublicRoute,
           }
         );
+        const verifyStart = Date.now();
         let sessionResult = await authApi.verifySession();
+        const verifyMs = Date.now() - verifyStart;
+        secureLogger.info(
+          "🔍 FRONTEND_AUTH_VERIFY_RESPONSE",
+          "Session verification response received",
+          {
+            requestId,
+            success: sessionResult.success,
+            hasUser: !!sessionResult.user,
+            durationMs: verifyMs,
+          }
+        );
 
         // If session verification fails, attempt silent refresh
         if (!sessionResult.success) {
@@ -160,6 +152,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
             );
 
             setStoreUser(user as UserProfile);
+            // Cooldown for visibility-triggered refresh: skip refresh for 90s after verify
+            try {
+              sessionStorage.setItem("auth_last_verify_at", String(Date.now()));
+            } catch {
+              /* ignore */
+            }
           } else {
             // Basic user info - this shouldn't happen with session verification
             // but we'll handle it gracefully
@@ -190,6 +188,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               requestId,
               sessionSuccess: sessionResult.success,
               hasUser: !!sessionResult.user,
+              currentPath,
             }
           );
         }
@@ -200,6 +199,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           "Auth bootstrap failed with error",
           {
             requestId,
+            currentPath,
             error: err?.message || "Unknown error",
             errorType: err?.constructor?.name || "Unknown",
             stack: err?.stack?.substring(0, 200) || "No stack trace",
@@ -213,7 +213,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setStoreAuthReady(true);
         // Clear bootstrap key to allow future bootstrap calls
         sessionStorage.removeItem(bootstrapKey);
-
+        secureLogger.info(
+          "🔍 FRONTEND_AUTH_BOOTSTRAP_COMPLETE",
+          "Auth bootstrap finished",
+          {
+            requestId,
+            currentPath,
+            finalStatus: useAuthStore.getState().authStatus,
+            authReady: true,
+          }
+        );
       }
     };
 

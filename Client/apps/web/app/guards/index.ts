@@ -3,6 +3,7 @@
  */
 
 export { AuthGuard } from "./AuthGuard";
+export { RedirectIfAuthenticated } from "./RedirectIfAuthenticated";
 export { RoleGuard } from "./RoleGuard";
 export { useRoleCheck } from "./useRoleCheck";
 export { ProtectedRoute } from "./ProtectedRoute";

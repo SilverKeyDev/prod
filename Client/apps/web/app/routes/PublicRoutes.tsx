@@ -2,7 +2,7 @@ import { lazy } from "react";
 import { Route } from "react-router-dom";
 
 import { ROUTES } from "../../../../packages/schemas/nav";
-import { AuthGuard } from "../guards";
+import { AuthGuard, RedirectIfAuthenticated } from "../guards";
 
 // Lazy-load public pages
 const HomePage = lazy(() => import("../../pages/HomeAuth/HomePage"));
@@ -25,8 +25,16 @@ const ContactUs = lazy(() => import("../../pages/HomeAuth/ContactUsPage"));
 
 export function PublicRoutes() {
   return [
-    /* Root route - always show homepage */
-    <Route key="home" path={ROUTES.HOME} element={<HomePage />} />,
+    /* Root route - redirect authenticated users (e.g. auto-login) to post-login destination */
+    <Route
+      key="home"
+      path={ROUTES.HOME}
+      element={
+        <RedirectIfAuthenticated>
+          <HomePage />
+        </RedirectIfAuthenticated>
+      }
+    />,
 
     /* Public Routes */
     <Route

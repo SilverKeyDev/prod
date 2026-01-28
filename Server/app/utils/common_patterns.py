@@ -4,9 +4,10 @@ Common code patterns and utilities to reduce repetition across the application.
 import json
 from functools import wraps
 from flask import jsonify, request
-from app.services.auth import get_current_user
+from app.services.auth import get_current_user, SecurityException
 from app.utils.security.app_logging import get_logger
 from app.utils.security.secure_errors import SecureErrorHandler
+from app.utils.security.security import security_error_response
 
 logger = get_logger()
 
@@ -44,25 +45,43 @@ def require_authenticated_user(f):
     """
     Decorator that handles user authentication and returns standardized error responses.
     Eliminates the repeated pattern of get_current_user() + error handling.
+    Auth failures (SecurityException) return 401 without logging tracebacks.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:
             user = get_current_user()
             if not user:
-                logger.warning(f"🚫 Unauthorized request to {f.__name__}: user not found in token")
+                logger.warning("Unauthorized request to %s: user not found in token", f.__name__)
                 return jsonify({'error': 'Unauthorized', 'success': False}), 401
-            
+
             # Pass user as first argument to the decorated function
             return f(user, *args, **kwargs)
-            
+
+        except SecurityException as e:
+            # Auth failures are expected; return 401 without full traceback
+            err = (
+                e.args[0]
+                if e.args
+                and isinstance(e.args[0], (tuple, list))
+                and len(e.args[0]) >= 3
+                else None
+            )
+            logger.warning(
+                "Unauthorized request to %s: %s",
+                f.__name__,
+                err[1] if err else "authentication required",
+            )
+            if err:
+                return security_error_response(err)
+            return jsonify({'success': False, 'error': 'Authentication required'}), 401
+
         except Exception as e:
-            logger.error(f"❌ Authentication error in {f.__name__}: {str(e)}")
+            logger.error("Authentication error in %s: %s", f.__name__, str(e))
             return SecureErrorHandler.handle_database_error(e, {
                 'function': f.__name__,
                 'endpoint': request.endpoint
             })
-    
     return decorated_function
 
 def validate_json_request(required_fields=None):
@@ -167,15 +186,32 @@ def require_agent_access(f):
             
             # Pass user as first argument to the decorated function
             return f(user, *args, **kwargs)
-            
+
+        except SecurityException as e:
+            err = (
+                e.args[0]
+                if e.args
+                and isinstance(e.args[0], (tuple, list))
+                and len(e.args[0]) >= 3
+                else None
+            )
+            logger.warning(
+                "Unauthorized request to %s: %s",
+                f.__name__,
+                err[1] if err else "authentication required",
+            )
+            if err:
+                return security_error_response(err)
+            return jsonify({'success': False, 'error': 'Authentication required'}), 401
+
         except Exception as e:
-            logger.error(f"❌ Authentication/authorization error in {f.__name__}: {str(e)}")
+            logger.error("Authentication/authorization error in %s: %s", f.__name__, str(e))
             return SecureErrorHandler.handle_database_error(e, {
                 'function': f.__name__,
                 'endpoint': request.endpoint
             })
-    
     return decorated_function
+
 
 def standardize_success_response(data=None, message="Success", status_code=200):
     """

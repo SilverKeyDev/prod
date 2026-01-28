@@ -293,6 +293,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
 
     // Clear only non-sensitive session flags (not tokens - they don't exist in storage)
     sessionStorage.removeItem("signupEmail");
+    sessionStorage.removeItem("auth_last_verify_at");
     sessionStorage.removeItem("auth_ready_dispatched");
     sessionStorage.removeItem("reports_fetch_logged");
     sessionStorage.removeItem("reports_loaded_logged");
@@ -349,12 +350,29 @@ export function useSecureAuth(): UseSecureAuthReturn {
     }
   }, []);
 
+  /** Cooldown (ms) after session verify during which we skip refresh to avoid redundant calls */
+  const REFRESH_AFTER_VERIFY_COOLDOWN_MS = 90_000;
+
   /**
    * Refresh access token using refresh token
    */
   const refreshToken = useCallback(async (): Promise<boolean> => {
+    const lastVerifyAt = typeof sessionStorage !== "undefined"
+      ? sessionStorage.getItem("auth_last_verify_at")
+      : null;
+    if (lastVerifyAt) {
+      const elapsed = Date.now() - parseInt(lastVerifyAt, 10);
+      if (elapsed < REFRESH_AFTER_VERIFY_COOLDOWN_MS) {
+        log.debug(LOG_CATEGORIES.AUTH, "Skipping token refresh (within cooldown after session verify)", {
+          elapsedMs: elapsed,
+          cooldownMs: REFRESH_AFTER_VERIFY_COOLDOWN_MS,
+        });
+        return true;
+      }
+    }
+
     log.info(LOG_CATEGORIES.AUTH, "Attempting token refresh");
-    
+
     try {
       const { authApi } = await import("../../../config/api");
       const response = await authApi.refreshToken();
