@@ -1,6 +1,6 @@
 import { useRef, useCallback, useState } from "react";
 
-import { renderMapPropertyCard, cleanupMapPropertyCard } from "../../../components/cards";
+import { renderMapPropertyCard, cleanupMapPropertyCard } from "../components/cards/MapPropertyCardUtils";
 import type { SearchResult } from "../../../../../packages/schemas";
 import type { Property } from "../../../../../packages/schemas";
 import type { IsochroneData } from "../../../../../packages/schemas/api";

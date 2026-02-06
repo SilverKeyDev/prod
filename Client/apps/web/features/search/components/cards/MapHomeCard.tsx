@@ -2,10 +2,14 @@ import {
   formatFilenameToAddress,
   truncateText,
   formatLotSize,
-} from "../../../../packages/utils/search/address";
-import { CardHeartSave, CardViewDetailsButton, TrianglePointer } from "./base";
-import PropertyCard from "./PropertyCard";
-// (types removed: SearchResult, Property) - no longer used in props
+} from "../../../../../../packages/utils/search/address";
+import {
+  CardHeartSave,
+  CardViewDetailsButton,
+  TrianglePointer,
+} from "../../../../components/cards/base";
+import PropertyCard from "../../../../components/cards/PropertyCard";
+import { log, LOG_CATEGORIES } from "../../../../../../logger";
 
 export type HomeDescription = {
   home_id: string;
@@ -34,6 +38,13 @@ type MapHomeCardProps = {
   onFocus?: (property: any) => void;
   /** Function to handle unlock/view details click */
   onUnlock?: (home: HomeDescription) => void | Promise<void>;
+  /** Optional save state functions for use outside React context (e.g., map markers) */
+  isHomeSaved?: (propertyId: string, propertyAddress?: string) => boolean;
+  saveHome?: (property: any) => Promise<void>;
+  removeSavedHome?: (
+    propertyId: string,
+    propertyAddress?: string
+  ) => Promise<void>;
 };
 
 /**
@@ -55,8 +66,28 @@ export default function MapHomeCard({
 
   // Convert HomeDescription to Property format for API call
   const convertToProperty = (homeDesc: HomeDescription) => {
+    const usingFallbackLat = homeDesc.lat == null;
+    const usingFallbackLng = homeDesc.lng == null;
     const lat = homeDesc.lat ?? 37.7749;
     const lng = homeDesc.lng ?? -122.4194;
+
+    const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+    log.debug(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "🗺️ [MAP HOME CARD] convertToProperty coordinate mapping",
+      {
+        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+        homeId: homeDesc.home_id,
+        address: homeDesc.address,
+        rawLat: homeDesc.lat,
+        rawLng: homeDesc.lng,
+        lat,
+        lng,
+        usingFallbackLat,
+        usingFallbackLng,
+      },
+    );
+
     return {
       id: homeDesc.home_id,
       address: homeDesc.address ?? formattedAddress ?? homeDesc.home_id,
@@ -91,7 +122,9 @@ export default function MapHomeCard({
 
   return (
     <div
-      className={`relative cursor-pointer ${isOnMap ? "scale-90 transform" : ""}`}
+      className={`relative cursor-pointer ${
+        isOnMap ? "scale-90 transform" : ""
+      }`}
       onClick={handleCardClick}
     >
       {/* Triangle pointer for map pins */}
@@ -117,14 +150,13 @@ export default function MapHomeCard({
         score={score}
         showScore={showScore}
         isOnMap={isOnMap}
-        topContent={
-          <CardHeartSave property={convertToProperty(home)} size="sm" />
-        }
+        topContent={<CardHeartSave property={convertToProperty(home)} size="sm" />}
         bottomContent={
           <CardViewDetailsButton
             onClick={async () => {
-              console.log(
-                "🔓 [MAP HOME CARD] View details clicked for map card:",
+              log.debug(
+                LOG_CATEGORIES.MAP_RENDERING,
+                "🔓 [MAP HOME CARD] View details clicked for map card",
                 {
                   environment:
                     typeof import.meta !== "undefined" && import.meta.env?.DEV
@@ -134,14 +166,15 @@ export default function MapHomeCard({
                   address: home.address?.substring(0, 30) + "...",
                   timestamp: new Date().toISOString(),
                   hasOnUnlockCallback: !!onUnlock,
-                }
+                },
               );
 
               if (onUnlock) {
                 try {
                   await onUnlock(home);
-                  console.log(
-                    "🔓 [MAP HOME CARD] onUnlock completed successfully:",
+                  log.debug(
+                    LOG_CATEGORIES.MAP_RENDERING,
+                    "🔓 [MAP HOME CARD] onUnlock completed successfully",
                     {
                       environment:
                         typeof import.meta !== "undefined" &&
@@ -150,32 +183,39 @@ export default function MapHomeCard({
                           : "PRODUCTION",
                       propertyId: home.home_id,
                       timestamp: new Date().toISOString(),
-                    }
+                    },
                   );
                 } catch (error) {
-                  console.error("🔓 [MAP HOME CARD] Error in onUnlock:", {
-                    environment:
-                      typeof import.meta !== "undefined" && import.meta.env?.DEV
-                        ? "DEVELOPMENT"
-                        : "PRODUCTION",
-                    propertyId: home.home_id,
-                    error:
-                      error instanceof Error ? error.message : String(error),
-                    timestamp: new Date().toISOString(),
-                  });
+                  log.error(
+                    LOG_CATEGORIES.MAP_RENDERING,
+                    "🔓 [MAP HOME CARD] Error in onUnlock",
+                    {
+                      environment:
+                        typeof import.meta !== "undefined" &&
+                        import.meta.env?.DEV
+                          ? "DEVELOPMENT"
+                          : "PRODUCTION",
+                      propertyId: home.home_id,
+                      error:
+                        error instanceof Error ? error.message : String(error),
+                      timestamp: new Date().toISOString(),
+                    },
+                  );
                   throw error; // Re-throw to ensure CardViewDetailsButton handles the error
                 }
               } else {
-                console.warn(
-                  "🔓 [MAP HOME CARD] No onUnlock callback provided:",
+                log.warn(
+                  LOG_CATEGORIES.MAP_RENDERING,
+                  "🔓 [MAP HOME CARD] No onUnlock callback provided",
                   {
                     environment:
-                      typeof import.meta !== "undefined" && import.meta.env?.DEV
+                      typeof import.meta !== "undefined" &&
+                      import.meta.env?.DEV
                         ? "DEVELOPMENT"
                         : "PRODUCTION",
                     propertyId: home.home_id,
                     timestamp: new Date().toISOString(),
-                  }
+                  },
                 );
               }
             }}
@@ -189,3 +229,4 @@ export default function MapHomeCard({
     </div>
   );
 }
+

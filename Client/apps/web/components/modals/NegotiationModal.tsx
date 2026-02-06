@@ -1,6 +1,8 @@
 import { useEffect, useRef, useCallback } from "react";
+import { Home } from "lucide-react";
 
 import BaseModal from "./BaseModal";
+import { Title } from "../ui";
 import { useNegotiationStore } from "../../../../packages/store/negotiation.slice";
 import {
   HomeSelectorSection,
@@ -135,6 +137,18 @@ export default function NegotiationModal({
       onClose={onClose}
       size="full"
       showCloseButton={true}
+      headerContent={
+        <div className="flex min-w-0 items-center gap-2">
+          <Home className="h-5 w-5 flex-shrink-0 text-gray-600" />
+          <Title
+            as="h3"
+            size="sm"
+            className="truncate font-sans font-medium text-gray-900"
+          >
+            Select a Home
+          </Title>
+        </div>
+      }
       className="max-w-7xl"
     >
       <div>

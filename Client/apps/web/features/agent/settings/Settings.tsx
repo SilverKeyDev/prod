@@ -15,7 +15,9 @@ import { useResponsive } from "../../../../../packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 // Features
-import HousingSection from "../../../features/onboardpersonalize/HousingSection";
+import HousingSection, {
+  getPreservedImportantLocations,
+} from "../../../features/onboardpersonalize/HousingSection";
 import LocationSection from "../../../features/onboardpersonalize/LocationSection";
 import {
   getPersonalizationSteps,
@@ -102,7 +104,7 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
       if (userPreferences) {
         // Filter out legacy sections that aren't in DEFAULT_REPORT_SECTIONS
         const validSectionKeys = new Set(
-          DEFAULT_REPORT_SECTIONS.map((section) => section.key)
+          DEFAULT_REPORT_SECTIONS.map((section) => section.key),
         );
 
         const cleanedPreferences = { ...userPreferences };
@@ -116,7 +118,11 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
         setOriginalData(cleanedPreferences as OnboardingData);
       }
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Failed to load user preferences from context",
+        error,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -217,7 +223,11 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Google Maps loading error",
+        googleMapsError,
+      );
       setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -231,7 +241,7 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
     (field: string | number | symbol, value: unknown) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     },
-    []
+    [],
   );
 
   const handleSaveChanges = useCallback(async () => {
@@ -242,8 +252,21 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
     const minorVersion = parseInt(versionParts[1]) ?? 0;
     const newVersion = `${majorVersion}.${minorVersion + 1}`;
 
+    const currentLocations = Array.isArray(formData.important_locations)
+      ? formData.important_locations
+      : [];
+    const originalLocations = Array.isArray(originalData.important_locations)
+      ? originalData.important_locations
+      : [];
+
+    const preservedLocations = getPreservedImportantLocations(
+      originalLocations,
+      currentLocations,
+    );
+
     const dataToSave = {
       ...formData,
+      important_locations: preservedLocations ?? currentLocations,
       preferences_version: newVersion,
     };
 
@@ -289,7 +312,7 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
           onEdit={() => setIsEditMode(true)}
           onCancel={handleCancel}
           onSave={handleSaveChanges}
-        />
+        />,
       );
     } else if (setMobileHeaderActions) {
       setMobileHeaderActions(null);

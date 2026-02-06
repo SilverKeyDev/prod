@@ -18,6 +18,24 @@ export function transformPropertySearchResult(
 ): SearchResult {
   const score = property._score ?? 0;
 
+  const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+  if (index < 5) {
+    // Log only the first few properties per response to avoid log spam
+    log.debug(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "🗺️ [SEARCH TRANSFORM] Property coordinates before/after transform",
+      {
+        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+        index,
+        id: property.zpid,
+        address: property.address,
+        rawLatitude: property.latitude,
+        rawLongitude: property.longitude,
+        fallbackCenter,
+      },
+    );
+  }
+
   return {
     id: property.zpid ?? `${Date.now()}-${index}`,
     address: property.address ?? "Address not available",

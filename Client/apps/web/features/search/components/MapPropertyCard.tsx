@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 
-import MapHomeCard from "./MapHomeCard";
-import type { SearchResult } from "../../../../packages/schemas/search";
-import type { Property } from "../../../../packages/schemas/property";
+import MapHomeCard from "./cards/MapHomeCard";
+import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export type MapPropertyCardProps = {
   property: {
@@ -25,7 +24,7 @@ export type MapPropertyCardProps = {
   onCardRendered?: (property: MapPropertyCardProps["property"]) => void;
   /** Optional save state functions for use outside React context (e.g., map markers) */
   isHomeSaved?: (propertyId: string, propertyAddress?: string) => boolean;
-  saveHome?: (property: SearchResult | Property) => Promise<void>;
+  saveHome?: (property: any) => Promise<void>;
   removeSavedHome?: (
     propertyId: string,
     propertyAddress?: string
@@ -53,7 +52,8 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   }, [property.id, isSaved, showScore, onCardRendered]);
 
   // Add comprehensive logging for debugging score issues
-  const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+  const isDev =
+    typeof import.meta !== "undefined" && (import.meta as any).env?.DEV;
 
   try {
     // Validate and normalize the calculated score
@@ -62,21 +62,26 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
     // Check if score is valid (only validate if a score was provided)
     if (normalizedScore !== undefined && normalizedScore !== null) {
       if (typeof normalizedScore !== "number" || isNaN(normalizedScore)) {
-        console.warn("🗺️ [MAP PROPERTY CARD] Invalid score type detected:", {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          propertyId: property.id,
-          originalScore: property.calculatedScore,
-          scoreType: typeof property.calculatedScore,
-        });
+        log.warn(
+          LOG_CATEGORIES.MAP_RENDERING,
+          "🗺️ [MAP PROPERTY CARD] Invalid score type detected",
+          {
+            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+            propertyId: property.id,
+            originalScore: property.calculatedScore,
+            scoreType: typeof property.calculatedScore,
+          },
+        );
         normalizedScore = undefined;
       } else if (normalizedScore < 0 || normalizedScore > 100) {
-        console.warn(
-          "🗺️ [MAP PROPERTY CARD] Score out of valid range (0-100):",
+        log.warn(
+          LOG_CATEGORIES.MAP_RENDERING,
+          "🗺️ [MAP PROPERTY CARD] Score out of valid range (0-100)",
           {
             environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
             propertyId: property.id,
             score: normalizedScore,
-          }
+          },
         );
         // Clamp score to valid range
         normalizedScore = Math.max(0, Math.min(100, normalizedScore));
@@ -120,67 +125,30 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
     );
 
     return (
-      <div className="relative w-56">
+      <div className="relative">
         <MapHomeCard
           home={homeData}
+          onUnlock={onUnlock}
           showScore={showScore}
-          isOnMap={true}
           isHomeSaved={isHomeSaved}
           saveHome={saveHome}
           removeSavedHome={removeSavedHome}
-          onUnlock={async (home) => {
-            if (onUnlock) {
-              try {
-                // Convert home data back to property format
-                const propertyData = {
-                  id: home.home_id,
-                  address: home.address,
-                  price: home.price,
-                  bedrooms: home.bedrooms,
-                  bathrooms: home.bathrooms,
-                  sqft: home.sqft,
-                  lotSize: home.lot_size,
-                  propertyType: home.propertyType,
-                  lat: home.lat,
-                  lng: home.lng,
-                  images: home.image_url ? [home.image_url] : undefined,
-                  calculatedScore: home.calculatedScore,
-                };
-
-                await onUnlock(propertyData);
-              } catch (error) {
-                console.error(
-                  "🔓 [MAP PROPERTY CARD] Error in onUnlock callback:",
-                  {
-                    environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-                    propertyId: home.home_id,
-                    error:
-                      error instanceof Error ? error.message : String(error),
-                    timestamp: new Date().toISOString(),
-                  }
-                );
-                throw error; // Re-throw to ensure CardViewDetailsButton handles the error
-              }
-            } else {
-              console.warn(
-                "🔓 [MAP PROPERTY CARD] No onUnlock callback provided:",
-                {
-                  environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-                  propertyId: home.home_id,
-                  timestamp: new Date().toISOString(),
-                }
-              );
-            }
-          }}
         />
       </div>
     );
   } catch (error) {
-    console.error(
-      "🗺️ [MAP PROPERTY CARD] Error rendering MapPropertyCard:",
-      error
+    log.error(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "🗺️ [MAP PROPERTY CARD] Error rendering MapPropertyCard",
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
     );
-    console.error("🗺️ [MAP PROPERTY CARD] Property data:", property);
+    log.error(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "🗺️ [MAP PROPERTY CARD] Property data for failed render",
+      property,
+    );
 
     // Return a simple fallback card
     return (
@@ -193,3 +161,4 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
 };
 
 export default MapPropertyCard;
+

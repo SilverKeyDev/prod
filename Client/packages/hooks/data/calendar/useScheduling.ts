@@ -181,7 +181,17 @@ export function useScheduleEvent() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.scheduling.all,
       });
-      // Clear selected slot
+
+      // Also invalidate Google Calendar event queries so any calendar views
+      // that rely on googleCalendar events will re-render with the new event.
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.googleCalendar.events(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.googleCalendar.eventsList(),
+      });
+
+      // Clear selected slot after successful scheduling
       store.setSelectedSlot(null);
     },
   });

@@ -57,7 +57,7 @@ export default function SearchActions({
   }
 
   return (
-    <div className="flex flex-shrink-0 mr-4 gap-2">
+    <div className="flex flex-shrink-0 gap-2">
       <NavigationButton
         onClick={() => onUpdatePreferences()}
         size="md"

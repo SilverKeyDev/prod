@@ -1,10 +1,19 @@
 import { useState, useEffect } from "react";
+import type { ReactNode } from "react";
 import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
 import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
 import AgentMessaging from "../AgentMessaging";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
-export default function AgentDashboard() {
+type AgentDashboardProps = {
+  setMobileHeaderActions?: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
+};
+
+export default function AgentDashboard({
+  setMobileHeaderActions,
+}: AgentDashboardProps = {}) {
   const { clients, isLoading } = useAgentClients();
   const { conversations } = useAgentChats();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
@@ -78,6 +87,7 @@ export default function AgentDashboard() {
       selectedClientId={selectedClientId}
       selectedClient={clients.find((c) => c.id === selectedClientId)}
       onClientSelect={handleClientSelect}
+      setMobileHeaderActions={setMobileHeaderActions}
     />
   );
 }

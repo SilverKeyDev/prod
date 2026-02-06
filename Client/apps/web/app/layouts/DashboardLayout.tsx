@@ -246,7 +246,15 @@ export default function DashboardLayout({
   ]);
 
   return (
-    <div className={`flex ${isMessagingRoute ? "h-screen" : "min-h-screen"} bg-off-white`}>
+    <div
+      className={`flex ${
+        isMessagingRoute
+          ? isMobile
+            ? "h-[calc(100dvh-4rem)] min-h-screen" // Account for MobileSidebar height (4rem = 64px) on mobile
+            : "h-[100dvh] min-h-screen"
+          : "min-h-screen"
+      } bg-off-white`}
+    >
       {/* Desktop Sidebar - Hidden only when mobile bottom nav appears (< 768px) */}
       <div className="hidden md:block">
         <Sidebar
@@ -263,7 +271,7 @@ export default function DashboardLayout({
         <MobileSidebar user={user} onLogout={onLogout} />
       </div>
 
-      <main className={`ml-0 flex-1 transition-all duration-200 md:ml-52 max-md:pb-20 ${isMessagingRoute ? "h-full flex flex-col" : ""}`}>
+      <main className={`ml-0 flex-1 transition-all duration-200 md:ml-52 ${isMessagingRoute ? "min-h-0 h-full flex flex-col overflow-hidden" : ""}`}>
         <DashboardHeader
           isMobile={isMobile}
           isSearch={isSearch}

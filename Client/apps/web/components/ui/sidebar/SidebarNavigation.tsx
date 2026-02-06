@@ -26,9 +26,9 @@ export default function SidebarNavigation({
 
   return (
     <aside
-      className={`sticky top-[90px] h-fit shrink-0 ${className}`}
+      className={`sticky top-[80px] h-fit shrink-0 ${className}`}
       style={{
-        width: isLargeScreen ? "16rem" : "4rem",
+        width: isLargeScreen ? "16rem" : "3.5rem",
       }}
     >
       <Card

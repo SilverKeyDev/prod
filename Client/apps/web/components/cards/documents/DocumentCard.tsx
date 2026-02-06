@@ -61,7 +61,8 @@ export default function DocumentCard({
       rounded="lg"
       shadow="sm"
       hover
-      cardType="regular"
+      cardType="searchpage"
+      scale="md"
       width="full"
     >
       <DocumentCardHeader

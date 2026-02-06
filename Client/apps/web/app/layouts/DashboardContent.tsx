@@ -62,8 +62,8 @@ export function DashboardContent({
           : isBuyerChecklists
             ? `mx-auto ${MOBILE_SIDE_PX} md:px-0`
             : isMessagingRoute
-              ? `relative h-full w-full mx-0 overflow-hidden`
-              : `mx-auto p-4 sm:p-6 md:p-8 md:pt-8 ${MOBILE_SIDE_PX} md:px-0`
+              ? `relative flex-1 min-h-0 max-h-full w-full mx-0 overflow-hidden`
+              : `mx-auto pb-4 sm:pb-6 md:pb-8 ${MOBILE_SIDE_PX} md:px-0`
       }`}
       style={
         isSearch

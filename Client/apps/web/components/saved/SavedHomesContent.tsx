@@ -67,15 +67,15 @@ export default function SavedHomesContent({
       items.push({ type: "agreement", data: agreement });
     });
 
-    // Sort by created_at/uploaded_at (most recent first)
+    // Sort by created_at/updated_at (most recent first)
     items.sort((a, b) => {
       const dateA =
         a.type === "document"
-          ? new Date(a.data.uploaded_at || 0).getTime()
+          ? new Date(a.data.created_at ?? a.data.updated_at ?? 0).getTime()
           : new Date(a.data.created_at).getTime();
       const dateB =
         b.type === "document"
-          ? new Date(b.data.uploaded_at || 0).getTime()
+          ? new Date(b.data.created_at ?? b.data.updated_at ?? 0).getTime()
           : new Date(b.data.created_at).getTime();
       return dateB - dateA;
     });
@@ -88,7 +88,7 @@ export default function SavedHomesContent({
 
     if (isLoading) {
       return (
-        <div className="w-[85%] mx-auto py-responsive-lg flex justify-center">
+        <div className="w-full px-4 sm:px-6 py-responsive-lg flex justify-center">
           <KeyTurnLoader message="Loading documents..." />
         </div>
       );
@@ -96,7 +96,7 @@ export default function SavedHomesContent({
 
     if (sortedItems.length === 0) {
       return (
-        <div className="w-[85%] mx-auto py-responsive-lg text-center">
+        <div className="w-full px-4 sm:px-6 py-responsive-lg text-center">
           <p className="text-responsive-sm text-gray-600">
             You have no documents or agreements yet.
           </p>
@@ -105,22 +105,27 @@ export default function SavedHomesContent({
     }
 
     return (
-      <div className="w-[85%] mx-auto space-y-3">
+      <div className="w-full px-4 sm:px-6 grid grid-cols-1 gap-responsive-md sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {sortedItems.map((item) =>
           item.type === "document" ? (
-            <DocumentCard
+            <div
               key={`doc-${item.data.id}`}
-              doc={item.data}
-              onDelete={onDocumentDelete}
-            />
+              className="relative group w-full"
+            >
+              <DocumentCard doc={item.data} onDelete={onDocumentDelete} />
+            </div>
           ) : (
-            <AgreementListItem
+            <div
               key={`agreement-${item.data.id}`}
-              agreement={item.data}
-              onClick={() => onAgreementClick?.(item.data.id)}
-              onSend={onAgreementSend}
-              onVoid={onAgreementVoid}
-            />
+              className="relative group w-full"
+            >
+              <AgreementListItem
+                agreement={item.data}
+                onClick={() => onAgreementClick?.(item.data.id)}
+                onSend={onAgreementSend}
+                onVoid={onAgreementVoid}
+              />
+            </div>
           )
         )}
       </div>
@@ -131,14 +136,14 @@ export default function SavedHomesContent({
     if (filteredHomes.length === 0) {
       if (homesLoading) {
         return (
-          <div className="w-[85%] mx-auto py-responsive-lg flex justify-center">
+          <div className="w-full px-4 sm:px-6 py-responsive-lg flex justify-center">
             <KeyTurnLoader message="Loading saved homes..." />
           </div>
         );
       }
 
       return (
-        <div className="w-[85%] mx-auto py-responsive-lg text-center">
+        <div className="w-full px-4 sm:px-6 py-responsive-lg text-center">
           <p className="text-responsive-sm text-gray-600">
             You have no saved homes yet.
           </p>
@@ -148,7 +153,7 @@ export default function SavedHomesContent({
 
     return (
       <div
-        className={`w-[85%] mx-auto grid grid-cols-1 gap-responsive-md sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
+        className={`w-full px-4 sm:px-6 grid grid-cols-1 gap-responsive-md sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
           selectedHomesDataLength >= 1 ? "mb-[140px] sm:mb-[160px]" : ""
         }`}
       >

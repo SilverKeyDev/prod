@@ -47,16 +47,6 @@ const buildImportantLocationsList = (
 ): ImportantLocation[] => {
   const importantLocations: ImportantLocation[] = [];
 
-  if (isochroneData.center) {
-    importantLocations.push({
-      name: "Primary Location",
-      address: "Primary Location",
-      lat: isochroneData.center.lat,
-      lng: isochroneData.center.lng,
-      commute_tolerance: 30,
-    });
-  }
-
   if (isochroneData.locations) {
     isochroneData.locations.forEach(
       (location: {

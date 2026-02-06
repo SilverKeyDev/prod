@@ -19,7 +19,7 @@ const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
   onClientChange,
 }) => {
   return (
-    <div className="mx-auto flex w-full max-w-sm items-center gap-2 px-4">
+    <div className="mx-auto flex w-full max-w-full items-center gap-2 px-4 sm:max-w-lg">
       {selectedClientId !== undefined && onClientChange ? (
         <ClientSelector
           selectedClientId={selectedClientId}

@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import type { ReactNode } from "react";
 
 import { useMessaging } from "../../../../../packages/hooks/data/chat/useMessaging";
 import { useMessageScroll } from "../../../../../packages/hooks/ui/useMessageScroll";
@@ -24,6 +25,9 @@ type AgentMessagingProps = {
   selectedClientId: string | null;
   selectedClient?: AgentClient;
   onClientSelect?: (clientId: string) => void;
+  setMobileHeaderActions?: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
 };
 
 export default function AgentMessaging({
@@ -32,6 +36,7 @@ export default function AgentMessaging({
   selectedClientId,
   selectedClient,
   onClientSelect,
+  setMobileHeaderActions,
 }: AgentMessagingProps) {
   // Use shared messaging hook
   const {
@@ -82,6 +87,33 @@ export default function AgentMessaging({
     if (!selectedClientId) return "no-agent";
     return "chat";
   };
+
+  // Push messaging header into layout MobileTopBar on mobile so it hovers over content
+  useEffect(() => {
+    if (!setMobileHeaderActions) return;
+    setMobileHeaderActions(
+      <UnifiedMessagingHeader
+        mode={getHeaderMode()}
+        isSidebarExpanded={isSidebarExpanded}
+        setIsSidebarExpanded={setIsSidebarExpanded}
+        chatTitle={
+          selectedClient
+            ? `Chat with ${selectedClient.name}`
+            : config.header.chatTitle
+        }
+        selectedClientName={selectedClient?.name}
+        onSearchClick={() => setShowSearchModal(true)}
+      />
+    );
+    return () => setMobileHeaderActions(null);
+  }, [
+    setMobileHeaderActions,
+    showInbox,
+    selectedClientId,
+    isSidebarExpanded,
+    selectedClient?.name,
+    config.header.chatTitle,
+  ]);
 
   // Handle home selection from attachment menu
   const handleSelectHome = useCallback(
@@ -182,18 +214,21 @@ export default function AgentMessaging({
           className="relative flex flex-1 flex-col h-full transition-all duration-300 ease-in-out"
         >
           <div className="flex flex-1 flex-col min-h-0">
-            {/* Chat Header */}
-            <UnifiedMessagingHeader
-              mode={getHeaderMode()}
-              isSidebarExpanded={isSidebarExpanded}
-              setIsSidebarExpanded={setIsSidebarExpanded}
-              chatTitle={
-                selectedClient
-                  ? `Chat with ${selectedClient.name}`
-                  : config.header.chatTitle
-              }
-              selectedClientName={selectedClient?.name}
-            />
+            {/* Chat Header - hidden on mobile; shown in MobileTopBar (hovering) via setMobileHeaderActions */}
+            <div className="hidden md:block">
+              <UnifiedMessagingHeader
+                mode={getHeaderMode()}
+                isSidebarExpanded={isSidebarExpanded}
+                setIsSidebarExpanded={setIsSidebarExpanded}
+                chatTitle={
+                  selectedClient
+                    ? `Chat with ${selectedClient.name}`
+                    : config.header.chatTitle
+                }
+                selectedClientName={selectedClient?.name}
+                onSearchClick={() => setShowSearchModal(true)}
+              />
+            </div>
 
             {/* Messages Container */}
             <div className="flex-1 overflow-hidden min-h-0">

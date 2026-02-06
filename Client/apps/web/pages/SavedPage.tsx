@@ -282,7 +282,7 @@ export default function SavedHomes({
         onClose={closePdfModal}
       />
       <div
-        className={`${isMobile ? "mt-24" : "mt-0 lg:mt-0"} space-y-responsive-lg ${
+        className={`${isMobile ? "mt-0" : "mt-0 lg:mt-0"} space-y-responsive-lg ${
           viewType === "homes" && selectedHomesData.length >= 1
             ? "mb-[140px] sm:mb-[160px]"
             : "mb-responsive-lg"
@@ -291,48 +291,56 @@ export default function SavedHomes({
         {/* Header - Only show on desktop (mobile shows in topbar) */}
         {!isMobile && (
           <>
-            <div className="mb-4 w-[85%] mx-auto">
-              <ClientSelector
-                selectedClientId={selectedClientId}
-                onClientChange={setSelectedClientId}
-              />
+            <div className="mb-4 w-full px-4 sm:px-6">
+              <div className="mx-auto max-w-5xl">
+                <ClientSelector
+                  selectedClientId={selectedClientId}
+                  onClientChange={setSelectedClientId}
+                />
+              </div>
             </div>
-            <SavedPageTabsAndSearch
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              searchPlaceholder={
-                viewType === "homes"
-                  ? "Search saved homes..."
-                  : viewType === "documents"
-                    ? "Search documents..."
-                    : "Filter by address"
-              }
-              viewType={viewType}
-              onViewTypeChange={setViewType}
-              eventTypeFilter={eventTypeFilter}
-              onEventTypeFilterChange={setEventTypeFilter}
-              rightText={
-                viewType === "homes"
-                  ? `${filteredHomes.length} saved`
-                  : viewType === "documents"
-                    ? `${filteredDocuments.length} documents`
-                    : ""
-              }
-              onUploadClick={() => setIsDocumentUploadModalOpen(true)}
-            />
+            <div className="w-full px-4 sm:px-6">
+              <div className="mx-auto max-w-5xl">
+                <SavedPageTabsAndSearch
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  searchPlaceholder={
+                    viewType === "homes"
+                      ? "Search saved homes..."
+                      : viewType === "documents"
+                        ? "Search documents..."
+                        : "Filter by address"
+                  }
+                  viewType={viewType}
+                  onViewTypeChange={setViewType}
+                  eventTypeFilter={eventTypeFilter}
+                  onEventTypeFilterChange={setEventTypeFilter}
+                  rightText={
+                    viewType === "homes"
+                      ? `${filteredHomes.length} saved`
+                      : viewType === "documents"
+                        ? `${filteredDocuments.length} documents`
+                        : ""
+                  }
+                  onUploadClick={() => setIsDocumentUploadModalOpen(true)}
+                />
+              </div>
+            </div>
           </>
         )}
 
         {/* Create Agreement - Only show when viewing documents */}
         {viewType === "documents" && isAgent && (
-          <div className="w-[85%] mx-auto mb-4">
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => setIsCreateAgreementModalOpen(true)}
-            >
-              Create Agreement
-            </Button>
+          <div className="w-full px-4 sm:px-6 mb-4">
+            <div className="mx-auto max-w-5xl">
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => setIsCreateAgreementModalOpen(true)}
+              >
+                Create Agreement
+              </Button>
+            </div>
           </div>
         )}
 

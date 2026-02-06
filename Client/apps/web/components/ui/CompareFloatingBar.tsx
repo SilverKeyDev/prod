@@ -26,7 +26,7 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
   const canCompare = selectedHomes.length >= 2;
 
   return (
-    <div className="safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white shadow-lg transition-all duration-300 ease-in-out">
+    <div className="safe-bottom fixed bottom-16 left-0 right-0 z-50 border-t border-gray-200 bg-white shadow-lg transition-all duration-300 ease-in-out md:bottom-0">
       <div className="mx-auto max-w-7xl px-responsive-md py-responsive-sm sm:px-6 sm:py-4">
         <div className="flex items-center gap-responsive-sm sm:gap-4">
           {/* Count and thumbnails */}

@@ -1,6 +1,6 @@
 import { Search, Plus } from "lucide-react";
 import Card from "../layout/Card";
-import IconButton from "../ui/button/IconButton";
+import { IconButton } from "../ui";
 import type { SavedPageViewType } from "../../../../packages/hooks/store/documents/useSavedPageView";
 
 type SavedPageTabsAndSearchProps = {
@@ -96,11 +96,11 @@ export default function SavedPageTabsAndSearch({
           {viewType === "documents" && onUploadClick && (
             <IconButton
               variant="ghost"
-              size="md"
+              size="sm"
               onClick={onUploadClick}
-              icon={<Plus className="h-5 w-5 text-gray-600" />}
-              className="hover:bg-gray-100/50"
-              aria-label="Upload document"
+              aria-label="Upload"
+              icon={<Plus className="h-4 w-4" />}
+              className="text-black/40 hover:bg-transparent active:bg-transparent focus:ring-black/10"
             />
           )}
         </div>

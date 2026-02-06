@@ -862,7 +862,8 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[90vw] px-4 pb-20 sm:px-6 sm:pb-8 lg:px-8">
+    <div className="min-h-screen bg-off-white">
+      <div className="mx-auto w-full max-w-3xl px-4 pb-20 sm:px-6 sm:pb-8 lg:px-8">
       {/* Header */}
       <div className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
         <div className="flex items-center">
@@ -875,7 +876,6 @@ export default function OnboardingPage() {
         <div className="flex items-center gap-4">
           {/*  <SkipButton onSkip={handleSkip} size="sm" />*/}
         </div>
-        */
       </div>
 
       {/* Progress Bar */}
@@ -886,7 +886,7 @@ export default function OnboardingPage() {
       />
 
       {/* Step Content */}
-      <div className="mx-auto max-w-[85vw] rounded-2xl bg-white shadow-sm">
+      <div className="mt-4 rounded-2xl bg-white shadow-sm">
         <Card className="pb-8 sm:pb-12">
           {renderStepContent()}
 
@@ -914,6 +914,7 @@ export default function OnboardingPage() {
         missingFields={validationResult.missingFields}
         errors={validationResult.errors}
       />
+      </div>
     </div>
   );
 }

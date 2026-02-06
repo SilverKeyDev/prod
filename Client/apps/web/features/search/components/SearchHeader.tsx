@@ -23,7 +23,7 @@ export default function SearchHeader({
   onClientChange,
 }: SearchHeaderProps) {
   return (
-    <div className="mt-6 mb-responsive-md mb-6 flex flex-shrink-0 items-center justify-between gap-3">
+    <div className="mt-6 mb-responsive-md mb-6 flex w-full flex-shrink-0 items-center justify-between gap-3">
       {selectedClientId !== undefined && onClientChange ? (
         <ClientSelector
           selectedClientId={selectedClientId}

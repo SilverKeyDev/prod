@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Check } from "lucide-react";
 
 import BaseModal from "./BaseModal";
-import HousingSection from "../../features/onboardpersonalize/HousingSection";
+import HousingSection, {
+  getPreservedImportantLocations,
+} from "../../features/onboardpersonalize/HousingSection";
 import LocationSection from "../../features/onboardpersonalize/LocationSection";
 import { parseUserPreferencesArrays } from "../../features/onboardpersonalize/lib/preferencesUtils";
 import { useUserPreferences } from "../../../../packages/hooks/data/auth/useUserData";
@@ -10,6 +12,7 @@ import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
 import { useAutoSavePreferences } from "../../../../packages/hooks/data/auth/useAutoSavePreferences";
 import { useResponsive } from "../../../../packages/hooks/ui";
 import type { OnboardingData } from "../../features/onboardpersonalize/lib/types";
+import { showErrorToast } from "../../../../packages/hooks/ui/useToast";
 
 type PreferencesModalProps = {
   isOpen: boolean;
@@ -29,6 +32,7 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({
   const [formData, setFormData] = useState<Partial<OnboardingData>>({});
   const initialFormDataRef = useRef<Partial<OnboardingData>>({});
   const hasCapturedInitialStateRef = useRef(false);
+  const [preventedDeleteWarning, setPreventedDeleteWarning] = useState(false);
   const scriptsReady =
     googleMapsLoaded &&
     typeof window !== "undefined" &&
@@ -104,6 +108,41 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({
   // Wrapper for updateFormData that works with our hook
   const updateFormData = useCallback(
     (field: string | number | symbol, value: unknown) => {
+      if (field === "important_locations") {
+        const prevLocations = Array.isArray(formData.important_locations)
+          ? formData.important_locations
+          : [];
+        const nextLocations = Array.isArray(value)
+          ? (value as typeof prevLocations)
+          : [];
+
+        const preserved = getPreservedImportantLocations(
+          prevLocations,
+          nextLocations,
+        );
+
+        // If user tried to delete all locations and we preserved one,
+        // remember to warn them when they close the modal.
+        if (
+          prevLocations.length > 0 &&
+          nextLocations.length === 0 &&
+          (preserved?.length ?? 0) > 0
+        ) {
+          setPreventedDeleteWarning(true);
+        } else if ((preserved?.length ?? nextLocations.length) > 0) {
+          // If they have at least one location again, clear the warning flag.
+          setPreventedDeleteWarning(false);
+        }
+
+        updateFormDataWithAutoSave(
+          formData,
+          setFormData,
+          field,
+          preserved ?? [],
+        );
+        return;
+      }
+
       updateFormDataWithAutoSave(formData, setFormData, field, value);
     },
     [formData, updateFormDataWithAutoSave]
@@ -111,6 +150,12 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({
 
   // Compare preferences when modal closes and trigger search if changed
   const handleClose = useCallback(async () => {
+    if (preventedDeleteWarning) {
+      showErrorToast(
+        "You must have at least one important location. Your last location was kept and not deleted.",
+      );
+    }
+
     // Deep compare current formData with initial state
     const currentDataStr = JSON.stringify(formData);
     const initialDataStr = JSON.stringify(initialFormDataRef.current);
@@ -122,7 +167,7 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({
     if (hasChanged && onPreferencesChanged) {
       await onPreferencesChanged();
     }
-  }, [formData, onClose, onPreferencesChanged]);
+  }, [formData, onClose, onPreferencesChanged, preventedDeleteWarning]);
 
   return (
     <BaseModal

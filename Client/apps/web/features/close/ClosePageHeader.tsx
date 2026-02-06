@@ -58,7 +58,11 @@ export default function ClosePageHeader({
                   <MiniLogo size="md" className="hidden lg:block xl:hidden" />
                   <MiniLogo size="lg" className="hidden xl:block" />
                 </div>
-                <h1 className="text-sm sm:text-base lg:heading-responsive-md font-semibold lg:font-normal text-navy">
+                <h1
+                  className="text-sm sm:text-base lg:heading-responsive-md font-semibold lg:font-normal text-navy"
+                  role="heading"
+                  aria-level={1}
+                >
                   {title}
                 </h1>
               </div>

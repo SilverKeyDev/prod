@@ -5,6 +5,7 @@ import { authApi } from "../config/api";
 import { asError } from "../utils/error";
 import { isObject, hasProperty } from "../utils/typeGuards";
 import { log, LOG_CATEGORIES } from "../../logger";
+import { useNegotiationStore } from "../store/negotiation.slice";
 
 // Internal services
 
@@ -50,6 +51,10 @@ export class NegotiationService {
       isLoading: false,
       error: null,
     };
+
+    // Keep the Zustand store in sync with the service-initialized state so
+    // UI components (like `NegotiationModal`) re-render correctly.
+    this.syncToStore(this.state);
   }
 
   public static getInstance(): NegotiationService {
@@ -102,11 +107,35 @@ export class NegotiationService {
    */
   private updateState(updates: Partial<NegotiationState>): void {
     this.state = { ...this.state, ...updates };
+    this.syncToStore(updates);
     if (
       this.callbacks.onStateChange &&
       typeof this.callbacks.onStateChange === "function"
     ) {
       this.callbacks.onStateChange(this.getState());
+    }
+  }
+
+  /**
+   * Sync service state to Zustand store (single UI source of truth).
+   */
+  private syncToStore(updates: Partial<NegotiationState>): void {
+    const store = useNegotiationStore.getState();
+
+    if ("selectedHome" in updates) {
+      store.setSelectedHome((updates.selectedHome ?? null) as never);
+    }
+    if ("strategyData" in updates) {
+      store.setStrategyData(updates.strategyData ?? null);
+    }
+    if ("compsData" in updates) {
+      store.setCompsData(updates.compsData ?? null);
+    }
+    if ("isLoading" in updates) {
+      store.setLoading(Boolean(updates.isLoading));
+    }
+    if ("error" in updates) {
+      store.setError(updates.error ?? null);
     }
   }
 
@@ -168,11 +197,10 @@ export class NegotiationService {
       error: null,
     });
 
-    // State is managed internally; hooks will sync to store if needed
-    store.setCompsData(null);
+    // Clear derived text content in the store as well.
+    const store = useNegotiationStore.getState();
     store.setStrategyTextContent("");
     store.setCompsTextContent("");
-    store.setError(null);
 
     // Persist to localStorage
     this.saveToLocalStorage(this.localStorageKeys.selectedHome, home);
@@ -339,10 +367,10 @@ export class NegotiationService {
         isLoading: false,
       });
 
-      // State is managed internally; hooks will sync to store if needed
+      // Keep derived textual content in the store for downstream UI.
+      const store = useNegotiationStore.getState();
+      store.setStrategyTextContent(strategyTextContent);
       store.setCompsTextContent(compsTextContent);
-      store.setLoading(false);
-      store.setError(null);
 
       // Persist to localStorage
       this.saveToLocalStorage(
@@ -398,8 +426,6 @@ export class NegotiationService {
         error: errorMessage,
         isLoading: false,
       });
-
-      // State is managed internally; hooks will sync to store if needed
 
       if (
         this.callbacks.onError &&
@@ -636,11 +662,9 @@ export class NegotiationService {
       error: null,
     });
 
-    // State is managed internally; hooks will sync to store if needed
-
-    // Clear localStorage
+    // Clear sessionStorage (we intentionally do NOT use localStorage here)
     Object.values(this.localStorageKeys).forEach((key) => {
-      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
     });
 
     log.info(LOG_CATEGORIES.NEGOTIATION, "All data cleared");

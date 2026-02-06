@@ -18,15 +18,10 @@ export default function AgentPage({
   const authReady = useAuthStore((s) => s.authReady);
   const isAgent = useIsAgent();
 
-  // Set mobile header actions
+  // Clear mobile header when leaving page (messaging sets its own header while mounted)
   useEffect(() => {
-    if (setMobileHeaderActions) {
-      setMobileHeaderActions(null);
-    }
     return () => {
-      if (setMobileHeaderActions) {
-        setMobileHeaderActions(null);
-      }
+      if (setMobileHeaderActions) setMobileHeaderActions(null);
     };
   }, [setMobileHeaderActions]);
 
@@ -40,5 +35,13 @@ export default function AgentPage({
   }
 
   // Show agent dashboard if user is an agent, otherwise show client messaging
-  return <div className="h-full w-full">{isAgent ? <AgentDashboard /> : <ClientMessaging />}</div>;
+  return (
+    <div className="h-full w-full">
+      {isAgent ? (
+        <AgentDashboard setMobileHeaderActions={setMobileHeaderActions} />
+      ) : (
+        <ClientMessaging setMobileHeaderActions={setMobileHeaderActions} />
+      )}
+    </div>
+  );
 }

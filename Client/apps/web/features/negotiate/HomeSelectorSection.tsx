@@ -1,8 +1,8 @@
 import React from "react";
-import { Home, Lightbulb } from "lucide-react";
+import { Lightbulb } from "lucide-react";
 import { AlignedRow } from "../../components/layout";
 import { FavoriteHomesDropdown, Button } from "../../components/ui";
-import { SectionBox, SectionTitle } from "./index";
+import { SectionBox } from "./index";
 
 type FavoriteHome = {
   user_id: string;
@@ -32,10 +32,6 @@ export function HomeSelectorSection({
 }: HomeSelectorSectionProps): React.JSX.Element {
   return (
     <SectionBox>
-      <SectionTitle icon={<Home className="mobile-icon-sm text-brown" />}>
-        Select a Home
-      </SectionTitle>
-
       <AlignedRow gap="sm" justify="start" widths={[80, 20]}>
         <FavoriteHomesDropdown
           selectedHome={selectedHome}

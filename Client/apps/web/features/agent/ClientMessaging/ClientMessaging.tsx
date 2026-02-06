@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import type { ReactNode } from "react";
 
 import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
 import { useMessaging } from "../../../../../packages/hooks/data/chat/useMessaging";
@@ -16,7 +17,15 @@ import type { SavedHome } from "../../../../../packages/schemas/property";
 import type { DocumentData } from "../../../components/cards/documents/DocumentCard";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
-export default function ClientMessaging() {
+type ClientMessagingProps = {
+  setMobileHeaderActions?: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
+};
+
+export default function ClientMessaging({
+  setMobileHeaderActions,
+}: ClientMessagingProps = {}) {
   const { userProfile } = useUserData();
 
   // Get agent info from userProfile if available
@@ -88,6 +97,27 @@ export default function ClientMessaging() {
     if (!agentId) return "no-agent";
     return "chat";
   };
+
+  // Push messaging header into layout MobileTopBar on mobile so it hovers over content
+  useEffect(() => {
+    if (!setMobileHeaderActions) return;
+    setMobileHeaderActions(
+      <UnifiedMessagingHeader
+        mode={getHeaderMode()}
+        isSidebarExpanded={isSidebarExpanded}
+        setIsSidebarExpanded={setIsSidebarExpanded}
+        onSearchClick={() => setShowSearchModal(true)}
+        agentName={activeConversation?.agent_name}
+      />
+    );
+    return () => setMobileHeaderActions(null);
+  }, [
+    setMobileHeaderActions,
+    showInbox,
+    agentId,
+    isSidebarExpanded,
+    activeConversation?.agent_name,
+  ]);
 
   // Handle home selection from attachment menu
   const handleSelectHome = useCallback(
@@ -179,14 +209,16 @@ export default function ClientMessaging() {
           className="relative flex flex-1 flex-col h-full transition-all duration-300 ease-in-out"
         >
           <div className="flex flex-1 flex-col min-h-0">
-            {/* Chat Header */}
-            <UnifiedMessagingHeader
-              mode={getHeaderMode()}
-              isSidebarExpanded={isSidebarExpanded}
-              setIsSidebarExpanded={setIsSidebarExpanded}
-              onSearchClick={() => setShowSearchModal(true)}
-              agentName={activeConversation?.agent_name}
-            />
+            {/* Chat Header - hidden on mobile; shown in MobileTopBar (hovering) via setMobileHeaderActions */}
+            <div className="hidden md:block">
+              <UnifiedMessagingHeader
+                mode={getHeaderMode()}
+                isSidebarExpanded={isSidebarExpanded}
+                setIsSidebarExpanded={setIsSidebarExpanded}
+                onSearchClick={() => setShowSearchModal(true)}
+                agentName={activeConversation?.agent_name}
+              />
+            </div>
 
             {/* Messages Container */}
             <div className="flex-1 overflow-hidden min-h-0">

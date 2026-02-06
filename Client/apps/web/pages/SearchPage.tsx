@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal/PropertyDetailsModal";
 import PreferencesModal from "../components/modals/PreferencesModal";
 import KeyTurnLoader from "../components/ui/loading/KeyTurnLoader";
+import IconButton from "../components/ui/button/IconButton";
 import RippleBackground from "../features/homeauth/RippleBackground";
 
 // Core
@@ -130,11 +131,15 @@ export default function SearchPage({
 
         await fetchPropertyDetails(propertyForDetails);
 
-        log.debug(LOG_CATEGORIES.SEARCH, "fetchPropertyDetails completed successfully", {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          propertyId: propertyForDetails.id,
-          timestamp: new Date().toISOString(),
-        });
+        log.debug(
+          LOG_CATEGORIES.SEARCH,
+          "fetchPropertyDetails completed successfully",
+          {
+            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+            propertyId: propertyForDetails.id,
+            timestamp: new Date().toISOString(),
+          },
+        );
       } catch (error) {
         log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch property details", {
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
@@ -145,7 +150,7 @@ export default function SearchPage({
         throw error; // Re-throw to ensure the error propagates up the chain
       }
     },
-    [fetchPropertyDetails]
+    [fetchPropertyDetails],
   );
 
   // Initialize search results from cache (React Query handles this automatically)
@@ -155,7 +160,12 @@ export default function SearchPage({
       setHasSearched(true);
       setShowPropertyModals(true);
     }
-  }, [searchResults.length, hasSearched, setHasSearched, setShowPropertyModals]);
+  }, [
+    searchResults.length,
+    hasSearched,
+    setHasSearched,
+    setShowPropertyModals,
+  ]);
 
   const mobileMapRef = useRef<HTMLDivElement>(null);
   const desktopMapRef = useRef<HTMLDivElement>(null);
@@ -173,25 +183,41 @@ export default function SearchPage({
   // Convert SavedHome[] to SearchResult[] for compatibility with SearchPage
   const convertSavedHomeToSearchResult = useCallback(
     (savedHome: SavedHome): SearchResult => {
+      const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+      log.debug(
+        LOG_CATEGORIES.MAP_RENDERING,
+        "🗺️ [SEARCH PAGE] Converting SavedHome to SearchResult for map",
+        {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          homeId: savedHome.home_id,
+          address: savedHome.address,
+          rawLat: savedHome.lat,
+          rawLng: savedHome.lng,
+        },
+      );
+
       return {
         id: savedHome.home_id ?? savedHome.address ?? `home_${Date.now()}`,
         address: savedHome.address ?? "",
         price:
           typeof savedHome.price === "number"
             ? savedHome.price.toLocaleString()
-            : savedHome.price ?? "",
+            : (savedHome.price ?? ""),
         bedrooms: savedHome.bedrooms ?? 0,
         bathrooms: savedHome.bathrooms ?? 0,
         sqft: savedHome.sqft ?? 0,
         lat: savedHome.lat ?? 0,
         lng: savedHome.lng ?? 0,
-        lotSize: typeof savedHome.lot_size === "string" ? savedHome.lot_size : undefined,
+        lotSize:
+          typeof savedHome.lot_size === "string"
+            ? savedHome.lot_size
+            : undefined,
         propertyType: "SINGLE_FAMILY", // Default
         listingStatus: "FOR_SALE", // Default
         imageUrl: savedHome.image_url,
       };
     },
-    []
+    [],
   );
 
   const {
@@ -203,8 +229,28 @@ export default function SearchPage({
 
   // Convert SavedHome[] to SearchResult[] for SearchPage compatibility
   const savedHomes = React.useMemo(
-    () => savedHomesRaw.map(convertSavedHomeToSearchResult),
-    [savedHomesRaw, convertSavedHomeToSearchResult]
+    () => {
+      const converted = savedHomesRaw.map(convertSavedHomeToSearchResult);
+      const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+      log.info(
+        LOG_CATEGORIES.MAP_RENDERING,
+        "🗺️ [SEARCH PAGE] Saved homes converted for map rendering",
+        {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          rawCount: savedHomesRaw.length,
+          convertedCount: converted.length,
+          sample: converted.slice(0, 3).map((home, index) => ({
+            index,
+            id: home.id,
+            address: home.address,
+            lat: home.lat,
+            lng: home.lng,
+          })),
+        },
+      );
+      return converted;
+    },
+    [savedHomesRaw, convertSavedHomeToSearchResult],
   );
 
   // Handle navigation to property (focus on property instead of opening details)
@@ -226,7 +272,7 @@ export default function SearchPage({
         });
       }
     },
-    [activeTab, searchResults, savedHomes, setCurrentPage]
+    [activeTab, searchResults, savedHomes, setCurrentPage],
   );
 
   // Initialize MapZoomController
@@ -247,7 +293,10 @@ export default function SearchPage({
   const renderIsochronePolygonWrapper = useCallback(
     (isochroneData: unknown) => {
       if (!googleMapRef.current) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Map not initialized yet");
+        log.warn(
+          LOG_CATEGORIES.MAP_RENDERING,
+          "Google Map not initialized yet",
+        );
         return;
       }
 
@@ -258,14 +307,17 @@ export default function SearchPage({
         focusOnCurrentProperty: mapFocusOnCurrentProperty,
       });
     },
-    [mapFocusOnCurrentProperty, googleMapRef]
+    [mapFocusOnCurrentProperty, googleMapRef],
   );
 
   // Use imported renderImportantLocationMarkers function with enhanced logging
   const renderImportantLocationMarkersWrapper = useCallback(
     (isochroneData: unknown) => {
       if (!googleMapRef.current) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Cannot render important location markers: map not available");
+        log.warn(
+          LOG_CATEGORIES.MAP_RENDERING,
+          "Cannot render important location markers: map not available",
+        );
         return;
       }
 
@@ -273,14 +325,14 @@ export default function SearchPage({
         map: googleMapRef.current,
         importantMarkersRef,
         setImportantLocationMarkers: (
-          markers: GoogleAdvancedMarkerElement[]
+          markers: GoogleAdvancedMarkerElement[],
         ) => {
           importantMarkersRef.current = markers;
         },
         resetToDefaultZoom,
       });
     },
-    [resetToDefaultZoom, googleMapRef]
+    [resetToDefaultZoom, googleMapRef],
   );
 
   // Search results are now cached in React Query, no need for localStorage
@@ -289,13 +341,10 @@ export default function SearchPage({
     async (_results: SearchResult[]) => {
       // No-op: React Query handles caching automatically via setSearchResults
     },
-    []
+    [],
   );
 
-  const {
-    primeIsochroneOverlay,
-    runIsochroneSearch,
-  } = useIsochroneFlow({
+  const { primeIsochroneOverlay, runIsochroneSearch } = useIsochroneFlow({
     env,
     googleMapRef,
     renderIsochronePolygon: renderIsochronePolygonWrapper,
@@ -318,7 +367,7 @@ export default function SearchPage({
         setHasSearched,
         setCurrentPage,
         setShowPropertyModals,
-        saveSearchResultsToLocalStorage
+        saveSearchResultsToLocalStorage,
       );
     },
     setSearchStage: (stage?: string) => setSearchStage(stage ?? ""),
@@ -373,13 +422,20 @@ export default function SearchPage({
       if (property) {
         void handleViewPropertyDetails(property);
       } else {
-        log.error(LOG_CATEGORIES.SEARCH, "MAP MODAL: Property not found with ID", {
-          propertyId,
-          availableProperties: currentData.map((p) => ({ id: p.id, address: p.address })),
-        });
+        log.error(
+          LOG_CATEGORIES.SEARCH,
+          "MAP MODAL: Property not found with ID",
+          {
+            propertyId,
+            availableProperties: currentData.map((p) => ({
+              id: p.id,
+              address: p.address,
+            })),
+          },
+        );
       }
     },
-    [activeTab, searchResults, savedHomes, handleViewPropertyDetails]
+    [activeTab, searchResults, savedHomes, handleViewPropertyDetails],
   );
 
   useMarkerUpdates({
@@ -433,7 +489,7 @@ export default function SearchPage({
 
       return Math.min(score, 100); // Cap at 100
     },
-    []
+    [],
   );
 
   // Use the map markers hook to actually create property markers
@@ -567,7 +623,15 @@ export default function SearchPage({
         void primeIsochroneOverlay(searchResults.length > 0);
       }, 100);
     }
-  }, [isGoogleMapsLoaded, searchResults.length, isochroneData, googleMapRef, primeIsochroneOverlay, renderIsochronePolygonWrapper, renderImportantLocationMarkersWrapper]);
+  }, [
+    isGoogleMapsLoaded,
+    searchResults.length,
+    isochroneData,
+    googleMapRef,
+    primeIsochroneOverlay,
+    renderIsochronePolygonWrapper,
+    renderImportantLocationMarkersWrapper,
+  ]);
 
   return (
     <div className="h-full">
@@ -601,26 +665,27 @@ export default function SearchPage({
 
             {/* Collapse/Expand Button - positioned after saved tab */}
             <div className="ml-4 px-2">
-              <button
+              <IconButton
                 onClick={() => setIsCarouselCollapsed(!isCarouselCollapsed)}
-                className="cursor-pointer p-1 text-gray-500 transition-colors hover:text-gray-700"
-                title={
-                  isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"
+                variant="ghost"
+                size="sm"
+                rounded="full"
+                aria-label={isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"}
+                icon={
+                  isCarouselCollapsed ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronUp className="h-4 w-4" />
+                  )
                 }
-              >
-                {isCarouselCollapsed ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronUp className="h-4 w-4" />
-                )}
-              </button>
+              />
             </div>
           </div>
 
           {/* Mobile Property Carousel */}
           <div
             className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              isCarouselCollapsed ? "max-h-0" : "max-h-96"
+              isCarouselCollapsed ? "max-h-0" : "max-h-[45vh]"
             }`}
           >
             <div className="py-3">
@@ -636,7 +701,7 @@ export default function SearchPage({
                   // saveHome from useSavedHomesStoreIntegration accepts SavedHome format
                   // Convert SearchResult to SavedHome format
                   const priceString = p.price != null ? String(p.price) : "";
-                  
+
                   const savedHome: SavedHome = {
                     home_id: p.id,
                     address: p.address,
@@ -771,8 +836,13 @@ export default function SearchPage({
           {/* Desktop Map - Takes remaining height */}
           <div className="relative flex-1 overflow-hidden rounded-tl-lg border border-gray-200 bg-white">
             {/* Loading overlay - Only show when actively searching and no cached data */}
-            {((isSearching && !hasSearched && searchResults.length === 0 && savedHomes.length === 0) ||
-              (isLoadingSearchResults && searchResults.length === 0 && savedHomes.length === 0) ||
+            {((isSearching &&
+              !hasSearched &&
+              searchResults.length === 0 &&
+              savedHomes.length === 0) ||
+              (isLoadingSearchResults &&
+                searchResults.length === 0 &&
+                savedHomes.length === 0) ||
               (isLoadingIsochrone && !isochroneData && !hasSearched)) && (
               <div className="absolute inset-0 z-20 flex h-full w-full items-center justify-center overflow-hidden rounded-tl-lg">
                 <div className="absolute inset-0 z-0">

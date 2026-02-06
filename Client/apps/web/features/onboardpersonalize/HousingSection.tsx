@@ -15,6 +15,46 @@ import {
   type OnboardingData,
 } from "./lib/constants";
 
+export type ImportantLocation = NonNullable<
+  OnboardingData["important_locations"]
+>[number];
+
+export function getPreservedImportantLocations(
+  previous: ImportantLocation[] | undefined | null,
+  next: ImportantLocation[] | undefined | null,
+): ImportantLocation[] | undefined {
+  const prevLocations = Array.isArray(previous) ? previous : [];
+  const nextLocations = Array.isArray(next) ? next : [];
+
+  if (prevLocations.length === 0) {
+    return nextLocations;
+  }
+
+  // If the user tried to delete all locations without adding a new one,
+  // preserve the last location they attempted to delete instead of saving none.
+  if (nextLocations.length === 0) {
+    const removedLocation =
+      [...prevLocations]
+        .reverse()
+        .find(
+          (prevLocation) =>
+            !nextLocations.some(
+              (nextLocation) =>
+                nextLocation &&
+                prevLocation &&
+                nextLocation.name === prevLocation.name &&
+                nextLocation.address === prevLocation.address &&
+                nextLocation.commute_tolerance ===
+                  prevLocation.commute_tolerance,
+            ),
+        ) ?? prevLocations[prevLocations.length - 1];
+
+    return removedLocation ? [removedLocation] : nextLocations;
+  }
+
+  return nextLocations;
+}
+
 type HousingSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;

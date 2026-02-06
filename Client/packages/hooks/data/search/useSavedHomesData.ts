@@ -5,6 +5,7 @@ import { userApi } from "../../../config/api";
 import { queryKeys } from "../../../config/query/keys";
 import { useAuthStore } from "../../../store/auth.slice";
 import type { SavedHome } from "../../../schemas";
+import { log, LOG_CATEGORIES } from "../../../../logger";
 
 // Type definitions for Google Maps API
 interface GoogleMapsGeocoder {
@@ -96,6 +97,29 @@ const mapHomeUniversalToSavedHome = (
   const lat = validLat ? latNum : undefined;
   const lng = validLng ? lngNum : undefined;
 
+  const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+  if (index < 10) {
+    // Log first few homes per batch to trace coordinate normalization
+    log.debug(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "🗺️ [SAVED HOMES] Normalizing coordinates for saved home",
+      {
+        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+        index,
+        id: homeData.id,
+        address: homeData.address,
+        rawLat,
+        rawLng,
+        latNum,
+        lngNum,
+        validLat,
+        validLng,
+        finalLat: lat,
+        finalLng: lng,
+      },
+    );
+  }
+
   return {
     home_id: homeData.address ?? `home_${index}_${Date.now()}`,
     description: homeData.address ?? "",
@@ -168,13 +192,32 @@ export const useSavedHomesData = (clientId?: string) => {
         throw new Error(response.error ?? "Failed to load favorite homes");
       }
       const rawHomes = (response.favorites ?? []) as unknown as RawHomeData[];
+      const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+      log.info(
+        LOG_CATEGORIES.MAP_RENDERING,
+        "🗺️ [SAVED HOMES] Loaded raw favorite homes from API",
+        {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          rawCount: rawHomes.length,
+          sample: rawHomes.slice(0, 3).map((home, i) => ({
+            index: i,
+            id: (home as RawHomeData).id,
+            address: (home as RawHomeData).address,
+            lat: (home as RawHomeData).lat ?? home.latitude,
+            lng:
+              (home as RawHomeData).lng ??
+              home.longitude ??
+              home.lon,
+          })),
+        },
+      );
       // Only log once per session to avoid spam
       if (!sessionStorage.getItem("saved_homes_loaded_logged")) {
         sessionStorage.setItem("saved_homes_loaded_logged", "true");
       }
       // Enrich with coordinates if missing (legacy behavior)
       const enriched = await Promise.all(
-        rawHomes.map(async (home) => {
+        rawHomes.map(async (home, index) => {
           const existingLat = home?.lat ?? home?.latitude;
           const existingLng = home?.lng ?? home?.longitude ?? home?.lon;
           const latNum =
@@ -191,6 +234,16 @@ export const useSavedHomesData = (clientId?: string) => {
             !(latNum === 0 && lngNum === 0);
 
           if (hasValid) {
+            log.debug(
+              LOG_CATEGORIES.MAP_RENDERING,
+              "🗺️ [SAVED HOMES] Using existing valid coordinates for saved home",
+              {
+                index,
+                address: home.address,
+                lat: existingLat,
+                lng: existingLng,
+              },
+            );
             return home;
           }
 
@@ -214,6 +267,15 @@ export const useSavedHomesData = (clientId?: string) => {
                     ? location.lng()
                     : location.lng;
                 if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                  log.debug(
+                    LOG_CATEGORIES.MAP_RENDERING,
+                    "🗺️ [SAVED HOMES] Geocoded coordinates for saved home",
+                    {
+                      address: home.address,
+                      lat,
+                      lng,
+                    },
+                  );
                   return { ...home, lat, lng };
                 }
               }
