@@ -28,6 +28,9 @@ type DashboardContentProps = {
   setMobileHeaderActions: React.Dispatch<
     React.SetStateAction<ReactNode | null>
   >;
+  setMobileBottomActions: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
   searchPageRef: React.RefObject<{
     triggerSearch: () => Promise<void>;
   }>;
@@ -49,6 +52,7 @@ export function DashboardContent({
   isDashboard,
   computedMaxWidthVW,
   setMobileHeaderActions,
+  setMobileBottomActions,
   searchPageRef,
   setClosePageHeaderData,
   buyerChecklistsActiveTab,
@@ -99,7 +103,10 @@ export function DashboardContent({
         <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
       )}
       {isMessagingRoute && (
-        <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
+        <AgentPage
+          setMobileHeaderActions={setMobileHeaderActions}
+          setMobileBottomActions={setMobileBottomActions}
+        />
       )}
       {isDashboard && (
         <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />

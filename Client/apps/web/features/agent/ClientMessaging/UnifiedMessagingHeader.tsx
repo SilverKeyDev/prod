@@ -35,7 +35,7 @@ export default function UnifiedMessagingHeader({
 }: UnifiedMessagingHeaderProps) {
   // Constant height - using h-14 (56px) to ensure consistency
   const baseClasses =
-    "flex-shrink-0 flex items-center justify-between border-b border-beige bg-white p-3 h-14";
+    "flex w-full items-center justify-between border-b border-beige bg-white p-3 h-14";
 
   const renderLeftContent = () => {
     switch (mode) {

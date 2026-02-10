@@ -35,7 +35,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
     <>
       <div
         ref={containerRef}
-        className={`bg-background fixed left-0 right-0 top-2 z-40 transition-all duration-300 ease-in-out md:hidden ${
+        className={`bg-background fixed left-0 right-0 top-0 z-40 transition-all duration-300 ease-in-out md:hidden ${
           dynamicHeight ? "min-h-20" : "h-20"
         } ${fullWidth ? "!h-auto min-h-14" : ""}`}
       >

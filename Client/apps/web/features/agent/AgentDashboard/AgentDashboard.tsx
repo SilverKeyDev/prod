@@ -9,10 +9,14 @@ type AgentDashboardProps = {
   setMobileHeaderActions?: React.Dispatch<
     React.SetStateAction<ReactNode | null>
   >;
+  setMobileBottomActions?: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
 };
 
 export default function AgentDashboard({
   setMobileHeaderActions,
+  setMobileBottomActions,
 }: AgentDashboardProps = {}) {
   const { clients, isLoading } = useAgentClients();
   const { conversations } = useAgentChats();
@@ -88,6 +92,7 @@ export default function AgentDashboard({
       selectedClient={clients.find((c) => c.id === selectedClientId)}
       onClientSelect={handleClientSelect}
       setMobileHeaderActions={setMobileHeaderActions}
+      setMobileBottomActions={setMobileBottomActions}
     />
   );
 }

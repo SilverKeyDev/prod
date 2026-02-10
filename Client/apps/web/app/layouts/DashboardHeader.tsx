@@ -84,8 +84,16 @@ export function DashboardHeader({
       {showMobileTopBar && (
         <div className="md:hidden">
           <div
-            className={isSearch ? "w-full" : "mx-auto"}
-            style={isSearch ? {} : { maxWidth: "95vw" }}
+            className={
+              isMessagingRoute || isSearch
+                ? "w-full"
+                : "mx-auto"
+            }
+            style={
+              isMessagingRoute || isSearch
+                ? {}
+                : { maxWidth: "95vw" }
+            }
           >
             <MobileTopBar
               dynamicHeight={isSaved && mobileHeaderActions !== null && !isMessagingRoute}

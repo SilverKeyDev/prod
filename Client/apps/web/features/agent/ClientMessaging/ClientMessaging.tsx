@@ -15,17 +15,23 @@ import UnifiedMessageInput from "../components/UnifiedMessageInput";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
 import type { SavedHome } from "../../../../../packages/schemas/property";
 import type { DocumentData } from "../../../components/cards/documents/DocumentCard";
+import { useIsMobile } from "../../../../../packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 type ClientMessagingProps = {
   setMobileHeaderActions?: React.Dispatch<
     React.SetStateAction<ReactNode | null>
   >;
+  setMobileBottomActions?: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
 };
 
 export default function ClientMessaging({
   setMobileHeaderActions,
+  setMobileBottomActions,
 }: ClientMessagingProps = {}) {
+  const isMobile = useIsMobile();
   const { userProfile } = useUserData();
 
   // Get agent info from userProfile if available
@@ -82,6 +88,20 @@ export default function ClientMessaging({
   // Auto-scroll to bottom when messages change
   const { messagesEndRef } = useMessageScroll(localMessages, activeConversationId, isLoadingHistory);
 
+  const useBottomBarInput = isMobile && !!setMobileBottomActions;
+
+  const handleAttachmentHome = useCallback(() => {
+    setShowSelectHomeModal(true);
+  }, []);
+
+  const handleAttachmentDocument = useCallback(() => {
+    setShowSelectDocumentModal(true);
+  }, []);
+
+  const handleAttachmentCalendar = useCallback(() => {
+    setShowCalendarEventModal(true);
+  }, []);
+
   // Handle sending messages (client mode)
   const handleSendMessage = useCallback(async () => {
     if (!message.trim()) return;
@@ -117,6 +137,34 @@ export default function ClientMessaging({
     agentId,
     isSidebarExpanded,
     activeConversation?.agent_name,
+  ]);
+
+  // On mobile, render the message input in a fixed MobileBottomBar (above the bottom nav).
+  useEffect(() => {
+    if (!isMobile || !setMobileBottomActions) return;
+    setMobileBottomActions(
+      <UnifiedMessageInput
+        mode="client"
+        message={message}
+        setMessage={setMessage}
+        isTyping={isTyping}
+        onSendMessage={handleSendMessage}
+        onAttachmentHome={handleAttachmentHome}
+        onAttachmentDocument={handleAttachmentDocument}
+        onAttachmentCalendar={handleAttachmentCalendar}
+      />
+    );
+
+    return () => setMobileBottomActions(null);
+  }, [
+    isMobile,
+    setMobileBottomActions,
+    message,
+    isTyping,
+    handleSendMessage,
+    handleAttachmentHome,
+    handleAttachmentDocument,
+    handleAttachmentCalendar,
   ]);
 
   // Handle home selection from attachment menu
@@ -237,17 +285,19 @@ export default function ClientMessaging({
               </div>
             </div>
 
-            {/* Message Input */}
-            <UnifiedMessageInput
-              mode="client"
-              message={message}
-              setMessage={setMessage}
-              isTyping={isTyping}
-              onSendMessage={handleSendMessage}
-              onAttachmentHome={() => setShowSelectHomeModal(true)}
-              onAttachmentDocument={() => setShowSelectDocumentModal(true)}
-              onAttachmentCalendar={() => setShowCalendarEventModal(true)}
-            />
+            {/* Message Input (desktop/in-flow). On mobile we render this in MobileBottomBar. */}
+            {!useBottomBarInput ? (
+              <UnifiedMessageInput
+                mode="client"
+                message={message}
+                setMessage={setMessage}
+                isTyping={isTyping}
+                onSendMessage={handleSendMessage}
+                onAttachmentHome={handleAttachmentHome}
+                onAttachmentDocument={handleAttachmentDocument}
+                onAttachmentCalendar={handleAttachmentCalendar}
+              />
+            ) : null}
           </div>
         </section>
       </div>

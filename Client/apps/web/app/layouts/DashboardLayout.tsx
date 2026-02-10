@@ -8,6 +8,7 @@ import ClosePageHeader from "../../features/close/ClosePageHeader.tsx";
 // Layout components
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardContent } from "./DashboardContent";
+import MobileBottomBar from "./MobileBottomBar";
 
 // Stores
 import {
@@ -127,15 +128,27 @@ export default function DashboardLayout({
   // Mobile header actions + ClosePageHeader data
   const [mobileHeaderActions, setMobileHeaderActions] =
     useState<ReactNode | null>(null);
+  const [mobileBottomActions, setMobileBottomActions] =
+    useState<ReactNode | null>(null);
+  const [mobileBottomBarHeight, setMobileBottomBarHeight] = useState(0);
   const [closePageHeaderData, setClosePageHeaderData] =
     useState<ClosePageHeaderData | null>(null);
 
   // Clear mobile header actions when navigating to pages that don't use them
   React.useEffect(() => {
-    if (isBuyerChecklists || isDashboard || isMessagingRoute) {
+    // Messaging sets its own mobile header while mounted; don't clear it here.
+    if (isBuyerChecklists || isDashboard) {
       setMobileHeaderActions(null);
     }
-  }, [isBuyerChecklists, isDashboard, isMessagingRoute]);
+  }, [isBuyerChecklists, isDashboard]);
+
+  // Clear mobile bottom actions when leaving messaging routes (messaging manages these while mounted).
+  React.useEffect(() => {
+    if (!isMessagingRoute) {
+      setMobileBottomActions(null);
+      setMobileBottomBarHeight(0);
+    }
+  }, [isMessagingRoute]);
 
   // Clear close page header data when navigating away from BuyerChecklists
   React.useEffect(() => {
@@ -271,6 +284,10 @@ export default function DashboardLayout({
         <MobileSidebar user={user} onLogout={onLogout} />
       </div>
 
+      <MobileBottomBar onHeightChange={setMobileBottomBarHeight}>
+        {mobileBottomActions}
+      </MobileBottomBar>
+
       <main className={`ml-0 flex-1 transition-all duration-200 md:ml-52 ${isMessagingRoute ? "min-h-0 h-full flex flex-col overflow-hidden" : ""}`}>
         <DashboardHeader
           isMobile={isMobile}
@@ -298,11 +315,17 @@ export default function DashboardLayout({
           isDashboard={isDashboard}
           computedMaxWidthVW={computedMaxWidthVW}
           setMobileHeaderActions={setMobileHeaderActions}
+          setMobileBottomActions={setMobileBottomActions}
           searchPageRef={searchPageRef}
           setClosePageHeaderData={setClosePageHeaderData}
           buyerChecklistsActiveTab={buyerChecklistsActiveTab}
           onTabChange={setBuyerChecklistsActiveTab}
         />
+
+        {/* Spacer so content isn't hidden behind fixed MobileBottomBar */}
+        {mobileBottomBarHeight > 0 ? (
+          <div className="md:hidden" style={{ height: `${mobileBottomBarHeight}px` }} />
+        ) : null}
       </main>
     </div>
   );

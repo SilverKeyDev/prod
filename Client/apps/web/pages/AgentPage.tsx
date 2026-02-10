@@ -10,10 +10,14 @@ type AgentPageProps = {
   setMobileHeaderActions?: React.Dispatch<
     React.SetStateAction<React.ReactNode | null>
   >;
+  setMobileBottomActions?: React.Dispatch<
+    React.SetStateAction<React.ReactNode | null>
+  >;
 };
 
 export default function AgentPage({
   setMobileHeaderActions,
+  setMobileBottomActions,
 }: AgentPageProps = {}) {
   const authReady = useAuthStore((s) => s.authReady);
   const isAgent = useIsAgent();
@@ -22,8 +26,9 @@ export default function AgentPage({
   useEffect(() => {
     return () => {
       if (setMobileHeaderActions) setMobileHeaderActions(null);
+      if (setMobileBottomActions) setMobileBottomActions(null);
     };
-  }, [setMobileHeaderActions]);
+  }, [setMobileHeaderActions, setMobileBottomActions]);
 
   // Avoid flicker: don't render a potentially incorrect experience before auth bootstrap completes
   if (!authReady) {
@@ -38,9 +43,15 @@ export default function AgentPage({
   return (
     <div className="h-full w-full">
       {isAgent ? (
-        <AgentDashboard setMobileHeaderActions={setMobileHeaderActions} />
+        <AgentDashboard
+          setMobileHeaderActions={setMobileHeaderActions}
+          setMobileBottomActions={setMobileBottomActions}
+        />
       ) : (
-        <ClientMessaging setMobileHeaderActions={setMobileHeaderActions} />
+        <ClientMessaging
+          setMobileHeaderActions={setMobileHeaderActions}
+          setMobileBottomActions={setMobileBottomActions}
+        />
       )}
     </div>
   );
