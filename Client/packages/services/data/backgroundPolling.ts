@@ -94,7 +94,9 @@ export class BackgroundPolling {
   /**
    * Start polling for a single route using its configuration
    */
-  private startRoutePolling(route: typeof DATA_ROUTES[keyof typeof DATA_ROUTES]): void {
+  private startRoutePolling(
+    route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES],
+  ): void {
     const poll = async () => {
       if (!this.user) return;
 
@@ -105,9 +107,10 @@ export class BackgroundPolling {
 
       // Determine polling interval (adaptive if route supports it)
       const isOnActivePage = this.isRouteActivePage(route);
-      const baseInterval = isOnActivePage && route.pollingIntervalActive
-        ? route.pollingIntervalActive
-        : route.pollingInterval ?? 0;
+      const baseInterval =
+        isOnActivePage && route.pollingIntervalActive
+          ? route.pollingIntervalActive
+          : (route.pollingInterval ?? 0);
 
       const interval = this.getPollingInterval(baseInterval);
       if (interval === 0) return;
@@ -128,9 +131,10 @@ export class BackgroundPolling {
 
     // Determine interval for setInterval
     const isOnActivePage = this.isRouteActivePage(route);
-    const intervalMs = isOnActivePage && route.pollingIntervalActive
-      ? route.pollingIntervalActive
-      : route.pollingInterval ?? 0;
+    const intervalMs =
+      isOnActivePage && route.pollingIntervalActive
+        ? route.pollingIntervalActive
+        : (route.pollingInterval ?? 0);
 
     if (intervalMs > 0) {
       const intervalId = setInterval(poll, intervalMs);
@@ -141,7 +145,9 @@ export class BackgroundPolling {
   /**
    * Check if the current pathname indicates we're on the active page for this route
    */
-  private isRouteActivePage(route: typeof DATA_ROUTES[keyof typeof DATA_ROUTES]): boolean {
+  private isRouteActivePage(
+    route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES],
+  ): boolean {
     // Conversations have adaptive polling when on messaging page
     if (route.key === "conversations") {
       return this.currentPathname.startsWith("/messaging");

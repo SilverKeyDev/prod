@@ -32,7 +32,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
   onDelete,
 }) => {
   const getStatusVariant = (
-    status: string
+    status: string,
   ): "success" | "warning" | "error" | "info" | "processing" | "default" => {
     switch (status) {
       case "completed":
@@ -84,7 +84,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
               }
               // Fallback if generatedAt is not a Date object
               return formatDate(
-                report.generatedAt?.toString() || new Date().toISOString()
+                report.generatedAt?.toString() || new Date().toISOString(),
               );
             } catch {
               // Ultimate fallback
@@ -225,7 +225,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                         s3Key: report.s3Key,
                         status: report.status,
                         timestamp: new Date().toISOString(),
-                      }
+                      },
                     );
                     onView(report.id, report.address);
                   }}

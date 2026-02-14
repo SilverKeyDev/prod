@@ -33,7 +33,7 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
   // Helper function to render dynamic section content
   const renderSectionContent = (
     _sectionKey: string,
-    sectionData: unknown
+    sectionData: unknown,
   ): React.ReactNode => {
     if (!sectionData || typeof sectionData !== "object") {
       return null;
@@ -56,7 +56,7 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
 
     // Render object fields
     const entries = Object.entries(data).filter(
-      ([_, value]) => value !== null && value !== undefined && value !== ""
+      ([_, value]) => value !== null && value !== undefined && value !== "",
     );
 
     if (entries.length === 0) {
@@ -105,7 +105,7 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
                           {String(subValue)}
                         </span>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               </div>
@@ -139,7 +139,7 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
   // Get all section keys from propertyAnalysis
   const allSectionKeys = Object.keys(propertyAnalysis).filter(
     (key) =>
-      propertyAnalysis[key] !== null && propertyAnalysis[key] !== undefined
+      propertyAnalysis[key] !== null && propertyAnalysis[key] !== undefined,
   );
 
   // Create a priority map for fallback ordering using DEFAULT_REPORT_SECTIONS

@@ -31,10 +31,7 @@ export const secureUploadApi = {
    * @param file - The file to upload
    * @param address - Optional address associated with the document
    */
-  uploadDocument: (
-    file: File,
-    address?: string,
-  ): Promise<UploadResponse> => {
+  uploadDocument: (file: File, address?: string): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("file", file);
     if (address) {

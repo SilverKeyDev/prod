@@ -21,7 +21,11 @@ export function loadSearchResults(): StoredSearch | null {
       return parsedData;
     }
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.SEARCH, "Error loading search results from localStorage", error);
+    log.error(
+      LOG_CATEGORIES.SEARCH,
+      "Error loading search results from localStorage",
+      error,
+    );
   }
   return null;
 }
@@ -30,6 +34,10 @@ export function saveSearchResults(input: StoredSearch): void {
   try {
     localStorage.setItem("searchResults", JSON.stringify(input));
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.SEARCH, "Error saving search results to localStorage", error);
+    log.error(
+      LOG_CATEGORIES.SEARCH,
+      "Error saving search results to localStorage",
+      error,
+    );
   }
 }

@@ -22,7 +22,7 @@ export default function CardMatchScore({
   className = "",
 }: CardMatchScoreProps) {
   // Add logging for score display debugging
-  
+
   const getSizeClasses = () => {
     switch (size) {
       case "xs":
@@ -66,7 +66,7 @@ export default function CardMatchScore({
 
     const fillColor = `rgb(${r}, ${g}, ${b})`;
     const strokeColor = `rgb(${Math.round(r * 0.75)}, ${Math.round(
-      g * 0.75
+      g * 0.75,
     )}, ${Math.round(b * 0.75)})`;
     return { fillColor, strokeColor };
   };

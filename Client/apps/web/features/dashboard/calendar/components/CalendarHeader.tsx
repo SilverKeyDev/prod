@@ -76,7 +76,7 @@ export function CalendarHeader({
           <>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span>Connected</span>
+              <span className="hidden sm:inline">Connected</span>
               {calendars.length > 0 && (
                 <span className="text-gray-400">
                   ({calendars.length}{" "}

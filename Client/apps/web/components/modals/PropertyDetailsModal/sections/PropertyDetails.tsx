@@ -69,7 +69,7 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({
 
   // Helper function to format phone number
   const formatPhoneNumber = (
-    ph: Record<string, unknown> | undefined
+    ph: Record<string, unknown> | undefined,
   ): string => {
     if (!ph) return "Phone available";
     const { areacode, prefix, number } = ph as {
@@ -102,7 +102,7 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({
 
     if (areacode && prefix && number) {
       return `(${safeStringify(areacode)}) ${safeStringify(
-        prefix
+        prefix,
       )}-${safeStringify(number)}`;
     }
     return (
@@ -177,7 +177,7 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({
                   {formatPropertyType(
                     (propertyHomeType as string) ??
                       (propertyPropertyType as string) ??
-                      ""
+                      "",
                   )}
                 </div>
               ) : null}

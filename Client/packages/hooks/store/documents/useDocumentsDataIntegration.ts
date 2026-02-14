@@ -3,7 +3,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { reportApi } from "../../../config/api/documents/report";
 import { queryKeys } from "../../../config/query/keys";
-import { useDocumentsData, type DocumentData } from "../../data/documents/useDocumentsData";
+import {
+  useDocumentsData,
+  type DocumentData,
+} from "../../data/documents/useDocumentsData";
 import { useDocumentActions } from "../../data/documents/useDocumentActions";
 import { log, LOG_CATEGORIES } from "../../../../logger";
 
@@ -40,21 +43,12 @@ export function useDocumentsDataIntegration(
 
   // Use provided handlers or create new instance (for backward compatibility)
   const defaultHandlers = useDocumentActions();
-  const {
-    handleViewDocument,
-    handleDownloadDocument,
-    handleShareDocument,
-  } = handlers ?? defaultHandlers;
+  const { handleViewDocument, handleDownloadDocument, handleShareDocument } =
+    handlers ?? defaultHandlers;
 
   // Delete document mutation with optimistic updates
   const deleteDocumentMutation = useMutation({
-    mutationFn: async ({
-      docId,
-      s3Key,
-    }: {
-      docId: string;
-      s3Key?: string;
-    }) => {
+    mutationFn: async ({ docId, s3Key }: { docId: string; s3Key?: string }) => {
       const response = await reportApi.delete(docId, s3Key);
       if (!response.success) {
         const errorMessage = response.error ?? "Failed to delete document";

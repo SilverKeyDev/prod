@@ -116,7 +116,9 @@ export default function AgentSearchModal({
                           <h3 className="text-base font-semibold text-neutral-900 mb-0.5">
                             {agent.name}
                           </h3>
-                          <p className="text-sm text-neutral-500 truncate">{agent.email}</p>
+                          <p className="text-sm text-neutral-500 truncate">
+                            {agent.email}
+                          </p>
                         </div>
                       </div>
                       <div>

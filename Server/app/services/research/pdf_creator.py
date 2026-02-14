@@ -671,7 +671,7 @@ def _add_property_data_section(elements, data, styles):
         elements.append(Spacer(1, 6))
         
         for location in data['commute_times']:
-            commute_text = f"• {location.get('name', 'Unknown')} – {location.get('travel_time', 'N/A')}"
+            commute_text = f"• {location.get('name') or location.get('address', 'Unknown')} – {location.get('travel_time', 'N/A')}"
             elements.append(Paragraph(commute_text, styles["Body"]))
         elements.append(Spacer(1, 8))
     

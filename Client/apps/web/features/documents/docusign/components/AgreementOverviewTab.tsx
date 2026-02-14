@@ -24,7 +24,7 @@ type AgreementOverviewTabProps = {
 
 /**
  * AgreementOverviewTab Component
- * 
+ *
  * Displays agreement metadata, status, and primary actions
  */
 export default function AgreementOverviewTab({
@@ -135,11 +135,7 @@ export default function AgreementOverviewTab({
           </Button>
         )}
         {userCanVoid && !showVoidConfirm && (
-          <Button
-            variant="danger"
-            size="md"
-            onClick={onVoidClick}
-          >
+          <Button variant="danger" size="md" onClick={onVoidClick}>
             Void Agreement
           </Button>
         )}

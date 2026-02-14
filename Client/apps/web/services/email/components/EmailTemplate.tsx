@@ -109,9 +109,9 @@ export function EmailTemplate({
                     textAlign: "center",
                   }}
                 >
-                  You're receiving this email because you have active home search
-                  preferences. We'll keep you updated with new matches as they
-                  become available.
+                  You're receiving this email because you have active home
+                  search preferences. We'll keep you updated with new matches as
+                  they become available.
                 </Text>
                 <div
                   style={{
@@ -129,7 +129,8 @@ export function EmailTemplate({
                       lineHeight: "1.5",
                     }}
                   >
-                    © {new Date().getFullYear()} SilverKey. All rights reserved.
+                    © {new Date().getFullYear()} SilverKey. All rights
+                    reserved.
                   </Text>
                 </div>
               </Section>

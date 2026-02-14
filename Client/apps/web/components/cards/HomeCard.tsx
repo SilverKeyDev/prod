@@ -114,7 +114,7 @@ export default function HomeCard({
 
     localStorage.setItem(
       "generateReportState",
-      JSON.stringify(generateReportState)
+      JSON.stringify(generateReportState),
     );
 
     // Navigate to the saved page
@@ -157,7 +157,11 @@ export default function HomeCard({
         showScore={showScore}
         isOnMap={isOnMap}
         topContent={
-          <CardHeartSave property={convertToProperty(home)} size="sm" position="top-right" />
+          <CardHeartSave
+            property={convertToProperty(home)}
+            size="sm"
+            position="top-right"
+          />
         }
         bottomContent={
           <CardViewDetailsButton

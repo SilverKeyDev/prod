@@ -39,7 +39,8 @@ export default function ClientSelector({
         <span>
           {selectedClientId === null
             ? "Me"
-            : clients.find((c) => c.id === selectedClientId)?.name || "Select Client"}
+            : clients.find((c) => c.id === selectedClientId)?.name ||
+              "Select Client"}
         </span>
         <ChevronDown
           className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -61,7 +62,9 @@ export default function ClientSelector({
               <button
                 onClick={() => handleSelect(null)}
                 className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                  selectedClientId === null ? "bg-olive/10 text-olive font-medium" : "text-gray-700"
+                  selectedClientId === null
+                    ? "bg-olive/10 text-olive font-medium"
+                    : "text-gray-700"
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -77,9 +80,13 @@ export default function ClientSelector({
 
               {/* Client options */}
               {isLoading ? (
-                <div className="px-4 py-2 text-sm text-gray-500">Loading clients...</div>
+                <div className="px-4 py-2 text-sm text-gray-500">
+                  Loading clients...
+                </div>
               ) : clients.length === 0 ? (
-                <div className="px-4 py-2 text-sm text-gray-500">No clients found</div>
+                <div className="px-4 py-2 text-sm text-gray-500">
+                  No clients found
+                </div>
               ) : (
                 clients.map((client) => (
                   <button
@@ -96,7 +103,9 @@ export default function ClientSelector({
                       <div className="flex flex-col">
                         <span>{client.name}</span>
                         {client.email && (
-                          <span className="text-xs text-gray-500">{client.email}</span>
+                          <span className="text-xs text-gray-500">
+                            {client.email}
+                          </span>
                         )}
                       </div>
                     </div>

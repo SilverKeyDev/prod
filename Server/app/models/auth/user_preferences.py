@@ -46,7 +46,7 @@ class UserPreferences(db.Model):
     deal_breakers = db.Column(db.Text)  # JSON stringified list
 
     # === Location & Housing ===
-    important_locations = db.Column(db.Text)  # JSON stringified list of { name, address, commute_tolerance }
+    important_locations = db.Column(db.Text)  # JSON stringified list of { address, commute_tolerance }
     walkability_importance = db.Column(db.String(50))
 
     # === Communication ===
@@ -55,12 +55,6 @@ class UserPreferences(db.Model):
     has_buyers_agent = db.Column(db.String(10))  # 'yes' or 'no'
     looking_for_buyers_agent = db.Column(db.Boolean)
 
-    # === Report Customization ===
-    report_section_priorities = db.Column(db.Text)  # JSON stringified list
-    
-    # === REPORT CUSTOMIZATION ===
-    report_section_priorities = db.Column(db.Text)  # JSON array of section keys in priority order
-    
     # === CALENDAR SETTINGS ===
     disabled_calendars = db.Column(db.Text)  # JSON array of disabled calendar IDs
     
@@ -119,9 +113,6 @@ class UserPreferences(db.Model):
         'information_detail_level': self.information_detail_level,
         'has_buyers_agent': self.has_buyers_agent,
         'looking_for_buyers_agent': self.looking_for_buyers_agent,
-
-        # Report Customization
-        'report_section_priorities': self._parse_json_field(self.report_section_priorities),
 
         # Metadata
         'created_at': self.created_at.isoformat() if self.created_at else None,

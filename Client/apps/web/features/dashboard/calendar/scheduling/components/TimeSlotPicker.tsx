@@ -65,7 +65,7 @@ export function TimeSlotPicker({
         .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
         .map(([dateKey, dateSlots]) => {
           const availableDateSlots = dateSlots.filter(
-            (slot) => slot.isAvailable
+            (slot) => slot.isAvailable,
           );
           if (availableDateSlots.length === 0) {
             return null;

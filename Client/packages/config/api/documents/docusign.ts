@@ -1,4 +1,8 @@
-import { apiGet, apiPost, apiUpload } from "../../../services/http/compatibility";
+import {
+  apiGet,
+  apiPost,
+  apiUpload,
+} from "../../../services/http/compatibility";
 import { log, LOG_CATEGORIES } from "../../../../logger";
 
 // Import types from schemas
@@ -30,7 +34,10 @@ export const docusignApi = {
     data: CreateAgreementRequest,
   ): Promise<CreateAgreementResponse> => {
     log.debug(LOG_CATEGORIES.API, "Creating DocuSign agreement", { data });
-    return apiPost<CreateAgreementResponse>("/api/v1/docusign/agreements", data);
+    return apiPost<CreateAgreementResponse>(
+      "/api/v1/docusign/agreements",
+      data,
+    );
   },
 
   /**
@@ -143,7 +150,10 @@ export const docusignApi = {
    */
   syncTemplates: (): Promise<SyncTemplatesResponse> => {
     log.debug(LOG_CATEGORIES.API, "Syncing DocuSign templates");
-    return apiPost<SyncTemplatesResponse>("/api/v1/docusign/templates/sync", {});
+    return apiPost<SyncTemplatesResponse>(
+      "/api/v1/docusign/templates/sync",
+      {},
+    );
   },
 
   /**

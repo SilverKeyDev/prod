@@ -83,7 +83,9 @@ export default function SelectHomeModal({
                     {home.bedrooms && home.bathrooms && (
                       <p className="mt-1 text-xs text-gray-500">
                         {home.bedrooms} bed • {home.bathrooms} bath
-                        {home.sqft ? ` • ${home.sqft.toLocaleString()} sqft` : ""}
+                        {home.sqft
+                          ? ` • ${home.sqft.toLocaleString()} sqft`
+                          : ""}
                       </p>
                     )}
                   </div>
@@ -97,11 +99,7 @@ export default function SelectHomeModal({
         )}
 
         <div className="flex gap-3 pt-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex-1"
-          >
+          <Button variant="outline" onClick={onClose} className="flex-1">
             Cancel
           </Button>
           <Button
@@ -117,4 +115,3 @@ export default function SelectHomeModal({
     </BaseModal>
   );
 }
-

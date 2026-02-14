@@ -23,13 +23,22 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
     RiskFlagType["type"],
     { label: string; icon: React.ReactNode }
   > = {
-    financing: { label: "Financing", icon: <TrendingDown className="h-4 w-4" /> },
-    timeline: { label: "Timeline", icon: <AlertTriangle className="h-4 w-4" /> },
+    financing: {
+      label: "Financing",
+      icon: <TrendingDown className="h-4 w-4" />,
+    },
+    timeline: {
+      label: "Timeline",
+      icon: <AlertTriangle className="h-4 w-4" />,
+    },
     inspection: { label: "Inspection", icon: <Home className="h-4 w-4" /> },
     emotions: { label: "Emotions", icon: <Heart className="h-4 w-4" /> },
     hoa: { label: "HOA", icon: <Home className="h-4 w-4" /> },
     resale: { label: "Resale", icon: <TrendingDown className="h-4 w-4" /> },
-    appraisal: { label: "Appraisal", icon: <AlertTriangle className="h-4 w-4" /> },
+    appraisal: {
+      label: "Appraisal",
+      icon: <AlertTriangle className="h-4 w-4" />,
+    },
     other: { label: "Other", icon: <AlertTriangle className="h-4 w-4" /> },
   };
 
@@ -62,7 +71,10 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
                         <span className="text-responsive-sm font-medium text-navy">
                           {category.label}
                         </span>
-                        <RiskFlag severity={flag.severity} message={flag.message} />
+                        <RiskFlag
+                          severity={flag.severity}
+                          message={flag.message}
+                        />
                       </div>
                       <p className="text-responsive-sm text-black/60">
                         {flag.message}

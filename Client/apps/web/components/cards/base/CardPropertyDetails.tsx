@@ -38,7 +38,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   // Only move sqft to second level if it would cause overflow (within 10px of edge)
   const hasSqft = !hideSquareFootage; // Always show sqft unless explicitly hidden
   const contentCount = [bedrooms, bathrooms].filter(
-    (val) => val !== undefined && Number(val) > 0
+    (val) => val !== undefined && Number(val) > 0,
   ).length;
   const shouldMoveSqftToSecondRow = hasSqft && contentCount >= 2; // Move to second row if 2+ items + sqft
 

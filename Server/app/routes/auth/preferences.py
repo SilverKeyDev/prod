@@ -64,7 +64,7 @@ def create_or_update_preferences():
             'agent_interaction_history', 'personality_insights', 'quote_bubbles',
             'deal_makers', 'solo_reports_addresses',
             'group_reports_addresses', 'chat_sessions', 'data_sources',
-            'report_section_priorities', 'important_locations',
+            'important_locations',
             'property_features_priority', 'disabled_calendars'
         }
 

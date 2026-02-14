@@ -17,4 +17,3 @@ export function ErrorSection({
     </SectionBox>
   );
 }
-

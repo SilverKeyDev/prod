@@ -13,11 +13,14 @@ type AgentPageProps = {
   setMobileBottomActions?: React.Dispatch<
     React.SetStateAction<React.ReactNode | null>
   >;
+  /** Height of the mobile bottom bar (input bar) in px, used to offset messages. */
+  mobileBottomBarHeight?: number;
 };
 
 export default function AgentPage({
   setMobileHeaderActions,
   setMobileBottomActions,
+  mobileBottomBarHeight,
 }: AgentPageProps = {}) {
   const authReady = useAuthStore((s) => s.authReady);
   const isAgent = useIsAgent();
@@ -46,11 +49,13 @@ export default function AgentPage({
         <AgentDashboard
           setMobileHeaderActions={setMobileHeaderActions}
           setMobileBottomActions={setMobileBottomActions}
+          mobileBottomBarHeight={mobileBottomBarHeight}
         />
       ) : (
         <ClientMessaging
           setMobileHeaderActions={setMobileHeaderActions}
           setMobileBottomActions={setMobileBottomActions}
+          mobileBottomBarHeight={mobileBottomBarHeight}
         />
       )}
     </div>

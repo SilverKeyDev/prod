@@ -14,7 +14,11 @@ const DealStageBadge: React.FC<DealStageBadgeProps> = ({
 }) => {
   const stageConfig: Record<
     DealStage,
-    { label: string; variant: "success" | "warning" | "info" | "processing" | "default"; icon: React.ReactNode }
+    {
+      label: string;
+      variant: "success" | "warning" | "info" | "processing" | "default";
+      icon: React.ReactNode;
+    }
   > = {
     search: {
       label: "Search",

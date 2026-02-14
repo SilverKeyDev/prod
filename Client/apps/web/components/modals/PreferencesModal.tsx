@@ -67,19 +67,19 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({
 
       const initialData: Partial<OnboardingData> = {
         preferred_housing_type: getString(
-          userPreferences.preferred_housing_type
+          userPreferences.preferred_housing_type,
         ),
         preferred_bedrooms: getNumber(userPreferences.preferred_bedrooms),
         preferred_bathrooms: getNumber(userPreferences.preferred_bathrooms),
         preferred_lot_size: getString(userPreferences.preferred_lot_size),
         preferred_home_age: getString(userPreferences.preferred_home_age),
         preferred_architectural_style: getString(
-          userPreferences.preferred_architectural_style
+          userPreferences.preferred_architectural_style,
         ),
         renovation_preference: getString(userPreferences.renovation_preference),
         intended_property_use: getString(userPreferences.intended_property_use),
         walkability_importance: getString(
-          userPreferences.walkability_importance
+          userPreferences.walkability_importance,
         ),
         ...(arrayFields as Partial<OnboardingData>),
       };
@@ -145,7 +145,7 @@ const PreferencesModal: React.FC<PreferencesModalProps> = ({
 
       updateFormDataWithAutoSave(formData, setFormData, field, value);
     },
-    [formData, updateFormDataWithAutoSave]
+    [formData, updateFormDataWithAutoSave],
   );
 
   // Compare preferences when modal closes and trigger search if changed

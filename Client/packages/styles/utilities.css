@@ -257,6 +257,12 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
+  /* Fallback for when Safari returns 0 for safe-area-inset-bottom when toolbar hides */
+  .safe-bottom-fallback {
+    padding-bottom: 0; /* Fallback */
+    padding-bottom: max(env(safe-area-inset-bottom), 20px);
+  }
+
   .safe-left {
     padding-left: 0; /* Fallback */
     padding-left: env(safe-area-inset-left);

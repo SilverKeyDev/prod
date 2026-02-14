@@ -123,7 +123,7 @@ export function ManageRowsModal({
                             // If it was auto-omitted, mark as manually enabled
                             if (!hasData) {
                               const newManuallyEnabled = new Set(
-                                manuallyEnabledRows
+                                manuallyEnabledRows,
                               );
                               newManuallyEnabled.add(field.key);
                               setManuallyEnabledRows(newManuallyEnabled);
@@ -136,7 +136,7 @@ export function ManageRowsModal({
 
                             // Remove from manually enabled if it was there
                             const newManuallyEnabled = new Set(
-                              manuallyEnabledRows
+                              manuallyEnabledRows,
                             );
                             newManuallyEnabled.delete(field.key);
                             setManuallyEnabledRows(newManuallyEnabled);

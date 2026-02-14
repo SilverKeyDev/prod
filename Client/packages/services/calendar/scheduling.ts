@@ -91,9 +91,8 @@ export async function createScheduledEvent(
 export async function getOrCreateSilverKeyCalendar(
   buyerName?: string,
 ): Promise<string> {
-  const response = await googleCalendarApi.getOrCreateSilverKeyCalendar(
-    buyerName,
-  );
+  const response =
+    await googleCalendarApi.getOrCreateSilverKeyCalendar(buyerName);
 
   if (!response.success || !response.data) {
     throw new Error(
@@ -103,4 +102,3 @@ export async function getOrCreateSilverKeyCalendar(
 
   return response.data.id;
 }
-

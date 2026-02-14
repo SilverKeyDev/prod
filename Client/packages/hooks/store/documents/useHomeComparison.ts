@@ -16,9 +16,7 @@ const SELECTION_KEY = "savedHomes.selectedIds";
  * Hook for managing home comparison state with Zustand persistence
  * Uses viewStore.dropdownSelections (same pattern as checklists)
  */
-export function useHomeComparison(
-  homes: SavedHome[],
-): UseHomeComparisonReturn {
+export function useHomeComparison(homes: SavedHome[]): UseHomeComparisonReturn {
   const dropdownSelections = useViewStore((s) => s.dropdownSelections);
   const setDropdownSelection = useViewStore((s) => s.setDropdownSelection);
   const clearDropdownSelection = useViewStore((s) => s.clearDropdownSelection);
@@ -35,12 +33,12 @@ export function useHomeComparison(
   // Filter to only valid home IDs that exist in current homes list
   const selectedHomesForComparison = useMemo(() => {
     if (homes.length === 0) return new Set<string>();
-    
+
     const validHomeIds = new Set(homes.map((h) => h.home_id));
     const validSelections = persistedSelectedIds.filter((id) =>
       validHomeIds.has(id),
     );
-    
+
     return new Set(validSelections);
   }, [homes, persistedSelectedIds]);
 
@@ -84,7 +82,7 @@ export function useHomeComparison(
       const validSelections = persistedSelectedIds.filter((id) =>
         validHomeIds.has(id),
       );
-      
+
       if (validSelections.length !== persistedSelectedIds.length) {
         if (validSelections.length > 0) {
           setDropdownSelection(SELECTION_KEY, validSelections);
@@ -93,7 +91,12 @@ export function useHomeComparison(
         }
       }
     }
-  }, [homes, persistedSelectedIds, setDropdownSelection, clearDropdownSelection]);
+  }, [
+    homes,
+    persistedSelectedIds,
+    setDropdownSelection,
+    clearDropdownSelection,
+  ]);
 
   const handleToggleHomeSelection = useCallback(
     (homeId: string) => {
@@ -101,7 +104,7 @@ export function useHomeComparison(
       const newIds = currentIds.includes(homeId)
         ? currentIds.filter((id) => id !== homeId)
         : [...currentIds, homeId];
-      
+
       if (newIds.length > 0) {
         setDropdownSelection(SELECTION_KEY, newIds);
       } else {
@@ -115,7 +118,7 @@ export function useHomeComparison(
     (homeId: string) => {
       const currentIds = Array.from(selectedHomesForComparison);
       const newIds = currentIds.filter((id) => id !== homeId);
-      
+
       if (newIds.length > 0) {
         setDropdownSelection(SELECTION_KEY, newIds);
       } else {
@@ -131,8 +134,7 @@ export function useHomeComparison(
 
   // Get selected homes data
   const selectedHomesData = useMemo(
-    () =>
-      homes.filter((home) => selectedHomesForComparison.has(home.home_id)),
+    () => homes.filter((home) => selectedHomesForComparison.has(home.home_id)),
     [homes, selectedHomesForComparison],
   );
 

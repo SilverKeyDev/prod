@@ -16,6 +16,13 @@ from app.services.research.perplexity_analysis import (
 
 logger = logging.getLogger(__name__)
 
+# Fixed section order (matches client DEFAULT_REPORT_SECTIONS)
+DEFAULT_SECTION_ORDER = [
+    'affordability', 'neighborhood', 'commute', 'family_friendly',
+    'entertainment', 'investment', 'climate_environmental_safety',
+    'convenience_walkability', 'home'
+]
+
 
 def prepare_user_preferences_dict(user_preferences: UserPreferences) -> Dict[str, Any]:
     """
@@ -40,16 +47,16 @@ def prepare_user_preferences_dict(user_preferences: UserPreferences) -> Dict[str
     }
     
     # Parse JSON fields if they're strings
-    for field in ['important_locations', 'preferred_home_features', 'deal_breakers', 'report_section_priorities']:
+    for field in ['important_locations', 'preferred_home_features', 'deal_breakers']:
         if hasattr(user_preferences, field):
             field_value = getattr(user_preferences, field)
             if isinstance(field_value, str):
                 try:
                     user_prefs_dict[field] = json.loads(field_value)
                 except json.JSONDecodeError:
-                    user_prefs_dict[field] = [] if field == 'report_section_priorities' else []
+                    user_prefs_dict[field] = []
             else:
-                user_prefs_dict[field] = field_value or ([] if field == 'report_section_priorities' else [])
+                user_prefs_dict[field] = field_value or []
     
     return user_prefs_dict
 
@@ -125,8 +132,8 @@ def generate_property_analysis(
         else:
             current_app.logger.info("[PROPERTY] ⏭️ Skipping pros/cons generation")
         
-        # Step 2: Generate additional report sections based on user preferences
-        section_names = user_prefs_dict.get('report_section_priorities', [])
+        # Step 2: Generate additional report sections (fixed default order)
+        section_names = DEFAULT_SECTION_ORDER
         if section_names and isinstance(section_names, list):
             # Filter out neighborhood_overview from section_names if skipping pros/cons
             if skip_pros_cons:
@@ -179,7 +186,7 @@ def generate_property_analysis(
                     current_app.logger.warning("⚠️ [PROPERTY] No additional sections generated")
         else:
             current_app.logger.info(
-                "[PROPERTY] No report_section_priorities found, skipping additional section generation"
+                "[PROPERTY] No section names, skipping additional section generation"
             )
         
         # Remove neighborhood_overview if skipping pros/cons

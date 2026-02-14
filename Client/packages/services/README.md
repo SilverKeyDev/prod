@@ -31,12 +31,14 @@ services/
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `config/api/*` - API clients (primary interface)
 - ✅ `services/http/*` - HTTP utilities
 - ✅ `services/security/*` - Security utilities
 - ✅ `schemas/*` - Type definitions
 
 ### Forbidden Imports
+
 - ❌ `hooks/*` or `store/*` - Services are framework-agnostic
 - ❌ `apps/web/*` - Services should not know about components
 
@@ -80,6 +82,7 @@ export const myService = new MyService();
 ## Special Cases
 
 ### `services/data/`
+
 Contains services that use React Query's `QueryClient`. This is an acceptable exception as these services are specifically designed for React Query integration (data prefetching and background polling).
 
 See [data/README.md](./data/README.md) for details.

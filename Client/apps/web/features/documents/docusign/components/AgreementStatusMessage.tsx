@@ -5,7 +5,10 @@ import AgreementStatusBadge from "./AgreementStatusBadge";
 import { AgreementDetailModal } from "../modals";
 import type { AgreementStatus } from "../../../../../../packages/schemas/documents/docusign";
 
-type SystemMessageType = "agreement_sent" | "agreement_signed" | "agreement_completed";
+type SystemMessageType =
+  | "agreement_sent"
+  | "agreement_signed"
+  | "agreement_completed";
 
 type AgreementStatusMessageProps = {
   agreementId: string;
@@ -18,7 +21,7 @@ type AgreementStatusMessageProps = {
 
 /**
  * AgreementStatusMessage Component
- * 
+ *
  * System message showing automatic agreement status updates in messaging
  * Examples:
  * - "Agreement sent for signature: Buyer Representation Agreement"

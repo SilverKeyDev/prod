@@ -44,7 +44,9 @@ export function useAvailability(
         return availability;
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Failed to fetch availability";
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch availability";
         store.setAvailabilityError(errorMessage);
         throw error;
       } finally {
@@ -228,12 +230,7 @@ export function useScheduling(
   const timeMax = endDate.toISOString();
 
   // Query availability
-  const availability = useAvailability(
-    timeMin,
-    timeMax,
-    calendarIds,
-    true,
-  );
+  const availability = useAvailability(timeMin, timeMax, calendarIds, true);
 
   // Generate time slots
   const timeSlots = useTimeSlots(
@@ -284,4 +281,3 @@ export function useScheduling(
     refetchAvailability: availability.refetch,
   };
 }
-

@@ -27,9 +27,7 @@ interface DocumentCardHeaderProps {
 /**
  * Maps document type to appropriate Lucide icon
  */
-function getDocumentIcon(
-  documentType: string | null
-): LucideIcon {
+function getDocumentIcon(documentType: string | null): LucideIcon {
   switch (documentType) {
     case "contract":
       return FileSignature;
@@ -50,15 +48,15 @@ function formatDocumentType(documentType: string | null): string {
   if (!documentType) {
     return "other";
   }
-  
+
   const normalizedType = documentType.toLowerCase();
   const validTypes = ["report", "contract", "inspection", "financial"];
-  
+
   if (validTypes.includes(normalizedType)) {
     // Capitalize first letter
     return normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1);
   }
-  
+
   return "other";
 }
 

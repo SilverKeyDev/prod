@@ -280,10 +280,12 @@ export class GoogleMapsService {
       script.onerror = (error) => {
         window.removeEventListener("error", errorListener);
         // Check if this is a CSP test endpoint error (non-critical)
-        const errorMessage = error instanceof ErrorEvent 
-          ? error.message 
-          : String(error);
-        if (errorMessage.includes("gen_204") || errorMessage.includes("ERR_CONNECTION_CLOSED")) {
+        const errorMessage =
+          error instanceof ErrorEvent ? error.message : String(error);
+        if (
+          errorMessage.includes("gen_204") ||
+          errorMessage.includes("ERR_CONNECTION_CLOSED")
+        ) {
           // CSP test endpoint errors are non-critical, log as warning instead
           console.warn(
             "🗺️ [GMAPS_SERVICE] ⚠️ Google Maps CSP test endpoint error (non-critical):",
@@ -293,7 +295,7 @@ export class GoogleMapsService {
           resolve();
           return;
         }
-        
+
         console.error(
           "🗺️ [GMAPS_SERVICE] ❌ Failed to load Google Maps script:",
           error,
@@ -319,10 +321,10 @@ export class GoogleMapsService {
     }
 
     // Check if container already has a map instance
-    const existingMapInstance = Array.from(GoogleMapsService.activeMapInstances).find(
-      map => map.getDiv() === container
-    );
-    
+    const existingMapInstance = Array.from(
+      GoogleMapsService.activeMapInstances,
+    ).find((map) => map.getDiv() === container);
+
     if (existingMapInstance) {
       // Return the existing map instance instead of creating a new one
       return existingMapInstance;
@@ -349,7 +351,7 @@ export class GoogleMapsService {
       // Track the new map instance
       GoogleMapsService.mapInstanceCount++;
       GoogleMapsService.activeMapInstances.add(map);
-      
+
       return map;
     } catch (err: unknown) {
       const error = asError(err);
@@ -412,16 +414,16 @@ export class GoogleMapsService {
       timestamp: new Date().toISOString(),
     });
 
-    const mapsToCleanup = Array.from(GoogleMapsService.activeMapInstances).filter(
-      map => map.getDiv() === container
-    );
+    const mapsToCleanup = Array.from(
+      GoogleMapsService.activeMapInstances,
+    ).filter((map) => map.getDiv() === container);
 
     console.log("🔍 [GMAPS_SERVICE] Found maps to cleanup:", {
       count: mapsToCleanup.length,
       maps: mapsToCleanup,
     });
 
-    mapsToCleanup.forEach(map => {
+    mapsToCleanup.forEach((map) => {
       this.cleanupMapInstance(map);
     });
 
@@ -434,7 +436,7 @@ export class GoogleMapsService {
    */
   public hasMapInContainer(container: HTMLElement): boolean {
     return Array.from(GoogleMapsService.activeMapInstances).some(
-      map => map.getDiv() === container
+      (map) => map.getDiv() === container,
     );
   }
 
@@ -442,9 +444,11 @@ export class GoogleMapsService {
    * Get the map instance for a specific container, if it exists
    */
   public getMapForContainer(container: HTMLElement): google.maps.Map | null {
-    return Array.from(GoogleMapsService.activeMapInstances).find(
-      map => map.getDiv() === container
-    ) || null;
+    return (
+      Array.from(GoogleMapsService.activeMapInstances).find(
+        (map) => map.getDiv() === container,
+      ) || null
+    );
   }
 
   /**

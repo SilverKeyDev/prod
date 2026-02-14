@@ -2,6 +2,7 @@ import { Share2, MessageCircle, User } from "lucide-react";
 import { useState } from "react";
 
 import BaseModal from "./BaseModal";
+import { formatAddress } from "./PropertyDetailsModal/utils";
 import Button from "../ui/button/Button";
 import KeyTurnLoader from "../ui/loading/KeyTurnLoader";
 import { useAgentChats } from "../../../../packages/hooks/data/chat/useAgentChats";
@@ -30,7 +31,11 @@ export default function ShareHomeModal({
   const { clients, isLoading: isLoadingClients } = useAgentClients();
 
   // For both: get conversations
-  const { conversations, isLoading: isLoadingConversations, sendMessage } = useAgentChats();
+  const {
+    conversations,
+    isLoading: isLoadingConversations,
+    sendMessage,
+  } = useAgentChats();
 
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -50,16 +55,20 @@ export default function ShareHomeModal({
       return property.id;
     }
 
-    // Fall back to address
-    if (property.address) {
-      return property.address;
+    // Fall back to address (must be string for API)
+    const addr = property.address;
+    if (addr != null) {
+      const str = typeof addr === "string" ? addr : formatAddress(addr);
+      return str || null;
     }
 
     return null;
   };
 
   const propertyId = getPropertyId();
-  const propertyAddress = property?.address ?? "this property";
+  const propertyAddress =
+    formatAddress(property?.address as string | object | null | undefined) ||
+    "this property";
 
   // Find conversation for selected client (for agents)
   const getConversationId = (clientId: string): string | null => {
@@ -106,7 +115,7 @@ export default function ShareHomeModal({
         conversationId,
         message,
         clientIdToPass ?? undefined,
-        propertyId
+        propertyId,
       );
 
       // Reset state
@@ -232,9 +241,7 @@ export default function ShareHomeModal({
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-500">
-                No agent assigned
-              </p>
+              <p className="text-sm text-gray-500">No agent assigned</p>
             )}
           </div>
         )}

@@ -72,7 +72,7 @@ export function formatMessageDateHeader(date: Date): string {
  * Returns true if:
  * - There's a large time gap (hours/days) between messages
  * - The conversation spans across calendar days (midnight boundary)
- * 
+ *
  * Returns false if:
  * - Messages are sent close together (minutes apart)
  * - Messages are on the same day and close in time
@@ -140,7 +140,7 @@ export function getDateDividerText(
  * - The previous message has a different date
  * - There's a meaningful time gap (>5 minutes) between messages
  * - The previous message is from a different sender (role change)
- * 
+ *
  * Returns false if:
  * - Messages are sent close together (within 5 minutes) on the same day
  * - The timestamp would be identical to the previous message

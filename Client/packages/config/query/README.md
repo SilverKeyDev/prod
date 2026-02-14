@@ -5,6 +5,7 @@ React Query setup and configuration for the SilverKey application.
 ## Purpose
 
 This directory contains React Query configuration including:
+
 - QueryClient setup
 - Query key factories
 - React Query adapters
@@ -12,21 +13,26 @@ This directory contains React Query configuration including:
 ## Files
 
 ### `queryClient.ts`
+
 Configures the React Query client with default options, error handling, and caching strategies.
 
 ### `keys.ts`
+
 Query key factories for type-safe query key generation. Organized by domain (user, agent, homes, etc.).
 
 ### `adapters.ts`
+
 React Query adapters for custom integrations.
 
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `services/http/*` - HTTP utilities (if needed)
 - ✅ `schemas/*` - Type definitions
 
 ### Forbidden Imports
+
 - ❌ Business logic `services/*`
 - ❌ `hooks/*` or `store/*` (circular dependency)
 - ❌ `apps/web/*`
@@ -53,16 +59,17 @@ useQuery({
 Query keys are organized hierarchically:
 
 ```typescript
-queryKeys.user.profile()           // ["user", "profile"]
-queryKeys.user.preferences()        // ["user", "preferences"]
-queryKeys.agent.clients()          // ["agent", "clients"]
-queryKeys.agent.todos(completed)   // ["agent", "todos", completed]
-queryKeys.homes.favorites()         // ["homes", "favorites"]
+queryKeys.user.profile(); // ["user", "profile"]
+queryKeys.user.preferences(); // ["user", "preferences"]
+queryKeys.agent.clients(); // ["agent", "clients"]
+queryKeys.agent.todos(completed); // ["agent", "todos", completed]
+queryKeys.homes.favorites(); // ["homes", "favorites"]
 ```
 
 ## Query Client Configuration
 
 The QueryClient is configured with:
+
 - Default stale time
 - Cache time
 - Retry logic

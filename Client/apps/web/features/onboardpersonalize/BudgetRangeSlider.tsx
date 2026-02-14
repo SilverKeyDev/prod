@@ -52,7 +52,7 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
       }
       return val <= tickValues[0] ? 0 : 100;
     },
-    [tickValues]
+    [tickValues],
   );
 
   // Maps slider percent to value using linear interpolation in each segment
@@ -61,7 +61,7 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
     const segmentSize = 100 / totalSegments;
     const segmentIndex = Math.min(
       Math.floor(percent / segmentSize),
-      totalSegments - 1
+      totalSegments - 1,
     );
 
     const segmentStart = tickValues[segmentIndex];
@@ -69,7 +69,7 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
     const percentInSegment =
       (percent - segmentIndex * segmentSize) / segmentSize;
     return Math.round(
-      segmentStart + percentInSegment * (segmentEnd - segmentStart)
+      segmentStart + percentInSegment * (segmentEnd - segmentStart),
     );
   };
 
@@ -84,7 +84,7 @@ const BudgetRangeSlider: React.FC<BudgetRangeSliderProps> = ({
       const correctedMin = Math.max(tickValues[0], maxValue - minGap);
       const correctedMax = Math.min(
         tickValues[tickValues.length - 1],
-        minValue + minGap
+        minValue + minGap,
       );
 
       // Only correct if we can maintain the gap within the valid range

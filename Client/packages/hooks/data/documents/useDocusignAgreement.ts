@@ -17,7 +17,7 @@ export type UseDocusignAgreementReturn = {
 /**
  * Hook for fetching a single DocuSign agreement with full details
  * Includes participants, revisions, and events when available
- * 
+ *
  * @param agreementId - The ID of the agreement to fetch
  */
 export function useDocusignAgreement(
@@ -43,7 +43,7 @@ export function useDocusignAgreement(
       if (!agreementId) {
         throw new Error("Agreement ID is required");
       }
-      
+
       try {
         const response = await docusignApi.getAgreement(agreementId);
         if (!response.success) {

@@ -17,7 +17,7 @@ type AgreementRevisionsTabProps = {
 
 /**
  * AgreementRevisionsTab Component
- * 
+ *
  * Displays agreement revision history with upload capability
  */
 export default function AgreementRevisionsTab({
@@ -35,11 +35,7 @@ export default function AgreementRevisionsTab({
       {userCanCreateRevision && (
         <div className="mb-4">
           {!showRevisionUpload ? (
-            <Button
-              variant="primary"
-              size="md"
-              onClick={onUploadClick}
-            >
+            <Button variant="primary" size="md" onClick={onUploadClick}>
               Upload Revision
             </Button>
           ) : (

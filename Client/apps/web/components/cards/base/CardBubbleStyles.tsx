@@ -30,7 +30,7 @@ export const CARD_BUBBLE_SIZES = {
 
 // Helper function to get size-specific classes
 export const getCardBubbleSizeClasses = (
-  size: CardBubbleStyleConfig["size"]
+  size: CardBubbleStyleConfig["size"],
 ) => {
   return CARD_BUBBLE_SIZES[size];
 };

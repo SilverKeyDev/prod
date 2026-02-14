@@ -31,7 +31,7 @@ export const queryKeys = {
   // Saved Homes domain
   homes: {
     all: ["homes"] as const,
-    favorites: (clientId?: string) => 
+    favorites: (clientId?: string) =>
       [...queryKeys.homes.all, "favorites", clientId ?? null] as const,
     notInterested: () => [...queryKeys.homes.all, "notInterested"] as const,
     saved: (propertyId: string) =>
@@ -90,17 +90,14 @@ export const queryKeys = {
     events: () => [...queryKeys.googleCalendar.all, "events"] as const,
     eventsList: (params?: Record<string, unknown>) =>
       [...queryKeys.googleCalendar.events(), "list", params] as const,
-    permissions: () => [...queryKeys.googleCalendar.all, "permissions"] as const,
+    permissions: () =>
+      [...queryKeys.googleCalendar.all, "permissions"] as const,
   },
 
   // Scheduling domain
   scheduling: {
     all: ["scheduling"] as const,
-    availability: (
-      timeMin: string,
-      timeMax: string,
-      calendarIds?: string[],
-    ) =>
+    availability: (timeMin: string, timeMax: string, calendarIds?: string[]) =>
       [
         ...queryKeys.scheduling.all,
         "availability",

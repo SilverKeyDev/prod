@@ -41,7 +41,7 @@ export function useHomePriceCalculation({
       setHomePriceError(
         error instanceof Error
           ? error.message
-          : "Failed to calculate home price"
+          : "Failed to calculate home price",
       );
       setHomePriceResult(null);
     } finally {

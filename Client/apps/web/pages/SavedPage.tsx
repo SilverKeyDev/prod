@@ -22,7 +22,10 @@ import { useSavedPageDocumentHandlers } from "../../../packages/hooks/data/docum
 import { useSavedPageEffects } from "../../../packages/hooks/ui/documents/useSavedPageEffects";
 import { useSavedPageModals } from "../../../packages/hooks/ui/documents/useSavedPageModals";
 import { useSavedPageMobileHeader } from "../features/saved/hooks/useSavedPageMobileHeader";
-import { CreateAgreementModal, AgreementDetailModal } from "../features/documents/docusign/modals";
+import {
+  CreateAgreementModal,
+  AgreementDetailModal,
+} from "../features/documents/docusign/modals";
 import {
   convertSavedHomeToProperty,
   filterHomesBySearchTerm,
@@ -45,13 +48,17 @@ export default function SavedHomes({
   const [eventTypeFilter, setEventTypeFilter] = useState<
     "listed" | "price_change" | "sold" | "withdrawn" | ""
   >("");
-  
+
   // DocuSign state
-  const [isCreateAgreementModalOpen, setIsCreateAgreementModalOpen] = useState(false);
-  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
-  
+  const [isCreateAgreementModalOpen, setIsCreateAgreementModalOpen] =
+    useState(false);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(
+    null,
+  );
+
   // Document upload modal state
-  const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] = useState(false);
+  const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] =
+    useState(false);
   const user = useAuthStore((s) => s.user);
   const isAgent = user?.is_agent ?? false;
   const enqueueToast = useUIStore((s) => s.enqueueToast);
@@ -83,10 +90,7 @@ export default function SavedHomes({
     refetchAgreements,
   } = useDocusignAgreements();
 
-  const {
-    sendAgreement,
-    voidAgreement,
-  } = useDocusignActions();
+  const { sendAgreement, voidAgreement } = useDocusignActions();
 
   // Use documents data integration for documents tab
   // Pass handlers from the same useDocumentActions instance to ensure modal state is shared
@@ -130,9 +134,7 @@ export default function SavedHomes({
   } = useSavedPageModals();
 
   // Use document handlers hook
-  const {
-    handleDocumentDelete,
-  } = useSavedPageDocumentHandlers({
+  const { handleDocumentDelete } = useSavedPageDocumentHandlers({
     handleViewDocument,
     handleDownloadDocument,
     handleShareDocument,
@@ -167,55 +169,63 @@ export default function SavedHomes({
     setSelectedAgreementId(agreementId);
   }, []);
 
-  const handleAgreementSend = useCallback(async (agreementId: string) => {
-    try {
-      await sendAgreement({
-        agreementId,
-        signingMethod: "embedded",
-      });
-      enqueueToast({
-        type: "success",
-        message: "Agreement sent for signature",
-      });
-      await refetchAgreements();
-    } catch (error) {
-      enqueueToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Failed to send agreement",
-      });
-    }
-  }, [sendAgreement, refetchAgreements, enqueueToast]);
+  const handleAgreementSend = useCallback(
+    async (agreementId: string) => {
+      try {
+        await sendAgreement({
+          agreementId,
+          signingMethod: "embedded",
+        });
+        enqueueToast({
+          type: "success",
+          message: "Agreement sent for signature",
+        });
+        await refetchAgreements();
+      } catch (error) {
+        enqueueToast({
+          type: "error",
+          message:
+            error instanceof Error ? error.message : "Failed to send agreement",
+        });
+      }
+    },
+    [sendAgreement, refetchAgreements, enqueueToast],
+  );
 
-  const handleAgreementVoid = useCallback(async (agreementId: string) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to void this agreement? This action cannot be undone."
-    );
-    if (!confirmed) return;
+  const handleAgreementVoid = useCallback(
+    async (agreementId: string) => {
+      const confirmed = window.confirm(
+        "Are you sure you want to void this agreement? This action cannot be undone.",
+      );
+      if (!confirmed) return;
 
-    try {
-      await voidAgreement({
-        agreementId,
-        reason: "Voided from SavedPage",
-      });
-      enqueueToast({
-        type: "success",
-        message: "Agreement voided successfully",
-      });
-      await refetchAgreements();
-    } catch (error) {
-      enqueueToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Failed to void agreement",
-      });
-    }
-  }, [voidAgreement, refetchAgreements, enqueueToast]);
+      try {
+        await voidAgreement({
+          agreementId,
+          reason: "Voided from SavedPage",
+        });
+        enqueueToast({
+          type: "success",
+          message: "Agreement voided successfully",
+        });
+        await refetchAgreements();
+      } catch (error) {
+        enqueueToast({
+          type: "error",
+          message:
+            error instanceof Error ? error.message : "Failed to void agreement",
+        });
+      }
+    },
+    [voidAgreement, refetchAgreements, enqueueToast],
+  );
 
   const handleCreateAgreementSuccess = useCallback(
     (agreementId: string) => {
       refetchAgreements();
       setSelectedAgreementId(agreementId);
     },
-    [refetchAgreements]
+    [refetchAgreements],
   );
 
   // Use effects hook
@@ -233,9 +243,7 @@ export default function SavedHomes({
     if (eventTypeFilter === "") {
       return documents;
     }
-    return documents.filter(
-      (doc) => doc.event_type === eventTypeFilter,
-    );
+    return documents.filter((doc) => doc.event_type === eventTypeFilter);
   }, [documents, eventTypeFilter]);
 
   // Handle unlocking a home - opens PropertyDetailsModal
@@ -244,7 +252,7 @@ export default function SavedHomes({
       const propertyData = convertSavedHomeToProperty(home);
       await fetchPropertyDetails(propertyData);
     },
-    [fetchPropertyDetails]
+    [fetchPropertyDetails],
   );
 
   // Use mobile header hook
@@ -288,19 +296,18 @@ export default function SavedHomes({
             : "mb-responsive-lg"
         }`}
       >
-        {/* Header - Only show on desktop (mobile shows in topbar) */}
-        {!isMobile && (
-          <>
-            <div className="mb-4 w-full px-4 sm:px-6">
-              <div className="mx-auto max-w-5xl">
+        {/* Header and content share a single padded container for alignment at all breakpoints */}
+        <div className="w-full px-responsive-lg">
+          {/* Header - Only show on desktop (mobile shows in topbar) */}
+          {!isMobile && (
+            <>
+              <div className="mb-4 w-full">
                 <ClientSelector
                   selectedClientId={selectedClientId}
                   onClientChange={setSelectedClientId}
                 />
               </div>
-            </div>
-            <div className="w-full px-4 sm:px-6">
-              <div className="mx-auto max-w-5xl">
+              <div className="w-full">
                 <SavedPageTabsAndSearch
                   searchTerm={searchTerm}
                   onSearchChange={setSearchTerm}
@@ -325,14 +332,12 @@ export default function SavedHomes({
                   onUploadClick={() => setIsDocumentUploadModalOpen(true)}
                 />
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
 
-        {/* Create Agreement - Only show when viewing documents */}
-        {viewType === "documents" && isAgent && (
-          <div className="w-full px-4 sm:px-6 mb-4">
-            <div className="mx-auto max-w-5xl">
+          {/* Create Agreement - Only show when viewing documents */}
+          {viewType === "documents" && isAgent && (
+            <div className="mb-4 w-full">
               <Button
                 variant="primary"
                 size="md"
@@ -341,28 +346,29 @@ export default function SavedHomes({
                 Create Agreement
               </Button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Content */}
-        <SavedHomesContent
-          viewType={viewType}
-          filteredHomes={filteredHomes}
-          homesLoading={loading}
-          documents={filteredDocuments}
-          documentsLoading={documentsLoadingState}
-          agreements={agreements}
-          agreementsLoading={agreementsLoading}
-          selectedHomesForComparison={selectedHomesForComparison}
-          onToggleHomeSelection={handleToggleHomeSelection}
-          onUnlockHome={handleUnlockHome}
-          onOpenNegotiation={handleOpenNegotiation}
-          onDocumentDelete={handleDocumentDelete}
-          onAgreementClick={handleAgreementClick}
-          onAgreementSend={handleAgreementSend}
-          onAgreementVoid={handleAgreementVoid}
-          selectedHomesDataLength={selectedHomesData.length}
-        />
+          {/* Content */}
+          <SavedHomesContent
+            viewType={viewType}
+            filteredHomes={filteredHomes}
+            homesLoading={loading}
+            documents={filteredDocuments}
+            documentsLoading={documentsLoadingState}
+            agreements={agreements}
+            agreementsLoading={agreementsLoading}
+            selectedHomesForComparison={selectedHomesForComparison}
+            onToggleHomeSelection={handleToggleHomeSelection}
+            onUnlockHome={handleUnlockHome}
+            onOpenNegotiation={handleOpenNegotiation}
+            onDocumentDelete={handleDocumentDelete}
+            onAgreementClick={handleAgreementClick}
+            onAgreementSend={handleAgreementSend}
+            onAgreementVoid={handleAgreementVoid}
+            selectedHomesDataLength={selectedHomesData.length}
+            noPadding
+          />
+        </div>
 
         {/* Modals */}
         <SavedPageModals

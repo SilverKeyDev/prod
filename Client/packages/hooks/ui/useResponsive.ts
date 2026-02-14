@@ -45,11 +45,10 @@ export function useResponsive(): ResponsiveState {
       isMobile: isMdDown,
       isDesktop: isMdUp,
     }),
-    [isLgDown, isLgUp, isMdDown, isMdUp, isSmDown, isSmUp, isXlUp, isXsDown]
+    [isLgDown, isLgUp, isMdDown, isMdUp, isSmDown, isSmUp, isXlUp, isXsDown],
   );
 }
 
 export function useIsMobile(): boolean {
   return useMediaQuery(screenDown("md"));
 }
-

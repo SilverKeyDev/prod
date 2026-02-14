@@ -6,6 +6,8 @@ export type PropertyDetailsModalProps = {
   onClose: () => void;
   onGenerateReport?: (address: string) => void;
   isLoading?: boolean;
+  /** Size for toolbar buttons (heart, share, close). Default: medium */
+  toolbarButtonSize?: "small" | "medium" | "large";
 };
 
 export type PropertyComponentProps = {
@@ -15,7 +17,8 @@ export type PropertyComponentProps = {
 export type PropertyHeaderProps = PropertyComponentProps & {
   onClose: () => void;
   onGenerateReport?: (address: string) => void;
-  onOpenPriorities?: () => void;
+  /** Size for toolbar buttons (heart, share, close). Default: medium */
+  toolbarButtonSize?: "small" | "medium" | "large";
 };
 
 export type PropertyImageGalleryProps = PropertyComponentProps & {

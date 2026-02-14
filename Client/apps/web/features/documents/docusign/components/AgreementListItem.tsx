@@ -20,7 +20,7 @@ type AgreementListItemProps = {
 
 /**
  * AgreementListItem Component
- * 
+ *
  * Single agreement row in SavedPage documents list
  * Shows title, type, status, progress, and quick actions
  */
@@ -37,10 +37,7 @@ export default function AgreementListItem({
   const canSend = canUserSend(agreement, user?.id ?? "", isAgent);
   const canVoid = canUserVoid(agreement, user?.id ?? "", isAgent);
 
-  const handleActionClick = (
-    e: React.MouseEvent,
-    action: () => void
-  ) => {
+  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
     action();
   };
@@ -87,7 +84,9 @@ export default function AgreementListItem({
               <span>Sent {formatAgreementDate(agreement.sent_at)}</span>
             )}
             {agreement.completed_at && (
-              <span>Completed {formatAgreementDate(agreement.completed_at)}</span>
+              <span>
+                Completed {formatAgreementDate(agreement.completed_at)}
+              </span>
             )}
           </div>
 

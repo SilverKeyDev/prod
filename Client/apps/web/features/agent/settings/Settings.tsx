@@ -22,7 +22,6 @@ import LocationSection from "../../../features/onboardpersonalize/LocationSectio
 import {
   getPersonalizationSteps,
   STEPS as ALL_STEPS,
-  DEFAULT_REPORT_SECTIONS,
   type OnboardingData,
 } from "../../../features/onboardpersonalize/lib/constants";
 import { handleSubmit as handleSubmitUtil } from "../../../features/onboardpersonalize/lib/submitHandler";
@@ -34,12 +33,10 @@ import { convertStepsToNavItems } from "../../../features/onboardpersonalize/lib
 // Settings sections
 import FinancialSection from "./sections/FinancialSection";
 import CommunicationSection from "./sections/CommunicationSection";
-import ReportCustomizationSection from "./sections/ReportCustomizationSection";
 import DemographicsSection from "./sections/DemographicsSection";
 
 // Hooks and utilities
 import { useHomePriceCalculation } from "./hooks/useHomePriceCalculation";
-import { getOrderedReportSections } from "./utils/reportSections";
 
 // Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
 
@@ -75,11 +72,6 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
       activeSection,
     });
 
-  // Get ordered report sections based on user preferences
-  const getOrderedReportSectionsMemo = useCallback(() => {
-    return getOrderedReportSections(formData);
-  }, [formData]);
-
   // Trigger home price calculation when relevant form data changes
   useEffect(() => {
     // Cleanup actions when component unmounts
@@ -102,20 +94,8 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
       setIsLoading(true);
 
       if (userPreferences) {
-        // Filter out legacy sections that aren't in DEFAULT_REPORT_SECTIONS
-        const validSectionKeys = new Set(
-          DEFAULT_REPORT_SECTIONS.map((section) => section.key),
-        );
-
-        const cleanedPreferences = { ...userPreferences };
-        if (cleanedPreferences.report_section_priorities) {
-          cleanedPreferences.report_section_priorities = (
-            cleanedPreferences.report_section_priorities as string[]
-          ).filter((key) => validSectionKeys.has(key));
-        }
-
-        setFormData(cleanedPreferences as OnboardingData);
-        setOriginalData(cleanedPreferences as OnboardingData);
+        setFormData(userPreferences as OnboardingData);
+        setOriginalData(userPreferences as OnboardingData);
       }
     } catch (error: unknown) {
       log.error(
@@ -388,17 +368,6 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
             formData={formData}
             isEditMode={isEditMode}
             updateFormData={updateFormData}
-          />
-        );
-
-      case "reportcustomization":
-        return (
-          <ReportCustomizationSection
-            formData={formData}
-            isEditMode={isEditMode}
-            isLoading={isLoading}
-            updateFormData={updateFormData}
-            getOrderedReportSections={getOrderedReportSectionsMemo}
           />
         );
 

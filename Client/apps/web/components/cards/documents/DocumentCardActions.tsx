@@ -34,7 +34,7 @@ export default function DocumentCardActions({
   showDelete = false,
 }: DocumentCardActionsProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
   // Get document action handlers and PDF modal state
   const {
     handleViewDocument,
@@ -102,15 +102,16 @@ export default function DocumentCardActions({
       </div>
 
       {/* PDF Modal - rendered at document root via portal */}
-      {currentPdf && createPortal(
-        <PdfModal
-          currentPdf={currentPdf}
-          currentReportAddress={currentDocumentName}
-          reportId={doc.id}
-          onClose={closePdfModal}
-        />,
-        document.body
-      )}
+      {currentPdf &&
+        createPortal(
+          <PdfModal
+            currentPdf={currentPdf}
+            currentReportAddress={currentDocumentName}
+            reportId={doc.id}
+            onClose={closePdfModal}
+          />,
+          document.body,
+        )}
 
       {/* Delete confirmation modal */}
       {showDelete && onDelete && (

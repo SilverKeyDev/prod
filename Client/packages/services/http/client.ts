@@ -219,10 +219,15 @@ export class HttpClient {
       const isStateChanging = /^(POST|PUT|PATCH|DELETE)$/.test(methodUpper);
       const csrf =
         typeof document !== "undefined"
-          ? (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content
+          ? (
+              document.querySelector(
+                'meta[name="csrf-token"]',
+              ) as HTMLMetaElement | null
+            )?.content
           : undefined;
       if (isStateChanging && csrf) {
-        (requestOptions.headers as Record<string, string>)["X-CSRF-Token"] = csrf;
+        (requestOptions.headers as Record<string, string>)["X-CSRF-Token"] =
+          csrf;
       }
     } catch {
       // best-effort; never throw from CSRF header injection
@@ -283,7 +288,7 @@ export class HttpClient {
         const now = Date.now();
         if (!verifyingPromise && now - lastAuthEventAt > AUTH_COOLDOWN_MS) {
           lastAuthEventAt = now;
-          
+
           // First, attempt to refresh the token
           verifyingPromise = import("../../config/api")
             .then(({ authApi }) => {
@@ -302,7 +307,7 @@ export class HttpClient {
             .finally(() => {
               verifyingPromise = null;
             });
-          
+
           verifyingPromise.then((v) => {
             if (!v?.success) {
               // Both refresh and verify failed - user must log in
@@ -462,41 +467,49 @@ export class HttpClient {
       } else {
         // Sanitize URL for logging (replace UUIDs and numeric IDs)
         const sanitizedUrl = url
-          .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+          .replace(
+            /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+            "/:id",
+          )
           .replace(/\/\d+/g, "/:id");
-        
+
         // Determine error type for better debugging
         const errorType = error instanceof Error ? error.name : "Unknown";
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const isTimeout = error instanceof Error && (
-          error.name === "TimeoutError" || 
-          error.message.includes("timeout") ||
-          error.message.includes("aborted")
-        );
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        const isTimeout =
+          error instanceof Error &&
+          (error.name === "TimeoutError" ||
+            error.message.includes("timeout") ||
+            error.message.includes("aborted"));
         const isAbort = error instanceof Error && error.name === "AbortError";
-        const isNetworkError = error instanceof Error && (
-          error.message.includes("Failed to fetch") ||
-          error.message.includes("NetworkError") ||
-          error.message.includes("network") ||
-          error.message.includes("CORS") ||
-          error.message.includes("load failed")
+        const isNetworkError =
+          error instanceof Error &&
+          (error.message.includes("Failed to fetch") ||
+            error.message.includes("NetworkError") ||
+            error.message.includes("network") ||
+            error.message.includes("CORS") ||
+            error.message.includes("load failed"));
+
+        log.error(
+          LOG_CATEGORIES.HTTP,
+          `${method} ${sanitizedUrl} - Network Error`,
+          {
+            method,
+            url: sanitizedUrl,
+            originalUrl: url, // Include original URL for debugging
+            errorType,
+            errorMessage,
+            error: errorMessage,
+            duration: `${duration}ms`,
+            timestamp: new Date().toISOString(),
+            isTimeout,
+            isAbort,
+            isNetworkError,
+            // Include full error object for debugging (will show in console)
+            fullError: error,
+          },
         );
-        
-        log.error(LOG_CATEGORIES.HTTP, `${method} ${sanitizedUrl} - Network Error`, {
-          method,
-          url: sanitizedUrl,
-          originalUrl: url, // Include original URL for debugging
-          errorType,
-          errorMessage,
-          error: errorMessage,
-          duration: `${duration}ms`,
-          timestamp: new Date().toISOString(),
-          isTimeout,
-          isAbort,
-          isNetworkError,
-          // Include full error object for debugging (will show in console)
-          fullError: error,
-        });
       }
 
       // Re-throw known types / aborts as-is (matching existing behavior)
@@ -693,7 +706,9 @@ export class HttpClient {
   /**
    * Determine the API subcategory for a given URL
    */
-  private getApiSubcategory(url: string): typeof API_SUBCATEGORIES[keyof typeof API_SUBCATEGORIES] | undefined {
+  private getApiSubcategory(
+    url: string,
+  ): (typeof API_SUBCATEGORIES)[keyof typeof API_SUBCATEGORIES] | undefined {
     if (this.isPollingEndpoint(url)) {
       return API_SUBCATEGORIES.POLLING;
     }
@@ -705,9 +720,12 @@ export class HttpClient {
   private logApiRequest(method: string, url: string): void {
     // Replace UUIDs and numeric IDs with :id for logging
     const sanitizedUrl = url
-      .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+      .replace(
+        /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+        "/:id",
+      )
       .replace(/\/\d+/g, "/:id");
-    
+
     // Check if this is an API endpoint that should use API subcategories
     const apiSubcategory = this.getApiSubcategory(url);
     if (apiSubcategory) {
@@ -718,10 +736,7 @@ export class HttpClient {
         apiSubcategory,
       );
     } else {
-      log.info(
-        LOG_CATEGORIES.HTTP,
-        `${method} ${sanitizedUrl}`,
-      );
+      log.info(LOG_CATEGORIES.HTTP, `${method} ${sanitizedUrl}`);
     }
   }
 
@@ -733,10 +748,13 @@ export class HttpClient {
   ): void {
     // Replace UUIDs and numeric IDs with :id for logging
     const sanitizedUrl = url
-      .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+      .replace(
+        /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+        "/:id",
+      )
       .replace(/\/\d+/g, "/:id");
     const durationText = duration ? ` (${duration}ms)` : "";
-    
+
     // Check if this is an API endpoint that should use API subcategories
     const apiSubcategory = this.getApiSubcategory(url);
     if (apiSubcategory) {

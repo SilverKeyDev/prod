@@ -11,7 +11,11 @@ export type UseConnectionRequestsReturn = {
   isLoading: boolean;
   error: string | null;
   refreshRequests: () => Promise<void>;
-  createRequest: (agentId: string, clientId: string, message?: string) => Promise<void>;
+  createRequest: (
+    agentId: string,
+    clientId: string,
+    message?: string,
+  ) => Promise<void>;
   respondToRequest: (requestId: string, accept: boolean) => Promise<void>;
   isCreatingRequest: boolean;
   isResponding: boolean;
@@ -36,7 +40,9 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     queryFn: async () => {
       const response = await agentApi.getConnectionRequests();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch connection requests");
+        throw new Error(
+          response.error ?? "Failed to fetch connection requests",
+        );
       }
       return response.requests ?? [];
     },
@@ -56,9 +62,15 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
       clientId: string;
       message?: string;
     }) => {
-      const response = await agentApi.createConnectionRequest(agentId, clientId, message);
+      const response = await agentApi.createConnectionRequest(
+        agentId,
+        clientId,
+        message,
+      );
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to create connection request");
+        throw new Error(
+          response.error ?? "Failed to create connection request",
+        );
       }
       return response.request;
     },
@@ -78,9 +90,14 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
       requestId: string;
       accept: boolean;
     }) => {
-      const response = await agentApi.respondToConnectionRequest(requestId, accept);
+      const response = await agentApi.respondToConnectionRequest(
+        requestId,
+        accept,
+      );
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to respond to connection request");
+        throw new Error(
+          response.error ?? "Failed to respond to connection request",
+        );
       }
       return response.request;
     },
@@ -106,14 +123,14 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     async (agentId: string, clientId: string, message?: string) => {
       await createRequestMutation.mutateAsync({ agentId, clientId, message });
     },
-    [createRequestMutation]
+    [createRequestMutation],
   );
 
   const respondToRequest = useCallback(
     async (requestId: string, accept: boolean) => {
       await respondMutation.mutateAsync({ requestId, accept });
     },
-    [respondMutation]
+    [respondMutation],
   );
 
   return {

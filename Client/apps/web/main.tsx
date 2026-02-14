@@ -6,7 +6,7 @@ import App from "./app/App";
 import "../../packages/styles/index.css";
 
 const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );
 
 root.render(
@@ -18,5 +18,5 @@ root.render(
     <CoreProviders>
       <App />
     </CoreProviders>
-  </BrowserRouter>
+  </BrowserRouter>,
 );

@@ -6,7 +6,7 @@ import IconButton from "../../ui/button/IconButton";
 import { Subtitle } from "../../ui";
 import type { SavedHome } from "../../../../../packages/schemas";
 import { usePropertyDetails } from "../../../../../packages/hooks/data/search/usePropertyDetails";
-import { useUIStore, useUserStore } from "../../../../../packages/store";
+import { useUIStore } from "../../../../../packages/store";
 import { usePropertyComparison } from "./usePropertyComparison";
 import { getAllComparisonFields } from "./comparisonFields";
 import { generateCSVContent, exportToCSV, shareCSV } from "./csvUtils";
@@ -15,7 +15,6 @@ import { PropertyCardsGrid } from "./PropertyCardsGrid";
 import { RemainingLikedHomes } from "./RemainingLikedHomes";
 import { ManageRowsModal } from "./ManageRowsModal";
 import { DEFAULT_REPORT_SECTIONS } from "../../../features/onboardpersonalize/lib/constants";
-import { log, LOG_CATEGORIES } from "../../../../../logger";
 import type { CompareHomesModalProps, PropertyDetails } from "./types";
 
 const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
@@ -28,65 +27,19 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
 }) => {
   const { fetchPropertyDetails } = usePropertyDetails();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const userPreferences = useUserStore((s) => s.userPreferences);
   const { propertyDetails, loadingStates } = usePropertyComparison(
     isOpen,
-    selectedHomes
+    selectedHomes,
   );
 
-  // Get ordered sections based on user preferences
-  const orderedSections = useMemo(() => {
-    try {
-      const reportSectionPriorities =
-        userPreferences?.report_section_priorities;
-      const priorities = Array.isArray(reportSectionPriorities)
-        ? reportSectionPriorities
-        : typeof reportSectionPriorities === "string"
-          ? (() => {
-              try {
-                return JSON.parse(reportSectionPriorities || "[]");
-              } catch {
-                return [];
-              }
-            })()
-          : [];
-
-      const sections = [...DEFAULT_REPORT_SECTIONS];
-
-      // Sort sections based on priorities - included items first in priority order, excluded items at end
-      return sections.sort((a, b) => {
-        if (!a || !b || !a.key || !b.key) return 0;
-
-        const aIncluded = priorities.includes(a.key);
-        const bIncluded = priorities.includes(b.key);
-
-        // Excluded items go to the end
-        if (aIncluded !== bIncluded) {
-          return aIncluded ? -1 : 1;
-        }
-
-        // For included items, use priority order
-        const aPriority = priorities.indexOf(a.key);
-        const bPriority = priorities.indexOf(b.key);
-
-        // Items not in priorities should come after items in priorities
-        if (aPriority === -1 && bPriority === -1) return 0;
-        if (aPriority === -1) return 1;
-        if (bPriority === -1) return -1;
-
-        return aPriority - bPriority;
-      });
-    } catch (error) {
-      log.error(LOG_CATEGORIES.ERRORS, "Error getting ordered sections", error);
-      return DEFAULT_REPORT_SECTIONS;
-    }
-  }, [userPreferences]);
+  // Use fixed section order (DEFAULT_REPORT_SECTIONS already in priority order)
+  const orderedSections = DEFAULT_REPORT_SECTIONS;
 
   // Field visibility management state
   const [showRowModal, setShowRowModal] = useState(false);
   const [omittedRows, setOmittedRows] = useState<Set<string>>(new Set());
   const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   const handleUnlockHome = async (home: SavedHome) => {
@@ -170,7 +123,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
   const allComparisonFields = useMemo(
     () =>
       getAllComparisonFields(comparisonData, loadingStates, orderedSections),
-    [comparisonData, loadingStates, orderedSections]
+    [comparisonData, loadingStates, orderedSections],
   );
 
   // Helper function to check if any property has data for a field
@@ -183,7 +136,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
         return value !== "—" && value !== "" && value !== "N/A";
       });
     },
-    [comparisonData, allComparisonFields]
+    [comparisonData, allComparisonFields],
   );
 
   // Filter comparison fields based on visibility state
@@ -215,7 +168,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
 
     const csvContent = generateCSVContent(
       comparisonData,
-      visibleComparisonFields
+      visibleComparisonFields,
     );
     exportToCSV(
       csvContent,
@@ -227,7 +180,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
       },
       (error) => {
         enqueueToast({ type: "error", message: error });
-      }
+      },
     );
   };
 
@@ -239,7 +192,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
 
     const csvContent = generateCSVContent(
       comparisonData,
-      visibleComparisonFields
+      visibleComparisonFields,
     );
     await shareCSV(
       csvContent,
@@ -249,7 +202,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
       },
       (error) => {
         enqueueToast({ type: "error", message: error });
-      }
+      },
     );
   };
 

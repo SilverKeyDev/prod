@@ -108,7 +108,7 @@ export function PropertyCarousel(props: {
                                 ...propertyArg,
                                 price: propertyArg.price.toString(),
                               }
-                            : (propertyArg as any)
+                            : (propertyArg as any),
                         )
                     : undefined
                 }

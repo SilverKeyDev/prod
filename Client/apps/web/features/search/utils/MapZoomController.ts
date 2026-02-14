@@ -24,7 +24,7 @@ const seededRandom = (seed: string): number => {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     const char = seed.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   // Normalize to -1 to 1 range
@@ -32,17 +32,23 @@ const seededRandom = (seed: string): number => {
 };
 
 // Utility function to calculate map center for property card positioning
-export const calculatePropertyCardCenter = (lat: number, lng: number, propertyId?: string) => {
+export const calculatePropertyCardCenter = (
+  lat: number,
+  lng: number,
+  propertyId?: string,
+) => {
   // Detect if mobile (using same breakpoint as other parts of the codebase)
   const lgPx = screenPx("lg");
   const isMobile =
     typeof window !== "undefined" &&
     Number.isFinite(lgPx) &&
     window.innerWidth < lgPx;
-  
+
   // Create cache key that includes device type to ensure correct offset per device
-  const cacheKey = propertyId ? `${propertyId}:${isMobile ? "mobile" : "desktop"}` : undefined;
-  
+  const cacheKey = propertyId
+    ? `${propertyId}:${isMobile ? "mobile" : "desktop"}`
+    : undefined;
+
   // If we have a cache key, check cache first for consistent positioning
   if (cacheKey) {
     const cached = propertyCenterCache.get(cacheKey);
@@ -50,23 +56,25 @@ export const calculatePropertyCardCenter = (lat: number, lng: number, propertyId
       return cached;
     }
   }
-  
+
   // Apply northward offset: slight for desktop, substantial for mobile
   // 0.015 degrees ≈ 1.7 km north (slight offset for desktop)
   // 0.08 degrees ≈ 8.9 km north (substantial offset for mobile)
   const baseNorthOffset = isMobile ? 0.02 : 0.015;
-  
+
   // Generate deterministic random offsets for north/south and east/west
   // Range: ±0.01 to ±0.02 degrees (≈ ±1.1 to ±2.2 km)
   const randomLatSeed = propertyId ? `${propertyId}:lat` : `${lat}:${lng}:lat`;
   const randomLngSeed = propertyId ? `${propertyId}:lng` : `${lat}:${lng}:lng`;
-  
-  const randomLatOffset = seededRandom(randomLatSeed) * (isMobile ? 0.001 : 0.003); // Should be less than Lng offset so it isnt going off the screen
-  const randomLngOffset = seededRandom(randomLngSeed) * (isMobile ? 0.004 : 0.015);
+
+  const randomLatOffset =
+    seededRandom(randomLatSeed) * (isMobile ? 0.001 : 0.003); // Should be less than Lng offset so it isnt going off the screen
+  const randomLngOffset =
+    seededRandom(randomLngSeed) * (isMobile ? 0.004 : 0.015);
 
   const center = {
-    lat: lat + baseNorthOffset + randomLatOffset,  // Base northward offset + random north/south
-    lng: lng + randomLngOffset,  // Random east/west offset
+    lat: lat + baseNorthOffset + randomLatOffset, // Base northward offset + random north/south
+    lng: lng + randomLngOffset, // Random east/west offset
   };
 
   log.debug(LOG_CATEGORIES.MAP_RENDERING, "🗺️ [CENTER CALCULATION]", {
@@ -108,9 +116,9 @@ export const useMapZoomController = ({
     if (currentProperty?.lat && currentProperty?.lng) {
       // Pass property ID for caching to ensure same property gets same random offset
       return calculatePropertyCardCenter(
-        currentProperty.lat, 
-        currentProperty.lng, 
-        currentProperty.id
+        currentProperty.lat,
+        currentProperty.lng,
+        currentProperty.id,
       );
     }
 
@@ -121,13 +129,34 @@ export const useMapZoomController = ({
   const focusOnCurrentProperty = useCallback(() => {
     if (!googleMapRef.current) return;
 
+    const currentData = activeTab === "results" ? searchResults : savedHomes;
+    const currentProperty = currentData[currentPage];
     const center = calculateMapCenter();
 
-    if (center) {
+    if (center && currentProperty) {
+      log.debug(
+        LOG_CATEGORIES.MAP_RENDERING,
+        "🗺️ [MAP FOCUS] Switched to home - coordinates being rendered at",
+        {
+          propertyId: currentProperty.id,
+          address: currentProperty.address,
+          coordinates: {
+            lat: currentProperty.lat,
+            lng: currentProperty.lng,
+          },
+        },
+      );
       googleMapRef.current.setCenter(center);
       googleMapRef.current.setZoom(DEFAULT_ZOOM);
     }
-  }, [calculateMapCenter, googleMapRef]);
+  }, [
+    activeTab,
+    calculateMapCenter,
+    currentPage,
+    googleMapRef,
+    savedHomes,
+    searchResults,
+  ]);
 
   const resetToDefaultZoom = useCallback(() => {
     if (!googleMapRef.current) return;

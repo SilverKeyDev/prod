@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 
 import { useMessaging } from "../../../../../packages/hooks/data/chat/useMessaging";
@@ -32,6 +32,8 @@ type AgentMessagingProps = {
   setMobileBottomActions?: React.Dispatch<
     React.SetStateAction<ReactNode | null>
   >;
+  /** Height of the mobile bottom bar (input bar) in px, used to offset messages when useBottomBarInput. */
+  mobileBottomBarHeight?: number;
 };
 
 export default function AgentMessaging({
@@ -42,6 +44,7 @@ export default function AgentMessaging({
   onClientSelect,
   setMobileHeaderActions,
   setMobileBottomActions,
+  mobileBottomBarHeight,
 }: AgentMessagingProps) {
   const isMobile = useIsMobile();
 
@@ -67,7 +70,8 @@ export default function AgentMessaging({
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showSelectHomeModal, setShowSelectHomeModal] = useState(false);
   const [showSelectDocumentModal, setShowSelectDocumentModal] = useState(false);
-  const [showSelectAgreementModal, setShowSelectAgreementModal] = useState(false);
+  const [showSelectAgreementModal, setShowSelectAgreementModal] =
+    useState(false);
   const [showCalendarEventModal, setShowCalendarEventModal] = useState(false);
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
@@ -76,7 +80,11 @@ export default function AgentMessaging({
   const { sendMessage: sendMessageWithAttachment } = useAgentChats();
 
   // Auto-scroll to bottom when messages change
-  const { messagesEndRef } = useMessageScroll(localMessages, activeConversationId, isLoadingHistory);
+  const { messagesEndRef } = useMessageScroll(
+    localMessages,
+    activeConversationId,
+    isLoadingHistory,
+  );
 
   const config = getMessagingConfig("agent");
   const useBottomBarInput = isMobile && !!setMobileBottomActions;
@@ -112,24 +120,35 @@ export default function AgentMessaging({
     return "chat";
   };
 
+  // Refs to prevent redundant setState calls that cause "Maximum update depth exceeded"
+  const headerContentKeyRef = useRef<string | null>(null);
+  const bottomContentKeyRef = useRef<string | null>(null);
+
   // Push messaging header into layout MobileTopBar on mobile so it hovers over content
   useEffect(() => {
     if (!setMobileHeaderActions) return;
+    const headerMode = getHeaderMode();
+    const chatTitle = selectedClient
+      ? `Chat with ${selectedClient.name}`
+      : config.header.chatTitle;
+    const contentKey = `${headerMode}-${isSidebarExpanded}-${selectedClient?.name ?? ""}-${chatTitle}`;
+    if (headerContentKeyRef.current === contentKey) return;
+    headerContentKeyRef.current = contentKey;
+
     setMobileHeaderActions(
       <UnifiedMessagingHeader
-        mode={getHeaderMode()}
+        mode={headerMode}
         isSidebarExpanded={isSidebarExpanded}
         setIsSidebarExpanded={setIsSidebarExpanded}
-        chatTitle={
-          selectedClient
-            ? `Chat with ${selectedClient.name}`
-            : config.header.chatTitle
-        }
+        chatTitle={chatTitle}
         selectedClientName={selectedClient?.name}
         onSearchClick={() => setShowSearchModal(true)}
-      />
+      />,
     );
-    return () => setMobileHeaderActions(null);
+    return () => {
+      headerContentKeyRef.current = null;
+      setMobileHeaderActions(null);
+    };
   }, [
     setMobileHeaderActions,
     showInbox,
@@ -142,6 +161,10 @@ export default function AgentMessaging({
   // On mobile, render the message input in a fixed MobileBottomBar (above the bottom nav).
   useEffect(() => {
     if (!isMobile || !setMobileBottomActions) return;
+    const contentKey = `${message}-${isTyping}-${selectedClientId}-${selectedClient?.name ?? ""}`;
+    if (bottomContentKeyRef.current === contentKey) return;
+    bottomContentKeyRef.current = contentKey;
+
     setMobileBottomActions(
       <UnifiedMessageInput
         mode="agent"
@@ -155,10 +178,13 @@ export default function AgentMessaging({
         onAttachmentDocument={handleAttachmentDocument}
         onAttachmentAgreement={handleAttachmentAgreement}
         onAttachmentCalendar={handleAttachmentCalendar}
-      />
+      />,
     );
 
-    return () => setMobileBottomActions(null);
+    return () => {
+      bottomContentKeyRef.current = null;
+      setMobileBottomActions(null);
+    };
   }, [
     isMobile,
     setMobileBottomActions,
@@ -187,14 +213,14 @@ export default function AgentMessaging({
           conversationId,
           message,
           selectedClientId,
-          propertyId
+          propertyId,
         );
         setShowSelectHomeModal(false);
       } catch (error) {
         log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
       }
     },
-    [selectedClientId, activeConversationId, sendMessageWithAttachment]
+    [selectedClientId, activeConversationId, sendMessageWithAttachment],
   );
 
   // Handle document selection from attachment menu
@@ -212,14 +238,14 @@ export default function AgentMessaging({
           message,
           selectedClientId,
           undefined,
-          documentId
+          documentId,
         );
         setShowSelectDocumentModal(false);
       } catch (error) {
         log.error(LOG_CATEGORIES.MESSAGES, "Error sharing document", error);
       }
     },
-    [selectedClientId, activeConversationId, sendMessageWithAttachment]
+    [selectedClientId, activeConversationId, sendMessageWithAttachment],
   );
 
   // Handle agreement selection from attachment menu
@@ -236,7 +262,7 @@ export default function AgentMessaging({
         log.error(LOG_CATEGORIES.MESSAGES, "Error sharing agreement", error);
       }
     },
-    [selectedClientId, activeConversationId, sendMessageApi]
+    [selectedClientId, activeConversationId, sendMessageApi],
   );
 
   // Handle calendar event request
@@ -264,9 +290,7 @@ export default function AgentMessaging({
         />
 
         {/* Main Chat Section */}
-        <section
-          className="relative flex flex-1 flex-col h-full transition-all duration-300 ease-in-out"
-        >
+        <section className="relative flex min-w-0 flex-1 flex-col h-full transition-all duration-300 ease-in-out">
           <div className="flex flex-1 flex-col min-h-0">
             {/* Chat Header - hidden on mobile; shown in MobileTopBar (hovering) via setMobileHeaderActions */}
             <div className="hidden md:block">
@@ -285,8 +309,15 @@ export default function AgentMessaging({
             </div>
 
             {/* Messages Container */}
-            <div className="flex-1 overflow-hidden min-h-0">
-              <div className="scrollbar-hide h-full space-y-3 overflow-y-auto p-3 min-h-0">
+            <div className="flex-1 min-w-0 overflow-hidden min-h-0">
+              <div
+                className="scrollbar-hide h-full min-w-0 space-y-3 overflow-x-hidden overflow-y-auto px-2 py-3 min-h-0"
+                style={
+                  useBottomBarInput && (mobileBottomBarHeight ?? 0) > 0
+                    ? { paddingBottom: `${mobileBottomBarHeight}px` }
+                    : undefined
+                }
+              >
                 <UnifiedMessagesList
                   mode="agent"
                   canSendMessage={canSendMessage}

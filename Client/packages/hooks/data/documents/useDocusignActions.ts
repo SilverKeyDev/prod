@@ -12,7 +12,9 @@ import type {
 } from "../../../schemas/documents/docusign";
 
 export type UseDocusignActionsReturn = {
-  createAgreement: (data: CreateAgreementRequest) => Promise<Agreement | undefined>;
+  createAgreement: (
+    data: CreateAgreementRequest,
+  ) => Promise<Agreement | undefined>;
   createRevision: (params: {
     agreementId: string;
     file: File;
@@ -51,7 +53,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     mutationFn: async (data: CreateAgreementRequest) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       log.debug(LOG_CATEGORIES.API, "Creating agreement", { data });
       const response = await docusignApi.createAgreement(data);
       if (!response.success) {
@@ -66,7 +68,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     onSuccess: async () => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       // Invalidate agreements list to show new agreement
       void queryClient.invalidateQueries({
         queryKey: queryKeys.docusign.agreements(),
@@ -75,7 +77,11 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     },
     onError: async (error) => {
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      log.error(LOG_CATEGORIES.ERRORS, "Create agreement mutation failed", error);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Create agreement mutation failed",
+        error,
+      );
     },
   });
 
@@ -92,12 +98,16 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     }) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       log.debug(LOG_CATEGORIES.API, "Creating revision", {
         agreementId,
         fileName: file.name,
       });
-      const response = await docusignApi.createRevision(agreementId, file, notes);
+      const response = await docusignApi.createRevision(
+        agreementId,
+        file,
+        notes,
+      );
       if (!response.success) {
         const errorMessage = response.error ?? "Failed to create revision";
         log.error(LOG_CATEGORIES.ERRORS, "Failed to create revision", {
@@ -111,7 +121,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     onSuccess: async (_, variables) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       // Invalidate specific agreement to show new revision
       void queryClient.invalidateQueries({
         queryKey: queryKeys.docusign.agreement(variables.agreementId),
@@ -122,7 +132,11 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     },
     onError: async (error) => {
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      log.error(LOG_CATEGORIES.ERRORS, "Create revision mutation failed", error);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Create revision mutation failed",
+        error,
+      );
     },
   });
 
@@ -137,7 +151,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     }) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       log.debug(LOG_CATEGORIES.API, "Sending agreement", {
         agreementId,
         signingMethod,
@@ -158,7 +172,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     onSuccess: async (_, variables) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       // Invalidate specific agreement and list (status changed)
       void queryClient.invalidateQueries({
         queryKey: queryKeys.docusign.agreement(variables.agreementId),
@@ -187,7 +201,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     }) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       log.debug(LOG_CATEGORIES.API, "Voiding agreement", {
         agreementId,
         reason,
@@ -206,7 +220,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     onSuccess: async (_, variables) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       // Invalidate specific agreement and list (status changed)
       void queryClient.invalidateQueries({
         queryKey: queryKeys.docusign.agreement(variables.agreementId),
@@ -235,7 +249,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     }) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       log.debug(LOG_CATEGORIES.API, "Getting signing URL", {
         agreementId,
         participantId,
@@ -257,7 +271,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     onSuccess: async (_, variables) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       log.debug(LOG_CATEGORIES.API, "Signing URL retrieved successfully", {
         agreementId: variables.agreementId,
         participantId: variables.participantId,
@@ -265,7 +279,11 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     },
     onError: async (error) => {
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      log.error(LOG_CATEGORIES.ERRORS, "Get signing URL mutation failed", error);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Get signing URL mutation failed",
+        error,
+      );
     },
   });
 
@@ -274,7 +292,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     mutationFn: async () => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       log.debug(LOG_CATEGORIES.API, "Syncing templates");
       const response = await docusignApi.syncTemplates();
       if (!response.success) {
@@ -289,7 +307,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
     onSuccess: async () => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       // Invalidate templates list to show updated templates
       void queryClient.invalidateQueries({
         queryKey: queryKeys.docusign.templates(),

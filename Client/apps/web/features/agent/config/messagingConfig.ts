@@ -173,4 +173,3 @@ export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
 export const getMessagingConfig = (mode: MessagingMode): MessagingConfig => {
   return mode === "agent" ? AGENT_MESSAGING_CONFIG : CLIENT_MESSAGING_CONFIG;
 };
-

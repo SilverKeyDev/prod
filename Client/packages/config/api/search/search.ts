@@ -37,23 +37,23 @@ export type IsochroneResponse = {
       };
     };
     individual_isochrones: Array<{
-      name: string;
       address: string;
-      commute_tolerance: number;
+      commute_tolerance?: number;
+      name?: string;
       isochrone: unknown;
     }>;
     center: {
       lat: number;
       lon: number;
       address: string;
-      name: string;
+      name?: string;
     };
     locations: Array<{
-      name: string;
       address: string;
-      commute_tolerance: number;
-      lat: number | null;
-      lng: number | null;
+      commute_tolerance?: number;
+      lat?: number | null;
+      lng?: number | null;
+      name?: string;
     }>;
     commute_tolerance: number;
     mode: string;
@@ -64,9 +64,9 @@ export type IsochroneResponse = {
     coordinates: number[][][];
   };
   locations?: Array<{
-    name: string;
     address: string;
-    commute_tolerance: number;
+    commute_tolerance?: number;
+    name?: string;
   }>;
   error?: string;
 };

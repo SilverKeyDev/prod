@@ -21,11 +21,13 @@ config/
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `services/http/*` - HTTP client utilities
 - ✅ `services/security/*` - Security utilities
 - ✅ `schemas/*` - Type definitions
 
 ### Forbidden Imports
+
 - ❌ Business logic `services/*` - Config should not import business logic
 - ❌ `hooks/*` or `store/*` - Config is framework-agnostic
 - ❌ `apps/web/*` - Config should not know about components
@@ -33,21 +35,27 @@ config/
 ## Key Files
 
 ### `api/`
+
 Individual API client modules for each domain (user, agent, search, etc.). Each module exports typed functions for API calls.
 
 ### `query/`
+
 React Query setup including:
+
 - `queryClient.ts` - QueryClient configuration
 - `keys.ts` - Query key factories
 - `adapters.ts` - React Query adapters
 
 ### `auth.ts`
+
 Authentication configuration including roles, permissions, and auth utilities.
 
 ### `env.ts`
+
 Environment variable configuration and helpers.
 
 ### `http.ts`
+
 HTTP configuration constants and utilities.
 
 ## Usage Examples
@@ -76,6 +84,7 @@ const queryKey = queryKeys.user.profile();
 ## Common Patterns
 
 All API clients follow a consistent pattern:
+
 - Return `{ success: boolean, data?: T, error?: string }` responses
 - Use centralized HTTP utilities from `services/http/`
 - Include proper TypeScript types from `schemas/`

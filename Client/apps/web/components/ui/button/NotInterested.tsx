@@ -13,7 +13,10 @@ export type CardNotInterestedProps = {
   property: SearchResult | Property;
   /** Optional not-interested state functions for use outside React context (e.g., map markers) */
   isHomeNotInterested?: (propertyId: string) => boolean;
-  markNotInterested?: (property: SearchResult | Property, why?: string) => Promise<void>;
+  markNotInterested?: (
+    property: SearchResult | Property,
+    why?: string,
+  ) => Promise<void>;
   removeNotInterested?: (propertyId: string) => Promise<void>;
   /** Callback when not-interested is marked (for showing reason card) */
   onMarkNotInterested?: () => void;
@@ -23,7 +26,10 @@ export type CardNotInterestedProps = {
   ariaLabel?: string;
 };
 
-const CIRCLE_SIZE: Record<NonNullable<CardNotInterestedProps["size"]>, string> = {
+const CIRCLE_SIZE: Record<
+  NonNullable<CardNotInterestedProps["size"]>,
+  string
+> = {
   xs: "w-8 h-8",
   sm: "w-9 h-9",
   md: "w-11 h-11",
@@ -62,15 +68,18 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
   ariaLabel,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // Always call the hook to respect React's Rules of Hooks
   const hookData = useNotInterestedHomesData();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
   // Prefer provided functions (e.g., from map markers) but keep hook values as fallback
-  const isHomeNotInterested = providedIsHomeNotInterested || hookData?.isNotInterested;
-  const markNotInterested = providedMarkNotInterested || hookData?.markNotInterested;
-  const removeNotInterested = providedRemoveNotInterested || hookData?.removeNotInterested;
+  const isHomeNotInterested =
+    providedIsHomeNotInterested || hookData?.isNotInterested;
+  const markNotInterested =
+    providedMarkNotInterested || hookData?.markNotInterested;
+  const removeNotInterested =
+    providedRemoveNotInterested || hookData?.removeNotInterested;
 
   // Determine if home is not-interested - use address for matching
   // Ensure address is a string before passing it
@@ -160,9 +169,13 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
             className={`group relative inline-flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isNotInterested ? "text-gray-600 hover:text-gray-700" : "text-gray-400 hover:text-gray-600"} ${className}`}
             aria-label={
               ariaLabel ??
-              (isNotInterested ? "Undo not interested" : "Mark as not interested")
+              (isNotInterested
+                ? "Undo not interested"
+                : "Mark as not interested")
             }
-            title={isNotInterested ? "Undo not interested" : "Mark as not interested"}
+            title={
+              isNotInterested ? "Undo not interested" : "Mark as not interested"
+            }
           >
             <X
               className={`${iconSizeClass} ${isNotInterested ? "fill-current" : ""} transition-transform duration-200`}
@@ -189,9 +202,15 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
               className={`group relative inline-flex items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent active:scale-95 ${isNotInterested ? "text-white hover:text-white" : "text-white hover:text-white"} ${circleClass} ${className}`}
               aria-label={
                 ariaLabel ??
-                (isNotInterested ? "Undo not interested" : "Mark as not interested")
+                (isNotInterested
+                  ? "Undo not interested"
+                  : "Mark as not interested")
               }
-              title={isNotInterested ? "Undo not interested" : "Mark as not interested"}
+              title={
+                isNotInterested
+                  ? "Undo not interested"
+                  : "Mark as not interested"
+              }
             >
               <X
                 className={`${iconSizeClass} ${isNotInterested ? "fill-current" : ""} transition-transform duration-200 group-hover:scale-110`}

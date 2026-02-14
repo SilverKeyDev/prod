@@ -21,7 +21,10 @@ export const useChats = () => {
   // Check cache first when enabled becomes true (cache-first strategy)
   // Note: dataConfig prefetches conversations with queryKeys.agent.conversations()
   // but useChats uses queryKeys.chats.list(filters), so we check the conversations cache
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
   const cachedConversations = useMemo(() => {
     if (!shouldLoadData) return undefined;
     // Check if conversations were prefetched (they use agent.conversations key)

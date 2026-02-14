@@ -37,7 +37,6 @@ export type OnboardingData = {
   // Location & Housing
   preferred_regions?: { name: string; address: string }[];
   important_locations?: {
-    name: string;
     address: string;
     commute_tolerance?: number;
   }[];
@@ -48,9 +47,6 @@ export type OnboardingData = {
   information_detail_level?: string;
   has_buyers_agent?: string; // 'yes' | 'no'
   looking_for_buyers_agent?: boolean;
-
-  // Report Customization
-  report_section_priorities?: string[];
 };
 
 export type ValidationResult = {

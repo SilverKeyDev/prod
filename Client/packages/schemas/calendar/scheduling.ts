@@ -14,9 +14,12 @@ export interface FreebusyTimeBlock {
 }
 
 export interface FreebusyResponse {
-  calendars: Record<string, {
-    busy: FreebusyTimeBlock[];
-  }>;
+  calendars: Record<
+    string,
+    {
+      busy: FreebusyTimeBlock[];
+    }
+  >;
 }
 
 export interface TimeSlot {
@@ -42,4 +45,3 @@ export interface WorkingHours {
   start: number; // Hour in 24-hour format (0-23)
   end: number; // Hour in 24-hour format (0-23)
 }
-

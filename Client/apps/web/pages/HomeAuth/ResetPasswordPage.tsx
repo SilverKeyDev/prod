@@ -25,13 +25,21 @@ export default function ResetPasswordPage() {
   const [canResend, setCanResend] = useState(false);
   const navigate = useNavigate();
 
-  const { forgotPassword, isLoading: isForgotPasswordLoading, error: forgotPasswordError } = useForgotPassword();
-  const { resetPassword, isLoading: isResetPasswordLoading, error: resetPasswordError } = useResetPassword();
+  const {
+    forgotPassword,
+    isLoading: isForgotPasswordLoading,
+    error: forgotPasswordError,
+  } = useForgotPassword();
+  const {
+    resetPassword,
+    isLoading: isResetPasswordLoading,
+    error: resetPasswordError,
+  } = useResetPassword();
   const setStoreUser = useAuthStore((s) => s.setUser);
   const setStoreIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
   const setUserProfile = useUserStore((s) => s.setUserProfile);
   const [localError, setLocalError] = useState("");
-  
+
   const loading = isForgotPasswordLoading || isResetPasswordLoading;
   const error = forgotPasswordError || resetPasswordError || localError;
 
@@ -90,7 +98,7 @@ export default function ResetPasswordPage() {
 
   const handleResendCode = async () => {
     setLocalError("");
-    
+
     if (!email) {
       setLocalError("Email is required to resend code");
       return;
@@ -109,7 +117,7 @@ export default function ResetPasswordPage() {
     // Validate password using comprehensive validation
     if (!isPasswordValid) {
       setLocalError(
-        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
+        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`,
       );
       return;
     }
@@ -123,16 +131,17 @@ export default function ResetPasswordPage() {
         // Map user data to UserProfile format (similar to login flow)
         const userId =
           result.user.id ||
-          ("user_sub" in result.user
-            ? result.user.user_sub
-            : undefined) ||
+          ("user_sub" in result.user ? result.user.user_sub : undefined) ||
           undefined;
-        
+
         const mappedUser: UserProfile = {
           id: userId || "",
           email: result.user.email,
           name: result.user.name || "Unknown User",
-          phone: ("phone" in result.user ? result.user.phone : undefined) as string | null | undefined,
+          phone: ("phone" in result.user ? result.user.phone : undefined) as
+            | string
+            | null
+            | undefined,
           created_at: null,
           is_active: true,
           has_subscription: false,
@@ -142,26 +151,37 @@ export default function ResetPasswordPage() {
             ("is_agent" in result.user
               ? (result.user.is_agent ?? false)
               : false) ?? false,
-          auth_method: ("auth_method" in result.user ? result.user.auth_method : undefined) as "cognito" | "google" | "both" | "unknown" | undefined,
+          auth_method: ("auth_method" in result.user
+            ? result.user.auth_method
+            : undefined) as
+            | "cognito"
+            | "google"
+            | "both"
+            | "unknown"
+            | undefined,
         };
-        
+
         // Convert to user store format to fix type compatibility
         const userStoreProfile = {
           ...mappedUser,
           name: mappedUser.name || undefined, // Convert null to undefined for user store
         };
-        
+
         // Update stores (similar to login flow in useSecureAuth)
         setStoreIsAuthenticated(true);
         setStoreUser(mappedUser);
         setUserProfile(userStoreProfile);
-        
-        log.info(LOG_CATEGORIES.AUTH, "Password reset and auto-login successful", {
-          email,
-          userId: mappedUser.id,
-          storageMethod: "http_only_cookies",
-          authMethod: "cookie_based",
-        });
+
+        log.info(
+          LOG_CATEGORIES.AUTH,
+          "Password reset and auto-login successful",
+          {
+            email,
+            userId: mappedUser.id,
+            storageMethod: "http_only_cookies",
+            authMethod: "cookie_based",
+          },
+        );
       }
 
       // Navigate to dashboard - AuthProvider will pick up auth state from cookies
@@ -200,8 +220,8 @@ export default function ResetPasswordPage() {
           step === "request"
             ? handleRequestReset
             : step === "verify"
-            ? handleVerifyCode
-            : handleResetPassword
+              ? handleVerifyCode
+              : handleResetPassword
         }
         className="card space-y-responsive-md"
       >
@@ -273,14 +293,18 @@ export default function ResetPasswordPage() {
           size="md"
           fullWidth
           loading={loading}
-          disabled={loading || (step === "verify" && (!code || code.trim().length === 0)) || (step === "reset" && !isPasswordValid)}
+          disabled={
+            loading ||
+            (step === "verify" && (!code || code.trim().length === 0)) ||
+            (step === "reset" && !isPasswordValid)
+          }
           className={step === "verify" ? "mt-6 mb-1" : ""}
         >
           {step === "request"
             ? "Send reset code"
             : step === "verify"
-            ? "Verify code"
-            : "Reset password"}
+              ? "Verify code"
+              : "Reset password"}
         </Button>
 
         {step === "verify" && (
@@ -293,9 +317,15 @@ export default function ResetPasswordPage() {
               size="sm"
               disabled={!canResend || loading}
               loading={loading && !canResend}
-              className={canResend ? "text-gold hover:text-gold/80" : "text-black/40"}
+              className={
+                canResend ? "text-gold hover:text-gold/80" : "text-black/40"
+              }
             >
-              {loading && !canResend ? "Sending..." : canResend ? "Resend code" : `Resend in ${countdown}s`}
+              {loading && !canResend
+                ? "Sending..."
+                : canResend
+                  ? "Resend code"
+                  : `Resend in ${countdown}s`}
             </Button>
           </div>
         )}

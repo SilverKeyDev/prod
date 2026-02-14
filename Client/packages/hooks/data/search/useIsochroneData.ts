@@ -25,7 +25,7 @@ export function useIsochroneData(): UseIsochroneDataReturn {
   // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(
     () => authReady && isAuthenticated,
-    [authReady, isAuthenticated]
+    [authReady, isAuthenticated],
   );
 
   const {
@@ -53,7 +53,7 @@ export function useIsochroneData(): UseIsochroneDataReturn {
     // Use placeholderData to provide cached data immediately when query becomes enabled
     placeholderData: (previousValue) => {
       const cached = queryClient.getQueryData<IsochroneData>(
-        queryKeys.search.isochrone()
+        queryKeys.search.isochrone(),
       );
       return cached ?? previousValue;
     },
@@ -65,23 +65,24 @@ export function useIsochroneData(): UseIsochroneDataReturn {
   });
 
   // Fetch isochrone data (checks cache first, then fetches if needed)
-  const fetchIsochrone = useCallback(async (): Promise<IsochroneData | null> => {
-    // Check cache first
-    const cached = queryClient.getQueryData<IsochroneData>(
-      queryKeys.search.isochrone()
-    );
-    if (cached) {
-      return cached;
-    }
+  const fetchIsochrone =
+    useCallback(async (): Promise<IsochroneData | null> => {
+      // Check cache first
+      const cached = queryClient.getQueryData<IsochroneData>(
+        queryKeys.search.isochrone(),
+      );
+      if (cached) {
+        return cached;
+      }
 
-    // If not in cache, fetch it
-    if (shouldLoadData) {
-      const result = await refetchIsochrone();
-      return result.data ?? null;
-    }
+      // If not in cache, fetch it
+      if (shouldLoadData) {
+        const result = await refetchIsochrone();
+        return result.data ?? null;
+      }
 
-    return null;
-  }, [queryClient, shouldLoadData, refetchIsochrone]);
+      return null;
+    }, [queryClient, shouldLoadData, refetchIsochrone]);
 
   const clearIsochroneData = useCallback(() => {
     queryClient.setQueryData(queryKeys.search.isochrone(), null);

@@ -69,7 +69,11 @@ export const handleSubmit = async ({
       }
     } else {
       const errorMsg = result.error ?? "Failed to generate report";
-      log.error(LOG_CATEGORIES.ERRORS, "Server returned unsuccessful result", result);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Server returned unsuccessful result",
+        result,
+      );
       throw new Error(result.message ?? errorMsg);
     }
   } catch (error: unknown) {

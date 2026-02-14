@@ -101,18 +101,15 @@ export function getStatusTooltip(status: AgreementStatus): string {
 /**
  * Check if user can sign the agreement
  */
-export function canUserSign(
-  agreement: Agreement,
-  userId: string
-): boolean {
+export function canUserSign(agreement: Agreement, userId: string): boolean {
   if (!agreement.participants) return false;
-  
+
   const userParticipant = agreement.participants.find(
-    (p) => p.user_id === userId
+    (p) => p.user_id === userId,
   );
-  
+
   if (!userParticipant) return false;
-  
+
   // Can sign if status is sent/delivered and user hasn't signed yet
   return (
     (agreement.status === "sent" || agreement.status === "delivered") &&
@@ -126,14 +123,14 @@ export function canUserSign(
 export function canUserSend(
   agreement: Agreement,
   userId: string,
-  isAgent: boolean
+  isAgent: boolean,
 ): boolean {
   // Only agents can send
   if (!isAgent) return false;
-  
+
   // Agreement must be in draft status
   if (agreement.status !== "draft") return false;
-  
+
   // User must be the agent who created it
   return agreement.agent_id === userId;
 }
@@ -144,11 +141,11 @@ export function canUserSend(
 export function canUserVoid(
   agreement: Agreement,
   userId: string,
-  isAgent: boolean
+  isAgent: boolean,
 ): boolean {
   // Only agents can void
   if (!isAgent) return false;
-  
+
   // Can only void if sent, delivered, or signed (not completed)
   if (
     agreement.status !== "sent" &&
@@ -157,7 +154,7 @@ export function canUserVoid(
   ) {
     return false;
   }
-  
+
   // User must be the agent who created it
   return agreement.agent_id === userId;
 }
@@ -168,14 +165,14 @@ export function canUserVoid(
 export function canUserCreateRevision(
   agreement: Agreement,
   userId: string,
-  isAgent: boolean
+  isAgent: boolean,
 ): boolean {
   // Only agents can create revisions
   if (!isAgent) return false;
-  
+
   // Can only create revisions for drafts
   if (agreement.status !== "draft") return false;
-  
+
   // User must be the agent who created it
   return agreement.agent_id === userId;
 }
@@ -197,18 +194,18 @@ export function formatParticipantRole(role: ParticipantRole): string {
  * Calculate signing progress (percentage)
  */
 export function calculateSigningProgress(
-  participants?: AgreementParticipant[]
+  participants?: AgreementParticipant[],
 ): { signed: number; total: number; percentage: number } {
   if (!participants || participants.length === 0) {
     return { signed: 0, total: 0, percentage: 0 };
   }
-  
+
   const total = participants.length;
   const signed = participants.filter(
-    (p) => p.status === "signed" || p.status === "completed"
+    (p) => p.status === "signed" || p.status === "completed",
   ).length;
   const percentage = Math.round((signed / total) * 100);
-  
+
   return { signed, total, percentage };
 }
 
@@ -216,7 +213,7 @@ export function calculateSigningProgress(
  * Get participant status color
  */
 export function getParticipantStatusColor(
-  status: AgreementParticipant["status"]
+  status: AgreementParticipant["status"],
 ): string {
   const colors: Record<AgreementParticipant["status"], string> = {
     pending: "text-gray-500",
@@ -233,7 +230,7 @@ export function getParticipantStatusColor(
  * Get participant status icon
  */
 export function getParticipantStatusIcon(
-  status: AgreementParticipant["status"]
+  status: AgreementParticipant["status"],
 ) {
   const icons: Record<AgreementParticipant["status"], typeof Clock> = {
     pending: Clock,
@@ -251,7 +248,7 @@ export function getParticipantStatusIcon(
  */
 export function formatAgreementDate(dateString?: string): string {
   if (!dateString) return "N/A";
-  
+
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", {
     year: "numeric",
@@ -265,7 +262,7 @@ export function formatAgreementDate(dateString?: string): string {
  */
 export function formatAgreementDateTime(dateString?: string): string {
   if (!dateString) return "N/A";
-  
+
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", {
     year: "numeric",
@@ -281,19 +278,21 @@ export function formatAgreementDateTime(dateString?: string): string {
  */
 export function daysSinceSent(sentAt?: string): number {
   if (!sentAt) return 0;
-  
+
   const sent = new Date(sentAt);
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - sent.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
   return diffDays;
 }
 
 /**
  * Get urgency level based on days waiting
  */
-export function getUrgencyLevel(daysWaiting: number): "low" | "medium" | "high" {
+export function getUrgencyLevel(
+  daysWaiting: number,
+): "low" | "medium" | "high" {
   if (daysWaiting >= 7) return "high";
   if (daysWaiting >= 3) return "medium";
   return "low";

@@ -18,7 +18,10 @@ export class DocumentService {
 
   async fetchDocuments(): Promise<Document[]> {
     // getDocuments should not be called - return empty array
-    log.warn(LOG_CATEGORIES.API, "fetchDocuments called but getDocuments should not be used");
+    log.warn(
+      LOG_CATEGORIES.API,
+      "fetchDocuments called but getDocuments should not be used",
+    );
     return [];
   }
 

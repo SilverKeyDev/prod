@@ -10,7 +10,9 @@ type SavedPageTabsAndSearchProps = {
   viewType: SavedPageViewType;
   onViewTypeChange: (type: SavedPageViewType) => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
-  onEventTypeFilterChange?: (eventType: "listed" | "price_change" | "sold" | "withdrawn" | "") => void;
+  onEventTypeFilterChange?: (
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
+  ) => void;
   rightText?: string;
   onUploadClick?: () => void;
 };

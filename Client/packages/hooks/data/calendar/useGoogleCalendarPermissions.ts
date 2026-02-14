@@ -43,9 +43,10 @@ export function useGoogleCalendarPermissions(): UseGoogleCalendarPermissionsRetu
     queryFn: async () => {
       // Only return cached data - never make an API call
       // Data is prefetched in dataConfig.ts
-      const cached = queryClient.getQueryData<GoogleCalendarPermissionsResponse | null>(
-        queryKeys.googleCalendar.permissions()
-      );
+      const cached =
+        queryClient.getQueryData<GoogleCalendarPermissionsResponse | null>(
+          queryKeys.googleCalendar.permissions(),
+        );
       // Return cached data (even if null - null means not connected)
       // If undefined, prefetch hasn't completed yet - return null as placeholder
       return cached ?? null;
@@ -56,9 +57,10 @@ export function useGoogleCalendarPermissions(): UseGoogleCalendarPermissionsRetu
     refetchOnWindowFocus: false, // Don't refetch on window focus
     // Use placeholderData to show cached data immediately if available
     placeholderData: (previousValue) => {
-      const cached = queryClient.getQueryData<GoogleCalendarPermissionsResponse | null>(
-        queryKeys.googleCalendar.permissions()
-      );
+      const cached =
+        queryClient.getQueryData<GoogleCalendarPermissionsResponse | null>(
+          queryKeys.googleCalendar.permissions(),
+        );
       return cached ?? previousValue ?? null;
     },
     // Prevent actual network requests - only use cache
@@ -69,9 +71,10 @@ export function useGoogleCalendarPermissions(): UseGoogleCalendarPermissionsRetu
   // Check if cache exists (even if null) - this indicates prefetch has completed
   const cacheExists = useMemo(() => {
     if (!shouldLoadData) return false;
-    const cached = queryClient.getQueryData<GoogleCalendarPermissionsResponse | null>(
-      queryKeys.googleCalendar.permissions()
-    );
+    const cached =
+      queryClient.getQueryData<GoogleCalendarPermissionsResponse | null>(
+        queryKeys.googleCalendar.permissions(),
+      );
     // Cache exists if it's not undefined (even if null)
     return cached !== undefined;
   }, [shouldLoadData, queryClient, permissionsData]); // Include permissionsData to react to updates
@@ -79,10 +82,8 @@ export function useGoogleCalendarPermissions(): UseGoogleCalendarPermissionsRetu
   // Determine loading state:
   // - If cache doesn't exist (undefined) and query hasn't resolved (dataUpdatedAt === 0), we're still loading
   // - Once cache exists (even if null) or dataUpdatedAt > 0, prefetch has completed
-  const permissionsLoading = 
-    shouldLoadData && 
-    !cacheExists && 
-    dataUpdatedAt === 0;
+  const permissionsLoading =
+    shouldLoadData && !cacheExists && dataUpdatedAt === 0;
 
   // Calculate permission status
   const { hasRequiredPermissions, isPartiallyEnabled, missingPermissions } =
@@ -119,7 +120,9 @@ export function useGoogleCalendarPermissions(): UseGoogleCalendarPermissionsRetu
 
       // Check if partially enabled (has some but not all required permissions)
       const isPartiallyEnabled =
-        hasAnyPermission && missing.length > 0 && missing.length < REQUIRED_PERMISSIONS.length;
+        hasAnyPermission &&
+        missing.length > 0 &&
+        missing.length < REQUIRED_PERMISSIONS.length;
 
       return {
         hasRequiredPermissions: missing.length === 0,

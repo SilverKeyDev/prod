@@ -67,45 +67,59 @@ export function CalendarDropdown({
                 </div>
               ) : (
                 // Sort calendars to put SilverKey first
-                [...calendars].sort((a, b) => {
-                  const aIsSilverKey = silverKeyCalendarId === a.id;
-                  const bIsSilverKey = silverKeyCalendarId === b.id;
-                  if (aIsSilverKey && !bIsSilverKey) return -1;
-                  if (!aIsSilverKey && bIsSilverKey) return 1;
-                  return 0;
-                }).map((calendar) => {
-                  const isEnabled = enabledCalendarIds.has(calendar.id);
-                  const isSilverKey = silverKeyCalendarId === calendar.id;
-                  const isDisabled = isSilverKey; // SilverKey calendar cannot be disabled
-                  
-                  return (
-                    <div
-                      key={calendar.id}
-                      className={`flex items-center justify-between gap-2 rounded px-2 py-2 ${
-                        isDisabled ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-50"
-                      }`}
-                    >
-                      <span className={`flex-1 text-sm truncate ${
-                        isSilverKey ? "text-amber-600 font-medium" : "text-gray-700"
-                      }`}>
-                        {calendar.summary}
-                        {isSilverKey && (
-                          <span className="ml-1 text-xs text-amber-500">(Required)</span>
-                        )}
-                      </span>
-                      <div className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}>
-                        <OliveCheckbox
-                          checked={isEnabled}
-                          onToggle={() => {
-                            if (!isDisabled) {
-                              handleToggleCalendar(calendar.id, !isEnabled);
-                            }
-                          }}
-                        />
+                [...calendars]
+                  .sort((a, b) => {
+                    const aIsSilverKey = silverKeyCalendarId === a.id;
+                    const bIsSilverKey = silverKeyCalendarId === b.id;
+                    if (aIsSilverKey && !bIsSilverKey) return -1;
+                    if (!aIsSilverKey && bIsSilverKey) return 1;
+                    return 0;
+                  })
+                  .map((calendar) => {
+                    const isEnabled = enabledCalendarIds.has(calendar.id);
+                    const isSilverKey = silverKeyCalendarId === calendar.id;
+                    const isDisabled = isSilverKey; // SilverKey calendar cannot be disabled
+
+                    return (
+                      <div
+                        key={calendar.id}
+                        className={`flex items-center justify-between gap-2 rounded px-2 py-2 ${
+                          isDisabled
+                            ? "opacity-60 cursor-not-allowed"
+                            : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <span
+                          className={`flex-1 text-sm truncate ${
+                            isSilverKey
+                              ? "text-amber-600 font-medium"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          {calendar.summary}
+                          {isSilverKey && (
+                            <span className="ml-1 text-xs text-amber-500">
+                              (Required)
+                            </span>
+                          )}
+                        </span>
+                        <div
+                          className={
+                            isDisabled ? "opacity-50 cursor-not-allowed" : ""
+                          }
+                        >
+                          <OliveCheckbox
+                            checked={isEnabled}
+                            onToggle={() => {
+                              if (!isDisabled) {
+                                handleToggleCalendar(calendar.id, !isEnabled);
+                              }
+                            }}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })
               )}
             </div>
           </div>
@@ -114,4 +128,3 @@ export function CalendarDropdown({
     </div>
   );
 }
-

@@ -1,13 +1,12 @@
 /**
  * Defines the fixed order of sections for PropertyDetailsModal.
- * 
+ *
  * The first few sections are always displayed in this order:
  * 1. PropertyDetails - Basic property information (year built, lot size, etc.)
  * 2. ProsAndCons - Pros and cons of the property
  * 3. PropertyFeatures - Property features and amenities
- * 
- * After these fixed sections, the remaining sections are ordered based on
- * the user's priorities (from userPreferences.report_section_priorities).
+ *
+ * After these fixed sections, the remaining dynamic sections use a fixed order.
  */
 
 export const FIXED_SECTION_ORDER = [

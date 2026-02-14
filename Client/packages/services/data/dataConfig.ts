@@ -1,5 +1,11 @@
 import { queryKeys } from "../../config/query/keys";
-import { agentApi, googleCalendarApi, preferencesApi, userApi, searchApi } from "../../config/api";
+import {
+  agentApi,
+  googleCalendarApi,
+  preferencesApi,
+  userApi,
+  searchApi,
+} from "../../config/api";
 import { agentService } from "../agent/agent";
 import { apiGet } from "../http/compatibility";
 import type { UserProfile } from "../../schemas";
@@ -214,7 +220,9 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryFn: async (_user: UserProfile | null) => {
       const response = await agentApi.getNotificationCounter();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch notification counter");
+        throw new Error(
+          response.error ?? "Failed to fetch notification counter",
+        );
       }
       return response.total_count;
     },
@@ -231,7 +239,9 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryFn: async () => {
       const response = await agentApi.getConnectionRequests();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch connection requests");
+        throw new Error(
+          response.error ?? "Failed to fetch connection requests",
+        );
       }
       return response.requests ?? [];
     },
@@ -366,7 +376,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     shouldPoll: false,
     staleTime: 2 * 60 * 1000, // 2 minutes - events can change frequently
     userType: "all", // Prefetch for all users, not just agents
-    initialLoad: true, 
+    initialLoad: true,
   },
 
   // ============================================
@@ -378,7 +388,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryKey: () => ["checklists", "escrow"],
     queryFn: async () => {
       const response = await apiGet<{ success: boolean; data: number[] }>(
-        "/api/v1/user/close?type=escrow"
+        "/api/v1/user/close?type=escrow",
       );
       if (!response.success) {
         throw new Error("Failed to fetch escrow checklist");
@@ -396,7 +406,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryKey: () => ["checklists", "financing"],
     queryFn: async () => {
       const response = await apiGet<{ success: boolean; data: number[] }>(
-        "/api/v1/user/close?type=financing"
+        "/api/v1/user/close?type=financing",
       );
       if (!response.success) {
         throw new Error("Failed to fetch financing checklist");
@@ -414,7 +424,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryKey: () => ["checklists", "closing"],
     queryFn: async () => {
       const response = await apiGet<{ success: boolean; data: number[] }>(
-        "/api/v1/user/close?type=closing"
+        "/api/v1/user/close?type=closing",
       );
       if (!response.success) {
         throw new Error("Failed to fetch closing checklist");
@@ -432,7 +442,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryKey: () => ["checklists", "insurance"],
     queryFn: async () => {
       const response = await apiGet<{ success: boolean; data: number[] }>(
-        "/api/v1/user/close?type=insurance"
+        "/api/v1/user/close?type=insurance",
       );
       if (!response.success) {
         throw new Error("Failed to fetch insurance checklist");
@@ -453,7 +463,8 @@ export function getInitialLoadRoutes(user: UserProfile | null): RouteConfig[] {
   const isAgent = user?.is_agent ?? false;
   return Object.values(DATA_ROUTES).filter(
     (route) =>
-      route.initialLoad && (route.userType === "all" || (route.userType === "agent" && isAgent))
+      route.initialLoad &&
+      (route.userType === "all" || (route.userType === "agent" && isAgent)),
   );
 }
 
@@ -464,6 +475,7 @@ export function getPollingRoutes(user: UserProfile | null): RouteConfig[] {
   const isAgent = user?.is_agent ?? false;
   return Object.values(DATA_ROUTES).filter(
     (route) =>
-      route.shouldPoll && (route.userType === "all" || (route.userType === "agent" && isAgent))
+      route.shouldPoll &&
+      (route.userType === "all" || (route.userType === "agent" && isAgent)),
   );
 }

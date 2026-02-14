@@ -5,7 +5,7 @@ import { useSavedHomesStoreIntegration } from "../../../../../packages/hooks/sto
 
 /**
  * Full auth shell providers for standard and specialized routes
- * 
+ *
  * Note: Data is now prefetched on login via useDataInitialization hook.
  * These store integrations sync React Query cache to Zustand stores for components
  * that access data via store selectors. They do not trigger data fetching.

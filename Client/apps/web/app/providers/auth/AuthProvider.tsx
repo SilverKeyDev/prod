@@ -39,7 +39,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         {
           currentUrl: window.location.href,
           timestamp: new Date().toISOString(),
-        }
+        },
       );
       return;
     }
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           currentPath,
           isPublicRoute,
           timestamp: new Date().toISOString(),
-        }
+        },
       );
 
       // Start in checking state while we verify with server
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             requestId,
             currentPath,
             isPublicRoute,
-          }
+          },
         );
         const verifyStart = Date.now();
         let sessionResult = await authApi.verifySession();
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             success: sessionResult.success,
             hasUser: !!sessionResult.user,
             durationMs: verifyMs,
-          }
+          },
         );
 
         // If session verification fails, attempt silent refresh
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             {
               requestId,
               currentPath,
-            }
+            },
           );
 
           // Attempt to refresh token
@@ -117,7 +117,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               "Token refresh successful, retrying session verification",
               {
                 requestId,
-              }
+              },
             );
             sessionResult = await authApi.verifySession();
           } else {
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               {
                 requestId,
                 error: refreshResult.error,
-              }
+              },
             );
           }
         }
@@ -145,10 +145,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
               {
                 requestId,
                 userId: user.id,
-                userEmail: user.email ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}` : "missing",
+                userEmail: user.email
+                  ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
+                  : "missing",
                 isAgent: user.is_agent || false,
                 hasSubscription: user.has_subscription || false,
-              }
+              },
             );
 
             setStoreUser(user as UserProfile);
@@ -169,13 +171,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 userKeys: Object.keys(user),
                 hasCreatedAt: "created_at" in user,
                 hasIsActive: "is_active" in user,
-              }
+              },
             );
             setStoreUser(null);
           }
           setIsAuthenticated(true);
           setStoreAuthStatus("authenticated");
-         
         } else {
           // No valid session found - this is normal for unauthenticated users
           setStoreUser(null);
@@ -189,7 +190,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               sessionSuccess: sessionResult.success,
               hasUser: !!sessionResult.user,
               currentPath,
-            }
+            },
           );
         }
       } catch (error) {
@@ -203,7 +204,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             error: err?.message || "Unknown error",
             errorType: err?.constructor?.name || "Unknown",
             stack: err?.stack?.substring(0, 200) || "No stack trace",
-          }
+          },
         );
         // Session verification failed - treat as unauthenticated
         setStoreUser(null);
@@ -221,7 +222,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             currentPath,
             finalStatus: useAuthStore.getState().authStatus,
             authReady: true,
-          }
+          },
         );
       }
     };

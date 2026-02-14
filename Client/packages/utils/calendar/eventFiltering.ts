@@ -8,7 +8,7 @@ import { calculateCalendarDateRange } from "./date";
 export function filterEventsByCalendars(
   events: ExtendedGoogleEvent[],
   enabledCalendarIds: Set<string>,
-  calendars: Calendar[]
+  calendars: Calendar[],
 ): ExtendedGoogleEvent[] {
   if (enabledCalendarIds.size === 0) {
     return [];
@@ -16,7 +16,7 @@ export function filterEventsByCalendars(
 
   if (!calendars || calendars.length === 0) {
     return events.filter(
-      (event) => event.calendarId && enabledCalendarIds.has(event.calendarId)
+      (event) => event.calendarId && enabledCalendarIds.has(event.calendarId),
     );
   }
 
@@ -25,7 +25,7 @@ export function filterEventsByCalendars(
     if (event.isClientEvent === true) {
       return true;
     }
-    
+
     if (event.calendarId) {
       return enabledCalendarIds.has(event.calendarId);
     }
@@ -39,11 +39,14 @@ export function filterEventsByCalendars(
 /**
  * Filter events for current 5-week period
  * Uses calculateCalendarDateRange to get the standard date range
- * 
+ *
  * @param events - Events to filter
  * @param date - Optional date to calculate range from. Defaults to today.
  */
-export function filterCurrentPeriodEvents(events: ExtendedGoogleEvent[], date?: Date): ExtendedGoogleEvent[] {
+export function filterCurrentPeriodEvents(
+  events: ExtendedGoogleEvent[],
+  date?: Date,
+): ExtendedGoogleEvent[] {
   const { timeMin, timeMax } = calculateCalendarDateRange(date);
   const start = new Date(timeMin);
   const end = new Date(timeMax);
@@ -61,7 +64,7 @@ export function filterCurrentPeriodEvents(events: ExtendedGoogleEvent[], date?: 
  */
 export function filterUpcomingEvents(
   events: ExtendedGoogleEvent[],
-  silverKeyCalendarId: string | null
+  silverKeyCalendarId: string | null,
 ): ExtendedGoogleEvent[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);

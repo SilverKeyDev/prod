@@ -20,7 +20,7 @@ function isFeatures(x: unknown): x is Features {
   // Optional: be strict about value shapes
   return Object.values(x as Record<string, unknown>).every(
     (v) =>
-      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
+      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string"),
   );
 }
 
@@ -88,7 +88,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
   property,
 }) => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   const { features, image_features: imageFeatures } = property as unknown as {

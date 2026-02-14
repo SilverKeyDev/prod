@@ -81,7 +81,11 @@ export default function CloseLayout({
   }, [apiEndpoint]);
 
   // Use React Query hook for checklist data (uses prefetched data when available)
-  const { checkedIds, isLoading: loading, toggleItem } = useChecklistData(checklistType);
+  const {
+    checkedIds,
+    isLoading: loading,
+    toggleItem,
+  } = useChecklistData(checklistType);
 
   // Convert checkedIds array to checked state object
   const checked = React.useMemo(() => {

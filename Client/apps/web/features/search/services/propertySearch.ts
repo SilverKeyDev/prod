@@ -40,11 +40,10 @@ export type UserPreferences = {
   preferred_home_features: string[];
   deal_breakers: string[];
   important_locations: Array<{
-    name: string;
     address: string;
-    commute_tolerance: number;
-    lat: number | null;
-    lng: number | null;
+    commute_tolerance?: number;
+    lat?: number | null;
+    lng?: number | null;
   }>;
 };
 
@@ -76,7 +75,10 @@ export const searchPropertiesInIsochrone = async (
   setSearchResults([]);
 
   if (!isochroneData?.isochrone?.geometry) {
-    log.warn(LOG_CATEGORIES.SEARCH, "No isochrone geometry available for property search");
+    log.warn(
+      LOG_CATEGORIES.SEARCH,
+      "No isochrone geometry available for property search",
+    );
     setIsSearching(false);
     return;
   }
@@ -124,8 +126,6 @@ export const searchPropertiesInIsochrone = async (
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
-
-
     // Log first property raw data to inspect _score field
     if (searchResult.properties && searchResult.properties.length > 0) {
       const firstProp = searchResult.properties[0];
@@ -144,7 +144,7 @@ export const searchPropertiesInIsochrone = async (
       searchResult.properties ?? []
     ).map((property: PropertySearchResult, index: number) => {
       const score = property._score ?? 0;
-      
+
       // Log any properties with missing or zero scores
       if (score === 0 || score === undefined || score === null) {
         log.warn(LOG_CATEGORIES.SEARCH, "Property missing score", {
@@ -163,11 +163,12 @@ export const searchPropertiesInIsochrone = async (
           : "Price not available",
         bedrooms: property.bedrooms ?? 0,
         bathrooms: property.bathrooms ?? 0,
-        sqft: typeof property.livingArea === 'number' 
-          ? property.livingArea
-          : typeof property.livingArea === 'string'
-            ? parseInt((property.livingArea as string).replace(/,/g, '')) || 0
-            : 0,
+        sqft:
+          typeof property.livingArea === "number"
+            ? property.livingArea
+            : typeof property.livingArea === "string"
+              ? parseInt((property.livingArea as string).replace(/,/g, "")) || 0
+              : 0,
         lat:
           property.latitude ??
           isochroneData.center.lat + (Math.random() - 0.5) * 0.01,
@@ -203,7 +204,11 @@ export const searchPropertiesInIsochrone = async (
       count: transformedResults.length,
     });
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.ERRORS, "Error in automatic isochrone property search", error);
+    log.error(
+      LOG_CATEGORIES.ERRORS,
+      "Error in automatic isochrone property search",
+      error,
+    );
     log.error(LOG_CATEGORIES.ERRORS, "Error details", {
       message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,

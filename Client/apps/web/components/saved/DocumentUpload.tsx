@@ -133,7 +133,14 @@ export default function DocumentUpload({
     } finally {
       setIsUploading(false);
     }
-  }, [selectedFile, selectedCategory, address, uploadDocument, enqueueToast, onUploadSuccess]);
+  }, [
+    selectedFile,
+    selectedCategory,
+    address,
+    uploadDocument,
+    enqueueToast,
+    onUploadSuccess,
+  ]);
 
   const handleClearFile = useCallback(() => {
     setSelectedFile(null);
@@ -146,144 +153,136 @@ export default function DocumentUpload({
 
   const content = (
     <div className="space-y-responsive-md">
-        <div>
-          <Label size="sm" required>
-            Document Category
-          </Label>
-          <Dropdown
-            options={categoryOptions}
-            value={selectedCategory}
-            onChange={handleCategoryChange}
-            placeholder="Select a category..."
-            disabled={categoriesLoading || isUploading}
-            required
-            variant="mobile"
-          />
-        </div>
+      <div>
+        <Label size="sm" required>
+          Document Category
+        </Label>
+        <Dropdown
+          options={categoryOptions}
+          value={selectedCategory}
+          onChange={handleCategoryChange}
+          placeholder="Select a category..."
+          disabled={categoriesLoading || isUploading}
+          required
+          variant="mobile"
+        />
+      </div>
 
-        <div>
-          <Label size="sm">
-            Address (Optional)
-          </Label>
-          <Input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Enter property address..."
+      <div>
+        <Label size="sm">Address (Optional)</Label>
+        <Input
+          type="text"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          placeholder="Enter property address..."
+          disabled={isUploading}
+          variant="mobile"
+        />
+      </div>
+
+      <div>
+        <Label size="sm" required>
+          Document File
+        </Label>
+        <div className="relative">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx,image/*"
+            onChange={handleFileSelect}
             disabled={isUploading}
-            variant="mobile"
+            className="hidden"
+            id="document-upload-input"
           />
-        </div>
-
-        <div>
-          <Label size="sm" required>
-            Document File
-          </Label>
-          <div className="relative">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.doc,.docx,image/*"
-              onChange={handleFileSelect}
-              disabled={isUploading}
-              className="hidden"
-              id="document-upload-input"
-            />
-            <label
-              htmlFor="document-upload-input"
-              className={`touch-friendly flex cursor-pointer items-center justify-between gap-responsive-sm rounded-lg border-2 border-dashed p-responsive-md transition-colors ${
-                isUploading
-                  ? "cursor-not-allowed border-gray-300 bg-gray-50"
-                  : selectedFile
-                    ? "border-brand-accent bg-brand-accent/5"
-                    : "border-gray-300 hover:border-brand-accent/50 hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex min-w-0 flex-1 items-center gap-responsive-sm">
-                {selectedFile ? (
-                  <>
-                    <FileText className="h-5 w-5 flex-shrink-0 text-brand-accent sm:h-6 sm:w-6" />
-                    <div className="min-w-0 flex-1">
-                      <BodyText size="sm" className="truncate font-medium">
-                        {selectedFile.name}
-                      </BodyText>
-                      <BodyText size="xs" muted>
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </BodyText>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-5 w-5 flex-shrink-0 text-gray-400 sm:h-6 sm:w-6" />
-                    <div className="min-w-0 flex-1">
-                      <BodyText size="sm">
-                        Click to select a file
-                      </BodyText>
-                      <BodyText size="xs" muted>
-                        PDF, DOC, DOCX, or images
-                      </BodyText>
-                    </div>
-                  </>
-                )}
-              </div>
-              {selectedFile && !isUploading && (
-                <IconButton
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleClearFile();
-                  }}
-                  type="button"
-                  icon={<X className="h-4 w-4" />}
-                  aria-label="Remove file"
-                />
+          <label
+            htmlFor="document-upload-input"
+            className={`touch-friendly flex cursor-pointer items-center justify-between gap-responsive-sm rounded-lg border-2 border-dashed p-responsive-md transition-colors ${
+              isUploading
+                ? "cursor-not-allowed border-gray-300 bg-gray-50"
+                : selectedFile
+                  ? "border-brand-accent bg-brand-accent/5"
+                  : "border-gray-300 hover:border-brand-accent/50 hover:bg-gray-50"
+            }`}
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-responsive-sm">
+              {selectedFile ? (
+                <>
+                  <FileText className="h-5 w-5 flex-shrink-0 text-brand-accent sm:h-6 sm:w-6" />
+                  <div className="min-w-0 flex-1">
+                    <BodyText size="sm" className="truncate font-medium">
+                      {selectedFile.name}
+                    </BodyText>
+                    <BodyText size="xs" muted>
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </BodyText>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-5 w-5 flex-shrink-0 text-gray-400 sm:h-6 sm:w-6" />
+                  <div className="min-w-0 flex-1">
+                    <BodyText size="sm">Click to select a file</BodyText>
+                    <BodyText size="xs" muted>
+                      PDF, DOC, DOCX, or images
+                    </BodyText>
+                  </div>
+                </>
               )}
-            </label>
-          </div>
-        </div>
-
-        {/* Upload Status */}
-        {currentUpload && (
-          <div className="flex items-center gap-responsive-sm">
-            {isUploadComplete ? (
-              <StatusBadge
-                variant="success"
+            </div>
+            {selectedFile && !isUploading && (
+              <IconButton
+                variant="ghost"
                 size="sm"
-                text="Upload completed successfully"
-              />
-            ) : isUploadFailed ? (
-              <StatusBadge
-                variant="error"
-                size="sm"
-                text="Upload failed. Please try again."
-              />
-            ) : (
-              <StatusBadge
-                variant="processing"
-                size="sm"
-                text="Uploading..."
+                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleClearFile();
+                }}
+                type="button"
+                icon={<X className="h-4 w-4" />}
+                aria-label="Remove file"
               />
             )}
-          </div>
-        )}
-
-        {/* Upload Button */}
-        <div className="flex justify-end">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleUpload}
-            disabled={!canUpload || isUploading}
-            loading={isUploading}
-            fullWidth
-            className="sm:w-auto"
-          >
-            {isUploading ? "Uploading..." : "Upload Document"}
-          </Button>
+          </label>
         </div>
       </div>
+
+      {/* Upload Status */}
+      {currentUpload && (
+        <div className="flex items-center gap-responsive-sm">
+          {isUploadComplete ? (
+            <StatusBadge
+              variant="success"
+              size="sm"
+              text="Upload completed successfully"
+            />
+          ) : isUploadFailed ? (
+            <StatusBadge
+              variant="error"
+              size="sm"
+              text="Upload failed. Please try again."
+            />
+          ) : (
+            <StatusBadge variant="processing" size="sm" text="Uploading..." />
+          )}
+        </div>
+      )}
+
+      {/* Upload Button */}
+      <div className="flex justify-end">
+        <Button
+          variant="primary"
+          size="md"
+          onClick={handleUpload}
+          disabled={!canUpload || isUploading}
+          loading={isUploading}
+          fullWidth
+          className="sm:w-auto"
+        >
+          {isUploading ? "Uploading..." : "Upload Document"}
+        </Button>
+      </div>
+    </div>
   );
 
   if (useCard) {

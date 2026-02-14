@@ -78,7 +78,10 @@ export default function VerificationCodeInput({
     }
   };
 
-  const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (disabled) return;
 
     if (event.key === "Backspace") {
@@ -119,7 +122,10 @@ export default function VerificationCodeInput({
     const pasted = event.clipboardData.getData("text").replace(/\D/g, "");
     if (!pasted) return;
 
-    const nextDigits = Array.from({ length }, (_, index) => pasted[index] ?? "");
+    const nextDigits = Array.from(
+      { length },
+      (_, index) => pasted[index] ?? "",
+    );
     const nextCode = nextDigits.join("");
     setDigits(nextDigits);
     onChange?.(nextCode);
@@ -173,7 +179,9 @@ export default function VerificationCodeInput({
               "text-[1.40625rem] sm:text-[1.6875rem] md:text-[2.25rem] font-bold leading-none pb-0",
               "rounded-none", // keep the underline look
               sharedInputTextStyles,
-              disabled ? "cursor-not-allowed text-gray-400 border-gray-300" : "text-black",
+              disabled
+                ? "cursor-not-allowed text-gray-400 border-gray-300"
+                : "text-black",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -189,4 +197,3 @@ export default function VerificationCodeInput({
     </div>
   );
 }
-

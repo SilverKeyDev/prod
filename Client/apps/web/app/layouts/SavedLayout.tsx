@@ -25,7 +25,9 @@ type SavedLayoutProps = {
   viewType?: "homes" | "documents";
   onViewTypeChange?: (type: "homes" | "documents") => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
-  onEventTypeFilterChange?: (eventType: "listed" | "price_change" | "sold" | "withdrawn" | "") => void;
+  onEventTypeFilterChange?: (
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
+  ) => void;
 };
 
 const SavedLayout: React.FC<SavedLayoutProps> = ({
@@ -46,7 +48,9 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   const isMobile = useIsMobile();
 
   // Event type options for filtering documents
-  const eventTypeOptions: DropdownOption<"listed" | "price_change" | "sold" | "withdrawn" | "">[] = [
+  const eventTypeOptions: DropdownOption<
+    "listed" | "price_change" | "sold" | "withdrawn" | ""
+  >[] = [
     { value: "", label: "All Events" },
     { value: "listed", label: "Listed" },
     { value: "price_change", label: "Price Change" },
@@ -133,7 +137,9 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
           {/* Separate div for everything else (search, dropdown, refresh, view toggle, etc.) */}
           <div
             className={`flex flex-1 flex-wrap items-center justify-between ${
-              isMobile && viewType !== "homes" && viewType !== "documents" ? "hidden" : ""
+              isMobile && viewType !== "homes" && viewType !== "documents"
+                ? "hidden"
+                : ""
             }`}
           >
             {/* Left side: Search input or empty space */}
@@ -182,7 +188,6 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
               }`}
             >
               {ViewToggle}
-
             </div>
           </div>
         </div>

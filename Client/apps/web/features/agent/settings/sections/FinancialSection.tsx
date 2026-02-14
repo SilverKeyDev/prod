@@ -104,9 +104,7 @@ export default function FinancialSection({
             title: <Label>Down Payment</Label>,
             content: isEditMode ? (
               <PriceRangeSlider
-                tickValues={[
-                  100000, 250000, 500000, 1000000, 2000000, 5000000,
-                ]}
+                tickValues={[100000, 250000, 500000, 1000000, 2000000, 5000000]}
                 value={formData.down_payment ?? 100000}
                 onChange={(value) => {
                   // Round to nearest $5,000 increment
@@ -164,8 +162,7 @@ export default function FinancialSection({
               <div className="mobile-input bg-gray-50">
                 {formData.credit_score_range
                   ? (CREDIT_SCORE_OPTIONS.find(
-                      (option) =>
-                        option.value === formData.credit_score_range
+                      (option) => option.value === formData.credit_score_range,
                     )?.label ?? "Not specified")
                   : "Not specified"}
               </div>

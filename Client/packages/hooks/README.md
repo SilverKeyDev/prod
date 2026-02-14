@@ -5,6 +5,7 @@ React hooks for data fetching, store integration, and UI state management.
 ## Purpose
 
 The `hooks/` package contains React hooks that provide:
+
 - Data fetching with React Query
 - Store integration with Zustand
 - UI state management
@@ -22,6 +23,7 @@ hooks/
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `config/api/*` - API clients (primary interface for data hooks)
 - ✅ `store/*` - Zustand stores
 - ✅ `schemas/*` - Type definitions
@@ -29,18 +31,22 @@ hooks/
 - ✅ `services/security/*` - Security utilities (if needed)
 
 ### Forbidden Imports
+
 - ❌ Business logic `services/*` - Use `config/api/*` instead
 - ❌ `apps/web/*` - Hooks should not import components
 
 ## Hook Categories
 
 ### Data Hooks (`hooks/data/`)
+
 React Query hooks for data fetching. These hooks use `config/api/*` directly.
 
 ### Store Hooks (`hooks/store/`)
+
 Integration hooks that connect React Query data to Zustand stores.
 
 ### UI Hooks (`hooks/ui/`)
+
 Pure UI state management hooks (localStorage, modals, toasts, etc.).
 
 ## Usage Examples

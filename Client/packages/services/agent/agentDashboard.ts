@@ -19,7 +19,7 @@ import type { AgentClient } from "../../config/api";
  */
 export function generateMockTodos(
   clients: AgentClient[],
-  clientId?: string
+  clientId?: string,
 ): TodoItem[] {
   const todos: TodoItem[] = [];
   const now = new Date();
@@ -59,7 +59,7 @@ export function generateMockTodos(
  */
 export function generateMockAlerts(
   clients: AgentClient[],
-  clientId?: string
+  clientId?: string,
 ): UrgentAlert[] {
   const alerts: UrgentAlert[] = [];
   const now = new Date();
@@ -96,7 +96,7 @@ export function generateMockAlerts(
  */
 export function enhanceClientWithDealInfo(
   client: AgentClient,
-  dealStage: DealStage = "search"
+  dealStage: DealStage = "search",
 ): ClientDealInfo {
   const riskFlags: RiskFlag[] = [];
 
@@ -166,9 +166,7 @@ export function generateMockClientGoals(): ClientGoals {
 /**
  * Generate mock decision log entries
  */
-export function generateMockDecisionLog(
-  clientId: string
-): DecisionLogEntry[] {
+export function generateMockDecisionLog(clientId: string): DecisionLogEntry[] {
   const now = new Date();
   return [
     {
@@ -198,15 +196,23 @@ export function generateMockNotes(clientId: string): AgentNote[] {
       id: `note-${clientId}-1`,
       client_id: clientId,
       content: "Client prefers modern homes with open floor plans",
-      created_at: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 7 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      updated_at: new Date(
+        now.getTime() - 7 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
     },
     {
       id: `note-${clientId}-2`,
       client_id: clientId,
       content: "Revisit condo idea if SFH fails",
-      created_at: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      created_at: new Date(
+        now.getTime() - 3 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
+      updated_at: new Date(
+        now.getTime() - 3 * 24 * 60 * 60 * 1000,
+      ).toISOString(),
     },
   ];
 }
@@ -215,7 +221,7 @@ export function generateMockNotes(clientId: string): AgentNote[] {
  * Generate mock timeline events
  */
 export function generateMockTimelineEvents(
-  clientId: string
+  clientId: string,
 ): ClientTimelineEvent[] {
   const now = new Date();
   return [

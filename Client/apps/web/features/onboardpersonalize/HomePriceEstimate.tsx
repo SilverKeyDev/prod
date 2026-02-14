@@ -98,7 +98,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                         undefined,
                         {
                           maximumFractionDigits: 0,
-                        }
+                        },
                       )}
                     </strong>
                   </p>
@@ -114,7 +114,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                       $
                       {Math.round(
                         (homePriceResult.netAnnualIncome / 12) *
-                          (homePriceResult.dtiUsed / 100)
+                          (homePriceResult.dtiUsed / 100),
                       ).toLocaleString()}
                     </strong>
                   </p>

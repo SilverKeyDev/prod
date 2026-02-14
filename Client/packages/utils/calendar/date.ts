@@ -14,14 +14,17 @@ export function getWeekStart(date: Date): Date {
  * Calculate 5-week date range aligned to week boundaries
  * Returns the start of the week containing the specified date (or today if not provided) (Sunday) to 5 weeks later
  * This is the standard date range used throughout the calendar feature
- * 
+ *
  * All calendar components use this single method for date range calculation.
  * For filtering to specific ranges (e.g., today, next 7 days), filter the events
  * after reading from cache rather than using different date range calculations.
- * 
+ *
  * @param date - Optional date to calculate range from. Defaults to today.
  */
-export function calculateCalendarDateRange(date?: Date): { timeMin: string; timeMax: string } {
+export function calculateCalendarDateRange(date?: Date): {
+  timeMin: string;
+  timeMax: string;
+} {
   const baseDate = date ? new Date(date) : new Date();
   baseDate.setHours(0, 0, 0, 0);
   const weekStart = getWeekStart(baseDate);
@@ -48,27 +51,27 @@ export function navigateDate(date: Date, weeks: number): Date {
  * Calculate the visible date range for the calendar grid
  * Returns the first and last day currently being displayed (5 weeks = 35 days by default)
  * This matches exactly what CalendarView displays - uses the same logic as the grid
- * 
+ *
  * The grid shows 35 days starting from the Sunday of the week containing currentDate by default.
  * Can also generate 1 day or 1 week views.
- * 
+ *
  * @param currentDate - The date to center the view around
  * @param viewType - Optional view type: "day" (1 day), "week" (7 days), or "month" (5 weeks, default)
  * @returns Object with start/end dates and optionally the grid days array
  */
 export function getVisibleDateRange(
   currentDate: Date,
-  viewType: CalendarViewType = "month"
+  viewType: CalendarViewType = "month",
 ): { start: Date; end: Date; gridDays?: CalendarGridDay[] } {
   const date = new Date(currentDate);
   date.setHours(0, 0, 0, 0);
-  
+
   // Find the start of the week containing currentDate (Sunday)
   const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
   const weekStart = new Date(date);
   weekStart.setDate(date.getDate() - dayOfWeek);
   weekStart.setHours(0, 0, 0, 0);
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const currentMonth = today.getMonth();
@@ -100,7 +103,7 @@ export function getVisibleDateRange(
   // First day (day = 0)
   const firstDay = new Date(startDate);
   firstDay.setHours(0, 0, 0, 0);
-  
+
   // Last day (day = daysToGenerate - 1)
   const lastDay = new Date(startDate);
   lastDay.setDate(startDate.getDate() + (daysToGenerate - 1));
@@ -127,7 +130,7 @@ export function getVisibleDateRange(
       isFirstOfMonth,
     });
   }
-  
+
   return { start: firstDay, end: lastDay, gridDays };
 }
 
@@ -138,11 +141,11 @@ export function formatDateRange(start: Date, end: Date): string {
   const startMonth = start.toLocaleDateString("en-US", { month: "short" });
   const startDay = start.getDate();
   const startYear = start.getFullYear();
-  
+
   const endMonth = end.toLocaleDateString("en-US", { month: "short" });
   const endDay = end.getDate();
   const endYear = end.getFullYear();
-  
+
   // If it's the same day, show just one date
   if (
     start.getTime() === end.getTime() ||
@@ -152,18 +155,17 @@ export function formatDateRange(start: Date, end: Date): string {
   ) {
     return `${startMonth} ${startDay}, ${startYear}`;
   }
-  
+
   // If same month and year
   if (start.getMonth() === end.getMonth() && startYear === endYear) {
     return `${startMonth} ${startDay} - ${endDay}, ${startYear}`;
   }
-  
+
   // If same year but different months
   if (startYear === endYear) {
     return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${startYear}`;
   }
-  
+
   // Different years
   return `${startMonth} ${startDay}, ${startYear} - ${endMonth} ${endDay}, ${endYear}`;
 }
-

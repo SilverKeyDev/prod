@@ -179,7 +179,13 @@ export type TodoItem = {
   title: string;
   description?: string;
   priority: "low" | "medium" | "high" | "urgent";
-  type: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
+  type:
+    | "deadline"
+    | "follow_up"
+    | "inspection"
+    | "offer_expiration"
+    | "closing"
+    | "manual";
   due_date: string;
   completed: boolean;
   completed_at?: string;
@@ -198,7 +204,13 @@ export type CreateTodoRequest = {
   title: string;
   due_date: string;
   priority?: "low" | "medium" | "high" | "urgent";
-  type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
+  type?:
+    | "deadline"
+    | "follow_up"
+    | "inspection"
+    | "offer_expiration"
+    | "closing"
+    | "manual";
   client_id?: string;
   description?: string;
 };
@@ -214,7 +226,13 @@ export type UpdateTodoRequest = {
   title?: string;
   description?: string;
   priority?: "low" | "medium" | "high" | "urgent";
-  type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
+  type?:
+    | "deadline"
+    | "follow_up"
+    | "inspection"
+    | "offer_expiration"
+    | "closing"
+    | "manual";
   due_date?: string;
   completed?: boolean;
   client_id?: string;
@@ -250,7 +268,7 @@ export const agentApi = {
    */
   getChatHistory: (conversationId: string): Promise<AgentChatHistoryResponse> =>
     apiGet<AgentChatHistoryResponse>(
-      `/api/v1/agent/chats/${conversationId}/history`
+      `/api/v1/agent/chats/${conversationId}/history`,
     ),
 
   /**
@@ -261,11 +279,11 @@ export const agentApi = {
     message: string,
     clientId?: string,
     sharedHomeId?: string,
-    sharedDocumentId?: string
+    sharedDocumentId?: string,
   ): Promise<SendMessageResponse> => {
     // Import log here to avoid circular dependencies
     const { log, LOG_CATEGORIES } = await import("../../../../logger");
-    
+
     const requestBody = {
       conversation_id: conversationId,
       message,
@@ -285,8 +303,11 @@ export const agentApi = {
     });
 
     try {
-      const response = await apiPost<SendMessageResponse>("/api/v1/agent/chats/message", requestBody);
-      
+      const response = await apiPost<SendMessageResponse>(
+        "/api/v1/agent/chats/message",
+        requestBody,
+      );
+
       log.debug(LOG_CATEGORIES.API, "Message request response", {
         success: response.success,
         hasError: !!response.error,
@@ -308,9 +329,7 @@ export const agentApi = {
   /**
    * Create a new conversation between agent and client
    */
-  createConversation: (
-    clientId: string
-  ): Promise<CreateConversationResponse> =>
+  createConversation: (clientId: string): Promise<CreateConversationResponse> =>
     apiPost<CreateConversationResponse>("/api/v1/agent/chats", {
       client_id: clientId,
     }),
@@ -318,19 +337,29 @@ export const agentApi = {
   /**
    * Search for agents (for clients)
    */
-  searchAgents: (query: string, limit?: number): Promise<SearchAgentsResponse> => {
+  searchAgents: (
+    query: string,
+    limit?: number,
+  ): Promise<SearchAgentsResponse> => {
     const params = new URLSearchParams({ q: query });
     if (limit) params.append("limit", limit.toString());
-    return apiGet<SearchAgentsResponse>(`/api/v1/agent/search-agents?${params.toString()}`);
+    return apiGet<SearchAgentsResponse>(
+      `/api/v1/agent/search-agents?${params.toString()}`,
+    );
   },
 
   /**
    * Search for clients (for agents)
    */
-  searchClients: (query: string, limit?: number): Promise<SearchClientsResponse> => {
+  searchClients: (
+    query: string,
+    limit?: number,
+  ): Promise<SearchClientsResponse> => {
     const params = new URLSearchParams({ q: query });
     if (limit) params.append("limit", limit.toString());
-    return apiGet<SearchClientsResponse>(`/api/v1/agent/search-clients?${params.toString()}`);
+    return apiGet<SearchClientsResponse>(
+      `/api/v1/agent/search-clients?${params.toString()}`,
+    );
   },
 
   /**
@@ -345,35 +374,38 @@ export const agentApi = {
   createConnectionRequest: (
     agentId: string,
     clientId: string,
-    message?: string
+    message?: string,
   ): Promise<CreateConnectionRequestResponse> =>
-    apiPost<CreateConnectionRequestResponse>("/api/v1/agent/connection-requests", {
-      agent_id: agentId,
-      client_id: clientId,
-      message,
-    }),
+    apiPost<CreateConnectionRequestResponse>(
+      "/api/v1/agent/connection-requests",
+      {
+        agent_id: agentId,
+        client_id: clientId,
+        message,
+      },
+    ),
 
   /**
    * Respond to a connection request (accept or reject)
    */
   respondToConnectionRequest: (
     requestId: string,
-    accept: boolean
+    accept: boolean,
   ): Promise<RespondToConnectionRequestResponse> =>
     apiPost<RespondToConnectionRequestResponse>(
       `/api/v1/agent/connection-requests/${requestId}/respond`,
-      { accept }
+      { accept },
     ),
 
   /**
    * Mark all messages in a conversation as read
    */
   markMessagesAsRead: (
-    conversationId: string
+    conversationId: string,
   ): Promise<MarkMessagesAsReadResponse> =>
     apiPost<MarkMessagesAsReadResponse>(
       `/api/v1/agent/chats/${conversationId}/read`,
-      {}
+      {},
     ),
 
   /**
@@ -386,9 +418,7 @@ export const agentApi = {
    * Get todos for authenticated agent
    */
   getTodos: (includeCompleted?: boolean): Promise<GetTodosResponse> => {
-    const params = includeCompleted
-      ? `?include_completed=true`
-      : "";
+    const params = includeCompleted ? `?include_completed=true` : "";
     return apiGet<GetTodosResponse>(`/api/v1/agent/todos${params}`);
   },
 
@@ -403,7 +433,7 @@ export const agentApi = {
    */
   updateTodo: (
     todoId: string,
-    data: UpdateTodoRequest
+    data: UpdateTodoRequest,
   ): Promise<UpdateTodoResponse> =>
     apiPut<UpdateTodoResponse>(`/api/v1/agent/todos/${todoId}`, data),
 };

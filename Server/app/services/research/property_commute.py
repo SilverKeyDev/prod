@@ -51,7 +51,7 @@ def generate_commute_data(
         for i, location in enumerate(important_locations):
             if isinstance(location, dict) and 'address' in location:
                 location_address = location['address']
-                location_name = location.get('name', f'Location {i+1}')
+                location_name = location.get('name') or location.get('address', '')[:40] or f'Location {i+1}'
                 
                 # Fetch travel time
                 travel_time = fetch_travel_time(

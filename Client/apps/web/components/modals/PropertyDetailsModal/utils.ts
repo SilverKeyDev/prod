@@ -27,7 +27,6 @@ type PropertyWithPhotos = {
   photos?: PhotoSource[];
 };
 
-
 export const formatAddress = (
   address: string | AddressObject | null | undefined,
 ): string => {
@@ -115,4 +114,3 @@ export const getPropertyImages = (
     "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80",
   ];
 };
-

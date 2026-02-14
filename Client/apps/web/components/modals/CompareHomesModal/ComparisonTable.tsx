@@ -84,7 +84,7 @@ export function ComparisonTable({
             const sectionTitle =
               isSectionHeader && field.sectionKey
                 ? DEFAULT_REPORT_SECTIONS.find(
-                    (s: { key: string }) => s.key === field.sectionKey
+                    (s: { key: string }) => s.key === field.sectionKey,
                   )?.label || field.label
                 : null;
 
@@ -115,7 +115,7 @@ export function ComparisonTable({
                       {field.sectionKey &&
                         renderSectionIcon(
                           field.sectionKey,
-                          "h-4 w-4 sm:h-5 sm:w-5 text-beige"
+                          "h-4 w-4 sm:h-5 sm:w-5 text-beige",
                         )}
                       <span className="text-beige">{sectionTitle}</span>
                     </div>

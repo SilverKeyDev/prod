@@ -35,12 +35,12 @@ export function useDocumentSelection(
   // Filter to only valid document IDs that exist in current documents list
   const selectedDocuments = useMemo(() => {
     if (documents.length === 0) return new Set<string>();
-    
+
     const validDocumentIds = new Set(documents.map((d) => d.id));
     const validSelections = persistedSelectedIds.filter((id) =>
       validDocumentIds.has(id),
     );
-    
+
     return new Set(validSelections);
   }, [documents, persistedSelectedIds]);
 
@@ -51,7 +51,7 @@ export function useDocumentSelection(
       const validSelections = persistedSelectedIds.filter((id) =>
         validDocumentIds.has(id),
       );
-      
+
       if (validSelections.length !== persistedSelectedIds.length) {
         if (validSelections.length > 0) {
           setDropdownSelection(SELECTION_KEY, validSelections);
@@ -60,7 +60,12 @@ export function useDocumentSelection(
         }
       }
     }
-  }, [documents, persistedSelectedIds, setDropdownSelection, clearDropdownSelection]);
+  }, [
+    documents,
+    persistedSelectedIds,
+    setDropdownSelection,
+    clearDropdownSelection,
+  ]);
 
   const handleToggleDocumentSelection = useCallback(
     (documentId: string) => {
@@ -68,7 +73,7 @@ export function useDocumentSelection(
       const newIds = currentIds.includes(documentId)
         ? currentIds.filter((id) => id !== documentId)
         : [...currentIds, documentId];
-      
+
       if (newIds.length > 0) {
         setDropdownSelection(SELECTION_KEY, newIds);
       } else {
@@ -82,7 +87,7 @@ export function useDocumentSelection(
     (documentId: string) => {
       const currentIds = Array.from(selectedDocuments);
       const newIds = currentIds.filter((id) => id !== documentId);
-      
+
       if (newIds.length > 0) {
         setDropdownSelection(SELECTION_KEY, newIds);
       } else {
@@ -98,8 +103,7 @@ export function useDocumentSelection(
 
   // Get selected documents data
   const selectedDocumentsData = useMemo(
-    () =>
-      documents.filter((document) => selectedDocuments.has(document.id)),
+    () => documents.filter((document) => selectedDocuments.has(document.id)),
     [documents, selectedDocuments],
   );
 

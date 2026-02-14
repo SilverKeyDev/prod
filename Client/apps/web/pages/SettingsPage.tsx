@@ -1,5 +1,4 @@
 // React imports
-import type { DragEndEvent } from "@dnd-kit/core";
 import React, { useState, useEffect, useCallback } from "react";
 
 // Google Maps types
@@ -24,7 +23,6 @@ import { useResponsive } from "../../../packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "../../../logger";
 
 // Features
-import OnPerDragDropPriorities from "../features/onboardpersonalize/DragDropPriorities";
 import HomePriceEstimate from "../features/onboardpersonalize/HomePriceEstimate";
 import HousingSection from "../features/onboardpersonalize/HousingSection";
 import LocationSection from "../features/onboardpersonalize/LocationSection";
@@ -35,10 +33,8 @@ import {
   FIELD_LABELS,
   CREDIT_SCORE_OPTIONS,
   COMMUNICATION_FREQUENCY_OPTIONS,
-  DEFAULT_REPORT_SECTIONS,
   type OnboardingData,
 } from "../features/onboardpersonalize/lib/constants";
-import { handleDragEnd as handleDragEndUtil } from "../features/onboardpersonalize/lib/dragEndHandler";
 import {
   calculateAffordableHomePrice,
   type HomePriceResult,
@@ -106,57 +102,13 @@ export default function PersonalizationPage({
       setHomePriceError(
         error instanceof Error
           ? error.message
-          : "Failed to calculate home price"
+          : "Failed to calculate home price",
       );
       setHomePriceResult(null);
     } finally {
       setHomePriceLoading(false);
     }
   }, [formData]);
-
-  // Use the default report sections from constants
-  const defaultReportSections = DEFAULT_REPORT_SECTIONS;
-
-  // Get ordered report sections based on user preferences
-  const getOrderedReportSections = () => {
-    try {
-      if (!formData || !defaultReportSections) {
-        return [];
-      }
-
-      const priorities = formData.report_section_priorities ?? [];
-      const sections = [...defaultReportSections];
-
-      // Sort sections based on priorities - included items first in priority order, excluded items at end
-      const orderedSections = sections.sort((a, b) => {
-        if (!a || !b || !a.key || !b.key) return 0;
-
-        const aIncluded = priorities.includes(a.key);
-        const bIncluded = priorities.includes(b.key);
-
-        // Excluded items go to the end
-        if (aIncluded !== bIncluded) {
-          return aIncluded ? -1 : 1;
-        }
-
-        // For included items, use priority order
-        const aPriority = priorities.indexOf(a.key);
-        const bPriority = priorities.indexOf(b.key);
-
-        // Items not in priorities should come after items in priorities
-        if (aPriority === -1 && bPriority === -1) return 0;
-        if (aPriority === -1) return 1; // A comes after B
-        if (bPriority === -1) return -1; // B comes after A
-
-        return aPriority - bPriority;
-      });
-
-      return orderedSections;
-    } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Error in getOrderedReportSections", error);
-      return [];
-    }
-  };
 
   // Trigger home price calculation when relevant form data changes
   useEffect(() => {
@@ -190,73 +142,20 @@ export default function PersonalizationPage({
     setIsAffordabilityCollapsed(!isEditMode);
   }, [isEditMode]);
 
-  // Handle drag end for reordering
-  const handleDragEnd = (event: DragEndEvent) => {
-    handleDragEndUtil({
-      event,
-      getOrderedReportSections,
-      formData,
-      updateFormData,
-    });
-  };
-
-  // Handle checkbox toggle for report sections
-  const handleReportSectionToggle = (sectionKey: string, checked: boolean) => {
-    const currentPriorities = formData.report_section_priorities ?? [];
-
-    // Ensure we only work with valid sections from DEFAULT_REPORT_SECTIONS
-    const validSectionKeys = new Set(
-      DEFAULT_REPORT_SECTIONS.map((section) => section.key)
-    );
-
-    if (!validSectionKeys.has(sectionKey)) {
-      log.warn(LOG_CATEGORIES.ERRORS, "Attempted to toggle invalid section", { sectionKey });
-      return;
-    }
-
-    if (!checked) {
-      // Remove from priorities when unchecked
-      const newPriorities = currentPriorities.filter(
-        (key) => key !== sectionKey && validSectionKeys.has(key)
-      );
-      updateFormData("report_section_priorities", newPriorities);
-    } else {
-      // Add to last priority (bottom of list) when checked (if not already there)
-      if (!currentPriorities.includes(sectionKey)) {
-        // Filter out any invalid sections and add the new one
-        const filteredPriorities = currentPriorities.filter((key) =>
-          validSectionKeys.has(key)
-        );
-        updateFormData("report_section_priorities", [
-          ...filteredPriorities,
-          sectionKey,
-        ]);
-      }
-    }
-  };
-
   const loadUserPreferencesFromContext = useCallback(() => {
     try {
       setIsLoading(true);
 
       if (userPreferences) {
-        // Filter out legacy sections that aren't in DEFAULT_REPORT_SECTIONS
-        const validSectionKeys = new Set(
-          DEFAULT_REPORT_SECTIONS.map((section) => section.key)
-        );
-
-        const cleanedPreferences = { ...userPreferences };
-        if (cleanedPreferences.report_section_priorities) {
-          cleanedPreferences.report_section_priorities = (
-            cleanedPreferences.report_section_priorities as string[]
-          ).filter((key) => validSectionKeys.has(key));
-        }
-
-        setFormData(cleanedPreferences as OnboardingData);
-        setOriginalData(cleanedPreferences as OnboardingData);
+        setFormData(userPreferences as OnboardingData);
+        setOriginalData(userPreferences as OnboardingData);
       }
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Failed to load user preferences from context",
+        error,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -357,7 +256,11 @@ export default function PersonalizationPage({
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Google Maps loading error",
+        googleMapsError,
+      );
       void void setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -371,7 +274,7 @@ export default function PersonalizationPage({
     (field: string | number | symbol, value: unknown) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     },
-    []
+    [],
   );
 
   const handleSaveChanges = useCallback(async () => {
@@ -429,7 +332,7 @@ export default function PersonalizationPage({
           onEdit={() => setIsEditMode(true)}
           onCancel={handleCancel}
           onSave={handleSaveChanges}
-        />
+        />,
       );
     } else {
       setMobileHeaderActions(null);
@@ -596,7 +499,7 @@ export default function PersonalizationPage({
                       {formData.credit_score_range
                         ? (CREDIT_SCORE_OPTIONS.find(
                             (option) =>
-                              option.value === formData.credit_score_range
+                              option.value === formData.credit_score_range,
                           )?.label ?? "Not specified")
                         : "Not specified"}
                     </div>
@@ -663,7 +566,7 @@ export default function PersonalizationPage({
                   {formData.communication_frequency
                     ? (COMMUNICATION_FREQUENCY_OPTIONS.find(
                         (option) =>
-                          option.value === formData.communication_frequency
+                          option.value === formData.communication_frequency,
                       )?.label ?? "Not specified")
                     : "Not specified"}
                 </div>
@@ -696,7 +599,8 @@ export default function PersonalizationPage({
                         { value: "detailed", label: "Detailed" },
                         { value: "comprehensive", label: "Comprehensive" },
                       ].find(
-                        (opt) => opt.value === formData.information_detail_level
+                        (opt) =>
+                          opt.value === formData.information_detail_level,
                       )?.label
                     : "Not specified"}
                 </div>
@@ -729,7 +633,7 @@ export default function PersonalizationPage({
                             { value: "yes", label: "Yes" },
                             { value: "no", label: "No" },
                           ].find(
-                            (opt) => opt.value === formData.has_buyers_agent
+                            (opt) => opt.value === formData.has_buyers_agent,
                           )?.label
                         : "Not specified"}
                     </div>
@@ -761,7 +665,7 @@ export default function PersonalizationPage({
                                 onChange={() =>
                                   updateFormData(
                                     "looking_for_buyers_agent",
-                                    !formData.looking_for_buyers_agent
+                                    !formData.looking_for_buyers_agent,
                                   )
                                 }
                                 aria-label="I am looking for a buyer's agent"
@@ -771,7 +675,7 @@ export default function PersonalizationPage({
                                 onToggle={() =>
                                   updateFormData(
                                     "looking_for_buyers_agent",
-                                    !formData.looking_for_buyers_agent
+                                    !formData.looking_for_buyers_agent,
                                   )
                                 }
                               />
@@ -815,44 +719,8 @@ export default function PersonalizationPage({
           </Card>
         );
 
-      case "reportcustomization": {
-        if (isLoading) {
-          return (
-            <Card className="space-y-6">
-              <h2 className="mb-6 font-serif text-xl text-black sm:text-2xl">
-                Priorities
-              </h2>
-              <Loading message="Loading report customization options..." />
-            </Card>
-          );
-        }
-
-        const orderedSections = getOrderedReportSections();
-
-        if (!orderedSections || orderedSections.length === 0) {
-          return (
-            <Card className="space-y-6">
-              <h2 className="mb-6 font-serif text-xl text-black sm:text-2xl">
-                Priorities
-              </h2>
-              <Loading message="Loading report customization options..." />
-            </Card>
-          );
-        }
-
-        return (
-          <Card className="space-y-6">
-            <OnPerDragDropPriorities
-              isEditMode={isEditMode}
-              isLoading={false}
-              orderedSections={orderedSections}
-              formData={formData}
-              onDragEnd={handleDragEnd}
-              onToggle={handleReportSectionToggle}
-            />
-          </Card>
-        );
-      }
+      default:
+        return null;
     }
   };
 

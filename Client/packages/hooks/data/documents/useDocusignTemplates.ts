@@ -17,7 +17,7 @@ export type UseDocusignTemplatesReturn = {
 /**
  * Hook for managing DocuSign templates with React Query
  * Fetches available templates for agents
- * 
+ *
  * Note: This hook is agent-only. It will not fetch data for non-agent users.
  */
 export function useDocusignTemplates(): UseDocusignTemplatesReturn {

@@ -26,7 +26,10 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({
     });
   }, [alerts]);
 
-  const severityColors: Record<string, { bg: string; border: string; text: string }> = {
+  const severityColors: Record<
+    string,
+    { bg: string; border: string; text: string }
+  > = {
     critical: {
       bg: "bg-rose-50",
       border: "border-rose-300",
@@ -76,13 +79,12 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({
       <div className="space-y-3 max-h-[500px] overflow-y-auto">
         {sortedAlerts.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-responsive-sm text-black/60">
-              No urgent alerts
-            </p>
+            <p className="text-responsive-sm text-black/60">No urgent alerts</p>
           </div>
         ) : (
           sortedAlerts.map((alert) => {
-            const colors = severityColors[alert.severity] || severityColors.medium;
+            const colors =
+              severityColors[alert.severity] || severityColors.medium;
             return (
               <div
                 key={alert.id}

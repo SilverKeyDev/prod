@@ -36,7 +36,7 @@ function createProviderWrapper(providerType: RouteConfig["providerType"]) {
 export function createProtectedRoute(
   user?: UserProfile,
   onLogout?: () => void,
-  providerType?: RouteConfig["providerType"]
+  providerType?: RouteConfig["providerType"],
 ) {
   const dashboard = (
     <DashboardLayout user={user} onLogout={onLogout ?? (() => {})} />

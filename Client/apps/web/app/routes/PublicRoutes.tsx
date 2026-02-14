@@ -17,7 +17,9 @@ const VerificationPage = lazy(
 const OnboardingPage = lazy(
   () => import("../../pages/HomeAuth/OnboardingPage"),
 );
-const PrivacyPolicy = lazy(() => import("../../pages/HomeAuth/PrivacyPolicyPage"));
+const PrivacyPolicy = lazy(
+  () => import("../../pages/HomeAuth/PrivacyPolicyPage"),
+);
 const TermsOfService = lazy(
   () => import("../../pages/HomeAuth/TermsOfServicePage"),
 );
@@ -60,7 +62,11 @@ export function PublicRoutes() {
       path={ROUTES.FORGOT_PASSWORD}
       element={<ResetPasswordPage />}
     />,
-    <Route key="onboarding" path={ROUTES.ONBOARDING} element={<OnboardingPage />} />,
+    <Route
+      key="onboarding"
+      path={ROUTES.ONBOARDING}
+      element={<OnboardingPage />}
+    />,
     <Route
       key="verification"
       path={ROUTES.VERIFICATION}

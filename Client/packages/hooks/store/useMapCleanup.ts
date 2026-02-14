@@ -80,7 +80,10 @@ export function useMapCleanup({
             console.log(`✅ [MAP_CLEANUP] Cleaned up marker ${index + 1}`);
           }
         } catch (error) {
-          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up marker ${index + 1}:`, error);
+          console.warn(
+            `⚠️ [MAP_CLEANUP] Error cleaning up marker ${index + 1}:`,
+            error,
+          );
         }
       });
       markersRef.current = [];
@@ -93,10 +96,15 @@ export function useMapCleanup({
         try {
           if (marker && typeof marker === "object" && "map" in marker) {
             (marker as { map: google.maps.Map | null }).map = null;
-            console.log(`✅ [MAP_CLEANUP] Cleaned up important marker ${index + 1}`);
+            console.log(
+              `✅ [MAP_CLEANUP] Cleaned up important marker ${index + 1}`,
+            );
           }
         } catch (error) {
-          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up important marker ${index + 1}:`, error);
+          console.warn(
+            `⚠️ [MAP_CLEANUP] Error cleaning up important marker ${index + 1}:`,
+            error,
+          );
         }
       });
       importantMarkersRef.current = [];
@@ -121,7 +129,10 @@ export function useMapCleanup({
             console.log(`✅ [MAP_CLEANUP] Cleaned up overlay ${index + 1}`);
           }
         } catch (error) {
-          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up overlay ${index + 1}:`, error);
+          console.warn(
+            `⚠️ [MAP_CLEANUP] Error cleaning up overlay ${index + 1}:`,
+            error,
+          );
         }
       });
       overlaysRef.current = [];
@@ -148,7 +159,10 @@ export function useMapCleanup({
             console.log(`✅ [MAP_CLEANUP] Cleaned up polygon ${index + 1}`);
           }
         } catch (error) {
-          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up polygon ${index + 1}:`, error);
+          console.warn(
+            `⚠️ [MAP_CLEANUP] Error cleaning up polygon ${index + 1}:`,
+            error,
+          );
         }
       });
       polygonsRef.current = [];
@@ -162,10 +176,15 @@ export function useMapCleanup({
             (
               polygon as { setMap: (map: google.maps.Map | null) => void }
             ).setMap(null);
-            console.log(`✅ [MAP_CLEANUP] Cleaned up individual polygon ${index + 1}`);
+            console.log(
+              `✅ [MAP_CLEANUP] Cleaned up individual polygon ${index + 1}`,
+            );
           }
         } catch (error) {
-          console.warn(`⚠️ [MAP_CLEANUP] Error cleaning up individual polygon ${index + 1}:`, error);
+          console.warn(
+            `⚠️ [MAP_CLEANUP] Error cleaning up individual polygon ${index + 1}:`,
+            error,
+          );
         }
       });
       individualPolygonsRef.current = [];
@@ -179,12 +198,14 @@ export function useMapCleanup({
   const cleanup = useCallback(() => {
     console.log("🧹 [MAP_CLEANUP] Starting complete map cleanup:", {
       hasMapInstance: !!googleMapRef.current,
-      mapInstanceStats: googleMapRef.current ? {
-        mapId: googleMapRef.current.getMapId?.() || 'unknown',
-        container: googleMapRef.current.getDiv(),
-        zoom: googleMapRef.current.getZoom(),
-        center: googleMapRef.current.getCenter(),
-      } : null,
+      mapInstanceStats: googleMapRef.current
+        ? {
+            mapId: googleMapRef.current.getMapId?.() || "unknown",
+            container: googleMapRef.current.getDiv(),
+            zoom: googleMapRef.current.getZoom(),
+            center: googleMapRef.current.getCenter(),
+          }
+        : null,
       timestamp: new Date().toISOString(),
     });
 
@@ -204,8 +225,10 @@ export function useMapCleanup({
     // Clear the map reference
     if (googleMapRef.current) {
       try {
-        console.log("🧹 [MAP_CLEANUP] Clearing map instance and event listeners");
-        
+        console.log(
+          "🧹 [MAP_CLEANUP] Clearing map instance and event listeners",
+        );
+
         // Use the service's cleanup method for proper cleanup
         googleMapsService.cleanupMapInstance(googleMapRef.current);
         console.log("✅ [MAP_CLEANUP] Used service cleanup method");

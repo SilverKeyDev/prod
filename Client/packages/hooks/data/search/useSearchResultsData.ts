@@ -28,7 +28,7 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
   // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(
     () => authReady && isAuthenticated,
-    [authReady, isAuthenticated]
+    [authReady, isAuthenticated],
   );
 
   // Fetch cached search results on mount
@@ -43,10 +43,7 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
       // Call search API which will return cached results if available
       // Backend handles cache validation and returns cached or performs new search
       try {
-        log.debug(
-          LOG_CATEGORIES.SEARCH,
-          "Fetching cached search results",
-        );
+        log.debug(LOG_CATEGORIES.SEARCH, "Fetching cached search results");
         const response = await searchApi.searchByPolygon({
           perBucketPages: 20,
           onlyCached: true, // Only fetch cached results, don't trigger search
@@ -68,14 +65,10 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
 
         // Log cache status if available
         if (response.meta?.cached) {
-          log.info(
-            LOG_CATEGORIES.SEARCH,
-            "Loaded cached search results",
-            {
-              count: transformedResults.length,
-              cacheAge: response.meta.cacheAge,
-            },
-          );
+          log.info(LOG_CATEGORIES.SEARCH, "Loaded cached search results", {
+            count: transformedResults.length,
+            cacheAge: response.meta.cacheAge,
+          });
         } else {
           log.info(
             LOG_CATEGORIES.SEARCH,
@@ -121,7 +114,7 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
     (results: SearchResult[]) => {
       setSearchResultsMutation.mutate(results);
     },
-    [setSearchResultsMutation]
+    [setSearchResultsMutation],
   );
 
   const clearSearchResults = useCallback(() => {

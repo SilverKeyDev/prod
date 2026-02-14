@@ -24,7 +24,9 @@ type DashboardHeaderProps = {
   mobileHeader?: ReactNode;
   closePageHeaderData: ClosePageHeaderData | null;
   buyerChecklistsActiveTab: "escrow" | "inspections" | "financing" | "closing";
-  onTabChange: (tab: "escrow" | "inspections" | "financing" | "closing") => void;
+  onTabChange: (
+    tab: "escrow" | "inspections" | "financing" | "closing",
+  ) => void;
   headerContent: ReactNode;
   computedMaxWidthVW: number;
 };
@@ -47,32 +49,32 @@ export function DashboardHeader({
   computedMaxWidthVW,
 }: DashboardHeaderProps) {
   // Mobile header content: messaging uses mobileHeaderActions (hovering header); others use existing logic
-  const mobileHeaderContent =
-    isMessagingRoute
-      ? mobileHeaderActions
-      : isDashboard
-        ? null
-        : isSearch && mobileHeaderActions
-          ? mobileHeaderActions
-          : isSearch && isMobile && !mobileHeaderActions
-            ? null
-            : mobileHeaderActions
-              ? mobileHeaderActions
-              : isBuyerChecklists
-                ? closePageHeaderData && (
-                    <ClosePageHeader
-                      title={closePageHeaderData.title ?? SIDEBAR_TABS.close.name}
-                      subtitle={
-                        closePageHeaderData.subtitle ?? SIDEBAR_TABS.close.description
-                      }
-                      completedCount={closePageHeaderData.completedCount ?? 0}
-                      totalCount={closePageHeaderData.totalCount ?? 0}
-                      loading={closePageHeaderData.loading ?? true}
-                      activeTab={buyerChecklistsActiveTab}
-                      onTabChange={onTabChange}
-                    />
-                  )
-                : mobileHeader ?? null;
+  const mobileHeaderContent = isMessagingRoute
+    ? mobileHeaderActions
+    : isDashboard
+      ? null
+      : isSearch && mobileHeaderActions
+        ? mobileHeaderActions
+        : isSearch && isMobile && !mobileHeaderActions
+          ? null
+          : mobileHeaderActions
+            ? mobileHeaderActions
+            : isBuyerChecklists
+              ? closePageHeaderData && (
+                  <ClosePageHeader
+                    title={closePageHeaderData.title ?? SIDEBAR_TABS.close.name}
+                    subtitle={
+                      closePageHeaderData.subtitle ??
+                      SIDEBAR_TABS.close.description
+                    }
+                    completedCount={closePageHeaderData.completedCount ?? 0}
+                    totalCount={closePageHeaderData.totalCount ?? 0}
+                    loading={closePageHeaderData.loading ?? true}
+                    activeTab={buyerChecklistsActiveTab}
+                    onTabChange={onTabChange}
+                  />
+                )
+              : (mobileHeader ?? null);
 
   const showMobileTopBar =
     (isMessagingRoute && mobileHeaderActions != null) ||
@@ -84,26 +86,23 @@ export function DashboardHeader({
       {showMobileTopBar && (
         <div className="md:hidden">
           <div
-            className={
-              isMessagingRoute || isSearch
-                ? "w-full"
-                : "mx-auto"
-            }
-            style={
-              isMessagingRoute || isSearch
-                ? {}
-                : { maxWidth: "95vw" }
-            }
+            className={isMessagingRoute || isSearch ? "w-full" : "mx-auto"}
+            style={isMessagingRoute || isSearch ? {} : { maxWidth: "95vw" }}
           >
             <MobileTopBar
-              dynamicHeight={isSaved && mobileHeaderActions !== null && !isMessagingRoute}
+              dynamicHeight={
+                isSaved && mobileHeaderActions !== null && !isMessagingRoute
+              }
               fullWidth={isMessagingRoute}
+              noPadding={isSaved && isMobile}
             >
               {isMessagingRoute ? (
                 mobileHeaderContent
               ) : (
                 <div
-                  className={`flex w-full items-center justify-center text-center ${MOBILE_SIDE_PX}`}
+                  className={`flex w-full items-center justify-center text-center ${
+                    isSaved && isMobile ? "" : MOBILE_SIDE_PX
+                  }`}
                 >
                   {mobileHeaderContent ?? null}
                 </div>

@@ -3,7 +3,10 @@ import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "../../../store/auth.slice";
 import { agentApi } from "../../../config/api";
 import { queryKeys } from "../../../config/query/keys";
-import type { AgentSearchResult, ClientSearchResult } from "../../../config/api";
+import type {
+  AgentSearchResult,
+  ClientSearchResult,
+} from "../../../config/api";
 
 export type UseAgentSearchReturn = {
   agents: AgentSearchResult[];
@@ -31,11 +34,11 @@ export function useAgentSearch(query: string, enabled: boolean = true) {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     timeoutRef.current = setTimeout(() => {
       setDebouncedQuery(query);
     }, 300);
-    
+
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -59,7 +62,8 @@ export function useAgentSearch(query: string, enabled: boolean = true) {
       }
       return response.agents ?? [];
     },
-    enabled: enabled && authReady && isAuthenticated && debouncedQuery.length >= 2,
+    enabled:
+      enabled && authReady && isAuthenticated && debouncedQuery.length >= 2,
     staleTime: 30 * 1000, // 30 seconds
   });
 
@@ -84,11 +88,11 @@ export function useClientSearch(query: string, enabled: boolean = true) {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     timeoutRef.current = setTimeout(() => {
       setDebouncedQuery(query);
     }, 300);
-    
+
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -112,7 +116,8 @@ export function useClientSearch(query: string, enabled: boolean = true) {
       }
       return response.clients ?? [];
     },
-    enabled: enabled && authReady && isAuthenticated && debouncedQuery.length >= 2,
+    enabled:
+      enabled && authReady && isAuthenticated && debouncedQuery.length >= 2,
     staleTime: 30 * 1000, // 30 seconds
   });
 

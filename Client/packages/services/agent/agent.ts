@@ -63,7 +63,6 @@ export class AgentService {
      ========================= */
 
   async fetchChats(clientId?: string): Promise<AgentConversation[]> {
-
     try {
       const response = await agentApi.getChats(clientId);
       if (!response.success) {
@@ -98,9 +97,14 @@ export class AgentService {
      ========================= */
 
   async getChatHistory(
-    conversationId: string
-  ): Promise<{ messages: AgentChatMessage[]; conversation?: AgentConversation }> {
-    log.debug(LOG_CATEGORIES.API, "Starting getChatHistory", { conversationId });
+    conversationId: string,
+  ): Promise<{
+    messages: AgentChatMessage[];
+    conversation?: AgentConversation;
+  }> {
+    log.debug(LOG_CATEGORIES.API, "Starting getChatHistory", {
+      conversationId,
+    });
 
     try {
       const response = await agentApi.getChatHistory(conversationId);
@@ -144,7 +148,7 @@ export class AgentService {
     conversationId: string,
     message: string,
     clientId?: string,
-    sharedHomeId?: string
+    sharedHomeId?: string,
   ): Promise<{ message_id: string }> {
     log.debug(LOG_CATEGORIES.API, "Starting sendMessage", {
       conversationId,
@@ -154,7 +158,12 @@ export class AgentService {
     });
 
     try {
-      const response = await agentApi.sendMessage(conversationId, message, clientId, sharedHomeId);
+      const response = await agentApi.sendMessage(
+        conversationId,
+        message,
+        clientId,
+        sharedHomeId,
+      );
       if (!response.success) {
         throw new Error(response.error ?? "Failed to send message");
       }
@@ -188,8 +197,12 @@ export class AgentService {
      Mark Messages as Read
      ========================= */
 
-  async markMessagesAsRead(conversationId: string): Promise<{ marked_count: number }> {
-    log.debug(LOG_CATEGORIES.API, "Starting markMessagesAsRead", { conversationId });
+  async markMessagesAsRead(
+    conversationId: string,
+  ): Promise<{ marked_count: number }> {
+    log.debug(LOG_CATEGORIES.API, "Starting markMessagesAsRead", {
+      conversationId,
+    });
 
     try {
       const response = await agentApi.markMessagesAsRead(conversationId);
@@ -327,10 +340,7 @@ export class AgentService {
     }
   }
 
-  async updateTodo(
-    todoId: string,
-    data: UpdateTodoRequest
-  ): Promise<TodoItem> {
+  async updateTodo(todoId: string, data: UpdateTodoRequest): Promise<TodoItem> {
     log.debug(LOG_CATEGORIES.API, "Starting updateTodo", { todoId });
 
     try {

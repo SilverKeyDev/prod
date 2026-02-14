@@ -54,7 +54,7 @@ export function useIsochroneFlow(params: {
     if (params.cachedIsochroneData) {
       return params.cachedIsochroneData;
     }
-    
+
     // Try to fetch from cache via hook if available
     if (params.fetchCachedIsochrone) {
       const cached = await params.fetchCachedIsochrone();
@@ -76,10 +76,14 @@ export function useIsochroneFlow(params: {
         queryClient.setQueryData(queryKeys.search.isochrone(), data);
         return data;
       } else {
-        log.warn(LOG_CATEGORIES.SEARCH, "Invalid isochrone response structure", {
-          success: response.success,
-          hasData: !!response.data,
-        });
+        log.warn(
+          LOG_CATEGORIES.SEARCH,
+          "Invalid isochrone response structure",
+          {
+            success: response.success,
+            hasData: !!response.data,
+          },
+        );
         return null;
       }
     } catch (error: unknown) {
@@ -91,7 +95,12 @@ export function useIsochroneFlow(params: {
       });
       return null;
     }
-  }, [params.env, params.cachedIsochroneData, params.fetchCachedIsochrone, queryClient]);
+  }, [
+    params.env,
+    params.cachedIsochroneData,
+    params.fetchCachedIsochrone,
+    queryClient,
+  ]);
 
   // Automatically search for properties within the isochrone polygon
   const handleSearchPropertiesInIsochrone = useCallback(
@@ -134,7 +143,7 @@ export function useIsochroneFlow(params: {
     // Set searching state immediately when search starts
     params.setIsSearching(true);
     params.setSearchStage("Preparing search...");
-    
+
     try {
       // Auth is handled via HTTP-only cookies
       // Server will return 401 if not authenticated
@@ -168,12 +177,16 @@ export function useIsochroneFlow(params: {
           const isochroneData = data.data as Record<string, unknown>;
           // Update cache when data is fetched
           queryClient.setQueryData(queryKeys.search.isochrone(), isochroneData);
-          
+
           await handleSearchPropertiesInIsochrone(isochroneData);
 
           return isochroneData;
         } else {
-          log.warn(LOG_CATEGORIES.SEARCH, "Isochrone API returned unsuccessful response", data);
+          log.warn(
+            LOG_CATEGORIES.SEARCH,
+            "Isochrone API returned unsuccessful response",
+            data,
+          );
           params.setIsSearching(false);
           params.setSearchStage("");
         }
@@ -196,7 +209,13 @@ export function useIsochroneFlow(params: {
       params.setSearchStage("");
     }
     return null;
-  }, [handleSearchPropertiesInIsochrone, params.env, params.setIsSearching, params.setSearchStage, queryClient]);
+  }, [
+    handleSearchPropertiesInIsochrone,
+    params.env,
+    params.setIsSearching,
+    params.setSearchStage,
+    queryClient,
+  ]);
 
   const primeIsochroneOverlay = useCallback(
     async (hasResults: boolean) => {
@@ -228,7 +247,10 @@ export function useIsochroneFlow(params: {
           data as Record<string, unknown>,
         );
       } else {
-        log.warn(LOG_CATEGORIES.SEARCH, "No isochrone data received, polygon will not be displayed");
+        log.warn(
+          LOG_CATEGORIES.SEARCH,
+          "No isochrone data received, polygon will not be displayed",
+        );
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

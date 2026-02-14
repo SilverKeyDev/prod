@@ -56,53 +56,59 @@ export default function MobileSidebar({
 
   const nav = (
     <nav
-      className="fixed inset-x-0 bottom-0 z-[9999] w-screen border-t border-brown-light/20 bg-brown shadow-lg will-change-transform md:hidden"
+      className="fixed inset-x-0 bottom-0 left-0 right-0 z-[9999] flex w-full min-h-[4rem] flex-col border-t border-brown-light/20 bg-brown shadow-lg md:hidden"
+      style={{
+        paddingTop: "max(env(safe-area-inset-bottom), 8px)",
+        paddingBottom: "max(env(safe-area-inset-bottom), 8px)",
+      }}
       role="navigation"
       aria-label="Primary navigation"
     >
-      <div className="safe-bottom flex h-16 items-center justify-around px-2">
-        {navItems.map((item, index) => {
-          const active = isActive(item.href);
-          const Icon = item.icon;
-          const isLast = index === navItems.length - 1;
+      <div className="flex min-h-16 flex-1 flex-col items-center justify-center">
+        <div className="flex w-full items-center justify-around px-2">
+          {navItems.map((item, index) => {
+            const active = isActive(item.href);
+            const Icon = item.icon;
+            const isLast = index === navItems.length - 1;
 
-          return (
-            <Fragment key={item.key}>
-              <Link
-                to={item.href}
-                className={`flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-200 ${
-                  active ? "text-white" : "text-white/80 active:text-white/95"
-                }`}
-                aria-label={item.name}
-                aria-current={active ? "page" : undefined}
-              >
-                <div className="relative">
-                  <Icon
-                    className={`h-6 w-6 transition-all duration-200 ${
-                      active ? "scale-110" : ""
-                    }`}
-                    strokeWidth={active ? 2.5 : 2}
-                  />
-                  {item.key === "agent" && isLoaded && (
-                    <NotificationBadge
-                      count={unreadCount}
-                      className="absolute -right-1 -top-1 h-4 w-4 text-[10px]"
-                    />
-                  )}
-                </div>
-                <span
-                  className={`text-xs font-medium transition-all duration-200 ${
-                    active ? "scale-105" : ""
+            return (
+              <Fragment key={item.key}>
+                <Link
+                  to={item.href}
+                  className={`flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-200 ${
+                    active ? "text-white" : "text-white/80 active:text-white/95"
                   }`}
+                  aria-label={item.name}
+                  aria-current={active ? "page" : undefined}
                 >
-                  {item.name}
-                </span>
-              </Link>
-              {/* Spacing between items is handled by justify-around; no extra divider needed */}
-              {!isLast && null}
-            </Fragment>
-          );
-        })}
+                  <div className="relative">
+                    <Icon
+                      className={`h-6 w-6 transition-all duration-200 ${
+                        active ? "scale-110" : ""
+                      }`}
+                      strokeWidth={active ? 2.5 : 2}
+                    />
+                    {item.key === "agent" && isLoaded && (
+                      <NotificationBadge
+                        count={unreadCount}
+                        className="absolute -right-1 -top-1 h-4 w-4 text-[10px]"
+                      />
+                    )}
+                  </div>
+                  <span
+                    className={`text-xs font-medium transition-all duration-200 ${
+                      active ? "scale-105" : ""
+                    }`}
+                  >
+                    {item.name}
+                  </span>
+                </Link>
+                {/* Spacing between items is handled by justify-around */}
+                {!isLast && null}
+              </Fragment>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

@@ -5,6 +5,7 @@ Hooks that integrate React Query data with Zustand stores.
 ## Purpose
 
 Store integration hooks connect data from React Query hooks to Zustand stores, providing:
+
 - Automatic store updates when data changes
 - Synchronized state between React Query cache and Zustand stores
 - Store selectors and actions
@@ -13,40 +14,50 @@ Store integration hooks connect data from React Query hooks to Zustand stores, p
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `hooks/data/*` - Data fetching hooks
 - ✅ `store/*` - Zustand stores
 - ✅ `schemas/*` - Type definitions
 
 ### Forbidden Imports
+
 - ❌ `config/api/*` - Use data hooks instead
 - ❌ `apps/web/*` - Hooks should not import components
 
 ## Available Hooks
 
 ### Auth
+
 - `useAuthStoreIntegration.ts` - Authentication state integration
 
 ### User
+
 - `useUserStoreIntegration.ts` - User profile and preferences
 
 ### Saved Homes
+
 - `useSavedHomesStoreIntegration.ts` - Saved homes state
 
 ### Documents
+
 - `useDocumentsStoreIntegration.ts` - Documents state
 
 ### Reports
+
 - `useReportsStoreIntegration.ts` - Reports state
 
 ### Negotiation
+
 - `useNegotiationStoreIntegration.ts` - Negotiation state
 
 ### Google Services
+
 - `useGoogleMapsStoreIntegration.ts` - Google Maps state
 - `useGoogleCalendarStoreIntegration.ts` - Google Calendar state
 - `useMapCleanup.ts` - Map cleanup on unmount
 
 ### Other
+
 - `useSessionStoreIntegration.ts` - Session state
 - `useUIStoreIntegration.ts` - UI state
 - `useFeatureFlagsStoreIntegration.ts` - Feature flags

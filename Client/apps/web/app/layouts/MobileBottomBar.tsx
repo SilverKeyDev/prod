@@ -32,7 +32,10 @@ export default function MobileBottomBar({
   useEffect(() => {
     if (!onHeightChange) return;
     onHeightChange(children ? height : 0);
-  }, [children, height, onHeightChange]);
+    // Intentionally omit `children` - only height matters. Including children causes
+    // "Maximum update depth exceeded" because new element refs trigger parent re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [height, onHeightChange]);
 
   useEffect(() => {
     if (!children) {
@@ -61,11 +64,10 @@ export default function MobileBottomBar({
       role="region"
       aria-label="Mobile bottom bar"
     >
-      <div className="safe-bottom w-full">{children}</div>
+      <div className="safe-bottom-fallback w-full">{children}</div>
     </div>
   );
 
   // Portal to <body> to avoid stacking/scroll containers interfering with fixed positioning.
   return createPortal(bar, document.body);
 }
-

@@ -1,6 +1,7 @@
-import { MapPin, Plus, X, Clock } from "lucide-react";
+import { MapPin, Plus, X, Clock, Pencil } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 
+import { Button, CancelButton, IconButton } from "../../components/ui";
 import { Input } from "../../components/ui/form/Input";
 import type { GoogleMapsWindow } from "../../../../packages/schemas/google-maps";
 import { asError } from "../../../../packages/utils/error";
@@ -12,7 +13,6 @@ import {
 import { log, LOG_CATEGORIES } from "../../../../logger";
 
 type ImportantLocation = {
-  name: string;
   address: string;
   commute_tolerance?: number;
 };
@@ -44,14 +44,15 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   isEditMode = true,
 }) => {
   const [isAddingLocation, setIsAddingLocation] = useState(false);
-  const [locationName, setLocationName] = useState("");
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [locationAddress, setLocationAddress] = useState("");
   const [commuteTime, setCommuteTime] = useState<string>("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
 
   const addressInputRef = useRef<HTMLInputElement>(null);
-  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const isFormVisible = isAddingLocation || editingIndex !== null;
 
   // Fetch autocomplete suggestions as the user types
   useEffect(() => {
@@ -73,7 +74,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
 
         const { suggestions: fetched } =
           await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request
+            request,
           );
 
         const built: Suggestion[] = (
@@ -147,44 +148,79 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
     setSuggestions([]);
   };
 
-  const handleAddLocation = () => {
-    if (locationName.trim() && locationAddress.trim()) {
-      // Parse commute time - default to undefined if empty or invalid
-      const parsedCommuteTime = commuteTime.trim() === "" 
-        ? undefined 
+  const parseCommuteTolerance = (): number | undefined => {
+    const parsed =
+      commuteTime.trim() === ""
+        ? undefined
         : parseInt(commuteTime.trim(), 10);
-      
-      // Only add commute_tolerance if it's a valid number >= 0
-      const commuteTolerance = parsedCommuteTime !== undefined && !isNaN(parsedCommuteTime) && parsedCommuteTime >= 0
-        ? parsedCommuteTime
-        : undefined;
+    return parsed !== undefined &&
+      !isNaN(parsed) &&
+      parsed >= 0
+      ? parsed
+      : undefined;
+  };
 
+  const handleAddLocation = () => {
+    if (locationAddress.trim()) {
       const newLocation: ImportantLocation = {
-        name: locationName.trim(),
         address: locationAddress.trim(),
-        commute_tolerance: commuteTolerance,
+        commute_tolerance: parseCommuteTolerance(),
       };
       onChange([...locations, newLocation]);
-      setLocationName("");
-      setLocationAddress("");
-      setCommuteTime("");
-      setIsAddingLocation(false);
-      setHasSelected(false);
+      handleCancel();
     }
   };
 
+  const handleUpdateLocation = () => {
+    if (editingIndex !== null && locationAddress.trim()) {
+      const updatedLocation: ImportantLocation = {
+        address: locationAddress.trim(),
+        commute_tolerance: parseCommuteTolerance(),
+      };
+      const updatedLocations = locations.map((loc, i) =>
+        i === editingIndex ? updatedLocation : loc,
+      );
+      onChange(updatedLocations);
+      handleCancel();
+    }
+  };
+
+  const handleEditLocation = (index: number) => {
+    const loc = locations[index];
+    setLocationAddress(loc.address);
+    setCommuteTime(
+      loc.commute_tolerance !== undefined
+        ? String(loc.commute_tolerance)
+        : "",
+    );
+    setEditingIndex(index);
+    setIsAddingLocation(false);
+    setHasSelected(false);
+  };
+
   const handleRemoveLocation = (index: number) => {
+    if (editingIndex === index) {
+      handleCancel();
+    }
     const updatedLocations = locations.filter((_, i) => i !== index);
     onChange(updatedLocations);
   };
 
   const handleCancel = () => {
-    setLocationName("");
     setLocationAddress("");
     setCommuteTime("");
     setIsAddingLocation(false);
+    setEditingIndex(null);
     setHasSelected(false);
     setSuggestions([]);
+  };
+
+  const handleFormSubmit = () => {
+    if (editingIndex !== null) {
+      handleUpdateLocation();
+    } else {
+      handleAddLocation();
+    }
   };
 
   return (
@@ -195,105 +231,96 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           {locations.map((location, index) => (
             <div
               key={index}
-              className="flex items-start justify-between rounded-lg border border-beige bg-beige/20 p-3"
+              className="flex items-center justify-between rounded-lg border border-beige bg-beige/20 p-3"
             >
-              <div className="min-w-0 flex-1">
-                <h4 className="text-sm font-medium text-black">
-                  {location.name}
-                </h4>
-                <p className="mt-1 break-words text-xs text-black/60">
+              <div className="min-w-0 flex-1 space-y-1">
+                <span className="block break-words text-sm text-black">
                   {location.address}
-                </p>
-                {location.commute_tolerance && (
-                  <p className="mt-1 text-xs text-brown">
-                    Max commute: {location.commute_tolerance} minutes
-                  </p>
+                </span>
+                {location.commute_tolerance != null && (
+                  <span className="block text-xs text-brown">
+                    {location.commute_tolerance} min max
+                  </span>
                 )}
               </div>
               {isEditMode && (
-                <button
-                  onClick={() => handleRemoveLocation(index)}
-                  className="cursor-pointer rounded p-1 text-rose transition-colors hover:bg-rose-50 hover:text-rose-light"
-                  title="Remove location"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="flex flex-shrink-0 items-center gap-1">
+                  <IconButton
+                    variant="ghost"
+                    size="sm"
+                    icon={<Pencil className="h-4 w-4" />}
+                    onClick={() => handleEditLocation(index)}
+                    title="Edit location"
+                    className="text-brown/70 hover:text-brown"
+                  />
+                  <IconButton
+                    variant="ghost"
+                    size="sm"
+                    icon={<X className="h-4 w-4" />}
+                    onClick={() => handleRemoveLocation(index)}
+                    title="Remove location"
+                    className="text-rose hover:text-rose-light"
+                  />
+                </div>
               )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Add New Location */}
+      {/* Add / Edit Form */}
       {isEditMode && (
         <>
-          {!isAddingLocation ? (
-            <button
+          {!isFormVisible ? (
+            <Button
+              variant="outline"
+              size="md"
               onClick={() => setIsAddingLocation(true)}
-              className="flex w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-3 text-gray-500 transition-colors hover:border-brown hover:text-brown"
+              className="w-full border-2 border-dashed border-gray-300 text-gray-500 hover:border-brown hover:text-brown"
+              icon={<Plus className="h-4 w-4" />}
+              iconPosition="left"
             >
-              <Plus className="h-4 w-4" />
               Add Important Location
-            </button>
+            </Button>
           ) : (
             <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-              {/* Location Name Input */}
               <Input
-                ref={nameInputRef}
-                label="Location Name"
+                ref={addressInputRef}
+                label="Address"
                 type="text"
-                value={locationName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setLocationName(e.target.value)
+                value={locationAddress}
+                onChange={handleAddressInputChange}
+                placeholder={
+                  scriptsReady ? "Search for address..." : "Loading..."
                 }
-                placeholder="e.g., Work, Mom's House, Gym"
+                disabled={!scriptsReady}
+                leftIcon={<MapPin className="h-4 w-4" />}
                 autoComplete="off"
                 size="md"
               />
 
-              {/* Address Input with Autocomplete */}
-              <div className="relative">
-                <Input
-                  ref={addressInputRef}
-                  label="Address"
-                  type="text"
-                  value={locationAddress}
-                  onChange={handleAddressInputChange}
-                  placeholder={
-                    scriptsReady ? "Search for address..." : "Loading..."
-                  }
-                  disabled={!scriptsReady}
-                  leftIcon={<MapPin className="h-4 w-4" />}
-                  autoComplete="off"
-                  size="md"
-                />
+              {/* Address Suggestions */}
+              {suggestions.length > 0 && (
+                <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
+                  {suggestions.map((s, idx) => (
+                    <li key={idx}>
+                      <button
+                        onClick={handleSelect.bind(null, s)}
+                        className="w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-gray-100"
+                      >
+                        {s.description}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-                {/* Address Suggestions */}
-                {suggestions.length > 0 && (
-                  <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
-                    {suggestions.map((s, idx) => (
-                      <li key={idx}>
-                        <button
-                          onClick={handleSelect.bind(null, s)}
-                          className="w-full cursor-pointer px-3 py-2 text-left text-sm hover:bg-gray-100"
-                        >
-                          {s.description}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {/* Commute Tolerance Input */}
               <Input
                 label="Max Commute Time (minutes)"
                 type="number"
                 value={commuteTime}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value;
-                  // Allow empty string or any numeric input (0-9 only, handled by type="number")
-                  // Only update if it's empty or contains valid numeric characters
                   if (value === "" || /^\d*$/.test(value)) {
                     setCommuteTime(value);
                   }
@@ -307,21 +334,19 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 helperText="Maximum acceptable commute time to this location"
               />
 
-              {/* Action Buttons */}
               <div className="flex space-x-3">
-                <button
-                  onClick={handleAddLocation}
-                  disabled={!locationName.trim() || !locationAddress.trim()}
-                  className="cursor-pointer rounded-lg bg-olive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-olive/80 disabled:cursor-not-allowed disabled:bg-gray-300"
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleFormSubmit}
+                  disabled={!locationAddress.trim()}
+                  className="rounded-lg bg-olive hover:bg-olive/80 disabled:bg-gray-300"
                 >
-                  Add Location
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="cursor-pointer rounded-lg bg-brown px-4 py-2 text-white transition-colors hover:bg-brown/90"
-                >
+                  {editingIndex !== null ? "Save" : "Add Location"}
+                </Button>
+                <CancelButton onClick={handleCancel} size="md">
                   Cancel
-                </button>
+                </CancelButton>
               </div>
             </div>
           )}

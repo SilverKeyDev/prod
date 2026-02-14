@@ -16,7 +16,7 @@ type ParticipantsListProps = {
 
 /**
  * ParticipantsList Component
- * 
+ *
  * Displays list of agreement participants with their signing status
  * Shows role, status, signing order, and timestamps
  */
@@ -37,7 +37,7 @@ export default function ParticipantsList({
 
   // Sort by signing order
   const sortedParticipants = [...participants].sort(
-    (a, b) => a.signing_order - b.signing_order
+    (a, b) => a.signing_order - b.signing_order,
   );
 
   return (
@@ -61,7 +61,9 @@ export default function ParticipantsList({
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className={`font-medium ${compact ? "text-sm" : "text-base"} text-gray-900 truncate`}>
+                    <p
+                      className={`font-medium ${compact ? "text-sm" : "text-base"} text-gray-900 truncate`}
+                    >
                       {participant.name}
                     </p>
                     {showOrder && (
@@ -82,7 +84,8 @@ export default function ParticipantsList({
                 <div className="flex-shrink-0 flex items-center gap-1.5">
                   <StatusIcon className={`w-4 h-4 ${statusColor}`} />
                   <span className={`text-sm font-medium ${statusColor}`}>
-                    {participant.status.charAt(0).toUpperCase() + participant.status.slice(1)}
+                    {participant.status.charAt(0).toUpperCase() +
+                      participant.status.slice(1)}
                   </span>
                 </div>
               </div>

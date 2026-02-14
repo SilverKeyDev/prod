@@ -45,7 +45,7 @@
   .dashboard-content {
     max-width: 100%;
   }
-  
+
   @media (min-width: 1024px) {
     .dashboard-content {
       /* Account for sidebar (208px = w-52): calculate width as percentage of available space */

@@ -28,7 +28,8 @@ export class ChatService {
       const CACHE_TTL = 30000; // 30 seconds
 
       if (sharedData && Date.now() - sharedData.timestamp < CACHE_TTL) {
-        log.debug(LOG_CATEGORIES.MESSAGES,
+        log.debug(
+          LOG_CATEGORIES.MESSAGES,
           "[CHAT_SERVICE] 📋 Using shared reports data from ReportsContext",
         );
         const { reports } = sharedData;
@@ -60,7 +61,8 @@ export class ChatService {
           };
         });
 
-        log.debug(LOG_CATEGORIES.MESSAGES,
+        log.debug(
+          LOG_CATEGORIES.MESSAGES,
           "[CHAT_SERVICE] ✅ Successfully processed chats from shared data:",
           {
             chatsCount: newChats.length,
@@ -71,8 +73,13 @@ export class ChatService {
       }
 
       // Fallback: API endpoint removed - throw error if no shared data available
-      log.debug(LOG_CATEGORIES.MESSAGES, "No shared data available and API endpoint removed");
-      throw new Error("No shared reports data available and API endpoint removed");
+      log.debug(
+        LOG_CATEGORIES.MESSAGES,
+        "No shared data available and API endpoint removed",
+      );
+      throw new Error(
+        "No shared reports data available and API endpoint removed",
+      );
     } catch (e: unknown) {
       if (!isAbortError(e)) {
         log.error(LOG_CATEGORIES.ERRORS, "fetchChats error", {
@@ -192,7 +199,7 @@ export class ChatService {
 
       return response;
     } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.ERRORS, "getChatHistory error", {
+      log.error(LOG_CATEGORIES.ERRORS, "getChatHistory error", {
         reportId,
         cleanReportId:
           typeof reportId === "string"

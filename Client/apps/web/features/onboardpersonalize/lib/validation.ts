@@ -123,15 +123,16 @@ const validateFormData = (
       !formData.important_locations ||
       formData.important_locations.length === 0
     ) {
-      missingFields.push(`At least one ${FIELD_LABELS.IMPORTANT_LOCATIONS.toLowerCase()}`);
+      missingFields.push(
+        `At least one ${FIELD_LABELS.IMPORTANT_LOCATIONS.toLowerCase()}`,
+      );
     } else {
       // Validate each important location has required fields
       formData.important_locations.forEach((location, index: number) => {
-        if (!location.name || location.name.trim() === "") {
-          missingFields.push(`${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} name`);
-        }
         if (!location.address || location.address.trim() === "") {
-          missingFields.push(`${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} address`);
+          missingFields.push(
+            `${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} address`,
+          );
         }
         // commute_tolerance is optional, but if provided must be >= 0
         if (
@@ -145,14 +146,6 @@ const validateFormData = (
         }
       });
     }
-  }
-
-  // Report Customization - At least one section must be selected
-  if (
-    !formData.report_section_priorities ||
-    formData.report_section_priorities.length === 0
-  ) {
-    missingFields.push("At least one report section");
   }
 
   // Additional validation rules

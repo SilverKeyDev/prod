@@ -605,7 +605,10 @@ export function logApiRequest(method: string, url: string) {
     .then(({ log }) => {
       // Replace UUIDs and numeric IDs with :id for logging
       const sanitizedUrl = url
-        .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+        .replace(
+          /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+          "/:id",
+        )
         .replace(/\/\d+/g, "/:id");
       log.info("API_REQUEST", `${method} ${sanitizedUrl}`);
     })
@@ -623,7 +626,10 @@ export function logApiResponse(
     .then(({ log }) => {
       // Replace UUIDs and numeric IDs with :id for logging
       const sanitizedUrl = url
-        .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
+        .replace(
+          /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+          "/:id",
+        )
         .replace(/\/\d+/g, "/:id");
       const durationText = duration ? ` (${duration}ms)` : "";
       log.info(

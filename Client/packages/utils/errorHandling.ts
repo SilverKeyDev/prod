@@ -1,7 +1,7 @@
 /**
  * Centralized Error Handling Utilities
  * Builds upon existing error handling patterns and provides consistent error management
- * 
+ *
  * NOTE: This module is framework-agnostic. For React-specific error boundaries,
  * see the ErrorBoundary component in apps/web/app/error/ErrorBoundary.tsx
  */

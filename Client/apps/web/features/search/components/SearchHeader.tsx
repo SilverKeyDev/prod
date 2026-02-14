@@ -30,15 +30,17 @@ export default function SearchHeader({
           onClientChange={onClientChange}
         />
       ) : (
-        <div />
+        <div className="flex-1" />
       )}
 
-      <SearchActions
-        onUpdatePreferences={onUpdatePreferences}
-        onSearchProperties={onSearchProperties}
-        isSearching={isSearching}
-        variant="desktop"
-      />
+      <div className="ml-auto pr-8">
+        <SearchActions
+          onUpdatePreferences={onUpdatePreferences}
+          onSearchProperties={onSearchProperties}
+          isSearching={isSearching}
+          variant="desktop"
+        />
+      </div>
     </div>
   );
 }

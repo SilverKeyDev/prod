@@ -42,7 +42,6 @@ export function getPreservedImportantLocations(
               (nextLocation) =>
                 nextLocation &&
                 prevLocation &&
-                nextLocation.name === prevLocation.name &&
                 nextLocation.address === prevLocation.address &&
                 nextLocation.commute_tolerance ===
                   prevLocation.commute_tolerance,
@@ -95,7 +94,7 @@ export default function HousingSection({
                 {formData.preferred_housing_type
                   ? (HOUSING_TYPE_OPTIONS.find(
                       (option) =>
-                        option.value === formData.preferred_housing_type
+                        option.value === formData.preferred_housing_type,
                     )?.label ?? "Not specified")
                   : "Not specified"}
               </div>
@@ -110,7 +109,7 @@ export default function HousingSection({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   updateFormData(
                     "preferred_bedrooms",
-                    parseInt(e.target.value) || undefined
+                    parseInt(e.target.value) || undefined,
                   )
                 }
                 placeholder="Number of bedrooms"
@@ -138,7 +137,7 @@ export default function HousingSection({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   updateFormData(
                     "preferred_bathrooms",
-                    parseInt(e.target.value) || undefined
+                    parseInt(e.target.value) || undefined,
                   )
                 }
                 placeholder="Number of bathrooms"
@@ -271,7 +270,7 @@ export default function HousingSection({
                       { value: "contemporary", label: "Contemporary" },
                     ].find(
                       (opt) =>
-                        opt.value === formData.preferred_architectural_style
+                        opt.value === formData.preferred_architectural_style,
                     )?.label
                   : "Not specified"}
               </div>
@@ -310,7 +309,7 @@ export default function HousingSection({
                       { value: "major", label: "Major Renovations" },
                       { value: "complete", label: "Complete Renovation" },
                     ].find(
-                      (opt) => opt.value === formData.renovation_preference
+                      (opt) => opt.value === formData.renovation_preference,
                     )?.label
                   : "Not specified"}
               </div>
@@ -344,7 +343,7 @@ export default function HousingSection({
                       { value: "vacation", label: "Vacation Home" },
                       { value: "rental", label: "Rental Property" },
                     ].find(
-                      (opt) => opt.value === formData.intended_property_use
+                      (opt) => opt.value === formData.intended_property_use,
                     )?.label
                   : "Not specified"}
               </div>
@@ -390,7 +389,7 @@ export default function HousingSection({
                       },
                       { value: "not_important", label: "Not Important" },
                     ].find(
-                      (opt) => opt.value === formData.walkability_importance
+                      (opt) => opt.value === formData.walkability_importance,
                     )?.label
                   : "Not specified"}
               </div>

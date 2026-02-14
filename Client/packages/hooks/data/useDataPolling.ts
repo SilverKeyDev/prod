@@ -26,33 +26,43 @@ export function useDataPolling() {
   // In production builds with code splitting, Router context might not be immediately available
   // during initial render/hydration, but useLocation() should still work if we're in a Route
   const inRouter = useInRouterContext();
-  
+
   // Always call useLocation() unconditionally (Rules of Hooks)
   // Since StoreIntegrationsLayout is inside a <Route>, Router context should be available
   // If it's not, this indicates a timing issue in production that we'll handle gracefully
   // In React Router v7, useLocation() may work even outside router context, but we check
   // useInRouterContext() to ensure we're actually in a router before starting polling
   const location = useLocation();
-  
+
   // Use window.location as fallback if router context isn't available yet
   // This ensures we have a valid pathname even during initial render/hydration
-  const pathname = inRouter ? location.pathname : (typeof window !== "undefined" ? window.location.pathname : "/");
-  
+  const pathname = inRouter
+    ? location.pathname
+    : typeof window !== "undefined"
+      ? window.location.pathname
+      : "/";
+
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
-  
+
   // Use selectors to get store actions - these are stable references
   // IMPORTANT: All hooks must be called unconditionally to maintain hook order
-  const incrementUnreadCount = useNotificationStore((s) => s.incrementUnreadCount);
-  const updateLastSeenMessageTimestamp = useNotificationStore((s) => s.updateLastSeenMessageTimestamp);
-  const setTotalUnreadCount = useNotificationStore((s) => s.setTotalUnreadCount);
-  
+  const incrementUnreadCount = useNotificationStore(
+    (s) => s.incrementUnreadCount,
+  );
+  const updateLastSeenMessageTimestamp = useNotificationStore(
+    (s) => s.updateLastSeenMessageTimestamp,
+  );
+  const setTotalUnreadCount = useNotificationStore(
+    (s) => s.setTotalUnreadCount,
+  );
+
   // Use refs to track values that change frequently to avoid infinite loops
   // We'll access store values directly inside the callback instead of including them in dependencies
   // Initialize ref with current store state - getState() is safe to call during render
   const notificationStoreRef = useRef(useNotificationStore.getState());
-  
+
   // Update ref when store changes (without causing re-renders)
   useEffect(() => {
     const unsubscribe = useNotificationStore.subscribe((state) => {
@@ -60,27 +70,34 @@ export function useDataPolling() {
     });
     return unsubscribe;
   }, []);
-  
+
   const previousConversationsRef = useRef<AgentConversation[]>([]);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const visibilityChangeHandlerRef = useRef<(() => void) | null>(null);
   const isCheckingRef = useRef<boolean>(false); // Prevent concurrent checks
-  
+
   // If Router context isn't available, log a warning but don't crash
   // This can happen during initial render in production with code splitting
   // The component will re-render once Router context is available
   useEffect(() => {
-    if (!inRouter && typeof window !== "undefined" && document.readyState === "complete") {
+    if (
+      !inRouter &&
+      typeof window !== "undefined" &&
+      document.readyState === "complete"
+    ) {
       // Only log if page is fully loaded (not during hydration)
       // This is a timing issue that should resolve on the next render
-      log.warn(LOG_CATEGORIES.POLLING, "Router context check failed, but location is available", {
-        href: window.location.href,
-        hasLocation: !!location,
-        timestamp: new Date().toISOString(),
-      });
+      log.warn(
+        LOG_CATEGORIES.POLLING,
+        "Router context check failed, but location is available",
+        {
+          href: window.location.href,
+          hasLocation: !!location,
+          timestamp: new Date().toISOString(),
+        },
+      );
     }
   }, [inRouter, location]);
-
 
   // Check if we're on the messaging page
   const isOnMessagingPage = pathname.startsWith("/messaging");
@@ -88,11 +105,11 @@ export function useDataPolling() {
   // Determine polling interval based on route and visibility
   const getPollingInterval = (): number => {
     if (typeof document === "undefined") return POLLING_INTERVALS.OTHER_PAGE;
-    
+
     if (document.visibilityState === "hidden") {
       return POLLING_INTERVALS.HIDDEN;
     }
-    
+
     return isOnMessagingPage
       ? POLLING_INTERVALS.ACTIVE_PAGE
       : POLLING_INTERVALS.OTHER_PAGE;
@@ -111,11 +128,10 @@ export function useDataPolling() {
 
     isCheckingRef.current = true;
 
-    
     try {
       // Always fetch fresh data for polling to get latest message timestamps
       const queryKey = queryKeys.agent.conversations();
-      
+
       const result = await queryClient.fetchQuery({
         queryKey,
         queryFn: async () => {
@@ -127,7 +143,7 @@ export function useDataPolling() {
         },
         staleTime: 0, // Force fresh fetch
       });
-      
+
       const conversations = (result as AgentConversation[]) ?? [];
 
       // Compare with previous conversations to detect new messages
@@ -135,7 +151,7 @@ export function useDataPolling() {
       const storeState = notificationStoreRef.current;
       const activeConversationId = storeState.activeConversationId;
       const conversationsWithActualNewMessages: string[] = [];
-      
+
       for (const conversation of conversations) {
         const conversationId = conversation.id;
         const lastMessageAt = conversation.last_message_at
@@ -147,7 +163,7 @@ export function useDataPolling() {
 
         // Check if this is a new message compared to previous poll
         const previousConversation = previousConversations.find(
-          (c) => c.id === conversationId
+          (c) => c.id === conversationId,
         );
         const previousLastMessageAt = previousConversation?.last_message_at
           ? new Date(previousConversation.last_message_at).getTime()
@@ -160,7 +176,9 @@ export function useDataPolling() {
         // Only consider it a "new message" if:
         // 1. The timestamp is newer than the previous poll, AND
         // 2. The timestamp is newer than what the user has actually seen
-        const isNewMessage = lastMessageAt > previousLastMessageAt && lastMessageAt > lastSeenTimestamp;
+        const isNewMessage =
+          lastMessageAt > previousLastMessageAt &&
+          lastMessageAt > lastSeenTimestamp;
 
         if (isNewMessage) {
           // Only track for cache updates if it's not the active conversation
@@ -182,12 +200,12 @@ export function useDataPolling() {
       // This prevents cascade refetches while still updating the UI
       // Update cache silently - components will see new data on next render without refetching
       queryClient.setQueryData(queryKey, conversations);
-      
+
       // Also update any conversation(clientId) queries by finding and updating them
       // This ensures all components see the updated data without triggering refetches
       const queryCache = queryClient.getQueryCache();
       const allQueries = queryCache.getAll();
-      
+
       for (const query of allQueries) {
         const queryKeyArray = query.queryKey;
         // Check if this is a conversation query (starts with ["agent", "conversations"])
@@ -201,7 +219,6 @@ export function useDataPolling() {
           queryClient.setQueryData(queryKeyArray, conversations);
         }
       }
-      
 
       // Update previous conversations ref
       previousConversationsRef.current = conversations;
@@ -228,18 +245,26 @@ export function useDataPolling() {
     // Don't start polling if router context isn't available yet
     // This prevents errors in production where router chunk might load after this code
     if (!inRouter) {
-      log.debug(LOG_CATEGORIES.POLLING, "Polling not started - router context not available", {
-        inRouter,
-        pathname: location.pathname,
-      });
+      log.debug(
+        LOG_CATEGORIES.POLLING,
+        "Polling not started - router context not available",
+        {
+          inRouter,
+          pathname: location.pathname,
+        },
+      );
       return;
     }
-    
+
     if (!authReady || !isAuthenticated) {
-      log.debug(LOG_CATEGORIES.POLLING, "Polling not started - auth not ready", {
-        authReady,
-        isAuthenticated,
-      });
+      log.debug(
+        LOG_CATEGORIES.POLLING,
+        "Polling not started - auth not ready",
+        {
+          authReady,
+          isAuthenticated,
+        },
+      );
       return;
     }
 
@@ -251,8 +276,9 @@ export function useDataPolling() {
       }
 
       const interval = getPollingInterval();
-      const visibilityState = typeof document !== "undefined" ? document.visibilityState : "unknown";
-      
+      const visibilityState =
+        typeof document !== "undefined" ? document.visibilityState : "unknown";
+
       log.info(LOG_CATEGORIES.POLLING, "Starting polling", {
         interval,
         isOnMessagingPage,
@@ -260,12 +286,12 @@ export function useDataPolling() {
         pathname,
         inRouter,
       });
-      
+
       if (interval > 0) {
         // Initial check
         log.debug(LOG_CATEGORIES.POLLING, "Running initial check");
         checkForNewMessages();
-        
+
         // Set up interval
         pollingIntervalRef.current = setInterval(() => {
           log.debug(LOG_CATEGORIES.POLLING, "Polling interval tick");
@@ -280,7 +306,8 @@ export function useDataPolling() {
 
     // Handle visibility changes
     const handleVisibilityChange = () => {
-      const visibilityState = typeof document !== "undefined" ? document.visibilityState : "unknown";
+      const visibilityState =
+        typeof document !== "undefined" ? document.visibilityState : "unknown";
       log.debug(LOG_CATEGORIES.POLLING, "Visibility changed", {
         visibilityState,
         willRestart: visibilityState === "visible",
@@ -300,7 +327,7 @@ export function useDataPolling() {
       if (visibilityChangeHandlerRef.current) {
         document.removeEventListener(
           "visibilitychange",
-          visibilityChangeHandlerRef.current
+          visibilityChangeHandlerRef.current,
         );
         visibilityChangeHandlerRef.current = null;
       }
@@ -324,7 +351,7 @@ export function useDataPolling() {
 
     const syncNotificationCounter = () => {
       const cachedCounter = queryClient.getQueryData<number>(
-        queryKeys.agent.notificationCounter()
+        queryKeys.agent.notificationCounter(),
       );
       // Only set if valid number >= 0, otherwise don't update (defaults to 0)
       if (

@@ -3,7 +3,11 @@ import type { UserProfile } from "../../schemas";
 import { getInitialLoadRoutes, DATA_ROUTES } from "./dataConfig";
 import { queryKeys } from "../../config/query/keys";
 import { agentApi } from "../../config/api";
-import type { AgentConversation, GoogleEvent, GoogleCalendar } from "../../config/api";
+import type {
+  AgentConversation,
+  GoogleEvent,
+  GoogleCalendar,
+} from "../../config/api";
 import { log, LOG_CATEGORIES } from "../../../logger";
 
 /**
@@ -35,27 +39,33 @@ export class InitialDataLoader {
     });
 
     // Execute all prefetches in parallel
-    const prefetchPromises = routes.map((route) => this.prefetchRoute(route, user));
+    const prefetchPromises = routes.map((route) =>
+      this.prefetchRoute(route, user),
+    );
 
     try {
       const results = await Promise.allSettled(prefetchPromises);
       const succeeded = results.filter((r) => r.status === "fulfilled").length;
       const failed = results.filter((r) => r.status === "rejected").length;
-      
+
       log.info(LOG_CATEGORIES.API, "Initial route prefetch completed", {
         total: routes.length,
         succeeded,
         failed,
       });
-      
+
       // After conversations are loaded, prefetch chat history for each conversation
       await this.prefetchChatHistories();
-      
+
       // Note: googleEvents is now handled in prefetchRoute above
       // No need for separate prefetchGoogleEvents call
     } catch (error) {
       // Don't throw - allow app to continue even if some prefetches fail
-      log.error(LOG_CATEGORIES.API, "Error during initial data prefetch", error);
+      log.error(
+        LOG_CATEGORIES.API,
+        "Error during initial data prefetch",
+        error,
+      );
     }
   }
 
@@ -63,21 +73,27 @@ export class InitialDataLoader {
    * Prefetch a single route using its configuration
    */
   private async prefetchRoute(
-    route: typeof DATA_ROUTES[keyof typeof DATA_ROUTES],
-    user: UserProfile | null
+    route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES],
+    user: UserProfile | null,
   ): Promise<void> {
     try {
       // Handle googleEvents specially - prefetch events per calendar with proper query keys
       // This matches the exact query structure used by useCalendarEvents hook
       if (route.key === "googleEvents") {
-        log.debug(LOG_CATEGORIES.CALENDAR, "Prefetching google events for all calendars");
-        
+        log.debug(
+          LOG_CATEGORIES.CALENDAR,
+          "Prefetching google events for all calendars",
+        );
+
         // Get calendar list and date range from the route's queryFn
         const prefetchResult = await route.queryFn(user);
 
         // Handle case where queryFn returns empty array (not connected) or invalid result
         if (!prefetchResult || Array.isArray(prefetchResult)) {
-          log.debug(LOG_CATEGORIES.CALENDAR, "No calendars or events to prefetch (user not connected or no data)");
+          log.debug(
+            LOG_CATEGORIES.CALENDAR,
+            "No calendars or events to prefetch (user not connected or no data)",
+          );
           return;
         }
 
@@ -89,11 +105,21 @@ export class InitialDataLoader {
           !Array.isArray(prefetchResult.calendars) ||
           !Array.isArray(prefetchResult.events)
         ) {
-          log.debug(LOG_CATEGORIES.CALENDAR, "Invalid prefetch result structure", {
-            resultType: typeof prefetchResult,
-            hasCalendars: prefetchResult && typeof prefetchResult === "object" && "calendars" in prefetchResult,
-            hasEvents: prefetchResult && typeof prefetchResult === "object" && "events" in prefetchResult,
-          });
+          log.debug(
+            LOG_CATEGORIES.CALENDAR,
+            "Invalid prefetch result structure",
+            {
+              resultType: typeof prefetchResult,
+              hasCalendars:
+                prefetchResult &&
+                typeof prefetchResult === "object" &&
+                "calendars" in prefetchResult,
+              hasEvents:
+                prefetchResult &&
+                typeof prefetchResult === "object" &&
+                "events" in prefetchResult,
+            },
+          );
           return;
         }
 
@@ -110,10 +136,15 @@ export class InitialDataLoader {
         // Store calendars in cache first so "primary" can be resolved
         const calendarsQueryKey = queryKeys.googleCalendar.calendars();
         this.queryClient.setQueryData(calendarsQueryKey, typedResult.calendars);
-        log.info(LOG_CATEGORIES.CALENDAR, "Stored Google Calendar calendars in cache", {
-          calendarCount: typedResult.calendars.length,
-          primaryCalendarId: typedResult.calendars.find((cal) => cal.primary)?.id,
-        });
+        log.info(
+          LOG_CATEGORIES.CALENDAR,
+          "Stored Google Calendar calendars in cache",
+          {
+            calendarCount: typedResult.calendars.length,
+            primaryCalendarId: typedResult.calendars.find((cal) => cal.primary)
+              ?.id,
+          },
+        );
 
         // Set each calendar's events directly in cache using setQueryData
         // This avoids any refetch behavior - data is only set on initial mount
@@ -128,7 +159,9 @@ export class InitialDataLoader {
           // Use setQueryData to directly set cache without any query/refetch behavior
           // Ensure calendarId is included in each event when storing to cache
           // This matches the exact return structure used by CalendarView
-          const events = result.events as unknown[] as Array<{ calendarId?: string }>;
+          const events = result.events as unknown[] as Array<{
+            calendarId?: string;
+          }>;
           const eventsWithCalendarId = events.map((event) => ({
             ...event,
             calendarId: event.calendarId || result.calendarId,
@@ -139,19 +172,30 @@ export class InitialDataLoader {
 
           // Log cache storage details (only for non-empty calendars to reduce noise)
           if (eventsWithCalendarId.length > 0) {
-            log.debug(LOG_CATEGORIES.CALENDAR, "Stored Google Calendar events in cache", {
-              calendarId: result.calendarId,
-              eventCount: eventsWithCalendarId.length,
-            });
+            log.debug(
+              LOG_CATEGORIES.CALENDAR,
+              "Stored Google Calendar events in cache",
+              {
+                calendarId: result.calendarId,
+                eventCount: eventsWithCalendarId.length,
+              },
+            );
           }
         });
 
         // No need to wait - setQueryData is synchronous
 
-        log.info(LOG_CATEGORIES.CALENDAR, "Successfully prefetched google events", {
-          calendarCount: typedResult.events.length,
-          totalEvents: typedResult.events.reduce((sum, r) => sum + (r.events as unknown[]).length, 0),
-        });
+        log.info(
+          LOG_CATEGORIES.CALENDAR,
+          "Successfully prefetched google events",
+          {
+            calendarCount: typedResult.events.length,
+            totalEvents: typedResult.events.reduce(
+              (sum, r) => sum + (r.events as unknown[]).length,
+              0,
+            ),
+          },
+        );
         return;
       }
 
@@ -185,7 +229,7 @@ export class InitialDataLoader {
     try {
       // Get conversations from cache
       const conversations = this.queryClient.getQueryData<AgentConversation[]>(
-        queryKeys.agent.conversations()
+        queryKeys.agent.conversations(),
       );
 
       if (!conversations || conversations.length === 0) {
@@ -194,7 +238,7 @@ export class InitialDataLoader {
 
       // Prefetch chat history for each conversation in parallel
       const historyPromises = conversations.map((conversation) =>
-        this.prefetchChatHistory(conversation.id)
+        this.prefetchChatHistory(conversation.id),
       );
 
       // Use Promise.allSettled to continue even if some fail
@@ -211,9 +255,9 @@ export class InitialDataLoader {
     try {
       // Check if already cached
       const cached = this.queryClient.getQueryData(
-        queryKeys.agent.history(conversationId)
+        queryKeys.agent.history(conversationId),
       );
-      
+
       if (cached) {
         // Already cached, skip
         return;
@@ -238,5 +282,4 @@ export class InitialDataLoader {
       // Silently fail - individual failures shouldn't block others
     }
   }
-
 }

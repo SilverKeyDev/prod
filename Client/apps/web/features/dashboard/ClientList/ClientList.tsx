@@ -4,10 +4,11 @@ import Card from "../../../components/layout/Card";
 import Dropdown from "../../../components/ui/form/Dropdown";
 import type { DropdownOption } from "../../../components/ui/form/Dropdown";
 import ClientRow from "./ClientRow";
-import {
-  enhanceClientWithDealInfo,
-} from "../../../../../packages/services/agent/agentDashboard";
-import type { ClientDealInfo, DealStage } from "../../../../../packages/schemas/agent";
+import { enhanceClientWithDealInfo } from "../../../../../packages/services/agent/agentDashboard";
+import type {
+  ClientDealInfo,
+  DealStage,
+} from "../../../../../packages/schemas/agent";
 
 type ClientListProps = {
   onClientClick: (clientId: string) => void;
@@ -16,13 +17,21 @@ type ClientListProps = {
 const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
   const { clients, isLoading } = useAgentClients();
   const [filterStage, setFilterStage] = useState<DealStage | "all">("all");
-  const [hasRiskFlags, setHasRiskFlags] = useState<"all" | "has" | "none">("all");
+  const [hasRiskFlags, setHasRiskFlags] = useState<"all" | "has" | "none">(
+    "all",
+  );
 
   // Enhance clients with deal info (mock for now)
   const enhancedClients = useMemo<ClientDealInfo[]>(() => {
     if (!clients.length) return [];
-    
-    const stages: DealStage[] = ["search", "touring", "offer", "under_contract", "closing"];
+
+    const stages: DealStage[] = [
+      "search",
+      "touring",
+      "offer",
+      "under_contract",
+      "closing",
+    ];
     return clients.map((client, index) => {
       const stage = stages[index % stages.length];
       return enhanceClientWithDealInfo(client, stage);
@@ -69,7 +78,9 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
     return (
       <Card>
         <div className="text-center py-12">
-          <p className="text-responsive-base text-black/60">Loading clients...</p>
+          <p className="text-responsive-base text-black/60">
+            Loading clients...
+          </p>
         </div>
       </Card>
     );

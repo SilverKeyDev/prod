@@ -265,7 +265,7 @@ def generate_action_plan(user_preferences, client_name):
                     location_names = []
                     for l in locations:
                         if isinstance(l, dict):
-                            name = l.get('name', 'Unknown Location')
+                            name = l.get('name') or l.get('address', 'Unknown Location')
                             commute = l.get('commute_tolerance')
                             if commute:
                                 location_names.append(f"{name} ({commute}min commute)")

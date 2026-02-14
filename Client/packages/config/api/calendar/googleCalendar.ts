@@ -3,7 +3,11 @@
  * Handles Google Calendar OAuth and API operations
  */
 
-import { apiGet, apiPost, HttpError } from "../../../services/http/compatibility";
+import {
+  apiGet,
+  apiPost,
+  HttpError,
+} from "../../../services/http/compatibility";
 
 // Types
 export interface GoogleCalendar {
@@ -152,9 +156,9 @@ export const googleCalendarApi = {
     GoogleCalendarApiResponse<GoogleCalendarListResponse>
   > => {
     try {
-      return await apiGet<GoogleCalendarApiResponse<GoogleCalendarListResponse>>(
-        "/api/v1/google/me/calendars",
-      );
+      return await apiGet<
+        GoogleCalendarApiResponse<GoogleCalendarListResponse>
+      >("/api/v1/google/me/calendars");
     } catch (error) {
       // If the error is an HttpError with a parsed body containing our error format, return it
       if (error instanceof HttpError && error.parsedBody) {
@@ -199,10 +203,14 @@ export const googleCalendarApi = {
     } catch (error) {
       // Extract error code from HttpError parsedBody if available
       if (error instanceof HttpError && error.parsedBody) {
-        const parsedBody = error.parsedBody as { error?: string; message?: string };
+        const parsedBody = error.parsedBody as {
+          error?: string;
+          message?: string;
+        };
         return {
           success: false,
-          error: parsedBody.error || parsedBody.message || "Failed to list events",
+          error:
+            parsedBody.error || parsedBody.message || "Failed to list events",
         };
       }
       return {
@@ -262,7 +270,9 @@ export const googleCalendarApi = {
     calendarId?: string,
   ): Promise<GoogleCalendarApiResponse<{ ok: boolean }>> => {
     try {
-      const { apiDelete } = await import("../../../services/http/compatibility");
+      const { apiDelete } = await import(
+        "../../../services/http/compatibility"
+      );
       const queryParams = calendarId ? `?calendarId=${calendarId}` : "";
       const response = await apiDelete<
         GoogleCalendarApiResponse<{ ok: boolean }>
@@ -291,9 +301,10 @@ export const googleCalendarApi = {
     name: string,
   ): Promise<GoogleCalendarApiResponse<GoogleCalendar>> => {
     try {
-      const response = await apiPost<
-        GoogleCalendarApiResponse<GoogleCalendar>
-      >("/api/v1/google/calendars", { name });
+      const response = await apiPost<GoogleCalendarApiResponse<GoogleCalendar>>(
+        "/api/v1/google/calendars",
+        { name },
+      );
       return response;
     } catch (error) {
       return {
@@ -332,9 +343,9 @@ export const googleCalendarApi = {
    */
   isConnected: async (): Promise<boolean> => {
     try {
-      const response = await apiGet<GoogleCalendarApiResponse<{ isConnected: boolean }>>(
-        "/api/v1/google/connection-status",
-      );
+      const response = await apiGet<
+        GoogleCalendarApiResponse<{ isConnected: boolean }>
+      >("/api/v1/google/connection-status");
       return response.success && response.data?.isConnected === true;
     } catch (error) {
       // Fallback to cookie check
@@ -356,10 +367,14 @@ export const googleCalendarApi = {
   queryFreebusy: async (
     request: import("../../../schemas/calendar/scheduling").FreebusyRequest,
   ): Promise<
-    GoogleCalendarApiResponse<import("../../../schemas/calendar/scheduling").FreebusyResponse>
+    GoogleCalendarApiResponse<
+      import("../../../schemas/calendar/scheduling").FreebusyResponse
+    >
   > =>
     apiPost<
-      GoogleCalendarApiResponse<import("../../../schemas/calendar/scheduling").FreebusyResponse>
+      GoogleCalendarApiResponse<
+        import("../../../schemas/calendar/scheduling").FreebusyResponse
+      >
     >("/api/v1/google/me/freebusy", request),
 
   /**
@@ -385,11 +400,15 @@ export const googleCalendarApi = {
     timeMax: string,
     calendarIds?: string[],
   ): Promise<
-    GoogleCalendarApiResponse<import("../../../schemas/calendar/scheduling").FreebusyResponse>
+    GoogleCalendarApiResponse<
+      import("../../../schemas/calendar/scheduling").FreebusyResponse
+    >
   > => {
     try {
       const response = await apiPost<
-        GoogleCalendarApiResponse<import("../../../schemas/calendar/scheduling").FreebusyResponse>
+        GoogleCalendarApiResponse<
+          import("../../../schemas/calendar/scheduling").FreebusyResponse
+        >
       >(`/api/v1/google/clients/${clientId}/availability`, {
         timeMin,
         timeMax,
@@ -399,15 +418,24 @@ export const googleCalendarApi = {
     } catch (error) {
       // Extract error code from HttpError parsedBody if available
       if (error instanceof HttpError && error.parsedBody) {
-        const parsedBody = error.parsedBody as { error?: string; message?: string };
+        const parsedBody = error.parsedBody as {
+          error?: string;
+          message?: string;
+        };
         return {
           success: false,
-          error: parsedBody.error || parsedBody.message || "Failed to get client availability",
+          error:
+            parsedBody.error ||
+            parsedBody.message ||
+            "Failed to get client availability",
         };
       }
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to get client availability",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get client availability",
       };
     }
   },
@@ -423,7 +451,7 @@ export const googleCalendarApi = {
       timeMin?: string;
       timeMax?: string;
       maxResults?: string;
-    }
+    },
   ): Promise<GoogleCalendarApiResponse<GoogleEventListResponse>> => {
     try {
       const queryParams = new URLSearchParams();
@@ -441,15 +469,24 @@ export const googleCalendarApi = {
     } catch (error) {
       // Extract error code from HttpError parsedBody if available
       if (error instanceof HttpError && error.parsedBody) {
-        const parsedBody = error.parsedBody as { error?: string; message?: string };
+        const parsedBody = error.parsedBody as {
+          error?: string;
+          message?: string;
+        };
         return {
           success: false,
-          error: parsedBody.error || parsedBody.message || "Failed to get client events",
+          error:
+            parsedBody.error ||
+            parsedBody.message ||
+            "Failed to get client events",
         };
       }
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to get client events",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get client events",
       };
     }
   },
@@ -468,15 +505,22 @@ export const googleCalendarApi = {
     } catch (error) {
       // Extract error code from HttpError parsedBody if available
       if (error instanceof HttpError && error.parsedBody) {
-        const parsedBody = error.parsedBody as { error?: string; message?: string };
+        const parsedBody = error.parsedBody as {
+          error?: string;
+          message?: string;
+        };
         return {
           success: false,
-          error: parsedBody.error || parsedBody.message || "Failed to get permissions",
+          error:
+            parsedBody.error ||
+            parsedBody.message ||
+            "Failed to get permissions",
         };
       }
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to get permissions",
+        error:
+          error instanceof Error ? error.message : "Failed to get permissions",
       };
     }
   },

@@ -177,4 +177,3 @@ export function getBusyBlocksFromResponse(
     (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
   );
 }
-

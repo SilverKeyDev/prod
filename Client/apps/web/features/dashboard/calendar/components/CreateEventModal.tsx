@@ -117,7 +117,7 @@ export function CreateEventModal({
       if (defaultCalendarId) {
         // Use SilverKey calendar if available
         const silverKeyCalendar = calendars.find(
-          (cal) => cal.id === defaultCalendarId
+          (cal) => cal.id === defaultCalendarId,
         );
         if (silverKeyCalendar) {
           setSelectedCalendarId(defaultCalendarId);

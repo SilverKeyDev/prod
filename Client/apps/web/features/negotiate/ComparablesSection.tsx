@@ -28,7 +28,7 @@ export function ComparablesSection({
   }
 
   const compsArray = Array.isArray(
-    (compsData as { data?: { comps?: unknown } })?.data?.comps
+    (compsData as { data?: { comps?: unknown } })?.data?.comps,
   )
     ? (compsData as { data: { comps: unknown[] } }).data.comps
     : ([] as unknown[]);

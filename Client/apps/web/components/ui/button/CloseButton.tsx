@@ -6,7 +6,7 @@ export type CloseButtonProps = Omit<IconButtonProps, "icon" | "variant"> & {
   /**
    * Variant for close button. Defaults to "ghost" for standard close buttons.
    */
-  variant?: "ghost" | "outline";
+  variant?: "ghost" | "outline" | "toolbar";
   /**
    * Aria label for accessibility. Defaults to "Close".
    */
@@ -15,10 +15,10 @@ export type CloseButtonProps = Omit<IconButtonProps, "icon" | "variant"> & {
 
 /**
  * Standardized Close Button component.
- * 
+ *
  * A wrapper around IconButton with X icon for closing modals, dialogs, etc.
  * Mobile-responsive and touch-friendly.
- * 
+ *
  * @example
  * ```tsx
  * <CloseButton onClick={handleClose} aria-label="Close modal" />
@@ -33,7 +33,7 @@ const CloseButton = forwardRef<HTMLButtonElement, CloseButtonProps>(
       className = "",
       ...props
     },
-    ref
+    ref,
   ) => {
     return (
       <IconButton
@@ -46,7 +46,7 @@ const CloseButton = forwardRef<HTMLButtonElement, CloseButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
 
 CloseButton.displayName = "CloseButton";

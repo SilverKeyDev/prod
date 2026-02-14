@@ -3,7 +3,10 @@ import { Plus, FileText } from "lucide-react";
 import { useDocusignAgreements } from "../../../../../packages/hooks/data/documents/useDocusignAgreements";
 import { Button, Title, BodyText } from "../../../components/ui";
 import AgreementListItem from "../../documents/docusign/components/AgreementListItem";
-import { CreateAgreementModal, AgreementDetailModal } from "../../documents/docusign/modals";
+import {
+  CreateAgreementModal,
+  AgreementDetailModal,
+} from "../../documents/docusign/modals";
 import { KeyTurnLoader } from "../../../components/ui";
 import { useUIStore } from "../../../../../packages/store";
 import { useDocusignActions } from "../../../../../packages/hooks/data/documents/useDocusignActions";
@@ -14,15 +17,18 @@ type ClientAgreementsProps = {
 
 /**
  * ClientAgreements Component
- * 
+ *
  * Shows all DocuSign agreements for a specific client in ClientHub
  * Grouped by status: Active, Completed, Voided
  */
 export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(
+    null,
+  );
 
-  const { agreements, isLoading, error, refetchAgreements } = useDocusignAgreements();
+  const { agreements, isLoading, error, refetchAgreements } =
+    useDocusignAgreements();
   const { sendAgreement, voidAgreement } = useDocusignActions();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
@@ -38,11 +44,11 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
         a.status === "draft" ||
         a.status === "sent" ||
         a.status === "delivered" ||
-        a.status === "signed"
+        a.status === "signed",
     );
     const completed = clientAgreements.filter((a) => a.status === "completed");
     const voided = clientAgreements.filter(
-      (a) => a.status === "voided" || a.status === "declined"
+      (a) => a.status === "voided" || a.status === "declined",
     );
 
     return { active, completed, voided };
@@ -66,14 +72,15 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
     } catch (err) {
       enqueueToast({
         type: "error",
-        message: err instanceof Error ? err.message : "Failed to send agreement",
+        message:
+          err instanceof Error ? err.message : "Failed to send agreement",
       });
     }
   };
 
   const handleAgreementVoid = async (agreementId: string) => {
     const confirmed = window.confirm(
-      "Are you sure you want to void this agreement? This action cannot be undone."
+      "Are you sure you want to void this agreement? This action cannot be undone.",
     );
     if (!confirmed) return;
 
@@ -90,7 +97,8 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
     } catch (err) {
       enqueueToast({
         type: "error",
-        message: err instanceof Error ? err.message : "Failed to void agreement",
+        message:
+          err instanceof Error ? err.message : "Failed to void agreement",
       });
     }
   };

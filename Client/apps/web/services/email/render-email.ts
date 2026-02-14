@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Email renderer script
- * 
+ *
  * Renders React Email components to HTML at runtime.
  * Usage: tsx render-email.ts <TemplateName> '<jsonProps>'
- * 
+ *
  * Example: tsx render-email.ts ListingsEmail '{"recipientEmail":"user@example.com","listings":[...]}'
  */
 
@@ -26,7 +26,7 @@ async function main() {
   if (!templateName) {
     console.error("Usage: tsx render-email.ts <TemplateName> '<jsonProps>'");
     console.error(
-      "\nExample: tsx render-email.ts ListingsEmail '{\"recipientEmail\":\"user@example.com\",\"listings\":[]}'"
+      '\nExample: tsx render-email.ts ListingsEmail \'{"recipientEmail":"user@example.com","listings":[]}\'',
     );
     process.exit(1);
   }
@@ -35,7 +35,9 @@ async function main() {
 
   if (!templateLoader) {
     console.error(`Unknown template: ${templateName}`);
-    console.error(`Available templates: ${Object.keys(templateMap).join(", ")}`);
+    console.error(
+      `Available templates: ${Object.keys(templateMap).join(", ")}`,
+    );
     process.exit(1);
   }
 

@@ -85,7 +85,12 @@ const baseCreator: import("zustand").StateCreator<UIState> = (set) => ({
         toast.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const nextQueue = [
         ...state.toastQueue,
-        { id, message: toast.message, type: toast.type, onClick: toast.onClick },
+        {
+          id,
+          message: toast.message,
+          type: toast.type,
+          onClick: toast.onClick,
+        },
       ];
       return {
         toastQueue: nextQueue,
@@ -127,7 +132,12 @@ const withReset = withResettable<UIState>(baseCreator, (set) => ({
         toast.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const nextQueue = [
         ...state.toastQueue,
-        { id, message: toast.message, type: toast.type, onClick: toast.onClick },
+        {
+          id,
+          message: toast.message,
+          type: toast.type,
+          onClick: toast.onClick,
+        },
       ];
       return {
         toastQueue: nextQueue,

@@ -31,7 +31,7 @@ function App() {
       idleTimeoutMs: 30 * 60 * 1000, // 30 minutes idle
       maxSessionMs: 8 * 60 * 60 * 1000, // 8 hours max
     }),
-    []
+    [],
   );
 
   // Initialize session timeout (auto-logout when timeout is reached)

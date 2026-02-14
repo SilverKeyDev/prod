@@ -22,7 +22,7 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({
         (home) =>
           home.home_id !== currentPropertyId &&
           (home.image_url ||
-            (Array.isArray(home.image_urls) && home.image_urls.length > 0))
+            (Array.isArray(home.image_urls) && home.image_urls.length > 0)),
       )
       .slice(0, 6); // Limit to 6 properties
   }, [savedHomes, currentPropertyId]);

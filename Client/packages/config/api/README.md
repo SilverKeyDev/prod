@@ -5,6 +5,7 @@ Individual API client modules for each domain in the SilverKey application.
 ## Purpose
 
 Each API client module provides type-safe, domain-specific functions for making API calls. These are thin wrappers around the HTTP client that provide:
+
 - Type safety with TypeScript
 - Consistent response formats
 - Error handling
@@ -30,11 +31,13 @@ Each API client module provides type-safe, domain-specific functions for making 
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `services/http/*` - HTTP client utilities
 - ✅ `services/security/*` - Security utilities
 - ✅ `schemas/*` - Type definitions
 
 ### Forbidden Imports
+
 - ❌ Business logic `services/*`
 - ❌ `hooks/*` or `store/*`
 - ❌ `apps/web/*`

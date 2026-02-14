@@ -30,7 +30,7 @@ const TodayPanel: React.FC = () => {
   const handleAddTodo = async (
     title: string,
     priority: TodoPriority,
-    type: TodoType
+    type: TodoType,
   ) => {
     if (!isAgent) return;
     try {
@@ -59,7 +59,7 @@ const TodayPanel: React.FC = () => {
       log.error(
         LOG_CATEGORIES.DASHBOARD,
         "Failed to update todo priority",
-        error
+        error,
       );
     }
   };

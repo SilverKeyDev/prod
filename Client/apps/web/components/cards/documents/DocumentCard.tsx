@@ -50,9 +50,7 @@ export default function DocumentCard({
     : doc.address || formatFilenameToAddress(doc.filename);
 
   // Format date using utility function
-  const formattedDate = doc.created_at
-    ? formatDate(doc.created_at)
-    : "Unknown";
+  const formattedDate = doc.created_at ? formatDate(doc.created_at) : "Unknown";
 
   return (
     <BaseCard

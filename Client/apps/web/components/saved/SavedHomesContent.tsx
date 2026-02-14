@@ -30,7 +30,11 @@ type SavedHomesContentProps = {
   onAgreementSend?: (agreementId: string) => void;
   onAgreementVoid?: (agreementId: string) => void;
   selectedHomesDataLength: number;
+  /** When true, container has no padding (parent provides it for alignment) */
+  noPadding?: boolean;
 };
+
+const CONTENT_PADDING = "px-4 sm:px-6 md:px-8 lg:px-12";
 
 export default function SavedHomesContent({
   viewType,
@@ -49,7 +53,9 @@ export default function SavedHomesContent({
   onAgreementSend,
   onAgreementVoid,
   selectedHomesDataLength,
+  noPadding = false,
 }: SavedHomesContentProps) {
+  const containerClass = noPadding ? "w-full" : `w-full ${CONTENT_PADDING}`;
   // Merge and sort documents and agreements by date
   const sortedItems = useMemo(() => {
     const items: Array<
@@ -88,7 +94,9 @@ export default function SavedHomesContent({
 
     if (isLoading) {
       return (
-        <div className="w-full px-4 sm:px-6 py-responsive-lg flex justify-center">
+        <div
+          className={`${containerClass} py-responsive-lg flex justify-center`}
+        >
           <KeyTurnLoader message="Loading documents..." />
         </div>
       );
@@ -96,7 +104,7 @@ export default function SavedHomesContent({
 
     if (sortedItems.length === 0) {
       return (
-        <div className="w-full px-4 sm:px-6 py-responsive-lg text-center">
+        <div className={`${containerClass} py-responsive-lg text-center`}>
           <p className="text-responsive-sm text-gray-600">
             You have no documents or agreements yet.
           </p>
@@ -105,13 +113,12 @@ export default function SavedHomesContent({
     }
 
     return (
-      <div className="w-full px-4 sm:px-6 grid grid-cols-1 gap-responsive-md sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div
+        className={`${containerClass} grid grid-cols-1 gap-responsive-md sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`}
+      >
         {sortedItems.map((item) =>
           item.type === "document" ? (
-            <div
-              key={`doc-${item.data.id}`}
-              className="relative group w-full"
-            >
+            <div key={`doc-${item.data.id}`} className="relative group w-full">
               <DocumentCard doc={item.data} onDelete={onDocumentDelete} />
             </div>
           ) : (
@@ -126,7 +133,7 @@ export default function SavedHomesContent({
                 onVoid={onAgreementVoid}
               />
             </div>
-          )
+          ),
         )}
       </div>
     );
@@ -136,14 +143,16 @@ export default function SavedHomesContent({
     if (filteredHomes.length === 0) {
       if (homesLoading) {
         return (
-          <div className="w-full px-4 sm:px-6 py-responsive-lg flex justify-center">
+          <div
+            className={`${containerClass} py-responsive-lg flex justify-center`}
+          >
             <KeyTurnLoader message="Loading saved homes..." />
           </div>
         );
       }
 
       return (
-        <div className="w-full px-4 sm:px-6 py-responsive-lg text-center">
+        <div className={`${containerClass} py-responsive-lg text-center`}>
           <p className="text-responsive-sm text-gray-600">
             You have no saved homes yet.
           </p>
@@ -153,7 +162,7 @@ export default function SavedHomesContent({
 
     return (
       <div
-        className={`w-full px-4 sm:px-6 grid grid-cols-1 gap-responsive-md sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
+        className={`${containerClass} grid grid-cols-1 gap-responsive-md sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
           selectedHomesDataLength >= 1 ? "mb-[140px] sm:mb-[160px]" : ""
         }`}
       >

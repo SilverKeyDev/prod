@@ -176,11 +176,15 @@ export const authApi = {
         timestamp: new Date().toISOString(),
       });
 
-      log.error(LOG_CATEGORIES.AUTH, "Verification request failed with exception", {
-        requestId,
-        errorMessage: err?.message || "Unknown error",
-        duration: `${duration}ms`,
-      });
+      log.error(
+        LOG_CATEGORIES.AUTH,
+        "Verification request failed with exception",
+        {
+          requestId,
+          errorMessage: err?.message || "Unknown error",
+          duration: `${duration}ms`,
+        },
+      );
 
       reportSecurityEvent({
         type: "authentication_failure",
@@ -210,7 +214,7 @@ export const authApi = {
       requestId,
       email: data.email
         ? `${data.email.substring(0, 3)}***${data.email.substring(data.email.length - 3)}`
-        : "missing"
+        : "missing",
     });
 
     try {
@@ -257,7 +261,11 @@ export const authApi = {
       const err = error as Error & { status?: string; errorCode?: string };
 
       // Check if this is an HttpError with needs_verification flag
-      if (error instanceof HttpError && error.status === 401 && error.parsedBody) {
+      if (
+        error instanceof HttpError &&
+        error.status === 401 &&
+        error.parsedBody
+      ) {
         const parsedBody = error.parsedBody as Record<string, unknown>;
         if (parsedBody.needs_verification === true) {
           log.info(LOG_CATEGORIES.AUTH, "User needs email verification", {
@@ -271,16 +279,22 @@ export const authApi = {
           // Return response indicating verification is needed
           return {
             success: false,
-            error: parsedBody.error as string || "USER_NOT_VERIFIED",
-            message: parsedBody.message as string || "Please verify your email address to continue.",
+            error: (parsedBody.error as string) || "USER_NOT_VERIFIED",
+            message:
+              (parsedBody.message as string) ||
+              "Please verify your email address to continue.",
             needs_verification: true,
             code_delivery: parsedBody.code_delivery,
           };
         }
 
         // Extract actual error message from 401 response body
-        const errorMessage = parsedBody.message as string || parsedBody.error as string || "Authentication failed";
-        const errorCode = parsedBody.error as string || "AUTHENTICATION_FAILED";
+        const errorMessage =
+          (parsedBody.message as string) ||
+          (parsedBody.error as string) ||
+          "Authentication failed";
+        const errorCode =
+          (parsedBody.error as string) || "AUTHENTICATION_FAILED";
 
         log.warn(LOG_CATEGORIES.AUTH, "Login failed with 401 error", {
           requestId,
@@ -461,17 +475,16 @@ export const authApi = {
    */
   verifySession: async (): Promise<AuthResponse> => {
     const requestId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     try {
       // Log detailed cookie information before making the request
       const allCookies = document.cookie
         .split(";")
         .map((c) => c.trim().split("=")[0])
         .filter(Boolean);
-    
-      
+
       const { apiGet } = await import("../../../services/http/compatibility");
-       
+
       // Use profile endpoint to verify session
       const response = await apiGet<
         AuthResponse & { data?: Record<string, unknown> }
@@ -486,7 +499,7 @@ export const authApi = {
         .split(";")
         .map((c) => c.trim().split("=")[0])
         .filter(Boolean);
-      
+
       const newCookies = cookiesAfter.filter((c) => !allCookies.includes(c));
 
       if (response.success && response.data) {
@@ -494,13 +507,15 @@ export const authApi = {
         log.info(LOG_CATEGORIES.AUTH, "🔍 Session verification successful", {
           requestId,
           userId: user.id,
-          userEmail: user.email ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}` : "missing",
+          userEmail: user.email
+            ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
+            : "missing",
           isAgent: user.is_agent || false,
           cookieCountBefore: allCookies.length,
           cookieCountAfter: cookiesAfter.length,
           newCookies: newCookies.length > 0 ? newCookies : undefined,
         });
-       
+
         return {
           success: true,
           user: user,
@@ -513,26 +528,30 @@ export const authApi = {
         hasData: !!response.data,
         cookiesAfter,
         newCookies,
-        cookieCountAfter: cookiesAfter.length
+        cookieCountAfter: cookiesAfter.length,
       });
       return { success: false };
     } catch (error: unknown) {
       const err = error as Error;
-      
+
       // Log cookies after error
       const cookiesAfterError = document.cookie
         .split(";")
         .map((c) => c.trim().split("=")[0])
         .filter(Boolean);
-      
-      log.error(LOG_CATEGORIES.AUTH, "🔍 Session verification failed with error", {
-        requestId,
-        error: err?.message || "Unknown error",
-        errorType: err?.constructor?.name || "Unknown",
-        cookiesAfterError,
-        cookieCountAfterError: cookiesAfterError.length,
-        currentUrl: window.location.href
-      });
+
+      log.error(
+        LOG_CATEGORIES.AUTH,
+        "🔍 Session verification failed with error",
+        {
+          requestId,
+          error: err?.message || "Unknown error",
+          errorType: err?.constructor?.name || "Unknown",
+          cookiesAfterError,
+          cookieCountAfterError: cookiesAfterError.length,
+          currentUrl: window.location.href,
+        },
+      );
       return { success: false };
     }
   },
@@ -542,14 +561,14 @@ export const authApi = {
    */
   refreshToken: async (): Promise<AuthResponse> => {
     const requestId = `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     try {
       log.info(LOG_CATEGORIES.AUTH, "Starting token refresh", {
         requestId,
       });
 
       const { apiPost } = await import("../../../services/http/compatibility");
-      
+
       const response = await apiPost<AuthResponse>(
         "/api/v1/auth/refresh-token",
         {},
@@ -557,7 +576,7 @@ export const authApi = {
           includeCredentials: true,
           includeAuth: false,
           useCors: false,
-        } as unknown as import("../../../services/http/compatibility").ApiRequestOptions
+        } as unknown as import("../../../services/http/compatibility").ApiRequestOptions,
       );
 
       if (response.success) {
@@ -573,11 +592,15 @@ export const authApi = {
         });
 
         // Report security event for refresh failures
-        if (response.error === "REFRESH_TOKEN_EXPIRED" || response.error === "REFRESH_TOKEN_INVALID") {
+        if (
+          response.error === "REFRESH_TOKEN_EXPIRED" ||
+          response.error === "REFRESH_TOKEN_INVALID"
+        ) {
           reportSecurityEvent({
             type: "authentication_failure",
             severity: "medium",
-            description: "Token refresh failed - refresh token expired or invalid",
+            description:
+              "Token refresh failed - refresh token expired or invalid",
             metadata: {
               error: response.error,
               requestId,
@@ -589,12 +612,16 @@ export const authApi = {
       return response;
     } catch (error: unknown) {
       const err = error as Error;
-      
-      log.error(LOG_CATEGORIES.AUTH, "Token refresh request failed with exception", {
-        requestId,
-        error: err?.message || "Unknown error",
-        errorType: err?.constructor?.name || "Unknown",
-      });
+
+      log.error(
+        LOG_CATEGORIES.AUTH,
+        "Token refresh request failed with exception",
+        {
+          requestId,
+          error: err?.message || "Unknown error",
+          errorType: err?.constructor?.name || "Unknown",
+        },
+      );
 
       reportSecurityEvent({
         type: "authentication_failure",

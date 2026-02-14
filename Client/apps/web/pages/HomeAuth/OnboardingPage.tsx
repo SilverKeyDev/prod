@@ -1,5 +1,4 @@
 // React imports
-import type { DragEndEvent } from "@dnd-kit/core";
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -8,26 +7,18 @@ import KeyLogo from "/logo.png?url";
 // Components
 import { ValidationWarning } from "../../components/feedback";
 import Card from "../../components/layout/Card";
-import {
-  Loading,
-  Input,
-  Dropdown,
-  Title,
-  NavigationButtons,
-} from "../../components/ui";
+import { Input, Dropdown, Title, NavigationButtons } from "../../components/ui";
 //import { SkipButton } from "../../components/ui/button/NavigationButtons";
 // Core
 import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
 import { log, LOG_CATEGORIES } from "../../../../logger";
 // Features
 import OnPerBuyersAgent from "../../features/onboardpersonalize/BuyersAgent";
-import OnPerDragDropPriorities from "../../features/onboardpersonalize/DragDropPriorities";
 import HomePriceEstimate from "../../features/onboardpersonalize/HomePriceEstimate";
 import type { HomePriceResult } from "../../features/onboardpersonalize/lib/homePriceCalculation";
 import ImportantLocationsInput from "../../features/onboardpersonalize/ImportantLocationsInput";
 import {
   getOnboardingSteps,
-  DEFAULT_REPORT_SECTIONS,
   IS_AGENT_OPTIONS,
   //GENDER_OPTIONS,
   type OnboardingData,
@@ -44,7 +35,6 @@ import {
   FIELD_LABELS,
   REQUIRED_FIELDS_ONBOARDING,
 } from "../../features/onboardpersonalize/lib/constants";
-import { handleDragEnd as handleDragEndUtil } from "../../features/onboardpersonalize/lib/dragEndHandler";
 import { calculateAffordableHomePrice } from "../../features/onboardpersonalize/lib/homePriceCalculation";
 import { handleSubmit as handleSubmitUtil } from "../../features/onboardpersonalize/lib/submitHandler";
 import OnboardingHeader from "../../features/onboardpersonalize/onboard/Header";
@@ -59,15 +49,9 @@ import OnPerTagInput from "../../features/onboardpersonalize/TagInput";
 
 const STEPS = getOnboardingSteps();
 
-const REPORT_SECTIONS = DEFAULT_REPORT_SECTIONS;
-
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>({
-    // Initialize report customization with first 6 priorities auto-selected
-    report_section_priorities: DEFAULT_REPORT_SECTIONS.slice(0, 6).map(
-      (section) => section.key
-    ),
     important_locations: [],
   });
   const [loading, setLoading] = useState(false);
@@ -115,7 +99,7 @@ export default function OnboardingPage() {
       setHomePriceError(
         error instanceof Error
           ? error.message
-          : "Failed to calculate home price"
+          : "Failed to calculate home price",
       );
       setHomePriceResult(null);
     } finally {
@@ -146,92 +130,6 @@ export default function OnboardingPage() {
     calculateHomePrice,
   ]);
 
-  // Get ordered report sections based on user preferences
-  const getOrderedReportSections = () => {
-    try {
-      if (!formData || !REPORT_SECTIONS) {
-        return [];
-      }
-
-      const priorities = formData.report_section_priorities ?? [];
-      const sections = [...REPORT_SECTIONS];
-
-      // Sort sections based on priorities - included items first in priority order, excluded items at end
-      const orderedSections = sections.sort((a, b) => {
-        if (!a || !b || !a.key || !b.key) return 0;
-
-        const aIncluded = priorities.includes(a.key);
-        const bIncluded = priorities.includes(b.key);
-
-        // Excluded items go to the end
-        if (aIncluded !== bIncluded) {
-          return aIncluded ? -1 : 1;
-        }
-
-        // For included items, use priority order
-        const aPriority = priorities.indexOf(a.key);
-        const bPriority = priorities.indexOf(b.key);
-
-        // Items not in priorities should come after items in priorities
-        if (aPriority === -1 && bPriority === -1) return 0;
-        if (aPriority === -1) return 1; // A comes after B
-        if (bPriority === -1) return -1; // B comes after A
-
-        return aPriority - bPriority;
-      });
-
-      return orderedSections;
-    } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Error in getOrderedReportSections", error);
-      return [];
-    }
-  };
-
-  // Handle drag end for reordering
-  const handleDragEnd = (event: DragEndEvent) => {
-    handleDragEndUtil({
-      event,
-      getOrderedReportSections,
-      formData,
-      updateFormData,
-    });
-  };
-
-  // Handle checkbox toggle for report sections
-  const handleReportSectionToggle = (sectionKey: string, checked: boolean) => {
-    const currentPriorities = formData.report_section_priorities ?? [];
-
-    // Ensure we only work with valid sections from DEFAULT_REPORT_SECTIONS
-    const validSectionKeys = new Set(
-      DEFAULT_REPORT_SECTIONS.map((section) => section.key)
-    );
-
-    if (!validSectionKeys.has(sectionKey)) {
-      log.warn(LOG_CATEGORIES.ERRORS, "Attempted to toggle invalid section", { sectionKey });
-      return;
-    }
-
-    if (!checked) {
-      // Remove from priorities when unchecked
-      const newPriorities = currentPriorities.filter(
-        (key) => key !== sectionKey && validSectionKeys.has(key)
-      );
-      updateFormData("report_section_priorities", newPriorities);
-    } else {
-      // Add to last priority (bottom of list) when checked (if not already there)
-      if (!currentPriorities.includes(sectionKey)) {
-        // Filter out any invalid sections and add the new one
-        const filteredPriorities = currentPriorities.filter((key) =>
-          validSectionKeys.has(key)
-        );
-        updateFormData("report_section_priorities", [
-          ...filteredPriorities,
-          sectionKey,
-        ]);
-      }
-    }
-  };
-
   // Load formData from localStorage on mount
   useEffect(() => {
     const draft = localStorage.getItem("onboardingDraft");
@@ -240,32 +138,14 @@ export default function OnboardingPage() {
         const parsed = JSON.parse(draft) as Record<string, unknown>;
         // Type-safe parsing with proper type guards
         if (parsed && typeof parsed === "object") {
-          // Filter out legacy sections that aren't in DEFAULT_REPORT_SECTIONS
-          const validSectionKeys = new Set(
-            DEFAULT_REPORT_SECTIONS.map((section) => section.key)
-          );
-
-          const cleanedData = { ...parsed };
-          if (cleanedData.report_section_priorities) {
-            cleanedData.report_section_priorities = (
-              cleanedData.report_section_priorities as string[]
-            ).filter((key) => validSectionKeys.has(key));
-          }
-
-          setFormData(cleanedData as OnboardingData);
+          setFormData(parsed as OnboardingData);
         }
       } catch {
         log.warn(LOG_CATEGORIES.ERRORS, "Invalid onboarding draft data");
       }
     } else {
-      // If no draft exists, initialize with first 6 priorities auto-selected
-      const initialData: OnboardingData = {
-        report_section_priorities: DEFAULT_REPORT_SECTIONS.slice(0, 6).map(
-          (section) => section.key
-        ),
-        important_locations: [],
-      };
-      setFormData(initialData);
+      // If no draft exists, initialize with default
+      setFormData({ important_locations: [] });
     }
   }, []);
 
@@ -288,7 +168,11 @@ export default function OnboardingPage() {
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Google Maps loading error",
+        googleMapsError,
+      );
       void void setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -352,8 +236,6 @@ export default function OnboardingPage() {
         setCurrentStep(2); // Housing
       } else if (firstMissingField.includes("location")) {
         setCurrentStep(3); // Location
-      } else if (firstMissingField.includes("report")) {
-        setCurrentStep(4); // Report Customization
       }
     }
   };
@@ -594,7 +476,7 @@ export default function OnboardingPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     updateFormData(
                       "preferred_bedrooms",
-                      parseInt(e.target.value) || undefined
+                      parseInt(e.target.value) || undefined,
                     )
                   }
                   min={1}
@@ -616,7 +498,7 @@ export default function OnboardingPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     updateFormData(
                       "preferred_bathrooms",
-                      parseFloat(e.target.value) || undefined
+                      parseFloat(e.target.value) || undefined,
                     )
                   }
                   min={1}
@@ -803,10 +685,9 @@ export default function OnboardingPage() {
                 locations={formData.important_locations ?? []}
                 onChange={(
                   locations: {
-                    name: string;
                     address: string;
                     commute_tolerance?: number;
-                  }[]
+                  }[],
                 ) => {
                   updateFormData("important_locations", locations);
                 }}
@@ -819,43 +700,6 @@ export default function OnboardingPage() {
           </div>
         );
 
-      case "reportcustomization": {
-        if (loading) {
-          return (
-            <div className="space-y-6">
-              <Title size="lg" className="mb-4 sm:mb-6">
-                Priorities
-              </Title>
-              <Loading message="Loading report customization options..." />
-            </div>
-          );
-        }
-
-        const orderedSections = getOrderedReportSections();
-
-        if (!orderedSections || orderedSections.length === 0) {
-          return (
-            <div className="space-y-6">
-              <Title size="lg" className="mb-4 sm:mb-6">
-                Priorities
-              </Title>
-              <Loading message="Loading report customization options..." />
-            </div>
-          );
-        }
-
-        return (
-          <OnPerDragDropPriorities
-            isEditMode={true}
-            isLoading={false}
-            orderedSections={orderedSections}
-            formData={formData}
-            onDragEnd={handleDragEnd}
-            onToggle={handleReportSectionToggle}
-          />
-        );
-      }
-
       default:
         return <div>Step content for {step.title} coming soon...</div>;
     }
@@ -864,56 +708,56 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-off-white">
       <div className="mx-auto w-full max-w-3xl px-4 pb-20 sm:px-6 sm:pb-8 lg:px-8">
-      {/* Header */}
-      <div className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
-        <div className="flex items-center">
-          <img
-            src={KeyLogo}
-            alt="SilverKey Logo"
-            className="h-6 sm:h-8 md:h-10"
-          />
-        </div>
-        <div className="flex items-center gap-4">
-          {/*  <SkipButton onSkip={handleSkip} size="sm" />*/}
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <OnboardingHeader
-        steps={STEPS}
-        currentStep={currentStep}
-        onStepClick={goToStep}
-      />
-
-      {/* Step Content */}
-      <div className="mt-4 rounded-2xl bg-white shadow-sm">
-        <Card className="pb-8 sm:pb-12">
-          {renderStepContent()}
-
-          {/* Navigation Buttons */}
-          <div className="mt-10 border-t border-beige/30 px-4 pb-1 pt-8 sm:px-6 sm:pb-2">
-            <NavigationButtons
-              currentStep={currentStep}
-              totalSteps={STEPS.length}
-              onPrevious={prevStep}
-              onNext={nextStep}
-              onSubmit={handleSubmit}
-              loading={loading}
-              layout="centered"
-              size="md"
+        {/* Header */}
+        <div className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
+          <div className="flex items-center">
+            <img
+              src={KeyLogo}
+              alt="SilverKey Logo"
+              className="h-6 sm:h-8 md:h-10"
             />
           </div>
-        </Card>
-      </div>
+          <div className="flex items-center gap-4">
+            {/*  <SkipButton onSkip={handleSkip} size="sm" />*/}
+          </div>
+        </div>
 
-      {/* Validation Warning Modal */}
-      <ValidationWarning
-        isVisible={showValidationWarning}
-        onClose={handleCloseValidationWarning}
-        onReview={handleReviewInformation}
-        missingFields={validationResult.missingFields}
-        errors={validationResult.errors}
-      />
+        {/* Progress Bar */}
+        <OnboardingHeader
+          steps={STEPS}
+          currentStep={currentStep}
+          onStepClick={goToStep}
+        />
+
+        {/* Step Content */}
+        <div className="mt-4 rounded-2xl bg-white shadow-sm">
+          <Card className="pb-8 sm:pb-12">
+            {renderStepContent()}
+
+            {/* Navigation Buttons */}
+            <div className="mt-10 border-t border-beige/30 px-4 pb-1 pt-8 sm:px-6 sm:pb-2">
+              <NavigationButtons
+                currentStep={currentStep}
+                totalSteps={STEPS.length}
+                onPrevious={prevStep}
+                onNext={nextStep}
+                onSubmit={handleSubmit}
+                loading={loading}
+                layout="centered"
+                size="md"
+              />
+            </div>
+          </Card>
+        </div>
+
+        {/* Validation Warning Modal */}
+        <ValidationWarning
+          isVisible={showValidationWarning}
+          onClose={handleCloseValidationWarning}
+          onReview={handleReviewInformation}
+          missingFields={validationResult.missingFields}
+          errors={validationResult.errors}
+        />
       </div>
     </div>
   );

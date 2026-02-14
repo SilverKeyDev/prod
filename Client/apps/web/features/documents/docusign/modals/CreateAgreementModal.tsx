@@ -21,7 +21,7 @@ type CreateAgreementModalProps = {
 
 /**
  * CreateAgreementModal Component
- * 
+ *
  * Modal for creating new DocuSign agreements (agent-only)
  * Includes form for title, type, buyer selection, property address
  */
@@ -32,8 +32,12 @@ export default function CreateAgreementModal({
   onSuccess,
 }: CreateAgreementModalProps) {
   const [title, setTitle] = useState("");
-  const [agreementType, setAgreementType] = useState<AgreementType>("buyer_representation");
-  const [selectedBuyerId, setSelectedBuyerId] = useState(preselectedBuyerId || "");
+  const [agreementType, setAgreementType] = useState<AgreementType>(
+    "buyer_representation",
+  );
+  const [selectedBuyerId, setSelectedBuyerId] = useState(
+    preselectedBuyerId || "",
+  );
   const [propertyAddress, setPropertyAddress] = useState("");
   const [description, setDescription] = useState("");
 
@@ -101,7 +105,8 @@ export default function CreateAgreementModal({
     } catch (error) {
       enqueueToast({
         type: "error",
-        message: error instanceof Error ? error.message : "Failed to create agreement",
+        message:
+          error instanceof Error ? error.message : "Failed to create agreement",
       });
     }
   };
@@ -152,7 +157,9 @@ export default function CreateAgreementModal({
             </label>
             <select
               value={agreementType}
-              onChange={(e) => setAgreementType(e.target.value as AgreementType)}
+              onChange={(e) =>
+                setAgreementType(e.target.value as AgreementType)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               disabled={isCreatingAgreement}
               required
@@ -220,7 +227,8 @@ export default function CreateAgreementModal({
           {templates && templates.length > 0 && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <BodyText size="sm" className="text-blue-900">
-                💡 Tip: After creating the agreement, you can upload the document PDF as a revision.
+                💡 Tip: After creating the agreement, you can upload the
+                document PDF as a revision.
               </BodyText>
             </div>
           )}

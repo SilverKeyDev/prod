@@ -3,7 +3,7 @@ import type { PropertyDetails, ComparisonField } from "./types";
 
 export function generateCSVContent(
   comparisonData: PropertyDetails[],
-  comparisonFields: ComparisonField[]
+  comparisonFields: ComparisonField[],
 ): string {
   const headers = [
     "Property",
@@ -17,7 +17,7 @@ export function generateCSVContent(
   ]);
 
   const csvRows = [headers, ...rows].map((r) =>
-    r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
+    r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","),
   );
   return csvRows.join("\n");
 }
@@ -25,7 +25,7 @@ export function generateCSVContent(
 export async function exportToCSV(
   csvContent: string,
   onSuccess: () => void,
-  onError: (message: string) => void
+  onError: (message: string) => void,
 ) {
   try {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -46,7 +46,7 @@ export async function shareCSV(
   csvContent: string,
   propertyCount: number,
   onSuccess: (message: string) => void,
-  onError: (message: string) => void
+  onError: (message: string) => void,
 ) {
   if (navigator.share) {
     try {
@@ -81,4 +81,3 @@ export async function shareCSV(
     }
   }
 }
-

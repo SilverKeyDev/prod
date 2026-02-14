@@ -56,7 +56,7 @@ function Dropdown<T = unknown>({
   // Filter options based on search term
   const filteredOptions = searchable
     ? options.filter((option) =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
+        option.label.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     : options;
 

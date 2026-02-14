@@ -1,4 +1,8 @@
-import { apiGet, apiPost, apiDelete } from "../../../services/http/compatibility";
+import {
+  apiGet,
+  apiPost,
+  apiDelete,
+} from "../../../services/http/compatibility";
 import { secureClipboardCopy } from "../../../services/security/clipboardSecurity";
 import { captureError } from "../../../services/security/errorReporting";
 import { log } from "../../../services/security/secureLogger";
@@ -80,7 +84,6 @@ export type DeleteReportResponse = {
  * Report API client using centralized utilities
  */
 export const reportApi = {
-
   /**
    * List all reports
    */
@@ -183,7 +186,9 @@ export const reportApi = {
    * Note: Backend returns 'documents' field, not 'reports'
    * @param clientId - Optional client ID for agents to view client's documents
    */
-  getDocuments: (clientId?: string): Promise<{
+  getDocuments: (
+    clientId?: string,
+  ): Promise<{
     success: boolean;
     documents?: ReportDocument[];
     reports?: ReportDocument[]; // For backward compatibility
@@ -211,8 +216,6 @@ export const reportApi = {
   /**
    * Compare multiple reports
    */
-  compare: (
-    request: CompareReportsRequest,
-  ): Promise<CompareReportsResponse> =>
+  compare: (request: CompareReportsRequest): Promise<CompareReportsResponse> =>
     apiPost<CompareReportsResponse>("/api/v1/report/compare", request),
 };

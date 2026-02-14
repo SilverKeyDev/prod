@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 
 import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
@@ -25,11 +25,14 @@ type ClientMessagingProps = {
   setMobileBottomActions?: React.Dispatch<
     React.SetStateAction<ReactNode | null>
   >;
+  /** Height of the mobile bottom bar (input bar) in px, used to offset messages when useBottomBarInput. */
+  mobileBottomBarHeight?: number;
 };
 
 export default function ClientMessaging({
   setMobileHeaderActions,
   setMobileBottomActions,
+  mobileBottomBarHeight,
 }: ClientMessagingProps = {}) {
   const isMobile = useIsMobile();
   const { userProfile } = useUserData();
@@ -86,7 +89,11 @@ export default function ClientMessaging({
   const { sendMessage: sendMessageWithAttachment } = useAgentChats();
 
   // Auto-scroll to bottom when messages change
-  const { messagesEndRef } = useMessageScroll(localMessages, activeConversationId, isLoadingHistory);
+  const { messagesEndRef } = useMessageScroll(
+    localMessages,
+    activeConversationId,
+    isLoadingHistory,
+  );
 
   const useBottomBarInput = isMobile && !!setMobileBottomActions;
 
@@ -102,14 +109,17 @@ export default function ClientMessaging({
     setShowCalendarEventModal(true);
   }, []);
 
+  // Ref for latest message so handleSendMessage stays stable (avoids effect re-runs)
+  const messageRef = useRef(message);
+  messageRef.current = message;
+
   // Handle sending messages (client mode)
   const handleSendMessage = useCallback(async () => {
-    if (!message.trim()) return;
-    const messageToSend = message.trim();
-    // Clear input immediately (optimistically)
+    const msg = messageRef.current.trim();
+    if (!msg) return;
     setMessage("");
-    await sendMessageApi(messageToSend);
-  }, [message, sendMessageApi]);
+    await sendMessageApi(msg);
+  }, [sendMessageApi]);
 
   const getHeaderMode = () => {
     // Don't show "Connection Requests" in main chat header - it's already in sidebar header
@@ -118,19 +128,31 @@ export default function ClientMessaging({
     return "chat";
   };
 
-  // Push messaging header into layout MobileTopBar on mobile so it hovers over content
+  // Refs to prevent redundant setState calls that cause "Maximum update depth exceeded"
+  const headerContentKeyRef = useRef<string | null>(null);
+  const bottomContentKeyRef = useRef<string | null>(null);
+
+  // Push messaging header into layout MobileTopBar on mobile so it hovers over content.
   useEffect(() => {
     if (!setMobileHeaderActions) return;
+    const headerMode = getHeaderMode();
+    const contentKey = `${headerMode}-${isSidebarExpanded}-${activeConversation?.agent_name ?? ""}`;
+    if (headerContentKeyRef.current === contentKey) return;
+    headerContentKeyRef.current = contentKey;
+
     setMobileHeaderActions(
       <UnifiedMessagingHeader
-        mode={getHeaderMode()}
+        mode={headerMode}
         isSidebarExpanded={isSidebarExpanded}
         setIsSidebarExpanded={setIsSidebarExpanded}
         onSearchClick={() => setShowSearchModal(true)}
         agentName={activeConversation?.agent_name}
-      />
+      />,
     );
-    return () => setMobileHeaderActions(null);
+    return () => {
+      headerContentKeyRef.current = null;
+      setMobileHeaderActions(null);
+    };
   }, [
     setMobileHeaderActions,
     showInbox,
@@ -142,6 +164,10 @@ export default function ClientMessaging({
   // On mobile, render the message input in a fixed MobileBottomBar (above the bottom nav).
   useEffect(() => {
     if (!isMobile || !setMobileBottomActions) return;
+    const contentKey = `${message}-${isTyping}`;
+    if (bottomContentKeyRef.current === contentKey) return;
+    bottomContentKeyRef.current = contentKey;
+
     setMobileBottomActions(
       <UnifiedMessageInput
         mode="client"
@@ -152,16 +178,18 @@ export default function ClientMessaging({
         onAttachmentHome={handleAttachmentHome}
         onAttachmentDocument={handleAttachmentDocument}
         onAttachmentCalendar={handleAttachmentCalendar}
-      />
+      />,
     );
 
-    return () => setMobileBottomActions(null);
+    return () => {
+      bottomContentKeyRef.current = null;
+      setMobileBottomActions(null);
+    };
   }, [
     isMobile,
     setMobileBottomActions,
     message,
     isTyping,
-    handleSendMessage,
     handleAttachmentHome,
     handleAttachmentDocument,
     handleAttachmentCalendar,
@@ -177,23 +205,32 @@ export default function ClientMessaging({
       const message = "";
 
       try {
-        await sendMessageWithAttachment(conversationId, message, undefined, propertyId);
+        await sendMessageWithAttachment(
+          conversationId,
+          message,
+          undefined,
+          propertyId,
+        );
         setShowSelectHomeModal(false);
       } catch (error) {
         log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
       }
     },
-    [activeConversationId, agentId, sendMessageWithAttachment]
+    [activeConversationId, agentId, sendMessageWithAttachment],
   );
 
   // Handle document selection from attachment menu
   const handleSelectDocument = useCallback(
     async (document: DocumentData) => {
       if (!activeConversationId && !agentId) {
-        log.error(LOG_CATEGORIES.MESSAGES, "Cannot share document: missing conversation or agent", {
-          hasActiveConversationId: !!activeConversationId,
-          hasAgentId: !!agentId,
-        });
+        log.error(
+          LOG_CATEGORIES.MESSAGES,
+          "Cannot share document: missing conversation or agent",
+          {
+            hasActiveConversationId: !!activeConversationId,
+            hasAgentId: !!agentId,
+          },
+        );
         return;
       }
 
@@ -215,8 +252,17 @@ export default function ClientMessaging({
       });
 
       try {
-        await sendMessageWithAttachment(conversationId, message, undefined, undefined, documentId);
-        log.info(LOG_CATEGORIES.MESSAGES, "Document shared successfully", { documentId, conversationId });
+        await sendMessageWithAttachment(
+          conversationId,
+          message,
+          undefined,
+          undefined,
+          documentId,
+        );
+        log.info(LOG_CATEGORIES.MESSAGES, "Document shared successfully", {
+          documentId,
+          conversationId,
+        });
         setShowSelectDocumentModal(false);
       } catch (error) {
         log.error(LOG_CATEGORIES.MESSAGES, "Error sharing document", {
@@ -227,7 +273,7 @@ export default function ClientMessaging({
         });
       }
     },
-    [activeConversationId, agentId, sendMessageWithAttachment]
+    [activeConversationId, agentId, sendMessageWithAttachment],
   );
 
   // Handle calendar event request
@@ -253,9 +299,7 @@ export default function ClientMessaging({
         />
 
         {/* Main Chat Section */}
-        <section
-          className="relative flex flex-1 flex-col h-full transition-all duration-300 ease-in-out"
-        >
+        <section className="relative flex min-w-0 flex-1 flex-col h-full transition-all duration-300 ease-in-out">
           <div className="flex flex-1 flex-col min-h-0">
             {/* Chat Header - hidden on mobile; shown in MobileTopBar (hovering) via setMobileHeaderActions */}
             <div className="hidden md:block">
@@ -269,8 +313,15 @@ export default function ClientMessaging({
             </div>
 
             {/* Messages Container */}
-            <div className="flex-1 overflow-hidden min-h-0">
-              <div className="scrollbar-hide h-full space-y-3 overflow-y-auto p-3 min-h-0">
+            <div className="flex-1 min-w-0 overflow-hidden min-h-0">
+              <div
+                className="scrollbar-hide h-full min-w-0 space-y-3 overflow-x-hidden overflow-y-auto px-2 py-3 min-h-0"
+                style={
+                  useBottomBarInput && (mobileBottomBarHeight ?? 0) > 0
+                    ? { paddingBottom: `${mobileBottomBarHeight}px` }
+                    : undefined
+                }
+              >
                 <UnifiedMessagesList
                   mode="client"
                   canSendMessage={canSendMessage}

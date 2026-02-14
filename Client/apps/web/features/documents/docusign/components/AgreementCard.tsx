@@ -20,7 +20,7 @@ type AgreementCardProps = {
 
 /**
  * AgreementCard Component
- * 
+ *
  * Reusable card for displaying agreement summary
  * Used in dashboard widgets, messaging, and list views
  */
@@ -34,7 +34,7 @@ export default function AgreementCard({
 }: AgreementCardProps) {
   const signingProgress = useMemo(
     () => calculateSigningProgress(agreement.participants),
-    [agreement.participants]
+    [agreement.participants],
   );
 
   const handleCardClick = () => {
@@ -45,7 +45,7 @@ export default function AgreementCard({
 
   const handleActionClick = (
     action: "view" | "send" | "sign" | "void",
-    e: React.MouseEvent
+    e: React.MouseEvent,
   ) => {
     e.stopPropagation();
     if (onActionClick) {

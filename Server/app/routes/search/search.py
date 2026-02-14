@@ -339,13 +339,13 @@ def get_isochrone():
         geocoded_locations = []
         primary_location = important_locations[0]  # Use first location as primary for backward compatibility
         primary_address = primary_location.get('address', '')
-        primary_name = primary_location.get('name', 'Primary Location')
+        primary_name = primary_location.get('name') or primary_location.get('address', '')[:40] or 'Primary Location'
         
         # Use the Google Maps geocoding function
         for location in important_locations:
             address = location.get('address')
             commute_tolerance = location.get('commute_tolerance', 30)
-            name = location.get('name', 'Unknown Location')
+            name = location.get('name') or location.get('address', '')[:40] or 'Unknown Location'
             
             if address and address.strip():
                 addresses_and_minutes.append((address.strip(), commute_tolerance))
@@ -399,7 +399,7 @@ def get_isochrone():
         # Calculate center point from all locations (use first location as primary center for backward compatibility)
         primary_location = important_locations[0]
         primary_address = primary_location.get('address')
-        primary_name = primary_location.get('name', 'Multiple Locations')
+        primary_name = primary_location.get('name') or primary_location.get('address', '')[:40] or 'Multiple Locations'
         
         try:
             coords = geocode_address_google(primary_address) if primary_address else None
@@ -421,7 +421,7 @@ def get_isochrone():
                 if i < len(important_locations):
                     location = important_locations[i]
                     individual_isochrones.append({
-                        "name": location.get('name', f'Location {i+1}'),
+                        "name": location.get('name') or location.get('address', '')[:40] or f'Location {i+1}',
                         "address": location.get('address'),
                         "commute_tolerance": location.get('commute_tolerance', 30),
                         "isochrone": feature

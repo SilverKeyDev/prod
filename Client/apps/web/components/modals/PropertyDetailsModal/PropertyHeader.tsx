@@ -1,26 +1,70 @@
-import { X, FileText, ListOrdered, Share2 } from "lucide-react";
+import { FileText, Share2 } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Button from "../../ui/button/Button";
+import { CloseButton, IconButton } from "../../ui";
 import { CardHeartSave } from "../../cards/base";
 import KeyLogo from "../../ui/asset/KeyLogo";
 import MiniLogo from "../../ui/asset/MiniLogo";
 import ShareHomeModal from "../ShareHomeModal";
 
 import type { PropertyHeaderProps } from "./types";
-import { formatAddress } from "./utils";
+import { formatAddress, type AddressObject } from "./utils";
+
+/** Normalize property for favorites API - address must be a string (API rejects object addresses) */
+function normalizePropertyForFavorites(
+  property: PropertyHeaderProps["property"],
+): { id: string; address: string; [key: string]: unknown } {
+  const p = property as {
+    id: string;
+    address?: unknown;
+    streetAddress?: string;
+    city?: string;
+    state?: string;
+    zipcode?: string;
+  };
+  const addr = p.address;
+  let addressStr =
+    typeof addr === "string" ? addr : formatAddress(addr as AddressObject);
+  if (!addressStr && (p.streetAddress || p.city || p.state)) {
+    addressStr = formatAddress({
+      streetAddress: p.streetAddress,
+      city: p.city,
+      state: p.state,
+      zipcode: p.zipcode,
+    });
+  }
+  return {
+    ...(property as Record<string, unknown>),
+    id: p.id,
+    address: addressStr || p.streetAddress || "",
+  };
+}
+
+function getDisplayAddress(address: unknown): string | null {
+  if (typeof address === "string") return address;
+  if (
+    typeof address === "object" &&
+    address !== null &&
+    "streetAddress" in address
+  ) {
+    return formatAddress(address as string | AddressObject | null | undefined);
+  }
+  return null;
+}
 
 export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   property,
   onClose,
   onGenerateReport,
-  onOpenPriorities,
+  toolbarButtonSize = "medium",
 }) => {
   const navigate = useNavigate();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const propertyAddress = (property as unknown as { address: unknown }).address;
+  const displayAddress = getDisplayAddress(propertyAddress);
 
   const handleGenerateFullReport = () => {
     const address = formatAddress(
@@ -28,7 +72,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
         | string
         | import("./utils").AddressObject
         | null
-        | undefined
+        | undefined,
     );
 
     // Save the address to localStorage for the GenerateReportPage
@@ -40,7 +84,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 
     localStorage.setItem(
       "generateReportState",
-      JSON.stringify(generateReportState)
+      JSON.stringify(generateReportState),
     );
 
     // Call the optional callback if provided
@@ -58,21 +102,9 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
       <div className="flex items-center">
         <MiniLogo size="sm" className="md:hidden" />
         <KeyLogo size="sm" className="hidden md:block" />
-        {propertyAddress && (
+        {displayAddress && (
           <h1 className="ml-3 text-base sm:text-lg font-semibold text-gray-900 truncate">
-            {typeof propertyAddress === "string"
-              ? propertyAddress
-              : typeof propertyAddress === "object" &&
-                  propertyAddress !== null &&
-                  "streetAddress" in propertyAddress
-                ? formatAddress(
-                    propertyAddress as
-                      | string
-                      | import("./utils").AddressObject
-                      | null
-                      | undefined
-                  )
-                : null}
+            {displayAddress}
           </h1>
         )}
       </div>
@@ -88,17 +120,6 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
         >
           Zillow
         </Button> */}
-        {onOpenPriorities && (
-          <Button
-            variant="outline"
-            size="md"
-            onClick={onOpenPriorities}
-            icon={<ListOrdered className="h-5 w-5 text-gray-600" />}
-            className="border-gray-600 text-gray-600 hover:bg-gray-50"
-          >
-            Priorities
-          </Button>
-        )}
         {onGenerateReport && (
           <Button
             variant="outline"
@@ -110,29 +131,28 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
             Generate Report
           </Button>
         )}
-        <Button
-          variant="outline"
-          size="md"
+        <IconButton
+          variant="toolbar"
+          size={toolbarButtonSize}
+          rounded="md"
+          icon={<Share2 className="h-full w-full" />}
           onClick={() => setIsShareModalOpen(true)}
-          icon={<Share2 className="h-5 w-5 text-gray-600" />}
-          className="border-gray-600 text-gray-600 hover:bg-gray-50"
-        >
-          Share
-        </Button>
-
-        <CardHeartSave
-          property={property}
-          size="lg"
-          className="text-gray-600 hover:bg-gray-50 rounded-md transition-colors p-2"
+          aria-label="Share"
         />
 
-        <button
+        <CardHeartSave
+          property={normalizePropertyForFavorites(property)}
+          size={toolbarButtonSize}
+          className="text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
+        />
+
+        <CloseButton
+          variant="toolbar"
+          size={toolbarButtonSize}
+          rounded="md"
           onClick={onClose}
-          className="group relative -ml-1 p-2.5 rounded-lg transition-all duration-200 bg-white hover:bg-gray-100 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md md:ml-0"
           aria-label="Close modal"
-        >
-          <X className="h-5 w-5 text-gray-700 group-hover:text-gray-900 transition-colors" />
-        </button>
+        />
       </div>
 
       {/* Share Home Modal */}

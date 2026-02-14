@@ -20,7 +20,9 @@ type UseSavedPageMobileHeaderProps = {
   selectedClientId: string | null;
   setSelectedClientId: (id: string | null) => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
-  setEventTypeFilter?: (eventType: "listed" | "price_change" | "sold" | "withdrawn" | "") => void;
+  setEventTypeFilter?: (
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
+  ) => void;
 };
 
 /**

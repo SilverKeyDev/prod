@@ -63,7 +63,7 @@ export default function UnifiedMessagingSidebar({
 
   // Create a map of client_id -> conversation for quick lookup (agent mode)
   const conversationMap = new Map(
-    conversations.map((conv) => [conv.client_id, conv])
+    conversations.map((conv) => [conv.client_id, conv]),
   );
 
   const renderSidebarContent = () => {

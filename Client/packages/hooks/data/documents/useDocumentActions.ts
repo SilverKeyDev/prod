@@ -21,13 +21,14 @@ export type PdfModalHooks = {
     documentName: string,
   ) => Promise<{ success: boolean; message: string }>;
   downloadFile: (url: string, filename: string) => void;
-  openPdfModal: (pdfUrl: string, documentName?: string, documentId?: string) => void;
+  openPdfModal: (
+    pdfUrl: string,
+    documentName?: string,
+    documentId?: string,
+  ) => void;
   closePdfModal: () => void;
   loadingUrls: Set<string>;
-  handleViewDocument: (
-    documentId: string,
-    documentName: string,
-  ) => void;
+  handleViewDocument: (documentId: string, documentName: string) => void;
   handleDownloadDocument: (
     documentId: string,
     documentName: string,
@@ -40,15 +41,17 @@ export type PdfModalHooks = {
 
 export const usePdfModal = (): PdfModalHooks => {
   const [currentPdf, setCurrentPdf] = useState<string | null>(null);
-  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(
+    null,
+  );
   const [currentDocumentName, setCurrentDocumentName] = useState<string | null>(
     null,
   );
   const [loadingUrls, setLoadingUrls] = useState<Set<string>>(new Set());
-  
+
   // Simple modal state management without the extra useModal hook
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const open = useCallback(() => {
     setIsOpen(true);
     document.body.style.overflow = "hidden";
@@ -87,35 +90,34 @@ export const usePdfModal = (): PdfModalHooks => {
     }
   }, []);
 
-  const getFreshViewUrl = useCallback(
-    (documentId: string): string | null => {
-      try {
-        // Instead of calling the old API, return our proxy URL directly
-        if (typeof window !== 'undefined') {
-          const baseUrl = window.location.origin;
-          const viewUrl = `${baseUrl}/api/v1/report/${documentId}/view`;
-          console.log("[useDocumentActions] Generated view URL", {
-            documentId,
-            baseUrl,
-            viewUrl,
-            timestamp: new Date().toISOString(),
-          });
-          return viewUrl;
-        }
-        console.warn("[useDocumentActions] Window is undefined, cannot generate URL");
-        return null;
-      } catch (err: unknown) {
-        const error = asError(err);
-        console.error("[useDocumentActions] Failed to get fresh view URL", {
-          error,
+  const getFreshViewUrl = useCallback((documentId: string): string | null => {
+    try {
+      // Instead of calling the old API, return our proxy URL directly
+      if (typeof window !== "undefined") {
+        const baseUrl = window.location.origin;
+        const viewUrl = `${baseUrl}/api/v1/report/${documentId}/view`;
+        console.log("[useDocumentActions] Generated view URL", {
           documentId,
+          baseUrl,
+          viewUrl,
           timestamp: new Date().toISOString(),
         });
-        return null;
+        return viewUrl;
       }
-    },
-    [],
-  );
+      console.warn(
+        "[useDocumentActions] Window is undefined, cannot generate URL",
+      );
+      return null;
+    } catch (err: unknown) {
+      const error = asError(err);
+      console.error("[useDocumentActions] Failed to get fresh view URL", {
+        error,
+        documentId,
+        timestamp: new Date().toISOString(),
+      });
+      return null;
+    }
+  }, []);
 
   const getFreshDownloadUrl = useCallback(
     async (documentId: string): Promise<string | null> => {
@@ -170,14 +172,14 @@ export const usePdfModal = (): PdfModalHooks => {
         urlStartsWith: pdfUrl.substring(0, 50),
         timestamp: new Date().toISOString(),
       });
-      
+
       // Set all states synchronously - React will batch these updates
       setCurrentPdf(pdfUrl);
       setCurrentDocumentId(documentId ?? null);
       setCurrentDocumentName(documentName ?? null);
       setIsOpen(true);
       document.body.style.overflow = "hidden";
-      
+
       console.log("[useDocumentActions] Opening PDF modal - COMPLETE", {
         documentId,
         timestamp: new Date().toISOString(),
@@ -193,7 +195,7 @@ export const usePdfModal = (): PdfModalHooks => {
         documentName,
         timestamp: new Date().toISOString(),
       });
-      
+
       try {
         // Generate URL synchronously (no await needed)
         const pdfUrl = getFreshViewUrl(documentId);
@@ -203,16 +205,19 @@ export const usePdfModal = (): PdfModalHooks => {
           success: !!pdfUrl,
           timestamp: new Date().toISOString(),
         });
-        
+
         if (pdfUrl) {
           // Open modal immediately - no async delays
           openPdfModal(pdfUrl, documentName, documentId);
         } else {
-          console.error("[useDocumentActions] Failed to get PDF view URL for document:", {
-            documentId,
-            documentName,
-            timestamp: new Date().toISOString(),
-          });
+          console.error(
+            "[useDocumentActions] Failed to get PDF view URL for document:",
+            {
+              documentId,
+              documentName,
+              timestamp: new Date().toISOString(),
+            },
+          );
           showErrorToast("Unable to view document. Please try again later.");
         }
       } catch (error: unknown) {

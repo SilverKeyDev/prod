@@ -35,7 +35,7 @@ export default function SidebarNavigation({
         className={
           isLargeScreen
             ? "space-y-2"
-            : "space-y-2 rounded-lg border border-beige/30 bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md"
+            : "flex flex-col items-center space-y-2 rounded-lg border border-beige/30 bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md"
         }
         padding={isLargeScreen ? "md" : "none"}
       >
@@ -43,7 +43,7 @@ export default function SidebarNavigation({
         {headerContent && (
           <div
             className={`${isLargeScreen ? "mb-8" : "mb-4"} ${
-              isLargeScreen ? "w-full" : "flex justify-center"
+              isLargeScreen ? "w-full" : "flex flex-col items-center w-full"
             }`}
           >
             {headerContent}
@@ -56,8 +56,8 @@ export default function SidebarNavigation({
             key={item.key}
             onClick={() => onItemClick(item.key)}
             disabled={item.disabled}
-            className={`group flex w-full items-center rounded-lg px-3 py-2 transition-colors ${
-              isLargeScreen ? "gap-3" : "justify-center"
+            className={`group flex items-center rounded-lg transition-colors ${
+              isLargeScreen ? "w-full gap-3 px-3 py-2" : "w-8 h-8 min-w-8 p-0 justify-center"
             } ${
               currentActiveItem === item.key
                 ? "bg-gold text-off-white"

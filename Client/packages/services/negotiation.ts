@@ -86,7 +86,11 @@ export class NegotiationService {
       const item = sessionStorage.getItem(key);
       return item ? JSON.parse(item) : null;
     } catch (error: unknown) {
-      log.warn(LOG_CATEGORIES.API, `Failed to load ${key} from sessionStorage`, error);
+      log.warn(
+        LOG_CATEGORIES.API,
+        `Failed to load ${key} from sessionStorage`,
+        error,
+      );
       return null;
     }
   }
@@ -98,7 +102,11 @@ export class NegotiationService {
     try {
       sessionStorage.setItem(key, JSON.stringify(value));
     } catch (error: unknown) {
-      log.warn(LOG_CATEGORIES.API, `Failed to save ${key} to sessionStorage`, error);
+      log.warn(
+        LOG_CATEGORIES.API,
+        `Failed to save ${key} to sessionStorage`,
+        error,
+      );
     }
   }
 
@@ -338,14 +346,17 @@ export class NegotiationService {
         "strategy" in strategyResponse && strategyResponse.strategy
           ? (strategyResponse.strategy as Record<string, unknown>)
           : {};
-      
+
       // Debug logging for price section
       log.debug(LOG_CATEGORIES.NEGOTIATION, "Strategy response data", {
         hasStrategy: !!strategyResponse.strategy,
         hasParsedData: !!parsedStrategyData,
-        hasDataField: parsedStrategyData && typeof parsedStrategyData === "object" && "data" in parsedStrategyData,
+        hasDataField:
+          parsedStrategyData &&
+          typeof parsedStrategyData === "object" &&
+          "data" in parsedStrategyData,
       });
-      
+
       log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy generated successfully", {
         strategyId:
           "strategy_id" in strategyResponse &&
@@ -393,7 +404,10 @@ export class NegotiationService {
         });
       }
 
-      log.info(LOG_CATEGORIES.NEGOTIATION, "Data saved to localStorage successfully");
+      log.info(
+        LOG_CATEGORIES.NEGOTIATION,
+        "Data saved to localStorage successfully",
+      );
     } catch (err: unknown) {
       const error = asError(err);
       log.error(LOG_CATEGORIES.ERRORS, "Error generating strategy", error);
@@ -529,7 +543,10 @@ export class NegotiationService {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy JSON downloaded successfully");
+      log.info(
+        LOG_CATEGORIES.NEGOTIATION,
+        "Strategy JSON downloaded successfully",
+      );
     } catch (error: unknown) {
       log.error(
         "NEGOTIATION_SERVICE",
@@ -575,12 +592,19 @@ export class NegotiationService {
         if (navigator.canShare(shareData)) {
           try {
             await navigator.share(shareData);
-            log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy shared successfully via Web Share API");
+            log.info(
+              LOG_CATEGORIES.NEGOTIATION,
+              "Strategy shared successfully via Web Share API",
+            );
             return;
           } catch (err: unknown) {
             const error = asError(err);
             if (error instanceof Error && error.name !== "AbortError") {
-              log.warn(LOG_CATEGORIES.NEGOTIATION, "Web Share API failed, trying text share", error);
+              log.warn(
+                LOG_CATEGORIES.NEGOTIATION,
+                "Web Share API failed, trying text share",
+                error,
+              );
             } else {
               // User cancelled sharing
               return;
@@ -604,12 +628,19 @@ export class NegotiationService {
             title: "Negotiation Strategy",
             text: `Negotiation strategy for ${address}:\n\n${dataStr}`,
           });
-          log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy shared as text via Web Share API");
+          log.info(
+            LOG_CATEGORIES.NEGOTIATION,
+            "Strategy shared as text via Web Share API",
+          );
           return;
         } catch (err: unknown) {
           const error = asError(err);
           if (error instanceof Error && error.name !== "AbortError") {
-            log.warn(LOG_CATEGORIES.NEGOTIATION, "Text share also failed, falling back to clipboard", error);
+            log.warn(
+              LOG_CATEGORIES.NEGOTIATION,
+              "Text share also failed, falling back to clipboard",
+              error,
+            );
           } else {
             // User cancelled sharing
             return;
@@ -619,7 +650,10 @@ export class NegotiationService {
 
       // Final fallback: Copy to clipboard
       await this.copyToClipboard(dataStr);
-      log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy copied to clipboard as fallback");
+      log.info(
+        LOG_CATEGORIES.NEGOTIATION,
+        "Strategy copied to clipboard as fallback",
+      );
     } catch (error: unknown) {
       log.error(LOG_CATEGORIES.ERRORS, "Failed to share strategy", error);
     }

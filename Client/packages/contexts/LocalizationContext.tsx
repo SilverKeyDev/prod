@@ -31,11 +31,11 @@ export type LocalizationContextType = {
   t: (key: string, params?: Record<string, unknown>) => string;
   formatDate: (
     date: Date | string,
-    options?: Intl.DateTimeFormatOptions
+    options?: Intl.DateTimeFormatOptions,
   ) => string;
   formatTime: (
     date: Date | string,
-    options?: Intl.DateTimeFormatOptions
+    options?: Intl.DateTimeFormatOptions,
   ) => string;
   formatNumber: (number: number, options?: Intl.NumberFormatOptions) => string;
   formatCurrency: (amount: number, currency?: string) => string;
@@ -46,7 +46,7 @@ export type LocalizationContextType = {
 };
 
 const LocalizationContext = createContext<LocalizationContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export type LocalizationProviderProps = {
@@ -75,7 +75,7 @@ const defaultConfig: LocaleConfig = {
 const translate = (
   key: string,
   params?: Record<string, unknown>,
-  locale: Locale = "en"
+  locale: Locale = "en",
 ): string => {
   // This is a placeholder - in a real app, you'd load translations from files
   const translations: Record<string, Record<Locale, string>> = {
@@ -130,7 +130,7 @@ export function LocalizationProvider({
   const [browserLocale, setBrowserLocale] = useState<Locale>("en");
   const supportedLocales: Locale[] = useMemo(
     () => ["en", "es", "fr", "de"],
-    []
+    [],
   );
 
   // Detect browser locale
@@ -153,7 +153,7 @@ export function LocalizationProvider({
 
   const formatDate = (
     date: Date | string,
-    options?: Intl.DateTimeFormatOptions
+    options?: Intl.DateTimeFormatOptions,
   ): string => {
     const dateObj = typeof date === "string" ? new Date(date) : date;
     const defaultOptions: Intl.DateTimeFormatOptions = {
@@ -170,7 +170,7 @@ export function LocalizationProvider({
 
   const formatTime = (
     date: Date | string,
-    options?: Intl.DateTimeFormatOptions
+    options?: Intl.DateTimeFormatOptions,
   ): string => {
     const dateObj = typeof date === "string" ? new Date(date) : date;
     const defaultOptions: Intl.DateTimeFormatOptions = {
@@ -187,7 +187,7 @@ export function LocalizationProvider({
 
   const formatNumber = (
     number: number,
-    options?: Intl.NumberFormatOptions
+    options?: Intl.NumberFormatOptions,
   ): string => {
     const defaultOptions = { ...config.numberFormat, ...options };
     return new Intl.NumberFormat(config.locale, defaultOptions).format(number);
@@ -224,7 +224,7 @@ export function useLocalization() {
   const context = useContext(LocalizationContext);
   if (!context) {
     throw new Error(
-      "useLocalization must be used within a LocalizationProvider"
+      "useLocalization must be used within a LocalizationProvider",
     );
   }
   return context;

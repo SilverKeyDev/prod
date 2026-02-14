@@ -3,7 +3,10 @@ import { FileSignature, Plus, ExternalLink, Clock } from "lucide-react";
 import { useDocusignAgreements } from "../../../../../packages/hooks/data/documents/useDocusignAgreements";
 import { Button, Title, BodyText } from "../../../components/ui";
 import AgreementStatusBadge from "../../documents/docusign/components/AgreementStatusBadge";
-import { CreateAgreementModal, AgreementDetailModal } from "../../documents/docusign/modals";
+import {
+  CreateAgreementModal,
+  AgreementDetailModal,
+} from "../../documents/docusign/modals";
 import { KeyTurnLoader } from "../../../components/ui";
 import {
   daysSinceSent,
@@ -15,13 +18,15 @@ import type { Agreement } from "../../../../../packages/schemas/documents/docusi
 
 /**
  * DocuSignWidget Component
- * 
+ *
  * Dashboard widget showing pending signatures and recent agreements
  * Two-column layout: pending signatures on left, recent agreements on right
  */
 export default function DocuSignWidget() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(
+    null,
+  );
 
   const { agreements, isLoading, error } = useDocusignAgreements();
 
@@ -32,7 +37,7 @@ export default function DocuSignWidget() {
         (a) =>
           a.status === "sent" ||
           a.status === "delivered" ||
-          a.status === "signed"
+          a.status === "signed",
       )
       .sort((a, b) => {
         const daysA = daysSinceSent(a.sent_at);
@@ -65,13 +70,13 @@ export default function DocuSignWidget() {
         (a) =>
           a.status === "completed" &&
           a.completed_at &&
-          new Date(a.completed_at) >= oneWeekAgo
+          new Date(a.completed_at) >= oneWeekAgo,
       ).length,
       voidedThisMonth: agreements.filter(
         (a) =>
           a.status === "voided" &&
           a.voided_at &&
-          new Date(a.voided_at) >= oneMonthAgo
+          new Date(a.voided_at) >= oneMonthAgo,
       ).length,
     };
   }, [agreements, pendingSignatures]);
@@ -239,7 +244,9 @@ export default function DocuSignWidget() {
                       </p>
                     )}
                     <p className="text-xs text-gray-500">
-                      {formatAgreementDate(agreement.updated_at || agreement.created_at)}
+                      {formatAgreementDate(
+                        agreement.updated_at || agreement.created_at,
+                      )}
                     </p>
                   </div>
                 ))}

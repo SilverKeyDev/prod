@@ -62,7 +62,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
                     city: string;
                     state: string;
                     zipcode: string;
-                  }
+                  },
                 );
               }
               try {
@@ -105,7 +105,6 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
         </div>
       </div>
 
-
       <Card className="p-4">
         <h3 className="mb-4 text-lg font-semibold text-brown">
           Property Details
@@ -138,7 +137,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               {formatPropertyType(
                 (propertyHomeType as string) ??
                   (propertyPropertyType as string) ??
-                  ""
+                  "",
               )}
             </div>
           ) : null}

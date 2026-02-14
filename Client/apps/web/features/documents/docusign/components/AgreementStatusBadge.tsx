@@ -16,7 +16,7 @@ type AgreementStatusBadgeProps = {
 
 /**
  * AgreementStatusBadge Component
- * 
+ *
  * Displays a color-coded status badge for DocuSign agreements
  * Used across all DocuSign UI components for consistent status display
  */

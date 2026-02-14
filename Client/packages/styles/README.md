@@ -5,6 +5,7 @@ CSS stylesheets and utility classes for the SilverKey application.
 ## Purpose
 
 The `styles/` package contains CSS stylesheets that provide:
+
 - Base styles and resets
 - Component styles
 - Utility classes
@@ -15,27 +16,35 @@ The `styles/` package contains CSS stylesheets that provide:
 ## Files
 
 ### `base.css`
+
 Base styles, resets, and global styles.
 
 ### `components.css`
+
 Component-specific styles.
 
 ### `utilities.css`
+
 Utility classes for common patterns.
 
 ### `animations.css`
+
 Animation definitions and keyframes.
 
 ### `mobile.css`
+
 Mobile-specific styles and responsive utilities.
 
 ### `maps.css`
+
 Google Maps-specific styles.
 
 ### `carousel.css`
+
 Carousel component styles.
 
 ### `index.css`
+
 Main stylesheet that imports all other stylesheets.
 
 ## Usage
@@ -50,6 +59,7 @@ import "../packages/styles/index.css";
 ## Organization
 
 Styles are organized by concern:
+
 - **Base** - Foundation styles
 - **Components** - Component-specific styles
 - **Utilities** - Reusable utility classes

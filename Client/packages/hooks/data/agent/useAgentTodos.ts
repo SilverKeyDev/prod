@@ -31,7 +31,10 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
   const isAgent = useAuthStore((s) => s.user?.is_agent ?? false);
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated && isAgent, [authReady, isAuthenticated, isAgent]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated && isAgent,
+    [authReady, isAuthenticated, isAgent],
+  );
 
   // Fetch todos
   const {
@@ -53,7 +56,9 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     // Note: Only use cached data if we're querying with includeCompleted=false (what's prefetched)
     placeholderData: () => {
       if (includeCompleted === false) {
-        return queryClient.getQueryData<TodoItem[]>(queryKeys.agent.todos(false));
+        return queryClient.getQueryData<TodoItem[]>(
+          queryKeys.agent.todos(false),
+        );
       }
       return undefined;
     },

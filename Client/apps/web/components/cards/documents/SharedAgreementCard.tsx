@@ -12,7 +12,7 @@ type SharedAgreementCardProps = {
 
 /**
  * SharedAgreementCard Component
- * 
+ *
  * Displays a DocuSign agreement in chat messages
  * Shows when an agent shares an agreement with a client in messaging
  * Clicking opens the AgreementDetailModal for full details

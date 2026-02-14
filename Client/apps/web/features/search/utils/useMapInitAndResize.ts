@@ -13,13 +13,16 @@ export function useMapInitAndResize(params: {
   ensureMapMounted: () => void;
 } {
   const googleMapRef = useRef<google.maps.Map | null>(null);
-  
+
   // Memoize stable dependencies to prevent unnecessary re-renders
-  const stableParams = useMemo(() => ({
-    isLocalStorageLoaded: params.isLocalStorageLoaded,
-    isGoogleMapsLoaded: params.isGoogleMapsLoaded,
-    createMap: params.createMap,
-  }), [params.isLocalStorageLoaded, params.isGoogleMapsLoaded, params.createMap]);
+  const stableParams = useMemo(
+    () => ({
+      isLocalStorageLoaded: params.isLocalStorageLoaded,
+      isGoogleMapsLoaded: params.isGoogleMapsLoaded,
+      createMap: params.createMap,
+    }),
+    [params.isLocalStorageLoaded, params.isGoogleMapsLoaded, params.createMap],
+  );
 
   // Helper: which container is visible? (memoized to prevent re-renders)
   const getVisibleMapEl = useCallback(() => {
@@ -55,15 +58,18 @@ export function useMapInitAndResize(params: {
         targetContainer: container,
         timestamp: new Date().toISOString(),
       });
-      
+
       // Check if the target container already has a map
       const existingMap = googleMapsService.getMapForContainer(container);
       if (existingMap) {
-        console.log("✅ [MAP_RESIZE] Target container already has a map, reusing:", {
-          existingMap,
-          container,
-          timestamp: new Date().toISOString(),
-        });
+        console.log(
+          "✅ [MAP_RESIZE] Target container already has a map, reusing:",
+          {
+            existingMap,
+            container,
+            timestamp: new Date().toISOString(),
+          },
+        );
         googleMapRef.current = existingMap;
       } else {
         const map = stableParams.createMap(container);
@@ -86,7 +92,11 @@ export function useMapInitAndResize(params: {
   // Initialize Google Maps automatically when conditions are met
   useEffect(() => {
     // Only initialize if prerequisites are ready and no map exists
-    if (!stableParams.isLocalStorageLoaded || !stableParams.isGoogleMapsLoaded || googleMapRef.current) {
+    if (
+      !stableParams.isLocalStorageLoaded ||
+      !stableParams.isGoogleMapsLoaded ||
+      googleMapRef.current
+    ) {
       return;
     }
 
@@ -124,10 +134,19 @@ export function useMapInitAndResize(params: {
         window.google.maps.event.trigger(googleMapRef.current, "resize");
       }
     }, 100);
-  }, [stableParams.isLocalStorageLoaded, stableParams.isGoogleMapsLoaded, stableParams.createMap, getVisibleMapEl]);
+  }, [
+    stableParams.isLocalStorageLoaded,
+    stableParams.isGoogleMapsLoaded,
+    stableParams.createMap,
+    getVisibleMapEl,
+  ]);
 
   const ensureMapMounted = useCallback(() => {
-    if (!stableParams.isLocalStorageLoaded || !stableParams.isGoogleMapsLoaded || googleMapRef.current) {
+    if (
+      !stableParams.isLocalStorageLoaded ||
+      !stableParams.isGoogleMapsLoaded ||
+      googleMapRef.current
+    ) {
       return;
     }
 
@@ -165,7 +184,12 @@ export function useMapInitAndResize(params: {
         window.google.maps.event.trigger(googleMapRef.current, "resize");
       }
     }, 100);
-  }, [stableParams.isLocalStorageLoaded, stableParams.isGoogleMapsLoaded, stableParams.createMap, getVisibleMapEl]);
+  }, [
+    stableParams.isLocalStorageLoaded,
+    stableParams.isGoogleMapsLoaded,
+    stableParams.createMap,
+    getVisibleMapEl,
+  ]);
 
   return {
     googleMapRef,

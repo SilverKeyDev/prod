@@ -86,11 +86,7 @@ export default function CalendarEventRequestModal({
     try {
       const clientIdToPass =
         isAgent && conversationId === "new" ? selectedClientId : undefined;
-      await sendMessage(
-        conversationId,
-        message,
-        clientIdToPass ?? undefined
-      );
+      await sendMessage(conversationId, message, clientIdToPass ?? undefined);
 
       // Reset form
       setEventTitle("");
@@ -136,9 +132,7 @@ export default function CalendarEventRequestModal({
             {isLoadingClients ? (
               <p className="text-sm text-gray-500">Loading clients...</p>
             ) : clients.length === 0 ? (
-              <p className="text-sm text-gray-500">
-                No clients available.
-              </p>
+              <p className="text-sm text-gray-500">No clients available.</p>
             ) : (
               <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
                 {clients.map((client) => (
@@ -251,4 +245,3 @@ export default function CalendarEventRequestModal({
     </BaseModal>
   );
 }
-

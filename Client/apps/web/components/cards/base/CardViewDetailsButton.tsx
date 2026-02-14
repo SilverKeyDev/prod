@@ -94,14 +94,17 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
     try {
       setIsUnlocking(true);
       await onClick();
-
     } catch (error) {
-      log.error(LOG_CATEGORIES.SEARCH, "CardViewDetailsButton error during unlock", {
-        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-        text,
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: new Date().toISOString(),
-      });
+      log.error(
+        LOG_CATEGORIES.SEARCH,
+        "CardViewDetailsButton error during unlock",
+        {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          text,
+          error: error instanceof Error ? error.message : String(error),
+          timestamp: new Date().toISOString(),
+        },
+      );
     } finally {
       setIsUnlocking(false);
     }

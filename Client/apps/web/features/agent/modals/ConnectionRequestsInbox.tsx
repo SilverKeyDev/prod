@@ -53,7 +53,9 @@ export default function ConnectionRequestsInbox({
       <div className="flex h-full items-center justify-center p-4">
         <div className="text-center">
           <MessageSquare className="mx-auto mb-3 h-12 w-12 text-black/30" />
-          <p className="text-sm text-black/60">No pending connection requests</p>
+          <p className="text-sm text-black/60">
+            No pending connection requests
+          </p>
         </div>
       </div>
     );
@@ -79,7 +81,9 @@ export default function ConnectionRequestsInbox({
                   {request.other_party_email ?? ""}
                 </p>
                 {request.message && (
-                  <p className="mt-2 text-sm text-black/80">{request.message}</p>
+                  <p className="mt-2 text-sm text-black/80">
+                    {request.message}
+                  </p>
                 )}
                 <p className="mt-1 text-xs text-black/40">
                   {request.requested_by_agent

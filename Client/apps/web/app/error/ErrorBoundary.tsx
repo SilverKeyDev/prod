@@ -210,7 +210,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         <textarea
                           value={this.state.feedbackMessage}
                           onChange={(
-                            e: React.ChangeEvent<HTMLTextAreaElement>
+                            e: React.ChangeEvent<HTMLTextAreaElement>,
                           ) =>
                             this.setState({ feedbackMessage: e.target.value })
                           }

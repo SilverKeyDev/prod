@@ -10,7 +10,7 @@ type VoidConfirmationProps = {
 
 /**
  * VoidConfirmation Component
- * 
+ *
  * Confirmation UI for voiding an agreement
  * Displays warning message and optional reason input
  */
@@ -24,7 +24,8 @@ export default function VoidConfirmation({
   return (
     <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
       <BodyText size="sm" className="text-red-900 mb-3">
-        Are you sure you want to void this agreement? This action cannot be undone.
+        Are you sure you want to void this agreement? This action cannot be
+        undone.
       </BodyText>
       <textarea
         value={voidReason}
@@ -42,11 +43,7 @@ export default function VoidConfirmation({
         >
           {isVoiding ? "Voiding..." : "Confirm Void"}
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onCancel}
-        >
+        <Button variant="outline" size="sm" onClick={onCancel}>
           Cancel
         </Button>
       </div>

@@ -24,7 +24,10 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
   const authReady = useAuthStore((s) => s.authReady);
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   const queryKey = useMemo(() => ["checklists", type] as const, [type]);
 
@@ -37,7 +40,7 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
     queryKey,
     queryFn: async () => {
       const response = await apiGet<{ success: boolean; data: number[] }>(
-        `/api/v1/user/close?type=${type}`
+        `/api/v1/user/close?type=${type}`,
       );
       if (!response.success) {
         throw new Error(`Failed to fetch ${type} checklist`);
@@ -59,7 +62,7 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
     mutationFn: async (ids: number[]) => {
       const response = await apiPut<{ success: boolean }>(
         `/api/v1/user/close?type=${type}`,
-        ids
+        ids,
       );
       if (!response.success) {
         throw new Error(`Failed to update ${type} checklist`);
@@ -93,7 +96,7 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
         : [...currentIds, id];
       await updateChecklistMutation.mutateAsync(newIds);
     },
-    [checkedIdsData, updateChecklistMutation]
+    [checkedIdsData, updateChecklistMutation],
   );
 
   const refreshChecklist = useCallback(async () => {

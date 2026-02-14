@@ -1,13 +1,6 @@
 // Shared constants for onboarding and personalization
 
-import {
-  User,
-  Building,
-  Home,
-  MapPin,
-  MessageSquare,
-  ListOrdered,
-} from "lucide-react";
+import { User, Building, Home, MapPin, MessageSquare } from "lucide-react";
 
 import type { StepConfig, OnboardingData, DropdownOption } from "./types";
 import type { NavItem } from "../../../../../packages/schemas/nav";
@@ -21,31 +14,31 @@ export const STEPS: StepConfig[] = [
   { id: "housing", title: "Housing", icon: Home },
   { id: "location", title: "Location", icon: MapPin },
   { id: "communication", title: "Communication", icon: MessageSquare },
-  { id: "reportcustomization", title: "Your priorities", icon: ListOrdered },
   { id: "financial", title: "Finances", icon: Building },
 ];
 
 // Helper functions to get steps in different orders for different flows
 export const getOnboardingSteps = (): StepConfig[] => {
-  const filtered = STEPS.filter(step => step.id !== "communication");
+  const filtered = STEPS.filter((step) => step.id !== "communication");
   // Ensure financial is at the end
-  const financial = filtered.find(step => step.id === "financial");
-  const others = filtered.filter(step => step.id !== "financial");
+  const financial = filtered.find((step) => step.id === "financial");
+  const others = filtered.filter((step) => step.id !== "financial");
   return [...others, ...(financial ? [financial] : [])];
 };
 
 export const getPersonalizationSteps = (): StepConfig[] => {
-  const reportCustomization = STEPS.find(step => step.id === "reportcustomization")!;
-  const others = STEPS.filter(step => step.id !== "reportcustomization" && step.id !== "communication" && step.id !== "demographics");
+  const others = STEPS.filter(
+    (step) => step.id !== "communication" && step.id !== "demographics",
+  );
   // Ensure financial is at the end
-  const financial = others.find(step => step.id === "financial");
-  const nonFinancial = others.filter(step => step.id !== "financial");
-  return [reportCustomization, ...nonFinancial, ...(financial ? [financial] : [])];
+  const financial = others.find((step) => step.id === "financial");
+  const nonFinancial = others.filter((step) => step.id !== "financial");
+  return [...nonFinancial, ...(financial ? [financial] : [])];
 };
 
 // Helper function to convert StepConfig to NavItem for sidebar navigation
-export const convertStepsToNavItems = (steps: StepConfig[]): NavItem[] => 
-  steps.map(step => ({
+export const convertStepsToNavItems = (steps: StepConfig[]): NavItem[] =>
+  steps.map((step) => ({
     key: step.id,
     to: `#${step.id}`,
     label: step.title,
@@ -131,15 +124,12 @@ export const DEFAULT_REPORT_SECTIONS = [
   },
 ];
 
-
-
 // Shared section titles and labels
 export const SECTION_TITLES = {
   FINANCIAL_PROFILE: "Finances",
   HOUSING_PREFERENCES: "Housing",
   LOCATION_PREFERENCES: "Location",
   COMMUNICATION_PREFERENCES: "Communication",
-  REPORT_CUSTOMIZATION: "Priorities",
 } as const;
 
 // Shared field labels

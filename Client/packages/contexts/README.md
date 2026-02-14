@@ -5,6 +5,7 @@ React Context providers for dependency injection and non-state configuration.
 ## Purpose
 
 The `contexts/` package provides React Context providers for:
+
 - Service injection (dependency injection)
 - Theming configuration
 - Localization (i18n)
@@ -14,11 +15,13 @@ The `contexts/` package provides React Context providers for:
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `hooks/*` - Can use hooks for context logic
 - ✅ `schemas/*` - Type definitions
 - ✅ `utils/*` - Utility functions
 
 ### Forbidden Imports
+
 - ❌ `config/api/*` - Contexts should not make API calls
 - ❌ `services/*` - Contexts should not use services directly
 - ❌ `apps/web/*` - Contexts should not import components
@@ -26,12 +29,15 @@ The `contexts/` package provides React Context providers for:
 ## Available Contexts
 
 ### Service Context
+
 - `ServiceContext.tsx` - Dependency injection for services
 
 ### Theme Context
+
 - `ThemeContext.tsx` - Theming configuration and utilities
 
 ### Localization Context
+
 - `LocalizationContext.tsx` - Internationalization (i18n) utilities
 
 ## Usage Examples
@@ -96,11 +102,13 @@ function MyComponent() {
 ## Context vs Store
 
 ### Use Contexts For:
+
 - Dependency injection
 - Non-state configuration (theming, i18n)
 - Provider components
 
 ### Use Stores For:
+
 - Application state
 - User data
 - UI state that needs to be shared

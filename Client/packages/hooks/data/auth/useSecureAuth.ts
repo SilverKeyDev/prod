@@ -31,7 +31,10 @@ type SecureAuthState = {
 };
 
 type SecureAuthActions = {
-  login: (email: string, password: string) => Promise<{ success: boolean; needsVerification?: boolean }>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; needsVerification?: boolean }>;
   logout: () => void;
   refreshToken: () => Promise<boolean>;
   clearError: () => void;
@@ -48,8 +51,10 @@ export function useSecureAuth(): UseSecureAuthReturn {
   // This ensures that users authenticated via HTTP-only cookies (AuthProvider)
   // are not overridden by null values from useSecureAuth initialization
   const storeUser = useAuthStore((s: AuthState) => s.user);
-  const storeIsAuthenticated = useAuthStore((s: AuthState) => s.isAuthenticated);
-  
+  const storeIsAuthenticated = useAuthStore(
+    (s: AuthState) => s.isAuthenticated,
+  );
+
   const [user, setUser] = useState<UserProfile | null>(storeUser);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,14 +63,18 @@ export function useSecureAuth(): UseSecureAuthReturn {
 
   // Store access token in memory only (more secure)
   // Initialize based on store state to match session-verified authentication
-  const [accessToken, setAccessToken] = useState<string | null>(storeIsAuthenticated ? "authenticated" : null);
+  const [accessToken, setAccessToken] = useState<string | null>(
+    storeIsAuthenticated ? "authenticated" : null,
+  );
 
   // Track if we're in the middle of a login to prevent premature navigation
   const isLoggingInRef = useRef(false);
 
   // Get store actions for immediate updates
   const setStoreUser = useAuthStore((s: AuthState) => s.setUser);
-  const setStoreIsAuthenticated = useAuthStore((s: AuthState) => s.setIsAuthenticated);
+  const setStoreIsAuthenticated = useAuthStore(
+    (s: AuthState) => s.setIsAuthenticated,
+  );
   const setStoreAuthStatus = useAuthStore((s: AuthState) => s.setAuthStatus);
   const setStoreAuthReady = useAuthStore((s: AuthState) => s.setAuthReady);
 
@@ -76,7 +85,10 @@ export function useSecureAuth(): UseSecureAuthReturn {
    * Secure login with memory-based token storage
    */
   const login = useCallback(
-    async (email: string, password: string): Promise<{ success: boolean; needsVerification?: boolean }> => {
+    async (
+      email: string,
+      password: string,
+    ): Promise<{ success: boolean; needsVerification?: boolean }> => {
       isLoggingInRef.current = true;
       setIsLoading(true);
       setError(null);
@@ -114,8 +126,10 @@ export function useSecureAuth(): UseSecureAuthReturn {
             const mappedUser: UserProfile = {
               id: userId || "",
               email: response.user.email,
-              name: response.user.name || "Unknown User",  // Fallback for null names
-              phone: ("phone" in response.user ? response.user.phone : undefined) as string | null | undefined,
+              name: response.user.name || "Unknown User", // Fallback for null names
+              phone: ("phone" in response.user
+                ? response.user.phone
+                : undefined) as string | null | undefined,
               // Best-effort defaults for fields not provided by AuthResponse
               created_at: null,
               is_active: true,
@@ -127,7 +141,14 @@ export function useSecureAuth(): UseSecureAuthReturn {
                 ("is_agent" in response.user
                   ? (response.user.is_agent ?? false)
                   : false) ?? false,
-              auth_method: ("auth_method" in response.user ? response.user.auth_method : undefined) as "cognito" | "google" | "both" | "unknown" | undefined,
+              auth_method: ("auth_method" in response.user
+                ? response.user.auth_method
+                : undefined) as
+                | "cognito"
+                | "google"
+                | "both"
+                | "unknown"
+                | undefined,
             };
 
             // Convert to user store format to fix type compatibility
@@ -217,7 +238,10 @@ export function useSecureAuth(): UseSecureAuthReturn {
             localStorage.setItem("signupEmail", email);
             localStorage.setItem("signupPassword", password);
             setNeedsVerification(true);
-            setError(response.message ?? "Please verify your email address to continue.");
+            setError(
+              response.message ??
+                "Please verify your email address to continue.",
+            );
             isLoggingInRef.current = false;
             // Return needsVerification flag so LoginPage can redirect immediately
             // Don't report as security event - this is expected behavior for unverified users
@@ -322,33 +346,40 @@ export function useSecureAuth(): UseSecureAuthReturn {
   /**
    * Check if token is expired or expires soon
    */
-  const isTokenExpiringSoon = useCallback((token: string | null, bufferMinutes: number = 5): boolean => {
-    if (!token) return true;
-    
-    try {
-      // Decode token without verification to check expiry
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      const decoded = JSON.parse(jsonPayload);
-      const expiresAt = decoded.exp * 1000; // Convert to milliseconds
-      const expiresIn = expiresAt - Date.now();
-      const bufferMs = bufferMinutes * 60 * 1000;
-      
-      return expiresIn < bufferMs;
-    } catch (error) {
-      // If we can't decode, assume it's expired
-      log.warn(LOG_CATEGORIES.AUTH, "Failed to decode token for expiry check", {
-        error: asError(error).message,
-      });
-      return true;
-    }
-  }, []);
+  const isTokenExpiringSoon = useCallback(
+    (token: string | null, bufferMinutes: number = 5): boolean => {
+      if (!token) return true;
+
+      try {
+        // Decode token without verification to check expiry
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split("")
+            .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+            .join(""),
+        );
+        const decoded = JSON.parse(jsonPayload);
+        const expiresAt = decoded.exp * 1000; // Convert to milliseconds
+        const expiresIn = expiresAt - Date.now();
+        const bufferMs = bufferMinutes * 60 * 1000;
+
+        return expiresIn < bufferMs;
+      } catch (error) {
+        // If we can't decode, assume it's expired
+        log.warn(
+          LOG_CATEGORIES.AUTH,
+          "Failed to decode token for expiry check",
+          {
+            error: asError(error).message,
+          },
+        );
+        return true;
+      }
+    },
+    [],
+  );
 
   /** Cooldown (ms) after session verify during which we skip refresh to avoid redundant calls */
   const REFRESH_AFTER_VERIFY_COOLDOWN_MS = 90_000;
@@ -357,16 +388,21 @@ export function useSecureAuth(): UseSecureAuthReturn {
    * Refresh access token using refresh token
    */
   const refreshToken = useCallback(async (): Promise<boolean> => {
-    const lastVerifyAt = typeof sessionStorage !== "undefined"
-      ? sessionStorage.getItem("auth_last_verify_at")
-      : null;
+    const lastVerifyAt =
+      typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem("auth_last_verify_at")
+        : null;
     if (lastVerifyAt) {
       const elapsed = Date.now() - parseInt(lastVerifyAt, 10);
       if (elapsed < REFRESH_AFTER_VERIFY_COOLDOWN_MS) {
-        log.debug(LOG_CATEGORIES.AUTH, "Skipping token refresh (within cooldown after session verify)", {
-          elapsedMs: elapsed,
-          cooldownMs: REFRESH_AFTER_VERIFY_COOLDOWN_MS,
-        });
+        log.debug(
+          LOG_CATEGORIES.AUTH,
+          "Skipping token refresh (within cooldown after session verify)",
+          {
+            elapsedMs: elapsed,
+            cooldownMs: REFRESH_AFTER_VERIFY_COOLDOWN_MS,
+          },
+        );
         return true;
       }
     }
@@ -376,17 +412,17 @@ export function useSecureAuth(): UseSecureAuthReturn {
     try {
       const { authApi } = await import("../../../config/api");
       const response = await authApi.refreshToken();
-      
+
       if (response.success) {
         // Update access token state
         setAccessToken("authenticated");
-        
+
         // Update user if provided
         if (response.user) {
           setUser(response.user);
           setStoreUser(response.user);
         }
-        
+
         log.info(LOG_CATEGORIES.AUTH, "Token refresh successful");
         return true;
       } else {
@@ -396,10 +432,14 @@ export function useSecureAuth(): UseSecureAuthReturn {
           response.error === "REFRESH_TOKEN_INVALID" ||
           response.error === "REFRESH_TOKEN_MISSING"
         ) {
-          log.warn(LOG_CATEGORIES.AUTH, "Refresh token expired or invalid - user must log in again", {
-            error: response.error,
-          });
-          
+          log.warn(
+            LOG_CATEGORIES.AUTH,
+            "Refresh token expired or invalid - user must log in again",
+            {
+              error: response.error,
+            },
+          );
+
           // Clear auth state
           setAccessToken(null);
           setUser(null);
@@ -412,7 +452,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
             message: response.message,
           });
         }
-        
+
         return false;
       }
     } catch (error) {
@@ -441,16 +481,19 @@ export function useSecureAuth(): UseSecureAuthReturn {
    */
   useEffect(() => {
     if (!accessToken || !user) return;
-    
+
     // Check token expiry every 5 minutes
-    const checkInterval = setInterval(() => {
-      // Get token from cookie (we can't read HttpOnly cookies, but we can check if we should refresh)
-      // Since we can't read the actual token, we'll refresh proactively based on time
-      // The server will handle actual expiry validation
-      
-      // Refresh proactively - the interval handles timing
-      void refreshToken();
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    const checkInterval = setInterval(
+      () => {
+        // Get token from cookie (we can't read HttpOnly cookies, but we can check if we should refresh)
+        // Since we can't read the actual token, we'll refresh proactively based on time
+        // The server will handle actual expiry validation
+
+        // Refresh proactively - the interval handles timing
+        void refreshToken();
+      },
+      5 * 60 * 1000,
+    ); // Check every 5 minutes
 
     return () => {
       clearInterval(checkInterval);
@@ -465,10 +508,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
       if (document.hidden) {
         // Only (optionally) log checkpoint in development if user is authenticated
         if (user && accessToken && process.env.NODE_ENV === "development") {
-          log.debug(
-            LOG_CATEGORIES.AUTH,
-            "Page hidden - security checkpoint",
-          );
+          log.debug(LOG_CATEGORIES.AUTH, "Page hidden - security checkpoint");
         }
       } else {
         // Page is visible - validate token is still valid
@@ -617,13 +657,9 @@ export const secureTokenUtils = {
   clearAllTokens: () => {
     // Tokens are in HTTP-only cookies - no client-side clearing needed
     // Server must be called to clear cookies via /logout endpoint
-    log.security(
-      LOG_CATEGORIES.AUTH,
-      "Token clearing delegated to server",
-      {
-        note: "HTTP-only cookies can only be cleared by server",
-      },
-    );
+    log.security(LOG_CATEGORIES.AUTH, "Token clearing delegated to server", {
+      note: "HTTP-only cookies can only be cleared by server",
+    });
   },
 
   /**

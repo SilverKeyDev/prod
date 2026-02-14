@@ -73,7 +73,10 @@ export const userApi = {
    * Update user profile - Note: Backend endpoint not implemented yet
    */
   updateProfile: (_userData: Partial<User>): Promise<UserResponse> => {
-    log.warn(LOG_CATEGORIES.API, "User profile update endpoint not implemented on backend");
+    log.warn(
+      LOG_CATEGORIES.API,
+      "User profile update endpoint not implemented on backend",
+    );
     return Promise.reject(new Error("Profile update not available"));
   },
 
@@ -83,7 +86,9 @@ export const userApi = {
    */
   getFavoriteHomes: (clientId?: string): Promise<FavoriteHomesResponse> => {
     const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
-    return apiGet<FavoriteHomesResponse>(`/api/v1/user/favorite-homes${params}`);
+    return apiGet<FavoriteHomesResponse>(
+      `/api/v1/user/favorite-homes${params}`,
+    );
   },
 
   /**
@@ -112,7 +117,10 @@ export const userApi = {
   addNotInterestedHome: (
     data: AddNotInterestedRequest,
   ): Promise<FavoriteHomesResponse> =>
-    apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/add", data),
+    apiPost<FavoriteHomesResponse>(
+      "/api/v1/user/not-interested-homes/add",
+      data,
+    ),
 
   /**
    * Remove a home from not-interested list (undo)
@@ -120,7 +128,10 @@ export const userApi = {
   removeNotInterestedHome: (
     data: RemoveNotInterestedRequest,
   ): Promise<FavoriteHomesResponse> =>
-    apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/remove", data),
+    apiPost<FavoriteHomesResponse>(
+      "/api/v1/user/not-interested-homes/remove",
+      data,
+    ),
 
   /**
    * Update the reason for a not-interested home
@@ -128,7 +139,10 @@ export const userApi = {
   updateNotInterestedHome: (
     data: UpdateNotInterestedRequest,
   ): Promise<FavoriteHomesResponse> =>
-    apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/update", data),
+    apiPost<FavoriteHomesResponse>(
+      "/api/v1/user/not-interested-homes/update",
+      data,
+    ),
 
   /**
    * Get assigned agent for current user
@@ -179,17 +193,25 @@ export const userApi = {
    */
   updateClosingMode: (
     isClosingMode: boolean,
-  ): Promise<{ success: boolean; data?: { is_closing_mode: boolean }; error?: string }> =>
-    apiPut<{ success: boolean; data?: { is_closing_mode: boolean }; error?: string }>(
-      "/api/v1/user/closing-mode",
-      { is_closing_mode: isClosingMode },
-    ),
+  ): Promise<{
+    success: boolean;
+    data?: { is_closing_mode: boolean };
+    error?: string;
+  }> =>
+    apiPut<{
+      success: boolean;
+      data?: { is_closing_mode: boolean };
+      error?: string;
+    }>("/api/v1/user/closing-mode", { is_closing_mode: isClosingMode }),
 
   /**
    * Delete user account - Note: Backend endpoint not implemented yet
    */
   deleteAccount: (): Promise<UserResponse> => {
-    log.warn(LOG_CATEGORIES.API, "User account deletion endpoint not implemented on backend");
+    log.warn(
+      LOG_CATEGORIES.API,
+      "User account deletion endpoint not implemented on backend",
+    );
     return Promise.reject(new Error("Account deletion not available"));
   },
 };

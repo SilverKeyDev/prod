@@ -5,9 +5,7 @@ import type { PropertyDetails } from "./types";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 // Helper functions to safely convert unknown values to specific types
-const toNumberOrString = (
-  value: unknown
-): string | number | undefined => {
+const toNumberOrString = (value: unknown): string | number | undefined => {
   if (value === null || value === undefined) return undefined;
   if (typeof value === "string" || typeof value === "number") return value;
   if (typeof value === "object" && value !== null) return undefined;
@@ -24,13 +22,13 @@ const toString = (value: unknown): string | undefined => {
 
 export function usePropertyComparison(
   isOpen: boolean,
-  selectedHomes: SavedHome[]
+  selectedHomes: SavedHome[],
 ) {
   const [propertyDetails, setPropertyDetails] = useState<
     Record<string, PropertyDetails>
   >({});
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
-    {}
+    {},
   );
 
   useEffect(() => {
@@ -178,7 +176,10 @@ export function usePropertyComparison(
 
           setLoadingStates((prev) => ({ ...prev, [homeId]: false }));
         } catch (error) {
-          log.error(LOG_CATEGORIES.SEARCH, "Error fetching property details", { address, error });
+          log.error(LOG_CATEGORIES.SEARCH, "Error fetching property details", {
+            address,
+            error,
+          });
           setPropertyDetails((prev) => ({
             ...prev,
             [homeId]: {
@@ -208,4 +209,3 @@ export function usePropertyComparison(
 
   return { propertyDetails, loadingStates };
 }
-

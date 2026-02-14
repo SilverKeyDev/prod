@@ -18,10 +18,10 @@ export type BodyTextProps = {
 
 /**
  * Standardized Body Text component.
- * 
+ *
  * Responsive body text with consistent sizing, line-height, and spacing.
  * Mobile-optimized with responsive text sizing.
- * 
+ *
  * @example
  * ```tsx
  * <BodyText size="md">This is body text</BodyText>

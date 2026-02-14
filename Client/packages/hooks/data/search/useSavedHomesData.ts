@@ -135,8 +135,9 @@ const mapHomeUniversalToSavedHome = (
     })(),
     sqft: (() => {
       const rawSqft = homeData.sqft ?? "";
-      if (typeof rawSqft === "string" && rawSqft.trim() === "") return undefined;
-      const parsed = Number.parseInt(rawSqft.replace(/,/g, ''), 10);
+      if (typeof rawSqft === "string" && rawSqft.trim() === "")
+        return undefined;
+      const parsed = Number.parseInt(rawSqft.replace(/,/g, ""), 10);
       return isNaN(parsed) || parsed <= 0 ? undefined : parsed;
     })(),
     lot_size: homeData.lot_size ?? "",
@@ -158,7 +159,10 @@ export const useSavedHomesData = (clientId?: string) => {
   const authReady = useAuthStore((s) => s.authReady);
 
   // Match reports hook: gate loading on auth readiness and authentication
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   // Saved homes query
   const {
@@ -171,11 +175,17 @@ export const useSavedHomesData = (clientId?: string) => {
     queryKey: queryKeys.homes.favorites(clientId),
     queryFn: async () => {
       // Check cache first - if we have processed SavedHome[] data, return it
-      const cached = queryClient.getQueryData<SavedHome[]>(queryKeys.homes.favorites(clientId));
+      const cached = queryClient.getQueryData<SavedHome[]>(
+        queryKeys.homes.favorites(clientId),
+      );
       if (cached && Array.isArray(cached) && cached.length > 0) {
         // Check if it's already processed (has home_id and other SavedHome properties)
         const isProcessed = cached.every(
-          (home) => home && typeof home === "object" && "home_id" in home && "address" in home
+          (home) =>
+            home &&
+            typeof home === "object" &&
+            "home_id" in home &&
+            "address" in home,
         );
         if (isProcessed) {
           // Data is already processed, return it directly
@@ -204,10 +214,7 @@ export const useSavedHomesData = (clientId?: string) => {
             id: (home as RawHomeData).id,
             address: (home as RawHomeData).address,
             lat: (home as RawHomeData).lat ?? home.latitude,
-            lng:
-              (home as RawHomeData).lng ??
-              home.longitude ??
-              home.lon,
+            lng: (home as RawHomeData).lng ?? home.longitude ?? home.lon,
           })),
         },
       );
@@ -295,18 +302,26 @@ export const useSavedHomesData = (clientId?: string) => {
     // Use placeholderData to provide cached data immediately when query becomes enabled
     placeholderData: (previousValue) => {
       // Check cache - this will be used if query is loading
-      const cached = queryClient.getQueryData(queryKeys.homes.favorites(clientId));
+      const cached = queryClient.getQueryData(
+        queryKeys.homes.favorites(clientId),
+      );
       if (cached && Array.isArray(cached) && cached.length > 0) {
         // Check if it's already processed (SavedHome[])
         const isProcessed = cached.every(
-          (home: unknown) => home && typeof home === "object" && "home_id" in home && "address" in home
+          (home: unknown) =>
+            home &&
+            typeof home === "object" &&
+            "home_id" in home &&
+            "address" in home,
         );
         if (isProcessed) {
           return cached as SavedHome[];
         }
         // If raw, process it synchronously (basic processing without geocoding)
         // This handles the case where prefetch stored raw data
-        return cached.map((home: unknown, index: number) => mapHomeUniversalToSavedHome(home, index));
+        return cached.map((home: unknown, index: number) =>
+          mapHomeUniversalToSavedHome(home, index),
+        );
       }
       // Return previous value if available (maintains data during transitions)
       return previousValue;
@@ -316,14 +331,22 @@ export const useSavedHomesData = (clientId?: string) => {
       if (!data) return [];
       if (Array.isArray(data)) {
         // Check if already processed
-        const isProcessed = data.length === 0 || data.every(
-          (home: unknown) => home && typeof home === "object" && "home_id" in home && "address" in home
-        );
+        const isProcessed =
+          data.length === 0 ||
+          data.every(
+            (home: unknown) =>
+              home &&
+              typeof home === "object" &&
+              "home_id" in home &&
+              "address" in home,
+          );
         if (isProcessed) {
           return data as SavedHome[];
         }
         // Process raw data (handles case where cached data is raw)
-        return data.map((home: unknown, index: number) => mapHomeUniversalToSavedHome(home, index));
+        return data.map((home: unknown, index: number) =>
+          mapHomeUniversalToSavedHome(home, index),
+        );
       }
       return [];
     },
@@ -469,12 +492,13 @@ export const useSavedHomesData = (clientId?: string) => {
 
       // Try to find by ID first, then by address if provided
       let home = homes.find((h) => h.home_id === propertyId);
-      
+
       if (!home && propertyAddress && typeof propertyAddress === "string") {
         // Try matching by address
         const normalizedAddress = propertyAddress.toLowerCase();
         home = homes.find((h) => {
-          const homeAddress = typeof h.address === "string" ? h.address.toLowerCase() : "";
+          const homeAddress =
+            typeof h.address === "string" ? h.address.toLowerCase() : "";
           return homeAddress === normalizedAddress;
         });
       }
@@ -488,17 +512,16 @@ export const useSavedHomesData = (clientId?: string) => {
         // Look through all cached data to find the home
         for (const [, cachedHomes] of allCachedData) {
           if (Array.isArray(cachedHomes)) {
-            const foundHome = cachedHomes.find(
-              (h: SavedHome) => {
-                if (h.home_id === propertyId) return true;
-                if (propertyAddress && typeof propertyAddress === "string") {
-                  const normalizedAddress = propertyAddress.toLowerCase();
-                  const homeAddress = typeof h.address === "string" ? h.address.toLowerCase() : "";
-                  return homeAddress === normalizedAddress;
-                }
-                return false;
+            const foundHome = cachedHomes.find((h: SavedHome) => {
+              if (h.home_id === propertyId) return true;
+              if (propertyAddress && typeof propertyAddress === "string") {
+                const normalizedAddress = propertyAddress.toLowerCase();
+                const homeAddress =
+                  typeof h.address === "string" ? h.address.toLowerCase() : "";
+                return homeAddress === normalizedAddress;
               }
-            );
+              return false;
+            });
             if (foundHome) {
               return removeSavedHomeMutation.mutateAsync({
                 propertyId,
@@ -531,13 +554,12 @@ export const useSavedHomesData = (clientId?: string) => {
       // Try to match by ID first, then by address if provided
       if (propertyAddress && typeof propertyAddress === "string") {
         const normalizedAddress = propertyAddress.toLowerCase();
-        return homes.some(
-          (home) => {
-            if (home.home_id === propertyId) return true;
-            const homeAddress = typeof home.address === "string" ? home.address.toLowerCase() : "";
-            return homeAddress === normalizedAddress;
-          }
-        );
+        return homes.some((home) => {
+          if (home.home_id === propertyId) return true;
+          const homeAddress =
+            typeof home.address === "string" ? home.address.toLowerCase() : "";
+          return homeAddress === normalizedAddress;
+        });
       }
       return homes.some((home) => home.home_id === propertyId);
     },

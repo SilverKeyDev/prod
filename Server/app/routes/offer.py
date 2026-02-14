@@ -181,7 +181,7 @@ def generate_negotiation_strategy():
                         for i, location in enumerate(important_locations):
                             if isinstance(location, dict) and 'address' in location:
                                 location_address = location['address']
-                                location_name = location.get('name', f'Location {i+1}')
+                                location_name = location.get('name') or location_address[:40] or f'Location {i+1}'
                                 
                                 travel_time = fetch_travel_time(property_address, location_address, GOOGLE_MAPS_API_KEY)
                                 

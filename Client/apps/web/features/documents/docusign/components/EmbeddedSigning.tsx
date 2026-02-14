@@ -13,7 +13,7 @@ type EmbeddedSigningProps = {
 
 /**
  * EmbeddedSigning Component
- * 
+ *
  * Displays DocuSign embedded signing iframe
  * Fetches signing URL and handles completion callback
  */
@@ -39,7 +39,9 @@ export default function EmbeddedSigning({
         }
       } catch (err) {
         const errorMessage =
-          err instanceof Error ? err.message : "Failed to load signing interface";
+          err instanceof Error
+            ? err.message
+            : "Failed to load signing interface";
         setError(errorMessage);
         enqueueToast({
           type: "error",
@@ -57,7 +59,10 @@ export default function EmbeddedSigning({
       // Verify origin is from DocuSign
       if (event.origin.includes("docusign")) {
         // DocuSign sends completion event
-        if (event.data === "signing_complete" || event.data?.event === "signing_complete") {
+        if (
+          event.data === "signing_complete" ||
+          event.data?.event === "signing_complete"
+        ) {
           enqueueToast({
             type: "success",
             message: "Document signed successfully!",
@@ -110,7 +115,8 @@ export default function EmbeddedSigning({
     <div className="w-full">
       <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
         <BodyText size="sm" className="text-blue-900">
-          Please review and sign the document below. Your signature will be legally binding.
+          Please review and sign the document below. Your signature will be
+          legally binding.
         </BodyText>
       </div>
       <iframe

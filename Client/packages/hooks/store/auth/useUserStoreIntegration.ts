@@ -7,7 +7,6 @@ import { useUserData } from "../data/useUserData";
  * This replaces the UserProvider functionality
  */
 export function useUserStoreIntegration() {
-
   // Always call useUserData to maintain hook order consistency
   // The hook itself will handle the authentication requirements via React Query's enabled option
   const userDataResult = useUserData();

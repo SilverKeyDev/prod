@@ -19,8 +19,8 @@ export function CalendarConnectionPrompt({
           Connect Your Google Calendar
         </h3>
         <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
-          Sync your Google Calendar to view your upcoming events and appointments
-          directly on your dashboard.
+          Sync your Google Calendar to view your upcoming events and
+          appointments directly on your dashboard.
         </p>
         <Button
           variant="olive"
@@ -36,4 +36,3 @@ export function CalendarConnectionPrompt({
     </Card>
   );
 }
-

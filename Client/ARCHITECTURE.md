@@ -14,7 +14,7 @@ graph TD
     Hooks --> Store[Store<br/>packages/store/]
     Store --> StoreHooks[Store Integration Hooks<br/>packages/hooks/store/]
     StoreHooks --> Hooks
-    
+
     style Components fill:#e1f5ff
     style Hooks fill:#fff4e1
     style ConfigAPI fill:#e8f5e9
@@ -30,12 +30,14 @@ graph TD
 **Purpose**: React components and pages - the UI layer.
 
 **Responsibilities**:
+
 - Render UI
 - Handle user interactions
 - Compose hooks for data and state
 - No direct API calls or business logic
 
 **Allowed Imports**:
+
 - `packages/hooks/*` - All hooks
 - `packages/store/*` - Store selectors (read-only)
 - `packages/schemas/*` - Type definitions
@@ -43,10 +45,12 @@ graph TD
 - `packages/contexts/*` - React contexts
 
 **Forbidden Imports**:
+
 - ❌ `packages/config/api/*` - Use hooks instead
 - ❌ `packages/services/*` - Use hooks instead
 
 **Example**:
+
 ```typescript
 // ✅ CORRECT
 import { useSavedHomesData } from "../../../packages/hooks/data/useSavedHomesData";
@@ -72,12 +76,14 @@ import { agentService } from "../../../packages/services/agent";
 **Purpose**: React Query hooks for data fetching.
 
 **Responsibilities**:
+
 - Fetch data using React Query
 - Use `config/api/*` for API calls
 - Transform and cache data
 - Handle loading and error states
 
 **Allowed Imports**:
+
 - `packages/config/api/*` - API clients
 - `packages/store/*` - Store selectors (read-only)
 - `packages/schemas/*` - Type definitions
@@ -85,9 +91,11 @@ import { agentService } from "../../../packages/services/agent";
 - `packages/services/security/*` - Security utilities (if needed)
 
 **Forbidden Imports**:
+
 - ❌ `packages/services/*` (business logic services) - Use `config/api` instead
 
 **Example**:
+
 ```typescript
 // ✅ CORRECT
 import { userApi } from "../../config/api/user";
@@ -110,16 +118,19 @@ import { savedHomesService } from "../../services/savedHomes";
 **Purpose**: Hooks that integrate data hooks with Zustand stores.
 
 **Responsibilities**:
+
 - Sync data from hooks to stores
 - Provide unified interface for components
 - Handle store updates
 
 **Allowed Imports**:
+
 - `packages/hooks/data/*` - Data hooks
 - `packages/store/*` - Store slices
 - `packages/schemas/*` - Type definitions
 
 **Example**:
+
 ```typescript
 // ✅ CORRECT
 import { useSecureAuth } from "../data/useSecureAuth";
@@ -128,7 +139,7 @@ import { useAuthStore } from "../../store/auth.slice";
 export function useAuthStoreIntegration() {
   const { user, isAuthenticated } = useSecureAuth();
   const setUser = useAuthStore((s) => s.setUser);
-  
+
   useEffect(() => {
     setUser(user);
   }, [user, setUser]);
@@ -140,10 +151,12 @@ export function useAuthStoreIntegration() {
 **Purpose**: Pure UI state management hooks.
 
 **Responsibilities**:
+
 - Manage UI-specific state (modals, toasts, etc.)
 - No API calls or business logic
 
 **Example**:
+
 ```typescript
 // ✅ CORRECT
 export function useModal(initialState = false) {
@@ -159,22 +172,26 @@ export function useModal(initialState = false) {
 **Purpose**: Thin, type-safe API client wrappers.
 
 **Responsibilities**:
+
 - Define API endpoints
 - Type request/response data
 - Use HTTP utilities for actual requests
 - Handle API-specific transformations
 
 **Allowed Imports**:
+
 - `packages/services/http/*` - HTTP client utilities
 - `packages/services/security/*` - Security utilities
 - `packages/schemas/*` - Type definitions
 
 **Forbidden Imports**:
+
 - ❌ `packages/services/*` (business logic) - Only HTTP/security utilities
 - ❌ `packages/hooks/*` - No React dependencies
 - ❌ `packages/store/*` - No state management
 
 **Example**:
+
 ```typescript
 // ✅ CORRECT
 import { apiPost, apiGet } from "../../services/http/compatibility";
@@ -197,23 +214,27 @@ export const authApi = {
 #### 4.1 Business Logic Services
 
 **Responsibilities**:
+
 - Orchestrate complex business logic
 - Coordinate multiple API calls
 - Manage service-level state
 - Provide singleton instances
 
 **Allowed Imports**:
+
 - `packages/config/api/*` - API clients
 - `packages/services/http/*` - HTTP utilities
 - `packages/services/security/*` - Security utilities
 - `packages/schemas/*` - Type definitions
 
 **Forbidden Imports**:
+
 - ❌ `packages/hooks/*` - Services are framework-agnostic
 - ❌ `packages/store/*` - Pass state as parameters instead
 - ❌ `packages/apps/web/*` - No component dependencies
 
 **Example**:
+
 ```typescript
 // ✅ CORRECT
 import { agentApi } from "../config/api/agent";
@@ -221,7 +242,7 @@ import { createAbortManager } from "./http";
 
 export class AgentService {
   private abortManager = createAbortManager();
-  
+
   async fetchClients() {
     const response = await agentApi.getClients();
     // Business logic here
@@ -239,12 +260,14 @@ import { useAuthStore } from "../store/auth.slice";
 **Purpose**: Low-level HTTP client implementation.
 
 **Responsibilities**:
+
 - Handle HTTP requests/responses
 - Manage retries and timeouts
 - Handle authentication
 - Error handling
 
 **Example**:
+
 ```typescript
 // ✅ CORRECT
 export class HttpClient {
@@ -259,6 +282,7 @@ export class HttpClient {
 **Purpose**: Security utilities and logging.
 
 **Responsibilities**:
+
 - PII masking
 - Secure logging
 - Error reporting
@@ -269,20 +293,24 @@ export class HttpClient {
 **Purpose**: Global state management with Zustand.
 
 **Responsibilities**:
+
 - Define application state structure
 - Provide state selectors and setters
 - Persistence middleware
 - DevTools integration
 
 **Allowed Imports**:
+
 - `packages/schemas/*` - Type definitions
 
 **Forbidden Imports**:
+
 - ❌ `packages/config/api/*` - No API calls in store
 - ❌ `packages/services/*` - No business logic in store
 - ❌ `packages/hooks/*` - Store is framework-agnostic
 
 **Example**:
+
 ```typescript
 // ✅ CORRECT
 import { create } from "zustand";
@@ -389,11 +417,11 @@ import { useAgentTodos } from "../../../packages/hooks/data/useAgentTodos";
 
 export default function DashboardPage() {
   const { todos, isLoading, createTodo } = useAgentTodos();
-  
+
   const handleCreate = async () => {
     await createTodo({ title: "New Todo" });
   };
-  
+
   return (
     <div>
       {isLoading ? "Loading..." : todos.map(todo => <div key={todo.id}>{todo.title}</div>)}
@@ -412,11 +440,11 @@ import { useAgentStore } from "../../store/agent.slice";
 export function useAgentTodosStoreIntegration() {
   const { todos, isLoading } = useAgentTodos();
   const setTodos = useAgentStore((s) => s.setTodos);
-  
+
   useEffect(() => {
     setTodos(todos);
   }, [todos, setTodos]);
-  
+
   return { todos, isLoading };
 }
 ```
@@ -426,6 +454,7 @@ export function useAgentTodosStoreIntegration() {
 ### Migrating Component Using API Directly
 
 **Before**:
+
 ```typescript
 import { userApi } from "../../../packages/config/api/user";
 
@@ -437,6 +466,7 @@ function Component() {
 ```
 
 **After**:
+
 ```typescript
 import { useUserData } from "../../../packages/hooks/data/useUserData";
 
@@ -448,6 +478,7 @@ function Component() {
 ### Migrating Hook Using Service
 
 **Before**:
+
 ```typescript
 import { agentService } from "../../services/agent";
 
@@ -461,6 +492,7 @@ export const useAgentClients = () => {
 ```
 
 **After**:
+
 ```typescript
 import { agentApi } from "../../config/api/agent";
 import { useQuery } from "@tanstack/react-query";

@@ -7,10 +7,7 @@ type SettingsModalProps = {
   onClose: () => void;
 };
 
-export default function SettingsModal({
-  isOpen,
-  onClose,
-}: SettingsModalProps) {
+export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   return (
     <BaseModal
       isOpen={isOpen}
@@ -18,6 +15,8 @@ export default function SettingsModal({
       size="full"
       className="max-h-[95vh]"
       closeOnBackdropClick={false}
+      showHeaderBorder={false}
+      contentBackground="off-white"
     >
       <div className="h-full overflow-y-auto">
         <Settings />

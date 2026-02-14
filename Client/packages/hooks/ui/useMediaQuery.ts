@@ -37,4 +37,3 @@ export function useMediaQuery(query: string, options: Options = {}): boolean {
 
   return matches;
 }
-

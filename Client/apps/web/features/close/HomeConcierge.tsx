@@ -34,7 +34,7 @@ export default function HomeConcierge() {
                 window.open(
                   "https://mc.partners/SilverKey",
                   "_blank",
-                  "noopener,noreferrer"
+                  "noopener,noreferrer",
                 )
               }
               size="md"

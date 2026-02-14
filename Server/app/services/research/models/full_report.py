@@ -1,6 +1,13 @@
 from pydantic import BaseModel, Field, PrivateAttr
 from typing import Dict, Optional, Any, List
 
+# Fixed section order (matches client DEFAULT_REPORT_SECTIONS)
+DEFAULT_SECTION_ORDER = [
+    'affordability', 'neighborhood', 'commute', 'family_friendly',
+    'entertainment', 'investment', 'climate_environmental_safety',
+    'convenience_walkability', 'home'
+]
+
 # Import only the 9 core model classes
 from .commute import CommuteSection
 from .neighborhood import Neighborhood
@@ -32,9 +39,9 @@ class FullReport(BaseModel):
         "extra": "ignore",
     }
 
-    def __init__(self, report_section_priorities: Dict[str, Any], **data):
+    def __init__(self, _legacy_priorities: Optional[Dict[str, Any]] = None, **data):
         super().__init__(**data)
-        self._prioritized_fields = report_section_priorities.get("report_section_priorities", [])
+        self._prioritized_fields = DEFAULT_SECTION_ORDER
 
     def dict(self, **kwargs) -> Dict[str, Any]:
         base_dict = super().dict(**kwargs)

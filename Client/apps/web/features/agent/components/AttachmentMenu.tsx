@@ -111,9 +111,7 @@ export default function AttachmentMenu({
                 </div>
                 <div>
                   <div className="font-medium">Share Document</div>
-                  <div className="text-xs text-gray-500">
-                    Send a document
-                  </div>
+                  <div className="text-xs text-gray-500">Send a document</div>
                 </div>
               </button>
             )}
@@ -144,9 +142,7 @@ export default function AttachmentMenu({
               </div>
               <div>
                 <div className="font-medium">Event Request</div>
-                <div className="text-xs text-gray-500">
-                  Schedule a meeting
-                </div>
+                <div className="text-xs text-gray-500">Schedule a meeting</div>
               </div>
             </button>
           </div>
@@ -155,4 +151,3 @@ export default function AttachmentMenu({
     </div>
   );
 }
-

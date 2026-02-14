@@ -27,7 +27,7 @@ export const SECTION_ICONS: Record<string, SectionIconComponent> = {
 
 // Helper function to get icon component for a section
 export function getSectionIcon(
-  sectionKey: string
+  sectionKey: string,
 ): SectionIconComponent | undefined {
   return SECTION_ICONS[sectionKey];
 }
@@ -35,7 +35,7 @@ export function getSectionIcon(
 // Helper function to render section icon with custom className
 export function renderSectionIcon(
   sectionKey: string,
-  className: string = "h-5 w-5"
+  className: string = "h-5 w-5",
 ): React.ReactNode {
   const IconComponent = getSectionIcon(sectionKey);
   if (!IconComponent) {

@@ -15,7 +15,9 @@ export function useHealthCheck() {
     fetch("/healthz", { method: "GET" })
       .then((res) => {
         if (!res.ok) {
-          log.error(LOG_CATEGORIES.ERRORS, "/healthz responded with status", { status: res.status });
+          log.error(LOG_CATEGORIES.ERRORS, "/healthz responded with status", {
+            status: res.status,
+          });
           throw new Error(`Healthz failed with status: ${res.status}`);
         }
         return res.json();
@@ -32,7 +34,10 @@ export function useHealthCheck() {
             setMaintenance(false);
           } else {
             setMaintenance(true);
-            log.warn(LOG_CATEGORIES.ERRORS, "/healthz returned unexpected data");
+            log.warn(
+              LOG_CATEGORIES.ERRORS,
+              "/healthz returned unexpected data",
+            );
           }
         }
       })

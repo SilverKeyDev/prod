@@ -33,8 +33,13 @@ export const renderIsochronePolygon = (
     !isochroneDataTyped?.isochrone ||
     !(isochroneDataTyped.isochrone as { geometry?: unknown })?.geometry
   ) {
-    log.warn(LOG_CATEGORIES.MAP_RENDERING, "No isochrone geometry data available for map rendering");
-    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Isochrone data structure", { data: isochroneData });
+    log.warn(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "No isochrone geometry data available for map rendering",
+    );
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Isochrone data structure", {
+      data: isochroneData,
+    });
     return;
   }
 
@@ -113,7 +118,9 @@ export const renderIsochronePolygon = (
       const coords = geometry.coordinates as number[][][][];
       [coordinates] = coords;
     } else {
-      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Unsupported geometry type", { type: geometry.type });
+      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Unsupported geometry type", {
+        type: geometry.type,
+      });
       return;
     }
 
@@ -143,7 +150,11 @@ export const renderIsochronePolygon = (
     // Do not fit bounds or animate - map center/zoom is already set in useMapMarkers
     // Removing fitBounds to prevent animation on initial load
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.MAP_RENDERING, "Error rendering isochrone polygon", error);
+    log.error(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "Error rendering isochrone polygon",
+      error,
+    );
     log.error(LOG_CATEGORIES.MAP_RENDERING, "Error details", {
       message: (error as Error).message,
       stack: (error as Error).stack,

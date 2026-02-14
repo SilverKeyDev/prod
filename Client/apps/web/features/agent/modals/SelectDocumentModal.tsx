@@ -4,7 +4,9 @@ import { useState } from "react";
 import BaseModal from "../../../components/modals/BaseModal";
 import Button from "../../../components/ui/button/Button";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
-import DocumentCard, { type DocumentData } from "../../../components/cards/documents/DocumentCard";
+import DocumentCard, {
+  type DocumentData,
+} from "../../../components/cards/documents/DocumentCard";
 import { useDocumentsData } from "../../../../../packages/hooks/data/documents/useDocumentsData";
 
 type SelectDocumentModalProps = {
@@ -19,7 +21,9 @@ export default function SelectDocumentModal({
   onSelect,
 }: SelectDocumentModalProps) {
   const { documents, isLoading: documentsLoading } = useDocumentsData();
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
+    null,
+  );
 
   const handleConfirm = () => {
     if (selectedDocumentId) {
@@ -71,11 +75,14 @@ export default function SelectDocumentModal({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900">
-                      {document.address || document.filename || `Document ${document.id}`}
+                      {document.address ||
+                        document.filename ||
+                        `Document ${document.id}`}
                     </p>
                     {document.created_at && (
                       <p className="mt-1 text-xs text-gray-500">
-                        Uploaded {new Date(document.created_at).toLocaleDateString()}
+                        Uploaded{" "}
+                        {new Date(document.created_at).toLocaleDateString()}
                       </p>
                     )}
                     {document.document_type && (
@@ -94,11 +101,7 @@ export default function SelectDocumentModal({
         )}
 
         <div className="flex gap-3 pt-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex-1"
-          >
+          <Button variant="outline" onClick={onClose} className="flex-1">
             Cancel
           </Button>
           <Button

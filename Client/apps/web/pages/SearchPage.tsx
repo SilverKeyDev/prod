@@ -228,30 +228,27 @@ export default function SearchPage({
   } = useSavedHomesStoreIntegration();
 
   // Convert SavedHome[] to SearchResult[] for SearchPage compatibility
-  const savedHomes = React.useMemo(
-    () => {
-      const converted = savedHomesRaw.map(convertSavedHomeToSearchResult);
-      const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
-      log.info(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "🗺️ [SEARCH PAGE] Saved homes converted for map rendering",
-        {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          rawCount: savedHomesRaw.length,
-          convertedCount: converted.length,
-          sample: converted.slice(0, 3).map((home, index) => ({
-            index,
-            id: home.id,
-            address: home.address,
-            lat: home.lat,
-            lng: home.lng,
-          })),
-        },
-      );
-      return converted;
-    },
-    [savedHomesRaw, convertSavedHomeToSearchResult],
-  );
+  const savedHomes = React.useMemo(() => {
+    const converted = savedHomesRaw.map(convertSavedHomeToSearchResult);
+    const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+    log.info(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "🗺️ [SEARCH PAGE] Saved homes converted for map rendering",
+      {
+        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+        rawCount: savedHomesRaw.length,
+        convertedCount: converted.length,
+        sample: converted.slice(0, 3).map((home, index) => ({
+          index,
+          id: home.id,
+          address: home.address,
+          lat: home.lat,
+          lng: home.lng,
+        })),
+      },
+    );
+    return converted;
+  }, [savedHomesRaw, convertSavedHomeToSearchResult]);
 
   // Handle navigation to property (focus on property instead of opening details)
   const handleNavigateToProperty = useCallback(
@@ -670,7 +667,9 @@ export default function SearchPage({
                 variant="ghost"
                 size="sm"
                 rounded="full"
-                aria-label={isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"}
+                aria-label={
+                  isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"
+                }
                 icon={
                   isCarouselCollapsed ? (
                     <ChevronDown className="h-4 w-4" />
@@ -821,8 +820,8 @@ export default function SearchPage({
         {/* Main Content */}
         <div className="flex flex-1 flex-col">
           {/* Search Header */}
-          <div className="hidden flex-shrink-0 lg:block">
-            <div className="mb-4 flex items-center justify-between">
+          <div className="hidden w-full flex-shrink-0 lg:block">
+            <div className="mb-4 flex w-full items-center justify-between">
               <SearchHeader
                 onUpdatePreferences={handlePreferences}
                 onSearchProperties={handleSearchUpdated}

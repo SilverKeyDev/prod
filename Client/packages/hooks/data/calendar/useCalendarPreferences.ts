@@ -12,12 +12,12 @@ export function useCalendarPreferences() {
     async (
       calendars: Calendar[],
       enabledCalendarIds: Set<string>,
-      silverKeyCalendarId: string | null
+      silverKeyCalendarId: string | null,
     ): Promise<void> => {
       const disabledCalendars = calculateDisabledCalendarIds(
         calendars,
         enabledCalendarIds,
-        silverKeyCalendarId
+        silverKeyCalendarId,
       );
 
       try {
@@ -28,12 +28,12 @@ export function useCalendarPreferences() {
         log.error(
           LOG_CATEGORIES.CALENDAR,
           "Failed to save calendar preferences",
-          error
+          error,
         );
         throw error;
       }
     },
-    []
+    [],
   );
 
   return { savePreferences };

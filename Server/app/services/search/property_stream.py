@@ -17,6 +17,7 @@ from app.services.research.graphs.graphic_generation import fetch_travel_time, g
 from app.services.search.image_features import extract_and_clean_features
 from app.services.search.property_features import extract_property_features
 from app.services.research.perplexity_analysis import analyze_property_with_sonar_pro, generate_report_sections_for_property
+from app.services.research.property_analysis import DEFAULT_SECTION_ORDER
 from app.services.search.feature_overlap_llm import combine_and_check_features
 from app.utils.address_format import normalize_address
 from app.utils.currency import format_currency
@@ -174,7 +175,7 @@ def generate_property_stream(params: dict, address: str | None = None):
                         for i, location in enumerate(important_locations):
                             if isinstance(location, dict) and 'address' in location:
                                 location_address = location['address']
-                                location_name = location.get('name', f'Location {i+1}')
+                                location_name = location.get('name') or location_address[:40] or f'Location {i+1}'
                                 
                                 travel_time = fetch_travel_time(property_address, location_address, GOOGLE_MAPS_API_KEY)
                                 
@@ -236,16 +237,16 @@ def generate_property_stream(params: dict, address: str | None = None):
                             'housing_type': user_preferences.housing_type,
                         }
                         
-                        for field in ['important_locations', 'preferred_home_features', 'deal_breakers', 'report_section_priorities']:
+                        for field in ['important_locations', 'preferred_home_features', 'deal_breakers']:
                             if hasattr(user_preferences, field):
                                 field_value = getattr(user_preferences, field)
                                 if isinstance(field_value, str):
                                     try:
                                         user_prefs_dict[field] = json.loads(field_value)
                                     except json.JSONDecodeError:
-                                        user_prefs_dict[field] = [] if field == 'report_section_priorities' else []
+                                        user_prefs_dict[field] = []
                                 else:
-                                    user_prefs_dict[field] = field_value or ([] if field == 'report_section_priorities' else [])
+                                    user_prefs_dict[field] = field_value or []
                         
                         home_object = {
                             'address': property_address or data.get('streetAddress', 'Unknown address'),
@@ -276,8 +277,8 @@ def generate_property_stream(params: dict, address: str | None = None):
                         # Yield partial analysis (pros/cons)
                         yield f"data: {json.dumps({'type': 'property_analysis_partial', 'data': property_analysis.copy()})}\n\n"
                         
-                        # Generate additional sections
-                        section_names = user_prefs_dict.get('report_section_priorities', [])
+                        # Generate additional sections (fixed default order)
+                        section_names = DEFAULT_SECTION_ORDER
                         if section_names and isinstance(section_names, list):
                             additional_sections = generate_report_sections_for_property(
                                 section_names=section_names,
@@ -691,7 +692,7 @@ def generate_property_stream_compare(params: dict, address: str | None = None):
                         for i, location in enumerate(important_locations):
                             if isinstance(location, dict) and 'address' in location:
                                 location_address = location['address']
-                                location_name = location.get('name', f'Location {i+1}')
+                                location_name = location.get('name') or location_address[:40] or f'Location {i+1}'
                                 
                                 travel_time = fetch_travel_time(property_address, location_address, GOOGLE_MAPS_API_KEY)
                                 
@@ -753,20 +754,19 @@ def generate_property_stream_compare(params: dict, address: str | None = None):
                         'housing_type': user_preferences.housing_type,
                     }
                     
-                    for field in ['important_locations', 'preferred_home_features', 'deal_breakers', 'report_section_priorities']:
+                    for field in ['important_locations', 'preferred_home_features', 'deal_breakers']:
                         if hasattr(user_preferences, field):
                             field_value = getattr(user_preferences, field)
                             if isinstance(field_value, str):
                                 try:
                                     user_prefs_dict[field] = json.loads(field_value)
                                 except json.JSONDecodeError:
-                                    user_prefs_dict[field] = [] if field == 'report_section_priorities' else []
+                                    user_prefs_dict[field] = []
                             else:
-                                user_prefs_dict[field] = field_value or ([] if field == 'report_section_priorities' else [])
+                                user_prefs_dict[field] = field_value or []
                     
-                    # Skip pros/cons generation - only generate additional sections
-                    # Filter out neighborhood_overview from section_names
-                    section_names = user_prefs_dict.get('report_section_priorities', [])
+                    # Skip pros/cons generation - only generate additional sections (fixed default order)
+                    section_names = DEFAULT_SECTION_ORDER
                     if section_names and isinstance(section_names, list):
                         section_names = [s for s in section_names if s != 'neighborhood_overview']
                         

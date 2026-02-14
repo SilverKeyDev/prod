@@ -29,7 +29,7 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({
   // Get section label
   const sectionLabel =
     DEFAULT_REPORT_SECTIONS.find(
-      (s: { key: string; label: string }) => s.key === "family_friendly"
+      (s: { key: string; label: string }) => s.key === "family_friendly",
     )?.label || "Nearby Schools";
 
   // Helper to render analysis content
@@ -38,7 +38,7 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({
 
     const dataObj = data as Record<string, unknown>;
     const entries = Object.entries(dataObj).filter(
-      ([_, value]) => value !== null && value !== undefined && value !== ""
+      ([_, value]) => value !== null && value !== undefined && value !== "",
     );
 
     if (entries.length === 0) {

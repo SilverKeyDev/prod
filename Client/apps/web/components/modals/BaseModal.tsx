@@ -31,6 +31,10 @@ export type BaseModalProps = {
   footerContent?: React.ReactNode;
   /** Z-index level */
   zIndex?: number;
+  /** Whether to show the dividing line between header and body (default: true) */
+  showHeaderBorder?: boolean;
+  /** Background color for the modal container (default: "white"). Use "off-white" for housing/settings-style modals. */
+  contentBackground?: "white" | "off-white";
 };
 
 const BaseModal: React.FC<BaseModalProps> = ({
@@ -47,6 +51,8 @@ const BaseModal: React.FC<BaseModalProps> = ({
   headerContent,
   footerContent,
   zIndex = 9999,
+  showHeaderBorder = true,
+  contentBackground = "white",
 }) => {
   // Handle escape key
   useEffect(() => {
@@ -91,9 +97,12 @@ const BaseModal: React.FC<BaseModalProps> = ({
   };
 
   const modalContent = (
-    <div className="fixed inset-0 overflow-y-auto" style={{ zIndex }}>
+    <div
+      className="fixed inset-0 overflow-y-auto overflow-x-hidden overscroll-contain"
+      style={{ zIndex }}
+    >
       <div
-        className="flex min-h-screen items-center justify-center p-2 sm:p-4 md:p-6"
+        className="flex min-h-screen min-h-[100dvh] items-center justify-center p-2 sm:p-4 md:p-6"
         onClick={handleBackdropClick}
       >
         {/* Backdrop */}
@@ -104,12 +113,15 @@ const BaseModal: React.FC<BaseModalProps> = ({
 
         {/* Modal */}
         <div
-          className={`relative flex max-h-[90vh] w-full flex-col transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:max-h-[85vh] sm:rounded-xl ${sizeStyles[size]} ${className}`}
+          className={`relative flex min-h-0 w-full max-w-full flex-col transform overflow-hidden rounded-lg text-left shadow-xl transition-all sm:rounded-xl ${contentBackground === "off-white" ? "bg-off-white" : "bg-white"} ${sizeStyles[size]} ${className}`}
+          style={{ maxHeight: "min(90vh, 90dvh)" }}
         >
           {/* Header */}
           {(title ?? headerContent ?? showCloseButton) && (
-            <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-3 sm:p-4 md:p-6">
-              <div className="min-w-0 flex-1">
+            <div
+              className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden p-3 sm:p-4 md:p-6 ${showHeaderBorder ? "border-b border-gray-200" : ""}`}
+            >
+              <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden" style={{ maxHeight: "min(200px, 30vh)" }}>
                 {headerContent ??
                   (title && (
                     <h3 className="truncate text-base font-medium text-gray-900 sm:text-lg">

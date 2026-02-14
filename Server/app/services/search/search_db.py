@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List, Tuple
 from flask import current_app
@@ -8,6 +9,8 @@ from app import db
 from app.models import HomeUniversal, HomeLikes, HomeNotInterested, UserPreferences
 from app.utils.address_format import normalize_address
 from app.utils.currency import format_currency
+
+from .geometry_helpers import geocode_address_google
 
 
 def sync_to_home_likes(home_universal: HomeUniversal, action: str = "liked") -> HomeLikes:
@@ -164,19 +167,47 @@ def sync_to_home_not_interested(home_universal: HomeUniversal, action: str = "no
 
 def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool = False, ranking: Optional[int] = None) -> HomeUniversal:
     """
-    Add or update a minimal home record for a user using basic/search fields.
+    Add or update a home record for a user using search result fields.
     - De-dupes by normalized address per user
     - Updates known fields if record exists
     - Optionally sets is_liked to True
     - Optionally sets ranking (position in search results, 1-based)
 
     Expected keys in `home`:
-      address, bedrooms, bathrooms, sqft, lotSize, price, image_url/imageUrl/imgSrc
+      address (string or dict), bedrooms/beds, bathrooms/baths, sqft/livingArea,
+      lotSize/lotAreaValue, price, image_url/imageUrl/imgSrc, zpid, mls_home_id,
+      latitude/lat, longitude/lng/lon, city, state, zipcode, property_type,
+      listing_status. Full dict is stored in raw_data for retrieval merge.
     """
     if not user_id:
         raise ValueError("user_id is required")
 
-    address = (home.get("address") or "").strip()
+    # Resolve address - can be string or nested dict
+    _addr_raw = home.get("address")
+    if isinstance(_addr_raw, dict):
+        addr = _addr_raw
+        street = addr.get("streetAddress") or addr.get("street") or ""
+        city = (addr.get("city") or home.get("city") or "").strip()
+        state = (addr.get("state") or home.get("state") or "").strip()
+        zipcode = (
+            addr.get("zipcode")
+            or addr.get("zipCode")
+            or home.get("zipcode")
+            or home.get("zipCode")
+            or home.get("postalCode")
+            or ""
+        ).strip()
+        address = f"{street}, {city}, {state} {zipcode or ''}".strip()
+        if not address:
+            address = street or ""
+    else:
+        address = (str(_addr_raw) if _addr_raw else "").strip()
+        city = (home.get("city") or "").strip()
+        state = (home.get("state") or "").strip()
+        zipcode = (
+            home.get("zipcode") or home.get("zipCode") or home.get("postalCode") or ""
+        ).strip()
+
     if not address:
         # If address missing, no-op (cannot reliably de-dupe)
         raise ValueError("address is required")
@@ -275,11 +306,70 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
             lot_area_value = str(lot_area_value_raw)
         except Exception:
             lot_area_value = ""
-    
+
+    # Extract identifiers
+    zpid_val = home.get("zpid")
+    zpid = str(zpid_val).strip() if zpid_val is not None else None
+    mls_home_id_val = home.get("mls_home_id") or home.get("mlsHomeId")
+    mls_home_id = str(mls_home_id_val).strip() if mls_home_id_val else None
+
+    # Extract coordinates - check top-level, nested address, then geocode fallback
+    addr_obj = home.get("address")
+    lat_val = (
+        home.get("latitude")
+        or home.get("lat")
+        or (addr_obj.get("latitude") if isinstance(addr_obj, dict) else None)
+        or (addr_obj.get("lat") if isinstance(addr_obj, dict) else None)
+    )
+    lng_val = (
+        home.get("longitude")
+        or home.get("lng")
+        or home.get("lon")
+        or (addr_obj.get("longitude") if isinstance(addr_obj, dict) else None)
+        or (addr_obj.get("lng") if isinstance(addr_obj, dict) else None)
+        or (addr_obj.get("lon") if isinstance(addr_obj, dict) else None)
+    )
+    latitude = None
+    if lat_val is not None:
+        try:
+            latitude = float(lat_val)
+        except (TypeError, ValueError):
+            pass
+    longitude = None
+    if lng_val is not None:
+        try:
+            longitude = float(lng_val)
+        except (TypeError, ValueError):
+            pass
+
+    # Geocode fallback: when address exists but coords are missing, geocode to get them
+    if (latitude is None or longitude is None) and address:
+        try:
+            coords = geocode_address_google(address)
+            if coords:
+                geocoded_lat, geocoded_lng = coords
+                if latitude is None:
+                    latitude = geocoded_lat
+                if longitude is None:
+                    longitude = geocoded_lng
+        except Exception:
+            pass
+
+    # Extract property type and listing status
+    property_type = (
+        home.get("property_type") or home.get("propertyType") or home.get("homeType")
+    )
+    property_type = str(property_type).strip() if property_type else None
+    listing_status = home.get("listing_status") or home.get("listingStatus")
+    listing_status = str(listing_status).strip() if listing_status else None
+
+    # Store full search result for fallback/merge on retrieval
+    raw_data = copy.deepcopy(home) if home else None
+
     fields = {
         "address": address,
-        "beds": str(home.get("bedrooms", "") or ""),
-        "baths": str(home.get("bathrooms", "") or ""),
+        "beds": str(home.get("bedrooms", home.get("beds", "")) or ""),
+        "baths": str(home.get("bathrooms", home.get("baths", "")) or ""),
         "sqft": str(home.get("sqft", home.get("livingArea", "")) or ""),
         "lot_size": lot_area_value,
         "lot_area_value": lot_area_value if lot_area_value else None,
@@ -287,6 +377,16 @@ def add_or_update_home_basic(user_id: str, home: Dict[str, Any], set_liked: bool
         "price": format_currency(home.get("price", "")),
         "image_url": image_url,
         "score": parsed_score,
+        "zpid": zpid,
+        "mls_home_id": mls_home_id,
+        "latitude": latitude,
+        "longitude": longitude,
+        "city": city if city else None,
+        "state": state if state else None,
+        "zipcode": zipcode if zipcode else None,
+        "property_type": property_type,
+        "listing_status": listing_status,
+        "raw_data": raw_data,
     }
 
     if existing:

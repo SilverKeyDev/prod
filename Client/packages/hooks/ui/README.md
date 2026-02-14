@@ -5,6 +5,7 @@ Pure UI state management hooks for local state, modals, toasts, and other UI con
 ## Purpose
 
 UI hooks provide reusable React logic for UI state management:
+
 - LocalStorage integration
 - Modal state management
 - Toast notifications
@@ -18,10 +19,12 @@ UI hooks provide reusable React logic for UI state management:
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `utils/*` - Utility functions
 - ✅ `schemas/*` - Type definitions (if needed)
 
 ### Forbidden Imports
+
 - ❌ `config/api/*` - UI hooks should not make API calls
 - ❌ `services/*` - UI hooks should not use services
 - ❌ `store/*` - UI hooks are for local state
@@ -30,22 +33,28 @@ UI hooks provide reusable React logic for UI state management:
 ## Available Hooks
 
 ### Storage
+
 - `useLocalStorage.ts` - LocalStorage integration with reactive updates
 
 ### Modals
+
 - `useModal.ts` - Modal state management
 
 ### Toasts
+
 - `useToast.ts` - Toast notification management
 
 ### Device Detection
+
 - `useMobile.ts` - Mobile device detection
 
 ### Authentication
+
 - `useStepUpAuth.ts` - Step-up authentication flow
 - `useSessionTimeout.ts` - Session timeout handling
 
 ### Other
+
 - `useHealthCheck.ts` - Health check monitoring
 - `useMessageScroll.ts` - Message scrolling behavior
 - `useOnceEffect.ts` - One-time effect execution

@@ -22,14 +22,14 @@ export type UseGoogleEventsReturn = {
 
 /**
  * Hook to read and fetch Google Calendar events
- * 
+ *
  * This hook:
  * 1. First tries to read from React Query cache (for instant display)
  * 2. If data is not in cache, fetches it from the API
  * 3. Aggregates events from all requested calendars
- * 
+ *
  * Events appear immediately from cache when available, and are fetched when navigating to months not in cache.
- * 
+ *
  * @param params - Optional parameters to filter events
  * @param params.calendarId - Single calendar ID to read events from (for backward compatibility)
  * @param params.calendarIds - Array of calendar IDs to read events from (aggregates events from all)
@@ -60,33 +60,47 @@ export function useGoogleEvents(params?: {
   // Get cached calendars to resolve "primary" to actual calendar ID
   const cachedCalendars = useMemo(() => {
     if (!shouldLoadData) return [];
-    return queryClient.getQueryData<GoogleCalendar[]>(
-      queryKeys.googleCalendar.calendars()
-    ) ?? [];
+    return (
+      queryClient.getQueryData<GoogleCalendar[]>(
+        queryKeys.googleCalendar.calendars(),
+      ) ?? []
+    );
   }, [shouldLoadData, queryClient]);
 
   // Resolve "primary" to actual calendar ID
   // Returns null if "primary" can't be resolved (calendars not loaded yet)
-  const resolveCalendarId = useCallback((calendarId: string): string | null => {
-    if (calendarId === "primary") {
-      // Find the primary calendar from cached calendars
-      const primaryCalendar = cachedCalendars.find((cal) => cal.primary === true);
-      if (primaryCalendar) {
-        // Only log once per resolution to avoid excessive logging
-        // The resolution is memoized, so this should only log when calendars change
-        return primaryCalendar.id;
+  const resolveCalendarId = useCallback(
+    (calendarId: string): string | null => {
+      if (calendarId === "primary") {
+        // Find the primary calendar from cached calendars
+        const primaryCalendar = cachedCalendars.find(
+          (cal) => cal.primary === true,
+        );
+        if (primaryCalendar) {
+          // Only log once per resolution to avoid excessive logging
+          // The resolution is memoized, so this should only log when calendars change
+          return primaryCalendar.id;
+        }
+        // If no primary calendar found, return null to indicate we should search all calendars
+        // Only log warning if calendars are loaded but no primary found (unexpected case)
+        if (cachedCalendars.length > 0) {
+          log.warn(
+            LOG_CATEGORIES.CALENDAR,
+            "Could not resolve 'primary' calendar ID - no primary calendar found in cache",
+            {
+              availableCalendars: cachedCalendars.map((cal) => ({
+                id: cal.id,
+                summary: cal.summary,
+              })),
+            },
+          );
+        }
+        return null; // Signal to search all calendars
       }
-      // If no primary calendar found, return null to indicate we should search all calendars
-      // Only log warning if calendars are loaded but no primary found (unexpected case)
-      if (cachedCalendars.length > 0) {
-        log.warn(LOG_CATEGORIES.CALENDAR, "Could not resolve 'primary' calendar ID - no primary calendar found in cache", {
-          availableCalendars: cachedCalendars.map((cal) => ({ id: cal.id, summary: cal.summary })),
-        });
-      }
-      return null; // Signal to search all calendars
-    }
-    return calendarId;
-  }, [cachedCalendars]);
+      return calendarId;
+    },
+    [cachedCalendars],
+  );
 
   // Determine which calendar IDs to use
   // Support both calendarId (single, for backward compatibility) and calendarIds (array)
@@ -94,7 +108,9 @@ export function useGoogleEvents(params?: {
   // If "primary" can't be resolved (calendars not loaded), use null to signal searching all calendars
   const calendarIds = useMemo(() => {
     if (params?.calendarIds && params.calendarIds.length > 0) {
-      const resolved = params.calendarIds.map(resolveCalendarId).filter((id): id is string => id !== null);
+      const resolved = params.calendarIds
+        .map(resolveCalendarId)
+        .filter((id): id is string => id !== null);
       return resolved.length > 0 ? resolved : null; // null means search all calendars
     }
     if (params?.calendarId) {
@@ -105,14 +121,15 @@ export function useGoogleEvents(params?: {
   }, [params?.calendarId, params?.calendarIds, resolveCalendarId]);
 
   // Memoize params to prevent unnecessary re-renders
-  const memoizedParams = useMemo(() => ({
-    calendarIds,
-    timeMin: params?.timeMin,
-    timeMax: params?.timeMax,
-    enabled: params?.enabled ?? true,
-  }), [calendarIds, params?.timeMin, params?.timeMax, params?.enabled]);
-
-  
+  const memoizedParams = useMemo(
+    () => ({
+      calendarIds,
+      timeMin: params?.timeMin,
+      timeMax: params?.timeMax,
+      enabled: params?.enabled ?? true,
+    }),
+    [calendarIds, params?.timeMin, params?.timeMax, params?.enabled],
+  );
 
   // Aggregate events from all requested calendars
   // Read from cache for each calendar and combine them
@@ -126,10 +143,14 @@ export function useGoogleEvents(params?: {
     // This happens when "primary" is requested but calendars aren't loaded yet
     if (calendarIds === null) {
       // Only log this once to avoid excessive logging - this is expected during initial load
-      
+
       const aggregatedEvents: GoogleEvent[] = [];
-      const timeMin = memoizedParams.timeMin ? new Date(memoizedParams.timeMin) : null;
-      const timeMax = memoizedParams.timeMax ? new Date(memoizedParams.timeMax) : null;
+      const timeMin = memoizedParams.timeMin
+        ? new Date(memoizedParams.timeMin)
+        : null;
+      const timeMax = memoizedParams.timeMax
+        ? new Date(memoizedParams.timeMax)
+        : null;
 
       // Search all cached event queries
       const eventsListPrefix = queryKeys.googleCalendar.events();
@@ -143,7 +164,7 @@ export function useGoogleEvents(params?: {
 
         // Filter events by the requested time range if needed
         let filteredEvents = data;
-        
+
         if (timeMin && timeMax && data.length > 0) {
           filteredEvents = data.filter((event) => {
             const eventStart = event.start?.dateTime
@@ -170,9 +191,13 @@ export function useGoogleEvents(params?: {
 
       // Only log if there are events (reduce noise)
       if (aggregatedEvents.length > 0) {
-        log.debug(LOG_CATEGORIES.CALENDAR, "Aggregated Google Calendar events from all cached calendars", {
-          totalEventCount: aggregatedEvents.length,
-        });
+        log.debug(
+          LOG_CATEGORIES.CALENDAR,
+          "Aggregated Google Calendar events from all cached calendars",
+          {
+            totalEventCount: aggregatedEvents.length,
+          },
+        );
       }
 
       return aggregatedEvents;
@@ -183,8 +208,12 @@ export function useGoogleEvents(params?: {
     }
 
     const aggregatedEvents: GoogleEvent[] = [];
-    const timeMin = memoizedParams.timeMin ? new Date(memoizedParams.timeMin) : null;
-    const timeMax = memoizedParams.timeMax ? new Date(memoizedParams.timeMax) : null;
+    const timeMin = memoizedParams.timeMin
+      ? new Date(memoizedParams.timeMin)
+      : null;
+    const timeMax = memoizedParams.timeMax
+      ? new Date(memoizedParams.timeMax)
+      : null;
 
     // Read from cache for each calendar
     for (const calendarId of calendarIds) {
@@ -196,7 +225,7 @@ export function useGoogleEvents(params?: {
 
       // Try exact match first
       const cachedEvents = queryClient.getQueryData<GoogleEvent[]>(queryKey);
-      
+
       if (cachedEvents && Array.isArray(cachedEvents)) {
         // Add events with calendarId if not already set
         const eventsWithCalendarId = cachedEvents.map((event) => ({
@@ -204,13 +233,17 @@ export function useGoogleEvents(params?: {
           calendarId: event.calendarId || calendarId,
         }));
         aggregatedEvents.push(...eventsWithCalendarId);
-        
+
         // Log exact cache match (only for non-empty results to reduce noise)
         if (eventsWithCalendarId.length > 0) {
-          log.debug(LOG_CATEGORIES.CALENDAR, "Retrieved Google Calendar events from cache (exact match)", {
-            calendarId,
-            eventCount: eventsWithCalendarId.length,
-          });
+          log.debug(
+            LOG_CATEGORIES.CALENDAR,
+            "Retrieved Google Calendar events from cache (exact match)",
+            {
+              calendarId,
+              eventCount: eventsWithCalendarId.length,
+            },
+          );
         }
         continue;
       }
@@ -232,13 +265,15 @@ export function useGoogleEvents(params?: {
         // Extract calendarId from the query key
         // Query key structure: ["googleCalendar", "events", "list", { calendarId: "...", ... }]
         if (Array.isArray(key) && key.length >= 4) {
-          const keyParams = key[3] as { calendarId?: string; timeMin?: string; timeMax?: string } | undefined;
+          const keyParams = key[3] as
+            | { calendarId?: string; timeMin?: string; timeMax?: string }
+            | undefined;
           if (keyParams?.calendarId === calendarId) {
             // Found prefetched data for this calendar
             // Filter events by the requested time range if needed
             let filteredEvents = data;
             const originalCount = data.length;
-            
+
             if (timeMin && timeMax && data.length > 0) {
               filteredEvents = data.filter((event) => {
                 const eventStart = event.start?.dateTime
@@ -266,36 +301,55 @@ export function useGoogleEvents(params?: {
               calendarId: event.calendarId || calendarId,
             }));
             aggregatedEvents.push(...eventsWithCalendarId);
-            
+
             // Log fallback cache match (only for non-empty results to reduce noise)
             if (eventsWithCalendarId.length > 0) {
-              log.debug(LOG_CATEGORIES.CALENDAR, "Retrieved Google Calendar events from cache (fallback match)", {
-                calendarId,
-                eventCount: eventsWithCalendarId.length,
-                originalEventCount: originalCount,
-                filtered: originalCount !== eventsWithCalendarId.length,
-              });
+              log.debug(
+                LOG_CATEGORIES.CALENDAR,
+                "Retrieved Google Calendar events from cache (fallback match)",
+                {
+                  calendarId,
+                  eventCount: eventsWithCalendarId.length,
+                  originalEventCount: originalCount,
+                  filtered: originalCount !== eventsWithCalendarId.length,
+                },
+              );
             }
-            
+
             foundFallback = true;
             break; // Found matching calendar, stop searching
           }
         }
       }
-      
+
       // Don't log "no cache found" - this is expected when navigating to new date ranges
     }
 
     // Only log aggregated results if there are events (reduce noise)
-    if (shouldLoadData && calendarIds !== null && calendarIds.length > 0 && aggregatedEvents.length > 0) {
-      log.debug(LOG_CATEGORIES.CALENDAR, "Aggregated Google Calendar events from cache", {
-        calendarCount: calendarIds.length,
-        totalEventCount: aggregatedEvents.length,
-      });
+    if (
+      shouldLoadData &&
+      calendarIds !== null &&
+      calendarIds.length > 0 &&
+      aggregatedEvents.length > 0
+    ) {
+      log.debug(
+        LOG_CATEGORIES.CALENDAR,
+        "Aggregated Google Calendar events from cache",
+        {
+          calendarCount: calendarIds.length,
+          totalEventCount: aggregatedEvents.length,
+        },
+      );
     }
 
     return aggregatedEvents;
-  }, [shouldLoadData, calendarIds, memoizedParams.timeMin, memoizedParams.timeMax, queryClient]);
+  }, [
+    shouldLoadData,
+    calendarIds,
+    memoizedParams.timeMin,
+    memoizedParams.timeMax,
+    queryClient,
+  ]);
 
   // Check if we need to fetch data (not in cache)
   const needsFetching = useMemo(() => {
@@ -311,7 +365,7 @@ export function useGoogleEvents(params?: {
         timeMax: memoizedParams.timeMax,
       });
       const cached = queryClient.getQueryData<GoogleEvent[]>(queryKey);
-      
+
       // If any calendar doesn't have cached data, we need to fetch
       if (cached === undefined) {
         return true;
@@ -319,7 +373,13 @@ export function useGoogleEvents(params?: {
     }
 
     return false;
-  }, [shouldLoadData, calendarIds, memoizedParams.timeMin, memoizedParams.timeMax, queryClient]);
+  }, [
+    shouldLoadData,
+    calendarIds,
+    memoizedParams.timeMin,
+    memoizedParams.timeMax,
+    queryClient,
+  ]);
 
   // Determine which calendars need fetching
   const calendarsToFetch = useMemo(() => {
@@ -336,7 +396,13 @@ export function useGoogleEvents(params?: {
       const cached = queryClient.getQueryData<GoogleEvent[]>(queryKey);
       return cached === undefined;
     });
-  }, [needsFetching, calendarIds, memoizedParams.timeMin, memoizedParams.timeMax, queryClient]);
+  }, [
+    needsFetching,
+    calendarIds,
+    memoizedParams.timeMin,
+    memoizedParams.timeMax,
+    queryClient,
+  ]);
 
   // Use React Query to fetch events for calendars not in cache
   const fetchResults = useQueries({
@@ -350,9 +416,13 @@ export function useGoogleEvents(params?: {
       return {
         queryKey,
         queryFn: async () => {
-          log.debug(LOG_CATEGORIES.CALENDAR, "Fetching Google Calendar events (not in cache)", {
-            calendarId,
-          });
+          log.debug(
+            LOG_CATEGORIES.CALENDAR,
+            "Fetching Google Calendar events (not in cache)",
+            {
+              calendarId,
+            },
+          );
 
           const response = await googleCalendarApi.listEvents({
             calendarId,
@@ -402,7 +472,9 @@ export function useGoogleEvents(params?: {
   const fetchError = useMemo(() => {
     for (const result of fetchResults) {
       if (result.error) {
-        return result.error instanceof Error ? result.error.message : String(result.error);
+        return result.error instanceof Error
+          ? result.error.message
+          : String(result.error);
       }
     }
     return null;
@@ -411,7 +483,7 @@ export function useGoogleEvents(params?: {
   // Initialize events from cache immediately
   // Use ref to track previous events to prevent infinite loops
   const previousEventsRef = useRef<GoogleEvent[]>([]);
-  
+
   useEffect(() => {
     if (!shouldLoadData) {
       // Only set empty if we actually have events (avoid unnecessary updates)
@@ -421,16 +493,25 @@ export function useGoogleEvents(params?: {
       }
       return;
     }
-    
+
     // Combine cached and fetched events
     const allEvents = [...allCachedEvents, ...fetchedEvents];
-    
+
     // Compare events by IDs to avoid unnecessary state updates
-    const currentEventIds = allEvents.map(e => e.id).sort().join(',');
-    const previousEventIds = previousEventsRef.current.map(e => e.id).sort().join(',');
-    
+    const currentEventIds = allEvents
+      .map((e) => e.id)
+      .sort()
+      .join(",");
+    const previousEventIds = previousEventsRef.current
+      .map((e) => e.id)
+      .sort()
+      .join(",");
+
     // Only update if events have actually changed
-    if (currentEventIds !== previousEventIds || allEvents.length !== previousEventsRef.current.length) {
+    if (
+      currentEventIds !== previousEventIds ||
+      allEvents.length !== previousEventsRef.current.length
+    ) {
       setEvents(allEvents);
       previousEventsRef.current = allEvents;
     }
@@ -451,7 +532,6 @@ export function useGoogleEvents(params?: {
   useEffect(() => {
     setEventsError(fetchError);
   }, [fetchError]);
-
 
   // Create event mutation
   const createEventMutation = useMutation({
@@ -475,7 +555,12 @@ export function useGoogleEvents(params?: {
 
   const refreshEvents = useCallback(async () => {
     // Invalidate and refetch all event queries
-    if (calendarIds && calendarIds.length > 0 && memoizedParams.timeMin && memoizedParams.timeMax) {
+    if (
+      calendarIds &&
+      calendarIds.length > 0 &&
+      memoizedParams.timeMin &&
+      memoizedParams.timeMax
+    ) {
       for (const calendarId of calendarIds) {
         const queryKey = queryKeys.googleCalendar.eventsList({
           calendarId,
@@ -492,7 +577,12 @@ export function useGoogleEvents(params?: {
       });
     }
     log.debug(LOG_CATEGORIES.CALENDAR, "Refreshed Google Calendar events");
-  }, [calendarIds, memoizedParams.timeMin, memoizedParams.timeMax, queryClient]);
+  }, [
+    calendarIds,
+    memoizedParams.timeMin,
+    memoizedParams.timeMax,
+    queryClient,
+  ]);
 
   const createEvent = useCallback(
     async (event: GoogleEvent): Promise<GoogleEventCreateResponse> => {

@@ -1,12 +1,41 @@
 import { useRef, useCallback, useState } from "react";
 
-import { renderMapPropertyCard, cleanupMapPropertyCard } from "../components/cards/MapPropertyCardUtils";
+import {
+  renderMapPropertyCard,
+  cleanupMapPropertyCard,
+} from "../components/cards/MapPropertyCardUtils";
 import type { SearchResult } from "../../../../../packages/schemas";
 import type { Property } from "../../../../../packages/schemas";
 import type { IsochroneData } from "../../../../../packages/schemas/api";
 import { renderImportantLocationMarkers } from "../utils/importantLocationRenderer";
 import { calculatePropertyCardCenter } from "../utils/MapZoomController";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
+
+async function geocodeAddress(
+  address: string,
+): Promise<{ lat: number; lng: number } | null> {
+  if (!address || typeof window === "undefined") return null;
+  const Geocoder = window.google?.maps?.Geocoder;
+  if (!Geocoder) return null;
+  try {
+    const geocoderInstance = new Geocoder();
+    const response = await geocoderInstance.geocode({ address });
+    const results = response?.results;
+    if (results && results.length > 0) {
+      const location = results[0].geometry?.location;
+      if (location) {
+        return { lat: location.lat(), lng: location.lng() };
+      }
+    }
+  } catch (error) {
+    log.error(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "Geocoding failed for address",
+      { address, error },
+    );
+  }
+  return null;
+}
 
 // Google Maps types
 interface GoogleMap {
@@ -27,8 +56,6 @@ interface GoogleAdvancedMarkerElement extends GoogleMarker {
   addListener: (eventName: string, handler: () => void) => void;
 }
 
-
-
 type UseMapMarkersProps = {
   googleMapRef: React.RefObject<GoogleMap>;
   currentPage: number;
@@ -39,7 +66,10 @@ type UseMapMarkersProps = {
   calculatePropertyScore: (property: SearchResult) => number;
   isHomeSaved: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
+  removeSavedHome: (
+    propertyId: string,
+    propertyAddress?: string,
+  ) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void | Promise<void>;
   /** External context key to force marker remounts when context changes (e.g., tabs) */
@@ -117,23 +147,28 @@ export const useMapMarkers = ({
     markersRef.current.forEach((marker) => {
       if (marker && typeof marker === "object") {
         // Clean up React root for the marker content
-        const markerWithContent = marker as unknown as { content?: HTMLElement };
-        if (markerWithContent.content && markerWithContent.content instanceof HTMLElement) {
+        const markerWithContent = marker as unknown as {
+          content?: HTMLElement;
+        };
+        if (
+          markerWithContent.content &&
+          markerWithContent.content instanceof HTMLElement
+        ) {
           // Use setTimeout to defer cleanup and avoid race conditions during React rendering
           setTimeout(() => {
             cleanupMapPropertyCard(markerWithContent.content!);
           }, 0);
         }
-        
+
         // Remove marker from map
         if ("map" in marker) {
           const markerWithMap = marker as { map: GoogleMap | null };
           markerWithMap.map = null;
         }
-        
+
         // Clean up overlay if it exists
         const markerWithOverlay = marker as unknown as {
-          overlay?: { 
+          overlay?: {
             setMap: (map: GoogleMap | null) => void;
             onRemove?: () => void;
           };
@@ -175,7 +210,7 @@ export const useMapMarkers = ({
 
       // Check if we actually need to update (same data)
       const newResultsCount = results?.length || 0;
-      
+
       // Only skip update if we have no results to show
       if (newResultsCount === 0) {
         clearMapMarkers();
@@ -210,7 +245,11 @@ export const useMapMarkers = ({
       if (paginatedData.length > 0 && googleMapRef.current) {
         const firstProperty = paginatedData[0];
         if (firstProperty && firstProperty.lat && firstProperty.lng) {
-          const center = calculatePropertyCardCenter(firstProperty.lat, firstProperty.lng, firstProperty.id);
+          const center = calculatePropertyCardCenter(
+            firstProperty.lat,
+            firstProperty.lng,
+            firstProperty.id,
+          );
           googleMapRef.current.setCenter(center);
           googleMapRef.current.setZoom(13);
         }
@@ -219,7 +258,10 @@ export const useMapMarkers = ({
       // Check if Google Maps API and AdvancedMarkerElement are available
 
       if (!window.google?.maps?.marker?.AdvancedMarkerElement) {
-        log.error(LOG_CATEGORIES.MAP_RENDERING, "❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update");
+        log.error(
+          LOG_CATEGORIES.MAP_RENDERING,
+          "❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update",
+        );
         setIsUpdatingMarkers(false);
         return;
       }
@@ -228,28 +270,78 @@ export const useMapMarkers = ({
 
       // Create markers for each property with performance optimization
       // Use requestAnimationFrame for better performance with large datasets
-      const createMarkersBatch = (data: SearchResult[], startIndex = 0) => {
+      const createMarkersBatch = async (
+        data: SearchResult[],
+        startIndex = 0,
+      ) => {
         const batchSize = 10; // Process markers in batches
         const endIndex = Math.min(startIndex + batchSize, data.length);
-        
+
         for (let i = startIndex; i < endIndex; i++) {
           const result = data[i];
           // Use backend ML score (_score) to match HomeCard behavior
           const score = result._score ?? 0;
-          
+
           // Log score issues for debugging
-          const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
+          const isDev =
+            typeof import.meta !== "undefined" && import.meta.env?.DEV;
           if (score === 0 || score === undefined || score === null) {
-            log.warn(LOG_CATEGORIES.MAP_RENDERING, "⚠️ [MARKER DATA] Property has no score:", {
-              environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-              propertyId: result.id,
-              address: result.address,
-              _score: result._score,
-              scoreType: typeof result._score,
-              willShowScore: score > 0,
-            });
+            log.warn(
+              LOG_CATEGORIES.MAP_RENDERING,
+              "⚠️ [MARKER DATA] Property has no score:",
+              {
+                environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+                propertyId: result.id,
+                address: result.address,
+                _score: result._score,
+                scoreType: typeof result._score,
+                willShowScore: score > 0,
+              },
+            );
           }
-          
+
+          // Resolve coordinates: warn and geocode if 0 or null
+          let lat = result.lat;
+          let lng = result.lng;
+          const hasZeroOrNullCoords =
+            lat == null ||
+            lng == null ||
+            lat === 0 ||
+            lng === 0;
+          if (hasZeroOrNullCoords) {
+            log.warn(
+              LOG_CATEGORIES.MAP_RENDERING,
+              "⚠️ [MAP MARKER] Property has 0 or null coordinates, geocoding address",
+              {
+                propertyId: result.id,
+                address: result.address,
+                lat: result.lat,
+                lng: result.lng,
+              },
+            );
+            if (result.address) {
+              const coords = await geocodeAddress(result.address);
+              if (coords) {
+                lat = coords.lat;
+                lng = coords.lng;
+              } else {
+                continue;
+              }
+            } else {
+              continue;
+            }
+          }
+
+          // Skip if still invalid (NaN, non-number)
+          if (
+            typeof lat !== "number" ||
+            typeof lng !== "number" ||
+            isNaN(lat) ||
+            isNaN(lng)
+          ) {
+            continue;
+          }
+
           // Create marker container for MapPropertyCard
           const markerElement = document.createElement("div");
           markerElement.className = "property-location-marker";
@@ -260,7 +352,7 @@ export const useMapMarkers = ({
 
           // Convert SearchResult to MapPropertyCard format
           // Only pass score if it's a valid number > 0
-          const hasValidScore = typeof score === 'number' && score > 0;
+          const hasValidScore = typeof score === "number" && score > 0;
           const propertyData = {
             id: result.id,
             address: result.address,
@@ -270,22 +362,26 @@ export const useMapMarkers = ({
             sqft: result.sqft,
             lotSize: result.lotSize,
             propertyType: result.propertyType,
-            lat: result.lat,
-            lng: result.lng,
+            lat,
+            lng,
             images: result.imageUrl ? [result.imageUrl] : undefined,
             calculatedScore: hasValidScore ? score : undefined,
           };
 
-          log.debug(LOG_CATEGORIES.MAP_RENDERING, "📍 [MARKER DATA] Property data for MapPropertyCard:", {
-            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-            propertyId: result.id,
-            address: result.address?.substring(0, 30) + "...",
-            calculatedScore: propertyData.calculatedScore,
-            showScore: hasValidScore,
-            backendScore: result._score,
-            scoreType: typeof result._score,
-            hasValidScore,
-          });
+          log.debug(
+            LOG_CATEGORIES.MAP_RENDERING,
+            "📍 [MARKER DATA] Property data for MapPropertyCard:",
+            {
+              environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+              propertyId: result.id,
+              address: result.address?.substring(0, 30) + "...",
+              calculatedScore: propertyData.calculatedScore,
+              showScore: hasValidScore,
+              backendScore: result._score,
+              scoreType: typeof result._score,
+              hasValidScore,
+            },
+          );
 
           // Render MapPropertyCard directly into the marker element
           try {
@@ -293,34 +389,60 @@ export const useMapMarkers = ({
               property: propertyData,
               isSaved: isHomeSaved(result.id, result.address),
               contextKey,
-              onUnlock: onUnlockClick ? async () => {
-                log.debug(LOG_CATEGORIES.MAP_RENDERING, "🗺️ [USE MAP MARKERS] Unlock button clicked in map marker:", {
-                  environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",
-                  propertyId: result.id,
-                  address: result.address?.substring(0, 30) + "...",
-                  timestamp: new Date().toISOString(),
-                  hasOnUnlockClickCallback: !!onUnlockClick,
-                });
+              onUnlock: onUnlockClick
+                ? async () => {
+                    log.debug(
+                      LOG_CATEGORIES.MAP_RENDERING,
+                      "🗺️ [USE MAP MARKERS] Unlock button clicked in map marker:",
+                      {
+                        environment:
+                          typeof import.meta !== "undefined" &&
+                          import.meta.env?.DEV
+                            ? "DEVELOPMENT"
+                            : "PRODUCTION",
+                        propertyId: result.id,
+                        address: result.address?.substring(0, 30) + "...",
+                        timestamp: new Date().toISOString(),
+                        hasOnUnlockClickCallback: !!onUnlockClick,
+                      },
+                    );
 
-                try {
-                  await onUnlockClick(result);
-                  log.debug(LOG_CATEGORIES.MAP_RENDERING, "🗺️ [USE MAP MARKERS] onUnlockClick completed successfully:", {
-                    environment: typeof import.meta !== 'undefined' && import.meta.env?.DEV ? "DEVELOPMENT" : "PRODUCTION",
-                    propertyId: result.id,
-                    timestamp: new Date().toISOString(),
-                  });
-                } catch (error) {
-                  log.error(LOG_CATEGORIES.MAP_RENDERING, "🗺️ [USE MAP MARKERS] Error in onUnlockClick:", error);
-                  throw error; // Re-throw to ensure CardViewDetailsButton handles the error
-                }
-              } : undefined,
+                    try {
+                      await onUnlockClick(result);
+                      log.debug(
+                        LOG_CATEGORIES.MAP_RENDERING,
+                        "🗺️ [USE MAP MARKERS] onUnlockClick completed successfully:",
+                        {
+                          environment:
+                            typeof import.meta !== "undefined" &&
+                            import.meta.env?.DEV
+                              ? "DEVELOPMENT"
+                              : "PRODUCTION",
+                          propertyId: result.id,
+                          timestamp: new Date().toISOString(),
+                        },
+                      );
+                    } catch (error) {
+                      log.error(
+                        LOG_CATEGORIES.MAP_RENDERING,
+                        "🗺️ [USE MAP MARKERS] Error in onUnlockClick:",
+                        error,
+                      );
+                      throw error; // Re-throw to ensure CardViewDetailsButton handles the error
+                    }
+                  }
+                : undefined,
               showScore: hasValidScore, // Show score for properties with valid scores
               isHomeSaved,
               saveHome,
               removeSavedHome,
             });
           } catch (error) {
-            log.error(LOG_CATEGORIES.MAP_RENDERING, `❌ [MARKER POSITION UPDATE] Error rendering MapPropertyCard for property ${i + 1}:`, error);
+            log.error(
+              LOG_CATEGORIES.MAP_RENDERING,
+              `❌ [MARKER POSITION UPDATE] Error rendering MapPropertyCard for property ${i + 1}:`,
+              error,
+            );
             // Create fallback content if rendering fails
             markerElement.innerHTML = `
               <div style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 8px; min-width: 120px;">
@@ -330,44 +452,42 @@ export const useMapMarkers = ({
             `;
           }
 
-          // Validate position data before creating marker
-          if (typeof result.lat !== 'number' || typeof result.lng !== 'number' || 
-              isNaN(result.lat) || isNaN(result.lng)) {
-            log.error(LOG_CATEGORIES.MAP_RENDERING, `❌ [MARKER POSITION UPDATE] Invalid position data for property ${i + 1}:`, {
-              lat: result.lat,
-              lng: result.lng,
-              address: result.address
-            });
-            continue;
-          }
-
           // Create the marker with position logging
           try {
             const marker = new AdvancedMarkerElement({
               map: googleMapRef.current! as any,
-              position: { lat: result.lat, lng: result.lng },
+              position: { lat, lng },
               title: result.address,
               content: markerElement,
             }) as unknown as GoogleAdvancedMarkerElement;
-            
+
             // Add proper click event listener using addListener()
-            marker.addListener('click', () => {
-              log.debug(LOG_CATEGORIES.MAP_RENDERING, '🗺️ [MARKER_CLICK] Marker clicked:', {
-                propertyId: result.id,
-                address: result.address,
-                coordinates: { lat: result.lat, lng: result.lng },
-                timestamp: new Date().toISOString(),
-              });
-              
+            // Advanced Marker Elements use 'gmp-click' instead of 'click'
+            marker.addListener("gmp-click", () => {
+              log.debug(
+                LOG_CATEGORIES.MAP_RENDERING,
+                "🗺️ [MARKER_CLICK] Marker clicked:",
+                {
+                  propertyId: result.id,
+                  address: result.address,
+                  coordinates: { lat, lng },
+                  timestamp: new Date().toISOString(),
+                },
+              );
+
               // Call the marker click handler if provided
               if (onMarkerClick) {
                 onMarkerClick(result);
               }
             });
-            
+
             markersRef.current.push(marker);
           } catch (error) {
-            log.error(LOG_CATEGORIES.MAP_RENDERING, `❌ [MARKER POSITION UPDATE] Error creating marker for property ${i + 1}:`, error);
+            log.error(
+              LOG_CATEGORIES.MAP_RENDERING,
+              `❌ [MARKER POSITION UPDATE] Error creating marker for property ${i + 1}:`,
+              error,
+            );
             // Clean up the marker element if marker creation fails
             // Defer cleanup to avoid race conditions during React rendering
             setTimeout(() => {
@@ -375,7 +495,7 @@ export const useMapMarkers = ({
             }, 0);
           }
         }
-        
+
         // Continue with next batch if there are more items
         if (endIndex < data.length) {
           requestAnimationFrame(() => createMarkersBatch(data, endIndex));
@@ -384,7 +504,7 @@ export const useMapMarkers = ({
           setIsUpdatingMarkers(false);
         }
       };
-      
+
       // Start batch processing
       createMarkersBatch(paginatedData);
     },
@@ -415,4 +535,3 @@ export const useMapMarkers = ({
     importantMarkersRef,
   };
 };
-

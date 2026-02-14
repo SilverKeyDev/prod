@@ -24,11 +24,7 @@ import {
   isAlwaysEnabled,
   apiSubcategoryToConfigKey,
 } from "./categories";
-import {
-  scrubPII,
-  maskSensitiveData,
-  createSafeLogObject,
-} from "./pii";
+import { scrubPII, maskSensitiveData, createSafeLogObject } from "./pii";
 
 type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
@@ -187,9 +183,7 @@ class Logger {
           .toLowerCase()
           .split("_")
           .map((word, index) =>
-            index === 0
-              ? word
-              : word.charAt(0).toUpperCase() + word.slice(1),
+            index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1),
           )
           .join("");
       }
@@ -214,7 +208,9 @@ class Logger {
         const apiConfig = configValue as ApiSubcategoryConfig;
         if (subcategory) {
           const subcategoryKey = apiSubcategoryToConfigKey(subcategory);
-          return apiConfig[subcategoryKey as keyof ApiSubcategoryConfig] === true;
+          return (
+            apiConfig[subcategoryKey as keyof ApiSubcategoryConfig] === true
+          );
         }
         // If no subcategory specified, check if any subcategory is enabled
         return (
@@ -295,7 +291,12 @@ class Logger {
         subcategory && category === "API"
           ? `${category}:${subcategory}`
           : category;
-      const formatted = this.formatMessage("DEBUG", categoryLabel, message, data);
+      const formatted = this.formatMessage(
+        "DEBUG",
+        categoryLabel,
+        message,
+        data,
+      );
       this.originalConsole.debug(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Debug error:", error);
@@ -323,7 +324,12 @@ class Logger {
         subcategory && category === "API"
           ? `${category}:${subcategory}`
           : category;
-      const formatted = this.formatMessage("INFO", categoryLabel, message, data);
+      const formatted = this.formatMessage(
+        "INFO",
+        categoryLabel,
+        message,
+        data,
+      );
       this.originalConsole.info(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Info error:", error);
@@ -351,7 +357,12 @@ class Logger {
         subcategory && category === "API"
           ? `${category}:${subcategory}`
           : category;
-      const formatted = this.formatMessage("WARN", categoryLabel, message, data);
+      const formatted = this.formatMessage(
+        "WARN",
+        categoryLabel,
+        message,
+        data,
+      );
       this.originalConsole.warn(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Warn error:", error);

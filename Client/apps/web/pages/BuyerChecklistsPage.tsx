@@ -76,14 +76,14 @@ export default function BuyerChecklists({
   return (
     <div className={`h-full w-full bg-off-white`}>
       {/* Client Selector */}
-      <div className="mx-auto w-full max-w-7xl mt-6 mb-4">
+      <div className="mx-auto w-full max-w-7xl mt-2 mb-4">
         <ClientSelector
           selectedClientId={selectedClientId}
           onClientChange={setSelectedClientId}
         />
       </div>
       {/* Content */}
-      <div className="mx-auto w-full max-w-7xl mt-6">{renderTabContent()}</div>
+      <div className="mx-auto w-full max-w-7xl mt-2">{renderTabContent()}</div>
     </div>
   );
 }

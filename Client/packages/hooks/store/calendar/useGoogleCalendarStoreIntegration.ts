@@ -17,7 +17,7 @@ export function useGoogleCalendarStoreIntegration() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
   const queryClient = useQueryClient();
-  
+
   const shouldLoadData = useMemo(() => {
     return authReady && isAuthenticated;
   }, [authReady, isAuthenticated]);
@@ -26,7 +26,9 @@ export function useGoogleCalendarStoreIntegration() {
   const connectionStatusQuery = useQuery({
     queryKey: [...queryKeys.googleCalendar.all, "connection"],
     queryFn: async () => {
-      throw new Error("Connection status fetching is disabled - use cache only");
+      throw new Error(
+        "Connection status fetching is disabled - use cache only",
+      );
     },
     enabled: false, // Always disabled - only read from cache
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -49,27 +51,32 @@ export function useGoogleCalendarStoreIntegration() {
   // Get cached values
   const cachedConnectionStatus = useMemo(() => {
     if (!shouldLoadData) return false;
-    return queryClient.getQueryData<boolean>([
-      ...queryKeys.googleCalendar.all,
-      "connection",
-    ]) ?? false;
+    return (
+      queryClient.getQueryData<boolean>([
+        ...queryKeys.googleCalendar.all,
+        "connection",
+      ]) ?? false
+    );
   }, [shouldLoadData, queryClient]);
 
   const cachedCalendars = useMemo(() => {
     if (!shouldLoadData) return [];
-    return queryClient.getQueryData<GoogleCalendar[]>(
-      queryKeys.googleCalendar.calendars()
-    ) ?? [];
+    return (
+      queryClient.getQueryData<GoogleCalendar[]>(
+        queryKeys.googleCalendar.calendars(),
+      ) ?? []
+    );
   }, [shouldLoadData, queryClient]);
 
   // Determine connection status and calendars
-  const isConnected = connectionStatusQuery.data ?? cachedConnectionStatus ?? false;
+  const isConnected =
+    connectionStatusQuery.data ?? cachedConnectionStatus ?? false;
   const calendars = calendarsQuery.data ?? cachedCalendars ?? [];
   const calendarsLoading = calendarsQuery.isLoading;
   const calendarsError = calendarsQuery.error
-    ? (calendarsQuery.error instanceof Error
-        ? calendarsQuery.error.message
-        : "Failed to fetch calendars")
+    ? calendarsQuery.error instanceof Error
+      ? calendarsQuery.error.message
+      : "Failed to fetch calendars"
     : null;
 
   // Check for OAuth callback in URL
@@ -105,7 +112,10 @@ export function useGoogleCalendarStoreIntegration() {
   const refreshCalendars = useCallback(async () => {
     // Refresh is disabled - calendars are only fetched via initial prefetch
     // This function is kept for API compatibility but does nothing
-    log.debug(LOG_CATEGORIES.HOOKS, "refreshCalendars called but fetching is disabled - calendars only fetched via initial prefetch");
+    log.debug(
+      LOG_CATEGORIES.HOOKS,
+      "refreshCalendars called but fetching is disabled - calendars only fetched via initial prefetch",
+    );
   }, []);
 
   const connectGoogleCalendar = useCallback(() => {

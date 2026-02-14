@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 import { useGoogleCalendarStoreIntegration } from "../../../../../packages/hooks/store/calendar/useGoogleCalendarStoreIntegration";
 import { useUserPreferences } from "../../../../../packages/hooks/data/auth/useUserData";
-import { useGoogleCalendarPermissions, useGoogleEvents } from "../../../../../packages/hooks/data/calendar";
+import {
+  useGoogleCalendarPermissions,
+  useGoogleEvents,
+} from "../../../../../packages/hooks/data/calendar";
 
 import { CalendarConnectionPrompt } from "./components/CalendarConnectionPrompt";
 import { EventList } from "./components/EventList";
@@ -18,12 +21,8 @@ import {
 } from "../../../../../packages/utils/calendar/eventFiltering";
 
 export function UpcomingEvents() {
-  const {
-    isConnected,
-    calendars,
-    calendarsLoading,
-    connectGoogleCalendar,
-  } = useGoogleCalendarStoreIntegration();
+  const { isConnected, calendars, calendarsLoading, connectGoogleCalendar } =
+    useGoogleCalendarStoreIntegration();
 
   const { userPreferences } = useUserPreferences();
 
@@ -35,7 +34,7 @@ export function UpcomingEvents() {
   } = useGoogleCalendarPermissions();
 
   const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(
-    () => new Set()
+    () => new Set(),
   );
 
   const silverKeyCalendarIdRef = useRef<string | null>(null);
@@ -45,7 +44,7 @@ export function UpcomingEvents() {
 
   // Recalculate daily to ensure our "next 7 days" window stays current
   const [todayDateString, setTodayDateString] = useState(() =>
-    new Date().toDateString()
+    new Date().toDateString(),
   );
   const lastCheckedDateRef = useRef<string>(todayDateString);
 
@@ -95,7 +94,7 @@ export function UpcomingEvents() {
       const enabledSet = initializeEnabledCalendars(
         calendars,
         hasDisabledCalendars ? disabledCalendars : undefined,
-        silverKeyCalendarIdRef.current
+        silverKeyCalendarIdRef.current,
       );
       setEnabledCalendarIds(enabledSet);
       initializedFromPreferencesRef.current = true;
@@ -117,7 +116,7 @@ export function UpcomingEvents() {
 
   const enabledCalendarIdsArray = useMemo(
     () => Array.from(enabledCalendarIds),
-    [enabledCalendarIds]
+    [enabledCalendarIds],
   );
 
   const { events: upcomingEventsRaw } = useGoogleEvents({
@@ -136,18 +135,18 @@ export function UpcomingEvents() {
       filterEventsByCalendars(
         upcomingEventsRaw,
         enabledCalendarIds,
-        calendars || []
+        calendars || [],
       ),
-    [upcomingEventsRaw, enabledCalendarIds, calendars]
+    [upcomingEventsRaw, enabledCalendarIds, calendars],
   );
 
   const upcomingEvents = useMemo(
     () =>
       filterUpcomingEvents(
         filteredUpcomingEvents,
-        silverKeyCalendarIdRef.current
+        silverKeyCalendarIdRef.current,
       ),
-    [filteredUpcomingEvents]
+    [filteredUpcomingEvents],
   );
 
   const handleConnect = useCallback(() => {
@@ -199,4 +198,3 @@ export function UpcomingEvents() {
     </div>
   );
 }
-

@@ -1,6 +1,9 @@
 import { Send } from "lucide-react";
 import Button from "../../../components/ui/button/Button";
-import { getMessagingConfig, type MessagingMode } from "../config/messagingConfig";
+import {
+  getMessagingConfig,
+  type MessagingMode,
+} from "../config/messagingConfig";
 import AttachmentMenu from "./AttachmentMenu";
 
 type UnifiedMessageInputProps = {
@@ -43,7 +46,10 @@ export default function UnifiedMessageInput({
     <div className="flex-shrink-0 border-t border-beige bg-white p-4">
       <div className="flex items-center gap-3">
         {/* Attachment button */}
-        {(onAttachmentHome || onAttachmentCalendar || onAttachmentDocument || onAttachmentAgreement) && (
+        {(onAttachmentHome ||
+          onAttachmentCalendar ||
+          onAttachmentDocument ||
+          onAttachmentAgreement) && (
           <AttachmentMenu
             onSelectHome={onAttachmentHome || (() => {})}
             onSelectCalendar={onAttachmentCalendar || (() => {})}
@@ -82,4 +88,3 @@ export default function UnifiedMessageInput({
     </div>
   );
 }
-

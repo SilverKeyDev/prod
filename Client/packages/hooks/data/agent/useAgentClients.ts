@@ -25,7 +25,10 @@ export function useAgentClients(): UseAgentClientsReturn {
   const isAgent = useAuthStore((s) => s.user?.is_agent ?? false);
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated && isAgent, [authReady, isAuthenticated, isAgent]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated && isAgent,
+    [authReady, isAuthenticated, isAgent],
+  );
 
   const {
     data: clientsResponse,

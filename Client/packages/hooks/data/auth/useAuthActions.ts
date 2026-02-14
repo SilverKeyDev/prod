@@ -35,17 +35,24 @@ export function useSignup() {
             email: data.email,
             error: errorMessage,
           });
-          return { success: false, error: errorMessage, needsVerification: response.needs_verification };
+          return {
+            success: false,
+            error: errorMessage,
+            needsVerification: response.needs_verification,
+          };
         }
 
         log.info(LOG_CATEGORIES.AUTH, "Signup successful", {
           email: data.email,
           needsVerification: response.needs_verification,
         });
-        return { success: true, needsVerification: response.needs_verification };
+        return {
+          success: true,
+          needsVerification: response.needs_verification,
+        };
       } catch (err: unknown) {
         let errorMessage = "Signup failed";
-        
+
         // Extract error message from HttpError parsedBody
         if (err instanceof HttpError && err.parsedBody) {
           const parsedBody = err.parsedBody as Record<string, unknown>;
@@ -57,7 +64,7 @@ export function useSignup() {
         } else if (err instanceof Error) {
           errorMessage = err.message;
         }
-        
+
         setError(errorMessage);
         log.error(LOG_CATEGORIES.AUTH, "Signup error", err);
         return { success: false, error: errorMessage };
@@ -98,7 +105,7 @@ export function useForgotPassword() {
       return { success: true };
     } catch (err: unknown) {
       let errorMessage = "Failed to send reset code";
-      
+
       // Extract error message from HttpError parsedBody
       if (err instanceof HttpError && err.parsedBody) {
         const parsedBody = err.parsedBody as Record<string, unknown>;
@@ -110,7 +117,7 @@ export function useForgotPassword() {
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
       log.error(LOG_CATEGORIES.AUTH, "Forgot password error", err);
       return { success: false, error: errorMessage };
@@ -147,14 +154,14 @@ export function useResetPassword() {
         }
 
         log.info(LOG_CATEGORIES.AUTH, "Password reset successful", { email });
-        return { 
-          success: true, 
+        return {
+          success: true,
           user: response.user,
-          message: response.message 
+          message: response.message,
         };
       } catch (err: unknown) {
         let errorMessage = "Failed to reset password";
-        
+
         // Extract error message from HttpError parsedBody
         if (err instanceof HttpError && err.parsedBody) {
           const parsedBody = err.parsedBody as Record<string, unknown>;
@@ -166,7 +173,7 @@ export function useResetPassword() {
         } else if (err instanceof Error) {
           errorMessage = err.message;
         }
-        
+
         setError(errorMessage);
         log.error(LOG_CATEGORIES.AUTH, "Reset password error", err);
         return { success: false, error: errorMessage };

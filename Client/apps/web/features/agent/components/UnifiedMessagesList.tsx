@@ -119,7 +119,7 @@ export default function UnifiedMessagesList({
             {mode === "agent" && selectedClientName
               ? config.emptyStates.noMessages.message.replace(
                   "your client",
-                  selectedClientName
+                  selectedClientName,
                 )
               : config.emptyStates.noMessages.message}
           </p>
@@ -148,7 +148,7 @@ export default function UnifiedMessagesList({
         const previousMessage = index > 0 ? localMessages[index - 1] : null;
         const dateDividerText = getDateDividerText(
           msg.timestamp,
-          previousMessage?.timestamp ?? null
+          previousMessage?.timestamp ?? null,
         );
 
         return (
@@ -164,73 +164,71 @@ export default function UnifiedMessagesList({
               </div>
             )}
             <div
-              className={`flex flex-col ${
+              className={`flex min-w-0 w-full max-w-full overflow-hidden flex-col ${
                 messageConfig.justify === "end" ? "items-end" : "items-start"
               }`}
             >
               <div
-                className={`flex items-center gap-2 ${
-                  messageConfig.justify === "end"
-                    ? "justify-end"
-                    : "justify-start"
+                className={`min-w-0 max-w-[85%] overflow-hidden rounded-xl md:max-w-[60%] ${
+                  msg.shared_home_id || msg.shared_document_id
+                    ? ""
+                    : `px-4 py-3 ${messageConfig.bgColor}`
                 }`}
               >
-                <div
-                  className={`max-w-lg rounded-xl ${
-                    msg.shared_home_id || msg.shared_document_id
-                      ? ""
-                      : `px-4 py-3 ${messageConfig.bgColor}`
-                  }`}
-                >
-                  {/* Show shared home card if present */}
-                  {msg.shared_home_id &&
-                    (() => {
-                      const savedHome = getSavedHome(msg.shared_home_id);
-                      const homeData = savedHome || {
-                        home_id: msg.shared_home_id,
-                        address: msg.content || undefined,
-                      };
+                {/* Show shared home card if present */}
+                {msg.shared_home_id &&
+                  (() => {
+                    const savedHome = getSavedHome(msg.shared_home_id);
+                    const homeData = savedHome || {
+                      home_id: msg.shared_home_id,
+                      address: msg.content || undefined,
+                    };
+                    return (
+                      <div className="mb-2 w-full min-w-0 max-w-full overflow-hidden">
+                        <HomeCard home={homeData} />
+                      </div>
+                    );
+                  })()}
+                {/* Show shared document card if present */}
+                {msg.shared_document_id &&
+                  (() => {
+                    const document = documents.find(
+                      (d) => d.id === msg.shared_document_id,
+                    );
+                    if (!document) {
                       return (
-                        <div className="mb-2">
-                          <HomeCard home={homeData} />
+                        <div className="mb-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                          <p className="text-sm text-gray-500">
+                            Document not found or has been deleted.
+                          </p>
                         </div>
                       );
-                    })()}
-                  {/* Show shared document card if present */}
-                  {msg.shared_document_id &&
-                    (() => {
-                      const document = documents.find(
-                        (d) => d.id === msg.shared_document_id
-                      );
-                      if (!document) {
-                        return (
-                          <div className="mb-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">
-                              Document not found or has been deleted.
-                            </p>
-                          </div>
-                        );
-                      }
-                      return (
-                        <div className="mb-2">
-                          <SharedDocumentCard doc={document} />
-                        </div>
-                      );
-                    })()}
-                  {/* Show message content only if there's no shared home or document */}
-                  {!msg.shared_home_id &&
-                    !msg.shared_document_id &&
-                    msg.content.trim() && (
-                      <p className="whitespace-pre-line text-sm">
-                        {msg.content}
-                      </p>
-                    )}
-                </div>
+                    }
+                    return (
+                      <div className="mb-2 w-full min-w-0 max-w-full overflow-hidden">
+                        <SharedDocumentCard doc={document} />
+                      </div>
+                    );
+                  })()}
+                {/* Show message content only if there's no shared home or document */}
+                {!msg.shared_home_id &&
+                  !msg.shared_document_id &&
+                  msg.content.trim() && (
+                    <p className="whitespace-pre-line text-sm">
+                      {msg.content}
+                    </p>
+                  )}
               </div>
 
               {/* Status text for current user's messages only - below the entire message row */}
               {isCurrentUserMessage && msg.status && (
-                <div className="mt-1 flex items-center justify-end gap-1.5 pr-10">
+                <div
+                  className={`mt-1 flex w-full gap-1.5 ${
+                    messageConfig.justify === "end"
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
+                >
                   {msg.status === "failed" && onRetryMessage && (
                     <button
                       onClick={() => onRetryMessage(msg.id)}

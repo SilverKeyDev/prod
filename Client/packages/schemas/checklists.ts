@@ -17,5 +17,3 @@ export const CHECKLIST_SUBTITLES: Record<ChecklistTab, string> = {
   financing: "Stay on top of your loan and insurance tasks",
   closing: "Track your progress toward a smooth transition into your new home",
 };
-
-

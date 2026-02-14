@@ -1,7 +1,12 @@
 // Agent dashboard type definitions
 import type { AgentClient } from "../../config/api";
 
-export type DealStage = "search" | "touring" | "offer" | "under_contract" | "closing";
+export type DealStage =
+  | "search"
+  | "touring"
+  | "offer"
+  | "under_contract"
+  | "closing";
 
 export type TodoPriority = "low" | "medium" | "high" | "urgent";
 
@@ -66,9 +71,20 @@ export type ClientDealInfo = AgentClient & {
   risk_flags: RiskFlag[];
 };
 
-export type PreApprovalStatus = "not_started" | "in_progress" | "approved" | "denied" | "pending";
+export type PreApprovalStatus =
+  | "not_started"
+  | "in_progress"
+  | "approved"
+  | "denied"
+  | "pending";
 
-export type LoanType = "conventional" | "fha" | "va" | "usda" | "cash" | "other";
+export type LoanType =
+  | "conventional"
+  | "fha"
+  | "va"
+  | "usda"
+  | "cash"
+  | "other";
 
 export type ClientFinancialSnapshot = {
   pre_approval_status: PreApprovalStatus;

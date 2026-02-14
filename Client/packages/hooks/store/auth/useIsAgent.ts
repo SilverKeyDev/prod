@@ -10,4 +10,3 @@ import { useAuthStore } from "../../../store/auth.slice";
 export function useIsAgent(): boolean {
   return useAuthStore((s) => s.user?.is_agent ?? false);
 }
-

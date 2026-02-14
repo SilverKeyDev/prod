@@ -5,6 +5,7 @@ Framework-agnostic utility functions for the SilverKey application.
 ## Purpose
 
 The `utils/` package provides reusable utility functions that are:
+
 - Framework-agnostic (no React, no framework dependencies)
 - Pure functions where possible
 - Well-typed with TypeScript
@@ -13,11 +14,13 @@ The `utils/` package provides reusable utility functions that are:
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ Other `utils/*` files - Utilities can use other utilities
 - ✅ Third-party libraries - External utility libraries
 - ✅ `schemas/*` - Type definitions (type-only imports)
 
 ### Forbidden Imports
+
 - ❌ `react` or any React code - Utils must be framework-agnostic
 - ❌ `config/*` - Utils should not import config
 - ❌ `services/*` - Utils should not import services
@@ -27,37 +30,48 @@ The `utils/` package provides reusable utility functions that are:
 ## Available Utilities
 
 ### Error Handling
+
 - `error.ts` - Simple error conversion utility
 - `errorHandling.ts` - Comprehensive error handling utilities
 
 ### Type Guards
+
 - `typeGuards.ts` - Runtime type checking functions
 
 ### Array Utilities
+
 - `array.ts` - Array manipulation utilities
 
 ### Property Utilities
+
 - `property.ts` - Property-related utilities
 
 ### Address Utilities
+
 - `address.ts` - Address formatting and parsing
 
 ### Currency Utilities
+
 - `currency.ts` - Currency formatting
 
 ### PDF Utilities
+
 - `pdf.ts` - PDF generation and manipulation
 
 ### Routing Utilities
+
 - `routing.ts` - Routing helpers
 
 ### Scheduling Utilities
+
 - `scheduling.ts` - Scheduling helpers
 
 ### Storage Utilities
+
 - `storage.ts` - LocalStorage utilities (framework-agnostic)
 
 ### Auth Utilities
+
 - `auth.ts` - Authentication helpers (deprecated - use config/auth.ts)
 
 ## Usage Examples
@@ -65,7 +79,10 @@ The `utils/` package provides reusable utility functions that are:
 ### Error Handling
 
 ```typescript
-import { normalizeError, reportError } from "../../../packages/utils/errorHandling";
+import {
+  normalizeError,
+  reportError,
+} from "../../../packages/utils/errorHandling";
 
 try {
   // ... code
@@ -114,6 +131,7 @@ setToStorage("key", newValue);
 ## React-Specific Utilities
 
 For React-specific utilities, see:
+
 - `hooks/ui/useLocalStorage.ts` - React hook for localStorage
 - `hooks/ui/useModal.ts` - React hook for modals
 - etc.

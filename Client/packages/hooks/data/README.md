@@ -5,6 +5,7 @@ React Query hooks for data fetching and API integration.
 ## Purpose
 
 Data hooks use React Query to fetch and manage data from the API. These hooks:
+
 - Use `config/api/*` for all API calls
 - Provide loading, error, and data states
 - Handle caching and refetching
@@ -13,6 +14,7 @@ Data hooks use React Query to fetch and manage data from the API. These hooks:
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `config/api/*` - API clients (primary interface)
 - ✅ `config/query/keys.ts` - Query key factories
 - ✅ `store/*` - Zustand stores (for integration)
@@ -21,38 +23,46 @@ Data hooks use React Query to fetch and manage data from the API. These hooks:
 - ✅ `services/security/*` - Security utilities (if needed)
 
 ### Forbidden Imports
+
 - ❌ Business logic `services/*` - Use `config/api/*` instead
 - ❌ `apps/web/*` - Hooks should not import components
 
 ## Available Hooks
 
 ### User Data
+
 - `useUserData.ts` - User profile data
 - `useSecureAuth.ts` - Secure authentication state
 
 ### Agent Data
+
 - `useAgentClients.ts` - Agent clients
 - `useAgentTodos.ts` - Agent todos
 - `useAgentChats.ts` - Agent conversations
 - `useAgentSearch.ts` - Agent search
 
 ### Property Data
+
 - `useSavedHomesData.ts` - Saved/favorite homes
 - `useNotInterestedHomesData.ts` - Not interested homes
 - `usePropertyDetails.ts` - Property details
 
 ### Documents
+
 - `useDocuments.ts` - Document list
 - `useDocumentActions.ts` - Document actions (upload, delete)
 
 ### Scheduling
+
 - `useScheduling.ts` - Scheduling data
 
 ### Maps
+
 - `useGoogleMaps.ts` - Google Maps integration
 - `useMapInitialization.ts` - Map initialization
 
 ### Other
+
 - `useChats.ts` - Chat conversations
 - `useConnectionRequests.ts` - Connection requests
 - `usePlaid.ts` - Plaid integration

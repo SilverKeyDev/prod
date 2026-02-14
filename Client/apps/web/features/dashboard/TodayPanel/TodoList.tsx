@@ -80,7 +80,9 @@ const TodoList: React.FC<TodoListProps> = ({
               className="flex items-start gap-3 p-3 rounded-lg border border-beige/30 bg-white hover:bg-beige/5 transition-colors"
             >
               <button
-                onClick={() => (canEdit ? onToggleComplete(todo.id) : undefined)}
+                onClick={() =>
+                  canEdit ? onToggleComplete(todo.id) : undefined
+                }
                 disabled={!canEdit}
                 className={`flex-shrink-0 mt-0.5 w-5 h-5 sm:w-6 sm:h-6 rounded border-2 flex items-center justify-center transition-colors ${
                   todo.completed

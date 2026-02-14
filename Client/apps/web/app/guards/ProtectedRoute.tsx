@@ -26,7 +26,9 @@ export const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
         ? `${location.pathname}${location.search ?? ""}${location.hash ?? ""}`
         : "/";
     // Never set /login as a return target
-    const safeIntended = intended.startsWith(ROUTES.LOGIN) ? ROUTES.HOME : intended;
+    const safeIntended = intended.startsWith(ROUTES.LOGIN)
+      ? ROUTES.HOME
+      : intended;
     return (
       <Navigate
         to={ROUTES.LOGIN}

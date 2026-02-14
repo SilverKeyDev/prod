@@ -93,11 +93,11 @@ export type IsochroneData = {
     lng: number;
   };
   locations: Array<{
-    name: string;
     address: string;
-    commute_tolerance: number;
-    lat: number | null;
-    lng: number | null;
+    commute_tolerance?: number;
+    lat?: number | null;
+    lng?: number | null;
+    name?: string;
   }>;
 };
 
@@ -124,11 +124,10 @@ export type SearchByPolygonRequest = {
     preferred_home_features?: string[];
     deal_breakers?: string[];
     important_locations?: Array<{
-      name: string;
       address: string;
-      commute_tolerance: number;
-      lat: number | null;
-      lng: number | null;
+      commute_tolerance?: number;
+      lat?: number | null;
+      lng?: number | null;
     }>;
   };
   perBucketPages?: number;

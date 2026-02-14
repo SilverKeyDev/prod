@@ -56,7 +56,7 @@ export const PropertyDetailsList = ({
             {formatPropertyType(
               (propertyHomeType as string) ??
                 (propertyPropertyType as string) ??
-                ""
+                "",
             )}
           </div>
         ) : null}

@@ -45,4 +45,3 @@ export function EventList({
     </Card>
   );
 }
-

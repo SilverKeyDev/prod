@@ -106,7 +106,10 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
     if (!disabled && !loading) {
       onClick();
     } else {
-      log.debug(LOG_CATEGORIES.HOOKS, "NavigationButton click ignored - button disabled or loading");
+      log.debug(
+        LOG_CATEGORIES.HOOKS,
+        "NavigationButton click ignored - button disabled or loading",
+      );
     }
   };
 

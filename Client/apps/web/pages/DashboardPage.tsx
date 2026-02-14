@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Settings } from "lucide-react";
-import { Button } from "../components/ui";
+import { IconButton } from "../components/ui";
 import ClientList from "../features/dashboard/ClientList/ClientList";
 import ClientHub from "../features/dashboard/ClientHub/ClientHub";
 import { SettingsModal } from "../features/agent/modals";
@@ -15,7 +15,9 @@ type DashboardPageProps = {
   >;
 };
 
-export default function DashboardPage({ setMobileHeaderActions }: DashboardPageProps) {
+export default function DashboardPage({
+  setMobileHeaderActions,
+}: DashboardPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -49,19 +51,16 @@ export default function DashboardPage({ setMobileHeaderActions }: DashboardPageP
   return (
     <>
       <div className="space-y-6 sm:space-y-8">
-
         {/* Settings Button */}
         {isLgDown && (
           <div className="flex justify-end">
-            <Button
+            <IconButton
               onClick={() => setIsSettingsModalOpen(true)}
-              variant="outline"
+              variant="ghost"
               size="md"
               icon={<Settings className="h-4 w-4" />}
-              iconPosition="left"
-            >
-              Settings
-            </Button>
+              aria-label="Settings"
+            />
           </div>
         )}
 

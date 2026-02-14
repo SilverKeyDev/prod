@@ -351,7 +351,9 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
               </div>
             )}
 
-            {activeTab === "agreements" && <ClientAgreements clientId={clientId} />}
+            {activeTab === "agreements" && (
+              <ClientAgreements clientId={clientId} />
+            )}
 
             {activeTab === "calendar" && <ClientCalendar userId={clientId} />}
           </div>

@@ -39,4 +39,3 @@ export function screenDown(key: ScreenKey): string {
 export function screenUp(key: ScreenKey): string {
   return `(min-width: ${SCREENS_PX[key]})`;
 }
-

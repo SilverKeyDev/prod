@@ -33,9 +33,13 @@ export default function ClientSearchModal({
 
   const handleSendRequest = async (clientId: string) => {
     if (!userProfile?.id) return;
-    
+
     try {
-      await createRequest(userProfile.id, clientId, message.trim() || undefined);
+      await createRequest(
+        userProfile.id,
+        clientId,
+        message.trim() || undefined,
+      );
       enqueueToast({
         type: "success",
         message: "Connection request sent",
@@ -58,7 +62,9 @@ export default function ClientSearchModal({
       <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-lg">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-beige p-4">
-          <h2 className="text-lg font-medium text-black">Search for a Client</h2>
+          <h2 className="text-lg font-medium text-black">
+            Search for a Client
+          </h2>
           <button
             onClick={onClose}
             className="rounded-lg p-1 hover:bg-beige/10"
@@ -111,8 +117,12 @@ export default function ClientSearchModal({
                           <UserIcon className="h-5 w-5 text-black" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium text-black">{client.name}</h3>
-                          <p className="text-sm text-black/60">{client.email}</p>
+                          <h3 className="font-medium text-black">
+                            {client.name}
+                          </h3>
+                          <p className="text-sm text-black/60">
+                            {client.email}
+                          </p>
                         </div>
                       </div>
                       <textarea
@@ -158,10 +168,14 @@ export default function ClientSearchModal({
                         <UserIcon className="h-5 w-5 text-black" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-medium text-black">{client.name}</h3>
+                        <h3 className="font-medium text-black">
+                          {client.name}
+                        </h3>
                         <p className="text-sm text-black/60">{client.email}</p>
                         {client.phone && (
-                          <p className="text-xs text-black/40">{client.phone}</p>
+                          <p className="text-xs text-black/40">
+                            {client.phone}
+                          </p>
                         )}
                       </div>
                     </button>

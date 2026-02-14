@@ -31,12 +31,17 @@ export type ImportantLocationRenderOptions = {
 }; // Updated interface - force refresh
 
 type ImportantLocation = {
-  name: string;
   address: string;
   lat?: number | null;
   lng?: number | null;
   commute_tolerance?: number;
   icon?: string;
+};
+
+/** Truncate address for marker display when name is not available */
+const truncateAddress = (address: string, maxLen = 25): string => {
+  if (address.length <= maxLen) return address;
+  return address.slice(0, maxLen - 3) + "...";
 };
 
 /**
@@ -50,11 +55,11 @@ const buildImportantLocationsList = (
   if (isochroneData.locations) {
     isochroneData.locations.forEach(
       (location: {
-        name: string;
         address: string;
         commute_tolerance?: number;
-        lat: number | null;
-        lng: number | null;
+        lat?: number | null;
+        lng?: number | null;
+        name?: string;
       }) => {
         if (!location.address) return;
         const dup = importantLocations.some(
@@ -62,7 +67,6 @@ const buildImportantLocationsList = (
         );
         if (!dup) {
           importantLocations.push({
-            name: location.name ?? "Important Location",
             address: location.address,
             lat: location.lat,
             lng: location.lng,
@@ -86,24 +90,34 @@ export const renderImportantLocationMarkers = (
   const { map, importantMarkersRef, setImportantLocationMarkers } = options;
 
   if (!map || !isochroneData?.center) {
-    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Cannot render important location markers: map or data not available");
-    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map ref available", { mapAvailable: !!map });
-    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Isochrone center data", { center: isochroneData?.center });
+    log.warn(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "Cannot render important location markers: map or data not available",
+    );
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map ref available", {
+      mapAvailable: !!map,
+    });
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Isochrone center data", {
+      center: isochroneData?.center,
+    });
     return;
   }
 
   // Check if Google Maps API and AdvancedMarkerElement are available
   if (!window.google?.maps?.marker?.AdvancedMarkerElement) {
-    log.warn(LOG_CATEGORIES.MAP_RENDERING, "AdvancedMarkerElement not available for important location markers");
+    log.warn(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "AdvancedMarkerElement not available for important location markers",
+    );
     log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Maps API status", {
       google: !!window.google,
       maps: !!window.google?.maps,
       marker: !!window.google?.maps?.marker,
-      AdvancedMarkerElement: !!window.google?.maps?.marker?.AdvancedMarkerElement,
+      AdvancedMarkerElement:
+        !!window.google?.maps?.marker?.AdvancedMarkerElement,
     });
     return;
   }
-
 
   // Clear existing important location markers
   if (importantMarkersRef.current) {
@@ -129,8 +143,9 @@ export const renderImportantLocationMarkers = (
       continue;
     }
 
-    const { name, address } = loc;
+    const { address } = loc;
     const position = { lat: loc.lat, lng: loc.lng };
+    const displayLabel = truncateAddress(address);
 
     // Create marker box with triangle pointer
     const markerElement = document.createElement("div");
@@ -156,7 +171,7 @@ export const renderImportantLocationMarkers = (
           font-size: 11px; 
           font-weight: 600;
           margin-bottom: 1px;
-        ">${name}</div>
+        ">${displayLabel}</div>
         <div style="
           color: #8B7355; 
           font-size: 9px; 
@@ -193,19 +208,19 @@ export const renderImportantLocationMarkers = (
       position: relative;
     `;
 
-    const AdvancedMarkerCtor =
-      window.google.maps.marker.AdvancedMarkerElement as unknown as new (options: {
-        map: any;
-        position: { lat: number; lng: number };
-        content: HTMLElement;
-        title: string;
-      }) => GoogleAdvancedMarkerElement;
+    const AdvancedMarkerCtor = window.google.maps.marker
+      .AdvancedMarkerElement as unknown as new (options: {
+      map: any;
+      position: { lat: number; lng: number };
+      content: HTMLElement;
+      title: string;
+    }) => GoogleAdvancedMarkerElement;
 
     const marker = new AdvancedMarkerCtor({
       map: map as unknown as any,
       position,
       content: markerElement,
-      title: `${name} - ${address}`,
+      title: address,
     });
 
     markers.push(marker);

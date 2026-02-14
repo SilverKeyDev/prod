@@ -55,8 +55,7 @@ export default function CommunicationSection({
           <div className="mobile-input bg-gray-50">
             {formData.communication_frequency
               ? (COMMUNICATION_FREQUENCY_OPTIONS.find(
-                  (option) =>
-                    option.value === formData.communication_frequency
+                  (option) => option.value === formData.communication_frequency,
                 )?.label ?? "Not specified")
               : "Not specified"}
           </div>
@@ -79,7 +78,7 @@ export default function CommunicationSection({
           <div className="mobile-input bg-gray-50">
             {formData.information_detail_level
               ? INFORMATION_DETAIL_LEVEL_OPTIONS.find(
-                  (opt) => opt.value === formData.information_detail_level
+                  (opt) => opt.value === formData.information_detail_level,
                 )?.label
               : "Not specified"}
           </div>
@@ -96,9 +95,7 @@ export default function CommunicationSection({
             content: isEditMode ? (
               <Dropdown
                 value={formData.has_buyers_agent ?? ""}
-                onChange={(value) =>
-                  updateFormData("has_buyers_agent", value)
-                }
+                onChange={(value) => updateFormData("has_buyers_agent", value)}
                 options={HAS_BUYERS_AGENT_OPTIONS}
                 placeholder="Select..."
               />
@@ -106,7 +103,7 @@ export default function CommunicationSection({
               <div className="mobile-input bg-gray-50">
                 {formData.has_buyers_agent
                   ? HAS_BUYERS_AGENT_OPTIONS.find(
-                      (opt) => opt.value === formData.has_buyers_agent
+                      (opt) => opt.value === formData.has_buyers_agent,
                     )?.label
                   : "Not specified"}
               </div>
@@ -138,7 +135,7 @@ export default function CommunicationSection({
                           onChange={() =>
                             updateFormData(
                               "looking_for_buyers_agent",
-                              !formData.looking_for_buyers_agent
+                              !formData.looking_for_buyers_agent,
                             )
                           }
                           aria-label="I am looking for a buyer's agent"
@@ -148,7 +145,7 @@ export default function CommunicationSection({
                           onToggle={() =>
                             updateFormData(
                               "looking_for_buyers_agent",
-                              !formData.looking_for_buyers_agent
+                              !formData.looking_for_buyers_agent,
                             )
                           }
                         />
@@ -182,9 +179,7 @@ export default function CommunicationSection({
                   </label>
                 </div>
               ) : (
-                <div className="mobile-input bg-gray-50 opacity-0">
-                  &nbsp;
-                </div>
+                <div className="mobile-input bg-gray-50 opacity-0">&nbsp;</div>
               ),
           },
         ]}

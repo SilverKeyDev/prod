@@ -43,12 +43,11 @@ export function usePropertyFocus(params: {
     const pageChanged = prevPageRef.current !== currentPage;
     const tabChanged = prevTabRef.current !== activeTab;
 
-
     // Only focus if page or tab actually changed
     if (pageChanged || tabChanged) {
       // Add small delay for tab changes to ensure UI is ready
       const delay = tabChanged ? 100 : 0;
-      
+
       const timeoutId = setTimeout(() => {
         mapFocusOnCurrentProperty();
       }, delay);

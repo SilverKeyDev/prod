@@ -4,9 +4,7 @@ import type { UserPreferences } from "../../../../../packages/schemas/user";
  * Parses a user preference field that may be an array, JSON string, or undefined.
  * Returns an empty array if the value cannot be parsed or is not an array.
  */
-export function parseUserPreferencesArray(
-  value: unknown
-): unknown[] {
+export function parseUserPreferencesArray(value: unknown): unknown[] {
   if (Array.isArray(value)) {
     return value;
   }
@@ -29,7 +27,7 @@ export function parseUserPreferencesArray(
  */
 export function parseUserPreferencesArrays(
   userPreferences: UserPreferences | null | undefined,
-  fields: Array<keyof UserPreferences>
+  fields: Array<keyof UserPreferences>,
 ): Partial<Record<keyof UserPreferences, unknown[]>> {
   if (!userPreferences) {
     return {};

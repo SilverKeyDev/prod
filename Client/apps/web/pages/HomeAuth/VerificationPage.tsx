@@ -1,7 +1,14 @@
 import { Mail, ArrowLeft } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Button, Title, BodyText, KeyTurnLoader, MiniLogo, Input } from "../../components/ui";
+import {
+  Button,
+  Title,
+  BodyText,
+  KeyTurnLoader,
+  MiniLogo,
+  Input,
+} from "../../components/ui";
 import { authApi } from "../../../../packages/config/api";
 import Card from "../../components/layout/Card";
 
@@ -25,7 +32,7 @@ export default function VerificationPage() {
   const location = useLocation();
   const locationState = location.state as LocationState;
   const inputRefs = useRef<Array<HTMLInputElement | null>>(
-    Array(6).fill(null) as Array<HTMLInputElement | null>
+    Array(6).fill(null) as Array<HTMLInputElement | null>,
   );
 
   // Pre-fill email if coming from signup or login
@@ -83,7 +90,7 @@ export default function VerificationPage() {
   // Handle paste
   const handlePaste = (
     e: React.ClipboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text/plain").slice(0, 6);
@@ -110,7 +117,7 @@ export default function VerificationPage() {
   // Handle backspace
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       // Move to previous input on backspace if current is empty
@@ -179,7 +186,7 @@ export default function VerificationPage() {
       if (!userEmail || !storedPassword) {
         console.error("❌ VERIFICATION_PAGE: Missing email or password");
         throw new Error(
-          "Email or password not found. Please go back and sign up again."
+          "Email or password not found. Please go back and sign up again.",
         );
       }
 
@@ -200,12 +207,12 @@ export default function VerificationPage() {
 
       if (!success) {
         throw new Error(
-          apiError ?? message ?? "Failed to verify email. Please try again."
+          apiError ?? message ?? "Failed to verify email. Please try again.",
         );
       }
 
       console.log(
-        "✅ VERIFICATION_PAGE: Verification successful, clearing storage and navigating"
+        "✅ VERIFICATION_PAGE: Verification successful, clearing storage and navigating",
       );
 
       // Clear the stored signup data
@@ -316,7 +323,11 @@ export default function VerificationPage() {
 
           {/* Header */}
           <div className="text-center">
-            <Title size="lg" as="h2" className="mb-4 flex items-center justify-center gap-2">
+            <Title
+              size="lg"
+              as="h2"
+              className="mb-4 flex items-center justify-center gap-2"
+            >
               <MiniLogo size="md" />
               {activeStep === "email"
                 ? "Verify your email"
@@ -334,7 +345,8 @@ export default function VerificationPage() {
           {/* Warning Message - shown when redirected from login */}
           {isFromLogin && !error && (
             <div className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-yellow-50 text-yellow-800 p-3">
-              Please verify your email address to continue. A verification code has been sent to your email.
+              Please verify your email address to continue. A verification code
+              has been sent to your email.
             </div>
           )}
 
@@ -402,9 +414,15 @@ export default function VerificationPage() {
                   size="sm"
                   disabled={!canResend || loading}
                   loading={loading}
-                  className={canResend ? "text-gold hover:text-gold/80" : "text-black/40"}
+                  className={
+                    canResend ? "text-gold hover:text-gold/80" : "text-black/40"
+                  }
                 >
-                  {loading ? "Sending..." : canResend ? "Resend code" : `Resend in ${countdown}s`}
+                  {loading
+                    ? "Sending..."
+                    : canResend
+                      ? "Resend code"
+                      : `Resend in ${countdown}s`}
                 </Button>
               </div>
 

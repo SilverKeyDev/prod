@@ -19,7 +19,7 @@ export function RemainingLikedHomes({
   // Filter out homes that are already selected
   const selectedHomeIds = new Set(selectedHomes.map((home) => home.home_id));
   const remainingHomes = allLikedHomes.filter(
-    (home) => !selectedHomeIds.has(home.home_id)
+    (home) => !selectedHomeIds.has(home.home_id),
   );
 
   // Don't render if there are no remaining homes

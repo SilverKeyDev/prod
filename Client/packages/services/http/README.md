@@ -5,6 +5,7 @@ Low-level HTTP client implementation and utilities.
 ## Purpose
 
 The `http/` directory contains the HTTP client implementation that provides:
+
 - HTTP request/response handling
 - Authentication token management
 - Error handling
@@ -14,28 +15,35 @@ The `http/` directory contains the HTTP client implementation that provides:
 ## Files
 
 ### `client.ts`
+
 Core HTTP client class with retry logic, error handling, and request/response interceptors.
 
 ### `client-instance.ts`
+
 Configured HTTP client instance (singleton).
 
 ### `config.ts`
+
 HTTP configuration and utilities.
 
 ### `compatibility.ts`
+
 Compatibility layer providing functions that match the legacy API structure. This is the primary interface used by `config/api/*` modules.
 
 ### `index.ts`
+
 Centralized exports.
 
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `utils/*` - Utility functions
 - ✅ `schemas/*` - Type definitions
 - ✅ `config/env.ts` - Environment configuration
 
 ### Forbidden Imports
+
 - ❌ Business logic `services/*`
 - ❌ `hooks/*` or `store/*`
 - ❌ `apps/web/*`
@@ -63,16 +71,19 @@ const response = await httpClient.get("/api/v1/user/profile");
 ## Key Features
 
 ### Authentication
+
 - Automatic token injection from sessionStorage
 - Token refresh handling
 - Authentication error handling
 
 ### Error Handling
+
 - Network error detection
 - HTTP status code handling
 - Error normalization
 
 ### Retry Logic
+
 - Configurable retry attempts
 - Exponential backoff
 - Retry condition functions

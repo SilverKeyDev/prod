@@ -20,7 +20,7 @@ type UseAutoSavePreferencesReturn = {
     formData: T,
     setFormData: React.Dispatch<React.SetStateAction<T>>,
     field: string | number | symbol,
-    value: unknown
+    value: unknown,
   ) => void;
 };
 
@@ -74,7 +74,7 @@ export function useAutoSavePreferences({
         }
       }, debounceMs);
     },
-    [refreshUserPreferences, debounceMs, showErrorToastOnError, onError]
+    [refreshUserPreferences, debounceMs, showErrorToastOnError, onError],
   );
 
   const updateFormData = useCallback(
@@ -82,13 +82,13 @@ export function useAutoSavePreferences({
       formData: T,
       setFormData: React.Dispatch<React.SetStateAction<T>>,
       field: string | number | symbol,
-      value: unknown
+      value: unknown,
     ) => {
       const updatedData = { ...formData, [field]: value };
       setFormData(updatedData);
       void autoSave(updatedData);
     },
-    [autoSave]
+    [autoSave],
   );
 
   // Cleanup timeout on unmount

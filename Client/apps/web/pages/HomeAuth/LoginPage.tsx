@@ -17,8 +17,7 @@ export default function LoginPage() {
   const location = useLocation();
 
   // Use secure authentication hook
-  const { login, isLoading, error, clearError } =
-    useSecureAuth();
+  const { login, isLoading, error, clearError } = useSecureAuth();
 
   // No token cleanup needed - auth is managed via HTTP-only cookies
   // All authentication state is handled by the server

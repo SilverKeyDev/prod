@@ -44,7 +44,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       hideTextBelow,
       ...props
     },
-    ref
+    ref,
   ) => {
     // Tailwind-responsive class for text visibility
     const textVisibilityClass = useMemo(() => {
@@ -151,7 +151,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
       return React.cloneElement(
         iconElement as React.ReactElement<{ className?: string }>,
-        { className: newClassName }
+        { className: newClassName },
       );
     };
 
@@ -247,7 +247,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         </div>
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

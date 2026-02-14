@@ -16,15 +16,21 @@ export function useMarkerUpdates(params: {
 }): { refreshMarkers: (current?: SearchResult) => void } {
   // Proper implementation that handles marker updates based on current state
   // NOTE: This hook should NOT control map position/zoom - that's handled by usePropertyFocus
-  const refreshMarkers = useCallback((current?: SearchResult) => {
-    if (!params.googleMapRef.current) {
-      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map not available for marker refresh");
-      return;
-    }
+  const refreshMarkers = useCallback(
+    (current?: SearchResult) => {
+      if (!params.googleMapRef.current) {
+        log.warn(
+          LOG_CATEGORIES.MAP_RENDERING,
+          "Map not available for marker refresh",
+        );
+        return;
+      }
 
-    // Marker refresh logic only - no map repositioning
-    // Map focusing is handled by usePropertyFocus hook to avoid jittering
-  }, [params.googleMapRef]);
+      // Marker refresh logic only - no map repositioning
+      // Map focusing is handled by usePropertyFocus hook to avoid jittering
+    },
+    [params.googleMapRef],
+  );
 
   // Update markers when activeTab, currentPage changes or when hasSearched/showPropertyModals changes
   useEffect(() => {

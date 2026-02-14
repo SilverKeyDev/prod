@@ -5,6 +5,7 @@ Zustand middleware for devtools, persistence, and store management.
 ## Purpose
 
 The `middleware/` directory contains middleware that enhances Zustand stores with:
+
 - Redux DevTools integration
 - Safe persistence to localStorage
 - Store reset functionality
@@ -12,12 +13,15 @@ The `middleware/` directory contains middleware that enhances Zustand stores wit
 ## Files
 
 ### `devtools.ts`
+
 Redux DevTools integration for debugging Zustand stores in development.
 
 ### `persistSafe.ts`
+
 Safe persistence middleware that saves store state to localStorage with error handling.
 
 ### `resettable.ts`
+
 Middleware that adds reset functionality to stores, allowing them to be reset to initial state.
 
 ## Usage Examples
@@ -29,9 +33,12 @@ import { create } from "zustand";
 import { devtools } from "./middleware/devtools";
 
 export const useMyStore = create<MyState>()(
-  devtools((set) => ({
-    // ... store implementation
-  }), { name: "MyStore" })
+  devtools(
+    (set) => ({
+      // ... store implementation
+    }),
+    { name: "MyStore" },
+  ),
 );
 ```
 
@@ -46,8 +53,8 @@ export const useMyStore = create<MyState>()(
     (set) => ({
       // ... store implementation
     }),
-    { name: "my-store" }
-  )
+    { name: "my-store" },
+  ),
 );
 ```
 
@@ -67,8 +74,8 @@ export const useMyStore = create<MyState>()(
       ...initialState,
       increment: () => set((s) => ({ count: s.count + 1 })),
     }),
-    initialState
-  )
+    initialState,
+  ),
 );
 
 // Later, reset the store

@@ -43,7 +43,9 @@ export function useSavedHomes(params: {
           (await params.userApi.getFavoriteHomes()) as FavoriteHomesResponse;
 
         if (!favoritesData.success) {
-          log.error(LOG_CATEGORIES.SEARCH, "API returned success=false", { error: favoritesData.error });
+          log.error(LOG_CATEGORIES.SEARCH, "API returned success=false", {
+            error: favoritesData.error,
+          });
           return;
         }
 
@@ -63,14 +65,22 @@ export function useSavedHomes(params: {
                 try {
                   // SSR-safe guard
                   if (typeof window === "undefined") {
-                    log.warn(LOG_CATEGORIES.SEARCH, "Window not available (SSR), skipping geocoding", { address: homeData.address });
+                    log.warn(
+                      LOG_CATEGORIES.SEARCH,
+                      "Window not available (SSR), skipping geocoding",
+                      { address: homeData.address },
+                    );
                     lat = 33.749; // Atlanta fallback
                     lng = -84.388;
                   } else if (
                     !window.google?.maps ||
                     !params.isGoogleMapsLoaded
                   ) {
-                    log.warn(LOG_CATEGORIES.SEARCH, "Google Maps API not loaded yet, skipping geocoding", { address: homeData.address });
+                    log.warn(
+                      LOG_CATEGORIES.SEARCH,
+                      "Google Maps API not loaded yet, skipping geocoding",
+                      { address: homeData.address },
+                    );
                     lat = 33.749; // Atlanta fallback
                     lng = -84.388;
                   } else {
@@ -87,13 +97,20 @@ export function useSavedHomes(params: {
                       lat = location.lat();
                       lng = location.lng();
                     } else {
-                      log.warn(LOG_CATEGORIES.SEARCH, "Could not geocode address, using fallback coordinates", { address: homeData.address });
+                      log.warn(
+                        LOG_CATEGORIES.SEARCH,
+                        "Could not geocode address, using fallback coordinates",
+                        { address: homeData.address },
+                      );
                       lat = 33.749; // Atlanta fallback
                       lng = -84.388;
                     }
                   }
                 } catch (error: unknown) {
-                  log.error(LOG_CATEGORIES.SEARCH, "Geocoding error", { address: homeData.address, error });
+                  log.error(LOG_CATEGORIES.SEARCH, "Geocoding error", {
+                    address: homeData.address,
+                    error,
+                  });
                   lat = 33.749; // Atlanta fallback
                   lng = -84.388;
                 }
@@ -223,17 +240,23 @@ export function useSavedHomes(params: {
             params.setFavoriteAddresses(response.favorites);
           }
         } else {
-          log.error(LOG_CATEGORIES.SEARCH, "Backend API returned failure", { error: response.error });
+          log.error(LOG_CATEGORIES.SEARCH, "Backend API returned failure", {
+            error: response.error,
+          });
           // Rollback optimistic add
           if (rollbackNeeded && optimisticAddedId) {
-            setSavedHomes((prev) => prev.filter((h) => h.id !== optimisticAddedId));
+            setSavedHomes((prev) =>
+              prev.filter((h) => h.id !== optimisticAddedId),
+            );
           }
         }
       } catch (error: unknown) {
         log.error(LOG_CATEGORIES.SEARCH, "Error adding favorite", error);
         // Rollback optimistic add on error
         if (rollbackNeeded && optimisticAddedId) {
-          setSavedHomes((prev) => prev.filter((h) => h.id !== optimisticAddedId));
+          setSavedHomes((prev) =>
+            prev.filter((h) => h.id !== optimisticAddedId),
+          );
         }
       }
     },
@@ -248,18 +271,29 @@ export function useSavedHomes(params: {
       try {
         // Find the property to get its address
         let property = savedHomes.find((home) => home.id === propertyId);
-        
+
         // If not found by ID, try matching by address if provided
-        if (!property && propertyAddress && typeof propertyAddress === "string") {
+        if (
+          !property &&
+          propertyAddress &&
+          typeof propertyAddress === "string"
+        ) {
           const normalizedAddress = propertyAddress.toLowerCase();
           property = savedHomes.find((home) => {
-            const homeAddress = typeof home.address === "string" ? home.address.toLowerCase() : "";
+            const homeAddress =
+              typeof home.address === "string"
+                ? home.address.toLowerCase()
+                : "";
             return homeAddress === normalizedAddress;
           });
         }
-        
+
         if (!property) {
-          log.error(LOG_CATEGORIES.SEARCH, "Property not found in local savedHomes state", { propertyId, propertyAddress });
+          log.error(
+            LOG_CATEGORIES.SEARCH,
+            "Property not found in local savedHomes state",
+            { propertyId, propertyAddress },
+          );
           return;
         }
 
@@ -280,7 +314,9 @@ export function useSavedHomes(params: {
             params.setFavoriteAddresses(response.favorites);
           }
         } else {
-          log.error(LOG_CATEGORIES.SEARCH, "Backend API returned failure", { error: response.error });
+          log.error(LOG_CATEGORIES.SEARCH, "Backend API returned failure", {
+            error: response.error,
+          });
           // Rollback optimistic removal
           if (rollbackSnapshot) {
             setSavedHomes(rollbackSnapshot);
@@ -302,16 +338,21 @@ export function useSavedHomes(params: {
     (propertyId: string, propertyAddress?: string): boolean => {
       // Check both local savedHomes by ID
       const foundById = savedHomes.some((home) => home.id === propertyId);
-      
+
       // Also check by address if provided and not found by ID
-      if (!foundById && propertyAddress && typeof propertyAddress === "string") {
+      if (
+        !foundById &&
+        propertyAddress &&
+        typeof propertyAddress === "string"
+      ) {
         const normalizedAddress = propertyAddress.toLowerCase();
         return savedHomes.some((home) => {
-          const homeAddress = typeof home.address === "string" ? home.address.toLowerCase() : "";
+          const homeAddress =
+            typeof home.address === "string" ? home.address.toLowerCase() : "";
           return homeAddress === normalizedAddress;
         });
       }
-      
+
       return foundById;
     },
     [savedHomes],

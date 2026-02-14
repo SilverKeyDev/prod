@@ -21,7 +21,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
 
   const prevFullGalleryImage = useCallback(() => {
     setFullGalleryIndex(
-      (prev) => (prev - 1 + propertyImages.length) % propertyImages.length
+      (prev) => (prev - 1 + propertyImages.length) % propertyImages.length,
     );
   }, [propertyImages.length]);
 
@@ -66,7 +66,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
     onImageChange((currentImageIndex + 1) % propertyImages.length);
   const prevImage = () =>
     onImageChange(
-      (currentImageIndex - 1 + propertyImages.length) % propertyImages.length
+      (currentImageIndex - 1 + propertyImages.length) % propertyImages.length,
     );
   const goToImage = (index: number) => onImageChange(index);
 

@@ -5,6 +5,7 @@ Security utilities for PII scrubbing, error reporting, and secure operations.
 ## Purpose
 
 The `security/` directory contains security-focused utilities that handle:
+
 - PII (Personally Identifiable Information) detection and scrubbing
 - Secure error reporting
 - Image processing security
@@ -14,34 +15,43 @@ The `security/` directory contains security-focused utilities that handle:
 ## Files
 
 ### `piiSecurity.ts`
+
 Centralized PII security utilities:
+
 - PII pattern detection
 - Sensitive data masking
 - Object PII scrubbing
 - Safe log object creation
 
 ### `errorReporting.ts`
+
 Error reporting service that safely reports errors without exposing PII.
 
 ### `errorUtils.ts`
+
 Error utility functions for creating error context and serialization.
 
 ### `secureLogger.ts`
+
 Secure logging utility that automatically scrubs PII from log data.
 
 ### `imageProcessor.ts`
+
 Image processing utilities with security considerations.
 
 ### `clipboardSecurity.ts`
+
 Clipboard security utilities.
 
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `utils/*` - Utility functions
 - ✅ `schemas/*` - Type definitions
 
 ### Forbidden Imports
+
 - ❌ Business logic `services/*`
 - ❌ `hooks/*` or `store/*`
 - ❌ `apps/web/*`
@@ -88,6 +98,7 @@ errorReporter.report(error, {
 ## PII Patterns
 
 The following patterns are automatically detected and scrubbed:
+
 - Email addresses
 - Phone numbers
 - SSN patterns
@@ -100,6 +111,7 @@ The following patterns are automatically detected and scrubbed:
 ## Sensitive Keys
 
 The following object keys are automatically redacted:
+
 - `password`
 - `token`
 - `secret`

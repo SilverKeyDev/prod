@@ -1,5 +1,11 @@
 import React from "react";
-import { CreditCard, DollarSign, CheckCircle, XCircle, Clock } from "lucide-react";
+import {
+  CreditCard,
+  DollarSign,
+  CheckCircle,
+  XCircle,
+  Clock,
+} from "lucide-react";
 import SectionCard from "../../../components/layout/SectionCard";
 import StatusBadge from "../../../components/ui/asset/StatusBadge";
 import type { ClientFinancialSnapshot } from "../../../../../packages/schemas/agent";
@@ -28,7 +34,9 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
       pending: { variant: "warning" as const, label: "Pending" },
     };
     const config = statusConfig[financial.pre_approval_status];
-    return <StatusBadge text={config.label} variant={config.variant} size="md" />;
+    return (
+      <StatusBadge text={config.label} variant={config.variant} size="md" />
+    );
   };
 
   const loanTypeLabels: Record<string, string> = {

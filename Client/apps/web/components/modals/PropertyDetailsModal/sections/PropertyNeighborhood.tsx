@@ -45,15 +45,15 @@ export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
   // Get section label
   const sectionLabel =
     DEFAULT_REPORT_SECTIONS.find(
-      (s: { key: string; label: string }) => s.key === "neighborhood"
+      (s: { key: string; label: string }) => s.key === "neighborhood",
     )?.label || "Neighborhood Information";
 
   // Helper to render neighborhood content
   const renderNeighborhoodContent = (
-    data: Record<string, unknown>
+    data: Record<string, unknown>,
   ): React.ReactNode => {
     const entries = Object.entries(data).filter(
-      ([_, value]) => value !== null && value !== undefined && value !== ""
+      ([_, value]) => value !== null && value !== undefined && value !== "",
     );
 
     if (entries.length === 0) return null;
@@ -102,7 +102,7 @@ export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
                           {String(subValue)}
                         </span>
                       </div>
-                    )
+                    ),
                   )}
                 </div>
               </div>
@@ -124,7 +124,7 @@ export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
 
   // Helper to render age distribution chart
   const renderAgeDistribution = (
-    data: Record<string, string>
+    data: Record<string, string>,
   ): React.ReactNode => {
     const entries = Object.entries(data)
       .map(([key, value]) => {

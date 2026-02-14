@@ -5,20 +5,26 @@ import { agentApi } from "../../../config/api";
 import { queryKeys } from "../../../config/query/keys";
 import { useAuthStore } from "../../../store/auth.slice";
 import { useNotificationStore } from "../../../store/notifications.slice";
-import type {
-  AgentConversation,
-  AgentChatMessage,
-} from "../../../config/api";
+import type { AgentConversation, AgentChatMessage } from "../../../config/api";
 
 export type UseAgentChatsReturn = {
   conversations: AgentConversation[];
   isLoading: boolean;
   error: string | null;
   refreshChats: () => Promise<void>;
-  sendMessage: (conversationId: string, message: string, clientId?: string, sharedHomeId?: string, sharedDocumentId?: string) => Promise<void>;
+  sendMessage: (
+    conversationId: string,
+    message: string,
+    clientId?: string,
+    sharedHomeId?: string,
+    sharedDocumentId?: string,
+  ) => Promise<void>;
   getChatHistory: (
-    conversationId: string
-  ) => Promise<{ messages: AgentChatMessage[]; conversation?: AgentConversation }>;
+    conversationId: string,
+  ) => Promise<{
+    messages: AgentChatMessage[];
+    conversation?: AgentConversation;
+  }>;
   isSendingMessage: boolean;
   lastFetchedAt: number | null;
 };
@@ -32,10 +38,15 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
   const setUnreadCount = useNotificationStore((s) => s.setUnreadCount);
-  const setTotalUnreadCount = useNotificationStore((s) => s.setTotalUnreadCount);
+  const setTotalUnreadCount = useNotificationStore(
+    (s) => s.setTotalUnreadCount,
+  );
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   // Use the same query key as dataConfig when clientId is undefined
   // This ensures cache hits for prefetched data
@@ -65,10 +76,12 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     // but we're querying with conversation(clientId) key
     if (clientId !== undefined) {
       const cachedAll = queryClient.getQueryData<AgentConversation[]>(
-        queryKeys.agent.conversations()
+        queryKeys.agent.conversations(),
       );
       if (cachedAll) {
-        return clientId ? cachedAll.filter((conv) => conv.client_id === clientId) : cachedAll;
+        return clientId
+          ? cachedAll.filter((conv) => conv.client_id === clientId)
+          : cachedAll;
       }
     }
     return undefined;
@@ -117,7 +130,7 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     }) => {
       // Import log here to avoid circular dependencies
       const { log, LOG_CATEGORIES } = await import("../../../../logger");
-      
+
       log.debug(LOG_CATEGORIES.MESSAGES, "sendMessageMutation called", {
         conversationId,
         messageLength: message.length,
@@ -129,8 +142,14 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
         sharedDocumentId,
       });
 
-      const response = await agentApi.sendMessage(conversationId, message, clientId, sharedHomeId, sharedDocumentId);
-      
+      const response = await agentApi.sendMessage(
+        conversationId,
+        message,
+        clientId,
+        sharedHomeId,
+        sharedDocumentId,
+      );
+
       log.debug(LOG_CATEGORIES.MESSAGES, "sendMessage API response", {
         success: response.success,
         hasError: !!response.error,
@@ -176,48 +195,64 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
   }, [refetchChats]);
 
   const sendMessage = useCallback(
-    async (conversationId: string, message: string, clientId?: string, sharedHomeId?: string, sharedDocumentId?: string) => {
-      await sendMessageMutation.mutateAsync({ conversationId, message, clientId, sharedHomeId, sharedDocumentId });
+    async (
+      conversationId: string,
+      message: string,
+      clientId?: string,
+      sharedHomeId?: string,
+      sharedDocumentId?: string,
+    ) => {
+      await sendMessageMutation.mutateAsync({
+        conversationId,
+        message,
+        clientId,
+        sharedHomeId,
+        sharedDocumentId,
+      });
     },
-    [sendMessageMutation]
+    [sendMessageMutation],
   );
 
   const getChatHistory = useCallback(
     async (conversationId: string) => {
       const historyKey = queryKeys.agent.history(conversationId);
-      
+
       // Check cache first
       const cached = queryClient.getQueryData<{
         messages: AgentChatMessage[];
         conversation?: AgentConversation;
       }>(historyKey);
-      
+
       if (cached) {
         // Return cached data immediately
         // Only fetch in background if cache is stale (using fetchQuery which respects staleTime)
-        void queryClient.fetchQuery({
-          queryKey: historyKey,
-          queryFn: async () => {
-            const response = await agentApi.getChatHistory(conversationId);
-            if (!response.success) {
-              throw new Error(response.error ?? "Failed to fetch chat history");
-            }
-            return {
-              messages: response.messages ?? [],
-              conversation: response.conversation,
-            };
-          },
-          staleTime: 3 * 60 * 1000, // 3 minutes - same as conversations
-        }).catch(() => {
-          // Silently fail - we already have cached data
-        });
+        void queryClient
+          .fetchQuery({
+            queryKey: historyKey,
+            queryFn: async () => {
+              const response = await agentApi.getChatHistory(conversationId);
+              if (!response.success) {
+                throw new Error(
+                  response.error ?? "Failed to fetch chat history",
+                );
+              }
+              return {
+                messages: response.messages ?? [],
+                conversation: response.conversation,
+              };
+            },
+            staleTime: 3 * 60 * 1000, // 3 minutes - same as conversations
+          })
+          .catch(() => {
+            // Silently fail - we already have cached data
+          });
         return cached;
       }
-      
+
       // No cache, fetch and cache it
       return await getChatHistoryMutation.mutateAsync(conversationId);
     },
-    [getChatHistoryMutation, queryClient]
+    [getChatHistoryMutation, queryClient],
   );
 
   // Fetch notification counter (unread messages + pending requests)
@@ -226,7 +261,9 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     queryFn: async () => {
       const response = await agentApi.getNotificationCounter();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch notification counter");
+        throw new Error(
+          response.error ?? "Failed to fetch notification counter",
+        );
       }
       return response.total_count;
     },

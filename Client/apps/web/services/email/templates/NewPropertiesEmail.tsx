@@ -17,19 +17,21 @@ export default function NewPropertiesEmail({
   maxItems = 10,
 }: NewPropertiesEmailProps) {
   const displayProperties = properties.slice(0, maxItems);
-  const newListingsCount = displayProperties.filter((p) => p.isNewListing).length;
+  const newListingsCount = displayProperties.filter(
+    (p) => p.isNewListing,
+  ).length;
   const priceCutsCount = displayProperties.filter((p) => p.priceCut).length;
 
   const getSubtitle = () => {
     const parts: string[] = [];
     if (newListingsCount > 0) {
       parts.push(
-        `${newListingsCount} new listing${newListingsCount !== 1 ? "s" : ""}`
+        `${newListingsCount} new listing${newListingsCount !== 1 ? "s" : ""}`,
       );
     }
     if (priceCutsCount > 0) {
       parts.push(
-        `${priceCutsCount} price reduction${priceCutsCount !== 1 ? "s" : ""}`
+        `${priceCutsCount} price reduction${priceCutsCount !== 1 ? "s" : ""}`,
       );
     }
     if (parts.length === 0) {

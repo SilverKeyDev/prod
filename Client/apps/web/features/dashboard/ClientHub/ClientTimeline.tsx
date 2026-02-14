@@ -9,7 +9,7 @@ type ClientTimelineProps = {
 
 const ClientTimeline: React.FC<ClientTimelineProps> = ({ events }) => {
   const sortedEvents = [...events].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 
   const getEventIcon = (type: ClientTimelineEvent["type"]) => {

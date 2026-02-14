@@ -5,6 +5,7 @@ TypeScript type definitions shared across the SilverKey application.
 ## Purpose
 
 The `schemas/` package provides centralized TypeScript type definitions for:
+
 - API request/response types
 - Domain models
 - Configuration types
@@ -13,10 +14,12 @@ The `schemas/` package provides centralized TypeScript type definitions for:
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ Other `schemas/*` files - Types can reference other types
 - ✅ Third-party type definitions - External library types
 
 ### Forbidden Imports
+
 - ❌ `config/*` - Schemas should not import config
 - ❌ `services/*` - Schemas should not import services
 - ❌ `hooks/*` - Schemas should not import hooks
@@ -25,12 +28,14 @@ The `schemas/` package provides centralized TypeScript type definitions for:
 ## Available Schemas
 
 ### Core Types
+
 - `api.ts` - API response types and utilities
 - `user.ts` - User profile and authentication types
 - `property.ts` - Property types
 - `propertyDetails.ts` - Detailed property information
 
 ### Domain Types
+
 - `agent.ts` - Agent-related types
 - `chat.ts` - Chat and messaging types
 - `documents.ts` - Document types
@@ -44,9 +49,11 @@ The `schemas/` package provides centralized TypeScript type definitions for:
 - `metrics.ts` - Metrics and analytics types
 
 ### Navigation
+
 - `nav.ts` - Navigation items and route constants
 
 ### Other
+
 - `sidebar.ts` - Sidebar types
 - `navigation.ts` - (Deprecated - merged into nav.ts)
 
@@ -95,6 +102,7 @@ export type UserProfile = {
 ## Type Organization
 
 Types are organized by domain:
+
 - **Core types** - User, property, API responses
 - **Domain types** - Agent, chat, documents, etc.
 - **Utility types** - Navigation, sidebar, etc.

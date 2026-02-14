@@ -20,7 +20,7 @@ export const useDocuments = () => {
   const authReady = useAuthStore((s) => s.authReady);
   const queryClient = useQueryClient();
   const filters = useFiltersQueryParams();
-  
+
   // Upload state
   const [uploadedFiles, setUploadedFiles] = useState<UploadEntry[]>([]);
 
@@ -51,7 +51,10 @@ export const useDocuments = () => {
   });
 
   // Extract documents data from response
-  const documentsData = useMemo(() => documentsResponse ?? [], [documentsResponse]);
+  const documentsData = useMemo(
+    () => documentsResponse ?? [],
+    [documentsResponse],
+  );
 
   // Categories query
   const {
@@ -67,7 +70,10 @@ export const useDocuments = () => {
         return categoriesData;
       } catch {
         // If categories endpoint doesn't exist, return empty array
-        log.warn(LOG_CATEGORIES.API, "Categories endpoint not available, returning empty array");
+        log.warn(
+          LOG_CATEGORIES.API,
+          "Categories endpoint not available, returning empty array",
+        );
         return [];
       }
     },

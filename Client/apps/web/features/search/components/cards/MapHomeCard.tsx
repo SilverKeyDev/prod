@@ -43,7 +43,7 @@ type MapHomeCardProps = {
   saveHome?: (property: any) => Promise<void>;
   removeSavedHome?: (
     propertyId: string,
-    propertyAddress?: string
+    propertyAddress?: string,
   ) => Promise<void>;
 };
 
@@ -150,7 +150,9 @@ export default function MapHomeCard({
         score={score}
         showScore={showScore}
         isOnMap={isOnMap}
-        topContent={<CardHeartSave property={convertToProperty(home)} size="sm" />}
+        topContent={
+          <CardHeartSave property={convertToProperty(home)} size="sm" />
+        }
         bottomContent={
           <CardViewDetailsButton
             onClick={async () => {
@@ -209,8 +211,7 @@ export default function MapHomeCard({
                   "🔓 [MAP HOME CARD] No onUnlock callback provided",
                   {
                     environment:
-                      typeof import.meta !== "undefined" &&
-                      import.meta.env?.DEV
+                      typeof import.meta !== "undefined" && import.meta.env?.DEV
                         ? "DEVELOPMENT"
                         : "PRODUCTION",
                     propertyId: home.home_id,
@@ -229,4 +230,3 @@ export default function MapHomeCard({
     </div>
   );
 }
-

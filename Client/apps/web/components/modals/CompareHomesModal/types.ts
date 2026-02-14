@@ -44,4 +44,3 @@ export type ComparisonField = {
   isSectionHeader?: boolean; // True if this is a section header row
   isLoading?: boolean; // True if this section is still loading for some homes
 };
-

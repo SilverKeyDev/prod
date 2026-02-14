@@ -16,7 +16,9 @@ type SavedHomesHeaderProps = {
   selectedClientId: string | null;
   onClientChange: (clientId: string | null) => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
-  onEventTypeFilterChange?: (eventType: "listed" | "price_change" | "sold" | "withdrawn" | "") => void;
+  onEventTypeFilterChange?: (
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
+  ) => void;
 };
 
 export default function SavedHomesHeader({
@@ -43,9 +45,7 @@ export default function SavedHomesHeader({
         : "Filter by address";
 
   const refreshTitle =
-    viewType === "homes"
-      ? "Refresh saved homes"
-      : "Refresh documents";
+    viewType === "homes" ? "Refresh saved homes" : "Refresh documents";
 
   const rightText =
     viewType === "homes"
@@ -57,8 +57,8 @@ export default function SavedHomesHeader({
   if (isMobile) {
     return (
       <div className="w-full space-y-2" key={viewType}>
-        {/* Client Selector and Search - these go in MobileTopBar */}
-        <div className="px-4">
+        {/* Client Selector and Search - these go in MobileTopBar (no padding when MobileSidebar visible) */}
+        <div>
           <ClientSelector
             selectedClientId={selectedClientId}
             onClientChange={onClientChange}
@@ -78,8 +78,12 @@ export default function SavedHomesHeader({
           rightText={rightText}
           viewType={viewType}
           onViewTypeChange={onViewTypeChange}
-          eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
-          onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
+          eventTypeFilter={
+            viewType === "documents" ? eventTypeFilter : undefined
+          }
+          onEventTypeFilterChange={
+            viewType === "documents" ? onEventTypeFilterChange : undefined
+          }
         />
       </div>
     );
@@ -107,7 +111,9 @@ export default function SavedHomesHeader({
         viewType={viewType}
         onViewTypeChange={onViewTypeChange}
         eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
-        onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
+        onEventTypeFilterChange={
+          viewType === "documents" ? onEventTypeFilterChange : undefined
+        }
       />
     </>
   );

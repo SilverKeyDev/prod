@@ -1,7 +1,12 @@
 import React from "react";
 import AlignedRow from "../../../../components/layout/AlignedRow";
 import Card from "../../../../components/layout/Card";
-import { Dropdown, Input, OliveCheckbox, Title } from "../../../../components/ui";
+import {
+  Dropdown,
+  Input,
+  OliveCheckbox,
+  Title,
+} from "../../../../components/ui";
 import Label from "../../../../features/onboardpersonalize/Label";
 import {
   FIELD_LABELS,
@@ -49,7 +54,7 @@ export default function DemographicsSection({
               <div className="mobile-input bg-gray-50">
                 {formData.is_agent
                   ? (IS_AGENT_OPTIONS.find(
-                      (option) => option.value === formData.is_agent
+                      (option) => option.value === formData.is_agent,
                     )?.label ?? "Not specified")
                   : "Not specified"}
               </div>
@@ -64,7 +69,7 @@ export default function DemographicsSection({
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   updateFormData(
                     "age",
-                    e.target.value ? parseInt(e.target.value) : undefined
+                    e.target.value ? parseInt(e.target.value) : undefined,
                   )
                 }
                 placeholder="Enter your age"
@@ -102,7 +107,7 @@ export default function DemographicsSection({
                 <div className="mobile-input bg-gray-50">
                   {formData.has_buyers_agent
                     ? (HAS_BUYERS_AGENT_OPTIONS.find(
-                        (option) => option.value === formData.has_buyers_agent
+                        (option) => option.value === formData.has_buyers_agent,
                       )?.label ?? "Not specified")
                     : "Not specified"}
                 </div>
@@ -134,7 +139,7 @@ export default function DemographicsSection({
                             onChange={() =>
                               updateFormData(
                                 "looking_for_buyers_agent",
-                                !formData.looking_for_buyers_agent
+                                !formData.looking_for_buyers_agent,
                               )
                             }
                             aria-label="I am looking for a buyer's agent"
@@ -144,7 +149,7 @@ export default function DemographicsSection({
                             onToggle={() =>
                               updateFormData(
                                 "looking_for_buyers_agent",
-                                !formData.looking_for_buyers_agent
+                                !formData.looking_for_buyers_agent,
                               )
                             }
                           />

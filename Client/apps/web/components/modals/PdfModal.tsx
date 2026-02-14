@@ -46,19 +46,27 @@ const PdfModal: React.FC<PdfModalProps> = ({
   useEffect(() => {
     if (!currentPdf || !reportId) return;
 
-    log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Testing server endpoint accessibility", {
-      currentPdf,
-      reportId,
-      timestamp: new Date().toISOString(),
-    });
+    log.debug(
+      LOG_CATEGORIES.HTTP,
+      "[PdfModal] Testing server endpoint accessibility",
+      {
+        currentPdf,
+        reportId,
+        timestamp: new Date().toISOString(),
+      },
+    );
 
     // Test if the URL is accessible by making a fetch request
     const testUrl = async () => {
       try {
         const url = `${window.location.origin}/api/v1/report/${reportId}/view`;
-        log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Fetching URL to test accessibility", {
-          url,
-        });
+        log.debug(
+          LOG_CATEGORIES.HTTP,
+          "[PdfModal] Fetching URL to test accessibility",
+          {
+            url,
+          },
+        );
 
         const response = await fetch(url, {
           method: "HEAD", // Use HEAD to avoid downloading the full PDF
@@ -76,10 +84,10 @@ const PdfModal: React.FC<PdfModalProps> = ({
             contentDisposition: response.headers.get("content-disposition"),
             xFrameOptions: response.headers.get("x-frame-options"),
             contentSecurityPolicy: response.headers.get(
-              "content-security-policy"
+              "content-security-policy",
             ),
             accessControlAllowOrigin: response.headers.get(
-              "access-control-allow-origin"
+              "access-control-allow-origin",
             ),
           },
           timestamp: new Date().toISOString(),
@@ -104,29 +112,31 @@ const PdfModal: React.FC<PdfModalProps> = ({
         if (xfo === "DENY") {
           log.error(
             LOG_CATEGORIES.ERRORS,
-            "[PdfModal] X-Frame-Options is DENY - iframe will be blocked"
+            "[PdfModal] X-Frame-Options is DENY - iframe will be blocked",
           );
           log.warn(
             LOG_CATEGORIES.HTTP,
-            "[PdfModal] iframe likely blocked; user can use Open in New Tab"
+            "[PdfModal] iframe likely blocked; user can use Open in New Tab",
           );
           // Don't auto-close - let the user control it
         } else if (cspBlocks) {
           log.error(
             LOG_CATEGORIES.ERRORS,
-            "[PdfModal] CSP frame-ancestors blocks iframe embedding"
+            "[PdfModal] CSP frame-ancestors blocks iframe embedding",
           );
           log.warn(
             LOG_CATEGORIES.HTTP,
-            "[PdfModal] iframe likely blocked; user can use Open in New Tab"
+            "[PdfModal] iframe likely blocked; user can use Open in New Tab",
           );
           // Don't auto-close - let the user control it
         } else if (xfo) {
-          log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] X-Frame-Options present", { xfo });
+          log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] X-Frame-Options present", {
+            xfo,
+          });
         } else {
           log.debug(
             LOG_CATEGORIES.HTTP,
-            "[PdfModal] X-Frame-Options not set; relying on CSP"
+            "[PdfModal] X-Frame-Options not set; relying on CSP",
           );
         }
 
@@ -136,14 +146,20 @@ const PdfModal: React.FC<PdfModalProps> = ({
             contentType,
           });
         } else {
-          log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Content-Type ok", { contentType });
+          log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Content-Type ok", {
+            contentType,
+          });
         }
 
         // Verify Content-Disposition is inline
         if (!contentDisposition.includes("inline")) {
-          log.warn(LOG_CATEGORIES.HTTP, "[PdfModal] Unexpected Content-Disposition", {
-            contentDisposition,
-          });
+          log.warn(
+            LOG_CATEGORIES.HTTP,
+            "[PdfModal] Unexpected Content-Disposition",
+            {
+              contentDisposition,
+            },
+          );
         } else {
           log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Content-Disposition ok", {
             contentDisposition,
@@ -155,11 +171,18 @@ const PdfModal: React.FC<PdfModalProps> = ({
         if (contentLength) {
           const sizeBytes = parseInt(contentLength, 10);
           if (sizeBytes === 0) {
-            log.error(LOG_CATEGORIES.ERRORS, "[PdfModal] PDF Content-Length is 0");
+            log.error(
+              LOG_CATEGORIES.ERRORS,
+              "[PdfModal] PDF Content-Length is 0",
+            );
           } else if (sizeBytes < 100) {
-            log.warn(LOG_CATEGORIES.HTTP, "[PdfModal] PDF Content-Length is very small", {
-              sizeBytes,
-            });
+            log.warn(
+              LOG_CATEGORIES.HTTP,
+              "[PdfModal] PDF Content-Length is very small",
+              {
+                sizeBytes,
+              },
+            );
           } else {
             log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] PDF Content-Length", {
               sizeBytes,
@@ -167,18 +190,29 @@ const PdfModal: React.FC<PdfModalProps> = ({
             });
           }
         } else {
-          log.warn(LOG_CATEGORIES.HTTP, "[PdfModal] Content-Length header not present");
+          log.warn(
+            LOG_CATEGORIES.HTTP,
+            "[PdfModal] Content-Length header not present",
+          );
         }
 
         if (!response.ok) {
-          log.error(LOG_CATEGORIES.ERRORS, "[PdfModal] Server returned error status", {
-            status: response.status,
-            statusText: response.statusText,
-            url,
-          });
+          log.error(
+            LOG_CATEGORIES.ERRORS,
+            "[PdfModal] Server returned error status",
+            {
+              status: response.status,
+              statusText: response.statusText,
+              url,
+            },
+          );
         }
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "[PdfModal] Failed to fetch URL", error);
+        log.error(
+          LOG_CATEGORIES.ERRORS,
+          "[PdfModal] Failed to fetch URL",
+          error,
+        );
         log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Fetch URL context", {
           currentPdf,
           reportId,
@@ -241,12 +275,16 @@ const PdfModal: React.FC<PdfModalProps> = ({
   // Log when the optimized URL changes
   useEffect(() => {
     if (optimizedPdfUrl) {
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Generated optimized URL for iframe", {
-        originalUrl: currentPdf,
-        optimizedUrl: optimizedPdfUrl,
-        reportId,
-        timestamp: new Date().toISOString(),
-      });
+      log.debug(
+        LOG_CATEGORIES.HTTP,
+        "[PdfModal] Generated optimized URL for iframe",
+        {
+          originalUrl: currentPdf,
+          optimizedUrl: optimizedPdfUrl,
+          reportId,
+          timestamp: new Date().toISOString(),
+        },
+      );
     }
   }, [optimizedPdfUrl, currentPdf, reportId]);
 
@@ -389,12 +427,16 @@ const PdfModal: React.FC<PdfModalProps> = ({
             referrerPolicy="no-referrer"
             onLoad={(e) => {
               const iframe = e.target as HTMLIFrameElement;
-              log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] iframe onLoad event fired", {
-                src: iframe.src,
-                reportId,
-                currentReportAddress,
-                timestamp: new Date().toISOString(),
-              });
+              log.debug(
+                LOG_CATEGORIES.HTTP,
+                "[PdfModal] iframe onLoad event fired",
+                {
+                  src: iframe.src,
+                  reportId,
+                  currentReportAddress,
+                  timestamp: new Date().toISOString(),
+                },
+              );
 
               // Try to detect if Chrome blocked the PDF or if PDF failed to load
               setTimeout(() => {
@@ -406,14 +448,18 @@ const PdfModal: React.FC<PdfModalProps> = ({
                     const bodyText = doc.body?.innerText || "";
                     const bodyHTML = doc.body?.innerHTML || "";
 
-                    log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] iframe content accessible", {
-                      bodyText: bodyText.substring(0, 200),
-                      bodyHTMLLength: bodyHTML.length,
-                      hasError:
-                        bodyText.includes("blocked") ||
-                        bodyText.includes("error") ||
-                        bodyText.includes("ERR_"),
-                    });
+                    log.debug(
+                      LOG_CATEGORIES.HTTP,
+                      "[PdfModal] iframe content accessible",
+                      {
+                        bodyText: bodyText.substring(0, 200),
+                        bodyHTMLLength: bodyHTML.length,
+                        hasError:
+                          bodyText.includes("blocked") ||
+                          bodyText.includes("error") ||
+                          bodyText.includes("ERR_"),
+                      },
+                    );
 
                     // Check for various error conditions
                     if (
@@ -425,26 +471,26 @@ const PdfModal: React.FC<PdfModalProps> = ({
                     ) {
                       log.error(
                         LOG_CATEGORIES.ERRORS,
-                        "[PdfModal] Browser blocked or failed to load PDF content"
+                        "[PdfModal] Browser blocked or failed to load PDF content",
                       );
                       log.warn(
                         LOG_CATEGORIES.HTTP,
-                        "[PdfModal] User can use Open in New Tab to view PDF"
+                        "[PdfModal] User can use Open in New Tab to view PDF",
                       );
                     } else if (bodyHTML.length === 0 && bodyText.length === 0) {
                       // Empty content could mean PDF is loading or failed silently
                       log.warn(
                         LOG_CATEGORIES.HTTP,
-                        "[PdfModal] iframe content is empty; PDF may still be loading or failed silently"
+                        "[PdfModal] iframe content is empty; PDF may still be loading or failed silently",
                       );
                       log.debug(
                         LOG_CATEGORIES.HTTP,
-                        "[PdfModal] If PDF is blank, check backend PDF generation/retrieval"
+                        "[PdfModal] If PDF is blank, check backend PDF generation/retrieval",
                       );
                     } else {
                       log.debug(
                         LOG_CATEGORIES.HTTP,
-                        "[PdfModal] iframe content detected; PDF viewer should be active"
+                        "[PdfModal] iframe content detected; PDF viewer should be active",
                       );
                     }
                   } else {
@@ -453,7 +499,7 @@ const PdfModal: React.FC<PdfModalProps> = ({
                     // but if it does, it might indicate the PDF plugin is handling it
                     log.debug(
                       LOG_CATEGORIES.HTTP,
-                      "[PdfModal] iframe is cross-origin or PDF plugin is handling rendering"
+                      "[PdfModal] iframe is cross-origin or PDF plugin is handling rendering",
                     );
                   }
                 } catch (err) {
@@ -461,20 +507,31 @@ const PdfModal: React.FC<PdfModalProps> = ({
                   // It means the browser's PDF plugin is handling the rendering
                   log.debug(
                     LOG_CATEGORIES.HTTP,
-                    "[PdfModal] Cannot access iframe content (PDF plugin rendering)"
+                    "[PdfModal] Cannot access iframe content (PDF plugin rendering)",
                   );
-                  log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] If PDF is blank, verify backend + headers + non-empty PDF");
+                  log.debug(
+                    LOG_CATEGORIES.HTTP,
+                    "[PdfModal] If PDF is blank, verify backend + headers + non-empty PDF",
+                  );
                 }
               }, 500); // Increased timeout to give PDF more time to load
             }}
             onError={(e) => {
-              log.error(LOG_CATEGORIES.ERRORS, "[PdfModal] iframe onError event fired", e);
-              log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] iframe onError context", {
-                src: (e.target as HTMLIFrameElement).src,
-                reportId,
-                currentReportAddress,
-                timestamp: new Date().toISOString(),
-              });
+              log.error(
+                LOG_CATEGORIES.ERRORS,
+                "[PdfModal] iframe onError event fired",
+                e,
+              );
+              log.debug(
+                LOG_CATEGORIES.HTTP,
+                "[PdfModal] iframe onError context",
+                {
+                  src: (e.target as HTMLIFrameElement).src,
+                  reportId,
+                  currentReportAddress,
+                  timestamp: new Date().toISOString(),
+                },
+              );
               const iframe = e.target as HTMLIFrameElement;
 
               // Only try to access contentDocument if it's same-origin
@@ -486,7 +543,7 @@ const PdfModal: React.FC<PdfModalProps> = ({
                 // Cross-origin access blocked - this is expected
                 log.debug(
                   LOG_CATEGORIES.HTTP,
-                  "[PdfModal] Cannot access iframe content (cross-origin); skipping error UI injection"
+                  "[PdfModal] Cannot access iframe content (cross-origin); skipping error UI injection",
                 );
               }
 
@@ -506,7 +563,7 @@ const PdfModal: React.FC<PdfModalProps> = ({
 
                 const svg = document.createElementNS(
                   "http://www.w3.org/2000/svg",
-                  "svg"
+                  "svg",
                 );
                 svg.setAttribute("width", "24");
                 svg.setAttribute("height", "24");
@@ -515,11 +572,11 @@ const PdfModal: React.FC<PdfModalProps> = ({
 
                 const path = document.createElementNS(
                   "http://www.w3.org/2000/svg",
-                  "path"
+                  "path",
                 );
                 path.setAttribute(
                   "d",
-                  "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+                  "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z",
                 );
 
                 svg.appendChild(path);

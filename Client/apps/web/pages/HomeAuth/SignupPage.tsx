@@ -107,7 +107,7 @@ export default function SignupPage(_props: SignupPageProps) {
     const nameEl = document.getElementById("name") as HTMLInputElement | null;
     const emailEl = document.getElementById("email") as HTMLInputElement | null;
     const pwdEl = document.getElementById(
-      "password"
+      "password",
     ) as HTMLInputElement | null;
     const phoneEl = document.querySelector("input.PhoneInputInput");
     return { nameEl, emailEl, pwdEl, phoneEl };
@@ -232,7 +232,7 @@ export default function SignupPage(_props: SignupPageProps) {
 
     if (!isPasswordValid) {
       showErrorToast(
-        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
+        `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`,
       );
       return;
     }
@@ -406,7 +406,7 @@ export default function SignupPage(_props: SignupPageProps) {
               syncFromDom("phone");
               // If the wrapper receives focus first, forward it to the input
               const inputEl = e.currentTarget.querySelector(
-                "input.PhoneInputInput"
+                "input.PhoneInputInput",
               ) as HTMLInputElement | null;
               if (inputEl) {
                 inputEl.focus();

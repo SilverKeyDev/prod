@@ -11,7 +11,7 @@ const rootMap = new WeakMap<HTMLElement, Root>();
 export const renderMapPropertyCard = (
   container: HTMLElement,
   props: MapPropertyCardProps,
-  onCardRendered?: (property: MapPropertyCardProps["property"]) => void
+  onCardRendered?: (property: MapPropertyCardProps["property"]) => void,
 ): void => {
   // Clean up existing root if it exists
   const existingRoot = rootMap.get(container);
@@ -39,7 +39,7 @@ export const renderMapPropertyCard = (
         {...props}
         onCardRendered={onCardRendered}
       />
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 };
 
@@ -61,4 +61,3 @@ export const cleanupMapPropertyCard = (container: HTMLElement): void => {
     }, 0);
   }
 };
-

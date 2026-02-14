@@ -15,9 +15,10 @@ export function extractReportTitleFromPath(path: string): string {
   const nameWithoutExtension = filename.substring(0, filename.lastIndexOf("."));
 
   // Remove first 17 characters
-  const nameWithoutPrefix = nameWithoutExtension.length > 17
-    ? nameWithoutExtension.substring(17)
-    : nameWithoutExtension;
+  const nameWithoutPrefix =
+    nameWithoutExtension.length > 17
+      ? nameWithoutExtension.substring(17)
+      : nameWithoutExtension;
 
   // Replace underscores with spaces
   return nameWithoutPrefix.replace(/_/g, " ");

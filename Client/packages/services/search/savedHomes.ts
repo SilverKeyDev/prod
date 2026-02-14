@@ -63,7 +63,7 @@ const mapToAddFavoriteHomePayload = (
   const getNumber = (v: unknown, fallback = 0): number => {
     if (typeof v === "number") return v;
     if (typeof v === "string") {
-      const parsed = parseInt(v.replace(/,/g, ''), 10);
+      const parsed = parseInt(v.replace(/,/g, ""), 10);
       return isNaN(parsed) ? fallback : parsed;
     }
     return fallback;
@@ -173,8 +173,8 @@ export class SavedHomesService {
             ? typedResponse.error
             : "Failed to load favorite homes";
         log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch saved homes", {
-            error: errorMsg,
-          });
+          error: errorMsg,
+        });
         throw new Error(errorMsg);
       }
     } catch (error: unknown) {
@@ -220,8 +220,8 @@ export class SavedHomesService {
             ? typedResponse.error
             : "Failed to save home";
         log.error(LOG_CATEGORIES.ERRORS, "Failed to save home", {
-            error: errorMsg,
-          });
+          error: errorMsg,
+        });
         return {
           success: false,
           error: errorMsg,
@@ -271,8 +271,8 @@ export class SavedHomesService {
             ? typedResponse.error
             : "Failed to remove home";
         log.error(LOG_CATEGORIES.ERRORS, "Failed to remove home", {
-            error: errorMsg,
-          });
+          error: errorMsg,
+        });
         return {
           success: false,
           error: errorMsg,

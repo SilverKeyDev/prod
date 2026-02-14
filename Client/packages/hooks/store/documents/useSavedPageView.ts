@@ -20,10 +20,7 @@ export function useSavedPageView(): UseSavedPageViewReturn {
     // Initialize from query param on first render
     const params = new URLSearchParams(location.search);
     const viewParam = params.get("view");
-    if (
-      viewParam === "homes" ||
-      viewParam === "documents"
-    ) {
+    if (viewParam === "homes" || viewParam === "documents") {
       setViewType(viewParam);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

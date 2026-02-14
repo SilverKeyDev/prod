@@ -113,7 +113,7 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
         BUYER PROFILE:
         - Budget: {budget}
         - Age: {age}
-        - Important Locations: {', '.join([loc.get('name', 'Unknown') for loc in important_locations]) if important_locations else 'None specified'}
+        - Important Locations: {', '.join([loc.get('name') or loc.get('address', 'Unknown') for loc in important_locations]) if important_locations else 'None specified'}
         - Preferred Features: {', '.join(preferred_features) if preferred_features else 'None specified'}
         - Deal Breakers: {', '.join(deal_breakers) if deal_breakers else 'None specified'}
 
@@ -181,17 +181,10 @@ def analyze_property_with_sonar_pro(user_preferences: Dict[str, Any], home_objec
                             content = content.replace('```', '').strip()
                         
                         analysis_data = json.loads(content)
-                        
-                        # Check specifically for neighborhood_overview
-                        if not 'neighborhood_overview' in analysis_data:
-                            logger.warning(f"⚠️ [PERPLEXITY] Missing neighborhood_overview in response")
-                        
+
                         # Validate and create PropertyAnalysis object
                         property_analysis = PropertyAnalysis(**analysis_data)
-                       
-                        if not hasattr(property_analysis, 'neighborhood_overview'):
-                            logger.warning(f"⚠️ [PROPERTY_ANALYSIS] neighborhood_overview missing from object")
-                        
+
                         return property_analysis
                         
                     except json.JSONDecodeError as e:
@@ -251,7 +244,7 @@ def generate_report_sections_for_property(
     Checks recent database entries and user priorities to optimize what gets generated.
     
     Args:
-        section_names: List of section names to generate (from report_section_priorities)
+        section_names: List of section names to generate (fixed default order)
         address: Property address
         user_preferences: User preferences dict
         property_data: Property data from property API

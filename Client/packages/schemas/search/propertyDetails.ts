@@ -20,7 +20,6 @@ export type PropertyImages = {
   >;
 };
 
-
 export type PropertyWithPhotos = PropertyImages & {
   photos?: Array<
     | string

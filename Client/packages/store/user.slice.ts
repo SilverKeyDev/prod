@@ -13,9 +13,10 @@ export type UserPreferences = {
   commute_time?: number;
   commute_mode?: string;
   important_locations?: Array<{
-    name: string;
-    latitude: number;
-    longitude: number;
+    address: string;
+    commute_tolerance?: number;
+    latitude?: number;
+    longitude?: number;
   }>;
   [key: string]: unknown;
 };

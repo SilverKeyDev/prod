@@ -38,7 +38,7 @@ export function CalendarView({
 
   // Initialize enabled calendars from preferences (similar to Calendar.tsx)
   const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const initializedFromPreferencesRef = useRef(false);
   const lastCalendarsRef = useRef<string>("");
@@ -62,7 +62,7 @@ export function CalendarView({
       const enabledSet = initializeEnabledCalendars(
         calendars,
         hasDisabledCalendars ? disabledCalendars : undefined,
-        silverKeyCalendarIdValue
+        silverKeyCalendarIdValue,
       );
       setEnabledCalendarIds(enabledSet);
       initializedFromPreferencesRef.current = true;
@@ -271,7 +271,7 @@ export function CalendarView({
                               hour: "numeric",
                               minute: "2-digit",
                               hour12: true,
-                            }
+                            },
                           )}{" "}
                         </>
                       )}

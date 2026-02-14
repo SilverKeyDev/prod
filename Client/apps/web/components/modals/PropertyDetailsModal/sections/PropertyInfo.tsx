@@ -58,7 +58,7 @@ export const PropertyInfo: React.FC<PropertyComponentProps> = ({
                     city: string;
                     state: string;
                     zipcode: string;
-                  }
+                  },
                 );
               }
               try {

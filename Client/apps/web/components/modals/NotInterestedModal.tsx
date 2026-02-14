@@ -64,9 +64,10 @@ export default function NotInterestedModal({
     onClose();
   };
 
-  const canConfirm = selectedReason === "other" 
-    ? customReason.trim().length > 0 
-    : selectedReason !== null;
+  const canConfirm =
+    selectedReason === "other"
+      ? customReason.trim().length > 0
+      : selectedReason !== null;
 
   return (
     <BaseModal
@@ -103,10 +104,12 @@ export default function NotInterestedModal({
       <div className="space-y-4">
         {propertyAddress && (
           <BodyText size="sm" muted>
-            Help us understand why <span className="font-medium">{propertyAddress}</span> isn't a good fit.
+            Help us understand why{" "}
+            <span className="font-medium">{propertyAddress}</span> isn't a good
+            fit.
           </BodyText>
         )}
-        
+
         <div className="space-y-2">
           {availableReasons.map((reason) => (
             <label
@@ -132,7 +135,10 @@ export default function NotInterestedModal({
 
         {selectedReason === "other" && (
           <div className="mt-4">
-            <label htmlFor="custom-reason" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="custom-reason"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Please tell us more
             </label>
             <textarea

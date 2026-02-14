@@ -27,7 +27,7 @@ import {
 export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [isCreateEventModalOpen, setIsCreateEventModalOpen] = useState(false);
   const [selectedDateForEvent, setSelectedDateForEvent] = useState<
@@ -78,7 +78,7 @@ export function Calendar() {
     dateRange.timeMin,
     dateRange.timeMax,
     "primary",
-    ["primary"]
+    ["primary"],
   );
 
   // Note: CalendarView now handles its own event fetching from cache
@@ -133,12 +133,7 @@ export function Calendar() {
         message: `Client events error: ${clientEventsError}`,
       });
     }
-  }, [
-    calendarsError,
-    eventsError,
-    clientEventsError,
-    enqueueToast,
-  ]);
+  }, [calendarsError, eventsError, clientEventsError, enqueueToast]);
 
   // Initialize enabled calendars from preferences
   useEffect(() => {
@@ -171,7 +166,7 @@ export function Calendar() {
       const enabledSet = initializeEnabledCalendars(
         calendars,
         hasDisabledCalendars ? disabledCalendars : undefined,
-        silverKeyCalendarIdRef.current
+        silverKeyCalendarIdRef.current,
       );
       setEnabledCalendarIds(enabledSet);
       initializedFromPreferencesRef.current = true;
@@ -216,14 +211,14 @@ export function Calendar() {
             await savePreferences(
               calendars || [],
               newSet,
-              silverKeyCalendarIdRef.current
+              silverKeyCalendarIdRef.current,
             );
             await refreshUserPreferences();
           } catch (error) {
             log.error(
               LOG_CATEGORIES.CALENDAR,
               "Failed to save calendar preferences",
-              error
+              error,
             );
             enqueueToast({
               type: "error",
@@ -235,7 +230,7 @@ export function Calendar() {
         return newSet;
       });
     },
-    [calendars, refreshUserPreferences, enqueueToast]
+    [calendars, refreshUserPreferences, enqueueToast],
   );
 
   // Cleanup timeout on unmount
@@ -278,7 +273,7 @@ export function Calendar() {
     (firstDate: Date, lastDate: Date) => {
       setVisibleDateRange({ firstDate, lastDate });
     },
-    []
+    [],
   );
 
   // All hooks must be called before any conditional returns

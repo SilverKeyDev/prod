@@ -37,7 +37,9 @@ const GoalsConstraints: React.FC<GoalsConstraintsProps> = ({ goals }) => {
           </div>
           <div className="space-y-2 pl-7">
             <div className="flex items-center justify-between">
-              <span className="text-responsive-sm text-black/60">Hard Max:</span>
+              <span className="text-responsive-sm text-black/60">
+                Hard Max:
+              </span>
               <span className="text-responsive-sm font-medium text-black">
                 {formatCurrency(goals.budget_max)}
               </span>

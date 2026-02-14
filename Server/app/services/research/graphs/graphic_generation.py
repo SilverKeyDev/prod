@@ -440,7 +440,7 @@ def generate_commute_map(primary_address, user_preferences, api_key):
             return None
 
         important_locations = []
-        locations_data = None
+        locations_data = user_preferences.get('important_locations') if isinstance(user_preferences, dict) else getattr(user_preferences, 'important_locations', None)
 
         # Parse JSON string if needed
         if isinstance(locations_data, str):
@@ -452,13 +452,14 @@ def generate_commute_map(primary_address, user_preferences, api_key):
                 logger.error(f"🗺️ COMMUTE MAP: Raw JSON string: {repr(locations_data)}")
                 return None
 
-        # Process locations list
+        # Process locations list (address is required; name is optional, use address as fallback)
         if isinstance(locations_data, list):
             for i, loc in enumerate(locations_data):
-                if isinstance(loc, dict) and "name" in loc and "address" in loc:
-                    important_locations.append({"name": loc["name"], "address": loc["address"]})
+                if isinstance(loc, dict) and "address" in loc:
+                    loc_name = loc.get("name") or loc.get("address", "")[:20] or f"Location {i+1}"
+                    important_locations.append({"name": loc_name, "address": loc["address"]})
                 else:
-                    logger.warning(f"🗺️ COMMUTE MAP: ❌ Skipped invalid location {i+1}: missing name/address or not dict")
+                    logger.warning(f"🗺️ COMMUTE MAP: ❌ Skipped invalid location {i+1}: missing address or not dict")
         else:
             logger.warning(f"🗺️ COMMUTE MAP: locations_data is not a list: {type(locations_data)}")
 

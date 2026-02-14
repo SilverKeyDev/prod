@@ -120,7 +120,8 @@ export const researchApi = {
 
               yield update;
             } catch (parseError) {
-              log.error(LOG_CATEGORIES.ERRORS,
+              log.error(
+                LOG_CATEGORIES.ERRORS,
                 "❌ [researchApi.streamProperty] Failed to parse SSE data",
                 {
                   line,
@@ -213,7 +214,8 @@ export const researchApi = {
 
               yield update;
             } catch (parseError) {
-              log.error(LOG_CATEGORIES.ERRORS,
+              log.error(
+                LOG_CATEGORIES.ERRORS,
                 "❌ [researchApi.streamCompare] Failed to parse SSE data",
                 {
                   line,

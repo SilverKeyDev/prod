@@ -49,7 +49,9 @@ export const useNotInterestedHomesData = () => {
     enabled: shouldLoadData,
     // Use placeholderData function to check cache reactively when enabled changes
     placeholderData: () => {
-      return queryClient.getQueryData<SavedHome[]>(queryKeys.homes.notInterested());
+      return queryClient.getQueryData<SavedHome[]>(
+        queryKeys.homes.notInterested(),
+      );
     },
     select: (data) => data,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -61,10 +63,21 @@ export const useNotInterestedHomesData = () => {
 
   // Mark as not-interested mutation
   const markNotInterestedMutation = useMutation({
-    mutationFn: async ({ property, why }: { property: unknown; why?: string }) => {
-      const response = await userApi.addNotInterestedHome({ home: property, why });
+    mutationFn: async ({
+      property,
+      why,
+    }: {
+      property: unknown;
+      why?: string;
+    }) => {
+      const response = await userApi.addNotInterestedHome({
+        home: property,
+        why,
+      });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to mark home as not interested");
+        throw new Error(
+          response.error ?? "Failed to mark home as not interested",
+        );
       }
       return response;
     },
@@ -130,7 +143,9 @@ export const useNotInterestedHomesData = () => {
     }) => {
       const response = await userApi.removeNotInterestedHome({ address });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to remove from not-interested");
+        throw new Error(
+          response.error ?? "Failed to remove from not-interested",
+        );
       }
       return response;
     },
@@ -167,16 +182,12 @@ export const useNotInterestedHomesData = () => {
 
   // Update not-interested reason mutation
   const updateNotInterestedReasonMutation = useMutation({
-    mutationFn: async ({
-      address,
-      why,
-    }: {
-      address: string;
-      why: string;
-    }) => {
+    mutationFn: async ({ address, why }: { address: string; why: string }) => {
       const response = await userApi.updateNotInterestedHome({ address, why });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to update not-interested reason");
+        throw new Error(
+          response.error ?? "Failed to update not-interested reason",
+        );
       }
       return response;
     },
@@ -208,12 +219,13 @@ export const useNotInterestedHomesData = () => {
 
       // Try to find by ID first, then by address if provided
       let home = homes.find((h) => h.home_id === propertyId);
-      
+
       if (!home && propertyAddress && typeof propertyAddress === "string") {
         // Try matching by address
         const normalizedAddress = propertyAddress.toLowerCase();
         home = homes.find((h) => {
-          const homeAddress = typeof h.address === "string" ? h.address.toLowerCase() : "";
+          const homeAddress =
+            typeof h.address === "string" ? h.address.toLowerCase() : "";
           return homeAddress === normalizedAddress;
         });
       }
@@ -227,17 +239,16 @@ export const useNotInterestedHomesData = () => {
         // Look through all cached data to find the home
         for (const [, cachedHomes] of allCachedData) {
           if (Array.isArray(cachedHomes)) {
-            const foundHome = cachedHomes.find(
-              (h: SavedHome) => {
-                if (h.home_id === propertyId) return true;
-                if (propertyAddress && typeof propertyAddress === "string") {
-                  const normalizedAddress = propertyAddress.toLowerCase();
-                  const homeAddress = typeof h.address === "string" ? h.address.toLowerCase() : "";
-                  return homeAddress === normalizedAddress;
-                }
-                return false;
+            const foundHome = cachedHomes.find((h: SavedHome) => {
+              if (h.home_id === propertyId) return true;
+              if (propertyAddress && typeof propertyAddress === "string") {
+                const normalizedAddress = propertyAddress.toLowerCase();
+                const homeAddress =
+                  typeof h.address === "string" ? h.address.toLowerCase() : "";
+                return homeAddress === normalizedAddress;
               }
-            );
+              return false;
+            });
             if (foundHome) {
               return removeNotInterestedMutation.mutateAsync({
                 propertyId,
@@ -270,13 +281,12 @@ export const useNotInterestedHomesData = () => {
       // Try to match by ID first, then by address if provided
       if (propertyAddress && typeof propertyAddress === "string") {
         const normalizedAddress = propertyAddress.toLowerCase();
-        return homes.some(
-          (home) => {
-            if (home.home_id === propertyId) return true;
-            const homeAddress = typeof home.address === "string" ? home.address.toLowerCase() : "";
-            return homeAddress === normalizedAddress;
-          }
-        );
+        return homes.some((home) => {
+          if (home.home_id === propertyId) return true;
+          const homeAddress =
+            typeof home.address === "string" ? home.address.toLowerCase() : "";
+          return homeAddress === normalizedAddress;
+        });
       }
       return homes.some((home) => home.home_id === propertyId);
     },

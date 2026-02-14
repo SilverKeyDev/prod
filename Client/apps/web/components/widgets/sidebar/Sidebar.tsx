@@ -138,7 +138,7 @@ const navigationStructure: NavigationStructure = {
 const getNavigation = (
   isAgent: boolean,
   _hasAgent: boolean,
-  isMobile: boolean
+  isMobile: boolean,
 ): NavigationStructure => {
   // Create a proper copy of the navigation structure
   const navigation: NavigationStructure = {};
@@ -210,7 +210,7 @@ export default function Sidebar({
 
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
   const toggleCategoryInStore = useViewStore(
-    (s: ViewState) => s.toggleCategory
+    (s: ViewState) => s.toggleCategory,
   );
   const location = useLocation();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
@@ -354,7 +354,7 @@ export default function Sidebar({
                         <button
                           onClick={() => toggleCategory(categoryKey)}
                           className={`${getButtonStyles(
-                            isCategoryActive(category.items)
+                            isCategoryActive(category.items),
                           )} group relative ${
                             !expanded ? "justify-center" : "justify-between"
                           } cursor-pointer`}
@@ -424,7 +424,7 @@ export default function Sidebar({
                       </>
                     )}
                   </div>
-                )
+                ),
               )}
             </nav>
           </div>
@@ -435,7 +435,7 @@ export default function Sidebar({
               onClick={handleLogoutClick}
               className={`${getButtonStyles(false).replace(
                 "text-white/70",
-                "text-white"
+                "text-white",
               )} ${!expanded ? "justify-center py-3" : "py-3"} cursor-pointer`}
             >
               <LogOut className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />

@@ -2,8 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { queryKeys } from "../../../config/query/keys";
-import type { GoogleEvent, GoogleEventListResponse } from "../../../config/api/calendar/googleCalendar";
-import type { FreebusyTimeBlock, FreebusyResponse } from "../../../schemas/scheduling";
+import type {
+  GoogleEvent,
+  GoogleEventListResponse,
+} from "../../../config/api/calendar/googleCalendar";
+import type {
+  FreebusyTimeBlock,
+  FreebusyResponse,
+} from "../../../schemas/scheduling";
 import { getBusyBlocksFromResponse } from "../../../utils/calendar/scheduling";
 
 export type UseClientEventsReturn = {
@@ -17,7 +23,7 @@ export type UseClientEventsReturn = {
 /**
  * Hook to fetch client events and availability for agents
  * Returns full event details and busy blocks for a client's calendar
- * 
+ *
  * @param clientId - Client user ID
  * @param timeMin - Start time in ISO 8601 format
  * @param timeMax - End time in ISO 8601 format
@@ -29,9 +35,8 @@ export function useClientEvents(
   timeMin: string,
   timeMax: string,
   calendarId?: string,
-  calendarIds?: string[]
+  calendarIds?: string[],
 ): UseClientEventsReturn {
-
   // Disable fetching - only read from cache
   // Client events are not prefetched or polled, so this will return empty if not cached
   const {
@@ -73,7 +78,9 @@ export function useClientEvents(
     queryFn: async () => {
       // This should never be called since enabled is always false
       // But we need to provide a function for React Query
-      throw new Error("Client availability fetching is disabled - use cache only");
+      throw new Error(
+        "Client availability fetching is disabled - use cache only",
+      );
     },
     enabled: false, // Always disabled - only read from cache, never fetch
     staleTime: 2 * 60 * 1000, // 2 minutes

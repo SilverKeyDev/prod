@@ -43,7 +43,7 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
   // Get section label
   const sectionLabel =
     DEFAULT_REPORT_SECTIONS.find(
-      (s: { key: string; label: string }) => s.key === "commute"
+      (s: { key: string; label: string }) => s.key === "commute",
     )?.label || "Commute Information";
 
   // Helper to render analysis content
@@ -52,7 +52,7 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
 
     const dataObj = data as Record<string, unknown>;
     const entries = Object.entries(dataObj).filter(
-      ([_, value]) => value !== null && value !== undefined && value !== ""
+      ([_, value]) => value !== null && value !== undefined && value !== "",
     );
 
     if (entries.length === 0) return null;
@@ -151,7 +151,7 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
                           <span className="flex-1 truncate text-sm font-medium text-brown">
-                            {c.location_name || c.name}
+                            {c.location_name || c.name || c.location_address || c.address}
                           </span>
                           <span
                             className={`ml-2 flex-shrink-0 rounded px-2 py-1 font-medium ${colorClass}`}

@@ -7,8 +7,8 @@ export type AuthMethod = "cognito" | "google" | "both" | "unknown";
 export type UserProfile = {
   id: string;
   email: string;
-  name: string | null;  // Made nullable for Google OAuth users who may not have a name
-  phone?: string | null;  // Explicitly nullable
+  name: string | null; // Made nullable for Google OAuth users who may not have a name
+  phone?: string | null; // Explicitly nullable
   created_at: string | null;
   is_active: boolean;
   has_subscription: boolean;
@@ -19,7 +19,7 @@ export type UserProfile = {
   agent_id?: string;
   client_ids?: string;
   roles?: UserRole[];
-  auth_method?: AuthMethod;  // NEW: Track authentication method
+  auth_method?: AuthMethod; // NEW: Track authentication method
 };
 
 export type UserPreferences = {
@@ -33,7 +33,6 @@ export type UserPreferences = {
   agent_preferences?: unknown;
   values?: unknown;
   emotional_signals?: unknown;
-  report_section_priorities?: unknown;
   [key: string]: unknown;
 };
 

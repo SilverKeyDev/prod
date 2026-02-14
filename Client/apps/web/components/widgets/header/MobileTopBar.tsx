@@ -5,12 +5,15 @@ type MobileTopBarProps = {
   dynamicHeight?: boolean; // Allow dynamic height for components like GenerateReport
   /** When true, children take full width (e.g. messaging header with its own left/right layout) */
   fullWidth?: boolean;
+  /** When true, remove left/right padding (e.g. when MobileSidebar is visible and content should align edge-to-edge) */
+  noPadding?: boolean;
 };
 
 const MobileTopBar: React.FC<MobileTopBarProps> = ({
   children,
   dynamicHeight = false,
   fullWidth = false,
+  noPadding = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(80); // Default height (h-20 = 80px)
@@ -40,7 +43,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
         } ${fullWidth ? "!h-auto min-h-14" : ""}`}
       >
         <header
-          className={`relative flex h-full w-full items-center ${fullWidth ? "px-0" : "px-4"}`}
+          className={`relative flex h-full w-full items-center ${fullWidth || noPadding ? "px-0" : "px-4"}`}
           aria-label="Page header"
         >
           {fullWidth ? (
@@ -64,10 +67,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
         </header>
       </div>
       {/* Spacer to account for fixed positioning + 12px margin */}
-      <div
-        className="md:hidden"
-        style={{ height: `${height + 12}px` }}
-      />
+      <div className="md:hidden" style={{ height: `${height + 12}px` }} />
     </>
   );
 };

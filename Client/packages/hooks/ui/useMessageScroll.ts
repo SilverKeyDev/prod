@@ -8,7 +8,7 @@ import { useEffect, useRef, useCallback } from "react";
 export function useMessageScroll(
   messages: unknown[],
   conversationId?: string,
-  isLoadingHistory?: boolean
+  isLoadingHistory?: boolean,
 ) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
@@ -24,7 +24,7 @@ export function useMessageScroll(
       let parent = messagesEndRef.current.parentElement;
       while (parent) {
         const style = window.getComputedStyle(parent);
-        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+        if (style.overflowY === "auto" || style.overflowY === "scroll") {
           scrollContainerRef.current = parent;
           break;
         }
@@ -36,14 +36,15 @@ export function useMessageScroll(
   const scrollToBottom = useCallback((instant = false) => {
     if (instant && scrollContainerRef.current) {
       // For instant scroll on initial load, set scrollTop directly to avoid any animation
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      scrollContainerRef.current.scrollTop =
+        scrollContainerRef.current.scrollHeight;
     } else {
       // For smooth scroll when new messages arrive, use scrollIntoView
       const scroll = () => {
-        messagesEndRef.current?.scrollIntoView({ 
+        messagesEndRef.current?.scrollIntoView({
           behavior: "smooth",
           block: "end",
-          inline: "nearest"
+          inline: "nearest",
         });
       };
       requestAnimationFrame(() => {
@@ -57,8 +58,9 @@ export function useMessageScroll(
   useEffect(() => {
     const currentMessageCount = messages.length;
     const previousCount = previousMessageCountRef.current;
-    const conversationChanged = previousConversationIdRef.current !== conversationId;
-    
+    const conversationChanged =
+      previousConversationIdRef.current !== conversationId;
+
     // Reset initial load flag when conversation changes or messages are cleared
     if (conversationChanged || currentMessageCount === 0) {
       isInitialLoadRef.current = true;
@@ -68,20 +70,21 @@ export function useMessageScroll(
         return;
       }
     }
-    
+
     // On initial load (when we go from 0 to some messages), set scroll position instantly
     if (isInitialLoadRef.current && currentMessageCount > 0) {
       isInitialLoadRef.current = false;
       // Use requestAnimationFrame to ensure DOM is rendered, then set scrollTop directly
       requestAnimationFrame(() => {
         if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+          scrollContainerRef.current.scrollTop =
+            scrollContainerRef.current.scrollHeight;
         } else if (messagesEndRef.current) {
           // Fallback: find scroll container and set scrollTop directly for instant scroll
           let parent = messagesEndRef.current.parentElement;
           while (parent) {
             const style = window.getComputedStyle(parent);
-            if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            if (style.overflowY === "auto" || style.overflowY === "scroll") {
               parent.scrollTop = parent.scrollHeight;
               break;
             }
@@ -89,7 +92,7 @@ export function useMessageScroll(
           }
         }
       });
-    } 
+    }
     // When new messages are added (not initial load), scroll smoothly
     else if (currentMessageCount > previousCount && previousCount > 0) {
       scrollToBottom(false);
@@ -100,13 +103,14 @@ export function useMessageScroll(
       isInitialLoadRef.current = false; // Mark as not initial load for this conversation
       requestAnimationFrame(() => {
         if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+          scrollContainerRef.current.scrollTop =
+            scrollContainerRef.current.scrollHeight;
         } else if (messagesEndRef.current) {
           // Fallback: find scroll container and set scrollTop directly for instant scroll
           let parent = messagesEndRef.current.parentElement;
           while (parent) {
             const style = window.getComputedStyle(parent);
-            if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            if (style.overflowY === "auto" || style.overflowY === "scroll") {
               parent.scrollTop = parent.scrollHeight;
               break;
             }
@@ -116,16 +120,21 @@ export function useMessageScroll(
       });
     }
     // If messages change but we haven't tracked previous count yet (edge case), set scroll position
-    else if (currentMessageCount > 0 && previousCount === 0 && !isInitialLoadRef.current) {
+    else if (
+      currentMessageCount > 0 &&
+      previousCount === 0 &&
+      !isInitialLoadRef.current
+    ) {
       requestAnimationFrame(() => {
         if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+          scrollContainerRef.current.scrollTop =
+            scrollContainerRef.current.scrollHeight;
         } else if (messagesEndRef.current) {
           // Fallback: find scroll container and set scrollTop directly for instant scroll
           let parent = messagesEndRef.current.parentElement;
           while (parent) {
             const style = window.getComputedStyle(parent);
-            if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            if (style.overflowY === "auto" || style.overflowY === "scroll") {
               parent.scrollTop = parent.scrollHeight;
               break;
             }
@@ -134,7 +143,7 @@ export function useMessageScroll(
         }
       });
     }
-    
+
     previousMessageCountRef.current = currentMessageCount;
   }, [messages, scrollToBottom, conversationId]);
 
@@ -142,19 +151,20 @@ export function useMessageScroll(
   useEffect(() => {
     const wasLoading = previousLoadingStateRef.current === true;
     const isNowLoaded = isLoadingHistory === false;
-    
+
     // When loading finishes and we have messages, scroll to bottom instantly
     if (wasLoading && isNowLoaded && messages.length > 0) {
       // Use requestAnimationFrame to ensure DOM is rendered, then scroll instantly
       requestAnimationFrame(() => {
         if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+          scrollContainerRef.current.scrollTop =
+            scrollContainerRef.current.scrollHeight;
         } else if (messagesEndRef.current) {
           // Fallback: find scroll container and set scrollTop directly for instant scroll
           let parent = messagesEndRef.current.parentElement;
           while (parent) {
             const style = window.getComputedStyle(parent);
-            if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+            if (style.overflowY === "auto" || style.overflowY === "scroll") {
               parent.scrollTop = parent.scrollHeight;
               break;
             }
@@ -163,10 +173,9 @@ export function useMessageScroll(
         }
       });
     }
-    
+
     previousLoadingStateRef.current = isLoadingHistory;
   }, [isLoadingHistory, messages.length]);
 
   return { messagesEndRef, scrollToBottom };
 }
-

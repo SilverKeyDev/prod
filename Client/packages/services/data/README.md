@@ -5,6 +5,7 @@ Data loading services for React Query integration (prefetching and background po
 ## Purpose
 
 The `data/` directory contains services specifically designed for React Query integration:
+
 - Initial data prefetching on login
 - Background polling for real-time updates
 - QueryClient integration
@@ -12,9 +13,11 @@ The `data/` directory contains services specifically designed for React Query in
 ## Files
 
 ### `initialDataLoader.ts`
+
 Prefetches all page data on login. Called once after successful authentication to warm up the React Query cache.
 
 ### `backgroundPolling.ts`
+
 Polls endpoints at different intervals to keep data fresh. Automatically adjusts based on page visibility and user type.
 
 ## Architecture Exception
@@ -26,6 +29,7 @@ Polls endpoints at different intervals to keep data fresh. Automatically adjusts
 3. They provide essential data loading functionality that requires React Query
 
 ### Allowed Imports
+
 - ✅ `@tanstack/react-query` - React Query (exception)
 - ✅ `config/api/*` - API clients
 - ✅ `config/query/keys.ts` - Query key factories
@@ -33,6 +37,7 @@ Polls endpoints at different intervals to keep data fresh. Automatically adjusts
 - ✅ `schemas/*` - Type definitions
 
 ### Forbidden Imports
+
 - ❌ `hooks/*` or `store/*` - Services should not import hooks
 - ❌ `apps/web/*` - Services should not know about components
 
@@ -91,6 +96,7 @@ export function useDataInitialization() {
 ## Polling Intervals
 
 Background polling uses adaptive intervals:
+
 - **Conversations (active)**: 8 seconds when on messaging page
 - **Conversations (background)**: 45 seconds when elsewhere
 - **Agent todos**: 1 minute

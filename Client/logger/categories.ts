@@ -20,7 +20,11 @@ export type LogCategory =
   | "DASHBOARD"
   | "MESSAGES";
 
-export type ApiSubcategory = "INITIAL_LOAD" | "POLLING" | "PAGE_MOUNT" | "OTHER";
+export type ApiSubcategory =
+  | "INITIAL_LOAD"
+  | "POLLING"
+  | "PAGE_MOUNT"
+  | "OTHER";
 
 export const LOG_CATEGORIES = {
   POLLING: "POLLING",

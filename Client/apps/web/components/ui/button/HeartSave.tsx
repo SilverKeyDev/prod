@@ -1,6 +1,7 @@
 import { Heart, Sparkles } from "lucide-react";
 import React from "react";
 
+import IconButton from "./IconButton";
 import { getCardBubbleSizeClasses } from "../../cards/base/CardBubbleStyles.tsx";
 import { useSavedHomesData } from "../../../../../packages/hooks/data/search/useSavedHomesData";
 import { useUIStore } from "../../../../../packages/store";
@@ -21,22 +22,29 @@ export type CardHeartSaveProps = {
   saveHome?: (property: SearchResult | Property) => Promise<void>;
   removeSavedHome?: (propertyId: string) => Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
-  size?: "xs" | "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg" | "small" | "medium" | "large";
   className?: string;
   ariaLabel?: string;
 };
 
-const CIRCLE_SIZE: Record<NonNullable<CardHeartSaveProps["size"]>, string> = {
+/** Maps small/medium/large to legacy sizes for card overlay */
+const TOOLBAR_TO_LEGACY: Record<
+  "small" | "medium" | "large",
+  "xs" | "sm" | "md" | "lg"
+> = {
+  small: "sm",
+  medium: "md",
+  large: "lg",
+};
+
+const CIRCLE_SIZE: Record<"xs" | "sm" | "md" | "lg", string> = {
   xs: "w-8 h-8",
   sm: "w-9 h-9",
   md: "w-11 h-11",
   lg: "w-13 h-13",
 };
 
-const ICON_SIZE_FALLBACK: Record<
-  NonNullable<CardHeartSaveProps["size"]>,
-  string
-> = {
+const ICON_SIZE_FALLBACK: Record<"xs" | "sm" | "md" | "lg", string> = {
   xs: "w-3.5 h-3.5",
   sm: "w-4 h-4",
   md: "w-5 h-5",
@@ -114,9 +122,14 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
     }
   };
 
-  const sizeConfig = getCardBubbleSizeClasses(size);
-  const circleClass = CIRCLE_SIZE[size];
-  const iconSizeClass = sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[size];
+  const isToolbarSize = (s: string): s is "small" | "medium" | "large" =>
+    s === "small" || s === "medium" || s === "large";
+
+  const effectiveSize = isToolbarSize(size) ? TOOLBAR_TO_LEGACY[size] : size;
+  const sizeConfig = getCardBubbleSizeClasses(effectiveSize);
+  const circleClass = CIRCLE_SIZE[effectiveSize];
+  const iconSizeClass =
+    sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[effectiveSize];
 
   // Check if this is being used as an inline button (no position specified or position is not absolute)
   const isInlineButton =
@@ -124,8 +137,30 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
     className.includes("border") ||
     className.includes("rounded-md");
 
+  if (isInlineButton && isToolbarSize(size)) {
+    return (
+      <IconButton
+        variant="toolbar"
+        size={size}
+        rounded="md"
+        icon={
+          <Heart
+            className={`h-full w-full ${isSaved ? "fill-current" : ""} transition-transform duration-200`}
+          />
+        }
+        onClick={handleClick}
+        aria-pressed={isSaved}
+        aria-label={
+          ariaLabel ??
+          (isSaved ? "Remove from saved homes" : "Save to favorites")
+        }
+        title={isSaved ? "Remove from saved homes" : "Save to favorites"}
+        className={`${isSaved ? "text-red-500 hover:text-red-600" : "text-gray-600 hover:bg-gray-50"} ${className}`}
+      />
+    );
+  }
+
   if (isInlineButton) {
-    // Inline button styling - matches other buttons in PropertyHeader
     return (
       <button
         type="button"

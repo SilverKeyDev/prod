@@ -1,6 +1,21 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, cloneElement, isValidElement } from "react";
 
 import KeyTurnLoader from "../loading/KeyTurnLoader";
+
+/** strokeWidth for toolbar variant icons - 50% thinner than default (2) */
+const TOOLBAR_ICON_STROKE_WIDTH = 1;
+
+const HOVER_BG_MAP = {
+  "gray-50": "hover:bg-gray-50",
+  "gray-100": "hover:bg-gray-100",
+  "gray-200": "hover:bg-gray-200",
+} as const;
+
+const ACTIVE_BG_MAP = {
+  "gray-100": "active:bg-gray-100",
+  "gray-200": "active:bg-gray-200",
+  "gray-300": "active:bg-gray-300",
+} as const;
 
 export type IconButtonProps = {
   variant?:
@@ -12,11 +27,16 @@ export type IconButtonProps = {
     | "success"
     | "warning"
     | "info"
-    | "olive";
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
+    | "olive"
+    | "toolbar";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large";
   loading?: boolean;
   icon: React.ReactNode;
   rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
+  /** Custom hover background for toolbar variant. Default: gray-50 */
+  hoverBg?: keyof typeof HOVER_BG_MAP;
+  /** Custom active background for toolbar variant. Default: gray-100 */
+  activeBg?: keyof typeof ACTIVE_BG_MAP;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
@@ -29,6 +49,8 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       rounded = "lg",
       className = "",
       disabled,
+      hoverBg,
+      activeBg,
       ...props
     },
     ref,
@@ -37,13 +59,17 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     const baseStyles =
       "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer disabled:cursor-not-allowed";
 
-    // Size variants for icon buttons (square) - using utilities.css classes
+    // Size variants for icon buttons (square)
+    // small/medium/large: fixed dimensions for toolbar-style buttons
     const sizeStyles = {
       xs: "mobile-icon-xs text-responsive-xs",
       sm: "mobile-icon-sm text-responsive-xs",
       md: "mobile-icon-md text-responsive-sm",
       lg: "mobile-icon-lg text-responsive-sm",
       xl: "mobile-icon-xl text-responsive-md",
+      small: "h-6 w-6 min-h-6 min-w-6",
+      medium: "h-7 w-7 min-h-7 min-w-7",
+      large: "h-8 w-8 min-h-8 min-w-8",
     };
 
     // Rounded variants
@@ -75,7 +101,18 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       info: "bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500/20 disabled:bg-neutral-600/50 disabled:text-white/70",
       olive:
         "bg-olive text-white hover:bg-olive-light focus:ring-olive/20 disabled:bg-olive/50 disabled:text-white/70",
+      toolbar:
+        "bg-transparent text-gray-600 border-0 shadow-none hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus:ring-0 disabled:text-gray-400 disabled:hover:bg-transparent disabled:active:bg-transparent",
     };
+
+    // Toolbar variant supports custom hover/active overrides
+    const toolbarOverrides =
+      variant === "toolbar" && (hoverBg ?? activeBg)
+        ? [
+            hoverBg ? HOVER_BG_MAP[hoverBg] : "hover:bg-gray-50",
+            activeBg ? ACTIVE_BG_MAP[activeBg] : "active:bg-gray-100",
+          ].join(" ")
+        : "";
 
     // Touch-friendly class for mobile
     const touchFriendlyClass = "touch-manipulation active:scale-95";
@@ -86,11 +123,21 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       sizeStyles[size],
       roundedStyles[rounded],
       variantStyles[variant],
+      toolbarOverrides,
       touchFriendlyClass,
       className,
     ]
       .filter(Boolean)
       .join(" ");
+
+    const iconWithStroke =
+      variant === "toolbar" &&
+      isValidElement(icon) &&
+      typeof (icon as React.ReactElement).type !== "string"
+        ? cloneElement(icon as React.ReactElement<{ strokeWidth?: number }>, {
+            strokeWidth: TOOLBAR_ICON_STROKE_WIDTH,
+          })
+        : icon;
 
     return (
       <button
@@ -99,7 +146,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         disabled={disabled ?? loading}
         {...props}
       >
-        {loading ? <KeyTurnLoader message="" /> : icon}
+        {loading ? <KeyTurnLoader message="" /> : iconWithStroke}
       </button>
     );
   },

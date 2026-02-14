@@ -31,7 +31,7 @@ const PersonalizationMobileHeader: React.FC<
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-sm gap-2 px-4">
+    <div className="mx-auto flex w-full max-w-sm gap-2">
       <Button
         onClick={onCancel}
         variant="outline"

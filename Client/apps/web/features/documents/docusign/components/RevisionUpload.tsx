@@ -12,7 +12,7 @@ type RevisionUploadProps = {
 
 /**
  * RevisionUpload Component
- * 
+ *
  * Allows agents to upload new revisions (PDF files) for draft agreements
  * Includes file picker, notes field, and progress indicator
  */
@@ -95,7 +95,8 @@ export default function RevisionUpload({
     } catch (error) {
       enqueueToast({
         type: "error",
-        message: error instanceof Error ? error.message : "Failed to upload revision",
+        message:
+          error instanceof Error ? error.message : "Failed to upload revision",
       });
     }
   };
@@ -107,7 +108,7 @@ export default function RevisionUpload({
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Upload Document (PDF)
         </label>
-        
+
         {!selectedFile ? (
           <div
             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"

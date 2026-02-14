@@ -41,7 +41,7 @@ export const useMapInitialization = ({
   } | null>(null);
 
   renderCountRef.current++;
-  
+
   console.log("🔄 [MAP_INITIALIZATION] Hook render:", {
     renderCount: renderCountRef.current,
     isLocalStorageLoaded,
@@ -57,9 +57,11 @@ export const useMapInitialization = ({
   const currentDeps = { isLocalStorageLoaded, isGoogleMapsLoaded };
   if (lastRenderDepsRef.current) {
     const depsChanged = Object.keys(currentDeps).some(
-      key => lastRenderDepsRef.current![key as keyof typeof currentDeps] !== currentDeps[key as keyof typeof currentDeps]
+      (key) =>
+        lastRenderDepsRef.current![key as keyof typeof currentDeps] !==
+        currentDeps[key as keyof typeof currentDeps],
     );
-    
+
     if (depsChanged) {
       console.log("📊 [MAP_INITIALIZATION] Dependencies changed:", {
         previous: lastRenderDepsRef.current,
@@ -122,7 +124,7 @@ export const useMapInitialization = ({
       console.error("❌ [MAP_INITIALIZATION] Failed to create Google Map");
       return null;
     }
-    
+
     console.log("✅ [MAP_INITIALIZATION] Map created successfully:", {
       mapInstance: map,
       container,
@@ -172,7 +174,7 @@ export const useMapInitialization = ({
       });
       return;
     }
-    
+
     const container = getVisibleContainer();
     if (!container) {
       console.log("❌ [MAP_INITIALIZATION] No visible container found");
@@ -193,7 +195,9 @@ export const useMapInitialization = ({
       currentContainerRef.current === container &&
       googleMapRef.current
     ) {
-      console.log("✅ [MAP_INITIALIZATION] Already initialized in same container - skipping");
+      console.log(
+        "✅ [MAP_INITIALIZATION] Already initialized in same container - skipping",
+      );
       return;
     }
 
@@ -206,9 +210,11 @@ export const useMapInitialization = ({
   // React to breakpoint changes (mobile <-> desktop)
   useEffect(() => {
     console.log("📱 [MAP_INITIALIZATION] Breakpoint useEffect triggered");
-    
+
     if (typeof window === "undefined") {
-      console.log("🌐 [MAP_INITIALIZATION] Skipping breakpoint setup - window undefined (SSR)");
+      console.log(
+        "🌐 [MAP_INITIALIZATION] Skipping breakpoint setup - window undefined (SSR)",
+      );
       return;
     }
 
@@ -233,7 +239,9 @@ export const useMapInitialization = ({
 
       const nextContainer = getVisibleContainer();
       if (!nextContainer) {
-        console.log("❌ [MAP_INITIALIZATION] No container found for new breakpoint");
+        console.log(
+          "❌ [MAP_INITIALIZATION] No container found for new breakpoint",
+        );
         return;
       }
 
@@ -242,7 +250,9 @@ export const useMapInitialization = ({
         currentContainerRef.current === nextContainer &&
         googleMapRef.current
       ) {
-        console.log("🔄 [MAP_INITIALIZATION] Map already in correct container - triggering resize");
+        console.log(
+          "🔄 [MAP_INITIALIZATION] Map already in correct container - triggering resize",
+        );
         googleMapsService.triggerMapResize(googleMapRef.current);
         return;
       }

@@ -1,8 +1,6 @@
 import React from "react";
 
-export function formatStrategyValue(
-  val: unknown
-): React.JSX.Element | string {
+export function formatStrategyValue(val: unknown): React.JSX.Element | string {
   if (typeof val === "object" && val !== null) {
     if (Array.isArray(val)) {
       // Format arrays as clean bullet points with modern styling
@@ -31,7 +29,7 @@ export function formatStrategyValue(
                       .map(
                         (word: string) =>
                           word.charAt(0).toUpperCase() +
-                          word.slice(1).toLowerCase()
+                          word.slice(1).toLowerCase(),
                       )
                       .join(" ")}
               </span>
@@ -50,8 +48,7 @@ export function formatStrategyValue(
               .replace(/([a-z])([A-Z])/g, "$1 $2")
               .split(" ")
               .map(
-                (word: string) =>
-                  word.charAt(0).toUpperCase() + word.slice(1)
+                (word: string) => word.charAt(0).toUpperCase() + word.slice(1),
               )
               .join(" ");
 
@@ -78,11 +75,11 @@ export function formatStrategyValue(
                             <span>
                               {typeof item === "object"
                                 ? Object.entries(
-                                    item as Record<string, unknown>
+                                    item as Record<string, unknown>,
                                   )
                                     .map(
                                       ([k, v]) =>
-                                        `${k.replace(/_/g, " ")}: ${String(v)}`
+                                        `${k.replace(/_/g, " ")}: ${String(v)}`,
                                     )
                                     .join(", ")
                                 : String(item)
@@ -96,7 +93,7 @@ export function formatStrategyValue(
                       // Nested objects - display as key-value pairs with bullets
                       <div className="space-y-2">
                         {Object.entries(
-                          subValue as Record<string, unknown>
+                          subValue as Record<string, unknown>,
                         ).map(([nestedKey, nestedValue]) => (
                           <div
                             key={nestedKey}
@@ -114,7 +111,7 @@ export function formatStrategyValue(
                                   .map(
                                     (word) =>
                                       word.charAt(0).toUpperCase() +
-                                      word.slice(1)
+                                      word.slice(1),
                                   )
                                   .join(" ")}
                                 :
@@ -133,8 +130,10 @@ export function formatStrategyValue(
                                       : (nestedValue
                                           ?.toString()
                                           .replace(/_/g, " ")
-                                          .replace(/([a-z])([A-Z])/g, "$1 $2") ??
-                                        "Not specified")}
+                                          .replace(
+                                            /([a-z])([A-Z])/g,
+                                            "$1 $2",
+                                          ) ?? "Not specified")}
                               </span>
                             </div>
                           </div>
@@ -163,10 +162,7 @@ export function formatStrategyValue(
                         .split(". ")
                         .filter((sentence) => sentence.trim().length > 0)
                         .map((sentence, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-start gap-2"
-                          >
+                          <div key={idx} className="flex items-start gap-2">
                             <span className="flex h-5 flex-shrink-0 items-center text-brown mt-1">
                               <span className="h-px w-2 bg-brown"></span>
                             </span>
@@ -202,9 +198,7 @@ export function formatStrategyValue(
     return (
       <span
         className={`rounded-full px-3 py-1 text-sm font-medium ${
-          val
-            ? "bg-green-100 text-green-800"
-            : "bg-red-100 text-red-800"
+          val ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
         }`}
       >
         {val ? "Yes" : "No"}
@@ -226,4 +220,3 @@ export function formatStrategyValue(
     );
   }
 }
-

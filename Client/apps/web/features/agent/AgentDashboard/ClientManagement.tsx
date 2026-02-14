@@ -28,18 +28,16 @@ export default function ClientManagement({
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const { conversations } = useAgentChats();
-  
+
   // Create a map of client_id -> conversation for quick lookup
   const conversationMap = new Map(
-    conversations.map((conv) => [conv.client_id, conv])
+    conversations.map((conv) => [conv.client_id, conv]),
   );
 
   return (
     <aside
       className={`${
-        isSidebarExpanded
-          ? "flex translate-x-0"
-          : "hidden -translate-x-full"
+        isSidebarExpanded ? "flex translate-x-0" : "hidden -translate-x-full"
       } flex-col transition-transform duration-300 ease-in-out xl:flex xl:w-80 xl:translate-x-0`}
     >
       {/* Fixed Header */}
@@ -117,10 +115,14 @@ export default function ClientManagement({
                         {conversation.last_message}
                       </p>
                     ) : (
-                      <p className="truncate text-xs text-black/50">{client.email}</p>
+                      <p className="truncate text-xs text-black/50">
+                        {client.email}
+                      </p>
                     )}
                     {client.phone && !conversation?.last_message && (
-                      <p className="truncate text-xs text-black/40">{client.phone}</p>
+                      <p className="truncate text-xs text-black/40">
+                        {client.phone}
+                      </p>
                     )}
                   </div>
                 </div>

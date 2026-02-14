@@ -28,7 +28,7 @@ type AgreementDetailModalProps = {
 
 /**
  * AgreementDetailModal Component
- * 
+ *
  * Full agreement management modal with tabs:
  * - Overview: metadata and status
  * - Revisions: version history
@@ -49,16 +49,30 @@ export default function AgreementDetailModal({
   const isAgent = user?.user_type === "agent";
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
-  const { agreement, isLoading, error, refetchAgreement } = useDocusignAgreement(agreementId ?? undefined);
-  const { sendAgreement, voidAgreement, isSendingAgreement, isVoidingAgreement } = useDocusignActions();
+  const { agreement, isLoading, error, refetchAgreement } =
+    useDocusignAgreement(agreementId ?? undefined);
+  const {
+    sendAgreement,
+    voidAgreement,
+    isSendingAgreement,
+    isVoidingAgreement,
+  } = useDocusignActions();
 
-  const userCanSign = agreement && user ? canUserSign(agreement, user.id) : false;
-  const userCanSend = agreement && user ? canUserSend(agreement, user.id, isAgent) : false;
-  const userCanVoid = agreement && user ? canUserVoid(agreement, user.id, isAgent) : false;
-  const userCanCreateRevision = agreement && user ? canUserCreateRevision(agreement, user.id, isAgent) : false;
+  const userCanSign =
+    agreement && user ? canUserSign(agreement, user.id) : false;
+  const userCanSend =
+    agreement && user ? canUserSend(agreement, user.id, isAgent) : false;
+  const userCanVoid =
+    agreement && user ? canUserVoid(agreement, user.id, isAgent) : false;
+  const userCanCreateRevision =
+    agreement && user
+      ? canUserCreateRevision(agreement, user.id, isAgent)
+      : false;
 
   // Find user's participant record for signing
-  const userParticipant = agreement?.participants?.find((p) => p.user_id === user?.id);
+  const userParticipant = agreement?.participants?.find(
+    (p) => p.user_id === user?.id,
+  );
 
   const handleSend = async () => {
     if (!agreement) return;
@@ -78,7 +92,8 @@ export default function AgreementDetailModal({
     } catch (error) {
       enqueueToast({
         type: "error",
-        message: error instanceof Error ? error.message : "Failed to send agreement",
+        message:
+          error instanceof Error ? error.message : "Failed to send agreement",
       });
     }
   };
@@ -103,7 +118,8 @@ export default function AgreementDetailModal({
     } catch (error) {
       enqueueToast({
         type: "error",
-        message: error instanceof Error ? error.message : "Failed to void agreement",
+        message:
+          error instanceof Error ? error.message : "Failed to void agreement",
       });
     }
   };
@@ -148,7 +164,9 @@ export default function AgreementDetailModal({
               <Title size="lg">Agreement Details</Title>
             )}
           </div>
-          {agreement && <AgreementStatusBadge status={agreement.status} size="md" />}
+          {agreement && (
+            <AgreementStatusBadge status={agreement.status} size="md" />
+          )}
           <CloseButton onClick={onClose} className="ml-4" />
         </div>
 

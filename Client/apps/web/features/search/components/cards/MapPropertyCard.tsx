@@ -27,7 +27,7 @@ export type MapPropertyCardProps = {
   saveHome?: (property: any) => Promise<void>;
   removeSavedHome?: (
     propertyId: string,
-    propertyAddress?: string
+    propertyAddress?: string,
   ) => Promise<void>;
   /** Optional context key to force a remount when external context changes (e.g., tab) */
   contextKey?: string;
@@ -120,7 +120,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
         property.lng,
         property.address,
         normalizedScore,
-      ]
+      ],
     );
 
     return (
@@ -160,4 +160,3 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
 };
 
 export default MapPropertyCard;
-

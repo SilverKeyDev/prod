@@ -90,7 +90,7 @@ export default function ClientSavedHomes({
 
       await fetchPropertyDetails(property);
     },
-    [fetchPropertyDetails, enqueueToast]
+    [fetchPropertyDetails, enqueueToast],
   );
 
   // Handle opening negotiation modal

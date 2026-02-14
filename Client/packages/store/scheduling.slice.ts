@@ -1,10 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-import type {
-  FreebusyTimeBlock,
-  TimeSlot,
-} from "../schemas/scheduling";
+import type { FreebusyTimeBlock, TimeSlot } from "../schemas/scheduling";
 
 export interface SchedulingState {
   // Availability data
@@ -71,4 +68,3 @@ export const useSchedulingStore = create<SchedulingState>()(
     },
   ),
 );
-

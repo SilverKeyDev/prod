@@ -5,6 +5,7 @@ Zustand store slices for application-wide state management.
 ## Purpose
 
 The `store/` package contains Zustand store slices that manage global application state:
+
 - Authentication state
 - User data
 - Saved homes
@@ -42,9 +43,11 @@ store/
 ## Architecture Rules
 
 ### Allowed Imports
+
 - ✅ `schemas/*` - Type definitions
 
 ### Forbidden Imports
+
 - ❌ `hooks/*` - Stores should not import hooks
 - ❌ `config/api/*` - Stores should not make API calls
 - ❌ `services/*` - Stores should not use services
@@ -143,6 +146,7 @@ export function useSavedHomesStoreIntegration() {
 ## Middleware
 
 The `middleware/` directory contains store middleware:
+
 - `devtools.ts` - Redux DevTools integration
 - `persistSafe.ts` - Safe persistence middleware
 - `resettable.ts` - Store reset functionality

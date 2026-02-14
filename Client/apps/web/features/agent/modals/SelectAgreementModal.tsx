@@ -5,7 +5,10 @@ import BaseModal from "../../../components/modals/BaseModal";
 import AgreementCard from "../../documents/docusign/components/AgreementCard";
 import { useDocusignAgreements } from "../../../../../packages/hooks/data/documents/useDocusignAgreements";
 import { KeyTurnLoader } from "../../../components/ui";
-import type { Agreement, AgreementStatus } from "../../../../../packages/schemas/documents/docusign";
+import type {
+  Agreement,
+  AgreementStatus,
+} from "../../../../../packages/schemas/documents/docusign";
 
 type SelectAgreementModalProps = {
   isOpen: boolean;
@@ -16,7 +19,7 @@ type SelectAgreementModalProps = {
 
 /**
  * SelectAgreementModal Component
- * 
+ *
  * Allows agents to select and share agreements in chat
  * Similar to SelectHomeModal, but for DocuSign agreements
  * Filters by status and search term
@@ -28,7 +31,9 @@ export default function SelectAgreementModal({
   clientId,
 }: SelectAgreementModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<AgreementStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<AgreementStatus | "all">(
+    "all",
+  );
 
   const { agreements, isLoading, error } = useDocusignAgreements();
 
@@ -53,7 +58,7 @@ export default function SelectAgreementModal({
         (a) =>
           a.title.toLowerCase().includes(term) ||
           a.property_address?.toLowerCase().includes(term) ||
-          a.buyer_name?.toLowerCase().includes(term)
+          a.buyer_name?.toLowerCase().includes(term),
       );
     }
 
@@ -73,7 +78,10 @@ export default function SelectAgreementModal({
     setStatusFilter("all");
   };
 
-  const statusOptions: Array<{ value: AgreementStatus | "all"; label: string }> = [
+  const statusOptions: Array<{
+    value: AgreementStatus | "all";
+    label: string;
+  }> = [
     { value: "all", label: "All" },
     { value: "draft", label: "Draft" },
     { value: "sent", label: "Sent" },

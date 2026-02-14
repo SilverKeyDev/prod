@@ -19,7 +19,10 @@ export function useUserData(): UseUserDataReturn {
   const authReady = useAuthStore((s) => s.authReady);
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   const {
     data: userProfile,
@@ -90,7 +93,10 @@ export function useUserPreferences(): UseUserPreferencesReturn {
   const authReady = useAuthStore((s) => s.authReady);
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   const {
     data: userPreferences,
@@ -109,7 +115,9 @@ export function useUserPreferences(): UseUserPreferencesReturn {
     enabled: shouldLoadData,
     // Use placeholderData function to check cache reactively when enabled changes
     placeholderData: () => {
-      return queryClient.getQueryData<UserPreferences>(queryKeys.user.preferences());
+      return queryClient.getQueryData<UserPreferences>(
+        queryKeys.user.preferences(),
+      );
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnMount: false, // Don't refetch if data exists (matches reports)
@@ -125,7 +133,10 @@ export function useUserPreferences(): UseUserPreferencesReturn {
     },
     onSuccess: (updatedPreferences) => {
       // Update cache optimistically
-      queryClient.setQueryData(queryKeys.user.preferences(), updatedPreferences);
+      queryClient.setQueryData(
+        queryKeys.user.preferences(),
+        updatedPreferences,
+      );
     },
   });
 
