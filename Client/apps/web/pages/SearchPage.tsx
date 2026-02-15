@@ -238,6 +238,20 @@ export default function SearchPage({
   } = useSavedHomesStoreIntegration();
   const { isNotInterested } = useNotInterestedHomesData();
 
+  // Filter out not-interested homes from results so they disappear from UI after marking
+  // (Must be declared before any effects/handlers that use it - avoids temporal dead zone)
+  const filteredSearchResults = useMemo(
+    () =>
+      searchResults.filter(
+        (p) =>
+          !isNotInterested(
+            p.id,
+            typeof p.address === "string" ? p.address : undefined,
+          ),
+      ),
+    [searchResults, isNotInterested],
+  );
+
   // Clamp currentPage when filtered results shrink (e.g. after marking not interested)
   useEffect(() => {
     if (activeTab === "results" && filteredSearchResults.length > 0) {
@@ -252,19 +266,6 @@ export default function SearchPage({
     currentPage,
     setCurrentPage,
   ]);
-
-  // Filter out not-interested homes from results so they disappear from UI after marking
-  const filteredSearchResults = useMemo(
-    () =>
-      searchResults.filter(
-        (p) =>
-          !isNotInterested(
-            p.id,
-            typeof p.address === "string" ? p.address : undefined,
-          ),
-      ),
-    [searchResults, isNotInterested],
-  );
 
   // Convert SavedHome[] to SearchResult[] for SearchPage compatibility
   const savedHomes = React.useMemo(() => {
@@ -324,6 +325,63 @@ export default function SearchPage({
     searchResults: filteredSearchResults,
     savedHomes,
     currentPage,
+  });
+
+  // Calculate property score for markers (must be before useMapMarkers)
+  const calculatePropertyScore = useCallback(
+    (property: SearchResult): number => {
+      let score = 0;
+      if (property.price) {
+        const price =
+          typeof property.price === "string"
+            ? parseFloat(property.price)
+            : property.price;
+        if (!isNaN(price)) {
+          if (price < 300000) score += 30;
+          else if (price < 500000) score += 20;
+          else if (price < 750000) score += 10;
+        }
+      }
+      if (property.bedrooms) {
+        if (property.bedrooms >= 3) score += 20;
+        else if (property.bedrooms >= 2) score += 10;
+      }
+      if (property.bathrooms) {
+        if (property.bathrooms >= 2) score += 15;
+        else if (property.bathrooms >= 1.5) score += 10;
+      }
+      if (property.sqft) {
+        if (property.sqft >= 2000) score += 20;
+        else if (property.sqft >= 1500) score += 15;
+        else if (property.sqft >= 1000) score += 10;
+      }
+      return Math.min(score, 100);
+    },
+    []
+  );
+
+  // Use map markers hook (must be before renderImportantLocationMarkersWrapper - provides importantMarkersRef)
+  const { updateMapMarkers, importantMarkersRef } = useMapMarkers({
+    googleMapRef,
+    currentPage,
+    propertiesPerPage: PROPERTIES_PER_PAGE,
+    isochroneData: isochroneData ?? null,
+    setIsochroneData: () => {},
+    fetchIsochroneForMapOnly: async () => {
+      if (isochroneData) return isochroneData as unknown;
+      return await fetchIsochrone();
+    },
+    calculatePropertyScore,
+    isHomeSaved,
+    saveHome: async (property: SearchResult | Property) => {
+      await saveHome(property);
+    },
+    removeSavedHome: async (propertyId: string, propertyAddress?: string) => {
+      await removeSavedHome(propertyId, propertyAddress);
+    },
+    contextKey: activeTab,
+    onMarkerClick: handleNavigateToProperty,
+    onUnlockClick: handleViewPropertyDetails,
   });
 
   // Use centralized isochrone renderer with enhanced logging
@@ -515,78 +573,6 @@ export default function SearchPage({
     showPropertyModals,
     searchResults: filteredSearchResults,
     savedHomes,
-  });
-
-  // Calculate property score for markers
-  const calculatePropertyScore = useCallback(
-    (property: SearchResult): number => {
-      // Simple scoring algorithm - can be enhanced later
-      let score = 0;
-
-      // Price scoring (lower is better)
-      if (property.price) {
-        const price =
-          typeof property.price === "string"
-            ? parseFloat(property.price)
-            : property.price;
-        if (!isNaN(price)) {
-          if (price < 300000) score += 30;
-          else if (price < 500000) score += 20;
-          else if (price < 750000) score += 10;
-        }
-      }
-
-      // Bedrooms scoring
-      if (property.bedrooms) {
-        if (property.bedrooms >= 3) score += 20;
-        else if (property.bedrooms >= 2) score += 10;
-      }
-
-      // Bathrooms scoring
-      if (property.bathrooms) {
-        if (property.bathrooms >= 2) score += 15;
-        else if (property.bathrooms >= 1.5) score += 10;
-      }
-
-      // Square footage scoring
-      if (property.sqft) {
-        if (property.sqft >= 2000) score += 20;
-        else if (property.sqft >= 1500) score += 15;
-        else if (property.sqft >= 1000) score += 10;
-      }
-
-      return Math.min(score, 100); // Cap at 100
-    },
-    []
-  );
-
-  // Use the map markers hook to actually create property markers
-  const { updateMapMarkers, importantMarkersRef } = useMapMarkers({
-    googleMapRef,
-    currentPage,
-    propertiesPerPage: PROPERTIES_PER_PAGE,
-    isochroneData: isochroneData ?? null,
-    setIsochroneData: () => {}, // No-op: isochrone data is managed by hook
-    fetchIsochroneForMapOnly: async () => {
-      // Use cached isochrone data if available, otherwise fetch
-      if (isochroneData) {
-        return isochroneData as unknown;
-      }
-      return await fetchIsochrone();
-    },
-    calculatePropertyScore,
-    isHomeSaved,
-    saveHome: async (property: SearchResult | Property) => {
-      // Wrap saveHome to return Promise<void> instead of Promise<FavoriteHomesResponse>
-      await saveHome(property);
-    },
-    removeSavedHome: async (propertyId: string, propertyAddress?: string) => {
-      // Wrap removeSavedHome to return Promise<void> instead of Promise<FavoriteHomesResponse>
-      await removeSavedHome(propertyId, propertyAddress);
-    },
-    contextKey: activeTab,
-    onMarkerClick: handleNavigateToProperty,
-    onUnlockClick: handleViewPropertyDetails,
   });
 
   // Track previous data to avoid unnecessary marker updates
