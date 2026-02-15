@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Handshake } from "lucide-react";
 import { PropertyCard } from "../../../components/cards";
 import {
   CardHeartSave,
@@ -234,16 +235,17 @@ export default function ClientSavedHomes({
                         <CardViewDetailsButton
                           onClick={() => handleUnlockHome(home)}
                           size="sm"
-                          variant="primary"
+                          variant="unlock"
                           fullWidth
                           text="Unlock"
                         />
                         <CardViewDetailsButton
                           onClick={() => handleOpenNegotiation(home)}
                           size="sm"
-                          variant="secondary"
+                          variant="negotiate"
                           fullWidth
                           text="Negotiate"
+                          icon={Handshake}
                         />
                       </div>
                     }

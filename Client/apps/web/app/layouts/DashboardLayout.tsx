@@ -2,28 +2,15 @@
 import React, { useState, useMemo, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 
-// Headers
-import ClosePageHeader from "../../features/close/ClosePageHeader.tsx";
-
 // Layout components
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardContent } from "./DashboardContent";
 import MobileBottomBar from "./MobileBottomBar";
 
-// Stores
-import {
-  useViewStore,
-  type ViewState,
-} from "../../../../packages/store/view.slice";
-
 // Hooks
 import { useIsMobile } from "../../../../packages/hooks/ui";
 
 // Sidebar
-import {
-  getTabByPath,
-  SIDEBAR_TABS,
-} from "../../../../packages/schemas/auth/sidebar";
 import MobileSidebar from "../../components/widgets/sidebar/MobileSidebar.tsx";
 import Sidebar from "../../components/widgets/sidebar/Sidebar.tsx";
 import type { UserProfile } from "../../../../packages/schemas/auth/user";
@@ -35,23 +22,15 @@ type HeaderConfig =
   | { type: "rheader"; title: string; subtitle?: string }
   | { type: "none"; title?: string; subtitle?: string };
 
-type ClosePageHeaderData = {
-  title: string;
-  subtitle: string;
-  completedCount: number;
-  totalCount: number;
-  loading: boolean;
-};
-
 type DashboardProps = {
   user?: UserProfile;
   onLogout: () => void;
   header?: HeaderConfig;
   mobileHeader?: React.ReactNode; // Allow passing a custom mobile header
   maxWidth?: number; // Percentage of viewport width (e.g., 85 => 85vw)
-  /** When true, adds top margin to page content (mobile and desktop). Defaults to true for dashboard, settings, and checklists. */
+  /** When true, adds top margin to page content (mobile and desktop). Defaults to true for dashboard and profile. */
   contentTopMargin?: boolean;
-  /** When true, adds bottom margin to page content (mobile and desktop). Defaults to true for dashboard, settings, checklists, and saved. */
+  /** When true, adds bottom margin to page content (mobile and desktop). Defaults to true for dashboard, profile, and saved. */
   contentBottomMargin?: boolean;
 };
 
@@ -59,9 +38,8 @@ type DashboardProps = {
 type PageWidthConfig = Record<string, number>;
 const PAGE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
-  "/buyer-checklists": 90,
   "/dashboard": 90,
-  "/settings": 90,
+  "/profile": 90,
   "/saved": 90,
   "/messaging": 100,
 };
@@ -69,26 +47,16 @@ const PAGE_WIDTH_CONFIG: PageWidthConfig = {
 // Mobile-specific width configuration
 const MOBILE_WIDTH_CONFIG: PageWidthConfig = {
   "/search": 100,
-  "/buyer-checklists": 90,
   "/dashboard": 90,
-  "/settings": 90,
+  "/profile": 90,
   "/saved": 90,
   "/messaging": 100,
 };
 
-// Checklist tabs
-type ChecklistTab = "escrow" | "inspections" | "financing" | "closing";
-const CHECKLIST_TABS: ChecklistTab[] = [
-  "escrow",
-  "inspections",
-  "financing",
-  "closing",
-];
-
 export default function DashboardLayout({
   user,
   onLogout,
-  header,
+  header: _header,
   mobileHeader,
   maxWidth = 85, // Default to 85% if not specified
   contentTopMargin,
@@ -96,60 +64,29 @@ export default function DashboardLayout({
 }: DashboardProps) {
   const location = useLocation();
   const path = location.pathname;
-  const search = location.search;
   const isMobile = useIsMobile();
 
   // Route helpers
   const isSearch = path.startsWith("/search");
-  const isBuyerChecklists = path.startsWith("/buyer-checklists");
   const isDashboard = path.startsWith("/dashboard");
-  const isPersonalization = path.startsWith("/settings");
+  const isPersonalization = path.startsWith("/profile");
   const isSaved = path.startsWith("/saved");
   const isMessagingRoute = path.startsWith("/messaging");
 
-  // Persisted buyer-checklists tab state
-  const persistedTab = useViewStore(
-    (s: ViewState) =>
-      s.dropdownSelections["buyerChecklists.activeTab"] as
-        | ChecklistTab
-        | undefined,
-  );
-  const setDropdownSelection = useViewStore(
-    (s: ViewState) => s.setDropdownSelection,
-  );
-
-  const initialTab = useMemo<ChecklistTab>(() => {
-    return persistedTab && CHECKLIST_TABS.includes(persistedTab)
-      ? persistedTab
-      : "escrow";
-  }, [persistedTab]);
-
-  const [buyerChecklistsActiveTab, setBuyerChecklistsActiveTab] =
-    useState<ChecklistTab>(initialTab);
-
-  React.useEffect(() => {
-    setDropdownSelection(
-      "buyerChecklists.activeTab",
-      buyerChecklistsActiveTab as string,
-    );
-  }, [buyerChecklistsActiveTab, setDropdownSelection]);
-
-  // Mobile header actions + ClosePageHeader data
+  // Mobile header actions
   const [mobileHeaderActions, setMobileHeaderActions] =
     useState<ReactNode | null>(null);
   const [mobileBottomActions, setMobileBottomActions] =
     useState<ReactNode | null>(null);
   const [mobileBottomBarHeight, setMobileBottomBarHeight] = useState(0);
-  const [closePageHeaderData, setClosePageHeaderData] =
-    useState<ClosePageHeaderData | null>(null);
 
   // Clear mobile header actions when navigating to pages that don't use them
   React.useEffect(() => {
     // Messaging sets its own mobile header while mounted; don't clear it here.
-    if (isBuyerChecklists || isDashboard) {
+    if (isDashboard) {
       setMobileHeaderActions(null);
     }
-  }, [isBuyerChecklists, isDashboard]);
+  }, [isDashboard]);
 
   // Clear mobile bottom actions when leaving messaging routes (messaging manages these while mounted).
   React.useEffect(() => {
@@ -159,27 +96,18 @@ export default function DashboardLayout({
     }
   }, [isMessagingRoute]);
 
-  // Clear close page header data when navigating away from BuyerChecklists
-  React.useEffect(() => {
-    if (!isBuyerChecklists) {
-      setClosePageHeaderData(null);
-    }
-  }, [isBuyerChecklists]);
-
   // Search functionality
   const searchPageRef = React.useRef<{
     triggerSearch: () => Promise<void>;
   } | null>(null);
 
-  // When true, adds top margin to content. Defaults to true for dashboard, settings, and checklists.
+  // When true, adds top margin to content. Defaults to true for dashboard and profile.
   const effectiveContentTopMargin =
-    contentTopMargin ??
-    (isDashboard || isPersonalization || isBuyerChecklists);
+    contentTopMargin ?? (isDashboard || isPersonalization);
 
-  // When true, adds bottom margin to content. Defaults to true for dashboard, settings, checklists, and saved.
+  // When true, adds bottom margin to content. Defaults to true for dashboard, profile, and saved.
   const effectiveContentBottomMargin =
-    contentBottomMargin ??
-    (isDashboard || isPersonalization || isBuyerChecklists || isSaved);
+    contentBottomMargin ?? (isDashboard || isPersonalization || isSaved);
 
   // Page width percentage (0-100) - CSS calc() accounts for sidebar on desktop
   const computedMaxWidthVW = useMemo(() => {
@@ -189,93 +117,8 @@ export default function DashboardLayout({
     return Math.max(0, Math.min(100, width)); // Clamp to [0,100]
   }, [path, maxWidth, isMobile]);
 
-  // Header configuration (stable default)
-  const config: HeaderConfig = useMemo(() => {
-    if (header) return header;
-
-    if (isSearch) {
-      const tab = getTabByPath(path);
-      return { type: "none", title: tab?.name ?? "Search" };
-    }
-
-    if (isPersonalization) {
-      const tab = getTabByPath(path);
-      return {
-        type: "rheader",
-        title: tab?.name ?? "Personalization",
-        subtitle: tab?.description ?? "Customize your home search preferences",
-      };
-    }
-
-    if (isBuyerChecklists) {
-      return {
-        type: "rheader",
-        title: SIDEBAR_TABS.close.name,
-        subtitle: SIDEBAR_TABS.close.description,
-      };
-    }
-
-    if (isSaved) {
-      const params = new URLSearchParams(search);
-      const view = params.get("view");
-      if (view === "homes" || view === null) {
-        return { type: "none" };
-      }
-      return { type: "none" };
-    }
-
-    if (isMessagingRoute) {
-      return { type: "none" };
-    }
-
-    // Dashboard is the unified calendar-based experience
-    if (isDashboard) {
-      return { type: "none" };
-    }
-
-    // Default: no special header
-    return { type: "none" };
-  }, [
-    header,
-    isSearch,
-    isPersonalization,
-    isBuyerChecklists,
-    isSaved,
-    isMessagingRoute,
-    isDashboard,
-    path,
-    search,
-  ]);
-
-  // Desktop header content
-  const headerContent = useMemo(() => {
-    if (isBuyerChecklists) {
-      return (
-        <ClosePageHeader
-          title={closePageHeaderData?.title ?? SIDEBAR_TABS.close.name}
-          subtitle={
-            closePageHeaderData?.subtitle ?? SIDEBAR_TABS.close.description
-          }
-          completedCount={closePageHeaderData?.completedCount ?? 0}
-          totalCount={closePageHeaderData?.totalCount ?? 0}
-          loading={closePageHeaderData?.loading ?? true}
-          activeTab={buyerChecklistsActiveTab}
-          onTabChange={setBuyerChecklistsActiveTab}
-        />
-      );
-    }
-
-    if (config.type === "rheader" && config.title) {
-      return null;
-    }
-
-    return null;
-  }, [
-    isBuyerChecklists,
-    closePageHeaderData,
-    buyerChecklistsActiveTab,
-    config,
-  ]);
+  // Desktop header content (rheader type uses default layout; no custom header component)
+  const headerContent = useMemo(() => null, []);
 
   return (
     <div
@@ -323,20 +166,14 @@ export default function DashboardLayout({
           isSaved={isSaved}
           isMessagingRoute={isMessagingRoute}
           isDashboard={isDashboard}
-          isBuyerChecklists={isBuyerChecklists}
-          isPersonalization={isPersonalization}
           mobileHeaderActions={mobileHeaderActions}
           mobileHeader={mobileHeader}
-          closePageHeaderData={closePageHeaderData}
-          buyerChecklistsActiveTab={buyerChecklistsActiveTab}
-          onTabChange={setBuyerChecklistsActiveTab}
           headerContent={headerContent}
           computedMaxWidthVW={computedMaxWidthVW}
         />
 
         <DashboardContent
           isSearch={isSearch}
-          isBuyerChecklists={isBuyerChecklists}
           isPersonalization={isPersonalization}
           isSaved={isSaved}
           isMessagingRoute={isMessagingRoute}
@@ -348,9 +185,6 @@ export default function DashboardLayout({
           setMobileBottomActions={setMobileBottomActions}
           mobileBottomBarHeight={mobileBottomBarHeight}
           searchPageRef={searchPageRef}
-          setClosePageHeaderData={setClosePageHeaderData}
-          buyerChecklistsActiveTab={buyerChecklistsActiveTab}
-          onTabChange={setBuyerChecklistsActiveTab}
         />
 
         {/* Spacer so content isn't hidden behind fixed MobileBottomBar */}

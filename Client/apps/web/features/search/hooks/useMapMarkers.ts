@@ -4,6 +4,7 @@ import {
   renderMapPropertyCard,
   cleanupMapPropertyCard,
 } from "../components/cards/MapPropertyCardUtils";
+import { addressForMarkerTitle } from "../../../../../packages/utils/search/address";
 import type { SearchResult } from "../../../../../packages/schemas";
 import type { Property } from "../../../../../packages/schemas";
 import type { IsochroneData } from "../../../../../packages/schemas/api";
@@ -446,7 +447,7 @@ export const useMapMarkers = ({
             // Create fallback content if rendering fails
             markerElement.innerHTML = `
               <div style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 8px; min-width: 120px;">
-                <div style="font-weight: bold; font-size: 12px;">${result.address}</div>
+                <div style="font-weight: bold; font-size: 12px;">${addressForMarkerTitle(result.address)}</div>
                 <div style="color: #666; font-size: 11px;">${result.price}</div>
               </div>
             `;
@@ -457,7 +458,7 @@ export const useMapMarkers = ({
             const marker = new AdvancedMarkerElement({
               map: googleMapRef.current! as any,
               position: { lat, lng },
-              title: result.address,
+              title: addressForMarkerTitle(result.address),
               content: markerElement,
             }) as unknown as GoogleAdvancedMarkerElement;
 

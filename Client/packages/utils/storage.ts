@@ -129,3 +129,89 @@ export const setMultipleToStorage = <T extends Record<string, unknown>>(
     return false;
   }
 };
+
+/**
+ * Storage helpers for a given Storage implementation (localStorage or sessionStorage)
+ */
+export const createStorageHelpers = (storage: Storage) => ({
+  get: <T>(key: string, options: StorageOptions<T> = {}): T | null => {
+    const { defaultValue = null, errorPrefix = "❌" } = options;
+    try {
+      const item = storage.getItem(key);
+      if (item === null) return defaultValue;
+      return JSON.parse(item) as T;
+    } catch (error: unknown) {
+      console.error(
+        `${errorPrefix} Error reading storage key "${key}":`,
+        error,
+      );
+      return defaultValue;
+    }
+  },
+  set: (key: string, value: unknown, options: StorageOptions = {}): boolean => {
+    const { errorPrefix = "❌" } = options;
+    try {
+      storage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (error: unknown) {
+      console.error(
+        `${errorPrefix} Error setting storage key "${key}":`,
+        error,
+      );
+      return false;
+    }
+  },
+  remove: (key: string, options: StorageOptions = {}): boolean => {
+    const { errorPrefix = "❌" } = options;
+    try {
+      storage.removeItem(key);
+      return true;
+    } catch (error: unknown) {
+      console.error(
+        `${errorPrefix} Error removing storage key "${key}":`,
+        error,
+      );
+      return false;
+    }
+  },
+});
+
+const noopStorage: Storage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+  clear: () => {},
+  key: () => null,
+  get length() {
+    return 0;
+  },
+};
+
+const sessionStorageHelpers = createStorageHelpers(
+  typeof sessionStorage !== "undefined" ? sessionStorage : noopStorage,
+);
+
+/**
+ * Safely get an item from sessionStorage with JSON parsing
+ */
+export const getFromSessionStorage = <T>(
+  key: string,
+  options: StorageOptions<T> = {},
+): T | null => sessionStorageHelpers.get(key, options);
+
+/**
+ * Safely set an item to sessionStorage with JSON serialization
+ */
+export const setToSessionStorage = (
+  key: string,
+  value: unknown,
+  options: StorageOptions = {},
+): boolean => sessionStorageHelpers.set(key, value, options);
+
+/**
+ * Safely remove an item from sessionStorage
+ */
+export const removeFromSessionStorage = (
+  key: string,
+  options: StorageOptions = {},
+): boolean => sessionStorageHelpers.remove(key, options);

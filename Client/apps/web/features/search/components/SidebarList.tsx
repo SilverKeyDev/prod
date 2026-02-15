@@ -44,8 +44,11 @@ export function SidebarList(props: {
   const [reasonCardPropertyId, setReasonCardPropertyId] = useState<
     string | null
   >(null);
-  const { updateNotInterestedReason, removeNotInterested } =
-    useNotInterestedHomesData();
+  const {
+    markNotInterested,
+    removeNotInterested,
+    isNotInterested,
+  } = useNotInterestedHomesData();
 
   // Use centralized score calculation
   const calculatePropertyScore = (property: SearchResult) => {
@@ -73,16 +76,14 @@ export function SidebarList(props: {
     );
   }
 
-  // Handle reason selection
+  // Handle reason selection - use markNotInterested (add) since we show the reason card
+  // before any API call; the home is not in the not-interested list yet
   const handleSelectReason = async (property: SearchResult, why: string) => {
-    const propertyAddress =
-      typeof property.address === "string" ? property.address : "";
-
     try {
-      await updateNotInterestedReason(propertyAddress, why);
+      await markNotInterested(property, why);
       setReasonCardPropertyId(null);
     } catch (error) {
-      log.error(LOG_CATEGORIES.SEARCH, "Failed to update reason", error);
+      log.error(LOG_CATEGORIES.SEARCH, "Failed to mark not interested", error);
       throw error;
     }
   };
@@ -101,9 +102,17 @@ export function SidebarList(props: {
     }
   };
 
+  // Filter out not-interested homes from results tab so they disappear after marking
+  const displayItems =
+    activeTab === "results"
+      ? items.filter(
+          (p) => !isNotInterested(p.id, typeof p.address === "string" ? p.address : undefined),
+        )
+      : items;
+
   return (
     <div className="scrollbar-hide h-full space-y-3 overflow-y-auto pr-2">
-      {items.map((property: SearchResult) => {
+      {displayItems.map((property: SearchResult) => {
         const showReasonCard =
           reasonCardPropertyId === property.id && activeTab === "results";
 

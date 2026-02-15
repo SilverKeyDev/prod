@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import { Home } from "lucide-react";
+import { Handshake } from "lucide-react";
 
 import BaseModal from "./BaseModal";
 import { Title } from "../ui";
@@ -65,6 +65,13 @@ export default function NegotiationModal({
     await negotiationService.generateStrategy();
   }, [setLoading, setError]);
 
+  // Cancel generation when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      negotiationService.cancelGeneration();
+    }
+  }, [isOpen]);
+
   // Set initial home and auto-generate when modal opens
   useEffect(() => {
     if (isOpen && initialHome) {
@@ -84,6 +91,7 @@ export default function NegotiationModal({
 
         return () => {
           clearTimeout(generateTimer);
+          negotiationService.cancelGeneration();
         };
       }
     } else if (!isOpen) {
@@ -139,17 +147,17 @@ export default function NegotiationModal({
       showCloseButton={true}
       headerContent={
         <div className="flex min-w-0 items-center gap-2">
-          <Home className="h-5 w-5 flex-shrink-0 text-gray-600" />
+          <Handshake className="h-5 w-5 flex-shrink-0 text-gray-600" />
           <Title
             as="h3"
             size="sm"
             className="truncate font-sans font-medium text-gray-900"
           >
-            Select a Home
+            Negotiate
           </Title>
         </div>
       }
-      className="max-w-7xl"
+      className="max-w-4xl min-h-[min(65vh,65dvh)]"
     >
       <div>
         {/* Main Content */}
@@ -164,6 +172,7 @@ export default function NegotiationModal({
             isLoading={isLoading}
             onHomeSelect={handleHomeSelection}
             onGenerate={handleGenerate}
+            onCancel={() => negotiationService.cancelGeneration()}
           />
 
           {/* Loading state */}

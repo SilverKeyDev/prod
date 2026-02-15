@@ -208,10 +208,10 @@ export default function WhyNotInterestedCard({
           </div>
         )}
 
-        {/* Confirm button */}
+        {/* Confirm button - primary variant for white text (company standard) */}
         <Button
           type="button"
-          variant="secondary"
+          variant="primary"
           size="md"
           fullWidth
           onClick={handleConfirm}

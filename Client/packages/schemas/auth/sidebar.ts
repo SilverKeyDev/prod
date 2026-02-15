@@ -1,10 +1,9 @@
 import {
   Bookmark,
   Home,
-  Key,
   Search,
   Send,
-  Settings,
+  User,
   type LucideIcon,
 } from "lucide-react";
 
@@ -12,8 +11,7 @@ export type SidebarTabKey =
   | "dashboard"
   | "search"
   | "decide"
-  | "close"
-  | "settings"
+  | "profile"
   | "agent";
 
 export type SidebarSubStep = {
@@ -74,31 +72,17 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
       },
     ],
   },
-  close: {
-    key: "close",
-    name: "Checklists",
-    description: "Track steps to close confidently",
-    icon: Key,
-    href: "/buyer-checklists",
+  profile: {
+    key: "profile",
+    name: "Profile",
+    description: "Manage your profile and preferences",
+    icon: User,
+    href: "/profile",
     subSteps: [
       {
-        label: "Closing Checklist",
-        to: "/buyer-checklists",
-        icon: Key,
-      },
-    ],
-  },
-  settings: {
-    key: "settings",
-    name: "Settings",
-    description: "Manage your preferences and account settings",
-    icon: Settings,
-    href: "/settings",
-    subSteps: [
-      {
-        label: "Preferences",
-        to: "/settings",
-        icon: Settings,
+        label: "Profile",
+        to: "/profile",
+        icon: User,
       },
     ],
   },
@@ -120,11 +104,10 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
 
 export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   if (pathname.startsWith("/dashboard")) return SIDEBAR_TABS.dashboard;
-  if (pathname.startsWith("/settings")) return SIDEBAR_TABS.settings;
+  if (pathname.startsWith("/profile")) return SIDEBAR_TABS.profile;
   if (pathname.startsWith("/search")) return SIDEBAR_TABS.search;
   if (pathname.startsWith("/saved") || pathname.startsWith("/compare-reports"))
     return SIDEBAR_TABS.decide;
-  if (pathname.startsWith("/buyer-checklists")) return SIDEBAR_TABS.close;
   if (pathname.startsWith("/messaging")) return SIDEBAR_TABS.agent;
   return undefined;
 };

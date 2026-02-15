@@ -50,7 +50,7 @@ const initialState = (): Omit<
     decide: false,
     negotiate: false,
     close: false,
-    settings: false,
+    profile: false,
   },
   dropdownSelections: {},
   personalizationEditMode: false,

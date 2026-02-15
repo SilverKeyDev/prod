@@ -27,10 +27,9 @@ export const ROUTES = {
   CONTACT: "/contact",
 
   // Protected routes
-  SETTINGS: "/settings",
+  PROFILE: "/profile/*",
   SAVED: "/saved/*",
   DASHBOARD: "/dashboard/*",
-  BUYER_CHECKLISTS: "/buyer-checklists",
   MESSAGING: "/messaging",
   SEARCH: "/search",
 

@@ -69,6 +69,7 @@ export const searchPropertiesInIsochrone = async (
   setCurrentPage: (page: number) => void,
   setShowPropertyModals: (show: boolean) => void,
   _saveSearchResultsToLocalStorage: (results: SearchResult[]) => Promise<void>, // Deprecated: kept for backward compatibility, no longer used
+  signal?: AbortSignal,
 ): Promise<void> => {
   setIsSearching(true);
   setSearchStage("Locating homes in your area...");
@@ -95,9 +96,9 @@ export const searchPropertiesInIsochrone = async (
 
     log.debug(LOG_CATEGORIES.SEARCH, "Making API request", searchRequest);
 
-    const searchResult = (await searchApi.searchByPolygon(
-      searchRequest,
-    )) as SearchByPolygonResponse;
+    const searchResult = (await searchApi.searchByPolygon(searchRequest, {
+      signal,
+    })) as SearchByPolygonResponse;
 
     if (!searchResult.success) {
       throw new Error(searchResult.error ?? "Search failed");
@@ -204,6 +205,12 @@ export const searchPropertiesInIsochrone = async (
       count: transformedResults.length,
     });
   } catch (error: unknown) {
+    // User-initiated cancel: stop loading silently
+    if (error instanceof Error && error.name === "AbortError") {
+      setIsSearching(false);
+      setSearchStage("");
+      return;
+    }
     log.error(
       LOG_CATEGORIES.ERRORS,
       "Error in automatic isochrone property search",

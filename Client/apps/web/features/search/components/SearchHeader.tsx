@@ -4,6 +4,7 @@ import ClientSelector from "../../../components/ui/ClientSelector";
 type SearchHeaderProps = {
   onUpdatePreferences: () => void;
   onSearchProperties: () => void;
+  onCancelSearch?: () => void;
   isSearching: boolean;
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
@@ -18,6 +19,7 @@ type SearchHeaderProps = {
 export default function SearchHeader({
   onUpdatePreferences,
   onSearchProperties,
+  onCancelSearch,
   isSearching,
   selectedClientId,
   onClientChange,
@@ -37,6 +39,7 @@ export default function SearchHeader({
         <SearchActions
           onUpdatePreferences={onUpdatePreferences}
           onSearchProperties={onSearchProperties}
+          onCancelSearch={onCancelSearch}
           isSearching={isSearching}
           variant="desktop"
         />

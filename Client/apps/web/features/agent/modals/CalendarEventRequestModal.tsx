@@ -1,8 +1,9 @@
-import { Calendar } from "lucide-react";
+import { Calendar, Share } from "lucide-react";
 import { useState } from "react";
 
 import BaseModal from "../../../components/modals/BaseModal";
 import Button from "../../../components/ui/button/Button";
+import CancelButton from "../../../components/ui/button/CancelButton";
 import Input from "../../../components/ui/form/Input";
 import Label from "../../../components/ui/text/Label";
 import { Textarea } from "../../../components/ui/form/FormField";
@@ -121,7 +122,14 @@ export default function CalendarEventRequestModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Request Calendar Event"
+      headerContent={
+        <div className="flex items-center gap-2">
+          <Calendar className="h-5 w-5 flex-shrink-0 text-gray-900" />
+          <h3 className="truncate text-base font-medium text-gray-900 sm:text-lg">
+            Request Calendar Event
+          </h3>
+        </div>
+      }
       size="md"
     >
       <div className="space-y-4">
@@ -224,19 +232,19 @@ export default function CalendarEventRequestModal({
 
         {/* Actions */}
         <div className="flex gap-3 pt-2">
-          <Button
-            variant="outline"
+          <CancelButton
             onClick={onClose}
             className="flex-1"
             disabled={isSending}
           >
             Cancel
-          </Button>
+          </CancelButton>
           <Button
-            variant="primary"
+            variant="olive"
             onClick={handleSend}
             disabled={!canSend || isSending}
             className="flex-1"
+            icon={<Share className="h-4 w-4" />}
           >
             {isSending ? "Sending..." : "Send Request"}
           </Button>

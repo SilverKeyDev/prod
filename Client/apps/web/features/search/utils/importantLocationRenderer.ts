@@ -3,6 +3,7 @@
  */
 
 import type { IsochroneData } from "../../../../../packages/schemas/api";
+import { addressForMarkerTitle } from "../../../../../packages/utils/search/address";
 import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 // Google Maps types
@@ -220,7 +221,7 @@ export const renderImportantLocationMarkers = (
       map: map as unknown as any,
       position,
       content: markerElement,
-      title: address,
+      title: addressForMarkerTitle(address),
     });
 
     markers.push(marker);

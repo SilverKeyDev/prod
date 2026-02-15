@@ -1,4 +1,4 @@
-import { Button, BodyText } from "../../../../components/ui";
+import { BodyText, Button, CancelButton } from "../../../../components/ui";
 
 type VoidConfirmationProps = {
   voidReason: string;
@@ -43,9 +43,9 @@ export default function VoidConfirmation({
         >
           {isVoiding ? "Voiding..." : "Confirm Void"}
         </Button>
-        <Button variant="outline" size="sm" onClick={onCancel}>
+        <CancelButton size="sm" onClick={onCancel}>
           Cancel
-        </Button>
+        </CancelButton>
       </div>
     </div>
   );

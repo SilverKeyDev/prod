@@ -1,9 +1,11 @@
 import NavigationButton from "../../../components/ui/button/NavigationButton";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
+import { CancelButton } from "../../../components/ui";
 
 type SearchActionsProps = {
   onUpdatePreferences: () => void;
   onSearchProperties: () => void;
+  onCancelSearch?: () => void;
   isSearching: boolean;
   variant?: "desktop" | "mobile";
 };
@@ -11,6 +13,7 @@ type SearchActionsProps = {
 export default function SearchActions({
   onUpdatePreferences,
   onSearchProperties,
+  onCancelSearch,
   isSearching,
   variant = "desktop",
 }: SearchActionsProps) {
@@ -26,32 +29,39 @@ export default function SearchActions({
         >
           Preferences
         </NavigationButton>
-        <button
-          onClick={onSearchProperties}
-          disabled={isSearching}
-          className="touch-friendly flex flex-1 items-center justify-center gap-1 rounded-lg bg-gold px-3 py-2 text-sm text-white transition-colors hover:bg-gold/90 disabled:opacity-50"
-        >
-          {isSearching ? (
-            <KeyTurnLoader message="Searching..." />
-          ) : (
-            <>
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              {isSearching ? "Searching..." : "Search"}
-            </>
+        <div className="flex flex-1 items-center gap-2">
+          <button
+            onClick={onSearchProperties}
+            disabled={isSearching}
+            className="touch-friendly flex flex-1 items-center justify-center gap-1 rounded-lg bg-gold px-3 py-2 text-sm text-white transition-colors hover:bg-gold/90 disabled:opacity-50"
+          >
+            {isSearching ? (
+              <KeyTurnLoader message="Searching..." />
+            ) : (
+              <>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                {isSearching ? "Searching..." : "Search"}
+              </>
+            )}
+          </button>
+          {isSearching && onCancelSearch && (
+            <CancelButton onClick={onCancelSearch} size="sm" className="h-full">
+              Cancel
+            </CancelButton>
           )}
-        </button>
+        </div>
       </div>
     );
   }
@@ -66,32 +76,39 @@ export default function SearchActions({
       >
         Preferences
       </NavigationButton>
-      <button
-        onClick={onSearchProperties}
-        disabled={isSearching}
-        className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg bg-gold px-4 py-2 text-white transition-colors hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isSearching ? (
-          <KeyTurnLoader message="Searching..." />
-        ) : (
-          <>
-            <svg
-              className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 lg:h-6 lg:w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            Search
-          </>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onSearchProperties}
+          disabled={isSearching}
+          className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg bg-gold px-4 py-2 text-white transition-colors hover:bg-gold/90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isSearching ? (
+            <KeyTurnLoader message="Searching..." />
+          ) : (
+            <>
+              <svg
+                className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 lg:h-6 lg:w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              Search
+            </>
+          )}
+        </button>
+        {isSearching && onCancelSearch && (
+          <CancelButton onClick={onCancelSearch} size="sm" className="h-full">
+            Cancel
+          </CancelButton>
         )}
-      </button>
+      </div>
     </div>
   );
 }

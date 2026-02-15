@@ -1,4 +1,4 @@
-import { Check, Square } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import React from "react";
 
 import { getCardBubbleSizeClasses } from "./CardBubbleStyles.tsx";
@@ -12,7 +12,8 @@ export type CardCompareCheckboxProps = {
   ariaLabel?: string;
 };
 
-const CIRCLE_SIZE: Record<
+/** Same sizing as CardHeartSave for consistent overlay buttons across all breakpoints */
+const TOGGLE_SIZE: Record<
   NonNullable<CardCompareCheckboxProps["size"]>,
   string
 > = {
@@ -51,13 +52,20 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
   ariaLabel,
 }) => {
   const sizeConfig = getCardBubbleSizeClasses(size);
-  const circleClass = CIRCLE_SIZE[size];
+  const toggleClass = TOGGLE_SIZE[size];
   const iconSizeClass = sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[size];
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggle();
   };
+
+  const baseButtonClasses =
+    "touch-friendly group relative inline-flex items-center justify-center rounded-lg backdrop-blur-sm bg-white/90 shadow-md ring-1 ring-black/5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:ring-black/10 focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 active:scale-95";
+
+  const stateClasses = isSelected
+    ? "text-olive"
+    : "text-gray-600 hover:text-gray-700";
 
   // Check if this is being used as an inline button (no position specified or position is not absolute)
   const isInlineButton =
@@ -66,17 +74,12 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
     className.includes("rounded-md");
 
   if (isInlineButton) {
-    // Inline button styling
     return (
       <button
         type="button"
         onClick={handleClick}
         aria-pressed={isSelected}
-        className={`inline-flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-          isSelected
-            ? "text-olive hover:text-olive/80"
-            : "text-gray-400 hover:text-olive"
-        } ${className}`}
+        className={`${baseButtonClasses} ${stateClasses} ${toggleClass} ${className}`}
         aria-label={
           ariaLabel ??
           (isSelected ? "Remove from comparison" : "Add to comparison")
@@ -85,29 +88,24 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
       >
         {isSelected ? (
           <Check
-            className={`${iconSizeClass} transition-transform duration-200`}
+            className={`${iconSizeClass} transition-all duration-200 group-hover:brightness-90`}
           />
         ) : (
-          <Square
-            className={`${iconSizeClass} transition-transform duration-200`}
+          <Plus
+            className={`${iconSizeClass} transition-all duration-200 group-hover:brightness-90`}
           />
         )}
       </button>
     );
   }
 
-  // Original card overlay styling
   return (
     <div className={`absolute ${POSITION_MAP[position]} z-10 ${className}`}>
       <button
         type="button"
         onClick={handleClick}
         aria-pressed={isSelected}
-        className={`touch-friendly group relative inline-flex items-center justify-center rounded-full bg-white shadow-md ring-1 ring-black/5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:ring-black/10 focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 active:scale-95 ${
-          isSelected
-            ? "text-olive hover:text-olive/80"
-            : "text-gray-400 hover:text-olive"
-        } ${circleClass}`}
+        className={`${baseButtonClasses} ${stateClasses} ${toggleClass}`}
         aria-label={
           ariaLabel ??
           (isSelected ? "Remove from comparison" : "Add to comparison")
@@ -116,11 +114,11 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
       >
         {isSelected ? (
           <Check
-            className={`${iconSizeClass} transition-transform duration-200 group-hover:scale-110`}
+            className={`${iconSizeClass} transition-all duration-200 group-hover:scale-110 group-hover:brightness-90`}
           />
         ) : (
-          <Square
-            className={`${iconSizeClass} transition-transform duration-200 group-hover:scale-110`}
+          <Plus
+            className={`${iconSizeClass} transition-all duration-200 group-hover:scale-110 group-hover:brightness-90`}
           />
         )}
       </button>

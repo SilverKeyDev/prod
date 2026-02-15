@@ -54,12 +54,11 @@ export function createProtectedRoute(
 
 // Route configurations by category
 export const ROUTE_CONFIGS = {
-  lightweight: [ROUTES.SETTINGS],
+  lightweight: [ROUTES.PROFILE],
 
   standard: [
     ROUTES.SAVED,
     ROUTES.DASHBOARD,
-    ROUTES.BUYER_CHECKLISTS,
     ROUTES.MESSAGING,
   ],
 

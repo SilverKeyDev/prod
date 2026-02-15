@@ -1,16 +1,6 @@
 import type { ReactNode } from "react";
 
-import ClosePageHeader from "../../features/close/ClosePageHeader";
 import MobileTopBar from "../../components/widgets/header/MobileTopBar";
-import { SIDEBAR_TABS } from "../../../../packages/schemas/auth/sidebar";
-
-type ClosePageHeaderData = {
-  title: string;
-  subtitle: string;
-  completedCount: number;
-  totalCount: number;
-  loading: boolean;
-};
 
 type DashboardHeaderProps = {
   isMobile: boolean;
@@ -18,15 +8,8 @@ type DashboardHeaderProps = {
   isSaved: boolean;
   isMessagingRoute: boolean;
   isDashboard: boolean;
-  isBuyerChecklists: boolean;
-  isPersonalization: boolean;
   mobileHeaderActions: ReactNode | null;
   mobileHeader?: ReactNode;
-  closePageHeaderData: ClosePageHeaderData | null;
-  buyerChecklistsActiveTab: "escrow" | "inspections" | "financing" | "closing";
-  onTabChange: (
-    tab: "escrow" | "inspections" | "financing" | "closing",
-  ) => void;
   headerContent: ReactNode;
   computedMaxWidthVW: number;
 };
@@ -39,12 +22,8 @@ export function DashboardHeader({
   isSaved,
   isMessagingRoute,
   isDashboard,
-  isBuyerChecklists,
   mobileHeaderActions,
   mobileHeader,
-  closePageHeaderData,
-  buyerChecklistsActiveTab,
-  onTabChange,
   headerContent,
   computedMaxWidthVW,
 }: DashboardHeaderProps) {
@@ -57,24 +36,7 @@ export function DashboardHeader({
         ? mobileHeaderActions
         : isSearch && isMobile && !mobileHeaderActions
           ? null
-          : mobileHeaderActions
-            ? mobileHeaderActions
-            : isBuyerChecklists
-              ? closePageHeaderData && (
-                  <ClosePageHeader
-                    title={closePageHeaderData.title ?? SIDEBAR_TABS.close.name}
-                    subtitle={
-                      closePageHeaderData.subtitle ??
-                      SIDEBAR_TABS.close.description
-                    }
-                    completedCount={closePageHeaderData.completedCount ?? 0}
-                    totalCount={closePageHeaderData.totalCount ?? 0}
-                    loading={closePageHeaderData.loading ?? true}
-                    activeTab={buyerChecklistsActiveTab}
-                    onTabChange={onTabChange}
-                  />
-                )
-              : (mobileHeader ?? null);
+          : mobileHeaderActions ?? mobileHeader ?? null;
 
   const showMobileTopBar =
     (isMessagingRoute && mobileHeaderActions != null) ||

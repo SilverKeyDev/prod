@@ -13,7 +13,8 @@ export type ButtonProps = {
     | "info"
     | "filter"
     | "sort"
-    | "olive";
+    | "olive"
+    | "cancel";
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   loading?: boolean;
   icon?: React.ReactNode;
@@ -111,6 +112,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       sort: "border border-beige text-white bg-beige hover:bg-beige/90 hover:border-brown focus:bg-beige focus:text-white focus:ring-brown/20 focus:border-brown active:bg-beige disabled:bg-beige/50 disabled:text-white/70",
       olive:
         "bg-olive text-white hover:bg-olive-light focus:ring-olive/20 disabled:bg-olive/50 disabled:text-white/70",
+      cancel:
+        "border border-gray-300 bg-gray-200 text-gray-700 hover:bg-gray-300 hover:border-gray-300 focus:ring-gray-300/20 disabled:bg-gray-200/50 disabled:text-gray-500 disabled:border-gray-200",
     };
 
     // Touch-friendly class for mobile

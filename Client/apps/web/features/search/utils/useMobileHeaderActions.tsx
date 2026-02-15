@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useCallback } from "react";
 
 import SearchMobileHeader from "../components/SearchMobileHeader";
 import { screenDown } from "../../../../../packages/schemas/ui/screens";
@@ -11,6 +11,7 @@ export default function useMobileHeaderActions(params: {
   isSearching: boolean;
   onPreferences: () => void;
   onSearch: () => void;
+  onCancelSearch?: () => void;
   selectedClientId: string | null;
   onClientChange: (clientId: string | null) => void;
 }): void {
@@ -18,24 +19,49 @@ export default function useMobileHeaderActions(params: {
   // because Search's layout is tuned for the compact header at those widths.
   const isCompactHeader = useMediaQuery(screenDown("lg"));
 
+  // Store latest callbacks in refs to avoid recreating header when they change
+  const onPreferencesRef = useRef(params.onPreferences);
+  const onSearchRef = useRef(params.onSearch);
+  const onCancelSearchRef = useRef(params.onCancelSearch);
+  const onClientChangeRef = useRef(params.onClientChange);
+  onPreferencesRef.current = params.onPreferences;
+  onSearchRef.current = params.onSearch;
+  onCancelSearchRef.current = params.onCancelSearch;
+  onClientChangeRef.current = params.onClientChange;
+
+  const stableOnPreferences = useCallback(() => {
+    onPreferencesRef.current();
+  }, []);
+  const stableOnSearch = useCallback(() => {
+    onSearchRef.current();
+  }, []);
+  const stableOnCancelSearch = useCallback(() => {
+    onCancelSearchRef.current?.();
+  }, []);
+  const stableOnClientChange = useCallback((clientId: string | null) => {
+    onClientChangeRef.current(clientId);
+  }, []);
+
   const mobileHeaderActions = useMemo(() => {
     if (!isCompactHeader) return null;
     return (
       <SearchMobileHeader
-        onPreferences={params.onPreferences}
-        onSearch={params.onSearch}
+        onPreferences={stableOnPreferences}
+        onSearch={stableOnSearch}
+        onCancelSearch={stableOnCancelSearch}
         isSearching={params.isSearching}
         selectedClientId={params.selectedClientId}
-        onClientChange={params.onClientChange}
+        onClientChange={stableOnClientChange}
       />
     );
   }, [
     isCompactHeader,
     params.isSearching,
-    params.onPreferences,
-    params.onSearch,
     params.selectedClientId,
-    params.onClientChange,
+    stableOnPreferences,
+    stableOnSearch,
+    stableOnCancelSearch,
+    stableOnClientChange,
   ]);
 
   useEffect(() => {

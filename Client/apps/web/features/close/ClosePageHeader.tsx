@@ -101,10 +101,10 @@ export default function ClosePageHeader({
                   >
                     <button
                       onClick={() => onTabChange(tab.id)}
-                      className={`relative flex-1 py-1 lg:py-1.5 text-[10px] lg:text-sm font-medium transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1 ${
+                      className={`relative flex-1 py-1 lg:py-1.5 transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1 ${
                         activeTab === tab.id
-                          ? "text-olive"
-                          : "text-navy/70 hover:bg-olive/10 hover:text-olive hover:shadow-sm rounded-lg"
+                          ? "text-[11px] lg:text-base font-semibold text-navy/70"
+                          : "text-[10px] lg:text-sm font-medium text-navy/70 hover:bg-gray-100 rounded-lg"
                       }`}
                     >
                       <tab.icon className="w-[1em] h-[1em]" />

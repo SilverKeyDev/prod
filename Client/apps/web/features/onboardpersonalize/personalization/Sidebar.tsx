@@ -1,7 +1,8 @@
-import { Edit, Save, X } from "lucide-react";
+import { Edit, Save } from "lucide-react";
 
 import Card from "../../../components/layout/Card";
 import Button from "../../../components/ui/button/Button";
+import CancelButton from "../../../components/ui/button/CancelButton";
 import type { NavItem } from "../../../../../packages/schemas/nav";
 import { useResponsive } from "../../../../../packages/hooks/ui";
 import {
@@ -87,17 +88,15 @@ export default function PersonalizationSidebar({
               >
                 {isLargeScreen ? (isSaving ? "Saving..." : "Save") : ""}
               </Button>
-              <Button
+              <CancelButton
                 onClick={onCancel}
-                variant="outline"
                 size="sm"
-                className={`bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-200 text-sm font-medium p-2 rounded-lg items-center justify-center ${
+                className={`text-sm font-medium p-2 rounded-lg items-center justify-center ${
                   isLargeScreen ? "w-full" : ""
                 }`}
-                icon={<X />}
               >
                 {isLargeScreen ? "Cancel" : ""}
-              </Button>
+              </CancelButton>
             </div>
           )}
         </div>

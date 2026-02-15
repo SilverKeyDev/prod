@@ -13,7 +13,7 @@ Disallow: /api/
 
 # Block protected/authenticated routes
 Disallow: /dashboard
-Disallow: /settings
+Disallow: /profile
 Disallow: /search
 Disallow: /saved/
 Disallow: /past-reports
@@ -25,7 +25,6 @@ Disallow: /offer-draft
 Disallow: /negotiation
 Disallow: /negotiation-strategy/
 Disallow: /client-intel
-Disallow: /buyer-checklists
 Disallow: /verification
 Disallow: /forgot-password
 Disallow: /reset-password

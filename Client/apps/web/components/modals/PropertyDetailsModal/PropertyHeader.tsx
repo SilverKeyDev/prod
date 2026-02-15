@@ -1,4 +1,4 @@
-import { FileText, Share2 } from "lucide-react";
+import { FileText, Share } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -135,7 +135,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           variant="toolbar"
           size={toolbarButtonSize}
           rounded="md"
-          icon={<Share2 className="h-full w-full" />}
+          icon={<Share className="h-full w-full" />}
           onClick={() => setIsShareModalOpen(true)}
           aria-label="Share"
         />

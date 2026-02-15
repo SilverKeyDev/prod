@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Button, Title, BodyText } from "../../../../components/ui";
+import { Button, CancelButton, Title, BodyText } from "../../../../components/ui";
 import BaseModal from "../../../../components/modals/BaseModal";
 import { useDocusignActions } from "../../../../../../packages/hooks/data/documents/useDocusignActions";
 import { useDocusignTemplates } from "../../../../../../packages/hooks/data/documents/useDocusignTemplates";
@@ -235,15 +235,14 @@ export default function CreateAgreementModal({
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-            <Button
+            <CancelButton
               type="button"
-              variant="outline"
               size="md"
               onClick={handleClose}
               disabled={isCreatingAgreement}
             >
               Cancel
-            </Button>
+            </CancelButton>
             <Button
               type="submit"
               variant="primary"

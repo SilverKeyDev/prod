@@ -1,6 +1,7 @@
-import { Edit, Save, X } from "lucide-react";
+import { Edit, Save } from "lucide-react";
 import React from "react";
 import Button from "../../../components/ui/button/Button";
+import CancelButton from "../../../components/ui/button/CancelButton";
 
 type PersonalizationMobileHeaderProps = {
   isEditMode: boolean;
@@ -32,15 +33,13 @@ const PersonalizationMobileHeader: React.FC<
 
   return (
     <div className="mx-auto flex w-full max-w-sm gap-2">
-      <Button
+      <CancelButton
         onClick={onCancel}
-        variant="outline"
         size="sm"
-        className="flex-1 bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-200"
-        icon={<X />}
+        className="flex-1"
       >
         Cancel
-      </Button>
+      </CancelButton>
       <Button
         onClick={onSave}
         disabled={isSaving}

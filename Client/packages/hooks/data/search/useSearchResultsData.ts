@@ -7,6 +7,9 @@ import { transformSearchResponse } from "../../../services/search/search";
 import { log, LOG_CATEGORIES } from "../../../../logger";
 import type { SearchResult } from "../../../schemas/search/search";
 
+/** Stable empty array to avoid new reference on every render when data is undefined */
+const EMPTY_SEARCH_RESULTS: SearchResult[] = [];
+
 export type UseSearchResultsDataReturn = {
   searchResults: SearchResult[];
   isLoading: boolean;
@@ -122,7 +125,7 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
   }, [queryClient]);
 
   return {
-    searchResults: searchResultsData ?? [],
+    searchResults: searchResultsData ?? EMPTY_SEARCH_RESULTS,
     isLoading,
     error: error?.message ?? null,
     setSearchResults,

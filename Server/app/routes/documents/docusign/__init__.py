@@ -521,14 +521,14 @@ def oauth_callback():
         
         # Redirect to frontend
         from app.config import get_frontend_url
-        return redirect(f"{get_frontend_url()}/settings/docusign?connected=true")
+        return redirect(f"{get_frontend_url()}/profile/docusign?connected=true")
         
     except Exception as e:
         logger.error(LOG_CATEGORIES["ERRORS"], "OAuth callback failed", {
             "error": str(e)
         })
         from app.config import get_frontend_url
-        return redirect(f"{get_frontend_url()}/settings/docusign?error=true")
+        return redirect(f"{get_frontend_url()}/profile/docusign?error=true")
 
 
 # Webhook endpoint

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { X, Search } from "lucide-react";
-import { Title, BodyText, Button, CloseButton } from "../../../components/ui";
+import { Title, BodyText, Button, CancelButton, CloseButton } from "../../../components/ui";
 import BaseModal from "../../../components/modals/BaseModal";
 import AgreementCard from "../../documents/docusign/components/AgreementCard";
 import { useDocusignAgreements } from "../../../../../packages/hooks/data/documents/useDocusignAgreements";
@@ -168,9 +168,9 @@ export default function SelectAgreementModal({
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-          <Button variant="outline" size="md" onClick={onClose}>
+          <CancelButton size="md" onClick={onClose}>
             Cancel
-          </Button>
+          </CancelButton>
         </div>
       </div>
     </BaseModal>

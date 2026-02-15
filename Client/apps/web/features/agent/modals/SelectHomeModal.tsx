@@ -1,8 +1,9 @@
-import { Home } from "lucide-react";
+import { Home, Share } from "lucide-react";
 import { useState } from "react";
 
 import BaseModal from "../../../components/modals/BaseModal";
 import Button from "../../../components/ui/button/Button";
+import CancelButton from "../../../components/ui/button/CancelButton";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
 import { useSavedHomesData } from "../../../../../packages/hooks/data/search/useSavedHomesData";
 import type { SavedHome } from "../../../../../packages/schemas/property";
@@ -39,7 +40,14 @@ export default function SelectHomeModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Select Home to Share"
+      headerContent={
+        <div className="flex items-center gap-2">
+          <Home className="h-5 w-5 flex-shrink-0 text-gray-900" />
+          <h3 className="truncate text-base font-medium text-gray-900 sm:text-lg">
+            Select Home to Share
+          </h3>
+        </div>
+      }
       size="md"
     >
       <div className="space-y-4">
@@ -99,14 +107,15 @@ export default function SelectHomeModal({
         )}
 
         <div className="flex gap-3 pt-2">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+          <CancelButton onClick={onClose} className="flex-1">
             Cancel
-          </Button>
+          </CancelButton>
           <Button
-            variant="primary"
+            variant="olive"
             onClick={handleConfirm}
             disabled={!selectedHome}
             className="flex-1"
+            icon={<Share className="h-4 w-4" />}
           >
             Share Home
           </Button>

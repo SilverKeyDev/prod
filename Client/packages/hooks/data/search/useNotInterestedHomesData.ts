@@ -41,23 +41,29 @@ export const useNotInterestedHomesData = () => {
     error: notInterestedHomesError,
     refetch: refetchNotInterestedHomes,
   } = useQuery<SavedHome[], Error>({
-    // Use exact query key format from dataConfig.ts (no spread)
     queryKey: queryKeys.homes.notInterested(),
     queryFn: async () => {
-      return [];
+      const response = await userApi.getNotInterestedHomes();
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to load not-interested homes");
+      }
+      const raw = response.notInterested ?? [];
+      return raw
+        .filter((h) => h && (h.address || h.id || h.zpid))
+        .map((h) => ({
+          home_id: h.id ?? h.zpid ?? h.mls_home_id ?? h.address ?? "",
+          address: h.address ?? "",
+          lat: h.latitude ?? 0,
+          lng: h.longitude ?? 0,
+        })) as SavedHome[];
     },
     enabled: shouldLoadData,
-    // Use placeholderData function to check cache reactively when enabled changes
-    placeholderData: () => {
-      return queryClient.getQueryData<SavedHome[]>(
-        queryKeys.homes.notInterested(),
-      );
-    },
-    select: (data) => data,
+    placeholderData: () =>
+      queryClient.getQueryData<SavedHome[]>(queryKeys.homes.notInterested()),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 15 * 60 * 1000, // 15 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: false,
   });
 

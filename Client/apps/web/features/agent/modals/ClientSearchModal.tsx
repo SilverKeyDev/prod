@@ -5,6 +5,7 @@ import { useConnectionRequests } from "../../../../../packages/hooks/data/agent/
 import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
 import { useUIStore } from "../../../../../packages/store";
 import Button from "../../../components/ui/button/Button";
+import CancelButton from "../../../components/ui/button/CancelButton";
 import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
 
 type ClientSearchModalProps = {
@@ -38,7 +39,7 @@ export default function ClientSearchModal({
       await createRequest(
         userProfile.id,
         clientId,
-        message.trim() || undefined,
+        message.trim() || undefined
       );
       enqueueToast({
         type: "success",
@@ -84,7 +85,7 @@ export default function ClientSearchModal({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name or email..."
-              className="w-full rounded-lg border border-beige bg-white px-10 py-2.5 text-sm focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+              className="w-full rounded-lg border border-beige bg-white px-10 py-2.5 text-base focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
             />
           </div>
         </div>
@@ -96,7 +97,7 @@ export default function ClientSearchModal({
               <KeyTurnLoader message="Searching clients..." />
             </div>
           ) : clients.length === 0 ? (
-            <div className="py-8 text-center text-sm text-black/60">
+            <div className="py-8 text-center text-base font-medium text-black/60">
               No clients found matching "{searchQuery}"
             </div>
           ) : (
@@ -117,10 +118,10 @@ export default function ClientSearchModal({
                           <UserIcon className="h-5 w-5 text-black" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium text-black">
+                          <h3 className="text-base font-semibold text-black">
                             {client.name}
                           </h3>
-                          <p className="text-sm text-black/60">
+                          <p className="text-base font-medium text-black/60">
                             {client.email}
                           </p>
                         </div>
@@ -129,7 +130,7 @@ export default function ClientSearchModal({
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Add a message (optional)..."
-                        className="w-full rounded-lg border border-beige px-3 py-2 text-sm focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+                        className="w-full rounded-lg border border-beige px-3 py-2 text-base focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
                         rows={3}
                       />
                       <div className="flex gap-2">
@@ -144,19 +145,15 @@ export default function ClientSearchModal({
                         >
                           Send Request
                         </Button>
-                        <Button
+                        <CancelButton
                           onClick={() => {
                             setSelectedClientId(null);
                             setMessage("");
                           }}
-                          variant="outline"
                           size="md"
-                          icon={<X />}
-                          iconPosition="left"
-                          className="bg-neutral-200 text-neutral-700 hover:bg-neutral-200/80 border-neutral-200"
                         >
                           Cancel
-                        </Button>
+                        </CancelButton>
                       </div>
                     </div>
                   ) : (
@@ -168,12 +165,14 @@ export default function ClientSearchModal({
                         <UserIcon className="h-5 w-5 text-black" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-medium text-black">
+                        <h3 className="text-base font-semibold text-black">
                           {client.name}
                         </h3>
-                        <p className="text-sm text-black/60">{client.email}</p>
+                        <p className="text-base font-medium text-black/60">
+                          {client.email}
+                        </p>
                         {client.phone && (
-                          <p className="text-xs text-black/40">
+                          <p className="text-sm font-medium text-black/40">
                             {client.phone}
                           </p>
                         )}

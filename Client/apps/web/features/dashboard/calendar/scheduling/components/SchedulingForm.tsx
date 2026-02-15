@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 import type { ScheduleEventRequest } from "../../../../../packages/schemas/scheduling";
 import Button from "../../../../../components/ui/button/Button";
+import CancelButton from "../../../../../components/ui/button/CancelButton";
 import Input from "../../../../../components/ui/form/Input";
 import Label from "../../../../../components/ui/text/Label";
 import Dropdown from "../../../../../components/ui/form/Dropdown";
@@ -161,15 +162,14 @@ export function SchedulingForm({
         >
           Schedule Event
         </Button>
-        <Button
+        <CancelButton
           type="button"
-          variant="outline"
           onClick={onCancel}
           disabled={isLoading}
           fullWidth
         >
           Cancel
-        </Button>
+        </CancelButton>
       </div>
     </form>
   );

@@ -6,6 +6,7 @@ import ClientSelector from "../../../components/ui/ClientSelector";
 type SearchMobileHeaderProps = {
   onPreferences: () => void;
   onSearch: () => void;
+  onCancelSearch?: () => void;
   isSearching?: boolean;
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
@@ -14,6 +15,7 @@ type SearchMobileHeaderProps = {
 const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
   onPreferences,
   onSearch,
+  onCancelSearch,
   isSearching = false,
   selectedClientId,
   onClientChange,
@@ -29,6 +31,7 @@ const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
       <SearchActions
         onUpdatePreferences={onPreferences}
         onSearchProperties={onSearch}
+        onCancelSearch={onCancelSearch}
         isSearching={isSearching}
         variant="mobile"
       />

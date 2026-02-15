@@ -221,7 +221,7 @@ export default function MapHomeCard({
               }
             }}
             size="sm"
-            variant="primary"
+            variant="unlock"
             fullWidth
             text="Unlock"
           />

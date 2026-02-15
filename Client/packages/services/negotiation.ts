@@ -40,6 +40,8 @@ export class NegotiationService {
   };
   private isGenerating: boolean = false;
   private currentGenerationPromise: Promise<void> | null = null;
+  private abortController: AbortController | null = null;
+  private cancelledByUser = false;
 
   private constructor() {
     this.state = {
@@ -217,6 +219,14 @@ export class NegotiationService {
   }
 
   /**
+   * Cancel in-flight strategy generation. When cancelled, loading stops and no result or error is shown.
+   */
+  public cancelGeneration(): void {
+    this.cancelledByUser = true;
+    this.abortController?.abort();
+  }
+
+  /**
    * Generate negotiation strategy and property comps
    */
   public async generateStrategy(): Promise<void> {
@@ -253,6 +263,10 @@ export class NegotiationService {
    * Internal method to actually perform the strategy generation
    */
   private async _doGenerateStrategy(): Promise<void> {
+    this.cancelledByUser = false;
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+
     this.updateState({
       isLoading: true,
       error: null,
@@ -303,10 +317,10 @@ export class NegotiationService {
         address,
       });
 
-      // Make both API calls concurrently
+      // Make both API calls concurrently (pass signal for cancellation)
       const [strategyResponseData, compsResponseData] = await Promise.all([
-        offerApi.generateStrategy({ address }),
-        searchApi.getPropertyComps({ address }),
+        offerApi.generateStrategy({ address }, { signal }),
+        searchApi.getPropertyComps({ address }, { signal }),
       ]);
 
       // Validate API responses with proper type guards
@@ -409,6 +423,19 @@ export class NegotiationService {
         "Data saved to localStorage successfully",
       );
     } catch (err: unknown) {
+      // User-initiated cancel: stop loading, show nothing
+      if (
+        err instanceof Error &&
+        err.name === "AbortError" &&
+        this.cancelledByUser
+      ) {
+        this.updateState({
+          isLoading: false,
+          error: null,
+        });
+        return;
+      }
+
       const error = asError(err);
       log.error(LOG_CATEGORIES.ERRORS, "Error generating strategy", error);
 
@@ -420,16 +447,13 @@ export class NegotiationService {
           errorMessage =
             "Request was cancelled or timed out. Please try again.";
           log.warn(
-            "NEGOTIATION_SERVICE",
+            LOG_CATEGORIES.NEGOTIATION,
             "Request aborted - likely due to timeout or cancellation",
           );
-        } else if (err instanceof Error && err.message.includes("timeout")) {
+        } else if (err.message.includes("timeout")) {
           errorMessage =
             "Request timed out. Please check your connection and try again.";
-        } else if (
-          err instanceof Error &&
-          err.message.includes("Authentication required")
-        ) {
+        } else if (err.message.includes("Authentication required")) {
           errorMessage = "Please log in again to continue.";
         } else {
           errorMessage = err.message;
@@ -447,6 +471,9 @@ export class NegotiationService {
       ) {
         this.callbacks.onError(errorMessage);
       }
+    } finally {
+      this.abortController = null;
+      this.cancelledByUser = false;
     }
   }
 

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Check, Plus } from "lucide-react";
 import Card from "../../../components/layout/Card";
 import Button from "../../../components/ui/button/Button";
+import CancelButton from "../../../components/ui/button/CancelButton";
 import Dropdown from "../../../components/ui/form/Dropdown";
 import type {
   TodoItem,
@@ -181,7 +182,7 @@ const TodoList: React.FC<TodoListProps> = ({
             >
               Add
             </Button>
-            <Button
+            <CancelButton
               variant="ghost"
               size="sm"
               onClick={() => {
@@ -191,7 +192,7 @@ const TodoList: React.FC<TodoListProps> = ({
               }}
             >
               Cancel
-            </Button>
+            </CancelButton>
           </div>
         </div>
       ) : (

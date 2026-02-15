@@ -7,6 +7,7 @@ import type { ScheduleEventRequest } from "../../../../packages/schemas/scheduli
 import { TimeSlotPicker } from "./components/TimeSlotPicker";
 import { SchedulingForm } from "./components/SchedulingForm";
 import Button from "../../../../components/ui/button/Button";
+import CancelButton from "../../../../components/ui/button/CancelButton";
 import { log, LOG_CATEGORIES } from "../../../../../../logger";
 
 interface SchedulingModalProps {
@@ -88,9 +89,9 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
           >
             Connect Google Calendar
           </Button>
-          <Button variant="outline" onClick={onClose} fullWidth>
+          <CancelButton onClick={onClose} fullWidth>
             Cancel
-          </Button>
+          </CancelButton>
         </div>
       </div>
     );
@@ -132,9 +133,9 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
         )}
 
         <div className="flex gap-responsive-sm pt-responsive-md">
-          <Button variant="outline" onClick={onClose} fullWidth>
+          <CancelButton onClick={onClose} fullWidth>
             Cancel
-          </Button>
+          </CancelButton>
         </div>
       </div>
     );

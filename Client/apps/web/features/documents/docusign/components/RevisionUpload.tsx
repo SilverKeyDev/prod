@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Upload, File, X } from "lucide-react";
-import { Button, BodyText } from "../../../../components/ui";
+import { BodyText, Button, CancelButton } from "../../../../components/ui";
 import { useDocusignActions } from "../../../../../../packages/hooks/data/documents/useDocusignActions";
 import { useUIStore } from "../../../../../../packages/store";
 
@@ -172,14 +172,13 @@ export default function RevisionUpload({
       {/* Actions */}
       <div className="flex items-center justify-end gap-2 pt-2">
         {onCancel && (
-          <Button
-            variant="outline"
+          <CancelButton
             size="md"
             onClick={onCancel}
             disabled={isCreatingRevision}
           >
             Cancel
-          </Button>
+          </CancelButton>
         )}
         <Button
           variant="primary"

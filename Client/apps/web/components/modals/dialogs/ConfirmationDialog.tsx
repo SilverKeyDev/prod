@@ -1,3 +1,4 @@
+import { LogOut } from "lucide-react";
 import { createPortal } from "react-dom";
 
 import { BodyText, Button, CancelButton, CloseButton, Title } from "../../ui";
@@ -8,6 +9,8 @@ type ConfirmationDialogProps = {
   message: string;
   confirmText?: string;
   cancelText?: string;
+  /** Icon for confirm button (e.g. LogOut for logout confirmation) */
+  confirmIcon?: React.ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -18,9 +21,11 @@ export default function ConfirmationDialog({
   message,
   confirmText = "Confirm",
   cancelText = "Cancel",
+  confirmIcon,
   onConfirm,
   onCancel,
 }: ConfirmationDialogProps) {
+  const showLogoutIcon = confirmText === "Logout";
   if (!isOpen) return null;
 
   const dialogContent = (
@@ -70,10 +75,13 @@ export default function ConfirmationDialog({
           <div className="gap-responsive-sm mt-5 flex flex-col justify-center sm:mt-6 sm:flex-row">
             <Button
               type="button"
-              variant="primary"
+              variant="olive"
               size="md"
               onClick={onConfirm}
               className="w-full sm:w-auto"
+              icon={
+                confirmIcon ?? (showLogoutIcon ? <LogOut /> : undefined)
+              }
             >
               {confirmText}
             </Button>

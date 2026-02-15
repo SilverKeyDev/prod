@@ -85,7 +85,7 @@ export function RemainingLikedHomes({
                 <CardViewDetailsButton
                   onClick={() => onUnlock(home)}
                   size="xs"
-                  variant="primary"
+                  variant="unlock"
                   fullWidth
                   text="Unlock"
                 />

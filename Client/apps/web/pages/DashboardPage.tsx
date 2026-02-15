@@ -1,13 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Settings } from "lucide-react";
-import { IconButton } from "../components/ui";
 import ClientList from "../features/dashboard/ClientList/ClientList";
 import ClientHub from "../features/dashboard/ClientHub/ClientHub";
-import { SettingsModal } from "../features/agent/modals";
+import DashboardChecklists from "../features/dashboard/DashboardChecklists";
 import { Calendar, UpcomingEvents } from "../features/dashboard/calendar";
 import { useIsAgent } from "../../../packages/hooks/store/auth/useIsAgent";
-import { useResponsive } from "../../../packages/hooks/ui/useResponsive";
 
 type DashboardPageProps = {
   setMobileHeaderActions?: React.Dispatch<
@@ -20,9 +17,7 @@ export default function DashboardPage({
 }: DashboardPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const isAgent = useIsAgent();
-  const { isLgDown } = useResponsive();
 
   useEffect(() => {
     if (setMobileHeaderActions) {
@@ -49,36 +44,18 @@ export default function DashboardPage({
   }
 
   return (
-    <>
-      <div className="space-y-6 sm:space-y-8">
-        {/* Settings Button */}
-        {isLgDown && (
-          <div className="flex justify-end">
-            <IconButton
-              onClick={() => setIsSettingsModalOpen(true)}
-              variant="ghost"
-              size="md"
-              icon={<Settings className="h-4 w-4" />}
-              aria-label="Settings"
-            />
-          </div>
-        )}
-
-        {/* Upcoming Events above Calendar */}
-        <div className="flex flex-col gap-6">
-          <UpcomingEvents />
-          <Calendar />
-        </div>
-
-        {/* Client List */}
-        {isAgent && <ClientList onClientClick={handleClientClick} />}
+    <div className="space-y-6 sm:space-y-8">
+      {/* Upcoming Events above Calendar */}
+      <div className="flex flex-col gap-6">
+        <UpcomingEvents />
+        <Calendar />
       </div>
 
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-      />
-    </>
+      {/* Checklists Section */}
+      <DashboardChecklists />
+
+      {/* Client List */}
+      {isAgent && <ClientList onClientClick={handleClientClick} />}
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import BaseModal from "../../../../components/modals/BaseModal";
 import Button from "../../../../components/ui/button/Button";
+import CancelButton from "../../../../components/ui/button/CancelButton";
 import Input from "../../../../components/ui/form/Input";
 import Label from "../../../../components/ui/text/Label";
 import { Textarea } from "../../../../components/ui/form/FormField";
@@ -358,14 +359,13 @@ export function CreateEventModal({
 
         {/* Actions */}
         <div className="flex gap-3 pt-2">
-          <Button
-            variant="outline"
+          <CancelButton
             onClick={onClose}
             className="flex-1"
             disabled={isCreating}
           >
             Cancel
-          </Button>
+          </CancelButton>
           <Button
             variant="olive"
             onClick={handleCreate}

@@ -87,21 +87,6 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
-  close: {
-    name: SIDEBAR_TABS.close.name,
-    icon: SIDEBAR_TABS.close.icon as unknown as React.FC<{
-      className?: string;
-    }>,
-    items: [
-      {
-        name: SIDEBAR_TABS.close.name,
-        href: SIDEBAR_TABS.close.href,
-        icon: SIDEBAR_TABS.close.icon as unknown as React.FC<{
-          className?: string;
-        }>,
-      },
-    ],
-  },
   agent: {
     name: SIDEBAR_TABS.agent.name,
     icon: SIDEBAR_TABS.agent.icon as unknown as React.FC<{
@@ -117,16 +102,16 @@ const navigationStructure: NavigationStructure = {
       },
     ],
   },
-  settings: {
-    name: SIDEBAR_TABS.settings.name,
-    icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
+  profile: {
+    name: SIDEBAR_TABS.profile.name,
+    icon: SIDEBAR_TABS.profile.icon as unknown as React.FC<{
       className?: string;
     }>,
     items: [
       {
-        name: SIDEBAR_TABS.settings.name,
-        href: SIDEBAR_TABS.settings.href,
-        icon: SIDEBAR_TABS.settings.icon as unknown as React.FC<{
+        name: SIDEBAR_TABS.profile.name,
+        href: SIDEBAR_TABS.profile.href,
+        icon: SIDEBAR_TABS.profile.icon as unknown as React.FC<{
           className?: string;
         }>,
       },
@@ -169,21 +154,12 @@ const getNavigation = (
     items: [...navigationStructure.agent.items],
   };
 
-  // Checklists (close) should appear for non-agents
-  if (!isAgent) {
-    navigation.close = {
-      name: navigationStructure.close.name,
-      icon: navigationStructure.close.icon,
-      items: [...navigationStructure.close.items],
-    };
-  }
-
-  // Settings - only show on non-mobile
+  // Profile - only show on non-mobile
   if (!isMobile) {
-    navigation.settings = {
-      name: navigationStructure.settings.name,
-      icon: navigationStructure.settings.icon,
-      items: [...navigationStructure.settings.items],
+    navigation.profile = {
+      name: navigationStructure.profile.name,
+      icon: navigationStructure.profile.icon,
+      items: [...navigationStructure.profile.items],
     };
   }
 
@@ -303,13 +279,12 @@ export default function Sidebar({
               {Object.entries(getNavigation(isAgent, hasAgent, isMobile)).map(
                 ([categoryKey, category]: [string, NavCategory]) => (
                   <div key={categoryKey}>
-                    {/* Render certain categories as direct links (dashboard, search, decide, close, settings, agent) */}
+                    {/* Render certain categories as direct links (dashboard, search, decide, profile, agent) */}
                     {/* Agent is always a direct link, never a dropdown */}
                     {categoryKey === "dashboard" ||
                     categoryKey === "search" ||
                     categoryKey === "decide" ||
-                    categoryKey === "close" ||
-                    categoryKey === "settings" ||
+                    categoryKey === "profile" ||
                     categoryKey === "agent" ? (
                       (() => {
                         const firstItem = category.items[0];

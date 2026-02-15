@@ -167,7 +167,7 @@ export default function HomeCard({
           <CardViewDetailsButton
             onClick={handleViewDetails}
             size="sm"
-            variant="primary"
+            variant="unlock"
             fullWidth
             text="Unlock"
           />

@@ -3,7 +3,7 @@
 import {
   Building2,
   BarChart2,
-  Lightbulb,
+  Handshake,
   FolderLock,
   Lock,
 } from "lucide-react";
@@ -186,7 +186,7 @@ export default function HomePage() {
                 title: "Negotiate",
                 description:
                   "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
-                icon: <Lightbulb className="mobile-icon-lg text-gray-500" />,
+                icon: <Handshake className="mobile-icon-lg text-gray-500" />,
               },
               {
                 title: "Purchase",

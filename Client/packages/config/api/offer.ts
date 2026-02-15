@@ -102,12 +102,14 @@ export const offerApi = {
    */
   generateStrategy: (
     data: NegotiationStrategyRequest,
+    options?: { signal?: AbortSignal },
   ): Promise<NegotiationStrategyResponse> =>
     apiPost<NegotiationStrategyResponse>(
       "/api/v1/offer/generate-strategy",
       data,
       {
         timeout: 300000,
+        ...options,
       },
     ),
 

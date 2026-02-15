@@ -1,6 +1,6 @@
 // React imports
 import { ChevronUp, ChevronDown } from "lucide-react";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 // Components
 import PropertyDetailsModal from "../components/modals/PropertyDetailsModal/PropertyDetailsModal";
@@ -40,8 +40,10 @@ import { useMarkerUpdates } from "../features/search/utils/useMarkerUpdates";
 import useMobileHeaderActions from "../features/search/utils/useMobileHeaderActions";
 import { usePropertyFocus } from "../features/search/utils/usePropertyFocus";
 import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/search/useSavedHomesStoreIntegration";
+import { usePreActionSnapshot } from "../../../packages/hooks/ui";
 import type { SavedHome } from "../../../packages/schemas/property";
 import { useSearchResultsData } from "../../../packages/hooks/data/search/useSearchResultsData";
+import { useNotInterestedHomesData } from "../../../packages/hooks/data/search/useNotInterestedHomesData";
 import { searchPropertiesInIsochrone } from "../features/search/services/propertySearch";
 import SearchHeader from "../features/search/components/SearchHeader";
 import { log, LOG_CATEGORIES } from "../../../logger";
@@ -93,6 +95,14 @@ export default function SearchPage({
   const PROPERTIES_PER_PAGE = 1; // Keep at 1 for mobile single-property navigation
   const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const searchAbortControllerRef = React.useRef<AbortController | null>(null);
+
+  const { snapshot: snapshotPreSearch, restore: restorePreSearch } =
+    usePreActionSnapshot<{
+      results: SearchResult[];
+      currentPage: number;
+      showPropertyModals: boolean;
+    }>("search_pre_cancel_snapshot");
 
   // Mobile header button handlers
   const handlePreferences = useCallback(() => {
@@ -138,7 +148,7 @@ export default function SearchPage({
             environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
             propertyId: propertyForDetails.id,
             timestamp: new Date().toISOString(),
-          },
+          }
         );
       } catch (error) {
         log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch property details", {
@@ -150,7 +160,7 @@ export default function SearchPage({
         throw error; // Re-throw to ensure the error propagates up the chain
       }
     },
-    [fetchPropertyDetails],
+    [fetchPropertyDetails]
   );
 
   // Initialize search results from cache (React Query handles this automatically)
@@ -193,7 +203,7 @@ export default function SearchPage({
           address: savedHome.address,
           rawLat: savedHome.lat,
           rawLng: savedHome.lng,
-        },
+        }
       );
 
       return {
@@ -217,7 +227,7 @@ export default function SearchPage({
         imageUrl: savedHome.image_url,
       };
     },
-    [],
+    []
   );
 
   const {
@@ -226,6 +236,35 @@ export default function SearchPage({
     saveHome,
     removeSavedHome,
   } = useSavedHomesStoreIntegration();
+  const { isNotInterested } = useNotInterestedHomesData();
+
+  // Clamp currentPage when filtered results shrink (e.g. after marking not interested)
+  useEffect(() => {
+    if (activeTab === "results" && filteredSearchResults.length > 0) {
+      const maxPage = Math.max(0, filteredSearchResults.length - 1);
+      if (currentPage > maxPage) {
+        setCurrentPage(maxPage);
+      }
+    }
+  }, [
+    activeTab,
+    filteredSearchResults.length,
+    currentPage,
+    setCurrentPage,
+  ]);
+
+  // Filter out not-interested homes from results so they disappear from UI after marking
+  const filteredSearchResults = useMemo(
+    () =>
+      searchResults.filter(
+        (p) =>
+          !isNotInterested(
+            p.id,
+            typeof p.address === "string" ? p.address : undefined,
+          ),
+      ),
+    [searchResults, isNotInterested],
+  );
 
   // Convert SavedHome[] to SearchResult[] for SearchPage compatibility
   const savedHomes = React.useMemo(() => {
@@ -245,7 +284,7 @@ export default function SearchPage({
           lat: home.lat,
           lng: home.lng,
         })),
-      },
+      }
     );
     return converted;
   }, [savedHomesRaw, convertSavedHomeToSearchResult]);
@@ -254,7 +293,8 @@ export default function SearchPage({
   const handleNavigateToProperty = useCallback(
     (property: SearchResult) => {
       // Find the property index in the current data
-      const currentData = activeTab === "results" ? searchResults : savedHomes;
+      const currentData =
+        activeTab === "results" ? filteredSearchResults : savedHomes;
       const propertyIndex = currentData.findIndex((p) => p.id === property.id);
 
       if (propertyIndex !== -1) {
@@ -263,13 +303,13 @@ export default function SearchPage({
         log.error(LOG_CATEGORIES.SEARCH, "Property not found in current data", {
           propertyId: property.id,
           activeTab,
-          searchResultsCount: searchResults.length,
+          searchResultsCount: filteredSearchResults.length,
           savedHomesCount: savedHomes.length,
           timestamp: new Date().toISOString(),
         });
       }
     },
-    [activeTab, searchResults, savedHomes, setCurrentPage],
+    [activeTab, filteredSearchResults, savedHomes, setCurrentPage]
   );
 
   // Initialize MapZoomController
@@ -281,7 +321,7 @@ export default function SearchPage({
   } = useMapZoomController({
     googleMapRef,
     activeTab,
-    searchResults,
+    searchResults: filteredSearchResults,
     savedHomes,
     currentPage,
   });
@@ -292,7 +332,7 @@ export default function SearchPage({
       if (!googleMapRef.current) {
         log.warn(
           LOG_CATEGORIES.MAP_RENDERING,
-          "Google Map not initialized yet",
+          "Google Map not initialized yet"
         );
         return;
       }
@@ -304,7 +344,7 @@ export default function SearchPage({
         focusOnCurrentProperty: mapFocusOnCurrentProperty,
       });
     },
-    [mapFocusOnCurrentProperty, googleMapRef],
+    [mapFocusOnCurrentProperty, googleMapRef]
   );
 
   // Use imported renderImportantLocationMarkers function with enhanced logging
@@ -313,7 +353,7 @@ export default function SearchPage({
       if (!googleMapRef.current) {
         log.warn(
           LOG_CATEGORIES.MAP_RENDERING,
-          "Cannot render important location markers: map not available",
+          "Cannot render important location markers: map not available"
         );
         return;
       }
@@ -322,14 +362,14 @@ export default function SearchPage({
         map: googleMapRef.current,
         importantMarkersRef,
         setImportantLocationMarkers: (
-          markers: GoogleAdvancedMarkerElement[],
+          markers: GoogleAdvancedMarkerElement[]
         ) => {
           importantMarkersRef.current = markers;
         },
         resetToDefaultZoom,
       });
     },
-    [resetToDefaultZoom, googleMapRef],
+    [resetToDefaultZoom, googleMapRef]
   );
 
   // Search results are now cached in React Query, no need for localStorage
@@ -338,7 +378,7 @@ export default function SearchPage({
     async (_results: SearchResult[]) => {
       // No-op: React Query handles caching automatically via setSearchResults
     },
-    [],
+    []
   );
 
   const { primeIsochroneOverlay, runIsochroneSearch } = useIsochroneFlow({
@@ -365,6 +405,7 @@ export default function SearchPage({
         setCurrentPage,
         setShowPropertyModals,
         saveSearchResultsToLocalStorage,
+        searchAbortControllerRef.current?.signal
       );
     },
     setSearchStage: (stage?: string) => setSearchStage(stage ?? ""),
@@ -385,13 +426,42 @@ export default function SearchPage({
   // Update handleSearch to use runIsochroneSearch or external handler with enhanced logging
   const handleSearchUpdated = useCallback(async () => {
     if (!isSearching) {
+      snapshotPreSearch({
+        results: searchResults,
+        currentPage,
+        showPropertyModals,
+      });
+      searchAbortControllerRef.current = new AbortController();
       if (onSearchProperties) {
         await onSearchProperties();
       } else {
         await runIsochroneSearch();
       }
     }
-  }, [isSearching, onSearchProperties, activeTab, currentPage]);
+  }, [
+    isSearching,
+    onSearchProperties,
+    runIsochroneSearch,
+    searchResults,
+    currentPage,
+    showPropertyModals,
+    snapshotPreSearch,
+  ]);
+
+  const handleCancelSearch = useCallback(() => {
+    searchAbortControllerRef.current?.abort();
+    const restored = restorePreSearch();
+    if (restored) {
+      setSearchResults(restored.results);
+      setCurrentPage(restored.currentPage);
+      setShowPropertyModals(restored.showPropertyModals);
+    }
+  }, [
+    restorePreSearch,
+    setSearchResults,
+    setCurrentPage,
+    setShowPropertyModals,
+  ]);
 
   // Memoize the search function to prevent unnecessary re-exposure
   const memoizedSearchFunction = React.useCallback(async () => {
@@ -413,7 +483,8 @@ export default function SearchPage({
   const handleOpenPropertyDetails = useCallback(
     (propertyId: string) => {
       // Find the property in current data (search results or saved homes)
-      const currentData = activeTab === "results" ? searchResults : savedHomes;
+      const currentData =
+        activeTab === "results" ? filteredSearchResults : savedHomes;
       const property = currentData.find((p) => p.id === propertyId);
 
       if (property) {
@@ -428,11 +499,11 @@ export default function SearchPage({
               id: p.id,
               address: p.address,
             })),
-          },
+          }
         );
       }
     },
-    [activeTab, searchResults, savedHomes, handleViewPropertyDetails],
+    [activeTab, filteredSearchResults, savedHomes, handleViewPropertyDetails]
   );
 
   useMarkerUpdates({
@@ -442,7 +513,7 @@ export default function SearchPage({
     currentPage,
     hasSearched,
     showPropertyModals,
-    searchResults,
+    searchResults: filteredSearchResults,
     savedHomes,
   });
 
@@ -486,7 +557,7 @@ export default function SearchPage({
 
       return Math.min(score, 100); // Cap at 100
     },
-    [],
+    []
   );
 
   // Use the map markers hook to actually create property markers
@@ -535,12 +606,14 @@ export default function SearchPage({
   useEffect(() => {
     if (!googleMapRef.current) return;
 
-    const currentData = activeTab === "results" ? searchResults : savedHomes;
-    const hasData = searchResults.length > 0 || savedHomes.length > 0;
+    const currentData =
+      activeTab === "results" ? filteredSearchResults : savedHomes;
+    const hasData =
+      filteredSearchResults.length > 0 || savedHomes.length > 0;
 
     // Check if data actually changed (including tab changes even with same lengths)
     const dataChanged =
-      prevDataRef.current.resultsLength !== searchResults.length ||
+      prevDataRef.current.resultsLength !== filteredSearchResults.length ||
       prevDataRef.current.savedLength !== savedHomes.length ||
       prevDataRef.current.activeTab !== activeTab ||
       prevDataRef.current.currentPage !== currentPage;
@@ -550,16 +623,16 @@ export default function SearchPage({
 
       // Update previous data
       prevDataRef.current = {
-        resultsLength: searchResults.length,
+        resultsLength: filteredSearchResults.length,
         savedLength: savedHomes.length,
         activeTab,
         currentPage,
       };
     }
   }, [
-    searchResults.length,
+    filteredSearchResults.length,
     savedHomes.length,
-    searchResults,
+    filteredSearchResults,
     savedHomes,
     activeTab,
     currentPage,
@@ -570,7 +643,7 @@ export default function SearchPage({
   usePropertyFocus({
     googleMapRef,
     activeTab,
-    searchResults,
+    searchResults: filteredSearchResults,
     savedHomes,
     currentPage,
     mapFocusOnCurrentProperty,
@@ -582,6 +655,7 @@ export default function SearchPage({
     isSearching,
     onPreferences: handlePreferences,
     onSearch: handleSearchUpdated,
+    onCancelSearch: handleCancelSearch,
     selectedClientId,
     onClientChange: setSelectedClientId,
   });
@@ -591,7 +665,7 @@ export default function SearchPage({
     setActiveTab(tab);
     setCurrentPage(0);
     // Ensure the map markers always refresh and recompute saved state on tab switch
-    const nextData = tab === "results" ? searchResults : savedHomes;
+    const nextData = tab === "results" ? filteredSearchResults : savedHomes;
     // Schedule after React state updates paint; use rAF for reliable timing
     requestAnimationFrame(() => {
       void updateMapMarkers(nextData);
@@ -645,7 +719,7 @@ export default function SearchPage({
                 if (
                   tab === "results" &&
                   hasSearched &&
-                  searchResults.length > 0
+                  filteredSearchResults.length > 0
                 ) {
                   setShowPropertyModals(true);
                 } else if (tab === "saved" && savedHomes.length > 0) {
@@ -654,7 +728,7 @@ export default function SearchPage({
                 }
               }}
               counts={{
-                results: searchResults.length,
+                results: filteredSearchResults.length,
                 saved: savedHomes.length,
               }}
               compact
@@ -689,7 +763,11 @@ export default function SearchPage({
           >
             <div className="py-3">
               <PropertyCarousel
-                items={activeTab === "results" ? searchResults : savedHomes}
+                items={
+                  activeTab === "results"
+                    ? filteredSearchResults
+                    : savedHomes
+                }
                 currentPage={currentPage}
                 onViewDetails={handleViewPropertyDetails}
                 onSlideChange={(index) => setCurrentPage(index)}
@@ -754,7 +832,7 @@ export default function SearchPage({
                 page={currentPage}
                 total={
                   activeTab === "results"
-                    ? searchResults.length
+                    ? filteredSearchResults.length
                     : savedHomes.length
                 }
                 perPage={PROPERTIES_PER_PAGE}
@@ -782,7 +860,7 @@ export default function SearchPage({
                 if (
                   tab === "results" &&
                   hasSearched &&
-                  searchResults.length > 0
+                  filteredSearchResults.length > 0
                 ) {
                   setShowPropertyModals(true);
                 } else if (tab === "saved" && savedHomes.length > 0) {
@@ -791,7 +869,7 @@ export default function SearchPage({
                 }
               }}
               counts={{
-                results: searchResults.length,
+                results: filteredSearchResults.length,
                 saved: savedHomes.length,
               }}
             />
@@ -799,7 +877,11 @@ export default function SearchPage({
             {/* Tab Content - Scrollable */}
             <div className="flex-1 overflow-hidden">
               <SidebarList
-                items={activeTab === "results" ? searchResults : savedHomes}
+                items={
+                  activeTab === "results"
+                    ? filteredSearchResults
+                    : savedHomes
+                }
                 selectedId={selectedProperty?.id}
                 isLoading={isLoadingPropertyDetails}
                 onNavigateToProperty={handleNavigateToProperty}
@@ -825,6 +907,7 @@ export default function SearchPage({
               <SearchHeader
                 onUpdatePreferences={handlePreferences}
                 onSearchProperties={handleSearchUpdated}
+                onCancelSearch={handleCancelSearch}
                 isSearching={isSearching}
                 selectedClientId={selectedClientId}
                 onClientChange={setSelectedClientId}
@@ -876,7 +959,7 @@ export default function SearchPage({
                   page={currentPage}
                   total={
                     activeTab === "results"
-                      ? searchResults.length
+                      ? filteredSearchResults.length
                       : savedHomes.length
                   }
                   perPage={PROPERTIES_PER_PAGE}

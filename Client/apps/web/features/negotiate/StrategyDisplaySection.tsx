@@ -1,5 +1,5 @@
 import React from "react";
-import { Share2 } from "lucide-react";
+import { Share } from "lucide-react";
 import { Button } from "../../components/ui";
 import { SectionBox } from "./index";
 import { formatStrategyValue } from "./StrategyFieldFormatter";
@@ -98,7 +98,7 @@ export function StrategyDisplaySection({
                     variant="olive"
                     size="sm"
                     onClick={onShareJson}
-                    icon={<Share2 className="mobile-icon-xs" />}
+                    icon={<Share className="mobile-icon-xs" />}
                   >
                     Share
                   </Button>

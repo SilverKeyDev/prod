@@ -1,5 +1,6 @@
-import { Edit, Save, X } from "lucide-react";
+import { Edit, Save } from "lucide-react";
 import Button from "../button/Button";
+import CancelButton from "../button/CancelButton";
 import SidebarNavigation from "./SidebarNavigation";
 import type { NavItem } from "../../../../../packages/schemas/nav";
 
@@ -48,16 +49,14 @@ export default function SettingsSidebar({
       >
         {isSaving ? "Saving..." : "Save"}
       </Button>
-      <Button
+      <CancelButton
         onClick={onCancel}
-        variant="outline"
         size="sm"
         hideTextBelow="lg"
-        className="bg-gray-200 text-gray-700 hover:bg-gray-300 border-gray-200 text-sm font-medium rounded-lg items-center justify-center w-8 h-8 min-w-8 min-h-8 p-0 lg:w-full lg:h-auto lg:min-w-0 lg:min-h-0 lg:p-2"
-        icon={<X />}
+        className="text-sm font-medium rounded-lg items-center justify-center w-8 h-8 min-w-8 min-h-8 p-0 lg:w-full lg:h-auto lg:min-w-0 lg:min-h-0 lg:p-2"
       >
         Cancel
-      </Button>
+      </CancelButton>
     </div>
   );
 

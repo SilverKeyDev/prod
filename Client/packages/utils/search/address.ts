@@ -141,6 +141,28 @@ function titleCase(s: string): string {
 }
 
 /**
+ * Strips zip code, state, and country from an address for use in map marker titles.
+ * Keeps street address and city only.
+ */
+export function addressForMarkerTitle(address: string | undefined): string {
+  if (!address || typeof address !== "string") return "";
+  const parts = address.split(",").map((p) => p.trim()).filter(Boolean);
+  const filtered = parts.filter((part) => {
+    // Zip code: 12345 or 12345-6789
+    if (/^\d{5}(-\d{4})?$/.test(part)) return false;
+    // State abbreviation: CA, NY, TX
+    if (/^[A-Z]{2}$/.test(part)) return false;
+    // State + Zip: CA 94043 or NY 10001-1234
+    if (/^[A-Z]{2}\s+\d{5}(-\d{4})?$/.test(part)) return false;
+    // Country
+    if (/^(USA|US|United States|United States of America)$/i.test(part))
+      return false;
+    return true;
+  });
+  return filtered.join(", ").trim() || address;
+}
+
+/**
  * Truncate without chopping mid-word when possible.
  */
 export function truncateText(text: string, maxLength: number = 50): string {

@@ -37,6 +37,21 @@ export type FavoriteHomesResponse = {
   error?: string;
 };
 
+export type NotInterestedHomesResponse = {
+  success: boolean;
+  notInterested?: Array<{
+    id?: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    zpid?: string;
+    mls_home_id?: string;
+    [key: string]: unknown;
+  }>;
+  message?: string;
+  error?: string;
+};
+
 export type AddFavoriteRequest = {
   home: unknown;
 };
@@ -108,8 +123,8 @@ export const userApi = {
   /**
    * Get user's not-interested homes
    */
-  getNotInterestedHomes: (): Promise<FavoriteHomesResponse> =>
-    apiGet<FavoriteHomesResponse>("/api/v1/user/not-interested-homes"),
+  getNotInterestedHomes: (): Promise<NotInterestedHomesResponse> =>
+    apiGet<NotInterestedHomesResponse>("/api/v1/user/not-interested-homes"),
 
   /**
    * Mark a home as not interested

@@ -1,4 +1,4 @@
-import { Eye } from "lucide-react";
+import { Eye, type LucideIcon } from "lucide-react";
 import React, { useState } from "react";
 
 import KeyTurnLoader from "../../ui/loading/KeyTurnLoader";
@@ -10,11 +10,13 @@ export type CardViewDetailsButtonProps = {
   /** Button size */
   size?: "xs" | "sm" | "md" | "lg";
   /** Button variant */
-  variant?: "primary" | "secondary" | "muted";
+  variant?: "primary" | "secondary" | "muted" | "unlock" | "negotiate";
   /** Full width button */
   fullWidth?: boolean;
   /** Button text */
   text?: string;
+  /** Icon to display (defaults to Eye) */
+  icon?: LucideIcon;
   /** Show icon */
   showIcon?: boolean;
   /** Disabled state */
@@ -29,6 +31,7 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
   variant = "primary",
   fullWidth = false,
   text = "Unlock",
+  icon: Icon = Eye,
   showIcon = true,
   disabled = false,
   className = "",
@@ -63,6 +66,8 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
     primary: "bg-beige text-white hover:bg-beige/90 border-beige",
     secondary: "bg-white text-beige border-beige hover:bg-beige/5",
     muted: "muted-button-primary",
+    unlock: "bg-olive text-white hover:bg-olive/90 border-olive",
+    negotiate: "bg-gold text-white hover:bg-gold/90 border-gold",
   };
 
   // Ensure size is valid, fallback to "md" if invalid
@@ -136,7 +141,7 @@ const CardViewDetailsButton: React.FC<CardViewDetailsButtonProps> = ({
         </div>
       ) : (
         <div className="flex items-center justify-center">
-          {showIcon && <Eye className={iconClasses} />}
+          {showIcon && <Icon className={iconClasses} />}
           <span className="whitespace-nowrap">{text}</span>
         </div>
       )}

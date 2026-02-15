@@ -96,28 +96,49 @@ export default function CloseLayout({
     return mapping;
   }, [checkedIds]);
 
+  // Primitives for effect deps - avoid object reference changes causing loops
+  const completedCount = checkedIds.length;
+  const totalCount = items.length;
+
   // Toggle checkbox state
   const toggle = (id: number) => {
     void toggleItem(id);
   };
 
   // Update header data when checklist state changes
+  // Use primitive deps only; guard setState to avoid unnecessary parent re-renders
   useEffect(() => {
-    if (setClosePageHeaderData) {
-      const completedCount = Object.values(checked).filter(Boolean).length;
-      const totalCount = items.length;
+    if (!setClosePageHeaderData) return;
 
-      setClosePageHeaderData({
-        title,
-        subtitle,
-        completedCount,
-        totalCount,
-        loading,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // setClosePageHeaderData is a setState function from useState and is stable by React's guarantee
-  }, [checked, loading, title, subtitle, items.length]);
+    const next = {
+      title,
+      subtitle,
+      completedCount,
+      totalCount,
+      loading,
+    };
+
+    setClosePageHeaderData((prev) => {
+      if (
+        prev &&
+        prev.title === next.title &&
+        prev.subtitle === next.subtitle &&
+        prev.completedCount === next.completedCount &&
+        prev.totalCount === next.totalCount &&
+        prev.loading === next.loading
+      ) {
+        return prev;
+      }
+      return next;
+    });
+  }, [
+    setClosePageHeaderData,
+    title,
+    subtitle,
+    completedCount,
+    totalCount,
+    loading,
+  ]);
 
   // Cleanup header data when component unmounts
   useEffect(() => {

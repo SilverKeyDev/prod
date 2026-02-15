@@ -1,9 +1,10 @@
-import { Share2, MessageCircle, User } from "lucide-react";
+import { Share, MessageCircle, User } from "lucide-react";
 import { useState } from "react";
 
 import BaseModal from "./BaseModal";
 import { formatAddress } from "./PropertyDetailsModal/utils";
 import Button from "../ui/button/Button";
+import CancelButton from "../ui/button/CancelButton";
 import KeyTurnLoader from "../ui/loading/KeyTurnLoader";
 import { useAgentChats } from "../../../../packages/hooks/data/chat/useAgentChats";
 import { useAgentClients } from "../../../../packages/hooks/data/agent/useAgentClients";
@@ -145,7 +146,7 @@ export default function ShareHomeModal({
       size="md"
       headerContent={
         <div className="flex items-center gap-2">
-          <Share2 className="h-5 w-5 text-gray-600" />
+          <Share className="h-5 w-5 text-gray-600" />
           <h3 className="text-lg font-medium text-gray-900">Share Property</h3>
         </div>
       }
@@ -262,14 +263,13 @@ export default function ShareHomeModal({
 
         {/* Actions */}
         <div className="flex gap-3 pt-2">
-          <Button
-            variant="outline"
+          <CancelButton
             onClick={onClose}
             className="flex-1"
             disabled={isSharing}
           >
             Cancel
-          </Button>
+          </CancelButton>
           <Button
             variant="primary"
             onClick={handleShare}

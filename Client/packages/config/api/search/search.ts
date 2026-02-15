@@ -80,6 +80,7 @@ export const searchApi = {
    */
   getPropertyComps: (
     params: PropertyCompsRequest,
+    options?: { signal?: AbortSignal },
   ): Promise<PropertyCompsResponse> => {
     const url = buildApiUrl("/api/v1/search/propertyComps", {
       address: params.address,
@@ -89,6 +90,7 @@ export const searchApi = {
 
     return apiGet<PropertyCompsResponse>(url, {
       timeout: 300000, // 5 minutes for property comps search
+      ...options,
     })
       .then((resp) => {
         const respWithComps = resp as typeof resp & { comps?: unknown[] };
@@ -114,10 +116,12 @@ export const searchApi = {
    */
   searchByPolygon: (
     data: PolygonSearchRequest,
+    options?: { signal?: AbortSignal },
   ): Promise<PolygonSearchResponse> => {
     const url = "/api/v1/search/properties-by-polygon";
     return apiPost<PolygonSearchResponse>(url, data, {
       timeout: 300000, // 5 minutes for polygon search
+      ...options,
     })
       .then((resp) => {
         return resp;

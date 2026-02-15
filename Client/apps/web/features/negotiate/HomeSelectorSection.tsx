@@ -1,7 +1,7 @@
 import React from "react";
 import { Lightbulb } from "lucide-react";
 import { AlignedRow } from "../../components/layout";
-import { FavoriteHomesDropdown, Button } from "../../components/ui";
+import { FavoriteHomesDropdown, Button, CancelButton } from "../../components/ui";
 import { SectionBox } from "./index";
 
 type FavoriteHome = {
@@ -22,6 +22,7 @@ type HomeSelectorSectionProps = {
   isLoading: boolean;
   onHomeSelect: (home: unknown) => void;
   onGenerate: () => void;
+  onCancel?: () => void;
 };
 
 export function HomeSelectorSection({
@@ -29,6 +30,7 @@ export function HomeSelectorSection({
   isLoading,
   onHomeSelect,
   onGenerate,
+  onCancel,
 }: HomeSelectorSectionProps): React.JSX.Element {
   return (
     <SectionBox>
@@ -38,17 +40,24 @@ export function HomeSelectorSection({
           onHomeSelect={onHomeSelect}
           placeholder="Select a favorite home for strategy generation"
         />
-        <Button
-          variant="olive"
-          hideTextBelow="md"
-          loading={isLoading}
-          icon={<Lightbulb className="mobile-icon-sm" />}
-          onClick={onGenerate}
-          disabled={!selectedHome || isLoading}
-          className="h-full whitespace-nowrap"
-        >
-          Generate
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="olive"
+            hideTextBelow="md"
+            loading={isLoading}
+            icon={<Lightbulb className="mobile-icon-sm" />}
+            onClick={onGenerate}
+            disabled={!selectedHome || isLoading}
+            className="h-full whitespace-nowrap"
+          >
+            Generate
+          </Button>
+          {isLoading && onCancel && (
+            <CancelButton onClick={onCancel} size="sm" className="h-full">
+              Cancel
+            </CancelButton>
+          )}
+        </div>
       </AlignedRow>
     </SectionBox>
   );

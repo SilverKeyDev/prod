@@ -11,7 +11,7 @@ type SavedPageTabsAndSearchProps = {
   onViewTypeChange: (type: SavedPageViewType) => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
   onEventTypeFilterChange?: (
-    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
   ) => void;
   rightText?: string;
   onUploadClick?: () => void;
@@ -33,20 +33,20 @@ export default function SavedPageTabsAndSearch({
     <div className="flex items-center justify-start gap-2 mb-3 border-b border-gray-200">
       <button
         onClick={() => onViewTypeChange("homes")}
-        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+        className={`px-4 py-2 border-b-2 transition-colors ${
           viewType === "homes"
-            ? "border-brown text-brown"
-            : "border-transparent text-gray-500 hover:text-gray-700"
+            ? "border-gold text-base font-semibold text-gray-500"
+            : "border-transparent text-sm font-medium text-gray-500 hover:text-gray-700"
         }`}
       >
         Homes
       </button>
       <button
         onClick={() => onViewTypeChange("documents")}
-        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+        className={`px-4 py-2 border-b-2 transition-colors ${
           viewType === "documents"
-            ? "border-brown text-brown"
-            : "border-transparent text-gray-500 hover:text-gray-700"
+            ? "border-gold text-base font-semibold text-gray-500"
+            : "border-transparent text-sm font-medium text-gray-500 hover:text-gray-700"
         }`}
       >
         Documents

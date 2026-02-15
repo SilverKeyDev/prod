@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Handshake } from "lucide-react";
 import type { SavedHome } from "../../../../packages/schemas";
 import { PropertyCard } from "../cards";
 import {
@@ -133,7 +134,7 @@ export default function SavedHomesContent({
                 onVoid={onAgreementVoid}
               />
             </div>
-          ),
+          )
         )}
       </div>
     );
@@ -231,16 +232,17 @@ export default function SavedHomesContent({
                     <CardViewDetailsButton
                       onClick={() => onUnlockHome(home)}
                       size="sm"
-                      variant="primary"
+                      variant="unlock"
                       fullWidth
                       text="Unlock"
                     />
                     <CardViewDetailsButton
                       onClick={() => onOpenNegotiation(home)}
                       size="sm"
-                      variant="secondary"
+                      variant="negotiate"
                       fullWidth
                       text="Negotiate"
+                      icon={Handshake}
                     />
                   </div>
                 }

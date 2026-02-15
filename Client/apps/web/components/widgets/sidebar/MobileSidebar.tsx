@@ -46,11 +46,8 @@ export default function MobileSidebar({
     {
       ...SIDEBAR_TABS.agent,
     },
-    // {
-    //   ...SIDEBAR_TABS.settings,
-    // },
     {
-      ...SIDEBAR_TABS.close,
+      ...SIDEBAR_TABS.profile,
     },
   ];
 
