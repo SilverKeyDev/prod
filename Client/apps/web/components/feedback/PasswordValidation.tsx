@@ -1,7 +1,10 @@
-import { Check, X } from "lucide-react";
 import React from "react";
 
-import { validationRules } from "./PasswordValidationUtils";
+import { Check, X } from "lucide-react";
+
+import { validationRules } from "packages/utils/domain/auth/passwordValidation";
+
+import { BodyText } from "@/components/ui/index.web";
 
 type PasswordValidationProps = {
   password: string;
@@ -34,13 +37,14 @@ export const PasswordValidation: React.FC<PasswordValidationProps> = ({
                   <X className="mobile-icon-xs text-gray-500" />
                 )}
               </div>
-              <span
+              <BodyText
+                as="span"
                 className={`text-responsive-sm ${
                   isValid ? "font-medium text-olive" : "text-gray-600"
                 }`}
               >
                 {rule.label}
-              </span>
+              </BodyText>
             </div>
           );
         })}

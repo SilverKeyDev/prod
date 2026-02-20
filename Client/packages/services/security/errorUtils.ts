@@ -3,7 +3,11 @@
  * Consolidates error context building and serialization from reports.ts and errorReporting.ts
  */
 
-import { scrubPII, redactErrorMessage } from "./piiSecurity";
+import { dateNow } from "packages/utils/core/date";
+import { getNavigator, getWindow } from "packages/utils/core/platform";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
+
+import { redactErrorMessage, scrubPII } from "./piiSecurity";
 
 export type ErrorContext = {
   timestamp: string;
@@ -34,10 +38,12 @@ export function createErrorContext(options: {
   userId?: string;
   additionalData?: Record<string, unknown>;
 }): ErrorContext {
+  const nav = getNavigator();
+  const win = getWindow();
   return {
-    timestamp: new Date().toISOString(),
-    userAgent: navigator.userAgent,
-    url: window.location.href,
+    timestamp: dateNow().toISOString(),
+    userAgent: nav?.userAgent ?? "",
+    url: win?.location.href ?? "",
     userId: options.userId,
     sessionId: getSessionId(),
     component: options.component,
@@ -264,10 +270,11 @@ export function isAuthError(error: unknown): boolean {
  * Get or create session ID for error tracking
  */
 function getSessionId(): string {
-  let sessionId = sessionStorage.getItem("sessionId");
+  const session = getSessionStorage();
+  let sessionId = session.getItem("sessionId");
   if (!sessionId) {
     sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    sessionStorage.setItem("sessionId", sessionId);
+    session.setItem("sessionId", sessionId);
   }
   return sessionId;
 }

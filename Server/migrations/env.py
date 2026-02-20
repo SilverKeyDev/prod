@@ -1,13 +1,16 @@
 import logging
 from logging.config import fileConfig
-from flask import current_app
+
 from alembic import context
+from flask import current_app
 
 # Alembic Config object
 config = context.config
 
-# Set up Python logging via .ini config
-fileConfig(config.config_file_name)
+# Set up Python logging via .ini config (skip if no config file path)
+config_file_name = config.config_file_name
+if config_file_name is not None:
+    fileConfig(config_file_name)
 logger = logging.getLogger("alembic.env")
 
 
@@ -42,8 +45,7 @@ def get_metadata():
     """
     # Import all models so Alembic can detect them
     # This must happen within the app context (which Flask-Migrate provides)
-    import app.models  # This imports all models via __init__.py
-    
+
     if hasattr(target_db, "metadatas"):
         # Flask-SQLAlchemy exposes metadatas as a {bind_key: MetaData} dict
         return list(target_db.metadatas.values())
@@ -88,7 +90,7 @@ def run_migrations_online():
     connectable = get_engine()
 
     mds = get_metadata()
-    md_list = mds if isinstance(mds, (list, tuple)) else [mds]
+    md_list = mds if isinstance(mds, list | tuple) else [mds]
     for md in md_list:
         logger.info("Alembic scanning tables: %s", sorted(md.tables.keys()))
 

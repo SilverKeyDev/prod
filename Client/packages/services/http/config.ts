@@ -2,8 +2,14 @@
    HTTP Client Configuration
    ========================= */
 
-import { getBaseUrl, getDefaultTimeout, getDefaultRetries } from "../../config";
-import { getAuthToken } from "../../utils/auth";
+import { log, LOG_CATEGORIES } from "logger";
+
+import {
+  getBaseUrl,
+  getDefaultRetries,
+  getDefaultTimeout,
+} from "packages/config";
+import { getAuthToken } from "packages/utils";
 
 import { HttpClient, type HttpClientConfig } from "./client";
 
@@ -22,7 +28,7 @@ function createAuthTokenProvider(): () => string | null {
     try {
       return getAuthToken();
     } catch (error: unknown) {
-      console.warn("Failed to get auth token:", error);
+      log.warn(LOG_CATEGORIES.HTTP, "Failed to get auth token", error);
       return null;
     }
   };
@@ -36,7 +42,11 @@ function createAuthErrorHandler() {
   return (error: unknown) => {
     // Use existing handleAuthenticationError - it's already imported in client.ts
     // This handler is only used as a fallback, the main handling is in client.ts
-    console.warn("Auth error handler called as fallback:", error);
+    log.warn(
+      LOG_CATEGORIES.HTTP,
+      "Auth error handler called as fallback",
+      error,
+    );
   };
 }
 

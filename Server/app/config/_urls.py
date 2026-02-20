@@ -39,9 +39,8 @@ def get_docusign_webhook_connect_url():
 def get_docusign_oauth_redirect_uri():
     """Get DocuSign OAuth redirect URI based on environment"""
     flask_env = os.getenv("FLASK_ENV", "development")
-    
+
     if flask_env == "production":
         return "https://usesilverkey.com/api/v1/docusign/oauth/callback"
     else:
         return "http://localhost:5000/api/v1/docusign/oauth/callback"
-

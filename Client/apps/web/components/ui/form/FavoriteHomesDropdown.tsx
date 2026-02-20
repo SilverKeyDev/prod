@@ -1,21 +1,15 @@
+import React, { useEffect, useRef, useState } from "react";
+
+import KeyTurnLoader from "@ui/loading/KeyTurnLoader.web";
 import { ChevronDown, Home } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
 
-import { apiRequest } from "../../../../../packages/config/api";
-import KeyTurnLoader from "../loading/KeyTurnLoader";
+import { useLocalization } from "packages/contexts";
+import {
+  type FavoriteHomeItem,
+  useFavoriteHomesList,
+} from "packages/hooks/data/user/useFavoriteHomesList";
 
-type FavoriteHome = {
-  user_id: string;
-  address: string;
-  beds: string;
-  baths: string;
-  sqft: string;
-  lot_size: string;
-  price: string;
-  image_url: string;
-  created_at: string;
-  updated_at: string;
-};
+type FavoriteHome = FavoriteHomeItem;
 
 type FavoriteHomesDropdownProps = {
   selectedHome: FavoriteHome | null;
@@ -29,86 +23,14 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
   selectedHome,
   onHomeSelect,
   className = "",
-  placeholder = "Select a favorite home",
+  placeholder,
   disabled = false,
 }) => {
-  // State management
-  const [favoriteHomes, setFavoriteHomes] = useState<FavoriteHome[]>([]);
+  const { t } = useLocalization();
+  const { favoriteHomes, loading: loadingHomes } = useFavoriteHomesList();
+  const displayPlaceholder = placeholder ?? t("favorite_homes.placeholder");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [loadingHomes, setLoadingHomes] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Fetch favorite homes on component mount
-  useEffect(() => {
-    const fetchFavoriteHomes = async () => {
-      try {
-        setLoadingHomes(true);
-        const res = (await apiRequest("/api/v1/user/favorite-homes")) as {
-          success: boolean;
-          favorites?: unknown[];
-        };
-
-        const responseData = res as Record<string, unknown>;
-        if (responseData.success && Array.isArray(responseData.favorites)) {
-          const homes: FavoriteHome[] = (
-            responseData.favorites as unknown[]
-          ).map((home: unknown) => {
-            // Type-safe mapping with proper type guards
-            const typedHome = home as Record<string, unknown>;
-            return {
-              user_id:
-                typeof typedHome.user_id === "string" ? typedHome.user_id : "",
-              address:
-                typeof typedHome.address === "string" ? typedHome.address : "",
-              beds:
-                typeof typedHome.beds === "string"
-                  ? typedHome.beds
-                  : typeof typedHome.beds === "number"
-                    ? typedHome.beds.toString()
-                    : "",
-              baths:
-                typeof typedHome.baths === "string"
-                  ? typedHome.baths
-                  : typeof typedHome.baths === "number"
-                    ? typedHome.baths.toString()
-                    : "",
-              sqft:
-                typeof typedHome.sqft === "string"
-                  ? typedHome.sqft
-                  : typeof typedHome.sqft === "number"
-                    ? typedHome.sqft.toString()
-                    : "",
-              lot_size:
-                typeof typedHome.lot_size === "string"
-                  ? typedHome.lot_size
-                  : "",
-              price: typeof typedHome.price === "string" ? typedHome.price : "",
-              image_url:
-                typeof typedHome.image_url === "string"
-                  ? typedHome.image_url
-                  : "",
-              created_at:
-                typeof typedHome.created_at === "string"
-                  ? typedHome.created_at
-                  : "",
-              updated_at:
-                typeof typedHome.updated_at === "string"
-                  ? typedHome.updated_at
-                  : "",
-            };
-          });
-          setFavoriteHomes(homes);
-        }
-      } catch (error: unknown) {
-        console.error("Error fetching favorite homes:", error);
-        setFavoriteHomes([]);
-      } finally {
-        setLoadingHomes(false);
-      }
-    };
-
-    void void fetchFavoriteHomes();
-  }, []);
 
   // Handle dropdown toggle
   const toggleDropdown = () => {
@@ -150,7 +72,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         <Home className="h-4 w-4 text-brown" />
         <div className="flex-1 text-left">
           {loadingHomes ? (
-            <KeyTurnLoader message="Loading homes..." />
+            <KeyTurnLoader message={t("favorite_homes.loading_homes")} />
           ) : selectedHome ? (
             <div>
               <div className="text-responsive-xs font-medium text-navy">
@@ -164,8 +86,11 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
               </div>
               <div className="text-responsive-xs hidden text-gray-500 sm:block">
                 {selectedHome.beds && selectedHome.baths
-                  ? `${selectedHome.beds} bed, ${selectedHome.baths} bath`
-                  : "Selected Property"}
+                  ? t("favorite_homes.bed_bath", {
+                      beds: String(selectedHome.beds),
+                      baths: String(selectedHome.baths),
+                    })
+                  : t("favorite_homes.selected_property")}
                 {selectedHome.price &&
                   ` • ${selectedHome.price.startsWith("$") ? selectedHome.price : `$${selectedHome.price}`}`}
               </div>
@@ -173,10 +98,10 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
           ) : (
             <div>
               <div className="text-responsive-xs text-gray-500">
-                {placeholder}
+                {displayPlaceholder}
               </div>
               <div className="text-responsive-xs hidden text-gray-400 sm:block">
-                Choose from your saved properties
+                {t("favorite_homes.choose_saved_properties")}
               </div>
             </div>
           )}
@@ -192,7 +117,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border border-beige bg-white shadow-lg">
           {favoriteHomes.length === 0 ? (
             <div className="px-3 py-2 text-center text-sm text-gray-500">
-              No favorite homes found
+              {t("favorite_homes.no_favorite_homes_found")}
             </div>
           ) : (
             favoriteHomes.map((home, index) => {
@@ -219,8 +144,11 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                   </div>
                   <div className="text-responsive-xs mt-1 hidden text-gray-500 sm:block">
                     {home.beds && home.baths
-                      ? `${home.beds} bed, ${home.baths} bath`
-                      : "Property details"}
+                      ? t("favorite_homes.bed_bath", {
+                          beds: String(home.beds),
+                          baths: String(home.baths),
+                        })
+                      : t("favorite_homes.property_details")}
                     {home.sqft &&
                       Number(home.sqft) > 0 &&
                       ` • ${Math.round(Number(home.sqft)).toLocaleString()} sqft`}

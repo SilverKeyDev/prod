@@ -1,11 +1,14 @@
 import { useMemo } from "react";
+
+import type { AgreementStatus } from "packages/schemas/content/documents/docusign";
 import {
   getStatusColor,
-  getStatusIcon,
   getStatusLabel,
   getStatusTooltip,
-} from "../../../../../../packages/utils/documents/docusignHelpers";
-import type { AgreementStatus } from "../../../../../../packages/schemas/documents/docusign";
+} from "packages/utils/domain/documents/docusignHelpers";
+
+import { BodyText } from "@/components/ui/index.web";
+import { getStatusIcon } from "@/features/documents/docusign/utils/docusignIcons";
 
 type AgreementStatusBadgeProps = {
   status: AgreementStatus;
@@ -50,12 +53,14 @@ export default function AgreementStatusBadge({
   }, [size]);
 
   return (
-    <span
+    <BodyText
+      as="span"
+      size={size === "lg" ? "md" : size === "md" ? "sm" : "xs"}
       className={`inline-flex items-center gap-1.5 rounded-full border font-medium ${colorClass} ${sizeClasses} ${className}`}
       title={tooltip}
     >
       {showIcon && <Icon className={iconSizes} />}
       {label}
-    </span>
+    </BodyText>
   );
 }

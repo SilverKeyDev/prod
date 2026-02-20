@@ -1,5 +1,3 @@
-import { BodyText, Button, CancelButton, Title } from "../ui";
-
 type DeleteModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -40,24 +38,27 @@ export default function DeleteModal({
               />
             </svg>
           </div>
-          <Title size="lg" as="h3" className="space-y-responsive-xs">
+          <h3 className="text-responsive-lg space-y-responsive-xs font-medium text-gray-900">
             {title}
-          </Title>
-          <BodyText size="sm" muted className="space-y-responsive-md">
+          </h3>
+          <p className="text-responsive-sm space-y-responsive-md text-gray-500">
             {message}
-          </BodyText>
+          </p>
           <div className="flex justify-center gap-4">
-            <CancelButton onClick={onClose} size="md">
-              {cancelText}
-            </CancelButton>
-            <Button
+            <button
               type="button"
-              variant="danger"
-              size="md"
+              onClick={onClose}
+              className="focus:ring-brown-500 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-black hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2"
+            >
+              {cancelText}
+            </button>
+            <button
+              type="button"
               onClick={onConfirm}
+              className="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
               {confirmText}
-            </Button>
+            </button>
           </div>
         </div>
       </div>

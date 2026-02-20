@@ -1,21 +1,23 @@
 import { MessageCircle } from "lucide-react";
-import { KeyTurnLoader } from "../../../components/ui";
-import UnifiedMessagingHeader from "../ClientMessaging/UnifiedMessagingHeader";
-import { ConnectionRequestsInbox } from "../modals";
-import type {
-  AgentConversation,
-  AgentClient,
-} from "../../../../../packages/config/api";
+
+import type { AgentClient, AgentConversation } from "packages/config/api";
+import { getMessagePreview } from "packages/utils/domain/messaging";
+
+import { BodyText, KeyTurnLoader, Title } from "@/components/ui/index.web";
+import UnifiedMessagingHeader from "@/features/agent/ClientMessaging/UnifiedMessagingHeader";
 import {
   getMessagingConfig,
   type MessagingMode,
-} from "../config/messagingConfig";
+} from "@/features/agent/config/messagingConfig";
+import { ConnectionRequestsInbox } from "@/features/agent/modals";
 
 type ChatMessage = {
   id: string;
   content: string;
   role: "user" | "agent";
   timestamp: Date;
+  shared_home_id?: string | null;
+  shared_document_id?: string | null;
 };
 
 type UnifiedMessagingSidebarProps = {
@@ -85,21 +87,30 @@ export default function UnifiedMessagingSidebar({
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-beige/30">
                 <MessageCircle className="h-6 w-6 text-black/40" />
               </div>
-              <p className="mb-4 text-sm text-black/60">
+              <BodyText as="p" size="sm" className="mb-4 text-black/60">
                 {config.sidebar.emptyMessage}
-              </p>
+              </BodyText>
             </div>
           </div>
         );
       }
 
+      const handleYourAgentClick = () => {
+        if (activeConversation && setActiveConversationId) {
+          setActiveConversationId(activeConversation.id);
+        }
+        setIsSidebarExpanded(false);
+      };
       return (
         <div
-          onClick={() => {
-            if (activeConversation && setActiveConversationId) {
-              setActiveConversationId(activeConversation.id);
+          role="button"
+          tabIndex={0}
+          onClick={handleYourAgentClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleYourAgentClick();
             }
-            setIsSidebarExpanded(false);
           }}
           className={`group cursor-pointer border-b border-beige/50 p-3 transition-colors hover:bg-beige/10 ${
             activeConversationId === activeConversation?.id
@@ -109,13 +120,21 @@ export default function UnifiedMessagingSidebar({
         >
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <h3 className="mb-1 truncate text-sm font-medium text-black">
+              <Title
+                as="h3"
+                size="sm"
+                className="mb-1 truncate font-medium text-black"
+              >
                 Your Agent
-              </h3>
+              </Title>
               {localMessages.length > 0 && (
-                <p className="truncate text-xs text-black/50">
-                  {localMessages[localMessages.length - 1]?.content ?? ""}
-                </p>
+                <BodyText as="p" className="truncate text-xs text-black/50">
+                  {getMessagePreview(
+                    localMessages[localMessages.length - 1] ?? {
+                      content: "",
+                    },
+                  )}
+                </BodyText>
               )}
             </div>
           </div>
@@ -140,9 +159,9 @@ export default function UnifiedMessagingSidebar({
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-beige/30">
                 <MessageCircle className="h-6 w-6 text-black/40" />
               </div>
-              <p className="mb-4 text-sm text-black/60">
+              <BodyText as="p" size="sm" className="mb-4 text-black/60">
                 {config.sidebar.emptyMessage}
-              </p>
+              </BodyText>
             </div>
           </div>
         );
@@ -152,14 +171,23 @@ export default function UnifiedMessagingSidebar({
         <>
           {clients.map((client) => {
             const conversation = conversationMap.get(client.id);
+            const handleClientClick = () => {
+              if (onClientSelect) {
+                onClientSelect(client.id);
+              }
+              setIsSidebarExpanded(false);
+            };
             return (
               <div
                 key={client.id}
-                onClick={() => {
-                  if (onClientSelect) {
-                    onClientSelect(client.id);
+                role="button"
+                tabIndex={0}
+                onClick={handleClientClick}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleClientClick();
                   }
-                  setIsSidebarExpanded(false);
                 }}
                 className={`group cursor-pointer border-b border-beige/50 p-3 transition-colors hover:bg-beige/10 ${
                   selectedClientId === client.id
@@ -169,22 +197,35 @@ export default function UnifiedMessagingSidebar({
               >
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
-                    <h3 className="mb-1 truncate text-sm font-medium text-black">
+                    <Title
+                      as="h3"
+                      size="sm"
+                      className="mb-1 truncate font-medium text-black"
+                    >
                       {client.name}
-                    </h3>
+                    </Title>
                     {conversation?.last_message ? (
-                      <p className="truncate text-xs text-black/50">
+                      <BodyText
+                        as="p"
+                        className="truncate text-xs text-black/50"
+                      >
                         {conversation.last_message}
-                      </p>
+                      </BodyText>
                     ) : (
-                      <p className="truncate text-xs text-black/50">
+                      <BodyText
+                        as="p"
+                        className="truncate text-xs text-black/50"
+                      >
                         {client.email}
-                      </p>
+                      </BodyText>
                     )}
                     {client.phone && !conversation?.last_message && (
-                      <p className="truncate text-xs text-black/40">
+                      <BodyText
+                        as="p"
+                        className="truncate text-xs text-black/40"
+                      >
                         {client.phone}
-                      </p>
+                      </BodyText>
                     )}
                   </div>
                 </div>

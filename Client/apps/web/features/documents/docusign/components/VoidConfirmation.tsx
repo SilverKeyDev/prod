@@ -1,4 +1,9 @@
-import { BodyText, Button, CancelButton } from "../../../../components/ui";
+import {
+  BodyText,
+  Button,
+  CancelButton,
+  Textarea,
+} from "@/components/ui/index.web";
 
 type VoidConfirmationProps = {
   voidReason: string;
@@ -27,7 +32,7 @@ export default function VoidConfirmation({
         Are you sure you want to void this agreement? This action cannot be
         undone.
       </BodyText>
-      <textarea
+      <Textarea
         value={voidReason}
         onChange={(e) => onReasonChange(e.target.value)}
         placeholder="Reason for voiding (optional)..."

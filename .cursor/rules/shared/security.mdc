@@ -1,0 +1,17 @@
+---
+description: Security controls and constraints for both Client and Server
+globs:
+  - "Client/**"
+  - "Server/**"
+alwaysApply: true
+---
+- # Security Controls
+
+- Never weaken authentication, authorization, or token handling. Client uses memory + sessionStorage for tokens; no localStorage.
+- Preserve security headers (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, CSP).
+- File uploads must enforce MIME validation, size limits, malicious pattern scanning, and (if configured) virus scanning.
+- Sanitize inputs and validate requests server-side; use parameterized queries and avoid leaking sensitive details in errors.
+- Mask PII in logs. Detect and redact emails, phone, SSN, credit card, and JWTs.
+- Respect CORS restrictions and HTTPS enforcement.
+- Do not commit secrets. Use environment variables and existing config mechanisms.
+

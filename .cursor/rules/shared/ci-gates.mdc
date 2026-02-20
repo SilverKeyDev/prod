@@ -1,0 +1,34 @@
+---
+description: CI gates to prevent drift after web/RN split — typecheck, lint, cycles, format, parity, file size
+globs:
+  - ".github/workflows/**"
+  - "Client/**/*"
+alwaysApply: true
+---
+
+# CI Gates (Prevent Drift After Split)
+
+## Goal
+
+Once RN exists, drift between web and shared code starts immediately. Per-PR required checks must block merge until all gates pass.
+
+## Required Per-PR Checks
+
+These must run on every pull request (and push) for the Client:
+
+1. **Typecheck** — `pnpm typecheck` (e.g. `tsc -p apps/web/tsconfig.json`). No type errors.
+2. **Lint** — `pnpm lint` (ESLint including silverkey rules). No errors.
+3. **Cycle check** — `pnpm lint:cycles` (e.g. madge circular dependency check). No cycles in `apps/web` and `packages`.
+4. **Formatting** — `pnpm format:check` (Prettier). No unformatted files.
+5. **File size** — Enforced via ESLint rule `silverkey/max-lines-hard` (e.g. max 500 lines per file). Part of `pnpm lint`. The intent is to flag oversized files; prefer addressing **cyclomatic complexity** and real maintainability over splitting into many tiny files just to satisfy the limit (see code-organization: complexity over line count, avoid file fragmentation).
+6. **Parity check** — `pnpm lint:parity` when both `apps/web` and `apps/mobile` (or `apps/native`) exist. Ensures mirrored feature folders stay in sync; skipped if one app is missing.
+
+## Workflow
+
+- **Single entry point:** `scripts/run-all-linters.sh` runs all linters for a scope (`client` | `server` | `all`). Server linters are auto-discovered via `Server/scripts/lint_*.py`; Client uses `Client`’s `check:all` (add new Client linters there). New Server lint scripts need no workflow or root script change.
+- **CI:** `.github/workflows/lint.yml` runs the root script for client and server (two jobs). **Main/deploy:** `ci_web.yml` calls the lint workflow before build/deploy.
+
+## Enforcement
+
+- Branch protection: require "Client (all linters)" (or equivalent) to pass before merge.
+- Do not disable or skip gates without a documented exception; fix the underlying issue instead.

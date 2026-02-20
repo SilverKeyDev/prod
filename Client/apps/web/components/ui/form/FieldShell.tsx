@@ -1,6 +1,8 @@
 // src/components/ui/FieldShell.tsx
 import type { ReactNode } from "react";
 
+import { useLocalization } from "packages/contexts";
+
 type FieldShellProps = {
   id?: string;
   label?: string;
@@ -35,6 +37,7 @@ export default function FieldShell({
   size = "md",
   required,
 }: FieldShellProps) {
+  const { t } = useLocalization();
   // Base styles - enhanced for nested component support
   const baseStyles =
     "w-full border rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 transition-colors duration-150 touch-friendly mobile-input group";
@@ -94,9 +97,12 @@ export default function FieldShell({
           className="mb-1 block text-sm font-medium text-gray-700"
         >
           {label}
-          {required && <span className="text-red-500">*</span>}
+          {required && (
+            <span className="text-red-500">{t("form.required_indicator")}</span>
+          )}
         </label>
       )}
+      {/* Security: static CSS only—no user or server data. Safe for dangerouslySetInnerHTML. */}
       <style
         dangerouslySetInnerHTML={{
           __html: `

@@ -1,9 +1,11 @@
-import type { ExtendedGoogleEvent } from "../../../../../../packages/schemas/calendar";
+import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
 import {
-  getEventStartDate,
   getEventEndDate,
-} from "../../../../../../packages/utils/calendar/eventParsing";
-import Card from "../../../../components/layout/Card";
+  getEventStartDate,
+} from "packages/utils/domain/calendar/eventParsing";
+
+import Card from "@/components/layout/Card.web";
+import { BodyText, Title } from "@/components/ui/index.web";
 
 type EventCardProps = {
   event: ExtendedGoogleEvent;
@@ -64,21 +66,27 @@ export function EventCard({ event, onClick }: EventCardProps) {
       className="mb-2 w-full cursor-pointer border-l-4 border-l-gold transition-all hover:shadow-md"
     >
       <div className="flex flex-col gap-1">
-        <h4 className="font-medium text-gray-900">
+        <Title as="h4" size="sm" className="font-medium text-gray-900">
           {event.summary || "Untitled Event"}
-        </h4>
+        </Title>
         {formatDateRange() && (
-          <p className="text-xs text-gray-600 sm:text-sm">
+          <BodyText as="p" size="xs" className="text-gray-600 sm:text-sm">
             {formatDateRange()}
-          </p>
+          </BodyText>
         )}
         {event.location && (
-          <p className="text-xs text-gray-500 sm:text-sm">{event.location}</p>
+          <BodyText as="p" size="xs" className="text-gray-500 sm:text-sm">
+            {event.location}
+          </BodyText>
         )}
         {event.description && (
-          <p className="mt-1 line-clamp-2 text-xs text-gray-500 sm:text-sm">
+          <BodyText
+            as="p"
+            size="xs"
+            className="mt-1 line-clamp-2 text-gray-500 sm:text-sm"
+          >
             {event.description}
-          </p>
+          </BodyText>
         )}
       </div>
     </Card>

@@ -1,16 +1,20 @@
-import { CheckSquare } from "lucide-react";
-import React, { useEffect, type ReactNode } from "react";
+import React, { type ReactNode, useEffect } from "react";
 
-import Card from "../../components/layout/Card";
-import ChecklistCheckbox from "../../components/ui/form/ChecklistCheckbox";
+import { CheckSquare } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
 import {
-  useChecklistData,
   type ChecklistType,
-} from "../../../../packages/hooks/data/auth/useChecklistData";
+  useChecklistData,
+} from "packages/hooks/data/auth/useChecklistData";
+
+import Card from "@/components/layout/Card.web";
+import ChecklistCheckbox from "@/components/ui/form/ChecklistCheckbox";
+import { BodyText } from "@/components/ui/index.web";
 
 // Shared CSS classes - now using Card component instead with mobile-first responsive design
 const sectionTitle =
-  "text-responsive-sm font-semibold text-navy flex items-center gap-responsive-xs mb-responsive-md";
+  "text-responsive-xs font-semibold text-navy flex items-center gap-responsive-xs mb-responsive-md";
 const checkboxContainer =
   "flex items-start gap-responsive-xs mt-responsive-sm mb-responsive-md";
 const itemLabel = "font-medium text-navy text-responsive-sm";
@@ -45,7 +49,6 @@ type CloseLayoutProps = {
   subtitle: string;
   sectionTitle: string;
   apiEndpoint: string;
-  items: ChecklistItem[];
   children?: ReactNode;
   showLoadingScreen?: boolean;
   containerClassName?: string;
@@ -60,13 +63,13 @@ export default function CloseLayout({
   subtitle,
   sectionTitle: sectionTitleText,
   apiEndpoint,
-  items,
   children,
   showLoadingScreen = false,
   containerClassName = "py-0",
   showMinLoadingText = false,
   setClosePageHeaderData,
 }: CloseLayoutProps) {
+  const { t } = useLocalization();
   // Extract checklist type from apiEndpoint (e.g., "/api/v1/user/close?type=escrow" -> "escrow")
   const checklistType = React.useMemo<ChecklistType>(() => {
     const match = apiEndpoint.match(/type=(\w+)/);
@@ -80,12 +83,14 @@ export default function CloseLayout({
     return "escrow";
   }, [apiEndpoint]);
 
-  // Use React Query hook for checklist data (uses prefetched data when available)
+  // Use React Query hook for checklist data (items + checkedIds from unified task API)
   const {
+    items: itemsFromHook,
     checkedIds,
     isLoading: loading,
     toggleItem,
   } = useChecklistData(checklistType);
+  const items = itemsFromHook;
 
   // Convert checkedIds array to checked state object
   const checked = React.useMemo(() => {
@@ -147,16 +152,13 @@ export default function CloseLayout({
         setClosePageHeaderData(null);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // setClosePageHeaderData is a setState function from useState and is stable by React's guarantee
-  }, []);
+  }, [setClosePageHeaderData]);
 
-  // Show loading screen for pages that need it
-  // Only show if no data exists AND is loading
-  if (showLoadingScreen && loading && checkedIds.length === 0) {
+  // Show loading screen for pages that need it when no items loaded yet
+  if (showLoadingScreen && loading && items.length === 0) {
     return (
       <div className="flex items-center justify-center bg-off-white text-navy">
-        Loading checklist...
+        {t("close.loading_checklist")}
       </div>
     );
   }
@@ -169,22 +171,22 @@ export default function CloseLayout({
       {/* Main checklist section */}
       <div className={containerClassName}>
         {loading && showMinLoadingText && (
-          <p className="mb-responsive-sm">Loading checklist…</p>
+          <BodyText as="p" className="mb-responsive-sm">
+            {t("close.loading_checklist")}
+          </BodyText>
         )}
 
         <div className="px-responsive-sm mx-auto w-full max-w-none">
           <Card className="mb-responsive-md" padding="sm">
-            <div className={`${sectionTitle} mb-[12px]`}>
-              <div className="flex h-4 w-4 lg:h-5 lg:w-5 items-center justify-center flex-shrink-0">
-                <CheckSquare className="h-4 w-4 lg:h-5 lg:w-5 text-brown" />
-              </div>
-              {sectionTitleText}
+            <div className={`${sectionTitle} mb-3`}>
+              <CheckSquare className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-brown flex-shrink-0" />
+              <BodyText as="span">{sectionTitleText}</BodyText>
             </div>
 
             <fieldset className="mt-responsive-xs">
-              <legend className="sr-only">Checklist</legend>
+              <legend className="sr-only">{t("close.checklist_legend")}</legend>
               <div className="space-y-responsive-md">
-                {items.map((item) => (
+                {items.map((item, index) => (
                   <ChecklistCheckbox
                     key={item.id}
                     item={item}
@@ -193,6 +195,7 @@ export default function CloseLayout({
                     itemLabelClass={itemLabel}
                     itemExplanationClass={itemExplanation}
                     checkboxContainerClass={checkboxContainer}
+                    number={index + 1}
                   />
                 ))}
               </div>

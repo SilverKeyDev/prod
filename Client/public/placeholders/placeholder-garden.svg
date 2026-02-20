@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600">
+  <defs>
+    <linearGradient id="garden-bg" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#2d5a2d"/>
+      <stop offset="50%" style="stop-color:#4a8a4a"/>
+      <stop offset="100%" style="stop-color:#7eb87e"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffe066"/>
+      <stop offset="100%" style="stop-color:#ffb84d"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="600" fill="url(#garden-bg)"/>
+  <circle cx="320" cy="100" r="50" fill="url(#sun)" opacity="0.95"/>
+  <ellipse cx="100" cy="480" rx="50" ry="80" fill="#1a4d1a"/>
+  <ellipse cx="200" cy="460" rx="55" ry="90" fill="#2d6b2d"/>
+  <ellipse cx="300" cy="470" rx="48" ry="85" fill="#1a4d1a"/>
+  <ellipse cx="150" cy="520" rx="40" ry="60" fill="#3d7a3d"/>
+  <ellipse cx="250" cy="510" rx="42" ry="65" fill="#2d6b2d"/>
+  <rect x="180" y="380" width="40" height="100" fill="#5c4033"/>
+  <circle cx="200" cy="350" r="35" fill="#8b6914"/>
+  <text x="200" y="580" text-anchor="middle" fill="#e8f5e8" font-family="sans-serif" font-size="14" font-weight="500">Garden</text>
+  <text x="200" y="598" text-anchor="middle" fill="#b8d4b8" font-family="sans-serif" font-size="11">SilverKey</text>
+</svg>

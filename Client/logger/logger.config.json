@@ -19,5 +19,6 @@
   "calendar": true,
   "dashboard": false,
   "messages": false,
+  "feed": true,
   "logLevel": "DEBUG"
 }

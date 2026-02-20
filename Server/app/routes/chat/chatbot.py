@@ -1,22 +1,29 @@
 # routes/chatbot.py
 
-from flask import Blueprint, request, jsonify
-from app.models import UserPreferences, ChatHistory
-from app.services.chatbot.chatbot_utils import get_preferences, summarize_user_message, get_chat_response
-from app.services.auth import get_current_user
-from ... import db
-import json
 import traceback
-from datetime import datetime
-from ...utils.app_logging import get_logger
+
+from flask import Blueprint, jsonify, request
+
+from app.models import ChatHistory
+from app.services.auth import get_current_user
+from app.services.chatbot.chatbot_utils import (
+    get_chat_response,
+    get_preferences,
+    summarize_user_message,
+)
+
+from ... import db
+from ...utils.security.app_logging import get_logger
+
 logger = get_logger()
 
 
 # Authentication handled directly in route functions
 
-chatbot_bp = Blueprint('chatbot', __name__)
+chatbot_bp = Blueprint("chatbot", __name__)
 
-@chatbot_bp.route('/api/v1/chat/address/<string:report_id>', methods=['POST'])
+
+@chatbot_bp.route("/api/v1/chat/address/<string:report_id>", methods=["POST"])
 def chat_for_address(report_id):
     try:
         try:
@@ -26,7 +33,7 @@ def chat_for_address(report_id):
             logger.error(f"[CHAT_ROUTE] Authentication failed: {str(auth_error)}")
             return jsonify({"error": "Authentication required"}), 401
 
-        user_message = request.json.get('message', '').strip() if request.json else ''
+        user_message = request.json.get("message", "").strip() if request.json else ""
 
         if not user_message:
             logger.warning(f"[CHAT_ROUTE] Empty message received from user {user_id}")
@@ -34,56 +41,20 @@ def chat_for_address(report_id):
 
         message_summary = summarize_user_message(user_message)
 
-        # Store summary in user_preferences.chat_sessions
-        try:
-            user_prefs = UserPreferences.query.filter_by(user_id=user_id).first()
-            if not user_prefs:
-                user_prefs = UserPreferences(user_id=user_id)
-                db.session.add(user_prefs)
-                db.session.flush()
-
-            existing_sessions = []
-            if user_prefs.chat_sessions:
-                try:
-                    existing_sessions = json.loads(user_prefs.chat_sessions)
-                    if not isinstance(existing_sessions, list):
-                        existing_sessions = []
-                except json.JSONDecodeError:
-                    logger.warning(f"[CHAT_ROUTE] Invalid JSON in chat_sessions, resetting to empty list")
-                    existing_sessions = []
-
-            # Add new summary with timestamp
-            session_entry = {
-                "summary": message_summary,
-                "timestamp": datetime.utcnow().isoformat(),
-                "report_id": report_id
-            }
-            existing_sessions.append(session_entry)
-
-            # Keep only the last 100 sessions to prevent unlimited growth
-            if len(existing_sessions) > 100:
-                existing_sessions = existing_sessions[-100:]
-
-            # Update user preferences
-            user_prefs.chat_sessions = json.dumps(existing_sessions)
-            user_prefs.updated_at = datetime.utcnow()
-            
-
-        except Exception as prefs_error:
-            logger.error(f"[CHAT_ROUTE] Error storing chat summary: {str(prefs_error)}")
-            # Continue with chat processing even if summary storage fails
-
         # Fetch the PDF document from the database to get the correct address and S3 path
         from app.models import Document
+
         pdf_doc = Document.query.filter_by(id=report_id, user_id=user_id).first()
 
         if not pdf_doc:
-            logger.warning(f"[CHAT_ROUTE] PDF document not found for report_id: {report_id}, user_id: {user_id}")
+            logger.warning(
+                f"[CHAT_ROUTE] PDF document not found for report_id: {report_id}, user_id: {user_id}"
+            )
             return jsonify({"error": f"Report not found: {report_id}"}), 404
 
         # Use the primary_address from the database record as the source of truth
-        address = getattr(pdf_doc, 'primary_address', None) or "Unknown Address"
-        
+        address = getattr(pdf_doc, "primary_address", None) or "Unknown Address"
+
         if not pdf_doc.primary_address:
             logger.warning(f"[CHAT_ROUTE] PDF document {report_id} has no primary_address set")
 
@@ -91,19 +62,20 @@ def chat_for_address(report_id):
         report_data = None
         try:
             pdf_path = pdf_doc.file_path
-            if '/' in pdf_path:
-                path_parts = pdf_path.split('/')
-                if len(path_parts) >= 4 and path_parts[1] == 'reports':
+            if "/" in pdf_path:
+                path_parts = pdf_path.split("/")
+                if len(path_parts) >= 4 and path_parts[1] == "reports":
                     user_id_from_path = path_parts[0]
                     report_type = path_parts[2]
                     pdf_filename = path_parts[3]
                     json_s3_key = f"{user_id_from_path}/json/{report_type}/{pdf_filename.removesuffix('.pdf')}.json"
                 else:
-                    json_s3_key = pdf_path.replace('/reports/', '/json/').replace('.pdf', '.json')
+                    json_s3_key = pdf_path.replace("/reports/", "/json/").replace(".pdf", ".json")
             else:
-                json_s3_key = pdf_path.replace('.pdf', '.json')
+                json_s3_key = pdf_path.replace(".pdf", ".json")
 
-            from app.services.report_comparator import _download_json_from_s3
+            from app.services.aggregation import _download_json_from_s3
+
             report_data = _download_json_from_s3(json_s3_key)
 
         except Exception as report_error:
@@ -112,17 +84,14 @@ def chat_for_address(report_id):
                 "address": address,
                 "type": "property_report",
                 "status": "completed",
-                "error": "Full report data unavailable"
+                "error": "Full report data unavailable",
             }
 
         # Fetch complete user preferences
         user_profile = get_preferences(user_id)
 
         user_chat = ChatHistory(
-            user_id=user_id,
-            report_id=report_id,
-            role='user',
-            message=user_message
+            user_id=user_id, report_id=report_id, role="user", message=user_message
         )
         db.session.add(user_chat)
         db.session.flush()
@@ -132,29 +101,25 @@ def chat_for_address(report_id):
                 report_data=report_data,
                 user_profile=user_profile,
                 user_message=user_message,
-                address=address
+                address=address,
             )
         except Exception as ai_error:
             logger.error(f"[CHAT_ROUTE] AI service error: {str(ai_error)}")
             reply = "I'm sorry, the AI service is currently unavailable. Please try again later."
             function_call = None
 
-
-        ai_chat = ChatHistory(
-            user_id=user_id,
-            report_id=report_id,
-            role='assistant',
-            message=reply
-        )
+        ai_chat = ChatHistory(user_id=user_id, report_id=report_id, role="assistant", message=reply)
         db.session.add(ai_chat)
         db.session.commit()
 
-        return jsonify({
-            "response": reply,
-            "function_call": function_call,
-            "message_id": ai_chat.id,
-            "message_summary": message_summary
-        })
+        return jsonify(
+            {
+                "response": reply,
+                "function_call": function_call,
+                "message_id": ai_chat.id,
+                "message_summary": message_summary,
+            }
+        )
 
     except Exception as e:
         db.session.rollback()
@@ -163,7 +128,7 @@ def chat_for_address(report_id):
         return jsonify({"error": "Internal server error"}), 500
 
 
-@chatbot_bp.route('/api/v1/chat/history/<string:report_id>', methods=['GET'])
+@chatbot_bp.route("/api/v1/chat/history/<string:report_id>", methods=["GET"])
 def get_chat_history(report_id):
     """Get chat history for a specific property report"""
     try:
@@ -174,24 +139,26 @@ def get_chat_history(report_id):
         except Exception as auth_error:
             logger.error(f"[HISTORY_ROUTE] Authentication failed: {str(auth_error)}")
             return jsonify({"error": "Authentication required"}), 401
-        
-        
+
         # Get chat history for this user and report
-        chat_history = ChatHistory.query.filter_by(
-            user_id=user_id,
-            report_id=report_id
-        ).order_by(ChatHistory.timestamp.asc()).all()
-        
-        
-        messages = [{
-            "id": chat.id,
-            "role": chat.role,
-            "message": chat.message,
-            "timestamp": chat.timestamp.isoformat()
-        } for chat in chat_history]
-        
+        chat_history = (
+            ChatHistory.query.filter_by(user_id=user_id, report_id=report_id)
+            .order_by(ChatHistory.timestamp.asc())
+            .all()
+        )
+
+        messages = [
+            {
+                "id": chat.id,
+                "role": chat.role,
+                "message": chat.message,
+                "timestamp": chat.timestamp.isoformat(),
+            }
+            for chat in chat_history
+        ]
+
         return jsonify({"messages": messages})
-        
+
     except Exception as e:
         logger.error(f"[HISTORY_ROUTE] Error getting chat history for report {report_id}: {str(e)}")
         logger.error(f"[HISTORY_ROUTE] Exception type: {type(e).__name__}")

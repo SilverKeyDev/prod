@@ -2,52 +2,52 @@
 DocuSign services
 """
 
-from .core import DocusignClient, DocusignJWTAuth, get_jwt_auth, DocusignOAuthService
 from .agreements import AgreementLifecycleService, RevisionService
+from .core import DocusignClient, DocusignJWTAuth, DocusignOAuthService, get_jwt_auth
 from .envelopes import EnvelopeBuilder, SigningService
-from .webhooks import WebhookProcessor, verify_hmac, verify_webhook, verify_oauth_token
-from .templates import TemplateSyncService
 from .errors import (
-    DocusignError,
-    DocusignAuthError,
-    DocusignAPIError,
-    AgreementStateError,
     AgreementNotFoundError,
+    AgreementStateError,
+    DocusignAPIError,
+    DocusignAuthError,
+    DocusignError,
+    IdempotencyError,
     ParticipantNotFoundError,
     RevisionNotFoundError,
     TemplateNotFoundError,
     WebhookVerificationError,
-    IdempotencyError
 )
+from .templates import TemplateSyncService
+from .webhooks import WebhookProcessor, verify_hmac, verify_oauth_token, verify_webhook
 
 __all__ = [
     # Core
-    'DocusignClient',
-    'DocusignJWTAuth',
-    'get_jwt_auth',
-    'DocusignOAuthService',
+    "DocusignClient",
+    "DocusignJWTAuth",
+    "get_jwt_auth",
+    "DocusignOAuthService",
     # Agreements
-    'AgreementLifecycleService',
-    'RevisionService',
+    "AgreementLifecycleService",
+    "RevisionService",
     # Envelopes
-    'EnvelopeBuilder',
-    'SigningService',
+    "EnvelopeBuilder",
+    "SigningService",
     # Webhooks
-    'WebhookProcessor',
-    'verify_hmac',
-    'verify_webhook',
-    'verify_oauth_token',
+    "WebhookProcessor",
+    "verify_hmac",
+    "verify_webhook",
+    "verify_oauth_token",
     # Templates
-    'TemplateSyncService',
+    "TemplateSyncService",
     # Errors
-    'DocusignError',
-    'DocusignAuthError',
-    'DocusignAPIError',
-    'AgreementStateError',
-    'AgreementNotFoundError',
-    'ParticipantNotFoundError',
-    'RevisionNotFoundError',
-    'TemplateNotFoundError',
-    'WebhookVerificationError',
-    'IdempotencyError',
+    "DocusignError",
+    "DocusignAuthError",
+    "DocusignAPIError",
+    "AgreementStateError",
+    "AgreementNotFoundError",
+    "ParticipantNotFoundError",
+    "RevisionNotFoundError",
+    "TemplateNotFoundError",
+    "WebhookVerificationError",
+    "IdempotencyError",
 ]

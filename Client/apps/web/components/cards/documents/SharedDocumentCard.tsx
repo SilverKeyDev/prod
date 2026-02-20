@@ -1,4 +1,5 @@
-import DocumentCard, { type DocumentCardProps } from "./DocumentCard";
+import DocumentCard from "./DocumentCard";
+import type { DocumentCardProps } from "./types";
 
 type SharedDocumentCardProps = Omit<DocumentCardProps, "showDelete">;
 

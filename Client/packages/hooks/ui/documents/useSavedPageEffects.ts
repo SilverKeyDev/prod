@@ -1,6 +1,8 @@
 import { useEffect } from "react";
-import { useUIStore } from "../../../store";
-import type { SavedPageViewType } from "../../store/documents/useSavedPageView";
+
+import type { SavedPageViewType } from "packages/hooks/store/documents/useSavedPageView";
+import { useUIStore } from "packages/store";
+import { getWindow } from "packages/utils/core/platform";
 
 type UseSavedPageEffectsProps = {
   viewType: SavedPageViewType;
@@ -24,9 +26,8 @@ export function useSavedPageEffects({
   useEffect(() => {
     if (viewType === "homes") {
       // Optionally expose refresh in dev
-      (
-        window as unknown as { refreshFavorites?: () => void }
-      ).refreshFavorites = refreshSavedHomes;
+      const win = getWindow() as unknown as { refreshFavorites?: () => void };
+      if (win) win.refreshFavorites = refreshSavedHomes;
     }
   }, [refreshSavedHomes, viewType]);
 

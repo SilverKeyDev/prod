@@ -7,26 +7,30 @@ infrastructure for future LLM-based personalization.
 Now supports HTML rendering via React Email components.
 """
 
-from typing import List, Tuple, Optional, Dict, Any
 import logging
-import os
+from typing import Any
 
 from app.models import HomeUniversal
 
 logger = logging.getLogger(__name__)
 
-# Import HTML renderer
+# Import HTML renderer (optional - used only when HTML_RENDERING_AVAILABLE is True)
+convert_home_universal_to_listing_dict: Any = None
+render_email_html_fn: Any = None
 try:
     from app.services.email.render_email_html import (
-        render_email_html,
-        convert_home_universal_to_listing_dict,
+        convert_home_universal_to_listing_dict as _convert_listing,
     )
+    from app.services.email.render_email_html import (
+        render_email_html,
+    )
+
+    convert_home_universal_to_listing_dict = _convert_listing
+    render_email_html_fn = render_email_html
     HTML_RENDERING_AVAILABLE = True
 except ImportError:
     HTML_RENDERING_AVAILABLE = False
-    logger.warning(
-        "HTML email rendering not available. Falling back to plain text."
-    )
+    logger.warning("HTML email rendering not available. Falling back to plain text.")
 
 
 # Hardcoded email configuration
@@ -44,21 +48,21 @@ EMAIL_CONFIG = {
 class EmailFormatter:
     """
     Formats email content for listings emails.
-    
+
     Provides infrastructure for LLM-based personalization (not yet implemented).
     """
 
     def __init__(self, use_llm: bool = False):
         """
         Initialize the email formatter.
-        
+
         Args:
             use_llm: If True, enable LLM-based personalization (not yet implemented).
                     Currently ignored, but sets up infrastructure for future use.
         """
         self.use_llm = use_llm
         self._llm_client = None
-        
+
         if self.use_llm:
             # Initialize LLM client for future use (not implemented yet)
             self._init_llm_client()
@@ -70,34 +74,33 @@ class EmailFormatter:
         """
         try:
             # LLM client removed - using embedding-based scoring only
-            logger.info("[EMAIL_FORMATTER] LLM client initialization deferred (not yet implemented)")
+            logger.info(
+                "[EMAIL_FORMATTER] LLM client initialization deferred (not yet implemented)"
+            )
             pass
         except Exception as e:
             logger.warning(f"[EMAIL_FORMATTER] Could not initialize LLM client: {e}")
             self.use_llm = False
 
     def format_listings_text(
-        self, 
-        listings: List[HomeUniversal], 
-        max_items: int = 10,
-        user_id: Optional[str] = None
+        self, listings: list[HomeUniversal], max_items: int = 10, user_id: str | None = None
     ) -> str:
         """
         Format a list of homes into plaintext email body content.
-        
+
         Args:
             listings: List of HomeUniversal objects to format
             max_items: Maximum number of listings to include
             user_id: Optional user ID for future LLM personalization
-            
+
         Returns:
             Formatted plaintext string
         """
         if not listings:
             return ""
 
-        lines: List[str] = []
-        
+        lines: list[str] = []
+
         # Add title/intro
         lines.append(EMAIL_CONFIG["title"])
         lines.append("")
@@ -105,11 +108,11 @@ class EmailFormatter:
         lines.append("")
         lines.append(EMAIL_CONFIG["intro_text"])
         lines.append("")
-        
+
         # Format each listing
         for i, home in enumerate(listings[:max_items], start=1):
             lines.append(f"--- Property {i} ---")
-            
+
             # Format property details
             parts = []
             if home.address:
@@ -124,9 +127,9 @@ class EmailFormatter:
                 parts.append(f"Sqft: {home.sqft}")
             if home.score is not None:
                 parts.append(f"Match Score: {home.score:.2f}")
-            
+
             lines.append(" | ".join(parts))
-            
+
             lines.append("")
 
         # Add closing
@@ -139,10 +142,10 @@ class EmailFormatter:
     def _format_price(self, price: str) -> str:
         """
         Format price string for display.
-        
+
         Args:
             price: Price string (may contain commas or be numeric)
-            
+
         Returns:
             Formatted price string
         """
@@ -158,15 +161,15 @@ class EmailFormatter:
     def format_email_message(
         self,
         recipient_email: str,
-        listings: List[HomeUniversal],
-        user_id: Optional[str] = None,
+        listings: list[HomeUniversal],
+        user_id: str | None = None,
         max_items: int = 10,
-        custom_subject: Optional[str] = None,
+        custom_subject: str | None = None,
         use_html: bool = True,
-    ) -> Tuple[str, str, str, Optional[str]]:
+    ) -> tuple[str, str, str, str | None]:
         """
         Format a complete email message.
-        
+
         Args:
             recipient_email: Email address of recipient
             listings: List of HomeUniversal objects to include
@@ -174,7 +177,7 @@ class EmailFormatter:
             max_items: Maximum number of listings to include
             custom_subject: Optional custom subject line (overrides default)
             use_html: If True, render HTML email using React Email (default: True)
-            
+
         Returns:
             Tuple of (recipient_email, subject, body_text, html_body)
             html_body will be None if HTML rendering is disabled or unavailable
@@ -182,18 +185,23 @@ class EmailFormatter:
         subject = custom_subject or EMAIL_CONFIG["subject_template"]
         body_text = self.format_listings_text(listings, max_items=max_items, user_id=user_id)
         html_body = None
-        
+
         # Try to render HTML if requested and available
-        if use_html and HTML_RENDERING_AVAILABLE:
+        if (
+            use_html
+            and HTML_RENDERING_AVAILABLE
+            and convert_home_universal_to_listing_dict
+            and render_email_html_fn
+        ):
             try:
                 # Convert listings to dict format for React component
                 listing_dicts = [
                     convert_home_universal_to_listing_dict(listing)
                     for listing in listings[:max_items]
                 ]
-                
+
                 # Render HTML email
-                html_body = render_email_html(
+                html_body = render_email_html_fn(
                     template_name="ListingsEmail",
                     props={
                         "recipientEmail": recipient_email,
@@ -212,40 +220,41 @@ class EmailFormatter:
                 )
                 # Continue with plain text only
                 html_body = None
-        
+
         return (recipient_email, subject, body_text, html_body)
 
     def format_email_with_llm(
         self,
         recipient_email: str,
-        listings: List[HomeUniversal],
-        user_data: Dict[str, Any],
+        listings: list[HomeUniversal],
+        user_data: dict[str, Any],
         max_items: int = 10,
-    ) -> Tuple[str, str, str]:
+    ) -> tuple[str, str, str]:
         """
         Format email using LLM for personalization.
-        
+
         This is a placeholder for future LLM-based personalization.
-        Currently returns the same format as format_email_message.
-        
+        Currently returns the same format as format_email_message (first 3 elements).
+
         Args:
             recipient_email: Email address of recipient
             listings: List of HomeUniversal objects to include
             user_data: User data dict for personalization
             max_items: Maximum number of listings to include
-            
+
         Returns:
             Tuple of (recipient_email, subject, body_text)
         """
         if not self.use_llm or not self._llm_client:
-            # Fallback to standard formatting
-            return self.format_email_message(
+            # Fallback to standard formatting; return first 3 elements for 3-tuple
+            msg = self.format_email_message(
                 recipient_email=recipient_email,
                 listings=listings,
                 user_id=user_data.get("user_id"),
                 max_items=max_items,
             )
-        
+            return (msg[0], msg[1], msg[2])
+
         # Future: Implement LLM-based personalization
         # This would:
         # 1. Build a prompt with user preferences and listings
@@ -264,42 +273,45 @@ class EmailFormatter:
         # subject = personalized_content.get("subject", EMAIL_CONFIG["subject_template"])
         # body = personalized_content.get("body", self.format_listings_text(listings, max_items))
         # return (recipient_email, subject, body)
-        
-        logger.info("[EMAIL_FORMATTER] LLM personalization not yet implemented, using standard formatting")
-        return self.format_email_message(
+
+        logger.info(
+            "[EMAIL_FORMATTER] LLM personalization not yet implemented, using standard formatting"
+        )
+        msg = self.format_email_message(
             recipient_email=recipient_email,
             listings=listings,
             user_id=user_data.get("user_id"),
             max_items=max_items,
         )
+        return (msg[0], msg[1], msg[2])
 
 
 def format_email_messages(
-    user_listings: List[Tuple[str, str, List[HomeUniversal]]],
+    user_listings: list[tuple[str, str, list[HomeUniversal]]],
     max_items_per_user: int = 10,
     use_llm: bool = False,
     use_html: bool = True,
-) -> List[Tuple[str, str, str, Optional[str]]]:
+) -> list[tuple[str, str, str, str | None]]:
     """
     Format email messages for multiple users.
-    
+
     Args:
         user_listings: List of tuples (user_id, email, listings)
         max_items_per_user: Maximum listings per email
         use_llm: Whether to use LLM personalization (not yet implemented)
         use_html: If True, render HTML email using React Email (default: True)
-        
+
     Returns:
         List of tuples (recipient_email, subject, body_text, html_body)
         html_body will be None if HTML rendering is disabled or unavailable
     """
     formatter = EmailFormatter(use_llm=use_llm)
-    messages: List[Tuple[str, str, str, Optional[str]]] = []
-    
+    messages: list[tuple[str, str, str, str | None]] = []
+
     for user_id, email, listings in user_listings:
         if not email or not listings:
             continue
-        
+
         try:
             message = formatter.format_email_message(
                 recipient_email=email,
@@ -312,6 +324,5 @@ def format_email_messages(
         except Exception as e:
             logger.error(f"[EMAIL_FORMATTER] Failed to format email for {email}: {e}")
             continue
-    
-    return messages
 
+    return messages

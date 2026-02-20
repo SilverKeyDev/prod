@@ -15,5 +15,12 @@ export * from "./http";
 export * from "./api";
 
 // Re-export commonly used items for convenience
-export { env, getBaseUrl, getDefaultTimeout, getDefaultRetries } from "./env";
+export {
+  env,
+  getBaseUrl,
+  getDefaultRetries,
+  getDefaultTimeout,
+  getEnv,
+  getNodeEnv,
+} from "./env";
 export { HTTP_CONFIG, HttpConfigFactory, httpUtils } from "./http";

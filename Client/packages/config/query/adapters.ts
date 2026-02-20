@@ -1,4 +1,4 @@
-import { useFiltersStore, toQueryParams } from "../../store/filters.slice";
+import { toQueryParams, useFiltersStore } from "packages/store";
 
 /**
  * Hook to derive stable, serializable filter params for query keys.

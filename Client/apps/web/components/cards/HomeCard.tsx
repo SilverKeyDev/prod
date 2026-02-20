@@ -1,18 +1,22 @@
 import { useNavigate } from "react-router-dom";
 
 import {
-  usePropertyDetails,
   type Property,
-} from "../../../../packages/hooks/data/search/usePropertyDetails";
+  usePropertyDetails,
+} from "packages/hooks/data/search/property/usePropertyDetails";
 import {
   formatFilenameToAddress,
-  truncateText,
   formatLotSize,
-} from "../../../../packages/utils/search/address";
-import ModalPortal from "../modals/ModalPortal";
-import PropertyDetailsModal from "../modals/PropertyDetailsModal/PropertyDetailsModal";
+  truncateText,
+} from "packages/utils/domain/search/address";
 
-import { CardViewDetailsButton, CardHeartSave, TrianglePointer } from "./base";
+import { ModalPortal, PropertyDetailsModal } from "@/components/modals";
+
+import {
+  CardHeartSave,
+  CardViewDetailsButton,
+  TrianglePointer,
+} from "./base/index.web";
 import PropertyCard from "./PropertyCard";
 
 export type HomeDescription = {
@@ -20,7 +24,6 @@ export type HomeDescription = {
   description?: string;
   image_url?: string;
   calculatedScore?: number;
-  // Common optional fields used across cards/modals
   address?: string;
   price?: string | number;
   bedrooms?: number;
@@ -29,23 +32,133 @@ export type HomeDescription = {
   lot_size?: string | number;
   lat?: number;
   lng?: number;
-  [key: string]: unknown; // allow additional properties for future use
+  [key: string]: unknown;
 };
 
 type HomeCardProps = {
   home: HomeDescription;
-  /** Whether to show the match score next to price */
   showScore?: boolean;
-  /** Whether this card is displayed on the map (adds triangle pointer) */
   isOnMap?: boolean;
-  /** Function to focus on this property in the map/search */
   onFocus?: (property: Property) => void;
 };
 
-/**
- * Simple presentation component to display a saved home.
- * Can be enhanced later with images, price, address, etc.
- */
+function convertHomeToProperty(
+  home: HomeDescription,
+  formattedAddress: string,
+): Property {
+  const lat = home.lat ?? 37.7749;
+  const lng = home.lng ?? -122.4194;
+  return {
+    id: home.home_id,
+    address: home.address ?? formattedAddress ?? home.home_id,
+    price:
+      typeof home.price === "string"
+        ? home.price.startsWith("$")
+          ? home.price
+          : `$${home.price}`
+        : typeof home.price === "number"
+          ? `$${home.price.toLocaleString()}`
+          : "Price not available",
+    bedrooms: home.bedrooms ?? 3,
+    bathrooms: home.bathrooms ?? 2,
+    sqft: home.sqft ?? 1500,
+    lat,
+    lng,
+    latitude: lat,
+    longitude: lng,
+    images: home.image_url ? [home.image_url] : undefined,
+  };
+}
+
+function formatHomePrice(price: string | number | undefined): string {
+  if (typeof price === "number") return `$${price.toLocaleString()}`;
+  if (typeof price === "string" && !price.startsWith("$")) return `$${price}`;
+  return (price as string) ?? "N/A";
+}
+
+type HomeCardViewProps = {
+  isOnMap: boolean;
+  onCardClick: () => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+  home: HomeDescription;
+  displayName: string;
+  price: string;
+  score: number | undefined;
+  showScore: boolean;
+  property: Property;
+  onViewDetails: () => Promise<void>;
+  selectedProperty: Property | null;
+  onCloseModal: () => void;
+  onGenerateReport: (address: string) => void;
+  isLoadingPropertyDetails: boolean;
+};
+
+function HomeCardView({
+  isOnMap,
+  onCardClick,
+  onKeyDown,
+  home,
+  displayName,
+  price,
+  score,
+  showScore,
+  property,
+  onViewDetails,
+  selectedProperty,
+  onCloseModal,
+  onGenerateReport,
+  isLoadingPropertyDetails,
+}: HomeCardViewProps) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className={`relative cursor-pointer ${isOnMap ? "scale-90 transform" : ""}`}
+      onClick={onCardClick}
+      onKeyDown={onKeyDown}
+    >
+      <TrianglePointer show={isOnMap} />
+      <PropertyCard
+        id={home.home_id}
+        imageUrl={home.image_url}
+        address={displayName}
+        price={price}
+        bedrooms={home.bedrooms as number | undefined}
+        bathrooms={home.bathrooms as number | undefined}
+        sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
+        lotSize={formatLotSize(home.lot_size as string | number | undefined)}
+        pricePosition="below-address"
+        cardType="searchpage"
+        score={score}
+        showScore={showScore}
+        isOnMap={isOnMap}
+        topContent={
+          <CardHeartSave property={property} size="sm" position="top-right" />
+        }
+        bottomContent={
+          <CardViewDetailsButton
+            onClick={onViewDetails}
+            size="sm"
+            variant="unlock"
+            fullWidth
+            text="Unlock"
+          />
+        }
+      />
+      {selectedProperty && (
+        <ModalPortal>
+          <PropertyDetailsModal
+            property={selectedProperty}
+            onClose={onCloseModal}
+            onGenerateReport={onGenerateReport}
+            isLoading={isLoadingPropertyDetails}
+          />
+        </ModalPortal>
+      )}
+    </div>
+  );
+}
+
 export default function HomeCard({
   home,
   showScore = false,
@@ -58,133 +171,57 @@ export default function HomeCard({
     clearSelectedProperty,
     isLoading: isLoadingPropertyDetails,
   } = usePropertyDetails();
-
-  // Use actual address if available, otherwise format home_id
-  const formattedAddress = formatFilenameToAddress(home.home_id);
-  const actualAddress = home.address ?? formattedAddress;
-  const rawDisplayName = actualAddress ?? `Home ${home.home_id}`;
-  const displayName = truncateText(rawDisplayName, 35);
-
-  // Convert HomeDescription to Property format for API call
-  const convertToProperty = (homeDesc: HomeDescription): Property => {
-    const lat = homeDesc.lat ?? 37.7749;
-    const lng = homeDesc.lng ?? -122.4194;
-    return {
-      id: homeDesc.home_id,
-      address: homeDesc.address ?? formattedAddress ?? homeDesc.home_id,
-      price:
-        typeof homeDesc.price === "string"
-          ? homeDesc.price.startsWith("$")
-            ? homeDesc.price
-            : `$${homeDesc.price}`
-          : typeof homeDesc.price === "number"
-            ? `$${homeDesc.price.toLocaleString()}`
-            : "Price not available",
-      bedrooms: homeDesc.bedrooms ?? 3,
-      bathrooms: homeDesc.bathrooms ?? 2,
-      sqft: homeDesc.sqft ?? 1500,
-      lat,
-      lng,
-      latitude: lat,
-      longitude: lng,
-      images: homeDesc.image_url ? [homeDesc.image_url] : undefined,
-    };
-  };
-
-  // Use pre-calculated score if available
-  const score = showScore ? home.calculatedScore : undefined;
-
-  // Handle Unlock button click
-  const handleViewDetails = async () => {
-    const propertyData = convertToProperty(home);
-    // Use address instead of zpid for HomeCard
-    await fetchPropertyDetails(propertyData);
-  };
-
   const navigate = useNavigate();
+  const formattedAddress = formatFilenameToAddress(home.home_id);
+  const displayName = truncateText(
+    home.address ?? formattedAddress ?? `Home ${home.home_id}`,
+    35,
+  );
+  const property = convertHomeToProperty(home, formattedAddress);
+  const score = showScore ? home.calculatedScore : undefined;
+  const price = formatHomePrice(home.price);
 
-  // Handle generate report navigation
+  const handleViewDetails = async () => {
+    await fetchPropertyDetails(property);
+  };
+
   const handleGenerateReport = (address: string) => {
-    // Save the address to localStorage for the GenerateReportPage
-    const generateReportState = {
-      address,
-      reportType: "detailed",
-      selectedClientId: "",
-    };
-
     localStorage.setItem(
       "generateReportState",
-      JSON.stringify(generateReportState),
+      JSON.stringify({
+        address,
+        reportType: "detailed",
+        selectedClientId: "",
+      }),
     );
-
-    // Navigate to the saved page
-    navigate("/saved");
+    void navigate("/saved");
   };
 
-  // Handle card click to focus on property
-  const handleCardClick = () => {
-    if (onFocus) {
-      onFocus(convertToProperty(home));
+  const handleCardClick = () => onFocus?.(property);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleCardClick();
     }
   };
 
   return (
-    <div
-      className={`relative cursor-pointer ${isOnMap ? "scale-90 transform" : ""}`}
-      onClick={handleCardClick}
-    >
-      {/* Triangle pointer for map pins */}
-      <TrianglePointer show={isOnMap} />
-
-      <PropertyCard
-        id={home.home_id}
-        imageUrl={home.image_url}
-        address={displayName}
-        price={
-          typeof home.price === "number"
-            ? `$${home.price.toLocaleString()}`
-            : typeof home.price === "string" && !home.price.startsWith("$")
-              ? `$${home.price}`
-              : (home.price ?? "N/A")
-        }
-        bedrooms={home.bedrooms as number | undefined}
-        bathrooms={home.bathrooms as number | undefined}
-        sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
-        lotSize={formatLotSize(home.lot_size as string | number | undefined)}
-        pricePosition="below-address"
-        cardType="searchpage"
-        score={score}
-        showScore={showScore}
-        isOnMap={isOnMap}
-        topContent={
-          <CardHeartSave
-            property={convertToProperty(home)}
-            size="sm"
-            position="top-right"
-          />
-        }
-        bottomContent={
-          <CardViewDetailsButton
-            onClick={handleViewDetails}
-            size="sm"
-            variant="unlock"
-            fullWidth
-            text="Unlock"
-          />
-        }
-      />
-
-      {/* Property Details Modal */}
-      {selectedProperty && (
-        <ModalPortal>
-          <PropertyDetailsModal
-            property={selectedProperty}
-            onClose={clearSelectedProperty}
-            onGenerateReport={handleGenerateReport}
-            isLoading={isLoadingPropertyDetails}
-          />
-        </ModalPortal>
-      )}
-    </div>
+    <HomeCardView
+      isOnMap={isOnMap}
+      onCardClick={handleCardClick}
+      onKeyDown={handleKeyDown}
+      home={home}
+      displayName={displayName}
+      price={price}
+      score={score}
+      showScore={showScore}
+      property={property}
+      onViewDetails={handleViewDetails}
+      selectedProperty={selectedProperty ?? null}
+      onCloseModal={clearSelectedProperty}
+      onGenerateReport={handleGenerateReport}
+      isLoadingPropertyDetails={isLoadingPropertyDetails}
+    />
   );
 }

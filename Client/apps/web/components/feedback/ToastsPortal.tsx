@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useUIStore } from "../../../../packages/store/ui.slice";
+import { useUIStore } from "packages/store";
 
 import ErrorToast from "./ErrorToast";
 import SuccessToast from "./SuccessToast";

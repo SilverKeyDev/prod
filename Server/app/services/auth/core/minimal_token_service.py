@@ -3,16 +3,16 @@ Minimal Token Service
 Generates lightweight custom JWT tokens with only essential claims to reduce storage size.
 """
 
-import os
 import logging
+import os
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any
+from typing import Any
+
 import jwt
-from flask import current_app  # if you need it for config; safe to keep
 
 logger = logging.getLogger(__name__)
 
- 
+
 class MinimalTokenService:
     """Service for generating and verifying Minimal JWT access tokens."""
 
@@ -32,8 +32,8 @@ class MinimalTokenService:
     _ENV_HS_SECRET = "MINIMAL_TOKEN_HS_SECRET"  # use a dedicated secret for HS256
     _ENV_RS_PRIV = "AUTH_RS256_PRIVATE_KEY_PEM"
     _ENV_JWKS_KID = "AUTH_JWKS_KID"
-    _ENV_ISSUER = "AUTH_ISSUER"     # optional override for ID token issuer
-    _ENV_AUDIENCE = "AUTH_AUDIENCE" # optional override for ID token audience
+    _ENV_ISSUER = "AUTH_ISSUER"  # optional override for ID token issuer
+    _ENV_AUDIENCE = "AUTH_AUDIENCE"  # optional override for ID token audience
 
     def __init__(self):
         # Lazy-loaded fields
@@ -51,14 +51,12 @@ class MinimalTokenService:
             secret = os.getenv(self._ENV_HS_SECRET)
             if not secret:
                 # Fallback to AWS_SECRET_ACCESS_KEY for backward compatibility
-                secret = os.getenv('AWS_SECRET_ACCESS_KEY')
-                if not secret:
-                    # Development fallback with loud warning
-                    secret = "silverkey-minimal-token-secret-key-DEV-DO-NOT-USE-IN-PROD"
-                    logger.warning(
-                        "MINIMAL_TOKEN_USING_DEV_SECRET: %s and AWS_SECRET_ACCESS_KEY not set; using development fallback",
-                        self._ENV_HS_SECRET,
-                    )
+                secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+            if not secret:
+                raise RuntimeError(
+                    f"Minimal token HS256 secret required: set {self._ENV_HS_SECRET} or AWS_SECRET_ACCESS_KEY. "
+                    "Do not use a hardcoded secret in production."
+                )
             # Do not log or preview secret material
             self._hs_secret = secret
         return self._hs_secret
@@ -81,7 +79,7 @@ class MinimalTokenService:
         return datetime.now(timezone.utc)
 
     @classmethod
-    def token_markers(cls) -> Dict[str, str]:
+    def token_markers(cls) -> dict[str, str]:
         """Expose core routing markers so other modules can import without instantiating."""
         return {"iss": cls._ISSUER, "aud": cls._AUDIENCE, "ver": cls._VERSION}
 
@@ -118,7 +116,7 @@ class MinimalTokenService:
         user_id: str,
         user_email: str,
         expires_in_hours: int = 8,
-        extra_claims: Dict[str, Any] | None = None,
+        extra_claims: dict[str, Any] | None = None,
     ) -> str:
         """
         Create a Minimal **access** token (HS256) with skew-resistant timing and routing markers.
@@ -133,7 +131,7 @@ class MinimalTokenService:
         now = self._utcnow()
         exp_time = now + timedelta(hours=expires_in_hours)
 
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "iss": self._ISSUER,
             "aud": self._AUDIENCE,
             "ver": self._VERSION,
@@ -155,28 +153,33 @@ class MinimalTokenService:
 
         return token
 
-    def verify_minimal_token(self, token: str) -> Dict[str, Any]:
+    def verify_minimal_token(self, token: str) -> dict[str, Any]:
         """
         Verify and decode a Minimal **access** token (HS256).
         Enforces issuer, audience, type, and timing with leeway.
         """
         hs_secret = self._get_hs_secret()
 
+        # Initialize timing values so they are always bound in except blocks
+        current_time = int(self._utcnow().timestamp())
+        token_iat: int | None = None
+        token_nbf: int = 0
+        token_exp: int = 0
+        iat_age_seconds: int | None = None
+        nbf_age_seconds: int = 0
+        exp_remaining_seconds: int = 0
+
         try:
-            # Log timing information for debugging ImmatureSignatureError
-            current_time = int(self._utcnow().timestamp())
-            
             # Decode without verification first to get timing claims
             unverified_payload = jwt.decode(token, options={"verify_signature": False})
-            token_iat = unverified_payload.get('iat')
-            token_nbf = unverified_payload.get('nbf', 0)
-            token_exp = unverified_payload.get('exp', 0)
-            
+            token_iat = unverified_payload.get("iat")
+            token_nbf = unverified_payload.get("nbf", 0) or 0
+            token_exp = unverified_payload.get("exp", 0) or 0
+
             # Calculate timing differences
             iat_age_seconds = (current_time - token_iat) if token_iat is not None else None
             nbf_age_seconds = current_time - token_nbf
             exp_remaining_seconds = token_exp - current_time
-            
 
             payload = jwt.decode(
                 token,
@@ -200,47 +203,59 @@ class MinimalTokenService:
             return payload
 
         except jwt.ExpiredSignatureError:
-            logger.warning("MINIMAL_TOKEN_EXPIRED", extra={
-                'current_time': current_time,
-                'token_exp': token_exp,
-                'expired_by_seconds': current_time - token_exp
-            })
+            logger.warning(
+                "MINIMAL_TOKEN_EXPIRED",
+                extra={
+                    "current_time": current_time,
+                    "token_exp": token_exp,
+                    "expired_by_seconds": current_time - token_exp,
+                },
+            )
             raise
         except jwt.ImmatureSignatureError as e:
             # Enhanced logging for ImmatureSignatureError debugging
-            logger.warning("MINIMAL_TOKEN_IMMATURE", extra={
-                'current_time': current_time,
-                'token_iat': token_iat,
-                'token_nbf': token_nbf,
-                'token_exp': token_exp,
-                'iat_age_seconds': iat_age_seconds,
-                'nbf_age_seconds': nbf_age_seconds,
-                'exp_remaining_seconds': exp_remaining_seconds,
-                'leeway_seconds': self._SKEW_SECONDS,
-                'immaturity_seconds': abs(nbf_age_seconds) if nbf_age_seconds < 0 else 0,
-                'error_message': str(e),
-                'backdating_applied': 60,  # Our backdating amount
-                'recommendation': 'Increase backdating or leeway if this persists'
-            })
+            logger.warning(
+                "MINIMAL_TOKEN_IMMATURE",
+                extra={
+                    "current_time": current_time,
+                    "token_iat": token_iat,
+                    "token_nbf": token_nbf,
+                    "token_exp": token_exp,
+                    "iat_age_seconds": iat_age_seconds,
+                    "nbf_age_seconds": nbf_age_seconds,
+                    "exp_remaining_seconds": exp_remaining_seconds,
+                    "leeway_seconds": self._SKEW_SECONDS,
+                    "immaturity_seconds": abs(nbf_age_seconds) if nbf_age_seconds < 0 else 0,
+                    "error_message": str(e),
+                    "backdating_applied": 60,  # Our backdating amount
+                    "recommendation": "Increase backdating or leeway if this persists",
+                },
+            )
             raise
         except jwt.InvalidTokenError as e:
-            logger.warning("MINIMAL_TOKEN_INVALID", extra={
-                'error': str(e),
-                'current_time': current_time,
-                'token_iat': token_iat,
-                'token_nbf': token_nbf,
-                'token_exp': token_exp
-            })
+            logger.warning(
+                "MINIMAL_TOKEN_INVALID",
+                extra={
+                    "error": str(e),
+                    "current_time": current_time,
+                    "token_iat": token_iat,
+                    "token_nbf": token_nbf,
+                    "token_exp": token_exp,
+                },
+            )
             raise
         except Exception as e:
-            logger.error("MINIMAL_TOKEN_VERIFICATION_ERROR", extra={
-                'error': str(e), 
-                'error_type': type(e).__name__,
-                'current_time': current_time,
-                'token_iat': token_iat,
-                'token_nbf': token_nbf,
-                'token_exp': token_exp
-            })
+            logger.error(
+                "MINIMAL_TOKEN_VERIFICATION_ERROR",
+                extra={
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                    "current_time": current_time,
+                    "token_iat": token_iat,
+                    "token_nbf": token_nbf,
+                    "token_exp": token_exp,
+                },
+            )
             raise
 
     # ---- ID token (RS256-only, optional) -------------------------------------
@@ -297,12 +312,11 @@ class MinimalTokenService:
         headers = {"kid": kid}
         token = jwt.encode(payload, rsa_private_key, algorithm=self._ALG_ID, headers=headers)
 
-     
         return token
 
     # ---- Utilities ------------------------------------------------------------
 
-    def get_token_size_info(self, token: str) -> Dict[str, int]:
+    def get_token_size_info(self, token: str) -> dict[str, int]:
         """
         Return simple size metrics for a JWT. Signature is not verified.
         """
@@ -315,7 +329,9 @@ class MinimalTokenService:
                 "total_size_bytes": token_bytes,
                 "payload_size_bytes": payload_bytes,
                 "header_size_bytes": token_bytes - payload_bytes,
-                "compression_ratio": round((payload_bytes / token_bytes) * 100, 2) if token_bytes else 0,
+                "compression_ratio": int(round((payload_bytes / token_bytes) * 100, 2))
+                if token_bytes
+                else 0,
             }
         except Exception as e:
             logger.error("TOKEN_SIZE_CALCULATION_ERROR", extra={"error": str(e)})
@@ -325,6 +341,7 @@ class MinimalTokenService:
                 "header_size_bytes": 0,
                 "compression_ratio": 0,
             }
+
 
 # Singleton instance
 minimal_token_service = MinimalTokenService()

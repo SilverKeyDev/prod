@@ -6,6 +6,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
+      "@ui": ["./components/ui"],
+      "@ui/*": ["./components/ui/*"],
+      "logger": ["../../logger"],
+      "logger/*": ["../../logger/*"],
       "packages/*": ["../../packages/*"]
     }
   },

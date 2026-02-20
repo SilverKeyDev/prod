@@ -2,19 +2,19 @@
  * Scheduling service for Google Calendar scheduling MVP
  */
 
-import { googleCalendarApi, type GoogleEvent } from "../../config/api";
+import { googleCalendarApi, type GoogleEvent } from "packages/config/api";
 import type {
   FreebusyRequest,
-  FreebusyResponse,
+  FreebusyResponse as _FreebusyResponse,
   FreebusyTimeBlock,
   ScheduleEventRequest,
   TimeSlot,
   WorkingHours,
-} from "../../schemas/calendar/scheduling";
+} from "packages/schemas/calendar/scheduling";
 import {
   generateTimeSlots,
   getBusyBlocksFromResponse,
-} from "../../utils/calendar/scheduling";
+} from "packages/utils/domain/calendar/scheduling";
 
 /**
  * Query availability using freebusy API

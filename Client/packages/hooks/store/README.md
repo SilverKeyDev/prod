@@ -56,6 +56,10 @@ Store integration hooks connect data from React Query hooks to Zustand stores, p
 - `useGoogleCalendarStoreIntegration.ts` - Google Calendar state
 - `useMapCleanup.ts` - Map cleanup on unmount
 
+### Search & Feed
+
+- `useSearchViewIntegration.ts` - Search view mode (map/reels) integration
+
 ### Other
 
 - `useSessionStoreIntegration.ts` - Session state
@@ -91,7 +95,7 @@ Store integration hooks typically follow this pattern:
 
 ```typescript
 import { useQuery } from "@tanstack/react-query";
-import { useSavedHomesStore } from "../../../store/savedHomes.slice";
+import { useSavedHomesStore } from "../../../store";
 import { useSavedHomesData } from "../data/useSavedHomesData";
 
 export function useSavedHomesStoreIntegration() {

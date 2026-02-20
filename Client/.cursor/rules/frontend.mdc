@@ -1,0 +1,18 @@
+---
+description: Frontend architecture, patterns, and constraints (React/TypeScript/Vite/Tailwind)
+globs:
+  - "Client/src/**"
+  - "Client/components/**"
+  - "Client/pages/**"
+alwaysApply: false
+---
+- # Frontend Architecture
+
+- Follow layered structure: `src/app`, `src/core`, `src/components`, `src/features`, `src/pages`.
+- Enforce dependency flow: utils/schemas → services → hooks → contexts → components/pages. No React in services/utils.
+- Use TanStack Query for server data, Zustand stores for client state. Avoid global state unless shared.
+- Use typed API clients in `packages/config/api` or `packages/services/http`; avoid raw fetch.
+- Use Tailwind and `packages/styles`; prefer existing UI primitives under `src/components/ui`.
+- Type all exported APIs; avoid `any`. Fix lint issues per `Client/config` rules.
+- Keep tokens in memory and sessionStorage only; never localStorage.
+- Use scripts: dev, build, test, test:e2e, lint, format.

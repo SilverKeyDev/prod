@@ -1,35 +1,34 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import PdfModal from "../components/modals/PdfModal";
-import { useDocumentActions } from "../../../packages/hooks/data/documents/useDocumentActions";
-import { usePropertyDetails } from "../../../packages/hooks/data/search/usePropertyDetails";
-import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/search/useSavedHomesStoreIntegration";
-import { useDocumentsDataIntegration } from "../../../packages/hooks/store/documents/useDocumentsDataIntegration";
-import { useDocusignAgreements } from "../../../packages/hooks/data/documents/useDocusignAgreements";
-import { useDocusignActions } from "../../../packages/hooks/data/documents/useDocusignActions";
-import type { SavedHome } from "../../../packages/schemas";
-import { useIsMobile } from "../../../packages/hooks/ui";
-import { useHomeComparison } from "../../../packages/hooks/store/documents/useHomeComparison";
-import { useSavedPageView } from "../../../packages/hooks/store/documents/useSavedPageView";
-import { useAuthStore } from "../../../packages/store/auth.slice";
-import { useUIStore } from "../../../packages/store";
-import SavedHomesContent from "../components/saved/SavedHomesContent";
-import SavedPageModals from "../components/saved/SavedPageModals";
-import DocumentUploadModal from "../components/saved/DocumentUploadModal";
-import SavedPageTabsAndSearch from "../components/saved/SavedPageTabsAndSearch";
-import { ClientSelector, Button } from "../components/ui";
-import { useSavedPageDocumentHandlers } from "../../../packages/hooks/data/documents/useSavedPageDocumentHandlers";
-import { useSavedPageEffects } from "../../../packages/hooks/ui/documents/useSavedPageEffects";
-import { useSavedPageModals } from "../../../packages/hooks/ui/documents/useSavedPageModals";
-import { useSavedPageMobileHeader } from "../features/saved/hooks/useSavedPageMobileHeader";
+import { useDocumentActions } from "packages/hooks/data/documents/useDocumentActions";
+import { useDocusignActions } from "packages/hooks/data/documents/useDocusignActions";
+import { useDocusignAgreements } from "packages/hooks/data/documents/useDocusignAgreements";
+import { useSavedPageDocumentHandlers } from "packages/hooks/data/documents/useSavedPageDocumentHandlers";
+import { usePropertyDetails } from "packages/hooks/data/search/property/usePropertyDetails";
+import { useDocumentsDataIntegration } from "packages/hooks/store/documents/useDocumentsDataIntegration";
+import { useHomeComparison } from "packages/hooks/store/documents/useHomeComparison";
+import { useSavedPageView } from "packages/hooks/store/documents/useSavedPageView";
+import { useSavedHomesStoreIntegration } from "packages/hooks/store/search/useSavedHomesStoreIntegration";
 import {
-  CreateAgreementModal,
-  AgreementDetailModal,
-} from "../features/documents/docusign/modals";
+  useIsMobile,
+  useSavedHomesDocuSign,
+  useSavedPageEffects,
+  useSavedPageModals,
+} from "packages/hooks/ui";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import type { SavedHome } from "packages/schemas";
+import { useAuthStore } from "packages/store";
+import { useUIStore } from "packages/store";
+import { dateNow } from "packages/utils/core/date";
 import {
   convertSavedHomeToProperty,
   filterHomesBySearchTerm,
-} from "../../../packages/utils/saved/savedHomeUtils";
+} from "packages/utils/domain/saved/savedHomeUtils";
+
+import SavedHomesHeader from "@/components/saved/SavedHomesHeader";
+import { useSavedPageMobileHeader } from "@/features/saved/hooks/useSavedPageMobileHeader";
+
+import { SavedPageLayout } from "./SavedPageLayout";
 
 type SavedHomesProps = {
   setMobileHeaderActions?: React.Dispatch<
@@ -48,30 +47,18 @@ export default function SavedHomes({
   const [eventTypeFilter, setEventTypeFilter] = useState<
     "listed" | "price_change" | "sold" | "withdrawn" | ""
   >("");
-
-  // DocuSign state
-  const [isCreateAgreementModalOpen, setIsCreateAgreementModalOpen] =
-    useState(false);
-  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(
-    null,
-  );
-
-  // Document upload modal state
   const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] =
     useState(false);
   const user = useAuthStore((s) => s.user);
   const isAgent = user?.is_agent ?? false;
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
-  // Use Zustand store for saved homes data (React Query integration)
   const {
     savedHomes: homes,
     savedHomesLoading: loading,
     savedHomesError: error,
     refreshSavedHomes,
   } = useSavedHomesStoreIntegration(selectedClientId ?? undefined);
-
-  // Use centralized document actions for documents - this instance manages the modal state
   const {
     currentPdf,
     currentDocumentId,
@@ -81,19 +68,28 @@ export default function SavedHomes({
     handleDownloadDocument,
     handleShareDocument,
   } = useDocumentActions();
-
-  // Use DocuSign hooks
   const {
     agreements,
     isLoading: agreementsLoading,
     error: agreementsError,
     refetchAgreements,
   } = useDocusignAgreements();
-
   const { sendAgreement, voidAgreement } = useDocusignActions();
-
-  // Use documents data integration for documents tab
-  // Pass handlers from the same useDocumentActions instance to ensure modal state is shared
+  const {
+    isCreateAgreementModalOpen,
+    setIsCreateAgreementModalOpen,
+    selectedAgreementId,
+    setSelectedAgreementId,
+    handleAgreementClick,
+    handleAgreementSend,
+    handleAgreementVoid,
+    handleCreateAgreementSuccess,
+  } = useSavedHomesDocuSign(
+    sendAgreement,
+    voidAgreement,
+    refetchAgreements,
+    enqueueToast,
+  );
   const {
     documents,
     documentsLoading: documentsLoadingState,
@@ -105,16 +101,12 @@ export default function SavedHomes({
     handleDownloadDocument,
     handleShareDocument,
   });
-
-  // Use property details hook for unlock functionality
   const {
     selectedProperty,
     fetchPropertyDetails,
     clearSelectedProperty,
     isLoading: isLoadingPropertyDetails,
   } = usePropertyDetails();
-
-  // Use comparison hook
   const {
     selectedHomesForComparison,
     selectedHomesData,
@@ -122,8 +114,6 @@ export default function SavedHomes({
     handleRemoveFromComparison,
     handleClearComparison,
   } = useHomeComparison(homes);
-
-  // Use modals hook
   const {
     isCompareModalOpen,
     setIsCompareModalOpen,
@@ -132,8 +122,6 @@ export default function SavedHomes({
     handleOpenNegotiation,
     handleCloseNegotiation,
   } = useSavedPageModals();
-
-  // Use document handlers hook
   const { handleDocumentDelete } = useSavedPageDocumentHandlers({
     handleViewDocument,
     handleDownloadDocument,
@@ -142,93 +130,25 @@ export default function SavedHomes({
     documents,
   });
 
-  // Debug: Log when currentPdf changes to verify state updates
   useEffect(() => {
     if (currentPdf) {
-      console.log("[SavedPage] currentPdf updated", {
+      log.debug(LOG_CATEGORIES.PAGES, "SavedPage currentPdf updated", {
         currentPdf,
         currentDocumentId,
         currentDocumentName,
-        timestamp: new Date().toISOString(),
+        timestamp: dateNow().toISOString(),
       });
     }
   }, [currentPdf, currentDocumentId, currentDocumentName]);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
-    if (viewType === "homes") {
-      await refreshSavedHomes();
-    } else if (viewType === "documents") {
+    if (viewType === "homes") await refreshSavedHomes();
+    else if (viewType === "documents")
       await Promise.all([refetchDocuments(), refetchAgreements()]);
-    }
     setRefreshing(false);
   }, [viewType, refreshSavedHomes, refetchDocuments, refetchAgreements]);
 
-  // DocuSign handlers
-  const handleAgreementClick = useCallback((agreementId: string) => {
-    setSelectedAgreementId(agreementId);
-  }, []);
-
-  const handleAgreementSend = useCallback(
-    async (agreementId: string) => {
-      try {
-        await sendAgreement({
-          agreementId,
-          signingMethod: "embedded",
-        });
-        enqueueToast({
-          type: "success",
-          message: "Agreement sent for signature",
-        });
-        await refetchAgreements();
-      } catch (error) {
-        enqueueToast({
-          type: "error",
-          message:
-            error instanceof Error ? error.message : "Failed to send agreement",
-        });
-      }
-    },
-    [sendAgreement, refetchAgreements, enqueueToast],
-  );
-
-  const handleAgreementVoid = useCallback(
-    async (agreementId: string) => {
-      const confirmed = window.confirm(
-        "Are you sure you want to void this agreement? This action cannot be undone.",
-      );
-      if (!confirmed) return;
-
-      try {
-        await voidAgreement({
-          agreementId,
-          reason: "Voided from SavedPage",
-        });
-        enqueueToast({
-          type: "success",
-          message: "Agreement voided successfully",
-        });
-        await refetchAgreements();
-      } catch (error) {
-        enqueueToast({
-          type: "error",
-          message:
-            error instanceof Error ? error.message : "Failed to void agreement",
-        });
-      }
-    },
-    [voidAgreement, refetchAgreements, enqueueToast],
-  );
-
-  const handleCreateAgreementSuccess = useCallback(
-    (agreementId: string) => {
-      refetchAgreements();
-      setSelectedAgreementId(agreementId);
-    },
-    [refetchAgreements],
-  );
-
-  // Use effects hook
   useSavedPageEffects({
     viewType,
     refreshSavedHomes,
@@ -237,28 +157,19 @@ export default function SavedHomes({
   });
 
   const filteredHomes = filterHomesBySearchTerm(homes, searchTerm);
-
-  // Filter documents by event type if filter is set
   const filteredDocuments = useMemo(() => {
-    if (eventTypeFilter === "") {
-      return documents;
-    }
+    if (eventTypeFilter === "") return documents;
     return documents.filter((doc) => doc.event_type === eventTypeFilter);
   }, [documents, eventTypeFilter]);
 
-  // Handle unlocking a home - opens PropertyDetailsModal
   const handleUnlockHome = useCallback(
     async (home: SavedHome) => {
-      const propertyData = convertSavedHomeToProperty(home);
-      await fetchPropertyDetails(propertyData);
+      await fetchPropertyDetails(convertSavedHomeToProperty(home));
     },
     [fetchPropertyDetails],
   );
 
-  // Use mobile header hook
-  useSavedPageMobileHeader({
-    isMobile,
-    setMobileHeaderActions,
+  const headerProps = useSavedPageMobileHeader({
     searchTerm,
     setSearchTerm,
     viewType,
@@ -275,142 +186,74 @@ export default function SavedHomes({
     setEventTypeFilter,
   });
 
+  const mobileHeaderNode = useMemo(
+    () =>
+      isMobile && setMobileHeaderActions ? (
+        <SavedHomesHeader {...headerProps} />
+      ) : null,
+    [isMobile, setMobileHeaderActions, headerProps],
+  );
+
+  useEffect(() => {
+    setMobileHeaderActions?.(mobileHeaderNode ?? null);
+    return () => setMobileHeaderActions?.(null);
+  }, [mobileHeaderNode, setMobileHeaderActions]);
+
   const handleCompare = useCallback(() => {
-    if (selectedHomesData.length >= 2) {
-      setIsCompareModalOpen(true);
-    }
+    if (selectedHomesData.length >= 2) setIsCompareModalOpen(true);
   }, [selectedHomesData.length, setIsCompareModalOpen]);
 
   return (
-    <div>
-      <PdfModal
-        currentPdf={currentPdf}
-        currentReportAddress={currentDocumentName}
-        reportId={currentDocumentId}
-        onClose={closePdfModal}
-      />
-      <div
-        className={`${isMobile ? "mt-0" : "mt-0 lg:mt-0"} space-y-responsive-lg ${
-          viewType === "homes" && selectedHomesData.length >= 1
-            ? "mb-[140px] sm:mb-[160px]"
-            : "mb-responsive-lg"
-        }`}
-      >
-        {/* Header and content share a single padded container for alignment at all breakpoints */}
-        <div className="w-full px-responsive-lg">
-          {/* Header - Only show on desktop (mobile shows in topbar) */}
-          {!isMobile && (
-            <>
-              <div className="mb-4 w-full">
-                <ClientSelector
-                  selectedClientId={selectedClientId}
-                  onClientChange={setSelectedClientId}
-                />
-              </div>
-              <div className="w-full">
-                <SavedPageTabsAndSearch
-                  searchTerm={searchTerm}
-                  onSearchChange={setSearchTerm}
-                  searchPlaceholder={
-                    viewType === "homes"
-                      ? "Search saved homes..."
-                      : viewType === "documents"
-                        ? "Search documents..."
-                        : "Filter by address"
-                  }
-                  viewType={viewType}
-                  onViewTypeChange={setViewType}
-                  eventTypeFilter={eventTypeFilter}
-                  onEventTypeFilterChange={setEventTypeFilter}
-                  rightText={
-                    viewType === "homes"
-                      ? `${filteredHomes.length} saved`
-                      : viewType === "documents"
-                        ? `${filteredDocuments.length} documents`
-                        : ""
-                  }
-                  onUploadClick={() => setIsDocumentUploadModalOpen(true)}
-                />
-              </div>
-            </>
-          )}
-
-          {/* Create Agreement - Only show when viewing documents */}
-          {viewType === "documents" && isAgent && (
-            <div className="mb-4 w-full">
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => setIsCreateAgreementModalOpen(true)}
-              >
-                Create Agreement
-              </Button>
-            </div>
-          )}
-
-          {/* Content */}
-          <SavedHomesContent
-            viewType={viewType}
-            filteredHomes={filteredHomes}
-            homesLoading={loading}
-            documents={filteredDocuments}
-            documentsLoading={documentsLoadingState}
-            agreements={agreements}
-            agreementsLoading={agreementsLoading}
-            selectedHomesForComparison={selectedHomesForComparison}
-            onToggleHomeSelection={handleToggleHomeSelection}
-            onUnlockHome={handleUnlockHome}
-            onOpenNegotiation={handleOpenNegotiation}
-            onDocumentDelete={handleDocumentDelete}
-            onAgreementClick={handleAgreementClick}
-            onAgreementSend={handleAgreementSend}
-            onAgreementVoid={handleAgreementVoid}
-            selectedHomesDataLength={selectedHomesData.length}
-            noPadding
-          />
-        </div>
-
-        {/* Modals */}
-        <SavedPageModals
-          viewType={viewType}
-          selectedProperty={selectedProperty}
-          clearSelectedProperty={clearSelectedProperty}
-          isLoadingPropertyDetails={isLoadingPropertyDetails}
-          isCompareModalOpen={isCompareModalOpen}
-          setIsCompareModalOpen={setIsCompareModalOpen}
-          selectedHomesData={selectedHomesData}
-          handleRemoveFromComparison={handleRemoveFromComparison}
-          handleToggleHomeSelection={handleToggleHomeSelection}
-          homes={homes}
-          isNegotiationModalOpen={isNegotiationModalOpen}
-          selectedHomeForNegotiation={selectedHomeForNegotiation}
-          handleCloseNegotiation={handleCloseNegotiation}
-          handleCompare={handleCompare}
-          handleClearComparison={handleClearComparison}
-        />
-
-        {/* Document Upload Modal */}
-        <DocumentUploadModal
-          isOpen={isDocumentUploadModalOpen}
-          onClose={() => setIsDocumentUploadModalOpen(false)}
-          onUploadSuccess={refetchDocuments}
-        />
-
-        {/* DocuSign Modals */}
-        {isAgent && (
-          <CreateAgreementModal
-            isOpen={isCreateAgreementModalOpen}
-            onClose={() => setIsCreateAgreementModalOpen(false)}
-            preselectedBuyerId={selectedClientId ?? undefined}
-            onSuccess={handleCreateAgreementSuccess}
-          />
-        )}
-        <AgreementDetailModal
-          agreementId={selectedAgreementId}
-          isOpen={!!selectedAgreementId}
-          onClose={() => setSelectedAgreementId(null)}
-        />
-      </div>
-    </div>
+    <SavedPageLayout
+      isMobile={isMobile}
+      viewType={viewType}
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      selectedClientId={selectedClientId}
+      setSelectedClientId={setSelectedClientId}
+      eventTypeFilter={eventTypeFilter}
+      setEventTypeFilter={setEventTypeFilter}
+      setViewType={setViewType}
+      filteredHomes={filteredHomes}
+      filteredDocuments={filteredDocuments}
+      loading={loading}
+      documentsLoadingState={documentsLoadingState}
+      agreements={agreements}
+      agreementsLoading={agreementsLoading}
+      selectedHomesForComparison={selectedHomesForComparison}
+      selectedHomesData={selectedHomesData}
+      selectedProperty={selectedProperty}
+      isLoadingPropertyDetails={isLoadingPropertyDetails}
+      isCompareModalOpen={isCompareModalOpen}
+      setIsCompareModalOpen={setIsCompareModalOpen}
+      isNegotiationModalOpen={isNegotiationModalOpen}
+      selectedHomeForNegotiation={selectedHomeForNegotiation}
+      isDocumentUploadModalOpen={isDocumentUploadModalOpen}
+      setIsDocumentUploadModalOpen={setIsDocumentUploadModalOpen}
+      isCreateAgreementModalOpen={isCreateAgreementModalOpen}
+      setIsCreateAgreementModalOpen={setIsCreateAgreementModalOpen}
+      selectedAgreementId={selectedAgreementId}
+      setSelectedAgreementId={setSelectedAgreementId}
+      isAgent={isAgent}
+      homes={homes}
+      currentPdf={currentPdf}
+      currentDocumentId={currentDocumentId}
+      currentDocumentName={currentDocumentName}
+      closePdfModal={closePdfModal}
+      onToggleHomeSelection={handleToggleHomeSelection}
+      onUnlockHome={handleUnlockHome}
+      onOpenNegotiation={handleOpenNegotiation}
+      onDocumentDelete={handleDocumentDelete}
+      onAgreementClick={handleAgreementClick}
+      onAgreementSend={handleAgreementSend}
+      onAgreementVoid={handleAgreementVoid}
+      onRemoveFromComparison={handleRemoveFromComparison}
+      onCloseNegotiation={handleCloseNegotiation}
+      onCompare={handleCompare}
+      onClearComparison={handleClearComparison}
+      clearSelectedProperty={clearSelectedProperty}
+      refetchDocuments={refetchDocuments}
+      onCreateAgreementSuccess={handleCreateAgreementSuccess}
+    />
   );
 }

@@ -1,6 +1,6 @@
-import React, { forwardRef, cloneElement, isValidElement } from "react";
+import React, { cloneElement, forwardRef, isValidElement } from "react";
 
-import KeyTurnLoader from "../loading/KeyTurnLoader";
+import KeyTurnLoader from "@ui/loading/KeyTurnLoader.web";
 
 /** strokeWidth for toolbar variant icons - 50% thinner than default (2) */
 const TOOLBAR_ICON_STROKE_WIDTH = 1;
@@ -21,13 +21,10 @@ export type IconButtonProps = {
   variant?:
     | "primary"
     | "secondary"
+    | "tertiary"
     | "outline"
     | "ghost"
     | "danger"
-    | "success"
-    | "warning"
-    | "info"
-    | "olive"
     | "toolbar";
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large";
   loading?: boolean;
@@ -37,6 +34,10 @@ export type IconButtonProps = {
   hoverBg?: keyof typeof HOVER_BG_MAP;
   /** Custom active background for toolbar variant. Default: gray-100 */
   activeBg?: keyof typeof ACTIVE_BG_MAP;
+  /**
+   * Unified accessibility label. Maps to aria-label (web) and accessibilityLabel (RN).
+   */
+  label?: string;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
@@ -51,6 +52,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       disabled,
       hoverBg,
       activeBg,
+      label,
       ...props
     },
     ref,
@@ -82,25 +84,23 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       full: "rounded-full",
     };
 
+    // Gray secondary (no olive). Matches Button secondary/cancel.
+    const graySecondary =
+      "border border-gray-300 bg-gray-200 text-gray-700 hover:bg-gray-300 hover:border-gray-300 focus:ring-gray-300/20 disabled:bg-gray-200/50 disabled:text-gray-500 disabled:border-gray-200";
+
     // Color variants - using brand tokens to match Button component
     const variantStyles = {
       primary:
         "bg-brand-accent text-white hover:bg-brand-accent/90 focus:ring-brand-accent/20 disabled:bg-brand-accent/50 disabled:text-white/70",
-      secondary:
-        "bg-brand-tertiary text-brand-primary hover:bg-brand-tertiary/80 focus:ring-brand-tertiary/20 disabled:bg-brand-tertiary/50 disabled:text-brand-primary/50",
+      secondary: graySecondary,
+      tertiary:
+        "bg-gold-muted text-white hover:bg-gold-muted/90 active:bg-gold-muted/85 focus:ring-gold-muted/25 disabled:bg-gold-muted/50 disabled:text-white/70",
       outline:
         "border border-brand-accent text-brand-accent bg-white hover:bg-brand-accent hover:text-white focus:ring-brand-accent/20 disabled:border-brand-accent/30 disabled:text-brand-accent/30 disabled:hover:bg-white disabled:hover:text-brand-accent/30",
       ghost:
         "text-brand-accent hover:bg-brand-accent/10 focus:ring-brand-accent/20 disabled:text-brand-accent/30 disabled:hover:bg-transparent",
       danger:
         "bg-rose text-white hover:bg-rose-light focus:ring-rose/20 disabled:bg-rose/50 disabled:text-white/70",
-      success:
-        "bg-brand-secondary text-white hover:bg-brand-secondary/90 focus:ring-brand-secondary/20 disabled:bg-brand-secondary/50 disabled:text-white/70",
-      warning:
-        "bg-gold-muted text-white hover:bg-gold-muted/90 focus:ring-gold-muted/20 disabled:bg-gold-muted/50 disabled:text-white/70",
-      info: "bg-neutral-600 text-white hover:bg-neutral-700 focus:ring-neutral-500/20 disabled:bg-neutral-600/50 disabled:text-white/70",
-      olive:
-        "bg-olive text-white hover:bg-olive-light focus:ring-olive/20 disabled:bg-olive/50 disabled:text-white/70",
       toolbar:
         "bg-transparent text-gray-600 border-0 shadow-none hover:bg-gray-50 active:bg-gray-100 focus:outline-none focus:ring-0 disabled:text-gray-400 disabled:hover:bg-transparent disabled:active:bg-transparent",
     };
@@ -144,6 +144,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         ref={ref}
         className={buttonClasses}
         disabled={disabled ?? loading}
+        aria-label={label}
         {...props}
       >
         {loading ? <KeyTurnLoader message="" /> : iconWithStroke}

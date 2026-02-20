@@ -1,17 +1,20 @@
-import { useState, useCallback, useRef } from "react";
-import { Upload, FileText, X } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 
-import { useDocuments } from "../../../../packages/hooks/data/documents/useDocuments";
-import { useUIStore } from "../../../../packages/store";
-import Button from "../ui/button/Button";
-import IconButton from "../ui/button/IconButton";
-import Label from "../ui/text/Label";
-import BodyText from "../ui/text/BodyText";
-import Dropdown from "../ui/form/Dropdown";
-import type { DropdownOption } from "../ui/form/Dropdown";
-import StatusBadge from "../ui/asset/StatusBadge";
-import Card from "../layout/Card";
-import Input from "../ui/form/Input";
+import StatusBadge from "@ui/asset/StatusBadge";
+import Button from "@ui/button/Button";
+import IconButton from "@ui/button/IconButton";
+import type { DropdownOption } from "@ui/form/Dropdown";
+import Dropdown from "@ui/form/Dropdown";
+import Input from "@ui/form/Input.web";
+import BodyText from "@ui/text/BodyText";
+import Label from "@ui/text/Label.web";
+import { FileText, Upload } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
+import { useDocuments } from "packages/hooks/data/documents/useDocuments";
+import { useUIStore } from "packages/store";
+
+import Card from "@/components/layout/Card.web";
 
 type DocumentUploadProps = {
   onUploadSuccess?: () => void | Promise<unknown>;
@@ -23,6 +26,7 @@ export default function DocumentUpload({
   onUploadSuccess,
   useCard = true,
 }: DocumentUploadProps) {
+  const { t } = useLocalization();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const {
     uploadDocument,
@@ -103,7 +107,7 @@ export default function DocumentUpload({
       }
       // Call success callback to refresh document list
       if (onUploadSuccess) {
-        onUploadSuccess();
+        void onUploadSuccess();
       }
     } catch (error) {
       let errorMessage = "Failed to upload document";
@@ -155,13 +159,13 @@ export default function DocumentUpload({
     <div className="space-y-responsive-md">
       <div>
         <Label size="sm" required>
-          Document Category
+          {t("documents_upload.category_label")}
         </Label>
         <Dropdown
           options={categoryOptions}
           value={selectedCategory}
           onChange={handleCategoryChange}
-          placeholder="Select a category..."
+          placeholder={t("documents_upload.select_category")}
           disabled={categoriesLoading || isUploading}
           required
           variant="mobile"
@@ -169,12 +173,12 @@ export default function DocumentUpload({
       </div>
 
       <div>
-        <Label size="sm">Address (Optional)</Label>
+        <Label size="sm">{t("documents_upload.address_optional")}</Label>
         <Input
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          placeholder="Enter property address..."
+          placeholder={t("documents_upload.placeholder_address")}
           disabled={isUploading}
           variant="mobile"
         />
@@ -182,10 +186,10 @@ export default function DocumentUpload({
 
       <div>
         <Label size="sm" required>
-          Document File
+          {t("documents_upload.document_file")}
         </Label>
         <div className="relative">
-          <input
+          <Input
             ref={fileInputRef}
             type="file"
             accept=".pdf,.doc,.docx,image/*"
@@ -194,7 +198,7 @@ export default function DocumentUpload({
             className="hidden"
             id="document-upload-input"
           />
-          <label
+          <Label
             htmlFor="document-upload-input"
             className={`touch-friendly flex cursor-pointer items-center justify-between gap-responsive-sm rounded-lg border-2 border-dashed p-responsive-md transition-colors ${
               isUploading
@@ -213,7 +217,7 @@ export default function DocumentUpload({
                       {selectedFile.name}
                     </BodyText>
                     <BodyText size="xs" muted>
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      {`${(selectedFile.size / 1024 / 1024).toFixed(2)}${t("common.mb")}`}
                     </BodyText>
                   </div>
                 </>
@@ -221,9 +225,11 @@ export default function DocumentUpload({
                 <>
                   <Upload className="h-5 w-5 flex-shrink-0 text-gray-400 sm:h-6 sm:w-6" />
                   <div className="min-w-0 flex-1">
-                    <BodyText size="sm">Click to select a file</BodyText>
+                    <BodyText size="sm">
+                      {t("documents_upload.click_to_select")}
+                    </BodyText>
                     <BodyText size="xs" muted>
-                      PDF, DOC, DOCX, or images
+                      {t("documents_upload.file_types")}
                     </BodyText>
                   </div>
                 </>
@@ -239,11 +245,11 @@ export default function DocumentUpload({
                   handleClearFile();
                 }}
                 type="button"
-                icon={<X className="h-4 w-4" />}
-                aria-label="Remove file"
+                iconName="x"
+                aria-label={t("documents_upload.remove_file_aria")}
               />
             )}
-          </label>
+          </Label>
         </div>
       </div>
 
@@ -254,16 +260,20 @@ export default function DocumentUpload({
             <StatusBadge
               variant="success"
               size="sm"
-              text="Upload completed successfully"
+              text={t("documents_upload.upload_success")}
             />
           ) : isUploadFailed ? (
             <StatusBadge
               variant="error"
               size="sm"
-              text="Upload failed. Please try again."
+              text={t("documents_upload.upload_failed")}
             />
           ) : (
-            <StatusBadge variant="processing" size="sm" text="Uploading..." />
+            <StatusBadge
+              variant="processing"
+              size="sm"
+              text={t("documents_upload.uploading")}
+            />
           )}
         </div>
       )}
@@ -279,7 +289,9 @@ export default function DocumentUpload({
           fullWidth
           className="sm:w-auto"
         >
-          {isUploading ? "Uploading..." : "Upload Document"}
+          {isUploading
+            ? t("documents_upload.uploading")
+            : t("documents_upload.upload_document")}
         </Button>
       </div>
     </div>

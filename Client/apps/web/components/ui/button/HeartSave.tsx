@@ -1,13 +1,17 @@
-import { Heart, Sparkles } from "lucide-react";
 import React from "react";
 
+import { log, LOG_CATEGORIES } from "logger";
+import { Heart, Sparkles } from "lucide-react";
+
+import { useSavedHomesData } from "packages/hooks/data/search/saved/useSavedHomesData";
+import type { Property } from "packages/schemas/property";
+import type { SearchResult } from "packages/schemas/search";
+import { useUIStore } from "packages/store";
+import { dateNow } from "packages/utils/core/date";
+
+import { getCardBubbleSizeClasses } from "@/components/cards/base/styles";
+
 import IconButton from "./IconButton";
-import { getCardBubbleSizeClasses } from "../../cards/base/CardBubbleStyles.tsx";
-import { useSavedHomesData } from "../../../../../packages/hooks/data/search/useSavedHomesData";
-import { useUIStore } from "../../../../../packages/store";
-import type { SearchResult } from "../../../../../packages/schemas/search";
-import type { Property } from "../../../../../packages/schemas/property";
-import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 export type CardHeartSaveProps = {
   property: SearchResult | Property;
@@ -113,7 +117,7 @@ const CardHeartSave: React.FC<CardHeartSaveProps> = ({
         address: propertyAddress,
         action: isSaved ? "remove" : "add",
         error: errorMessage,
-        timestamp: new Date().toISOString(),
+        timestamp: dateNow().toISOString(),
       });
       enqueueToast({
         type: "error",

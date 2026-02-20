@@ -1,6 +1,6 @@
 import React from "react";
 
-import BackButton from "../BackButton";
+import BackButton from "@/features/homeauth/BackButton";
 
 import AuthFooter from "./Footer";
 import AuthHeader from "./Header";

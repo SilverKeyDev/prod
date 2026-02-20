@@ -116,7 +116,7 @@
 }
 
 /* 12 Mobile tweak: keep full-width track and preserve "no partials" */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .sk-carousel-clip .carousel .slider {
     width: 100% !important;
     max-width: 100% !important;

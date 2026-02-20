@@ -1,16 +1,22 @@
-import { FileText, Share } from "lucide-react";
 import React, { useState } from "react";
+
+import KeyLogo from "@ui/asset/KeyLogo";
+import MiniLogo from "@ui/asset/MiniLogo.web";
+import Button from "@ui/button/Button";
+import { FileText, Share } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import Button from "../../ui/button/Button";
-import { CloseButton, IconButton } from "../../ui";
-import { CardHeartSave } from "../../cards/base";
-import KeyLogo from "../../ui/asset/KeyLogo";
-import MiniLogo from "../../ui/asset/MiniLogo";
-import ShareHomeModal from "../ShareHomeModal";
+import { useLocalization } from "packages/contexts";
+import {
+  type AddressObject,
+  formatAddress,
+} from "packages/utils/domain/search/propertyDetailsFormatters";
+
+import ShareHomeModal from "@/components/modals/ShareHomeModal";
+import { default as CardHeartSave } from "@/components/ui/button/HeartSave";
+import { CloseButton, IconButton, Title } from "@/components/ui/index.web";
 
 import type { PropertyHeaderProps } from "./types";
-import { formatAddress, type AddressObject } from "./utils";
 
 /** Normalize property for favorites API - address must be a string (API rejects object addresses) */
 function normalizePropertyForFavorites(
@@ -60,6 +66,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   onGenerateReport,
   toolbarButtonSize = "medium",
 }) => {
+  const { t } = useLocalization();
   const navigate = useNavigate();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
@@ -68,11 +75,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
 
   const handleGenerateFullReport = () => {
     const address = formatAddress(
-      propertyAddress as
-        | string
-        | import("./utils").AddressObject
-        | null
-        | undefined,
+      propertyAddress as string | AddressObject | null | undefined,
     );
 
     // Save the address to localStorage for the GenerateReportPage
@@ -93,7 +96,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
     }
 
     // Navigate to the saved page
-    navigate("/saved");
+    void navigate("/saved");
   };
 
   return (
@@ -103,9 +106,13 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
         <MiniLogo size="sm" className="md:hidden" />
         <KeyLogo size="sm" className="hidden md:block" />
         {displayAddress && (
-          <h1 className="ml-3 text-base sm:text-lg font-semibold text-gray-900 truncate">
+          <Title
+            as="h1"
+            size="sm"
+            className="ml-3 font-semibold text-gray-900 truncate sm:text-lg"
+          >
             {displayAddress}
-          </h1>
+          </Title>
         )}
       </div>
 
@@ -128,7 +135,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
             icon={<FileText className="h-5 w-5 text-gray-600" />}
             className="border-gray-600 text-gray-600 hover:bg-gray-50"
           >
-            Generate Report
+            {t("property_details.generate_report")}
           </Button>
         )}
         <IconButton
@@ -137,7 +144,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           rounded="md"
           icon={<Share className="h-full w-full" />}
           onClick={() => setIsShareModalOpen(true)}
-          aria-label="Share"
+          aria-label={t("common.share_aria")}
         />
 
         <CardHeartSave

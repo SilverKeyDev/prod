@@ -9,4 +9,3 @@ basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 # Ensure instance directory exists
 instance_dir = os.path.join(basedir, "instance")
 os.makedirs(instance_dir, exist_ok=True)
-

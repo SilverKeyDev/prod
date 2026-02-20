@@ -1,10 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
-import { userApi, preferencesApi } from "../../../config/api";
-import { queryKeys } from "../../../config/query/keys";
-import { useAuthStore } from "../../../store/auth.slice";
-import type { UserProfile, UserPreferences } from "../../../schemas";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { preferencesApi, userApi } from "packages/config/api";
+import { queryKeys } from "packages/config/query/keys";
+import type { UserPreferences, UserProfile } from "packages/schemas";
+import { useAuthStore } from "packages/store";
 
 export type UseUserDataReturn = {
   userProfile: UserProfile | null;

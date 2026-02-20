@@ -1,10 +1,15 @@
 import React from "react";
+
 import { Clock, User } from "lucide-react";
-import Card from "../../../components/layout/Card";
-import DealStageBadge from "../components/DealStageBadge";
-import RiskFlag from "../components/RiskFlag";
-import ActionButton from "../components/ActionButton";
-import type { ClientDealInfo } from "../../../../../packages/schemas/agent";
+
+import type { ClientDealInfo } from "packages/schemas/agent";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
+
+import Card from "@/components/layout/Card.web";
+import { BodyText, Title } from "@/components/ui/index.web";
+import ActionButton from "@/features/dashboard/components/ActionButton";
+import DealStageBadge from "@/features/dashboard/components/DealStageBadge";
+import RiskFlag from "@/features/dashboard/components/RiskFlag";
 
 type ClientRowProps = {
   client: ClientDealInfo;
@@ -14,9 +19,9 @@ type ClientRowProps = {
 const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
   const formatTimeSince = (dateString?: string) => {
     if (!dateString) return "No recent activity";
-    const now = new Date();
-    const date = new Date(dateString);
-    const diff = now.getTime() - date.getTime();
+    const now = dateNow();
+    const date = dateParseISO(dateString);
+    const diff = now.valueOf() - date.valueOf();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
@@ -42,10 +47,12 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
             <User className="h-5 w-5 sm:h-6 sm:w-6 text-olive" />
           </div>
           <div>
-            <h3 className="text-responsive-base font-semibold text-navy">
+            <Title as="h3" size="md" className="font-semibold text-navy">
               {client.name}
-            </h3>
-            <p className="text-responsive-sm text-black/60">{client.email}</p>
+            </Title>
+            <BodyText as="p" size="sm" className="text-black/60">
+              {client.email}
+            </BodyText>
           </div>
         </div>
 
@@ -72,7 +79,9 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
         {/* Time Since Last Action */}
         <div className="flex items-center gap-2 text-responsive-sm text-black/60">
           <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span>{formatTimeSince(client.last_agent_action)}</span>
+          <BodyText as="span" size="sm" className="text-black/60">
+            {formatTimeSince(client.last_agent_action)}
+          </BodyText>
         </div>
 
         {/* Risk Flags */}
@@ -86,9 +95,13 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
               />
             ))}
             {client.risk_flags.length > 2 && (
-              <span className="text-xs sm:text-sm text-black/60">
+              <BodyText
+                as="span"
+                size="sm"
+                className="text-xs sm:text-sm text-black/60"
+              >
                 +{client.risk_flags.length - 2} more
-              </span>
+              </BodyText>
             )}
           </div>
         )}

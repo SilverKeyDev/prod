@@ -8,8 +8,8 @@ from .management import (
     get_or_create_silverkey_calendar,
 )
 from .resolution import (
-    resolve_calendar_id,
     list_calendars,
+    resolve_calendar_id,
 )
 from .sharing import (
     add_calendar_acl,

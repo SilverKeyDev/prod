@@ -1,11 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-import { useAuthStore } from "../../../store/auth.slice";
-import { reportApi } from "../../../config/api/documents/report";
-import { useFiltersQueryParams } from "../../../config/query/adapters";
-import { queryKeys } from "../../../config/query/keys";
-import type { Report, CompareReport } from "../../../schemas";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { reportApi } from "packages/config/api/documents/report";
+import { useFiltersQueryParams } from "packages/config/query/adapters";
+import { queryKeys } from "packages/config/query/keys";
+import type { CompareReport, Report } from "packages/schemas";
+import { useAuthStore } from "packages/store";
+import { dateNow, dayjs } from "packages/utils/core/date";
+import { getWindow } from "packages/utils/core/platform";
 
 // Simple deserialization functions
 const deserializeReport = (r: unknown): Report => {
@@ -24,9 +27,11 @@ const deserializeReport = (r: unknown): Report => {
     status: reportData.status as "completed" | "generating" | "error",
     pdfUrl: reportData.pdfUrl ?? null,
     s3Key: reportData.s3Key ?? null,
-    generatedAt: new Date(
-      reportData.generatedAt ? reportData.generatedAt * 1000 : Date.now(),
-    ),
+    generatedAt: dayjs(
+      reportData.generatedAt
+        ? reportData.generatedAt * 1000
+        : dateNow().valueOf(),
+    ).toDate(),
   };
 };
 
@@ -50,9 +55,11 @@ const deserializeCompareReport = (r: unknown): CompareReport => {
   return {
     id: reportData.id,
     address: reportData.address,
-    generatedAt: new Date(
-      reportData.generatedAt ? reportData.generatedAt * 1000 : Date.now(),
-    ),
+    generatedAt: dayjs(
+      reportData.generatedAt
+        ? reportData.generatedAt * 1000
+        : dateNow().valueOf(),
+    ).toDate(),
     status: reportData.status as "completed" | "generating" | "error",
     pdfUrl: reportData.pdfUrl ?? null,
     s3Key: reportData.s3Key ?? null,
@@ -78,7 +85,7 @@ export const useReportsData = () => {
   // Memoize filters to prevent query key changes, but exclude page for reports
   // since reports don't need to refetch when navigating between properties
   const memoizedFilters = useMemo(() => {
-    const { page, ...reportsFilters } = filters;
+    const { page: _page, ...reportsFilters } = filters;
     return reportsFilters;
   }, [filters]);
 
@@ -244,8 +251,11 @@ export const useReportsData = () => {
       }
     };
 
-    window.addEventListener("reportGenerated", handler);
-    return () => window.removeEventListener("reportGenerated", handler);
+    const win = getWindow();
+    if (win) {
+      win.addEventListener("reportGenerated", handler);
+      return () => win.removeEventListener("reportGenerated", handler);
+    }
   }, [shouldLoadData, queryClient]);
 
   // Public methods - use refs to avoid dependency issues

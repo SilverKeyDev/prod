@@ -3,85 +3,93 @@
 // API types
 export * from "./api";
 
+// Agent types (dashboard, alerts, todos, etc.)
+export * from "./agent/agent";
+
 // Billing types
-export * from "./billing";
+export * from "./finance/billing";
 
 // Chat types
-export * from "./chat";
+export * from "./integrations/chat";
+
+// Feed types
+export * from "./content/feed/feed";
 
 // Document types
-export * from "./documents/documents";
-export * from "./documents/types";
-export * from "./documents/docusign";
+export * from "./content/documents/documents";
+export * from "./content/documents/docusign";
+export * from "./content/documents/types";
 
 // Offer types
-export * from "./offers";
+export * from "./finance/offers";
 
 // Property types
 export * from "./search/property";
 
 // Report types
-export * from "./documents/reports";
+export * from "./content/documents/reports";
 
 // Search types (with explicit exports to avoid conflicts)
 export type {
-  PreferencesResponse,
+  DeepPartial,
+  ErrorBoundaryState,
   IsochroneApiResponse,
-  MapPosition,
+  ListingStatus,
   MapBounds,
+  MapContainerProps,
   MapMarker,
   MapPolygon,
-  PropertyImage,
-  PropertyDetails,
-  PropertyType,
-  ListingStatus,
-  SearchMetadata,
-  SearchData,
-  SearchFilters,
-  UseSearchBootstrapParams,
-  UseIsochroneFlowParams,
-  SearchEventHandlers,
-  SearchLayoutProps,
-  MapContainerProps,
-  SearchError,
-  ErrorBoundaryState,
-  DeepPartial,
-  RequiredFields,
+  MapPosition,
   OptionalFields,
+  PreferencesResponse,
+  PropertyDetails,
+  PropertyImage,
+  PropertyType,
+  RequiredFields,
+  SearchData,
+  SearchError,
+  SearchEventHandlers,
+  SearchFilters,
+  SearchLayoutProps,
+  SearchMetadata,
   SearchResult,
+  UseIsochroneFlowParams,
+  UseSearchBootstrapParams,
 } from "./search/search";
 
 // Re-export search utility functions
 export {
+  getMatchScore,
+  isMapPosition,
   isPropertyDetails,
   isApiResponse as isSearchApiResponse,
-  isMapPosition,
-  getMatchScore,
 } from "./search/search";
 
 // User types
-export * from "./auth/user";
+export * from "./app/auth/user";
 
 // Metrics types
-export * from "./metrics";
+export * from "./finance/metrics";
 
 // Plaid types (with explicit exports to avoid conflicts)
 export type {
-  PlaidItem,
-  PlaidAssetReport,
-  PlaidStatement,
-  PlaidLinkToken,
-  PlaidAssetReportData,
+  CreateAssetReportRequest,
   CreateLinkTokenRequest,
   ExchangeTokenRequest,
-  CreateAssetReportRequest,
+  PlaidAssetReport,
+  PlaidAssetReportData,
+  PlaidItem,
+  PlaidLinkToken,
+  PlaidStatement,
 } from "./plaid";
 
 // Checklists
-export * from "./checklists";
+export * from "./integrations/checklists";
 
 // Calendar types
 export * from "./calendar/calendar";
 
-// UI (breakpoints, responsive helpers)
-export * from "./ui/screens";
+// UI (breakpoints, responsive helpers, button styles, icon names)
+export * from "./app/ui/button";
+export * from "./app/ui/icons";
+export * from "./app/ui/screens";

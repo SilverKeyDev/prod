@@ -1,6 +1,10 @@
 import React from "react";
-import { AlertTriangle, AlertCircle, Info } from "lucide-react";
-import type { AlertSeverity } from "../../../../../packages/schemas/agent";
+
+import { AlertCircle, AlertTriangle, Info } from "lucide-react";
+
+import type { AlertSeverity } from "packages/schemas/agent";
+
+import { BodyText } from "@/components/ui/index.web";
 
 type RiskFlagProps = {
   severity: AlertSeverity;
@@ -47,7 +51,9 @@ const RiskFlag: React.FC<RiskFlagProps> = ({
       title={message}
     >
       {config.icon}
-      <span className="text-xs sm:text-sm font-medium">{message}</span>
+      <BodyText as="span" size="sm" className="font-medium">
+        {message}
+      </BodyText>
     </div>
   );
 };

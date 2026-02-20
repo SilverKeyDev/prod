@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 
-import type { ScheduleEventRequest } from "../../../../../packages/schemas/scheduling";
-import Button from "../../../../../components/ui/button/Button";
-import CancelButton from "../../../../../components/ui/button/CancelButton";
-import Input from "../../../../../components/ui/form/Input";
-import Label from "../../../../../components/ui/text/Label";
-import Dropdown from "../../../../../components/ui/form/Dropdown";
-import { Textarea } from "../../../../../components/ui/form/FormField";
+import { dayjs } from "packages/utils/core/date";
+
+import Button from "@/components/ui/button/Button";
+import CancelButton from "@/components/ui/button/CancelButton";
+import Dropdown from "@/components/ui/form/Dropdown";
+import { Textarea } from "@/components/ui/form/FormField";
+import Input from "@/components/ui/form/Input.web";
+import { BodyText } from "@/components/ui/index.web";
+import Label from "@/components/ui/text/Label.web";
+import type { ScheduleEventRequest } from "@/packages/schemas/scheduling";
 
 interface SchedulingFormProps {
   selectedSlot: { start: Date; end: Date } | null;
@@ -37,8 +40,7 @@ export function SchedulingForm({
     }
 
     // Calculate end time based on duration
-    const endTime = new Date(selectedSlot.start);
-    endTime.setMinutes(endTime.getMinutes() + duration);
+    const endTime = dayjs(selectedSlot.start).add(duration, "minute");
 
     // Parse attendees (comma or newline separated emails)
     const attendeeEmails = attendees
@@ -146,9 +148,9 @@ export function SchedulingForm({
           rows={2}
           className="text-base sm:text-sm"
         />
-        <p className="mt-1 text-responsive-xs text-neutral-500">
+        <BodyText as="p" size="xs" className="mt-1 text-neutral-500">
           Attendees will receive Google Calendar invites
-        </p>
+        </BodyText>
       </div>
 
       <div className="flex-responsive gap-responsive-sm pt-responsive-md">

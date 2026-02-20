@@ -1,6 +1,8 @@
-import { useCallback, useMemo, useEffect } from "react";
-import type { SavedHome } from "../../../schemas";
-import { useViewStore } from "../../../store/view.slice";
+import { useCallback, useEffect, useMemo } from "react";
+
+import type { SavedHome } from "packages/schemas";
+import { useViewStore } from "packages/store";
+import { getWindow } from "packages/utils";
 
 type UseHomeComparisonReturn = {
   selectedHomesForComparison: Set<string>;
@@ -42,16 +44,15 @@ export function useHomeComparison(homes: SavedHome[]): UseHomeComparisonReturn {
     return new Set(validSelections);
   }, [homes, persistedSelectedIds]);
 
-  // Migrate from old localStorage key on first load (one-time migration)
+  // Migrate from old localStorage key on first load (one-time migration). Web-only; RN-safe via getWindow.
   useEffect(() => {
-    // Only migrate if Zustand store is empty and localStorage has old data
-    if (
-      persistedSelectedIds.length === 0 &&
-      homes.length > 0 &&
-      typeof window !== "undefined"
-    ) {
+    const win = getWindow();
+    const loc = win
+      ? (win as unknown as Record<string, Storage | undefined>)["localStorage"]
+      : undefined;
+    if (persistedSelectedIds.length === 0 && homes.length > 0 && loc) {
       try {
-        const oldData = localStorage.getItem("compareHomesState");
+        const oldData = loc.getItem("compareHomesState");
         if (oldData) {
           const parsed = JSON.parse(oldData) as { selectedIds?: string[] };
           if (parsed.selectedIds && Array.isArray(parsed.selectedIds)) {
@@ -61,15 +62,15 @@ export function useHomeComparison(homes: SavedHome[]): UseHomeComparisonReturn {
             );
             if (validSelections.length > 0) {
               setDropdownSelection(SELECTION_KEY, validSelections);
-              // Remove old localStorage key after migration
-              localStorage.removeItem("compareHomesState");
+              loc.removeItem("compareHomesState");
             }
           }
         }
       } catch {
-        // Ignore parsing errors, just remove old key
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("compareHomesState");
+        try {
+          loc.removeItem("compareHomesState");
+        } catch {
+          // ignore
         }
       }
     }

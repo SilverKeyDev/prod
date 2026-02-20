@@ -1,6 +1,6 @@
 import os
 
-from ._constants_aws import S3_BUCKET_NAME_PDFS, S3_PRESIGNED_URL_EXPIRATION_DEFAULT
+from .constants import S3_BUCKET_NAME_PDFS, S3_PRESIGNED_URL_EXPIRATION_DEFAULT
 
 # AWS Cognito Settings
 AWS_REGION = os.getenv("AWS_REGION", "us-east-2")
@@ -26,4 +26,3 @@ __all__ = [
     "S3_BUCKET_NAME_PDFS",
     "S3_PRESIGNED_URL_EXPIRATION",
 ]
-

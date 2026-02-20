@@ -1,6 +1,10 @@
-import { Bed, Bath, Square, Home } from "lucide-react";
 import React from "react";
-import { formatSquareFootage } from "../../../../../packages/utils/search/address";
+
+import { Bath, Bed, Square } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
+
+import { PropertyStat } from "@/components/ui/index.web";
 
 export type CardPropertyDetailsProps = {
   /** Number of bedrooms */
@@ -11,8 +15,6 @@ export type CardPropertyDetailsProps = {
   sqft?: number;
   /** Lot size */
   lotSize?: string;
-  /** Property type (e.g., "CONDO", "APARTMENT", "SINGLE_FAMILY") */
-  propertyType?: string;
   /** Display variant */
   variant?: "horizontal" | "vertical" | "grid" | "modal";
   /** Whether to show icons */
@@ -28,12 +30,12 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   bathrooms,
   sqft,
   lotSize,
-  propertyType,
   variant = "horizontal",
   showIcons = true,
   hideSquareFootage = false,
   className = "",
 }) => {
+  const { t } = useLocalization();
   // Dynamic size calculation based on content length for optimal single-line fit
   // Only move sqft to second level if it would cause overflow (within 10px of edge)
   const hasSqft = !hideSquareFootage; // Always show sqft unless explicitly hidden
@@ -49,64 +51,8 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   };
 
   const optimalSize = calculateOptimalSize();
+  const statSize = optimalSize === "sm" ? "sm" : "md";
 
-  // Check if property is apartment or condo (don't show lot size for these)
-  const isApartmentOrCondo = propertyType
-    ? propertyType.toLowerCase().includes("condo") ||
-      propertyType.toLowerCase().includes("apartment")
-    : false;
-
-  // Helper function to format lot size in acres
-  const formatLotSizeInAcres = (lotSizeStr: string): string | null => {
-    const lowerStr = lotSizeStr.toLowerCase();
-
-    // If already in acres format, check if it's 0.00
-    if (lowerStr.includes("acre")) {
-      const acreValue = parseFloat(lotSizeStr.replace(/[^\d.]/g, ""));
-      if (!isNaN(acreValue) && acreValue === 0) {
-        return null; // Return null to show em-dash
-      }
-      return lotSizeStr;
-    }
-
-    // Extract numeric value (handles strings like "5,000 sqft" or "5000")
-    const numValue = parseFloat(lotSizeStr.replace(/[^\d.]/g, ""));
-
-    if (isNaN(numValue) || numValue <= 0) {
-      return null; // Return null to show em-dash
-    }
-
-    // Convert square feet to acres (1 acre = 43,560 sqft)
-    const acres = numValue / 43560;
-
-    // Use formatSquareFootage helper to format with proper decimal places
-    const formatted = formatSquareFootage(acres, "acres");
-
-    // Check if result is "0.00 acres" and return null to show em-dash
-    if (formatted === "0.00 acres" || formatted === "0 acres") {
-      return null;
-    }
-
-    return formatted;
-  };
-
-  // Size variants with smaller icons and light gray styling
-  const sizeStyles = {
-    sm: {
-      text: "text-xs sm:text-sm text-gray-500", // Small text with light gray
-      icon: "w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400", // Smaller icons with light gray
-      gap: "gap-1 sm:gap-1.5",
-      spacing: "px-[1px]", // 1px margin on each side
-    },
-    md: {
-      text: "text-sm sm:text-base text-gray-500", // Medium text with light gray
-      icon: "w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400", // Smaller icons with light gray
-      gap: "gap-1.5 sm:gap-2",
-      spacing: "px-[1px]", // 1px margin on each side
-    },
-  };
-
-  // Two-row layout: bedrooms/bathrooms on top, sqft on bottom
   const layoutStyles = {
     horizontal: "flex flex-col items-center justify-center",
     vertical: "flex flex-col items-center justify-center",
@@ -114,14 +60,15 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
     modal: "flex flex-col items-center justify-center",
   };
 
-  const currentSizeStyles = sizeStyles[optimalSize];
-  const currentLayoutStyles = layoutStyles[variant];
-
+  const gapSpacing = {
+    sm: "gap-1 sm:gap-1.5",
+    md: "gap-1.5 sm:gap-2",
+  } as const;
   const containerClasses = [
-    currentLayoutStyles,
-    currentSizeStyles.gap,
-    currentSizeStyles.spacing,
-    "w-full min-w-0", // Ensure full width for centering and prevent overflow
+    layoutStyles[variant],
+    gapSpacing[optimalSize],
+    "px-[1px]",
+    "w-full min-w-0",
     className,
   ]
     .filter(Boolean)
@@ -140,126 +87,55 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
       {/* First row: bedrooms, bathrooms, and optionally sqft */}
       <div className="flex items-center justify-center flex-nowrap gap-1 sm:gap-1.5">
         {bedrooms !== undefined && Number(bedrooms) > 0 && (
-          <div
-            className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
-          >
-            {showIcons && (
-              <Bed className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`} />
-            )}
-
+          <PropertyStat icon={showIcons ? <Bed /> : undefined} size={statSize}>
             {variant === "modal"
               ? bedrooms
-              : `${bedrooms} bed${bedrooms !== 1 ? "s" : ""}`}
-          </div>
+              : `${bedrooms} ${bedrooms !== 1 ? t("cards.beds_plural") : t("cards.beds")}`}
+          </PropertyStat>
         )}
 
         {bathrooms !== undefined && Number(bathrooms) > 0 && (
-          <div
-            className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
-          >
-            {showIcons && (
-              <Bath
-                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
-              />
-            )}
-
+          <PropertyStat icon={showIcons ? <Bath /> : undefined} size={statSize}>
             {variant === "modal"
               ? bathrooms
-              : `${bathrooms} bath${bathrooms !== 1 ? "s" : ""}`}
-          </div>
+              : `${bathrooms} ${bathrooms !== 1 ? t("cards.baths_plural") : t("cards.baths")}`}
+          </PropertyStat>
         )}
 
-        {/* Sqft on same line if it fits, otherwise it goes to second row */}
         {hasSqft && !shouldMoveSqftToSecondRow && (
-          <>
-            <div
-              className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
-            >
-              {showIcons && (
-                <Home
-                  className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
-                />
-              )}
-              <span>
-                {sqft === undefined || Number(sqft) <= 0
-                  ? "n/a sqft"
-                  : `${Math.round(Number(sqft)).toLocaleString()} sqft`}
-              </span>
-            </div>
-            {/* Lot size next to sqft - hide for apartments/condos */}
-            {!isApartmentOrCondo && (
-              <div
-                className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
-              >
-                {showIcons && (
-                  <Square
-                    className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
-                  />
-                )}
-                <span>
-                  {lotSize && lotSize !== "N/A" && lotSize.trim() !== ""
-                    ? (() => {
-                        const formatted = formatLotSizeInAcres(lotSize);
-                        return formatted ?? "—";
-                      })()
-                    : "—"}
-                </span>
-              </div>
-            )}
-          </>
+          <PropertyStat
+            icon={showIcons ? <Square /> : undefined}
+            size={statSize}
+          >
+            {sqft === undefined || Number(sqft) <= 0
+              ? `${t("cards.na")} ${t("cards.sqft")}`
+              : `${Math.round(Number(sqft)).toLocaleString()} ${t("cards.sqft")}`}
+          </PropertyStat>
         )}
       </div>
 
       {/* Second row: square footage (only if moved here for spacing) */}
       {shouldMoveSqftToSecondRow && (
-        <div className="flex flex-shrink-0 items-center justify-center flex-nowrap gap-1 sm:gap-1.5">
-          <div
-            className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
+        <div className="flex flex-shrink-0 items-center justify-center">
+          <PropertyStat
+            icon={showIcons ? <Square /> : undefined}
+            size={statSize}
           >
-            {showIcons && (
-              <Home
-                className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
-              />
-            )}
-            <span>
-              {sqft === undefined || Number(sqft) <= 0
-                ? "n/a sqft"
-                : `${Math.round(Number(sqft)).toLocaleString()} sqft`}
-            </span>
-          </div>
-          {/* Lot size next to sqft - hide for apartments/condos */}
-          {!isApartmentOrCondo && (
-            <div
-              className={`flex flex-shrink-0 items-center ${currentSizeStyles.text}`}
-            >
-              {showIcons && (
-                <Square
-                  className={`${currentSizeStyles.icon} mr-1 flex-shrink-0`}
-                />
-              )}
-              <span>
-                {lotSize && lotSize !== "N/A" && lotSize.trim() !== ""
-                  ? (() => {
-                      const formatted = formatLotSizeInAcres(lotSize);
-                      return formatted ?? "—";
-                    })()
-                  : "—"}
-              </span>
-            </div>
-          )}
+            {sqft === undefined || Number(sqft) <= 0
+              ? `${t("cards.na")} ${t("cards.sqft")}`
+              : `${Math.round(Number(sqft)).toLocaleString()} ${t("cards.sqft")}`}
+          </PropertyStat>
         </div>
       )}
 
-      {/* Modal variant handling */}
       {variant === "modal" && hasSqft && (
-        <div className="text-center">
-          <div className={`font-bold text-gray-500`}>
-            {sqft === undefined || Number(sqft) <= 0
-              ? "n/a"
-              : Math.round(Number(sqft)).toLocaleString()}
-          </div>
-          <div className="mt-1 text-sm text-gray-500">Sq Ft</div>
-        </div>
+        <PropertyStat size={statSize}>
+          {sqft === undefined || Number(sqft) <= 0
+            ? t("cards.na")
+            : Math.round(Number(sqft)).toLocaleString()}
+          {" · "}
+          {t("cards.sqft")}
+        </PropertyStat>
       )}
     </div>
   );

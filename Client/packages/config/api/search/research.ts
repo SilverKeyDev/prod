@@ -1,5 +1,8 @@
-import { apiGet, apiPost } from "../../../services/http/compatibility";
-import { log, LOG_CATEGORIES } from "../../../../logger";
+import { log, LOG_CATEGORIES } from "logger";
+
+import { getEnv } from "packages/config/env";
+import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { getFetch } from "packages/utils/core/platform";
 
 // Types for research API
 export type PropertyRequest = {
@@ -74,10 +77,11 @@ export const researchApi = {
   streamProperty: async function* (
     data: PropertyRequest,
   ): AsyncGenerator<{ type: string; data: unknown }, void, unknown> {
-    const baseUrl = import.meta.env.DEV ? "" : "https://usesilverkey.com";
+    const baseUrl = getEnv().apiBaseUrl;
     const url = `${baseUrl}/api/v1/research/property?stream=true`;
+    const fetchFn = getFetch();
 
-    const response = await fetch(url, {
+    const response = await fetchFn(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -168,10 +172,11 @@ export const researchApi = {
   streamCompare: async function* (
     data: PropertyRequest,
   ): AsyncGenerator<{ type: string; data: unknown }, void, unknown> {
-    const baseUrl = import.meta.env.DEV ? "" : "https://usesilverkey.com";
+    const baseUrl = getEnv().apiBaseUrl;
     const url = `${baseUrl}/api/v1/research/compare?stream=true`;
+    const fetchFn = getFetch();
 
-    const response = await fetch(url, {
+    const response = await fetchFn(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

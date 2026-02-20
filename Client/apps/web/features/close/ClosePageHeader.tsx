@@ -1,11 +1,12 @@
 import React from "react";
-import { FileText, ClipboardCheck, DollarSign, Home } from "lucide-react";
-import Card from "../../components/layout/Card";
-import MiniLogo from "../../components/ui/asset/MiniLogo";
-import {
-  CHECKLIST_TITLES,
-  type ChecklistTab,
-} from "../../../../packages/schemas";
+
+import { ClipboardCheck, DollarSign, FileText, Home } from "lucide-react";
+
+import { CHECKLIST_TITLES, type ChecklistTab } from "packages/schemas";
+
+import Card from "@/components/layout/Card.web";
+import MiniLogo from "@/components/ui/asset/MiniLogo.web";
+import { BodyText, Button, Title } from "@/components/ui/index.web";
 
 type ClosePageHeaderProps = {
   title: string;
@@ -58,19 +59,23 @@ export default function ClosePageHeader({
                   <MiniLogo size="md" className="hidden lg:block xl:hidden" />
                   <MiniLogo size="lg" className="hidden xl:block" />
                 </div>
-                <h1
+                <Title
+                  as="h1"
+                  size="md"
                   className="text-sm sm:text-base lg:heading-responsive-md font-semibold lg:font-normal text-navy"
-                  role="heading"
-                  aria-level={1}
                 >
                   {title}
-                </h1>
+                </Title>
               </div>
 
               {/* Subtitle visible on lg+ screens (1024px+), hidden below */}
-              <p className="hidden lg:block text-sm lg:text-responsive-sm text-navy/70 mt-1">
+              <BodyText
+                as="p"
+                size="sm"
+                className="hidden lg:block lg:text-responsive-sm text-navy/55 mt-1"
+              >
                 {_subtitle}
-              </p>
+              </BodyText>
             </div>
           </div>
 
@@ -99,7 +104,9 @@ export default function ClosePageHeader({
                     key={tab.id}
                     className="flex items-center flex-1 min-w-0"
                   >
-                    <button
+                    <Button
+                      type="button"
+                      variant="ghost"
                       onClick={() => onTabChange(tab.id)}
                       className={`relative flex-1 py-1 lg:py-1.5 transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1 ${
                         activeTab === tab.id
@@ -110,7 +117,8 @@ export default function ClosePageHeader({
                       <tab.icon className="w-[1em] h-[1em]" />
                       {tab.label}
                       {activeTab === tab.id && (
-                        <span
+                        <BodyText
+                          as="span"
                           className={`absolute bottom-0 h-0.5 bg-olive ${
                             isFirst
                               ? "left-2 right-2 rounded-l-full"
@@ -120,7 +128,7 @@ export default function ClosePageHeader({
                           }`}
                         />
                       )}
-                    </button>
+                    </Button>
                     {index < tabs.length - 1 && (
                       <div className="h-4 lg:h-6 w-px bg-gray-300 flex-shrink-0" />
                     )}

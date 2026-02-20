@@ -1,24 +1,24 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useGoogleCalendarStoreIntegration } from "../../../../../packages/hooks/store/calendar/useGoogleCalendarStoreIntegration";
-import { useUserPreferences } from "../../../../../packages/hooks/data/auth/useUserData";
+import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import {
   useGoogleCalendarPermissions,
   useGoogleEvents,
-} from "../../../../../packages/hooks/data/calendar";
-
-import { CalendarConnectionPrompt } from "./components/CalendarConnectionPrompt";
-import { EventList } from "./components/EventList";
-
+} from "packages/hooks/data/calendar";
+import { useGoogleCalendarStoreIntegration } from "packages/hooks/store/calendar/useGoogleCalendarStoreIntegration";
+import { dateNow, dayjs } from "packages/utils/core/date";
 import {
   findSilverKeyCalendar,
   getCalendarsKey,
   initializeEnabledCalendars,
-} from "../../../../../packages/utils/calendar/calendar";
+} from "packages/utils/domain/calendar/calendar";
 import {
   filterEventsByCalendars,
   filterUpcomingEvents,
-} from "../../../../../packages/utils/calendar/eventFiltering";
+} from "packages/utils/domain/calendar/eventFiltering";
+
+import { CalendarConnectionPrompt } from "./components/CalendarConnectionPrompt";
+import { EventList } from "./components/EventList";
 
 export function UpcomingEvents() {
   const { isConnected, calendars, calendarsLoading, connectGoogleCalendar } =
@@ -44,13 +44,13 @@ export function UpcomingEvents() {
 
   // Recalculate daily to ensure our "next 7 days" window stays current
   const [todayDateString, setTodayDateString] = useState(() =>
-    new Date().toDateString(),
+    dateNow().format("ddd MMM DD YYYY"),
   );
   const lastCheckedDateRef = useRef<string>(todayDateString);
 
   useEffect(() => {
     const checkDate = () => {
-      const currentDateString = new Date().toDateString();
+      const currentDateString = dateNow().format("ddd MMM DD YYYY");
       if (currentDateString !== lastCheckedDateRef.current) {
         lastCheckedDateRef.current = currentDateString;
         setTodayDateString(currentDateString);
@@ -103,13 +103,16 @@ export function UpcomingEvents() {
   }, [calendars, userPreferences]);
 
   const upcomingDateRange = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-    nextWeek.setHours(23, 59, 59, 999);
+    const parsed = todayDateString
+      ? dayjs(todayDateString, "ddd MMM DD YYYY")
+      : null;
+    const todayStart =
+      parsed?.isValid() && parsed
+        ? parsed.startOf("day")
+        : dateNow().startOf("day");
+    const nextWeek = todayStart.add(7, "day").endOf("day");
     return {
-      timeMin: today.toISOString(),
+      timeMin: todayStart.toISOString(),
       timeMax: nextWeek.toISOString(),
     };
   }, [todayDateString]);

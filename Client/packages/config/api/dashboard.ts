@@ -1,5 +1,9 @@
-import type { UserProfile, Document } from "../../schemas";
-import { apiGet, apiPost, apiDelete } from "../../services/http/compatibility";
+import type { Document, UserProfile } from "packages/schemas";
+import {
+  apiDelete,
+  apiGet,
+  apiPost,
+} from "packages/services/http/compatibility";
 
 export type Document = {
   id: string;

@@ -1,13 +1,21 @@
 import { MessageCircle } from "lucide-react";
+
+import type { AgentConversation } from "packages/config/api";
+import { useLocalization } from "packages/contexts";
+import { getMessagePreview } from "packages/utils/domain/messaging";
+
+import { BodyText, Title } from "@/components/ui/index.web";
+import { ConnectionRequestsInbox } from "@/features/agent/modals";
+
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
-import { ConnectionRequestsInbox } from "../modals";
-import type { AgentConversation } from "../../../../../packages/config/api";
 
 type ChatMessage = {
   id: string;
   content: string;
   role: "user" | "agent";
   timestamp: Date;
+  shared_home_id?: string | null;
+  shared_document_id?: string | null;
 };
 
 type ClientMessagingSidebarProps = {
@@ -33,6 +41,7 @@ export default function ClientMessagingSidebar({
   setActiveConversationId,
   localMessages,
 }: ClientMessagingSidebarProps) {
+  const { t } = useLocalization();
   return (
     <>
       {/* Backdrop for mobile - only show when sidebar is expanded on mobile */}
@@ -84,18 +93,29 @@ export default function ClientMessagingSidebar({
             <div className="flex h-full items-center justify-center p-3">
               <div className="text-center">
                 <MessageCircle className="mx-auto mb-3 h-12 w-12 text-black/30" />
-                <p className="mb-4 text-sm text-black/60">
-                  Search for an agent to start messaging
-                </p>
+                <BodyText as="p" size="sm" className="mb-4 text-black/60">
+                  {t("agent.search_agent_to_start_messaging")}
+                </BodyText>
               </div>
             </div>
           ) : (
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => {
                 if (activeConversation) {
                   setActiveConversationId(activeConversation.id);
                 }
                 setIsSidebarExpanded(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  if (activeConversation) {
+                    setActiveConversationId(activeConversation.id);
+                  }
+                  setIsSidebarExpanded(false);
+                }
               }}
               className={`group cursor-pointer border-b border-beige/50 p-3 transition-colors hover:bg-beige/10 ${
                 activeConversationId === activeConversation?.id
@@ -105,13 +125,21 @@ export default function ClientMessagingSidebar({
             >
               <div className="flex items-start justify-between">
                 <div className="min-w-0 flex-1">
-                  <h3 className="mb-1 truncate text-sm font-medium text-black">
-                    Your Agent
-                  </h3>
+                  <Title
+                    as="h3"
+                    size="sm"
+                    className="mb-1 truncate font-medium text-black"
+                  >
+                    {t("agent.your_agent")}
+                  </Title>
                   {localMessages.length > 0 && (
-                    <p className="truncate text-xs text-black/50">
-                      {localMessages[localMessages.length - 1]?.content ?? ""}
-                    </p>
+                    <BodyText as="p" className="truncate text-xs text-black/50">
+                      {getMessagePreview(
+                        localMessages[localMessages.length - 1] ?? {
+                          content: "",
+                        },
+                      )}
+                    </BodyText>
                   )}
                 </div>
               </div>

@@ -1,0 +1,7 @@
+{
+  "name": "eslint-plugin-silverkey",
+  "version": "0.0.1",
+  "main": "index.js",
+  "private": true,
+  "type": "commonjs"
+}

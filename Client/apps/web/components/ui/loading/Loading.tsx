@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 
+import { color } from "packages/design-tokens";
+
 const PARTICLE_COUNT = 9;
 const SIZE = 80;
 const CENTER = SIZE / 2;
@@ -124,7 +126,7 @@ function OrbRippleLoader({ message = "Thinking..." }: { message?: string }) {
 
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = "#888";
+        ctx.fillStyle = color("neutral.500");
         ctx.fill();
       });
 

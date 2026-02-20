@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "../../store/auth.slice";
-import { InitialDataLoader } from "../../services/data/initialDataLoader";
-import { BackgroundPolling } from "../../services/data/backgroundPolling";
-import { log, LOG_CATEGORIES } from "../../../logger";
+import { log, LOG_CATEGORIES } from "logger";
+
+import { useNavigation } from "packages/navigation";
+import { BackgroundPolling } from "packages/services/data/backgroundPolling";
+import { InitialDataLoader } from "packages/services/data/initialDataLoader";
+import { useAuthStore } from "packages/store";
 
 /**
  * Hook that initializes data loading and background polling on login
@@ -12,7 +14,8 @@ import { log, LOG_CATEGORIES } from "../../../logger";
  */
 export function useDataInitialization() {
   const queryClient = useQueryClient();
-  const location = useLocation();
+  const { getCurrentRoute } = useNavigation();
+  const route = getCurrentRoute();
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
@@ -44,21 +47,23 @@ export function useDataInitialization() {
     });
 
     // Start background polling
-    pollingRef.current.start(user, location.pathname);
+    pollingRef.current.start(user, route.pathname);
 
     // Cleanup on unmount or logout
     return () => {
       pollingRef.current?.stop();
       hasInitializedRef.current = false;
     };
-  }, [authReady, isAuthenticated, user, queryClient]); // Removed location.pathname to prevent re-initialization
+    // pathname intentionally omitted: init runs once; route changes are handled by the updatePathname effect below
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment above
+  }, [authReady, isAuthenticated, user, queryClient]);
 
   // Update polling pathname when route changes
   useEffect(() => {
     if (pollingRef.current && isAuthenticated) {
-      pollingRef.current.updatePathname(location.pathname);
+      pollingRef.current.updatePathname(route.pathname);
     }
-  }, [location.pathname, isAuthenticated]);
+  }, [route.pathname, isAuthenticated]);
 
   // Stop polling on logout
   useEffect(() => {

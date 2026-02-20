@@ -2,26 +2,22 @@
 OAuth flow and scope management for Google Calendar
 """
 
-from .flow import (
-    generate_state,
-    validate_state,
-    build_auth_url,
-    exchange_code_for_tokens,
-)
+from .flow import build_auth_url, generate_state, validate_state
 from .scopes import (
-    GoogleScope,
-    SCOPE_BY_NAME,
-    SCOPE_BY_URL,
     ALL_SCOPE_URLS,
     AUTH_SCOPES,
+    CALENDAR_SCOPES,
     DEFAULT_CALENDAR_SCOPES,
     SCHEDULING_SCOPES,
-    CALENDAR_SCOPES,
-    get_scope_by_url,
+    SCOPE_BY_NAME,
+    SCOPE_BY_URL,
+    GoogleScope,
     get_scope_by_name,
+    get_scope_by_url,
     get_scope_urls_by_category,
     normalize_scope_url,
 )
+from .token_exchange import exchange_code_for_tokens
 
 __all__ = [
     "generate_state",

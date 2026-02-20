@@ -1,13 +1,14 @@
+import { log, LOG_CATEGORIES } from "logger";
+
+import type {
+  SearchByPolygonRequest,
+  SearchByPolygonResponse,
+} from "packages/config/schemas/api";
 import {
   apiGet,
   apiPost,
   buildApiUrl,
-} from "../../../services/http/compatibility";
-import { log, LOG_CATEGORIES } from "../../../../logger";
-import type {
-  SearchByPolygonRequest,
-  SearchByPolygonResponse,
-} from "../../schemas/api";
+} from "packages/services/http/compatibility";
 
 // Types for search API
 export type PropertyCompsRequest = {

@@ -1,7 +1,11 @@
 import React from "react";
-import { Check, X } from "lucide-react";
-import { Title, Subtitle } from "../../ui";
-import type { ComparisonField, PropertyDetails } from "./types";
+
+import { Button, CloseButton, Subtitle, Title } from "@ui/index.web";
+
+import { useLocalization } from "packages/contexts";
+import type { CompareHomesComparisonField } from "packages/utils/domain/compareHomes/types";
+
+import { ManageRowsModalFieldRow } from "./ManageRowsModalFieldRow";
 
 interface ManageRowsModalProps {
   showRowModal: boolean;
@@ -11,8 +15,81 @@ interface ManageRowsModalProps {
   manuallyEnabledRows: Set<string>;
   setManuallyEnabledRows: (rows: Set<string>) => void;
   hasDataForAnyProperty: (fieldKey: string) => boolean;
-  visibleFields: ComparisonField[];
-  allFields: ComparisonField[];
+  visibleFields: CompareHomesComparisonField[];
+  allFields: CompareHomesComparisonField[];
+}
+
+function ManageRowsModalHeader({ onClose }: { onClose: () => void }) {
+  const { t } = useLocalization();
+  return (
+    <div className="flex items-center justify-between border-b border-gray-200 p-6">
+      <div>
+        <Title size="md" className="font-semibold">
+          {t("compare.manage_fields_title")}
+        </Title>
+        <Subtitle size="xs" muted className="mt-1">
+          {t("compare.manage_fields_subtitle")}
+        </Subtitle>
+      </div>
+      <CloseButton onClick={onClose} size="sm" className="rounded-lg p-2" />
+    </div>
+  );
+}
+
+type ManageRowsModalActionsProps = {
+  allFieldKeys: string[];
+  visibleCount: number;
+  setOmittedRows: (rows: Set<string>) => void;
+  setManuallyEnabledRows: (rows: Set<string>) => void;
+};
+
+function ManageRowsModalActions({
+  allFieldKeys,
+  visibleCount,
+  setOmittedRows,
+  setManuallyEnabledRows,
+}: ManageRowsModalActionsProps) {
+  const { t } = useLocalization();
+  return (
+    <div className="mb-6 flex flex-wrap gap-2">
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={() => {
+          setOmittedRows(new Set());
+          setManuallyEnabledRows(new Set(allFieldKeys));
+        }}
+      >
+        {t("compare.show_all", { count: allFieldKeys.length })}
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => {
+          setOmittedRows(new Set(allFieldKeys));
+          setManuallyEnabledRows(new Set());
+        }}
+      >
+        {t("compare.hide_all")}
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => {
+          setOmittedRows(new Set());
+          setManuallyEnabledRows(new Set());
+        }}
+      >
+        {t("compare.auto_hide_empty")}
+      </Button>
+      <div className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-black/60">
+        {t("compare.showing_fields", {
+          visible: visibleCount,
+          total: allFieldKeys.length,
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function ManageRowsModal({
@@ -26,160 +103,63 @@ export function ManageRowsModal({
   visibleFields,
   allFields,
 }: ManageRowsModalProps) {
-  if (!showRowModal) {
-    return null;
-  }
+  if (!showRowModal) return null;
 
   const allFieldKeys = allFields.map((f) => f.key);
+
+  const handleFieldToggle =
+    (fieldKey: string, hasData: boolean) => (checked: boolean) => {
+      if (checked) {
+        const newOmittedRows = new Set(omittedRows);
+        newOmittedRows.delete(fieldKey);
+        setOmittedRows(newOmittedRows);
+        if (!hasData) {
+          const newManuallyEnabled = new Set(manuallyEnabledRows);
+          newManuallyEnabled.add(fieldKey);
+          setManuallyEnabledRows(newManuallyEnabled);
+        }
+      } else {
+        const newOmittedRows = new Set(omittedRows);
+        newOmittedRows.add(fieldKey);
+        setOmittedRows(newOmittedRows);
+        const newManuallyEnabled = new Set(manuallyEnabledRows);
+        newManuallyEnabled.delete(fieldKey);
+        setManuallyEnabledRows(newManuallyEnabled);
+      }
+    };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-xl">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 p-6">
-          <div>
-            <Title size="md" className="font-semibold">
-              Manage Comparison Fields
-            </Title>
-            <Subtitle size="xs" muted className="mt-1">
-              Select which fields to include in your comparison table
-            </Subtitle>
-          </div>
-          <button
-            onClick={() => setShowRowModal(false)}
-            className="rounded-lg p-2 transition-colors hover:bg-gray-100"
-          >
-            <X className="h-5 w-5 text-black/60" />
-          </button>
-        </div>
-
-        {/* Modal Content */}
+        <ManageRowsModalHeader onClose={() => setShowRowModal(false)} />
         <div className="flex-1 overflow-hidden p-6">
-          {/* Quick Actions */}
-          <div className="mb-6 flex flex-wrap gap-2">
-            <button
-              onClick={() => {
-                setOmittedRows(new Set());
-                setManuallyEnabledRows(new Set(allFieldKeys));
-              }}
-              className="rounded-lg bg-olive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-olive-light"
-            >
-              Show All ({allFieldKeys.length})
-            </button>
-            <button
-              onClick={() => {
-                setOmittedRows(new Set(allFieldKeys));
-                setManuallyEnabledRows(new Set());
-              }}
-              className="rounded-lg bg-beige px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-beige/80"
-            >
-              Hide All
-            </button>
-            <button
-              onClick={() => {
-                setOmittedRows(new Set());
-                setManuallyEnabledRows(new Set());
-              }}
-              className="rounded-lg bg-beige px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-beige/80"
-            >
-              Auto-Hide Empty
-            </button>
-            <div className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-black/60">
-              Showing: {visibleFields.length} / {allFieldKeys.length} fields
-            </div>
-          </div>
-
-          {/* Fields List */}
+          <ManageRowsModalActions
+            allFieldKeys={allFieldKeys}
+            visibleCount={visibleFields.length}
+            setOmittedRows={setOmittedRows}
+            setManuallyEnabledRows={setManuallyEnabledRows}
+          />
           <div className="overflow-hidden rounded-lg border border-gray-200">
             <div className="custom-scrollbar max-h-96 overflow-y-auto">
-              {allFields.map((field, index) => {
-                const isManuallyOmitted = omittedRows.has(field.key);
-                const isAutoOmitted =
-                  !hasDataForAnyProperty(field.key) &&
-                  !manuallyEnabledRows.has(field.key);
-                const isOmitted = isManuallyOmitted ?? isAutoOmitted;
-                const hasData = hasDataForAnyProperty(field.key);
-
-                return (
-                  <label
-                    key={field.key}
-                    className={`flex cursor-pointer items-center space-x-3 p-4 transition-colors hover:bg-beige/20 ${
-                      index !== allFields.length - 1
-                        ? "border-b border-gray-100"
-                        : ""
-                    }`}
-                  >
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        checked={!isOmitted}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          if (e.target.checked) {
-                            // Enable the field
-                            const newOmittedRows = new Set(omittedRows);
-                            newOmittedRows.delete(field.key);
-                            setOmittedRows(newOmittedRows);
-
-                            // If it was auto-omitted, mark as manually enabled
-                            if (!hasData) {
-                              const newManuallyEnabled = new Set(
-                                manuallyEnabledRows,
-                              );
-                              newManuallyEnabled.add(field.key);
-                              setManuallyEnabledRows(newManuallyEnabled);
-                            }
-                          } else {
-                            // Disable the field
-                            const newOmittedRows = new Set(omittedRows);
-                            newOmittedRows.add(field.key);
-                            setOmittedRows(newOmittedRows);
-
-                            // Remove from manually enabled if it was there
-                            const newManuallyEnabled = new Set(
-                              manuallyEnabledRows,
-                            );
-                            newManuallyEnabled.delete(field.key);
-                            setManuallyEnabledRows(newManuallyEnabled);
-                          }
-                        }}
-                        className="sr-only"
-                      />
-                      <div
-                        className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all duration-200 ${
-                          !isOmitted
-                            ? "border-beige bg-beige text-white shadow-sm"
-                            : "border-beige bg-white hover:border-beige/50"
-                        }`}
-                      >
-                        {!isOmitted && (
-                          <Check className="h-3 w-3 fill-current" />
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <span
-                        className={`text-sm font-medium transition-colors ${
-                          isOmitted
-                            ? "text-black/40 line-through"
-                            : "text-black"
-                        }`}
-                      >
-                        {field.label}
-                      </span>
-                      {isAutoOmitted && (
-                        <span className="ml-2 text-xs text-gray-500">
-                          (auto-hidden: no data)
-                        </span>
-                      )}
-                      {!hasData && manuallyEnabledRows.has(field.key) && (
-                        <span className="ml-2 text-xs text-gray-500">
-                          (manually enabled)
-                        </span>
-                      )}
-                    </div>
-                  </label>
-                );
-              })}
+              {allFields.map((field, index) => (
+                <ManageRowsModalFieldRow
+                  key={field.key}
+                  field={field}
+                  index={index}
+                  totalCount={allFields.length}
+                  isOmitted={
+                    omittedRows.has(field.key) ||
+                    (!hasDataForAnyProperty(field.key) &&
+                      !manuallyEnabledRows.has(field.key))
+                  }
+                  hasData={hasDataForAnyProperty(field.key)}
+                  isManuallyEnabled={manuallyEnabledRows.has(field.key)}
+                  onToggle={handleFieldToggle(
+                    field.key,
+                    hasDataForAnyProperty(field.key),
+                  )}
+                />
+              ))}
             </div>
           </div>
         </div>

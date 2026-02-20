@@ -1,7 +1,12 @@
 import React from "react";
+
 import { Share } from "lucide-react";
-import { Button } from "../../components/ui";
-import { SectionBox } from "./index";
+
+import { useLocalization } from "packages/contexts";
+
+import { BodyText, Button, Image } from "@/components/ui/index.web";
+
+import SectionBox from "./SectionBox";
 import { formatStrategyValue } from "./StrategyFieldFormatter";
 
 type StrategyDisplaySectionProps = {
@@ -13,6 +18,7 @@ export function StrategyDisplaySection({
   strategyData,
   onShareJson,
 }: StrategyDisplaySectionProps): React.JSX.Element | null {
+  const { t } = useLocalization();
   if (!strategyData) {
     return null;
   }
@@ -73,13 +79,15 @@ export function StrategyDisplaySection({
           const priceSectionObj = value as Record<string, unknown>;
           if (priceSectionObj.opening_offer) {
             // Create a new object without opening_offer
-            const { opening_offer, ...priceSectionWithoutOffer } =
-              priceSectionObj;
+            const {
+              opening_offer: _opening_offer,
+              ...priceSectionWithoutOffer
+            } = priceSectionObj;
             processedValue = priceSectionWithoutOffer;
           }
         }
 
-        const formattedValue = formatStrategyValue(processedValue);
+        const formattedValue = formatStrategyValue(processedValue, t);
 
         return (
           <SectionBox key={key}>
@@ -87,7 +95,7 @@ export function StrategyDisplaySection({
             {index === 0 && (
               <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-4">
                 <div className="flex items-center gap-3">
-                  <img
+                  <Image
                     src="/minilogo.png"
                     alt="SilverKey"
                     className="h-8 w-8 object-contain"
@@ -95,19 +103,21 @@ export function StrategyDisplaySection({
                 </div>
                 <div className="gap-responsive-sm flex">
                   <Button
-                    variant="olive"
+                    variant="primary"
                     size="sm"
                     onClick={onShareJson}
                     icon={<Share className="mobile-icon-xs" />}
                   >
-                    Share
+                    {t("negotiate.strategy.share")}
                   </Button>
                 </div>
               </div>
             )}
             <div className="text-navy/80">
               {typeof formattedValue === "string" ? (
-                <p className="text-sm leading-relaxed">{formattedValue}</p>
+                <BodyText as="p" size="sm" className="leading-relaxed">
+                  {formattedValue}
+                </BodyText>
               ) : (
                 <div>{formattedValue}</div>
               )}

@@ -1,9 +1,9 @@
 """
 Logger Public API
 """
-from .logger import log, logger, get_logger
-from .categories import LogCategory, LOG_CATEGORIES
-from .logger import LoggerConfig
+
+from .categories import LOG_CATEGORIES, LogCategory
+from .logger import LoggerConfig, get_logger, log, logger
 
 __all__ = [
     "log",

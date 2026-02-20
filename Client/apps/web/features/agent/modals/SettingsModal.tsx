@@ -1,6 +1,7 @@
 import React from "react";
-import { BaseModal } from "../../../components/ui";
-import Settings from "../settings/Settings";
+
+import { BaseModal } from "@/components/ui/index.web";
+import Settings from "@/features/agent/settings/Settings";
 
 type SettingsModalProps = {
   isOpen: boolean;

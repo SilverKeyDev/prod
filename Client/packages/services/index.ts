@@ -6,59 +6,57 @@
 // Authentication Services - Centralized Auth Service
 export {
   AUTH_CONFIG,
+  AuthEvents,
+  AuthStatus,
   authUtils,
   PERMISSIONS,
   ROLE_PERMISSIONS,
   UserRole,
-  AuthStatus,
-  AuthEvents,
-} from "../config/auth";
+} from "packages/config/auth";
 
 // Legacy auth utilities (deprecated - use AuthService instead)
 export {
-  getAuthToken,
   clearAuthTokens,
+  getAuthToken,
   hasValidAuthToken,
-} from "../utils/auth";
+} from "packages/utils";
 
 // HTTP Services
 export {
-  httpClient,
   configureHttpClient,
   getHttpClientConfig,
+  httpClient,
 } from "./http/config";
-export { getBaseUrl } from "../config";
+export { getBaseUrl } from "packages/config";
 
 // Security Services
-export {
-  PII_PATTERNS,
-  SENSITIVE_KEYS,
-  containsSensitiveData,
-  maskSensitiveData,
-  scrubPII,
-  scrubObjectPII,
-  isSensitiveKey,
-  redactErrorMessage,
-  createSafeLogObject,
-} from "./security/piiSecurity";
-
+export { errorReporter } from "./security/errorReporting";
 export {
   createErrorContext,
-  serializeError,
   createErrorReport,
   extractErrorMessage,
-  isNetworkError,
   isAuthError,
+  isNetworkError,
+  serializeError,
 } from "./security/errorUtils";
-
 export { imageProcessor } from "./security/imageProcessor";
+export {
+  containsSensitiveData,
+  createSafeLogObject,
+  isSensitiveKey,
+  maskSensitiveData,
+  PII_PATTERNS,
+  redactErrorMessage,
+  scrubObjectPII,
+  scrubPII,
+  SENSITIVE_KEYS,
+} from "./security/piiSecurity";
 export { secureLogger } from "./security/secureLogger";
-export { errorReporter } from "./security/errorReporting";
 
 // Report Services
 
 // Google Maps Services
-export { GoogleMapsService, googleMapsService } from "./googleMaps";
+export { GoogleMapsService, googleMapsService } from "./search/googleMaps";
 
 // Negotiation Services
 export { NegotiationService, negotiationService } from "./negotiation";
@@ -76,9 +74,9 @@ export { AgentService, agentService } from "./agent/agent";
 export { DocumentService, documentService } from "./documents";
 
 // Type exports for consumers
-export type { ErrorContext, SerializedError } from "./security/errorUtils";
 export type {
-  NegotiationState,
   NegotiationServiceCallbacks,
+  NegotiationState,
 } from "./negotiation";
+export type { ErrorContext, SerializedError } from "./security/errorUtils";
 // Note: Reports and SavedHomes no longer export state/callback types; state is managed elsewhere

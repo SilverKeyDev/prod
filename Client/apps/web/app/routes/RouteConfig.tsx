@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
 
-import type { UserProfile } from "../../../../packages/schemas/user";
-import { ROUTES } from "../../../../packages/schemas/nav";
-import { ProtectedRoute } from "../guards";
-import DashboardLayout from "../layouts/DashboardLayout";
-import { AuthShellProviders } from "../providers/auth/AuthShellProviders";
+import { ROUTES } from "packages/schemas/app/nav";
+import type { UserProfile } from "packages/schemas/user";
 
+import { ProtectedRoute } from "@/app/guards";
+import { DashboardLayout } from "@/app/layouts";
+import { AuthShellProviders } from "@/app/providers/auth/AuthShellProviders";
 // Page-specific providers
-import { DocsOnly } from "../providers/page/DocsOnly";
-import { MapsOnly } from "../providers/page/MapsOnly";
+import { DocsOnly } from "@/app/providers/page/DocsOnly";
+import { MapsOnly } from "@/app/providers/page/MapsOnly";
 
 // Route configuration types
 export type RouteConfig = {
@@ -56,11 +56,7 @@ export function createProtectedRoute(
 export const ROUTE_CONFIGS = {
   lightweight: [ROUTES.PROFILE],
 
-  standard: [
-    ROUTES.SAVED,
-    ROUTES.DASHBOARD,
-    ROUTES.MESSAGING,
-  ],
+  standard: [ROUTES.SAVED, ROUTES.DASHBOARD, ROUTES.MESSAGING],
 
   specialized: [{ path: ROUTES.SEARCH, providerType: "maps" as const }],
 } as const;

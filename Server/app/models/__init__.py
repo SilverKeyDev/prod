@@ -1,49 +1,79 @@
 from ..extensions import db
+from .agent import AgentConnectionRequest, AgentConnections, ChatHistory, Todo
+from .calendar import CalendarEvent, CalendarShare
+from .documents import (
+    Agreement,
+    AgreementEvent,
+    AgreementParticipant,
+    AgreementRevision,
+    Document,
+    DocusignConnectEvent,
+    DocusignOAuthToken,
+    DocusignTemplate,
+)
+from .property import (
+    HomeLikes,
+    HomeNotInterested,
+    HomeUniversal,
+    ScoringResultsTracker,
+    Search,
+    UserScoreWeights,
+)
+from .transactions import TransactionTask
 
 # Import from organized subfolders for backward compatibility
-from .auth import User, UserPreferences, OAuthState, GoogleOAuthToken
-from .property import HomeUniversal, HomeLikes, HomeNotInterested, Search, ScoringResultsTracker, UserScoreWeights
-from .agent import AgentConnections, AgentConnectionRequest, ChatHistory, Todo
-from .documents import (
-    Document,
-    Agreement,
-    AgreementRevision,
-    AgreementParticipant,
-    AgreementEvent,
-    DocusignConnectEvent,
-    DocusignTemplate,
-    DocusignOAuthToken
+from .user import (
+    GoogleOAuthToken,
+    OAuthState,
+    User,
+    UserCalendarConnection,
+    UserCommunicationPrefs,
+    UserDemographics,
+    UserFinancials,
+    UserImportantLocation,
+    UserIntentAttribute,
+    UserRole,
+    UserSearchIntent,
 )
-from .calendar import CalendarEvent, CalendarShare
+
 
 # Initialize database
 def init_db():
     db.create_all()
 
+
 __all__ = [
-    'User', 
-    'Document',
-    'Agreement',
-    'AgreementRevision',
-    'AgreementParticipant',
-    'AgreementEvent',
-    'DocusignConnectEvent',
-    'DocusignTemplate',
-    'DocusignOAuthToken',
-    'UserPreferences', 
-    'HomeUniversal', 
-    'HomeLikes', 
-    'HomeNotInterested',
-    'Search',
-    'ScoringResultsTracker',
-    'UserScoreWeights',
-    'AgentConnections', 
-    'AgentConnectionRequest', 
-    'ChatHistory',
-    'Todo',
-    'CalendarEvent',
-    'CalendarShare',
-    'GoogleOAuthToken', 
-    'OAuthState', 
-    'db'
+    "User",
+    "TransactionTask",
+    "Document",
+    "Agreement",
+    "AgreementRevision",
+    "AgreementParticipant",
+    "AgreementEvent",
+    "DocusignConnectEvent",
+    "DocusignTemplate",
+    "DocusignOAuthToken",
+    "UserRole",
+    "UserDemographics",
+    "UserFinancials",
+    "UserSearchIntent",
+    "UserIntentAttribute",
+    "UserImportantLocation",
+    "UserCommunicationPrefs",
+    "UserCalendarConnection",
+    "HomeUniversal",
+    "HomeLikes",
+    "HomeNotInterested",
+    "Search",
+    "ScoringResultsTracker",
+    "UserScoreWeights",
+    "AgentConnections",
+    "AgentConnectionRequest",
+    "ChatHistory",
+    "Todo",
+    "CalendarEvent",
+    "CalendarShare",
+    "GoogleOAuthToken",
+    "OAuthState",
+    "db",
 ]

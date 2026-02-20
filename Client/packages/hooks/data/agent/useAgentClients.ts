@@ -1,11 +1,12 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
-import { agentApi } from "../../../config/api";
-import { queryKeys } from "../../../config/query/keys";
-import { useAuthStore } from "../../../store/auth.slice";
-import { HttpError } from "../../../services/http/compatibility";
-import type { AgentClient } from "../../../config/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { AgentClient } from "packages/config/api";
+import { agentApi } from "packages/config/api";
+import { queryKeys } from "packages/config/query/keys";
+import { HttpError } from "packages/services/http/compatibility";
+import { useAuthStore } from "packages/store";
 
 export type UseAgentClientsReturn = {
   clients: AgentClient[];

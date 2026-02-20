@@ -1,8 +1,11 @@
-import { Check, X, User as UserIcon, MessageSquare } from "lucide-react";
-import { useConnectionRequests } from "../../../../../packages/hooks/data/agent/useConnectionRequests";
-import { useUIStore } from "../../../../../packages/store";
-import Button from "../../../components/ui/button/Button";
-import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
+import { Check, MessageSquare, User as UserIcon, X } from "lucide-react";
+
+import { useConnectionRequests } from "packages/hooks/data/agent/useConnectionRequests";
+import { useUIStore } from "packages/store";
+
+import Button from "@/components/ui/button/Button";
+import { BodyText, Title } from "@/components/ui/index.web";
+import KeyTurnLoader from "@/components/ui/loading/KeyTurnLoader.web";
 
 type ConnectionRequestsInboxProps = {
   onRequestAccepted?: () => void;
@@ -32,7 +35,7 @@ export default function ConnectionRequestsInbox({
           message: "Connection request rejected",
         });
       }
-    } catch (error) {
+    } catch {
       enqueueToast({
         type: "error",
         message: "Failed to respond to connection request",
@@ -53,9 +56,9 @@ export default function ConnectionRequestsInbox({
       <div className="flex h-full items-center justify-center p-4">
         <div className="text-center">
           <MessageSquare className="mx-auto mb-3 h-12 w-12 text-black/30" />
-          <p className="text-sm text-black/60">
+          <BodyText as="p" size="sm" className="text-black/60">
             No pending connection requests
-          </p>
+          </BodyText>
         </div>
       </div>
     );
@@ -74,27 +77,27 @@ export default function ConnectionRequestsInbox({
                 <UserIcon className="h-5 w-5 text-black" />
               </div>
               <div className="flex-1">
-                <h3 className="font-medium text-black">
+                <Title as="h3" size="sm" className="font-medium text-black">
                   {request.other_party_name ?? "Unknown"}
-                </h3>
-                <p className="text-sm text-black/60">
+                </Title>
+                <BodyText as="p" size="sm" className="text-black/60">
                   {request.other_party_email ?? ""}
-                </p>
+                </BodyText>
                 {request.message && (
-                  <p className="mt-2 text-sm text-black/80">
+                  <BodyText as="p" size="sm" className="mt-2 text-black/80">
                     {request.message}
-                  </p>
+                  </BodyText>
                 )}
-                <p className="mt-1 text-xs text-black/40">
+                <BodyText as="p" size="xs" className="mt-1 text-black/40">
                   {request.requested_by_agent
                     ? "Agent requested to connect"
                     : "Client requested to connect"}
-                </p>
+                </BodyText>
               </div>
             </div>
             <div className="mt-3 flex gap-3">
               <Button
-                variant="olive"
+                variant="primary"
                 onClick={() => handleRespond(request.id, true)}
                 disabled={isResponding}
                 className="flex-1 hover:bg-olive/90"

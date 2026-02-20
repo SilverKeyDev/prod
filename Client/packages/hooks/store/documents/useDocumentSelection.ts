@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useEffect } from "react";
-import type { Document } from "../../../schemas";
-import { useViewStore } from "../../../store/view.slice";
+import { useCallback, useEffect, useMemo } from "react";
+
+import type { Document } from "packages/schemas";
+import { useViewStore } from "packages/store";
 
 type UseDocumentSelectionReturn = {
   selectedDocuments: Set<string>;
@@ -11,6 +12,15 @@ type UseDocumentSelectionReturn = {
 };
 
 const SELECTION_KEY = "documents.selectedIds";
+
+function getValidSelectedIds(
+  documents: Document[],
+  persistedSelectedIds: string[],
+): string[] {
+  if (documents.length === 0) return [];
+  const validDocumentIds = new Set(documents.map((d) => d.id));
+  return persistedSelectedIds.filter((id) => validDocumentIds.has(id));
+}
 
 /**
  * Hook for managing document selection state with Zustand persistence
@@ -23,42 +33,26 @@ export function useDocumentSelection(
   const setDropdownSelection = useViewStore((s) => s.setDropdownSelection);
   const clearDropdownSelection = useViewStore((s) => s.clearDropdownSelection);
 
-  // Get persisted selected IDs from Zustand store
   const persistedSelectedIds = useMemo(() => {
     const saved = dropdownSelections[SELECTION_KEY];
-    if (Array.isArray(saved)) {
-      return saved as string[];
-    }
-    return [];
+    return Array.isArray(saved) ? (saved as string[]) : [];
   }, [dropdownSelections]);
 
-  // Filter to only valid document IDs that exist in current documents list
   const selectedDocuments = useMemo(() => {
-    if (documents.length === 0) return new Set<string>();
-
-    const validDocumentIds = new Set(documents.map((d) => d.id));
-    const validSelections = persistedSelectedIds.filter((id) =>
-      validDocumentIds.has(id),
-    );
-
-    return new Set(validSelections);
+    return new Set(getValidSelectedIds(documents, persistedSelectedIds));
   }, [documents, persistedSelectedIds]);
 
-  // Sync store when documents change (clean up invalid selections)
   useEffect(() => {
-    if (documents.length > 0 && persistedSelectedIds.length > 0) {
-      const validDocumentIds = new Set(documents.map((d) => d.id));
-      const validSelections = persistedSelectedIds.filter((id) =>
-        validDocumentIds.has(id),
-      );
-
-      if (validSelections.length !== persistedSelectedIds.length) {
-        if (validSelections.length > 0) {
-          setDropdownSelection(SELECTION_KEY, validSelections);
-        } else {
-          clearDropdownSelection(SELECTION_KEY);
-        }
-      }
+    if (documents.length === 0 || persistedSelectedIds.length === 0) return;
+    const validSelections = getValidSelectedIds(
+      documents,
+      persistedSelectedIds,
+    );
+    if (validSelections.length === persistedSelectedIds.length) return;
+    if (validSelections.length > 0) {
+      setDropdownSelection(SELECTION_KEY, validSelections);
+    } else {
+      clearDropdownSelection(SELECTION_KEY);
     }
   }, [
     documents,

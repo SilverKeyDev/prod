@@ -1,7 +1,12 @@
 import React, { useMemo } from "react";
-import { AlertTriangle, X, Clock } from "lucide-react";
-import Card from "../../../components/layout/Card";
-import type { UrgentAlert } from "../../../../../packages/schemas/agent";
+
+import { AlertTriangle, Clock, X } from "lucide-react";
+
+import type { UrgentAlert } from "packages/schemas";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
+
+import Card from "@/components/layout/Card.web";
+import { BodyText, Button, Title } from "@/components/ui/index.web";
 
 type UrgentAlertsProps = {
   alerts: UrgentAlert[];
@@ -36,9 +41,9 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({
       text: "text-rose-800",
     },
     high: {
-      bg: "bg-brown/10",
-      border: "border-brown/30",
-      text: "text-brown",
+      bg: "bg-olive/10",
+      border: "border-olive/30",
+      text: "text-olive",
     },
     medium: {
       bg: "bg-gold/10",
@@ -54,9 +59,9 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({
 
   const formatTimeRemaining = (deadline?: string) => {
     if (!deadline) return null;
-    const now = new Date();
-    const deadlineDate = new Date(deadline);
-    const diff = deadlineDate.getTime() - now.getTime();
+    const now = dateNow();
+    const deadlineDate = dateParseISO(deadline);
+    const diff = deadlineDate.valueOf() - now.valueOf();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -73,13 +78,17 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({
     <Card className="h-full">
       <div className="flex items-center gap-2 mb-4">
         <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-rose-600" />
-        <h2 className="heading-responsive-sm text-navy">Urgent Alerts</h2>
+        <Title as="h2" size="sm" className="text-navy">
+          Urgent Alerts
+        </Title>
       </div>
 
-      <div className="space-y-3 max-h-[500px] overflow-y-auto">
+      <div className="space-y-3 max-h-96 overflow-y-auto">
         {sortedAlerts.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-responsive-sm text-black/60">No urgent alerts</p>
+            <BodyText as="p" size="sm" className="text-black/60">
+              No urgent alerts
+            </BodyText>
           </div>
         ) : (
           sortedAlerts.map((alert) => {
@@ -92,33 +101,37 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <p className="text-responsive-sm font-medium mb-1">
+                    <BodyText as="p" size="sm" className="font-medium mb-1">
                       {alert.message}
-                    </p>
+                    </BodyText>
                     {alert.deadline && (
                       <div className="flex items-center gap-1.5 mt-2">
                         <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span className="text-xs sm:text-sm font-medium">
+                        <BodyText as="span" size="sm" className="font-medium">
                           {formatTimeRemaining(alert.deadline)}
-                        </span>
+                        </BodyText>
                       </div>
                     )}
                     {alert.client_id && onNavigateToClient && (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => onNavigateToClient(alert.client_id!)}
-                        className="mt-2 text-xs sm:text-sm underline hover:no-underline"
+                        className="mt-2 text-xs sm:text-sm underline hover:no-underline h-auto py-0"
                       >
                         View client →
-                      </button>
+                      </Button>
                     )}
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => onDismiss(alert.id)}
-                    className="flex-shrink-0 p-1 hover:bg-black/10 rounded transition-colors"
-                    aria-label="Dismiss alert"
+                    className="flex-shrink-0 p-1 hover:bg-black/10 min-w-0 h-auto"
+                    label="Dismiss alert"
                   >
                     <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             );

@@ -1,0 +1,65 @@
+---
+description: State boundaries — server cache vs UI state; Zugand access only via selectors/hooks
+globs:
+  - "Client/**/*.{ts,tsx}"
+alwaysApply: true
+---
+
+# State Boundaries (Server Cache vs UI State)
+
+## Goal
+
+Avoid rewriting state patterns twice when sharing code with React Native. Keep a single, clear boundary between server cache (React Query) and UI/global state (Zustand).
+
+## Rules
+
+### 1. No direct Zustand slice access outside the store package
+
+- **In `apps/web/` (components, features, pages):** Do NOT call `useXStore.getState()` or access store state outside of React (e.g. in event handlers that need "current value" — use the hook and pass values in, or use a selector in a wrapper).
+- **Allowed:** Using the store **only** via the hook form with a selector: `useXStore((s) => s.someField)` or `useXStore((s) => s.setSomething)`.
+- **Preferred:** Use integration hooks from `packages/hooks/store/*` when they exist (e.g. `useAuthStoreIntegration`, `useSavedHomesStoreIntegration`) so server cache and store stay in sync in one place.
+
+### 2. Import store only from the barrel
+
+- Import from `packages/store` (barrel), not from `packages/store/slices/foo/bar.slice.ts`.
+- This keeps a single public API and makes it easier to add a shared layer later (e.g. for RN).
+
+### 3. Server cache vs UI state
+
+- **Server cache:** Data from the backend (users, saved homes, documents, etc.) — use React Query in `packages/hooks/data/*`; sync to Zustand only via `packages/hooks/store/*` integration hooks when UI needs global access.
+- **UI state:** Transient UI (modals, sidebar open, view mode, etc.) — use Zustand slices in `packages/store/slices/ui/*` or feature-specific slices. No need to put everything in React Query.
+
+## Enforcement
+
+- ESLint rule `silverkey/no-zustand-get-state`: bans `.getState()` on store hooks in `apps/web`.
+- Prefer integration hooks over direct `useXStore` when both exist.
+
+## Examples
+
+```typescript
+// ✅ CORRECT: Hook + selector in component
+import { useAuthStore } from "../../../packages/store";
+
+function Header() {
+  const user = useAuthStore((s) => s.user);
+  return <span>{user?.name}</span>;
+}
+
+// ✅ CORRECT: Prefer integration hook when it exists
+import { useAuthStoreIntegration } from "../../../packages/hooks/store/auth/useAuthStoreIntegration";
+
+function Sidebar() {
+  const { user, isAuthenticated } = useAuthStoreIntegration();
+  // ...
+}
+
+// ❌ WRONG: getState() outside store package
+import { useAuthStore } from "../../../packages/store";
+
+function doSomething() {
+  const user = useAuthStore.getState().user; // FORBIDDEN in apps/web
+}
+
+// ❌ WRONG: Importing from slice path
+import { useAuthStore } from "../../../packages/store/slices/auth/auth.slice"; // Use packages/store
+```

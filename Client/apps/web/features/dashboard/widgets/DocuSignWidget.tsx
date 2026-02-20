@@ -1,21 +1,23 @@
 import { useMemo, useState } from "react";
-import { FileSignature, Plus, ExternalLink, Clock } from "lucide-react";
-import { useDocusignAgreements } from "../../../../../packages/hooks/data/documents/useDocusignAgreements";
-import { Button, Title, BodyText } from "../../../components/ui";
-import AgreementStatusBadge from "../../documents/docusign/components/AgreementStatusBadge";
-import {
-  CreateAgreementModal,
-  AgreementDetailModal,
-} from "../../documents/docusign/modals";
-import { KeyTurnLoader } from "../../../components/ui";
+
+import { Clock, ExternalLink, FileSignature, Plus } from "lucide-react";
+
+import { useDocusignAgreements } from "packages/hooks/data/documents/useDocusignAgreements";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
 import {
   daysSinceSent,
-  getUrgencyLevel,
-  getUrgencyColor,
   formatAgreementDate,
-} from "../../../../../packages/utils/documents/docusignHelpers";
-import type { Agreement } from "../../../../../packages/schemas/documents/docusign";
+  getUrgencyColor,
+  getUrgencyLevel,
+} from "packages/utils/domain/documents/docusignHelpers";
 
+import { BodyText, Button, Title } from "@/components/ui/index.web";
+import { KeyTurnLoader } from "@/components/ui/index.web";
+import AgreementStatusBadge from "@/features/documents/docusign/components/AgreementStatusBadge";
+import {
+  AgreementDetailModal,
+  CreateAgreementModal,
+} from "@/features/documents/docusign/modals";
 /**
  * DocuSignWidget Component
  *
@@ -51,8 +53,8 @@ export default function DocuSignWidget() {
   const recentAgreements = useMemo(() => {
     return [...agreements]
       .sort((a, b) => {
-        const dateA = new Date(a.updated_at || a.created_at).getTime();
-        const dateB = new Date(b.updated_at || b.created_at).getTime();
+        const dateA = dateParseISO(a.updated_at || a.created_at).valueOf();
+        const dateB = dateParseISO(b.updated_at || b.created_at).valueOf();
         return dateB - dateA;
       })
       .slice(0, 5);
@@ -60,9 +62,9 @@ export default function DocuSignWidget() {
 
   // Summary stats
   const stats = useMemo(() => {
-    const now = new Date();
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const now = dateNow();
+    const oneWeekAgo = now.subtract(7, "day");
+    const oneMonthAgo = now.subtract(30, "day");
 
     return {
       totalPending: pendingSignatures.length,
@@ -70,13 +72,13 @@ export default function DocuSignWidget() {
         (a) =>
           a.status === "completed" &&
           a.completed_at &&
-          new Date(a.completed_at) >= oneWeekAgo,
+          !dateParseISO(a.completed_at).isBefore(oneWeekAgo),
       ).length,
       voidedThisMonth: agreements.filter(
         (a) =>
           a.status === "voided" &&
           a.voided_at &&
-          new Date(a.voided_at) >= oneMonthAgo,
+          !dateParseISO(a.voided_at).isBefore(oneMonthAgo),
       ).length,
     };
   }, [agreements, pendingSignatures]);
@@ -155,9 +157,9 @@ export default function DocuSignWidget() {
           {/* Pending Signatures */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-900">
+              <Title as="h3" size="sm" className="font-medium text-gray-900">
                 Pending Signatures
-              </h3>
+              </Title>
             </div>
             {pendingSignatures.length === 0 ? (
               <div className="text-center py-6 border border-dashed border-gray-300 rounded-lg">
@@ -175,13 +177,25 @@ export default function DocuSignWidget() {
                   return (
                     <div
                       key={agreement.id}
+                      role="button"
+                      tabIndex={0}
                       className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                       onClick={() => setSelectedAgreementId(agreement.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedAgreementId(agreement.id);
+                        }
+                      }}
                     >
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <p className="text-sm font-medium text-gray-900 truncate flex-1">
+                        <BodyText
+                          as="p"
+                          size="sm"
+                          className="font-medium text-gray-900 truncate flex-1"
+                        >
                           {agreement.title}
-                        </p>
+                        </BodyText>
                         <AgreementStatusBadge
                           status={agreement.status}
                           size="sm"
@@ -189,16 +203,20 @@ export default function DocuSignWidget() {
                         />
                       </div>
                       {agreement.buyer_name && (
-                        <p className="text-xs text-gray-600 mb-1">
+                        <BodyText
+                          as="p"
+                          size="xs"
+                          className="text-gray-600 mb-1"
+                        >
                           {agreement.buyer_name}
-                        </p>
+                        </BodyText>
                       )}
                       <div className="flex items-center gap-1 text-xs">
                         <Clock className={`w-3 h-3 ${urgencyColor}`} />
-                        <span className={urgencyColor}>
+                        <BodyText as="span" size="xs" className={urgencyColor}>
                           {daysWaiting} {daysWaiting === 1 ? "day" : "days"}{" "}
                           waiting
-                        </span>
+                        </BodyText>
                       </div>
                     </div>
                   );
@@ -210,9 +228,9 @@ export default function DocuSignWidget() {
           {/* Recent Agreements */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-900">
+              <Title as="h3" size="sm" className="font-medium text-gray-900">
                 Recent Agreements
-              </h3>
+              </Title>
             </div>
             {recentAgreements.length === 0 ? (
               <div className="text-center py-6 border border-dashed border-gray-300 rounded-lg">
@@ -225,13 +243,25 @@ export default function DocuSignWidget() {
                 {recentAgreements.map((agreement) => (
                   <div
                     key={agreement.id}
+                    role="button"
+                    tabIndex={0}
                     className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => setSelectedAgreementId(agreement.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedAgreementId(agreement.id);
+                      }
+                    }}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <p className="text-sm font-medium text-gray-900 truncate flex-1">
+                      <BodyText
+                        as="p"
+                        size="sm"
+                        className="font-medium text-gray-900 truncate flex-1"
+                      >
                         {agreement.title}
-                      </p>
+                      </BodyText>
                       <AgreementStatusBadge
                         status={agreement.status}
                         size="sm"
@@ -239,15 +269,15 @@ export default function DocuSignWidget() {
                       />
                     </div>
                     {agreement.buyer_name && (
-                      <p className="text-xs text-gray-600 mb-1">
+                      <BodyText as="p" size="xs" className="text-gray-600 mb-1">
                         {agreement.buyer_name}
-                      </p>
+                      </BodyText>
                     )}
-                    <p className="text-xs text-gray-500">
+                    <BodyText as="p" size="xs" className="text-gray-500">
                       {formatAgreementDate(
                         agreement.updated_at || agreement.created_at,
                       )}
-                    </p>
+                    </BodyText>
                   </div>
                 ))}
               </div>
@@ -258,16 +288,18 @@ export default function DocuSignWidget() {
         {/* View All Link */}
         {agreements.length > 0 && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 // Navigate to SavedPage documents view
                 window.location.href = "/saved?view=documents";
               }}
-              className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 h-auto"
             >
               View All Agreements
               <ExternalLink className="w-3.5 h-3.5" />
-            </button>
+            </Button>
           </div>
         )}
       </div>

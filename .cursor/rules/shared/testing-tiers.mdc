@@ -1,0 +1,36 @@
+---
+description: Testing tiers that work on both web and RN — coverage, no snapshot-only, no focused tests
+globs:
+  - "Client/**/*.{ts,tsx,js,jsx}"
+alwaysApply: true
+---
+
+# Testing Tiers (Web + RN)
+
+## Goal
+
+If tests are web-only or fragile, you’ll hesitate to refactor after cloning for RN. Enforce tests that run in shared packages and avoid patterns that block cross-platform confidence.
+
+## Rules
+
+### 1. Unit tests in shared packages required
+
+- **packages/utils**, **packages/schemas**, and other shared packages must have unit tests for non-trivial logic.
+- Aim for a **coverage threshold** (e.g. shared packages ≥ 80% or a baseline) so refactors are safe. Configure in the test runner (e.g. Vitest `coverage.thresholds`).
+
+### 2. No snapshot-only tests
+
+- Do not rely on "snapshot only" as the sole assertion. Snapshot tests are allowed only when combined with meaningful assertions (behavior or structure you care about), or use them for regression only with clear naming and review.
+- Prefer testing behavior and public API over raw DOM/output snapshots so the same tests can run against RN or a different renderer later if needed.
+
+### 3. No focused tests in repo
+
+- **Banned:** `describe.only`, `it.only`, `test.only` (or equivalent) in committed code.
+- **Enforced by:** ESLint rule `silverkey/no-focused-tests` in `*.test.*`, `*.spec.*`, and `__tests__/**` files.
+- CI must run the full suite; focused tests must not be committed.
+
+## Enforcement
+
+- ESLint: `silverkey/no-focused-tests` (error) for test files.
+- CI: run unit tests (and coverage for shared packages when configured).
+- Code review: new shared logic should have unit tests; new tests should not be snapshot-only.

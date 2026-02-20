@@ -17,14 +17,14 @@
  * and checked against the config.
  */
 
-import type { LogCategory, ApiSubcategory } from "./categories";
+import type { ApiSubcategory, LogCategory } from "./categories";
 import {
-  LOG_CATEGORIES,
+  apiSubcategoryToConfigKey,
   categoryToConfigKey,
   isAlwaysEnabled,
-  apiSubcategoryToConfigKey,
+  LOG_CATEGORIES,
 } from "./categories";
-import { scrubPII, maskSensitiveData, createSafeLogObject } from "./pii";
+import { createSafeLogObject, maskSensitiveData } from "./pii";
 
 type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
@@ -74,14 +74,16 @@ class Logger {
   };
 
   constructor() {
-    // Store original console methods
+    // Store original console methods (logger implementation must use console)
+    /* eslint-disable silverkey/no-console-logger -- logger implementation captures console for fallback */
     this.originalConsole = {
       log: console.log.bind(console),
-      info: console.info.bind(console),
       warn: console.warn.bind(console),
       error: console.error.bind(console),
+      info: console.info.bind(console),
       debug: console.debug.bind(console),
     };
+    /* eslint-enable silverkey/no-console-logger */
 
     // Load initial config
     this.config = this.loadConfig();

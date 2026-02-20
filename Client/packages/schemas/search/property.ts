@@ -1,6 +1,6 @@
 // Property-related type definitions
 
-import type { Agent } from "../auth/user";
+import type { Agent } from "packages/schemas/app/auth/user";
 
 export type Property = {
   id: string;

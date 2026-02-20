@@ -1,5 +1,5 @@
-import type { PropertyAnalysis } from "../../schemas";
-import { apiPost } from "../../services/http/compatibility";
+import type { PropertyAnalysis } from "packages/schemas/search/property";
+import { apiPost } from "packages/services/http/compatibility";
 
 // Types for offer/negotiation API
 export type NegotiationStrategyRequest = {

@@ -1,18 +1,19 @@
 // Mock data service for agent dashboard
 // This will be replaced with real API calls when backend is ready
+import type { AgentClient } from "packages/config/api";
 import type {
-  TodoItem,
-  UrgentAlert,
+  AgentNote,
   ClientDealInfo,
   ClientFinancialSnapshot,
   ClientGoals,
-  DealStage,
-  RiskFlag,
-  DecisionLogEntry,
-  AgentNote,
   ClientTimelineEvent,
-} from "../../schemas/agent/agent";
-import type { AgentClient } from "../../config/api";
+  DealStage,
+  DecisionLogEntry,
+  RiskFlag,
+  TodoItem,
+  UrgentAlert,
+} from "packages/schemas/agent/agent";
+import { dateNow } from "packages/utils/core/date";
 
 /**
  * Generate mock todos for a client or all clients
@@ -22,7 +23,7 @@ export function generateMockTodos(
   clientId?: string,
 ): TodoItem[] {
   const todos: TodoItem[] = [];
-  const now = new Date();
+  const now = dateNow();
 
   clients.forEach((client) => {
     if (clientId && client.id !== clientId) return;
@@ -31,7 +32,7 @@ export function generateMockTodos(
     todos.push({
       id: `todo-${client.id}-1`,
       title: `Follow up with ${client.name}`,
-      due_date: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+      due_date: now.add(24, "hour").toISOString(),
       priority: "medium",
       client_id: client.id,
       type: "follow_up",
@@ -42,7 +43,7 @@ export function generateMockTodos(
     todos.push({
       id: `todo-${client.id}-2`,
       title: `Review offer for ${client.name}`,
-      due_date: new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      due_date: now.add(3, "hour").toISOString(),
       priority: "urgent",
       client_id: client.id,
       type: "offer_expiration",
@@ -62,7 +63,7 @@ export function generateMockAlerts(
   clientId?: string,
 ): UrgentAlert[] {
   const alerts: UrgentAlert[] = [];
-  const now = new Date();
+  const now = dateNow();
 
   clients.forEach((client) => {
     if (clientId && client.id !== clientId) return;
@@ -73,7 +74,7 @@ export function generateMockAlerts(
       type: "offer_expires",
       message: `Offer expires in 3 hours for ${client.name}`,
       client_id: client.id,
-      deadline: new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      deadline: now.add(3, "hour").toISOString(),
       severity: "critical",
       created_at: now.toISOString(),
     });
@@ -84,7 +85,7 @@ export function generateMockAlerts(
       message: `${client.name} waiting on reply (24h+)`,
       client_id: client.id,
       severity: "high",
-      created_at: new Date(now.getTime() - 25 * 60 * 60 * 1000).toISOString(),
+      created_at: now.subtract(25, "hour").toISOString(),
     });
   });
 
@@ -117,8 +118,7 @@ export function enhanceClientWithDealInfo(
     });
   }
 
-  const lastAction = new Date();
-  lastAction.setDate(lastAction.getDate() - 2); // 2 days ago
+  const lastAction = dateNow().subtract(2, "day"); // 2 days ago
 
   const nextActions: Record<DealStage, string> = {
     search: "Schedule property tour",
@@ -167,18 +167,18 @@ export function generateMockClientGoals(): ClientGoals {
  * Generate mock decision log entries
  */
 export function generateMockDecisionLog(clientId: string): DecisionLogEntry[] {
-  const now = new Date();
+  const now = dateNow();
   return [
     {
       id: `decision-${clientId}-1`,
-      date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      date: now.subtract(5, "day").toISOString(),
       decision: "Client chose higher price over appraisal gap risk",
       context: "Property at 123 Main St",
       client_id: clientId,
     },
     {
       id: `decision-${clientId}-2`,
-      date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      date: now.subtract(2, "day").toISOString(),
       decision: "Decided to include inspection contingency",
       context: "Offer negotiation",
       client_id: clientId,
@@ -190,29 +190,21 @@ export function generateMockDecisionLog(clientId: string): DecisionLogEntry[] {
  * Generate mock notes
  */
 export function generateMockNotes(clientId: string): AgentNote[] {
-  const now = new Date();
+  const now = dateNow();
   return [
     {
       id: `note-${clientId}-1`,
       client_id: clientId,
       content: "Client prefers modern homes with open floor plans",
-      created_at: new Date(
-        now.getTime() - 7 * 24 * 60 * 60 * 1000,
-      ).toISOString(),
-      updated_at: new Date(
-        now.getTime() - 7 * 24 * 60 * 60 * 1000,
-      ).toISOString(),
+      created_at: now.subtract(7, "day").toISOString(),
+      updated_at: now.subtract(7, "day").toISOString(),
     },
     {
       id: `note-${clientId}-2`,
       client_id: clientId,
       content: "Revisit condo idea if SFH fails",
-      created_at: new Date(
-        now.getTime() - 3 * 24 * 60 * 60 * 1000,
-      ).toISOString(),
-      updated_at: new Date(
-        now.getTime() - 3 * 24 * 60 * 60 * 1000,
-      ).toISOString(),
+      created_at: now.subtract(3, "day").toISOString(),
+      updated_at: now.subtract(3, "day").toISOString(),
     },
   ];
 }
@@ -223,13 +215,13 @@ export function generateMockNotes(clientId: string): AgentNote[] {
 export function generateMockTimelineEvents(
   clientId: string,
 ): ClientTimelineEvent[] {
-  const now = new Date();
+  const now = dateNow();
   return [
     {
       id: `event-${clientId}-1`,
       type: "offer",
       title: "Offer submitted",
-      date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      date: now.subtract(3, "day").toISOString(),
       description: "Offer on 123 Main St",
       client_id: clientId,
     },
@@ -237,7 +229,7 @@ export function generateMockTimelineEvents(
       id: `event-${clientId}-2`,
       type: "inspection",
       title: "Inspection window",
-      date: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+      date: now.add(2, "day").toISOString(),
       description: "Inspection period ends",
       client_id: clientId,
     },
@@ -245,7 +237,7 @@ export function generateMockTimelineEvents(
       id: `event-${clientId}-3`,
       type: "closing",
       title: "Closing date",
-      date: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      date: now.add(30, "day").toISOString(),
       description: "Scheduled closing",
       client_id: clientId,
     },

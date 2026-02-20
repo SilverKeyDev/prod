@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { getSharedInputTextStyles } from "./InputStyleUtils";
+import { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 export type VerificationCodeInputProps = {
   length?: number;
@@ -146,7 +146,6 @@ export default function VerificationCodeInput({
       focusInput(0);
     }
     // We only want this to run once on mount when autoFocus is true
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoFocus, disabled]);
 
   return (
@@ -175,7 +174,7 @@ export default function VerificationCodeInput({
             disabled={disabled}
             className={[
               "h-14 w-10 sm:h-16 sm:w-12 md:h-20 md:w-14 border-0 border-b-2 bg-transparent text-center tracking-widest",
-              "border-gray-400 focus:border-brown focus:outline-none focus:ring-0",
+              "border-gray-400 focus:border-olive focus:outline-none focus:ring-0",
               "text-[1.40625rem] sm:text-[1.6875rem] md:text-[2.25rem] font-bold leading-none pb-0",
               "rounded-none", // keep the underline look
               sharedInputTextStyles,

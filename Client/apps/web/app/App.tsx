@@ -1,15 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import { useAuthStoreIntegration } from "packages/hooks/store/auth/useAuthStoreIntegration";
+import { useHealthCheck, useSessionTimeout } from "packages/hooks/ui";
+import { useAuthStore } from "packages/store";
 
 // Note: StrictMode is disabled for cleaner development logs
 // Re-enable by wrapping App with <StrictMode> in main.tsx when debugging React issues
+import ToastsPortal from "@/components/feedback/ToastsPortal";
+import MaintenanceScreen from "@/pages/HomeAuth/MaintenanceScreenPage";
 
-import ToastsPortal from "../components/feedback/ToastsPortal";
-import { useSessionTimeout } from "../../../packages/hooks/ui/useSessionTimeout";
-import { useHealthCheck } from "../../../packages/hooks/ui/useHealthCheck";
-import MaintenanceScreen from "../pages/HomeAuth/MaintenanceScreenPage";
-
-import { useAuthStore } from "../../../packages/store/auth.slice";
-import { useAuthStoreIntegration } from "../../../packages/hooks/store/auth/useAuthStoreIntegration";
 import { AppRoutes } from "./routes";
 
 function App() {

@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
-import type { SavedHome } from "../../../schemas";
+import { useCallback, useState } from "react";
+
+import type { SavedHome } from "packages/schemas";
 
 type UseSavedPageModalsReturn = {
   isCompareModalOpen: boolean;

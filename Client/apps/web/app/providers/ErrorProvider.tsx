@@ -5,9 +5,11 @@
 
 import type { ReactNode } from "react";
 
-import ErrorBoundary from "../error/ErrorBoundary";
-import { reportError } from "../../../../packages/utils/errorHandling";
-import { log, LOG_CATEGORIES } from "../../../../logger";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { reportErrorWithCapture } from "packages/services/security/errorReporting";
+import { dateNow } from "packages/utils/core/date";
+
+import ErrorBoundary from "@/app/error/ErrorBoundary";
 
 type ErrorProviderProps = {
   children: ReactNode;
@@ -26,10 +28,10 @@ export function ErrorProvider({ children, fallback }: ErrorProviderProps) {
       });
 
       // Additional error handling logic can go here
-      reportError(error, {
+      reportErrorWithCapture(error, {
         componentStack: errorInfo.componentStack,
         errorBoundary: true,
-        timestamp: new Date().toISOString(),
+        timestamp: dateNow().toISOString(),
       });
     } catch (reportingError) {
       // Fail silently to prevent infinite error loops

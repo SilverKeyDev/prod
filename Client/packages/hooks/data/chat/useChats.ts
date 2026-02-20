@@ -1,12 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
-import { useFiltersQueryParams } from "../../../config/query/adapters";
-import { queryKeys } from "../../../config/query/keys";
-import { chatbotApi } from "../../../config/api/chat/chatbot";
-import { reportApi } from "../../../config/api/documents/report";
-import { useAuthStore } from "../../../store/auth.slice";
-import { formatFilenameToAddress } from "../../../utils/address";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { chatbotApi } from "packages/config/api/chat/chatbot";
+import { reportApi } from "packages/config/api/documents/report";
+import { useFiltersQueryParams } from "packages/config/query/adapters";
+import { queryKeys } from "packages/config/query/keys";
+import { useAuthStore } from "packages/store";
+import { dateNow, dateParseISO, dayjs } from "packages/utils/core/date";
+import { getWindow } from "packages/utils/core/platform";
+import { formatFilenameToAddress } from "packages/utils/domain/search/address";
 
 /**
  * Enhanced chat data hook with TanStack Query integration
@@ -25,7 +28,7 @@ export const useChats = () => {
     () => authReady && isAuthenticated,
     [authReady, isAuthenticated],
   );
-  const cachedConversations = useMemo(() => {
+  const _cachedConversations = useMemo(() => {
     if (!shouldLoadData) return undefined;
     // Check if conversations were prefetched (they use agent.conversations key)
     return queryClient.getQueryData(queryKeys.agent.conversations());
@@ -41,10 +44,14 @@ export const useChats = () => {
     queryKey: queryKeys.chats.list(filters),
     queryFn: async () => {
       // Check for shared reports data first (for performance)
-      const windowWithSharedData = window as unknown as {
-        sharedReportsData?: { timestamp: number; reports: unknown[] };
-      };
-      const sharedData = windowWithSharedData.sharedReportsData;
+      const win = getWindow();
+      const sharedData = win
+        ? (
+            win as unknown as {
+              sharedReportsData?: { timestamp: number; reports: unknown[] };
+            }
+          ).sharedReportsData
+        : undefined;
       const CACHE_TTL = 30000; // 30 seconds
 
       if (sharedData && Date.now() - sharedData.timestamp < CACHE_TTL) {
@@ -68,11 +75,11 @@ export const useChats = () => {
             propertyAddress:
               typeof reportData.address === "string" ? reportData.address : "",
             messages: [],
-            createdAt: new Date(
+            createdAt: dayjs(
               typeof reportData.generatedAt === "number"
                 ? reportData.generatedAt * 1000
-                : Date.now(),
-            ),
+                : dateNow().valueOf(),
+            ).toDate(),
           };
         });
       }
@@ -87,7 +94,7 @@ export const useChats = () => {
         title: formatFilenameToAddress(doc.primary_address ?? doc.filename),
         propertyAddress: doc.primary_address ?? doc.filename,
         messages: [],
-        createdAt: new Date(doc.created_at),
+        createdAt: dateParseISO(doc.created_at).toDate(),
       }));
     },
     enabled: shouldLoadData,

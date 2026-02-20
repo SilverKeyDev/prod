@@ -1,4 +1,9 @@
-import { apiGet, apiPost, apiPut } from "../../../services/http/compatibility";
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  apiPut,
+} from "packages/services/http/compatibility";
 
 // Types for agent API
 export type AgentClient = {
@@ -25,6 +30,8 @@ export type AgentConversation = {
   last_read_at?: string;
 };
 
+export type EventRequestStatus = "pending" | "accepted" | "cancelled";
+
 export type AgentChatMessage = {
   id: string;
   conversation_id: string;
@@ -36,6 +43,7 @@ export type AgentChatMessage = {
   timestamp: string;
   is_read?: boolean;
   read_at?: string | null;
+  event_request_status?: EventRequestStatus | null;
 };
 
 export type AgentClientsResponse = {
@@ -406,6 +414,18 @@ export const agentApi = {
     apiPost<MarkMessagesAsReadResponse>(
       `/api/v1/agent/chats/${conversationId}/read`,
       {},
+    ),
+
+  /**
+   * Update event request status (accepted or cancelled) for a calendar event request message
+   */
+  updateEventRequestStatus: (
+    messageId: string,
+    status: "accepted" | "cancelled",
+  ): Promise<{ success: boolean; error?: string }> =>
+    apiPatch<{ success: boolean; error?: string }>(
+      `/api/v1/agent/chats/messages/${messageId}/event-request-status`,
+      { status },
     ),
 
   /**

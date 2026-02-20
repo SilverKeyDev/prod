@@ -1,5 +1,9 @@
 import React, { RefObject } from "react";
 
+import { useLocalization } from "packages/contexts";
+
+import { BodyText } from "@/components/ui/index.web";
+
 type OpeningOfferSectionProps = {
   strategyData: unknown;
   priceElementRef: RefObject<HTMLDivElement>;
@@ -9,6 +13,7 @@ export function OpeningOfferSection({
   strategyData,
   priceElementRef,
 }: OpeningOfferSectionProps): React.JSX.Element | null {
+  const { t } = useLocalization();
   // Handle nested data structure - check if data is under a 'data' property
   const actualData =
     strategyData &&
@@ -41,7 +46,7 @@ export function OpeningOfferSection({
     offerValue = openingOffer;
   } else if (typeof openingOffer === "string") {
     // Remove dollar sign, commas, and whitespace before parsing
-    const cleaned = openingOffer.replace(/[\$,\s]/g, "");
+    const cleaned = openingOffer.replace(/[$,\s]/g, "");
     const parsed = parseFloat(cleaned);
     if (!isNaN(parsed)) {
       offerValue = parsed;
@@ -56,12 +61,15 @@ export function OpeningOfferSection({
     <div ref={priceElementRef} className="my-responsive-lg">
       <div className="rounded-lg bg-olive/10 p-6">
         <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-olive text-white">
-            <span className="text-lg font-bold">$</span>
-          </span>
+          <BodyText
+            as="span"
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-olive text-white text-lg font-bold"
+          >
+            $
+          </BodyText>
           <div>
             <div className="text-sm font-medium text-olive uppercase tracking-wide">
-              Recommended Opening Offer
+              {t("negotiate.opening_offer.recommended")}
             </div>
             <div className="mt-1 text-3xl font-bold text-olive sm:text-4xl lg:text-5xl">
               ${offerValue.toLocaleString()}

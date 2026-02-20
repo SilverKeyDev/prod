@@ -12,18 +12,18 @@ Tasks are now organized into separate files:
 
 # Import all tasks from the organized structure
 from .tasks import (
+    compare_property_task,
     find_best_matches_task,
     research_property_task,
-    compare_property_task,
-    train_user_weights_task,
     train_all_eligible_users_task,
+    train_user_weights_task,
 )
 
 # Export all tasks for backward compatibility
 __all__ = [
-    'find_best_matches_task',
-    'research_property_task',
-    'compare_property_task',
-    'train_user_weights_task',
-    'train_all_eligible_users_task',
+    "find_best_matches_task",
+    "research_property_task",
+    "compare_property_task",
+    "train_user_weights_task",
+    "train_all_eligible_users_task",
 ]

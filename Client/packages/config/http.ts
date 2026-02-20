@@ -2,6 +2,8 @@
    HTTP Client Configuration Constants
    ========================= */
 
+import { getWindow } from "packages/utils";
+
 import { env } from "./env";
 
 /**
@@ -159,11 +161,12 @@ export const httpUtils = {
   },
 
   /**
-   * Build full API URL
+   * Build full API URL. Uses platform window for origin when env.apiBaseUrl not set (web-only fallback).
    */
   buildApiUrl: (path: string, params?: Record<string, string>): string => {
     const baseUrl = env.apiBaseUrl;
-    const url = new URL(path, baseUrl ?? window.location.origin);
+    const origin = baseUrl ?? getWindow()?.location?.origin ?? "";
+    const url = new URL(path, origin || undefined);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {

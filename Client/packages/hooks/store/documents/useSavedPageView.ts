@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+
+import { useNavigation } from "packages/navigation";
 
 export type SavedPageViewType = "homes" | "documents";
 
@@ -12,13 +13,14 @@ type UseSavedPageViewReturn = {
  * Hook for managing saved page view type with URL synchronization
  */
 export function useSavedPageView(): UseSavedPageViewReturn {
-  const location = useLocation();
+  const { getCurrentRoute, setSearchParams } = useNavigation();
+  const route = getCurrentRoute();
   const [viewType, setViewType] = useState<SavedPageViewType>("homes");
 
   // Load data when page loads or view type changes
   useEffect(() => {
     // Initialize from query param on first render
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(route.search);
     const viewParam = params.get("view");
     if (viewParam === "homes" || viewParam === "documents") {
       setViewType(viewParam);
@@ -28,15 +30,19 @@ export function useSavedPageView(): UseSavedPageViewReturn {
 
   // Update URL when view type changes
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (viewType !== "homes") {
-      params.set("view", viewType);
-    } else {
-      params.delete("view");
-    }
-    const newUrl = `${location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
-    window.history.replaceState({}, "", newUrl);
-  }, [viewType, location.pathname, location.search]);
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        if (viewType !== "homes") {
+          params.set("view", viewType);
+        } else {
+          params.delete("view");
+        }
+        return params;
+      },
+      { replace: true },
+    );
+  }, [viewType, route.pathname, route.search, setSearchParams]);
 
   return { viewType, setViewType };
 }

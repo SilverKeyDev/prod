@@ -1,13 +1,18 @@
-import { GraduationCap } from "lucide-react";
 import React from "react";
 
-import Card from "../../layout/Card";
+import { GraduationCap } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
+
+import Card from "@/components/layout/Card.web";
+import { Title } from "@/components/ui/index.web";
 
 import type { PropertyComponentProps } from "./types";
 
 export const PropertySchools: React.FC<PropertyComponentProps> = ({
   property,
 }) => {
+  const { t } = useLocalization();
   const { schools } = property as unknown as { schools: unknown };
 
   if (!schools || !Array.isArray(schools) || schools.length === 0) {
@@ -20,7 +25,9 @@ export const PropertySchools: React.FC<PropertyComponentProps> = ({
     <div>
       <div className="mb-4 flex items-center gap-2">
         <GraduationCap className="h-5 w-5 text-gray-600" />
-        <h3 className="text-lg font-semibold text-brown">Nearby Schools</h3>
+        <Title as="h3" size="lg" className="font-semibold text-brown">
+          {t("property_details.nearby_schools")}
+        </Title>
       </div>
 
       <Card className="p-4">
@@ -32,15 +39,18 @@ export const PropertySchools: React.FC<PropertyComponentProps> = ({
                   {school.name as string}
                 </div>
                 <div className="text-sm text-gray-600">
-                  {school.level as string} • {school.grades as string}
+                  {school.level as string}
+                  {t("property_details.bullet_separator")}
+                  {school.grades as string}
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-sm font-medium text-brown">
-                  {school.rating as number}/10
+                  {school.rating as number}
+                  {t("property_details.rating_out_of")}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {school.distance as number} mi
+                  {school.distance as number} {t("property_details.mi")}
                 </div>
               </div>
             </div>

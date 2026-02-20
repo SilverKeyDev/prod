@@ -1,42 +1,41 @@
 // React imports
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+
+import { log, LOG_CATEGORIES } from "logger";
+
+import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
+import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useResponsive } from "packages/hooks/ui";
+// Hooks and utilities
+import { useHomePriceCalculation } from "packages/hooks/ui/profile/useHomePriceCalculation";
+import { showErrorToast } from "packages/hooks/ui/toast/useToast";
+// Core
+import { useGoogleMapsStore } from "packages/store";
+import { type OnboardingData } from "packages/utils/domain/profile";
+import { handleSubmit as handleSubmitUtil } from "packages/utils/domain/profile";
+import { validateSettingsData } from "packages/utils/domain/profile";
 
 // Google Maps types
 /// <reference types="google.maps" />
-
 // Components
-import { Loading } from "../../../components/ui";
-
-// Core
-import { useGoogleMapsStore } from "../../../../../packages/store/googleMaps.slice";
-import { showErrorToast } from "../../../../../packages/hooks/ui/useToast";
-import { useUserPreferences } from "../../../../../packages/hooks/data/auth/useUserData";
-import { useResponsive } from "../../../../../packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "../../../../../logger";
-
-// Features
-import HousingSection, {
-  getPreservedImportantLocations,
-} from "../../../features/onboardpersonalize/HousingSection";
-import LocationSection from "../../../features/onboardpersonalize/LocationSection";
+import { Loading } from "@/components/ui/index.web";
+import SettingsSidebar from "@/components/ui/sidebar/SettingsSidebar";
+import PersonalizationMobileHeader from "@/features/profile/account/MobileHeader";
 import {
-  getPersonalizationSteps,
-  STEPS as ALL_STEPS,
-  type OnboardingData,
-} from "../../../features/onboardpersonalize/lib/constants";
-import { handleSubmit as handleSubmitUtil } from "../../../features/onboardpersonalize/lib/submitHandler";
-import { validateSettingsData } from "../../../features/onboardpersonalize/lib/validation";
-import PersonalizationMobileHeader from "../../../features/onboardpersonalize/personalization/MobileHeader";
-import SettingsSidebar from "../../../components/ui/sidebar/SettingsSidebar";
-import { convertStepsToNavItems } from "../../../features/onboardpersonalize/lib/constants";
+  convertStepsToNavItems,
+  getPersonalizationStepsUi,
+} from "@/features/profile/profileStepsUi";
+// Features
+import {
+  DemographicsSection,
+  getPreservedImportantLocations,
+  HousingSection,
+  LocationSection,
+} from "@/features/profile/sections/index.web";
 
+import CommunicationSection from "./sections/CommunicationSection";
 // Settings sections
 import FinancialSection from "./sections/FinancialSection";
-import CommunicationSection from "./sections/CommunicationSection";
-import DemographicsSection from "./sections/DemographicsSection";
-
-// Hooks and utilities
-import { useHomePriceCalculation } from "./hooks/useHomePriceCalculation";
 
 // Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
 
@@ -46,13 +45,11 @@ type SettingsProps = {
   >;
 };
 
-// Get personalization steps and add demographics at the bottom
-const baseSteps = getPersonalizationSteps();
-const demographicsStep = ALL_STEPS.find((step) => step.id === "demographics");
-const STEPS = demographicsStep ? [...baseSteps, demographicsStep] : baseSteps;
+const STEPS = getPersonalizationStepsUi();
 
 export default function Settings({ setMobileHeaderActions }: SettingsProps) {
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
+  const submitPreferences = usePreferencesSubmit();
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -252,8 +249,10 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
 
     await handleSubmitUtil({
       formData: dataToSave,
+      submitPreferences,
       setLoading: setIsSaving,
       validateFunction: validateSettingsData,
+      onShowError: showErrorToast,
       onSuccess: () => {
         // Update local state with new version
         const updatedFormData = {
@@ -270,7 +269,7 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
         showErrorToast("Failed to update preferences. Please try again.");
       },
     });
-  }, [formData]);
+  }, [formData, originalData, submitPreferences]);
 
   const handleCancel = useCallback(() => {
     setFormData(originalData);

@@ -1,7 +1,7 @@
 import React from "react";
 
-import { Title, BodyText } from "../../components/ui";
-import RippleBackground from "../../features/homeauth/RippleBackground";
+import { BodyText, Title } from "@/components/ui/index.web";
+import RippleBackground from "@/features/homeauth/RippleBackground.web";
 
 const MaintenanceScreen: React.FC = () => (
   <div className="hide-scrollbar flex min-h-screen flex-col bg-white">

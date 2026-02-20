@@ -4,6 +4,15 @@
 
 The SilverKey frontend follows a strict layered architecture with clear separation of concerns. This document describes the architecture, data flow, and best practices.
 
+## Monorepo Shape
+
+- **Apps**: `apps/web` (and future `apps/mobile`). Each app is a deployable entry point.
+- **Shared code**: All shared code lives under `packages/*`. There is no top-level `shared/` folder.
+- **Path aliases**: Cross-layer and cross-package imports **must** use path aliases, not relative parent imports (`../` or `../../`).
+  - From `apps/web`: use `@/` for app-local paths (e.g. `@/app/`, `@/components/`, `@/pages/`, `@/features/`) and `packages/*` for shared code (e.g. `packages/hooks/`, `packages/store/`, `packages/schemas/`, `packages/utils/`, `packages/contexts/`, `packages/navigation/`, `packages/config/`, `packages/logger`).
+  - From `packages/*`: use `packages/*` for other packages (e.g. `packages/config/`, `packages/store/`, `packages/schemas/`, `packages/navigation/`).
+- **Layer rules**: Imports must still follow the existing layer rules (e.g. components → hooks only; no direct `config/api` or `services` from `apps/web`). See layer descriptions below.
+
 ## Architecture Diagram
 
 ```mermaid
@@ -43,18 +52,20 @@ graph TD
 - `packages/schemas/*` - Type definitions
 - `packages/utils/*` - Utility functions
 - `packages/contexts/*` - React contexts
+- `packages/navigation/*` - Navigation adapter (for programmatic navigation and link props)
 
 **Forbidden Imports**:
 
 - ❌ `packages/config/api/*` - Use hooks instead
 - ❌ `packages/services/*` - Use hooks instead
+- ❌ `react-router-dom` / `react-router` - Use the navigation adapter (`packages/navigation`) only; root route config (`app/routes`, `main.tsx`) may still use react-router for setup.
 
 **Example**:
 
 ```typescript
 // ✅ CORRECT
-import { useSavedHomesData } from "../../../packages/hooks/data/useSavedHomesData";
-import { useAuthStore } from "../../../packages/store/auth.slice";
+import { useSavedHomesData } from "packages/hooks/data/useSavedHomesData";
+import { useAuthStore } from "packages/store";
 
 export default function SavedPage() {
   const { savedHomes, saveHome } = useSavedHomesData();
@@ -63,8 +74,8 @@ export default function SavedPage() {
 }
 
 // ❌ WRONG
-import { userApi } from "../../../packages/config/api/user";
-import { agentService } from "../../../packages/services/agent";
+import { userApi } from "packages/config/api/user";
+import { agentService } from "packages/services/agent";
 ```
 
 ### 2. Hooks Layer (`packages/hooks/`)
@@ -134,7 +145,7 @@ import { savedHomesService } from "../../services/savedHomes";
 ```typescript
 // ✅ CORRECT
 import { useSecureAuth } from "../data/useSecureAuth";
-import { useAuthStore } from "../../store/auth.slice";
+import { useAuthStore } from "../../store";
 
 export function useAuthStoreIntegration() {
   const { user, isAuthenticated } = useSecureAuth();
@@ -252,7 +263,7 @@ export class AgentService {
 
 // ❌ WRONG
 import { useAgentClients } from "../hooks/data/useAgentClients";
-import { useAuthStore } from "../store/auth.slice";
+import { useAuthStore } from "../store";
 ```
 
 #### 4.2 HTTP Services (`services/http/*`)
@@ -309,7 +320,48 @@ export class HttpClient {
 - ❌ `packages/services/*` - No business logic in store
 - ❌ `packages/hooks/*` - Store is framework-agnostic
 
+### 6. Navigation Adapter (`packages/navigation/`)
+
+**Purpose**: Single abstraction for navigation so that features and shared hooks do not depend on `react-router-dom` directly. This allows a second implementation for React Native later without changing feature code.
+
+**Who must use it**:
+
+- **`apps/web/features/**`** – All feature code must use `useNavigation()`, `linkProps()`, `pathFor()`, `ROUTES`, and `useInRouterContext()` from `packages/navigation` only.
+- **`packages/hooks/**`** – All hooks that perform navigation or read location/search params must use the navigation adapter only.
+
+**Who may keep using react-router-dom**:
+
+- **Root route setup**: `apps/web/app/routes.tsx`, `apps/web/app/routes/*`, `apps/web/main.tsx` (e.g. `Routes`, `Route`, `BrowserRouter`, `Navigate`, `Outlet`).
+- **App shell**: Layouts, guards, and providers under `apps/web/app/` may continue to use `useLocation`, `Link`, `Navigate` from react-router-dom until migrated; new code in features/hooks must use the adapter.
+
+**Adapter API** (from `packages/navigation`):
+
+- `useNavigation()` – Returns `{ navigate, replace, navigateToPath, goBack, getCurrentRoute, getSearchParams, setSearchParams, linkProps }`.
+- `pathFor(route, params?)` – Build path string for a named route.
+- `ROUTES` – Route path constants (re-exported from `packages/schemas/app/nav`).
+- `useInRouterContext()` – Whether the component is inside a router (re-exported for hooks that need it).
+
 **Example**:
+
+```typescript
+// ✅ CORRECT (in features or hooks)
+import { useNavigation, ROUTES } from "packages/navigation";
+
+function MyFeature() {
+  const { navigate, linkProps } = useNavigation();
+  return (
+    <button onClick={() => navigate("DASHBOARD")}>Go</button>
+    <a {...linkProps("SAVED")}>Saved</a>
+  );
+}
+
+// ❌ WRONG (in features or hooks)
+import { useNavigate, Link } from "react-router-dom";
+```
+
+**Enforcement**: ESLint `no-restricted-imports` blocks `react-router-dom` and `react-router` in `apps/web/features/**` and `packages/hooks/**`.
+
+**Example** (Store Layer):
 
 ```typescript
 // ✅ CORRECT
@@ -413,7 +465,7 @@ export const useAgentTodos = () => {
 
 ```typescript
 // apps/web/pages/DashboardPage.tsx
-import { useAgentTodos } from "../../../packages/hooks/data/useAgentTodos";
+import { useAgentTodos } from "packages/hooks/data/useAgentTodos";
 
 export default function DashboardPage() {
   const { todos, isLoading, createTodo } = useAgentTodos();
@@ -468,7 +520,7 @@ function Component() {
 **After**:
 
 ```typescript
-import { useUserData } from "../../../packages/hooks/data/useUserData";
+import { useUserData } from "packages/hooks/data/useUserData";
 
 function Component() {
   const { user } = useUserData();
@@ -514,6 +566,39 @@ export const useAgentClients = () => {
 4. **Store is updated via hooks** - Components should not mutate store directly
 5. **Type-only imports are OK** - Importing types from `config/api` is allowed
 6. **Create hooks for missing functionality** - If a hook doesn't exist, create it
+
+## Platform file conventions
+
+For code that differs by platform (web vs React Native), use a single convention:
+
+- **Default:** Use **`.tsx`** / **`.ts`** for files under `apps/web/`. Use **`.web.tsx`** / **`.web.ts`** only when the file **will not be mapped** to mobile: **(1)** it uses a web-only package or API (e.g. `react-dom`, `react-router-dom`, `window`/`document`, `HTMLInputElement`, `@headlessui/react`, `react-virtuoso`), or **(2)** it is desktop/large-screen-only layout and mobile has a different implementation. If mobile can do the same with the same file, the file must not have the `.web` extension. See `MOBILE_MIGRATION_DESKTOP_FILES.md` for the canonical list and reasons.
+- **Web-only** (will not be mapped): use `.web.ts`, `.web.tsx` (e.g. `Sidebar.web.tsx`, `sidebarNav.web.ts`).
+- **React Native–only**: use `.native.ts`, `.native.tsx` (e.g. `Sidebar.native.tsx`). Do **not** use `.mobile.*`; we standardize on `.native.*` to match common RN usage.
+- **Shared or default web**: no suffix; the same file is used by both platforms or is the default implementation (mobile can add `.native.*` later).
+
+Bundlers (e.g. Vite, Metro) resolve imports so that `import './Sidebar'` picks `Sidebar.web.tsx` for web and `Sidebar.native.tsx` for native when both exist.
+
+**Enforcement:**
+
+- **`node tools/check-platform-imports.mjs`** (run via `pnpm lint:platform-imports` from `Client/`):
+  - Warns when a file is only imported by `.web.*` or only by `.native.*` files but does not have the matching platform extension; such files should be renamed to `.web.*` or `.native.*`.
+  - Fails if the same logical component has both `.mobile.*` and `.native.*` (mixed convention); use `.native.*` only for React Native.
+- This script runs in CI as part of the Client lint workflow (see `.github/workflows/client-lint.yml`).
+- **ESLint** `silverkey/platform-allowed-imports`: `.web.*` files must not import React Native-only packages; `.native.*` files must not import web-only packages (e.g. `react-dom`, `react-router-dom`). Shared packages are allowed on both.
+
+See also `Client/tools/LINTING.md` for how to run the check locally.
+
+## Design Tokens
+
+The single source of truth for design tokens is **`packages/design-tokens`**. Tailwind theme and ThemeContext consume this package so that colors, spacing, typography, and breakpoints stay in sync.
+
+- **Consumers** must use token helpers or Tailwind theme; do not use literal hex colors or raw numeric spacing in UI code (enforced by ESLint in `apps/web/components/**` and `apps/web/features/**`).
+- **Token helpers**: `spacing(n)` (or `spacingToken(n)`), `color(path)`, `breakpoint(name)` from `packages/design-tokens`.
+- **Tailwind**: Use theme classes (e.g. `text-brand-accent`, `p-2`, `gap-4`) instead of arbitrary values like `p-[13px]` or hex in class names.
+- **Literal hex** is allowed only in `packages/design-tokens` (e.g. `tokens/colors.ts`). Everywhere else use `color()` or Tailwind color classes.
+- **Raw spacing**: Avoid `margin: 8`, `padding: 13`, or Tailwind arbitrary spacing like `p-[13px]`; use `spacing(2)`, `p-2`, or other token-based classes.
+
+See `packages/design-tokens/README.md` for the package API.
 
 ## Related Documentation
 

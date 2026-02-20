@@ -2,52 +2,51 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import Iterable, Optional
 
 from flask import current_app
 
 # App imports
 from app import db
-from app.models import User, UserPreferences
+from app.models import User
+from app.services.aggregation import get_preferences_dict_optional, user_has_preferences
 from app.services.auth import minimal_token_service
 
 
-def _iter_users_with_prefs(session, limit: Optional[int] = None, only_recently_logged_in: bool = True) -> Iterable[tuple[User, UserPreferences]]:
+def _iter_users_with_prefs(
+    session, limit: int | None = None, only_recently_logged_in: bool = True
+) -> Iterable[tuple[User, dict]]:
     """
-    Yield (User, UserPreferences) for users who have preferences.
+    Yield (User, preferences_dict) for users who have preferences.
     If only_recently_logged_in is True, only includes users who logged in within the last month.
     Optional limit to bound the iteration for testing.
     """
-    query = (
-        session.query(User, UserPreferences)
-        .join(UserPreferences, UserPreferences.user_id == User.id)
-    )
-    
-    # Filter by recently logged in users (within last 30 days)
+    query = session.query(User)
     if only_recently_logged_in:
         one_month_ago = datetime.utcnow() - timedelta(days=30)
-        query = query.filter(
-            User.last_logged_in.isnot(None),
-            User.last_logged_in >= one_month_ago
-        )
-    
+        query = query.filter(User.last_logged_in.isnot(None), User.last_logged_in >= one_month_ago)
     if isinstance(limit, int) and limit > 0:
         query = query.limit(limit)
-    for user, prefs in query.all():
+    for user in query.all():
+        if not user_has_preferences(str(user.id)):
+            continue
+        prefs = get_preferences_dict_optional(str(user.id))
+        if prefs is None:
+            continue
         yield user, prefs
 
 
 def run_polygon_search_for_all_users(
     pause_seconds: float = 1.0,
     per_bucket_pages: int = 5,
-    user_limit: Optional[int] = None,
+    user_limit: int | None = None,
     only_recently_logged_in: bool = True,
 ) -> dict:
     """
     Execute POST /api/v1/search/properties-by-polygon for each user that has
     recorded preferences. Uses Minimal access tokens to authenticate as the user.
-    
+
     If only_recently_logged_in is True, only processes users who logged in within the last month.
 
     Returns a summary dict with simple counts.
@@ -64,7 +63,9 @@ def run_polygon_search_for_all_users(
     session = db.session
     # current_app is valid only if an app context is active
     with current_app.test_client() as client:
-        for user, prefs in _iter_users_with_prefs(session=session, limit=user_limit, only_recently_logged_in=only_recently_logged_in):
+        for user, prefs in _iter_users_with_prefs(
+            session=session, limit=user_limit, only_recently_logged_in=only_recently_logged_in
+        ):
             results["total_users"] += 1
 
             # Build Minimal access token for this user
@@ -76,16 +77,18 @@ def run_polygon_search_for_all_users(
                 )
             except Exception as e:
                 results["failed"] += 1
-                results["errors"].append({
-                    "user_id": str(user.id),
-                    "stage": "token",
-                    "error": str(e)[:300],
-                })
+                results["errors"].append(
+                    {
+                        "user_id": str(user.id),
+                        "stage": "token",
+                        "error": str(e)[:300],
+                    }
+                )
                 continue
 
             # Prepare request body using stored preferences
             body = {
-                "user_preferences": prefs.to_dict(),
+                "user_preferences": prefs,
                 "perBucketPages": int(max(0, min(per_bucket_pages, 20))),
             }
 
@@ -105,19 +108,25 @@ def run_polygon_search_for_all_users(
                     results["succeeded"] += 1
                 else:
                     results["failed"] += 1
-                    results["errors"].append({
-                        "user_id": str(user.id),
-                        "stage": "route",
-                        "status": resp.status_code,
-                        "body": (resp.get_json(silent=True) if hasattr(resp, "get_json") else None),
-                    })
+                    results["errors"].append(
+                        {
+                            "user_id": str(user.id),
+                            "stage": "route",
+                            "status": resp.status_code,
+                            "body": (
+                                resp.get_json(silent=True) if hasattr(resp, "get_json") else None
+                            ),
+                        }
+                    )
             except Exception as e:
                 results["failed"] += 1
-                results["errors"].append({
-                    "user_id": str(user.id),
-                    "stage": "request",
-                    "error": str(e)[:300],
-                })
+                results["errors"].append(
+                    {
+                        "user_id": str(user.id),
+                        "stage": "request",
+                        "error": str(e)[:300],
+                    }
+                )
 
             # Throttle between users to avoid hitting external API limits
             try:
@@ -139,6 +148,7 @@ def run_polygon_search_for_all_users_with_context(*args, **kwargs):
         return run_polygon_search_for_all_users(*args, **kwargs)
     except RuntimeError:
         from app import create_app
+
         app = create_app()
         with app.app_context():
             return run_polygon_search_for_all_users(*args, **kwargs)
@@ -159,6 +169,7 @@ if __name__ == "__main__":
         only_recently_logged_in=only_recent,
     )
     # Minimal stdout summary for CI logs
-    print({k: (v if k != "errors" else f"{len(v)} errors") for k, v in summary.items()})
+    from logger import LOG_CATEGORIES, log
 
-
+    summary_log = {k: (v if k != "errors" else f"{len(v)} errors") for k, v in summary.items()}
+    log.info(LOG_CATEGORIES["API"], "Polygon search summary", summary_log)

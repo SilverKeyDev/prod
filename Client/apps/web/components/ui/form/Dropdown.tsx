@@ -1,7 +1,9 @@
-import { ChevronDown, Search, Check } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { getSharedInputTextStyles } from "./InputStyleUtils";
+import { Check, ChevronDown, Search } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
+import { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 export type DropdownOption<T = unknown> = {
   value: T;
@@ -32,7 +34,7 @@ function Dropdown<T = unknown>({
   options,
   value,
   onChange,
-  placeholder = "Select an option...",
+  placeholder,
   label,
   required,
   error,
@@ -45,13 +47,47 @@ function Dropdown<T = unknown>({
   dropdownClassName = "",
   onClear,
 }: DropdownProps<T>) {
+  const { t } = useLocalization();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [labelWraps, setLabelWraps] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const triggerLabelRef = useRef<HTMLSpanElement>(null);
+  const measureRef = useRef<HTMLSpanElement>(null);
 
   // Find selected option
   const selectedOption = options.find((option) => option.value === value);
+
+  const displayLabel = selectedOption
+    ? selectedOption.label
+    : (placeholder ?? t("form.select_option"));
+
+  // Detect wrap using a hidden element that always has default (unshrunk) font size,
+  // so changing the visible text size doesn't flip the measurement and cause glitching.
+  const checkLabelWrap = useCallback(() => {
+    const measureEl = measureRef.current;
+    if (!measureEl) return;
+    const style = getComputedStyle(measureEl);
+    const lineHeight = parseFloat(style.lineHeight);
+    const singleLineHeight = Number.isFinite(lineHeight)
+      ? lineHeight
+      : parseFloat(style.fontSize) * 1.2;
+    const wraps = measureEl.scrollHeight > singleLineHeight * 1.5;
+    setLabelWraps(wraps);
+  }, []);
+
+  useEffect(() => {
+    checkLabelWrap();
+  }, [displayLabel, checkLabelWrap]);
+
+  useEffect(() => {
+    const el = measureRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(checkLabelWrap);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [checkLabelWrap]);
 
   // Filter options based on search term
   const filteredOptions = searchable
@@ -172,7 +208,9 @@ function Dropdown<T = unknown>({
       {label && (
         <label className="mb-2 block text-sm font-medium text-gray-700">
           {label}
-          {required && <span className="text-red-500">*</span>}
+          {required && (
+            <span className="text-red-500">{t("form.required_indicator")}</span>
+          )}
         </label>
       )}
 
@@ -185,8 +223,20 @@ function Dropdown<T = unknown>({
           disabled={disabled}
           className={`${buttonClasses} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
         >
-          <span className={selectedOption ? "text-gray-600" : "text-gray-400"}>
-            {selectedOption ? selectedOption.label : placeholder}
+          <span
+            ref={triggerLabelRef}
+            className={`relative min-w-0 flex-1 text-left ${selectedOption ? "text-gray-600" : "text-gray-400"} ${labelWraps ? "text-[13px]" : ""}`}
+          >
+            {displayLabel}
+            {/* Hidden measurer: always default size so wrap detection is stable and doesn't glitch */}
+            <span
+              ref={measureRef}
+              aria-hidden
+              className="absolute inset-0 w-full text-xs sm:text-sm md:text-base leading-tight text-transparent"
+              style={{ visibility: "hidden", pointerEvents: "none" }}
+            >
+              {displayLabel}
+            </span>
           </span>
 
           <div className="flex items-center gap-1">
@@ -196,8 +246,9 @@ function Dropdown<T = unknown>({
                 onClick={handleClear}
                 className="cursor-pointer rounded p-1 transition-colors hover:bg-gray-100"
                 tabIndex={-1}
+                aria-label={t("form.clear_aria")}
               >
-                ×
+                {t("form.clear_aria")}
               </button>
             )}
             <ChevronDown
@@ -221,7 +272,7 @@ function Dropdown<T = unknown>({
                     type="text"
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    placeholder="Search options..."
+                    placeholder={t("form.search_options")}
                     className={`w-full rounded border border-beige py-2 pl-9 pr-3 transition-all duration-200 hover:border-brown/50 focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20 ${(getSharedInputTextStyles as () => string)()}`}
                   />
                 </div>

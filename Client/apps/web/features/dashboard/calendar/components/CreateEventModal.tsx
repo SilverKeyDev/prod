@@ -1,18 +1,20 @@
-import { useState, useEffect } from "react";
-import BaseModal from "../../../../components/modals/BaseModal";
-import Button from "../../../../components/ui/button/Button";
-import CancelButton from "../../../../components/ui/button/CancelButton";
-import Input from "../../../../components/ui/form/Input";
-import Label from "../../../../components/ui/text/Label";
-import { Textarea } from "../../../../components/ui/form/FormField";
-import { googleCalendarApi } from "../../../../../../packages/config/api";
-import type {
-  GoogleEvent,
-  GoogleCalendar,
-} from "../../../../../../packages/config/api";
-import { useUIStore } from "../../../../../../packages/store";
-import type { UIState } from "../../../../../../packages/store/ui.slice";
-import { log, LOG_CATEGORIES } from "../../../../../../logger";
+import { useEffect, useState } from "react";
+
+import { log, LOG_CATEGORIES } from "logger";
+
+import type { GoogleCalendar, GoogleEvent } from "packages/config/api";
+import { useGoogleEvents } from "packages/hooks/data/calendar/useGoogleEvents";
+import type { UIState } from "packages/store";
+import { useUIStore } from "packages/store";
+import { dateNow, dateParseISO, dayjs } from "packages/utils/core/date";
+
+import BaseModal from "@/components/modals/BaseModal";
+import Button from "@/components/ui/button/Button";
+import CancelButton from "@/components/ui/button/CancelButton";
+import Dropdown from "@/components/ui/form/Dropdown";
+import { Textarea } from "@/components/ui/form/FormField";
+import { DateInput, Input, TimeInput } from "@/components/ui/index.web";
+import Label from "@/components/ui/text/Label.web";
 
 type CreateEventModalProps = {
   isOpen: boolean;
@@ -62,6 +64,7 @@ export function CreateEventModal({
   onEventCreated,
 }: CreateEventModalProps) {
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
+  const { createEvent, isCreatingEvent } = useGoogleEvents();
 
   const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
@@ -72,43 +75,40 @@ export function CreateEventModal({
   const [endTime, setEndTime] = useState("");
   const [selectedCalendarId, setSelectedCalendarId] =
     useState<string>("primary");
-  const [isCreating, setIsCreating] = useState(false);
 
   // Initialize form with initial date if provided
   useEffect(() => {
     if (initialDate && isOpen) {
-      const dateStr = initialDate.toISOString().split("T")[0];
-      // If the date has a meaningful time (not midnight), use it; otherwise default to 9 AM
-      const hasTime =
-        initialDate.getHours() !== 0 || initialDate.getMinutes() !== 0;
-      const defaultHour = hasTime ? initialDate.getHours() : 9;
-      const defaultMinute = hasTime ? initialDate.getMinutes() : 0;
+      const d = dayjs(initialDate);
+      const dateStr = d.format("YYYY-MM-DD");
+      const hasTime = d.hour() !== 0 || d.minute() !== 0;
+      const defaultHour = hasTime ? d.hour() : 9;
+      const defaultMinute = hasTime ? d.minute() : 0;
 
-      const startDateTime = new Date(initialDate);
-      startDateTime.setHours(defaultHour, defaultMinute, 0, 0);
+      const startDateTime = d
+        .hour(defaultHour)
+        .minute(defaultMinute)
+        .second(0)
+        .millisecond(0);
       const timeStr = `${String(defaultHour).padStart(2, "0")}:${String(defaultMinute).padStart(2, "0")}`;
 
       setStartDate(dateStr);
       setStartTime(timeStr);
 
-      // Set end time to 1 hour later by default
-      const endDateTime = new Date(startDateTime);
-      endDateTime.setHours(endDateTime.getHours() + 1);
-      setEndDate(endDateTime.toISOString().split("T")[0]);
-      setEndTime(endDateTime.toTimeString().slice(0, 5));
+      const endDateTime = startDateTime.add(1, "hour");
+      setEndDate(endDateTime.format("YYYY-MM-DD"));
+      setEndTime(endDateTime.format("HH:mm"));
     } else if (isOpen && !initialDate) {
-      // Initialize with current date/time if no initial date
-      const now = new Date();
-      const dateStr = now.toISOString().split("T")[0];
-      const timeStr = now.toTimeString().slice(0, 5);
+      const now = dateNow();
+      const dateStr = now.format("YYYY-MM-DD");
+      const timeStr = now.format("HH:mm");
 
       setStartDate(dateStr);
       setStartTime(timeStr);
 
-      const endDateTime = new Date(now);
-      endDateTime.setHours(endDateTime.getHours() + 1);
-      setEndDate(endDateTime.toISOString().split("T")[0]);
-      setEndTime(endDateTime.toTimeString().slice(0, 5));
+      const endDateTime = now.add(1, "hour");
+      setEndDate(endDateTime.format("YYYY-MM-DD"));
+      setEndTime(endDateTime.format("HH:mm"));
     }
   }, [initialDate, isOpen]);
 
@@ -140,7 +140,6 @@ export function CreateEventModal({
       setEventTitle("");
       setEventDescription("");
       setEventLocation("");
-      setIsCreating(false);
     }
   }, [isOpen]);
 
@@ -160,18 +159,16 @@ export function CreateEventModal({
     }
 
     // Validate that end time is after start time
-    const startDateTime = new Date(`${startDate}T${startTime}`);
-    const endDateTime = new Date(`${endDate}T${endTime}`);
+    const startDateTime = dateParseISO(`${startDate}T${startTime}`);
+    const endDateTime = dateParseISO(`${endDate}T${endTime}`);
 
-    if (endDateTime <= startDateTime) {
+    if (!endDateTime.isAfter(startDateTime)) {
       enqueueToast({
         type: "error",
         message: "End time must be after start time",
       });
       return;
     }
-
-    setIsCreating(true);
 
     try {
       // Format dates to ISO 8601 format
@@ -198,26 +195,19 @@ export function CreateEventModal({
         eventType: detectEventType(eventTitle.trim()),
       };
 
-      const response = await googleCalendarApi.createEvent(eventData);
+      await createEvent(eventData);
 
-      if (response.success && response.data) {
-        enqueueToast({
-          type: "success",
-          message: "Event created successfully",
-        });
+      enqueueToast({
+        type: "success",
+        message: "Event created successfully",
+      });
 
-        // Call callback to refresh events
-        if (onEventCreated) {
-          onEventCreated();
-        }
-
-        onClose();
-      } else {
-        enqueueToast({
-          type: "error",
-          message: response.error || "Failed to create event",
-        });
+      // Call callback to refresh events
+      if (onEventCreated) {
+        onEventCreated();
       }
+
+      onClose();
     } catch (error) {
       log.error(LOG_CATEGORIES.CALENDAR, "Error creating event", error);
       enqueueToast({
@@ -225,8 +215,6 @@ export function CreateEventModal({
         message:
           error instanceof Error ? error.message : "Failed to create event",
       });
-    } finally {
-      setIsCreating(false);
     }
   };
 
@@ -243,21 +231,15 @@ export function CreateEventModal({
       <div className="space-y-4">
         {/* Calendar Selection */}
         {calendars.length > 1 && (
-          <div>
-            <Label htmlFor="calendar-select">Calendar</Label>
-            <select
-              id="calendar-select"
-              value={selectedCalendarId}
-              onChange={(e) => setSelectedCalendarId(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-brown focus:outline-none focus:ring-1 focus:ring-brown"
-            >
-              {calendars.map((calendar) => (
-                <option key={calendar.id} value={calendar.id}>
-                  {calendar.summary}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            label="Calendar"
+            options={calendars.map((cal) => ({
+              value: cal.id,
+              label: cal.summary,
+            }))}
+            value={selectedCalendarId}
+            onChange={(id) => setSelectedCalendarId(id)}
+          />
         )}
 
         {/* Event Title */}
@@ -271,65 +253,46 @@ export function CreateEventModal({
             onChange={(e) => setEventTitle(e.target.value)}
             placeholder="e.g., Property Viewing, Home Inspection"
             className="mt-1"
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- Focus title when modal opens
             autoFocus
           />
         </div>
 
         {/* Start Date and Time */}
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label htmlFor="start-date" required>
-              Start Date
-            </Label>
-            <Input
-              id="start-date"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="start-time" required>
-              Start Time
-            </Label>
-            <Input
-              id="start-time"
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="mt-1"
-            />
-          </div>
+          <DateInput
+            id="start-date"
+            label="Start Date"
+            required
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+          <TimeInput
+            id="start-time"
+            label="Start Time"
+            required
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
         </div>
 
         {/* End Date and Time */}
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label htmlFor="end-date" required>
-              End Date
-            </Label>
-            <Input
-              id="end-date"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              min={startDate}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="end-time" required>
-              End Time
-            </Label>
-            <Input
-              id="end-time"
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="mt-1"
-            />
-          </div>
+          <DateInput
+            id="end-date"
+            label="End Date"
+            required
+            value={endDate}
+            min={startDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+          <TimeInput
+            id="end-time"
+            label="End Time"
+            required
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
         </div>
 
         {/* Location */}
@@ -362,18 +325,18 @@ export function CreateEventModal({
           <CancelButton
             onClick={onClose}
             className="flex-1"
-            disabled={isCreating}
+            disabled={isCreatingEvent}
           >
             Cancel
           </CancelButton>
           <Button
-            variant="olive"
+            variant="primary"
             onClick={handleCreate}
-            disabled={!canCreate || isCreating}
-            loading={isCreating}
+            disabled={!canCreate || isCreatingEvent}
+            loading={isCreatingEvent}
             className="flex-1"
           >
-            {isCreating ? "Creating..." : "Create Event"}
+            {isCreatingEvent ? "Creating..." : "Create Event"}
           </Button>
         </div>
       </div>

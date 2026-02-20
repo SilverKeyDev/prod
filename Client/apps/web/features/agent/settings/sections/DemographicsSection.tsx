@@ -1,18 +1,22 @@
 import React from "react";
-import AlignedRow from "../../../../components/layout/AlignedRow";
-import Card from "../../../../components/layout/Card";
-import {
-  Dropdown,
-  Input,
-  OliveCheckbox,
-  Title,
-} from "../../../../components/ui";
-import Label from "../../../../features/onboardpersonalize/Label";
+
 import {
   FIELD_LABELS,
   IS_AGENT_OPTIONS,
   type OnboardingData,
-} from "../../../../features/onboardpersonalize/lib/constants";
+} from "packages/utils/domain/profile";
+
+import AlignedRow from "@/components/layout/AlignedRow";
+import Card from "@/components/layout/Card.web";
+import {
+  AccessibleCheckboxInput,
+  BodyText,
+  Dropdown,
+  Input,
+  Label,
+  OliveCheckbox,
+  Title,
+} from "@/components/ui/index.web";
 
 type DemographicsSectionProps = {
   formData: OnboardingData;
@@ -125,14 +129,13 @@ export default function DemographicsSection({
               content:
                 formData.has_buyers_agent === "no" ? (
                   <div className="flex h-full items-center">
-                    <label
+                    <Label
                       htmlFor="looking-buyers-agent"
-                      className="flex cursor-pointer items-center gap-3 text-sm font-medium text-black"
+                      className="flex cursor-pointer items-center gap-3 font-medium text-black"
                     >
                       {isEditMode ? (
                         <>
-                          <input
-                            type="checkbox"
+                          <AccessibleCheckboxInput
                             id="looking-buyers-agent"
                             className="sr-only"
                             checked={!!formData.looking_for_buyers_agent}
@@ -142,7 +145,7 @@ export default function DemographicsSection({
                                 !formData.looking_for_buyers_agent,
                               )
                             }
-                            aria-label="I am looking for a buyer's agent"
+                            label="I am looking for a buyer's agent"
                           />
                           <OliveCheckbox
                             checked={!!formData.looking_for_buyers_agent}
@@ -177,10 +180,10 @@ export default function DemographicsSection({
                           )}
                         </div>
                       )}
-                      <span className="select-none">
+                      <BodyText as="span" size="sm" className="select-none">
                         I am looking for a buyer's agent
-                      </span>
-                    </label>
+                      </BodyText>
+                    </Label>
                   </div>
                 ) : (
                   <div className="mobile-input bg-gray-50 opacity-0">
@@ -194,10 +197,14 @@ export default function DemographicsSection({
 
       {/* Show message if user is an agent */}
       {formData.is_agent === "yes" && (
-        <p className="mt-2 text-xs text-black/60 sm:text-sm md:text-base">
+        <BodyText
+          as="p"
+          size="xs"
+          className="mt-2 text-black/60 sm:text-sm md:text-base"
+        >
           You only need to fill out the rest of this information for toying
           around or personal use.
-        </p>
+        </BodyText>
       )}
     </Card>
   );

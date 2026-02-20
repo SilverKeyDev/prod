@@ -7,22 +7,22 @@ export type CardBubbleStyleConfig = {
 // Size configurations for margin and height only
 export const CARD_BUBBLE_SIZES = {
   xs: {
-    iconClass: "w-3.5 h-3.5",
+    iconClass: "w-3 h-3",
     margin: "m-1.5",
     height: "h-6",
   },
   sm: {
-    iconClass: "w-4 h-4",
+    iconClass: "w-3.5 h-3.5",
     margin: "m-2",
     height: "h-7",
   },
   md: {
-    iconClass: "w-5 h-5",
+    iconClass: "w-4 h-4",
     margin: "m-2.5",
     height: "h-8",
   },
   lg: {
-    iconClass: "w-6 h-6",
+    iconClass: "w-5 h-5",
     margin: "m-3",
     height: "h-9",
   },

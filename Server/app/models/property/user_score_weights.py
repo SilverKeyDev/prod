@@ -1,46 +1,49 @@
-from datetime import datetime
 import uuid
-from app import db
+from datetime import datetime
+
 from sqlalchemy import Index
+
+from app import db
+
 
 class UserScoreWeights(db.Model):
     """Stores learned weights for subscore blending per user or per cohort."""
-    
+
     __tablename__ = "user_score_weights"
-    
+
     __table_args__ = (
-        Index('idx_usw_user', 'user_id'),
-        Index('idx_usw_cohort', 'cohort_id'),
-        Index('idx_usw_user_updated', 'user_id', 'last_trained_at'),
+        Index("idx_usw_user", "user_id"),
+        Index("idx_usw_cohort", "cohort_id"),
+        Index("idx_usw_user_updated", "user_id", "last_trained_at"),
     )
-    
+
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    
+
     # Either user_id OR cohort_id should be set, not both
     user_id = db.Column(db.String(36), nullable=True)  # Nullable for cohort weights
     cohort_id = db.Column(db.String(64), nullable=True)  # Nullable for user-specific weights
-    
+
     # Learned weights (normalized to sum to 1.0)
     embedding_weight = db.Column(db.Float, nullable=False)
     llm_weight = db.Column(db.Float, nullable=False)
-    
+
     # Training metadata
     training_samples_count = db.Column(db.Integer, nullable=False, default=0)
     last_trained_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    model_version = db.Column(db.String(20), nullable=False, default='1.0')
-    
+    model_version = db.Column(db.String(20), nullable=False, default="1.0")
+
     # Performance metrics (optional, for monitoring)
     training_accuracy = db.Column(db.Float, nullable=True)
     training_auc = db.Column(db.Float, nullable=True)
-    
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     def __init__(self, **kwargs):
-        super(UserScoreWeights, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-    
+
     def to_dict(self):
         """Convert model to dictionary."""
         return {
@@ -57,25 +60,25 @@ class UserScoreWeights(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
-    
+
     @classmethod
     def create_or_update(
         cls,
-        user_id: str = None,
-        cohort_id: str = None,
-        embedding_weight: float = None,
-        llm_weight: float = None,
+        user_id: str | None = None,
+        cohort_id: str | None = None,
+        embedding_weight: float | None = None,
+        llm_weight: float | None = None,
         training_samples_count: int = 0,
-        model_version: str = '1.0',
-        training_accuracy: float = None,
-        training_auc: float = None
-    ) -> 'UserScoreWeights':
+        model_version: str = "1.0",
+        training_accuracy: float | None = None,
+        training_auc: float | None = None,
+    ) -> "UserScoreWeights":
         """Create or update weights for a user or cohort."""
         if user_id and cohort_id:
             raise ValueError("Cannot set both user_id and cohort_id")
         if not user_id and not cohort_id:
             raise ValueError("Must set either user_id or cohort_id")
-        
+
         # Normalize weights to sum to 1.0
         if embedding_weight is not None and llm_weight is not None:
             total = embedding_weight + llm_weight
@@ -86,13 +89,14 @@ class UserScoreWeights(db.Model):
                 # Default to equal weights if both are 0
                 embedding_weight = 0.5
                 llm_weight = 0.5
-        
+
         # Find existing record
         if user_id:
             existing = cls.query.filter_by(user_id=user_id).first()
         else:
+            assert cohort_id is not None  # guaranteed by validation above
             existing = cls.query.filter_by(cohort_id=cohort_id).first()
-        
+
         if existing:
             # Update existing
             if embedding_weight is not None:
@@ -118,8 +122,8 @@ class UserScoreWeights(db.Model):
                 training_samples_count=training_samples_count,
                 model_version=model_version,
                 training_accuracy=training_accuracy,
-                training_auc=training_auc
+                training_auc=training_auc,
             )
-    
+
     def __repr__(self):
         return f"<UserScoreWeights(user_id={self.user_id}, cohort_id={self.cohort_id}, embedding={self.embedding_weight:.3f}, llm={self.llm_weight:.3f})>"

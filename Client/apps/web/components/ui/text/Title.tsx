@@ -7,6 +7,8 @@ export type TitleProps = {
   size?: TitleSize;
   className?: string;
   as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  style?: React.CSSProperties;
+  title?: string;
 };
 
 const sizeClasses: Record<TitleSize, string> = {
@@ -21,12 +23,18 @@ export default function Title({
   size = "md",
   className = "",
   as: Component = "h2",
+  style,
+  title,
 }: TitleProps) {
   const baseClasses = "font-serif text-black";
   const sizeClass = sizeClasses[size];
 
   return (
-    <Component className={`${baseClasses} ${sizeClass} ${className}`}>
+    <Component
+      className={`${baseClasses} ${sizeClass} ${className}`}
+      style={style}
+      title={title}
+    >
       {children}
     </Component>
   );

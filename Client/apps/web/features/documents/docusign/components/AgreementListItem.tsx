@@ -1,15 +1,18 @@
-import { FileText, Eye, Send, XCircle } from "lucide-react";
-import AgreementStatusBadge from "./AgreementStatusBadge";
+import { Eye, FileText, Send, XCircle } from "lucide-react";
+
+import type { Agreement } from "packages/schemas/content/documents/docusign";
+import { useAuthStore } from "packages/store";
 import {
-  getAgreementTypeLabel,
   calculateSigningProgress,
-  formatAgreementDate,
   canUserSend,
   canUserVoid,
-} from "../../../../../../packages/utils/documents/docusignHelpers";
-import { IconButton, BodyText } from "../../../../components/ui";
-import { useAuthStore } from "../../../../../../packages/store/auth.slice";
-import type { Agreement } from "../../../../../../packages/schemas/documents/docusign";
+  formatAgreementDate,
+  getAgreementTypeLabel,
+} from "packages/utils/domain/documents/docusignHelpers";
+
+import { BodyText, IconButton, Title } from "@/components/ui/index.web";
+
+import AgreementStatusBadge from "./AgreementStatusBadge";
 
 type AgreementListItemProps = {
   agreement: Agreement;
@@ -44,8 +47,16 @@ export default function AgreementListItem({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className="group border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer"
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
@@ -60,9 +71,13 @@ export default function AgreementListItem({
           {/* Header */}
           <div className="flex items-start justify-between gap-3 mb-1">
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-medium text-gray-900 truncate">
+              <Title
+                as="h3"
+                size="md"
+                className="font-medium text-gray-900 truncate"
+              >
                 {agreement.title}
-              </h3>
+              </Title>
               <BodyText size="sm" muted>
                 {getAgreementTypeLabel(agreement.agreement_type)}
               </BodyText>
@@ -79,14 +94,18 @@ export default function AgreementListItem({
 
           {/* Metadata Row */}
           <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-2">
-            <span>Created {formatAgreementDate(agreement.created_at)}</span>
+            <BodyText as="span" size="xs" className="text-gray-500">
+              Created {formatAgreementDate(agreement.created_at)}
+            </BodyText>
             {agreement.sent_at && (
-              <span>Sent {formatAgreementDate(agreement.sent_at)}</span>
+              <BodyText as="span" size="xs" className="text-gray-500">
+                Sent {formatAgreementDate(agreement.sent_at)}
+              </BodyText>
             )}
             {agreement.completed_at && (
-              <span>
+              <BodyText as="span" size="xs" className="text-gray-500">
                 Completed {formatAgreementDate(agreement.completed_at)}
-              </span>
+              </BodyText>
             )}
           </div>
 
@@ -99,9 +118,13 @@ export default function AgreementListItem({
                   style={{ width: `${signingProgress.percentage}%` }}
                 />
               </div>
-              <span className="text-xs text-gray-600 whitespace-nowrap">
+              <BodyText
+                as="span"
+                size="xs"
+                className="text-gray-600 whitespace-nowrap"
+              >
                 {signingProgress.signed}/{signingProgress.total} signed
-              </span>
+              </BodyText>
             </div>
           )}
         </div>

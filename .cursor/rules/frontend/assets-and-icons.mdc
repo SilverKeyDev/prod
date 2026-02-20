@@ -1,0 +1,41 @@
+---
+description: Asset strategy — images, icons, fonts — for web/RN pipeline parity
+globs:
+  - "Client/**/*.{ts,tsx}"
+alwaysApply: true
+---
+
+# Asset Strategy: Icons, Images, Fonts
+
+## Goal
+
+The RN asset pipeline differs from web (no raw URL imports, different bundling). To avoid rewriting asset usage twice, enforce a single strategy: assets and icons come from dedicated modules, not from random paths.
+
+## Rules
+
+### 1. Images and static assets
+
+- **Do not** import images (png, jpg, svg, gif, webp) from arbitrary paths (e.g. `/logo.png`, `../../foo.png`).
+- **Do** import from an **assets module** that re-exports or resolves paths:
+  - Web: use a dedicated folder (e.g. `apps/web/assets/` or `packages/assets/`) and import via a barrel or path alias (e.g. `import { logo } from '@/assets'` or `import logo from '@/assets/logo.png'`).
+  - All image imports must go through this layer so RN can swap the resolution (e.g. require() or asset registry) without touching feature code.
+
+### 2. Icons
+
+- **Do** use a **single icon entry point** for the app (e.g. one module that re-exports Lucide icons or a custom set). This can be:
+  - A barrel in `packages/icons/index.ts` that re-exports from `lucide-react` (or a subset), or
+  - `apps/web/components/ui/icons.tsx` that re-exports icons used by the design system.
+- **Avoid** scattering `import { X } from 'lucide-react'` across many files if you need to replace icons for RN (e.g. with a native icon set). Prefer importing from the single entry so swapping is one-place.
+
+### 3. Fonts
+
+- Font loading differs (web: CSS or font-face; RN: asset linking). Keep font configuration in one place (e.g. theme or app entry) so RN can use its own font pipeline.
+
+## Enforcement
+
+- **Lint (optional):** Restrict image import paths to `**/assets/**` or a single `packages/assets` barrel so stray image imports are flagged.
+- **Code review:** New images go in the assets module; new icons go through the chosen icon entry.
+
+## Current state
+
+- Web currently uses `/logo.png?url` and `lucide-react` in many files. When adding RN, introduce `assets/` (or `packages/assets`) and an icon barrel, then migrate imports gradually; new code must use the assets module and icon entry.

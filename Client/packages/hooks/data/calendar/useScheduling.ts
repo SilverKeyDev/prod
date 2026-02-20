@@ -1,21 +1,22 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
-import { queryKeys } from "../../../config/query/keys";
-import { useSchedulingStore } from "../../../store/scheduling.slice";
-import {
-  queryAvailability,
-  generateAvailableTimeSlots,
-  createScheduledEvent,
-  getOrCreateSilverKeyCalendar,
-} from "../../services/scheduling";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { queryKeys } from "packages/config/query/keys";
 import type {
   FreebusyTimeBlock,
   ScheduleEventRequest,
   WorkingHours,
-} from "../../schemas/scheduling";
-import { getDefaultWorkingHours } from "../../../utils/scheduling";
-import { useGoogleCalendarStore } from "../../../store/googleCalendar.slice";
+} from "packages/schemas/scheduling";
+import {
+  createScheduledEvent,
+  generateAvailableTimeSlots,
+  getOrCreateSilverKeyCalendar,
+  queryAvailability,
+} from "packages/services/calendar/scheduling";
+import { useSchedulingStore } from "packages/store";
+import { useGoogleCalendarStore } from "packages/store";
+import { getDefaultWorkingHours } from "packages/utils/domain/calendar/scheduling";
 
 /**
  * Hook to query availability using freebusy API
@@ -180,16 +181,16 @@ export function useScheduleEvent() {
     },
     onSuccess: () => {
       // Invalidate availability queries to refresh
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.scheduling.all,
       });
 
       // Also invalidate Google Calendar event queries so any calendar views
       // that rely on googleCalendar events will re-render with the new event.
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.googleCalendar.events(),
       });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.googleCalendar.eventsList(),
       });
 

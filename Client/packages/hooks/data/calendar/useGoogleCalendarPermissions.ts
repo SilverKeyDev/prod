@@ -1,9 +1,10 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { queryKeys } from "../../../config/query/keys";
-import { useAuthStore } from "../../../store/auth.slice";
-import type { GoogleCalendarPermissionsResponse } from "../../../config/api/calendar/googleCalendar";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { GoogleCalendarPermissionsResponse } from "packages/config/api/calendar/googleCalendar";
+import { queryKeys } from "packages/config/query/keys";
+import { useAuthStore } from "packages/store";
 
 /**
  * Required permissions for the calendar feature to work properly
@@ -77,7 +78,8 @@ export function useGoogleCalendarPermissions(): UseGoogleCalendarPermissionsRetu
       );
     // Cache exists if it's not undefined (even if null)
     return cached !== undefined;
-  }, [shouldLoadData, queryClient, permissionsData]); // Include permissionsData to react to updates
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- react to permissions cache updates
+  }, [shouldLoadData, queryClient, permissionsData]);
 
   // Determine loading state:
   // - If cache doesn't exist (undefined) and query hasn't resolved (dataUpdatedAt === 0), we're still loading

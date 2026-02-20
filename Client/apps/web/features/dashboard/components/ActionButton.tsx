@@ -1,6 +1,8 @@
 import React from "react";
+
 import { ArrowRight } from "lucide-react";
-import Button from "../../../components/ui/button/Button";
+
+import Button from "@/components/ui/button/Button";
 
 type ActionButtonProps = {
   action: string;

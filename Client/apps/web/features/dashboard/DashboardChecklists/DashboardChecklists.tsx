@@ -1,16 +1,19 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
-import EscrowLegalLogistics from "../../close/subheaders/EscrowLegalLogistics";
-import InspectionsDueDiligence from "../../close/subheaders/InspectionsDueDiligence";
-import FinancingInsurance from "../../close/subheaders/FinancingInsurance";
-import ClosingMovingIn from "../../close/subheaders/ClosingMovingIn";
-import { ClientSelector } from "../../../components/ui";
-import DashboardChecklistsHeader from "./DashboardChecklistsHeader";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+
 import {
-  CHECKLIST_TITLES,
   CHECKLIST_SUBTITLES,
+  CHECKLIST_TITLES,
   type ChecklistTab,
-} from "../../../../../packages/schemas";
-import { useViewStore, type ViewState } from "../../../../../packages/store/view.slice";
+} from "packages/schemas";
+import { useViewStore, type ViewState } from "packages/store";
+
+import { ClientSelector } from "@/components/ui/index.web";
+import ClosingMovingIn from "@/features/close/subheaders/ClosingMovingIn";
+import EscrowLegalLogistics from "@/features/close/subheaders/EscrowLegalLogistics";
+import FinancingInsurance from "@/features/close/subheaders/FinancingInsurance";
+import InspectionsDueDiligence from "@/features/close/subheaders/InspectionsDueDiligence";
+
+import DashboardChecklistsHeader from "./DashboardChecklistsHeader";
 
 type ClosePageHeaderData = {
   title: string;
@@ -26,6 +29,39 @@ const CHECKLIST_TABS: ChecklistTab[] = [
   "financing",
   "closing",
 ];
+
+function ChecklistTabContent({
+  activeTab,
+  setClosePageHeaderData,
+}: {
+  activeTab: ChecklistTab;
+  setClosePageHeaderData: React.Dispatch<
+    React.SetStateAction<ClosePageHeaderData | null>
+  >;
+}) {
+  switch (activeTab) {
+    case "escrow":
+      return (
+        <EscrowLegalLogistics setClosePageHeaderData={setClosePageHeaderData} />
+      );
+    case "inspections":
+      return (
+        <InspectionsDueDiligence
+          setClosePageHeaderData={setClosePageHeaderData}
+        />
+      );
+    case "financing":
+      return (
+        <FinancingInsurance setClosePageHeaderData={setClosePageHeaderData} />
+      );
+    case "closing":
+      return (
+        <ClosingMovingIn setClosePageHeaderData={setClosePageHeaderData} />
+      );
+    default:
+      return null;
+  }
+}
 
 export default function DashboardChecklists() {
   const [closePageHeaderData, setClosePageHeaderDataState] =
@@ -58,37 +94,6 @@ export default function DashboardChecklists() {
     setActiveTab(tab);
   }, []);
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "escrow":
-        return (
-          <EscrowLegalLogistics
-            setClosePageHeaderData={setClosePageHeaderDataState}
-          />
-        );
-      case "inspections":
-        return (
-          <InspectionsDueDiligence
-            setClosePageHeaderData={setClosePageHeaderDataState}
-          />
-        );
-      case "financing":
-        return (
-          <FinancingInsurance
-            setClosePageHeaderData={setClosePageHeaderDataState}
-          />
-        );
-      case "closing":
-        return (
-          <ClosingMovingIn
-            setClosePageHeaderData={setClosePageHeaderDataState}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   const headerData = closePageHeaderData ?? {
     title: CHECKLIST_TITLES[activeTab],
     subtitle: CHECKLIST_SUBTITLES[activeTab],
@@ -118,7 +123,12 @@ export default function DashboardChecklists() {
         />
       </div>
 
-      <div className="w-full">{renderTabContent()}</div>
+      <div className="w-full">
+        <ChecklistTabContent
+          activeTab={activeTab}
+          setClosePageHeaderData={setClosePageHeaderDataState}
+        />
+      </div>
     </div>
   );
 }

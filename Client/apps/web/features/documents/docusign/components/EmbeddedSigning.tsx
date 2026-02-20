@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+
 import { AlertCircle } from "lucide-react";
-import { useDocusignActions } from "../../../../../../packages/hooks/data/documents/useDocusignActions";
-import { KeyTurnLoader, BodyText } from "../../../../components/ui";
-import { useUIStore } from "../../../../../../packages/store";
+
+import { useDocusignActions } from "packages/hooks/data/documents/useDocusignActions";
+import { useUIStore } from "packages/store";
+
+import { BodyText, KeyTurnLoader } from "@/components/ui/index.web";
 
 type EmbeddedSigningProps = {
   agreementId: string;
@@ -50,7 +53,7 @@ export default function EmbeddedSigning({
       }
     };
 
-    fetchSigningUrl();
+    void fetchSigningUrl();
   }, [agreementId, participantId, getSigningUrl, enqueueToast]);
 
   // Listen for DocuSign completion event

@@ -1,12 +1,13 @@
 import {
-  apiGet,
-  apiPost,
   apiDelete,
-} from "../../../services/http/compatibility";
-import { secureClipboardCopy } from "../../../services/security/clipboardSecurity";
-import { captureError } from "../../../services/security/errorReporting";
-import { log } from "../../../services/security/secureLogger";
-import { asError } from "../../../utils/error";
+  apiGet,
+  apiHead,
+  apiPost,
+} from "packages/services/http/compatibility";
+import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
+import { captureError } from "packages/services/security/errorReporting";
+import { log } from "packages/services/security/secureLogger";
+import { asError, getNavigator } from "packages/utils";
 
 // Types for report API
 export type GenerateReportRequest = {
@@ -115,6 +116,12 @@ export const reportApi = {
     apiGet<ViewUrlResponse>(`/api/v1/report/${reportId}/view-url`),
 
   /**
+   * HEAD request to check view endpoint (for diagnostics: headers, status)
+   */
+  checkViewUrl: (reportId: string) =>
+    apiHead(`/api/v1/report/${reportId}/view`),
+
+  /**
    * Share document using Web Share API or fallback to URL sharing
    */
   shareDocument: async (
@@ -131,10 +138,11 @@ export const reportApi = {
       const shareTitle = `Property Report - ${documentName.replace(/_/g, " ").slice(0, -18).trim()}`;
       const shareUrl = viewResponse.viewUrl;
 
-      // Try Web Share API first (mobile/modern browsers)
-      if (navigator.share) {
+      // Try Web Share API first (mobile/modern browsers). RN-safe via platform adapter.
+      const nav = getNavigator();
+      if (nav?.share) {
         try {
-          await navigator.share({
+          await nav.share({
             title: shareTitle,
             text: "Check out this property report",
             url: shareUrl,

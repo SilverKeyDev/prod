@@ -1,4 +1,5 @@
-import { apiUpload, apiRequest } from "../../../services/http/compatibility";
+import { apiRequest, apiUpload } from "packages/services/http/compatibility";
+import { createBlob, getDocument, getWindow } from "packages/utils";
 
 // Types for secure upload API
 export type UploadResponse = {
@@ -69,16 +70,18 @@ export const secureUploadApi = {
       filename?: string;
     };
     if (responseData.success) {
-      // Handle blob download
-      const blob = new Blob([responseData.data as BlobPart]);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const win = getWindow();
+      const doc = getDocument();
+      if (!win || !doc) return;
+      const blob = createBlob([responseData.data as BlobPart]);
+      const url = win.URL.createObjectURL(blob);
+      const a = doc.createElement("a");
       a.href = url;
       a.download = responseData.filename ?? "document";
-      document.body.appendChild(a);
+      doc.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      doc.body.removeChild(a);
+      win.URL.revokeObjectURL(url);
     }
   },
 

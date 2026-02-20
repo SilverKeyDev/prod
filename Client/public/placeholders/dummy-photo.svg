@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600">
+  <rect width="400" height="600" fill="#1a1a1a"/>
+  <rect x="100" y="150" width="200" height="200" rx="8" fill="#4a4a4a"/>
+  <path d="M150 280 L200 230 L250 280 L300 250 L250 320 L200 350 L150 320 Z" fill="#6b6b6b"/>
+  <circle cx="200" cy="200" r="30" fill="#8a8a8a"/>
+  <text x="200" y="450" text-anchor="middle" fill="#999" font-family="sans-serif" font-size="14">SilverKey</text>
+  <text x="200" y="470" text-anchor="middle" fill="#666" font-family="sans-serif" font-size="12">Placeholder</text>
+</svg>

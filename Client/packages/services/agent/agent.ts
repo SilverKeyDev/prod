@@ -1,17 +1,17 @@
-import { agentApi } from "../../config/api";
+import { log, LOG_CATEGORIES } from "logger";
+
 import type {
+  AgentChatMessage,
   AgentClient,
   AgentConversation,
-  AgentChatMessage,
-} from "../../config/api";
+} from "packages/config/api";
+import { agentApi } from "packages/config/api";
 import type {
-  TodoItem,
   CreateTodoRequest,
+  TodoItem,
   UpdateTodoRequest,
-} from "../../config/api/agent/agent";
-
-import { createAbortManager, isAbortError } from "../http";
-import { log, LOG_CATEGORIES } from "../../../logger";
+} from "packages/config/api/agent/agent";
+import { createAbortManager, isAbortError } from "packages/services/http";
 
 /* =========================
    Agent Service
@@ -96,9 +96,7 @@ export class AgentService {
      Get Chat History
      ========================= */
 
-  async getChatHistory(
-    conversationId: string,
-  ): Promise<{
+  async getChatHistory(conversationId: string): Promise<{
     messages: AgentChatMessage[];
     conversation?: AgentConversation;
   }> {

@@ -23,7 +23,7 @@
     @apply btn-responsive-md bg-olive text-white shadow-sm hover:bg-olive-light hover:shadow-md active:scale-95;
   }
   .btn-secondary {
-    @apply btn-responsive-md border border-brown bg-transparent text-brown hover:bg-brown hover:text-white active:scale-95;
+    @apply btn-responsive-md border border-olive bg-transparent text-olive hover:bg-olive hover:text-white active:scale-95;
   }
   .btn-danger {
     @apply btn-responsive-md border border-rose bg-white text-rose shadow-sm hover:bg-rose-light hover:text-white hover:shadow-md active:scale-95;

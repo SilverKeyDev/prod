@@ -1,8 +1,11 @@
 import { Download, FileText } from "lucide-react";
-import { Button, BodyText } from "../../../../components/ui";
+
+import type { AgreementRevision } from "packages/schemas/content/documents/docusign";
+import { formatAgreementDateTime } from "packages/utils/domain/documents/docusignHelpers";
+
+import { BodyText, Button } from "@/components/ui/index.web";
+
 import RevisionUpload from "./RevisionUpload";
-import { formatAgreementDateTime } from "../../../../../../packages/utils/documents/docusignHelpers";
-import type { AgreementRevision } from "../../../../../../packages/schemas/documents/docusign";
 
 type AgreementRevisionsTabProps = {
   agreementId: string;
@@ -61,23 +64,23 @@ export default function AgreementRevisionsTab({
                 <div className="flex items-start gap-3">
                   <FileText className="w-5 h-5 text-gray-600 mt-0.5" />
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <BodyText as="p" className="font-medium text-gray-900">
                       {revision.file_name}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    </BodyText>
+                    <BodyText as="p" size="xs" className="text-gray-500 mt-0.5">
                       Revision #{revision.revision_number} •{" "}
                       {(revision.file_size / 1024).toFixed(1)} KB •{" "}
                       {formatAgreementDateTime(revision.created_at)}
-                    </p>
+                    </BodyText>
                     {revision.notes && (
-                      <p className="text-sm text-gray-600 mt-1">
+                      <BodyText as="p" size="sm" className="text-gray-600 mt-1">
                         {revision.notes}
-                      </p>
+                      </BodyText>
                     )}
                     {revision.created_by_name && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <BodyText as="p" size="xs" className="text-gray-500 mt-1">
                         By {revision.created_by_name}
-                      </p>
+                      </BodyText>
                     )}
                   </div>
                 </div>

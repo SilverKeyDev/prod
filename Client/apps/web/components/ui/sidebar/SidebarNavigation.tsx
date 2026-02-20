@@ -1,6 +1,8 @@
-import Card from "../../layout/Card";
-import type { NavItem } from "../../../../../packages/schemas/nav";
-import { useResponsive } from "../../../../../packages/hooks/ui";
+import { spacing } from "packages/design-tokens";
+import { useResponsive } from "packages/hooks/ui";
+import type { NavItem } from "packages/schemas/app/nav";
+
+import Card from "@/components/layout/Card.web";
 
 type SidebarNavigationProps = {
   items: NavItem[];
@@ -26,9 +28,9 @@ export default function SidebarNavigation({
 
   return (
     <aside
-      className={`sticky top-[80px] h-fit shrink-0 ${className}`}
+      className={`sticky top-20 h-fit shrink-0 ${className}`}
       style={{
-        width: isLargeScreen ? "16rem" : "3.5rem",
+        width: isLargeScreen ? spacing(64) : spacing(14),
       }}
     >
       <Card
@@ -57,7 +59,9 @@ export default function SidebarNavigation({
             onClick={() => onItemClick(item.key)}
             disabled={item.disabled}
             className={`group flex items-center rounded-lg transition-colors ${
-              isLargeScreen ? "w-full gap-3 px-3 py-2" : "w-8 h-8 min-w-8 p-0 justify-center"
+              isLargeScreen
+                ? "w-full gap-3 px-3 py-2"
+                : "w-8 h-8 min-w-8 p-0 justify-center"
             } ${
               currentActiveItem === item.key
                 ? "bg-gold text-off-white"

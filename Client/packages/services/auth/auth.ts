@@ -8,6 +8,8 @@
  * This file is kept for backward compatibility but should not be used in new code.
  */
 
+import { log, LOG_CATEGORIES } from "logger";
+
 export type LogoutResult = {
   success: boolean;
   error?: string;
@@ -22,8 +24,9 @@ export const authService = {
    * This properly calls the backend API and clears HTTP-only cookies
    */
   logout: (): LogoutResult => {
-    console.warn(
-      "⚠️ authService.logout is deprecated. Use useSecureAuth().logout or authApi.logout() instead.",
+    log.warn(
+      LOG_CATEGORIES.AUTH,
+      "authService.logout is deprecated. Use useSecureAuth().logout or authApi.logout() instead.",
     );
     return { success: false, error: "Use useSecureAuth().logout instead" };
   },

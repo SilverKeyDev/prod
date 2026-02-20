@@ -307,11 +307,11 @@
 
   /* Control button patterns */
   .control-button-sm {
-    @apply flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:border-brown hover:text-brown hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brown/20 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14;
+    @apply flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:border-olive hover:text-olive hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-olive/20 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14;
   }
 
   .control-button-md {
-    @apply touch-friendly flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:border-brown hover:text-brown hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brown/20 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16;
+    @apply touch-friendly flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:border-olive hover:text-olive hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-olive/20 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16;
   }
 
   /* Mobile-friendly spacing utilities */
@@ -631,8 +631,8 @@
   }
 
   .muted-button-primary:hover {
-    background: hsl(25, 22%, 40%);
-    border-color: hsl(25, 22%, 35%);
+    background: #97a77b;
+    border-color: #8a9a6e;
   }
 
   /* Autofill Styling - Light Brown/Gold Theme */

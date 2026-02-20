@@ -25,46 +25,62 @@ The `schemas/` package provides centralized TypeScript type definitions for:
 - ❌ `hooks/*` - Schemas should not import hooks
 - ❌ `apps/web/*` - Schemas should not import components
 
-## Available Schemas
+## Folder Layout
+
+Types are grouped into meta-folders to keep the root manageable:
+
+- **app/** – App shell: `auth/` (user, sidebar), `nav/` (routes, NavItem), `ui/` (screens/breakpoints)
+- **content/** – User-generated content: `feed/` (feed, media, postData), `documents/` (documents, docusign, reports, types)
+- **finance/** – Billing, offers, metrics
+- **integrations/** – Chat, checklists, google-maps
+
+Unchanged at root: **api/**, **agent/**, **calendar/**, **search/**. Backward-compatible re-exports: **user/** (→ app/auth/user), **property/** (→ search/property), **scheduling/** (→ calendar/scheduling).
+
+### Direct import paths (after rework)
+
+- User/auth: `schemas/app/auth/user`, `schemas/app/auth/sidebar` (or `schemas/user` for user types)
+- Nav/routes: `schemas/app/nav`
+- UI/breakpoints: `schemas/app/ui/screens`
+- Feed: `schemas/content/feed/feed`
+- Documents: `schemas/content/documents/*` (documents, types, docusign, reports)
+- Billing/offers/metrics: `schemas/finance/billing`, `schemas/finance/offers`, `schemas/finance/metrics`
+- Chat/checklists/google-maps: `schemas/integrations/chat`, `schemas/integrations/checklists`, `schemas/integrations/google-maps`
 
 ### Core Types
 
-- `api.ts` - API response types and utilities
-- `user.ts` - User profile and authentication types
-- `property.ts` - Property types
-- `propertyDetails.ts` - Detailed property information
+- `api/` – API response types and utilities
+- `app/auth/user` – User profile and authentication types
+- `search/property` – Property types (or `schemas/property` re-export)
+- `search/propertyDetails` – Detailed property information
 
 ### Domain Types
 
-- `agent.ts` - Agent-related types
-- `chat.ts` - Chat and messaging types
-- `documents.ts` - Document types
-- `offers.ts` - Offer and negotiation types
-- `reports.ts` - Report types
-- `scheduling.ts` - Scheduling types
-- `search.ts` - Search and filter types
-- `plaid.ts` - Plaid financial integration types
-- `billing.ts` - Billing types
-- `checklists.ts` - Checklist types
-- `metrics.ts` - Metrics and analytics types
+- `agent/agent` – Agent-related types
+- `content/feed/feed` – Feed listing and reels types
+- `integrations/chat` – Chat and messaging types
+- `content/documents/*` – Document, DocuSign, report types
+- `finance/offers` – Offer and negotiation types
+- `content/documents/reports` – Report types
+- `calendar/scheduling` – Scheduling types (or `schemas/scheduling` re-export)
+- `search/search` – Search and filter types
+- `plaid` – Plaid financial integration types (when present)
+- `finance/billing` – Billing types
+- `integrations/checklists` – Checklist types
+- `finance/metrics` – Metrics and analytics types
 
-### Navigation
+### Navigation and UI
 
-- `nav.ts` - Navigation items and route constants
-
-### Other
-
-- `sidebar.ts` - Sidebar types
-- `navigation.ts` - (Deprecated - merged into nav.ts)
+- `app/nav` – Navigation items and route constants (ROUTES, NavItem)
+- `app/auth/sidebar` – Sidebar types (SIDEBAR_TABS, getTabByPath)
 
 ## Usage Examples
 
 ### Importing Types
 
 ```typescript
-// ✅ CORRECT: Import types from schemas
+// ✅ CORRECT: Import from barrel or canonical paths
 import type { UserProfile } from "../../../packages/schemas/user";
-import type { PropertyDetails } from "../../../packages/schemas/propertyDetails";
+import type { PropertyDetails } from "../../../packages/schemas/search/propertyDetails";
 ```
 
 ### Using Type Guards

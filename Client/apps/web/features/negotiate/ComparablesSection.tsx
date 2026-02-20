@@ -1,7 +1,11 @@
 import React from "react";
-import { CardCarousel } from "../../components/cards/base";
-import CompCard from "../../components/cards/CompCard";
-import { SectionTitle } from "./index";
+
+import { useLocalization } from "packages/contexts";
+
+import { CardCarousel } from "@/components/cards/base/carousel";
+import CompCard from "@/components/cards/CompCard";
+
+import SectionTitle from "./SectionTitle";
 
 type ComparablesSectionProps = {
   compsData: unknown;
@@ -12,6 +16,7 @@ export function ComparablesSection({
   compsData,
   isLoading,
 }: ComparablesSectionProps): React.JSX.Element | null {
+  const { t } = useLocalization();
   // Check if compsData has valid structure
   const hasValidComps =
     compsData &&
@@ -35,12 +40,14 @@ export function ComparablesSection({
 
   return (
     <div className="my-responsive-lg">
-      <SectionTitle className="!text-brown">Comparable Sales</SectionTitle>
+      <SectionTitle className="!text-brown">
+        {t("negotiate.comparables_title")}
+      </SectionTitle>
       <CardCarousel
         items={compsArray}
         loading={false}
         error={null}
-        emptyMessage="No comparable properties found"
+        emptyMessage={t("negotiate.comparables_empty")}
         renderItem={(comp) =>
           comp && typeof comp === "object" ? (
             <CompCard

@@ -1,14 +1,25 @@
-import { useState, useMemo } from "react";
-import { X, Search } from "lucide-react";
-import { Title, BodyText, Button, CancelButton, CloseButton } from "../../../components/ui";
-import BaseModal from "../../../components/modals/BaseModal";
-import AgreementCard from "../../documents/docusign/components/AgreementCard";
-import { useDocusignAgreements } from "../../../../../packages/hooks/data/documents/useDocusignAgreements";
-import { KeyTurnLoader } from "../../../components/ui";
+import { useMemo, useState } from "react";
+
+import { Search } from "lucide-react";
+
+import { useDocusignAgreements } from "packages/hooks/data/documents/useDocusignAgreements";
 import type {
   Agreement,
   AgreementStatus,
-} from "../../../../../packages/schemas/documents/docusign";
+} from "packages/schemas/content/documents/docusign";
+import { dateParseISO } from "packages/utils/core/date";
+
+import BaseModal from "@/components/modals/BaseModal";
+import {
+  BodyText,
+  Button,
+  CancelButton,
+  CloseButton,
+  Input,
+  Title,
+} from "@/components/ui/index.web";
+import { KeyTurnLoader } from "@/components/ui/index.web";
+import AgreementCard from "@/features/documents/docusign/components/AgreementCard";
 
 type SelectAgreementModalProps = {
   isOpen: boolean;
@@ -64,8 +75,8 @@ export default function SelectAgreementModal({
 
     // Sort by most recent
     return filtered.sort((a, b) => {
-      const dateA = new Date(a.updated_at || a.created_at).getTime();
-      const dateB = new Date(b.updated_at || b.created_at).getTime();
+      const dateA = dateParseISO(a.updated_at || a.created_at).valueOf();
+      const dateB = dateParseISO(b.updated_at || b.created_at).valueOf();
       return dateB - dateA;
     });
   }, [agreements, clientId, statusFilter, searchTerm]);
@@ -104,7 +115,7 @@ export default function SelectAgreementModal({
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
+            <Input
               type="text"
               placeholder="Search by title, property, or buyer..."
               value={searchTerm}
@@ -116,17 +127,20 @@ export default function SelectAgreementModal({
           {/* Status Filter */}
           <div className="flex items-center gap-2 overflow-x-auto">
             {statusOptions.map((option) => (
-              <button
+              <Button
                 key={option.value}
+                type="button"
+                variant={statusFilter === option.value ? "primary" : "ghost"}
+                size="sm"
                 onClick={() => setStatusFilter(option.value)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
+                className={`whitespace-nowrap ${
                   statusFilter === option.value
-                    ? "bg-blue-600 text-white"
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 {option.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

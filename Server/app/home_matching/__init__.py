@@ -15,11 +15,11 @@ __author__ = "SilverKey Team"
 
 # Main entry point for the home matching system
 from .config.match import (
-    find_best_matches,
-    score_single_match,
-    compare_homes_for_user,
     batch_match_users,
-    get_system_info
+    compare_homes_for_user,
+    find_best_matches,
+    get_system_info,
+    score_single_match,
 )
 
 __all__ = [
@@ -27,5 +27,5 @@ __all__ = [
     "score_single_match",
     "compare_homes_for_user",
     "batch_match_users",
-    "get_system_info"
+    "get_system_info",
 ]

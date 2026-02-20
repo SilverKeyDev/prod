@@ -11,7 +11,11 @@ env:
   IMAGE_TAG: latest
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
   build-and-deploy:
+    needs: [lint]
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:

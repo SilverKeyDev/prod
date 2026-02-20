@@ -1,6 +1,8 @@
 import { createPortal } from "react-dom";
 
-import { BodyText, Button, Title } from "../../ui";
+import { BodyText, Button, Title } from "@ui/index.web";
+
+import { spacing } from "packages/design-tokens";
 
 type SuccessDialogProps = {
   isOpen: boolean;
@@ -20,24 +22,18 @@ export default function SuccessDialog({
   if (!isOpen) return null;
 
   const dialogContent = (
-    <div
-      className="fixed inset-0 z-[9999] overflow-y-auto"
-      style={{ left: 0, right: 0, top: 0, bottom: 0 }}
-    >
+    <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
         className="space-responsive-md flex min-h-screen items-center justify-center"
         style={{ width: "100vw", height: "100vh" }}
       >
         {/* Backdrop */}
-        <div
-          className="fixed inset-0 bg-black/50 transition-opacity"
-          style={{ left: 0, right: 0, top: 0, bottom: 0 }}
-        />
+        <div className="fixed inset-0 bg-black/50 transition-opacity" />
 
         {/* Dialog */}
         <div
-          className="space-responsive-lg relative z-[10000] mx-auto w-full max-w-sm transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
-          style={{ maxWidth: "320px" }}
+          className="space-responsive-lg relative z-50 mx-auto w-full max-w-sm transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
+          style={{ maxWidth: spacing(80) }}
         >
           {/* Success Icon */}
           <div className="mobile-icon-xl mx-auto mb-4 flex items-center justify-center rounded-full bg-green-100">

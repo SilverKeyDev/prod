@@ -1,5 +1,7 @@
-import { X } from "lucide-react";
 import React, { forwardRef } from "react";
+
+import { X } from "lucide-react";
+
 import Button, { ButtonProps } from "./Button";
 
 export type CancelButtonProps = Omit<ButtonProps, "variant"> & {
@@ -13,24 +15,15 @@ export type CancelButtonProps = Omit<ButtonProps, "variant"> & {
 /**
  * Standardized Cancel Button component.
  *
- * A wrapper around Button with consistent cancel button styling.
- * Uses gray preset matching settings sidebar. Includes X icon by default.
- * Mobile-responsive and touch-friendly.
+ * Wraps Button with variant="cancel" (alias for ghost: tint-on-hover, no fill).
+ * Recommended for confirmations: Primary CTA + Ghost cancel. Includes X icon by default.
  *
  * @example
- * ```tsx
  * <CancelButton onClick={handleCancel}>Cancel</CancelButton>
- * ```
  */
 const CancelButton = forwardRef<HTMLButtonElement, CancelButtonProps>(
   (
-    {
-      variant = "cancel",
-      size = "md",
-      children = "Cancel",
-      icon,
-      ...props
-    },
+    { variant = "cancel", size = "md", children = "Cancel", icon, ...props },
     ref,
   ) => {
     return (

@@ -1,6 +1,5 @@
-import { useState } from "react";
+import BaseModal from "@/components/modals/BaseModal";
 
-import BaseModal from "../modals/BaseModal";
 import DocumentUpload from "./DocumentUpload";
 
 type DocumentUploadModalProps = {
@@ -14,16 +13,12 @@ export default function DocumentUploadModal({
   onClose,
   onUploadSuccess,
 }: DocumentUploadModalProps) {
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-
   const handleUploadSuccess = async () => {
-    setUploadSuccess(true);
     if (onUploadSuccess) {
       await onUploadSuccess();
     }
     // Close modal after a brief delay to show success state
     setTimeout(() => {
-      setUploadSuccess(false);
       onClose();
     }, 500);
   };

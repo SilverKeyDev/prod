@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { googleMapsService } from "../../services/googleMaps";
-import { asError } from "../../utils/error";
+import { log, LOG_CATEGORIES } from "logger";
+
+import { googleMapsService } from "packages/services/search/googleMaps";
+import { asError } from "packages/utils";
+import { getWindow } from "packages/utils/core/platform";
 
 // Global type declaration for Google Maps
 declare global {
@@ -25,14 +28,17 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
 
   const createMap = useCallback(
     (container: HTMLElement) => {
-      // SSR-safe guard
-      if (typeof window === "undefined") {
-        console.warn("Google Maps: window not available (SSR)");
+      const win = getWindow();
+      if (!win) {
+        log.warn(
+          LOG_CATEGORIES.MAP_RENDERING,
+          "Google Maps: window not available (SSR)",
+        );
         return null;
       }
 
-      if (!isLoaded || !window.google) {
-        console.warn("Google Maps not loaded yet");
+      if (!isLoaded || !(win as Window & { google?: typeof google }).google) {
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Maps not loaded yet");
         return null;
       }
 
@@ -40,7 +46,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
         return googleMapsService.createMap(container);
       } catch (err: unknown) {
         const error = asError(err);
-        console.error("Error creating map:", error);
+        log.error(LOG_CATEGORIES.MAP_RENDERING, "Error creating map", error);
         setError(error.message);
         return null;
       }
@@ -49,10 +55,8 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
   );
 
   useEffect(() => {
-    // SSR-safe guard
-    if (typeof window === "undefined") {
-      return;
-    }
+    const win = getWindow();
+    if (!win) return;
 
     // Initialize Google Maps regardless of authentication status
     if (!hasInitialized) {
@@ -66,7 +70,11 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
           setHasInitialized(true);
         } catch (err: unknown) {
           const error = asError(err);
-          console.error("Error loading Google Maps:", error);
+          log.error(
+            LOG_CATEGORIES.MAP_RENDERING,
+            "Error loading Google Maps",
+            error,
+          );
           setError(error.message);
           setIsLoaded(false);
         }

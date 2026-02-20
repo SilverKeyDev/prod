@@ -1,10 +1,12 @@
 import React from "react";
 
-import type { TimeSlot } from "../../../../../packages/schemas/scheduling";
 import {
-  formatTimeSlot,
   formatDateLabel,
-} from "../../../../../packages/utils/scheduling";
+  formatTimeSlot,
+} from "packages/utils/domain/calendar/scheduling";
+
+import { BodyText, Button, Title } from "@/components/ui/index.web";
+import type { TimeSlot } from "@/packages/schemas/scheduling";
 
 interface TimeSlotPickerProps {
   slots: TimeSlot[];
@@ -49,12 +51,12 @@ export function TimeSlotPicker({
   if (availableSlots.length === 0) {
     return (
       <div className="py-responsive-lg text-center">
-        <p className="text-responsive-sm text-neutral-500">
+        <BodyText as="p" size="sm" className="text-neutral-500">
           No available time slots in the selected range.
-        </p>
-        <p className="mt-2 text-responsive-xs text-neutral-400">
+        </BodyText>
+        <BodyText as="p" size="xs" className="mt-2 text-neutral-400">
           Try selecting a different date range.
-        </p>
+        </BodyText>
       </div>
     );
   }
@@ -76,9 +78,9 @@ export function TimeSlotPicker({
 
           return (
             <div key={dateKey} className="space-y-responsive-xs">
-              <h3 className="text-responsive-sm font-medium text-neutral-900">
+              <Title as="h3" size="sm" className="font-medium text-neutral-900">
                 {dateLabel}
-              </h3>
+              </Title>
               <div className="grid grid-cols-2 gap-responsive-xs sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {availableDateSlots.map((slot, index) => {
                   const isSelected =
@@ -87,11 +89,13 @@ export function TimeSlotPicker({
                   const endTime = formatTimeSlot(slot.end);
 
                   return (
-                    <button
+                    <Button
                       key={`${slot.start.getTime()}-${index}`}
+                      variant="outline"
+                      size="sm"
                       type="button"
                       onClick={() => onSelectSlot(slot)}
-                      className={`touch-friendly rounded-lg border px-responsive-xs py-responsive-xs text-responsive-xs transition-colors ${
+                      className={`touch-friendly rounded-lg px-responsive-xs py-responsive-xs text-responsive-xs transition-colors ${
                         isSelected
                           ? "border-olive bg-olive/10 text-olive font-medium"
                           : "border-beige bg-white text-neutral-700 hover:border-brown/50 hover:bg-brown/5 active:bg-brown/10"
@@ -101,7 +105,7 @@ export function TimeSlotPicker({
                       <div className="text-responsive-xs text-neutral-500">
                         {endTime}
                       </div>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

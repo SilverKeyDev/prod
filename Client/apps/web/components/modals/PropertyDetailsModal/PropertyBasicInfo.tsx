@@ -1,14 +1,21 @@
 import React from "react";
 
-import Card from "../../layout/Card";
-import { formatStructuredAddress } from "../../../../../packages/utils/address";
+import { useLocalization } from "packages/contexts";
+import { formatStructuredAddress } from "packages/utils/domain/search/address";
+import {
+  formatPrice,
+  formatPropertyType,
+} from "packages/utils/domain/search/propertyDetailsFormatters";
+
+import Card from "@/components/layout/Card.web";
+import { Title } from "@/components/ui/index.web";
 
 import type { PropertyComponentProps } from "./types";
-import { formatPrice, formatPropertyType } from "./utils";
 
 export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
   property,
 }) => {
+  const { t } = useLocalization();
   // Type-safe property access with proper type guards
   const propertyPrice = property.price;
   const propertySqft = property.sqft;
@@ -46,7 +53,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
             {(() => {
               const addr = (property as unknown as { address?: unknown })
                 .address;
-              if (!addr) return "Address not available";
+              if (!addr) return t("property_details.address_not_available");
               if (typeof addr === "string") return addr;
               if (
                 typeof addr === "object" &&
@@ -68,7 +75,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               try {
                 return JSON.stringify(addr);
               } catch {
-                return "Address not available";
+                return t("property_details.address_not_available");
               }
             })()}
           </div>
@@ -81,7 +88,9 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                 {propertyBedrooms}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">beds</div>
+              <div className="text-xs sm:text-sm text-gray-600">
+                {t("property_details.beds")}
+              </div>
             </div>
           )}
           {propertyBathrooms && Number(propertyBathrooms) > 0 && (
@@ -90,7 +99,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
                 {propertyBathrooms}
               </div>
               <div className="text-xs sm:text-sm text-gray-600 border-b border-dashed border-gray-400">
-                baths
+                {t("property_details.baths")}
               </div>
             </div>
           )}
@@ -99,20 +108,22 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               <div className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
                 {Math.round(Number(propertySqft)).toLocaleString()}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">sqft</div>
+              <div className="text-xs sm:text-sm text-gray-600">
+                {t("property_details.sqft")}
+              </div>
             </div>
           )}
         </div>
       </div>
 
       <Card className="p-4">
-        <h3 className="mb-4 text-lg font-semibold text-brown">
-          Property Details
-        </h3>
+        <Title as="h3" size="lg" className="mb-4 font-semibold text-brown">
+          {t("property_details.heading")}
+        </Title>
         <div className="space-y-3">
           {propertyYearBuilt && Number(propertyYearBuilt) > 0 ? (
             <div className="flex justify-between">
-              Year Built:
+              {t("property_details.year_built")}
               {String(propertyYearBuilt)}
             </div>
           ) : null}
@@ -122,7 +133,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               propertyLotSize !== "0" &&
               propertyLotSize.trim() !== "")) ? (
             <div className="flex justify-between">
-              Lot Size:
+              {t("property_details.lot_size")}
               {String(propertyLotSize)}
             </div>
           ) : null}
@@ -133,7 +144,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
             propertyPropertyType !== "" &&
             propertyPropertyType !== "0") ? (
             <div className="flex justify-between">
-              Property Type:
+              {t("property_details.property_type")}
               {formatPropertyType(
                 (propertyHomeType as string) ??
                   (propertyPropertyType as string) ??
@@ -148,7 +159,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               propertyPricePerSquareFoot !== "0" &&
               propertyPricePerSquareFoot.trim() !== "")) ? (
             <div className="flex justify-between">
-              Price per Sq Ft: $
+              {t("property_details.price_per_sqft")}
               {(() => {
                 if (typeof propertyPricePerSquareFoot === "string")
                   return propertyPricePerSquareFoot;
@@ -162,13 +173,15 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
             propertyGarageSpaces > 0) ||
             (typeof propertyParking === "number" && propertyParking > 0)) && (
             <div className="flex justify-between">
-              Parking:
+              {t("property_details.parking")}
               {typeof propertyGarageSpaces === "number" &&
               propertyGarageSpaces > 0
-                ? `${propertyGarageSpaces}-car garage`
+                ? t("property_details.car_garage", {
+                    count: propertyGarageSpaces,
+                  })
                 : typeof propertyParking === "number" && propertyParking > 0
-                  ? `${propertyParking} spaces`
-                  : "N/A"}
+                  ? t("property_details.spaces", { count: propertyParking })
+                  : t("cards.na")}
             </div>
           )}
           {propertyDaysOnZillow &&
@@ -178,19 +191,22 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               propertyDaysOnZillow !== "0" &&
               propertyDaysOnZillow.trim() !== "")) ? (
             <div className="flex justify-between">
-              Days on Market:
-              {String(propertyDaysOnZillow)} days
+              {t("property_details.days_on_market")}
+              {String(propertyDaysOnZillow)} {t("property_details.days")}
             </div>
           ) : null}
           {typeof propertyZestimate === "number" && propertyZestimate > 0 && (
             <div className="flex justify-between">
-              Estimate: ${propertyZestimate.toLocaleString()}
+              {t("property_details.estimate")}
+              {propertyZestimate.toLocaleString()}
             </div>
           )}
           {typeof propertyRentZestimate === "number" &&
             propertyRentZestimate > 0 && (
               <div className="flex justify-between">
-                Rent Estimate: ${propertyRentZestimate.toLocaleString()}/month
+                {t("property_details.rent_estimate")}
+                {propertyRentZestimate.toLocaleString()}
+                {t("property_details.per_month")}
               </div>
             )}
         </div>

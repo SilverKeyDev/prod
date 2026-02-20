@@ -1,0 +1,23 @@
+/**
+ * Embla Carousel base infrastructure.
+ * Required for any embla-carousel-react usage.
+ * @see https://www.embla-carousel.com/get-started/react/
+ */
+
+/* Viewport: overflow wrapper; hides scroll overflow */
+.embla__viewport {
+  overflow: hidden;
+}
+
+/* Container: scrollable area that holds and moves the slides */
+.embla__container {
+  display: flex;
+  /* touch-action can be overridden per use case (e.g. pan-y for vertical-feed coexistence) */
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Slide: full-width cell; min-width: 0 for flex shrink */
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+}

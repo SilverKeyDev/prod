@@ -1,11 +1,13 @@
 # Dependency directories
 node_modules/
+.pnpm-store/
 __pycache__/
 *.py[cod]
 *$py.class
 .venv/
 .aws.env
 
+.ruff_cache/
 # Distribution / packaging
 .Python
 build/
@@ -74,9 +76,6 @@ dump.rdb
 # Development scripts
 clean.sh
 
-# Cursor IDE files
-.cursor/
-
 # Build outputs
 dist/
 *.tsbuildinfo
@@ -119,9 +118,6 @@ htmlcov/
 .coverage.*
 
 
-.vscode/
 
-.cursor/
 .cursorignore
 .cursorindexingignore
-.cursorignore

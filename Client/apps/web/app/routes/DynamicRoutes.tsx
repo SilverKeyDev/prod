@@ -1,6 +1,6 @@
-import { Route, Navigate, useLocation } from "react-router-dom";
+import { Navigate, Route, useLocation } from "react-router-dom";
 
-import type { UserProfile } from "../../../../packages/schemas/user";
+import type { UserProfile } from "packages/schemas/user";
 
 import { createProtectedRoute, ROUTE_CONFIGS } from "./RouteConfig";
 

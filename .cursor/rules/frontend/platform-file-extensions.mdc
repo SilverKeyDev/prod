@@ -1,0 +1,80 @@
+---
+description: Platform-specific file extensions for apps/web and apps/mobile so Cursor and tooling use the correct conventions
+globs:
+  - "Client/apps/**/*.{ts,tsx}"
+alwaysApply: true
+---
+
+# Platform File Extensions (Web vs Mobile)
+
+## Default: no `.web`
+
+- **Default:** Use **`.tsx`** / **`.ts`** for all new files under `apps/web/`.
+- Use **`.web.tsx`** / **`.web.ts`** **only** when the file **will not be mapped** to mobile. That means **either**:
+  1. **Web-only package or API** – the file imports or uses something not available on React Native (e.g. `react-dom`, `react-router-dom`, `window`, `document`, `HTMLInputElement`, `htmlFor`, `@headlessui/react`, `react-virtuoso`), or
+  2. **Desktop / large-screen only** – the file is layout or UI for desktop/large viewport and mobile has or will have a different implementation (e.g. sidebar, desktop search header, desktop reels).
+- **If mobile can do the same with the same file, the file must not have the `.web` extension.**
+
+**Check before adding `.web`:**
+- Uses only React + shared packages (no DOM-only APIs)? → use `.tsx` / `.ts`.
+- Could mobile use this same file or the same API with a `.native` variant? → do **not** use `.web`.
+- Canonical list of desktop-only files and reasons: `Client/MOBILE_MIGRATION_DESKTOP_FILES.md`.
+
+## Goal
+
+Cursor and tooling must use consistent file extensions by app so that:
+- **Web** and **mobile** builds resolve the right implementation (Vite → `.web.*`, Metro → `.native.*`).
+- It is explicit which files are web-only vs shared vs native-only.
+
+## Rules by app
+
+### `Client/apps/mobile/`
+
+- **All React/UI files in `apps/mobile/` MUST use the `.native.tsx` (or `.native.ts`) extension.**
+- Do **not** use plain `.tsx` or `.ts` for components or UI logic that are mobile-specific; use `.native.tsx` / `.native.ts` so Metro and shared imports resolve correctly.
+- Do **not** use `.mobile.*`; the project standard is **`.native.*`** for React Native.
+
+**Examples:**
+- `Client/apps/mobile/app/screens/HomeScreen.native.tsx` ✅
+- `Client/apps/mobile/app/components/Header.native.tsx` ✅
+- `Client/apps/mobile/app/screens/HomeScreen.tsx` ❌ (use `.native.tsx`)
+
+### `Client/apps/web/`
+
+- **Shared files (used by both web and mobile, or default web):** use **`.tsx`** or **`.ts`** with **no** platform suffix.
+- **Web-only files (not copied to mobile):** use **`.web.tsx`** or **`.web.ts`** so it is clear they are web-specific and not shared.
+
+**When to use which:**
+
+| Case | Extension | Example |
+|------|-----------|---------|
+| Shared or default web implementation (mobile can use same file or override with `.native`) | `.tsx` / `.ts` | `Button.tsx`, `iconMap.tsx`, `useAuth.ts` |
+| Web-only, will not be mapped to mobile | `.web.tsx` / `.web.ts` | `Sidebar.web.tsx`, `sidebarNav.web.ts` |
+
+**Examples:**
+- `Client/apps/web/app/layouts/sidebar/Sidebar.web.tsx` ✅ (web-only layout)
+- `Client/apps/web/features/search/header/SearchHeader.web.tsx` ✅ (web-only)
+- `Client/apps/web/components/ui/Button.tsx` ✅ (shared or default web)
+- `Client/apps/web/components/ui/Button.web.tsx` without a corresponding shared or `.native` variant ✅ (web-only)
+
+## Cross-platform modules (shared component with two implementations)
+
+When the same logical module has both web and native implementations:
+
+- **Web:** `Component.web.tsx` (in `apps/web/`) or `Component.tsx` as the default.
+- **Native:** `Component.native.tsx` (in `apps/mobile/` or in a shared location that Metro can resolve).
+
+Import without the extension: `import './Sidebar'` → bundler resolves `Sidebar.web.tsx` for web and `Sidebar.native.tsx` for native.
+
+## Summary for Cursor
+
+1. **Creating or editing files under `apps/mobile/`** → use **`.native.tsx`** (or `.native.ts`) for React/UI and mobile-specific logic.
+2. **Creating or editing files under `apps/web/`**:
+   - Use **`.tsx`** / **`.ts`** for shared code or the default web implementation.
+   - Use **`.web.tsx`** / **`.web.ts`** when the file is **web-only** and will not be copied to mobile.
+3. **Never use `.mobile.*`**; use **`.native.*`** only for React Native.
+
+## Enforcement
+
+- **`pnpm lint:platform-imports`** (from `Client/`): warns when a file is only imported by `.web.*` or `.native.*` but does not have the matching extension; fails if both `.mobile.*` and `.native.*` exist for the same logical component.
+- See `Client/ARCHITECTURE.md` (Platform file conventions) and `Client/tools/LINTING.md` for full details.

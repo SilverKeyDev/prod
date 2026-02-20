@@ -1,21 +1,23 @@
-import { Mail, Lock, User as UserIcon, Phone } from "lucide-react";
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import "react-phone-number-input/style.css"; // keep base layout; visual overrides below
+
+import React, { useCallback, useEffect, useRef, useState } from "react";
+
+import { Lock, Mail, Phone, User as UserIcon } from "lucide-react";
 import PhoneInput from "react-phone-number-input";
 import { useNavigate } from "react-router-dom";
 
-import "react-phone-number-input/style.css"; // keep base layout; visual overrides below
+import { useSignup } from "packages/hooks/data/auth/useAuthActions";
+import { showErrorToast } from "packages/hooks/ui/toast/useToast";
+import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import {
   PasswordValidation,
   usePasswordValidation,
-} from "../../components/feedback";
-import { Button, Input, FieldShell } from "../../components/ui";
-import { getSharedInputTextStyles } from "../../components/ui/form/InputStyleUtils";
-import { useSignup } from "../../../../packages/hooks/data/auth/useAuthActions";
-import { showErrorToast } from "../../../../packages/hooks/ui/useToast";
-import AuthDivider from "../../features/homeauth/Auth/Divider";
-import AuthLink from "../../features/homeauth/Auth/Link";
-import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
-import GoogleSignInButton from "../../components/auth/GoogleSignInButton";
+} from "@/components/feedback";
+import { Button, FieldShell, Input } from "@/components/ui";
+import AuthDivider from "@/features/homeauth/Auth/Divider";
+import AuthLink from "@/features/homeauth/Auth/Link";
+import AuthPageLayout from "@/features/homeauth/Auth/PageLayout";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type SignupPageProps = {
@@ -246,9 +248,9 @@ export default function SignupPage(_props: SignupPageProps) {
     });
 
     if (result.success) {
-      localStorage.setItem("signupEmail", formData.email);
-      localStorage.setItem("signupPassword", formData.password);
-      navigate("/verification", { state: { email: formData.email } });
+      sessionStorage.setItem("signupEmail", formData.email);
+      sessionStorage.setItem("signupPassword", formData.password);
+      void navigate("/verification", { state: { email: formData.email } });
     } else if (result.error) {
       showErrorToast(result.error);
     }

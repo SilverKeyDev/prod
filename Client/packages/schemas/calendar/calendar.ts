@@ -2,7 +2,7 @@
  * Calendar type definitions
  */
 
-import type { GoogleEvent } from "../../config/api/calendar/googleCalendar";
+import type { GoogleEvent } from "./googleEvent";
 
 export interface DateRange {
   timeMin: string;

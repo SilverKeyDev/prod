@@ -1,7 +1,10 @@
 import { QueryClient } from "@tanstack/react-query";
-import type { UserProfile } from "../../schemas";
-import { log, LOG_CATEGORIES } from "../../../logger";
-import { getPollingRoutes, DATA_ROUTES } from "./dataConfig";
+import { log, LOG_CATEGORIES } from "logger";
+
+import type { UserProfile } from "packages/schemas";
+import { getDocument } from "packages/utils/core/platform";
+
+import { DATA_ROUTES, getPollingRoutes } from "./dataConfig";
 
 /**
  * Polling intervals in milliseconds
@@ -127,7 +130,7 @@ export class BackgroundPolling {
     };
 
     // Initial poll
-    poll();
+    void poll();
 
     // Determine interval for setInterval
     const isOnActivePage = this.isRouteActivePage(route);
@@ -165,20 +168,22 @@ export class BackgroundPolling {
   }
 
   private getPollingInterval(baseInterval: number): number {
-    if (typeof document === "undefined") return baseInterval;
-    if (document.visibilityState === "hidden") {
+    const doc = getDocument();
+    if (!doc) return baseInterval;
+    if (doc.visibilityState === "hidden") {
       return POLLING_INTERVALS.HIDDEN;
     }
     return baseInterval;
   }
 
   private setupVisibilityListener(): void {
-    if (typeof document === "undefined") return;
+    const doc = getDocument();
+    if (!doc) return;
 
-    document.addEventListener("visibilitychange", () => {
+    doc.addEventListener("visibilitychange", () => {
       if (!this.isPolling) return;
 
-      const isHidden = document.visibilityState === "hidden";
+      const isHidden = doc.visibilityState === "hidden";
 
       if (isHidden) {
         // Pause all polling

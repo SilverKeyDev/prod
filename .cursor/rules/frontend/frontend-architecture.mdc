@@ -1,0 +1,407 @@
+---
+description: Frontend architecture rules for strict adherence to hooks, services, config, and store separation
+globs:
+  - "Client/**/*.{ts,tsx}"
+alwaysApply: true
+---
+
+# Frontend Architecture Rules
+
+## Overview
+
+The frontend follows a strict layered architecture with clear separation of concerns. This document defines the roles and import rules for each layer.
+
+**Note**: For UI component standards (buttons, text, forms), see `ui-components.mdc`. All UI components MUST use standardized components from `Client/apps/web/components/ui/`. For **platform file extensions** (`.native.tsx` in `apps/mobile/`, `.tsx` or `.web.tsx` in `apps/web/`), see `platform-file-extensions.mdc`.
+
+## React Code Placement Rules
+
+**CRITICAL**: React components (JSX/TSX files that render UI) are STRICTLY FORBIDDEN outside of `apps/web/`.
+
+### Allowed React Code Locations
+
+1. **`apps/web/`** - ALL React components (pages, features, UI components)
+   - ✅ All `.tsx` files that render JSX/UI
+   - ✅ All React components, pages, features, and UI elements
+   - ✅ Entry point (`main.tsx`)
+   - ✅ Only `.tsx` and barrel `index.ts` that re-export components/hooks from the same feature; no standalone `.ts` utilities or logic
+
+2. **`packages/hooks/`** - React hooks ONLY (no JSX)
+   - ✅ `.ts` files using React hooks (`useState`, `useEffect`, `useQuery`, etc.)
+   - ✅ NO JSX/TSX files - hooks are TypeScript-only
+   - ❌ FORBIDDEN: Any `.tsx` files in `packages/hooks/`
+
+3. **`packages/contexts/`** - React Context Providers ONLY (limited exception)
+   - ✅ `.tsx` files containing Context Provider components
+   - ✅ Provider components that wrap children with context
+   - ❌ FORBIDDEN: Any other React components (no pages, features, or UI components)
+
+### Forbidden React Code Locations
+
+- ❌ **`packages/services/`** - NO React code (services are framework-agnostic)
+- ❌ **`packages/config/`** - NO React code (except React Query setup in `config/query/`)
+- ❌ **`packages/store/`** - NO React code (Zustand is framework-agnostic)
+- ❌ **`packages/schemas/`** - NO React code (type definitions only)
+- ❌ **`packages/utils/`** - NO React code (utility functions only)
+
+### Rules Summary
+
+| Location | React Hooks | React Components (JSX) | Allowed? |
+|----------|-------------|------------------------|----------|
+| `apps/web/` | ✅ Yes | ✅ Yes | ✅ All React code |
+| `packages/hooks/` | ✅ Yes | ❌ No | ✅ Hooks only (`.ts` files) |
+| `packages/contexts/` | ✅ Yes | ✅ Limited | ✅ Provider components only |
+| `packages/services/` | ❌ No | ❌ No | ❌ Framework-agnostic |
+| `packages/config/` | ❌ No | ❌ No | ❌ No React (except React Query setup) |
+| `packages/store/` | ❌ No | ❌ No | ❌ Framework-agnostic |
+| `packages/schemas/` | ❌ No | ❌ No | ❌ Type definitions only |
+| `packages/utils/` | ❌ No | ❌ No | ❌ Utility functions only |
+
+### Non-React TypeScript in apps/web
+
+- **Rule:** No non-React TypeScript (utilities, pure logic, formatters, or types that are not re-exports of UI) may live under `apps/web/components/` or `apps/web/features/`. Such code belongs in:
+  - `packages/utils/` (e.g. `packages/utils/search/` for search-related helpers)
+  - `packages/hooks/` for hooks
+  - `packages/schemas/` for shared types
+- **Allowed in apps/web:** Only `.tsx` files and barrel `index.ts` files that re-export components/hooks from the same feature (no standalone logic).
+
+### Examples
+
+```typescript
+// ✅ CORRECT: React component in apps/web/
+// apps/web/pages/DashboardPage.tsx
+export default function DashboardPage() {
+  return <div>Dashboard</div>;
+}
+
+// ✅ CORRECT: React hook in packages/hooks/ (TypeScript only, no JSX)
+// packages/hooks/data/useUserData.ts
+export const useUserData = () => {
+  const [user, setUser] = useState(null);
+  return { user };
+};
+
+// ✅ CORRECT: Context Provider in packages/contexts/
+// packages/contexts/ThemeContext.tsx
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
+// ❌ WRONG: React component in packages/services/
+// packages/services/agent.ts
+export function AgentComponent() {
+  return <div>Agent</div>; // FORBIDDEN - services are framework-agnostic
+}
+
+// ❌ WRONG: JSX file in packages/hooks/
+// packages/hooks/data/useUserData.tsx
+export const useUserData = () => {
+  return <div>Hook</div>; // FORBIDDEN - hooks should be .ts files only
+}
+```
+
+## Architecture Layers
+
+```text
+Components (apps/web/) 
+    ↓
+Hooks (packages/hooks/)
+    ↓
+Config/API (packages/config/api/)
+    ↓
+Services/HTTP (packages/services/http/)
+```
+
+### Dependency Flow (Feature → Adapters → Platform)
+
+- **Feature modules must not touch the Native or DOM layers directly.** They go through adapters (e.g. navigation adapter, storage adapter, UI primitives).
+- **Primitives are the firewall:** shared layout/UI primitives (e.g. Box, View) live in a layer that each platform implements. If feature code imports `react-native` or raw DOM APIs directly, the architecture is violated (and with RN in the monorepo, the build can enforce this).
+- **Key rule:** Features → Adapters → Platform (Native/DOM). No red line from Features straight to Platform.
+
+### Navigation and deep-linking
+
+- A **Navigation Adapter** typically implies a stack-based model (even on web). For parity between web URLs (deep-links) and mobile (e.g. push notification targets), define a **Route Schema** (e.g. zod-validated route params and names) in a **shared package** and consume it from both apps. That keeps route identity and params consistent across platforms.
+
+## Directory Roles
+
+### 1. `packages/config/` - Configuration and API Clients
+
+**Purpose**: Thin, type-safe API client wrappers and configuration constants.
+
+**Contains**:
+
+- `config/api/*` - API client functions (e.g., `authApi`, `userApi`, `searchApi`)
+- `config/http.ts` - HTTP configuration constants
+- `config/env.ts` - Environment variables
+- `config/query/*` - React Query setup
+
+**Rules**:
+
+- MUST only import from `services/http/*` and `services/security/*`
+- MUST NOT import from `services/*` (business logic services)
+- MUST NOT import from `hooks/*` or `store/*`
+- MUST NOT import from `apps/web/*` (components)
+
+**Example**:
+
+```typescript
+// ✅ CORRECT: config/api/auth.ts
+import { apiPost, apiGet } from "../../services/http/compatibility";
+import { log } from "../../services/security/secureLogger";
+
+export const authApi = {
+  login: async (data: LoginData) => {
+    return apiPost<AuthResponse>("/api/v1/auth/login", data);
+  }
+};
+
+// ❌ WRONG: Importing business logic service
+import { agentService } from "../../services/agent"; // FORBIDDEN
+```
+
+### 2. `packages/services/` - Business Logic and Infrastructure
+
+**Purpose**: Business logic orchestration, state management, and infrastructure services.
+
+**Contains**:
+
+- Business logic services (e.g., `AgentService`, `ChatService`, `NegotiationService`)
+- `services/http/*` - Low-level HTTP client implementation
+- `services/security/*` - Security utilities
+
+**Rules**:
+
+- Services MUST use `config/api/*` for all API calls
+- Services MUST NOT import from `hooks/*` or `store/*` directly
+- Services MUST NOT import from `apps/web/*` (components)
+- Services can import from `services/http/*` and `services/security/*`
+- Services are typically class-based singletons
+
+**Example**:
+
+```typescript
+// ✅ CORRECT: services/agent.ts
+import { agentApi } from "../config/api/agent";
+import { createAbortManager } from "./http";
+
+export class AgentService {
+  async fetchClients() {
+    const response = await agentApi.getClients(); // Uses config/api
+    // ... business logic
+  }
+}
+
+// ❌ WRONG: Importing hooks or store
+import { useAgentClients } from "../hooks/data/useAgentClients"; // FORBIDDEN
+import { useAuthStore } from "../store/auth.slice"; // FORBIDDEN
+```
+
+### 3. `packages/hooks/` - React Hooks
+
+**Purpose**: React hooks for data fetching, store integration, and UI state.
+
+**Contains**:
+
+- `hooks/data/*` - React Query hooks for data fetching
+- `hooks/store/*` - Store integration hooks
+- `hooks/ui/*` - UI state management hooks
+
+**Rules**:
+
+- `hooks/data/*` MUST use `config/api/*` directly, never `services/*` (except `services/http` utilities)
+- `hooks/store/*` can use `hooks/data/*` and `store/*`
+- `hooks/ui/*` should be pure UI state (no API calls)
+- Hooks MUST NOT import from `apps/web/*` (components)
+- Hooks MUST NOT import business logic services
+
+**Example**:
+
+```typescript
+// ✅ CORRECT: hooks/data/useSavedHomesData.ts
+import { userApi } from "../../config/api/user";
+import { useQuery } from "@tanstack/react-query";
+
+export const useSavedHomesData = () => {
+  const { data } = useQuery({
+    queryFn: () => userApi.getFavoriteHomes(), // Uses config/api
+  });
+  return { savedHomes: data ?? [] };
+};
+
+// ❌ WRONG: Using service directly
+import { savedHomesService } from "../../services/savedHomes"; // FORBIDDEN
+```
+
+### 4. `packages/store/` - Global State Management
+
+**Purpose**: Zustand slices for application-wide state.
+
+**Rules**:
+
+- Store slices define state structure and basic setters
+- Store is updated via `hooks/store/*` integration hooks
+- Components should NOT mutate store directly (use hooks)
+
+**Example**:
+
+```typescript
+// ✅ CORRECT: store/auth.slice.ts
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+}));
+
+// ✅ CORRECT: hooks/store/useAuthStoreIntegration.ts
+import { useAuthStore } from "../../store/auth.slice";
+import { useSecureAuth } from "../data/useSecureAuth";
+
+export function useAuthStoreIntegration() {
+  const { user } = useSecureAuth(); // Uses data hook
+  const setUser = useAuthStore((s) => s.setUser);
+  // Sync logic...
+}
+```
+
+### 5. `apps/web/` - Components
+
+**Purpose**: React components and pages.
+
+**Rules**:
+
+- Components MUST use hooks, never import `config/api/*` or `services/*` directly
+- Components can import from `hooks/*`, `store/*` (for selectors), `schemas/*`, `utils/*`
+- Components MUST NOT import business logic services
+- Components MUST NOT import API clients from `config/api/*`
+- Do NOT add standalone `.ts` utility or logic files under `apps/web/components/` or `apps/web/features/`; place them in `packages/utils/` (or `packages/hooks/`, `packages/schemas/`) instead
+
+**Example**:
+
+```typescript
+// ✅ CORRECT: apps/web/pages/SavedPage.tsx
+import { useSavedHomesData } from "../../../packages/hooks/data/useSavedHomesData";
+
+export default function SavedPage() {
+  const { savedHomes, saveHome } = useSavedHomesData(); // Uses hook
+  // ...
+}
+
+// ❌ WRONG: Direct API import
+import { userApi } from "../../../packages/config/api/user"; // FORBIDDEN
+
+// ❌ WRONG: Direct service import
+import { agentService } from "../../../packages/services/agent"; // FORBIDDEN
+```
+
+## Import Rules Summary
+
+### Allowed Imports
+
+| From | Can Import |
+| ---- | ---------- |
+| `apps/web/*` | `hooks/*`, `store/*`, `schemas/*`, `utils/*`, `contexts/*` |
+| `hooks/data/*` | `config/api/*`, `store/*`, `schemas/*`, `services/http/*`, `services/security/*` |
+| `hooks/store/*` | `hooks/data/*`, `store/*`, `schemas/*` |
+| `hooks/ui/*` | `utils/*` (no API calls) |
+| `config/api/*` | `services/http/*`, `services/security/*`, `schemas/*` |
+| `services/*` | `config/api/*`, `services/http/*`, `services/security/*`, `schemas/*` |
+| `store/*` | `schemas/*` |
+
+### Forbidden Imports
+
+- ❌ Components → `config/api/*` or `services/*` (use hooks instead)
+- ❌ Hooks → Business logic `services/*` (use `config/api/*` instead)
+- ❌ Services → `hooks/*` or `store/*` (services are framework-agnostic)
+- ❌ Config → Business logic `services/*` (only HTTP/security utilities)
+
+## Common Violations and Fixes
+
+### Violation 1: Component Using API Directly
+
+```typescript
+// ❌ WRONG
+import { userApi } from "../../../packages/config/api/user";
+
+function Component() {
+  useEffect(() => {
+    userApi.getProfile(); // Direct API call
+  }, []);
+}
+
+// ✅ FIX: Create or use a hook
+import { useUserData } from "../../../packages/hooks/data/useUserData";
+
+function Component() {
+  const { user } = useUserData(); // Uses hook
+}
+```
+
+### Violation 2: Component Using Service Directly
+
+```typescript
+// ❌ WRONG
+import { agentService } from "../../../packages/services/agent";
+
+function Component() {
+  useEffect(() => {
+    agentService.fetchTodos(); // Direct service call
+  }, []);
+}
+
+// ✅ FIX: Create a hook that uses config/api
+// In hooks/data/useAgentTodos.ts:
+import { agentApi } from "../../../config/api/agent";
+import { useQuery } from "@tanstack/react-query";
+
+export const useAgentTodos = () => {
+  return useQuery({
+    queryKey: ["agent", "todos"],
+    queryFn: () => agentApi.getTodos(), // Uses config/api
+  });
+};
+
+// In component:
+import { useAgentTodos } from "../../../packages/hooks/data/useAgentTodos";
+```
+
+### Violation 3: Service Importing Hooks
+
+```typescript
+// ❌ WRONG
+import { useAuthStore } from "../store/auth.slice";
+
+export class MyService {
+  checkAuth() {
+    const user = useAuthStore.getState().user; // Direct store access
+  }
+}
+
+// ✅ FIX: Pass state as parameter or use config/api
+import { authApi } from "../config/api/auth";
+
+export class MyService {
+  async checkAuth() {
+    const response = await authApi.verifySession(); // Uses config/api
+    return response.success;
+  }
+}
+```
+
+## Enforcement
+
+When editing files:
+
+1. **Check import statements** - Verify they follow the allowed patterns above
+2. **If violating rules** - Refactor to use the correct layer:
+   - Component using API → Create/use a hook
+   - Component using service → Create/use a hook that uses config/api
+   - Service using hook/store → Pass data as parameters or use config/api
+3. **Create missing hooks** - If a hook doesn't exist for needed functionality, create it in `hooks/data/*`
+
+## Exceptions
+
+The following are allowed exceptions:
+
+- `services/http/*` and `services/security/*` can be imported by `config/api/*` (infrastructure)
+- `store/*` can be imported by `hooks/store/*` (store integration)
+- Type-only imports from `schemas/*` are allowed anywhere
+- Utility functions from `utils/*` can be imported anywhere
+

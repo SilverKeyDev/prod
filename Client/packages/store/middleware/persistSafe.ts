@@ -1,11 +1,11 @@
 import type { StateCreator } from "zustand";
 import {
   persist,
-  type StateStorage,
   type PersistOptions,
+  type StateStorage,
 } from "zustand/middleware";
 
-import { isFunction } from "../../utils/typeGuards";
+import { isFunction } from "packages/utils";
 
 /**
  * Safe persist wrapper with versioning, migration, and an allowlist via partialize.

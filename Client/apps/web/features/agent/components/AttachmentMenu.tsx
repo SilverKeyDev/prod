@@ -1,5 +1,12 @@
-import { Calendar, Home, FileText, FileSignature, X } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import { Calendar, FileSignature, FileText, Home, X } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
+
+import { BodyText, Button } from "@/components/ui/index.web";
+
+import { AttachmentMenuItem } from "./AttachmentMenuItem";
 
 type AttachmentMenuProps = {
   onSelectHome: () => void;
@@ -16,11 +23,11 @@ export default function AttachmentMenu({
   onSelectAgreement,
   disabled = false,
 }: AttachmentMenuProps) {
+  const { t } = useLocalization();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -32,119 +39,75 @@ export default function AttachmentMenu({
         setIsOpen(false);
       }
     };
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  const handleSelectHome = () => {
+  const closeAnd = (fn: () => void) => () => {
     setIsOpen(false);
-    onSelectHome();
-  };
-
-  const handleSelectCalendar = () => {
-    setIsOpen(false);
-    onSelectCalendar();
-  };
-
-  const handleSelectDocument = () => {
-    setIsOpen(false);
-    onSelectDocument?.();
-  };
-
-  const handleSelectAgreement = () => {
-    setIsOpen(false);
-    onSelectAgreement?.();
+    fn();
   };
 
   return (
     <div className="relative">
-      {/* iMessage-style '+' button */}
-      <button
+      <Button
         ref={buttonRef}
+        variant="ghost"
+        size="sm"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-600 transition-all duration-200 hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-200"
-        aria-label="Add attachment"
+        label={t("agent.add_attachment")}
       >
         {isOpen ? (
           <X className="h-4 w-4" />
         ) : (
-          <span className="text-lg font-light leading-none">+</span>
+          <BodyText
+            as="span"
+            size="md"
+            className="text-lg font-light leading-none"
+          >
+            +
+          </BodyText>
         )}
-      </button>
+      </Button>
 
-      {/* Attachment options menu */}
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute bottom-full left-0 mb-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg z-50"
+          className="absolute bottom-full left-0 z-50 mb-2 w-56 rounded-lg border border-gray-200 bg-white shadow-lg"
         >
-          <div className="py-1">
-            <button
-              onClick={handleSelectHome}
-              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
-            >
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-beige/20">
-                <Home className="h-4 w-4 text-brown" />
-              </div>
-              <div>
-                <div className="font-medium">Share Home</div>
-                <div className="text-xs text-gray-500">
-                  Send a property listing
-                </div>
-              </div>
-            </button>
-
+          <div className="px-3 py-2">
+            <AttachmentMenuItem
+              icon={Home}
+              title={t("agent.share_home")}
+              description={t("agent.share_home_description")}
+              onClick={closeAnd(onSelectHome)}
+            />
             {onSelectDocument && (
-              <button
-                onClick={handleSelectDocument}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-beige/20">
-                  <FileText className="h-4 w-4 text-brown" />
-                </div>
-                <div>
-                  <div className="font-medium">Share Document</div>
-                  <div className="text-xs text-gray-500">Send a document</div>
-                </div>
-              </button>
+              <AttachmentMenuItem
+                icon={FileText}
+                title={t("agent.share_document")}
+                description={t("agent.share_document_description")}
+                onClick={closeAnd(onSelectDocument)}
+              />
             )}
-
             {onSelectAgreement && (
-              <button
-                onClick={handleSelectAgreement}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50">
-                  <FileSignature className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <div className="font-medium">Share Agreement</div>
-                  <div className="text-xs text-gray-500">
-                    Send a DocuSign agreement
-                  </div>
-                </div>
-              </button>
+              <AttachmentMenuItem
+                icon={FileSignature}
+                iconClassName="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50"
+                iconColorClass="text-blue-600"
+                title={t("agent.share_agreement")}
+                description={t("agent.share_agreement_description")}
+                onClick={closeAnd(onSelectAgreement)}
+              />
             )}
-
-            <button
-              onClick={handleSelectCalendar}
-              className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
-            >
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-beige/20">
-                <Calendar className="h-4 w-4 text-brown" />
-              </div>
-              <div>
-                <div className="font-medium">Event Request</div>
-                <div className="text-xs text-gray-500">Schedule a meeting</div>
-              </div>
-            </button>
+            <AttachmentMenuItem
+              icon={Calendar}
+              title={t("agent.event_request")}
+              description={t("agent.schedule_meeting")}
+              onClick={closeAnd(onSelectCalendar)}
+            />
           </div>
         </div>
       )}

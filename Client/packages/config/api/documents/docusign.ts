@@ -1,27 +1,27 @@
-import {
-  apiGet,
-  apiPost,
-  apiUpload,
-} from "../../../services/http/compatibility";
-import { log, LOG_CATEGORIES } from "../../../../logger";
+import { log, LOG_CATEGORIES } from "logger";
 
 // Import types from schemas
 import type {
   CreateAgreementRequest,
   CreateAgreementResponse,
+  CreateRevisionResponse,
   GetAgreementResponse,
-  ListAgreementsResponse,
-  SendAgreementRequest,
-  SendAgreementResponse,
-  VoidAgreementRequest,
-  VoidAgreementResponse,
   GetSigningUrlRequest,
   GetSigningUrlResponse,
-  CreateRevisionResponse,
+  ListAgreementsResponse,
   ListTemplatesResponse,
-  SyncTemplatesResponse,
   OAuthStartResponse,
-} from "../../../schemas/documents/docusign";
+  SendAgreementRequest,
+  SendAgreementResponse,
+  SyncTemplatesResponse,
+  VoidAgreementRequest,
+  VoidAgreementResponse,
+} from "packages/schemas/content/documents/docusign";
+import {
+  apiGet,
+  apiPost,
+  apiUpload,
+} from "packages/services/http/compatibility";
 
 /**
  * DocuSign API client using centralized utilities
@@ -169,16 +169,16 @@ export const docusignApi = {
 export type {
   CreateAgreementRequest,
   CreateAgreementResponse,
+  CreateRevisionResponse,
   GetAgreementResponse,
-  ListAgreementsResponse,
-  SendAgreementRequest,
-  SendAgreementResponse,
-  VoidAgreementRequest,
-  VoidAgreementResponse,
   GetSigningUrlRequest,
   GetSigningUrlResponse,
-  CreateRevisionResponse,
+  ListAgreementsResponse,
   ListTemplatesResponse,
-  SyncTemplatesResponse,
   OAuthStartResponse,
-} from "../../../schemas/documents/docusign";
+  SendAgreementRequest,
+  SendAgreementResponse,
+  SyncTemplatesResponse,
+  VoidAgreementRequest,
+  VoidAgreementResponse,
+} from "packages/schemas/content/documents/docusign";

@@ -1,5 +1,7 @@
 import React from "react";
 
+import { useLocalization } from "packages/contexts";
+
 type FormFieldProps = {
   label?: string;
   children: React.ReactNode;
@@ -17,12 +19,17 @@ const FormField = ({
   className = "",
   labelClassName = "",
 }: FormFieldProps) => {
+  const { t } = useLocalization();
   return (
     <div className={`mb-4 ${className}`}>
       {label && (
         <label className={`mb-2 block font-medium text-navy ${labelClassName}`}>
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && (
+            <span className="text-red-500 ml-1" aria-hidden="true">
+              {t("form.required_indicator")}
+            </span>
+          )}
         </label>
       )}
       {children}

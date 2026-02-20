@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
+
 import { withDevtools } from "./middleware/devtools";
 import { persistSafe } from "./middleware/persistSafe";
 import { withResettable } from "./middleware/resettable";
@@ -10,7 +12,6 @@ export type ToastItem = {
   id: string;
   message: string;
   type: ToastType;
-  onClick?: () => void;
 };
 
 export type UIState = {
@@ -85,12 +86,7 @@ const baseCreator: import("zustand").StateCreator<UIState> = (set) => ({
         toast.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const nextQueue = [
         ...state.toastQueue,
-        {
-          id,
-          message: toast.message,
-          type: toast.type,
-          onClick: toast.onClick,
-        },
+        { id, message: toast.message, type: toast.type },
       ];
       return {
         toastQueue: nextQueue,
@@ -132,12 +128,7 @@ const withReset = withResettable<UIState>(baseCreator, (set) => ({
         toast.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const nextQueue = [
         ...state.toastQueue,
-        {
-          id,
-          message: toast.message,
-          type: toast.type,
-          onClick: toast.onClick,
-        },
+        { id, message: toast.message, type: toast.type },
       ];
       return {
         toastQueue: nextQueue,
@@ -161,7 +152,7 @@ const withReset = withResettable<UIState>(baseCreator, (set) => ({
 const withPersist = persistSafe<UIState>(withReset, {
   name: "ui-store",
   version: 1,
-  storage: localStorage,
+  storage: getLocalStorage() as import("zustand/middleware").StateStorage,
   partialize: (state: UIState) => ({
     // Persist only safe UI prefs; avoid transient flags
     toastQueue: state.toastQueue,

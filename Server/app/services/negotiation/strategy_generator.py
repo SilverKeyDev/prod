@@ -1,8 +1,9 @@
 """
 Strategy generator for negotiation strategies.
 """
+
 import logging
-from typing import Dict, Optional, Any
+from typing import Any
 
 from .research import generate_report
 
@@ -11,15 +12,15 @@ logger = logging.getLogger(__name__)
 
 def generate_negotiation_strategy(
     address: str,
-    user_preferences: Optional[Dict[str, Any]] = None,
-    property_data: Optional[Dict[str, Any]] = None,
-    commute_data: Optional[Dict[str, Any]] = None,
-    property_analysis: Optional[Dict[str, Any]] = None,
-    params: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    user_preferences: dict[str, Any] | None = None,
+    property_data: dict[str, Any] | None = None,
+    commute_data: dict[str, Any] | None = None,
+    property_analysis: dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """
     Generate a negotiation strategy for a property.
-    
+
     Args:
         address: Property address
         user_preferences: User preferences dict
@@ -27,35 +28,35 @@ def generate_negotiation_strategy(
         commute_data: Commute data dict
         property_analysis: Property analysis dict with pros/cons
         params: Additional parameters for generation
-        
+
     Returns:
         Dict containing the generated negotiation strategy
     """
     params = params or {}
-    
+
     # Enhance params with provided data
     enhanced_params = {
-        'property_data': property_data,
-        'commute_data': commute_data,
-        'property_analysis': property_analysis,
-        **params
+        "property_data": property_data,
+        "commute_data": commute_data,
+        "property_analysis": property_analysis,
+        **params,
     }
-    
+
     # Generate strategy using the research module
     # Use "strategy" as section_type to trigger negotiation strategy generation
     result = generate_report(
         section_type="strategy",
         address=address,
         filename=f"negotiation_strategy_{address.replace(' ', '_')}.json",
-        user_id=user_preferences.get('user_id', '') if user_preferences else '',
+        user_id=user_preferences.get("user_id", "") if user_preferences else "",
         params=enhanced_params,
         user_preferences=user_preferences,
-        max_retries=params.get('max_retries', 2)
+        max_retries=params.get("max_retries", 2),
     )
-    
+
     # Return the data from the result
-    if result.get('success') and 'data' in result:
-        return result['data']
+    if result.get("success") and "data" in result:
+        return result["data"]
     else:
         logger.error(f"Failed to generate negotiation strategy: {result}")
         raise RuntimeError(f"Strategy generation failed: {result.get('error', 'Unknown error')}")

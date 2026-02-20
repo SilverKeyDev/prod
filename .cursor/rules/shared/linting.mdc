@@ -1,0 +1,20 @@
+---
+description: Linting and type-check rules (blocking until all errors are fixed)
+globs:
+  - "**/*"
+alwaysApply: true
+---
+- # Linting and Type-Check Rules
+
+- Linter errors are blocking. Do not proceed until all reported errors are fixed.
+- Fix newly introduced errors before continuing with further edits.
+- Respect ESLint/Prettier/TS configs under `Client/config/` and root TS/Vite configs.
+- Use existing scripts when validating locally:
+  - `npm run lint` and `npm run format` in `Client/`
+  - Type-check as part of build/tests where applicable
+- Do not disable rules without justification; prefer code changes over suppression.
+- **UI Component Standardization**: Ensure all buttons and text use standardized components from `Client/apps/web/components/ui/`. See `ui-components.mdc` for detailed rules.
+
+*** End Patch```} />
+"\n\n"}}
+

@@ -49,7 +49,7 @@ export default function RippleBackground() {
       const particleDensity = baseParticleCount / baseArea;
       const particleCount = Math.max(
         50,
-        Math.floor(particleDensity * currentArea),
+        Math.floor(particleDensity * currentArea)
       );
 
       // Re-initialize particles after resize (use CSS dimensions, not canvas dimensions)

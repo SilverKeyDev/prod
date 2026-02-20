@@ -2,7 +2,7 @@
  * Logger Public API
  */
 
-export { logger, log } from "./logger";
-export type { LogCategory, ApiSubcategory } from "./categories";
-export { LOG_CATEGORIES, API_SUBCATEGORIES } from "./categories";
-export type { LoggerConfig, ApiSubcategoryConfig } from "./logger";
+export type { ApiSubcategory, LogCategory } from "./categories";
+export { API_SUBCATEGORIES, LOG_CATEGORIES } from "./categories";
+export type { ApiSubcategoryConfig, LoggerConfig } from "./logger";
+export { log, logger } from "./logger";

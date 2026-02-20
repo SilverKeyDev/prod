@@ -1,14 +1,15 @@
-import React, { useState, useMemo } from "react";
-import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
-import Card from "../../../components/layout/Card";
-import Dropdown from "../../../components/ui/form/Dropdown";
-import type { DropdownOption } from "../../../components/ui/form/Dropdown";
+import React, { useMemo, useState } from "react";
+
+import { useAgentClients } from "packages/hooks/data/agent/useAgentClients";
+import { useAgentDashboardMockData } from "packages/hooks/data/agent/useAgentDashboardMockData";
+import type { ClientDealInfo, DealStage } from "packages/schemas/agent";
+
+import Card from "@/components/layout/Card.web";
+import type { DropdownOption } from "@/components/ui/form/Dropdown";
+import Dropdown from "@/components/ui/form/Dropdown";
+import { BodyText, Title } from "@/components/ui/index.web";
+
 import ClientRow from "./ClientRow";
-import { enhanceClientWithDealInfo } from "../../../../../packages/services/agent/agentDashboard";
-import type {
-  ClientDealInfo,
-  DealStage,
-} from "../../../../../packages/schemas/agent";
 
 type ClientListProps = {
   onClientClick: (clientId: string) => void;
@@ -16,6 +17,7 @@ type ClientListProps = {
 
 const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
   const { clients, isLoading } = useAgentClients();
+  const { enhanceClientWithDealInfo } = useAgentDashboardMockData();
   const [filterStage, setFilterStage] = useState<DealStage | "all">("all");
   const [hasRiskFlags, setHasRiskFlags] = useState<"all" | "has" | "none">(
     "all",
@@ -36,7 +38,7 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
       const stage = stages[index % stages.length];
       return enhanceClientWithDealInfo(client, stage);
     });
-  }, [clients]);
+  }, [clients, enhanceClientWithDealInfo]);
 
   // Filter clients
   const filteredClients = useMemo(() => {
@@ -78,9 +80,9 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
     return (
       <Card>
         <div className="text-center py-12">
-          <p className="text-responsive-base text-black/60">
+          <BodyText as="p" className="text-black/60">
             Loading clients...
-          </p>
+          </BodyText>
         </div>
       </Card>
     );
@@ -90,7 +92,9 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="heading-responsive-md text-navy">Client List</h2>
+        <Title as="h2" size="lg" className="text-navy">
+          Client List
+        </Title>
       </div>
 
       {/* Filters */}
@@ -122,11 +126,11 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
       {filteredClients.length === 0 ? (
         <Card>
           <div className="text-center py-12">
-            <p className="text-responsive-base text-black/60">
+            <BodyText as="p" className="text-black/60">
               {filterStage !== "all" || hasRiskFlags !== "all"
                 ? "No clients match your filters"
                 : "No clients yet"}
-            </p>
+            </BodyText>
           </div>
         </Card>
       ) : (

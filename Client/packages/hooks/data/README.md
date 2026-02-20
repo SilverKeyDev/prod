@@ -61,6 +61,10 @@ Data hooks use React Query to fetch and manage data from the API. These hooks:
 - `useGoogleMaps.ts` - Google Maps integration
 - `useMapInitialization.ts` - Map initialization
 
+### Feed
+
+- `useFeedData.ts` - Infinite feed/reels data for search page
+
 ### Other
 
 - `useChats.ts` - Chat conversations

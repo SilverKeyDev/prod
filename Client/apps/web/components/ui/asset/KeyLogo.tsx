@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Image } from "@ui/media";
+
 type KeyLogoProps = {
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
   showText?: boolean;
@@ -52,7 +54,7 @@ const KeyLogo: React.FC<KeyLogoProps> = ({
 
   return (
     <div className={`flex items-center ${currentSize.container} ${className}`}>
-      <img
+      <Image
         src="/logo.png"
         alt="SilverKey Logo"
         className={`${currentSize.logo} object-contain ${logoClassName}`}

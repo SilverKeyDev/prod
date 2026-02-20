@@ -1,12 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useAuthStore } from "../../../store/auth.slice";
-import { useFiltersQueryParams } from "../../../config/query/adapters";
-import { queryKeys } from "../../../config/query/keys";
-import type { Document } from "../../../schemas";
-import { documentService } from "../../../services";
-import { log, LOG_CATEGORIES } from "../../../../logger";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { log, LOG_CATEGORIES } from "logger";
+
+import { useFiltersQueryParams } from "packages/config/query/adapters";
+import { queryKeys } from "packages/config/query/keys";
+import type { Document } from "packages/schemas";
+import { documentService } from "packages/services";
+import { useAuthStore } from "packages/store";
 
 type UploadEntry = {
   id: string;

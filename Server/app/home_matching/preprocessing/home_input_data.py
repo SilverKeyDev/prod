@@ -8,36 +8,37 @@ This module now uses the preprocessing models internally but maintains backward
 compatibility by returning dictionaries.
 """
 
-from typing import Dict, Any, Optional, List
 import logging
-from flask import current_app
+from typing import Any
 
-from ...models import HomeUniversal, UserPreferences
-from .models.embedding_input import EmbeddingHomeInput
+from ...models import HomeUniversal
 
 logger = logging.getLogger(__name__)
 
 # Reference existing scraping helpers from services
 try:
-    from app.services.research.property_images import fetch_zillow_images, extract_primary_image
-    from app.services.research.property_commute import get_commute_data_for_property
-    from app.services.research.property_analysis import get_property_analysis_for_property
-    from app.services.search.image_features import extract_and_clean_features
-    from app.services.search.property_features import extract_property_features
+    import app.services.research.property.property_analysis
+    import app.services.research.property.property_commute
+    import app.services.research.property.property_images  # noqa: F401 -- imported for availability check
+    from app.services.search.features.image_features import extract_and_clean_features
+    from app.services.search.features.property_features import extract_property_features
+
     SCRAPING_HELPERS_AVAILABLE = True
 except ImportError:
     SCRAPING_HELPERS_AVAILABLE = False
+    extract_property_features = None  # type: ignore[assignment]
+    extract_and_clean_features = None  # type: ignore[assignment]
     logger.warning("Some scraping helpers not available - some features may be limited")
 
 
-def get_home_data_from_db(home_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+def get_home_data_from_db(home_id: str, user_id: str | None = None) -> dict[str, Any] | None:
     """
     Retrieve home data from database by home ID.
-    
+
     Args:
         home_id: The home ID to retrieve
         user_id: Optional user ID to filter by user
-    
+
     Returns:
         Dictionary containing home data formatted for home matching, or None if not found
     """
@@ -45,240 +46,252 @@ def get_home_data_from_db(home_id: str, user_id: Optional[str] = None) -> Option
         query = HomeUniversal.query.filter_by(id=home_id)
         if user_id:
             query = query.filter_by(user_id=user_id)
-        
+
         home = query.first()
-        
+
         if not home:
             logger.warning(f"Home not found: {home_id}")
             return None
-        
+
         return format_home_data_for_matching(home)
-        
+
     except Exception as e:
         logger.error(f"Error retrieving home data for {home_id}: {e}")
         return None
 
 
 def get_homes_data_from_db(
-    user_id: Optional[str] = None,
-    limit: Optional[int] = None,
-    liked_only: bool = False
-) -> List[Dict[str, Any]]:
+    user_id: str | None = None, limit: int | None = None, liked_only: bool = False
+) -> list[dict[str, Any]]:
     """
     Retrieve multiple homes from database.
-    
+
     Args:
         user_id: Optional user ID to filter by user
         limit: Optional limit on number of homes to retrieve
         liked_only: If True, only retrieve liked homes
-    
+
     Returns:
         List of formatted home data dictionaries
     """
     try:
         query = HomeUniversal.query
-        
+
         if user_id:
             query = query.filter_by(user_id=user_id)
-        
+
         # Only retrieve current homes for searches
         query = query.filter_by(current=True)
-        
+
         if liked_only:
             query = query.filter_by(is_liked=True)
-        
+
         if limit:
             query = query.limit(limit)
-        
+
         homes = query.all()
-        
+
         return [format_home_data_for_matching(home) for home in homes]
-        
+
     except Exception as e:
         logger.error(f"Error retrieving homes data: {e}")
         return []
 
 
-def format_home_data_for_matching(home: HomeUniversal) -> Dict[str, Any]:
+def format_home_data_for_matching(home: HomeUniversal) -> dict[str, Any]:
     """
     Format HomeUniversal model instance into the structure expected by home matching.
-    
+
     Works directly with HomeUniversal model instance and its attributes.
-    
+
     Args:
         home: HomeUniversal model instance
-    
+
     Returns:
         Formatted home data dictionary for home matching
     """
     # Work directly with model attributes instead of converting to dict first
     formatted = {
-        'home_id': home.id,
-        'zpid': home.zpid,
-        'address': home.address or '',
-        'price': _parse_numeric(home.price),
-        'bedrooms': _parse_numeric(home.beds),
-        'bathrooms': _parse_numeric(home.baths),
-        'sqft': _parse_numeric(home.sqft or home.living_area),
-        'lot_size': _parse_numeric(home.lot_size or home.lot_area_value),
-        'home_type': home.home_type or home.property_type,
-        'property_type': home.property_type,
-        'year_built': _parse_numeric(home.year_built),
-        'listing_status': home.listing_status,
-        'latitude': home.latitude,
-        'longitude': home.longitude,
-        'city': home.city,
-        'state': home.state,
-        'zipcode': home.zipcode,
-        'image_url': home.image_url,
-        'image_urls': home.image_urls,
-        'score': home.score,
-        'is_liked': home.is_liked,
+        "home_id": home.id,
+        "zpid": home.zpid,
+        "address": home.address or "",
+        "price": _parse_numeric(home.price),
+        "bedrooms": _parse_numeric(home.beds),
+        "bathrooms": _parse_numeric(home.baths),
+        "sqft": _parse_numeric(home.sqft or home.living_area),
+        "lot_size": _parse_numeric(home.lot_size or home.lot_area_value),
+        "home_type": home.home_type or home.property_type,
+        "property_type": home.property_type,
+        "year_built": _parse_numeric(home.year_built),
+        "listing_status": home.listing_status,
+        "latitude": home.latitude,
+        "longitude": home.longitude,
+        "city": home.city,
+        "state": home.state,
+        "zipcode": home.zipcode,
+        "image_url": home.image_url,
+        "image_urls": home.image_urls,
+        "score": home.score,
+        "is_liked": home.is_liked,
     }
-    
+
     # Add enriched data if available (these are JSON fields)
     if home.features:
-        formatted['features'] = home.features
-        formatted['amenities'] = _extract_amenities_from_features(home.features)
-    
+        formatted["features"] = home.features
+        formatted["amenities"] = _extract_amenities_from_features(home.features)
+
     if home.property_analysis:
         analysis = home.property_analysis
         if isinstance(analysis, dict):
             # Extract description if available
-            if 'description' in analysis:
-                formatted['description'] = analysis['description']
-            if 'neighborhood_info' in analysis:
-                formatted['neighborhood_info'] = analysis['neighborhood_info']
-            if 'school_district' in analysis:
-                formatted['school_district'] = analysis['school_district']
-    
+            if "description" in analysis:
+                formatted["description"] = analysis["description"]
+            if "neighborhood_info" in analysis:
+                formatted["neighborhood_info"] = analysis["neighborhood_info"]
+            if "school_district" in analysis:
+                formatted["school_district"] = analysis["school_district"]
+
     if home.commute_data:
         commute = home.commute_data
         if isinstance(commute, dict):
             # Extract commute minutes if available
-            if 'commute_minutes' in commute:
-                formatted['commute_minutes'] = commute['commute_minutes']
-    
+            if "commute_minutes" in commute:
+                formatted["commute_minutes"] = commute["commute_minutes"]
+
     # Add raw data for reference
     if home.raw_data:
-        formatted['raw_data'] = home.raw_data
-    
+        formatted["raw_data"] = home.raw_data
+
     return formatted
 
 
-def format_home_data_from_api(property_data: Dict[str, Any]) -> Dict[str, Any]:
+def format_home_data_from_api(property_data: dict[str, Any]) -> dict[str, Any]:
     """
     Format property data from API response (e.g., Zillow API) for home matching.
-    
+
     This is used when property data comes from external APIs rather than the database.
-    
+
     Args:
         property_data: Dictionary containing property data from API
-    
+
     Returns:
         Formatted home data dictionary for home matching
     """
     # Map common API field names to home matching format
     formatted = {
-        'home_id': property_data.get('home_id') or property_data.get('id'),
-        'zpid': property_data.get('zpid'),
-        'address': property_data.get('address', ''),
-        'price': property_data.get('price') or property_data.get('listPrice'),
-        'bedrooms': property_data.get('bedrooms') or property_data.get('beds'),
-        'bathrooms': property_data.get('bathrooms') or property_data.get('baths'),
-        'sqft': property_data.get('sqft') or property_data.get('livingArea') or property_data.get('squareFootage'),
-        'lot_size': property_data.get('lot_size') or property_data.get('lotAreaValue') or property_data.get('lotSize'),
-        'home_type': property_data.get('homeType') or property_data.get('home_type') or property_data.get('propertyType'),
-        'property_type': property_data.get('propertyType') or property_data.get('property_type'),
-        'year_built': property_data.get('yearBuilt') or property_data.get('year_built'),
-        'listing_status': property_data.get('listingStatus') or property_data.get('listing_status'),
-        'latitude': property_data.get('latitude') or property_data.get('lat'),
-        'longitude': property_data.get('longitude') or property_data.get('lon') or property_data.get('lng'),
-        'city': property_data.get('city'),
-        'state': property_data.get('state'),
-        'zipcode': property_data.get('zipcode') or property_data.get('zipCode') or property_data.get('postalCode'),
+        "home_id": property_data.get("home_id") or property_data.get("id"),
+        "zpid": property_data.get("zpid"),
+        "address": property_data.get("address", ""),
+        "price": property_data.get("price") or property_data.get("listPrice"),
+        "bedrooms": property_data.get("bedrooms") or property_data.get("beds"),
+        "bathrooms": property_data.get("bathrooms") or property_data.get("baths"),
+        "sqft": property_data.get("sqft")
+        or property_data.get("livingArea")
+        or property_data.get("squareFootage"),
+        "lot_size": property_data.get("lot_size")
+        or property_data.get("lotAreaValue")
+        or property_data.get("lotSize"),
+        "home_type": property_data.get("homeType")
+        or property_data.get("home_type")
+        or property_data.get("propertyType"),
+        "property_type": property_data.get("propertyType") or property_data.get("property_type"),
+        "year_built": property_data.get("yearBuilt") or property_data.get("year_built"),
+        "listing_status": property_data.get("listingStatus") or property_data.get("listing_status"),
+        "latitude": property_data.get("latitude") or property_data.get("lat"),
+        "longitude": property_data.get("longitude")
+        or property_data.get("lon")
+        or property_data.get("lng"),
+        "city": property_data.get("city"),
+        "state": property_data.get("state"),
+        "zipcode": property_data.get("zipcode")
+        or property_data.get("zipCode")
+        or property_data.get("postalCode"),
     }
-    
+
     # Add image data
-    if 'image_url' in property_data:
-        formatted['image_url'] = property_data['image_url']
-    elif 'imgSrc' in property_data:
-        formatted['image_url'] = property_data['imgSrc']
-    elif 'imageUrl' in property_data:
-        formatted['image_url'] = property_data['imageUrl']
-    
-    if 'image_urls' in property_data:
-        formatted['image_urls'] = property_data['image_urls']
-    elif 'images' in property_data:
-        formatted['image_urls'] = property_data['images']
-    
+    if "image_url" in property_data:
+        formatted["image_url"] = property_data["image_url"]
+    elif "imgSrc" in property_data:
+        formatted["image_url"] = property_data["imgSrc"]
+    elif "imageUrl" in property_data:
+        formatted["image_url"] = property_data["imageUrl"]
+
+    if "image_urls" in property_data:
+        formatted["image_urls"] = property_data["image_urls"]
+    elif "images" in property_data:
+        formatted["image_urls"] = property_data["images"]
+
     # Add description and neighborhood info if available
-    if 'description' in property_data:
-        formatted['description'] = property_data['description']
-    
-    if 'neighborhood' in property_data:
-        formatted['neighborhood'] = property_data['neighborhood']
-    
-    if 'neighborhood_info' in property_data:
-        formatted['neighborhood_info'] = property_data['neighborhood_info']
-    
-    if 'school_district' in property_data:
-        formatted['school_district'] = property_data['school_district']
-    
+    if "description" in property_data:
+        formatted["description"] = property_data["description"]
+
+    if "neighborhood" in property_data:
+        formatted["neighborhood"] = property_data["neighborhood"]
+
+    if "neighborhood_info" in property_data:
+        formatted["neighborhood_info"] = property_data["neighborhood_info"]
+
+    if "school_district" in property_data:
+        formatted["school_district"] = property_data["school_district"]
+
     # Add amenities and features
-    if 'amenities' in property_data:
-        formatted['amenities'] = property_data['amenities']
-    
-    if 'features' in property_data:
-        formatted['features'] = property_data['features']
-    
+    if "amenities" in property_data:
+        formatted["amenities"] = property_data["amenities"]
+
+    if "features" in property_data:
+        formatted["features"] = property_data["features"]
+
     # Add walkability/transit scores if available
-    if 'walkability_score' in property_data:
-        formatted['walkability_score'] = property_data['walkability_score']
-    
-    if 'transit_score' in property_data:
-        formatted['transit_score'] = property_data['transit_score']
-    
-    if 'bike_score' in property_data:
-        formatted['bike_score'] = property_data['bike_score']
-    
+    if "walkability_score" in property_data:
+        formatted["walkability_score"] = property_data["walkability_score"]
+
+    if "transit_score" in property_data:
+        formatted["transit_score"] = property_data["transit_score"]
+
+    if "bike_score" in property_data:
+        formatted["bike_score"] = property_data["bike_score"]
+
     # Add nearby amenities if available
-    if 'nearby_amenities' in property_data:
-        formatted['nearby_amenities'] = property_data['nearby_amenities']
-    
+    if "nearby_amenities" in property_data:
+        formatted["nearby_amenities"] = property_data["nearby_amenities"]
+
     # Preserve raw data
-    formatted['raw_data'] = property_data
-    
+    formatted["raw_data"] = property_data
+
     # Optionally enrich with scraping helpers if available
-    if SCRAPING_HELPERS_AVAILABLE:
+    if (
+        SCRAPING_HELPERS_AVAILABLE
+        and extract_property_features is not None
+        and extract_and_clean_features is not None
+    ):
         # Extract features if not already present
-        if not formatted.get('features'):
+        if not formatted.get("features"):
             try:
                 features = extract_property_features(property_data)
                 if features:
-                    formatted['features'] = features
+                    formatted["features"] = features
             except Exception as e:
                 logger.warning(f"Could not extract property features: {e}")
-        
+
         # Extract image features if images are available
-        if formatted.get('image_urls') and not formatted.get('image_features'):
+        if formatted.get("image_urls") and not formatted.get("image_features"):
             try:
-                image_features = extract_and_clean_features(formatted.get('image_urls', []))
+                image_features = extract_and_clean_features(formatted.get("image_urls", []))
                 if image_features:
-                    formatted['image_features'] = image_features
+                    formatted["image_features"] = image_features
             except Exception as e:
                 logger.warning(f"Could not extract image features: {e}")
-    
+
     return formatted
 
 
-def format_homes_data_from_api(properties: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def format_homes_data_from_api(properties: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     Format multiple properties from API response for home matching.
-    
+
     Args:
         properties: List of property dictionaries from API
-    
+
     Returns:
         List of formatted home data dictionaries
     """
@@ -286,20 +299,20 @@ def format_homes_data_from_api(properties: List[Dict[str, Any]]) -> List[Dict[st
 
 
 def get_home_data(
-    home_id: Optional[str] = None,
-    user_id: Optional[str] = None,
-    home_data_dict: Optional[Dict[str, Any]] = None
-) -> Optional[Dict[str, Any]]:
+    home_id: str | None = None,
+    user_id: str | None = None,
+    home_data_dict: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
     """
     Main entry point to get home data for home matching.
-    
+
     Can retrieve from database (if home_id provided) or format from dictionary.
-    
+
     Args:
         home_id: Home ID to retrieve from database (optional)
         user_id: User ID for filtering (optional)
         home_data_dict: Pre-provided home data dictionary (optional)
-    
+
     Returns:
         Formatted home data for home matching, or None if unavailable
     """
@@ -312,25 +325,23 @@ def get_home_data(
         return None
 
 
-
-
 def get_homes_data(
-    user_id: Optional[str] = None,
-    homes_data_list: Optional[List[Dict[str, Any]]] = None,
-    limit: Optional[int] = None,
-    liked_only: bool = False
-) -> List[Dict[str, Any]]:
+    user_id: str | None = None,
+    homes_data_list: list[dict[str, Any]] | None = None,
+    limit: int | None = None,
+    liked_only: bool = False,
+) -> list[dict[str, Any]]:
     """
     Main entry point to get multiple homes data for home matching.
-    
+
     Can retrieve from database or format from list of dictionaries.
-    
+
     Args:
         user_id: User ID to retrieve homes for (optional)
         homes_data_list: Pre-provided list of home data dictionaries (optional)
         limit: Optional limit on number of homes
         liked_only: If True, only retrieve liked homes (database only)
-    
+
     Returns:
         List of formatted home data dictionaries
     """
@@ -342,26 +353,26 @@ def get_homes_data(
         return []
 
 
-def _parse_numeric(value: Any) -> Optional[float]:
+def _parse_numeric(value: Any) -> float | None:
     """Parse numeric value from string or return as-is if already numeric."""
     if value is None:
         return None
-    
-    if isinstance(value, (int, float)):
+
+    if isinstance(value, int | float):
         return float(value)
-    
+
     if isinstance(value, str):
         # Remove common formatting characters
-        cleaned = value.replace('$', '').replace(',', '').strip()
+        cleaned = value.replace("$", "").replace(",", "").strip()
         try:
             return float(cleaned)
         except (ValueError, TypeError):
             return None
-    
+
     return None
 
 
-def _extract_amenities_from_features(features: Any) -> List[str]:
+def _extract_amenities_from_features(features: Any) -> list[str]:
     """Extract amenities list from features data."""
     if isinstance(features, list):
         return [str(f) for f in features if f]
@@ -376,5 +387,5 @@ def _extract_amenities_from_features(features: Any) -> List[str]:
         return amenities
     elif isinstance(features, str):
         return [features]
-    
+
     return []

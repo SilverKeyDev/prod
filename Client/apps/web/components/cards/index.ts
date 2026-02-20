@@ -3,11 +3,11 @@ export { default as BaseCard } from "./BaseCard";
 
 // Card components
 export { default as CompCard } from "./CompCard";
-export { default as PropertyCard } from "./PropertyCard";
 export { default as HomeCard } from "./HomeCard";
+export { default as PropertyCard } from "./PropertyCard";
 
 // Standardized card elements
-export * from "./base";
+export * from "./base/index.web";
 
 // Export types
 export type { BaseCardProps } from "./BaseCard";

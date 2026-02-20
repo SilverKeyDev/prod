@@ -1,8 +1,10 @@
 import { useCallback } from "react";
-import { preferencesApi } from "../../../config/api";
-import { log, LOG_CATEGORIES } from "../../../../logger";
-import { calculateDisabledCalendarIds } from "../../../utils/calendar/calendar";
-import type { Calendar } from "../../../schemas/calendar";
+
+import { log, LOG_CATEGORIES } from "logger";
+
+import { preferencesApi } from "packages/config/api";
+import type { Calendar } from "packages/schemas/calendar";
+import { calculateDisabledCalendarIds } from "packages/utils/domain/calendar/calendar";
 
 /**
  * Hook for saving calendar preferences

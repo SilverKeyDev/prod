@@ -1,16 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { queryKeys } from "../../../config/query/keys";
+import { useQuery } from "@tanstack/react-query";
+
 import type {
   GoogleEvent,
   GoogleEventListResponse,
-} from "../../../config/api/calendar/googleCalendar";
+} from "packages/config/api/calendar/googleCalendar";
+import { queryKeys } from "packages/config/query/keys";
 import type {
-  FreebusyTimeBlock,
   FreebusyResponse,
-} from "../../../schemas/scheduling";
-import { getBusyBlocksFromResponse } from "../../../utils/calendar/scheduling";
+  FreebusyTimeBlock,
+} from "packages/schemas/scheduling";
+import { getBusyBlocksFromResponse } from "packages/utils/domain/calendar/scheduling";
 
 export type UseClientEventsReturn = {
   events: GoogleEvent[];

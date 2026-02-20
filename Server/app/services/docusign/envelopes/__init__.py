@@ -6,6 +6,6 @@ from .builder import EnvelopeBuilder
 from .signing import SigningService
 
 __all__ = [
-    'EnvelopeBuilder',
-    'SigningService',
+    "EnvelopeBuilder",
+    "SigningService",
 ]

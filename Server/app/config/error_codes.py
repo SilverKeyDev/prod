@@ -1,6 +1,9 @@
 def build_error_codes(max_content_length: int):
     return {
-        "FILE_TYPE_INVALID": ("INVALID_FILE_TYPE", "Invalid file type. Only PDF files are allowed."),
+        "FILE_TYPE_INVALID": (
+            "INVALID_FILE_TYPE",
+            "Invalid file type. Only PDF files are allowed.",
+        ),
         "FILE_SIZE_TOO_LARGE": (
             "FILE_SIZE_EXCEEDED",
             f"File size exceeds maximum limit of {max_content_length // (1024 * 1024)}MB.",
@@ -18,4 +21,3 @@ def build_error_codes(max_content_length: int):
 
 
 __all__ = ["build_error_codes"]
-

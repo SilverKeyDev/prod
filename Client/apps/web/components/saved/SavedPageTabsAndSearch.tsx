@@ -1,7 +1,11 @@
-import { Search, Plus } from "lucide-react";
-import Card from "../layout/Card";
-import { IconButton } from "../ui";
-import type { SavedPageViewType } from "../../../../packages/hooks/store/documents/useSavedPageView";
+import { Plus, Search } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
+import type { SavedPageViewType } from "packages/hooks/store/documents/useSavedPageView";
+
+import Card from "@/components/layout/Card.web";
+import { IconButton, Input } from "@/components/ui/index.web";
+import { UnderlineTabs } from "@/components/ui/tabs/index.web";
 
 type SavedPageTabsAndSearchProps = {
   searchTerm: string;
@@ -11,11 +15,32 @@ type SavedPageTabsAndSearchProps = {
   onViewTypeChange: (type: SavedPageViewType) => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
   onEventTypeFilterChange?: (
-    eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
   ) => void;
   rightText?: string;
   onUploadClick?: () => void;
 };
+
+function SavedPageTabNav({
+  viewType,
+  onViewTypeChange,
+}: {
+  viewType: SavedPageViewType;
+  onViewTypeChange: (type: SavedPageViewType) => void;
+}) {
+  const { t } = useLocalization();
+  return (
+    <UnderlineTabs
+      items={[
+        { id: "homes", label: t("saved.tab_homes") },
+        { id: "documents", label: t("saved.tab_documents") },
+      ]}
+      activeId={viewType}
+      onChange={(id) => onViewTypeChange(id as SavedPageViewType)}
+      className="mb-3"
+    />
+  );
+}
 
 export default function SavedPageTabsAndSearch({
   searchTerm,
@@ -28,42 +53,19 @@ export default function SavedPageTabsAndSearch({
   rightText,
   onUploadClick,
 }: SavedPageTabsAndSearchProps) {
-  // Tab navigation for homes/documents
-  const TabNavigation = (
-    <div className="flex items-center justify-start gap-2 mb-3 border-b border-gray-200">
-      <button
-        onClick={() => onViewTypeChange("homes")}
-        className={`px-4 py-2 border-b-2 transition-colors ${
-          viewType === "homes"
-            ? "border-gold text-base font-semibold text-gray-500"
-            : "border-transparent text-sm font-medium text-gray-500 hover:text-gray-700"
-        }`}
-      >
-        Homes
-      </button>
-      <button
-        onClick={() => onViewTypeChange("documents")}
-        className={`px-4 py-2 border-b-2 transition-colors ${
-          viewType === "documents"
-            ? "border-gold text-base font-semibold text-gray-500"
-            : "border-transparent text-sm font-medium text-gray-500 hover:text-gray-700"
-        }`}
-      >
-        Documents
-      </button>
-    </div>
-  );
-
   return (
     <div className="w-full mb-6">
-      {TabNavigation}
+      <SavedPageTabNav
+        viewType={viewType}
+        onViewTypeChange={onViewTypeChange}
+      />
       <Card padding="none" className="w-full p-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search input */}
           <div className="flex min-w-0 items-center gap-3 flex-1 w-full sm:w-auto justify-center sm:justify-start">
-            <div className="relative min-w-[200px] flex-1">
+            <div className="relative min-w-48 flex-1">
               <Search className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 text-black/40" />
-              <input
+              <Input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}

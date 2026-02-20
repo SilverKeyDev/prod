@@ -1,12 +1,14 @@
 import { User } from "lucide-react";
+
+import type { AgreementParticipant } from "packages/schemas/content/documents/docusign";
 import {
+  formatAgreementDateTime,
   formatParticipantRole,
   getParticipantStatusColor,
-  getParticipantStatusIcon,
-  formatAgreementDateTime,
-} from "../../../../../../packages/utils/documents/docusignHelpers";
-import { BodyText } from "../../../../components/ui";
-import type { AgreementParticipant } from "../../../../../../packages/schemas/documents/docusign";
+} from "packages/utils/domain/documents/docusignHelpers";
+
+import { BodyText } from "@/components/ui/index.web";
+import { getParticipantStatusIcon } from "@/features/documents/docusign/utils/docusignIcons";
 
 type ParticipantsListProps = {
   participants: AgreementParticipant[];
@@ -61,32 +63,41 @@ export default function ParticipantsList({
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p
+                    <BodyText
+                      as="p"
                       className={`font-medium ${compact ? "text-sm" : "text-base"} text-gray-900 truncate`}
                     >
                       {participant.name}
-                    </p>
+                    </BodyText>
                     {showOrder && (
-                      <span className="flex-shrink-0 px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                      <BodyText
+                        as="span"
+                        size="xs"
+                        className="flex-shrink-0 px-1.5 py-0.5 font-medium bg-gray-100 text-gray-600 rounded"
+                      >
                         #{participant.signing_order}
-                      </span>
+                      </BodyText>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 truncate">
+                  <BodyText as="p" size="xs" className="text-gray-500 truncate">
                     {participant.email}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-0.5">
+                  </BodyText>
+                  <BodyText as="p" size="xs" className="text-gray-600 mt-0.5">
                     {formatParticipantRole(participant.role)}
-                  </p>
+                  </BodyText>
                 </div>
 
                 {/* Status */}
                 <div className="flex-shrink-0 flex items-center gap-1.5">
                   <StatusIcon className={`w-4 h-4 ${statusColor}`} />
-                  <span className={`text-sm font-medium ${statusColor}`}>
+                  <BodyText
+                    as="span"
+                    size="sm"
+                    className={`font-medium ${statusColor}`}
+                  >
                     {participant.status.charAt(0).toUpperCase() +
                       participant.status.slice(1)}
-                  </span>
+                  </BodyText>
                 </div>
               </div>
 
@@ -94,14 +105,14 @@ export default function ParticipantsList({
               {!compact && (
                 <div className="mt-2 space-y-1">
                   {participant.signed_at && (
-                    <p className="text-xs text-gray-500">
+                    <BodyText as="p" size="xs" className="text-gray-500">
                       Signed: {formatAgreementDateTime(participant.signed_at)}
-                    </p>
+                    </BodyText>
                   )}
                   {participant.declined_reason && (
-                    <p className="text-xs text-red-600">
+                    <BodyText as="p" size="xs" className="text-red-600">
                       Declined: {participant.declined_reason}
-                    </p>
+                    </BodyText>
                   )}
                 </div>
               )}

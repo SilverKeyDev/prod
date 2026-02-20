@@ -1,15 +1,18 @@
-import Card from "../../components/layout/Card";
-import { NavigationButton, Subtitle } from "../../components/ui";
+import { useLocalization } from "packages/contexts";
+
+import Card from "@/components/layout/Card.web";
+import { Image, NavigationButton, Subtitle } from "@/components/ui/index.web";
 
 export default function HomeConcierge() {
+  const { t } = useLocalization();
   return (
     <div className="px-responsive-sm mx-auto w-full max-w-none">
-      <Card padding="md" className="mb-[8px]">
+      <Card padding="md" className="mb-2">
         <div className="flex flex-row gap-responsive-md items-start text-left">
-          <img
+          <Image
             src="/MoveConcierge.jpg"
-            alt="Moving Concierge"
-            className="w-[112px] md:w-[120px] rounded-lg border border-beige/30 flex-shrink-0"
+            alt={t("close.home_concierge.alt")}
+            className="w-28 md:w-30 rounded-lg border border-beige/30 flex-shrink-0"
             loading="lazy"
           />
           <div className="flex flex-col flex-1 min-w-0 max-w-[72ch] self-stretch justify-between">
@@ -18,16 +21,14 @@ export default function HomeConcierge() {
               muted
               className="leading-relaxed md:text-base lg:text-lg"
             >
-              Compare movers, schedule services, transfer utilities, and handle
-              logistics, all in one 30 minute call
+              {t("close.home_concierge.subtitle")}
             </Subtitle>
             <Subtitle
               size="xs"
               muted
               className="hidden md:block my-auto leading-relaxed md:text-xs lg:text-xs"
             >
-              <strong>How is this possible?</strong> MoveConcierge takes
-              commission from service providers, so it's free for you
+              {t("close.home_concierge.how_possible")}
             </Subtitle>
             <NavigationButton
               onClick={() =>
@@ -40,7 +41,7 @@ export default function HomeConcierge() {
               size="md"
               className="text-olive hover:text-olive/80 border border-dotted border-olive rounded px-2 py-1"
             >
-              Start Today
+              {t("close.home_concierge.start_today")}
             </NavigationButton>
           </div>
         </div>

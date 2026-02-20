@@ -1,4 +1,5 @@
-import MiniLogo from "../../../components/ui/asset/MiniLogo";
+import MiniLogo from "@/components/ui/asset/MiniLogo.web";
+import { BodyText, Title } from "@/components/ui/index.web";
 
 type AuthHeaderProps = {
   title: string;
@@ -19,11 +20,15 @@ export default function AuthHeader({
 }: AuthHeaderProps) {
   return (
     <div className={containerClassName}>
-      <h2 className={titleClassName}>
+      <Title as="h2" className={titleClassName}>
         <MiniLogo size={logoSize} />
         {title}
-      </h2>
-      {subtitle && <p className={subtitleClassName}>{subtitle}</p>}
+      </Title>
+      {subtitle && (
+        <BodyText as="p" className={subtitleClassName}>
+          {subtitle}
+        </BodyText>
+      )}
     </div>
   );
 }

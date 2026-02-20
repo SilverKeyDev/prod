@@ -53,6 +53,7 @@ export default defineConfig({
       "react-router-dom",
       "@tanstack/react-query",
       "zustand",
+      "hls.js",
     ],
     exclude: ["@types/*"],
   },
@@ -111,8 +112,22 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
+      "@ui": path.resolve(__dirname, "components/ui"),
+      logger: path.resolve(__dirname, "../../logger"),
       packages: path.resolve(__dirname, "../../packages"),
     },
+    // Prefer .web.* when building web so platform-only modules resolve without extension in imports
+    extensions: [
+      ".web.tsx",
+      ".web.ts",
+      ".tsx",
+      ".ts",
+      ".web.jsx",
+      ".web.js",
+      ".jsx",
+      ".js",
+      ".json",
+    ],
     // Ensure consistent module resolution
     dedupe: ["react", "react-dom", "react-router-dom"],
   },

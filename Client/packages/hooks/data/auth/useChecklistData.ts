@@ -1,12 +1,19 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
-import { useAuthStore } from "../../../store/auth.slice";
-import { apiGet, apiPut } from "../../../services/http/compatibility";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export type ChecklistType = "escrow" | "financing" | "closing" | "insurance";
+import {
+  type ChecklistType,
+  getTaskChecklist,
+  type TaskChecklistResponse,
+  updateTaskChecklist,
+} from "packages/config/api/core/tasks";
+import { useAuthStore } from "packages/store";
+
+export type { ChecklistType };
 
 export type UseChecklistDataReturn = {
+  items: TaskChecklistResponse["items"];
   checkedIds: number[];
   isLoading: boolean;
   error: string | null;
@@ -15,15 +22,15 @@ export type UseChecklistDataReturn = {
 };
 
 /**
- * Hook for managing checklist data with React Query
- * Uses prefetched data from services/data when available
+ * Hook for managing checklist data with React Query.
+ * Uses unified task API: returns items (definitions) + checkedIds (progress).
+ * Uses prefetched data from services/data when available.
  */
 export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
 
-  // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(
     () => authReady && isAuthenticated,
     [authReady, isAuthenticated],
@@ -32,71 +39,61 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
   const queryKey = useMemo(() => ["checklists", type] as const, [type]);
 
   const {
-    data: checkedIdsData,
+    data: checklistData,
     isLoading,
     error,
     refetch: refetchChecklist,
   } = useQuery({
     queryKey,
-    queryFn: async () => {
-      const response = await apiGet<{ success: boolean; data: number[] }>(
-        `/api/v1/user/close?type=${type}`,
-      );
-      if (!response.success) {
-        throw new Error(`Failed to fetch ${type} checklist`);
-      }
-      return response.data ?? [];
-    },
+    queryFn: () => getTaskChecklist(type),
     enabled: shouldLoadData,
-    // Use placeholderData to check cache reactively when enabled changes
     placeholderData: (previousValue) => {
-      const cached = queryClient.getQueryData<number[]>(queryKey);
+      const cached = queryClient.getQueryData<TaskChecklistResponse>(queryKey);
       return cached ?? previousValue;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnMount: false,
   });
 
-  // Update checklist mutation
   const updateChecklistMutation = useMutation({
     mutationFn: async (ids: number[]) => {
-      const response = await apiPut<{ success: boolean }>(
-        `/api/v1/user/close?type=${type}`,
-        ids,
-      );
-      if (!response.success) {
-        throw new Error(`Failed to update ${type} checklist`);
-      }
+      await updateTaskChecklist(type, ids);
       return ids;
     },
     onMutate: async (ids: number[]) => {
-      // Optimistic update
-      const previousIds = queryClient.getQueryData<number[]>(queryKey);
-      queryClient.setQueryData(queryKey, ids);
-      return { previousIds };
+      const previous =
+        queryClient.getQueryData<TaskChecklistResponse>(queryKey);
+      queryClient.setQueryData(
+        queryKey,
+        (old: TaskChecklistResponse | undefined) =>
+          old ? { ...old, checkedIds: ids } : { items: [], checkedIds: ids },
+      );
+      return { previous };
     },
     onError: (_err, _variables, context) => {
-      // Rollback on error
-      if (context?.previousIds) {
-        queryClient.setQueryData(queryKey, context.previousIds);
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
       }
     },
     onSuccess: (ids) => {
-      // Update cache with server response
-      queryClient.setQueryData(queryKey, ids);
+      queryClient.setQueryData(
+        queryKey,
+        (old: TaskChecklistResponse | undefined) =>
+          old ? { ...old, checkedIds: ids } : { items: [], checkedIds: ids },
+      );
     },
   });
 
   const toggleItem = useCallback(
     async (id: number) => {
-      const currentIds = checkedIdsData ?? [];
+      const currentIds = checklistData?.checkedIds ?? [];
       const isChecked = currentIds.includes(id);
       const newIds = isChecked
         ? currentIds.filter((itemId) => itemId !== id)
         : [...currentIds, id];
       await updateChecklistMutation.mutateAsync(newIds);
     },
-    [checkedIdsData, updateChecklistMutation],
+    [checklistData?.checkedIds, updateChecklistMutation],
   );
 
   const refreshChecklist = useCallback(async () => {
@@ -104,7 +101,8 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
   }, [refetchChecklist]);
 
   return {
-    checkedIds: checkedIdsData ?? [],
+    items: checklistData?.items ?? [],
+    checkedIds: checklistData?.checkedIds ?? [],
     isLoading,
     error: error?.message ?? null,
     toggleItem,

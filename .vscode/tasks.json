@@ -1,0 +1,240 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "client:check:all",
+      "type": "shell",
+      "command": "pnpm run check:all",
+      "options": { "cwd": "${workspaceFolder}/Client" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": [
+        {
+          "owner": "tsc",
+          "source": "tsc",
+          "fileLocation": ["relative", "${workspaceFolder}/Client"],
+          "pattern": {
+            "regexp": "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:[\\(:](\\d+)[,:](\\d+))??:\\s+(error|warning)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "message": 5,
+            "code": 6,
+            "severity": 4
+          }
+        },
+        "$eslint-stylish",
+        {
+          "owner": "prettier",
+          "source": "prettier",
+          "fileLocation": ["relative", "${workspaceFolder}/Client"],
+          "pattern": {
+            "regexp": "^((?:apps|packages|tools|scripts)/[^\\s]+\\.(ts|tsx|js|jsx|json|css|md|yaml|yml))$",
+            "file": 1,
+            "line": 1,
+            "message": "Prettier format check failed"
+          }
+        }
+      ],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "client:format:check",
+      "type": "npm",
+      "script": "format:check",
+      "path": "Client",
+      "group": "build",
+      "problemMatcher": {
+        "owner": "prettier",
+        "source": "prettier",
+        "fileLocation": ["relative", "${workspaceFolder}/Client"],
+        "pattern": {
+          "regexp": "^((?:apps|packages|tools|scripts)/[^\\s]+\\.(ts|tsx|js|jsx|json|css|md|yaml|yml))$",
+          "file": 1,
+          "line": 1,
+          "message": "Not formatted"
+        }
+      }
+    },
+    {
+      "label": "server:lint:file-length",
+      "type": "shell",
+      "command": "python3 Server/scripts/lint_file_length.py",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": {
+        "owner": "python-lint",
+        "source": "file-length",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.+):(\\d+):(\\d+):\\s*(warning|error):\\s*(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "group": "build"
+    },
+    {
+      "label": "server:lint:compile",
+      "type": "shell",
+      "command": "python3 Server/scripts/lint_compile.py",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": {
+        "owner": "python-lint",
+        "source": "compile",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.+):(\\d+):(\\d+):\\s*(warning|error):\\s*(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "group": "build"
+    },
+    {
+      "label": "server:lint:circular-imports",
+      "type": "shell",
+      "command": "python3 Server/scripts/lint_circular_imports.py",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "server:lint:all",
+      "dependsOn": ["server:lint:file-length", "server:lint:compile", "server:lint:circular-imports"],
+      "group": "build"
+    },
+    {
+      "label": "client:format",
+      "type": "npm",
+      "script": "format",
+      "path": "Client",
+      "problemMatcher": []
+    },
+    {
+      "label": "client:lint",
+      "type": "npm",
+      "script": "lint",
+      "path": "Client",
+      "problemMatcher": ["$eslint-stylish"],
+      "group": "build"
+    },
+    {
+      "label": "client:typecheck",
+      "type": "npm",
+      "script": "typecheck",
+      "path": "Client",
+      "problemMatcher": {
+        "owner": "tsc",
+        "source": "tsc",
+        "fileLocation": ["relative", "${workspaceFolder}/Client"],
+        "pattern": {
+          "regexp": "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:[\\(:](\\d+)[,:](\\d+))??:\\s+(error|warning)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "message": 5,
+          "code": 6,
+          "severity": 4
+        }
+      },
+      "group": "build"
+    },
+    {
+      "label": "client:lint:all",
+      "type": "npm",
+      "script": "lint:all",
+      "path": "Client",
+      "problemMatcher": ["$eslint-stylish"],
+      "group": "build"
+    },
+    {
+      "label": "client:fix-all",
+      "dependsOn": ["client:format", "client:lint"],
+      "group": "build"
+    },
+    {
+      "label": "client:dev:web",
+      "type": "npm",
+      "script": "dev:web",
+      "path": "Client",
+      "group": "none",
+      "isBackground": true
+    },
+    {
+      "label": "client:build:web",
+      "type": "npm",
+      "script": "build:web",
+      "path": "Client",
+      "group": "build"
+    },
+    {
+      "label": "client:test",
+      "type": "shell",
+      "command": "cd Client && pnpm test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "client:test:changed",
+      "type": "shell",
+      "command": "cd Client && pnpm test:changed",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "client:test:e2e",
+      "type": "shell",
+      "command": "cd Client && pnpm test:e2e",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "client:lint:file",
+      "type": "shell",
+      "command": "cd Client && pnpm exec eslint --fix ${file}",
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "client:prettier:file",
+      "type": "shell",
+      "command": "cd Client && pnpm exec prettier --write ${file}",
+      "problemMatcher": []
+    },
+    {
+      "label": "repo:logging-check",
+      "type": "shell",
+      "command": "rg \"console\\\\.(log|info|warn|error)\" Client -n",
+      "problemMatcher": []
+    },
+    {
+      "label": "git:stage-and-commit",
+      "type": "shell",
+      "command": "git add -A && git commit -m \"${input:commitMessage}\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "git:update-from-main",
+      "type": "shell",
+      "command": "git fetch origin && git pull --rebase origin main",
+      "problemMatcher": []
+    },
+    {
+      "label": "git:open-pr",
+      "type": "shell",
+      "command": "gh pr create --fill",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "commitMessage",
+      "type": "promptString",
+      "description": "Commit message"
+    }
+  ]
+}

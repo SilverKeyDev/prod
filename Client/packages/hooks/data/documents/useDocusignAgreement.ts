@@ -1,11 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { docusignApi } from "../../../config/api/documents/docusign";
-import { queryKeys } from "../../../config/query/keys";
-import { useAuthStore } from "../../../store/auth.slice";
-import { log, LOG_CATEGORIES } from "../../../../logger";
-import type { Agreement } from "../../../schemas/documents/docusign";
+import { useQuery } from "@tanstack/react-query";
+import { log, LOG_CATEGORIES } from "logger";
+
+import { docusignApi } from "packages/config/api/documents/docusign";
+import { queryKeys } from "packages/config/query/keys";
+import type { Agreement } from "packages/schemas/content/documents/docusign";
+import { useAuthStore } from "packages/store";
 
 export type UseDocusignAgreementReturn = {
   agreement: Agreement | null;

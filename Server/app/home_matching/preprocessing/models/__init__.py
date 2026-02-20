@@ -6,16 +6,16 @@ embeddings and ensemble modules.
 """
 
 from .base import BaseInputModel
-from .embedding_input import EmbeddingUserInput, EmbeddingHomeInput
-from .data_retrieval import UserDataRetriever, HomeDataRetriever
+from .data_retrieval import HomeDataRetriever, UserDataRetriever
+from .embedding_input import EmbeddingHomeInput, EmbeddingUserInput
 
 __all__ = [
     # Base
-    'BaseInputModel',
+    "BaseInputModel",
     # Embedding models
-    'EmbeddingUserInput',
-    'EmbeddingHomeInput',
+    "EmbeddingUserInput",
+    "EmbeddingHomeInput",
     # Data retrieval
-    'UserDataRetriever',
-    'HomeDataRetriever',
+    "UserDataRetriever",
+    "HomeDataRetriever",
 ]

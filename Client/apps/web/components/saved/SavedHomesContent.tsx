@@ -1,18 +1,23 @@
 import { useMemo } from "react";
+
 import { Handshake } from "lucide-react";
-import type { SavedHome } from "../../../../packages/schemas";
-import { PropertyCard } from "../cards";
+
+import { useLocalization } from "packages/contexts";
+import type { DocumentData } from "packages/hooks/data/documents/useDocumentsData";
+import type { SavedPageViewType } from "packages/hooks/store/documents/useSavedPageView";
+import type { SavedHome } from "packages/schemas";
+import type { Agreement } from "packages/schemas/content/documents/docusign";
+import { dateParseISO } from "packages/utils/core/date";
+
+import { PropertyCard } from "@/components/cards";
 import {
+  CardCompareCheckbox,
   CardHeartSave,
   CardViewDetailsButton,
-  CardCompareCheckbox,
-} from "../cards/base";
-import DocumentCard from "../cards/documents/DocumentCard";
-import AgreementListItem from "../../features/documents/docusign/components/AgreementListItem";
-import { KeyTurnLoader } from "../ui";
-import type { SavedPageViewType } from "../../../../packages/hooks/store/documents/useSavedPageView";
-import type { DocumentData } from "../../../../packages/hooks/data/documents/useDocumentsData";
-import type { Agreement } from "../../../../packages/schemas/documents/docusign";
+} from "@/components/cards/base/index.web";
+import DocumentCard from "@/components/cards/documents/DocumentCard";
+import { BodyText, KeyTurnLoader } from "@/components/ui/index.web";
+import AgreementListItem from "@/features/documents/docusign/components/AgreementListItem";
 
 type SavedHomesContentProps = {
   viewType: SavedPageViewType;
@@ -56,6 +61,7 @@ export default function SavedHomesContent({
   selectedHomesDataLength,
   noPadding = false,
 }: SavedHomesContentProps) {
+  const { t } = useLocalization();
   const containerClass = noPadding ? "w-full" : `w-full ${CONTENT_PADDING}`;
   // Merge and sort documents and agreements by date
   const sortedItems = useMemo(() => {
@@ -75,15 +81,17 @@ export default function SavedHomesContent({
     });
 
     // Sort by created_at/updated_at (most recent first)
+    const toMs = (v: number | string) =>
+      typeof v === "number" ? v : dateParseISO(v).valueOf();
     items.sort((a, b) => {
       const dateA =
         a.type === "document"
-          ? new Date(a.data.created_at ?? a.data.updated_at ?? 0).getTime()
-          : new Date(a.data.created_at).getTime();
+          ? toMs(a.data.created_at ?? a.data.updated_at ?? 0)
+          : toMs(a.data.created_at);
       const dateB =
         b.type === "document"
-          ? new Date(b.data.created_at ?? b.data.updated_at ?? 0).getTime()
-          : new Date(b.data.created_at).getTime();
+          ? toMs(b.data.created_at ?? b.data.updated_at ?? 0)
+          : toMs(b.data.created_at);
       return dateB - dateA;
     });
 
@@ -98,7 +106,7 @@ export default function SavedHomesContent({
         <div
           className={`${containerClass} py-responsive-lg flex justify-center`}
         >
-          <KeyTurnLoader message="Loading documents..." />
+          <KeyTurnLoader message={t("saved.loading_documents")} />
         </div>
       );
     }
@@ -106,9 +114,13 @@ export default function SavedHomesContent({
     if (sortedItems.length === 0) {
       return (
         <div className={`${containerClass} py-responsive-lg text-center`}>
-          <p className="text-responsive-sm text-gray-600">
-            You have no documents or agreements yet.
-          </p>
+          <BodyText
+            as="p"
+            size="sm"
+            className="text-gray-600 text-responsive-sm"
+          >
+            {t("saved.no_documents_yet")}
+          </BodyText>
         </div>
       );
     }
@@ -134,7 +146,7 @@ export default function SavedHomesContent({
                 onVoid={onAgreementVoid}
               />
             </div>
-          )
+          ),
         )}
       </div>
     );
@@ -147,16 +159,20 @@ export default function SavedHomesContent({
           <div
             className={`${containerClass} py-responsive-lg flex justify-center`}
           >
-            <KeyTurnLoader message="Loading saved homes..." />
+            <KeyTurnLoader message={t("saved.loading_homes")} />
           </div>
         );
       }
 
       return (
         <div className={`${containerClass} py-responsive-lg text-center`}>
-          <p className="text-responsive-sm text-gray-600">
-            You have no saved homes yet.
-          </p>
+          <BodyText
+            as="p"
+            size="sm"
+            className="text-gray-600 text-responsive-sm"
+          >
+            {t("saved.no_homes_yet")}
+          </BodyText>
         </div>
       );
     }

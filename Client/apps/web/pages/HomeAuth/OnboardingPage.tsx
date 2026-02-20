@@ -1,703 +1,92 @@
-// React imports
-import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboardingForm";
 
-// Assets
-import KeyLogo from "/logo.png?url";
-// Components
-import { ValidationWarning } from "../../components/feedback";
-import Card from "../../components/layout/Card";
-import { Input, Dropdown, Title, NavigationButtons } from "../../components/ui";
-//import { SkipButton } from "../../components/ui/button/NavigationButtons";
-// Core
-import { useGoogleMaps } from "../../../../packages/hooks/data/useGoogleMaps";
-import { log, LOG_CATEGORIES } from "../../../../logger";
-// Features
-import OnPerBuyersAgent from "../../features/onboardpersonalize/BuyersAgent";
-import HomePriceEstimate from "../../features/onboardpersonalize/HomePriceEstimate";
-import type { HomePriceResult } from "../../features/onboardpersonalize/lib/homePriceCalculation";
-import ImportantLocationsInput from "../../features/onboardpersonalize/ImportantLocationsInput";
+import { ValidationWarning } from "@/components/feedback";
+import Card from "@/components/layout/Card.web";
+import { Image, NavigationButtons } from "@/components/ui/index.web";
+import OnboardingHeader from "@/features/profile/onboard/Header";
 import {
-  getOnboardingSteps,
-  IS_AGENT_OPTIONS,
-  //GENDER_OPTIONS,
-  type OnboardingData,
-  //PETS_OPTIONS,
-  CREDIT_SCORE_OPTIONS,
-  HOUSING_TYPE_OPTIONS,
-  LOT_SIZE_OPTIONS,
-  WALKABILITY_OPTIONS,
-  COMMUNICATION_FREQUENCY_OPTIONS,
-  HOME_AGE_OPTIONS,
-  RENOVATION_PREFERENCE_OPTIONS,
-  PROPERTY_USE_OPTIONS,
-  SECTION_TITLES,
-  FIELD_LABELS,
-  REQUIRED_FIELDS_ONBOARDING,
-} from "../../features/onboardpersonalize/lib/constants";
-import { calculateAffordableHomePrice } from "../../features/onboardpersonalize/lib/homePriceCalculation";
-import { handleSubmit as handleSubmitUtil } from "../../features/onboardpersonalize/lib/submitHandler";
-import OnboardingHeader from "../../features/onboardpersonalize/onboard/Header";
-import OnPerLabel from "../../features/onboardpersonalize/OnPerLabel";
-import PriceRangeSlider from "../../features/onboardpersonalize/PriceRangeSlider";
-import BudgetRangeSlider from "../../features/onboardpersonalize/BudgetRangeSlider";
-import OnPerTagInput from "../../features/onboardpersonalize/TagInput";
+  DemographicsSection,
+  HousingSection,
+  LocationSection,
+  OnboardingFinancialSection,
+} from "@/features/profile/sections/index.web";
 
-// Utility functions
-
-// Google Maps types are declared in googleMaps.ts
-
-const STEPS = getOnboardingSteps();
+import KeyLogo from "/logo.png?url";
 
 export default function OnboardingPage() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<OnboardingData>({
-    important_locations: [],
-  });
-  const [loading, setLoading] = useState(false);
-  const [scriptsReady, setScriptsReady] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [showValidationWarning, setShowValidationWarning] = useState(false);
-  const [validationResult, setValidationResult] = useState<{
-    missingFields: string[];
-    errors: string[];
-  }>({ missingFields: [], errors: [] });
-
-  // Home price calculation state
-  const [homePriceLoading, setHomePriceLoading] = useState(false);
-  const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const [homePriceResult, setHomePriceResult] =
-    useState<HomePriceResult | null>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] =
-    useState(false);
-  const navigate = useNavigate();
-
-  const calculateHomePrice = useCallback(() => {
-    // Check if we have all required data
-    if (!formData.gross_income || !formData.ideal_zip_code) {
-      return;
-    }
-
-    try {
-      setHomePriceLoading(true);
-      setHomePriceError(null);
-
-      const result = calculateAffordableHomePrice(formData);
-
-      if (
-        result &&
-        typeof result === "object" &&
-        "error" in result &&
-        typeof result.error === "string"
-      ) {
-        setHomePriceError(result.error);
-        setHomePriceResult(null);
-      } else {
-        setHomePriceResult(result as HomePriceResult);
-      }
-    } catch (error: unknown) {
-      setHomePriceError(
-        error instanceof Error
-          ? error.message
-          : "Failed to calculate home price",
-      );
-      setHomePriceResult(null);
-    } finally {
-      setHomePriceLoading(false);
-    }
-  }, [formData]);
-
-  // Trigger home price calculation when relevant form data changes
-  useEffect(() => {
-    // Only calculate if we're on the financial section
-    if (currentStep !== 1) return;
-
-    // Check if we have the required data
-    if (
-      formData.gross_income &&
-      formData.ideal_zip_code &&
-      formData.credit_score_range &&
-      formData.down_payment
-    ) {
-      void calculateHomePrice();
-    }
-  }, [
-    formData.gross_income,
-    formData.ideal_zip_code,
-    formData.credit_score_range,
-    formData.down_payment,
+  const {
+    steps,
+    formData,
+    updateFormData,
     currentStep,
-    calculateHomePrice,
-  ]);
-
-  // Load formData from localStorage on mount
-  useEffect(() => {
-    const draft = localStorage.getItem("onboardingDraft");
-    if (draft) {
-      try {
-        const parsed = JSON.parse(draft) as Record<string, unknown>;
-        // Type-safe parsing with proper type guards
-        if (parsed && typeof parsed === "object") {
-          setFormData(parsed as OnboardingData);
-        }
-      } catch {
-        log.warn(LOG_CATEGORIES.ERRORS, "Invalid onboarding draft data");
-      }
-    } else {
-      // If no draft exists, initialize with default
-      setFormData({ important_locations: [] });
-    }
-  }, []);
-
-  // Save formData to localStorage on change
-  useEffect(() => {
-    localStorage.setItem("onboardingDraft", JSON.stringify(formData));
-  }, [formData]);
-
-  // Trigger home price calculation when relevant form data changes
-
-  // Update form data with new value
-  const updateFormData = (field: string | number | symbol, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
-    useGoogleMaps();
-
-  // Update scriptsReady based on centralized Google Maps loading
-  useEffect(() => {
-    if (googleMapsError) {
-      log.error(
-        LOG_CATEGORIES.ERRORS,
-        "Google Maps loading error",
-        googleMapsError,
-      );
-      void void setLoadError("Failed to load Google Maps script.");
-      return;
-    }
-
-    if (googleMapsLoaded && window.google?.maps?.places) {
-      setScriptsReady(true);
-    }
-  }, [googleMapsLoaded, googleMapsError]);
-
-  const nextStep = () => {
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const goToStep = (stepIndex: number) => {
-    setCurrentStep(stepIndex);
-  };
-
-  /*const handleSkip = () => {
-    navigate("/dashboard");
-  };*/
-
-  const handleSubmit = async () => {
-    await handleSubmitUtil({
-      formData,
-      setLoading,
-      setValidationResult,
-      setShowValidationWarning,
-      navigate,
-    });
-  };
-
-  // Handler for closing the validation warning
-  const handleCloseValidationWarning = () => {
-    setShowValidationWarning(false);
-  };
-
-  // Handler for reviewing information from validation warning
-  const handleReviewInformation = () => {
-    setShowValidationWarning(false);
-
-    // Navigate to the first missing field's section if possible
-    const firstMissingField = validationResult.missingFields[0];
-    if (firstMissingField) {
-      // Try to determine which step contains the missing field and navigate there
-      if (firstMissingField.includes("Age")) {
-        setCurrentStep(0); // Demographics
-      } else if (firstMissingField.includes("budget")) {
-        setCurrentStep(1); // Financial
-      } else if (
-        firstMissingField.includes("bedroom") ??
-        firstMissingField.includes("bathroom")
-      ) {
-        setCurrentStep(2); // Housing
-      } else if (firstMissingField.includes("location")) {
-        setCurrentStep(3); // Location
-      }
-    }
-  };
+    nextStep,
+    prevStep,
+    goToStep,
+    loading,
+    scriptsReady,
+    loadError,
+    showValidationWarning,
+    validationResult,
+    handleSubmit,
+    handleCloseValidationWarning,
+    handleReviewInformation,
+    homePriceLoading,
+    homePriceError,
+    homePriceResult,
+    isAffordabilityCollapsed,
+    setIsAffordabilityCollapsed,
+    isDesktop,
+  } = useOnboardingForm();
 
   const renderStepContent = () => {
-    const step = STEPS[currentStep];
+    const step = steps[currentStep];
 
     switch (step.id) {
       case "demographics":
         return (
-          <div className="space-y-6">
-            <Title size="lg" className="mb-4 sm:mb-6">
-              Tell us about yourself
-            </Title>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div>
-                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.is_agent}>
-                  {FIELD_LABELS.IS_AGENT}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.is_agent ?? ""}
-                  onChange={(value) => updateFormData("is_agent", value)}
-                  options={IS_AGENT_OPTIONS}
-                  placeholder="Select..."
-                />
-                {formData.is_agent === "yes" && (
-                  <p className="mt-2 text-xs text-black/60 sm:text-sm md:text-base">
-                    You only need to fill out the rest of this information for
-                    toying around or personal use.
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.age}>
-                  {FIELD_LABELS.AGE}
-                </OnPerLabel>
-                <Input
-                  variant="mobile"
-                  type="number"
-                  value={formData.age?.toString() ?? ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateFormData("age", parseInt(e.target.value) || undefined)
-                  }
-                  placeholder="Enter your age"
-                  min={18}
-                  max={100}
-                />
-              </div>
-
-              {/* <div>
-                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.gender}>
-                  {FIELD_LABELS.GENDER}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.gender ?? ""}
-                  onChange={(value) => updateFormData("gender", value)}
-                  options={GENDER_OPTIONS}
-                  placeholder="Select gender"
-                />
-              </div> */}
-
-              {/* <div>
-                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.occupation}>
-                  {FIELD_LABELS.OCCUPATION}
-                </OnPerLabel>
-                <Input
-                  variant="mobile"
-                  type="text"
-                  value={formData.occupation ?? ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateFormData("occupation", e.target.value)
-                  }
-                  placeholder="Your job title"
-                />
-              </div> */}
-
-              {/* <div>
-                <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.pets}>
-                  {FIELD_LABELS.PETS}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.pets ?? ""}
-                  onChange={(value) => updateFormData("pets", value)}
-                  options={PETS_OPTIONS}
-                  placeholder="Select pet status"
-                />
-              </div> */}
-            </div>
-
-            {/* Buyer's Agent Section */}
-            <div className="mt-6">
-              <OnPerBuyersAgent
-                hasBuyersAgent={formData.has_buyers_agent ?? ""}
-                lookingForBuyersAgent={!!formData.looking_for_buyers_agent}
-                onHasBuyersAgentChange={(value: string) =>
-                  updateFormData("has_buyers_agent", value)
-                }
-                onLookingForBuyersAgentChange={(value: boolean) =>
-                  updateFormData("looking_for_buyers_agent", value)
-                }
-              />
-            </div>
-          </div>
+          <DemographicsSection
+            formData={formData}
+            isEditMode={true}
+            updateFormData={updateFormData}
+            wrapInCard={false}
+            hideProfilePictureWhenOnboarding={true}
+          />
         );
 
       case "financial":
         return (
-          <div className="space-y-6">
-            <Title size="lg" className="mb-4 sm:mb-6">
-              {SECTION_TITLES.FINANCIAL_PROFILE}
-            </Title>
-            <div className="col-span-1 flex flex-col items-center md:col-span-2">
-              <label className="text-responsive-xl space-y-responsive-xs block w-full text-center font-bold text-gray-700">
-                {FIELD_LABELS.HOME_BUDGET} *
-              </label>
-              <BudgetRangeSlider
-                tickValues={[
-                  200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000,
-                  6000000, 10000000,
-                ]}
-                minValue={formData.home_budget_min ?? 200000}
-                maxValue={formData.home_budget_max ?? 1000000}
-                onChange={(minValue, maxValue) => {
-                  // Round to nearest $25,000 increment
-                  const roundedMin = Math.round(minValue / 25000) * 25000;
-                  const roundedMax = Math.round(maxValue / 25000) * 25000;
-                  updateFormData("home_budget_min", roundedMin);
-                  updateFormData("home_budget_max", roundedMax);
-                }}
-                formatPrefix="$"
-                className="mt-2"
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="mx-auto w-4/5">
-                <label className="mb-1 block w-full text-center text-xs font-normal text-gray-700 sm:text-sm md:text-base">
-                  {FIELD_LABELS.GROSS_INCOME} (after debts)
-                </label>
-                <PriceRangeSlider
-                  tickValues={[
-                    50000, 100000, 200000, 300000, 500000, 750000, 1000000,
-                  ]}
-                  value={formData.gross_income ?? 100000}
-                  onChange={(value) => {
-                    // Round to nearest $5,000 increment
-                    const roundedValue = Math.round(value / 5000) * 5000;
-                    updateFormData("gross_income", roundedValue);
-                  }}
-                  formatPrefix="$"
-                  className="mt-2"
-                />
-              </div>
-
-              <div className="mx-auto w-4/5">
-                <label className="mb-1 block w-full text-center text-xs font-normal text-gray-700 sm:text-sm md:text-base">
-                  {FIELD_LABELS.DOWN_PAYMENT}
-                </label>
-                <PriceRangeSlider
-                  tickValues={[
-                    100000, 250000, 500000, 1000000, 2000000, 5000000,
-                  ]}
-                  value={formData.down_payment ?? 100000}
-                  onChange={(value) => {
-                    // Round to nearest $5,000 increment
-                    const roundedValue = Math.round(value / 5000) * 5000;
-                    updateFormData("down_payment", roundedValue);
-                  }}
-                  formatPrefix="$"
-                  className="mt-2"
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.ideal_zip_code}
-                >
-                  {FIELD_LABELS.IDEAL_ZIP_CODE}
-                </OnPerLabel>
-                <Input
-                  variant="mobile"
-                  type="text"
-                  value={formData.ideal_zip_code ?? ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateFormData("ideal_zip_code", e.target.value)
-                  }
-                  placeholder="Enter zip code"
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.credit_score_range}
-                >
-                  {FIELD_LABELS.CREDIT_SCORE_RANGE}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.credit_score_range ?? ""}
-                  onChange={(value) =>
-                    updateFormData("credit_score_range", value)
-                  }
-                  options={CREDIT_SCORE_OPTIONS}
-                  placeholder="Select credit score range"
-                />
-              </div>
-
-              <HomePriceEstimate
-                homePriceLoading={homePriceLoading}
-                homePriceError={homePriceError}
-                homePriceResult={homePriceResult}
-                isAffordabilityCollapsed={isAffordabilityCollapsed}
-                setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
-                idealZipCode={formData.ideal_zip_code}
-              />
-            </div>
-          </div>
+          <OnboardingFinancialSection
+            formData={formData}
+            updateFormData={updateFormData}
+            homePriceLoading={homePriceLoading}
+            homePriceError={homePriceError}
+            homePriceResult={homePriceResult}
+            isAffordabilityCollapsed={isAffordabilityCollapsed}
+            setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
+          />
         );
 
       case "housing":
         return (
-          <div className="space-y-6">
-            <Title size="md" className="mb-2">
-              {SECTION_TITLES.HOUSING_PREFERENCES}
-            </Title>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.preferred_bedrooms}
-                >
-                  {FIELD_LABELS.PREFERRED_BEDROOMS}
-                </OnPerLabel>
-                <Input
-                  variant="mobile"
-                  type="number"
-                  value={formData.preferred_bedrooms?.toString() ?? ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateFormData(
-                      "preferred_bedrooms",
-                      parseInt(e.target.value) || undefined,
-                    )
-                  }
-                  min={1}
-                  max={10}
-                  placeholder="Number of bedrooms"
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.preferred_bathrooms}
-                >
-                  {FIELD_LABELS.PREFERRED_BATHROOMS}
-                </OnPerLabel>
-                <Input
-                  variant="mobile"
-                  type="number"
-                  value={formData.preferred_bathrooms?.toString() ?? ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateFormData(
-                      "preferred_bathrooms",
-                      parseFloat(e.target.value) || undefined,
-                    )
-                  }
-                  min={1}
-                  max={10}
-                  step={0.5}
-                  placeholder="Number of bathrooms"
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.preferred_housing_type}
-                >
-                  {FIELD_LABELS.PREFERRED_HOUSING_TYPE}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.preferred_housing_type ?? ""}
-                  onChange={(value) =>
-                    updateFormData("preferred_housing_type", value)
-                  }
-                  options={HOUSING_TYPE_OPTIONS}
-                  placeholder="Select..."
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.preferred_lot_size}
-                >
-                  {FIELD_LABELS.PREFERRED_LOT_SIZE}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.preferred_lot_size ?? ""}
-                  onChange={(value) =>
-                    updateFormData("preferred_lot_size", value)
-                  }
-                  options={LOT_SIZE_OPTIONS}
-                  placeholder="Select..."
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.preferred_home_age}
-                >
-                  {FIELD_LABELS.PREFERRED_HOME_AGE}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.preferred_home_age ?? ""}
-                  onChange={(value) =>
-                    updateFormData("preferred_home_age", value)
-                  }
-                  options={HOME_AGE_OPTIONS}
-                  placeholder="Select..."
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={
-                    REQUIRED_FIELDS_ONBOARDING.preferred_architectural_style
-                  }
-                >
-                  {FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.preferred_architectural_style ?? ""}
-                  onChange={(value) =>
-                    updateFormData("preferred_architectural_style", value)
-                  }
-                  options={COMMUNICATION_FREQUENCY_OPTIONS}
-                  placeholder="Select..."
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.renovation_preference}
-                >
-                  {FIELD_LABELS.RENOVATION_PREFERENCE}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.renovation_preference ?? ""}
-                  onChange={(value) =>
-                    updateFormData("renovation_preference", value)
-                  }
-                  options={RENOVATION_PREFERENCE_OPTIONS}
-                  placeholder="Select..."
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.intended_property_use}
-                >
-                  {FIELD_LABELS.INTENDED_PROPERTY_USE}
-                </OnPerLabel>
-                <Dropdown
-                  value={formData.intended_property_use ?? ""}
-                  onChange={(value) =>
-                    updateFormData("intended_property_use", value)
-                  }
-                  options={PROPERTY_USE_OPTIONS}
-                  placeholder="Select..."
-                />
-              </div>
-
-              <div>
-                <OnPerLabel
-                  required={REQUIRED_FIELDS_ONBOARDING.walkability_importance}
-                >
-                  {FIELD_LABELS.WALKABILITY_IMPORTANCE}
-                </OnPerLabel>
-
-                <Dropdown
-                  value={formData.walkability_importance ?? ""}
-                  onChange={(value) =>
-                    updateFormData("walkability_importance", value)
-                  }
-                  options={WALKABILITY_OPTIONS}
-                  placeholder="Select..."
-                />
-              </div>
-
-              <div className="flex flex-wrap gap-6 md:col-span-2">
-                <div className="flex-1 min-w-[280px]">
-                  <OnPerLabel
-                    required={REQUIRED_FIELDS_ONBOARDING.deal_breakers}
-                  >
-                    {FIELD_LABELS.DEAL_BREAKERS}
-                  </OnPerLabel>
-                  <OnPerTagInput
-                    value={(formData.deal_breakers as string[]) ?? []}
-                    onChange={(value: string[]) =>
-                      updateFormData("deal_breakers", value)
-                    }
-                    placeholder="e.g., No parking, Busy road, Old plumbing"
-                  />
-                </div>
-
-                <div className="flex-1 min-w-[280px]">
-                  <OnPerLabel
-                    required={
-                      REQUIRED_FIELDS_ONBOARDING.preferred_home_features
-                    }
-                  >
-                    {FIELD_LABELS.PREFERRED_HOME_FEATURES}
-                  </OnPerLabel>
-                  <OnPerTagInput
-                    value={(formData.preferred_home_features as string[]) ?? []}
-                    onChange={(value: string[]) =>
-                      updateFormData("preferred_home_features", value)
-                    }
-                    placeholder="e.g., garage, pool, fireplace"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <HousingSection
+            formData={formData}
+            isEditMode={true}
+            updateFormData={updateFormData}
+            isDesktop={isDesktop}
+            wrapInCard={false}
+          />
         );
 
       case "location":
         return (
-          <div className="space-y-6">
-            <Title size="md" className="mb-6">
-              Location Preferences
-            </Title>
-
-            {/* Important Locations Section */}
-            <div>
-              <OnPerLabel
-                required={REQUIRED_FIELDS_ONBOARDING.important_locations}
-              >
-                {FIELD_LABELS.IMPORTANT_LOCATIONS}
-              </OnPerLabel>
-              <p
-                className="mb-4 text-xs text-
-              black/60 sm:text-sm md:text-base"
-              >
-                Add work, family, or frequently visited places. We'll find homes
-                with reasonable commute times to these locations.
-              </p>
-              <ImportantLocationsInput
-                locations={formData.important_locations ?? []}
-                onChange={(
-                  locations: {
-                    address: string;
-                    commute_tolerance?: number;
-                  }[],
-                ) => {
-                  updateFormData("important_locations", locations);
-                }}
-                scriptsReady={scriptsReady}
-              />
-              {loadError && (
-                <p className="mt-2 text-xs text-red-500">{loadError}</p>
-              )}
-            </div>
-          </div>
+          <LocationSection
+            formData={formData}
+            isEditMode={true}
+            updateFormData={updateFormData}
+            scriptsReady={scriptsReady}
+            loadError={loadError}
+            wrapInCard={false}
+          />
         );
 
       default:
@@ -711,20 +100,18 @@ export default function OnboardingPage() {
         {/* Header */}
         <div className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
           <div className="flex items-center">
-            <img
+            <Image
               src={KeyLogo}
               alt="SilverKey Logo"
               className="h-6 sm:h-8 md:h-10"
             />
           </div>
-          <div className="flex items-center gap-4">
-            {/*  <SkipButton onSkip={handleSkip} size="sm" />*/}
-          </div>
+          <div className="flex items-center gap-4" />
         </div>
 
         {/* Progress Bar */}
         <OnboardingHeader
-          steps={STEPS}
+          steps={steps}
           currentStep={currentStep}
           onStepClick={goToStep}
         />
@@ -738,7 +125,7 @@ export default function OnboardingPage() {
             <div className="mt-10 border-t border-beige/30 px-4 pb-1 pt-8 sm:px-6 sm:pb-2">
               <NavigationButtons
                 currentStep={currentStep}
-                totalSteps={STEPS.length}
+                totalSteps={steps.length}
                 onPrevious={prevStep}
                 onNext={nextStep}
                 onSubmit={handleSubmit}

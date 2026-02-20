@@ -1,6 +1,18 @@
 import React from "react";
 
-export function formatStrategyValue(val: unknown): React.JSX.Element | string {
+import { BodyText } from "@/components/ui/index.web";
+
+type TranslateFn = (key: string) => string;
+
+export function formatStrategyValue(
+  val: unknown,
+  t?: TranslateFn,
+): React.JSX.Element | string {
+  const yesLabel = t ? t("negotiate.strategy_field.yes") : "Yes";
+  const noLabel = t ? t("negotiate.strategy_field.no") : "No";
+  const notSpecifiedLabel = t
+    ? t("profile.sections.not_specified")
+    : "Not specified";
   if (typeof val === "object" && val !== null) {
     if (Array.isArray(val)) {
       // Format arrays as clean bullet points with modern styling
@@ -11,10 +23,14 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
               key={idx}
               className="text-responsive-sm flex items-start gap-2 text-navy/80"
             >
-              <span className="flex h-5 flex-shrink-0 items-center text-brown">
-                <span className="h-px w-2 bg-brown"></span>
-              </span>
-              <span>
+              <BodyText
+                as="span"
+                size="sm"
+                className="flex h-5 flex-shrink-0 items-center text-brown"
+              >
+                <BodyText as="span" size="sm" className="h-px w-2 bg-brown" />
+              </BodyText>
+              <BodyText as="span" size="sm">
                 {typeof item === "object" && item !== null
                   ? // Handle objects properly - extract meaningful content
                     Object.entries(item as Record<string, unknown>)
@@ -32,7 +48,7 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
                           word.slice(1).toLowerCase(),
                       )
                       .join(" ")}
-              </span>
+              </BodyText>
             </li>
           ))}
         </ul>
@@ -69,10 +85,18 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
                             key={idx}
                             className="text-responsive-sm flex items-start gap-2"
                           >
-                            <span className="flex h-5 flex-shrink-0 items-center text-brown">
-                              <span className="h-px w-2 bg-brown"></span>
-                            </span>
-                            <span>
+                            <BodyText
+                              as="span"
+                              size="sm"
+                              className="flex h-5 flex-shrink-0 items-center text-brown"
+                            >
+                              <BodyText
+                                as="span"
+                                size="sm"
+                                className="h-px w-2 bg-brown"
+                              />
+                            </BodyText>
+                            <BodyText as="span" size="sm">
                               {typeof item === "object"
                                 ? Object.entries(
                                     item as Record<string, unknown>,
@@ -85,7 +109,7 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
                                 : String(item)
                                     .replace(/_/g, " ")
                                     .replace(/([a-z])([A-Z])/g, "$1 $2")}
-                            </span>
+                            </BodyText>
                           </li>
                         ))}
                       </ul>
@@ -99,11 +123,23 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
                             key={nestedKey}
                             className="text-responsive-xs flex items-start gap-2"
                           >
-                            <span className="flex h-5 flex-shrink-0 items-center text-brown">
-                              <span className="h-px w-2 bg-brown"></span>
-                            </span>
+                            <BodyText
+                              as="span"
+                              size="xs"
+                              className="flex h-5 flex-shrink-0 items-center text-brown"
+                            >
+                              <BodyText
+                                as="span"
+                                size="xs"
+                                className="h-px w-2 bg-brown"
+                              />
+                            </BodyText>
                             <div className="flex-1">
-                              <span className="font-medium text-brown/80">
+                              <BodyText
+                                as="span"
+                                size="xs"
+                                className="font-medium text-brown/80"
+                              >
                                 {nestedKey
                                   .replace(/_/g, " ")
                                   .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -115,12 +151,16 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
                                   )
                                   .join(" ")}
                                 :
-                              </span>{" "}
-                              <span className="text-navy/70">
+                              </BodyText>{" "}
+                              <BodyText
+                                as="span"
+                                size="xs"
+                                className="text-navy/70"
+                              >
                                 {typeof nestedValue === "boolean"
                                   ? nestedValue
-                                    ? "Yes"
-                                    : "No"
+                                    ? yesLabel
+                                    : noLabel
                                   : typeof nestedValue === "number"
                                     ? nestedValue.toLocaleString()
                                     : Array.isArray(nestedValue)
@@ -133,27 +173,33 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
                                           .replace(
                                             /([a-z])([A-Z])/g,
                                             "$1 $2",
-                                          ) ?? "Not specified")}
-                              </span>
+                                          ) ?? notSpecifiedLabel)}
+                              </BodyText>
                             </div>
                           </div>
                         ))}
                       </div>
                     )
                   ) : typeof subValue === "boolean" ? (
-                    <span
+                    <BodyText
+                      as="span"
+                      size="xs"
                       className={`rounded px-2 py-1 text-xs font-medium ${
                         subValue
                           ? "bg-green-100 text-green-800"
                           : "bg-rose-100 text-rose-800"
                       }`}
                     >
-                      {subValue ? "Yes" : "No"}
-                    </span>
+                      {subValue ? yesLabel : noLabel}
+                    </BodyText>
                   ) : typeof subValue === "number" ? (
-                    <span className="font-mono text-brown">
+                    <BodyText
+                      as="span"
+                      size="sm"
+                      className="font-mono text-brown"
+                    >
                       {subValue.toLocaleString()}
-                    </span>
+                    </BodyText>
                   ) : // Special formatting for price rationale
                   subKey === "price_rationale" &&
                     typeof subValue === "string" ? (
@@ -163,18 +209,30 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
                         .filter((sentence) => sentence.trim().length > 0)
                         .map((sentence, idx) => (
                           <div key={idx} className="flex items-start gap-2">
-                            <span className="flex h-5 flex-shrink-0 items-center text-brown mt-1">
-                              <span className="h-px w-2 bg-brown"></span>
-                            </span>
-                            <span className="text-responsive-sm text-navy/80 leading-relaxed">
+                            <BodyText
+                              as="span"
+                              size="sm"
+                              className="mt-1 flex h-5 flex-shrink-0 items-center text-brown"
+                            >
+                              <BodyText
+                                as="span"
+                                size="sm"
+                                className="h-px w-2 bg-brown"
+                              />
+                            </BodyText>
+                            <BodyText
+                              as="span"
+                              size="sm"
+                              className="text-responsive-sm text-navy/80 leading-relaxed"
+                            >
                               {sentence.trim()}
                               {!sentence.endsWith(".") && "."}
-                            </span>
+                            </BodyText>
                           </div>
                         ))}
                     </div>
                   ) : (
-                    <p className="leading-relaxed">
+                    <BodyText as="p" className="leading-relaxed">
                       {subValue && typeof subValue === "string"
                         ? subValue
                             .replace(/_/g, " ")
@@ -184,8 +242,8 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
                               .toString()
                               .replace(/_/g, " ")
                               .replace(/([a-z])([A-Z])/g, "$1 $2")
-                          : "Not specified"}
-                    </p>
+                          : notSpecifiedLabel}
+                    </BodyText>
                   )}
                 </div>
               </div>
@@ -196,27 +254,33 @@ export function formatStrategyValue(val: unknown): React.JSX.Element | string {
     }
   } else if (typeof val === "boolean") {
     return (
-      <span
+      <BodyText
+        as="span"
+        size="sm"
         className={`rounded-full px-3 py-1 text-sm font-medium ${
           val ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
         }`}
       >
         {val ? "Yes" : "No"}
-      </span>
+      </BodyText>
     );
   } else if (typeof val === "number") {
     return (
-      <span className="font-mono text-lg font-semibold text-brown">
+      <BodyText
+        as="span"
+        size="md"
+        className="font-mono text-lg font-semibold text-brown"
+      >
         {val.toLocaleString()}
-      </span>
+      </BodyText>
     );
   } else {
     return (
-      <p className="leading-relaxed text-navy/80">
+      <BodyText as="p" className="leading-relaxed text-navy/80">
         {String(val)
           .replace(/_/g, " ")
           .replace(/([a-z])([A-Z])/g, "$1 $2")}
-      </p>
+      </BodyText>
     );
   }
 }

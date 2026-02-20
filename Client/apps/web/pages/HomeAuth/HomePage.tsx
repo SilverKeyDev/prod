@@ -3,7 +3,7 @@
 import {
   Building2,
   BarChart2,
-  Handshake,
+  Lightbulb,
   FolderLock,
   Lock,
 } from "lucide-react";
@@ -77,14 +77,14 @@ export default function HomePage() {
 
         const { suggestions: fetched } =
           await g.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request,
+            request
           );
 
         const built = fetched.flatMap(
           (
             s:
               | AutocompleteSuggestion
-              | { placePrediction: google.maps.places.PlacePrediction | null },
+              | { placePrediction: google.maps.places.PlacePrediction | null }
           ) => {
             const sWithPred = s as {
               placePrediction: google.maps.places.PlacePrediction | null;
@@ -100,7 +100,7 @@ export default function HomePage() {
                 },
               },
             ];
-          },
+          }
         );
         setSuggestions(built);
       } catch (err: unknown) {
@@ -186,7 +186,7 @@ export default function HomePage() {
                 title: "Negotiate",
                 description:
                   "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
-                icon: <Handshake className="mobile-icon-lg text-gray-500" />,
+                icon: <Lightbulb className="mobile-icon-lg text-gray-500" />,
               },
               {
                 title: "Purchase",

@@ -1,15 +1,27 @@
 import React from "react";
+
 import { MessageCircle, Search } from "lucide-react";
-import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
-import HomeCard from "../../../components/cards/HomeCard";
-import SharedDocumentCard from "../../../components/cards/documents/SharedDocumentCard";
-import { useSavedHomesData } from "../../../../../packages/hooks/data/search/useSavedHomesData";
-import { useDocumentsData } from "../../../../../packages/hooks/data/documents/useDocumentsData";
+
+import type { AgentConversation } from "packages/config/api";
+import { useLocalization } from "packages/contexts";
+import { useDocumentsData } from "packages/hooks/data/documents/useDocumentsData";
+import { useSavedHomesData } from "packages/hooks/data/search/saved/useSavedHomesData";
+import type { EventRequestPayload } from "packages/utils/domain/messaging/eventRequestPayload";
+import { parseEventRequestPayload } from "packages/utils/domain/messaging/eventRequestPayload";
+import { getDateDividerText } from "packages/utils/domain/messaging/messageDateUtils";
+
+import SharedDocumentCard from "@/components/cards/documents/SharedDocumentCard";
+import HomeCard from "@/components/cards/HomeCard";
+import { BodyText, Button, Title } from "@/components/ui/index.web";
+import KeyTurnLoader from "@/components/ui/loading/KeyTurnLoader.web";
 import {
   getMessagingConfig,
   type MessagingMode,
-} from "../config/messagingConfig";
-import { getDateDividerText } from "../utils/messageDateUtils";
+} from "@/features/agent/config/messagingConfig";
+
+import EventRequestCard from "./EventRequestCard";
+
+type EventRequestStatus = "pending" | "accepted" | "cancelled";
 
 type ChatMessage = {
   id: string;
@@ -21,6 +33,7 @@ type ChatMessage = {
   is_read?: boolean;
   read_at?: string | null;
   status?: "sending" | "delivered" | "failed";
+  event_request_status?: EventRequestStatus | null;
 };
 
 type UnifiedMessagesListProps = {
@@ -34,6 +47,14 @@ type UnifiedMessagesListProps = {
   messagesEndRef: React.RefObject<HTMLDivElement>;
   selectedClientName?: string;
   onRetryMessage?: (messageId: string) => void;
+  activeConversation?: AgentConversation | null;
+  onAcceptEventRequest?: (
+    messageId: string,
+    payload: EventRequestPayload,
+  ) => Promise<void>;
+  onCancelEventRequest?: (messageId: string) => Promise<void>;
+  acceptedEventRequestIds?: Set<string>;
+  acceptingEventRequestId?: string | null;
 };
 
 export default function UnifiedMessagesList({
@@ -45,7 +66,13 @@ export default function UnifiedMessagesList({
   messagesEndRef,
   selectedClientName,
   onRetryMessage,
+  activeConversation,
+  onAcceptEventRequest,
+  onCancelEventRequest,
+  acceptedEventRequestIds = new Set(),
+  acceptingEventRequestId = null,
 }: UnifiedMessagesListProps) {
+  const { t } = useLocalization();
   const config = getMessagingConfig(mode);
   const { getSavedHome } = useSavedHomesData();
   const { documents } = useDocumentsData();
@@ -61,12 +88,16 @@ export default function UnifiedMessagesList({
             <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-beige/30">
               <MessageCircle className="h-8 w-8 text-black/40" />
             </div>
-            <h3 className="mb-2 text-lg font-medium text-black">
+            <Title as="h3" size="lg" className="mb-2 font-medium text-black">
               {config.emptyStates.noMessages.title}
-            </h3>
-            <p className="mx-auto max-w-md text-sm text-black/60">
+            </Title>
+            <BodyText
+              as="p"
+              size="sm"
+              className="mx-auto max-w-md text-black/60"
+            >
               {config.emptyStates.noMessages.message}
-            </p>
+            </BodyText>
           </div>
         </div>
       );
@@ -77,20 +108,22 @@ export default function UnifiedMessagesList({
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <MessageCircle className="mx-auto mb-3 h-16 w-16 text-black/40" />
-          <h3 className="mb-2 text-lg font-medium text-black">
+          <Title as="h3" size="lg" className="mb-2 font-medium text-black">
             {config.emptyStates.noAgent.title}
-          </h3>
-          <p className="mb-4 text-sm text-black/60">
+          </Title>
+          <BodyText as="p" size="sm" className="mb-4 text-black/60">
             {config.emptyStates.noAgent.message}
-          </p>
+          </BodyText>
           {onSearchClick && (
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={onSearchClick}
-              className="mx-auto flex items-center justify-center gap-2 rounded-lg border border-beige/50 bg-white px-4 py-2 text-sm text-black/70 transition-colors hover:border-beige hover:bg-beige/5 hover:text-black"
+              className="mx-auto flex items-center justify-center gap-2 border-beige/50 bg-white text-black/70 hover:border-beige hover:bg-beige/5 hover:text-black"
             >
               <Search className="h-4 w-4" />
               {config.emptyStates.noAgent.actionLabel}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -112,17 +145,17 @@ export default function UnifiedMessagesList({
           <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-beige/30">
             <MessageCircle className="h-8 w-8 text-black/40" />
           </div>
-          <h3 className="mb-2 text-lg font-medium text-black">
+          <Title as="h3" size="lg" className="mb-2 font-medium text-black">
             {config.emptyStates.noMessages.title}
-          </h3>
-          <p className="mx-auto max-w-md text-sm text-black/60">
+          </Title>
+          <BodyText as="p" size="sm" className="mx-auto max-w-md text-black/60">
             {mode === "agent" && selectedClientName
               ? config.emptyStates.noMessages.message.replace(
                   "your client",
                   selectedClientName,
                 )
               : config.emptyStates.noMessages.message}
-          </p>
+          </BodyText>
         </div>
       </div>
     );
@@ -150,6 +183,14 @@ export default function UnifiedMessagesList({
           msg.timestamp,
           previousMessage?.timestamp ?? null,
         );
+        const eventRequestPayload = parseEventRequestPayload(msg.content);
+        const showEventRequestCard =
+          eventRequestPayload &&
+          activeConversation !== undefined &&
+          (onAcceptEventRequest || onCancelEventRequest);
+        const eventRequestStatus: EventRequestStatus =
+          msg.event_request_status ??
+          (acceptedEventRequestIds.has(msg.id) ? "accepted" : "pending");
 
         return (
           <React.Fragment key={msg.id}>
@@ -157,9 +198,13 @@ export default function UnifiedMessagesList({
             {dateDividerText && (
               <div className="flex items-center justify-center py-2">
                 <div className="rounded-full bg-black/5 px-3 py-1">
-                  <span className="text-xs font-medium text-black/60">
+                  <BodyText
+                    as="span"
+                    size="xs"
+                    className="font-medium text-black/60"
+                  >
                     {dateDividerText}
-                  </span>
+                  </BodyText>
                 </div>
               </div>
             )}
@@ -170,11 +215,29 @@ export default function UnifiedMessagesList({
             >
               <div
                 className={`min-w-0 max-w-[85%] overflow-hidden rounded-xl md:max-w-[60%] ${
-                  msg.shared_home_id || msg.shared_document_id
+                  msg.shared_home_id ||
+                  msg.shared_document_id ||
+                  showEventRequestCard
                     ? ""
                     : `px-4 py-3 ${messageConfig.bgColor}`
                 }`}
               >
+                {/* Show event request card if present */}
+                {showEventRequestCard && eventRequestPayload && (
+                  <div className="mb-2 w-full min-w-0 max-w-full overflow-hidden">
+                    <EventRequestCard
+                      payload={eventRequestPayload}
+                      onAccept={() =>
+                        onAcceptEventRequest?.(msg.id, eventRequestPayload)
+                      }
+                      onCancel={() => onCancelEventRequest?.(msg.id)}
+                      isFromCurrentUser={isCurrentUserMessage}
+                      status={eventRequestStatus}
+                      messageId={msg.id}
+                      acceptingMessageId={acceptingEventRequestId}
+                    />
+                  </div>
+                )}
                 {/* Show shared home card if present */}
                 {msg.shared_home_id &&
                   (() => {
@@ -198,9 +261,9 @@ export default function UnifiedMessagesList({
                     if (!document) {
                       return (
                         <div className="mb-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                          <p className="text-sm text-gray-500">
-                            Document not found or has been deleted.
-                          </p>
+                          <BodyText as="p" size="sm" className="text-gray-500">
+                            {t("agent.document_not_found")}
+                          </BodyText>
                         </div>
                       );
                     }
@@ -210,13 +273,14 @@ export default function UnifiedMessagesList({
                       </div>
                     );
                   })()}
-                {/* Show message content only if there's no shared home or document */}
+                {/* Show message content only if there's no shared home, document, or event request card */}
                 {!msg.shared_home_id &&
                   !msg.shared_document_id &&
+                  !showEventRequestCard &&
                   msg.content.trim() && (
-                    <p className="whitespace-pre-line text-sm">
+                    <BodyText as="p" size="sm" className="whitespace-pre-line">
                       {msg.content}
-                    </p>
+                    </BodyText>
                   )}
               </div>
 
@@ -230,16 +294,20 @@ export default function UnifiedMessagesList({
                   }`}
                 >
                   {msg.status === "failed" && onRetryMessage && (
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => onRetryMessage(msg.id)}
                       className="text-xs font-medium text-red-500 underline hover:text-red-600"
-                      aria-label="Retry sending message"
+                      label={t("agent.retry_sending_message")}
                     >
-                      Retry
-                    </button>
+                      {t("agent.retry")}
+                    </Button>
                   )}
-                  <span
-                    className={`text-xs font-medium ${
+                  <BodyText
+                    as="span"
+                    size="xs"
+                    className={`font-medium ${
                       msg.status === "failed" ? "text-red-500" : "text-black/60"
                     }`}
                   >
@@ -250,7 +318,7 @@ export default function UnifiedMessagesList({
                         : msg.status === "delivered"
                           ? ""
                           : "Failed to send"}
-                  </span>
+                  </BodyText>
                 </div>
               )}
             </div>

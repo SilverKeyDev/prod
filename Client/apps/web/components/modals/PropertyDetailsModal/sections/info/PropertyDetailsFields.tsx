@@ -1,0 +1,108 @@
+import React from "react";
+
+import { formatPropertyType } from "packages/utils/domain/search/propertyDetailsFormatters";
+
+type PropertyDetailsFieldsProps = {
+  propertyYearBuilt?: number | string;
+  propertyLotSize?: number | string;
+  propertyHomeType?: string;
+  propertyPropertyType?: string;
+  propertyPricePerSquareFoot?: number | string;
+  propertyGarageSpaces?: number;
+  propertyParking?: number;
+  propertyZestimate?: number;
+  propertyRentZestimate?: number;
+};
+
+export function PropertyDetailsFields({
+  propertyYearBuilt,
+  propertyLotSize,
+  propertyHomeType,
+  propertyPropertyType,
+  propertyPricePerSquareFoot,
+  propertyGarageSpaces,
+  propertyParking,
+  propertyZestimate,
+  propertyRentZestimate,
+}: PropertyDetailsFieldsProps) {
+  const hasLotSize =
+    propertyLotSize &&
+    ((typeof propertyLotSize === "number" && propertyLotSize > 0) ||
+      (typeof propertyLotSize === "string" &&
+        propertyLotSize !== "0" &&
+        propertyLotSize.trim() !== ""));
+  const hasPropertyType =
+    (propertyHomeType && propertyHomeType !== "" && propertyHomeType !== "0") ||
+    (propertyPropertyType &&
+      propertyPropertyType !== "" &&
+      propertyPropertyType !== "0");
+  const hasPricePerSqft =
+    propertyPricePerSquareFoot &&
+    ((typeof propertyPricePerSquareFoot === "number" &&
+      propertyPricePerSquareFoot > 0) ||
+      (typeof propertyPricePerSquareFoot === "string" &&
+        propertyPricePerSquareFoot !== "0" &&
+        propertyPricePerSquareFoot.trim() !== ""));
+  const hasParking =
+    (typeof propertyGarageSpaces === "number" && propertyGarageSpaces > 0) ||
+    (typeof propertyParking === "number" && propertyParking > 0);
+
+  return (
+    <div className="space-y-3 mt-2">
+      {propertyYearBuilt && Number(propertyYearBuilt) > 0 && (
+        <div className="flex justify-between">
+          Year Built:
+          {String(propertyYearBuilt)}
+        </div>
+      )}
+      {hasLotSize && (
+        <div className="flex justify-between">
+          Lot Size:
+          {String(propertyLotSize)}
+        </div>
+      )}
+      {hasPropertyType && (
+        <div className="flex justify-between">
+          Property Type:
+          {formatPropertyType(
+            (propertyHomeType as string) ??
+              (propertyPropertyType as string) ??
+              "",
+          )}
+        </div>
+      )}
+      {hasPricePerSqft && (
+        <div className="flex justify-between">
+          Price per Sq Ft: $
+          {typeof propertyPricePerSquareFoot === "string"
+            ? propertyPricePerSquareFoot
+            : typeof propertyPricePerSquareFoot === "number"
+              ? String(propertyPricePerSquareFoot)
+              : ""}
+        </div>
+      )}
+      {hasParking && (
+        <div className="flex justify-between">
+          Parking:
+          {typeof propertyGarageSpaces === "number" && propertyGarageSpaces > 0
+            ? `${propertyGarageSpaces}-car garage`
+            : typeof propertyParking === "number" && propertyParking > 0
+              ? `${propertyParking} spaces`
+              : "N/A"}
+        </div>
+      )}
+      {typeof propertyZestimate === "number" && propertyZestimate > 0 && (
+        <div className="flex justify-between">
+          Estimate: ${propertyZestimate.toLocaleString()}
+        </div>
+      )}
+      {typeof propertyRentZestimate === "number" &&
+        propertyRentZestimate > 0 && (
+          <div className="flex justify-between">
+            Rent Estimate: ${propertyRentZestimate.toLocaleString()}
+            /month
+          </div>
+        )}
+    </div>
+  );
+}

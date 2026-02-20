@@ -1,12 +1,14 @@
 /**
  * Search service for transforming and managing search results
  */
+import { log, LOG_CATEGORIES } from "logger";
+
+import { getEnv } from "packages/config/env";
 import type {
   PropertySearchResult,
   SearchByPolygonResponse,
-} from "../../schemas/api";
-import type { SearchResult } from "../../schemas/search/search";
-import { log, LOG_CATEGORIES } from "../../../logger";
+} from "packages/schemas/api";
+import type { SearchResult } from "packages/schemas/search/search";
 
 /**
  * Transform PropertySearchResult from API to SearchResult format
@@ -18,7 +20,7 @@ export function transformPropertySearchResult(
 ): SearchResult {
   const score = property._score ?? 0;
 
-  const isDev = typeof import.meta !== "undefined" && import.meta.env?.DEV;
+  const isDev = getEnv().isDevelopment;
   if (index < 5) {
     // Log only the first few properties per response to avoid log spam
     log.debug(

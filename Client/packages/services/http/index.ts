@@ -3,22 +3,21 @@
    ========================= */
 
 // Core HTTP client
-export {
-  HttpClient,
-  HttpError,
-  AuthenticationError,
-  TimeoutError,
-  createAbortManager,
-} from "./client";
-
 export type {
+  HttpClientConfig,
   HttpClientOptions,
   RetryOptions,
-  HttpClientConfig,
+} from "./client";
+export {
+  AuthenticationError,
+  createAbortManager,
+  HttpClient,
+  HttpError,
+  TimeoutError,
 } from "./client";
 
 // Configured client instance (single source of truth)
-export { httpClient, configureHttpClient } from "./client-instance";
+export { configureHttpClient, httpClient } from "./client-instance";
 
 // Base URL utility - removed to avoid circular dependency
 // getBaseUrl is available from services/index.ts

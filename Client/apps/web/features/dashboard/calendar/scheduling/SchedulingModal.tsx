@@ -1,14 +1,19 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import { useScheduling } from "../../../../../../packages/hooks/data/calendar/useScheduling";
-import { useGoogleCalendarStore } from "../../../../../../packages/store/googleCalendar.slice";
-import { googleCalendarApi } from "../../../../../../packages/config/api";
-import type { ScheduleEventRequest } from "../../../../packages/schemas/scheduling";
-import { TimeSlotPicker } from "./components/TimeSlotPicker";
+import { log, LOG_CATEGORIES } from "logger";
+
+import { useGoogleCalendarOAuth } from "packages/hooks/data/calendar/useGoogleCalendarOAuth";
+import { useScheduling } from "packages/hooks/data/calendar/useScheduling";
+import { useGoogleCalendarStore } from "packages/store";
+import { dateNow } from "packages/utils/core/date";
+
+import Button from "@/components/ui/button/Button";
+import CancelButton from "@/components/ui/button/CancelButton";
+import { BodyText, Title } from "@/components/ui/index.web";
+import type { ScheduleEventRequest } from "@/packages/schemas/scheduling";
+
 import { SchedulingForm } from "./components/SchedulingForm";
-import Button from "../../../../components/ui/button/Button";
-import CancelButton from "../../../../components/ui/button/CancelButton";
-import { log, LOG_CATEGORIES } from "../../../../../../logger";
+import { TimeSlotPicker } from "./components/TimeSlotPicker";
 
 interface SchedulingModalProps {
   onClose: () => void;
@@ -17,13 +22,12 @@ interface SchedulingModalProps {
 
 export function SchedulingModal({ onClose }: SchedulingModalProps) {
   const isConnected = useGoogleCalendarStore((s) => s.isConnected);
+  const { startOAuth } = useGoogleCalendarOAuth();
   const [step, setStep] = useState<"connect" | "select" | "form">("connect");
 
   // Calculate date range (next 14 days)
-  const startDate = new Date();
-  startDate.setHours(0, 0, 0, 0);
-  const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + 14);
+  const startDate = dateNow().startOf("day").toDate();
+  const endDate = dateNow().startOf("day").add(14, "day").toDate();
 
   const scheduling = useScheduling(startDate, endDate, 30);
 
@@ -37,7 +41,7 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
   }, [isConnected, scheduling.silverKeyCalendarId]);
 
   const handleConnect = () => {
-    googleCalendarApi.startOAuth(true); // Use scheduling scopes
+    startOAuth(true); // Use scheduling scopes
   };
 
   const handleSlotSelect = (slot: {
@@ -71,13 +75,13 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
     return (
       <div className="space-y-responsive-md mobile-padding">
         <div className="text-center">
-          <h2 className="heading-responsive-sm text-neutral-900">
+          <Title as="h2" size="sm" className="text-neutral-900">
             Connect Google Calendar
-          </h2>
-          <p className="mt-2 text-responsive-sm text-neutral-500">
+          </Title>
+          <BodyText as="p" size="sm" className="mt-2 text-neutral-500">
             Connect your Google Calendar to check availability and schedule
             events. We'll only see when you're busy, not your event details.
-          </p>
+          </BodyText>
         </div>
 
         <div className="space-y-responsive-sm">
@@ -101,12 +105,12 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
     return (
       <div className="space-y-responsive-md mobile-padding">
         <div>
-          <h2 className="heading-responsive-sm text-neutral-900">
+          <Title as="h2" size="sm" className="text-neutral-900">
             Select a Time Slot
-          </h2>
-          <p className="mt-1 text-responsive-sm text-neutral-500">
+          </Title>
+          <BodyText as="p" size="sm" className="mt-1 text-neutral-500">
             Choose an available time slot for your event.
-          </p>
+          </BodyText>
         </div>
 
         {scheduling.isLoadingAvailability && (
@@ -145,11 +149,11 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
     return (
       <div className="space-y-responsive-md mobile-padding">
         <div>
-          <h2 className="heading-responsive-sm text-neutral-900">
+          <Title as="h2" size="sm" className="text-neutral-900">
             Schedule Event
-          </h2>
+          </Title>
           {scheduling.selectedSlot && (
-            <p className="mt-1 text-responsive-sm text-neutral-500">
+            <BodyText as="p" size="sm" className="mt-1 text-neutral-500">
               {scheduling.selectedSlot.start.toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
@@ -161,7 +165,7 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
                 minute: "2-digit",
                 hour12: true,
               })}
-            </p>
+            </BodyText>
           )}
         </div>
 

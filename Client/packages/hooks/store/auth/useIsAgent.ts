@@ -1,4 +1,4 @@
-import { useAuthStore } from "../../../store/auth.slice";
+import { useAuthStore } from "packages/store";
 
 /**
  * Canonical agent-identity flag for UX gating.

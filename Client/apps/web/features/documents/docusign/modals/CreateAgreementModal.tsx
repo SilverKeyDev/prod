@@ -1,16 +1,27 @@
 import { useState } from "react";
-import { X } from "lucide-react";
-import { Button, CancelButton, Title, BodyText } from "../../../../components/ui";
-import BaseModal from "../../../../components/modals/BaseModal";
-import { useDocusignActions } from "../../../../../../packages/hooks/data/documents/useDocusignActions";
-import { useDocusignTemplates } from "../../../../../../packages/hooks/data/documents/useDocusignTemplates";
-import { useAgentClients } from "../../../../../../packages/hooks/data/agent/useAgentClients";
-import { useUIStore } from "../../../../../../packages/store";
+
+import { useAgentClients } from "packages/hooks/data/agent/useAgentClients";
+import { useDocusignActions } from "packages/hooks/data/documents/useDocusignActions";
+import { useDocusignTemplates } from "packages/hooks/data/documents/useDocusignTemplates";
 import type {
   AgreementType,
   CreateAgreementRequest,
-} from "../../../../../../packages/schemas/documents/docusign";
-import { getAgreementTypeLabel } from "../../../../../../packages/utils/documents/docusignHelpers";
+} from "packages/schemas/content/documents/docusign";
+import { useUIStore } from "packages/store";
+import { getAgreementTypeLabel } from "packages/utils/domain/documents/docusignHelpers";
+
+import BaseModal from "@/components/modals/BaseModal";
+import {
+  BodyText,
+  Button,
+  CancelButton,
+  CloseButton,
+  Input,
+  Label,
+  Select,
+  Textarea,
+  Title,
+} from "@/components/ui/index.web";
 
 type CreateAgreementModalProps = {
   isOpen: boolean;
@@ -123,23 +134,26 @@ export default function CreateAgreementModal({
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <Title size="lg">Create Agreement</Title>
-          <button
+          <CloseButton
             onClick={handleClose}
-            disabled={isCreatingAgreement}
+            size="sm"
             className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
+            disabled={isCreatingAgreement}
+          />
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label
+              htmlFor="agreement-title"
+              className="block font-medium text-gray-700 mb-2"
+            >
               Agreement Title *
-            </label>
-            <input
+            </Label>
+            <Input
+              id="agreement-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -152,53 +166,49 @@ export default function CreateAgreementModal({
 
           {/* Agreement Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Agreement Type *
-            </label>
-            <select
+            <Select
+              id="agreement-type"
+              label="Agreement Type *"
+              options={agreementTypes.map((type) => ({
+                value: type,
+                label: getAgreementTypeLabel(type),
+              }))}
               value={agreementType}
-              onChange={(e) =>
-                setAgreementType(e.target.value as AgreementType)
-              }
+              onChange={(v) => setAgreementType(v as AgreementType)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               disabled={isCreatingAgreement}
               required
-            >
-              {agreementTypes.map((type) => (
-                <option key={type} value={type}>
-                  {getAgreementTypeLabel(type)}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Buyer Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Buyer *
-            </label>
-            <select
+            <Select
+              id="agreement-buyer"
+              label="Buyer *"
+              placeholder="Select a buyer..."
+              options={clients.map((client) => ({
+                value: client.id,
+                label: `${client.name} - ${client.email}`,
+              }))}
               value={selectedBuyerId}
-              onChange={(e) => setSelectedBuyerId(e.target.value)}
+              onChange={setSelectedBuyerId}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               disabled={isCreatingAgreement || !!preselectedBuyerId}
               required
-            >
-              <option value="">Select a buyer...</option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.name} - {client.email}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Property Address */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label
+              htmlFor="agreement-property-address"
+              className="block font-medium text-gray-700 mb-2"
+            >
               Property Address (Optional)
-            </label>
-            <input
+            </Label>
+            <Input
+              id="agreement-property-address"
               type="text"
               value={propertyAddress}
               onChange={(e) => setPropertyAddress(e.target.value)}
@@ -210,10 +220,14 @@ export default function CreateAgreementModal({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label
+              htmlFor="agreement-description"
+              className="block font-medium text-gray-700 mb-2"
+            >
               Description (Optional)
-            </label>
-            <textarea
+            </Label>
+            <Textarea
+              id="agreement-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add any additional details..."

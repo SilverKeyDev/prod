@@ -1,10 +1,11 @@
 import React from "react";
-import { FileText, ClipboardCheck, DollarSign, Home } from "lucide-react";
-import Card from "../../../components/layout/Card";
-import {
-  CHECKLIST_TITLES,
-  type ChecklistTab,
-} from "../../../../../packages/schemas";
+
+import { ClipboardCheck, DollarSign, FileText, Home } from "lucide-react";
+
+import { CHECKLIST_TITLES, type ChecklistTab } from "packages/schemas";
+
+import Card from "@/components/layout/Card.web";
+import { BodyText, Button, Title } from "@/components/ui/index.web";
 
 type DashboardChecklistsHeaderProps = {
   title: string;
@@ -44,16 +45,16 @@ export default function DashboardChecklistsHeader({
     <Card className="border-b border-beige/40" padding="none">
       <div className="px-2 pt-2">
         <div className="flex flex-col items-center">
-          <h2
-            className="text-sm sm:text-base font-semibold text-navy"
-            role="heading"
-            aria-level={2}
-          >
+          <Title size="lg" as="h2" className="text-navy font-semibold">
             {title}
-          </h2>
-          <p className="hidden lg:block text-sm text-navy/70 mt-1">
+          </Title>
+          <BodyText
+            as="p"
+            size="sm"
+            className="hidden lg:block text-navy/55 mt-1"
+          >
             {subtitle}
-          </p>
+          </BodyText>
         </div>
 
         {!loading && (
@@ -78,18 +79,28 @@ export default function DashboardChecklistsHeader({
               const isLast = index === tabs.length - 1;
               return (
                 <div key={tab.id} className="flex items-center flex-1 min-w-0">
-                  <button
+                  <Button
+                    type="button"
+                    variant="ghost"
                     onClick={() => onTabChange(tab.id)}
-                    className={`relative flex-1 py-1 lg:py-1.5 transition-all duration-200 whitespace-nowrap text-center flex items-center justify-center gap-1 ${
+                    className={`relative flex-1 py-1 lg:py-1.5 transition-all duration-200 text-center flex items-center justify-center ${
                       activeTab === tab.id
                         ? "text-[11px] lg:text-base font-semibold text-navy/70"
                         : "text-[10px] lg:text-sm font-medium text-navy/70 hover:bg-gray-100 rounded-lg"
                     }`}
                   >
-                    <tab.icon className="w-[1em] h-[1em]" />
-                    {tab.label}
+                    <BodyText
+                      as="span"
+                      className="inline-flex flex-nowrap items-center justify-center gap-1.5"
+                    >
+                      <tab.icon className="h-[1em] w-[1em] shrink-0" />
+                      <BodyText as="span" className="whitespace-nowrap">
+                        {tab.label}
+                      </BodyText>
+                    </BodyText>
                     {activeTab === tab.id && (
-                      <span
+                      <BodyText
+                        as="span"
                         className={`absolute bottom-0 h-0.5 bg-gold ${
                           isFirst
                             ? "left-2 right-2 rounded-l-full"
@@ -99,7 +110,7 @@ export default function DashboardChecklistsHeader({
                         }`}
                       />
                     )}
-                  </button>
+                  </Button>
                   {index < tabs.length - 1 && (
                     <div className="h-4 lg:h-6 w-px bg-gray-300 flex-shrink-0" />
                   )}

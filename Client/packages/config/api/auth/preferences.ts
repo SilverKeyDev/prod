@@ -1,5 +1,5 @@
-import type { UserPreferences } from "../../../schemas";
-import { apiGet, apiPost } from "../../../services/http/compatibility";
+import type { UserPreferences } from "packages/schemas/app/auth/user";
+import { apiGet, apiPost } from "packages/services/http/compatibility";
 
 export type PreferencesResponse = {
   success: boolean;

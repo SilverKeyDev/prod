@@ -1,10 +1,11 @@
-import PropertyDetailsModal from "../modals/PropertyDetailsModal/PropertyDetailsModal";
-import NegotiationModal from "../modals/NegotiationModal";
-import CompareHomesModal from "../modals/CompareHomesModal";
-import CompareFloatingBar from "../ui/CompareFloatingBar";
-import type { SavedHome } from "../../../../packages/schemas";
-import type { SavedPageViewType } from "../../../../packages/hooks/store/documents/useSavedPageView";
-import { convertToFavoriteHome } from "../../../../packages/utils/saved/savedHomeUtils";
+import { CompareFloatingBar } from "@ui/index.web";
+
+import type { SavedPageViewType } from "packages/hooks/store/documents/useSavedPageView";
+import type { SavedHome } from "packages/schemas";
+import { convertToFavoriteHome } from "packages/utils/domain/saved/savedHomeUtils";
+
+import { NegotiationModal, PropertyDetailsModal } from "@/components/modals";
+import CompareHomesModal from "@/components/modals/CompareHomesModal";
 
 type SavedPageModalsProps = {
   viewType: SavedPageViewType;

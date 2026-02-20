@@ -1,13 +1,16 @@
-import { X, Sparkles } from "lucide-react";
 import React, { useState } from "react";
 
-import { getCardBubbleSizeClasses } from "../../cards/base/CardBubbleStyles.tsx";
-import { useNotInterestedHomesData } from "../../../../../packages/hooks/data/search/useNotInterestedHomesData";
-import { useUIStore } from "../../../../../packages/store";
-import type { SearchResult } from "../../../../../packages/schemas/search";
-import type { Property } from "../../../../../packages/schemas/property";
-import NotInterestedModal from "../../modals/NotInterestedModal";
-import { log, LOG_CATEGORIES } from "../../../../../logger";
+import { log, LOG_CATEGORIES } from "logger";
+import { Sparkles, X } from "lucide-react";
+
+import { useNotInterestedHomesData } from "packages/hooks/data/search/saved/useNotInterestedHomesData";
+import type { Property } from "packages/schemas/property";
+import type { SearchResult } from "packages/schemas/search";
+import { useUIStore } from "packages/store";
+import { dateNow } from "packages/utils/core/date";
+
+import { getCardBubbleSizeClasses } from "@/components/cards/base/styles";
+import { NotInterestedModal } from "@/components/modals";
 
 export type CardNotInterestedProps = {
   property: SearchResult | Property;
@@ -115,7 +118,7 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
         address: propertyAddress,
         action: isNotInterested ? "remove" : "add",
         error: errorMessage,
-        timestamp: new Date().toISOString(),
+        timestamp: dateNow().toISOString(),
       });
       enqueueToast({
         type: "error",
@@ -138,7 +141,7 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
         address: propertyAddress,
         why,
         error: errorMessage,
-        timestamp: new Date().toISOString(),
+        timestamp: dateNow().toISOString(),
       });
       enqueueToast({
         type: "error",

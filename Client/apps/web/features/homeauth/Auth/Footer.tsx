@@ -1,23 +1,29 @@
+import { useLocalization } from "packages/contexts";
+import { dateNow } from "packages/utils/core/date";
+
+import { BodyText } from "@/components/ui/index.web";
+
 import AuthLink from "./Link";
 
 export default function AuthFooter() {
+  const { t } = useLocalization();
   return (
     <div className="mt-4 animate-fade-in border-t border-gray-100 pt-4">
       <div className="flex flex-col items-center justify-center gap-2 text-center text-sm">
         <div className="flex items-center justify-center gap-1 whitespace-nowrap text-black/60 sm:gap-2 md:gap-3">
           <AuthLink to="/privacy" variant="footer">
-            Privacy Policy
+            {t("auth.footer.privacy_policy")}
           </AuthLink>
           <AuthLink to="/terms" variant="footer">
-            Terms of Service
+            {t("auth.footer.terms_of_service")}
           </AuthLink>
           <AuthLink to="/contact" variant="footer">
-            Contact Us
+            {t("auth.footer.contact_us")}
           </AuthLink>
         </div>
-        <p className="text-xs text-black/40">
-          © {new Date().getFullYear()} SilverKey. All rights reserved.
-        </p>
+        <BodyText as="p" size="xs" className="text-black/40">
+          © {dateNow().year()} SilverKey. {t("auth.footer.copyright")}
+        </BodyText>
       </div>
     </div>
   );

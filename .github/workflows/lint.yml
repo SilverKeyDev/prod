@@ -1,0 +1,59 @@
+# Single lint workflow: runs root script for client and server.
+# All linters are defined by scripts/run-all-linters.sh (Server: auto-discovers lint_*.py; Client: check:all).
+# See .cursor/rules/shared/ci-gates.mdc for required gates.
+name: Lint
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  client-lint:
+    name: Client (all linters)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: Client/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: Client
+        run: pnpm install --frozen-lockfile
+
+      - name: Run all client linters (root script)
+        run: ./scripts/run-all-linters.sh client
+
+  server-lint:
+    name: Server (all linters)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Server dependencies and linters
+        run: |
+          pip install -r Server/requirements.txt
+          pip install ruff pyright
+
+      - name: Run all server linters (root script)
+        run: ./scripts/run-all-linters.sh server

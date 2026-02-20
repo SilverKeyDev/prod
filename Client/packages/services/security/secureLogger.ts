@@ -3,12 +3,15 @@
  * Implements SOC 2 compliant logging that removes sensitive data
  */
 
-import { asError } from "../../utils/error.js";
+import { getEnv } from "packages/config/env";
+import { dateNow } from "packages/utils/core/date/index.js";
+import { asError } from "packages/utils/core/errorHandling/error.js";
+import { getWindow } from "packages/utils/core/platform/index.js";
 
 import {
-  scrubPII,
-  maskSensitiveData,
   createSafeLogObject,
+  maskSensitiveData,
+  scrubPII,
 } from "./piiSecurity.js";
 
 type LogLevel = {
@@ -34,8 +37,8 @@ class SecureLogger {
   constructor() {
     this.isProduction = isProduction;
     this.currentLevel = this.isProduction ? LOG_LEVELS.WARN : LOG_LEVELS.DEBUG;
-    // Store original console methods before they get overridden
-    /* eslint-disable no-console */
+    // Store original console methods before they get overridden (logger implementation must use console)
+    /* eslint-disable silverkey/no-console-logger */
     this.originalConsole = {
       log: console.log.bind(console),
       info: console.info.bind(console),
@@ -43,7 +46,7 @@ class SecureLogger {
       error: console.error.bind(console),
       debug: console.debug.bind(console),
     };
-    /* eslint-enable no-console */
+    /* eslint-enable silverkey/no-console-logger */
   }
 
   /**
@@ -97,12 +100,12 @@ class SecureLogger {
   ): string {
     // Prevent infinite recursion during error logging
     if (this.isProcessing) {
-      const timestamp = new Date().toISOString();
+      const timestamp = dateNow().toISOString();
       return `[${timestamp}] [${level}] [${scope}] ${message} [RECURSION_PREVENTED]`;
     }
 
     try {
-      const timestamp = new Date().toISOString();
+      const timestamp = dateNow().toISOString();
       const prefix = `[${timestamp}] [${level}] [${scope}]`;
 
       if (data) {
@@ -113,7 +116,7 @@ class SecureLogger {
       return `${prefix} ${this.scrubStringPII(message)}`;
     } catch {
       // Fallback formatting to prevent crashes
-      const timestamp = new Date().toISOString();
+      const timestamp = dateNow().toISOString();
       return `[${timestamp}] [${level}] [${scope}] ${message} [FORMAT_ERROR]`;
     }
   }
@@ -278,8 +281,7 @@ class SecureLogger {
 }
 
 // Export singleton instance
-// Note: isProduction is determined directly to avoid circular dependency with config
-const isProduction = import.meta.env.MODE === "production";
+const isProduction = getEnv().isProduction;
 export const secureLogger = new SecureLogger();
 
 // Convenience exports
@@ -358,9 +360,12 @@ if (isProduction) {
   */
 
   // Keep original methods available for emergency debugging
-  (
-    window as unknown as { __originalConsole: typeof originalConsole }
-  ).__originalConsole = originalConsole;
-  (window as unknown as { __safeConsole: typeof safeConsole }).__safeConsole =
-    safeConsole;
+  const win = getWindow();
+  if (win) {
+    (
+      win as unknown as { __originalConsole: typeof originalConsole }
+    ).__originalConsole = originalConsole;
+    (win as unknown as { __safeConsole: typeof safeConsole }).__safeConsole =
+      safeConsole;
+  }
 }

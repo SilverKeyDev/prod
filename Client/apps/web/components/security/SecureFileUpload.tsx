@@ -3,16 +3,26 @@
  * Provides secure file upload with EXIF stripping, validation, and preview
  */
 
-import { Upload, X, FileImage, AlertTriangle, CheckCircle } from "lucide-react";
-import React, { useState, useRef, useCallback } from "react";
+import React, { useCallback, useRef, useState } from "react";
 
+import { AlertTriangle, CheckCircle, FileImage, Upload } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
 import {
-  processImage,
   formatFileSize,
-} from "../../../../packages/services/security/imageProcessor";
-import { log } from "../../../../packages/services/security/secureLogger";
-import Card from "../layout/Card";
-import Button from "../ui/button/Button";
+  processImage,
+} from "packages/services/security/imageProcessor";
+import { log } from "packages/services/security/secureLogger";
+
+import Card from "@/components/layout/Card.web";
+import {
+  BodyText,
+  Button,
+  Image,
+  Input,
+  Label,
+  Title,
+} from "@/components/ui/index.web";
 
 type SecureFileUploadProps = {
   onFilesProcessed: (files: ProcessedImage[]) => void;
@@ -52,6 +62,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   disabled,
   className = "",
 }) => {
+  const { t } = useLocalization();
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [processing, setProcessing] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -223,13 +234,19 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   return (
     <Card className={`w-full ${className}`} padding="md">
       {label && (
-        <label className="mb-4 block text-sm font-medium text-gray-700">
+        <Label className="mb-4 block">
           {label}
-          {required && <span className="text-red-500">*</span>}
-        </label>
+          {required && (
+            <BodyText as="span" className="text-red-500">
+              {t("form.required_indicator")}
+            </BodyText>
+          )}
+        </Label>
       )}
 
       <div
+        role="button"
+        tabIndex={disabled ? -1 : 0}
         className={`relative rounded-lg border-2 border-dashed p-6 text-center transition-all duration-200 ${
           isDragOver
             ? "border-brand-accent bg-brand-accent/5"
@@ -239,8 +256,14 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={() => !disabled && fileInputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (!disabled && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
       >
-        <input
+        <Input
           type="file"
           multiple
           accept={acceptedTypes.join(",")}
@@ -253,12 +276,15 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         <div className="space-y-3">
           <Upload className="mx-auto h-10 w-10 text-gray-400" />
           <div>
-            <p className="text-sm text-gray-600">
-              Click to upload or drag and drop
-            </p>
-            <p className="mt-1 text-xs text-gray-500">
-              {acceptedTypes.join(", ")} up to {formatFileSize(maxSize)}
-            </p>
+            <BodyText as="p" size="sm" className="text-gray-600">
+              {t("secure_upload.click_or_drag")}
+            </BodyText>
+            <BodyText as="p" size="xs" className="mt-1 text-gray-500">
+              {t("secure_upload.up_to", {
+                types: acceptedTypes.join(", "),
+                size: formatFileSize(maxSize),
+              })}
+            </BodyText>
           </div>
         </div>
 
@@ -273,7 +299,9 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-600" />
-            <p className="text-sm text-red-800">{error}</p>
+            <BodyText as="p" size="sm" className="text-red-800">
+              {error}
+            </BodyText>
           </div>
         </div>
       )}
@@ -281,10 +309,14 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       {files.length > 0 && (
         <div className="mt-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="flex items-center text-sm font-medium text-gray-700">
+            <Title
+              as="h4"
+              size="sm"
+              className="flex items-center font-medium text-gray-700"
+            >
               <FileImage className="mr-2 h-4 w-4" />
-              Uploaded Files ({files.length})
-            </h4>
+              {t("secure_upload.uploaded_files", { count: files.length })}
+            </Title>
             <Button
               variant="ghost"
               size="sm"
@@ -297,7 +329,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
               }}
               className="text-gray-500 hover:text-gray-700"
             >
-              Clear All
+              {t("secure_upload.clear_all")}
             </Button>
           </div>
           <div className="space-y-3">
@@ -309,38 +341,48 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     {file.preview ? (
-                      <img
+                      <Image
                         src={file.preview}
                         alt={file.file.name}
                         className="h-12 w-12 rounded-lg border border-gray-200 object-cover"
                       />
                     ) : (
                       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200">
-                        <span className="text-xs text-gray-600">
-                          {(file.processedSize / 1024 / 1024).toFixed(2)} MB
-                        </span>
+                        <BodyText as="span" className="text-xs text-gray-600">
+                          {`${(file.processedSize / 1024 / 1024).toFixed(2)}${t("common.mb")}`}
+                        </BodyText>
                       </div>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">
+                    <BodyText
+                      as="p"
+                      size="sm"
+                      className="truncate font-medium text-gray-900"
+                    >
                       {file.file.name}
-                    </p>
+                    </BodyText>
                     <div className="mt-1 flex items-center space-x-3 text-xs text-gray-500">
                       {formatFileSize(file.processedSize)}
                       {file.originalSize !== file.processedSize && (
-                        <span className="flex items-center">
+                        <BodyText as="span" className="flex items-center">
                           <CheckCircle className="mr-1 h-3 w-3" />
-                          EXIF Stripped
-                        </span>
+                          {t("secure_upload.exif_stripped")}
+                        </BodyText>
                       )}
                     </div>
                     {file.warnings.length > 0 && (
                       <div className="mt-1">
                         {file.warnings.map((warning, index) => (
-                          <p key={index} className="text-xs text-yellow-600">
-                            ⚠️ {warning}
-                          </p>
+                          <BodyText
+                            key={index}
+                            as="p"
+                            size="xs"
+                            className="text-yellow-600"
+                          >
+                            {t("secure_upload.warning_prefix")}
+                            {warning}
+                          </BodyText>
                         ))}
                       </div>
                     )}
@@ -350,7 +392,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => removeFile(file.id)}
-                  icon={<X className="h-4 w-4" />}
+                  iconName="x"
                   className="text-red-400 hover:text-red-600"
                 />
               </div>
@@ -366,19 +408,19 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
             padding="none"
           >
             <div className="flex items-center justify-between border-b border-gray-200 p-4">
-              <h3 className="text-lg font-medium text-gray-900">
+              <Title as="h3" size="lg" className="font-medium text-gray-900">
                 {previewFile.file.name}
-              </h3>
+              </Title>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setPreviewFile(null)}
-                icon={<X className="h-5 w-5" />}
+                iconName="x"
                 className="text-gray-400 hover:text-gray-600"
               />
             </div>
             <div className="p-6">
-              <img
+              <Image
                 src={previewFile.preview}
                 alt={previewFile.file.name}
                 className="mx-auto max-h-[70vh] max-w-full rounded-lg object-contain"

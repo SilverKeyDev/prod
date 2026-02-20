@@ -1,18 +1,22 @@
 import os
-from typing import Dict, Iterable, List, Tuple, Optional
+from collections.abc import Iterable
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
+
+from logger import LOG_CATEGORIES, log
 
 
 def _get_ses_client():
     region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION")
     if not region:
-        raise RuntimeError("AWS_REGION (or AWS_DEFAULT_REGION) environment variable is required for SES.")
+        raise RuntimeError(
+            "AWS_REGION (or AWS_DEFAULT_REGION) environment variable is required for SES."
+        )
     return boto3.client("ses", region_name=region)
 
 
-def send_test_emails_via_ses(recipients: Iterable[str]) -> List[str]:
+def send_test_emails_via_ses(recipients: Iterable[str]) -> list[str]:
     """
     Send a simple test email with subject/body 'test' to each recipient individually.
     Returns a list of SES MessageId strings for successfully sent emails.
@@ -22,7 +26,7 @@ def send_test_emails_via_ses(recipients: Iterable[str]) -> List[str]:
         raise RuntimeError("SES_SENDER_EMAIL environment variable is required.")
 
     ses = _get_ses_client()
-    message_ids: List[str] = []
+    message_ids: list[str] = []
     for recipient in recipients:
         if not recipient:
             continue
@@ -39,17 +43,21 @@ def send_test_emails_via_ses(recipients: Iterable[str]) -> List[str]:
             if mid:
                 message_ids.append(mid)
         except (ClientError, BotoCoreError) as exc:
-            print(f"Failed to send to {recipient}: {exc}")
+            log.error(
+                LOG_CATEGORIES["ERRORS"],
+                "Failed to send test email",
+                {"recipient": recipient, "error": str(exc)},
+            )
     return message_ids
 
 
 def send_personalized_emails_via_ses(
-    messages: List[Tuple[str, str, str, Optional[str]]]
-) -> List[str]:
+    messages: list[tuple[str, str, str, str | None]],
+) -> list[str]:
     """
     Send personalized emails via SES.
     messages: List of tuples (recipient_email, subject, body_text, html_body)
-             html_body is optional - if provided, email will be sent as HTML with text fallback
+             html_body may be None.
     Returns list of MessageIds for successful sends.
     """
     sender = "noreply@usesilverkey.com"
@@ -57,15 +65,13 @@ def send_personalized_emails_via_ses(
         raise RuntimeError("SES_SENDER_EMAIL environment variable is required.")
 
     ses = _get_ses_client()
-    message_ids: List[str] = []
+    message_ids: list[str] = []
     for message_tuple in messages:
-        # Support both old format (3 items) and new format (4 items)
-        if len(message_tuple) == 3:
-            to_address, subject, body_text = message_tuple
-            html_body = None
-        else:
-            to_address, subject, body_text, html_body = message_tuple
-        
+        to_address = message_tuple[0]
+        subject = message_tuple[1]
+        body_text = message_tuple[2]
+        html_body = message_tuple[3] if len(message_tuple) > 3 else None
+
         if not to_address:
             continue
         try:
@@ -79,7 +85,7 @@ def send_personalized_emails_via_ses(
             else:
                 # Plain text only (backward compatible)
                 body = {"Text": {"Data": body_text or "", "Charset": "UTF-8"}}
-            
+
             resp = ses.send_email(
                 Source=sender,
                 Destination={"ToAddresses": [to_address]},
@@ -92,7 +98,9 @@ def send_personalized_emails_via_ses(
             if mid:
                 message_ids.append(mid)
         except (ClientError, BotoCoreError) as exc:
-            print(f"Failed to send to {to_address}: {exc}")
+            log.error(
+                LOG_CATEGORIES["ERRORS"],
+                "Failed to send personalized email",
+                {"to_address": to_address, "error": str(exc)},
+            )
     return message_ids
-
-

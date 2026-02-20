@@ -1,8 +1,10 @@
-import SavedLayout from "../../app/layouts/SavedLayout";
-import { ClientSelector } from "../ui";
-import type { SavedPageViewType } from "../../../../packages/hooks/store/documents/useSavedPageView";
+import { ClientSelector } from "@ui/index.web";
 
-type SavedHomesHeaderProps = {
+import type { SavedPageViewType } from "packages/hooks/store/documents/useSavedPageView";
+
+import SavedLayout from "@/features/saved/SavedLayout";
+
+export type SavedHomesHeaderProps = {
   isMobile: boolean;
   searchTerm: string;
   onSearchChange: (term: string) => void;
@@ -57,7 +59,7 @@ export default function SavedHomesHeader({
   if (isMobile) {
     return (
       <div className="w-full space-y-2" key={viewType}>
-        {/* Client Selector and Search - these go in MobileTopBar (no padding when MobileSidebar visible) */}
+        {/* Client Selector and Search - these go in MobileTopBar (no padding when MobileBottomNav visible) */}
         <div>
           <ClientSelector
             selectedClientId={selectedClientId}

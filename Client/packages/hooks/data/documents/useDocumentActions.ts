@@ -1,9 +1,12 @@
 // Generic PDF modal and file download utilities - reusable logic without business nouns
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
-import { reportApi } from "../../../config/api";
-import { asError } from "../../../utils/error";
-import { showErrorToast } from "../../ui/useToast";
+import { log, LOG_CATEGORIES } from "logger";
+
+import { reportApi } from "packages/config/api";
+import { showErrorToast } from "packages/hooks/ui";
+import { asError } from "packages/utils";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 export type PdfModalHooks = {
   currentPdf: string | null;
@@ -52,68 +55,73 @@ export const usePdfModal = (): PdfModalHooks => {
   // Simple modal state management without the extra useModal hook
   const [isOpen, setIsOpen] = useState(false);
 
+  const doc = getDocument();
   const open = useCallback(() => {
     setIsOpen(true);
-    document.body.style.overflow = "hidden";
-  }, []);
+    if (doc) doc.body.style.overflow = "hidden";
+  }, [doc]);
 
   const close = useCallback(() => {
     setIsOpen(false);
-    document.body.style.overflow = "auto";
-  }, []);
+    if (doc) doc.body.style.overflow = "auto";
+  }, [doc]);
 
   const toggle = useCallback(() => {
     setIsOpen((prev) => !prev);
-    document.body.style.overflow = isOpen ? "auto" : "hidden";
-  }, [isOpen]);
+    if (doc) doc.body.style.overflow = isOpen ? "auto" : "hidden";
+  }, [doc, isOpen]);
 
   // File download functionality - moved from useFileDownload
   const downloadFile = useCallback((url: string, filename: string) => {
+    const documentRef = getDocument();
+    const win = getWindow();
     try {
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", filename);
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (documentRef) {
+        const link = documentRef.createElement("a");
+        link.href = url;
+        link.setAttribute("download", filename);
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        documentRef.body.appendChild(link);
+        link.click();
+        documentRef.body.removeChild(link);
+        return;
+      }
+      if (win) win.open(url, "_blank", "noopener,noreferrer");
     } catch (error: unknown) {
-      console.error("Download failed:", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Download failed", error);
       try {
-        window.open(url, "_blank", "noopener,noreferrer");
+        if (win) win.open(url, "_blank", "noopener,noreferrer");
       } catch (fallbackError: unknown) {
-        const error = asError(fallbackError);
-        console.error("Fallback download failed:", error);
+        const fallbackErr = asError(fallbackError);
+        log.error(
+          LOG_CATEGORIES.ERRORS,
+          "Fallback download failed",
+          fallbackErr,
+        );
       }
     }
   }, []);
 
   const getFreshViewUrl = useCallback((documentId: string): string | null => {
     try {
-      // Instead of calling the old API, return our proxy URL directly
-      if (typeof window !== "undefined") {
-        const baseUrl = window.location.origin;
+      const win = getWindow();
+      if (win) {
+        const baseUrl = win.location.origin;
         const viewUrl = `${baseUrl}/api/v1/report/${documentId}/view`;
-        console.log("[useDocumentActions] Generated view URL", {
-          documentId,
-          baseUrl,
-          viewUrl,
-          timestamp: new Date().toISOString(),
-        });
         return viewUrl;
       }
-      console.warn(
-        "[useDocumentActions] Window is undefined, cannot generate URL",
+      log.warn(
+        LOG_CATEGORIES.API,
+        "Window undefined, cannot generate view URL",
+        { documentId },
       );
       return null;
     } catch (err: unknown) {
       const error = asError(err);
-      console.error("[useDocumentActions] Failed to get fresh view URL", {
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to get fresh view URL", {
         error,
         documentId,
-        timestamp: new Date().toISOString(),
       });
       return null;
     }
@@ -126,7 +134,10 @@ export const usePdfModal = (): PdfModalHooks => {
         return response.success ? (response.downloadUrl ?? null) : null;
       } catch (err: unknown) {
         const error = asError(err);
-        console.error("Failed to get fresh download URL", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to get fresh download URL", {
+          error,
+          documentId,
+        });
         return null;
       }
     },
@@ -142,7 +153,13 @@ export const usePdfModal = (): PdfModalHooks => {
           const filename = `${documentName.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`;
           downloadFile(downloadUrl, filename);
         } else {
-          console.error("Failed to get PDF download URL");
+          log.error(LOG_CATEGORIES.ERRORS, "Failed to get PDF download URL", {
+            documentId,
+            documentName,
+          });
+          showErrorToast(
+            "Unable to download document. Please try again later.",
+          );
         }
       } finally {
         setLoadingUrls((prev) => {
@@ -164,69 +181,34 @@ export const usePdfModal = (): PdfModalHooks => {
 
   const openPdfModal = useCallback(
     (pdfUrl: string, documentName?: string, documentId?: string) => {
-      console.log("[useDocumentActions] Opening PDF modal - START", {
-        pdfUrl,
-        documentName,
-        documentId,
-        urlLength: pdfUrl.length,
-        urlStartsWith: pdfUrl.substring(0, 50),
-        timestamp: new Date().toISOString(),
-      });
-
-      // Set all states synchronously - React will batch these updates
+      const documentRef = getDocument();
       setCurrentPdf(pdfUrl);
       setCurrentDocumentId(documentId ?? null);
       setCurrentDocumentName(documentName ?? null);
       setIsOpen(true);
-      document.body.style.overflow = "hidden";
-
-      console.log("[useDocumentActions] Opening PDF modal - COMPLETE", {
-        documentId,
-        timestamp: new Date().toISOString(),
-      });
+      if (documentRef) documentRef.body.style.overflow = "hidden";
     },
     [],
   );
 
   const handleViewDocument = useCallback(
     (documentId: string, documentName: string) => {
-      console.log("[useDocumentActions] handleViewDocument called", {
-        documentId,
-        documentName,
-        timestamp: new Date().toISOString(),
-      });
-
       try {
-        // Generate URL synchronously (no await needed)
         const pdfUrl = getFreshViewUrl(documentId);
-        console.log("[useDocumentActions] Got PDF URL", {
-          documentId,
-          pdfUrl,
-          success: !!pdfUrl,
-          timestamp: new Date().toISOString(),
-        });
-
         if (pdfUrl) {
-          // Open modal immediately - no async delays
           openPdfModal(pdfUrl, documentName, documentId);
         } else {
-          console.error(
-            "[useDocumentActions] Failed to get PDF view URL for document:",
-            {
-              documentId,
-              documentName,
-              timestamp: new Date().toISOString(),
-            },
-          );
+          log.error(LOG_CATEGORIES.ERRORS, "Failed to get PDF view URL", {
+            documentId,
+            documentName,
+          });
           showErrorToast("Unable to view document. Please try again later.");
         }
       } catch (error: unknown) {
-        console.error("[useDocumentActions] Error viewing document:", {
+        log.error(LOG_CATEGORIES.ERRORS, "Error viewing document", {
           error,
           documentId,
           documentName,
-          stack: error instanceof Error ? error.stack : "No stack trace",
-          timestamp: new Date().toISOString(),
         });
         showErrorToast("Error viewing document. Please try again later.");
       }
@@ -239,10 +221,12 @@ export const usePdfModal = (): PdfModalHooks => {
       try {
         await downloadDocument(documentId, documentName);
       } catch (error: unknown) {
-        console.error("Error downloading document:", error);
-        void void showErrorToast(
-          "Error downloading document. Please try again later.",
-        );
+        log.error(LOG_CATEGORIES.ERRORS, "Error downloading document", {
+          error,
+          documentId,
+          documentName,
+        });
+        showErrorToast("Error downloading document. Please try again later.");
       }
     },
     [downloadDocument],
@@ -253,7 +237,11 @@ export const usePdfModal = (): PdfModalHooks => {
       try {
         return await shareDocument(documentId, documentName);
       } catch (error: unknown) {
-        console.error("Error sharing document:", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Error sharing document", {
+          error,
+          documentId,
+          documentName,
+        });
         return {
           success: false,
           message: "Error sharing document. Please try again later.",
@@ -264,11 +252,12 @@ export const usePdfModal = (): PdfModalHooks => {
   );
 
   const closePdfModal = useCallback(() => {
+    const documentRef = getDocument();
     setCurrentPdf(null);
     setCurrentDocumentId(null);
     setCurrentDocumentName(null);
     setIsOpen(false);
-    document.body.style.overflow = "auto";
+    if (documentRef) documentRef.body.style.overflow = "auto";
   }, []);
 
   return {

@@ -1,19 +1,24 @@
 import React, { useState } from "react";
 
-import { useWhyRender } from "../../../../packages/hooks/ui/useWhy";
+import { log, LOG_CATEGORIES } from "logger";
 
-import {
-  CardAddressDisplay,
-  CardPropertyDetails,
-  CardMatchScore,
-  CardNotInterested,
-} from "./base";
-import { StyledImage } from "./base/CardImageStyles";
+import { getEnv } from "packages/config";
+import { useWhyRender } from "packages/hooks/ui";
+import type { Property } from "packages/schemas/property";
+import type { SearchResult } from "packages/schemas/search";
+
+import { BodyText } from "@/components/ui/index.web";
+
+import { CardNotInterested } from "./base/index.web";
+import { StyledImage } from "./base/index.web";
 import BaseCard from "./BaseCard";
-import WhyNotInterestedCard from "./WhyNotInterestedCard";
-import type { SearchResult } from "../../../../packages/schemas/search";
-import type { Property } from "../../../../packages/schemas/property";
-import { log, LOG_CATEGORIES } from "../../../../logger";
+import {
+  PropertyCardDetailsRow,
+  PropertyCardHideImageHeader,
+  PropertyCardPriceRow,
+  PropertyCardTrianglePointer,
+} from "./PropertyCardBodySection.tsx";
+import WhyNotInterestedCard from "./WhyNotInterestedCard.web";
 
 export type PropertyCardProps = {
   /** Stable ID for memoization */
@@ -70,9 +75,195 @@ export type PropertyCardProps = {
   width?: "auto" | "full" | "standard" | "wide" | "narrow";
 };
 
-function PropertyCardImpl(props: PropertyCardProps) {
+function formatPrice(price: string | number): string {
+  if (typeof price === "number") {
+    return `$${price.toLocaleString()}`;
+  }
+  const priceStr = price.toString();
+  return priceStr.startsWith("$") ? priceStr : `$${priceStr}`;
+}
+
+function PropertyCardImageSection({
+  imageUrl,
+  address,
+  cardType,
+  status,
+  pricePosition,
+  price,
+  topContent,
+  showNotInterested,
+  property,
+  onMarkNotInterested,
+}: {
+  imageUrl: string;
+  address: string;
+  cardType: "searchpage" | "regular";
+  status?: { text: string; className: string };
+  pricePosition: "top-left" | "top-right" | "below-address";
+  price: string;
+  topContent?: React.ReactNode;
+  showNotInterested: boolean;
+  property?: SearchResult | Property;
+  onMarkNotInterested: () => void;
+}) {
+  const placeholder = "/api/placeholder/400/300";
+  const heightClass =
+    cardType === "searchpage" ? "h-24 sm:h-28 md:h-32" : "h-32 sm:h-40 md:h-48";
+  return (
+    <div className={`relative overflow-hidden ${heightClass}`}>
+      <StyledImage
+        src={imageUrl}
+        alt={address}
+        variant="professional"
+        placeholder={placeholder}
+        className="h-full w-full"
+      />
+      {status && (
+        <div className="absolute left-3 top-3 sm:left-4 sm:top-4">
+          <BodyText
+            as="span"
+            className={`rounded-full px-2 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm ${status.className}`}
+          >
+            {status.text}
+          </BodyText>
+        </div>
+      )}
+      {pricePosition !== "below-address" && (
+        <div
+          className={`absolute top-3 sm:top-4 ${
+            pricePosition === "top-left"
+              ? "left-3 sm:left-4"
+              : "right-3 sm:right-4"
+          } rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm sm:px-3 sm:py-1.5`}
+        >
+          <BodyText
+            as="span"
+            className="text-xs font-medium text-brown sm:text-sm"
+          >
+            {formatPrice(price)}
+          </BodyText>
+        </div>
+      )}
+      {(topContent || (showNotInterested && property)) && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="relative h-full w-full pointer-events-auto">
+            {showNotInterested && property && (
+              <CardNotInterested
+                property={property}
+                size="sm"
+                position="top-left"
+                onMarkNotInterested={onMarkNotInterested}
+              />
+            )}
+            {topContent}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type PropertyCardBodyProps = {
+  hideImage: boolean;
+  price: string;
+  topContent?: React.ReactNode;
+  showNotInterested: boolean;
+  property?: SearchResult | Property;
+  onMarkNotInterested: () => void;
+  isOnMap: boolean;
+  pricePosition: "top-left" | "top-right" | "below-address";
+  showScore: boolean;
+  score?: number;
+  address: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  sqft?: number;
+  lotSize?: string;
+  propertyType?: string;
+  hideSquareFootage: boolean;
+  bottomContent?: React.ReactNode;
+  showTrianglePointer: boolean;
+};
+
+function PropertyCardBody(props: PropertyCardBodyProps) {
+  const addressClassName =
+    props.pricePosition === "below-address" ? "mb-0 w-full" : "mb-1 w-full";
+  return (
+    <>
+      <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
+        {props.hideImage && (
+          <PropertyCardHideImageHeader
+            price={props.price}
+            topContent={props.topContent}
+            showNotInterested={props.showNotInterested}
+            property={props.property}
+            onMarkNotInterested={props.onMarkNotInterested}
+          />
+        )}
+        <PropertyCardPriceRow
+          pricePosition={props.pricePosition}
+          price={props.price}
+          showScore={props.showScore}
+          score={props.score}
+          isOnMap={props.isOnMap}
+          address={props.address}
+          addressClassName={addressClassName}
+        />
+        <PropertyCardDetailsRow
+          bedrooms={props.bedrooms}
+          bathrooms={props.bathrooms}
+          sqft={props.sqft}
+          lotSize={props.lotSize}
+          propertyType={props.propertyType}
+          hideSquareFootage={props.hideSquareFootage}
+          isOnMap={props.isOnMap}
+        />
+        {props.bottomContent && <div>{props.bottomContent}</div>}
+      </div>
+      {props.showTrianglePointer && <PropertyCardTrianglePointer />}
+    </>
+  );
+}
+
+function PropertyCardReasonView({
+  property,
+  cardType,
+  onSelectReason,
+  onUndo,
+}: {
+  property: SearchResult | Property;
+  cardType: "searchpage" | "regular";
+  onSelectReason: (why: string) => Promise<void>;
+  onUndo: () => Promise<void>;
+}) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") e.preventDefault();
+      }}
+      className="transition-none"
+    >
+      <WhyNotInterestedCard
+        property={property}
+        onSelectReason={onSelectReason}
+        onUndo={onUndo}
+        cardType={cardType}
+      />
+    </div>
+  );
+}
+
+function PropertyCardMainContent({
+  props,
+  setShowReasonCard,
+}: {
+  props: PropertyCardProps;
+  setShowReasonCard: (v: boolean) => void;
+}) {
   const {
-    id,
     imageUrl,
     address,
     price,
@@ -87,91 +278,70 @@ function PropertyCardImpl(props: PropertyCardProps) {
     pricePosition = "top-right",
     topContent,
     bottomContent,
-    loading = false,
-    onClick,
-    className = "",
-    showScore = true,
     hideSquareFootage = false,
     showTrianglePointer = false,
     isOnMap = false,
     hideImage = false,
     property,
-    onSelectNotInterestedReason,
-    onUndoNotInterested,
     showNotInterested = false,
+    showScore = true,
+  } = props;
+  const markNotInterested = () => setShowReasonCard(true);
+  return (
+    <>
+      {imageUrl && !hideImage && (
+        <PropertyCardImageSection
+          imageUrl={imageUrl}
+          address={address}
+          cardType={cardType}
+          status={status}
+          pricePosition={pricePosition}
+          price={price}
+          topContent={topContent}
+          showNotInterested={showNotInterested}
+          property={property}
+          onMarkNotInterested={markNotInterested}
+        />
+      )}
+      <PropertyCardBody
+        hideImage={hideImage}
+        price={price}
+        topContent={topContent}
+        showNotInterested={showNotInterested}
+        property={property}
+        onMarkNotInterested={markNotInterested}
+        isOnMap={isOnMap}
+        pricePosition={pricePosition}
+        showScore={showScore}
+        score={score}
+        address={address}
+        bedrooms={bedrooms}
+        bathrooms={bathrooms}
+        sqft={sqft}
+        lotSize={lotSize}
+        propertyType={propertyType}
+        hideSquareFootage={hideSquareFootage}
+        bottomContent={bottomContent}
+        showTrianglePointer={showTrianglePointer}
+      />
+    </>
+  );
+}
+
+function PropertyCardMainView({
+  props,
+  setShowReasonCard,
+}: {
+  props: PropertyCardProps;
+  setShowReasonCard: (v: boolean) => void;
+}) {
+  const {
+    cardType = "regular",
+    loading = false,
+    onClick,
+    className = "",
     width,
   } = props;
-
-  const [showReasonCard, setShowReasonCard] = useState(false);
-
-  if (import.meta.env.DEV) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useWhyRender({ id, address, price, score });
-
-    // count only when mounted (not every render)
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const mounted = React.useRef(false);
-    if (!mounted.current) {
-      mounted.current = true;
-    }
-  }
-
-  const placeholder = "/api/placeholder/400/300";
-
-  const formatPrice = (price: string | number): string => {
-    if (typeof price === "number") {
-      return `$${price.toLocaleString()}`;
-    }
-    // If price is already a string and starts with $, don't add another $
-    const priceStr = price.toString();
-    return priceStr.startsWith("$") ? priceStr : `$${priceStr}`;
-  };
-
-  // Handle reason selection
-  const handleSelectReason = async (why: string) => {
-    if (onSelectNotInterestedReason) {
-      try {
-        await onSelectNotInterestedReason(why);
-        setShowReasonCard(false);
-      } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to update reason", error);
-        throw error;
-      }
-    }
-  };
-
-  // Handle undo
-  const handleUndo = async () => {
-    if (onUndoNotInterested) {
-      try {
-        await onUndoNotInterested();
-        setShowReasonCard(false);
-      } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to undo", error);
-        throw error;
-      }
-    }
-  };
-
-  // If showing reason card, render WhyNotInterestedCard instead (instant transition)
-  if (
-    showReasonCard &&
-    property &&
-    onSelectNotInterestedReason &&
-    onUndoNotInterested
-  ) {
-    return (
-      <div onClick={(e) => e.stopPropagation()} className="transition-none">
-        <WhyNotInterestedCard
-          property={property}
-          onSelectReason={handleSelectReason}
-          onUndo={handleUndo}
-          cardType={cardType}
-        />
-      </div>
-    );
-  }
-
   return (
     <BaseCard
       hover
@@ -181,172 +351,77 @@ function PropertyCardImpl(props: PropertyCardProps) {
       cardType={cardType}
       width={width}
       className={className}
-      onClick={showReasonCard ? undefined : onClick}
+      onClick={onClick}
     >
-      {/* Image container - only render if imageUrl is provided and not hidden */}
-      {imageUrl && !hideImage && (
-        <div
-          className={`relative overflow-hidden ${
-            cardType === "searchpage"
-              ? "h-24 sm:h-28 md:h-32"
-              : "h-32 sm:h-40 md:h-48"
-          }`}
-        >
-          <StyledImage
-            src={imageUrl}
-            alt={address}
-            variant="professional"
-            placeholder={placeholder}
-            className="h-full w-full"
-          />
-
-          {/* Status Badge */}
-          {status && (
-            <div className="absolute left-3 top-3 sm:left-4 sm:top-4">
-              <span
-                className={`rounded-full px-2 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm ${status.className}`}
-              >
-                {status.text}
-              </span>
-            </div>
-          )}
-
-          {/* Price Badge - only show if not below-address */}
-          {pricePosition !== "below-address" && (
-            <div
-              className={`absolute top-3 sm:top-4 ${
-                pricePosition === "top-left"
-                  ? "left-3 sm:left-4"
-                  : "right-3 sm:right-4"
-              } rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm sm:px-3 sm:py-1.5`}
-            >
-              <span className="text-xs font-medium text-brown sm:text-sm">
-                {formatPrice(price)}
-              </span>
-            </div>
-          )}
-
-          {/* Top Content (e.g., HeartSave, CompareCheckbox) - always show on image overlay */}
-          {(topContent || (showNotInterested && property)) && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="relative h-full w-full pointer-events-auto">
-                {showNotInterested && property && (
-                  <CardNotInterested
-                    property={property}
-                    size="sm"
-                    position="top-left"
-                    onMarkNotInterested={() => setShowReasonCard(true)}
-                  />
-                )}
-                {topContent}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
-        {/* Price display when image is hidden - show prominently at top */}
-        {hideImage && (
-          <div className="flex w-full items-center justify-center relative">
-            <div className="text-lg font-bold text-brown sm:text-xl">
-              {formatPrice(price)}
-            </div>
-            {(topContent || (showNotInterested && property)) && (
-              <div className="absolute right-0 flex-shrink-0">
-                {showNotInterested && property && (
-                  <CardNotInterested
-                    property={property}
-                    size="sm"
-                    position="top-left"
-                    onMarkNotInterested={() => setShowReasonCard(true)}
-                  />
-                )}
-                {topContent}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Address row: full width + proper truncate - hide on map */}
-        {!isOnMap && (
-          <div className="w-full">
-            <CardAddressDisplay
-              address={address}
-              size="sm"
-              variant="compact"
-              className={
-                pricePosition === "below-address"
-                  ? "mb-0 w-full"
-                  : "mb-1 w-full"
-              }
-            />
-          </div>
-        )}
-
-        {/* Price Section - when price goes below address */}
-        {pricePosition === "below-address" && (
-          <div className="flex w-full items-center gap-2">
-            {showScore && score !== undefined ? (
-              // When there's a score, use the original layout
-              <>
-                <div className="flex flex-1 items-center gap-2">
-                  <div className="text-lg font-bold text-brown sm:text-xl">
-                    {formatPrice(price)}
-                  </div>
-                  <div className="mr-3 sm:mr-4">
-                    <CardMatchScore
-                      score={score}
-                      size="xs"
-                      useColorStyling={true}
-                    />
-                  </div>
-                </div>
-                {/* Note: topContent is now rendered on image overlay, not here */}
-              </>
-            ) : (
-              // When there's no score, center the price
-              <>
-                <div className="flex flex-1 justify-center">
-                  <div className="text-lg font-bold text-brown sm:text-xl">
-                    {formatPrice(price)}
-                  </div>
-                </div>
-                {/* Note: topContent is now rendered on image overlay, not here */}
-              </>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center">
-          <CardPropertyDetails
-            bedrooms={bedrooms}
-            bathrooms={bathrooms}
-            sqft={sqft}
-            lotSize={lotSize}
-            propertyType={propertyType}
-            variant="horizontal"
-            hideSquareFootage={hideSquareFootage ?? isOnMap}
-          />
-        </div>
-
-        {/* Bottom Content */}
-        {bottomContent && <div>{bottomContent}</div>}
-      </div>
-
-      {/* Triangle Pointer for Map Cards - 8px tall, full width */}
-      {showTrianglePointer && (
-        <div className="relative w-full" style={{ height: "8px" }}>
-          <div
-            className="absolute left-0 top-0 w-full bg-white shadow-sm"
-            style={{
-              height: "8px",
-              clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-            }}
-          />
-        </div>
-      )}
+      <PropertyCardMainContent
+        props={props}
+        setShowReasonCard={setShowReasonCard}
+      />
     </BaseCard>
+  );
+}
+
+function PropertyCardImpl(props: PropertyCardProps) {
+  const {
+    id,
+    address,
+    price,
+    score,
+    property,
+    onSelectNotInterestedReason,
+    onUndoNotInterested,
+    cardType = "regular",
+  } = props;
+  const [showReasonCard, setShowReasonCard] = useState(false);
+
+  if (getEnv().isDevelopment) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useWhyRender({ id, address, price, score });
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const mounted = React.useRef(false);
+    if (!mounted.current) mounted.current = true;
+  }
+
+  const handleSelectReason = async (why: string) => {
+    if (!onSelectNotInterestedReason) return;
+    try {
+      await onSelectNotInterestedReason(why);
+      setShowReasonCard(false);
+    } catch (error) {
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to update reason", error);
+      throw error;
+    }
+  };
+
+  const handleUndo = async () => {
+    if (!onUndoNotInterested) return;
+    try {
+      await onUndoNotInterested();
+      setShowReasonCard(false);
+    } catch (error) {
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to undo", error);
+      throw error;
+    }
+  };
+
+  const showReasonView =
+    showReasonCard &&
+    property &&
+    onSelectNotInterestedReason &&
+    onUndoNotInterested;
+
+  if (showReasonView && property) {
+    return (
+      <PropertyCardReasonView
+        property={property}
+        cardType={cardType}
+        onSelectReason={handleSelectReason}
+        onUndo={handleUndo}
+      />
+    );
+  }
+  return (
+    <PropertyCardMainView props={props} setShowReasonCard={setShowReasonCard} />
   );
 }
 

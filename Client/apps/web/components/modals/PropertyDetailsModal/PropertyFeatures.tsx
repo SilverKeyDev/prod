@@ -1,5 +1,10 @@
 import React from "react";
-import Card from "../../layout/Card";
+
+import { useLocalization } from "packages/contexts";
+
+import Card from "@/components/layout/Card.web";
+import { BodyText, Title } from "@/components/ui/index.web";
+
 import type { PropertyComponentProps } from "./types";
 
 type ImageFeatures = { clean: string[]; error?: unknown };
@@ -26,6 +31,7 @@ function isFeatures(x: unknown): x is Features {
 export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
   property,
 }) => {
+  const { t } = useLocalization();
   const { features, image_features: imageFeatures } = property as unknown as {
     features: unknown;
     image_features: unknown;
@@ -42,23 +48,27 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
   return (
     <div className="px-6 py-6">
       <div className="mb-4 flex items-center gap-2">
-        <h3 className="text-lg font-semibold text-brown">Property Features</h3>
+        <Title as="h3" size="lg" className="font-semibold text-brown">
+          {t("property_details.property_features")}
+        </Title>
       </div>
 
       <Card className="p-6 border-r-0">
         {img && img.clean.length > 0 && (
           <div className="mb-4">
-            <h4 className="mb-2 text-sm font-semibold text-gold">
-              AI-Detected Features
-            </h4>
+            <Title as="h4" size="sm" className="mb-2 font-semibold text-gold">
+              {t("property_details.ai_detected_features")}
+            </Title>
             <div className="text-xs leading-relaxed text-brown/70">
               {img.clean.map((feature, i) => (
-                <span key={i} className="inline-block">
+                <BodyText key={i} as="span" className="inline-block">
                   {feature.trim()}
                   {i < img.clean.length - 1 && (
-                    <span className="mx-2 text-brown/40">•</span>
+                    <BodyText as="span" className="mx-2 text-brown/40">
+                      {t("property_details.bullet_separator").trim()}
+                    </BodyText>
                   )}
-                </span>
+                </BodyText>
               ))}
             </div>
           </div>
@@ -68,17 +78,22 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
           <div className="space-y-4">
             {Object.entries(feats).map(([category, list]) => (
               <div key={category}>
-                <h4 className="mb-2 text-sm font-semibold capitalize text-brown">
+                <Title
+                  as="h4"
+                  size="sm"
+                  className="mb-2 font-semibold capitalize text-brown"
+                >
                   {category.replace(/_/g, " ")}
-                </h4>
+                </Title>
                 <div className="flex flex-wrap gap-2">
                   {list.map((feature, idx) => (
-                    <span
+                    <BodyText
                       key={idx}
+                      as="span"
                       className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700"
                     >
                       {feature}
-                    </span>
+                    </BodyText>
                   ))}
                 </div>
               </div>

@@ -1,8 +1,10 @@
-import { ChevronRight, ArrowRight } from "lucide-react";
 import React from "react";
 
-import KeyTurnLoader from "../loading/KeyTurnLoader";
-import { log, LOG_CATEGORIES } from "../../../../../logger";
+import KeyTurnLoader from "@ui/loading/KeyTurnLoader.web";
+import { log, LOG_CATEGORIES } from "logger";
+import { ArrowRight, ChevronRight } from "lucide-react";
+
+import { dateNow } from "packages/utils/core/date";
 
 export type NavigationButtonProps = {
   /** Click handler */
@@ -100,7 +102,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
       children: typeof children === "string" ? children : "React element",
       disabled,
       loading,
-      timestamp: new Date().toISOString(),
+      timestamp: dateNow().toISOString(),
     });
 
     if (!disabled && !loading) {

@@ -1,727 +1,251 @@
-# SilverKey
+SilverKey Monorepo
+===================
 
-> AI-powered real estate platform helping homebuyers find, analyze, and purchase their dream homes through intelligent automation and personalized insights.
+This repository contains the SilverKey application, with a TypeScript/React frontend (under `Client/`) and a Python backend (under `Server/`), plus shared tooling and CI.
 
-**Live Application**: https://usesilverkey.com/
+This guide covers:
 
----
+- **How to set up the project (with Cursor)**
+- **What to install first**
+- **How to run the web app and core checks**
+- **An overview of the tech stack and repo organization**
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Monorepo Structure](#monorepo-structure)
-- [Technology Stack](#technology-stack)
-- [Architecture](#architecture)
-- [Key Features](#key-features)
-- [Folder Structure & Purposes](#folder-structure--purposes)
-- [Development Setup](#development-setup)
-- [CI/CD Pipeline](#cicd-pipeline)
-- [API Documentation](#api-documentation)
-- [Contributing](#contributing)
+**Documentation:** Canonical docs live in **`documentation/`** — see `documentation/README.md`. Client and server each have a subfolder and index; major folders (Client, Server) have a short README.
 
 ---
 
-## Overview
+Getting Started (Cursor-First Workflow)
+---------------------------------------
 
-SilverKey is a comprehensive full-stack real estate application that combines AI, machine learning, and intelligent automation to guide users through their entire home buying journey—from initial search to closing. The platform features:
+### 1. Prerequisites
 
-- **AI-Powered Home Matching**: Ensemble system combining embeddings, tabular models, and LLM scoring
-- **Intelligent Property Reports**: Comprehensive neighborhood and market analysis
-- **Smart Negotiation Strategies**: Data-driven offer recommendations
-- **Contextual AI Chatbot**: Answers property questions with full report context
-- **Personalized User Experience**: Tailored to individual preferences and constraints
+- **OS**: macOS (development is validated on macOS; other platforms may work but are not the primary target).
+- **Editor**: **[Cursor](https://cursor.sh)** (required – all instructions assume you are using Cursor).
+- **Node.js**: v20+ (LTS recommended).
+- **pnpm**: `9.x` (matches `packageManager` in `Client/package.json`).
+  - Install via: `corepack enable` and then `corepack prepare pnpm@9.0.0 --activate`, or follow pnpm docs.
+- **Python** & tooling:
+  - A modern Python (3.10+) and standard virtualenv tooling for the backend (if you plan to run the server).
+- **Git** and **Docker** (optional, for CI parity and containerized runs).
 
----
+### 2. Open the repo in Cursor (first thing to do)
 
-## Monorepo Structure
+1. Clone the repo:
 
-SilverKey uses a monorepo architecture with two main components:
+   ```bash
+   git clone <your-fork-or-origin-url> silverkey
+   cd silverkey
+   ```
 
-```
-SilverKey/
-├── Client/                    # Frontend application (React + TypeScript)
-│   ├── apps/
-│   │   └── web/              # Main web application
-│   └── packages/             # Shared packages
-│       ├── config/           # Configuration & API clients
-│       ├── contexts/         # React contexts
-│       ├── hooks/            # Custom React hooks
-│       ├── schemas/          # TypeScript schemas
-│       ├── services/         # Frontend services
-│       ├── store/            # Zustand state management
-│       ├── styles/           # Global styles & Tailwind
-│       └── utils/            # Utility functions
-├── Server/                   # Backend application (Flask + Python)
-│   └── app/
-│       ├── celery/           # Async task queue
-│       ├── home_matching/    # AI matching system
-│       ├── models/           # SQLAlchemy models
-│       ├── routes/           # API endpoints
-│       ├── services/         # Business logic
-│       └── utils/            # Helper utilities
-├── Dockerfile.web            # Multi-stage Docker build
-└── run-dev.sh               # Development runner script
-```
+2. **Open the folder in Cursor**:
+   - `cursor .` from the repo root **or** use Cursor’s “Open Folder” and select the `SilverKey` directory.
+3. Let Cursor:
+   - Index the workspace.
+   - Use the built-in agents for navigation and refactors (the project is configured with rules and skills that these agents understand).
 
-### How Components Interact
+> **Always prefer running commands, editing, and navigation inside Cursor.** The repo ships Cursor-specific rules and skills that keep changes aligned with the architecture.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         Frontend (Vite)                      │
-│  React Components → Hooks → Services → API → Backend        │
-│  State: Zustand + React Query                                │
-└────────────────────────┬────────────────────────────────────┘
-                         │ HTTP/REST
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Backend (Flask)                           │
-│  Routes → Services → Models → Database/S3/External APIs     │
-│  Async: Celery Workers                                       │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-         ┌───────────────┴───────────────┐
-         ▼                               ▼
-┌─────────────────┐              ┌───────────────┐
-│   PostgreSQL    │              │  External APIs│
-│   (Data)        │              │  - OpenAI     │
-└─────────────────┘              │  - Perplexity │
-         │                       │  - Google     │
-         ▼                       │  - Plaid      │
-┌─────────────────┐              │  - Zillow     │
-│  AWS S3         │              └───────────────┘
-│  (PDF Reports)  │                       │
-└─────────────────┘                       ▼
-         │                       ┌───────────────┐
-         └───────────────────────│     Redis     │
-                                 │   (Cache)     │
-                                 └───────────────┘
-```
+### 3. Install frontend dependencies
 
----
+From the repo root:
 
-## Technology Stack
-
-### Backend Technologies
-
-#### Core Framework
-- **Flask**: Python web framework for REST API
-- **Gunicorn**: Production WSGI server
-- **SQLAlchemy**: ORM for database operations
-- **Alembic**: Database migrations
-
-#### AI & Machine Learning
-- **OpenAI (GPT-4o)**: LLM for chatbot, report generation, and home scoring
-- **Perplexity (Sonar Pro)**: Advanced research and property analysis
-- **Sentence Transformers**: Embedding generation for semantic similarity
-- **XGBoost/LightGBM**: Tabular machine learning models for home matching
-- **NumPy/Pandas**: Data processing
-- **Torch**: Deep learning framework
-
-#### Data Storage
-- **PostgreSQL**: Primary relational database (AWS RDS or local)
-- **AWS S3**: Object storage for PDF reports and documents
-- **Redis**: Caching layer and Celery message broker
-
-#### Authentication & Authorization
-- **AWS Cognito**: Primary authentication service (email/password)
-- **Google OAuth**: Social authentication and calendar integration
-- **JWT Tokens**: Stateless authentication (RS256 for Cognito, HS256 for custom tokens)
-
-#### Task Queue & Background Jobs
-- **Celery**: Distributed task queue for async operations
-- **Redis**: Message broker for Celery
-
-#### External Integrations
-- **Google Maps API**: Location; services, geocoding, and mapping
-- **Google Calendar API**: Schedule management and appointment tracking
-- **Plaid API**: Financial verification and asset reports
-- **Zillow API (via RapidAPI)**: Property listings and search
-- **ReportLab**: PDF generation
-- **Boto3**: AWS SDK for S3 operations
-
-### Frontend Technologies
-
-#### Core Framework
-- **React 18**: UI library
-- **TypeScript**: Type-safe JavaScript
-- **Vite**: Build tool and dev server (fast HMR)
-- **Tailwind CSS**: Utility-first CSS framework
-- **PostCSS**: CSS processing
-
-#### State Management
-- **Zustand**: Global client-side state
-- **TanStack React Query**: Server state, caching, and sync
-- **React Context**: App-level providers (theme, localization, services)
-
-#### Routing & Navigation
-- **React Router v7**: Client-side routing
-- **React Router Guards**: Route protection
-
-#### UI & UX
-- **Framer Motion**: Animations
-- **Lucide React**: Icon library
-- **dnd-kit**: Drag and drop
-- **react-plaid-link**: Plaid integration UI
-- **react-responsive-carousel**: Image carousel
-
-#### Services & API
-- **Custom HTTP Client**: Axios-based with interceptors
-- **Service Layer Pattern**: Abstraction for API calls
-- **React Query Integration**: Automatic caching and refetching
-
----
-
-## Architecture
-
-### Request Flow
-
-1. **User Interaction**: React component triggers action
-2. **Hook**: Custom hook (e.g., `useReports`) handles the request
-3. **Service**: Service layer (`reports.ts`) formats the API call
-4. **API Config**: API configuration (`config/api/*.ts`) defines endpoints
-5. **HTTP Client**: HTTP client (`http.ts`) makes the request with auth headers
-6. **Backend Route**: Flask route handler receives request
-7. **Authentication**: JWT verification via `get_current_user()`
-8. **Service Layer**: Business logic in `app/services/`
-9. **Model/Database**: SQLAlchemy models interact with PostgreSQL
-10. **External APIs**: Calls to OpenAI, S3, Google, etc.
-11. **Response**: JSON response sent back to frontend
-12. **React Query**: Automatic caching and state updates
-13. **Re-render**: Component updates with new data
-
-### State Management Strategy
-
-#### Zustand (Client State)
-Use for data that changes during a session and doesn't need to persist:
-- `auth.slice.ts`: Authentication status, user profile
-- `ui.slice.ts`: UI state (modals, toasts, sidebars)
-- `view.slice.ts`: Current view settings
-- `filters.slice.ts`: Search filters
-- `session.slice.ts`: Session data
-
-```typescript
-// Example: auth.slice.ts
-const useAuthStore = create((set) => ({
-  user: null,
-  isAuthenticated: false,
-  login: async (credentials) => { /* ... */ },
-  logout: () => set({ user: null, isAuthenticated: false })
-}));
-```
-
-#### React Query (Server State)
-Use for data that comes from the server and should be cached:
-- User preferences
-- Property reports
-- Chat history
-- Saved homes
-- Search results
-
-```typescript
-// Example: useReports hook
-export function useReports() {
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['reports'],
-    queryFn: () => reportsService.getAll()
-  });
-  return { reports: data, isLoading, refetch };
-}
-```
-
-#### Services Layer Pattern
-Services abstract API calls and provide a clean interface:
-- `services/reports.ts`: Report operations
-- `services/chats.ts`: Chat operations
-- `services/auth.ts`: Authentication
-- `services/documents.ts`: Document management
-
-```typescript
-// Example: reports service
-export class ReportsService {
-  async generate(address: string) {
-    return api.post('/api/v1/report/generate', { address });
-  }
-  
-  async getAll() {
-    return api.get('/api/v1/report/list');
-  }
-}
-```
-
-#### Contexts (Application-wide)
-React contexts provide shared state across the component tree:
-- `ThemeContext.tsx`: Theme (light/dark) management
-- `LocalizationContext.tsx`: i18n support
-- `ServiceContext.tsx`: Service injection (testing)
-
-#### Hooks (Composable Logic)
-Custom hooks encapsulate reusable logic:
-- **Data Hooks** (`hooks/data/`): Server state queries
-- **Store Hooks** (`hooks/store/`): Zustand access
-- **UI Hooks** (`hooks/ui/`): UI interactions (modals, toasts)
-
----
-
-## Key Features
-
-### 1. AI-Powered Home Matching
-
-The platform uses an ensemble approach combining three scoring methods:
-
-**Location**: `Server/app/home_matching/ensemble/blend_scores.py`
-
-```python
-class EnsembleScorer:
-    def __init__(self):
-        self.embedding_scorer = EmbeddingScorer()    # Semantic similarity
-        self.tabular_predictor = TabularPredictor()  # ML model
-        self.llm_scorer = LLMScorer()                # GPT-4 evaluation
-        
-    def blend_scores(self, embedding, tabular, llm):
-        # Weighted average: 40% embedding, 40% tabular, 20% LLM
-        return 0.4*embedding + 0.4*tabular + 0.2*llm
-```
-
-**Components**:
-- `embeddings/`: Sentence transformer encoding
-- `tabular_model/`: XGBoost/LightGBM trained on user-home pairs
-- `llm_scorer/`: GPT-4o scoring with explanations
-
-### 2. Intelligent Property Reports
-
-**Location**: `Server/app/services/reportgen/`
-
-Generates comprehensive PDF reports with:
-- Neighborhood analysis
-- Market trends
-- School ratings
-- Crime statistics
-- Lifestyle DNA (AI-generated neighborhood personality)
-- Property comparison (duel reports)
-
-Uses **Perplexity Sonar Pro** for real-time data gathering and **ReportLab** for PDF generation.
-
-### 3. AI Chatbot
-
-**Location**: `Server/app/routes/chatbot.py`, `Server/app/services/chatbot/`
-
-Context-aware chatbot powered by GPT-4o that:
-- Answers questions about specific properties
-- References full report data
-- Considers user preferences
-- Provides personalized recommendations
-
-### 4. Negotiation Strategies
-
-**Location**: `Server/app/routes/offer.py`, `Server/app/services/standardgen/`
-
-AI-generated negotiation strategies including:
-- Comp-based offer rationale
-- Seller pain point leverage
-- Holding cost analysis
-- Repair tolerance guidance
-- Actionable urgency strategies
-
-### 5. Personalized Onboarding
-
-**Location**: `Client/apps/web/features/onboardpersonalize/`
-
-Multi-step onboarding collects:
-- Demographics (age, occupation, pets)
-- Financial profile (income, credit, budget)
-- Housing preferences (bedrooms, bathrooms, style)
-- Location preferences (commute tolerance, walkability)
-- Deal breakers
-- Report customization
-
----
-
-## Folder Structure & Purposes
-
-### Client/ (Frontend)
-
-#### `apps/web/`
-Main web application entry point.
-
-- **`app/`**: Core application setup
-  - `App.tsx`: Root component
-  - `guards/`: Route protection logic
-  - `layouts/`: Layout components (headers, sidebars)
-  - `providers/`: Context providers
-  - `routes/`: Route definitions and config
-- **`components/`**: Reusable UI components
-  - `auth/`: Authentication UI
-  - `cards/`: Card layouts
-  - `feedback/`: Toasts, modals, alerts
-  - `layout/`: Header, sidebar, navigation
-  - `ui/`: Form inputs, buttons, basic UI
-- **`features/`**: Feature-specific code
-  - `onboardpersonalize/`: Onboarding flow
-  - `search/`: Property search
-  - `dashboard/`: Dashboard
-  - `negotiate/`: Negotiation tools
-  - `close/`: Checklists
-  - `decide/`: Report comparison
-- **`pages/`**: Page-level components
-
-#### `packages/` (Shared Code)
-Reusable code across applications.
-
-- **`config/`**: Configuration
-  - `api/`: API endpoint definitions (one per domain)
-  - `auth.ts`: Auth configuration
-  - `env.ts`: Environment variables
-  - `http.ts`: HTTP client with interceptors
-  - `query/`: React Query config
-  
-- **`contexts/`**: React contexts
-  - `ThemeContext.tsx`: Theme management
-  - `LocalizationContext.tsx`: i18n
-  - `ServiceContext.tsx`: Dependency injection
-
-- **`hooks/`**: Custom React hooks
-  - `data/`: Server state hooks (useUserData, useReports)
-  - `store/`: Zustand store access hooks
-  - `ui/`: UI hooks (useModal, useToast)
-
-- **`schemas/`**: TypeScript type definitions
-  - Domain-specific types (user, property, reports, etc.)
-
-- **`services/`**: Frontend services
-  - Business logic for API calls
-  - Abstraction layer between components and API
-  - `http/`: HTTP utilities
-
-- **`store/`**: Zustand stores
-  - Global state slices (auth, ui, filters)
-  - `middleware/`: Custom middleware
-
-- **`styles/`**: Global styles
-  - Tailwind utilities
-  - Custom CSS
-  - Animations
-
-- **`utils/`**: Utility functions
-  - Address formatting
-  - Currency formatting
-  - Error handling
-  - Type guards
-
-### Server/ (Backend)
-
-#### `app/`
-
-- **`celery/`**: Async task queue
-  - `celery_worker.py`: Celery configuration
-  - `tasks.py`: Background tasks (report generation)
-  
-- **`home_matching/`**: AI matching system
-  - `ensemble/`: Ensemble scoring logic
-  - `embeddings/`: User and home encoders
-  - `tabular_model/`: ML model training and prediction
-  - `llm_scorer/`: GPT-4 scoring
-  - `config/`: Configuration
-  - `utils/`: Feature engineering and preprocessing
-
-- **`models/`**: SQLAlchemy database models
-  - `user.py`: User accounts
-  - `user_preferences.py`: Onboarding data
-  - `pdf_document.py`: Report metadata
-  - `home_universal.py`: Favorited properties
-  - `chat_history.py`: Chatbot messages
-  - `subscription.py`: Billing
-  - `plaid.py`: Financial data
-  - `report_models.py`: Report schema definitions
-  - `offer_models.py`: Negotiation strategy schemas
-
-- **`routes/`**: Flask Blueprint route handlers
-  - `auth.py`: Authentication endpoints
-  - `report.py`: Report generation
-  - `search.py`: Property search
-  - `home_matching.py`: AI matching
-  - `chatbot.py`: Chat endpoints
-  - `offer.py`: Negotiation strategies
-  - `preferences.py`: User preferences
-  - `user.py`: User management
-  - `google_calendar.py`: Calendar integration
-  - `plaid.py`: Financial integration
-  - `maps.py`: Google Maps integration
-  - `secure_upload.py`: Document upload
-
-- **`services/`**: Business logic
-  - `reportgen/`: Report generation orchestration
-  - `standardgen/`: Standard report sections
-  - `chatbot/`: Chatbot logic
-  - `s3_service.py`: AWS S3 operations
-  - `auth.py`: Cognito integration
-  - `google_oauth_service.py`: Google OAuth
-  - `google_calendar_service.py`: Calendar operations
-  - `plaid_client.py`: Plaid integration
-  - `search_help.py`: Property search utilities
-  - `minimal_token.py`: Custom JWT tokens
-
-- **`utils/`**: Helper utilities
-  - `auth.py`: Authentication helpers
-  - `app_logging.py`: Logging configuration
-  - `common_patterns.py`: Reusable decorators and patterns
-  - `db_reliability.py`: Database connection handling
-  - `env_validator.py`: Environment validation
-  - `secure_errors.py`: Error handling
-
-- **`config.py`**: Application configuration
-- **`extensions.py`**: Flask extensions (db, ma, etc.)
-- **`__init__.py`**: Flask app factory
-
-#### `migrations/`
-Alembic database migrations (35+ versions tracking schema evolution).
-
----
-
-## Development Setup
-
-### Prerequisites
-
-- **Node.js**: v20.19.0+ or v22.12.0+
-- **pnpm**: v9.0.0 (package manager)
-- **Python**: 3.11+
-- **PostgreSQL**: 12+
-- **Redis**: 6+ (for Celery and caching)
-
-### Environment Setup
-
-1. **Clone the repository**:
-```bash
-git clone <repository-url>
-cd SilverKey
-```
-
-2. **Backend Setup**:
-```bash
-cd Server
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-3. **Frontend Setup**:
 ```bash
 cd Client
 pnpm install
 ```
 
-4. **Environment Variables**:
-Create `Server/.env` with required credentials:
-```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/silverkey
+This installs all dependencies for the `Client` pnpm workspace, including the main web app under `apps/web/`.
 
-# AWS
-AWS_ACCESS_KEY_ID=your_key
-AWS_SECRET_ACCESS_KEY=your_secret
-AWS_REGION=us-east-2
-S3_BUCKET_NAME_PDFS=your-bucket
+### 4. (Optional) Backend setup
 
-# Cognito
-AWS_COGNITO_USER_POOL_ID=us-east-2_xxxx
-AWS_COGNITO_CLIENT_ID=your_client_id
-AWS_COGNITO_CLIENT_SECRET=your_secret
+If you need to work on or run the backend:
 
-# Google
-GOOGLE_CLIENT_ID=your_client_id
-GOOGLE_CALENDAR_SECRET=your_secret
-GOOGLE_MAPS_API_KEY=your_key
-
-# AI Services
-OPENAI_KEY=sk-...
-PERPLEXITY_API_KEY=...
-
-# Other APIs
-RAPIDAPI_KEY=your_key  # Zillow
-PLAID_SANDBOX_KEY=your_key
-PLAID_SECRET=your_secret
-```
-
-5. **Database Setup**:
-```bash
-cd Server
-flask db upgrade  # Run migrations
-```
-
-6. **Start Development Servers**:
-```bash
-# From project root
-./run-dev.sh
-```
-
-This starts:
-- **Flask backend** on `http://localhost:5000`
-- **Vite frontend** on `http://localhost:5173`
-- **Celery worker** for background tasks
-- **Redis** for caching and message queue
-
-### Development Workflow
-
-- **Frontend**: Hot module replacement (HMR) enabled
-- **Backend**: Auto-reload on file changes
-- **TypeScript**: Continuous type checking in background
-- **Database**: Migrations applied automatically
+- Create and activate a Python virtual environment in `Server/`.
+- Install backend dependencies according to the backend’s own docs or `requirements` files.
+- **Do not run or modify database migrations** unless you know what you’re doing; Alembic/Flask migration commands are managed separately.
 
 ---
 
-## CI/CD Pipeline
+Running the Web App
+-------------------
 
-### Overview
+All commands below are intended to be run from a **Cursor terminal**.
 
-SilverKey uses **GitHub Actions** for continuous integration and deployment to **AWS EC2**.
+1. **Start the web dev server**:
 
-**Location**: `.github/workflows/ci_web.yml`
+   ```bash
+   cd Client
+   pnpm dev:web
+   ```
 
-### Pipeline Stages
+   This runs Vite for the `@silverkey/web` app under `apps/web/`. The terminal output will show the local dev URL (typically `http://localhost:5173` or similar).
 
-1. **Trigger**: Push to `main` branch or manual dispatch
-2. **Environment Loading**: Load secrets from AWS Secrets Manager
-3. **Docker Build**:
-   - Multi-stage build (frontend + backend)
-   - Build arguments for environment variables
-   - Push to AWS ECR (Elastic Container Registry)
-   - Image caching for faster builds
-4. **EC2 Deployment**:
-   - SSH into EC2 instance
-   - Pull latest Docker image
-   - Start containers with proper environment
-   - Deploy frontend static files to `/var/www/html`
-   - Health checks
-5. **Cleanup**: Prune Docker resources
+2. **Build the production bundle**:
 
-### Deployment Architecture
+   ```bash
+   cd Client
+   pnpm build:web
+   ```
 
-```
-GitHub Actions → AWS ECR → EC2 Instance
-                           ├── cre_app (Flask)
-                           ├── cre_worker (Celery)
-                           └── redis
-```
+3. **Preview the production build locally**:
 
-### AWS Services Used
-
-- **ECR**: Docker image registry
-- **Secrets Manager**: Environment variables storage
-- **EC2**: Application hosting
-- **RDS**: Managed PostgreSQL database
-- **S3**: File storage
-
-### Docker Build Process
-
-The `Dockerfile.web` uses a multi-stage build:
-
-1. **Stage 1 (Frontend)**:
-   - Install Node.js and pnpm
-   - Copy client code
-   - Install dependencies
-   - Build Vite bundle
-   - Output: Optimized production bundle
-
-2. **Stage 2 (Backend)**:
-   - Install Python and system dependencies
-   - Install Python packages
-   - Copy server code
-   - Copy built frontend from Stage 1
-   - Expose port 5000
-   - Run Gunicorn with 4 workers
-
-### Key Features
-
-- **Zero-downtime deployment**: Graceful container restart
-- **Rolling updates**: New containers start before old ones stop
-- **Health checks**: Automatic container restarts on failure
-- **Logging**: Centralized Docker logging
-- **Resource management**: Automatic cleanup of old containers
+   ```bash
+   cd Client
+   pnpm preview:web
+   ```
 
 ---
 
-## API Documentation
+Linting, Formatting, and Checks
+-------------------------------
 
-### Base URL
-- **Development**: `http://localhost:5000/api/v1`
-- **Production**: `https://usesilverkey.com/api/v1`
+From `Client/`:
 
-### Authentication
+- **Lint the client workspace**:
 
-Most endpoints require authentication via JWT tokens in cookies or Authorization header:
+  ```bash
+  pnpm lint
+  ```
 
-```http
-Cookie: session=<jwt_token>
-# OR
-Authorization: Bearer <jwt_token>
-```
+- **Run architecture/parity linting**:
 
-### Key Endpoints
+  ```bash
+  pnpm lint:parity
+  ```
 
-#### Authentication (`/api/v1/auth`)
-- `POST /signup` - Create account
-- `POST /login` - Sign in
-- `POST /logout` - Sign out
-- `GET /me` - Get current user
+- **Run all lints (standard + parity)**:
 
-#### Reports (`/api/v1/report`)
-- `POST /generate` - Generate property report (async)
-- `GET /list` - List user's reports
-- `GET /view/<report_id>` - View report PDF
+  ```bash
+  pnpm lint:all
+  ```
 
-#### Search (`/api/v1/search`)
-- `POST /properties-by-polygon` - Search properties by area
-- `GET /property` - Get property details
-- `GET /propertyComps` - Get comparable properties
+- **Format code with Prettier**:
 
-#### Home Matching (`/api/home-matching`)
-- `POST /find-matches` - Find best matches (async)
-- `GET /task-status/<task_id>` - Check match status
+  ```bash
+  pnpm format
+  ```
 
-#### Negotiation (`/api/v1/offer`)
-- `POST /generate-strategy` - Generate negotiation strategy
+- **Check formatting only**:
 
-#### Chatbot (`/api/v1/chat`)
-- `POST /address/<report_id>` - Send message
-- `GET /history/<report_id>` - Get chat history
+  ```bash
+  pnpm format:check
+  ```
 
----
+- **Type-check the web app**:
 
-## Contributing
+  ```bash
+  pnpm typecheck
+  ```
 
-### Code Style
+- **Full client check pipeline (lint → format check → typecheck → web build)**:
 
-- **Backend**: Follow PEP 8 Python style guide
-- **Frontend**: ESLint + Prettier configuration
-- **TypeScript**: Strict mode enabled
+  ```bash
+  pnpm check
+  ```
 
-### Git Workflow
-
-1. Create a feature branch from `main`
-2. Make changes with clear commit messages
-3. Run tests and linting
-4. Submit pull request for review
-
-### Running Tests
-
-```bash
-# Frontend
-cd Client
-pnpm test
-
-# Backend
-cd Server
-pytest
-```
+These scripts are defined in `Client/package.json` and run across the pnpm workspace.
 
 ---
 
-## License
+Tech Stack Overview
+-------------------
 
-Copyright © 2024 SilverKey. All rights reserved.
+### Frontend (Client)
+
+- **Language**: TypeScript.
+- **Framework**: React 18.
+- **Router**: `react-router-dom` (SPA routing, nested routes).
+- **State Management**: `zustand` (global state in `packages/store/*`, consumed via hooks).
+- **Data Fetching / Caching**: `@tanstack/react-query` (hooks in `packages/hooks/data/*`).
+- **Styling**:
+  - Tailwind CSS (via `tailwindcss`, `postcss`, `autoprefixer`).
+  - Design system + UI components in `apps/web/components/ui/`.
+- **UI / UX Libraries**:
+  - `@headlessui/react` (accessible primitives).
+  - `lucide-react` (icons).
+  - `embla-carousel-react`, `react-responsive-carousel` (carousels).
+  - `framer-motion` (animations).
+  - `react-virtuoso` (virtualized lists).
+  - `react-phone-number-input` (phone inputs).
+- **Build tooling**:
+  - Vite (`vite`, `@vitejs/plugin-react-swc`).
+  - Vitest + Testing Library (`vitest`, `@testing-library/*`, `jsdom`, `@vitest/ui`, `@vitest/coverage-v8`).
+  - Playwright (`@playwright/test`) for E2E tests.
+- **Linting / Formatting**:
+  - ESLint (`eslint`, `@eslint/js`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, custom `eslint-plugin-silverkey`).
+  - Prettier (`prettier`, `prettier-plugin-tailwindcss`).
+  - Additional helpers: `globals`, `eslint-config-prettier`, `eslint-import-resolver-typescript`, `eslint-plugin-import`, `eslint-plugin-boundaries`, `eslint-plugin-prettier`.
+- **Logging**:
+  - Centralized frontend logger under `Client/logger/` with PII-scrubbing and category-based configuration.
+
+### Backend (Server)
+
+- **Language**: Python.
+- **Framework & tooling** (high level):
+  - Flask-style application with SQLAlchemy-style models and Alembic migrations.
+  - Centralized backend logging under `Server/logger/` (mirrors the frontend logger design).
+- **Important constraints**:
+  - Database schema and Alembic migrations are managed very carefully; avoid editing `Server/migrations/versions/` or running migration commands casually.
 
 ---
 
-## Support
+Repository Organization
+-----------------------
 
-For questions or issues, please contact the development team or open an issue in the repository.
+At a high level:
+
+- **Root**
+  - `Client/` – Frontend monorepo (web app and shared TS packages).
+  - `Server/` – Backend Python app and related code.
+  - `.github/` – CI workflows (e.g., `ci_web.yml`).
+  - Docker and infra files (`Dockerfile`, `.dockerignore`, etc.).
+
+### Client folder layout (`Client/`)
+
+- **`apps/`**
+  - `apps/web/` – The main React web app (`@silverkey/web`).
+    - `app/` – App shell, routing, top-level providers.
+    - `components/` – Shared UI components (must use the standardized design system in `components/ui/`).
+    - `features/` – Feature-level React components (search, dashboard, messaging, saved homes, etc.).
+- **`packages/`**
+  - `hooks/` – React hooks (`.ts` files only; no JSX). Includes:
+    - `hooks/data/*` – Data-fetching hooks using React Query and API clients.
+    - `hooks/store/*` – Store integration hooks around Zustand slices.
+    - `hooks/ui/*` – UI-specific state hooks.
+  - `services/` – Business logic and infrastructure services (framework-agnostic; **no React**).
+  - `config/` – Configuration and API clients (e.g., `config/api/*`, HTTP config, env).
+  - `store/` – Zustand slices defining global state.
+  - `schemas/` – Shared types and schemas.
+  - `utils/` – Pure utility and helper functions (no React).
+- **`logger/`**
+  - Shared frontend logging utilities (`logger.ts`, `pii.ts`, `categories.ts`, `logger.config.json`).
+- **Top-level tooling**
+  - `eslint.config.js`, multiple `tsconfig*.json`, `tools/`, `scripts/`, etc. for linting, builds, diagrams, and dev workflows.
+
+This layered architecture is enforced by custom ESLint rules and is documented in more detail in `Client/CLIENT_STRUCTURE.md` and `Client/ARCHITECTURE.md`.
+
+---
+
+Recommended Day‑to‑Day Flow
+---------------------------
+
+1. **Open the repo in Cursor** and let it index the workspace.
+2. **Start the web dev server** from a Cursor terminal:
+
+   ```bash
+   cd Client
+   pnpm dev:web
+   ```
+
+3. **Use Cursor’s inline agents** to:
+   - Navigate features (`apps/web/features/*`) and shared packages (`Client/packages/*`).
+   - Apply safe refactors that respect the existing architecture (the repo ships detailed rules to guide the agent).
+4. **Before pushing or opening a PR**, run:
+
+   ```bash
+   cd Client
+   pnpm check
+   ```
+
+   This ensures lint, formatting, typecheck, and web build all pass locally.
 

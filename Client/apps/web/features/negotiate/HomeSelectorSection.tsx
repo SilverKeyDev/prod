@@ -1,8 +1,17 @@
 import React from "react";
+
 import { Lightbulb } from "lucide-react";
-import { AlignedRow } from "../../components/layout";
-import { FavoriteHomesDropdown, Button, CancelButton } from "../../components/ui";
-import { SectionBox } from "./index";
+
+import { useLocalization } from "packages/contexts";
+
+import { AlignedRow } from "@/components/layout";
+import {
+  Button,
+  CancelButton,
+  FavoriteHomesDropdown,
+} from "@/components/ui/index.web";
+
+import SectionBox from "./SectionBox";
 
 type FavoriteHome = {
   user_id: string;
@@ -32,17 +41,18 @@ export function HomeSelectorSection({
   onGenerate,
   onCancel,
 }: HomeSelectorSectionProps): React.JSX.Element {
+  const { t } = useLocalization();
   return (
     <SectionBox>
       <AlignedRow gap="sm" justify="start" widths={[80, 20]}>
         <FavoriteHomesDropdown
           selectedHome={selectedHome}
           onHomeSelect={onHomeSelect}
-          placeholder="Select a favorite home for strategy generation"
+          placeholder={t("negotiate.home_selector.placeholder")}
         />
         <div className="flex items-center gap-2">
           <Button
-            variant="olive"
+            variant="primary"
             hideTextBelow="md"
             loading={isLoading}
             icon={<Lightbulb className="mobile-icon-sm" />}
@@ -50,11 +60,11 @@ export function HomeSelectorSection({
             disabled={!selectedHome || isLoading}
             className="h-full whitespace-nowrap"
           >
-            Generate
+            {t("negotiate.home_selector.generate")}
           </Button>
           {isLoading && onCancel && (
             <CancelButton onClick={onCancel} size="sm" className="h-full">
-              Cancel
+              {t("common.cancel")}
             </CancelButton>
           )}
         </div>

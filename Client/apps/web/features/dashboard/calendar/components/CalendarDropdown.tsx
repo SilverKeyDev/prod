@@ -1,7 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+
 import { ChevronDown } from "lucide-react";
-import { Button, OliveCheckbox } from "../../../../components/ui";
-import type { GoogleCalendar } from "../../../../../../packages/config/api";
+
+import type { GoogleCalendar } from "packages/config/api";
+
+import { BodyText, Button, OliveCheckbox } from "@/components/ui/index.web";
 
 type CalendarDropdownProps = {
   calendars: GoogleCalendar[];
@@ -50,12 +53,12 @@ export function CalendarDropdown({
         size="sm"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         className="h-8 w-8 p-0"
-        aria-label="Calendar settings"
+        label="Calendar settings"
       >
         <ChevronDown className="h-4 w-4 text-gray-500" />
       </Button>
       {isDropdownOpen && (
-        <div className="absolute right-0 top-full mt-1 w-64 rounded-lg border border-gray-300 bg-white shadow-lg z-[100]">
+        <div className="absolute right-0 top-full mt-1 w-64 rounded-lg border border-gray-300 bg-white shadow-lg z-50">
           <div className="p-2">
             <div className="mb-2 px-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
               Calendars
@@ -89,8 +92,10 @@ export function CalendarDropdown({
                             : "hover:bg-gray-50"
                         }`}
                       >
-                        <span
-                          className={`flex-1 text-sm truncate ${
+                        <BodyText
+                          as="span"
+                          size="sm"
+                          className={`flex-1 truncate ${
                             isSilverKey
                               ? "text-amber-600 font-medium"
                               : "text-gray-700"
@@ -98,11 +103,15 @@ export function CalendarDropdown({
                         >
                           {calendar.summary}
                           {isSilverKey && (
-                            <span className="ml-1 text-xs text-amber-500">
+                            <BodyText
+                              as="span"
+                              size="xs"
+                              className="ml-1 text-amber-500"
+                            >
                               (Required)
-                            </span>
+                            </BodyText>
                           )}
-                        </span>
+                        </BodyText>
                         <div
                           className={
                             isDisabled ? "opacity-50 cursor-not-allowed" : ""

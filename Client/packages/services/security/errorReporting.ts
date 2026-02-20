@@ -3,8 +3,18 @@
  * Implements SOC 2 compliant error reporting and monitoring
  */
 
-import { asError } from "../../utils/error";
+import { log as centralLog, LOG_CATEGORIES } from "logger";
 
+import { getEnv } from "packages/config/env";
+import { dateNow } from "packages/utils/core/date";
+import { asError } from "packages/utils/core/errorHandling/error";
+import { logError } from "packages/utils/core/errorHandling/logging";
+import { normalizeError } from "packages/utils/core/errorHandling/normalize";
+import type { AppError } from "packages/utils/core/errorHandling/types";
+import { getNavigator, getWindow } from "packages/utils/core/platform";
+
+import type { ClientErrorPayload } from "./reportClientErrors";
+import { clientErrorsApi } from "./reportClientErrors";
 import { log } from "./secureLogger";
 
 type ErrorContext = {
@@ -37,12 +47,7 @@ class ErrorReporter {
   private buildVersion?: string;
 
   constructor() {
-    // Safe access to import.meta.env with proper type guards
-    const env =
-      import.meta?.env && typeof import.meta.env === "object"
-        ? import.meta.env
-        : {};
-    this.isProduction = "MODE" in env && env.MODE === "production";
+    this.isProduction = getEnv().isProduction;
     this.buildVersion = "unknown"; // Build version not available in client
     this.sessionId = this.generateSessionId();
   }
@@ -120,27 +125,30 @@ class ErrorReporter {
    * Set up global error handlers
    */
   private setupGlobalErrorHandlers(): void {
+    const win = getWindow();
+    if (!win) return;
+
     // Handle unhandled promise rejections
-    window.addEventListener("unhandledrejection", (event) => {
+    win.addEventListener("unhandledrejection", (event) => {
       const error =
         event.reason instanceof Error
           ? event.reason
           : new Error(String(event.reason));
       this.captureError(error, {
         type: "unhandled_promise_rejection",
-        url: window.location.href,
+        url: win.location.href,
       });
     });
 
     // Handle uncaught errors
-    window.addEventListener("error", (event) => {
+    win.addEventListener("error", (event) => {
       const error =
         event.error instanceof Error
           ? event.error
           : new Error(event.message || "Unknown error");
       this.captureError(error, {
         type: "uncaught_error",
-        url: window.location.href,
+        url: win.location.href,
         filename: event.filename,
         lineno: event.lineno,
         colno: event.colno,
@@ -148,7 +156,7 @@ class ErrorReporter {
     });
 
     // Handle React error boundaries (if using)
-    window.addEventListener("react-error", (event: unknown) => {
+    win.addEventListener("react-error", (event: unknown) => {
       if (event && typeof event === "object" && "detail" in event) {
         const customEvent = event as {
           detail: { error: Error; componentStack: string };
@@ -166,6 +174,11 @@ class ErrorReporter {
    */
   captureError(error: Error | string, context?: Record<string, unknown>): void {
     try {
+      // Auto-initialize on first use so backend reporting works without explicit init
+      if (!this.isInitialized) {
+        this.initialize();
+      }
+
       const errorContext = this.buildErrorContext(context);
 
       // Log locally with PII scrubbing
@@ -176,14 +189,14 @@ class ErrorReporter {
         });
       }
 
-      // Send to external service in production
-      if (this.isProduction && this.isInitialized) {
+      // Send to backend (and optional external e.g. Sentry in prod)
+      if (this.isInitialized) {
         this.sendToExternalService(error, errorContext);
       }
     } catch (reportingError: unknown) {
       const error = asError(reportingError);
       // Fail silently to avoid infinite loops
-      console.error("Error reporting failed:", error);
+      centralLog.error(LOG_CATEGORIES.ERRORS, "Error reporting failed", error);
     }
   }
 
@@ -285,11 +298,13 @@ class ErrorReporter {
   private buildErrorContext(
     additionalContext?: Record<string, unknown>,
   ): ErrorContext {
+    const nav = getNavigator();
+    const win = getWindow();
     return {
       userId: this.userId,
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      timestamp: new Date().toISOString(),
+      userAgent: nav?.userAgent,
+      url: win?.location.href,
+      timestamp: dateNow().toISOString(),
       sessionId: this.sessionId,
       buildVersion: this.buildVersion,
       environment: this.isProduction ? "production" : "development",
@@ -317,21 +332,38 @@ class ErrorReporter {
   }
 
   /**
-   * Send error to external monitoring service
+   * Send error to backend for centralized logging
    */
   private sendToExternalService(error: unknown, context: ErrorContext): void {
     try {
-      // Placeholder for external service integration
-      // In production, this would send to Sentry, Datadog, etc.
-      // Sentry.captureException(error, { contexts: { custom: context } });
+      const serialized = this.serializeError(error);
+      const errObj =
+        serialized && typeof serialized === "object" && "message" in serialized
+          ? (serialized as { name?: string; message?: string; stack?: string })
+          : { message: String(error) };
 
-      // For now, just log that we would send it
-      if (log && typeof log.debug === "function") {
-        log.debug("ERROR_REPORTER", "Would send to external service", {
-          hasError: !!error,
-          contextKeys: Object.keys(context),
-        });
-      }
+      const payload: ClientErrorPayload = {
+        message: errObj.message ?? "Unknown error",
+        name: errObj.name,
+        stack: errObj.stack,
+        url: context.url,
+        userAgent: context.userAgent,
+        timestamp: context.timestamp,
+        sessionId: context.sessionId,
+        environment: context.environment,
+        buildVersion: context.buildVersion,
+      };
+
+      if (context.type) payload.type = String(context.type);
+      if (context.componentStack)
+        payload.componentStack = String(context.componentStack);
+      if (context.errorBoundary === true) payload.errorBoundary = true;
+      if (context.routeError === true) payload.routeError = true;
+      if (context.filename) payload.filename = String(context.filename);
+      if (typeof context.lineno === "number") payload.lineno = context.lineno;
+      if (typeof context.colno === "number") payload.colno = context.colno;
+
+      void clientErrorsApi.reportClientError(payload);
     } catch {
       // Fail silently
     }
@@ -393,6 +425,28 @@ class ErrorReporter {
 
 // Export singleton instance
 export const errorReporter = new ErrorReporter();
+
+/**
+ * Logs an error locally and sends it to the backend (ErrorReporter).
+ * Use this when you want both logging and reporting; use reportError from
+ * packages/utils/errorHandling for log-only.
+ */
+export function reportErrorWithCapture(
+  error: AppError | unknown,
+  context?: Record<string, unknown>,
+): void {
+  const normalized =
+    typeof error === "object" &&
+    error !== null &&
+    "id" in error &&
+    "timestamp" in error
+      ? (error as AppError)
+      : normalizeError(error, context);
+  logError(normalized, context);
+  const errForCapture =
+    error instanceof Error ? error : new Error(normalized.message);
+  errorReporter.captureError(errForCapture, context);
+}
 
 // Convenience functions
 export const captureError = (

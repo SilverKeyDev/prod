@@ -1,17 +1,19 @@
 import React from "react";
-import AlignedRow from "../../../../components/layout/AlignedRow";
-import Card from "../../../../components/layout/Card";
-import { Dropdown, Input, Title } from "../../../../components/ui";
-import Label from "../../../../features/onboardpersonalize/Label";
-import HomePriceEstimate from "../../../../features/onboardpersonalize/HomePriceEstimate";
-import PriceRangeSlider from "../../../../features/onboardpersonalize/PriceRangeSlider";
-import BudgetRangeSlider from "../../../../features/onboardpersonalize/BudgetRangeSlider";
+
+import type { HomePriceResult } from "packages/utils/domain/profile";
 import {
-  FIELD_LABELS,
   CREDIT_SCORE_OPTIONS,
+  FIELD_LABELS,
   type OnboardingData,
-} from "../../../../features/onboardpersonalize/lib/constants";
-import type { HomePriceResult } from "../../../../features/onboardpersonalize/lib/homePriceCalculation";
+} from "packages/utils/domain/profile";
+
+import AlignedRow from "@/components/layout/AlignedRow";
+import Card from "@/components/layout/Card.web";
+import { Dropdown, Input, Title } from "@/components/ui/index.web";
+import BudgetRangeSlider from "@/features/profile/components/BudgetRangeSlider.web";
+import HomePriceEstimate from "@/features/profile/components/HomePriceEstimate";
+import Label from "@/features/profile/components/Label.web";
+import PriceRangeSlider from "@/features/profile/components/PriceRangeSlider";
 
 type FinancialSectionProps = {
   formData: OnboardingData;
@@ -91,6 +93,7 @@ export default function FinancialSection({
                 }}
                 formatPrefix="$"
                 className="mt-2"
+                showTickMarks={false}
               />
             ) : (
               <div className="mobile-input bg-gray-50 text-left">
@@ -113,6 +116,7 @@ export default function FinancialSection({
                 }}
                 formatPrefix="$"
                 className="mt-2"
+                showTickMarks={false}
               />
             ) : (
               <div className="mobile-input bg-gray-50 text-left">

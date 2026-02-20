@@ -1,14 +1,16 @@
 import { QueryClient } from "@tanstack/react-query";
-import type { UserProfile } from "../../schemas";
-import { getInitialLoadRoutes, DATA_ROUTES } from "./dataConfig";
-import { queryKeys } from "../../config/query/keys";
-import { agentApi } from "../../config/api";
+import { log, LOG_CATEGORIES } from "logger";
+
 import type {
   AgentConversation,
-  GoogleEvent,
   GoogleCalendar,
-} from "../../config/api";
-import { log, LOG_CATEGORIES } from "../../../logger";
+  GoogleEvent as _GoogleEvent,
+} from "packages/config/api";
+import { agentApi } from "packages/config/api";
+import { queryKeys } from "packages/config/query/keys";
+import type { UserProfile } from "packages/schemas";
+
+import { DATA_ROUTES, getInitialLoadRoutes } from "./dataConfig";
 
 /**
  * Initial data loader - prefetches all page data on login
@@ -243,7 +245,7 @@ export class InitialDataLoader {
 
       // Use Promise.allSettled to continue even if some fail
       await Promise.allSettled(historyPromises);
-    } catch (error) {
+    } catch {
       // Don't throw - this is a performance optimization, not critical
     }
   }
@@ -278,7 +280,7 @@ export class InitialDataLoader {
         },
         staleTime: 3 * 60 * 1000, // 3 minutes - same as conversations
       });
-    } catch (error) {
+    } catch {
       // Silently fail - individual failures shouldn't block others
     }
   }

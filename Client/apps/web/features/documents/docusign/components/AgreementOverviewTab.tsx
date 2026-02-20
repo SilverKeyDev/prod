@@ -1,11 +1,13 @@
-import { BodyText, Button } from "../../../../components/ui";
+import type { Agreement } from "packages/schemas/content/documents/docusign";
+import {
+  formatAgreementDate,
+  getAgreementTypeLabel,
+} from "packages/utils/domain/documents/docusignHelpers";
+
+import { BodyText, Button } from "@/components/ui/index.web";
+
 import AgreementStatusBadge from "./AgreementStatusBadge";
 import VoidConfirmation from "./VoidConfirmation";
-import {
-  getAgreementTypeLabel,
-  formatAgreementDate,
-} from "../../../../../../packages/utils/documents/docusignHelpers";
-import type { Agreement } from "../../../../../../packages/schemas/documents/docusign";
 
 type AgreementOverviewTabProps = {
   agreement: Agreement;

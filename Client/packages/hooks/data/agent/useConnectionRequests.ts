@@ -1,10 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { agentApi } from "../../../config/api";
-import { queryKeys } from "../../../config/query/keys";
-import { useAuthStore } from "../../../store/auth.slice";
-import type { AgentConnectionRequest } from "../../../config/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import type { AgentConnectionRequest } from "packages/config/api";
+import { agentApi } from "packages/config/api";
+import { queryKeys } from "packages/config/query/keys";
+import { useAuthStore } from "packages/store";
 
 export type UseConnectionRequestsReturn = {
   requests: AgentConnectionRequest[];

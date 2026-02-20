@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
-import { useSavedHomesStore } from "../../../store/savedHomes.slice";
-import { useSavedHomesData } from "../../data/search/useSavedHomesData";
-import { useAuthStore } from "../../../store/auth.slice";
+import { useSavedHomesData } from "packages/hooks/data/search/saved/useSavedHomesData";
+import { useSavedHomesStore } from "packages/store";
+import { useAuthStore } from "packages/store";
 
 /**
  * Hook that integrates useSavedHomesData with useSavedHomesStore
@@ -10,8 +10,8 @@ import { useAuthStore } from "../../../store/auth.slice";
  * @param clientId - Optional client ID for agents to view client's saved homes
  */
 export function useSavedHomesStoreIntegration(clientId?: string) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const authReady = useAuthStore((s) => s.authReady);
+  const _isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const _authReady = useAuthStore((s) => s.authReady);
 
   // Always call useSavedHomesData to maintain hook order consistency
   // The hook itself will handle the authentication requirements via React Query's enabled option

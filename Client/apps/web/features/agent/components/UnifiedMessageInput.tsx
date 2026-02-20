@@ -1,9 +1,12 @@
 import { Send } from "lucide-react";
-import Button from "../../../components/ui/button/Button";
+
+import Button from "@/components/ui/button/Button";
+import { Textarea } from "@/components/ui/index.web";
 import {
   getMessagingConfig,
   type MessagingMode,
-} from "../config/messagingConfig";
+} from "@/features/agent/config/messagingConfig";
+
 import AttachmentMenu from "./AttachmentMenu";
 
 type UnifiedMessageInputProps = {
@@ -59,7 +62,7 @@ export default function UnifiedMessageInput({
           />
         )}
         <div className="flex flex-1">
-          <textarea
+          <Textarea
             value={message}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
               setMessage(e.target.value)

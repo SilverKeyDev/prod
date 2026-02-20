@@ -1,5 +1,7 @@
 import { useCallback } from "react";
-import { useUIStore } from "../../../store";
+
+import { useUIStore } from "packages/store";
+
 import type { DocumentData } from "./useDocumentsData";
 
 type UseSavedPageDocumentHandlersProps = {

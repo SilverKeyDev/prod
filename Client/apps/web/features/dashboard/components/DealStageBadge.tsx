@@ -1,7 +1,10 @@
 import React from "react";
-import { Search, Home, FileText, CheckCircle, Calendar } from "lucide-react";
-import StatusBadge from "../../../components/ui/asset/StatusBadge";
-import type { DealStage } from "../../../../../packages/schemas/agent";
+
+import { Calendar, CheckCircle, FileText, Home, Search } from "lucide-react";
+
+import type { DealStage } from "packages/schemas/agent";
+
+import StatusBadge from "@/components/ui/asset/StatusBadge";
 
 type DealStageBadgeProps = {
   stage: DealStage;

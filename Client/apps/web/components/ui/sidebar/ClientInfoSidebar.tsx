@@ -1,5 +1,6 @@
+import type { NavItem } from "packages/schemas/app/nav";
+
 import SidebarNavigation from "./SidebarNavigation";
-import type { NavItem } from "../../../../../packages/schemas/nav";
 
 type ClientInfoSidebarProps = {
   items: NavItem[];

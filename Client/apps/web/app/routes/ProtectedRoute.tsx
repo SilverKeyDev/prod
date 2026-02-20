@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
-import { Navigate, useLocation, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
-import { useAuth } from "../providers/auth/useAuth";
+import { useAuth } from "packages/contexts";
 
 /**
  * ProtectedRoute component that wraps routes requiring authentication
@@ -9,7 +9,7 @@ import { useAuth } from "../providers/auth/useAuth";
  * Prevents redirect loops and race conditions
  */
 export const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
-  const { status, authReady } = useAuth();
+  const { authStatus: status, authReady } = useAuth();
   const location = useLocation();
 
   // Wait for bootstrap to complete - prevents early redirects and flicker

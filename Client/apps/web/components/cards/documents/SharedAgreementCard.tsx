@@ -1,9 +1,13 @@
 import { useState } from "react";
+
+import { BodyText, KeyTurnLoader } from "@ui/index.web";
 import { FileSignature } from "lucide-react";
-import { useDocusignAgreement } from "../../../../../packages/hooks/data/documents/useDocusignAgreement";
-import AgreementCard from "../../../features/documents/docusign/components/AgreementCard";
-import { AgreementDetailModal } from "../../../features/documents/docusign/modals";
-import { KeyTurnLoader, BodyText } from "../../ui";
+
+import { useLocalization } from "packages/contexts";
+import { useDocusignAgreement } from "packages/hooks/data/documents/useDocusignAgreement";
+
+import AgreementCard from "@/features/documents/docusign/components/AgreementCard";
+import { AgreementDetailModal } from "@/features/documents/docusign/modals";
 
 type SharedAgreementCardProps = {
   agreementId: string;
@@ -21,6 +25,7 @@ export default function SharedAgreementCard({
   agreementId,
   compact = false,
 }: SharedAgreementCardProps) {
+  const { t } = useLocalization();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { agreement, isLoading, error } = useDocusignAgreement(agreementId);
 
@@ -34,7 +39,7 @@ export default function SharedAgreementCard({
         <div className="flex items-center gap-2">
           <KeyTurnLoader />
           <BodyText size="sm" muted>
-            Loading agreement...
+            {t("documents.loading_agreement")}
           </BodyText>
         </div>
       </div>
@@ -47,7 +52,7 @@ export default function SharedAgreementCard({
         <div className="flex items-center gap-2">
           <FileSignature className="w-5 h-5 text-red-600" />
           <BodyText size="sm" className="text-red-600">
-            Agreement not available
+            {t("documents.agreement_not_available")}
           </BodyText>
         </div>
       </div>

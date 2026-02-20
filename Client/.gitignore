@@ -28,4 +28,6 @@ package-lock.json
 dist
 
 eslint*
+!tools/
+!tools/**
 test-results

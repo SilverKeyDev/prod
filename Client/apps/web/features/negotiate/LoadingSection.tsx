@@ -1,6 +1,8 @@
 import React from "react";
-import { SectionBox } from "./index";
-import { Loading } from "../../components/ui";
+
+import { Loading } from "@/components/ui/index.web";
+
+import SectionBox from "./SectionBox";
 
 export function LoadingSection(): React.JSX.Element {
   return (

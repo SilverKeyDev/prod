@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import { useUserStore } from "../../../store/user.slice";
-import { useUserData } from "../data/useUserData";
+
+import { useUserData } from "packages/hooks/data/auth/useUserData";
+import { useUserStore } from "packages/store";
 
 /**
  * Hook that integrates useUserData with useUserStore

@@ -3,6 +3,8 @@
    Type-Safe Environment Configuration
    ========================= */
 
+import { log, LOG_CATEGORIES } from "logger";
+
 /**
  * Extended environment interface with all used variables
  */
@@ -53,7 +55,9 @@ class EnvConfig {
     const missing = required.filter((key) => !this.env[key]);
 
     if (missing.length > 0) {
-      console.warn("Missing required environment variables:", missing);
+      log.warn(LOG_CATEGORIES.API, "Missing required environment variables", {
+        missing,
+      });
     }
   }
 
@@ -62,7 +66,8 @@ class EnvConfig {
     const mapId =
       EnvConfig.STATIC.GOOGLE_MAPS_ID || this.env.VITE_GOOGLE_MAPS_ID;
     if (!mapId) {
-      console.warn(
+      log.warn(
+        LOG_CATEGORIES.API,
         "VITE_GOOGLE_MAPS_ID not configured - using default map styling",
       );
     }
@@ -73,7 +78,8 @@ class EnvConfig {
     const clientId =
       EnvConfig.STATIC.GOOGLE_CLIENT_ID || this.env.VITE_GOOGLE_CLIENT_ID;
     if (!clientId) {
-      console.warn(
+      log.warn(
+        LOG_CATEGORIES.API,
         "VITE_GOOGLE_CLIENT_ID not configured - Google services integration may be limited",
       );
       return null;
@@ -85,7 +91,8 @@ class EnvConfig {
     const clientId =
       EnvConfig.STATIC.PLAID_CLIENT_ID || this.env.VITE_PLAID_CLIENT_ID;
     if (!clientId) {
-      console.warn(
+      log.warn(
+        LOG_CATEGORIES.API,
         "VITE_PLAID_CLIENT_ID not configured - Plaid integration may be limited",
       );
       return null;
@@ -120,6 +127,23 @@ class EnvConfig {
   }
 
   /**
+   * Node-style environment: 'development' | 'production'.
+   * Only place that reads process.env.NODE_ENV or import.meta.env.MODE.
+   */
+  getNodeEnv(): "development" | "production" {
+    if (typeof import.meta !== "undefined" && import.meta.env) {
+      const mode = (import.meta.env as { MODE?: string }).MODE;
+      return mode === "production" ? "production" : "development";
+    }
+    if (typeof process !== "undefined" && process.env?.NODE_ENV) {
+      return process.env.NODE_ENV === "production"
+        ? "production"
+        : "development";
+    }
+    return "development";
+  }
+
+  /**
    * Get raw environment variable (use sparingly)
    */
   getRaw(key: keyof ImportMetaEnv): unknown {
@@ -129,6 +153,14 @@ class EnvConfig {
 
 // Export singleton instance
 export const env = EnvConfig.getInstance();
+
+/**
+ * Single entry point for environment (use instead of process.env / import.meta.env).
+ * Allowlist for env access: this file and build configs (vite.config.*, *.config.js).
+ */
+export function getEnv(): EnvConfig {
+  return env;
+}
 
 // Export individual getters for convenience
 export const {
@@ -147,3 +179,6 @@ export const getDefaultRetries = () => env.apiRetries;
 export const googleMapsId = env.googleMapsId;
 export const googleClientId = env.googleClientId;
 export const plaidClientId = env.plaidClientId;
+
+/** Convenience: NODE_ENV-style string. Use getEnv().getNodeEnv() if you have getEnv() in scope. */
+export const getNodeEnv = (): "development" | "production" => env.getNodeEnv();

@@ -25,10 +25,16 @@ Each API client module provides type-safe, domain-specific functions for making 
 - `report.ts` - Report generation and management
 - `research.ts` - Property research API calls
 - `search.ts` - Property search API calls
+- `feed/feed.ts` - Feed/reels API calls
 - `secureUpload.ts` - Secure file upload API calls
 - `user.ts` - User profile and data API calls
 
 ## Architecture Rules
+
+### API types
+
+- Define API request/response types in `packages/schemas` (e.g. `schemas/api/user.ts`), not inline in config/api.
+- In config/api modules, `import type { ... } from "../../../schemas/..."` and re-export if needed for backward compatibility.
 
 ### Allowed Imports
 

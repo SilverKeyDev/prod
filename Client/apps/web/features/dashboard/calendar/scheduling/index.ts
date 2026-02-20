@@ -1,3 +1,3 @@
-export { SchedulingModal } from "./SchedulingModal";
-export { TimeSlotPicker } from "./components/TimeSlotPicker";
 export { SchedulingForm } from "./components/SchedulingForm";
+export { TimeSlotPicker } from "./components/TimeSlotPicker";
+export { SchedulingModal } from "./SchedulingModal";

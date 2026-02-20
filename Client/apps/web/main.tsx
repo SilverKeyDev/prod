@@ -1,9 +1,11 @@
+import "packages/styles/index.css";
+import "./app/platformBootstrap";
+
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
-import { CoreProviders } from "./app/providers/CoreProviders";
 import App from "./app/App";
-import "../../packages/styles/index.css";
+import { CoreProviders } from "./app/providers/CoreProviders";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,

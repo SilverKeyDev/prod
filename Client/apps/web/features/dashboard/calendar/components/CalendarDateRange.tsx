@@ -1,5 +1,6 @@
-import { Title } from "../../../../components/ui";
-import { formatDateRange } from "../../../../../../packages/utils/calendar/date";
+import { formatDateRange } from "packages/utils/domain/calendar/date";
+
+import { Title } from "@/components/ui/index.web";
 
 type CalendarDateRangeProps = {
   firstDate: Date;

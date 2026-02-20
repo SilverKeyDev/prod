@@ -1,0 +1,53 @@
+---
+description: Async and cancellation patterns for RN-safe unmount and request cleanup
+globs:
+  - "Client/**/*.{ts,tsx}"
+alwaysApply: true
+---
+
+# Async and Cancellation Patterns
+
+## Goal
+
+React Native screens unmount differently than web; you get "setState on unmounted component" if effects or requests complete after unmount. Enforce cancellation and avoid raw async effects so the same patterns work on both platforms.
+
+## Rules
+
+### 1. Prefer TanStack Query (React Query) for data fetching
+
+- **First choice:** Use TanStack Query (`useQuery` / `useMutation`) for server state. It handles caching, loading/error states, and **cancellation on unmount** automatically, reducing boilerplate and avoiding manual `AbortController` in most UI code.
+- Use stable `queryKey` and `enabled` so refetch and cancellation are predictable; avoid ad-hoc `useEffect` + `fetch` when a data hook can be used instead.
+
+### 2. No async useEffect callback
+
+- **Banned:** `useEffect(async () => { ... }, [])` — the effect returns a Promise, so React cannot use it as a cleanup function and updates may run after unmount.
+- **Enforced by:** ESLint rule `silverkey/no-async-use-effect`.
+
+**When not using React Query**, use an explicit cleanup with AbortController:
+
+```typescript
+useEffect(() => {
+  const ac = new AbortController();
+  (async () => {
+    try {
+      const data = await fetchSomething({ signal: ac.signal });
+      if (!ac.signal.aborted) setData(data);
+    } catch (e) {
+      if (!ac.signal.aborted) setError(e);
+    }
+  })();
+  return () => ac.abort();
+}, []);
+```
+
+Or use hooks that accept `signal` so cancellation is centralized.
+
+### 3. Request layer must support cancellation
+
+- **In `packages/config/api/*` and `packages/services/*`:** API calls that can outlive a component must accept an optional `AbortSignal` (e.g. `options?: { signal?: AbortSignal }`) and pass it to `fetch` or the HTTP client (React Query passes `signal` into `queryFn` when available).
+- **In `packages/services/http/*`:** The client already supports `signal` and timeouts; use `createAbortManager()` in long-lived services (e.g. chat, agent) to cancel in-flight requests on teardown.
+
+## Enforcement
+
+- ESLint: `silverkey/no-async-use-effect` (error) in `apps/web`, `packages/hooks`, `packages/contexts`.
+- Code review: new API helpers and services should accept and forward `signal` when the operation is async and may outlive the caller.

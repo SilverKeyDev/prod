@@ -1,24 +1,27 @@
 import { useState } from "react";
+
 import { Tab } from "@headlessui/react";
-import { Title, BodyText, CloseButton } from "../../../../components/ui";
-import BaseModal from "../../../../components/modals/BaseModal";
-import AgreementStatusBadge from "../components/AgreementStatusBadge";
-import AgreementOverviewTab from "../components/AgreementOverviewTab";
-import AgreementRevisionsTab from "../components/AgreementRevisionsTab";
-import ParticipantsList from "../components/ParticipantsList";
-import EmbeddedSigning from "../components/EmbeddedSigning";
-import { useDocusignAgreement } from "../../../../../../packages/hooks/data/documents/useDocusignAgreement";
-import { useDocusignActions } from "../../../../../../packages/hooks/data/documents/useDocusignActions";
-import { useAuthStore } from "../../../../../../packages/store/auth.slice";
-import { useUIStore } from "../../../../../../packages/store";
+
+import { useDocusignActions } from "packages/hooks/data/documents/useDocusignActions";
+import { useDocusignAgreement } from "packages/hooks/data/documents/useDocusignAgreement";
+import { useAuthStore } from "packages/store";
+import { useUIStore } from "packages/store";
 import {
-  getAgreementTypeLabel,
-  canUserSign,
-  canUserSend,
-  canUserVoid,
   canUserCreateRevision,
-} from "../../../../../../packages/utils/documents/docusignHelpers";
-import { KeyTurnLoader } from "../../../../components/ui";
+  canUserSend,
+  canUserSign,
+  canUserVoid,
+  getAgreementTypeLabel,
+} from "packages/utils/domain/documents/docusignHelpers";
+
+import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, CloseButton, Title } from "@/components/ui/index.web";
+import { KeyTurnLoader } from "@/components/ui/index.web";
+import AgreementOverviewTab from "@/features/documents/docusign/components/AgreementOverviewTab";
+import AgreementRevisionsTab from "@/features/documents/docusign/components/AgreementRevisionsTab";
+import AgreementStatusBadge from "@/features/documents/docusign/components/AgreementStatusBadge";
+import EmbeddedSigning from "@/features/documents/docusign/components/EmbeddedSigning";
+import ParticipantsList from "@/features/documents/docusign/components/ParticipantsList";
 
 type AgreementDetailModalProps = {
   agreementId: string | null;
@@ -134,7 +137,7 @@ export default function AgreementDetailModal({
     setActiveTab(0); // Return to overview
   };
 
-  const handleDownloadRevision = (revisionId: string) => {
+  const handleDownloadRevision = (_revisionId: string) => {
     enqueueToast({
       type: "info",
       message: "Download feature coming soon",

@@ -1,51 +1,57 @@
-from copy import deepcopy
-from typing import Dict, Any
 import logging
 import traceback
-import json
+from copy import deepcopy
+from typing import Any
 
 from app.services.research.models import (
-    Affordability, Neighborhood, CommuteSection, FamilyFriendlySection,
-    Entertainment, Investment, ClimateEnvironmentalSafety, ConvenienceWalkability, Home
+    Affordability,
+    ClimateEnvironmentalSafety,
+    CommuteSection,
+    ConvenienceWalkability,
+    Entertainment,
+    FamilyFriendlySection,
+    Home,
+    Investment,
+    Neighborhood,
 )
 
 logger = logging.getLogger(__name__)
 
 # Common section model mapping for all modes
 SECTION_MODEL_MAP = {
-    'affordability': Affordability,
-    'neighborhood': Neighborhood,
-    'commute': CommuteSection,
-    'family_friendly': FamilyFriendlySection,
-    'entertainment': Entertainment,
-    'investment': Investment,
-    'climate_environmental_safety': ClimateEnvironmentalSafety,
-    'convenience_walkability': ConvenienceWalkability,
-    'home': Home,
+    "affordability": Affordability,
+    "neighborhood": Neighborhood,
+    "commute": CommuteSection,
+    "family_friendly": FamilyFriendlySection,
+    "entertainment": Entertainment,
+    "investment": Investment,
+    "climate_environmental_safety": ClimateEnvironmentalSafety,
+    "convenience_walkability": ConvenienceWalkability,
+    "home": Home,
 }
 
+
 def synthesize_property_analysis_sections(
-    existing_sections: Dict[str, Dict[str, Any]],
-    newly_generated_sections: Dict[str, Any]
-) -> Dict[str, Any]:
+    existing_sections: dict[str, dict[str, Any]], newly_generated_sections: dict[str, Any]
+) -> dict[str, Any]:
     """
     Synthesize existing property analysis sections with newly generated sections.
     Merges data intelligently, preferring newer data but preserving valuable existing data.
-    
+
     Args:
         existing_sections: Dict of existing sections with metadata (from database)
         newly_generated_sections: Dict of newly generated sections
-        
+
     Returns:
         Synthesized dict containing merged sections
     """
     synthesized = {}
-    
+
     # Start with existing sections
     for section_name, section_info in existing_sections.items():
-        if isinstance(section_info, dict) and 'data' in section_info:
-            synthesized[section_name] = section_info['data']
-    
+        if isinstance(section_info, dict) and "data" in section_info:
+            synthesized[section_name] = section_info["data"]
+
     # Merge in newly generated sections
     for section_name, new_data in newly_generated_sections.items():
         if section_name in synthesized:
@@ -68,7 +74,7 @@ def synthesize_property_analysis_sections(
         else:
             # New section, add it
             synthesized[section_name] = new_data
-    
+
     return synthesized
 
 
@@ -78,11 +84,12 @@ def sanitize_schema_for_llm(schema: dict) -> dict:
     - Remove problematic keywords: $ref, anyOf, oneOf, examples, title, default
     - Recursively sanitize nested properties
     """
+
     def clean_props(obj):
         if not isinstance(obj, dict):
             return
 
-        for key, val in obj.items():
+        for _key, val in obj.items():
             if isinstance(val, dict):
                 # Remove disallowed keys
                 for bad in ["$ref", "anyOf", "oneOf", "examples", "example", "title", "default"]:
@@ -98,7 +105,7 @@ def sanitize_schema_for_llm(schema: dict) -> dict:
 
     # Clean starting at top-level properties
     clean_props(schema.get("properties", {}))
-    
+
     # Also clean the root schema
     for key in ["$ref", "anyOf", "oneOf", "examples", "example", "title", "default"]:
         schema.pop(key, None)
@@ -110,13 +117,13 @@ def _process_schema_common_steps(
     schema: dict,
     model_class: type,
     section_name: str,
-    user_preferences: Dict[str, Any] = None,
+    user_preferences: dict[str, Any] | None = None,
     default_type_for_missing: str = "string",
-    mode: str = "report"
+    mode: str = "report",
 ) -> dict:
     """
     Common schema processing steps shared between report and comparison modes.
-    
+
     Args:
         schema: The schema dict to process
         model_class: The model class for this section
@@ -124,64 +131,74 @@ def _process_schema_common_steps(
         user_preferences: Optional user preferences dict
         default_type_for_missing: Default type to use for properties without a type
         mode: Schema mode ("report" or "comparison")
-        
+
     Returns:
         Processed schema dict
     """
     # Add field descriptions - use comparison descriptions in comparison mode, otherwise regular descriptions
-    use_comparison = (mode == "comparison" and hasattr(model_class, 'get_comparison_description'))
-    description_method = 'get_comparison_description' if use_comparison else 'get_description'
-    
+    use_comparison = mode == "comparison" and hasattr(model_class, "get_comparison_description")
+    description_method = "get_comparison_description" if use_comparison else "get_description"
+
     if hasattr(model_class, description_method):
         try:
             if use_comparison:
                 descriptions = model_class.get_comparison_description(user_preferences or {})
             else:
                 descriptions = model_class.get_description(user_preferences or {})
-            
+
             original_properties = schema.get("properties", {}).copy()
             filtered_properties = {}
-            
+
             for key, desc in descriptions.items():
                 if key in original_properties:
                     filtered_properties[key] = original_properties[key].copy()
                     filtered_properties[key]["description"] = desc
                 else:
-                    logger.warning(f"⚠️ {description_method}() returned description for field '{key}' that doesn't exist in {section_name} model")
-            
+                    logger.warning(
+                        f"⚠️ {description_method}() returned description for field '{key}' that doesn't exist in {section_name} model"
+                    )
+
             # In comparison mode, only keep fields that have comparison descriptions (rating + up to 2 key fields)
             if use_comparison:
                 schema["properties"] = filtered_properties
-                schema["required"] = [r for r in schema.get("required", []) if r in filtered_properties]
-                logger.info(f"📊 [SCHEMA] Comparison mode: filtered to {len(filtered_properties)} fields for {section_name}")
+                schema["required"] = [
+                    r for r in schema.get("required", []) if r in filtered_properties
+                ]
+                logger.info(
+                    f"📊 [SCHEMA] Comparison mode: filtered to {len(filtered_properties)} fields for {section_name}"
+                )
             else:
                 # In report mode, use all fields but update descriptions
                 schema["properties"] = original_properties
                 for key, desc in descriptions.items():
                     if key in schema["properties"]:
                         schema["properties"][key]["description"] = desc
-                        
+
         except Exception as e:
-            logger.warning(f"⚠️ Failed to add descriptions to {section_name} schema: {e}\n{traceback.format_exc()}")
+            logger.warning(
+                f"⚠️ Failed to add descriptions to {section_name} schema: {e}\n{traceback.format_exc()}"
+            )
     else:
-        logger.warning(f"⚠️ Model {section_name} does not have {description_method}() method - descriptions will be missing")
-    
+        logger.warning(
+            f"⚠️ Model {section_name} does not have {description_method}() method - descriptions will be missing"
+        )
+
     # Ensure required schema structure
     schema.setdefault("type", "object")
     schema.setdefault("properties", {})
     schema.setdefault("required", [])
-    
+
     # Sanitize recursively
     schema = sanitize_schema_for_llm(schema)
-    
+
     # Ensure every property has a "type"
-    for prop_name, prop_schema in schema.get("properties", {}).items():
+    for _, prop_schema in schema.get("properties", {}).items():
         if isinstance(prop_schema, dict) and "type" not in prop_schema:
             prop_schema["type"] = default_type_for_missing
-    
+
     # Trim required list to only valid props
     schema["required"] = [r for r in schema.get("required", []) if r in schema["properties"]]
-    
+
     # Assemble clean schema
     clean_schema = {
         "title": model_class.__name__,
@@ -190,15 +207,10 @@ def _process_schema_common_steps(
         "properties": schema["properties"],
         "required": schema["required"],
     }
-    
+
     # Final structured output format
-    final_schema = {
-        "type": "json_schema",
-        "json_schema": {
-            "schema": clean_schema
-        }
-    }
-    
+    final_schema = {"type": "json_schema", "json_schema": {"schema": clean_schema}}
+
     # Final sanity check for forbidden keys
     disallowed_keys = ["$ref", "oneOf", "anyOf", "example", "default", "schema"]
     for key in disallowed_keys:
@@ -207,42 +219,46 @@ def _process_schema_common_steps(
         for prop_name, prop in clean_schema.get("properties", {}).items():
             if isinstance(prop, dict) and key in prop:
                 logger.warning(f"⚠️ Disallowed key '{key}' found in property '{prop_name}'")
-    
+
     return final_schema
 
 
 def _filter_schema_by_recent_data(
     schema: dict,
     section_name: str,
-    recent_sections: Dict[str, Dict[str, Any]],
-    section_priorities: list = None
+    recent_sections: dict[str, dict[str, Any]],
+    section_priorities: list | None = None,
 ) -> dict:
     """
     Filter schema properties based on recent data and priorities.
-    
+
     Args:
         schema: The schema dict to filter
         section_name: Name of the section
         recent_sections: Dict of recently generated sections with metadata
         section_priorities: Ordered list of section names by priority
-        
+
     Returns:
         Filtered schema dict
     """
     if not recent_sections or section_name not in recent_sections:
         return schema
-    
-    recent_data = recent_sections[section_name].get('data', {})
+
+    recent_data = recent_sections[section_name].get("data", {})
     if not isinstance(recent_data, dict) or not recent_data:
         return schema
-    
+
     # Filter schema properties to only include fields that are missing or empty in recent data
     original_properties = schema.get("properties", {}).copy()
     filtered_properties = {}
-    
+
     for prop_name, prop_schema in original_properties.items():
         # Include field if it's missing, empty, or None in recent data
-        if prop_name not in recent_data or not recent_data[prop_name] or recent_data[prop_name] is None:
+        if (
+            prop_name not in recent_data
+            or not recent_data[prop_name]
+            or recent_data[prop_name] is None
+        ):
             filtered_properties[prop_name] = prop_schema
         # Also include if section_priorities indicates this is high priority
         elif section_priorities and section_name in section_priorities:
@@ -250,14 +266,18 @@ def _filter_schema_by_recent_data(
             # If this is in top 3 priorities, regenerate even if exists
             if priority_index < 3:
                 filtered_properties[prop_name] = prop_schema
-    
+
     # If we filtered out all properties, keep original (regenerate everything)
     if filtered_properties:
         schema["properties"] = filtered_properties
-        logger.info(f"📊 [SCHEMA] Filtered schema for {section_name}: {len(filtered_properties)}/{len(original_properties)} fields (recent data exists)")
+        logger.info(
+            f"📊 [SCHEMA] Filtered schema for {section_name}: {len(filtered_properties)}/{len(original_properties)} fields (recent data exists)"
+        )
     else:
-        logger.info(f"📊 [SCHEMA] Keeping full schema for {section_name} (high priority or all fields need update)")
-    
+        logger.info(
+            f"📊 [SCHEMA] Keeping full schema for {section_name} (high priority or all fields need update)"
+        )
+
     return schema
 
 
@@ -265,91 +285,109 @@ def _reduce_schema_for_low_priority(
     schema: dict,
     section_name: str,
     section_priorities: list,
-    recent_sections: Dict[str, Dict[str, Any]] = None
+    recent_sections: dict[str, dict[str, Any]] | None = None,
 ) -> dict:
     """
     Reduce schema for low-priority sections when recent data exists.
-    
+
     Args:
         schema: The schema dict to potentially reduce
         section_name: Name of the section
         section_priorities: Ordered list of section names by priority
         recent_sections: Optional dict of recently generated sections
-        
+
     Returns:
         Potentially reduced schema dict
     """
     if not section_priorities or section_name not in section_priorities:
         return schema
-    
+
     priority_index = section_priorities.index(section_name)
     # Lower priority sections might get reduced schemas if recent data exists
     if priority_index >= 5 and recent_sections and section_name in recent_sections:
         # For lower priority sections with recent data, focus on key fields only
         key_fields = list(schema.get("properties", {}).keys())[:5]  # Top 5 fields
-        schema["properties"] = {k: v for k, v in schema.get("properties", {}).items() if k in key_fields}
-        logger.info(f"📊 [SCHEMA] Reduced schema for low-priority section {section_name} to key fields")
-    
+        schema["properties"] = {
+            k: v for k, v in schema.get("properties", {}).items() if k in key_fields
+        }
+        logger.info(
+            f"📊 [SCHEMA] Reduced schema for low-priority section {section_name} to key fields"
+        )
+
     return schema
 
 
 def get_individual_section_schema(
-    section_name: str, 
-    user_preferences: Dict[str, Any] = None, 
+    section_name: str,
+    user_preferences: dict[str, Any] | None = None,
     mode: str = "report",
-    recent_sections: Dict[str, Dict[str, Any]] = None,
-    section_priorities: list = None
-) -> Dict[str, Any]:
+    recent_sections: dict[str, dict[str, Any]] | None = None,
+    section_priorities: list | None = None,
+) -> dict[str, Any]:
     """
     Generate a flattened, Perplexity-compatible JSON schema for a given report section.
-    
+
     This function intelligently determines what fields to include in the schema based on:
     - Schema type (report/comparison)
     - User priorities (which sections are most important)
     - Recent database entries (what was generated in the last 2 weeks)
-    
+
     Args:
         section_name: Name of the section to generate schema for
         user_preferences: User preferences dict
         mode: Schema mode ("report", "comparison", or "marketing")
         recent_sections: Dict of recently generated sections with metadata (from last 2 weeks)
         section_priorities: Ordered list of section names by priority
-        
+
     Returns:
         Dict containing the schema, potentially filtered based on recent data and priorities
     """
 
     # Get model class for the section
     model_class = SECTION_MODEL_MAP.get(section_name)
-    
+
     if not model_class:
         logger.error(f"❌ No model class found for section: {section_name} in mode: {mode}")
         return {"error": f"No model class found for section: {section_name}"}
-    
+
     # Deepcopy to avoid modifying the original schema
     schema = deepcopy(model_class.schema())
-    
+
     # Mode-specific processing
     if mode == "report":
         # Smart schema filtering based on recent data and priorities
-        schema = _filter_schema_by_recent_data(schema, section_name, recent_sections or {}, section_priorities)
-        
+        schema = _filter_schema_by_recent_data(
+            schema, section_name, recent_sections or {}, section_priorities
+        )
+
         # Reduce schema for low-priority sections
-        schema = _reduce_schema_for_low_priority(schema, section_name, section_priorities or [], recent_sections)
-        
+        schema = _reduce_schema_for_low_priority(
+            schema, section_name, section_priorities or [], recent_sections
+        )
+
         # Process common steps with "string" as default type
         return _process_schema_common_steps(
-            schema, model_class, section_name, user_preferences, default_type_for_missing="string", mode="report"
+            schema,
+            model_class,
+            section_name,
+            user_preferences,
+            default_type_for_missing="string",
+            mode="report",
         )
-    
+
     elif mode == "comparison":
         # Comparison mode: Simplified schemas with rating + up to 2 key fields (max 6 words each)
         # Uses get_comparison_description() to filter to only essential comparison fields
         # Process common steps with "string" as default type (comparison descriptions handle filtering)
         return _process_schema_common_steps(
-            schema, model_class, section_name, user_preferences, default_type_for_missing="string", mode="comparison"
+            schema,
+            model_class,
+            section_name,
+            user_preferences,
+            default_type_for_missing="string",
+            mode="comparison",
         )
-    
+
     else:
         logger.error(f"❌ Unknown mode: {mode}")
         return {"error": f"Unknown mode: {mode}"}

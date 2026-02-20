@@ -18,7 +18,8 @@ export type LogCategory =
   | "CHECKLISTS"
   | "CALENDAR"
   | "DASHBOARD"
-  | "MESSAGES";
+  | "MESSAGES"
+  | "FEED";
 
 export type ApiSubcategory =
   | "INITIAL_LOAD"
@@ -42,6 +43,7 @@ export const LOG_CATEGORIES = {
   CALENDAR: "CALENDAR",
   DASHBOARD: "DASHBOARD",
   MESSAGES: "MESSAGES",
+  FEED: "FEED",
 } as const;
 
 export const API_SUBCATEGORIES = {
@@ -84,6 +86,7 @@ export function categoryToConfigKey(category: LogCategory): string {
     CALENDAR: "calendar",
     DASHBOARD: "dashboard",
     MESSAGES: "messages",
+    FEED: "feed",
   };
   return mapping[category];
 }

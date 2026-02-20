@@ -1,10 +1,18 @@
-import { Bed, Bath, Square, MapPin, User } from "lucide-react";
+import { Bath, Bed, MapPin, Square, User } from "lucide-react";
 
+import { useLocalization } from "packages/contexts";
 import {
-  formatPrice,
   formatAgentName,
   formatLotSize,
-} from "../../../../packages/utils/search/address";
+  formatPrice,
+} from "packages/utils/domain/search/address";
+
+import {
+  BodyText,
+  Image,
+  PropertyStat,
+  Title,
+} from "@/components/ui/index.web";
 
 export type CompData = {
   address: {
@@ -27,9 +35,7 @@ export type CompData = {
   lotAreaUnits?: string;
   lotSize?: number;
   miniCardPhotos?: Array<{ url: string }>;
-  parentRegion?: {
-    name: string;
-  };
+  parentRegion?: { name: string };
   price: number;
   zpid: number;
   attributionInfo?: {
@@ -44,137 +50,180 @@ type CompCardProps = {
   className?: string;
 };
 
-export default function CompCard({ comp, className = "" }: CompCardProps) {
-  const imageUrl = comp.miniCardPhotos?.[0]?.url ?? "/defaut-home.jpg";
-
-  // Format lot size for display
-  // Try lotAreaValue first, then fall back to lotSize
+function getCompLotSizeDisplay(comp: CompData): string | null {
   const rawLotSize = comp.lotAreaValue ?? comp.lotSize;
-  const lotSizeDisplay = (() => {
-    if (!rawLotSize) return null;
+  if (!rawLotSize) return null;
+  const lotSizeValue =
+    typeof rawLotSize === "string" ? parseFloat(rawLotSize) : rawLotSize;
+  if (isNaN(lotSizeValue) || lotSizeValue <= 0) return null;
+  const unit = comp.lotAreaUnits?.toLowerCase();
+  if (unit?.includes("acre")) {
+    return formatLotSize(lotSizeValue * 43560);
+  }
+  return formatLotSize(lotSizeValue);
+}
 
-    // Ensure we have a number
-    const lotSizeValue =
-      typeof rawLotSize === "string" ? parseFloat(rawLotSize) : rawLotSize;
+function CompCardImage({
+  imageUrl,
+  address,
+  price,
+  currency,
+}: {
+  imageUrl: string;
+  address: string;
+  price: number;
+  currency: string;
+}) {
+  return (
+    <div className="relative h-28 sm:h-32 md:h-36 overflow-hidden">
+      <Image
+        src={imageUrl}
+        alt={address}
+        className="h-full w-full object-cover"
+      />
+      <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
+        <div className="rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm text-xs sm:text-sm font-medium">
+          {formatPrice(price, currency)}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-    if (isNaN(lotSizeValue) || lotSizeValue <= 0) return null;
+function CompCardAddress({
+  comp,
+  t,
+}: {
+  comp: CompData;
+  t: (key: string) => string;
+}) {
+  return (
+    <div className="mb-3 text-left">
+      <div className="flex items-center gap-1 mb-1">
+        <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
+        <Title as="h3" size="sm" className="font-medium text-black truncate">
+          {comp.address.streetAddress}
+        </Title>
+      </div>
+      <BodyText
+        as="p"
+        size="xs"
+        className="text-black/60 truncate ml-4 sm:text-sm"
+      >
+        {`${comp.address.city}${t("cards.address_separator")}${comp.address.state}${t("cards.space")}${comp.address.zipcode}`}
+      </BodyText>
+    </div>
+  );
+}
 
-    // Check if we need to convert from acres to square feet
-    const unit = comp.lotAreaUnits?.toLowerCase();
-    if (unit?.includes("acre")) {
-      // Convert acres to square feet (1 acre = 43,560 sqft)
-      const sqft = lotSizeValue * 43560;
-      return formatLotSize(sqft);
-    }
+function CompCardPropertyDetails({
+  comp,
+  t,
+}: {
+  comp: CompData;
+  t: (key: string) => string;
+}) {
+  return (
+    <div className="mb-3 text-left">
+      <div className="flex flex-wrap gap-x-4 gap-y-2">
+        {comp.bedrooms > 0 && (
+          <PropertyStat icon={<Bed />} size="sm">
+            {comp.bedrooms}
+            {t("cards.space")}
+            {comp.bedrooms !== 1 ? t("cards.beds_plural") : t("cards.beds")}
+          </PropertyStat>
+        )}
+        {comp.bathrooms > 0 && (
+          <PropertyStat icon={<Bath />} size="sm">
+            {comp.bathrooms}
+            {t("cards.space")}
+            {comp.bathrooms !== 1 ? t("cards.baths_plural") : t("cards.baths")}
+          </PropertyStat>
+        )}
+        {comp.livingArea > 0 ? (
+          <PropertyStat icon={<Square />} size="sm">
+            {Math.round(comp.livingArea).toLocaleString()}
+            {t("cards.space")}
+            {t("cards.sqft")}
+          </PropertyStat>
+        ) : (
+          <PropertyStat
+            icon={<Square className="text-transparent" />}
+            size="sm"
+          >
+            {`${" ".repeat(8)}${t("cards.sqft")}`}
+          </PropertyStat>
+        )}
+      </div>
+    </div>
+  );
+}
 
-    // Otherwise, format as-is (assumed to be in square feet)
-    return formatLotSize(lotSizeValue);
-  })();
+function CompCardLotSize({
+  lotSizeDisplay,
+  t,
+}: {
+  lotSizeDisplay: string | null;
+  t: (key: string) => string;
+}) {
+  return (
+    <div className="mb-3 text-left">
+      {lotSizeDisplay ? (
+        <PropertyStat icon={<MapPin />} size="sm">
+          {`${t("cards.lot")}: ${lotSizeDisplay}`}
+        </PropertyStat>
+      ) : (
+        <PropertyStat icon={<MapPin className="text-transparent" />} size="sm">
+          {`${t("cards.lot")}: ${" ".repeat(6)}`}
+        </PropertyStat>
+      )}
+    </div>
+  );
+}
+
+function CompCardAgent({
+  comp,
+  t,
+}: {
+  comp: CompData;
+  t: (key: string) => string;
+}) {
+  return (
+    <div className="space-y-2 text-left mt-auto">
+      <div className="flex items-center gap-1">
+        <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+        <BodyText as="span" className="text-xs sm:text-sm text-gray-500">
+          {`${t("cards.agent")}: ${
+            comp.attributionInfo?.agentName
+              ? formatAgentName(comp.attributionInfo.agentName)
+              : t("cards.na")
+          }`}
+        </BodyText>
+      </div>
+    </div>
+  );
+}
+
+export default function CompCard({ comp, className = "" }: CompCardProps) {
+  const { t } = useLocalization();
+  const imageUrl = comp.miniCardPhotos?.[0]?.url ?? "/defaut-home.jpg";
+  const lotSizeDisplay = getCompLotSizeDisplay(comp);
 
   return (
     <div
       className={`flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}
     >
-      {/* Image Section */}
-      <div className="relative h-28 sm:h-32 md:h-36 overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={comp.address.streetAddress}
-          className="h-full w-full object-cover"
-        />
-
-        {/* Price and Status Row */}
-        <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
-          {/* Price Badge - reduced padding */}
-          <div className="rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm text-xs sm:text-sm font-medium">
-            {formatPrice(comp.price, comp.currency)}
-          </div>
-        </div>
-      </div>
-
-      {/* Content Section */}
+      <CompCardImage
+        imageUrl={imageUrl}
+        address={comp.address.streetAddress}
+        price={comp.price}
+        currency={comp.currency}
+      />
       <div className="flex flex-1 flex-col p-3">
-        {/* Address */}
-        <div className="mb-3 text-left">
-          <div className="flex items-center gap-1 mb-1">
-            <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
-            <h3 className="text-sm sm:text-base font-medium text-black truncate">
-              {comp.address.streetAddress}
-            </h3>
-          </div>
-          <p className="text-xs sm:text-sm text-black/60 truncate ml-4">
-            {comp.address.city}, {comp.address.state} {comp.address.zipcode}
-          </p>
-        </div>
-
-        {/* Property Details - Try to fit on same line, wrap if needed */}
-        <div className="mb-3 text-left">
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {comp.bedrooms > 0 && (
-              <div className="flex items-center gap-1">
-                <Bed className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-gray-500">
-                  {comp.bedrooms} bed{comp.bedrooms !== 1 ? "s" : ""}
-                </span>
-              </div>
-            )}
-            {comp.bathrooms > 0 && (
-              <div className="flex items-center gap-1">
-                <Bath className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-gray-500">
-                  {comp.bathrooms} bath{comp.bathrooms !== 1 ? "s" : ""}
-                </span>
-              </div>
-            )}
-            {comp.livingArea > 0 ? (
-              <div className="flex items-center gap-1">
-                <Square className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-gray-500">
-                  {Math.round(comp.livingArea).toLocaleString()} sqft
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <Square className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-transparent flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-transparent">
-                  {" ".repeat(8)}sqft
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Lot Size - underneath bed/bath/sqft */}
-        <div className="flex items-center gap-1 mb-3 text-left">
-          {lotSizeDisplay ? (
-            <>
-              <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
-              <span className="text-xs sm:text-sm text-gray-500">
-                Lot: {lotSizeDisplay}
-              </span>
-            </>
-          ) : (
-            <>
-              <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-transparent flex-shrink-0" />
-              <span className="text-xs sm:text-sm text-transparent">
-                Lot: {" ".repeat(6)}
-              </span>
-            </>
-          )}
-        </div>
-
-        {/* Agent and Brokerage Info */}
-        <div className="space-y-2 text-left mt-auto">
-          <div className="flex items-center gap-1">
-            <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
-            <span className="text-xs sm:text-sm text-gray-500">
-              Agent:{" "}
-              {comp.attributionInfo?.agentName
-                ? formatAgentName(comp.attributionInfo.agentName)
-                : "N/A"}
-            </span>
-          </div>
-        </div>
+        <CompCardAddress comp={comp} t={t} />
+        <CompCardPropertyDetails comp={comp} t={t} />
+        <CompCardLotSize lotSizeDisplay={lotSizeDisplay} t={t} />
+        <CompCardAgent comp={comp} t={t} />
       </div>
     </div>
   );

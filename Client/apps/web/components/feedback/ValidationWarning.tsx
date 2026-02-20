@@ -1,6 +1,17 @@
-import { AlertCircle, X } from "lucide-react";
 import React from "react";
 import { createPortal } from "react-dom";
+
+import { AlertCircle } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
+import { spacing } from "packages/design-tokens";
+
+import {
+  BodyText,
+  CancelButton,
+  CloseButton,
+  Title,
+} from "@/components/ui/index.web";
 
 type ValidationWarningProps = {
   isVisible: boolean;
@@ -16,37 +27,44 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
   missingFields,
   errors,
 }) => {
+  const { t } = useLocalization();
   if (!isVisible) return null;
 
+  const insetZero = {
+    left: spacing(0),
+    right: spacing(0),
+    top: spacing(0),
+    bottom: spacing(0),
+  };
   const dialogContent = (
-    <div
-      className="fixed inset-0 z-[9999] overflow-y-auto"
-      style={{ left: 0, right: 0, top: 0, bottom: 0 }}
-    >
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={insetZero}>
       <div
         className="space-responsive-md flex min-h-screen items-center justify-center"
         style={{ width: "100vw", height: "100vh" }}
       >
         {/* Backdrop */}
         <div
+          role="button"
+          tabIndex={0}
           className="fixed inset-0 bg-black/50 transition-opacity"
           onClick={onClose}
-          style={{ left: 0, right: 0, top: 0, bottom: 0 }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClose();
+            }
+          }}
+          style={insetZero}
         />
 
         {/* Dialog */}
-        <div
-          className="space-responsive-lg relative z-[10000] mx-auto w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
-          style={{ maxWidth: "480px" }}
-        >
+        <div className="space-responsive-lg relative z-50 mx-auto w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all">
           {/* Close button */}
-          <button
-            type="button"
+          <CloseButton
             onClick={onClose}
+            size="sm"
             className="touch-friendly absolute right-4 top-4 z-10 text-gray-400 hover:text-gray-500"
-          >
-            <X className="mobile-icon-md" aria-hidden="true" />
-          </button>
+          />
 
           {/* Warning Icon */}
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
@@ -55,21 +73,32 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
 
           {/* Content */}
           <div className="mb-6 text-center">
-            <h3 className="text-responsive-xl mb-2 font-semibold leading-6 text-gray-900">
-              Complete Required Information
-            </h3>
-            <p className="text-responsive-sm text-gray-600">
-              Please fill in the missing fields to continue with your
-              onboarding.
-            </p>
+            <Title
+              as="h3"
+              size="lg"
+              className="mb-2 font-semibold leading-6 text-gray-900 text-responsive-xl"
+            >
+              {t("validation.complete_required_title")}
+            </Title>
+            <BodyText
+              as="p"
+              size="sm"
+              className="text-gray-600 text-responsive-sm"
+            >
+              {t("validation.complete_required_description")}
+            </BodyText>
           </div>
 
           {/* Missing Fields */}
           {missingFields.length > 0 && (
             <div className="mb-6">
-              <h4 className="text-responsive-sm mb-3 font-medium text-gray-900">
-                Required Fields:
-              </h4>
+              <Title
+                as="h4"
+                size="sm"
+                className="mb-3 font-medium text-gray-900 text-responsive-sm"
+              >
+                {t("validation.required_fields_label")}
+              </Title>
               <div className="max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 p-4">
                 <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {missingFields.map((field, index) => (
@@ -86,9 +115,13 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
           {/* Errors */}
           {errors.length > 0 && (
             <div className="mb-6">
-              <h4 className="text-responsive-sm mb-3 font-medium text-gray-900">
-                Issues to Fix:
-              </h4>
+              <Title
+                as="h4"
+                size="sm"
+                className="mb-3 font-medium text-gray-900 text-responsive-sm"
+              >
+                {t("validation.issues_to_fix_label")}
+              </Title>
               <div className="max-h-40 overflow-y-auto rounded-lg border border-red-200 bg-red-50 p-4">
                 <ul className="space-y-2">
                   {errors.map((error, index) => (
@@ -104,13 +137,9 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
 
           {/* Actions */}
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={onClose}
-              className="touch-friendly inline-flex min-w-[100px] justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2"
-            >
-              Review Information
-            </button>
+            <CancelButton onClick={onClose} size="md" className="min-w-24">
+              {t("validation.review_information")}
+            </CancelButton>
           </div>
         </div>
       </div>

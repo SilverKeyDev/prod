@@ -1,11 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo } from "react";
 
-import { agentApi } from "../../../config/api";
-import { queryKeys } from "../../../config/query/keys";
-import { useAuthStore } from "../../../store/auth.slice";
-import { useNotificationStore } from "../../../store/notifications.slice";
-import type { AgentConversation, AgentChatMessage } from "../../../config/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { log, LOG_CATEGORIES } from "logger";
+
+import type { AgentChatMessage, AgentConversation } from "packages/config/api";
+import { agentApi } from "packages/config/api";
+import { queryKeys } from "packages/config/query/keys";
+import { showErrorToast } from "packages/hooks/ui";
+import { useAuthStore } from "packages/store";
+import { useNotificationStore } from "packages/store";
 
 export type UseAgentChatsReturn = {
   conversations: AgentConversation[];
@@ -19,9 +22,7 @@ export type UseAgentChatsReturn = {
     sharedHomeId?: string,
     sharedDocumentId?: string,
   ) => Promise<void>;
-  getChatHistory: (
-    conversationId: string,
-  ) => Promise<{
+  getChatHistory: (conversationId: string) => Promise<{
     messages: AgentChatMessage[];
     conversation?: AgentConversation;
   }>;
@@ -111,6 +112,8 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
     },
     staleTime: 3 * 60 * 1000, // 3 minutes (override dataConfig's staleTime: 0 for instant loading)
     refetchOnMount: false,
+    refetchOnWindowFocus: true, // Refetch when user returns to tab so new messages show
+    refetchInterval: 30 * 1000, // Poll every 30s so receiving messages triggers rerender
   });
 
   // Send message mutation
@@ -162,14 +165,25 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
       }
       return response;
     },
-    onSuccess: () => {
-      // Invalidate conversations and history after sending a message
+    onSuccess: (_data, variables) => {
+      // Invalidate conversations so list and last_message_at update
       void queryClient.invalidateQueries({
         queryKey: queryKeys.agent.conversations(),
       });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.agent.all,
       });
+      // Remove this conversation's history cache so the next load fetches fresh
+      // (ensures chat rerenders with the new message for text, home, document, event)
+      if (variables.conversationId !== "new") {
+        void queryClient.removeQueries({
+          queryKey: queryKeys.agent.history(variables.conversationId),
+        });
+      }
+    },
+    onError: (error) => {
+      log.error(LOG_CATEGORIES.ERRORS, "Send message failed", error);
+      showErrorToast("Failed to send message. Please try again.");
     },
   });
 
@@ -184,9 +198,15 @@ export function useAgentChats(clientId?: string): UseAgentChatsReturn {
         messages: response.messages ?? [],
         conversation: response.conversation,
       };
-      // Cache the result in React Query
       queryClient.setQueryData(queryKeys.agent.history(conversationId), result);
       return result;
+    },
+    onError: (error, conversationId) => {
+      log.error(LOG_CATEGORIES.ERRORS, "Get chat history failed", {
+        error,
+        conversationId,
+      });
+      showErrorToast("Failed to load messages. Please try again.");
     },
   });
 

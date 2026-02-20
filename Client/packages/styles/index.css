@@ -5,6 +5,8 @@
 @import "./animations.css";
 @import "./mobile.css";
 @import "./maps.css";
+@import "./embla.css";
+@import "./scrollbar.css";
 
 @tailwind base;
 @tailwind components;

@@ -1,0 +1,54 @@
+---
+description: When and how to split folders with too many files, and how to update all imports
+globs:
+  - "Client/**/*.{ts,tsx}"
+  - "Server/**/*.py"
+alwaysApply: true
+---
+
+# Folder Decomposition Rules
+
+## When to Break a Folder Into Subfolders
+
+A folder has **too many files** and should be considered for subfolders when:
+
+- **File count**: The directory contains more than ~10–15 files (or more than ~8–10 if they are all same-type, e.g. all components).
+- **Mixed concerns**: Files fall into clear groups (e.g. by feature, by type, or by domain) that can each live in a subfolder.
+- **Discoverability**: The flat list is hard to scan or navigate.
+
+You may move **some** files into subfolders and leave others at the current level (e.g. an `index.ts`, a main entry, or a few shared files).
+
+## How to Decompose
+
+1. **Identify groups**: Group files by concern (feature, type, or domain). Name subfolders accordingly (e.g. `components/`, `hooks/`, `sections/`, or domain names).
+2. **Move files**: Move only the files that belong in each subfolder. Keep a barrel (`index.ts` / `__init__.py`) at the parent if it helps preserve existing public API.
+3. **Preserve public API where useful**: Prefer re-exporting from the parent (e.g. parent `index.ts` re-exports from subfolders) so external imports can stay on the parent path if desired. Otherwise, update all imports (see below).
+
+## Required: Update All Imports
+
+After moving files, you **must** complete both steps below. Do not leave broken or outdated imports.
+
+### Step 1: Update imports inside moved files
+
+- Fix **relative imports** in each moved file so they still resolve correctly (e.g. `../utils` → `../../utils` or `./utils` inside the new subfolder).
+- Fix **same-folder** references (e.g. `./sibling` → `./sibling` if both moved, or adjust to new relative path).
+- Fix **barrel** or **parent** imports (e.g. from `../index` or parent modules) to match the new paths.
+
+### Step 2: Scan the codebase for imports from old paths and update
+
+- **Search the entire codebase** for imports that reference the **old** file paths or the **old** folder (e.g. `from features/feed/Reels/SomeFile` or `from ./OldLocation/component`).
+- Update every such import to the **new** path (e.g. `from features/feed/Reels/components/SomeFile` or the new subfolder path).
+- Check:
+  - All `import` / `require` (TS/JS) or `import` / `from` (Python).
+  - Barrel files (`index.ts`, `__init__.py`) that re-export moved modules.
+  - Config or test files that reference the moved modules.
+
+**Tools to use**: Prefer a project-wide search (e.g. grep/ripgrep) for the old path segments and old module names, then update each match. Re-run search after edits to catch any remaining references.
+
+## Checklist When Splitting a Folder
+
+- [ ] Subfolders created and files moved by concern.
+- [ ] Imports **inside** moved files updated (relative and same-folder).
+- [ ] Codebase scanned for **any** imports from old paths; all such imports updated.
+- [ ] Barrel / re-export files updated if present.
+- [ ] Lint and build pass (no missing or wrong modules).

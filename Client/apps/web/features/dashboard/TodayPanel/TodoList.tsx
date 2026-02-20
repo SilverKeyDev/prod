@@ -1,14 +1,23 @@
-import React, { useState, useMemo } from "react";
-import { Check, Plus } from "lucide-react";
-import Card from "../../../components/layout/Card";
-import Button from "../../../components/ui/button/Button";
-import CancelButton from "../../../components/ui/button/CancelButton";
-import Dropdown from "../../../components/ui/form/Dropdown";
+import React, { useMemo, useState } from "react";
+
+import { Check } from "lucide-react";
+
 import type {
   TodoItem,
   TodoPriority,
   TodoType,
-} from "../../../../../packages/schemas/agent/agent";
+} from "packages/schemas/agent/agent";
+import { dateParseISO } from "packages/utils/core/date";
+
+import Card from "@/components/layout/Card.web";
+import Dropdown from "@/components/ui/form/Dropdown";
+import {
+  BodyText,
+  Button,
+  CancelButton,
+  Input,
+  Title,
+} from "@/components/ui/index.web";
 
 type TodoListProps = {
   todos: TodoItem[];
@@ -16,6 +25,13 @@ type TodoListProps = {
   onAddTodo: (title: string, priority: TodoPriority, type: TodoType) => void;
   onUpdatePriority?: (id: string, priority: TodoPriority) => void;
   canEdit?: boolean;
+};
+
+const priorityOrder: Record<TodoPriority, number> = {
+  urgent: 4,
+  high: 3,
+  medium: 2,
+  low: 1,
 };
 
 const TodoList: React.FC<TodoListProps> = ({
@@ -29,13 +45,6 @@ const TodoList: React.FC<TodoListProps> = ({
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [selectedPriority, setSelectedPriority] =
     useState<TodoPriority>("medium");
-
-  const priorityOrder: Record<TodoPriority, number> = {
-    urgent: 4,
-    high: 3,
-    medium: 2,
-    low: 1,
-  };
 
   const sortedTodos = useMemo(() => {
     const incomplete = todos.filter((todo) => !todo.completed);
@@ -63,16 +72,18 @@ const TodoList: React.FC<TodoListProps> = ({
   return (
     <Card className="h-full">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="heading-responsive-sm text-navy">Today's To-Do</h2>
+        <Title as="h2" size="sm" className="text-navy">
+          Today's To-Do
+        </Title>
       </div>
 
       {/* Todo List */}
-      <div className="space-y-2 max-h-[400px] overflow-y-auto">
+      <div className="space-y-2 max-h-96 overflow-y-auto">
         {sortedTodos.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-responsive-sm text-black/60">
+            <BodyText as="p" size="sm" className="text-black/60">
               No todos for today
-            </p>
+            </BodyText>
           </div>
         ) : (
           sortedTodos.map((todo) => (
@@ -80,12 +91,14 @@ const TodoList: React.FC<TodoListProps> = ({
               key={todo.id}
               className="flex items-start gap-3 p-3 rounded-lg border border-beige/30 bg-white hover:bg-beige/5 transition-colors"
             >
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() =>
                   canEdit ? onToggleComplete(todo.id) : undefined
                 }
                 disabled={!canEdit}
-                className={`flex-shrink-0 mt-0.5 w-5 h-5 sm:w-6 sm:h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                className={`flex-shrink-0 mt-0.5 w-5 h-5 sm:w-6 sm:h-6 min-w-0 p-0 rounded border-2 flex items-center justify-center transition-colors ${
                   todo.completed
                     ? "bg-olive border-olive text-white"
                     : canEdit
@@ -94,15 +107,17 @@ const TodoList: React.FC<TodoListProps> = ({
                 }`}
               >
                 {todo.completed && <Check className="h-3 w-3 sm:h-4 sm:w-4" />}
-              </button>
+              </Button>
               <div className="flex-1 min-w-0">
-                <p
-                  className={`text-responsive-sm ${
+                <BodyText
+                  as="p"
+                  size="sm"
+                  className={`${
                     todo.completed ? "line-through text-black/40" : "text-black"
                   }`}
                 >
                   {todo.title}
-                </p>
+                </BodyText>
                 <div className="flex items-center gap-2 mt-1">
                   {canEdit && onUpdatePriority && !todo.completed ? (
                     <div className="w-24">
@@ -121,15 +136,17 @@ const TodoList: React.FC<TodoListProps> = ({
                       />
                     </div>
                   ) : (
-                    <span
-                      className={`text-xs font-medium ${priorityColors[todo.priority]}`}
+                    <BodyText
+                      as="span"
+                      size="xs"
+                      className={`font-medium ${priorityColors[todo.priority]}`}
                     >
                       {todo.priority}
-                    </span>
+                    </BodyText>
                   )}
-                  <span className="text-xs text-black/40">
-                    {new Date(todo.due_date).toLocaleDateString()}
-                  </span>
+                  <BodyText as="span" size="xs" className="text-black/40">
+                    {dateParseISO(todo.due_date).toDate().toLocaleDateString()}
+                  </BodyText>
                 </div>
               </div>
             </div>
@@ -140,7 +157,7 @@ const TodoList: React.FC<TodoListProps> = ({
       {/* Add Todo Form */}
       {!canEdit ? null : showAddForm ? (
         <div className="mt-4 p-3 rounded-lg border border-beige/30 bg-beige/5">
-          <input
+          <Input
             type="text"
             value={newTodoTitle}
             onChange={(e) => setNewTodoTitle(e.target.value)}
@@ -155,6 +172,7 @@ const TodoList: React.FC<TodoListProps> = ({
                 setSelectedPriority("medium");
               }
             }}
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- Focus for quick add when panel opens
             autoFocus
           />
           <div className="mb-2">
@@ -199,7 +217,7 @@ const TodoList: React.FC<TodoListProps> = ({
         <Button
           variant="outline"
           size="sm"
-          icon={<Plus className="h-4 w-4" />}
+          iconName="plus"
           onClick={() => setShowAddForm(true)}
           className="w-full mt-4"
         >

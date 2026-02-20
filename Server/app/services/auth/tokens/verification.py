@@ -1,13 +1,19 @@
 """
 Token verification and classification utilities.
 """
+
+import logging
 import os
 import time
+from typing import Any
+
 import requests
-import logging
-from jose import jwk, jwt as jose_jwt
+from jose import jwk
+from jose import jwt as jose_jwt
 from jose.exceptions import JWTError
+
 from app.utils.security.security import log_security_event
+
 from ..core.minimal_token_service import minimal_token_service
 
 logger = logging.getLogger(__name__)
@@ -37,6 +43,7 @@ _JWKS = None
 _JWKS_TS = 0.0
 _JWKS_TTL = 60 * 60  # 1 hour
 
+
 def _load_jwks(force: bool = False):
     """Load JWKS with a simple TTL cache to handle key rotations gracefully."""
     global _JWKS, _JWKS_TS
@@ -54,11 +61,13 @@ def _load_jwks(force: bool = False):
                 _JWKS = {"keys": []}
     return _JWKS
 
+
 def _find_key(jwks: dict, kid: str):
-    for k in (jwks or {}).get('keys', []):
-        if k.get('kid') == kid:
+    for k in (jwks or {}).get("keys", []):
+        if k.get("kid") == kid:
             return k
     return None
+
 
 def get_signing_key_for_cognito_rs256(token: str):
     """
@@ -74,7 +83,7 @@ def get_signing_key_for_cognito_rs256(token: str):
             log_security_event("auth_invalid_alg", {"alg": alg})
             raise JWTError("Invalid JWT alg for Cognito (expected RS256)")
 
-        key_id = headers.get('kid')
+        key_id = headers.get("kid")
         if not key_id:
             raise JWTError("Missing kid in token header")
 
@@ -87,23 +96,27 @@ def get_signing_key_for_cognito_rs256(token: str):
             key = _find_key(jwks, key_id)
 
         if not key:
-            raise JWTError('Public key not found in JWKS')
+            raise JWTError("Public key not found in JWKS")
 
         return jwk.construct(key)
     except Exception as e:
         logger.error("Error getting signing key: %s", e)
-        raise JWTError('Invalid token header')
+        raise JWTError("Invalid token header") from e
 
-def decode_with_leeway(token: str, key, issuer: str, leeway_seconds: int, verify_aud: bool = False, audience: str | None = None):
+
+def decode_with_leeway(
+    token: str,
+    key,
+    issuer: str,
+    leeway_seconds: int,
+    verify_aud: bool = False,
+    audience: str | None = None,
+):
     """
     Try python-jose decode with leeway as kwarg; if TypeError, retry with options['leeway'].
     We default verify_aud to False so we can read token_use first, then enforce audience/client checks manually.
     """
-    base_opts = {
-        "verify_aud": verify_aud,
-        "verify_iss": True,
-        "verify_signature": True
-    }
+    base_opts = {"verify_aud": verify_aud, "verify_iss": True, "verify_signature": True}
     try:
         # Newer versions accept leeway kwarg
         return jose_jwt.decode(
@@ -113,20 +126,16 @@ def decode_with_leeway(token: str, key, issuer: str, leeway_seconds: int, verify
             issuer=issuer,
             options=base_opts,
             audience=audience,
-            leeway=leeway_seconds
+            leeway=leeway_seconds,  # type: ignore[call-arg]
         )
     except TypeError:
         # Fallback: older versions expect 'leeway' inside options
-        opts = dict(base_opts)
+        opts: dict[str, Any] = dict(base_opts)
         opts["leeway"] = leeway_seconds
         return jose_jwt.decode(
-            token,
-            key=key,
-            algorithms=["RS256"],
-            issuer=issuer,
-            options=opts,
-            audience=audience
+            token, key=key, algorithms=["RS256"], issuer=issuer, options=opts, audience=audience
         )
+
 
 def classify_token(token: str) -> str:
     """
@@ -137,26 +146,27 @@ def classify_token(token: str) -> str:
         # Use jose_jwt for consistent header/claims reading
         header = jose_jwt.get_unverified_header(token)
         alg = header.get("alg")
-        
+
         try:
             claims = jose_jwt.get_unverified_claims(token)
             iss = claims.get("iss")
             typ = claims.get("type")
         except Exception:
             iss, typ = None, None
-        
+
         # Check for Cognito tokens first
         if iss and "cognito-idp." in iss:
             return "cognito" if alg == "RS256" else "reject_cognito_alg"
-        
+
         # Check for minimal tokens
         if (typ == "access" and iss == "silverkey:minimal") or alg == "HS256":
             return "minimal"
-        
+
         return "unknown"
-        
+
     except Exception:
         return "unknown"
+
 
 def peek_claims_unverified(token: str) -> dict:
     """
@@ -164,11 +174,13 @@ def peek_claims_unverified(token: str) -> dict:
     Uses jose_jwt.get_unverified_claims which does not require a key.
     """
     try:
-        return jose_jwt.get_unverified_claims(token)
+        claims = jose_jwt.get_unverified_claims(token)
+        return dict(claims)  # Ensure dict return type (jose returns Mapping)
     except Exception as e:
         # Return empty dict so caller falls back to Cognito path
         logger.debug("Unverified claims peek failed: %s", e)
         return {}
+
 
 def verify_minimal_token(token: str):
     """

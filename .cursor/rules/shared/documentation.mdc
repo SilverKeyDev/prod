@@ -1,0 +1,16 @@
+---
+description: Where documentation lives and how to add or reference it
+globs:
+  - "documentation/**/*.md"
+  - "**/README.md"
+alwaysApply: false
+---
+
+# Documentation
+
+- **Canonical docs root:** `documentation/` at repo root. All long-form, cross-cutting docs live there. See `documentation/README.md` and `documentation/HOW_WE_DOCUMENT.md`.
+- **Client docs:** `documentation/client/` — lint reference, shared packages, TypeScript layout, React vs React Native, shared UI option. Index: `documentation/client/README.md`.
+- **Server docs:** `documentation/server/` — backend structure and server-specific guides. Index: `documentation/server/README.md`.
+- **Lightweight READMEs:** Every major top-level folder (Client, Server, documentation) has a short README.md: what it is and where to read more. No long copy-paste; link to `documentation/` or in-repo refs (e.g. `Client/ARCHITECTURE.md`, `Client/tools/LINTING.md`).
+- **In-repo refs:** `Client/ARCHITECTURE.md`, `Client/MOBILE_MIGRATION_DESKTOP_FILES.md`, `Client/tools/LINTING.md`, and `Client/packages/*/README.md` stay next to the code. Long-form and exhaustive guides live under `documentation/`.
+- **Adding docs:** New long-form doc → create under `documentation/client/` or `documentation/server/`, add a row to that folder’s README. New major folder → add a brief README.md and link from `documentation/README.md` if relevant. Do not create markdown elsewhere unless the user explicitly asks or the project standard (above) allows it.

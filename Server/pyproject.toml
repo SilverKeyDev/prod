@@ -28,7 +28,7 @@ exclude = [
     "node_modules",
     "venv",
     "*.md",  # Ignore all markdown files
-    "*.mdc',
+    "*.mdc",
 ]
 
 # Line length
@@ -47,10 +47,18 @@ select = [
     "B",   # flake8-bugbear
     "C4",  # flake8-comprehensions
     "UP",  # pyupgrade
+    "T201", # flake8-print (bans print statements - use logger instead)
 ]
 ignore = [
     "E501",  # line too long (handled by formatter)
+    "UP017",  # datetime.UTC requires Python 3.11+; we use timezone.utc for compatibility
 ]
+
+# Notebooks are exploratory; allow print() for quick inspection and debugging.
+# Lint scripts are CLI tools that intentionally write to stderr for tool output.
+[tool.ruff.lint.per-file-ignores]
+"**/*.ipynb" = ["T201"]
+"scripts/lint_*.py" = ["T201"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
@@ -64,3 +72,15 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 # Line ending
 line-ending = "auto"
+
+# --- Pyright: import resolution (catches missing modules); type checking off to avoid 600+ existing issues ---
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "off"
+venvPath = "."
+venv = ".venv"
+# Run from Server/ so "app" resolves to ./app
+reportMissingImports = true
+reportMissingModuleSource = true
+reportUndefinedVariable = true
+exclude = ["venv", ".venv", "**/node_modules", "**/__pycache__", "**/.*", "migrations/versions"]

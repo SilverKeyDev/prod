@@ -5,47 +5,34 @@ import React, { useState, useEffect, useCallback } from "react";
 /// <reference types="google.maps" />
 
 // Components
-import AlignedRow from "../components/layout/AlignedRow";
-import Card from "../components/layout/Card";
-import {
-  Loading,
-  OliveCheckbox,
-  Dropdown,
-  Input,
-  Title,
-} from "../components/ui";
+import { Loading } from "../components/ui";
 
 // Core
-import { useGoogleMapsStore } from "../../../packages/store/googleMaps.slice";
-import { showErrorToast } from "../../../packages/hooks/ui/useToast";
+import { useGoogleMapsStore } from "../../../packages/store";
+import { showErrorToast } from "../../../packages/hooks/ui/toast";
 import { useUserPreferences } from "../../../packages/hooks/data/auth/useUserData";
 import { useResponsive } from "../../../packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "../../../logger";
 
 // Features
-import HomePriceEstimate from "../features/onboardpersonalize/HomePriceEstimate";
-import HousingSection from "../features/onboardpersonalize/HousingSection";
-import LocationSection from "../features/onboardpersonalize/LocationSection";
-import Label from "../features/onboardpersonalize/Label";
+import {
+  DemographicsSection,
+  HousingSection,
+  LocationSection,
+} from "../features/profile/sections";
+import { SettingsFinancialSection } from "../features/profile/sections/SettingsFinancialSection";
+import { SettingsCommunicationSection } from "../features/profile/sections/SettingsCommunicationSection";
 import {
   getPersonalizationSteps,
-  SECTION_TITLES,
-  FIELD_LABELS,
-  CREDIT_SCORE_OPTIONS,
-  COMMUNICATION_FREQUENCY_OPTIONS,
   type OnboardingData,
-} from "../features/onboardpersonalize/lib/constants";
-import {
+  convertStepsToNavItems,
   calculateAffordableHomePrice,
   type HomePriceResult,
-} from "../features/onboardpersonalize/lib/homePriceCalculation";
-import { handleSubmit as handleSubmitUtil } from "../features/onboardpersonalize/lib/submitHandler";
-import { validateSettingsData } from "../features/onboardpersonalize/lib/validation";
-import PersonalizationMobileHeader from "../features/onboardpersonalize/personalization/MobileHeader";
+  handleSubmit as handleSubmitUtil,
+  validateSettingsData,
+} from "../../../packages/utils/profile";
+import PersonalizationMobileHeader from "../features/profile/account/MobileHeader";
 import SettingsSidebar from "../components/ui/sidebar/SettingsSidebar";
-import { convertStepsToNavItems } from "../features/onboardpersonalize/lib/constants";
-import PriceRangeSlider from "../features/onboardpersonalize/PriceRangeSlider";
-import BudgetRangeSlider from "../features/onboardpersonalize/BudgetRangeSlider";
 
 // Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
 
@@ -169,7 +156,7 @@ export default function PersonalizationPage({
   // Load user preferences from centralized context
   useEffect(() => {
     if (userPreferences) {
-      void void loadUserPreferencesFromContext();
+      void loadUserPreferencesFromContext();
     } else {
       setFormData({});
       setOriginalData({});
@@ -261,7 +248,7 @@ export default function PersonalizationPage({
         "Google Maps loading error",
         googleMapsError,
       );
-      void void setLoadError("Failed to load Google Maps script.");
+      void setLoadError("Failed to load Google Maps script.");
       return;
     }
 
@@ -367,158 +354,26 @@ export default function PersonalizationPage({
   const renderSectionContent = (sectionId: string) => {
     // Render content for each section based on sectionId
     switch (sectionId) {
+      case "demographics":
+        return (
+          <DemographicsSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
+          />
+        );
       case "financial":
         return (
-          <Card className="space-y-6 mb-64">
-            <Title size="md" className="mb-6">
-              Financial Information
-            </Title>
-            <div className="col-span-1 flex flex-col items-center md:col-span-2">
-              <Title size="sm" className="mb-2 w-full text-center">
-                {FIELD_LABELS.HOME_BUDGET}
-              </Title>
-              {isEditMode ? (
-                <BudgetRangeSlider
-                  tickValues={[
-                    200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000,
-                    6000000, 10000000,
-                  ]}
-                  minValue={formData.home_budget_min ?? 200000}
-                  maxValue={formData.home_budget_max ?? 1000000}
-                  onChange={(minValue, maxValue) => {
-                    // Round to nearest $25,000 increment
-                    const roundedMin = Math.round(minValue / 25000) * 25000;
-                    const roundedMax = Math.round(maxValue / 25000) * 25000;
-                    updateFormData("home_budget_min", roundedMin);
-                    updateFormData("home_budget_max", roundedMax);
-                  }}
-                  formatPrefix="$"
-                  className="mt-2"
-                />
-              ) : (
-                <div className="mobile-input mt-2 bg-gray-50 text-center">
-                  <div className="text-lg font-normal">
-                    ${(formData.home_budget_min ?? 0).toLocaleString()} - $
-                    {(formData.home_budget_max ?? 0).toLocaleString()}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <AlignedRow
-              breakIntoRows="md"
-              gap="lg"
-              justify="start"
-              items={[
-                {
-                  title: <Label>Gross Annual Income (after debts)</Label>,
-                  content: isEditMode ? (
-                    <PriceRangeSlider
-                      tickValues={[
-                        50000, 100000, 200000, 300000, 500000, 750000, 1000000,
-                      ]}
-                      value={formData.gross_income ?? 100000}
-                      onChange={(value) => {
-                        // Round to nearest $5,000 increment
-                        const roundedValue = Math.round(value / 5000) * 5000;
-                        updateFormData("gross_income", roundedValue);
-                      }}
-                      formatPrefix="$"
-                      className="mt-2"
-                    />
-                  ) : (
-                    <div className="mobile-input bg-gray-50 text-left">
-                      {formData.gross_income
-                        ? `$${formData.gross_income.toLocaleString()}`
-                        : "Not specified"}
-                    </div>
-                  ),
-                },
-                {
-                  title: <Label>Down Payment</Label>,
-                  content: isEditMode ? (
-                    <PriceRangeSlider
-                      tickValues={[
-                        100000, 250000, 500000, 1000000, 2000000, 5000000,
-                      ]}
-                      value={formData.down_payment ?? 100000}
-                      onChange={(value) => {
-                        // Round to nearest $5,000 increment
-                        const roundedValue = Math.round(value / 5000) * 5000;
-                        updateFormData("down_payment", roundedValue);
-                      }}
-                      formatPrefix="$"
-                      className="mt-2"
-                    />
-                  ) : (
-                    <div className="mobile-input bg-gray-50 text-left">
-                      {formData.down_payment
-                        ? `$${formData.down_payment.toLocaleString()}`
-                        : "Not specified"}
-                    </div>
-                  ),
-                },
-              ]}
-            />
-
-            <AlignedRow
-              breakIntoRows="md"
-              gap="lg"
-              justify="evenly"
-              items={[
-                {
-                  title: <Label>Ideal Zip Code</Label>,
-                  content: isEditMode ? (
-                    <Input
-                      type="text"
-                      value={formData.ideal_zip_code ?? ""}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        updateFormData("ideal_zip_code", e.target.value)
-                      }
-                      placeholder="Enter zip code"
-                    />
-                  ) : (
-                    <div className="mobile-input bg-gray-50">
-                      {formData.ideal_zip_code ?? "Not specified"}
-                    </div>
-                  ),
-                },
-                {
-                  title: <Label>{FIELD_LABELS.CREDIT_SCORE_RANGE}</Label>,
-                  content: isEditMode ? (
-                    <Dropdown
-                      value={formData.credit_score_range ?? ""}
-                      onChange={(value) =>
-                        updateFormData("credit_score_range", value)
-                      }
-                      options={CREDIT_SCORE_OPTIONS}
-                      placeholder="Select..."
-                    />
-                  ) : (
-                    <div className="mobile-input bg-gray-50">
-                      {formData.credit_score_range
-                        ? (CREDIT_SCORE_OPTIONS.find(
-                            (option) =>
-                              option.value === formData.credit_score_range,
-                          )?.label ?? "Not specified")
-                        : "Not specified"}
-                    </div>
-                  ),
-                },
-              ]}
-            />
-
-            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-              <HomePriceEstimate
-                homePriceLoading={homePriceLoading}
-                homePriceError={homePriceError}
-                homePriceResult={homePriceResult}
-                isAffordabilityCollapsed={isAffordabilityCollapsed}
-                setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
-                idealZipCode={formData.ideal_zip_code}
-              />
-            </div>
-          </Card>
+          <SettingsFinancialSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
+            homePriceLoading={homePriceLoading}
+            homePriceError={homePriceError}
+            homePriceResult={homePriceResult}
+            isAffordabilityCollapsed={isAffordabilityCollapsed}
+            setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
+          />
         );
 
       case "housing":
@@ -544,179 +399,11 @@ export default function PersonalizationPage({
 
       case "communication":
         return (
-          <Card className="space-y-6">
-            <Title size="md" className="mb-6">
-              {SECTION_TITLES.COMMUNICATION_PREFERENCES}
-            </Title>
-
-            {/* Communication Preference */}
-            <div>
-              <Label>{FIELD_LABELS.COMMUNICATION_FREQUENCY}</Label>
-              {isEditMode ? (
-                <Dropdown
-                  value={formData.communication_frequency ?? ""}
-                  onChange={(value) =>
-                    updateFormData("communication_frequency", value)
-                  }
-                  options={COMMUNICATION_FREQUENCY_OPTIONS}
-                  placeholder="Select..."
-                />
-              ) : (
-                <div className="mobile-input bg-gray-50">
-                  {formData.communication_frequency
-                    ? (COMMUNICATION_FREQUENCY_OPTIONS.find(
-                        (option) =>
-                          option.value === formData.communication_frequency,
-                      )?.label ?? "Not specified")
-                    : "Not specified"}
-                </div>
-              )}
-            </div>
-
-            {/* Information Detail Level */}
-            <div>
-              <Label>{FIELD_LABELS.INFORMATION_DETAIL_LEVEL}</Label>
-              {isEditMode ? (
-                <Dropdown
-                  value={formData.information_detail_level ?? ""}
-                  onChange={(value) =>
-                    updateFormData("information_detail_level", value)
-                  }
-                  options={[
-                    { value: "brief", label: "Brief" },
-                    { value: "moderate", label: "Moderate" },
-                    { value: "detailed", label: "Detailed" },
-                    { value: "comprehensive", label: "Comprehensive" },
-                  ]}
-                  placeholder="Select..."
-                />
-              ) : (
-                <div className="mobile-input bg-gray-50">
-                  {formData.information_detail_level
-                    ? [
-                        { value: "brief", label: "Brief" },
-                        { value: "moderate", label: "Moderate" },
-                        { value: "detailed", label: "Detailed" },
-                        { value: "comprehensive", label: "Comprehensive" },
-                      ].find(
-                        (opt) =>
-                          opt.value === formData.information_detail_level,
-                      )?.label
-                    : "Not specified"}
-                </div>
-              )}
-            </div>
-
-            <AlignedRow
-              breakIntoRows="md"
-              gap="lg"
-              justify="start"
-              items={[
-                {
-                  title: <Label>{FIELD_LABELS.HAS_BUYERS_AGENT}</Label>,
-                  content: isEditMode ? (
-                    <Dropdown
-                      value={formData.has_buyers_agent ?? ""}
-                      onChange={(value) =>
-                        updateFormData("has_buyers_agent", value)
-                      }
-                      options={[
-                        { value: "yes", label: "Yes" },
-                        { value: "no", label: "No" },
-                      ]}
-                      placeholder="Select..."
-                    />
-                  ) : (
-                    <div className="mobile-input bg-gray-50">
-                      {formData.has_buyers_agent
-                        ? [
-                            { value: "yes", label: "Yes" },
-                            { value: "no", label: "No" },
-                          ].find(
-                            (opt) => opt.value === formData.has_buyers_agent,
-                          )?.label
-                        : "Not specified"}
-                    </div>
-                  ),
-                },
-                {
-                  title:
-                    formData.has_buyers_agent === "no" ? (
-                      <Label>Looking for Agent?</Label>
-                    ) : (
-                      <div className="mb-2 block text-sm font-medium text-transparent">
-                        &nbsp;
-                      </div>
-                    ),
-                  content:
-                    formData.has_buyers_agent === "no" ? (
-                      <div className="flex h-full items-center">
-                        <label
-                          htmlFor="looking-buyers-agent"
-                          className="flex cursor-pointer items-center gap-3 text-sm font-medium text-black"
-                        >
-                          {isEditMode ? (
-                            <>
-                              <input
-                                type="checkbox"
-                                id="looking-buyers-agent"
-                                className="sr-only"
-                                checked={!!formData.looking_for_buyers_agent}
-                                onChange={() =>
-                                  updateFormData(
-                                    "looking_for_buyers_agent",
-                                    !formData.looking_for_buyers_agent,
-                                  )
-                                }
-                                aria-label="I am looking for a buyer's agent"
-                              />
-                              <OliveCheckbox
-                                checked={!!formData.looking_for_buyers_agent}
-                                onToggle={() =>
-                                  updateFormData(
-                                    "looking_for_buyers_agent",
-                                    !formData.looking_for_buyers_agent,
-                                  )
-                                }
-                              />
-                            </>
-                          ) : (
-                            <div
-                              className={`flex h-5 w-5 items-center justify-center rounded border ${
-                                formData.looking_for_buyers_agent
-                                  ? "border-olive bg-olive"
-                                  : "border-gray-300 bg-gray-50"
-                              }`}
-                            >
-                              {formData.looking_for_buyers_agent && (
-                                <svg
-                                  className="h-4 w-4 text-gray-600"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                          )}
-                          <span className="select-none">
-                            I am looking for a buyer's agent
-                          </span>
-                        </label>
-                      </div>
-                    ) : (
-                      <div className="mobile-input bg-gray-50 opacity-0">
-                        &nbsp;
-                      </div>
-                    ),
-                },
-              ]}
-            />
-          </Card>
+          <SettingsCommunicationSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
+          />
         );
 
       default:

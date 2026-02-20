@@ -1,14 +1,15 @@
 import { useCallback } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { reportApi } from "../../../config/api/documents/report";
-import { queryKeys } from "../../../config/query/keys";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { log, LOG_CATEGORIES } from "logger";
+
+import { reportApi } from "packages/config/api/documents/report";
+import { queryKeys } from "packages/config/query/keys";
+import { useDocumentActions } from "packages/hooks/data/documents/useDocumentActions";
 import {
-  useDocumentsData,
   type DocumentData,
-} from "../../data/documents/useDocumentsData";
-import { useDocumentActions } from "../../data/documents/useDocumentActions";
-import { log, LOG_CATEGORIES } from "../../../../logger";
+  useDocumentsData,
+} from "packages/hooks/data/documents/useDocumentsData";
 
 type DocumentHandlers = {
   handleViewDocument: (documentId: string, documentName: string) => void;

@@ -11,17 +11,38 @@
     "ios": "pnpm --filter @silverkey/mobile ios",
     "android": "pnpm --filter @silverkey/mobile android",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:parity": "node tools/check-parity.mjs",
+    "lint:platform-imports": "node tools/check-platform-imports.mjs",
+    "lint:all": "pnpm lint && pnpm lint:parity",
     "format": "prettier . --write",
-    "typecheck": "tsc -p apps/web/tsconfig.json"
+    "format:check": "prettier . --check",
+    "typecheck": "tsc -p apps/web/tsconfig.json",
+    "audit": "pnpm audit --audit-level=critical",
+    "lint:cycles": "madge --circular --ts-config tsconfig.app.json --extensions ts,tsx apps/web packages",
+    "fix": "pnpm format && pnpm lint:fix",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm lint:cycles && pnpm lint:parity && pnpm lint:platform-imports && pnpm audit --audit-level=critical && pnpm build:web",
+    "check:all": "pnpm fix && pnpm check",
+    "generate:dummy-audio": "node scripts/generate-dummy-audio.mjs",
+    "fix:colors": "node scripts/fix-colors-to-tokens.mjs"
   },
   "devDependencies": {
+    "@react-email/components": "^0.0.29",
+    "@react-email/render": "^1.4.0",
+    "@react-email/tailwind": "^0.0.8",
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
-    "baseline-browser-mapping": "^2.9.11",
+    "baseline-browser-mapping": "^2.9.19",
     "eslint": "^9.9.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-silverkey": "file:tools/eslint-plugin-silverkey",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "globals": "^15.9.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.7",
+    "madge": "^8.0.0",
     "prettier": "^3.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -31,12 +52,21 @@
     "@tanstack/react-query": "^5.90.2",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
+    "dayjs": "^1.11.13",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",
+    "hls.js": "^1.6.15",
     "lucide-react": "^0.544.0",
-    "react-router-dom": "^7.9.3",
+    "react-router-dom": "^7.12.0",
     "typescript-eslint": "^8.45.0",
+    "zod": "^3.25.76",
     "zustand": "^5.0.8"
+  },
+  "pnpm": {
+    "overrides": {
+      "glob": ">=10.5.0"
+    }
   }
 }

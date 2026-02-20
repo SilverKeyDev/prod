@@ -1,14 +1,15 @@
+import React from "react";
+
 import {
   CheckCircle,
-  TrendingUp,
-  Shield,
-  MapPin,
-  Home,
   DollarSign,
-  UtensilsCrossed,
   Footprints,
+  Home,
+  MapPin,
+  Shield,
+  TrendingUp,
+  UtensilsCrossed,
 } from "lucide-react";
-import React from "react";
 
 // Icon component type for section icons
 export type SectionIconComponent = React.ComponentType<{ className?: string }>;

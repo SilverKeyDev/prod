@@ -1,0 +1,22 @@
+# SilverKey documentation
+
+Canonical docs live here. One place for project documentation; no scattered long-form docs elsewhere.
+
+## Layout
+
+- **`documentation/`** — This folder. Index and how we document.
+- **`documentation/client/`** — Frontend (Client monorepo): architecture, packages, lint, platform (web vs React Native).
+- **`documentation/server/`** — Backend (Server): structure, APIs, and server-specific docs.
+
+## Quick links
+
+| Topic | Location |
+|-------|----------|
+| How we do documentation | [HOW_WE_DOCUMENT.md](./HOW_WE_DOCUMENT.md) |
+| Client docs index | [client/README.md](./client/README.md) |
+| Server docs index | [server/README.md](./server/README.md) |
+
+## In-repo references
+
+- **Client:** `Client/ARCHITECTURE.md`, `Client/MOBILE_MIGRATION_DESKTOP_FILES.md`, `Client/tools/LINTING.md`, and `Client/packages/*/README.md` stay in place as lightweight, local references. Long-form and cross-cutting docs live here under `documentation/client/`.
+- **Cursor rules:** `.cursor/rules/` — architecture and lint rules; they reference docs here where relevant.

@@ -53,6 +53,10 @@ UI hooks provide reusable React logic for UI state management:
 - `useStepUpAuth.ts` - Step-up authentication flow
 - `useSessionTimeout.ts` - Session timeout handling
 
+### Gestures
+
+- `useFeedGestureTrap.ts` - Double-tap detection for feed items
+
 ### Other
 
 - `useHealthCheck.ts` - Health check monitoring
@@ -65,7 +69,7 @@ UI hooks provide reusable React logic for UI state management:
 ### LocalStorage Hook
 
 ```typescript
-import { useLocalStorage } from "../../../packages/hooks/ui/useLocalStorage";
+import { useLocalStorage } from "../../../packages/hooks/ui";
 
 function Component() {
   const { value, setValue, removeValue } = useLocalStorage("key", defaultValue);
@@ -82,7 +86,7 @@ function Component() {
 ### Modal Hook
 
 ```typescript
-import { useModal } from "../../../packages/hooks/ui/useModal";
+import { useModal } from "../../../packages/hooks/ui";
 
 function Component() {
   const { isOpen, open, close } = useModal();
@@ -103,7 +107,7 @@ function Component() {
 ### Toast Hook
 
 ```typescript
-import { useToast } from "../../../packages/hooks/ui/useToast";
+import { useToast } from "../../../packages/hooks/ui";
 
 function Component() {
   const { showToast } = useToast();

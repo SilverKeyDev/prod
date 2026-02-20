@@ -1,16 +1,24 @@
-import {
-  MessageCircle,
-  User as UserIcon,
-  ChevronLeft,
-  Plus,
-} from "lucide-react";
 import { useState } from "react";
 
-import MiniLogo from "../../../components/ui/asset/MiniLogo";
-import { KeyTurnLoader } from "../../../components/ui";
-import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
-import { ClientSearchModal } from "../modals";
-import type { AgentClient } from "../../../../../packages/config/api";
+import {
+  ChevronLeft,
+  MessageCircle,
+  Plus,
+  User as UserIcon,
+} from "lucide-react";
+
+import type { AgentClient } from "packages/config/api";
+import { useLocalization } from "packages/contexts";
+import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
+
+import MiniLogo from "@/components/ui/asset/MiniLogo.web";
+import {
+  BodyText,
+  Button,
+  KeyTurnLoader,
+  Title,
+} from "@/components/ui/index.web";
+import { ClientSearchModal } from "@/features/agent/modals";
 
 type ClientManagementProps = {
   clients: AgentClient[];
@@ -25,6 +33,7 @@ export default function ClientManagement({
   selectedClientId,
   onClientSelect,
 }: ClientManagementProps) {
+  const { t } = useLocalization();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const { conversations } = useAgentChats();
@@ -43,30 +52,38 @@ export default function ClientManagement({
       {/* Fixed Header */}
       <div className="flex-shrink-0 rounded-t-xl border-b border-beige bg-white p-3">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-lg font-medium text-black">
+          <Title
+            as="h2"
+            size="lg"
+            className="flex items-center gap-2 font-medium text-black"
+          >
             <MiniLogo size="sm" />
-            Clients
-          </h2>
+            {t("agent.clients")}
+          </Title>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              type="button"
+              variant="ghost"
               onClick={() => setShowSearchModal(true)}
               className="inline-flex items-center justify-center rounded-lg bg-white px-2 py-1.5 transition hover:bg-beige/10"
-              aria-label="Search for clients"
+              label="Search for clients"
               title="Add client"
             >
               <Plus className="h-4 w-4 text-black" />
-            </button>
+            </Button>
             {/* TABLET/MOBILE side arrow button to collapse when extended */}
             {isSidebarExpanded && (
-              <button
+              <Button
+                type="button"
+                variant="ghost"
                 onClick={() => setIsSidebarExpanded(false)}
                 className="inline-flex items-center justify-center rounded-lg bg-white px-3 py-2 transition hover:bg-beige/10 xl:hidden"
-                aria-label="Collapse client list"
+                label={t("agent.collapse_client_list")}
                 aria-expanded={isSidebarExpanded}
               >
                 <ChevronLeft className="h-4 w-4 text-black" />
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -77,16 +94,18 @@ export default function ClientManagement({
         {isLoading ? (
           <div className="p-3 text-center">
             <div className="mb-2">
-              <KeyTurnLoader message="Loading clients..." />
+              <KeyTurnLoader message={t("agent.loading_clients")} />
             </div>
           </div>
         ) : clients.length === 0 ? (
           <div className="p-3 text-center">
             <MessageCircle className="mx-auto mb-3 h-12 w-12 text-black/30" />
-            <p className="text-sm text-black/60">No clients yet</p>
-            <p className="mt-1 text-xs text-black/40">
-              Clients will appear here once assigned.
-            </p>
+            <BodyText as="p" size="sm" className="text-black/60">
+              {t("agent.no_clients_yet")}
+            </BodyText>
+            <BodyText as="p" size="xs" className="mt-1 text-black/40">
+              {t("agent.clients_appear_once_assigned")}
+            </BodyText>
           </div>
         ) : (
           clients.map((client) => {
@@ -94,9 +113,18 @@ export default function ClientManagement({
             return (
               <div
                 key={client.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   onClientSelect(client.id);
                   setIsSidebarExpanded(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onClientSelect(client.id);
+                    setIsSidebarExpanded(false);
+                  }
                 }}
                 className={`group cursor-pointer border-b border-beige/50 p-3 transition-colors hover:bg-beige/10 ${
                   selectedClientId === client.id ? "bg-beige/20" : ""
@@ -107,22 +135,35 @@ export default function ClientManagement({
                     <UserIcon className="h-5 w-5 text-black" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="mb-1 truncate text-sm font-medium text-black">
+                    <Title
+                      as="h3"
+                      size="sm"
+                      className="mb-1 truncate font-medium text-black"
+                    >
                       {client.name}
-                    </h3>
+                    </Title>
                     {conversation?.last_message ? (
-                      <p className="truncate text-xs text-black/50">
+                      <BodyText
+                        as="p"
+                        className="truncate text-xs text-black/50"
+                      >
                         {conversation.last_message}
-                      </p>
+                      </BodyText>
                     ) : (
-                      <p className="truncate text-xs text-black/50">
+                      <BodyText
+                        as="p"
+                        className="truncate text-xs text-black/50"
+                      >
                         {client.email}
-                      </p>
+                      </BodyText>
                     )}
                     {client.phone && !conversation?.last_message && (
-                      <p className="truncate text-xs text-black/40">
+                      <BodyText
+                        as="p"
+                        className="truncate text-xs text-black/40"
+                      >
                         {client.phone}
-                      </p>
+                      </BodyText>
                     )}
                   </div>
                 </div>

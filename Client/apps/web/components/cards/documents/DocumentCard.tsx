@@ -1,38 +1,16 @@
+import { extractReportTitleFromPath } from "packages/utils/domain/documents/nameScrub";
 import {
-  formatFilenameToAddress,
   formatDate,
-} from "../../../../../packages/utils/search/address";
-import { extractReportTitleFromPath } from "../../../../../packages/utils/documents/nameScrub";
-import BaseCard from "../BaseCard";
+  formatFilenameToAddress,
+} from "packages/utils/domain/search/address";
+
+import BaseCard from "@/components/cards/BaseCard";
+
 import DocumentCardActions from "./DocumentCardActions";
 import DocumentCardHeader from "./DocumentCardHeader";
+import type { DocumentCardProps } from "./types";
 
-export interface DocumentData {
-  id: string;
-  filename: string;
-  file_path: string;
-  status: string;
-  created_at: string | null;
-  updated_at: string | null;
-  user_id: string;
-  document_type: string | null;
-  address: string | null;
-}
-
-export interface DocumentCardProps {
-  /**
-   * Document data from the backend
-   */
-  doc: DocumentData;
-  /**
-   * Optional callback for when document is deleted
-   */
-  onDelete?: (doc: DocumentData) => void;
-  /**
-   * Whether to show the delete button
-   */
-  showDelete?: boolean;
-}
+export type { DocumentCardProps, DocumentData } from "./types";
 
 /**
  * Enhanced document card component to display user documents with rich metadata.

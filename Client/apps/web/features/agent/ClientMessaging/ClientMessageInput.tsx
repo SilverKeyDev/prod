@@ -1,5 +1,7 @@
 import { Send } from "lucide-react";
-import Button from "../../../components/ui/button/Button";
+
+import Button from "@/components/ui/button/Button";
+import { Textarea } from "@/components/ui/index.web";
 
 type ClientMessageInputProps = {
   message: string;
@@ -18,7 +20,7 @@ export default function ClientMessageInput({
     <div className="flex-shrink-0 border-t border-beige bg-white p-4">
       <div className="flex items-center gap-3">
         <div className="flex flex-1">
-          <textarea
+          <Textarea
             value={message}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
               setMessage(e.target.value)
@@ -38,7 +40,7 @@ export default function ClientMessageInput({
         <Button
           onClick={onSendMessage}
           disabled={!message.trim() || isTyping}
-          variant="olive"
+          variant="primary"
           className="flex-shrink-0 px-4 py-2.5 md:py-3"
         >
           <Send className="h-4 w-4 md:h-5 md:w-5" />

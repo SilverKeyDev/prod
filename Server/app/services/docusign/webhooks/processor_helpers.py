@@ -1,0 +1,70 @@
+"""DocuSign webhook processor helper functions."""
+
+from typing import Any
+
+from logger import LOG_CATEGORIES, get_logger
+
+logger = get_logger()
+
+
+def map_event_type(docusign_event: str) -> str:
+    """Map DocuSign event type to our event type."""
+
+    mapping = {
+        "envelope-sent": "sent",
+        "envelope-delivered": "delivered",
+        "envelope-completed": "completed",
+        "envelope-declined": "declined",
+        "envelope-voided": "voided",
+        "recipient-sent": "recipient_sent",
+        "recipient-delivered": "recipient_delivered",
+        "recipient-signed": "recipient_signed",
+        "recipient-declined": "recipient_declined",
+    }
+    return mapping.get(docusign_event, "other")
+
+
+def build_event_description(
+    event_type: str, old_status: str, new_status: str, envelope_data: dict[str, Any]
+) -> str:
+    """Build human-readable event description."""
+
+    if new_status != old_status:
+        status_descriptions = {
+            "sent": "Agreement sent for signature",
+            "delivered": "Agreement delivered to recipients",
+            "completed": "Agreement signed by all parties",
+            "declined": "Agreement declined",
+            "voided": "Agreement voided",
+        }
+        return status_descriptions.get(new_status, f"Agreement status changed to {new_status}")
+    if "recipient" in event_type:
+        return f"Recipient event: {event_type}"
+    return f"DocuSign event: {event_type}"
+
+
+def enqueue_fetch_documents(agreement_id: str):
+    """Enqueue task to fetch completed documents."""
+    try:
+        logger.debug(
+            LOG_CATEGORIES["DOCUSIGN"],
+            "Enqueueing fetch documents task",
+            {"agreement_id": agreement_id},
+        )
+
+        from app.celery.tasks.docusign import fetch_completed_documents_task
+
+        task = fetch_completed_documents_task.delay(agreement_id)  # type: ignore[union-attr]
+
+        logger.info(
+            LOG_CATEGORIES["DOCUSIGN"],
+            "Fetch documents task enqueued successfully",
+            {"agreement_id": agreement_id, "task_id": task.id},
+        )
+
+    except Exception as e:
+        logger.error(
+            LOG_CATEGORIES["ERRORS"],
+            "Failed to enqueue fetch documents task",
+            {"agreement_id": agreement_id, "error": str(e)},
+        )

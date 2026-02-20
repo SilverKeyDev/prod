@@ -14,6 +14,11 @@ export type BodyTextProps = {
    * HTML element to render. Defaults to "p" for paragraph.
    */
   as?: "p" | "span" | "div";
+  /**
+   * Native title (e.g. for tooltip when as="span")
+   */
+  title?: string;
+  style?: React.CSSProperties;
 };
 
 /**
@@ -34,6 +39,8 @@ export default function BodyText({
   className = "",
   muted = false,
   as: Component = "p",
+  title,
+  style,
 }: BodyTextProps) {
   // Base styles
   const baseClasses = "font-normal leading-relaxed";
@@ -59,5 +66,9 @@ export default function BodyText({
     .filter(Boolean)
     .join(" ");
 
-  return <Component className={combinedClasses}>{children}</Component>;
+  return (
+    <Component className={combinedClasses} title={title} style={style}>
+      {children}
+    </Component>
+  );
 }

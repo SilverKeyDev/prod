@@ -1,11 +1,12 @@
 import { Suspense } from "react";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 
-import type { UserProfile } from "../../../packages/schemas/user";
-import { ROUTES } from "../../../packages/schemas/nav";
-import { useGoogleMapsStoreIntegration } from "../../../packages/hooks/store/useGoogleMapsStoreIntegration";
-import { useDataPolling } from "../../../packages/hooks/data/useDataPolling";
-import { useDataInitialization } from "../../../packages/hooks/data/useDataInitialization";
+import { Navigate, Outlet, Route, Routes } from "react-router-dom";
+
+import { useDataInitialization } from "packages/hooks/data/useDataInitialization";
+import { useDataPolling } from "packages/hooks/data/useDataPolling";
+import { useGoogleMapsStoreIntegration } from "packages/hooks/store/map/useGoogleMapsStoreIntegration";
+import { ROUTES } from "packages/schemas/app/nav";
+import type { UserProfile } from "packages/schemas/user";
 
 // Modular route components
 import { DynamicRoutes } from "./routes/DynamicRoutes";

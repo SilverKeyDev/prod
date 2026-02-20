@@ -1,8 +1,18 @@
-import { useState, useRef } from "react";
-import { Upload, File, X } from "lucide-react";
-import { BodyText, Button, CancelButton } from "../../../../components/ui";
-import { useDocusignActions } from "../../../../../../packages/hooks/data/documents/useDocusignActions";
-import { useUIStore } from "../../../../../../packages/store";
+import { useRef, useState } from "react";
+
+import { File, Upload, X } from "lucide-react";
+
+import { useDocusignActions } from "packages/hooks/data/documents/useDocusignActions";
+import { useUIStore } from "packages/store";
+
+import {
+  BodyText,
+  Button,
+  CancelButton,
+  Input,
+  Label,
+  Textarea,
+} from "@/components/ui/index.web";
 
 type RevisionUploadProps = {
   agreementId: string;
@@ -105,14 +115,25 @@ export default function RevisionUpload({
     <div className="space-y-4">
       {/* File Upload Area */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <Label
+          htmlFor="revision-upload-file"
+          className="block font-medium text-gray-700 mb-2"
+        >
           Upload Document (PDF)
-        </label>
+        </Label>
 
         {!selectedFile ? (
           <div
+            role="button"
+            tabIndex={0}
             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
           >
             <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
             <BodyText size="sm" muted>
@@ -127,25 +148,32 @@ export default function RevisionUpload({
             <div className="flex items-center gap-3">
               <File className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="text-sm font-medium text-gray-900">
+                <BodyText
+                  as="p"
+                  size="sm"
+                  className="font-medium text-gray-900"
+                >
                   {selectedFile.name}
-                </p>
-                <p className="text-xs text-gray-500">
+                </BodyText>
+                <BodyText as="p" size="xs" className="text-gray-500">
                   {(selectedFile.size / 1024).toFixed(1)} KB
-                </p>
+                </BodyText>
               </div>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleRemoveFile}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 min-w-0 h-auto p-0"
               disabled={isCreatingRevision}
             >
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
         )}
 
-        <input
+        <Input
+          id="revision-upload-file"
           ref={fileInputRef}
           type="file"
           accept=".pdf"
@@ -156,10 +184,14 @@ export default function RevisionUpload({
 
       {/* Notes */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <Label
+          htmlFor="revision-upload-notes"
+          className="block font-medium text-gray-700 mb-2"
+        >
           Notes (Optional)
-        </label>
-        <textarea
+        </Label>
+        <Textarea
+          id="revision-upload-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Add any notes about this revision..."

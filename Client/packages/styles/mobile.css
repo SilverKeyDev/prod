@@ -18,7 +18,7 @@
   /* Remove !important override to let responsive classes function properly */
 
   /* Specific smaller inputs that can safely use smaller fonts without zoom */
-  @media screen and (max-width: 768px) {
+  @media screen and (max-width: 767.98px) {
     #address-input.safe-small,
     .mobile-input.safe-small,
     .pac-container,
@@ -56,6 +56,18 @@
 
   .touch-target {
     @apply touch-friendly p-2;
+  }
+
+  /* Reserved space for fixed bottom tab bar (MobileBottomNav): bar height + safe area.
+   * Use padding-bottom: var(--mobile-bottom-reserved) on scroll containers so content is not hidden.
+   * Use .bottom-reserved for fixed/sticky bottom elements so they sit above the tab bar. */
+  @media screen and (max-width: 767.98px) {
+    :root {
+      --mobile-bottom-reserved: calc(4rem + env(safe-area-inset-bottom, 0));
+    }
+    .bottom-reserved {
+      bottom: var(--mobile-bottom-reserved);
+    }
   }
 
   /* Mobile navigation patterns */
@@ -108,11 +120,11 @@
   }
 
   .mobile-form-input {
-    @apply w-full rounded-lg border border-gray-300 px-3 py-3 text-base focus:border-brown focus:ring-2 focus:ring-brown/20;
+    @apply w-full rounded-lg border border-gray-300 px-3 py-3 text-base focus:border-olive focus:ring-2 focus:ring-olive/20;
   }
 
   .mobile-form-button {
-    @apply touch-friendly w-full rounded-lg bg-brown px-4 py-3 text-base font-medium text-white;
+    @apply touch-friendly w-full rounded-lg bg-olive px-4 py-3 text-base font-medium text-white;
   }
 
   /* Mobile card patterns - using components.css definition */
@@ -243,7 +255,7 @@
 
   /* Mobile button patterns - standardized with btn-* naming */
   .btn-mobile-primary {
-    @apply mobile-form-button bg-brown hover:bg-brown/90 active:bg-brown/80;
+    @apply mobile-form-button bg-olive hover:bg-olive/90 active:bg-olive/80;
   }
 
   .btn-mobile-secondary {
@@ -251,7 +263,7 @@
   }
 
   .btn-mobile-outline {
-    @apply mobile-form-button border-2 border-brown bg-transparent text-brown hover:bg-brown hover:text-white;
+    @apply mobile-form-button border-2 border-olive bg-transparent text-olive hover:bg-olive hover:text-white;
   }
 
   /* Legacy aliases - deprecated, use btn-mobile-* instead */
@@ -284,7 +296,7 @@
 
   /* Mobile accessibility */
   .mobile-focus {
-    @apply focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20;
+    @apply focus:border-olive focus:outline-none focus:ring-2 focus:ring-olive/20;
   }
 
   .mobile-sr-only {

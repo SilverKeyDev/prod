@@ -52,7 +52,7 @@ The `utils/` package provides reusable utility functions that are:
 
 ### Currency Utilities
 
-- `currency.ts` - Currency formatting
+- `currency.ts` - Currency and number formatting (`formatUSD`, `formatCompactUSD`, `formatNumber`, `formatCompactNumber`, `formatPercentage`)
 
 ### PDF Utilities
 
@@ -73,6 +73,10 @@ The `utils/` package provides reusable utility functions that are:
 ### Auth Utilities
 
 - `auth.ts` - Authentication helpers (deprecated - use config/auth.ts)
+
+## Usage
+
+Import from the barrel `packages/utils` or from domain paths (e.g. `packages/utils/format`, `packages/utils/errorHandling`, `packages/utils/calendar/scheduling`).
 
 ## Usage Examples
 
@@ -95,7 +99,7 @@ try {
 ### Type Guards
 
 ```typescript
-import { isString, isObject } from "../../../packages/utils/typeGuards";
+import { isString, isObject } from "../../../packages/utils";
 
 if (isString(value)) {
   // TypeScript knows value is string
@@ -106,7 +110,7 @@ if (isString(value)) {
 ### Array Utilities
 
 ```typescript
-import { sameIds } from "../../../packages/utils/array";
+import { sameIds } from "../../../packages/utils";
 
 const areSame = sameIds(array1, array2);
 ```
@@ -114,7 +118,7 @@ const areSame = sameIds(array1, array2);
 ### Storage Utilities
 
 ```typescript
-import { getFromStorage, setToStorage } from "../../../packages/utils/storage";
+import { getFromStorage, setToStorage } from "../../../packages/utils";
 
 const value = getFromStorage<string>("key", { defaultValue: "" });
 setToStorage("key", newValue);
@@ -132,8 +136,8 @@ setToStorage("key", newValue);
 
 For React-specific utilities, see:
 
-- `hooks/ui/useLocalStorage.ts` - React hook for localStorage
-- `hooks/ui/useModal.ts` - React hook for modals
+- `hooks/ui` (auth: useLocalStorage) - React hook for localStorage
+- `hooks/ui` (core: useModal) - React hook for modals
 - etc.
 
 ## Further Reading

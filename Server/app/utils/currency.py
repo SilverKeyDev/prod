@@ -1,5 +1,5 @@
-from typing import Any
 import re
+from typing import Any
 
 
 def format_currency(value: Any) -> str:
@@ -16,7 +16,7 @@ def format_currency(value: Any) -> str:
         return ""
 
     try:
-        if isinstance(value, (int, float)):
+        if isinstance(value, int | float):
             number = float(value)
         else:
             cleaned = re.sub(r"[^\d.]", "", str(value))
@@ -30,5 +30,3 @@ def format_currency(value: Any) -> str:
         return f"${number:,.2f}"
     except Exception:
         return ""
-
-

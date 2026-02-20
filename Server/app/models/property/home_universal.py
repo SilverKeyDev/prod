@@ -1,6 +1,8 @@
-from datetime import datetime
 import uuid
+from datetime import datetime
+
 from app import db
+
 
 class HomeUniversal(db.Model):
     """Represents a residential property that can be favourited by users or used elsewhere in the app."""
@@ -9,8 +11,8 @@ class HomeUniversal(db.Model):
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = db.Column(db.String(36), nullable=False)
-    is_liked = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text('false'))
-    current = db.Column(db.Boolean, nullable=False, default=True, server_default=db.text('true'))
+    is_liked = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text("false"))
+    current = db.Column(db.Boolean, nullable=False, default=True, server_default=db.text("true"))
 
     # Basic address and summary fields
     address = db.Column(db.String(500))
@@ -35,14 +37,14 @@ class HomeUniversal(db.Model):
     property_type = db.Column(db.String(64))
     home_type = db.Column(db.String(64))
     year_built = db.Column(db.String(16))
-    
+
     # MLS and Agent Information
     mls_agent_id = db.Column(db.String(64))
     listing_agent_phone = db.Column(db.String(32))
     listing_agent_email = db.Column(db.String(255))
     brokerage = db.Column(db.String(255))
     mls_region = db.Column(db.String(64))
-    
+
     # Ranking/Scoring
     score = db.Column(db.Float)
     ranking = db.Column(db.Integer)  # Position in search results (1-based, 1 = best/highest score)
@@ -66,7 +68,7 @@ class HomeUniversal(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __init__(self, **kwargs):
-        super(HomeUniversal, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def to_dict(self):
         return {

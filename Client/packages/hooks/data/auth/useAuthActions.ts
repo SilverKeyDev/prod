@@ -4,9 +4,11 @@
  */
 
 import { useCallback, useState } from "react";
-import { authApi } from "../../../config/api";
-import { log, LOG_CATEGORIES } from "../../../../logger";
-import { HttpError } from "../../../services/http/compatibility";
+
+import { log, LOG_CATEGORIES } from "logger";
+
+import { authApi } from "packages/config/api";
+import { HttpError } from "packages/services/http/compatibility";
 
 /**
  * Hook for signup functionality

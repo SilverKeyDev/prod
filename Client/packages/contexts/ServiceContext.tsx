@@ -1,9 +1,9 @@
-import React, { createContext, useContext, type ReactNode } from "react";
+import React, { createContext, type ReactNode, useContext } from "react";
 
-import { userApi, preferencesApi } from "../config/api";
-import { chatService } from "../services/chats";
-import { googleMapsService } from "../services/googleMaps";
-import { negotiationService } from "../services/negotiation";
+import { preferencesApi, userApi } from "packages/config/api";
+import { chatService } from "packages/services/chat/chats";
+import { negotiationService } from "packages/services/negotiation";
+import { googleMapsService } from "packages/services/search/googleMaps";
 
 /**
  * Service injection context - provides access to services without state management

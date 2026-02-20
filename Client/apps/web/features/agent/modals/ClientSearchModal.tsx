@@ -1,12 +1,17 @@
-import { useState, useEffect, useRef } from "react";
-import { Search, X, User as UserIcon, Send } from "lucide-react";
-import { useClientSearch } from "../../../../../packages/hooks/data/agent/useAgentSearch";
-import { useConnectionRequests } from "../../../../../packages/hooks/data/agent/useConnectionRequests";
-import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
-import { useUIStore } from "../../../../../packages/store";
-import Button from "../../../components/ui/button/Button";
-import CancelButton from "../../../components/ui/button/CancelButton";
-import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
+import { useEffect, useRef, useState } from "react";
+
+import { Search, Send, User as UserIcon } from "lucide-react";
+
+import { useClientSearch } from "packages/hooks/data/agent/useAgentSearch";
+import { useConnectionRequests } from "packages/hooks/data/agent/useConnectionRequests";
+import { useUserData } from "packages/hooks/data/auth/useUserData";
+import { useUIStore } from "packages/store";
+
+import Button from "@/components/ui/button/Button";
+import CancelButton from "@/components/ui/button/CancelButton";
+import CloseButton from "@/components/ui/button/CloseButton";
+import { BodyText, Input, Textarea, Title } from "@/components/ui/index.web";
+import KeyTurnLoader from "@/components/ui/loading/KeyTurnLoader.web";
 
 type ClientSearchModalProps = {
   isOpen: boolean;
@@ -39,7 +44,7 @@ export default function ClientSearchModal({
       await createRequest(
         userProfile.id,
         clientId,
-        message.trim() || undefined
+        message.trim() || undefined,
       );
       enqueueToast({
         type: "success",
@@ -48,7 +53,7 @@ export default function ClientSearchModal({
       setMessage("");
       setSelectedClientId(null);
       onClose();
-    } catch (error) {
+    } catch {
       enqueueToast({
         type: "error",
         message: "Failed to send connection request",
@@ -63,29 +68,23 @@ export default function ClientSearchModal({
       <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-lg">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-beige p-4">
-          <h2 className="text-lg font-medium text-black">
+          <Title as="h2" size="lg" className="font-medium text-black">
             Search for a Client
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1 hover:bg-beige/10"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5 text-black" />
-          </button>
+          </Title>
+          <CloseButton onClick={onClose} size="sm" label="Close" />
         </div>
 
         {/* Search Input */}
         <div className="border-b border-beige p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-black/40" />
-            <input
+            <Input
               ref={inputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name or email..."
-              className="w-full rounded-lg border border-beige bg-white px-10 py-2.5 text-base focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+              className="w-full rounded-lg border border-beige bg-white px-10 py-2.5 text-base focus:border-olive focus:outline-none focus:ring-2 focus:ring-olive/20"
             />
           </div>
         </div>
@@ -107,7 +106,7 @@ export default function ClientSearchModal({
                   key={client.id}
                   className={`rounded-lg border p-3 transition-colors ${
                     selectedClientId === client.id
-                      ? "border-brown bg-beige/10"
+                      ? "border-olive bg-olive/10"
                       : "border-beige hover:bg-beige/5"
                   }`}
                 >
@@ -118,19 +117,27 @@ export default function ClientSearchModal({
                           <UserIcon className="h-5 w-5 text-black" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-base font-semibold text-black">
+                          <Title
+                            as="h3"
+                            size="md"
+                            className="font-semibold text-black"
+                          >
                             {client.name}
-                          </h3>
-                          <p className="text-base font-medium text-black/60">
+                          </Title>
+                          <BodyText
+                            as="p"
+                            size="md"
+                            className="font-medium text-black/60"
+                          >
                             {client.email}
-                          </p>
+                          </BodyText>
                         </div>
                       </div>
-                      <textarea
+                      <Textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Add a message (optional)..."
-                        className="w-full rounded-lg border border-beige px-3 py-2 text-base focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+                        className="w-full rounded-lg border border-beige px-3 py-2 text-base focus:border-olive focus:outline-none focus:ring-2 focus:ring-olive/20"
                         rows={3}
                       />
                       <div className="flex gap-2">
@@ -157,27 +164,42 @@ export default function ClientSearchModal({
                       </div>
                     </div>
                   ) : (
-                    <button
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setSelectedClientId(client.id)}
-                      className="flex w-full items-start gap-3 text-left"
+                      className="flex w-full items-start gap-3 text-left justify-start h-auto py-0 min-h-0"
                     >
                       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-beige">
                         <UserIcon className="h-5 w-5 text-black" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-base font-semibold text-black">
+                        <Title
+                          as="h3"
+                          size="md"
+                          className="font-semibold text-black"
+                        >
                           {client.name}
-                        </h3>
-                        <p className="text-base font-medium text-black/60">
+                        </Title>
+                        <BodyText
+                          as="p"
+                          size="md"
+                          className="font-medium text-black/60"
+                        >
                           {client.email}
-                        </p>
+                        </BodyText>
                         {client.phone && (
-                          <p className="text-sm font-medium text-black/40">
+                          <BodyText
+                            as="p"
+                            size="sm"
+                            className="font-medium text-black/40"
+                          >
                             {client.phone}
-                          </p>
+                          </BodyText>
                         )}
                       </div>
-                    </button>
+                    </Button>
                   )}
                 </div>
               ))}

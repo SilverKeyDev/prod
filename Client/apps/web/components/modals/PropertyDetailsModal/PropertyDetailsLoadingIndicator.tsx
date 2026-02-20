@@ -1,6 +1,6 @@
 import React from "react";
 
-import { KeyTurnLoader } from "../../ui";
+import { KeyTurnLoader } from "@ui/index.web";
 
 export const PropertyDetailsLoadingIndicator: React.FC = () => {
   return (

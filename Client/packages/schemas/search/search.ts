@@ -130,7 +130,8 @@ export type SearchFilters = {
 
 // Hook parameter types
 export type UseSearchBootstrapParams = {
-  env: { apiBaseUrl: string };
+  /** @deprecated Use preferencesApi.get() via useSearchBootstrap; no longer needed for bootstrap */
+  env?: { apiBaseUrl: string };
   setSearchResults: (results: PropertyDetails[]) => void;
   setHasSearched: (searched: boolean) => void;
   setCurrentPage: (page: number) => void;

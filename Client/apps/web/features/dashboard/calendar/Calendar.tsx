@@ -1,31 +1,38 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useGoogleCalendarStoreIntegration } from "../../../../../packages/hooks/store/calendar/useGoogleCalendarStoreIntegration";
-import { useUserPreferences } from "../../../../../packages/hooks/data/auth/useUserData";
-import { useUIStore } from "../../../../../packages/store";
-import type { UIState } from "../../../../../packages/store/ui.slice";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { log, LOG_CATEGORIES } from "logger";
+
+import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import {
+  useCalendarErrorToasts,
+  useCalendarOAuthCallback,
+  useCalendarPreferences,
+  useClientEvents,
+  useGoogleCalendarPermissions,
+} from "packages/hooks/data/calendar";
+import { useGoogleCalendarStoreIntegration } from "packages/hooks/store/calendar/useGoogleCalendarStoreIntegration";
+import type { UIState } from "packages/store";
+import { useUIStore } from "packages/store";
+import { dateNow } from "packages/utils/core/date";
+import {
+  findSilverKeyCalendar,
+  getCalendarsKey,
+  initializeEnabledCalendars,
+} from "packages/utils/domain/calendar/calendar";
+import {
+  calculateCalendarDateRange,
+  navigateDate,
+} from "packages/utils/domain/calendar/date";
+
+import { ClientSelector } from "@/components/ui/index.web";
+
 import { CalendarConnectionPrompt } from "./components/CalendarConnectionPrompt";
 import { CalendarHeader } from "./components/CalendarHeader";
 import { CalendarView } from "./components/CalendarView";
 import { CreateEventModal } from "./components/CreateEventModal";
-import { log, LOG_CATEGORIES } from "../../../../../logger";
-import ClientSelector from "../../../components/ui/ClientSelector";
-import {
-  useClientEvents,
-  useGoogleCalendarPermissions,
-  useCalendarPreferences,
-} from "../../../../../packages/hooks/data/calendar";
-import {
-  calculateCalendarDateRange,
-  navigateDate,
-} from "../../../../../packages/utils/calendar/date";
-import {
-  findSilverKeyCalendar,
-  initializeEnabledCalendars,
-  getCalendarsKey,
-} from "../../../../../packages/utils/calendar/calendar";
 
 export function Calendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => dateNow().toDate());
   const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(
     new Set(),
   );
@@ -99,41 +106,18 @@ export function Calendar() {
     }
   }, [isConnected, calendars]);
 
-  // Handle OAuth callback
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("google") === "connected") {
-      enqueueToast({
-        type: "success",
-        message: "Google Calendar connected successfully",
-      });
-      window.history.replaceState({}, document.title, window.location.pathname);
-      void refreshCalendars();
-      void refreshEvents();
-    }
-  }, [enqueueToast, refreshCalendars, refreshEvents]);
+  useCalendarOAuthCallback({
+    enqueueToast,
+    refreshCalendars,
+    refreshEvents,
+  });
 
-  // Handle errors
-  useEffect(() => {
-    if (calendarsError) {
-      enqueueToast({
-        type: "error",
-        message: `Calendar error: ${calendarsError}`,
-      });
-    }
-    if (eventsError) {
-      enqueueToast({
-        type: "error",
-        message: `Events error: ${eventsError}`,
-      });
-    }
-    if (clientEventsError) {
-      enqueueToast({
-        type: "error",
-        message: `Client events error: ${clientEventsError}`,
-      });
-    }
-  }, [calendarsError, eventsError, clientEventsError, enqueueToast]);
+  useCalendarErrorToasts({
+    calendarsError,
+    eventsError,
+    clientEventsError,
+    enqueueToast,
+  });
 
   // Initialize enabled calendars from preferences
   useEffect(() => {
@@ -230,7 +214,7 @@ export function Calendar() {
         return newSet;
       });
     },
-    [calendars, refreshUserPreferences, enqueueToast],
+    [calendars, refreshUserPreferences, enqueueToast, savePreferences],
   );
 
   // Cleanup timeout on unmount

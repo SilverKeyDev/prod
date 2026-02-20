@@ -79,7 +79,7 @@ function Component() {
 
 ```typescript
 // ✅ CORRECT: Component uses UI hook
-import { useLocalStorage } from "../../../packages/hooks/ui/useLocalStorage";
+import { useLocalStorage } from "../../../packages/hooks/ui";
 
 function Component() {
   const { value, setValue } = useLocalStorage("key", defaultValue);

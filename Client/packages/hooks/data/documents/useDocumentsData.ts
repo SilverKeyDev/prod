@@ -1,10 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { reportApi } from "../../../config/api/documents/report";
-import { queryKeys } from "../../../config/query/keys";
-import { useAuthStore } from "../../../store/auth.slice";
-import { log, LOG_CATEGORIES } from "../../../../logger";
+import { useQuery } from "@tanstack/react-query";
+import { log, LOG_CATEGORIES } from "logger";
+
+import { reportApi } from "packages/config/api/documents/report";
+import { queryKeys } from "packages/config/query/keys";
+import { useAuthStore } from "packages/store";
 
 // Document data structure from API
 export type DocumentData = {

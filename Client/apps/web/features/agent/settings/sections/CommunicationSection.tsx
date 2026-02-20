@@ -1,14 +1,22 @@
 import React from "react";
-import AlignedRow from "../../../../components/layout/AlignedRow";
-import Card from "../../../../components/layout/Card";
-import { Dropdown, OliveCheckbox, Title } from "../../../../components/ui";
-import Label from "../../../../features/onboardpersonalize/Label";
+
 import {
-  SECTION_TITLES,
-  FIELD_LABELS,
   COMMUNICATION_FREQUENCY_OPTIONS,
+  FIELD_LABELS,
   type OnboardingData,
-} from "../../../../features/onboardpersonalize/lib/constants";
+  SECTION_TITLES,
+} from "packages/utils/domain/profile";
+
+import AlignedRow from "@/components/layout/AlignedRow";
+import Card from "@/components/layout/Card.web";
+import {
+  AccessibleCheckboxInput,
+  BodyText,
+  Dropdown,
+  Label,
+  OliveCheckbox,
+  Title,
+} from "@/components/ui/index.web";
 
 type CommunicationSectionProps = {
   formData: OnboardingData;
@@ -121,14 +129,13 @@ export default function CommunicationSection({
             content:
               formData.has_buyers_agent === "no" ? (
                 <div className="flex h-full items-center">
-                  <label
+                  <Label
                     htmlFor="looking-buyers-agent"
-                    className="flex cursor-pointer items-center gap-3 text-sm font-medium text-black"
+                    className="flex cursor-pointer items-center gap-3 font-medium text-black"
                   >
                     {isEditMode ? (
                       <>
-                        <input
-                          type="checkbox"
+                        <AccessibleCheckboxInput
                           id="looking-buyers-agent"
                           className="sr-only"
                           checked={!!formData.looking_for_buyers_agent}
@@ -138,7 +145,7 @@ export default function CommunicationSection({
                               !formData.looking_for_buyers_agent,
                             )
                           }
-                          aria-label="I am looking for a buyer's agent"
+                          label="I am looking for a buyer's agent"
                         />
                         <OliveCheckbox
                           checked={!!formData.looking_for_buyers_agent}
@@ -173,10 +180,10 @@ export default function CommunicationSection({
                         )}
                       </div>
                     )}
-                    <span className="select-none">
+                    <BodyText as="span" size="sm" className="select-none">
                       I am looking for a buyer's agent
-                    </span>
-                  </label>
+                    </BodyText>
+                  </Label>
                 </div>
               ) : (
                 <div className="mobile-input bg-gray-50 opacity-0">&nbsp;</div>

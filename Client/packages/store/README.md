@@ -19,25 +19,23 @@ The `store/` package contains Zustand store slices that manage global applicatio
 
 ```
 store/
+├── index.ts        # Centralized exports (public API)
+├── README.md
 ├── middleware/     # Store middleware (devtools, persist, resettable)
-├── auth.slice.ts
-├── user.slice.ts
-├── savedHomes.slice.ts
-├── documents.slice.ts
-├── reports.slice.ts
-├── ui.slice.ts
-├── session.slice.ts
-├── featureFlags.slice.ts
-├── filters.slice.ts
-├── negotiation.slice.ts
-├── googleMaps.slice.ts
-├── googleCalendar.slice.ts
-├── scheduling.slice.ts
-├── plaid.slice.ts
-├── notifications.slice.ts
-├── search.ts
-├── view.slice.ts
-└── index.ts        # Centralized exports
+└── slices/         # Domain slice folders
+    ├── auth/
+    ├── user/
+    ├── ui/
+    ├── search/
+    ├── documents/
+    ├── featureFlags/
+    ├── negotiation/
+    ├── reports/
+    ├── maps/
+    ├── notifications/
+    ├── scheduling/
+    ├── saved/
+    └── feed/
 ```
 
 ## Architecture Rules
@@ -80,7 +78,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
 ```typescript
 // ✅ CORRECT: Use store hook in component
-import { useAuthStore } from "../../../packages/store/auth.slice";
+import { useAuthStore } from "../../../packages/store";
 
 function Component() {
   const user = useAuthStore((s) => s.user);
@@ -93,7 +91,7 @@ function Component() {
 
 ```typescript
 // ✅ CORRECT: Use selector for specific state
-import { useAuthStore } from "../../../packages/store/auth.slice";
+import { useAuthStore } from "../../../packages/store";
 
 function Component() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -105,7 +103,7 @@ function Component() {
 
 ```typescript
 // ✅ CORRECT: Use action from store
-import { useSavedHomesStore } from "../../../packages/store/savedHomes.slice";
+import { useSavedHomesStore } from "../../../packages/store";
 
 function Component() {
   const saveHome = useSavedHomesStore((s) => s.saveHome);
@@ -124,7 +122,7 @@ Stores are updated via integration hooks in `hooks/store/*`:
 ```typescript
 // In hooks/store/useSavedHomesStoreIntegration.ts
 import { useSavedHomesData } from "../data/useSavedHomesData";
-import { useSavedHomesStore } from "../../store/savedHomes.slice";
+import { useSavedHomesStore } from "../../store";
 
 export function useSavedHomesStoreIntegration() {
   const { data } = useSavedHomesData();

@@ -1,16 +1,19 @@
-import { authApi, userApi } from "../../config/api";
-import type { SavedHome } from "../../schemas";
-import type {
-  HomeUniversal,
-  AddFavoriteHomeRequest,
-  RemoveFavoriteHomeRequest,
-  FavoriteHomeResponse,
-} from "../../schemas/api";
-import { isObject, isNumber } from "../../utils/typeGuards";
+import { log, LOG_CATEGORIES } from "logger";
 
-import type { AuthenticationError } from "../http";
-import { isAuthenticationError, handleAuthenticationError } from "../http";
-import { log, LOG_CATEGORIES } from "../../../logger";
+import { authApi, userApi } from "packages/config/api";
+import type { SavedHome } from "packages/schemas";
+import type {
+  AddFavoriteHomeRequest,
+  FavoriteHomeResponse,
+  HomeUniversal,
+  RemoveFavoriteHomeRequest,
+} from "packages/schemas/api";
+import type { AuthenticationError } from "packages/services/http";
+import {
+  handleAuthenticationError,
+  isAuthenticationError,
+} from "packages/services/http";
+import { isNumber, isObject } from "packages/utils";
 
 /**
  * Map home data to SavedHome format

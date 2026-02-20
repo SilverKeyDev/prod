@@ -1,12 +1,14 @@
+import { useEffect, useRef, useState } from "react";
+
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect, useRef } from "react";
-import { useAuthStore } from "../../../store/auth.slice";
-import { agentApi } from "../../../config/api";
-import { queryKeys } from "../../../config/query/keys";
+
 import type {
   AgentSearchResult,
   ClientSearchResult,
-} from "../../../config/api";
+} from "packages/config/api";
+import { agentApi } from "packages/config/api";
+import { queryKeys } from "packages/config/query/keys";
+import { useAuthStore } from "packages/store";
 
 export type UseAgentSearchReturn = {
   agents: AgentSearchResult[];

@@ -1,0 +1,173 @@
+import { motion } from "framer-motion";
+import type { VirtuosoHandle } from "react-virtuoso";
+
+import { IconButton } from "@/components/ui/index.web";
+import { FEED_ACTION_INTERACTION_CLASS } from "@/features/feed/index.web";
+import {
+  DesktopReelsView,
+  SearchPageMapView,
+  SearchPageModals,
+} from "@/features/search/index.web";
+
+export type SearchPageContentProps = {
+  searchViewMode: "map" | "reels";
+  handleToggleMode: () => void;
+  feedScrollRef: React.RefObject<VirtuosoHandle | null>;
+  onBeforeSwitchToReels: () => void;
+  activeTab: "results" | "saved";
+  handleTabChange: (tab: "results" | "saved") => void;
+  filteredSearchResults: unknown[];
+  savedHomes: unknown[];
+  currentPage: number;
+  setCurrentPage: (n: number) => void;
+  onViewPropertyDetails: (p: unknown) => void;
+  onNavigateToProperty: (p: unknown) => void;
+  isHomeSaved: (p: unknown) => boolean;
+  saveHome: (p: unknown) => Promise<void>;
+  removeSavedHome: (id: string, addr?: string) => Promise<void>;
+  isCarouselCollapsed: boolean;
+  setIsCarouselCollapsed: (v: boolean) => void;
+  isSearching: boolean;
+  hasSearched: boolean;
+  searchResults: unknown[];
+  searchStage: string;
+  mapZoomIn: () => void;
+  mapZoomOut: () => void;
+  mobileMapRef: React.RefObject<unknown>;
+  desktopMapRef: React.RefObject<unknown>;
+  setShowPropertyModals: (v: boolean) => void;
+  setHasSearched: (v: boolean) => void;
+  selectedPropertyId: string | undefined;
+  onPreferencesChanged: () => Promise<void>;
+  onSearchProperties: () => Promise<void>;
+  onCancelSearch: () => void;
+  selectedClientId: string | null;
+  onClientChange: (id: string | null) => void;
+  isLoadingPropertyDetails: boolean;
+  isLoadingSearchResults: boolean;
+  isLoadingIsochrone: boolean;
+  isochroneData: unknown;
+  selectedProperty: unknown;
+  clearSelectedProperty: () => void;
+};
+
+export function SearchPageContent({
+  searchViewMode,
+  handleToggleMode,
+  feedScrollRef,
+  onBeforeSwitchToReels,
+  activeTab,
+  handleTabChange,
+  filteredSearchResults,
+  savedHomes,
+  currentPage,
+  setCurrentPage,
+  onViewPropertyDetails,
+  onNavigateToProperty,
+  isHomeSaved,
+  saveHome,
+  removeSavedHome,
+  isCarouselCollapsed,
+  setIsCarouselCollapsed,
+  isSearching,
+  hasSearched,
+  searchResults,
+  searchStage,
+  mapZoomIn,
+  mapZoomOut,
+  mobileMapRef,
+  desktopMapRef,
+  setShowPropertyModals,
+  setHasSearched,
+  selectedPropertyId,
+  onPreferencesChanged,
+  onSearchProperties,
+  onCancelSearch,
+  selectedClientId,
+  onClientChange,
+  isLoadingPropertyDetails,
+  isLoadingSearchResults,
+  isLoadingIsochrone,
+  isochroneData,
+  selectedProperty,
+  clearSelectedProperty,
+}: SearchPageContentProps) {
+  return (
+    <div className="relative h-full">
+      {searchViewMode === "reels" && (
+        <div className="absolute right-4 top-4 z-30 flex items-center md:flex">
+          <IconButton
+            variant="ghost"
+            size="md"
+            iconName="search"
+            onClick={handleToggleMode}
+            label="Back to search"
+            className={`bg-black/40 text-white backdrop-blur-sm ${FEED_ACTION_INTERACTION_CLASS}`}
+          />
+        </div>
+      )}
+      <div className="relative h-full">
+        <div
+          className={`absolute inset-0 h-full ${searchViewMode === "map" ? "z-10" : "invisible z-0 pointer-events-none"}`}
+          aria-hidden={searchViewMode !== "map"}
+        >
+          <SearchPageMapView
+            onBeforeSwitchToReels={onBeforeSwitchToReels}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            filteredSearchResults={filteredSearchResults}
+            savedHomes={savedHomes}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            onViewPropertyDetails={onViewPropertyDetails}
+            onNavigateToProperty={onNavigateToProperty}
+            isHomeSaved={isHomeSaved}
+            saveHome={saveHome}
+            removeSavedHome={removeSavedHome}
+            isCarouselCollapsed={isCarouselCollapsed}
+            setIsCarouselCollapsed={setIsCarouselCollapsed}
+            isSearching={isSearching}
+            hasSearched={hasSearched}
+            searchResults={searchResults}
+            searchStage={searchStage}
+            mapZoomIn={mapZoomIn}
+            mapZoomOut={mapZoomOut}
+            mobileMapRef={mobileMapRef}
+            desktopMapRef={desktopMapRef}
+            setShowPropertyModals={setShowPropertyModals}
+            setHasSearched={setHasSearched}
+            selectedPropertyId={selectedPropertyId}
+            onPreferencesChanged={onPreferencesChanged}
+            onSearchProperties={onSearchProperties}
+            onCancelSearch={onCancelSearch}
+            selectedClientId={selectedClientId}
+            onClientChange={onClientChange}
+            isLoadingPropertyDetails={isLoadingPropertyDetails}
+            isLoadingSearchResults={isLoadingSearchResults}
+            isLoadingIsochrone={isLoadingIsochrone}
+            isochroneData={isochroneData}
+          />
+        </div>
+        <div
+          className={`absolute inset-0 h-full ${searchViewMode === "reels" ? "z-10" : "invisible z-0 pointer-events-none"}`}
+          aria-hidden={searchViewMode !== "reels"}
+        >
+          <motion.div
+            key="reels"
+            className="h-full"
+            initial={false}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <DesktopReelsView virtuosoRef={feedScrollRef} />
+          </motion.div>
+        </div>
+      </div>
+      <SearchPageModals
+        selectedProperty={selectedProperty}
+        onClosePropertyDetails={clearSelectedProperty}
+        isLoadingPropertyDetails={isLoadingPropertyDetails}
+      />
+    </div>
+  );
+}

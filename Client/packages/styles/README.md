@@ -41,7 +41,11 @@ Google Maps-specific styles.
 
 ### `carousel.css`
 
-Carousel component styles.
+Carousel component styles (react-responsive-carousel).
+
+### `embla.css`
+
+Base styles for Embla Carousel (embla-carousel-react): viewport overflow, container flex, slide sizing. Used by reel feed and any other Embla carousels.
 
 ### `index.css`
 

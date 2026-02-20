@@ -1,37 +1,36 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+import { log, LOG_CATEGORIES } from "logger";
 import type { ReactNode } from "react";
-import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
-import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
-import AgentMessaging from "../AgentMessaging";
-import { log, LOG_CATEGORIES } from "../../../../../logger";
+
+import { useAgentClients } from "packages/hooks/data/agent/useAgentClients";
+import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
+import { dateParseISO } from "packages/utils/core/date";
+
+import AgentMessaging from "@/features/agent/AgentMessaging";
 
 type AgentDashboardProps = {
   setMobileHeaderActions?: React.Dispatch<
     React.SetStateAction<ReactNode | null>
   >;
-  setMobileBottomActions?: React.Dispatch<
-    React.SetStateAction<ReactNode | null>
-  >;
-  mobileBottomBarHeight?: number;
 };
 
-export default function AgentDashboard({
-  setMobileHeaderActions,
-  setMobileBottomActions,
-  mobileBottomBarHeight,
-}: AgentDashboardProps = {}) {
-  const { clients, isLoading } = useAgentClients();
-  const { conversations } = useAgentChats();
+type ClientLike = { id: string };
+type ConversationLike = { client_id: string; last_message_at?: string | null };
+
+function useAgentAutoSelectClient(
+  clients: ClientLike[],
+  conversations: ConversationLike[],
+  isLoading: boolean,
+): [string | null, (clientId: string) => void] {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
 
   const handleClientSelect = (clientId: string) => {
     setSelectedClientId(clientId);
-    // Store in localStorage for next time
     localStorage.setItem("agent_last_selected_client", clientId);
   };
 
-  // Auto-select the conversation where the agent last sent a message
   useEffect(() => {
     if (
       hasAutoSelected ||
@@ -42,10 +41,8 @@ export default function AgentDashboard({
     ) {
       return;
     }
-
     const findLastConversation = async () => {
       try {
-        // First, try to restore from localStorage
         const lastSelectedClientId = localStorage.getItem(
           "agent_last_selected_client",
         );
@@ -57,24 +54,18 @@ export default function AgentDashboard({
             (c) => c.client_id === lastSelectedClientId,
           );
           if (lastConversation && lastConversation.last_message_at) {
-            // If conversation exists and has messages, use it
             setSelectedClientId(lastSelectedClientId);
             setHasAutoSelected(true);
             return;
           }
         }
-
-        // Find conversation with most recent message
-        // Sort conversations by last_message_at descending
         const sortedConversations = [...conversations]
-          .filter((c) => c.last_message_at) // Only consider conversations with messages
+          .filter((c) => c.last_message_at)
           .sort((a, b) => {
-            const aTime = new Date(a.last_message_at!).getTime();
-            const bTime = new Date(b.last_message_at!).getTime();
+            const aTime = dateParseISO(a.last_message_at!).valueOf();
+            const bTime = dateParseISO(b.last_message_at!).valueOf();
             return bTime - aTime;
           });
-
-        // Select the most recent conversation
         if (sortedConversations.length > 0) {
           const mostRecent = sortedConversations[0];
           setSelectedClientId(mostRecent.client_id);
@@ -83,17 +74,14 @@ export default function AgentDashboard({
             mostRecent.client_id,
           );
         } else if (conversations.length > 0) {
-          // Fallback: select first conversation if none have messages yet
           setSelectedClientId(conversations[0].client_id);
           localStorage.setItem(
             "agent_last_selected_client",
             conversations[0].client_id,
           );
         }
-
         setHasAutoSelected(true);
       } catch (error) {
-        // If anything fails, just select the first available conversation
         log.warn(LOG_CATEGORIES.DASHBOARD, "Error in auto-selection", error);
         if (conversations.length > 0) {
           setSelectedClientId(conversations[0].client_id);
@@ -101,9 +89,22 @@ export default function AgentDashboard({
         setHasAutoSelected(true);
       }
     };
-
     void findLastConversation();
   }, [conversations, clients, isLoading, hasAutoSelected, selectedClientId]);
+
+  return [selectedClientId, handleClientSelect];
+}
+
+export default function AgentDashboard({
+  setMobileHeaderActions,
+}: AgentDashboardProps = {}) {
+  const { clients, isLoading } = useAgentClients();
+  const { conversations } = useAgentChats();
+  const [selectedClientId, handleClientSelect] = useAgentAutoSelectClient(
+    clients,
+    conversations,
+    isLoading,
+  );
 
   return (
     <AgentMessaging
@@ -113,8 +114,6 @@ export default function AgentDashboard({
       selectedClient={clients.find((c) => c.id === selectedClientId)}
       onClientSelect={handleClientSelect}
       setMobileHeaderActions={setMobileHeaderActions}
-      setMobileBottomActions={setMobileBottomActions}
-      mobileBottomBarHeight={mobileBottomBarHeight}
     />
   );
 }

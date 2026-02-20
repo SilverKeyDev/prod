@@ -2,13 +2,13 @@ import { Mail, Lock } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { Button, Input } from "../../components/ui";
-import { useSecureAuth } from "../../../../packages/hooks/data/auth/useSecureAuth";
+import { Input } from "../../components/ui";
+import { useSecureAuth } from "../../../../packages/hooks/data/useSecureAuth";
+import AuthButton from "../../features/homeauth/Auth/Button";
 import AuthDivider from "../../features/homeauth/Auth/Divider";
 import AuthLink from "../../features/homeauth/Auth/Link";
 import AuthPageLayout from "../../features/homeauth/Auth/PageLayout";
 import GoogleSignInButton from "../../components/auth/GoogleSignInButton";
-import { log, LOG_CATEGORIES } from "../../../../logger";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,7 +17,7 @@ export default function LoginPage() {
   const location = useLocation();
 
   // Use secure authentication hook
-  const { login, isLoading, error, clearError } = useSecureAuth();
+  const { login, isLoading, error, clearError, needsVerification } = useSecureAuth();
 
   // No token cleanup needed - auth is managed via HTTP-only cookies
   // All authentication state is handled by the server
@@ -40,6 +40,7 @@ export default function LoginPage() {
           ? from
           : "/dashboard";
 
+
       if (location.pathname !== safe) {
         navigate(safe, { replace: true });
       }
@@ -49,7 +50,7 @@ export default function LoginPage() {
       localStorage.setItem("signupPassword", password);
       navigate("/verification", { state: { email, fromLogin: true } });
     } else {
-      log.error(LOG_CATEGORIES.AUTH, "Login failed, not navigating");
+      console.error("🔐 [LOGIN] Login failed, not navigating");
     }
   };
 
@@ -96,16 +97,9 @@ export default function LoginPage() {
           className="autofill-gold"
         />
 
-        <Button
-          type="submit"
-          variant="olive"
-          size="md"
-          fullWidth
-          loading={isLoading}
-          disabled={isLoading}
-        >
+        <AuthButton type="submit" loading={isLoading} disabled={isLoading}>
           Login
-        </Button>
+        </AuthButton>
 
         <AuthDivider />
 

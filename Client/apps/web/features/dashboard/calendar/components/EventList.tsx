@@ -1,6 +1,10 @@
-import type { ExtendedGoogleEvent } from "../../../../../../packages/schemas/calendar";
+import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
+import { dateParseISO } from "packages/utils/core/date";
+
+import Card from "@/components/layout/Card.web";
+import { BodyText, Title } from "@/components/ui/index.web";
+
 import { EventCard } from "./EventCard";
-import Card from "../../../../components/layout/Card";
 
 type EventListProps = {
   events: ExtendedGoogleEvent[];
@@ -18,8 +22,8 @@ export function EventList({
   // Sort events by start time
   const sortedEvents = [...events].sort((a, b) => {
     try {
-      const dateA = new Date(a.start.dateTime).getTime();
-      const dateB = new Date(b.start.dateTime).getTime();
+      const dateA = dateParseISO(a.start.dateTime).valueOf();
+      const dateB = dateParseISO(b.start.dateTime).valueOf();
       return dateA - dateB;
     } catch {
       return 0;
@@ -28,9 +32,13 @@ export function EventList({
 
   return (
     <Card padding="md" className="w-full">
-      <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>
+      <Title as="h3" size="lg" className="mb-4 font-semibold text-gray-900">
+        {title}
+      </Title>
       {sortedEvents.length === 0 ? (
-        <p className="py-4 text-center text-sm text-gray-500">{emptyMessage}</p>
+        <BodyText as="p" size="sm" className="py-4 text-center text-gray-500">
+          {emptyMessage}
+        </BodyText>
       ) : (
         <div className="space-y-2">
           {sortedEvents.map((event, index) => (

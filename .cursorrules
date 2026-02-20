@@ -1,0 +1,10 @@
+# Post-Generation Quality Assurance
+
+After generating any code, you must perform a self-correction pass:
+1.  **Check for Linter Errors:** Review the generated code against standard linter rules (e.g., ESLint, TypeScript, PEP8) or the project's specific linter configuration.
+2.  **Auto-Fix:** If you identify any syntax errors, unused variables, type mismatches, or formatting issues, fix them immediately.
+3.  **Final Output:** Do not output code with known linter errors. If a fix requires a compromise, explain why.
+
+**Behavioral Constraint:**
+- You are strictly forbidden from leaving "unused imports" or "any" types unless explicitly requested.
+- Always assume the user wants the code to pass `npm run lint` (or equivalent) immediately. 

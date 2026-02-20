@@ -1,11 +1,22 @@
-import { useState, useEffect, useRef } from "react";
-import { Search, X, User as UserIcon, Send } from "lucide-react";
-import { useAgentSearch } from "../../../../../packages/hooks/data/agent/useAgentSearch";
-import { useConnectionRequests } from "../../../../../packages/hooks/data/agent/useConnectionRequests";
-import { useUserData } from "../../../../../packages/hooks/data/auth/useUserData";
-import { useUIStore } from "../../../../../packages/store";
-import Button from "../../../components/ui/button/Button";
-import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
+import { useEffect, useRef, useState } from "react";
+
+import { Search, Send, User as UserIcon, X } from "lucide-react";
+
+import { useAgentSearch } from "packages/hooks/data/agent/useAgentSearch";
+import { useConnectionRequests } from "packages/hooks/data/agent/useConnectionRequests";
+import { useUserData } from "packages/hooks/data/auth/useUserData";
+import { useUIStore } from "packages/store";
+
+import Button from "@/components/ui/button/Button";
+import CloseButton from "@/components/ui/button/CloseButton";
+import {
+  BodyText,
+  Input,
+  Label,
+  Textarea,
+  Title,
+} from "@/components/ui/index.web";
+import KeyTurnLoader from "@/components/ui/loading/KeyTurnLoader.web";
 
 type AgentSearchModalProps = {
   isOpen: boolean;
@@ -43,7 +54,7 @@ export default function AgentSearchModal({
       setMessage("");
       setSelectedAgentId(null);
       onClose();
-    } catch (error) {
+    } catch {
       enqueueToast({
         type: "error",
         message: "Failed to send connection request",
@@ -58,23 +69,17 @@ export default function AgentSearchModal({
       <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-lg">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-neutral-200 p-4">
-          <h2 className="text-lg font-semibold text-neutral-900">
+          <Title as="h2" size="lg" className="font-semibold text-neutral-900">
             Search for an Agent
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 hover:bg-neutral-100 transition-colors"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5 text-neutral-600" />
-          </button>
+          </Title>
+          <CloseButton onClick={onClose} size="sm" label="Close" />
         </div>
 
         {/* Search Input */}
         <div className="border-b border-neutral-200 p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-black/40" />
-            <input
+            <Input
               ref={inputRef}
               type="text"
               value={searchQuery}
@@ -113,19 +118,31 @@ export default function AgentSearchModal({
                           <UserIcon className="h-6 w-6 text-neutral-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-semibold text-neutral-900 mb-0.5">
+                          <Title
+                            as="h3"
+                            size="md"
+                            className="font-semibold text-neutral-900 mb-0.5"
+                          >
                             {agent.name}
-                          </h3>
-                          <p className="text-sm text-neutral-500 truncate">
+                          </Title>
+                          <BodyText
+                            as="p"
+                            size="sm"
+                            className="text-neutral-500 truncate"
+                          >
                             {agent.email}
-                          </p>
+                          </BodyText>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        <Label
+                          htmlFor="agent-search-message"
+                          className="block font-medium text-neutral-700 mb-2"
+                        >
                           Message (optional)
-                        </label>
-                        <textarea
+                        </Label>
+                        <Textarea
+                          id="agent-search-message"
                           value={message}
                           onChange={(e) => setMessage(e.target.value)}
                           placeholder="Add a message..."
@@ -161,21 +178,34 @@ export default function AgentSearchModal({
                       </div>
                     </div>
                   ) : (
-                    <button
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setSelectedAgentId(agent.id)}
-                      className="flex w-full items-start gap-3 text-left"
+                      className="flex w-full items-start gap-3 text-left justify-start h-auto py-0 min-h-0"
                     >
                       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-beige">
                         <UserIcon className="h-5 w-5 text-black" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-medium text-black">{agent.name}</h3>
-                        <p className="text-sm text-black/60">{agent.email}</p>
+                        <Title
+                          as="h3"
+                          size="sm"
+                          className="font-medium text-black"
+                        >
+                          {agent.name}
+                        </Title>
+                        <BodyText as="p" size="sm" className="text-black/60">
+                          {agent.email}
+                        </BodyText>
                         {agent.phone && (
-                          <p className="text-xs text-black/40">{agent.phone}</p>
+                          <BodyText as="p" size="xs" className="text-black/40">
+                            {agent.phone}
+                          </BodyText>
                         )}
                       </div>
-                    </button>
+                    </Button>
                   )}
                 </div>
               ))}

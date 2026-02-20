@@ -1,8 +1,11 @@
+import Button from "@ui/button/Button";
+import CancelButton from "@ui/button/CancelButton";
 import { Edit, Save } from "lucide-react";
-import Button from "../button/Button";
-import CancelButton from "../button/CancelButton";
+
+import { useLocalization } from "packages/contexts";
+import type { NavItem } from "packages/schemas/app/nav";
+
 import SidebarNavigation from "./SidebarNavigation";
-import type { NavItem } from "../../../../../packages/schemas/nav";
 
 type SettingsSidebarProps = {
   items: NavItem[];
@@ -25,29 +28,30 @@ export default function SettingsSidebar({
   onCancel,
   onScrollToSection,
 }: SettingsSidebarProps) {
+  const { t } = useLocalization();
   const headerContent = !isEditMode ? (
     <Button
       onClick={onEdit}
-      variant="olive"
+      variant="primary"
       size="sm"
       hideTextBelow="lg"
       className="text-sm font-medium rounded-lg items-center justify-center w-8 h-8 min-w-8 min-h-8 p-0 lg:w-full lg:h-auto lg:min-w-0 lg:min-h-0 lg:p-2"
       icon={<Edit />}
     >
-      Edit
+      {t("common.edit")}
     </Button>
   ) : (
     <div className="flex flex-col items-center space-y-2 w-full">
       <Button
         onClick={onSave}
         disabled={isSaving}
-        variant="olive"
+        variant="primary"
         size="sm"
         hideTextBelow="lg"
         className="text-sm font-medium rounded-lg items-center justify-center w-8 h-8 min-w-8 min-h-8 p-0 lg:w-full lg:h-auto lg:min-w-0 lg:min-h-0 lg:p-2"
         icon={<Save />}
       >
-        {isSaving ? "Saving..." : "Save"}
+        {isSaving ? t("common.saving") : t("common.save")}
       </Button>
       <CancelButton
         onClick={onCancel}
@@ -55,7 +59,7 @@ export default function SettingsSidebar({
         hideTextBelow="lg"
         className="text-sm font-medium rounded-lg items-center justify-center w-8 h-8 min-w-8 min-h-8 p-0 lg:w-full lg:h-auto lg:min-w-0 lg:min-h-0 lg:p-2"
       >
-        Cancel
+        {t("common.cancel")}
       </CancelButton>
     </div>
   );

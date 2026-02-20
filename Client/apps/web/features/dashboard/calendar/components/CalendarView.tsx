@@ -1,21 +1,25 @@
-import { useMemo, useEffect, useRef, useState } from "react";
-import type { ExtendedGoogleEvent } from "../../../../../../packages/schemas/calendar";
-import type { FreebusyTimeBlock } from "../../../../../../packages/schemas/scheduling";
-import Card from "../../../../components/layout/Card";
-import { useGoogleCalendarStoreIntegration } from "../../../../../../packages/hooks/store/calendar/useGoogleCalendarStoreIntegration";
-import { useUserPreferences } from "../../../../../../packages/hooks/data/auth/useUserData";
-import { useGoogleEvents } from "../../../../../../packages/hooks/data/calendar";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useGoogleEvents } from "packages/hooks/data/calendar";
+import { useGoogleCalendarStoreIntegration } from "packages/hooks/store/calendar/useGoogleCalendarStoreIntegration";
+import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
+import type { DateRange } from "packages/schemas/calendar";
+import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
+import { dateParseISO } from "packages/utils/core/date";
+import {
+  findSilverKeyCalendar,
+  getCalendarsKey,
+  initializeEnabledCalendars,
+} from "packages/utils/domain/calendar/calendar";
 import {
   calculateCalendarDateRange,
   getVisibleDateRange,
-} from "../../../../../../packages/utils/calendar/date";
-import { filterCurrentPeriodEvents } from "../../../../../../packages/utils/calendar/eventFiltering";
-import {
-  findSilverKeyCalendar,
-  initializeEnabledCalendars,
-  getCalendarsKey,
-} from "../../../../../../packages/utils/calendar/calendar";
-import type { DateRange } from "../../../../../../packages/schemas/calendar";
+} from "packages/utils/domain/calendar/date";
+import { filterCurrentPeriodEvents } from "packages/utils/domain/calendar/eventFiltering";
+
+import Card from "@/components/layout/Card.web";
+import { Button } from "@/components/ui/index.web";
 
 type CalendarViewProps = {
   currentDate: Date;
@@ -102,8 +106,8 @@ export function CalendarView({
       try {
         const eventStart = event.start?.dateTime ?? event.start?.date;
         if (!eventStart) return;
-        const eventDate = new Date(eventStart);
-        const dateKey = eventDate.toISOString().split("T")[0]; // YYYY-MM-DD
+        const eventDate = dateParseISO(eventStart);
+        const dateKey = eventDate.format("YYYY-MM-DD");
         if (!grouped[dateKey]) {
           grouped[dateKey] = [];
         }
@@ -124,8 +128,8 @@ export function CalendarView({
 
     availability.forEach((block) => {
       try {
-        const blockStart = new Date(block.start);
-        const dateKey = blockStart.toISOString().split("T")[0]; // YYYY-MM-DD
+        const blockStart = dateParseISO(block.start);
+        const dateKey = blockStart.format("YYYY-MM-DD");
         if (!grouped[dateKey]) {
           grouped[dateKey] = [];
         }
@@ -211,11 +215,13 @@ export function CalendarView({
           const dayNumber = day.date.getDate();
 
           return (
-            <button
+            <Button
               key={`${dateKey}-${index}`}
+              variant="ghost"
+              size="sm"
               onClick={() => onDateClick?.(day.date)}
               className={`
-                relative min-h-[60px] sm:min-h-[80px] rounded p-1 text-left transition-colors
+                relative min-h-16 sm:min-h-20 rounded p-1 text-left transition-colors w-full
                 ${day.isFirstOfMonth ? "border-2 border-gold bg-white" : day.isToday ? "border border-olive bg-olive/10" : "border border-beige/30 bg-white"}
                 ${day.isPast ? "opacity-50" : ""}
                 hover:border-brown/50 hover:bg-brown/5
@@ -225,7 +231,7 @@ export function CalendarView({
               {/* Day number */}
               <div
                 className={`
-                  mb-1 text-xs font-medium sm:text-sm
+                  w-full mb-1 text-xs font-medium sm:text-sm
                   ${day.isPast ? "text-gray-400" : "text-gray-900"}
                   ${day.isToday ? "text-olive font-semibold" : ""}
                 `}
@@ -233,8 +239,8 @@ export function CalendarView({
                 {dayNumber}
               </div>
 
-              {/* Events and/or Availability */}
-              <div className="space-y-0.5">
+              {/* Events and/or Availability - w-full so 95% event width is consistent */}
+              <div className="w-full min-w-0 space-y-0.5">
                 {/* Display events (agent's calendar and client's calendar) */}
                 {day.events.slice(0, 3).map((event, eventIndex) => {
                   const isSilverKeyEvent =
@@ -244,15 +250,15 @@ export function CalendarView({
                   return (
                     <div
                       key={event.id || `event-${eventIndex}`}
-                      className={`truncate rounded px-1 py-0.5 text-[10px] sm:text-xs font-medium border-l-2 ${
+                      className={`w-[95%] truncate rounded px-1 py-0.5 text-xs font-medium border-l-2 ${
                         day.isPast
                           ? isSilverKeyEvent
-                            ? "bg-amber-50 text-amber-700 border-amber-400"
+                            ? "bg-gold/10 text-gray-600 border-gold/70"
                             : isClientEvent
                               ? "bg-blue-50 text-blue-600 border-blue-400"
                               : "bg-gray-100 text-gray-400 border-gray-300"
                           : isSilverKeyEvent
-                            ? "bg-amber-50 text-amber-700 border-amber-500"
+                            ? "bg-gold/10 text-gray-800 border-gold"
                             : isClientEvent
                               ? "bg-blue-50 text-blue-700 border-blue-500"
                               : "bg-olive/10 text-olive border-olive"
@@ -265,14 +271,13 @@ export function CalendarView({
                     >
                       {event.start.dateTime && (
                         <>
-                          {new Date(event.start.dateTime).toLocaleTimeString(
-                            "en-US",
-                            {
+                          {dateParseISO(event.start.dateTime)
+                            .toDate()
+                            .toLocaleTimeString("en-US", {
                               hour: "numeric",
                               minute: "2-digit",
                               hour12: true,
-                            },
-                          )}{" "}
+                            })}{" "}
                         </>
                       )}
                       {event.summary || "Untitled"}
@@ -282,8 +287,8 @@ export function CalendarView({
                 {/* Display availability blocks (client's busy time) */}
                 {availability &&
                   day.availability.slice(0, 3).map((block, blockIndex) => {
-                    const startTime = new Date(block.start);
-                    const endTime = new Date(block.end);
+                    const startTime = dateParseISO(block.start).toDate();
+                    const endTime = dateParseISO(block.end).toDate();
                     const timeStr = `${startTime.toLocaleTimeString("en-US", {
                       hour: "numeric",
                       minute: "2-digit",
@@ -296,7 +301,7 @@ export function CalendarView({
                     return (
                       <div
                         key={`availability-${blockIndex}`}
-                        className={`truncate rounded px-1 py-0.5 text-[10px] sm:text-xs font-medium border-l-2 ${
+                        className={`w-[95%] truncate rounded px-1 py-0.5 text-xs font-medium border-l-2 ${
                           day.isPast
                             ? "bg-gray-100 text-gray-500 border-gray-300"
                             : "bg-red-50 text-red-700 border-red-400"
@@ -311,7 +316,7 @@ export function CalendarView({
                 {(day.events.length > 3 ||
                   (availability && day.availability.length > 3)) && (
                   <div
-                    className={`text-[10px] px-1 ${day.isPast ? "text-gray-400" : "text-gray-500"}`}
+                    className={`w-[95%] text-xs px-1 ${day.isPast ? "text-gray-400" : "text-gray-500"}`}
                   >
                     +
                     {day.events.length +
@@ -321,7 +326,7 @@ export function CalendarView({
                   </div>
                 )}
               </div>
-            </button>
+            </Button>
           );
         })}
       </div>

@@ -1,77 +1,34 @@
-import type { SavedHome } from "../../../schemas";
-import { apiGet, apiPost, apiPut } from "../../../services/http/compatibility";
-import { log, LOG_CATEGORIES } from "../../../../logger";
+import { log, LOG_CATEGORIES } from "logger";
 
-// Types for user API
-export type User = {
-  id: string;
-  cognito_id: string;
-  email: string;
-  name: string;
-  phone?: string;
-  created_at: string;
-  updated_at?: string;
-  is_active: boolean;
-  is_agent?: boolean;
-  is_closing_mode?: boolean;
-  client_ids?: string[];
-  agency_name?: string;
-  has_subscription?: boolean;
-  subscription?: unknown;
-  has_preferences?: boolean;
-};
+import type {
+  AddFavoriteRequest,
+  AddNotInterestedRequest,
+  FavoriteHomesResponse,
+  NotInterestedHomesResponse,
+  RemoveFavoriteRequest,
+  RemoveNotInterestedRequest,
+  UpdateNotInterestedRequest,
+  User,
+  UserResponse,
+} from "packages/schemas/api/user";
+import { userResponseSchema } from "packages/schemas/api/userSchema";
+import {
+  apiGet,
+  apiPost,
+  apiPut,
+  apiUpload,
+} from "packages/services/http/compatibility";
 
-export type UserResponse = {
-  success: boolean;
-  user?: User;
-  data?: User; // Backend sometimes returns user data in 'data' field
-  message?: string;
-  error?: string;
-};
-
-export type FavoriteHomesResponse = {
-  success: boolean;
-  favorites?: string[];
-  homes?: SavedHome[];
-  message?: string;
-  error?: string;
-};
-
-export type NotInterestedHomesResponse = {
-  success: boolean;
-  notInterested?: Array<{
-    id?: string;
-    address?: string;
-    latitude?: number;
-    longitude?: number;
-    zpid?: string;
-    mls_home_id?: string;
-    [key: string]: unknown;
-  }>;
-  message?: string;
-  error?: string;
-};
-
-export type AddFavoriteRequest = {
-  home: unknown;
-};
-
-export type RemoveFavoriteRequest = {
-  address: string;
-};
-
-export type AddNotInterestedRequest = {
-  home: unknown;
-  why?: string;
-};
-
-export type RemoveNotInterestedRequest = {
-  address: string;
-};
-
-export type UpdateNotInterestedRequest = {
-  address: string;
-  why: string;
+export type {
+  AddFavoriteRequest,
+  AddNotInterestedRequest,
+  FavoriteHomesResponse,
+  NotInterestedHomesResponse,
+  RemoveFavoriteRequest,
+  RemoveNotInterestedRequest,
+  UpdateNotInterestedRequest,
+  User,
+  UserResponse,
 };
 
 /**
@@ -79,10 +36,38 @@ export type UpdateNotInterestedRequest = {
  */
 export const userApi = {
   /**
-   * Get current user profile
+   * Upload profile picture. Returns presigned URL on success.
    */
-  getProfile: (): Promise<UserResponse> =>
-    apiGet<UserResponse>("/api/v1/user/profile"),
+  uploadProfilePicture: (
+    file: File,
+  ): Promise<{
+    success: boolean;
+    profile_picture_url?: string;
+    data?: { profile_picture?: string; profile_picture_url?: string };
+    error?: string;
+  }> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiUpload<{
+      success: boolean;
+      profile_picture_url?: string;
+      data?: { profile_picture?: string; profile_picture_url?: string };
+      error?: string;
+    }>("/api/v1/user/profile-picture", formData);
+  },
+
+  /**
+   * Get current user profile (validated at boundary with zod)
+   */
+  getProfile: async (): Promise<UserResponse> => {
+    const raw = await apiGet<unknown>("/api/v1/user/profile");
+    const parsed = userResponseSchema.safeParse(raw);
+    if (!parsed.success) {
+      const msg = parsed.error.errors.map((e) => e.message).join("; ");
+      throw new Error(`User profile validation failed: ${msg}`);
+    }
+    return parsed.data;
+  },
 
   /**
    * Update user profile - Note: Backend endpoint not implemented yet

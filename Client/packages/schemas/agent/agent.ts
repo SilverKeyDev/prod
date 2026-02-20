@@ -1,5 +1,5 @@
 // Agent dashboard type definitions
-import type { AgentClient } from "../../config/api";
+import type { AgentClient } from "packages/config/api";
 
 export type DealStage =
   | "search"

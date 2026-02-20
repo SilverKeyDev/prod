@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { useReportsStoreIntegration } from "../../../../../packages/hooks/store/documents/useReportsStoreIntegration";
-import { useSavedHomesStoreIntegration } from "../../../../../packages/hooks/store/search/useSavedHomesStoreIntegration";
+import { useReportsStoreIntegration } from "packages/hooks/store/documents/useReportsStoreIntegration";
+import { useSavedHomesStoreIntegration } from "packages/hooks/store/search/useSavedHomesStoreIntegration";
 
 /**
  * Full auth shell providers for standard and specialized routes

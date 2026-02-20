@@ -1,13 +1,17 @@
-import { FileText, Users } from "lucide-react";
 import { useMemo } from "react";
-import AgreementStatusBadge from "./AgreementStatusBadge";
+
+import { FileText, Users } from "lucide-react";
+
+import type { Agreement } from "packages/schemas/content/documents/docusign";
 import {
-  getAgreementTypeLabel,
   calculateSigningProgress,
   formatAgreementDate,
-} from "../../../../../../packages/utils/documents/docusignHelpers";
-import { Button, Title, BodyText } from "../../../../components/ui";
-import type { Agreement } from "../../../../../../packages/schemas/documents/docusign";
+  getAgreementTypeLabel,
+} from "packages/utils/domain/documents/docusignHelpers";
+
+import { BodyText, Button, Title } from "@/components/ui/index.web";
+
+import AgreementStatusBadge from "./AgreementStatusBadge";
 
 type AgreementCardProps = {
   agreement: Agreement;
@@ -55,10 +59,22 @@ export default function AgreementCard({
 
   return (
     <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={`border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors ${
         onClick ? "cursor-pointer" : ""
       } ${className}`}
       onClick={handleCardClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleCardClick();
+              }
+            }
+          : undefined
+      }
     >
       <div className={`${compact ? "p-3" : "p-4"}`}>
         {/* Header */}
@@ -88,9 +104,13 @@ export default function AgreementCard({
 
         {/* Metadata */}
         <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-          <span>Created {formatAgreementDate(agreement.created_at)}</span>
+          <BodyText as="span" size="xs" className="text-gray-500">
+            Created {formatAgreementDate(agreement.created_at)}
+          </BodyText>
           {agreement.sent_at && (
-            <span>Sent {formatAgreementDate(agreement.sent_at)}</span>
+            <BodyText as="span" size="xs" className="text-gray-500">
+              Sent {formatAgreementDate(agreement.sent_at)}
+            </BodyText>
           )}
         </div>
 
@@ -100,13 +120,13 @@ export default function AgreementCard({
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5 text-xs text-gray-600">
                 <Users className="w-3.5 h-3.5" />
-                <span>
+                <BodyText as="span" size="xs" className="text-gray-600">
                   {signingProgress.signed}/{signingProgress.total} signed
-                </span>
+                </BodyText>
               </div>
-              <span className="text-xs text-gray-500">
+              <BodyText as="span" size="xs" className="text-gray-500">
                 {signingProgress.percentage}%
-              </span>
+              </BodyText>
             </div>
             <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div

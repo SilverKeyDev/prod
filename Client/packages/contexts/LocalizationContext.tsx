@@ -1,18 +1,20 @@
 import React, {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
   useState,
-  useMemo,
-  type ReactNode,
 } from "react";
 
+import { dateParseISO } from "packages/utils/core/date";
+import { getDocument as _getDocument } from "packages/utils/core/platform";
+
 /**
- * Localization context for non-state i18n concerns
- * Handles locale configuration, translation utilities, and formatting
- * Does NOT manage locale state - that should be in Zustand stores
+ * Localization context for non-state i18n concerns (English only).
+ * Handles translation utilities and formatting.
+ * Does NOT manage locale state - that should be in Zustand stores.
  */
-export type Locale = "en" | "es" | "fr" | "de";
+export type Locale = "en";
 
 export type LocaleConfig = {
   locale: Locale;
@@ -39,10 +41,6 @@ export type LocalizationContextType = {
   ) => string;
   formatNumber: (number: number, options?: Intl.NumberFormatOptions) => string;
   formatCurrency: (amount: number, currency?: string) => string;
-
-  // Locale detection utilities
-  browserLocale: Locale;
-  supportedLocales: Locale[];
 };
 
 const LocalizationContext = createContext<LocalizationContextType | undefined>(
@@ -71,47 +69,14 @@ const defaultConfig: LocaleConfig = {
   },
 };
 
-// Simple translation function (in a real app, this would load from translation files)
-const translate = (
-  key: string,
-  params?: Record<string, unknown>,
-  locale: Locale = "en",
-): string => {
-  // This is a placeholder - in a real app, you'd load translations from files
-  const translations: Record<string, Record<Locale, string>> = {
-    "common.save": {
-      en: "Save",
-      es: "Guardar",
-      fr: "Enregistrer",
-      de: "Speichern",
-    },
-    "common.cancel": {
-      en: "Cancel",
-      es: "Cancelar",
-      fr: "Annuler",
-      de: "Abbrechen",
-    },
-    "common.loading": {
-      en: "Loading...",
-      es: "Cargando...",
-      fr: "Chargement...",
-      de: "Laden...",
-    },
-    "common.error": {
-      en: "An error occurred",
-      es: "Ocurrió un error",
-      fr: "Une erreur s'est produite",
-      de: "Ein Fehler ist aufgetreten",
-    },
-  };
+import { TRANSLATIONS } from "./translations";
 
-  const translation =
-    translations[key]?.[locale] || translations[key]?.["en"] || key;
+const translate = (key: string, params?: Record<string, unknown>): string => {
+  const translation = TRANSLATIONS[key] ?? key;
 
-  // Simple parameter substitution
   if (params) {
-    return translation.replace(/\{\{(\w+)\}\}/g, (match, param) => {
-      return String(params[param] || match);
+    return translation.replace(/\{\{(\w+)\}\}/g, (_match, param) => {
+      return String(params[param] ?? _match);
     });
   }
 
@@ -127,35 +92,22 @@ export function LocalizationProvider({
     ...initialConfig,
   });
 
-  const [browserLocale, setBrowserLocale] = useState<Locale>("en");
-  const supportedLocales: Locale[] = useMemo(
-    () => ["en", "es", "fr", "de"],
-    [],
-  );
-
-  // Detect browser locale
+  // Set document language to English
   useEffect(() => {
-    const browserLang = navigator.language.split("-")[0] as Locale;
-    const detectedLocale = supportedLocales.includes(browserLang)
-      ? browserLang
-      : "en";
-    setBrowserLocale(detectedLocale);
-  }, [supportedLocales]);
-
-  // Set document language
-  useEffect(() => {
-    document.documentElement.lang = config.locale;
-  }, [config.locale]);
+    const doc = _getDocument();
+    if (doc?.documentElement) doc.documentElement.lang = "en";
+  }, []);
 
   const t = (key: string, params?: Record<string, unknown>): string => {
-    return translate(key, params, config.locale);
+    return translate(key, params);
   };
 
   const formatDate = (
     date: Date | string,
     options?: Intl.DateTimeFormatOptions,
   ): string => {
-    const dateObj = typeof date === "string" ? new Date(date) : date;
+    const dateObj =
+      typeof date === "string" ? dateParseISO(date).toDate() : date;
     const defaultOptions: Intl.DateTimeFormatOptions = {
       year: "numeric",
       month: "2-digit",
@@ -172,7 +124,8 @@ export function LocalizationProvider({
     date: Date | string,
     options?: Intl.DateTimeFormatOptions,
   ): string => {
-    const dateObj = typeof date === "string" ? new Date(date) : date;
+    const dateObj =
+      typeof date === "string" ? dateParseISO(date).toDate() : date;
     const defaultOptions: Intl.DateTimeFormatOptions = {
       hour: "2-digit",
       minute: "2-digit",
@@ -208,8 +161,6 @@ export function LocalizationProvider({
     formatTime,
     formatNumber,
     formatCurrency,
-    browserLocale,
-    supportedLocales,
   };
 
   return (

@@ -1,13 +1,18 @@
-import { User, Phone } from "lucide-react";
 import React from "react";
 
-import Card from "../../layout/Card";
+import { Phone, User } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
+
+import Card from "@/components/layout/Card.web";
+import { BodyText, Image, Title } from "@/components/ui/index.web";
 
 import type { PropertyComponentProps } from "./types";
 
 export const PropertyAgent: React.FC<PropertyComponentProps> = ({
   property,
 }) => {
+  const { t } = useLocalization();
   const listedBy = (property as unknown as { listed_by: unknown }).listed_by;
 
   if (!listedBy || typeof listedBy !== "object") {
@@ -24,16 +29,18 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({
     <div>
       <div className="mb-4 flex items-center gap-2">
         <User className="h-5 w-5 text-gray-600" />
-        <h3 className="text-lg font-semibold text-brown">Listing Agent</h3>
+        <Title as="h3" size="lg" className="font-semibold text-brown">
+          {t("property_details.listing_agent")}
+        </Title>
       </div>
 
       <Card className="p-4">
         <div className="flex items-start space-x-4">
           <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2 border-brown/20 bg-brown/10">
             {imageUrl ? (
-              <img
+              <Image
                 src={imageUrl}
-                alt={displayName ?? "Listing Agent"}
+                alt={displayName ?? t("property_details.listing_agent")}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -48,8 +55,14 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({
           </div>
 
           <div className="flex-1">
-            <h4 className="text-lg font-medium text-gold">{displayName}</h4>
-            {businessName && <p className="text-brown/70">{businessName}</p>}
+            <Title as="h4" size="lg" className="font-medium text-gold">
+              {displayName}
+            </Title>
+            {businessName && (
+              <BodyText as="p" className="text-brown/70">
+                {businessName}
+              </BodyText>
+            )}
             {phone && (
               <div className="mt-2 flex items-center text-brown">
                 <Phone className="mr-1 h-4 w-4" />

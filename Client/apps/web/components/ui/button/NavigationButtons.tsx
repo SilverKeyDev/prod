@@ -1,10 +1,11 @@
+import React from "react";
+
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
-  Check,
   ChevronRight as SkipArrow,
 } from "lucide-react";
-import React from "react";
 
 import Button from "./Button";
 
@@ -86,7 +87,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         disabled={isFirstStep ?? disablePrevious}
         icon={<ChevronLeft />}
         iconPosition="left"
-        className={`w-[120px] sm:w-[140px] md:w-[160px] xs:w-[90px] ${
+        className={`w-30 sm:w-36 md:w-40 xs:w-24 ${
           (isFirstStep ?? disablePrevious)
             ? "cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300"
             : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -101,26 +102,26 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
     <div className={layout === "centered" ? positionStyles.next : ""}>
       {isLastStep && onSubmit ? (
         <Button
-          variant="olive"
+          variant="primary"
           size={size}
           onClick={onSubmit}
           disabled={loading ?? disableNext}
           loading={loading}
           icon={!loading ? <Check /> : undefined}
           iconPosition="right"
-          className="w-[120px] font-bold sm:w-[140px] md:w-[160px]"
+          className="w-30 font-bold sm:w-36 md:w-40"
         >
           {loading ? "Saving..." : submitText}
         </Button>
       ) : (
         <Button
-          variant="olive"
+          variant="primary"
           size={size}
           onClick={onNext}
           disabled={disableNext}
           icon={<ChevronRight />}
           iconPosition="right"
-          className="w-[120px] font-bold sm:w-[140px] md:w-[160px]"
+          className="w-30 font-bold sm:w-36 md:w-40"
         >
           {nextText}
         </Button>

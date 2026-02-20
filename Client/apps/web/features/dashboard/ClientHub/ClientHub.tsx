@@ -1,39 +1,41 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+
 import {
-  ArrowLeft,
-  User,
-  Target,
-  DollarSign,
   Activity,
-  Clock,
-  MessageSquare,
   AlertTriangle,
+  Clock,
+  DollarSign,
+  MessageSquare,
+  Target,
+  User,
 } from "lucide-react";
-import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
-import Button from "../../../components/ui/button/Button";
-import KeyTurnLoader from "../../../components/ui/loading/KeyTurnLoader";
-import ClientInfoSidebar from "../../../components/ui/sidebar/ClientInfoSidebar";
-import GoalsConstraints from "./GoalsConstraints";
-import FinancialSnapshot from "./FinancialSnapshot";
-import SearchActivity from "./SearchActivity";
-import ClientTimeline from "./ClientTimeline";
-import CommunicationLog from "./CommunicationLog";
-import RiskWatchlist from "./RiskWatchlist";
-import ClientSavedHomes from "./ClientSavedHomes";
-import ClientDocuments from "./ClientDocuments";
-import ClientChecklists from "./ClientChecklists";
-import ClientCalendar from "./ClientCalendar";
-import ClientAgreements from "./ClientAgreements";
-import type { NavItem } from "../../../../../packages/schemas/nav";
+
+import { useLocalization } from "packages/contexts";
+import { useAgentClients } from "packages/hooks/data/agent/useAgentClients";
+import { useAgentDashboardMockData } from "packages/hooks/data/agent/useAgentDashboardMockData";
+import { useNavigation } from "packages/navigation";
+import type { NavItem } from "packages/schemas/app/nav";
+
 import {
-  enhanceClientWithDealInfo,
-  generateMockFinancialSnapshot,
-  generateMockClientGoals,
-  generateMockDecisionLog,
-  generateMockNotes,
-  generateMockTimelineEvents,
-} from "../../../../../packages/services/agent/agentDashboard";
+  BodyText,
+  Button,
+  KeyTurnLoader,
+  Title,
+} from "@/components/ui/index.web";
+import ClientInfoSidebar from "@/components/ui/sidebar/ClientInfoSidebar";
+import { UnderlineTabs } from "@/components/ui/tabs/index.web";
+
+import ClientAgreements from "./agreements/ClientAgreements";
+import ClientCalendar from "./calendar/ClientCalendar";
+import ClientChecklists from "./checklists/ClientChecklists";
+import ClientDocuments from "./documents/ClientDocuments";
+import ClientTimeline from "./overview/ClientTimeline";
+import CommunicationLog from "./overview/CommunicationLog";
+import FinancialSnapshot from "./overview/FinancialSnapshot";
+import GoalsConstraints from "./overview/GoalsConstraints";
+import RiskWatchlist from "./overview/RiskWatchlist";
+import SearchActivity from "./overview/SearchActivity";
+import ClientSavedHomes from "./saved-homes/ClientSavedHomes";
 
 type ClientHubProps = {
   clientId: string;
@@ -56,8 +58,17 @@ type OverviewSection =
   | "risks";
 
 const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
-  const navigate = useNavigate();
+  const { t } = useLocalization();
+  const { navigate } = useNavigation();
   const { clients, isLoading } = useAgentClients();
+  const {
+    enhanceClientWithDealInfo,
+    generateMockFinancialSnapshot,
+    generateMockClientGoals,
+    generateMockDecisionLog,
+    generateMockNotes,
+    generateMockTimelineEvents,
+  } = useAgentDashboardMockData();
   const [activeTab, setActiveTab] = useState<ClientHubTab>("overview");
   const [activeSection, setActiveSection] =
     useState<OverviewSection>("overview");
@@ -88,23 +99,48 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
 
   // Navigation items for overview sections
   const overviewNavItems: NavItem[] = [
-    { key: "overview", label: "Overview", icon: User, to: "#overview" },
-    { key: "goals", label: "Goals", icon: Target, to: "#goals" },
+    {
+      key: "overview",
+      label: t("dashboard.tab_overview"),
+      icon: User,
+      to: "#overview",
+    },
+    {
+      key: "goals",
+      label: t("dashboard.nav_goals"),
+      icon: Target,
+      to: "#goals",
+    },
     {
       key: "financial",
-      label: "Financial",
+      label: t("dashboard.nav_financial"),
       icon: DollarSign,
       to: "#financial",
     },
-    { key: "activity", label: "Activity", icon: Activity, to: "#activity" },
-    { key: "timeline", label: "Timeline", icon: Clock, to: "#timeline" },
+    {
+      key: "activity",
+      label: t("dashboard.nav_activity"),
+      icon: Activity,
+      to: "#activity",
+    },
+    {
+      key: "timeline",
+      label: t("dashboard.nav_timeline"),
+      icon: Clock,
+      to: "#timeline",
+    },
     {
       key: "communication",
-      label: "Communication",
+      label: t("dashboard.nav_communication"),
       icon: MessageSquare,
       to: "#communication",
     },
-    { key: "risks", label: "Risks", icon: AlertTriangle, to: "#risks" },
+    {
+      key: "risks",
+      label: t("dashboard.nav_risks"),
+      icon: AlertTriangle,
+      to: "#risks",
+    },
   ];
 
   const scrollToSection = (sectionId: string) => {
@@ -144,12 +180,11 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
 
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
-        if (section.ref.current) {
-          const offsetTop = section.ref.current.offsetTop;
-          if (scrollPosition >= offsetTop) {
-            setActiveSection(section.id as OverviewSection);
-            break;
-          }
+        if (!section || !section.ref.current) continue;
+        const offsetTop = section.ref.current.offsetTop;
+        if (scrollPosition >= offsetTop) {
+          setActiveSection(section.id as OverviewSection);
+          break;
         }
       }
     };
@@ -160,8 +195,8 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <KeyTurnLoader message="Loading client..." />
+      <div className="flex justify-center items-center min-h-96">
+        <KeyTurnLoader message={t("dashboard.client_loading")} />
       </div>
     );
   }
@@ -169,26 +204,28 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
   if (!client || !enhancedClient) {
     return (
       <div className="text-center py-12">
-        <p className="text-responsive-base text-black/60">Client not found</p>
+        <BodyText as="p" className="text-responsive-base text-black/60">
+          {t("dashboard.client_not_found")}
+        </BodyText>
         <Button
           variant="outline"
           size="md"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("DASHBOARD")}
           className="mt-4"
         >
-          Back to Dashboard
+          {t("dashboard.back_to_dashboard")}
         </Button>
       </div>
     );
   }
 
   const tabs: { id: ClientHubTab; label: string }[] = [
-    { id: "overview", label: "Overview" },
-    { id: "liked-homes", label: "Liked Homes" },
-    { id: "documents", label: "Documents" },
-    { id: "agreements", label: "Agreements" },
-    { id: "checklists", label: "Checklists" },
-    { id: "calendar", label: "Calendar" },
+    { id: "overview", label: t("dashboard.tab_overview") },
+    { id: "liked-homes", label: t("dashboard.tab_liked_homes") },
+    { id: "documents", label: t("dashboard.tab_documents") },
+    { id: "agreements", label: t("dashboard.tab_agreements") },
+    { id: "checklists", label: t("dashboard.tab_checklists") },
+    { id: "calendar", label: t("dashboard.tab_calendar") },
   ];
 
   return (
@@ -200,45 +237,38 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
             <Button
               variant="ghost"
               size="sm"
-              icon={<ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />}
-              onClick={() => navigate("/dashboard")}
+              iconName="arrow-left"
+              onClick={() => navigate("DASHBOARD")}
             >
-              Back
+              {t("dashboard.back")}
             </Button>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-olive/10 flex items-center justify-center">
                 <User className="h-5 w-5 sm:h-6 sm:w-6 text-olive" />
               </div>
               <div>
-                <h1 className="heading-responsive-md text-navy">
+                <Title
+                  as="h1"
+                  size="lg"
+                  className="heading-responsive-md text-navy"
+                >
                   {client.name}
-                </h1>
-                <p className="text-responsive-sm text-black/60">
+                </Title>
+                <BodyText as="p" size="sm" className="text-black/60">
                   {client.email}
-                </p>
+                </BodyText>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tabs Navigation */}
-        <div className="mb-6 border-b border-gray-200">
-          <div className="flex space-x-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === tab.id
-                    ? "border-olive text-olive"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <UnderlineTabs
+          items={tabs}
+          activeId={activeTab}
+          onChange={(id) => setActiveTab(id as ClientHubTab)}
+          className="mb-6"
+        />
 
         {/* Content with Sidebar for Overview */}
         {activeTab === "overview" ? (
@@ -321,28 +351,21 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
             {activeTab === "checklists" && (
               <div>
                 {/* Checklist sub-tabs */}
-                <div className="mb-4 border-b border-gray-200">
-                  <div className="flex space-x-1">
-                    {[
-                      { id: "escrow" as const, label: "Escrow" },
-                      { id: "inspections" as const, label: "Inspections" },
-                      { id: "financing" as const, label: "Financing" },
-                      { id: "closing" as const, label: "Closing" },
-                    ].map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setChecklistTab(tab.id)}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                          checklistTab === tab.id
-                            ? "border-olive text-olive"
-                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <UnderlineTabs
+                  items={[
+                    { id: "escrow", label: "Escrow" },
+                    { id: "inspections", label: "Inspections" },
+                    { id: "financing", label: "Financing" },
+                    { id: "closing", label: "Closing" },
+                  ]}
+                  activeId={checklistTab}
+                  onChange={(id) =>
+                    setChecklistTab(
+                      id as "escrow" | "inspections" | "financing" | "closing",
+                    )
+                  }
+                  className="mb-4"
+                />
                 <ClientChecklists
                   userId={clientId}
                   activeTab={checklistTab}

@@ -1,17 +1,21 @@
-import { Share, MessageCircle, User } from "lucide-react";
 import { useState } from "react";
 
-import BaseModal from "./BaseModal";
-import { formatAddress } from "./PropertyDetailsModal/utils";
-import Button from "../ui/button/Button";
-import CancelButton from "../ui/button/CancelButton";
-import KeyTurnLoader from "../ui/loading/KeyTurnLoader";
-import { useAgentChats } from "../../../../packages/hooks/data/chat/useAgentChats";
-import { useAgentClients } from "../../../../packages/hooks/data/agent/useAgentClients";
-import { useIsAgent } from "../../../../packages/hooks/store/auth/useIsAgent";
-import type { Property } from "../../../../packages/schemas/property";
-import type { SearchResult } from "../../../../packages/schemas/search";
-import { log, LOG_CATEGORIES } from "../../../../logger";
+import Button from "@ui/button/Button";
+import CancelButton from "@ui/button/CancelButton";
+import KeyTurnLoader from "@ui/loading/KeyTurnLoader.web";
+import { log, LOG_CATEGORIES } from "logger";
+import { MessageCircle, Share, User } from "lucide-react";
+
+import { useLocalization } from "packages/contexts";
+import { useAgentClients } from "packages/hooks/data/agent/useAgentClients";
+import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
+import { useIsAgent } from "packages/hooks/store/auth/useIsAgent";
+import type { Property } from "packages/schemas/property";
+import type { SearchResult } from "packages/schemas/search";
+import { formatAddress } from "packages/utils/domain/search/propertyDetailsFormatters";
+
+import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, Label, Textarea, Title } from "@/components/ui/index.web";
 
 type ShareHomeModalProps = {
   isOpen: boolean;
@@ -26,6 +30,7 @@ export default function ShareHomeModal({
   property,
   onShareSuccess,
 }: ShareHomeModalProps) {
+  const { t } = useLocalization();
   const isAgent = useIsAgent();
 
   // For agents: get list of clients
@@ -142,12 +147,14 @@ export default function ShareHomeModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Share Property"
+      title={t("modals.share_home.title")}
       size="md"
       headerContent={
         <div className="flex items-center gap-2">
           <Share className="h-5 w-5 text-gray-600" />
-          <h3 className="text-lg font-medium text-gray-900">Share Property</h3>
+          <Title as="h3" size="lg" className="font-medium text-gray-900">
+            {t("modals.share_home.title")}
+          </Title>
         </div>
       }
     >
@@ -155,15 +162,15 @@ export default function ShareHomeModal({
         {/* Property Info */}
         {property && (
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-            <p className="text-sm font-medium text-gray-900">
+            <BodyText as="p" size="sm" className="font-medium text-gray-900">
               {propertyAddress}
-            </p>
+            </BodyText>
             {property.price && (
-              <p className="text-sm text-gray-600">
+              <BodyText as="p" size="sm" className="text-gray-600">
                 {typeof property.price === "number"
                   ? `$${property.price.toLocaleString()}`
                   : property.price}
-              </p>
+              </BodyText>
             )}
           </div>
         )}
@@ -171,26 +178,29 @@ export default function ShareHomeModal({
         {/* Client Selection (for agents) */}
         {isAgent && (
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Share with client
-            </label>
+            <Label htmlFor="share-client-first" className="mb-2 block">
+              {t("modals.share_home.share_with_client")}
+            </Label>
             {isLoadingClients ? (
               <div className="flex items-center justify-center py-4">
-                <KeyTurnLoader message="Loading clients..." />
+                <KeyTurnLoader message={t("client_selector.loading_clients")} />
               </div>
             ) : clients.length === 0 ? (
-              <p className="text-sm text-gray-500">
-                No clients available. Add clients to share properties with them.
-              </p>
+              <BodyText as="p" size="sm" className="text-gray-500">
+                {t("modals.share_home.no_clients")}
+              </BodyText>
             ) : (
               <div className="max-h-48 space-y-2 overflow-y-auto">
-                {clients.map((client) => (
-                  <button
+                {clients.map((client, index) => (
+                  <Button
                     key={client.id}
+                    id={index === 0 ? "share-client-first" : undefined}
+                    type="button"
+                    variant="ghost"
                     onClick={() => setSelectedClientId(client.id)}
                     className={`w-full rounded-lg border p-3 text-left transition-colors ${
                       selectedClientId === client.id
-                        ? "border-brown bg-beige/20"
+                        ? "border-olive bg-olive/10"
                         : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                     }`}
                   >
@@ -199,16 +209,22 @@ export default function ShareHomeModal({
                         <User className="h-4 w-4 text-black" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900">
+                        <BodyText
+                          as="p"
+                          size="sm"
+                          className="font-medium text-gray-900"
+                        >
                           {client.name}
-                        </p>
-                        <p className="text-xs text-gray-500">{client.email}</p>
+                        </BodyText>
+                        <BodyText as="p" size="xs" className="text-gray-500">
+                          {client.email}
+                        </BodyText>
                       </div>
                       {selectedClientId === client.id && (
-                        <div className="h-2 w-2 rounded-full bg-brown" />
+                        <div className="h-2 w-2 rounded-full bg-olive" />
                       )}
                     </div>
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -217,13 +233,13 @@ export default function ShareHomeModal({
 
         {/* Agent Info (for clients) */}
         {!isAgent && (
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Share with agent
-            </label>
+          <fieldset className="border-0 p-0 m-0">
+            <legend className="mb-2 block text-sm font-medium text-gray-700">
+              {t("modals.share_home.share_with_agent")}
+            </legend>
             {isLoadingConversations ? (
               <div className="flex items-center justify-center py-4">
-                <KeyTurnLoader message="Loading..." />
+                <KeyTurnLoader message={t("common.loading")} />
               </div>
             ) : clientConversation ? (
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
@@ -232,31 +248,38 @@ export default function ShareHomeModal({
                     <MessageCircle className="h-4 w-4 text-black" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      Your Agent
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {clientConversation.client_name || "Agent"}
-                    </p>
+                    <BodyText
+                      as="p"
+                      size="sm"
+                      className="font-medium text-gray-900"
+                    >
+                      {t("modals.share_home.your_agent")}
+                    </BodyText>
+                    <BodyText as="p" size="xs" className="text-gray-500">
+                      {clientConversation.client_name || t("cards.agent")}
+                    </BodyText>
                   </div>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No agent assigned</p>
+              <BodyText as="p" size="sm" className="text-gray-500">
+                {t("modals.share_home.no_agent")}
+              </BodyText>
             )}
-          </div>
+          </fieldset>
         )}
 
         {/* Optional Message */}
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Message (optional)
-          </label>
-          <textarea
+          <Label htmlFor="share-message" className="mb-2 block">
+            {t("modals.share_home.message_optional")}
+          </Label>
+          <Textarea
+            id="share-message"
             value={shareMessage}
             onChange={(e) => setShareMessage(e.target.value)}
             placeholder={`Check out ${propertyAddress}!`}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brown focus:outline-none focus:ring-2 focus:ring-brown/20"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-olive focus:outline-none focus:ring-2 focus:ring-olive/20"
             rows={3}
           />
         </div>
@@ -268,7 +291,7 @@ export default function ShareHomeModal({
             className="flex-1"
             disabled={isSharing}
           >
-            Cancel
+            {t("common.cancel")}
           </CancelButton>
           <Button
             variant="primary"
@@ -276,7 +299,9 @@ export default function ShareHomeModal({
             disabled={!canShare || isSharing}
             className="flex-1"
           >
-            {isSharing ? "Sharing..." : "Share"}
+            {isSharing
+              ? t("modals.share_home.sharing")
+              : t("modals.share_home.share")}
           </Button>
         </div>
       </div>

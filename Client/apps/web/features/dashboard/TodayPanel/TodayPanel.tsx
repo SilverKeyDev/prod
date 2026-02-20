@@ -1,13 +1,15 @@
 import React from "react";
+
+import { log, LOG_CATEGORIES } from "logger";
+
+import { useAgentTodos } from "packages/hooks/data/agent/useAgentTodos";
+import { useIsAgent } from "packages/hooks/store/auth/useIsAgent";
+import type { TodoPriority, TodoType } from "packages/schemas/agent/agent";
+import { dateNow } from "packages/utils/core/date";
+
+import DocuSignWidget from "@/features/dashboard/widgets/DocuSignWidget";
+
 import TodoList from "./TodoList";
-import DocuSignWidget from "../widgets/DocuSignWidget";
-import { useAgentTodos } from "../../../../../packages/hooks/data/agent/useAgentTodos";
-import { useIsAgent } from "../../../../../packages/hooks/store/auth/useIsAgent";
-import type {
-  TodoPriority,
-  TodoType,
-} from "../../../../../packages/schemas/agent/agent";
-import { log, LOG_CATEGORIES } from "../../../../../logger";
 
 const TodayPanel: React.FC = () => {
   const { todos, createTodo, updateTodo } = useAgentTodos(false);
@@ -35,8 +37,7 @@ const TodayPanel: React.FC = () => {
     if (!isAgent) return;
     try {
       // Set due date to end of today by default
-      const dueDate = new Date();
-      dueDate.setHours(23, 59, 59, 999);
+      const dueDate = dateNow().endOf("day");
 
       await createTodo({
         title,

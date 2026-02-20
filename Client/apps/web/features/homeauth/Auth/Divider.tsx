@@ -1,3 +1,5 @@
+import { BodyText } from "@/components/ui/index.web";
+
 interface DividerProps {
   text?: string;
 }
@@ -11,7 +13,9 @@ export default function AuthDivider({
         <div className="w-full border-t border-gray-300" />
       </div>
       <div className="relative flex justify-center text-sm">
-        <span className="bg-white px-2 text-gray-500">{text}</span>
+        <BodyText as="span" size="sm" className="bg-white px-2 text-gray-500">
+          {text}
+        </BodyText>
       </div>
     </div>
   );

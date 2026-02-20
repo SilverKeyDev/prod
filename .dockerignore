@@ -12,6 +12,7 @@ yarn-error.log*
 pnpm-debug.log*
 package-lock.json
 yarn.lock
+.pnpm-store/
 
 # Python
 __pycache__/
@@ -69,6 +70,12 @@ Client/out/
 Client/build/
 Client/.turbo/
 Client/.cache/
+Client/apps/mobile/
+Client/dist-ssr/
+Client/test-results/
+Client/scripts/
+.eslintcache
+Client/.eslintcache
 
 # TypeScript
 *.tsbuildinfo
@@ -104,6 +111,40 @@ Client/playwright/.cache/
 *_test.py
 tests/
 test/
+
+# ============================================
+# Server-specific (dev, cache, tooling)
+# ============================================
+Server/instance/
+Server/.webassets-cache
+Server/docs/_build/
+Server/.pybuilder/
+Server/target/
+Server/.hypothesis/
+Server/.scrapy
+Server/.ropeproject
+Server/profile_default/
+Server/__pypackages__/
+Server/.pyre/
+Server/.pytype/
+Server/cython_debug/
+Server/.mypy_cache/
+Server/.ruff_cache/
+Server/.pypirc
+Server/static/reports/*
+.dmypy.json
+dmypy.json
+pip-log.txt
+pip-delete-this-directory.txt
+local_settings.py
+db.sqlite3-journal
+MANIFEST
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+*.manifest
+**/share/python-wheels/
 
 # ============================================
 # IDE & Editor Files
@@ -204,7 +245,7 @@ LICENSE.txt
 # ============================================
 clean.sh
 run-dev.sh
-run-multiple-dev.sh
+scripts/run-multiple-dev.sh
 *.sh
 !Dockerfile*
 .dockerignore

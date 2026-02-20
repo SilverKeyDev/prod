@@ -1,14 +1,17 @@
 import {
+  Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
-  Calendar as CalendarIcon,
   Plus,
 } from "lucide-react";
-import { Button } from "../../../../components/ui";
-import { CalendarDropdown } from "./CalendarDropdown";
-import type { GoogleCalendar } from "../../../../../../packages/config/api";
+
+import type { GoogleCalendar } from "packages/config/api";
+import { getVisibleDateRange } from "packages/utils/domain/calendar/date";
+
+import { BodyText, Button } from "@/components/ui/index.web";
+
 import { CalendarDateRange } from "./CalendarDateRange";
-import { getVisibleDateRange } from "../../../../../../packages/utils/calendar/date";
+import { CalendarDropdown } from "./CalendarDropdown";
 
 type CalendarHeaderProps = {
   currentDate: Date;
@@ -33,12 +36,12 @@ export function CalendarHeader({
   onToggleCalendar,
   silverKeyCalendarId,
   onCreateEvent,
-  visibleDateRange,
+  visibleDateRange: _visibleDateRange,
 }: CalendarHeaderProps) {
-  // Use visible dates from CalendarView if available, otherwise fallback to calculated range
-  const fallbackRange = getVisibleDateRange(currentDate);
-  const displayFirstDate = visibleDateRange?.firstDate ?? fallbackRange.start;
-  const displayLastDate = visibleDateRange?.lastDate ?? fallbackRange.end;
+  // Derive displayed range from currentDate so the title updates immediately when
+  // the user changes the month (avoiding stale visibleDateRange from child effect)
+  const { start: displayFirstDate, end: displayLastDate } =
+    getVisibleDateRange(currentDate);
 
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -54,7 +57,7 @@ export function CalendarHeader({
             size="sm"
             onClick={onPreviousWeek}
             className="h-8 w-8 p-0"
-            aria-label="Previous week"
+            label="Previous week"
           >
             <ChevronLeft className="h-4 w-4 text-gray-500" />
           </Button>
@@ -63,7 +66,7 @@ export function CalendarHeader({
             size="sm"
             onClick={onNextWeek}
             className="h-8 w-8 p-0"
-            aria-label="Next week"
+            label="Next week"
           >
             <ChevronRight className="h-4 w-4 text-gray-500" />
           </Button>
@@ -76,12 +79,18 @@ export function CalendarHeader({
           <>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span className="hidden sm:inline">Connected</span>
+              <BodyText
+                as="span"
+                size="sm"
+                className="hidden sm:inline text-gray-600"
+              >
+                Connected
+              </BodyText>
               {calendars.length > 0 && (
-                <span className="text-gray-400">
+                <BodyText as="span" size="sm" className="text-gray-400">
                   ({calendars.length}{" "}
                   {calendars.length === 1 ? "calendar" : "calendars"})
-                </span>
+                </BodyText>
               )}
               <CalendarDropdown
                 calendars={calendars}
@@ -92,7 +101,7 @@ export function CalendarHeader({
             </div>
             {onCreateEvent && (
               <Button
-                variant="olive"
+                variant="primary"
                 size="sm"
                 onClick={onCreateEvent}
                 icon={<Plus className="h-4 w-4" />}
@@ -105,7 +114,9 @@ export function CalendarHeader({
         ) : (
           <div className="flex items-center gap-2 text-sm text-gray-400">
             <CalendarIcon className="h-4 w-4" />
-            <span>Not connected</span>
+            <BodyText as="span" size="sm" className="text-gray-400">
+              Not connected
+            </BodyText>
           </div>
         )}
       </div>

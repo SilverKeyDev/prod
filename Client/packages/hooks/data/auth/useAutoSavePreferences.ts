@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { preferencesApi } from "../../../config/api";
-import { showErrorToast } from "../../ui/useToast";
-import type { OnboardingData } from "../../../../apps/web/features/onboardpersonalize/lib/types";
+
+import { log, LOG_CATEGORIES } from "logger";
+
+import { preferencesApi } from "packages/config/api";
+import { showErrorToast } from "packages/hooks/ui";
+import type { OnboardingData } from "packages/utils/domain/profile";
 
 type SaveStatus = "idle" | "saving" | "saved";
 
@@ -10,6 +13,8 @@ type UseAutoSavePreferencesOptions = {
   onError?: (error: unknown) => void;
   debounceMs?: number;
   showErrorToastOnError?: boolean;
+  /** Called after each successful save (e.g. to trigger search refresh) */
+  onAfterSave?: () => void | Promise<void>;
 };
 
 type UseAutoSavePreferencesReturn = {
@@ -29,6 +34,7 @@ export function useAutoSavePreferences({
   onError,
   debounceMs = 1000,
   showErrorToastOnError = true,
+  onAfterSave,
 }: UseAutoSavePreferencesOptions): UseAutoSavePreferencesReturn {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [isSaving, setIsSaving] = useState(false);
@@ -55,12 +61,14 @@ export function useAutoSavePreferences({
           // Refresh preferences to get updated data
           await refreshUserPreferences();
 
+          void onAfterSave?.();
+
           // Clear saved status after 2 seconds
           setTimeout(() => {
             setSaveStatus("idle");
           }, 2000);
         } catch (error) {
-          console.error("Failed to save preferences:", error);
+          log.error(LOG_CATEGORIES.ERRORS, "Failed to save preferences", error);
           setSaveStatus("idle");
           setIsSaving(false);
 
@@ -74,19 +82,27 @@ export function useAutoSavePreferences({
         }
       }, debounceMs);
     },
-    [refreshUserPreferences, debounceMs, showErrorToastOnError, onError],
+    [
+      refreshUserPreferences,
+      debounceMs,
+      showErrorToastOnError,
+      onError,
+      onAfterSave,
+    ],
   );
 
   const updateFormData = useCallback(
     <T extends Partial<OnboardingData>>(
-      formData: T,
+      _formData: T,
       setFormData: React.Dispatch<React.SetStateAction<T>>,
       field: string | number | symbol,
       value: unknown,
     ) => {
-      const updatedData = { ...formData, [field]: value };
-      setFormData(updatedData);
-      void autoSave(updatedData);
+      setFormData((prev) => {
+        const next = { ...prev, [field]: value } as T;
+        void autoSave(next);
+        return next;
+      });
     },
     [autoSave],
   );

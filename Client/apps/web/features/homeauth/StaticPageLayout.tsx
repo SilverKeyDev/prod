@@ -1,5 +1,9 @@
 import React from "react";
 
+import { Link } from "packages/navigation";
+
+import { BodyText, Title } from "@/components/ui/index.web";
+
 import BackButton from "./BackButton";
 
 type SectionProps = {
@@ -20,9 +24,13 @@ type StaticPageLayoutProps = {
 export function Section({ title, children, isLast = false }: SectionProps) {
   return (
     <section className={isLast ? "" : "mb-8"}>
-      <h2 className="text-responsive-lg space-y-responsive-sm font-semibold text-black">
+      <Title
+        as="h2"
+        size="lg"
+        className="text-responsive-lg space-y-responsive-sm font-semibold text-black"
+      >
         {title}
-      </h2>
+      </Title>
       {children}
     </section>
   );
@@ -35,7 +43,11 @@ export function Paragraph({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <p className={`space-y-responsive-sm ${className}`}>{children}</p>;
+  return (
+    <BodyText as="p" className={`space-y-responsive-sm ${className}`}>
+      {children}
+    </BodyText>
+  );
 }
 
 export function List({ children }: { children: React.ReactNode }) {
@@ -53,10 +65,23 @@ export function EmailLink({
   href: string;
   children: React.ReactNode;
 }) {
+  if (href.startsWith("http://") || href.startsWith("https://")) {
+    return (
+      // eslint-disable-next-line silverkey/no-primitive-components -- intentional external link; <a> required for target="_blank"
+      <a
+        href={href}
+        className="text-brown hover:text-brown/80 underline"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        {children}
+      </a>
+    );
+  }
   return (
-    <a href={href} className="text-brown hover:text-brown/80 underline">
+    <Link to={href} className="text-brown hover:text-brown/80 underline">
       {children}
-    </a>
+    </Link>
   );
 }
 
@@ -78,11 +103,17 @@ export default function StaticPageLayout({
                 <BackButton to={backButtonTo}>{backButtonText}</BackButton>
               </div>
               <div className="py-responsive-md text-center sm:pt-0">
-                <h1 className="text-responsive-xl space-y-responsive-xs mt-8 font-bold text-black sm:mt-0">
+                <Title
+                  as="h1"
+                  size="xl"
+                  className="text-responsive-xl space-y-responsive-xs mt-8 font-bold text-black sm:mt-0"
+                >
                   {title}
-                </h1>
+                </Title>
                 {subtitle && (
-                  <p className="text-responsive-sm text-gray-600">{subtitle}</p>
+                  <BodyText as="p" size="sm" className="text-gray-600">
+                    {subtitle}
+                  </BodyText>
                 )}
               </div>
             </div>
@@ -92,11 +123,17 @@ export default function StaticPageLayout({
                 <BackButton to={backButtonTo}>{backButtonText}</BackButton>
               </div>
               <div className="py-responsive-md text-center sm:pt-0">
-                <h1 className="text-responsive-xl space-y-responsive-xs mt-8 font-bold text-black sm:mt-0">
+                <Title
+                  as="h1"
+                  size="xl"
+                  className="text-responsive-xl space-y-responsive-xs mt-8 font-bold text-black sm:mt-0"
+                >
                   {title}
-                </h1>
+                </Title>
                 {subtitle && (
-                  <p className="text-responsive-sm text-gray-600">{subtitle}</p>
+                  <BodyText as="p" size="sm" className="text-gray-600">
+                    {subtitle}
+                  </BodyText>
                 )}
               </div>
             </div>

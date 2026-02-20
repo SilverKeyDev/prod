@@ -1,13 +1,14 @@
-import {
-  FileText,
-  FileSignature,
-  ClipboardCheck,
-  Receipt,
-  Calendar,
-} from "lucide-react";
+import { BodyText, Subtitle } from "@ui/index.web";
 import type { LucideIcon } from "lucide-react";
+import {
+  Calendar,
+  ClipboardCheck,
+  FileSignature,
+  FileText,
+  Receipt,
+} from "lucide-react";
 
-import { BodyText, Subtitle } from "../../ui";
+import { useLocalization } from "packages/contexts";
 
 interface DocumentCardHeaderProps {
   /**
@@ -69,6 +70,7 @@ export default function DocumentCardHeader({
   documentType,
   uploadedDate,
 }: DocumentCardHeaderProps) {
+  const { t } = useLocalization();
   const Icon = getDocumentIcon(documentType);
   const displayType = formatDocumentType(documentType);
 
@@ -97,7 +99,7 @@ export default function DocumentCardHeader({
       <div className="flex items-center gap-2 mb-4">
         <Calendar size={14} className="text-gray-400 flex-shrink-0" />
         <BodyText size="xs" muted>
-          Uploaded {uploadedDate}
+          {t("documents.uploaded", { date: uploadedDate })}
         </BodyText>
       </div>
     </>

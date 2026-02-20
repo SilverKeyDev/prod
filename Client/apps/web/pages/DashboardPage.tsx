@@ -1,10 +1,13 @@
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import ClientList from "../features/dashboard/ClientList/ClientList";
-import ClientHub from "../features/dashboard/ClientHub/ClientHub";
-import DashboardChecklists from "../features/dashboard/DashboardChecklists";
-import { Calendar, UpcomingEvents } from "../features/dashboard/calendar";
-import { useIsAgent } from "../../../packages/hooks/store/auth/useIsAgent";
+
+import { useLocation, useNavigate } from "react-router-dom";
+
+import { useIsAgent } from "packages/hooks/store/auth/useIsAgent";
+
+import { Calendar, UpcomingEvents } from "@/features/dashboard/calendar";
+import ClientHub from "@/features/dashboard/ClientHub/ClientHub";
+import ClientList from "@/features/dashboard/ClientList/ClientList";
+import DashboardChecklists from "@/features/dashboard/DashboardChecklists";
 
 type DashboardPageProps = {
   setMobileHeaderActions?: React.Dispatch<
@@ -31,7 +34,7 @@ export default function DashboardPage({
   }, [setMobileHeaderActions]);
 
   const handleClientClick = (clientId: string) => {
-    navigate(`/dashboard/client/${clientId}`);
+    void navigate(`/dashboard/client/${clientId}`);
   };
 
   // Check if we're viewing a specific client

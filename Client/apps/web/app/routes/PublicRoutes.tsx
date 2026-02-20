@@ -1,29 +1,34 @@
 import { lazy } from "react";
+
 import { Route } from "react-router-dom";
 
-import { ROUTES } from "../../../../packages/schemas/nav";
-import { AuthGuard, RedirectIfAuthenticated } from "../guards";
+import { ROUTES } from "packages/schemas/app/nav";
+
+import { AuthGuard, RedirectIfAuthenticated } from "@/app/guards";
 
 // Lazy-load public pages
-const HomePage = lazy(() => import("../../pages/HomeAuth/HomePage"));
-const LoginPage = lazy(() => import("../../pages/HomeAuth/LoginPage"));
-const SignupPage = lazy(() => import("../../pages/HomeAuth/SignupPage"));
+const HomePage = lazy(() => import("../../pages/HomeAuth/homepage/HomePage"));
+const LoginPage = lazy(() => import("../../pages/HomeAuth/auth/LoginPage"));
+const SignupPage = lazy(() => import("../../pages/HomeAuth/auth/SignupPage"));
 const ResetPasswordPage = lazy(
-  () => import("../../pages/HomeAuth/ResetPasswordPage"),
+  () => import("../../pages/HomeAuth/password/ResetPasswordPage"),
 );
 const VerificationPage = lazy(
-  () => import("../../pages/HomeAuth/VerificationPage"),
+  () => import("../../pages/HomeAuth/verification/VerificationPage"),
 );
 const OnboardingPage = lazy(
   () => import("../../pages/HomeAuth/OnboardingPage"),
 );
 const PrivacyPolicy = lazy(
-  () => import("../../pages/HomeAuth/PrivacyPolicyPage"),
+  () => import("../../pages/HomeAuth/legal/PrivacyPolicyPage"),
 );
 const TermsOfService = lazy(
-  () => import("../../pages/HomeAuth/TermsOfServicePage"),
+  () => import("../../pages/HomeAuth/legal/TermsOfServicePage"),
 );
-const ContactUs = lazy(() => import("../../pages/HomeAuth/ContactUsPage"));
+const ContactUs = lazy(
+  () => import("../../pages/HomeAuth/legal/ContactUsPage"),
+);
+const ButtonShowcasePage = lazy(() => import("../../pages/ButtonShowcasePage"));
 
 export function PublicRoutes() {
   return [
@@ -75,5 +80,12 @@ export function PublicRoutes() {
     <Route key="privacy" path={ROUTES.PRIVACY} element={<PrivacyPolicy />} />,
     <Route key="terms" path={ROUTES.TERMS} element={<TermsOfService />} />,
     <Route key="contact" path={ROUTES.CONTACT} element={<ContactUs />} />,
+
+    /* Dev: Button visual regression showcase */
+    <Route
+      key="button-showcase"
+      path="/button-showcase"
+      element={<ButtonShowcasePage />}
+    />,
   ];
 }

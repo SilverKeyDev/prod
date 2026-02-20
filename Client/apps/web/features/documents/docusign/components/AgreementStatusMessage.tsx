@@ -1,9 +1,13 @@
 import { useState } from "react";
-import { CheckCircle2, Send, FileSignature } from "lucide-react";
-import { BodyText } from "../../../../components/ui";
+
+import { CheckCircle2, FileSignature, Send } from "lucide-react";
+
+import type { AgreementStatus } from "packages/schemas/content/documents/docusign";
+
+import { BodyText } from "@/components/ui/index.web";
+import { AgreementDetailModal } from "@/features/documents/docusign/modals";
+
 import AgreementStatusBadge from "./AgreementStatusBadge";
-import { AgreementDetailModal } from "../modals";
-import type { AgreementStatus } from "../../../../../../packages/schemas/documents/docusign";
 
 type SystemMessageType =
   | "agreement_sent"
@@ -66,8 +70,16 @@ export default function AgreementStatusMessage({
     <>
       <div className="flex justify-center my-3">
         <div
+          role="button"
+          tabIndex={0}
           className="max-w-md px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
           onClick={() => setIsModalOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsModalOpen(true);
+            }
+          }}
         >
           <div className="flex items-center gap-2 mb-1">
             {getIcon()}

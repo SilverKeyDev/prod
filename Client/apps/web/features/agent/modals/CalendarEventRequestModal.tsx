@@ -1,16 +1,29 @@
-import { Calendar, Share } from "lucide-react";
 import { useState } from "react";
 
-import BaseModal from "../../../components/modals/BaseModal";
-import Button from "../../../components/ui/button/Button";
-import CancelButton from "../../../components/ui/button/CancelButton";
-import Input from "../../../components/ui/form/Input";
-import Label from "../../../components/ui/text/Label";
-import { Textarea } from "../../../components/ui/form/FormField";
-import { useAgentChats } from "../../../../../packages/hooks/data/chat/useAgentChats";
-import { useAgentClients } from "../../../../../packages/hooks/data/agent/useAgentClients";
-import { useIsAgent } from "../../../../../packages/hooks/store/auth/useIsAgent";
-import { log, LOG_CATEGORIES } from "../../../../../logger";
+import { log, LOG_CATEGORIES } from "logger";
+import { Calendar } from "lucide-react";
+
+import { useAgentClients } from "packages/hooks/data/agent/useAgentClients";
+import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
+import { useIsAgent } from "packages/hooks/store/auth/useIsAgent";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
+import {
+  buildEventRequestMessage,
+  type EventRequestPayload,
+} from "packages/utils/domain/messaging/eventRequestPayload";
+
+import BaseModal from "@/components/modals/BaseModal";
+import Button from "@/components/ui/button/Button";
+import CancelButton from "@/components/ui/button/CancelButton";
+import { Textarea } from "@/components/ui/form/FormField";
+import {
+  BodyText,
+  DateInput,
+  Input,
+  TimeInput,
+  Title,
+} from "@/components/ui/index.web";
+import Label from "@/components/ui/text/Label.web";
 
 type CalendarEventRequestModalProps = {
   isOpen: boolean;
@@ -62,26 +75,16 @@ export default function CalendarEventRequestModal({
       conversationId = clientConversation.id;
     }
 
-    // Format the event request message
-    const dateTime = new Date(`${eventDate}T${eventTime}`);
-    const formattedDate = dateTime.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-    const formattedTime = dateTime.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-
-    let message = `📅 Event Request: ${eventTitle}\n\n`;
-    message += `Date: ${formattedDate}\n`;
-    message += `Time: ${formattedTime}\n`;
-    if (eventDescription.trim()) {
-      message += `\n${eventDescription.trim()}`;
-    }
+    // Build structured payload with default duration (30 minutes)
+    const dateTime = dateParseISO(`${eventDate}T${eventTime}`);
+    const endTime = dateTime.add(30, "minute");
+    const payload: EventRequestPayload = {
+      title: eventTitle.trim(),
+      start: dateTime.toISOString(),
+      end: endTime.toISOString(),
+      description: eventDescription.trim() || undefined,
+    };
+    const message = buildEventRequestMessage(payload);
 
     setIsSending(true);
     try {
@@ -114,9 +117,8 @@ export default function CalendarEventRequestModal({
     (isAgent ? selectedClientId !== null : clientConversation !== null);
 
   // Get tomorrow's date as minimum date
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
+  const tomorrow = dateNow().add(1, "day");
+  const minDate = tomorrow.format("YYYY-MM-DD");
 
   return (
     <BaseModal
@@ -125,9 +127,13 @@ export default function CalendarEventRequestModal({
       headerContent={
         <div className="flex items-center gap-2">
           <Calendar className="h-5 w-5 flex-shrink-0 text-gray-900" />
-          <h3 className="truncate text-base font-medium text-gray-900 sm:text-lg">
+          <Title
+            as="h3"
+            size="lg"
+            className="truncate font-medium text-gray-900 sm:text-lg"
+          >
             Request Calendar Event
-          </h3>
+          </Title>
         </div>
       }
       size="md"
@@ -138,36 +144,49 @@ export default function CalendarEventRequestModal({
           <div>
             <Label>Send to client</Label>
             {isLoadingClients ? (
-              <p className="text-sm text-gray-500">Loading clients...</p>
+              <BodyText as="p" size="sm" className="text-gray-500">
+                Loading clients...
+              </BodyText>
             ) : clients.length === 0 ? (
-              <p className="text-sm text-gray-500">No clients available.</p>
+              <BodyText as="p" size="sm" className="text-gray-500">
+                No clients available.
+              </BodyText>
             ) : (
               <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
                 {clients.map((client) => (
-                  <button
+                  <Button
                     key={client.id}
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => setSelectedClientId(client.id)}
-                    className={`w-full rounded-lg border p-3 text-left transition-colors ${
+                    className={`w-full rounded-lg border p-3 text-left justify-start h-auto min-h-0 ${
                       selectedClientId === client.id
-                        ? "border-brown bg-beige/20"
+                        ? "border-olive bg-olive/10"
                         : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full">
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-beige">
                         <Calendar className="h-4 w-4 text-black" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900">
+                        <BodyText
+                          as="p"
+                          size="sm"
+                          className="font-medium text-gray-900"
+                        >
                           {client.name}
-                        </p>
-                        <p className="text-xs text-gray-500">{client.email}</p>
+                        </BodyText>
+                        <BodyText as="p" size="xs" className="text-gray-500">
+                          {client.email}
+                        </BodyText>
                       </div>
                       {selectedClientId === client.id && (
-                        <div className="h-2 w-2 rounded-full bg-brown" />
+                        <div className="h-2 w-2 rounded-full bg-olive" />
                       )}
                     </div>
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -190,31 +209,21 @@ export default function CalendarEventRequestModal({
 
         {/* Date and Time */}
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label htmlFor="event-date" required>
-              Date
-            </Label>
-            <Input
-              id="event-date"
-              type="date"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              min={minDate}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="event-time" required>
-              Time
-            </Label>
-            <Input
-              id="event-time"
-              type="time"
-              value={eventTime}
-              onChange={(e) => setEventTime(e.target.value)}
-              className="mt-1"
-            />
-          </div>
+          <DateInput
+            id="event-date"
+            label="Date"
+            required
+            value={eventDate}
+            min={minDate}
+            onChange={(e) => setEventDate(e.target.value)}
+          />
+          <TimeInput
+            id="event-time"
+            label="Time"
+            required
+            value={eventTime}
+            onChange={(e) => setEventTime(e.target.value)}
+          />
         </div>
 
         {/* Event Description */}
@@ -240,11 +249,11 @@ export default function CalendarEventRequestModal({
             Cancel
           </CancelButton>
           <Button
-            variant="olive"
+            variant="primary"
             onClick={handleSend}
             disabled={!canSend || isSending}
             className="flex-1"
-            icon={<Share className="h-4 w-4" />}
+            iconName="share"
           >
             {isSending ? "Sending..." : "Send Request"}
           </Button>

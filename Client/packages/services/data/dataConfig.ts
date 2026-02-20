@@ -1,16 +1,16 @@
-import { queryKeys } from "../../config/query/keys";
 import {
   agentApi,
   googleCalendarApi,
   preferencesApi,
-  userApi,
   searchApi,
-} from "../../config/api";
-import { agentService } from "../agent/agent";
-import { apiGet } from "../http/compatibility";
-import type { UserProfile } from "../../schemas";
-import { calculateCalendarDateRange } from "../../utils/calendar/date";
-import { transformSearchResponse } from "../search/search";
+  userApi,
+} from "packages/config/api";
+import { getTaskChecklist } from "packages/config/api/core/tasks";
+import { queryKeys } from "packages/config/query/keys";
+import type { UserProfile } from "packages/schemas";
+import { agentService } from "packages/services/agent/agent";
+import { transformSearchResponse } from "packages/services/search/search";
+import { calculateCalendarDateRange } from "packages/utils/domain/calendar/date";
 
 /**
  * Configuration for a data route
@@ -151,7 +151,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
 
         // Transform API response to SearchResult format
         return transformSearchResponse(response);
-      } catch (error) {
+      } catch {
         // Silently fail - return empty array
         return [];
       }
@@ -353,7 +353,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
             timeMin,
             timeMax,
           };
-        } catch (error) {
+        } catch {
           // Silently fail for individual calendars - return empty array
           return {
             calendarId: calendar.id,
@@ -386,15 +386,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
   checklistEscrow: {
     key: "checklistEscrow",
     queryKey: () => ["checklists", "escrow"],
-    queryFn: async () => {
-      const response = await apiGet<{ success: boolean; data: number[] }>(
-        "/api/v1/user/close?type=escrow",
-      );
-      if (!response.success) {
-        throw new Error("Failed to fetch escrow checklist");
-      }
-      return response.data ?? [];
-    },
+    queryFn: async () => getTaskChecklist("escrow"),
     shouldPoll: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     userType: "all",
@@ -404,15 +396,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
   checklistFinancing: {
     key: "checklistFinancing",
     queryKey: () => ["checklists", "financing"],
-    queryFn: async () => {
-      const response = await apiGet<{ success: boolean; data: number[] }>(
-        "/api/v1/user/close?type=financing",
-      );
-      if (!response.success) {
-        throw new Error("Failed to fetch financing checklist");
-      }
-      return response.data ?? [];
-    },
+    queryFn: async () => getTaskChecklist("financing"),
     shouldPoll: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     userType: "all",
@@ -422,15 +406,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
   checklistClosing: {
     key: "checklistClosing",
     queryKey: () => ["checklists", "closing"],
-    queryFn: async () => {
-      const response = await apiGet<{ success: boolean; data: number[] }>(
-        "/api/v1/user/close?type=closing",
-      );
-      if (!response.success) {
-        throw new Error("Failed to fetch closing checklist");
-      }
-      return response.data ?? [];
-    },
+    queryFn: async () => getTaskChecklist("closing"),
     shouldPoll: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     userType: "all",
@@ -440,15 +416,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
   checklistInsurance: {
     key: "checklistInsurance",
     queryKey: () => ["checklists", "insurance"],
-    queryFn: async () => {
-      const response = await apiGet<{ success: boolean; data: number[] }>(
-        "/api/v1/user/close?type=insurance",
-      );
-      if (!response.success) {
-        throw new Error("Failed to fetch insurance checklist");
-      }
-      return response.data ?? [];
-    },
+    queryFn: async () => getTaskChecklist("insurance"),
     shouldPoll: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     userType: "all",
