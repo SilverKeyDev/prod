@@ -3,8 +3,15 @@
 // incompatible with the project's glob@10+ override and causes "Cannot read properties of undefined (reading 'hasMagic')".
 module.exports = function (api) {
   api.cache(true);
-  return {
+  const config = {
+    // NativeWind 4 + Expo: use Expo preset with jsxImportSource and nativewind/babel as a preset.
     presets: [["babel-preset-expo", { jsxImportSource: "nativewind" }], "nativewind/babel"],
     plugins: ["react-native-reanimated/plugin"],
   };
+  // eslint-disable-next-line no-console -- Babel runs in Node; console logging is required for debugging
+  console.info("[Babel] Using NativeWind preset for mobile app", {
+    presets: config.presets,
+    plugins: config.plugins,
+  });
+  return config;
 };

@@ -1,11 +1,19 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { FlatList, Image, ListRenderItem, RefreshControl, StyleSheet, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  ListRenderItem,
+  RefreshControl,
+  StyleSheet,
+  View,
+} from "react-native";
 
 import { searchApi } from "packages/features/search/api/search";
 import { useSearchPageData } from "packages/features/search/hooks/data/page/useSearchPageData";
 import type { SearchResult } from "packages/features/search/types";
 import { transformSearchResponse } from "packages/features/search/utils/searchTransform";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { useSearchViewStore } from "packages/store";
 import { Pressable } from "packages/ui/components/primitives";
 import { Loading } from "packages/ui/components/primitives";
@@ -46,6 +54,10 @@ export function SearchScreenNative() {
   const [refreshing, setRefreshing] = useState(false);
 
   const runSearch = useCallback(async () => {
+    log.info(LOG_CATEGORIES.SEARCH, "Mobile search runSearch start", {
+      perBucketPages: 20,
+      forceSearch: true,
+    });
     setIsSearching(true);
     setSearchStage("Searching...");
     setSearchResults([]);
@@ -57,8 +69,12 @@ export function SearchScreenNative() {
       const results = transformSearchResponse(response);
       setSearchResults(results);
       setHasSearched(true);
-    } catch {
+      log.info(LOG_CATEGORIES.SEARCH, "Mobile search runSearch success", {
+        resultCount: results.length,
+      });
+    } catch (error) {
       setSearchStage("Search failed");
+      log.error(LOG_CATEGORIES.SEARCH, "Mobile search runSearch failed", error);
     } finally {
       setIsSearching(false);
     }
@@ -76,14 +92,21 @@ export function SearchScreenNative() {
       return (
         <Pressable className="mb-3 rounded-lg border border-gray-200 bg-white p-3">
           {item.imageUrl ? (
-            <Image source={{ uri: item.imageUrl }} style={styles.thumbnail} resizeMode="cover" />
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={styles.thumbnail}
+              resizeMode="cover"
+            />
           ) : (
             <View style={[styles.thumbnail, styles.thumbnailPlaceholder]}>
               <Text className="text-xs text-gray-400">No image</Text>
             </View>
           )}
           <Box className="mt-2">
-            <Text className="text-base font-medium text-gray-900" numberOfLines={2}>
+            <Text
+              className="text-base font-medium text-gray-900"
+              numberOfLines={2}
+            >
               {item.address}
             </Text>
             <Text className="text-olive mt-1 text-sm">{item.price}</Text>
@@ -91,16 +114,20 @@ export function SearchScreenNative() {
               {item.bedrooms} bed · {item.bathrooms} bath
             </Text>
             <Pressable
-              onPress={() => (saved ? removeSavedHome(item.id) : saveHome(item))}
+              onPress={() =>
+                saved ? removeSavedHome(item.id) : saveHome(item)
+              }
               className="border-brand-accent mt-2 self-start rounded-lg border px-3 py-1.5"
             >
-              <Text className="text-brand-accent text-sm">{saved ? "Unsave" : "Save"}</Text>
+              <Text className="text-brand-accent text-sm">
+                {saved ? "Unsave" : "Save"}
+              </Text>
             </Pressable>
           </Box>
         </Pressable>
       );
     },
-    [isHomeSaved, saveHome, removeSavedHome]
+    [isHomeSaved, saveHome, removeSavedHome],
   );
 
   const listData = useMemo(() => {
@@ -109,11 +136,24 @@ export function SearchScreenNative() {
 
   const handleTabChange = useCallback(
     (tab: "results" | "saved") => {
+      log.info(LOG_CATEGORIES.SEARCH, "Mobile search tab change", {
+        from: activeTab,
+        to: tab,
+      });
       setActiveTab(tab);
       setCurrentPage(0);
     },
-    [setActiveTab, setCurrentPage]
+    [activeTab, setActiveTab, setCurrentPage],
   );
+
+  useEffect(() => {
+    log.info(LOG_CATEGORIES.PAGES, "SearchScreenNative render", {
+      mode,
+      activeTab,
+      isSearching,
+      resultCount: listData.length,
+    });
+  }, [mode, activeTab, isSearching, listData.length]);
 
   return (
     <View style={styles.container}>
@@ -136,7 +176,9 @@ export function SearchScreenNative() {
           disabled={isSearching}
           className="bg-brand-accent justify-center rounded-lg px-4 py-3"
         >
-          <Text className="font-medium text-white">{isSearching ? "..." : "Search"}</Text>
+          <Text className="font-medium text-white">
+            {isSearching ? "..." : "Search"}
+          </Text>
         </Pressable>
       </Box>
 
@@ -190,7 +232,9 @@ export function SearchScreenNative() {
       ) : isSearching && listData.length === 0 ? (
         <View style={styles.centered}>
           <Loading />
-          {searchStage ? <Text className="mt-4 text-sm text-gray-600">{searchStage}</Text> : null}
+          {searchStage ? (
+            <Text className="mt-4 text-sm text-gray-600">{searchStage}</Text>
+          ) : null}
         </View>
       ) : (
         <FlatList
@@ -201,8 +245,8 @@ export function SearchScreenNative() {
           ListEmptyComponent={
             <View style={styles.centered}>
               <Text className="text-gray-600">
-                Tap Search to find homes based on your profile preferences, or switch to the Saved
-                tab to see homes you have already saved.
+                Tap Search to find homes based on your profile preferences, or
+                switch to the Saved tab to see homes you have already saved.
               </Text>
             </View>
           }

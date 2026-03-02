@@ -1,10 +1,27 @@
-import { View } from "react-native";
+import React, { useEffect } from "react";
+
+import { Platform, View } from "react-native";
+import { verifyInstallation } from "nativewind";
 
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives/box";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { Text } from "packages/ui/components/primitives/text";
 
 export function NativewindSmokeScreen() {
+  useEffect(() => {
+    log.info(LOG_CATEGORIES.PAGES, "NativewindSmokeScreen mounted", {
+      platform: Platform.OS,
+    });
+
+    try {
+      verifyInstallation();
+      log.info(LOG_CATEGORIES.PAGES, "NativeWind verifyInstallation() succeeded");
+    } catch (error) {
+      log.error(LOG_CATEGORIES.ERRORS, "NativeWind verifyInstallation() failed", error);
+    }
+  }, []);
+
   return (
     <View className="flex-1 bg-brand-accent">
       <Box className="flex-1 items-center justify-center px-6">

@@ -52,6 +52,12 @@ process.emitWarning = function (warning, ...rest) {
 const innerTransformerPath =
   process.env.METRO_INNER_BABEL_TRANSFORMER ||
   require.resolve("expo/metro-react-native-babel-transformer");
+
+// Log which inner transformer Metro will delegate to so we can confirm
+// NativeWind is wired in correctly during bundling.
+/* eslint-disable silverkey/no-console-logger -- Metro transformer runs in Node; console logging is required */
+console.info("[Metro transform] Using inner transformer:", innerTransformerPath);
+/* eslint-enable silverkey/no-console-logger */
 const inner = require(innerTransformerPath);
 
 function formatTransformError(filename, err) {
@@ -86,12 +92,24 @@ function formatTransformError(filename, err) {
   return lines.join("\n");
 }
 
+let transformLogCount = 0;
+const TRANSFORM_LOG_LIMIT = 50;
+
 module.exports = {
   transform: async function (config) {
     const filename = config.filename ?? config.src ?? "unknown";
     const fileForLog =
       typeof filename === "string" ? filename : path.join(config.projectRoot || "", "unknown");
     const platform = config.options?.platform ?? config.platform ?? "ios";
+
+    if (transformLogCount < TRANSFORM_LOG_LIMIT) {
+      transformLogCount += 1;
+      console.info("[Metro transform] file", {
+        filename: fileForLog,
+        platform,
+        count: transformLogCount,
+      });
+    }
 
     // Web bundle must not contain import.meta (Metro runs as non-ESM). Fail fast with exact file path.
     if (platform === "web" && typeof filename === "string") {

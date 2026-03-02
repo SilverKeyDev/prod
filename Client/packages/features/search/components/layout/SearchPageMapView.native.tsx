@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 
 import type { ListRenderItem } from "react-native";
 import { FlatList, StyleSheet, View } from "react-native";
@@ -6,6 +6,7 @@ import { FlatList, StyleSheet, View } from "react-native";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives/box";
 import { Text } from "packages/ui/components/primitives/text";
+import { log, LOG_CATEGORIES } from "packages/logger";
 
 import type { SearchResult } from "@/features/search/types";
 
@@ -15,7 +16,9 @@ type MapProperty = SearchResult;
 
 type NativeSearchPageMapViewProps = SearchPageMapViewProps;
 
-export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Element {
+export function SearchPageMapView(
+  props: NativeSearchPageMapViewProps,
+): JSX.Element {
   const {
     activeTab,
     onTabChange,
@@ -40,14 +43,14 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
         onTabChange(tab);
       }
     },
-    [activeTab, onTabChange]
+    [activeTab, onTabChange],
   );
 
   const renderPropertyItem: ListRenderItem<MapProperty> = useCallback(
     ({ item }) => {
       const saved = isHomeSaved(
         item.id,
-        typeof item.address === "string" ? item.address : undefined
+        typeof item.address === "string" ? item.address : undefined,
       );
 
       return (
@@ -57,7 +60,10 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
         >
           <Box className="flex-row items-center justify-between">
             <Box className="flex-1 pr-3">
-              <Text className="text-base font-medium text-gray-900" numberOfLines={2}>
+              <Text
+                className="text-base font-medium text-gray-900"
+                numberOfLines={2}
+              >
                 {item.address}
               </Text>
               <Text className="text-olive mt-1 text-sm">{item.price}</Text>
@@ -70,20 +76,33 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
                 saved
                   ? removeSavedHome(
                       item.id,
-                      typeof item.address === "string" ? item.address : undefined
+                      typeof item.address === "string"
+                        ? item.address
+                        : undefined,
                     )
                   : saveHome(item)
               }
               className="border-brand-accent self-start rounded-lg border px-3 py-1.5"
             >
-              <Text className="text-brand-accent text-sm">{saved ? "Unsave" : "Save"}</Text>
+              <Text className="text-brand-accent text-sm">
+                {saved ? "Unsave" : "Save"}
+              </Text>
             </Pressable>
           </Box>
         </Pressable>
       );
     },
-    [isHomeSaved, onViewPropertyDetails, removeSavedHome, saveHome]
+    [isHomeSaved, onViewPropertyDetails, removeSavedHome, saveHome],
   );
+
+  useEffect(() => {
+    log.info(LOG_CATEGORIES.MAP_RENDERING, "SearchPageMapView render", {
+      activeTab,
+      propertyCount: properties.length,
+      isSearching,
+      hasSearched,
+    });
+  }, [activeTab, hasSearched, isSearching, properties.length]);
 
   return (
     <View style={styles.container}>

@@ -128,6 +128,10 @@ function resolvePackagesPath(moduleName, platform) {
 }
 
 const config = getDefaultConfig(projectRoot);
+console.info("[Metro] default config loaded", {
+  transformer: config.transformer,
+  resolverPlatforms: config.resolver?.platforms,
+});
 
 // Capture default resolver so we can delegate with a full context (avoids hasMagic errors
 // when NativeWind or other wrappers replace the resolver with a partial object).
@@ -458,17 +462,14 @@ function customResolveRequestImpl(context, moduleName, platform) {
 config.resolver.resolveRequest = customResolveRequest;
 
 const finalConfig = withNativeWind(config, {
-  input: path.resolve(projectRoot, "tailwind-input.css"),
-  configPath: path.resolve(projectRoot, "tailwind.config.js"),
+  input: "./tailwind-input.css",
+  configPath: "./tailwind.config.js",
 });
-// Preserve full resolver (extraNodeModules, nodeModulesPaths, etc.) so delegated resolution
-// gets a complete context. Otherwise context can be missing properties and trigger errors
-// like "Cannot read properties of undefined (reading 'hasMagic')" during web bundling.
-finalConfig.resolver = {
-  ...config.resolver,
-  ...(finalConfig.resolver || {}),
-  resolveRequest: customResolveRequest,
-};
+console.info("[Metro] withNativeWind applied", {
+  transformer: finalConfig.transformer,
+  resolverAssetExts: finalConfig.resolver?.assetExts,
+  resolverSourceExts: finalConfig.resolver?.sourceExts,
+});
 
 // Wrap the default/NativeWind transformer so transform errors log full stack + cause.
 const innerTransformer =
@@ -479,5 +480,10 @@ finalConfig.transformer = {
   ...finalConfig.transformer,
   babelTransformerPath: path.resolve(projectRoot, "metroTransformerWrapper.js"),
 };
+
+console.info("[Metro] final config ready", {
+  transformer: finalConfig.transformer,
+  resolverPlatforms: finalConfig.resolver?.platforms,
+});
 
 module.exports = finalConfig;

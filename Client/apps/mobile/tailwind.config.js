@@ -2,11 +2,14 @@
 const path = require("node:path");
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  presets: [
-    require("nativewind/preset"),
-    require(path.resolve(__dirname, "../../packages/config/tailwind/preset.cjs.js")),
-  ],
+const nativewindPreset = require("nativewind/preset");
+const sharedPreset = require(path.resolve(
+  __dirname,
+  "../../packages/config/tailwind/preset.cjs.js"
+));
+
+const mobileTailwindConfig = {
+  presets: [nativewindPreset, sharedPreset],
   content: [
     "./App.{js,jsx,ts,tsx}",
     "./app/**/*.{js,jsx,ts,tsx}",
@@ -17,3 +20,11 @@ module.exports = {
   ],
   plugins: [],
 };
+
+// eslint-disable-next-line no-console -- Tailwind runs in Node; console logging is required for debugging
+console.info("[Tailwind] Mobile config loaded", {
+  presetsCount: mobileTailwindConfig.presets.length,
+  contentGlobs: mobileTailwindConfig.content,
+});
+
+module.exports = mobileTailwindConfig;
