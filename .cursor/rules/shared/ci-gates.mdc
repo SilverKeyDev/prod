@@ -21,7 +21,6 @@ These must run on every pull request (and push) for the Client:
 3. **Cycle check** — `pnpm lint:cycles` (e.g. madge circular dependency check). No cycles in `apps/web` and `packages`.
 4. **Formatting** — `pnpm format:check` (Prettier). No unformatted files.
 5. **File size** — Enforced via ESLint rule `silverkey/max-lines-hard` (e.g. max 500 lines per file). Part of `pnpm lint`. The intent is to flag oversized files; prefer addressing **cyclomatic complexity** and real maintainability over splitting into many tiny files just to satisfy the limit (see code-organization: complexity over line count, avoid file fragmentation).
-6. **Parity check** — `pnpm lint:parity` when both `apps/web` and `apps/mobile` (or `apps/native`) exist. Ensures mirrored feature folders stay in sync; skipped if one app is missing.
 
 ## Workflow
 

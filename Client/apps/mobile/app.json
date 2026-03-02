@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "SilverKey",
+    "slug": "silverkey-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "icon": "./assets/minilogo.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.silverkey.mobile",
+      "icon": "./assets/minilogo.png",
+      "buildNumber": "1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/minilogo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.silverkey.mobile",
+      "versionCode": 1
+    },
+    "scheme": "silverkey"
+  }
+}

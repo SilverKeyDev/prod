@@ -108,9 +108,7 @@ export function scrubObjectPII(obj: unknown): unknown {
   for (const [key, value] of Object.entries(obj)) {
     const lowerKey = key.toLowerCase();
 
-    if (
-      SENSITIVE_KEYS.some((sensitiveKey) => lowerKey.includes(sensitiveKey))
-    ) {
+    if (SENSITIVE_KEYS.some((sensitiveKey) => lowerKey.includes(sensitiveKey))) {
       scrubbed[key] = "[REDACTED]";
     } else {
       scrubbed[key] = scrubPII(value);

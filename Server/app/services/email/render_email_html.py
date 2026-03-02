@@ -114,7 +114,12 @@ def render_email_html(template_name: str, props: dict[str, Any]) -> str:
         if tsx_found:
             # Use tsx directly
             package_manager = "tsx (direct)"
-            cmd = [tsx_found, "../../packages/email-templates/render-email.ts", template_name, json.dumps(props)]
+            cmd = [
+                tsx_found,
+                "../../packages/email-templates/render-email.ts",
+                template_name,
+                json.dumps(props),
+            ]
         else:
             # Fallback: use npx to run tsx
             npx_check = subprocess.run(

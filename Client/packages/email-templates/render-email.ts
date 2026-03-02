@@ -13,7 +13,7 @@ import React from "react";
 
 import { render } from "@react-email/render";
 
-import { log, LOG_CATEGORIES } from "../../logger";
+import { log, LOG_CATEGORIES } from "../logger/index.ts";
 
 // Dynamically import email templates
 const templateMap: Record<
@@ -28,13 +28,10 @@ async function main() {
   const [templateName, propsJson] = process.argv.slice(2);
 
   if (!templateName) {
+    log.error(LOG_CATEGORIES.API, "Usage: tsx render-email.ts <TemplateName> '<jsonProps>'");
     log.error(
       LOG_CATEGORIES.API,
-      "Usage: tsx render-email.ts <TemplateName> '<jsonProps>'",
-    );
-    log.error(
-      LOG_CATEGORIES.API,
-      '\nExample: tsx render-email.ts ListingsEmail \'{"recipientEmail":"user@example.com","listings":[]}\'',
+      '\nExample: tsx render-email.ts ListingsEmail \'{"recipientEmail":"user@example.com","listings":[]}\''
     );
     process.exit(1);
   }

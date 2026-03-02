@@ -1,0 +1,142 @@
+/// <reference types="nativewind/types" />
+import React, { forwardRef } from "react";
+
+import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
+import { getIcon } from "@ui/icons/iconMap";
+import type { PressableProps } from "react-native";
+import { Pressable } from "react-native";
+
+import { Box } from "packages/ui/components/primitives/box";
+import { Text } from "packages/ui/components/primitives/text";
+
+import type { ButtonProps, ButtonVariant } from "./Button";
+
+/** RN-safe props to forward to Pressable (excludes DOM-specific ButtonHTMLAttributes) */
+const PRESSABLE_FORWARD_KEYS = [
+  "testID",
+  "accessibilityRole",
+  "accessibilityState",
+  "accessibilityHint",
+  "accessibilityLevel",
+  "nativeID",
+] as const;
+
+function pickPressableProps(props: Record<string, unknown>): Partial<PressableProps> {
+  const result: Record<string, unknown> = {};
+  for (const key of PRESSABLE_FORWARD_KEYS) {
+    if (key in props && props[key] !== undefined) {
+      result[key] = props[key];
+    }
+  }
+  return result as Partial<PressableProps>;
+}
+
+const VARIANT_CLASSES: Record<Exclude<ButtonVariant, "cancel">, string> = {
+  primary: "bg-brand-accent",
+  secondary: "bg-neutral-100",
+  tertiary: "bg-gold-muted",
+  outline: "border border-neutral-300 bg-transparent",
+  ghost: "bg-transparent",
+  danger: "bg-rose",
+  success: "bg-brand-secondary",
+};
+
+const SIZE_CLASSES: Record<"sm" | "md" | "lg", string> = {
+  sm: "px-3 py-1.5 min-h-8",
+  md: "px-4 py-2 min-h-10",
+  lg: "px-5 py-2.5 min-h-12",
+};
+
+const TEXT_COLOR_CLASSES: Record<Exclude<ButtonVariant, "cancel">, string> = {
+  primary: "text-white",
+  secondary: "text-neutral-900",
+  tertiary: "text-white",
+  outline: "text-neutral-900",
+  ghost: "text-neutral-900",
+  danger: "text-white",
+  success: "text-white",
+};
+
+/**
+ * Native Button — Pressable with variant/size styling.
+ * Uses Text for children (no BodyText/span). Supports onPress.
+ */
+const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
+  (
+    {
+      variant = "primary",
+      size = "md",
+      loading = false,
+      icon,
+      iconName,
+      iconPosition = "left",
+      children,
+      disabled,
+      className = "",
+      label,
+      onPress,
+      onClick,
+      ...props
+    },
+    ref
+  ) => {
+    const effectiveVariant = variant === "cancel" ? "ghost" : variant;
+    const variantClass = VARIANT_CLASSES[effectiveVariant];
+    const sizeClass = SIZE_CLASSES[size];
+    const textColorClass = TEXT_COLOR_CLASSES[effectiveVariant];
+
+    const resolvedIcon = icon ?? (iconName ? getIcon(iconName) : null);
+
+    const handlePress = onPress ?? (onClick as (() => void) | undefined);
+
+    const content = (
+      <Box className="flex-row items-center justify-center gap-2">
+        {loading && iconPosition === "left" && (
+          <Box className="items-center justify-center">
+            <KeyTurnLoader message="" />
+          </Box>
+        )}
+        {!loading && resolvedIcon && iconPosition === "left" && (
+          <Box className="items-center justify-center">{resolvedIcon}</Box>
+        )}
+        {children != null &&
+          (typeof children === "string" ? (
+            <Text
+              className={`font-medium leading-none ${textColorClass} ${size === "sm" ? "text-sm" : size === "lg" ? "text-base" : "text-sm"}`}
+            >
+              {children}
+            </Text>
+          ) : (
+            children
+          ))}
+        {loading && iconPosition === "right" && (
+          <Box className="items-center justify-center">
+            <KeyTurnLoader message="" />
+          </Box>
+        )}
+        {!loading && resolvedIcon && iconPosition === "right" && (
+          <Box className="items-center justify-center">{resolvedIcon}</Box>
+        )}
+      </Box>
+    );
+
+    const pressableProps = pickPressableProps(props);
+
+    return (
+      <Pressable
+        ref={ref}
+        onPress={handlePress}
+        disabled={disabled ?? loading}
+        accessibilityLabel={label}
+        className={`flex-row items-center justify-center rounded-lg ${variantClass} ${sizeClass} ${(disabled ?? loading) ? "opacity-50" : ""} ${className}`}
+        {...pressableProps}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+);
+
+Button.displayName = "Button";
+
+export default Button;

@@ -12,7 +12,5 @@ type QueryProviderProps = {
  * This should be mounted after AuthProvider to ensure auth state is available
  */
 export function QueryProvider({ children }: QueryProviderProps) {
-  return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }

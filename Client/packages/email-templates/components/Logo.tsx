@@ -6,9 +6,7 @@ type LogoProps = {
   logoUrl?: string;
 };
 
-export function Logo({
-  logoUrl = "https://silverkey.com/logo.png",
-}: LogoProps) {
+export function Logo({ logoUrl = "https://silverkey.com/logo.png" }: LogoProps) {
   if (!logoUrl) return null;
 
   return (

@@ -1,0 +1,13 @@
+/* Ensure full viewport height for React Native Web so flex:1 layouts render */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    width: 100%;
+  }
+  body {
+    overflow: hidden;
+  }
+}

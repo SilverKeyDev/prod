@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
 
-import {
-  useGoogleCalendar,
-  useGoogleEvents,
-} from "packages/hooks/data/calendar";
 import { useGoogleCalendarStore } from "packages/store";
-import { dateNow } from "packages/utils/core/date";
+import { dateNow } from "packages/utils/date";
+
+import { useGoogleCalendar, useGoogleEvents } from "@/features/calendar/hooks/data";
 
 /**
  * Hook that integrates useGoogleCalendar and useGoogleEvents with useGoogleCalendarStore
@@ -34,14 +32,8 @@ export function useGoogleCalendarStoreIntegration() {
     };
   }, []); // Empty dependency array - these dates should be stable for the component lifecycle
 
-  const {
-    events,
-    eventsLoading,
-    eventsError,
-    refreshEvents,
-    createEvent,
-    isCreatingEvent,
-  } = useGoogleEvents(eventParams);
+  const { events, eventsLoading, eventsError, refreshEvents, createEvent, isCreatingEvent } =
+    useGoogleEvents(eventParams);
 
   const {
     setIsConnected,

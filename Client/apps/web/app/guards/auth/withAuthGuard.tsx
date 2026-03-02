@@ -7,7 +7,7 @@ import { AuthGuard, type AuthGuardProps } from "./AuthGuard";
  */
 export function withAuthGuard<P extends object>(
   Component: React.ComponentType<P>,
-  guardProps?: Omit<AuthGuardProps, "children">,
+  guardProps?: Omit<AuthGuardProps, "children">
 ) {
   return function AuthGuardedComponent(props: P) {
     return (

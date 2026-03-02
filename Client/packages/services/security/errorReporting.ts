@@ -3,15 +3,14 @@
  * Implements SOC 2 compliant error reporting and monitoring
  */
 
-import { log as centralLog, LOG_CATEGORIES } from "logger";
-
 import { getEnv } from "packages/config/env";
-import { dateNow } from "packages/utils/core/date";
-import { asError } from "packages/utils/core/errorHandling/error";
-import { logError } from "packages/utils/core/errorHandling/logging";
-import { normalizeError } from "packages/utils/core/errorHandling/normalize";
-import type { AppError } from "packages/utils/core/errorHandling/types";
-import { getNavigator, getWindow } from "packages/utils/core/platform";
+import { log as centralLog, LOG_CATEGORIES } from "packages/logger";
+import { dateNow } from "packages/utils/date";
+import { asError } from "packages/utils/errorHandling/error";
+import { logError } from "packages/utils/errorHandling/logging";
+import { normalizeError } from "packages/utils/errorHandling/normalize";
+import type { AppError } from "packages/utils/errorHandling/types";
+import { getNavigator, getWindow } from "packages/utils/platform";
 
 import type { ClientErrorPayload } from "./reportClientErrors";
 import { clientErrorsApi } from "./reportClientErrors";
@@ -59,8 +58,7 @@ class ErrorReporter {
     if (this.isInitialized) return;
 
     try {
-      this.userId =
-        typeof config?.userId === "string" ? config.userId : undefined;
+      this.userId = typeof config?.userId === "string" ? config.userId : undefined;
 
       // In production, initialize Sentry or other error reporting service
       if (this.isProduction && typeof config?.dsn === "string") {
@@ -74,21 +72,13 @@ class ErrorReporter {
       if (log && typeof log.info === "function") {
         log.info("ERROR_REPORTER", "Error reporting initialized", {
           environment: this.isProduction ? "production" : "development",
-          buildVersion:
-            typeof this.buildVersion === "string"
-              ? this.buildVersion
-              : "unknown",
-          sessionId:
-            typeof this.sessionId === "string" ? this.sessionId : "unknown",
+          buildVersion: typeof this.buildVersion === "string" ? this.buildVersion : "unknown",
+          sessionId: typeof this.sessionId === "string" ? this.sessionId : "unknown",
         });
       }
     } catch (error: unknown) {
       if (log && typeof log.error === "function") {
-        log.error(
-          "ERROR_REPORTER",
-          "Failed to initialize error reporting",
-          error,
-        );
+        log.error("ERROR_REPORTER", "Failed to initialize error reporting", error);
       }
     }
   }
@@ -130,10 +120,7 @@ class ErrorReporter {
 
     // Handle unhandled promise rejections
     win.addEventListener("unhandledrejection", (event) => {
-      const error =
-        event.reason instanceof Error
-          ? event.reason
-          : new Error(String(event.reason));
+      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
       this.captureError(error, {
         type: "unhandled_promise_rejection",
         url: win.location.href,
@@ -143,9 +130,7 @@ class ErrorReporter {
     // Handle uncaught errors
     win.addEventListener("error", (event) => {
       const error =
-        event.error instanceof Error
-          ? event.error
-          : new Error(event.message || "Unknown error");
+        event.error instanceof Error ? event.error : new Error(event.message || "Unknown error");
       this.captureError(error, {
         type: "uncaught_error",
         url: win.location.href,
@@ -295,9 +280,7 @@ class ErrorReporter {
   /**
    * Build error context with environment info
    */
-  private buildErrorContext(
-    additionalContext?: Record<string, unknown>,
-  ): ErrorContext {
+  private buildErrorContext(additionalContext?: Record<string, unknown>): ErrorContext {
     const nav = getNavigator();
     const win = getWindow();
     return {
@@ -355,8 +338,7 @@ class ErrorReporter {
       };
 
       if (context.type) payload.type = String(context.type);
-      if (context.componentStack)
-        payload.componentStack = String(context.componentStack);
+      if (context.componentStack) payload.componentStack = String(context.componentStack);
       if (context.errorBoundary === true) payload.errorBoundary = true;
       if (context.routeError === true) payload.routeError = true;
       if (context.filename) payload.filename = String(context.filename);
@@ -393,11 +375,7 @@ class ErrorReporter {
   /**
    * Send user feedback to support system
    */
-  private sendUserFeedback(
-    message: string,
-    error: Error | undefined,
-    context: ErrorContext,
-  ): void {
+  private sendUserFeedback(message: string, error: Error | undefined, context: ErrorContext): void {
     try {
       // Placeholder for user feedback integration
       // This could integrate with support ticketing systems
@@ -433,26 +411,20 @@ export const errorReporter = new ErrorReporter();
  */
 export function reportErrorWithCapture(
   error: AppError | unknown,
-  context?: Record<string, unknown>,
+  context?: Record<string, unknown>
 ): void {
   const normalized =
-    typeof error === "object" &&
-    error !== null &&
-    "id" in error &&
-    "timestamp" in error
+    typeof error === "object" && error !== null && "id" in error && "timestamp" in error
       ? (error as AppError)
       : normalizeError(error, context);
   logError(normalized, context);
-  const errForCapture =
-    error instanceof Error ? error : new Error(normalized.message);
+  const errForCapture = error instanceof Error ? error : new Error(normalized.message);
   errorReporter.captureError(errForCapture, context);
 }
 
 // Convenience functions
-export const captureError = (
-  error: Error | string,
-  context?: Record<string, unknown>,
-) => errorReporter.captureError(error, context);
+export const captureError = (error: Error | string, context?: Record<string, unknown>) =>
+  errorReporter.captureError(error, context);
 
 export const reportSecurityEvent = (event: SecurityEvent) =>
   errorReporter.reportSecurityEvent(event);
@@ -460,24 +432,20 @@ export const reportSecurityEvent = (event: SecurityEvent) =>
 export const captureUserFeedback = (message: string, error?: Error) =>
   errorReporter.captureUserFeedback(message, error);
 
-export const setUserContext = (
-  userId: string,
-  userInfo?: Record<string, unknown>,
-) => errorReporter.setUserContext(userId, userInfo);
+export const setUserContext = (userId: string, userInfo?: Record<string, unknown>) =>
+  errorReporter.setUserContext(userId, userInfo);
 
 export const clearUserContext = () => errorReporter.clearUserContext();
 
 // Initialize error reporting
-export const initializeErrorReporting = (config?: {
-  userId?: string;
-  dsn?: string;
-}) => errorReporter.initialize(config);
+export const initializeErrorReporting = (config?: { userId?: string; dsn?: string }) =>
+  errorReporter.initialize(config);
 
 // React Error Boundary helper
 export class ErrorBoundary extends Error {
   constructor(
     message: string,
-    public componentStack?: string,
+    public componentStack?: string
   ) {
     super(message);
     this.name = "ErrorBoundary";

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { screenDown, screenUp } from "packages/schemas/app/ui/screens";
+import { screenDown, screenUp } from "packages/ui/types/screens";
 
 import { useMediaQuery } from "./useMediaQuery";
 
@@ -47,7 +47,7 @@ export function useResponsive(): ResponsiveState {
       isMobile: isMdDown,
       isDesktop: isMdUp,
     }),
-    [isLgDown, isLgUp, isMdDown, isMdUp, isSmDown, isSmUp, isXlUp, isXsDown],
+    [isLgDown, isLgUp, isMdDown, isMdUp, isSmDown, isSmUp, isXlUp, isXsDown]
   );
 }
 

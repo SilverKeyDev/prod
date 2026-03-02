@@ -24,7 +24,7 @@ Use scope `client` or `server` only when the user specifies (e.g. "client linter
    - **Server:** `ruff check . --fix`, then `ruff format .`
 
 2. **Linter phase (runs after fixes)**
-   - **Client:** typecheck, lint, format:check, lint:cycles, lint:parity, lint:platform-imports, audit, build:web.
+   - **Client:** typecheck, lint, format:check, lint:cycles, audit, build:web.
    - **Server:** each `Server/scripts/lint_*.py`, then `ruff check .`, `ruff format --check`, `pyright`.
 
 The script may install Client deps (`pnpm install` in Client) if `node_modules/.bin` is missing. It uses a Server venv if present (`.venv` or `venv` in Server).

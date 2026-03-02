@@ -1,10 +1,11 @@
 import { create } from "zustand";
 
-import { googleMapsService } from "packages/services/search/googleMaps";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/storage/platformStorage";
+
+import { googleMapsService } from "@/features/search/utils/googleMaps";
 
 // Global type declaration for Google Maps
 declare global {
@@ -57,10 +58,7 @@ const initialState = (): Omit<
   scriptUrl: null,
 });
 
-const baseCreator: import("zustand").StateCreator<GoogleMapsState> = (
-  set,
-  get,
-) => ({
+const baseCreator: import("zustand").StateCreator<GoogleMapsState> = (set, get) => ({
   ...initialState(),
 
   setLoaded: (loaded) => set({ isLoaded: loaded }),
@@ -78,7 +76,7 @@ const baseCreator: import("zustand").StateCreator<GoogleMapsState> = (
 
     try {
       await googleMapsService.loadGoogleMapsScript();
-      const serviceState = googleMapsService.getState();
+      const serviceState = googleMapsService.getLoaderState();
       set({
         isLoaded: serviceState.isLoaded,
         isLoading: serviceState.isLoading,
@@ -86,8 +84,7 @@ const baseCreator: import("zustand").StateCreator<GoogleMapsState> = (
         scriptUrl: serviceState.scriptUrl,
       });
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to load Google Maps";
+      const errorMessage = error instanceof Error ? error.message : "Failed to load Google Maps";
       set({ error: errorMessage, isLoading: false });
     }
   },
@@ -98,7 +95,7 @@ const baseCreator: import("zustand").StateCreator<GoogleMapsState> = (
   },
 
   getServiceState: () => {
-    return googleMapsService.getState();
+    return googleMapsService.getLoaderState();
   },
 
   // placeholder; overwritten by withResettable
@@ -122,7 +119,7 @@ const withReset = withResettable<GoogleMapsState>(baseCreator, (set, get) => ({
 
     try {
       await googleMapsService.loadGoogleMapsScript();
-      const serviceState = googleMapsService.getState();
+      const serviceState = googleMapsService.getLoaderState();
       set({
         isLoaded: serviceState.isLoaded,
         isLoading: serviceState.isLoading,
@@ -130,8 +127,7 @@ const withReset = withResettable<GoogleMapsState>(baseCreator, (set, get) => ({
         scriptUrl: serviceState.scriptUrl,
       });
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to load Google Maps";
+      const errorMessage = error instanceof Error ? error.message : "Failed to load Google Maps";
       set({ error: errorMessage, isLoading: false });
     }
   },
@@ -141,7 +137,7 @@ const withReset = withResettable<GoogleMapsState>(baseCreator, (set, get) => ({
   },
 
   getServiceState: () => {
-    return googleMapsService.getState();
+    return googleMapsService.getLoaderState();
   },
 
   reset: () => {},
@@ -160,7 +156,7 @@ const withPersist = persistSafe<GoogleMapsState>(withReset, {
 }) as unknown as import("zustand").StateCreator<GoogleMapsState>;
 
 const withDev = withDevtools<GoogleMapsState>("google-maps")(
-  withPersist,
+  withPersist
 ) as unknown as import("zustand").StateCreator<GoogleMapsState>;
 
 export const useGoogleMapsStore = create<GoogleMapsState>()(withDev);

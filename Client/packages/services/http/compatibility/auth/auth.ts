@@ -2,7 +2,7 @@
  * Auth and route helpers for the compatibility layer
  */
 
-import { getWindow } from "packages/utils/core/platform";
+import { getWindow } from "packages/utils/platform";
 
 export { createAuthHeaders } from "packages/services/http/client";
 

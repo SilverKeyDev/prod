@@ -1,25 +1,16 @@
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 
 import { Link, useLocation } from "react-router-dom";
 
-import type { UserProfile } from "packages/schemas/app/auth/user";
+import { SearchNavLink } from "packages/features/search";
 import { useNotificationStore } from "packages/store";
+import { Portal } from "packages/ui/components/portal";
+import { NotificationBadge } from "packages/ui/components/primitives/index.web";
 
-import {
-  SIDEBAR_TABS,
-  type SidebarTabKey,
-} from "@/app/layouts/sidebar/sidebarTabs.web";
-import { NotificationBadge } from "@/components/ui/index.web";
-import { SearchNavLink } from "@/features/search/index.web";
+import { SIDEBAR_TABS, type SidebarTabKey } from "@/app/layouts/sidebar/sidebarTabs.web";
+import type { UserProfile } from "@/features/homeauth/types";
 
-const BOTTOM_NAV_KEYS: SidebarTabKey[] = [
-  "dashboard",
-  "search",
-  "decide",
-  "agent",
-  "profile",
-];
+const BOTTOM_NAV_KEYS: SidebarTabKey[] = ["dashboard", "search", "decide", "agent", "profile"];
 const navItems = BOTTOM_NAV_KEYS.map((k) => SIDEBAR_TABS[k]);
 
 const BAR_CLASS =
@@ -41,12 +32,7 @@ type BottomNavItemsProps = {
   isLoaded: boolean;
 };
 
-function BottomNavItems({
-  items,
-  isActive,
-  unreadCount,
-  isLoaded,
-}: BottomNavItemsProps) {
+function BottomNavItems({ items, isActive, unreadCount, isLoaded }: BottomNavItemsProps) {
   return (
     <>
       {items.map((item) => {
@@ -55,10 +41,7 @@ function BottomNavItems({
         const content = (
           <>
             <div className="relative">
-              <Icon
-                className={iconClass(active)}
-                strokeWidth={active ? 2.5 : 2}
-              />
+              <Icon className={iconClass(active)} strokeWidth={active ? 2.5 : 2} />
               {item.key === "agent" && isLoaded && (
                 <NotificationBadge
                   count={unreadCount}
@@ -108,10 +91,9 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
   useEffect(() => setMounted(true), []);
 
   const isActive = (href: string) => {
-    const path = href.split("?")[0].split("#")[0];
-    return (
-      location.pathname === path || location.pathname.startsWith(path + "/")
-    );
+    const path = (href.split("?")[0] ?? "").split("#")[0] ?? "";
+    const currentPath = location?.pathname ?? "";
+    return currentPath === path || currentPath.startsWith(path + "/");
   };
 
   const nav = (
@@ -137,6 +119,6 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
     </nav>
   );
 
-  if (!mounted) return null;
-  return createPortal(nav, document.body);
+  if (!mounted || typeof document === "undefined") return null;
+  return <Portal>{nav}</Portal>;
 }

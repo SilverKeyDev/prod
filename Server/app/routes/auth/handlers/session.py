@@ -13,7 +13,7 @@ def refresh_token():
     request_id = generate_request_id("refresh_token")
     try:
         resp, status_code = handle_refresh_token(request_id)
-        return resp
+        return resp, status_code
     except Exception as e:
         current_app.logger.error(
             "AUTH_REFRESH_EXCEPTION",

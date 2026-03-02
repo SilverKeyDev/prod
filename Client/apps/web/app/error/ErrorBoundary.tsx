@@ -9,10 +9,11 @@ import { AlertTriangle, Home, MessageSquare, RefreshCw } from "lucide-react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
-import { normalizeError } from "packages/utils/core/errorHandling";
+import Button from "packages/ui/components/button/Button";
+import { BodyText, Title } from "packages/ui/components/index.web";
+import { normalizeError } from "packages/utils/errorHandling";
 
 import Card from "@/components/layout/Card.web";
-import Button from "@/components/ui/button/Button";
 
 type Props = {
   children: ReactNode;
@@ -56,10 +57,7 @@ function ErrorFallbackContent({
 }: ErrorFallbackContentProps) {
   return (
     <div className="px-responsive-lg py-responsive-lg flex min-h-screen items-center justify-center bg-off-white">
-      <Card
-        className="w-full max-w-2xl border-l-4 border-l-brown shadow-lg"
-        padding="lg"
-      >
+      <Card className="w-full max-w-2xl border-l-4 border-l-brown shadow-lg" padding="lg">
         <div className="text-center">
           <div className="mb-responsive-md flex justify-center">
             <div className="p-responsive-sm rounded-full bg-brown/10">
@@ -67,14 +65,14 @@ function ErrorFallbackContent({
             </div>
           </div>
 
-          <h1 className="heading-responsive-md mb-responsive-xs font-serif text-navy">
+          <Title size="xl" as="h1" className="mb-responsive-xs text-navy">
             Something went wrong
-          </h1>
+          </Title>
 
-          <p className="text-responsive-sm mb-responsive-md font-sans text-neutral-600">
-            We're sorry, but something unexpected happened. Our team has been
-            notified and we're working to resolve this issue.
-          </p>
+          <BodyText size="sm" muted className="mb-responsive-md">
+            We're sorry, but something unexpected happened. Our team has been notified and we're
+            working to resolve this issue.
+          </BodyText>
 
           <div className="gap-responsive-xs mb-responsive-md flex flex-col sm:flex-row">
             <Button
@@ -136,14 +134,10 @@ function ErrorDetailsSection({
         {showDetails ? "Hide" : "Show"} Error Details
       </Button>
       {showDetails && (
-        <Card
-          className="mb-responsive-sm border-neutral-200 bg-neutral-50"
-          padding="sm"
-        >
+        <Card className="mb-responsive-sm border-neutral-200 bg-neutral-50" padding="sm">
           <div className="text-responsive-xs font-mono text-neutral-700">
             <div className="mb-responsive-xs">
-              <strong className="text-navy">Error:</strong>{" "}
-              {normalizedError.message}
+              <strong className="text-navy">Error:</strong> {normalizedError.message}
             </div>
             {normalizedError.stack && (
               <div className="mb-responsive-xs">
@@ -184,9 +178,9 @@ function ErrorFeedbackSection({
       <div className="space-responsive-xs flex items-start">
         <MessageSquare className="mobile-icon-sm mt-0.5 flex-shrink-0 text-olive" />
         <div className="flex-1">
-          <h3 className="text-responsive-sm mb-responsive-xs font-serif font-semibold text-navy">
+          <Title size="sm" as="h3" className="mb-responsive-xs text-navy">
             Help us improve
-          </h3>
+          </Title>
           {!feedbackSubmitted ? (
             <div>
               <textarea
@@ -207,9 +201,9 @@ function ErrorFeedbackSection({
               </Button>
             </div>
           ) : (
-            <p className="text-responsive-xs font-sans text-olive">
+            <BodyText size="xs" className="text-olive">
               Thank you for your feedback! This helps us fix the issue.
-            </p>
+            </BodyText>
           )}
         </div>
       </div>
@@ -305,9 +299,7 @@ export class ErrorBoundary extends Component<Props, State> {
           feedbackMessage={this.state.feedbackMessage}
           feedbackSubmitted={this.state.feedbackSubmitted}
           onToggleDetails={this.handleToggleDetails}
-          onFeedbackMessageChange={(value) =>
-            this.setState({ feedbackMessage: value })
-          }
+          onFeedbackMessageChange={(value) => this.setState({ feedbackMessage: value })}
           onFeedbackSubmit={this.handleFeedbackSubmit}
           onRetry={this.handleRetry}
           onGoHome={this.handleGoHome}

@@ -8,10 +8,11 @@ import { type ReactNode } from "react";
 
 import { Loader2, Lock, LogIn } from "lucide-react";
 
-import { useAuthStoreIntegration } from "packages/hooks/store/auth/useAuthStoreIntegration";
+import Button from "packages/ui/components/button/Button";
+import { BodyText, Title } from "packages/ui/components/index.web";
 
 import Card from "@/components/layout/Card.web";
-import Button from "@/components/ui/button/Button";
+import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 
 type AuthGuardProps = {
   children: ReactNode;
@@ -38,7 +39,9 @@ export function AuthGuard({
           <Card className="w-full max-w-sm" padding="lg">
             <div className="text-center">
               <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-brand-accent" />
-              <p className="text-gray-600">Checking authentication...</p>
+              <BodyText size="sm" muted>
+                Checking authentication...
+              </BodyText>
             </div>
           </Card>
         </div>
@@ -52,10 +55,7 @@ export function AuthGuard({
     return (
       fallback ?? (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-          <Card
-            className="w-full max-w-md border-l-4 border-l-brand-accent"
-            padding="lg"
-          >
+          <Card className="w-full max-w-md border-l-4 border-l-brand-accent" padding="lg">
             <div className="text-center">
               <div className="mb-4 flex justify-center">
                 <div className="rounded-full bg-brand-accent/10 p-3">
@@ -63,13 +63,13 @@ export function AuthGuard({
                 </div>
               </div>
 
-              <h2 className="mb-2 text-xl font-semibold text-gray-900">
+              <Title size="lg" as="h2" className="mb-2">
                 Authentication Required
-              </h2>
+              </Title>
 
-              <p className="mb-6 text-gray-600">
+              <BodyText size="sm" muted className="mb-6">
                 You need to be logged in to access this page.
-              </p>
+              </BodyText>
 
               <Button
                 variant="primary"

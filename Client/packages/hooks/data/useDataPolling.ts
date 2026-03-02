@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { log, LOG_CATEGORIES } from "logger";
 
 import type { AgentConversation } from "packages/config/api";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { useInRouterContext, useNavigation } from "packages/navigation";
 import { useNotificationStore } from "packages/store";
 import { useAuthStore } from "packages/store";
-import { dateNow } from "packages/utils/core/date";
-import { getDocument, getWindow } from "packages/utils/core/platform";
+import { dateNow } from "packages/utils/date";
+import { getDocument, getWindow } from "packages/utils/platform";
 
 import {
   runCheckForNewMessages,
@@ -40,11 +40,7 @@ export function useDataPolling() {
   // Use window.location as fallback if router context isn't available yet
   // This ensures we have a valid pathname even during initial render/hydration
   const winForPath = getWindow();
-  const pathname = inRouter
-    ? route.pathname
-    : winForPath
-      ? winForPath.location.pathname
-      : "/";
+  const pathname = inRouter ? route.pathname : winForPath ? winForPath.location.pathname : "/";
 
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -52,15 +48,11 @@ export function useDataPolling() {
 
   // Use selectors to get store actions - these are stable references
   // IMPORTANT: All hooks must be called unconditionally to maintain hook order
-  const incrementUnreadCount = useNotificationStore(
-    (s) => s.incrementUnreadCount,
-  );
+  const incrementUnreadCount = useNotificationStore((s) => s.incrementUnreadCount);
   const updateLastSeenMessageTimestamp = useNotificationStore(
-    (s) => s.updateLastSeenMessageTimestamp,
+    (s) => s.updateLastSeenMessageTimestamp
   );
-  const setTotalUnreadCount = useNotificationStore(
-    (s) => s.setTotalUnreadCount,
-  );
+  const setTotalUnreadCount = useNotificationStore((s) => s.setTotalUnreadCount);
 
   // Use refs to track values that change frequently to avoid infinite loops
   // We'll access store values directly inside the callback instead of including them in dependencies
@@ -89,15 +81,11 @@ export function useDataPolling() {
     if (!inRouter && windowRef && doc?.readyState === "complete") {
       // Only log if page is fully loaded (not during hydration)
       // This is a timing issue that should resolve on the next render
-      log.warn(
-        LOG_CATEGORIES.POLLING,
-        "Router context check failed, but location is available",
-        {
-          href: windowRef.location.href,
-          hasLocation: !!location,
-          timestamp: dateNow().toISOString(),
-        },
-      );
+      log.warn(LOG_CATEGORIES.POLLING, "Router context check failed, but location is available", {
+        href: windowRef.location.href,
+        hasLocation: !!location,
+        timestamp: dateNow().toISOString(),
+      });
     }
     // location is from useLocation(); effect only logs when inRouter is false
   }, [inRouter]);
@@ -114,9 +102,7 @@ export function useDataPolling() {
       return POLLING_INTERVALS.HIDDEN;
     }
 
-    return isOnMessagingPage
-      ? POLLING_INTERVALS.ACTIVE_PAGE
-      : POLLING_INTERVALS.OTHER_PAGE;
+    return isOnMessagingPage ? POLLING_INTERVALS.ACTIVE_PAGE : POLLING_INTERVALS.OTHER_PAGE;
   }, [isOnMessagingPage]);
 
   const checkForNewMessages = useCallback(async () => {
@@ -144,7 +130,6 @@ export function useDataPolling() {
       inRouter,
       authReady,
       isAuthenticated,
-      route,
       pathname,
       isOnMessagingPage,
       getPollingInterval,
@@ -160,7 +145,6 @@ export function useDataPolling() {
     checkForNewMessages,
     getPollingInterval,
     pathname,
-    route,
     inRouter,
   ]);
 

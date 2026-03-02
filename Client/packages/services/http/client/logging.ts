@@ -1,4 +1,4 @@
-import { API_SUBCATEGORIES, log, LOG_CATEGORIES } from "logger";
+import { API_SUBCATEGORIES, log, LOG_CATEGORIES } from "packages/logger";
 
 const POLLING_ENDPOINTS = [
   "/api/v1/agent/notification-counter",
@@ -13,7 +13,7 @@ export function isPollingEndpoint(url: string): boolean {
 }
 
 export function getApiSubcategory(
-  url: string,
+  url: string
 ): (typeof API_SUBCATEGORIES)[keyof typeof API_SUBCATEGORIES] | undefined {
   if (isPollingEndpoint(url)) {
     return API_SUBCATEGORIES.POLLING;
@@ -23,10 +23,7 @@ export function getApiSubcategory(
 
 function sanitizeUrlForLog(url: string): string {
   return url
-    .replace(
-      /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
-      "/:id",
-    )
+    .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
     .replace(/\/\d+/g, "/:id");
 }
 
@@ -34,12 +31,7 @@ export function logApiRequest(method: string, url: string): void {
   const sanitizedUrl = sanitizeUrlForLog(url);
   const apiSubcategory = getApiSubcategory(url);
   if (apiSubcategory) {
-    log.info(
-      LOG_CATEGORIES.API,
-      `${method} ${sanitizedUrl}`,
-      undefined,
-      apiSubcategory,
-    );
+    log.info(LOG_CATEGORIES.API, `${method} ${sanitizedUrl}`, undefined, apiSubcategory);
   } else {
     log.info(LOG_CATEGORIES.HTTP, `${method} ${sanitizedUrl}`);
   }
@@ -49,7 +41,7 @@ export function logApiResponse(
   method: string,
   url: string,
   status: number,
-  duration?: number,
+  duration?: number
 ): void {
   const sanitizedUrl = sanitizeUrlForLog(url);
   const durationText = duration ? ` (${duration}ms)` : "";
@@ -59,12 +51,9 @@ export function logApiResponse(
       LOG_CATEGORIES.API,
       `${method} ${sanitizedUrl} - ${status}${durationText}`,
       undefined,
-      apiSubcategory,
+      apiSubcategory
     );
   } else {
-    log.info(
-      LOG_CATEGORIES.HTTP,
-      `${method} ${sanitizedUrl} - ${status}${durationText}`,
-    );
+    log.info(LOG_CATEGORIES.HTTP, `${method} ${sanitizedUrl} - ${status}${durationText}`);
   }
 }

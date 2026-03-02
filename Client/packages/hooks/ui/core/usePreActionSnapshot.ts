@@ -17,9 +17,7 @@ export type UsePreActionSnapshotReturn<T> = {
  * Saves to both in-memory ref (fast restore) and sessionStorage (resilience).
  * Use before starting an action that may be cancelled; call restore on cancel.
  */
-export function usePreActionSnapshot<T>(
-  key: string,
-): UsePreActionSnapshotReturn<T> {
+export function usePreActionSnapshot<T>(key: string): UsePreActionSnapshotReturn<T> {
   const ref = useRef<T | null>(null);
 
   const snapshot = useCallback(
@@ -27,7 +25,7 @@ export function usePreActionSnapshot<T>(
       ref.current = value;
       setToSessionStorage(key, value);
     },
-    [key],
+    [key]
   );
 
   const restore = useCallback((): T | null => {

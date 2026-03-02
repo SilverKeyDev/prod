@@ -22,7 +22,7 @@ run_client() {
   echo "==> Client: applying fixes (format, lint --fix)..."
   (cd Client && pnpm run fix) || true
 
-  echo "==> Client: running linters (typecheck, lint, format:check, cycles, parity, platform-imports, audit, build)..."
+  echo "==> Client: running linters (typecheck, lint, format:check, cycles, audit, build)..."
   (cd Client && pnpm run check)
 }
 

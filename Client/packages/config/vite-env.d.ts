@@ -1,6 +1,10 @@
 /// <reference types="vite/client" />
 /// <reference types="google.maps" />
 
+/**
+ * Vite client types. App env is read via process.env in packages/config/env.ts;
+ * Vite injects values at build time via define in vite.config.ts (no import.meta in shared packages).
+ */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ImportMetaEnv = {
   // Third-party Services

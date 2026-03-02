@@ -1,9 +1,10 @@
-import { log, LOG_CATEGORIES } from "logger";
 import type React from "react";
 
-import { googleMapsService } from "packages/services/search/googleMaps";
-import { dateNow } from "packages/utils/core/date";
-import { getWindow } from "packages/utils/core/platform";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { dateNow } from "packages/utils/date";
+import { getWindow } from "packages/utils/platform";
+
+import { googleMapsService } from "@/features/search/utils/googleMaps";
 
 type MemoryStatsRef = React.MutableRefObject<{
   markers: number;
@@ -13,13 +14,11 @@ type MemoryStatsRef = React.MutableRefObject<{
 }>;
 
 export function clearMarkers(
-  markersRef:
-    | React.MutableRefObject<google.maps.marker.AdvancedMarkerElement[]>
-    | undefined,
+  markersRef: React.MutableRefObject<google.maps.marker.AdvancedMarkerElement[]> | undefined,
   importantMarkersRef:
     | React.MutableRefObject<google.maps.marker.AdvancedMarkerElement[]>
     | undefined,
-  memoryStatsRef: MemoryStatsRef,
+  memoryStatsRef: MemoryStatsRef
 ) {
   log.debug(LOG_CATEGORIES.MAP_RENDERING, "Starting marker cleanup", {
     markersCount: markersRef?.current?.length || 0,
@@ -53,18 +52,15 @@ export function clearMarkers(
       try {
         if (marker && typeof marker === "object" && "map" in marker) {
           (marker as { map: google.maps.Map | null }).map = null;
-          log.debug(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Cleaned up important marker",
-            { index: index + 1 },
-          );
+          log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleaned up important marker", {
+            index: index + 1,
+          });
         }
       } catch (error) {
-        log.warn(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Error cleaning up important marker",
-          { index: index + 1, error },
-        );
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Error cleaning up important marker", {
+          index: index + 1,
+          error,
+        });
       }
     });
     importantMarkersRef.current = [];
@@ -74,7 +70,7 @@ export function clearMarkers(
 
 export function clearOverlays(
   overlaysRef: React.MutableRefObject<google.maps.OverlayView[]> | undefined,
-  memoryStatsRef: MemoryStatsRef,
+  memoryStatsRef: MemoryStatsRef
 ) {
   log.debug(LOG_CATEGORIES.MAP_RENDERING, "Starting overlay cleanup", {
     overlaysCount: overlaysRef?.current?.length || 0,
@@ -85,9 +81,7 @@ export function clearOverlays(
     overlaysRef.current.forEach((overlay, index) => {
       try {
         if (overlay && typeof overlay === "object" && "setMap" in overlay) {
-          (overlay as { setMap: (map: google.maps.Map | null) => void }).setMap(
-            null,
-          );
+          (overlay as { setMap: (map: google.maps.Map | null) => void }).setMap(null);
           log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleaned up overlay", {
             index: index + 1,
           });
@@ -107,10 +101,8 @@ export function clearOverlays(
 
 export function clearPolygons(
   polygonsRef: React.MutableRefObject<google.maps.Polygon[]> | undefined,
-  individualPolygonsRef:
-    | React.MutableRefObject<google.maps.Polygon[]>
-    | undefined,
-  memoryStatsRef: MemoryStatsRef,
+  individualPolygonsRef: React.MutableRefObject<google.maps.Polygon[]> | undefined,
+  memoryStatsRef: MemoryStatsRef
 ) {
   log.debug(LOG_CATEGORIES.MAP_RENDERING, "Starting polygon cleanup", {
     polygonsCount: polygonsRef?.current?.length || 0,
@@ -122,9 +114,7 @@ export function clearPolygons(
     polygonsRef.current.forEach((polygon, index) => {
       try {
         if (polygon && typeof polygon === "object" && "setMap" in polygon) {
-          (polygon as { setMap: (map: google.maps.Map | null) => void }).setMap(
-            null,
-          );
+          (polygon as { setMap: (map: google.maps.Map | null) => void }).setMap(null);
           log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleaned up polygon", {
             index: index + 1,
           });
@@ -144,28 +134,20 @@ export function clearPolygons(
     individualPolygonsRef.current.forEach((polygon, index) => {
       try {
         if (polygon && typeof polygon === "object" && "setMap" in polygon) {
-          (polygon as { setMap: (map: google.maps.Map | null) => void }).setMap(
-            null,
-          );
-          log.debug(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Cleaned up individual polygon",
-            { index: index + 1 },
-          );
+          (polygon as { setMap: (map: google.maps.Map | null) => void }).setMap(null);
+          log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleaned up individual polygon", {
+            index: index + 1,
+          });
         }
       } catch (error) {
-        log.warn(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Error cleaning up individual polygon",
-          { index: index + 1, error },
-        );
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Error cleaning up individual polygon", {
+          index: index + 1,
+          error,
+        });
       }
     });
     individualPolygonsRef.current = [];
-    log.debug(
-      LOG_CATEGORIES.MAP_RENDERING,
-      "All individual polygons cleaned up",
-    );
+    log.debug(LOG_CATEGORIES.MAP_RENDERING, "All individual polygons cleaned up");
   }
 
   memoryStatsRef.current.polygons = 0;
@@ -176,7 +158,7 @@ export function runFullMapCleanup(
   cleanupMarkers: () => void,
   cleanupOverlays: () => void,
   cleanupPolygons: () => void,
-  memoryStatsRef: MemoryStatsRef,
+  memoryStatsRef: MemoryStatsRef
 ) {
   log.debug(LOG_CATEGORIES.MAP_RENDERING, "Starting complete map cleanup", {
     hasMapInstance: !!googleMapRef.current,
@@ -190,20 +172,13 @@ export function runFullMapCleanup(
 
   if (googleMapRef.current) {
     try {
-      log.debug(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Clearing map instance and event listeners",
-      );
+      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Clearing map instance and event listeners");
       googleMapsService.cleanupMapInstance(googleMapRef.current);
       log.debug(LOG_CATEGORIES.MAP_RENDERING, "Used service cleanup method");
       googleMapRef.current = null;
       log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleared map reference");
     } catch (error) {
-      log.warn(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Error clearing map reference",
-        error,
-      );
+      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Error clearing map reference", error);
     }
   } else {
     log.debug(LOG_CATEGORIES.MAP_RENDERING, "No map instance to clear");
@@ -222,16 +197,9 @@ export function forceGCHelper(): void {
       win.gc?.();
       log.debug(LOG_CATEGORIES.MAP_RENDERING, "Forced garbage collection");
     } catch (error) {
-      log.warn(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Garbage collection not available",
-        error,
-      );
+      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Garbage collection not available", error);
     }
   } else {
-    log.warn(
-      LOG_CATEGORIES.MAP_RENDERING,
-      "Garbage collection not available in this environment",
-    );
+    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Garbage collection not available in this environment");
   }
 }

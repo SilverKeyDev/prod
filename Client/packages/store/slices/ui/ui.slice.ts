@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 type ToastType = "success" | "error" | "info" | "warning";
 
@@ -68,13 +68,11 @@ const baseCreator: import("zustand").StateCreator<UIState> = (set) => ({
 
   openModal: () => set({ isAnyModalOpen: true }),
   closeModal: () => set({ isAnyModalOpen: false }),
-  toggleModal: () =>
-    set((s: UIState) => ({ isAnyModalOpen: !s.isAnyModalOpen })),
+  toggleModal: () => set((s: UIState) => ({ isAnyModalOpen: !s.isAnyModalOpen })),
 
   openDrawer: () => set({ isAnyDrawerOpen: true }),
   closeDrawer: () => set({ isAnyDrawerOpen: false }),
-  toggleDrawer: () =>
-    set((s: UIState) => ({ isAnyDrawerOpen: !s.isAnyDrawerOpen })),
+  toggleDrawer: () => set((s: UIState) => ({ isAnyDrawerOpen: !s.isAnyDrawerOpen })),
 
   setGlobalLoading: (loading) => set({ isGlobalLoading: loading }),
   setCarouselCollapsed: (collapsed) => set({ isCarouselCollapsed: collapsed }),
@@ -82,8 +80,7 @@ const baseCreator: import("zustand").StateCreator<UIState> = (set) => ({
 
   enqueueToast: (toast) =>
     set((state: UIState) => {
-      const id =
-        toast.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const id = toast.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const nextQueue = [
         ...state.toastQueue,
         {
@@ -118,19 +115,16 @@ const withReset = withResettable<UIState>(baseCreator, (set) => ({
   ...initialState(),
   openModal: () => set({ isAnyModalOpen: true }),
   closeModal: () => set({ isAnyModalOpen: false }),
-  toggleModal: () =>
-    set((s: UIState) => ({ isAnyModalOpen: !s.isAnyModalOpen })),
+  toggleModal: () => set((s: UIState) => ({ isAnyModalOpen: !s.isAnyModalOpen })),
   openDrawer: () => set({ isAnyDrawerOpen: true }),
   closeDrawer: () => set({ isAnyDrawerOpen: false }),
-  toggleDrawer: () =>
-    set((s: UIState) => ({ isAnyDrawerOpen: !s.isAnyDrawerOpen })),
+  toggleDrawer: () => set((s: UIState) => ({ isAnyDrawerOpen: !s.isAnyDrawerOpen })),
   setGlobalLoading: (loading) => set({ isGlobalLoading: loading }),
   setCarouselCollapsed: (collapsed) => set({ isCarouselCollapsed: collapsed }),
   setShowPropertyModals: (show) => set({ showPropertyModals: show }),
   enqueueToast: (toast) =>
     set((state: UIState) => {
-      const id =
-        toast.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const id = toast.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const nextQueue = [
         ...state.toastQueue,
         {
@@ -211,7 +205,7 @@ const withPersist = persistSafe<UIState>(withReset, {
 }) as unknown as import("zustand").StateCreator<UIState>;
 
 const withDev = withDevtools<UIState>("ui")(
-  withPersist,
+  withPersist
 ) as unknown as import("zustand").StateCreator<UIState>;
 
 export const useUIStore = create<UIState>()(withDev);

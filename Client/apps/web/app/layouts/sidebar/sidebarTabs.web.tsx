@@ -1,18 +1,6 @@
-import {
-  Bookmark,
-  Home,
-  type LucideIcon,
-  Search,
-  Send,
-  User,
-} from "lucide-react";
+import { Bookmark, Home, type LucideIcon, Search, Send, User } from "lucide-react";
 
-export type SidebarTabKey =
-  | "dashboard"
-  | "search"
-  | "decide"
-  | "profile"
-  | "agent";
+export type SidebarTabKey = "dashboard" | "search" | "decide" | "profile" | "agent";
 
 export type SidebarSubStep = {
   label: string;

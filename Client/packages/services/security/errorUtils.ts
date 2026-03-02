@@ -3,9 +3,9 @@
  * Consolidates error context building and serialization from reports.ts and errorReporting.ts
  */
 
-import { dateNow } from "packages/utils/core/date";
-import { getNavigator, getWindow } from "packages/utils/core/platform";
-import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
+import { dateNow } from "packages/utils/date";
+import { getNavigator, getWindow } from "packages/utils/platform";
+import { getSessionStorage } from "packages/utils/storage/platformStorage";
 
 import { redactErrorMessage, scrubPII } from "./piiSecurity";
 
@@ -51,9 +51,7 @@ export function createErrorContext(options: {
     additionalData: (() => {
       if (!options.additionalData) return undefined;
       const scrubbed = scrubPII(options.additionalData);
-      return scrubbed &&
-        typeof scrubbed === "object" &&
-        !Array.isArray(scrubbed)
+      return scrubbed && typeof scrubbed === "object" && !Array.isArray(scrubbed)
         ? (scrubbed as Record<string, unknown>)
         : undefined;
     })(),
@@ -74,24 +72,16 @@ export function serializeError(error: unknown): SerializedError {
   const errorObj = error as Record<string, unknown>;
   const serialized: SerializedError = {
     name:
-      (typeof errorObj.name === "string"
-        ? errorObj.name
-        : errorObj.constructor?.name) ?? "Error",
+      (typeof errorObj.name === "string" ? errorObj.name : errorObj.constructor?.name) ?? "Error",
     message: redactErrorMessage(
       typeof errorObj.message === "string"
         ? errorObj.message
         : errorObj.message != null
           ? (() => {
               try {
-                if (
-                  typeof errorObj.message === "object" &&
-                  errorObj.message !== null
-                ) {
+                if (typeof errorObj.message === "object" && errorObj.message !== null) {
                   // Try to extract meaningful information from the object
-                  const messageObj = errorObj.message as Record<
-                    string,
-                    unknown
-                  >;
+                  const messageObj = errorObj.message as Record<string, unknown>;
                   if (typeof messageObj.message === "string") {
                     return messageObj.message;
                   }
@@ -106,10 +96,7 @@ export function serializeError(error: unknown): SerializedError {
                 if (typeof errorObj.message === "string") {
                   return errorObj.message;
                 }
-                if (
-                  typeof errorObj.message === "number" ||
-                  typeof errorObj.message === "boolean"
-                ) {
+                if (typeof errorObj.message === "number" || typeof errorObj.message === "boolean") {
                   return String(errorObj.message);
                 }
                 return "[Unknown]";
@@ -117,7 +104,7 @@ export function serializeError(error: unknown): SerializedError {
                 return "[Unknown]";
               }
             })()
-          : "Unknown error",
+          : "Unknown error"
     ),
   };
 
@@ -145,7 +132,7 @@ export function serializeError(error: unknown): SerializedError {
  */
 export function createErrorReport(
   error: unknown,
-  context: Partial<ErrorContext> = {},
+  context: Partial<ErrorContext> = {}
 ): {
   error: SerializedError;
   context: ErrorContext;
@@ -176,8 +163,7 @@ export function extractErrorMessage(error: unknown): string {
     }
   }
 
-  if (typeof errorObj.statusText === "string")
-    return redactErrorMessage(errorObj.statusText);
+  if (typeof errorObj.statusText === "string") return redactErrorMessage(errorObj.statusText);
 
   return redactErrorMessage(
     typeof errorObj.message === "string"
@@ -185,10 +171,7 @@ export function extractErrorMessage(error: unknown): string {
       : errorObj.message != null
         ? (() => {
             try {
-              if (
-                typeof errorObj.message === "object" &&
-                errorObj.message !== null
-              ) {
+              if (typeof errorObj.message === "object" && errorObj.message !== null) {
                 // Try to extract meaningful information from the object
                 const messageObj = errorObj.message as Record<string, unknown>;
                 if (typeof messageObj.message === "string") {
@@ -205,10 +188,7 @@ export function extractErrorMessage(error: unknown): string {
               if (typeof errorObj.message === "string") {
                 return errorObj.message;
               }
-              if (
-                typeof errorObj.message === "number" ||
-                typeof errorObj.message === "boolean"
-              ) {
+              if (typeof errorObj.message === "number" || typeof errorObj.message === "boolean") {
                 return String(errorObj.message);
               }
               return "[Unknown]";
@@ -216,7 +196,7 @@ export function extractErrorMessage(error: unknown): string {
               return "[Unknown]";
             }
           })()
-        : "Unknown error",
+        : "Unknown error"
   );
 }
 
@@ -255,13 +235,7 @@ export function isAuthError(error: unknown): boolean {
   if (status === 401 || status === 403) return true;
 
   const message = extractErrorMessage(error).toLowerCase();
-  const authIndicators = [
-    "unauthorized",
-    "forbidden",
-    "authentication",
-    "token",
-    "login",
-  ];
+  const authIndicators = ["unauthorized", "forbidden", "authentication", "token", "login"];
 
   return authIndicators.some((indicator) => message.includes(indicator));
 }

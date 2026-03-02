@@ -15,18 +15,10 @@ export {
 } from "packages/config/auth";
 
 // Legacy auth utilities (deprecated - use AuthService instead)
-export {
-  clearAuthTokens,
-  getAuthToken,
-  hasValidAuthToken,
-} from "packages/utils";
+export { clearAuthTokens, getAuthToken, hasValidAuthToken } from "packages/utils";
 
 // HTTP Services
-export {
-  configureHttpClient,
-  getHttpClientConfig,
-  httpClient,
-} from "./http/config";
+export { configureHttpClient, getHttpClientConfig, httpClient } from "./http/config";
 export { getBaseUrl } from "packages/config";
 
 // Security Services
@@ -56,27 +48,27 @@ export { secureLogger } from "./security/secureLogger";
 // Report Services
 
 // Google Maps Services
-export { GoogleMapsService, googleMapsService } from "./search/googleMaps";
+export { GoogleMapsService, googleMapsService } from "packages/features/search/utils/googleMaps";
 
 // Negotiation Services
-export { NegotiationService, negotiationService } from "./negotiation";
+export { NegotiationService, negotiationService } from "packages/features/negotiate/utils";
 
-// Reports Services
-export { ReportsService, reportsService } from "./reports";
+// Reports Services - TODO: restore when ReportsService is implemented under packages/services or features
+// export { ReportsService, reportsService } from "./reports";
 
 // SavedHomes Services
-export { SavedHomesService, savedHomesService } from "./search/savedHomes";
+export { SavedHomesService, savedHomesService } from "packages/features/search/api/savedHomes";
 
 // Agent Services
-export { AgentService, agentService } from "./agent/agent";
+export { AgentService, agentService } from "packages/features/agent/utils/agent";
 
 // Document Services
-export { DocumentService, documentService } from "./documents";
+export { DocumentService, documentService } from "packages/features/documents/api/documentService";
 
 // Type exports for consumers
+export type { ErrorContext, SerializedError } from "./security/errorUtils";
 export type {
   NegotiationServiceCallbacks,
   NegotiationState,
-} from "./negotiation";
-export type { ErrorContext, SerializedError } from "./security/errorUtils";
+} from "packages/features/negotiate/utils";
 // Note: Reports and SavedHomes no longer export state/callback types; state is managed elsewhere

@@ -1,0 +1,505 @@
+/* Google Maps UI element hiding */
+.gm-style-cc,
+.gm-style .gm-style-cc,
+.gm-style-mtc,
+.gm-bundled-control,
+.gm-control-active,
+.gmnoprint,
+.gm-style .gmnoprint,
+.gm-style-pbc,
+.gm-style .gm-style-pbc,
+.gm-style .gm-svpc,
+.gm-style-pbt,
+.gm-style .gm-style-pbt,
+.gm-style .gm-style-pdt,
+.gm-style-pdt,
+.gm-style .gm-style-pdt > div,
+.gm-style-pdt > div,
+.gm-style .gm-style-pdt > div > div,
+.gm-style-pdt > div > div,
+.gm-style .gm-style-pdt > div > div > div,
+.gm-style-pdt > div > div > div,
+.gm-style .gm-style-pdt > div > div > div > div,
+.gm-style-pdt > div > div > div > div,
+.gm-style .gm-style-pdt > div > div > div > div > div,
+.gm-style-pdt > div > div > div > div > div,
+.gm-style .gm-style-pdt > div > div > div > div > div > div,
+.gm-style-pdt > div > div > div > div > div > div,
+.gm-style .gm-style-pdt > div > div > div > div > div > div > div,
+.gm-style-pdt > div > div > div > div > div > div > div,
+.gm-style .gm-style-pdt > div > div > div > div > div > div > div > div,
+.gm-style-pdt > div > div > div > div > div > div > div > div,
+.gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div,
+.gm-style-pdt > div > div > div > div > div > div > div > div > div,
+.gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div,
+.gm-style-pdt > div > div > div > div > div > div > div > div > div > div,
+.gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div,
+.gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div,
+.gm-style .gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div,
+.gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt > div > div > div > div > div > div > div > div > div > div > div > div > div > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style
+  .gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div,
+.gm-style-pdt
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div
+  > div {
+  display: none !important;
+}
+
+/* Hide pegman (street view guy) */
+.gm-svpc,
+.gm-style .gm-svpc {
+  display: none !important;
+}
+
+/* Additional cleanup for any remaining UI elements */
+.gm-style > div:last-child {
+  display: none !important;
+}

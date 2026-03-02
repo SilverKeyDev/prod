@@ -1,0 +1,221 @@
+import { apiDelete, apiGet, apiHead, apiPost } from "packages/services/http/compatibility";
+import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
+import { captureError } from "packages/services/security/errorReporting";
+import { log } from "packages/services/security/secureLogger";
+import { asError, getNavigator } from "packages/utils";
+
+// Types for report API
+export type GenerateReportRequest = {
+  address: string;
+  user_id?: string; // For agent client selection
+  marketing_model?: boolean;
+};
+
+export type ReportDocument = {
+  id: string;
+  user_id: string;
+  filename: string;
+  file_path: string;
+  created_at: string;
+  updated_at: string;
+  status: "generating" | "completed" | "error" | "processed";
+  address?: string;
+  document_type?: string;
+  event_type?: "listed" | "price_change" | "sold" | "withdrawn" | null;
+};
+
+export type GenerateReportResponse = {
+  success: boolean;
+  document_id?: string;
+  message?: string;
+  error?: string;
+};
+
+export type ReportsListResponse = {
+  success: boolean;
+  reports?: ReportDocument[];
+  message?: string;
+  error?: string;
+};
+
+export type PollReportResponse = {
+  success: boolean;
+  report?: ReportDocument;
+  error?: string;
+};
+
+export type DownloadUrlResponse = {
+  success: boolean;
+  downloadUrl?: string;
+  expires_at?: string;
+  error?: string;
+};
+
+export type ViewUrlResponse = {
+  success: boolean;
+  viewUrl?: string;
+  expires_at?: string;
+  error?: string;
+};
+
+export type CompareReportsRequest = {
+  report_ids: string[];
+  s3Keys?: string[];
+};
+
+export type CompareReportsResponse = {
+  success: boolean;
+  comparison_data?: unknown;
+  table?: unknown;
+  error?: string;
+};
+
+export type DeleteReportResponse = {
+  success: boolean;
+  message?: string;
+  error?: string;
+};
+
+/**
+ * Report API client using centralized utilities
+ */
+export const reportApi = {
+  /**
+   * List all reports
+   */
+  list: (): Promise<ReportsListResponse> => apiGet<ReportsListResponse>("/api/v1/report/list"),
+
+  /**
+   * Poll for a specific report's status by document ID
+   */
+  poll: (documentId: string): Promise<PollReportResponse> =>
+    apiGet<PollReportResponse>(`/api/v1/report/poll/${documentId}`),
+
+  /**
+   * Get almost all reports (alternative endpoint)
+   */
+  getAlmostAll: (): Promise<ReportsListResponse> =>
+    apiGet<ReportsListResponse>("/api/v1/report/almostall"),
+
+  /**
+   * Get download URL for a specific report
+   */
+  getDownloadUrl: (reportId: string): Promise<DownloadUrlResponse> =>
+    apiGet<DownloadUrlResponse>(`/api/v1/report/${reportId}/download-url`),
+
+  /**
+   * Get view URL for a specific report (inline viewing)
+   */
+  getViewUrl: (reportId: string): Promise<ViewUrlResponse> =>
+    apiGet<ViewUrlResponse>(`/api/v1/report/${reportId}/view-url`),
+
+  /**
+   * HEAD request to check view endpoint (for diagnostics: headers, status)
+   */
+  checkViewUrl: (reportId: string) => apiHead(`/api/v1/report/${reportId}/view`),
+
+  /**
+   * Share document using Web Share API or fallback to URL sharing
+   */
+  shareDocument: async (
+    documentId: string,
+    documentName: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      // Get a fresh view URL for sharing
+      const viewResponse = await reportApi.getViewUrl(documentId);
+      if (!viewResponse.success || !viewResponse.viewUrl) {
+        return { success: false, message: "Unable to generate shareable link" };
+      }
+
+      const shareTitle = `Property Report - ${documentName.replace(/_/g, " ").slice(0, -18).trim()}`;
+      const shareUrl = viewResponse.viewUrl;
+
+      // Try Web Share API first (mobile/modern browsers). RN-safe via platform adapter.
+      const nav = getNavigator();
+      if (nav?.share) {
+        try {
+          await nav.share({
+            title: shareTitle,
+            text: "Check out this property report",
+            url: shareUrl,
+          });
+          log.info("REPORT_API", "Report shared via Web Share API", {
+            documentName,
+          });
+          return { success: true, message: "Report shared successfully" };
+        } catch (shareError: unknown) {
+          const error = asError(shareError);
+          // User cancelled or share failed, fall through to clipboard
+          if (error instanceof Error && error.name === "AbortError") {
+            return { success: false, message: "Share cancelled" };
+          }
+        }
+      }
+
+      // Fallback to clipboard copy
+      const success = await secureClipboardCopy(shareUrl);
+      if (success) {
+        log.info("REPORT_API", "Report URL copied to clipboard", {
+          documentName,
+        });
+        return { success: true, message: "Report link copied to clipboard" };
+      } else {
+        return { success: false, message: "Failed to copy link to clipboard" };
+      }
+    } catch (error: unknown) {
+      log.error("REPORT_API", "Share failed", error);
+      captureError(asError(error), { context: "shareDocument", documentName });
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to share report",
+      };
+    }
+  },
+
+  /**
+   * Delete a report
+   */
+  delete: (reportId: string, s3Key?: string): Promise<DeleteReportResponse> =>
+    apiDelete<DeleteReportResponse>(`/api/v1/report/${reportId}`, {
+      s3_key: s3Key,
+    }),
+
+  /**
+   * Get user documents
+   * Note: Backend returns 'documents' field, not 'reports'
+   * @param clientId - Optional client ID for agents to view client's documents
+   */
+  getDocuments: (
+    clientId?: string
+  ): Promise<{
+    success: boolean;
+    documents?: ReportDocument[];
+    reports?: ReportDocument[]; // For backward compatibility
+    count?: number;
+    message?: string;
+    error?: string;
+  }> => {
+    const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
+    return apiGet<{
+      success: boolean;
+      documents?: ReportDocument[];
+      reports?: ReportDocument[];
+      count?: number;
+      message?: string;
+      error?: string;
+    }>(`/api/v1/report/documents${params}`);
+  },
+
+  /**
+   * Serve static report file (fallback for local files)
+   */
+  getStaticReport: (filename: string): Promise<Blob> =>
+    apiGet<Blob>(`/api/v1/report/static/reports/${filename}`),
+
+  /**
+   * Compare multiple reports
+   */
+  compare: (request: CompareReportsRequest): Promise<CompareReportsResponse> =>
+    apiPost<CompareReportsResponse>("/api/v1/report/compare", request),
+};

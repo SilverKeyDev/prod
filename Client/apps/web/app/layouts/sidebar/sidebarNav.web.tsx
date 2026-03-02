@@ -16,8 +16,7 @@ export type NavCategory = {
 
 export type NavigationStructure = Record<string, NavCategory>;
 
-const iconType = (icon: unknown) =>
-  icon as unknown as React.FC<{ className?: string }>;
+const iconType = (icon: unknown) => icon as unknown as React.FC<{ className?: string }>;
 
 const navigationStructure: NavigationStructure = {
   dashboard: {
@@ -84,7 +83,7 @@ const navigationStructure: NavigationStructure = {
 export function getNavigation(
   _isAgent: boolean,
   _hasAgent: boolean,
-  isMobile: boolean,
+  isMobile: boolean
 ): NavigationStructure {
   const navigation: NavigationStructure = {};
 

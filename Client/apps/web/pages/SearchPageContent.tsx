@@ -1,13 +1,9 @@
-import { motion } from "framer-motion";
 import type { VirtuosoHandle } from "react-virtuoso";
 
-import { IconButton } from "@/components/ui/index.web";
-import { FEED_ACTION_INTERACTION_CLASS } from "@/features/feed/index.web";
-import {
-  DesktopReelsView,
-  SearchPageMapView,
-  SearchPageModals,
-} from "@/features/search/index.web";
+import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
+import { DesktopReelsView, SearchPageMapView, SearchPageModals } from "packages/features/search";
+import { MotionView } from "packages/ui/components/adapters/motion";
+import { IconButton } from "packages/ui/components/index.web";
 
 export type SearchPageContentProps = {
   searchViewMode: "map" | "reels";
@@ -108,7 +104,7 @@ export function SearchPageContent({
       )}
       <div className="relative h-full">
         <div
-          className={`absolute inset-0 h-full ${searchViewMode === "map" ? "z-10" : "invisible z-0 pointer-events-none"}`}
+          className={`absolute inset-0 h-full ${searchViewMode === "map" ? "z-10" : "pointer-events-none invisible z-0"}`}
           aria-hidden={searchViewMode !== "map"}
         >
           <SearchPageMapView
@@ -149,10 +145,10 @@ export function SearchPageContent({
           />
         </div>
         <div
-          className={`absolute inset-0 h-full ${searchViewMode === "reels" ? "z-10" : "invisible z-0 pointer-events-none"}`}
+          className={`absolute inset-0 h-full ${searchViewMode === "reels" ? "z-10" : "pointer-events-none invisible z-0"}`}
           aria-hidden={searchViewMode !== "reels"}
         >
-          <motion.div
+          <MotionView
             key="reels"
             className="h-full"
             initial={false}
@@ -160,7 +156,7 @@ export function SearchPageContent({
             transition={{ duration: 0.2 }}
           >
             <DesktopReelsView virtuosoRef={feedScrollRef} />
-          </motion.div>
+          </MotionView>
         </div>
       </div>
       <SearchPageModals

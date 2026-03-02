@@ -2,14 +2,10 @@
  * Error and auth-error utilities for the compatibility layer
  */
 
-import { log, LOG_CATEGORIES } from "logger";
-
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { AuthenticationError, HttpError } from "packages/services/http/client";
-import { getWindow } from "packages/utils/core/platform";
-import {
-  getLocalStorage,
-  getSessionStorage,
-} from "packages/utils/core/storage/platformStorage";
+import { getWindow } from "packages/utils/platform";
+import { getLocalStorage, getSessionStorage } from "packages/utils/storage/platformStorage";
 
 export function logHttp(scope: string, e: unknown) {
   import("../../../security/secureLogger")
@@ -31,7 +27,7 @@ export function logHttp(scope: string, e: unknown) {
       }
     })
     .catch((err: unknown) =>
-      log.error(LOG_CATEGORIES.HTTP, "Secure logger import or log failed", err),
+      log.error(LOG_CATEGORIES.HTTP, "Secure logger import or log failed", err)
     );
 }
 
@@ -52,7 +48,7 @@ export function handleAuthenticationError(error: AuthenticationError) {
       });
     })
     .catch((err: unknown) =>
-      log.error(LOG_CATEGORIES.HTTP, "Secure logger import or log failed", err),
+      log.error(LOG_CATEGORIES.HTTP, "Secure logger import or log failed", err)
     );
 
   const win = getWindow() as Window & { clearSecureTokens?: () => void };
@@ -84,7 +80,7 @@ export function handleAuthenticationError(error: AuthenticationError) {
         log.warn(
           LOG_CATEGORIES.ERRORS,
           "Authentication error event dispatch failed",
-          dispatchError,
+          dispatchError
         );
       }
     }, 0);

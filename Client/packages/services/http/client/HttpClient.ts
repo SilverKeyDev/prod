@@ -1,13 +1,8 @@
-import { log, LOG_CATEGORIES } from "logger";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { dateNow } from "packages/utils/date";
+import { getDocument, getFetch } from "packages/utils/platform";
 
-import { dateNow } from "packages/utils/core/date";
-import { getDocument, getFetch } from "packages/utils/core/platform";
-
-import {
-  handle401Unauthorized,
-  handleAuthenticationError,
-  isAuthEndpoint,
-} from "./auth";
+import { handle401Unauthorized, handleAuthenticationError, isAuthEndpoint } from "./auth";
 import { AuthenticationError, HttpError } from "./errors";
 import { logApiRequest, logApiResponse } from "./logging";
 import type { HttpClientConfig as RequestHelpersConfig } from "./requestHelpers";
@@ -25,7 +20,7 @@ function getCookieNames(doc: Document | null): string[] {
 
 function createRequestSignal(
   requestOptions: RequestInit,
-  timeout: number,
+  timeout: number
 ): {
   signal: AbortSignal;
   timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -40,17 +35,14 @@ function createRequestSignal(
         controller.abort(new Error("Request timeout"));
       }
     },
-    Math.max(300000, timeout),
+    Math.max(300000, timeout)
   );
   return { signal: controller.signal, timeoutId };
 }
 
 function sanitizeUrlForLog(url: string): string {
   return url
-    .replace(
-      /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
-      "/:id",
-    )
+    .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "/:id")
     .replace(/\/\d+/g, "/:id");
 }
 
@@ -60,12 +52,7 @@ function formatNetworkErrorDetail(error: unknown): string {
   return String(error);
 }
 
-function logNetworkError(
-  method: string,
-  url: string,
-  error: unknown,
-  duration: number,
-): void {
+function logNetworkError(method: string, url: string, error: unknown, duration: number): void {
   const sanitizedUrl = sanitizeUrlForLog(url);
   const errorType = error instanceof Error ? error.name : "Unknown";
   const errorMessage = error instanceof Error ? error.message : String(error);
@@ -99,10 +86,7 @@ function logNetworkError(
   });
 }
 
-function isRetryableHttpError(
-  error: unknown,
-  retryOnStatuses: number[],
-): boolean {
+function isRetryableHttpError(error: unknown, retryOnStatuses: number[]): boolean {
   return error instanceof HttpError && retryOnStatuses.includes(error.status);
 }
 
@@ -159,17 +143,14 @@ export class HttpClient {
     };
   }
 
-  async request<T>(
-    endpoint: string,
-    options: HttpClientOptions = {},
-  ): Promise<T> {
+  async request<T>(endpoint: string, options: HttpClientOptions = {}): Promise<T> {
     const timeout = options.timeout ?? this.config.timeout;
     const acceptStatuses = options.acceptStatuses ?? [];
 
     const { url, requestOptions, method, mergedHeaders } = buildRequestOptions(
       endpoint,
       options,
-      this.config as RequestHelpersConfig,
+      this.config as RequestHelpersConfig
     );
 
     const startTime = Date.now();
@@ -202,9 +183,7 @@ export class HttpClient {
           cookiesAfter,
           newCookies: cookiesAfter.filter((c) => !allCookies.includes(c)),
           corsOrigin: response.headers.get("access-control-allow-origin"),
-          corsCredentials: response.headers.get(
-            "access-control-allow-credentials",
-          ),
+          corsCredentials: response.headers.get("access-control-allow-credentials"),
         });
       }
 
@@ -216,7 +195,7 @@ export class HttpClient {
         acceptStatuses,
         mergedHeaders,
         requestOptions,
-        method,
+        method
       );
 
       const duration = Date.now() - startTime;
@@ -243,9 +222,7 @@ export class HttpClient {
         throw error;
       }
 
-      throw new Error(
-        `Network error for ${url}: ${formatNetworkErrorDetail(error)}`,
-      );
+      throw new Error(`Network error for ${url}: ${formatNetworkErrorDetail(error)}`);
     } finally {
       if (timeoutId) {
         clearTimeout(timeoutId);
@@ -256,7 +233,7 @@ export class HttpClient {
   async requestWithRetry<T>(
     endpoint: string,
     options: HttpClientOptions = {},
-    retryOptions: RetryOptions = {},
+    retryOptions: RetryOptions = {}
   ): Promise<T> {
     const {
       retries = this.config.retries,
@@ -278,10 +255,8 @@ export class HttpClient {
         if (error instanceof AuthenticationError) throw error;
         if (error instanceof Error && error.name === "AbortError") throw error;
 
-        const httpRetry =
-          isRetryableHttpError(error, retryOnStatuses) && attempt <= retries;
-        const networkRetry =
-          isTransientNetworkError(error) && attempt <= retries;
+        const httpRetry = isRetryableHttpError(error, retryOnStatuses) && attempt <= retries;
+        const networkRetry = isTransientNetworkError(error) && attempt <= retries;
 
         if (httpRetry || networkRetry) {
           await sleep(computeRetryWaitMs(delay, jitter));
@@ -294,17 +269,14 @@ export class HttpClient {
     }
   }
 
-  async get<T>(
-    endpoint: string,
-    options: Omit<HttpClientOptions, "method"> = {},
-  ): Promise<T> {
+  async get<T>(endpoint: string, options: Omit<HttpClientOptions, "method"> = {}): Promise<T> {
     return this.requestWithRetry<T>(endpoint, { ...options, method: "GET" });
   }
 
   async post<T>(
     endpoint: string,
     data?: unknown,
-    options: Omit<HttpClientOptions, "method" | "body"> = {},
+    options: Omit<HttpClientOptions, "method" | "body"> = {}
   ): Promise<T> {
     return this.requestWithRetry<T>(endpoint, {
       ...options,
@@ -316,7 +288,7 @@ export class HttpClient {
   async put<T>(
     endpoint: string,
     data?: unknown,
-    options: Omit<HttpClientOptions, "method" | "body"> = {},
+    options: Omit<HttpClientOptions, "method" | "body"> = {}
   ): Promise<T> {
     return this.requestWithRetry<T>(endpoint, {
       ...options,
@@ -328,7 +300,7 @@ export class HttpClient {
   async patch<T>(
     endpoint: string,
     data?: unknown,
-    options: Omit<HttpClientOptions, "method" | "body"> = {},
+    options: Omit<HttpClientOptions, "method" | "body"> = {}
   ): Promise<T> {
     return this.requestWithRetry<T>(endpoint, {
       ...options,
@@ -340,7 +312,7 @@ export class HttpClient {
   async delete<T>(
     endpoint: string,
     data?: unknown,
-    options: Omit<HttpClientOptions, "method" | "body"> = {},
+    options: Omit<HttpClientOptions, "method" | "body"> = {}
   ): Promise<T> {
     return this.requestWithRetry<T>(endpoint, {
       ...options,

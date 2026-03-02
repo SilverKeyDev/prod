@@ -5,11 +5,7 @@ import { Button, Text } from "@react-email/components";
 
 import { emailColors } from "./colors";
 import type { Listing } from "./listingCardTypes";
-import {
-  formatPrice,
-  formatSqft,
-  getListingHighlightMessage,
-} from "./listingCardUtils";
+import { formatPrice, formatSqft, getListingHighlightMessage } from "./listingCardUtils";
 
 type ListingCardBodyProps = {
   listing: Listing;
@@ -96,8 +92,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
                 }}
               >
                 🔻 {listing.priceCut.amount}
-                {listing.priceCut.percent != null &&
-                  ` (${listing.priceCut.percent}% off)`}
+                {listing.priceCut.percent != null && ` (${listing.priceCut.percent}% off)`}
               </div>
             </div>
           ) : (
@@ -132,9 +127,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
             style={{
               fontSize: "13px",
               fontWeight: "600",
-              color: listing.priceCut
-                ? "rgba(220, 38, 38, 1)"
-                : emailColors.gold.DEFAULT,
+              color: listing.priceCut ? "rgba(220, 38, 38, 1)" : emailColors.gold.DEFAULT,
               margin: 0,
               lineHeight: "1.4",
             }}

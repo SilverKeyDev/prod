@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { log, LOG_CATEGORIES } from "logger";
 
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { BackgroundPolling } from "packages/services/data/backgroundPolling";
 import { InitialDataLoader } from "packages/services/data/initialDataLoader";

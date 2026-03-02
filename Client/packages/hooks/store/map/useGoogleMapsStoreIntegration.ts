@@ -8,11 +8,7 @@ import { useGoogleMapsStore } from "packages/store";
  * This replaces the GoogleMapsProvider functionality
  */
 export function useGoogleMapsStoreIntegration() {
-  const {
-    isLoaded: dataIsLoaded,
-    error: dataError,
-    scriptUrl: dataScriptUrl,
-  } = useGoogleMaps();
+  const { isLoaded: dataIsLoaded, error: dataError, scriptUrl: dataScriptUrl } = useGoogleMaps();
 
   const {
     isLoaded,

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "logger";
-
-import { getWindow } from "packages/utils/core/platform";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { getWindow } from "packages/utils/platform";
 
 /**
  * Memory monitoring utilities (map-related).
@@ -28,11 +27,7 @@ export function useMemoryMonitoring() {
       };
     };
     const win = getWindow();
-    if (
-      win &&
-      "performance" in win &&
-      "memory" in (win.performance as PerformanceWithMemory)
-    ) {
+    if (win && "performance" in win && "memory" in (win.performance as PerformanceWithMemory)) {
       const perf = win.performance as PerformanceWithMemory;
       const mem = perf.memory;
       if (!mem) return;
@@ -54,14 +49,10 @@ export function useMemoryMonitoring() {
             winGc.gc?.();
             log.debug(
               LOG_CATEGORIES.MAP_RENDERING,
-              "Triggered garbage collection due to high memory usage",
+              "Triggered garbage collection due to high memory usage"
             );
           } catch (error) {
-            log.warn(
-              LOG_CATEGORIES.MAP_RENDERING,
-              "Could not trigger garbage collection",
-              error,
-            );
+            log.warn(LOG_CATEGORIES.MAP_RENDERING, "Could not trigger garbage collection", error);
           }
         }
       }

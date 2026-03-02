@@ -2,25 +2,11 @@
  * Compatibility layer - single entry point re-exporting all modules
  */
 
-export {
-  createAuthHeaders,
-  routeMatchesAny,
-  routeStartsWith,
-} from "./auth/auth";
+export { createAuthHeaders, routeMatchesAny, routeStartsWith } from "./auth/auth";
 export { getAuthToken } from "./core/config";
-export type {
-  ApiRequestOptions,
-  ApiResponse,
-  FetchJsonOpts,
-  RetryOpts,
-} from "./core/core";
+export type { ApiRequestOptions, ApiResponse, FetchJsonOpts, RetryOpts } from "./core/core";
 export type { ApiHeadResponse } from "./core/core";
-export {
-  apiHead,
-  apiRequest,
-  fetchJson,
-  fetchJsonWithRetry,
-} from "./core/core";
+export { apiHead, apiRequest, fetchJson, fetchJsonWithRetry } from "./core/core";
 export { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "./core/methods";
 export {
   handleAuthenticationError,

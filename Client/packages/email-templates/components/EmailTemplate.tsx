@@ -1,16 +1,9 @@
 import React from "react";
 
-import {
-  Body,
-  Container,
-  Head,
-  Html,
-  Section,
-  Text,
-} from "@react-email/components";
+import { Body, Container, Head, Html, Section, Text } from "@react-email/components";
 import { Tailwind } from "@react-email/tailwind";
 
-import { dateNow } from "../../utils/core/date";
+import { dateNow } from "../../utils/date";
 import { tailwindConfig } from "./colors";
 
 type EmailTemplateProps = {
@@ -20,12 +13,7 @@ type EmailTemplateProps = {
   footerContent?: React.ReactNode;
 };
 
-export function EmailTemplate({
-  title,
-  subtitle,
-  children,
-  footerContent,
-}: EmailTemplateProps) {
+export function EmailTemplate({ title, subtitle, children, footerContent }: EmailTemplateProps) {
   return (
     <Html>
       <Head />
@@ -39,7 +27,7 @@ export function EmailTemplate({
           }}
         >
           <Container
-            className="bg-white max-w-[600px] mx-auto my-0"
+            className="mx-auto my-0 max-w-[600px] bg-white"
             style={{
               maxWidth: "600px",
               margin: "0 auto",
@@ -112,9 +100,8 @@ export function EmailTemplate({
                     textAlign: "center",
                   }}
                 >
-                  You're receiving this email because you have active home
-                  search preferences. We'll keep you updated with new matches as
-                  they become available.
+                  You're receiving this email because you have active home search preferences. We'll
+                  keep you updated with new matches as they become available.
                 </Text>
                 <div
                   style={{

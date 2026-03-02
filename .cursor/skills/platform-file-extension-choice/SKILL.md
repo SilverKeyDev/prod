@@ -26,7 +26,7 @@ Use `.web` only when **either** condition holds:
 1. **Web-only package or API** – The file imports or uses something not available on React Native (e.g. `react-dom`, `react-router-dom`, `window`/`document`, `HTMLInputElement`, `htmlFor`, `@headlessui/react`, `react-virtuoso`).
 2. **Desktop / large-screen only** – The file is layout or UI for desktop/large viewport and mobile has or will have a different implementation (e.g. sidebar, desktop search header, desktop reels).
 
-Canonical list and reasons: `Client/MOBILE_MIGRATION_DESKTOP_FILES.md`.
+Canonical guidance: `.cursor/rules/frontend/platform-file-extensions.mdc` and `documentation/client/` (e.g. react-vs-react-native-packages.md).
 
 ## When to use `.tsx` / `.ts` (no suffix)
 
@@ -35,12 +35,7 @@ Use plain `.tsx` / `.ts` for:
 - Files that use only React + shared packages (no DOM-specific APIs).
 - Single implementation of a shared API (e.g. `iconMap.tsx` for `getIcon(name)`; mobile can add `iconMap.native.tsx` later if needed).
 
-## Enforcement
-
-- **ESLint:** `silverkey/platform-allowed-imports` – `.web.*` files must not import React Native-only packages (e.g. `react-native`, `@react-navigation/native`); `.native.*` files must not import web-only packages (e.g. `react-dom`, `react-router-dom`, `@headlessui/react`, `react-virtuoso`). Shared packages (`packages/*`, `logger`) are allowed on both.
-
 ## References
 
 - **Cursor rule:** `.cursor/rules/frontend/platform-file-extensions.mdc`
-- **Architecture:** `Client/ARCHITECTURE.md` (Platform file conventions)
-- **Desktop-only list:** `Client/MOBILE_MIGRATION_DESKTOP_FILES.md`
+- **Docs:** `documentation/client/react-vs-react-native-packages.md`, `documentation/client/LINTING.md`

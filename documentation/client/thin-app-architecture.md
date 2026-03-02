@@ -105,8 +105,8 @@ You don’t need to name every package today — the important part is **directi
 
 ## Config & Environment
 
-- **Web (Vite):** env is **build-time** (injected at build; `import.meta.env`).
-- **Mobile:** env can be **build-time** (e.g. Babel plugin, Expo config) or **runtime** (native config, env files loaded at startup).
+- **Web (Vite):** env is **build-time** (injected at build via `define` in vite.config.ts so `process.env` is populated; use `VITE_*` in .env).
+- **Mobile (Expo):** env is **build-time** (Expo injects `EXPO_PUBLIC_*` into `process.env`).
 
 **Packages must not read env directly.** Apps pass configuration in via:
 
@@ -133,7 +133,7 @@ That keeps packages portable and testable; the app is the single place that know
 
 - **Cursor rule:** `.cursor/rules/shared/thin-app-architecture.mdc` — enforces what belongs in apps vs packages.
 - **What lives in the app folder:** [apps-folder-contents.md](./apps-folder-contents.md) — literal breakdown: bootstrapper, provider tree, router, thin pages/screens (orchestrator-only).
-- **Implementation:** [thin-app-implementation-strategy.md](./thin-app-implementation-strategy.md) — strategy options (big-bang, by layer, by feature, hybrid, strangler) with detailed steps, risks, and checklists.
-- **Layers (config, services, hooks, components):** `Client/ARCHITECTURE.md` and `.cursor/rules/frontend/frontend-architecture.mdc`.
+- **Implementation:** See thin-app pattern in this doc and in `.cursor/rules/shared/thin-app-architecture.mdc`; migrate by moving logic into packages and keeping apps as composition only.
+- **Layers (config, services, hooks, components):** `.cursor/rules/frontend/frontend-architecture.mdc`.
 - **Package layout and imports:** `documentation/client/shared-packages.md` and `Client/packages/README.md`.
 - **Web + mobile parity gotchas:** [web-mobile-parity-gotchas.md](./web-mobile-parity-gotchas.md) — stale app/schemas, React version, deep linking.

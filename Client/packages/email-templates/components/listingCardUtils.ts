@@ -35,9 +35,7 @@ export function getListingHighlightMessage(listing: ListingForUtils): string {
     return "✨ This is a brand new listing - be among the first to view it!";
   }
   if (listing.priceCut) {
-    const pct = listing.priceCut.percent
-      ? ` (${listing.priceCut.percent}% off)`
-      : "";
+    const pct = listing.priceCut.percent ? ` (${listing.priceCut.percent}% off)` : "";
     return `🔻 Price reduced by ${listing.priceCut.amount}${pct} - Great opportunity!`;
   }
   return "";

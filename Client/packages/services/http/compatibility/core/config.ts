@@ -2,13 +2,9 @@
  * HTTP compatibility layer config and client instance
  */
 
-import { log, LOG_CATEGORIES } from "logger";
-
 import { getEnv } from "packages/config/env";
-import {
-  HttpClient,
-  type HttpClientConfig,
-} from "packages/services/http/client";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { HttpClient, type HttpClientConfig } from "packages/services/http/client";
 
 export type WindowWithEnv = {
   __ENV__?: Record<string, string>;

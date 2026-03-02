@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import { log, LOG_CATEGORIES } from "logger";
+import { log, LOG_CATEGORIES } from "packages/logger";
 
 import {
   clearMarkers,
@@ -12,15 +12,11 @@ import {
 
 export type MapCleanupOptions = {
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;
-  markersRef?: React.MutableRefObject<
-    google.maps.marker.AdvancedMarkerElement[]
-  >;
+  markersRef?: React.MutableRefObject<google.maps.marker.AdvancedMarkerElement[]>;
   overlaysRef?: React.MutableRefObject<google.maps.OverlayView[]>;
   polygonsRef?: React.MutableRefObject<google.maps.Polygon[]>;
   individualPolygonsRef?: React.MutableRefObject<google.maps.Polygon[]>;
-  importantMarkersRef?: React.MutableRefObject<
-    google.maps.marker.AdvancedMarkerElement[]
-  >;
+  importantMarkersRef?: React.MutableRefObject<google.maps.marker.AdvancedMarkerElement[]>;
   enableMemoryMonitoring?: boolean;
 };
 
@@ -74,17 +70,14 @@ export function useMapCleanup({
     if (cleanupTimeoutRef.current) {
       clearTimeout(cleanupTimeoutRef.current);
       cleanupTimeoutRef.current = null;
-      log.debug(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Cleared pending cleanup timeout",
-      );
+      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleared pending cleanup timeout");
     }
     runFullMapCleanup(
       googleMapRef,
       cleanupMarkers,
       cleanupOverlays,
       cleanupPolygons,
-      memoryStatsRef,
+      memoryStatsRef
     );
   }, [googleMapRef, cleanupMarkers, cleanupOverlays, cleanupPolygons]);
 
@@ -92,9 +85,7 @@ export function useMapCleanup({
     const stats = {
       markers: markersRef?.current?.length || 0,
       overlays: overlaysRef?.current?.length || 0,
-      polygons:
-        (polygonsRef?.current?.length || 0) +
-        (individualPolygonsRef?.current?.length || 0),
+      polygons: (polygonsRef?.current?.length || 0) + (individualPolygonsRef?.current?.length || 0),
       totalElements: 0,
     };
     stats.totalElements = stats.markers + stats.overlays + stats.polygons;
@@ -111,11 +102,7 @@ export function useMapCleanup({
     const interval = setInterval(() => {
       const stats = getMemoryStats();
       if (stats.totalElements > 100) {
-        log.warn(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "High memory usage detected",
-          stats,
-        );
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "High memory usage detected", stats);
       }
     }, 30000);
     return () => clearInterval(interval);

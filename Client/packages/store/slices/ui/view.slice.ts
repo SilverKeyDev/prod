@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 export type ViewState = {
   // Sidebar
@@ -85,10 +85,8 @@ const baseCreator: import("zustand").StateCreator<ViewState> = (set) => ({
       return { dropdownSelections: next } as Partial<ViewState> as ViewState;
     }),
 
-  setPersonalizationEditMode: (isEdit) =>
-    set({ personalizationEditMode: isEdit }),
-  setPersonalizationActiveSection: (section) =>
-    set({ personalizationActiveSection: section }),
+  setPersonalizationEditMode: (isEdit) => set({ personalizationEditMode: isEdit }),
+  setPersonalizationActiveSection: (section) => set({ personalizationActiveSection: section }),
 
   // placeholder; overwritten by withResettable
   reset: () => {},
@@ -118,10 +116,8 @@ const withReset = withResettable<ViewState>(baseCreator, (set) => ({
       delete next[key];
       return { dropdownSelections: next } as Partial<ViewState> as ViewState;
     }),
-  setPersonalizationEditMode: (isEdit) =>
-    set({ personalizationEditMode: isEdit }),
-  setPersonalizationActiveSection: (section) =>
-    set({ personalizationActiveSection: section }),
+  setPersonalizationEditMode: (isEdit) => set({ personalizationEditMode: isEdit }),
+  setPersonalizationActiveSection: (section) => set({ personalizationActiveSection: section }),
   reset: () => {},
 })) as unknown as import("zustand").StateCreator<ViewState>;
 
@@ -137,12 +133,11 @@ const withPersist = persistSafe<ViewState>(withReset, {
     personalizationEditMode: state.personalizationEditMode,
     personalizationActiveSection: state.personalizationActiveSection,
   }),
-  migrate: (persisted: unknown) =>
-    ({ ...initialState(), ...(persisted as object) }) as ViewState,
+  migrate: (persisted: unknown) => ({ ...initialState(), ...(persisted as object) }) as ViewState,
 }) as unknown as import("zustand").StateCreator<ViewState>;
 
 const withDev = withDevtools<ViewState>("view")(
-  withPersist,
+  withPersist
 ) as unknown as import("zustand").StateCreator<ViewState>;
 
 export const useViewStore = create<ViewState>()(withDev);

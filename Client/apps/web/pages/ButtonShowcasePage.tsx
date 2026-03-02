@@ -1,9 +1,4 @@
-import {
-  BodyText,
-  Button,
-  CancelButton,
-  Title,
-} from "@/components/ui/index.web";
+import { BodyText, Button, CancelButton, Title } from "packages/ui/components/index.web";
 
 const VARIANTS = [
   "primary",
@@ -41,7 +36,7 @@ export default function ButtonShowcasePage() {
               <Button key={`${v}-${s}`} variant={v} size={s}>
                 {v} {s}
               </Button>
-            )),
+            ))
           )}
         </div>
       </section>
@@ -54,12 +49,7 @@ export default function ButtonShowcasePage() {
           <Button variant="primary" size="md" iconName="search">
             Icon left
           </Button>
-          <Button
-            variant="primary"
-            size="md"
-            iconName="search"
-            iconPosition="right"
-          >
+          <Button variant="primary" size="md" iconName="search" iconPosition="right">
             Icon right
           </Button>
           <Button

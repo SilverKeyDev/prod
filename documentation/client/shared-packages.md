@@ -46,7 +46,10 @@ This document is the **exhaustive** reference for all **shared packages** in the
 | **navigation** | `packages/navigation/` | Route paths, adapter (no router-dom in features) | No | Yes |
 | **design-tokens** | `packages/design-tokens/` | Colors, spacing, breakpoints, typography | No | Yes |
 | **styles** | `packages/styles/` | CSS / Tailwind utilities | N/A (CSS) | Web-only |
+| **features** | `packages/features/` | Feature-level modules (saved, agent, search, etc.) | Yes | Yes |
 | **logger** | `Client/logger/` | Centralized logging, PII scrubbing | No | Yes |
+
+**Feature module structure:** Each subfolder under `packages/features/<name>/` may only contain: `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`, and `index.ts` (barrel). Enforced by ESLint rule `silverkey/package-module-allowed-children`. See `Client/packages/features/README.md` and `.cursor/rules/shared/package-feature-structure.mdc`.
 
 \* React Query lives in `config/query/`; the rest of config is non-React.  
 \** `services/data/` uses React Query's `QueryClient` for prefetch/polling; otherwise services are framework-agnostic.  
@@ -332,7 +335,7 @@ packages/design-tokens
 
 - **Monorepo tooling:** Client uses pnpm; filters include `@silverkey/web`, `@silverkey/mobile` (when present). Packages are not all published; many are internal (e.g. `packages/config` has no `package.json` in the list; only `design-tokens` and `eslint-plugin-silverkey` have their own `package.json`). Resolution is typically via workspace or path (e.g. `packages/config`, `packages/hooks`).
 - **TypeScript:** Shared packages are included in the app tsconfig (e.g. `tsconfig.app.json`) so that `packages/*` and `logger` are type-checked together with the app.
-- **Linting:** ESLint and architecture rules enforce the import boundaries above (see `Client/ARCHITECTURE.md` and `.cursor/rules/frontend/frontend-architecture.mdc`).
+- **Linting:** ESLint and architecture rules enforce the import boundaries above (see `.cursor/rules/frontend/frontend-architecture.mdc`).
 
 ---
 
@@ -341,5 +344,5 @@ packages/design-tokens
 - [typescript-files.md](./typescript-files.md) — Where `.ts` files live and their roles.
 - [shared-ui-package.md](./shared-ui-package.md) — Optional shared `packages/ui` for cross-platform primitives.
 - [react-vs-react-native-packages.md](./react-vs-react-native-packages.md) — React vs React Native–specific code and platform extensions.
-- **Client/ARCHITECTURE.md** — Full frontend architecture and layer descriptions.
+- **.cursor/rules/frontend/frontend-architecture.mdc** — Full frontend architecture and layer descriptions.
 - **Client/packages/README.md** — High-level package overview and import rules.

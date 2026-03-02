@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
-import { dateNow } from "packages/utils/core/date";
+import { dateNow } from "packages/utils/date";
 
 import ErrorBoundary from "@/app/error/ErrorBoundary";
 
@@ -36,10 +36,7 @@ export function ErrorProvider({ children, fallback }: ErrorProviderProps) {
     } catch (reportingError) {
       // Fail silently to prevent infinite error loops
       log.error(LOG_CATEGORIES.ERRORS, "ErrorProvider error reporting failed", {
-        error:
-          reportingError instanceof Error
-            ? reportingError.message
-            : String(reportingError),
+        error: reportingError instanceof Error ? reportingError.message : String(reportingError),
       });
     }
   };

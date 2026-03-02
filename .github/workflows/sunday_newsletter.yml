@@ -168,7 +168,7 @@ jobs:
           echo "Node.js version: $(node --version)"
           echo "pnpm version: $(pnpm --version)"
           echo "Checking email render script availability..."
-          test -f Client/apps/web/services/email/render-email.ts && echo "✓ Render script found" || echo "✗ Render script missing"
+          test -f Client/packages/email-templates/render-email.ts && echo "✓ Render script found" || echo "✗ Render script missing"
           python Server/app/services/email/run_email_listings.py | tee orchestrator_out.txt
           {
             echo "### Email Listings Orchestrator"

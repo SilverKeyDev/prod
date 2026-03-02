@@ -8,23 +8,23 @@
     "build:web": "pnpm --filter @silverkey/web build",
     "preview:web": "pnpm --filter @silverkey/web preview",
     "dev:mobile": "pnpm --filter @silverkey/mobile start",
+    "dev:mobile:subpath": "EXPO_MOBILE_BASE_URL=/apps/mobile pnpm --filter @silverkey/mobile start",
+    "dev:web:gateway": "VITE_PORT=3000 pnpm --filter @silverkey/web dev",
     "ios": "pnpm --filter @silverkey/mobile ios",
+    "ios:native": "pnpm --filter @silverkey/mobile run:ios",
     "android": "pnpm --filter @silverkey/mobile android",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "lint:parity": "node tools/check-parity.mjs",
-    "lint:platform-imports": "node tools/check-platform-imports.mjs",
-    "lint:all": "pnpm lint && pnpm lint:parity",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check",
+    "lint": "eslint . --config packages/config/eslint/eslint.config.cjs",
+    "lint:fix": "eslint . --fix --config packages/config/eslint/eslint.config.cjs",
+    "lint:all": "pnpm lint",
+    "format": "prettier . --config packages/config/prettier/prettier.config.js --ignore-path packages/config/prettier/.prettierignore --write",
+    "format:check": "prettier . --config packages/config/prettier/prettier.config.js --ignore-path packages/config/prettier/.prettierignore --check",
     "typecheck": "tsc -p apps/web/tsconfig.json",
+    "typecheck:mobile": "tsc -p apps/mobile/tsconfig.json",
     "audit": "pnpm audit --audit-level=critical",
-    "lint:cycles": "madge --circular --ts-config tsconfig.app.json --extensions ts,tsx apps/web packages",
+    "lint:cycles": "madge --circular --ts-config packages/config/tsconfig/tsconfig.app.json --extensions ts,tsx apps/web packages",
     "fix": "pnpm format && pnpm lint:fix",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm lint:cycles && pnpm lint:parity && pnpm lint:platform-imports && pnpm audit --audit-level=critical && pnpm build:web",
-    "check:all": "pnpm fix && pnpm check",
-    "generate:dummy-audio": "node scripts/generate-dummy-audio.mjs",
-    "fix:colors": "node scripts/fix-colors-to-tokens.mjs"
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm lint:cycles && pnpm audit --audit-level=critical && pnpm build:web",
+    "check:all": "pnpm fix && pnpm check"
   },
   "devDependencies": {
     "@react-email/components": "^0.0.29",
@@ -37,19 +37,24 @@
     "eslint": "^9.9.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-silverkey": "file:tools/eslint-plugin-silverkey",
+    "eslint-plugin-silverkey": "file:packages/config/eslint/eslint-plugin-silverkey",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^15.9.0",
+    "dotenv": "^16.4.5",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.7",
     "madge": "^8.0.0",
     "prettier": "^3.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-native": "^0.76.0",
     "typescript": "^5.6.2"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.2",
+    "embla-carousel-react": "^8.5.1",
+    "framer-motion": "^12.23.12",
+    "react-virtuoso": "^4.18.1",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
     "dayjs": "^1.11.13",
@@ -59,6 +64,7 @@
     "eslint-plugin-react-refresh": "^0.4.22",
     "hls.js": "^1.6.15",
     "lucide-react": "^0.544.0",
+    "react-phone-number-input": "^3.2.20",
     "react-router-dom": "^7.12.0",
     "typescript-eslint": "^8.45.0",
     "zod": "^3.25.76",
@@ -66,7 +72,9 @@
   },
   "pnpm": {
     "overrides": {
-      "glob": ">=10.5.0"
+      "glob": ">=10.5.0",
+      "@tanstack/react-query": "5.90.21",
+      "@tanstack/query-core": "5.90.20"
     }
   }
 }

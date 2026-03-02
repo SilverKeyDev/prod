@@ -52,8 +52,10 @@ def favorite_homes(user: User) -> Response | tuple[Response, int]:
                     "[FAVORITES] Skipped invalid home during bulk like: %s", e
                 )
         db.session.commit()
-        homes = HomeUniversal.query.filter_by(user_id=str(user.id), current=True).all()
-        favorites = [home.to_dict() for home in homes]
+        liked_homes = HomeUniversal.query.filter_by(
+            user_id=str(user.id), is_liked=True, current=True
+        ).all()
+        favorites = [home.to_dict() for home in liked_homes]
         return jsonify({"success": True, "favorites": favorites})
     except Exception as e:
         current_app.logger.error("Failed to update favorite homes: %s", e)
@@ -74,8 +76,10 @@ def add_favorite_home(user: User) -> Response | tuple[Response, int]:
                 {"success": False, "error": "Address is required and must be a string"}
             ), 400
         add_or_update_home_basic(user_id=str(user.id), home=home, set_liked=True)
-        homes = HomeUniversal.query.filter_by(user_id=str(user.id), current=True).all()
-        favorites = [h.to_dict() for h in homes]
+        liked_homes = HomeUniversal.query.filter_by(
+            user_id=str(user.id), is_liked=True, current=True
+        ).all()
+        favorites = [h.to_dict() for h in liked_homes]
         return jsonify(
             {"success": True, "message": "Home added to favorites", "favorites": favorites}
         )
@@ -86,7 +90,7 @@ def add_favorite_home(user: User) -> Response | tuple[Response, int]:
 
 @require_authenticated_user
 def remove_favorite_home(user: User) -> Response | tuple[Response, int]:
-    """Unlike a single home by setting is_liked to False without deleting the row."""
+    """Unlike a single home by setting is_liked to False on all rows for that address."""
     try:
         data = request.get_json(force=True)
         address = data.get("address")
@@ -95,7 +99,10 @@ def remove_favorite_home(user: User) -> Response | tuple[Response, int]:
                 {"success": False, "error": "Address is required and must be a string"}
             ), 400
         normalized_target = safe_normalize_address(address)
-        existing_home = None
+        # Find ALL rows for this user that match the address (current and non-current).
+        # GET returns only current=True + is_liked=True; we must unlike every matching row
+        # so that the "current" row is updated and no duplicate address rows stay liked.
+        matching = []
         for h in HomeUniversal.query.filter_by(user_id=str(user.id)).all():
             if not h.address:
                 continue
@@ -104,15 +111,19 @@ def remove_favorite_home(user: User) -> Response | tuple[Response, int]:
             except Exception:
                 norm_existing = h.address.strip().lower()
             if norm_existing == normalized_target:
-                existing_home = h
-                break
-        if not existing_home:
+                matching.append(h)
+        if not matching:
             return jsonify({"success": False, "error": "Home not found in favorites"}), 404
-        existing_home.is_liked = False
+        for existing_home in matching:
+            if existing_home.is_liked:
+                sync_to_home_likes(existing_home, action="unliked")
+            existing_home.is_liked = False
         db.session.commit()
-        sync_to_home_likes(existing_home, action="unliked")
-        homes = HomeUniversal.query.filter_by(user_id=str(user.id), current=True).all()
-        favorites = [h.to_dict() for h in homes]
+        # Return only liked homes as favorites (same shape as GET).
+        liked_homes = HomeUniversal.query.filter_by(
+            user_id=str(user.id), is_liked=True, current=True
+        ).all()
+        favorites = [h.to_dict() for h in liked_homes]
         return jsonify({"success": True, "message": "Home unliked", "favorites": favorites})
     except Exception as e:
         current_app.logger.error("Failed to remove favorite home: %s", e)

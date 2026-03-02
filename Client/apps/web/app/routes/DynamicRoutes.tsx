@@ -1,6 +1,8 @@
+import { useMemo } from "react";
+
 import { Navigate, Route, useLocation } from "react-router-dom";
 
-import type { UserProfile } from "packages/schemas/user";
+import type { UserProfile } from "@/features/homeauth/types";
 
 import { createProtectedRoute, ROUTE_CONFIGS } from "./RouteConfig";
 
@@ -18,43 +20,42 @@ type DynamicRoutesProps = {
 export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
   const userProfile = user ?? undefined;
 
-  return [
-    /* Redirect deprecated routes */
-    <Route
-      key="buyer-checklists-redirect"
-      path="/buyer-checklists"
-      element={<Navigate to="/dashboard" replace />}
-    />,
-    <Route
-      key="settings-redirect"
-      path="/settings/*"
-      element={<SettingsRedirect />}
-    />,
-    /* Lightweight Protected Routes */
-    ...ROUTE_CONFIGS.lightweight.map((path) => (
+  const routes = useMemo(
+    () => [
+      /* Redirect deprecated routes */
       <Route
-        key={path}
-        path={path}
-        element={createProtectedRoute(userProfile, handleLogout)}
-      />
-    )),
+        key="buyer-checklists-redirect"
+        path="/buyer-checklists"
+        element={<Navigate to="/dashboard" replace />}
+      />,
+      <Route key="settings-redirect" path="/settings/*" element={<SettingsRedirect />} />,
+      /* Lightweight Protected Routes */
+      ...ROUTE_CONFIGS.lightweight.map((path) => (
+        <Route
+          key={path}
+          path={path}
+          element={createProtectedRoute(userProfile, handleLogout, undefined, path)}
+        />
+      )),
+      /* Standard Protected Routes */
+      ...ROUTE_CONFIGS.standard.map((path) => (
+        <Route
+          key={path}
+          path={path}
+          element={createProtectedRoute(userProfile, handleLogout, undefined, path)}
+        />
+      )),
+      /* Specialized Protected Routes - Full providers with additional page-specific providers */
+      ...ROUTE_CONFIGS.specialized.map(({ path, providerType }) => (
+        <Route
+          key={path}
+          path={path}
+          element={createProtectedRoute(userProfile, handleLogout, providerType, path)}
+        />
+      )),
+    ],
+    [handleLogout, userProfile]
+  );
 
-    /* Standard Protected Routes */
-    ...ROUTE_CONFIGS.standard.map((path) => (
-      <Route
-        key={path}
-        path={path}
-        element={createProtectedRoute(userProfile, handleLogout)}
-      />
-    )),
-
-    /* Specialized Protected Routes - Full providers with additional page-specific providers */
-    ...ROUTE_CONFIGS.specialized.map(({ path, providerType }) => (
-      <Route
-        key={path}
-        path={path}
-        element={createProtectedRoute(userProfile, handleLogout, providerType)}
-      />
-    )),
-  ];
+  return routes;
 }

@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "packages/*": ["../../packages/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../../packages/ui/**/*.ts",
+    "../../packages/ui/**/*.tsx",
+    "nativewind-env.d.ts"
+  ]
+}

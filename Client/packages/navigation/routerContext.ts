@@ -1,7 +1,4 @@
 /**
- * Re-export of useInRouterContext from react-router-dom.
- * Hooks that need to check router context should import from here so they
- * do not import react-router-dom directly.
+ * Re-export for TypeScript resolution; bundler resolves to .web or .native.
  */
-
-export { useInRouterContext } from "react-router-dom";
+export { useInRouterContext } from "./routerContext.web";

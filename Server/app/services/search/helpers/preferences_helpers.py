@@ -104,8 +104,11 @@ def map_user_preferences_to_filters(
     if sqft_max is not None:
         filters["maxSqft"] = int(sqft_max)
 
-    # Days on market max (for API if supported, else post-filter)
+    # Days on market range (for API if supported, else post-filter)
+    dom_min = user_preferences.get("days_on_market_min")
     dom_max = user_preferences.get("days_on_market_max")
+    if dom_min is not None:
+        filters["daysOnMarketMin"] = int(dom_min)
     if dom_max is not None:
         filters["daysOnMarketMax"] = int(dom_max)
 

@@ -23,9 +23,7 @@ type ListingCardImageSectionProps = {
   listing: Listing;
 };
 
-export function ListingCardImageSection({
-  listing,
-}: ListingCardImageSectionProps) {
+export function ListingCardImageSection({ listing }: ListingCardImageSectionProps) {
   const priceCutTop = listing.isNewListing ? "48px" : "16px";
 
   return (
@@ -72,24 +70,21 @@ export function ListingCardImageSection({
           }}
         >
           🔻 Price Cut: {listing.priceCut.amount}
-          {listing.priceCut.percent != null &&
-            ` (${listing.priceCut.percent}% off)`}
+          {listing.priceCut.percent != null && ` (${listing.priceCut.percent}% off)`}
         </div>
       )}
-      {listing.score !== undefined &&
-        !listing.priceCut &&
-        !listing.isNewListing && (
-          <div
-            style={{
-              ...BADGE_BASE,
-              top: "16px",
-              left: "16px",
-              backgroundColor: "rgba(139, 111, 90, 0.95)",
-            }}
-          >
-            {Math.round(listing.score)}% Match
-          </div>
-        )}
+      {listing.score !== undefined && !listing.priceCut && !listing.isNewListing && (
+        <div
+          style={{
+            ...BADGE_BASE,
+            top: "16px",
+            left: "16px",
+            backgroundColor: "rgba(139, 111, 90, 0.95)",
+          }}
+        >
+          {Math.round(listing.score)}% Match
+        </div>
+      )}
       <div
         style={{
           position: "absolute",
@@ -103,9 +98,7 @@ export function ListingCardImageSection({
           borderRadius: "24px",
           fontSize: "16px",
           fontWeight: "700",
-          color: listing.priceCut
-            ? "rgba(220, 38, 38, 1)"
-            : emailColors.brown.DEFAULT,
+          color: listing.priceCut ? "rgba(220, 38, 38, 1)" : emailColors.brown.DEFAULT,
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
           letterSpacing: "-0.3px",
         }}

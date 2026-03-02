@@ -1,15 +1,12 @@
-import { log, LOG_CATEGORIES } from "logger";
+import { log, LOG_CATEGORIES } from "packages/logger";
 
-import type {
-  PerformanceMetrics,
-  PerformanceThresholds,
-} from "./performanceMonitoringTypes";
+import type { PerformanceMetrics, PerformanceThresholds } from "./performanceMonitoringTypes";
 
 export function logRenderThresholdWarnings(
   componentName: string,
   renderTime: number,
   reRenderCount: number,
-  thresholds: PerformanceThresholds,
+  thresholds: PerformanceThresholds
 ) {
   if (renderTime > thresholds.maxRenderTime) {
     log.warn(LOG_CATEGORIES.PAGES, "Slow render detected", {
@@ -30,7 +27,7 @@ export function logRenderThresholdWarnings(
 export function buildPerformanceReport(
   componentName: string,
   metrics: PerformanceMetrics,
-  thresholds: PerformanceThresholds,
+  thresholds: PerformanceThresholds
 ) {
   const report = {
     componentName,
@@ -42,9 +39,7 @@ export function buildPerformanceReport(
     report.warnings.push(`Slow render: ${metrics.renderTime.toFixed(2)}ms`);
   }
   if (metrics.memoryUsage > thresholds.maxMemoryUsage) {
-    report.warnings.push(
-      `High memory usage: ${(metrics.memoryUsage / 1024 / 1024).toFixed(2)}MB`,
-    );
+    report.warnings.push(`High memory usage: ${(metrics.memoryUsage / 1024 / 1024).toFixed(2)}MB`);
   }
   if (metrics.reRenderCount > thresholds.maxReRenders) {
     report.warnings.push(`High re-render count: ${metrics.reRenderCount}`);
@@ -54,14 +49,12 @@ export function buildPerformanceReport(
 
 export function buildOptimizationSuggestions(
   metrics: PerformanceMetrics,
-  thresholds: PerformanceThresholds,
+  thresholds: PerformanceThresholds
 ): string[] {
   const suggestions: string[] = [];
   if (metrics.renderTime > thresholds.maxRenderTime) {
     suggestions.push("Consider using React.memo() for expensive components");
-    suggestions.push(
-      "Use useCallback() and useMemo() to prevent unnecessary re-renders",
-    );
+    suggestions.push("Use useCallback() and useMemo() to prevent unnecessary re-renders");
     suggestions.push("Consider code splitting for large components");
   }
   if (metrics.memoryUsage > thresholds.maxMemoryUsage) {
@@ -71,9 +64,7 @@ export function buildOptimizationSuggestions(
   }
   if (metrics.reRenderCount > thresholds.maxReRenders) {
     suggestions.push("Review dependency arrays in useEffect and useCallback");
-    suggestions.push(
-      "Consider using useRef for values that don't need to trigger re-renders",
-    );
+    suggestions.push("Consider using useRef for values that don't need to trigger re-renders");
     suggestions.push("Check for unnecessary state updates");
   }
   return suggestions;

@@ -5,12 +5,13 @@ import {
   searchApi,
   userApi,
 } from "packages/config/api";
-import { getTaskChecklist } from "packages/config/api/core/tasks";
 import { queryKeys } from "packages/config/query/keys";
-import type { UserProfile } from "packages/schemas";
-import { agentService } from "packages/services/agent/agent";
-import { transformSearchResponse } from "packages/services/search/search";
-import { calculateCalendarDateRange } from "packages/utils/domain/calendar/date";
+import { getTaskChecklist } from "packages/features/checklists";
+import type { UserProfile } from "packages/types";
+
+import { agentService } from "@/features/agent/utils/agent";
+import { calculateCalendarDateRange } from "@/features/calendar/utils/date";
+import { transformSearchResponse } from "@/features/search/utils/searchTransform";
 
 /**
  * Configuration for a data route
@@ -220,9 +221,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryFn: async (_user: UserProfile | null) => {
       const response = await agentApi.getNotificationCounter();
       if (!response.success) {
-        throw new Error(
-          response.error ?? "Failed to fetch notification counter",
-        );
+        throw new Error(response.error ?? "Failed to fetch notification counter");
       }
       return response.total_count;
     },
@@ -239,9 +238,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryFn: async () => {
       const response = await agentApi.getConnectionRequests();
       if (!response.success) {
-        throw new Error(
-          response.error ?? "Failed to fetch connection requests",
-        );
+        throw new Error(response.error ?? "Failed to fetch connection requests");
       }
       return response.requests ?? [];
     },
@@ -431,8 +428,7 @@ export function getInitialLoadRoutes(user: UserProfile | null): RouteConfig[] {
   const isAgent = user?.is_agent ?? false;
   return Object.values(DATA_ROUTES).filter(
     (route) =>
-      route.initialLoad &&
-      (route.userType === "all" || (route.userType === "agent" && isAgent)),
+      route.initialLoad && (route.userType === "all" || (route.userType === "agent" && isAgent))
   );
 }
 
@@ -443,7 +439,6 @@ export function getPollingRoutes(user: UserProfile | null): RouteConfig[] {
   const isAgent = user?.is_agent ?? false;
   return Object.values(DATA_ROUTES).filter(
     (route) =>
-      route.shouldPoll &&
-      (route.userType === "all" || (route.userType === "agent" && isAgent)),
+      route.shouldPoll && (route.userType === "all" || (route.userType === "agent" && isAgent))
   );
 }

@@ -1,0 +1,5 @@
+**/*.md
+.cursor/**/*.md
+dist/
+apps/web/dist/
+apps/mobile/dist/

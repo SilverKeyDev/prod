@@ -18,11 +18,9 @@ const normalizeBase = normalizeUrl;
 export function buildApiUrl(
   endpoint: string,
   params: Record<string, QueryValue> = {},
-  baseUrl?: string,
+  baseUrl?: string
 ): string {
-  const base = normalizeBase(
-    baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""),
-  );
+  const base = normalizeBase(baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""));
   const url = endpoint.startsWith("http")
     ? endpoint
     : `${base}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;

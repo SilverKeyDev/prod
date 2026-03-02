@@ -25,8 +25,7 @@ export function ListingCard({ listing, isLast = false }: ListingCardProps) {
           borderRadius: "12px",
           overflow: "hidden",
           backgroundColor: "#ffffff",
-          boxShadow:
-            "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
         }}
       >
         {listing.imageUrl && <ListingCardImageSection listing={listing} />}

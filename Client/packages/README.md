@@ -13,6 +13,7 @@ packages/
 ├── schemas/         # TypeScript type definitions
 ├── utils/           # Framework-agnostic utility functions
 ├── contexts/        # React Context providers
+├── features/        # Feature-level React components (future architecture goal)
 └── styles/          # CSS stylesheets
 ```
 
@@ -93,6 +94,10 @@ React Context providers for dependency injection and non-state configuration (th
 
 CSS stylesheets and utility classes.
 
+### `features/`
+
+**Future Architecture Goal:** Feature-level React components that will be shared between web and mobile platforms. Currently, feature components live in `apps/web/features/` and will be migrated here as part of the Thin App architecture migration. See `features/README.md` for details.
+
 ## Common Patterns
 
 ### Data Fetching
@@ -114,10 +119,7 @@ import { userApi } from "../../../packages/config/api/user";
 
 ```typescript
 // ✅ CORRECT: Use centralized error utilities
-import {
-  normalizeError,
-  reportError,
-} from "../../../packages/utils/errorHandling";
+import { normalizeError, reportError } from "../../../packages/utils/errorHandling";
 ```
 
 ### Type Definitions
@@ -144,4 +146,5 @@ See individual README files in each subdirectory for detailed documentation:
 - [schemas/README.md](./schemas/README.md) - Type definitions
 - [utils/README.md](./utils/README.md) - Utility functions
 - [contexts/README.md](./contexts/README.md) - React Context providers
+- [features/README.md](./features/README.md) - Feature components (future architecture goal)
 - [styles/README.md](./styles/README.md) - CSS stylesheets

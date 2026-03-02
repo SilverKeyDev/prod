@@ -1,4 +1,1 @@
-export {
-  type NotificationState,
-  useNotificationStore,
-} from "./notifications.slice";
+export { type NotificationState, useNotificationStore } from "./notifications.slice";

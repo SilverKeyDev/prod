@@ -1,0 +1,101 @@
+import React from "react";
+
+import { Clock, User } from "lucide-react";
+
+import type { ClientDealInfo } from "packages/schemas/agent";
+import { BodyText, Title } from "packages/ui/components/index.web";
+import { dateNow, dateParseISO } from "packages/utils/date";
+
+import Card from "@/components/layout/Card.web";
+import ActionButton from "@/features/dashboard/components/ActionButton";
+import DealStageBadge from "@/features/dashboard/components/DealStageBadge";
+import RiskFlag from "@/features/dashboard/components/RiskFlag";
+
+type ClientRowProps = {
+  client: ClientDealInfo;
+  onClick: () => void;
+};
+
+const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
+  const formatTimeSince = (dateString?: string) => {
+    if (!dateString) return "No recent activity";
+    const now = dateNow();
+    const date = dateParseISO(dateString);
+    const diff = now.valueOf() - date.valueOf();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+    if (days > 0) {
+      return `${days} day${days > 1 ? "s" : ""} ago`;
+    }
+    if (hours > 0) {
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    }
+    return "Just now";
+  };
+
+  return (
+    <Card onClick={onClick} hover={true} className="cursor-pointer transition-all">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        {/* Avatar and Name */}
+        <div className="flex flex-shrink-0 items-center gap-3">
+          <div className="bg-olive/10 flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12">
+            <User className="text-olive h-5 w-5 sm:h-6 sm:w-6" />
+          </div>
+          <div>
+            <Title as="h3" size="md" className="text-navy font-semibold">
+              {client.name}
+            </Title>
+            <BodyText as="p" size="sm" className="text-black/60">
+              {client.email}
+            </BodyText>
+          </div>
+        </div>
+
+        {/* Deal Stage */}
+        <div className="flex-shrink-0">
+          <DealStageBadge stage={client.deal_stage} />
+        </div>
+
+        {/* Next Action */}
+        {client.next_action && (
+          <div className="min-w-0 flex-1">
+            <ActionButton
+              action={client.next_action}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+              }}
+              variant="primary"
+              className="w-full sm:w-auto"
+            />
+          </div>
+        )}
+
+        {/* Time Since Last Action */}
+        <div className="text-responsive-sm flex items-center gap-2 text-black/60">
+          <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
+          <BodyText as="span" size="sm" className="text-black/60">
+            {formatTimeSince(client.last_agent_action)}
+          </BodyText>
+        </div>
+
+        {/* Risk Flags */}
+        {client.risk_flags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {client.risk_flags.slice(0, 2).map((flag, index) => (
+              <RiskFlag key={index} severity={flag.severity} message={flag.type} />
+            ))}
+            {client.risk_flags.length > 2 && (
+              <BodyText as="span" size="sm" className="text-xs text-black/60 sm:text-sm">
+                +{client.risk_flags.length - 2} more
+              </BodyText>
+            )}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+};
+
+export default ClientRow;

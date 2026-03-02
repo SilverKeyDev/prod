@@ -3,7 +3,7 @@ export class HttpError extends Error {
     public status: number,
     public url: string,
     public bodyPreview: string,
-    public parsedBody?: unknown,
+    public parsedBody?: unknown
   ) {
     super(`HTTP ${status} for ${url}`);
     this.name = "HttpError";
@@ -14,7 +14,7 @@ export class AuthenticationError extends Error {
   constructor(
     public errorCode: string,
     message: string,
-    public status: number,
+    public status: number
   ) {
     super(`Authentication error: ${errorCode} - ${message}`);
     this.name = "AuthenticationError";

@@ -1,9 +1,5 @@
 import type { StateCreator } from "zustand";
-import {
-  persist,
-  type PersistOptions,
-  type StateStorage,
-} from "zustand/middleware";
+import { persist, type PersistOptions, type StateStorage } from "zustand/middleware";
 
 import { isFunction } from "packages/utils";
 
@@ -20,10 +16,7 @@ export type PersistSafeOptions<T> = {
   partialize: (state: T) => Partial<T>;
 };
 
-export function persistSafe<T>(
-  config: StateCreator<T>,
-  options: PersistSafeOptions<T>,
-) {
+export function persistSafe<T>(config: StateCreator<T>, options: PersistSafeOptions<T>) {
   const { name, version, storage, migrate, partialize } = options;
 
   const persistOptions = {

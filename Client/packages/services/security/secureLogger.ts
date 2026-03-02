@@ -4,15 +4,11 @@
  */
 
 import { getEnv } from "packages/config/env";
-import { dateNow } from "packages/utils/core/date/index.js";
-import { asError } from "packages/utils/core/errorHandling/error.js";
-import { getWindow } from "packages/utils/core/platform/index.js";
+import { dateNow } from "packages/utils/date";
+import { asError } from "packages/utils/errorHandling";
+import { getWindow } from "packages/utils/platform";
 
-import {
-  createSafeLogObject,
-  maskSensitiveData,
-  scrubPII,
-} from "./piiSecurity.js";
+import { createSafeLogObject, maskSensitiveData, scrubPII } from "./piiSecurity";
 
 type LogLevel = {
   DEBUG: 0;
@@ -92,12 +88,7 @@ class SecureLogger {
   /**
    * Format log message with timestamp and level
    */
-  private formatMessage(
-    level: string,
-    scope: string,
-    message: string,
-    data?: unknown,
-  ): string {
+  private formatMessage(level: string, scope: string, message: string, data?: unknown): string {
     // Prevent infinite recursion during error logging
     if (this.isProcessing) {
       const timestamp = dateNow().toISOString();
@@ -128,14 +119,13 @@ class SecureLogger {
     if (this.currentLevel <= LOG_LEVELS.DEBUG) {
       try {
         const formatted = this.formatMessage("DEBUG", scope, message, data);
-        (this.originalConsole as { debug: (msg: string) => void }).debug(
-          formatted,
-        );
+        (this.originalConsole as { debug: (msg: string) => void }).debug(formatted);
       } catch (err: unknown) {
         const error = asError(err);
-        (
-          this.originalConsole as { error: (msg: string, err: unknown) => void }
-        ).error("SecureLogger debug error:", error);
+        (this.originalConsole as { error: (msg: string, err: unknown) => void }).error(
+          "SecureLogger debug error:",
+          error
+        );
       }
     }
   }
@@ -147,14 +137,13 @@ class SecureLogger {
     if (this.currentLevel <= LOG_LEVELS.INFO) {
       try {
         const formatted = this.formatMessage("INFO", scope, message, data);
-        (this.originalConsole as { info: (msg: string) => void }).info(
-          formatted,
-        );
+        (this.originalConsole as { info: (msg: string) => void }).info(formatted);
       } catch (err: unknown) {
         const error = asError(err);
-        (
-          this.originalConsole as { error: (msg: string, err: unknown) => void }
-        ).error("SecureLogger info error:", error);
+        (this.originalConsole as { error: (msg: string, err: unknown) => void }).error(
+          "SecureLogger info error:",
+          error
+        );
       }
     }
   }
@@ -166,14 +155,13 @@ class SecureLogger {
     if (this.currentLevel <= LOG_LEVELS.WARN) {
       try {
         const formatted = this.formatMessage("WARN", scope, message, data);
-        (this.originalConsole as { warn: (msg: string) => void }).warn(
-          formatted,
-        );
+        (this.originalConsole as { warn: (msg: string) => void }).warn(formatted);
       } catch (err: unknown) {
         const error = asError(err);
-        (
-          this.originalConsole as { error: (msg: string, err: unknown) => void }
-        ).error("SecureLogger warn error:", error);
+        (this.originalConsole as { error: (msg: string, err: unknown) => void }).error(
+          "SecureLogger warn error:",
+          error
+        );
       }
     }
   }
@@ -195,20 +183,14 @@ class SecureLogger {
           };
         }
 
-        const formatted = this.formatMessage(
-          "ERROR",
-          scope,
-          message,
-          errorData,
-        );
-        (this.originalConsole as { error: (msg: string) => void }).error(
-          formatted,
-        );
+        const formatted = this.formatMessage("ERROR", scope, message, errorData);
+        (this.originalConsole as { error: (msg: string) => void }).error(formatted);
       } catch (err: unknown) {
         const error = asError(err);
-        (
-          this.originalConsole as { error: (msg: string, err: unknown) => void }
-        ).error("SecureLogger error error:", error);
+        (this.originalConsole as { error: (msg: string, err: unknown) => void }).error(
+          "SecureLogger error error:",
+          error
+        );
       }
     }
   }
@@ -219,12 +201,7 @@ class SecureLogger {
   security(scope: string, event: string, data?: unknown): void {
     try {
       const scrubbedData = data ? createSafeLogObject(data) : undefined;
-      const formatted = this.formatMessage(
-        "SECURITY",
-        scope,
-        `🔒 ${event}`,
-        scrubbedData,
-      );
+      const formatted = this.formatMessage("SECURITY", scope, `🔒 ${event}`, scrubbedData);
       (this.originalConsole as { warn: (msg: string) => void }).warn(formatted);
 
       // In production, could send to security monitoring service
@@ -233,20 +210,17 @@ class SecureLogger {
       }
     } catch (err: unknown) {
       const error = asError(err);
-      (
-        this.originalConsole as { error: (msg: string, err: unknown) => void }
-      ).error("SecureLogger security error:", error);
+      (this.originalConsole as { error: (msg: string, err: unknown) => void }).error(
+        "SecureLogger security error:",
+        error
+      );
     }
   }
 
   /**
    * Send security events to monitoring service (placeholder)
    */
-  private sendToSecurityMonitoring(
-    scope: string,
-    event: string,
-    data?: unknown,
-  ): void {
+  private sendToSecurityMonitoring(scope: string, event: string, data?: unknown): void {
     // Placeholder for integration with security monitoring service
     // e.g., Datadog, Splunk, etc.
     try {
@@ -288,10 +262,8 @@ export const secureLogger = new SecureLogger();
 export const log = {
   debug: (scope: string, message: string, data?: unknown) =>
     secureLogger.debug(scope, message, data),
-  info: (scope: string, message: string, data?: unknown) =>
-    secureLogger.info(scope, message, data),
-  warn: (scope: string, message: string, data?: unknown) =>
-    secureLogger.warn(scope, message, data),
+  info: (scope: string, message: string, data?: unknown) => secureLogger.info(scope, message, data),
+  warn: (scope: string, message: string, data?: unknown) => secureLogger.warn(scope, message, data),
   error: (scope: string, message: string, error?: unknown) =>
     secureLogger.error(scope, message, error),
   security: (scope: string, event: string, data?: unknown) =>
@@ -362,10 +334,8 @@ if (isProduction) {
   // Keep original methods available for emergency debugging
   const win = getWindow();
   if (win) {
-    (
-      win as unknown as { __originalConsole: typeof originalConsole }
-    ).__originalConsole = originalConsole;
-    (win as unknown as { __safeConsole: typeof safeConsole }).__safeConsole =
-      safeConsole;
+    (win as unknown as { __originalConsole: typeof originalConsole }).__originalConsole =
+      originalConsole;
+    (win as unknown as { __safeConsole: typeof safeConsole }).__safeConsole = safeConsole;
   }
 }

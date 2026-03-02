@@ -1,4 +1,4 @@
-# Web + Mobile Parity: Three Gotchas
+# Web + Mobile Parity: Four Gotchas
 
 In a monorepo where **web** and **mobile** share `packages/`, a few failure modes cause most production issues. This document spells them out and how to avoid them.
 
@@ -50,6 +50,21 @@ On the web, if a user clicks `silverkey.com/client/123`, the browser loads the U
 
 ---
 
+## 4. Keyboard Handling
+
+On the web, the DOM handles the keyboard automatically: the viewport shrinks or the page scrolls so the focused input stays visible.
+
+**The danger:** In React Native, the virtual keyboard **slides over your UI** and can cover inputs. Without keyboard avoidance, users cannot see what they type in forms, modals, or bottom-anchored content.
+
+**The fix:**
+
+- Use standard native keyboard avoidance in **`apps/mobile/`** so forms and inputs remain visible when the keyboard is open.
+- **Preferred:** **react-native-keyboard-controller** — modern, highly performant; far outperforms the built-in `KeyboardAvoidingView`.
+- **Fallback:** **react-native-keyboard-aware-scroll-view** — classic, reliable option for a scroll view that automatically moves up when an input is focused.
+- Add the chosen package to `Client/apps/mobile/package.json`; wrap screens or scroll areas that contain text inputs with the library’s component. See [platformVariants/keyboard-handling.md](./platformVariants/keyboard-handling.md) for implementation details.
+
+---
+
 ## Summary
 
 | Gotcha | Rule |
@@ -57,3 +72,4 @@ On the web, if a user clicks `silverkey.com/client/123`, the browser loads the U
 | **Stale app / API & schema** | Schemas and API contracts are additive; no rename/delete without backend backward compatibility for months. |
 | **React version** | RN dictates React; pin at root; packages use React as peerDependency only. |
 | **Deep linking** | Mobile router maps URL paths to screens; document parity; configure Universal Links / App Links. |
+| **Keyboard** | RN: use react-native-keyboard-controller (preferred) or react-native-keyboard-aware-scroll-view; wrap input screens/layouts. |

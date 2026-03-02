@@ -6,13 +6,7 @@
  * Check if file is a valid image type
  */
 export function isValidImageFile(file: File): boolean {
-  const validTypes = [
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-  ];
+  const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
   return validTypes.includes(file.type);
 }
 
@@ -39,7 +33,7 @@ export function processImage(
     maxHeight?: number;
     quality?: number;
     stripAllMetadata?: boolean;
-  },
+  }
 ): {
   file: File;
   originalSize: number;

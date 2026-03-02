@@ -68,8 +68,10 @@ def format_user_data_for_matching(user: User, user_preferences: dict[str, Any]) 
         "preferred_home_types": _parse_home_types(
             prefs.get("preferred_housing_type", prefs.get("housing_type"))
         ),
-        # Lot size and age
+        # Lot size (range in acres) and age
         "preferred_lot_size": prefs.get("preferred_lot_size"),
+        "preferred_lot_size_min": prefs.get("preferred_lot_size_min"),
+        "preferred_lot_size_max": prefs.get("preferred_lot_size_max"),
         "preferred_home_age": prefs.get("preferred_home_age"),
         # Style and renovation
         "preferred_architectural_style": prefs.get("preferred_architectural_style")

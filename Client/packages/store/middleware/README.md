@@ -37,8 +37,8 @@ export const useMyStore = create<MyState>()(
     (set) => ({
       // ... store implementation
     }),
-    { name: "MyStore" },
-  ),
+    { name: "MyStore" }
+  )
 );
 ```
 
@@ -53,8 +53,8 @@ export const useMyStore = create<MyState>()(
     (set) => ({
       // ... store implementation
     }),
-    { name: "my-store" },
-  ),
+    { name: "my-store" }
+  )
 );
 ```
 
@@ -74,8 +74,8 @@ export const useMyStore = create<MyState>()(
       ...initialState,
       increment: () => set((s) => ({ count: s.count + 1 })),
     }),
-    initialState,
-  ),
+    initialState
+  )
 );
 
 // Later, reset the store

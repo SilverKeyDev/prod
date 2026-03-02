@@ -16,7 +16,7 @@ Brief guide to SilverKey’s documentation approach: one canonical system plus l
 
 ## 3. What stays in-repo (not under documentation/)
 
-- **Client:** `Client/ARCHITECTURE.md`, `Client/MOBILE_MIGRATION_DESKTOP_FILES.md`, `Client/tools/LINTING.md` — kept as local references next to the code. They are linked from `documentation/client/` and Cursor rules.
+- **Client:** `documentation/client/LINTING.md` — kept as local reference. Architecture and platform rules are in `.cursor/rules/frontend/`. Linked from `documentation/client/` and Cursor rules.
 - **Client packages:** `Client/packages/*/README.md` and key subfolders (e.g. `config/`, `hooks/`, `services/`) — short package/API overviews. Detailed structure and rules live in `documentation/client/`.
 - **Server:** Per-module READMEs under `Server/app/` stay; server-wide long-form docs go in `documentation/server/`.
 - **Cursor:** `.cursor/rules/` and `.cursor/agents/` — rules and agent instructions; they may reference paths under `documentation/`.

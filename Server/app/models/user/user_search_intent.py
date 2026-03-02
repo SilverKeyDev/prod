@@ -19,6 +19,7 @@ class UserSearchIntent(db.Model):
     preferred_lot_size_min = db.Column(db.Float, nullable=True)
     preferred_lot_size_max = db.Column(db.Float, nullable=True)
     preferred_home_age_max = db.Column(db.Integer, nullable=True)
+    days_on_market_min = db.Column(db.Integer, nullable=True)
     days_on_market_max = db.Column(db.Integer, nullable=True)
     walkability_importance = db.Column(db.String(50), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)

@@ -2,7 +2,7 @@ import React from "react";
 
 import { Section, Text } from "@react-email/components";
 
-import { dateNow } from "../../utils/core/date";
+import { dateNow } from "../../utils/date";
 import { EmailTemplate } from "../components/EmailTemplate";
 import { Listing, ListingCard } from "../components/ListingCard";
 
@@ -20,22 +20,16 @@ export default function NewPropertiesEmail({
   maxItems = 10,
 }: NewPropertiesEmailProps) {
   const displayProperties = properties.slice(0, maxItems);
-  const newListingsCount = displayProperties.filter(
-    (p) => p.isNewListing,
-  ).length;
+  const newListingsCount = displayProperties.filter((p) => p.isNewListing).length;
   const priceCutsCount = displayProperties.filter((p) => p.priceCut).length;
 
   const getSubtitle = () => {
     const parts: string[] = [];
     if (newListingsCount > 0) {
-      parts.push(
-        `${newListingsCount} new listing${newListingsCount !== 1 ? "s" : ""}`,
-      );
+      parts.push(`${newListingsCount} new listing${newListingsCount !== 1 ? "s" : ""}`);
     }
     if (priceCutsCount > 0) {
-      parts.push(
-        `${priceCutsCount} price reduction${priceCutsCount !== 1 ? "s" : ""}`,
-      );
+      parts.push(`${priceCutsCount} price reduction${priceCutsCount !== 1 ? "s" : ""}`);
     }
     if (parts.length === 0) {
       return `We found ${displayProperties.length} update${
@@ -73,9 +67,8 @@ export default function NewPropertiesEmail({
           textAlign: "center",
         }}
       >
-        You're receiving this email because you have active home search
-        preferences. We'll keep you updated with new listings and price changes
-        as they become available.
+        You're receiving this email because you have active home search preferences. We'll keep you
+        updated with new listings and price changes as they become available.
       </Text>
       <div
         style={{

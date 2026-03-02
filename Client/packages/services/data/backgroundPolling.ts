@@ -1,8 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
-import { log, LOG_CATEGORIES } from "logger";
 
-import type { UserProfile } from "packages/schemas";
-import { getDocument } from "packages/utils/core/platform";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import type { UserProfile } from "packages/types";
+import { getDocument } from "packages/utils/platform";
 
 import { DATA_ROUTES, getPollingRoutes } from "./dataConfig";
 
@@ -97,9 +97,7 @@ export class BackgroundPolling {
   /**
    * Start polling for a single route using its configuration
    */
-  private startRoutePolling(
-    route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES],
-  ): void {
+  private startRoutePolling(route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES]): void {
     const poll = async () => {
       if (!this.user) return;
 
@@ -148,9 +146,7 @@ export class BackgroundPolling {
   /**
    * Check if the current pathname indicates we're on the active page for this route
    */
-  private isRouteActivePage(
-    route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES],
-  ): boolean {
+  private isRouteActivePage(route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES]): boolean {
     // Conversations have adaptive polling when on messaging page
     if (route.key === "conversations") {
       return this.currentPathname.startsWith("/messaging");

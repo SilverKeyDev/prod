@@ -148,4 +148,4 @@ So under `apps/web/`, `.ts` files are mostly **index re-exports** or **type/conf
 - **Services (`packages/services/`)** → Use `config/api/*`, `services/http/*`, `services/security/*`, `schemas/*`. Do not import `hooks/*` or `store/*`.
 - **Config (`packages/config/`)** → Use `services/http/*`, `services/security/*`, `schemas/*`.
 
-For full layer rules and examples, see `Client/ARCHITECTURE.md` and `.cursor/rules/frontend/frontend-architecture.mdc`.
+For full layer rules and examples, see `.cursor/rules/frontend/frontend-architecture.mdc`.

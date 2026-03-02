@@ -63,6 +63,11 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         out["preferred_bathrooms_max"] = intent.preferred_bathrooms_max
         out["preferred_sqft_min"] = intent.preferred_sqft_min
         out["preferred_sqft_max"] = intent.preferred_sqft_max
+        out["preferred_lot_size_min"] = intent.preferred_lot_size_min
+        out["preferred_lot_size_max"] = intent.preferred_lot_size_max
+        out["preferred_home_age_max"] = intent.preferred_home_age_max
+        out["days_on_market_min"] = intent.days_on_market_min
+        out["days_on_market_max"] = intent.days_on_market_max
         out["walkability_importance"] = intent.walkability_importance
 
     # Important locations -> important_locations list
@@ -261,6 +266,20 @@ def write_preferences_from_payload(
             if data["walkability_importance"] is not None
             else None
         )
+    if "preferred_sqft_min" in data and data["preferred_sqft_min"] is not None:
+        intent.preferred_sqft_min = int(data["preferred_sqft_min"])
+    if "preferred_sqft_max" in data and data["preferred_sqft_max"] is not None:
+        intent.preferred_sqft_max = int(data["preferred_sqft_max"])
+    if "preferred_lot_size_min" in data and data["preferred_lot_size_min"] is not None:
+        intent.preferred_lot_size_min = float(data["preferred_lot_size_min"])
+    if "preferred_lot_size_max" in data and data["preferred_lot_size_max"] is not None:
+        intent.preferred_lot_size_max = float(data["preferred_lot_size_max"])
+    if "preferred_home_age_max" in data and data["preferred_home_age_max"] is not None:
+        intent.preferred_home_age_max = int(data["preferred_home_age_max"])
+    if "days_on_market_min" in data and data["days_on_market_min"] is not None:
+        intent.days_on_market_min = int(data["days_on_market_min"])
+    if "days_on_market_max" in data and data["days_on_market_max"] is not None:
+        intent.days_on_market_max = int(data["days_on_market_max"])
 
     # Important locations: replace with payload list if present
     locs = data.get("important_locations")

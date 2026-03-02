@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 export type NotificationState = {
   // Unread counts
@@ -26,10 +26,7 @@ export type NotificationState = {
   markConversationRead: (conversationId: string) => void;
   incrementUnreadCount: (conversationId: string) => void;
   updateLastReadTimestamp: (conversationId: string, timestamp: number) => void;
-  updateLastSeenMessageTimestamp: (
-    conversationId: string,
-    timestamp: number,
-  ) => void;
+  updateLastSeenMessageTimestamp: (conversationId: string, timestamp: number) => void;
   setActiveConversationId: (conversationId: string | null) => void;
   resetNotifications: () => void;
   reset: () => void;
@@ -52,9 +49,7 @@ const initialState = (): Pick<
   isLoaded: false,
 });
 
-const baseCreator: import("zustand").StateCreator<NotificationState> = (
-  set,
-) => ({
+const baseCreator: import("zustand").StateCreator<NotificationState> = (set) => ({
   ...initialState(),
 
   setUnreadCount: (conversationId: string, count: number) =>
@@ -65,7 +60,7 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (
       };
       const newUnreadCount = Object.values(newUnreadByConversation).reduce(
         (sum, val) => sum + val,
-        0,
+        0
       );
       return {
         unreadByConversation: newUnreadByConversation,
@@ -75,8 +70,7 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (
 
   setTotalUnreadCount: (count: number) =>
     set({
-      unreadCount:
-        typeof count === "number" && !isNaN(count) && count >= 0 ? count : 0,
+      unreadCount: typeof count === "number" && !isNaN(count) && count >= 0 ? count : 0,
       isLoaded: true, // Mark as loaded when we receive data from API
     }),
 
@@ -88,7 +82,7 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (
       delete newUnreadByConversation[conversationId];
       const newUnreadCount = Object.values(newUnreadByConversation).reduce(
         (sum, val) => sum + val,
-        0,
+        0
       );
       return {
         unreadByConversation: newUnreadByConversation,
@@ -109,7 +103,7 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (
       };
       const newUnreadCount = Object.values(newUnreadByConversation).reduce(
         (sum, val) => sum + val,
-        0,
+        0
       );
       return {
         unreadByConversation: newUnreadByConversation,
@@ -136,10 +130,7 @@ const baseCreator: import("zustand").StateCreator<NotificationState> = (
   setActiveConversationId: (conversationId: string | null) =>
     set((state: NotificationState) => {
       // Mark previous conversation as read when switching away
-      if (
-        state.activeConversationId &&
-        state.activeConversationId !== conversationId
-      ) {
+      if (state.activeConversationId && state.activeConversationId !== conversationId) {
         // Don't mark as read here - let the component handle it when loading messages
       }
       return { activeConversationId: conversationId };
@@ -161,7 +152,7 @@ const withReset = withResettable<NotificationState>(baseCreator, (set) => ({
       };
       const newUnreadCount = Object.values(newUnreadByConversation).reduce(
         (sum, val) => sum + val,
-        0,
+        0
       );
       return {
         unreadByConversation: newUnreadByConversation,
@@ -181,7 +172,7 @@ const withReset = withResettable<NotificationState>(baseCreator, (set) => ({
       delete newUnreadByConversation[conversationId];
       const newUnreadCount = Object.values(newUnreadByConversation).reduce(
         (sum, val) => sum + val,
-        0,
+        0
       );
       return {
         unreadByConversation: newUnreadByConversation,
@@ -201,7 +192,7 @@ const withReset = withResettable<NotificationState>(baseCreator, (set) => ({
       };
       const newUnreadCount = Object.values(newUnreadByConversation).reduce(
         (sum, val) => sum + val,
-        0,
+        0
       );
       return {
         unreadByConversation: newUnreadByConversation,
@@ -225,10 +216,7 @@ const withReset = withResettable<NotificationState>(baseCreator, (set) => ({
   setActiveConversationId: (conversationId: string | null) =>
     set((state: NotificationState) => {
       // Mark previous conversation as read when switching away
-      if (
-        state.activeConversationId &&
-        state.activeConversationId !== conversationId
-      ) {
+      if (state.activeConversationId && state.activeConversationId !== conversationId) {
         // Don't mark as read here - let the component handle it when loading messages
       }
       return { activeConversationId: conversationId };
@@ -265,8 +253,7 @@ const withPersist = persistSafe<NotificationState>(withReset, {
       } as unknown as NotificationState;
     }
     const pd = persisted as Record<string, unknown>;
-    const unreadByConversation =
-      (pd.unreadByConversation as Record<string, number>) ?? {};
+    const unreadByConversation = (pd.unreadByConversation as Record<string, number>) ?? {};
     // Don't use persisted unreadCount - reset to 0 and wait for API to load
     // This prevents showing stale data on page reload
     return {
@@ -275,8 +262,7 @@ const withPersist = persistSafe<NotificationState>(withReset, {
       unreadCount: 0, // Always start at 0, wait for API to load
       isLoaded: false, // Not loaded until API responds
       lastReadTimestamp: (pd.lastReadTimestamp as Record<string, number>) ?? {},
-      lastSeenMessageTimestamp:
-        (pd.lastSeenMessageTimestamp as Record<string, number>) ?? {},
+      lastSeenMessageTimestamp: (pd.lastSeenMessageTimestamp as Record<string, number>) ?? {},
       // activeConversationId is always null on load (transient state)
       activeConversationId: null,
       setUnreadCount: () => {},
@@ -293,7 +279,7 @@ const withPersist = persistSafe<NotificationState>(withReset, {
 }) as unknown as import("zustand").StateCreator<NotificationState>;
 
 const withDev = withDevtools<NotificationState>("notifications")(
-  withPersist,
+  withPersist
 ) as unknown as import("zustand").StateCreator<NotificationState>;
 
 export const useNotificationStore = create<NotificationState>()(withDev);

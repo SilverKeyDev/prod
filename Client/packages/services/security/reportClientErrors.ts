@@ -5,7 +5,7 @@
  */
 
 import { getEnv } from "packages/config/env";
-import { getFetch } from "packages/utils/core/platform";
+import { getFetchIfAvailable } from "packages/utils/platform";
 
 export type ClientErrorPayload = {
   message?: string;
@@ -30,15 +30,16 @@ export type ClientErrorPayload = {
  * Report a client error to the backend. Fire-and-forget; does not throw.
  * Caller should not rely on this for control flow.
  */
-export async function reportClientError(
-  payload: ClientErrorPayload,
-): Promise<void> {
+export async function reportClientError(payload: ClientErrorPayload): Promise<void> {
   if (!payload.message && !payload.name) return;
+
+  const fetchFn = getFetchIfAvailable();
+  if (!fetchFn) return;
 
   try {
     const base = getEnv().apiBaseUrl.replace(/\/+$/, "");
     const url = base ? `${base}/api/v1/client/errors` : "/api/v1/client/errors";
-    await getFetch()(url, {
+    await fetchFn(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

@@ -76,5 +76,4 @@ Import without the extension: `import './Sidebar'` → bundler resolves `Sidebar
 
 ## Enforcement
 
-- **`pnpm lint:platform-imports`** (from `Client/`): warns when a file is only imported by `.web.*` or `.native.*` but does not have the matching extension; fails if both `.mobile.*` and `.native.*` exist for the same logical component.
-- See `Client/ARCHITECTURE.md` (Platform file conventions) and `Client/tools/LINTING.md` for full details.
+- Platform conventions are enforced via ESLint and code review. See `documentation/client/LINTING.md` for full details.

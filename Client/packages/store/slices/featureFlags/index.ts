@@ -1,4 +1,1 @@
-export {
-  type FeatureFlagsState,
-  useFeatureFlagsStore,
-} from "./featureFlags.slice";
+export { type FeatureFlagsState, useFeatureFlagsStore } from "./featureFlags.slice";

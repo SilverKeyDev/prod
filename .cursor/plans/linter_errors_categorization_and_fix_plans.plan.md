@@ -7,13 +7,31 @@ isProject: false
 
 # Linter Errors: Categorization and Fix Plans
 
-**Generated:** From full `./scripts/run-all-linters.sh all` run.  
-**Totals:** Client 375 errors + 1725 warnings; Server 1 error + 1 warning (folder count).
+**Last full run:** `./scripts/run-all-linters.sh all`  
+**Current snapshot (this run):** Client **141 errors + 19 warnings** (ESLint only; typecheck, format:check, cycles, audit, build not re-run after lint failure). Server: not re-checked in this run.
 
 ---
 
-## 1. Summary by category
+## 1. Current run – summary by category
 
+| Category | Severity | Count | Rule | Notes |
+|----------|----------|-------|------|--------|
+| Cross-feature / app boundaries | Error | **~69** | `silverkey/no-cross-feature-internals` | App→feature internals (7) + feature→feature (62). Use feature barrels or move shared code to packages/hooks, packages/utils, packages/ui. |
+| Package module structure | Error | **~22** | `silverkey/package-module-allowed-children` | `services/` in features (search, calendar, documents, homeauth) + loose `ChecklistLayout.tsx` in checklists. Only api/, components/, hooks/, store/, types/, utils/ allowed. |
+| Architecture: use hooks not config/api | Error | **~25** | `silverkey/no-restricted-imports-architecture` | Features/ui importing config/api or services directly; must use packages/hooks or feature api layer. |
+| Zustand .getState() | Error | **~14** | `silverkey/no-zustand-get-state` | Use hook + selector or integration hook; no .getState() outside store. |
+| Centralized logger | Error | **17** | `silverkey/no-console-logger` | `packages/services/chats.ts`: replace console.log/error with log + LOG_CATEGORIES. |
+| Primitive DOM elements in UI | Error | **4** | `silverkey/no-primitive-components` | `packages/ui/components/primitives/`: Button.web, Input.web, Image.web, Video.web use &lt;button&gt;/&lt;input&gt;/&lt;img&gt;/&lt;video&gt;; rule expects wrapper from components/ui. |
+| Relative parent imports | Warning | **6** | `silverkey/no-relative-parent-imports` | Button.tsx, tailwind/index, calendar api/types: use path aliases. |
+| Direct platform libraries | Warning | **7** | `silverkey/no-direct-platform-libraries` | embla-carousel-react, react-virtuoso, hls.js, react-phone-number-input in features/feed, features/homeauth; use platform adapter from packages/ui. |
+| Native Date | Warning | **2** | `silverkey/no-native-date` | packages/services/chats.ts, homeauth VerificationPage: use packages/utils/date. |
+| Platform feature check | Warning | **2** | `silverkey/no-platform-feature-check` | homeauth OnboardingScreen.native: use useFeature('flag') instead of platform gate. |
+
+**Total this run:** 141 errors, 19 warnings (160 problems). All from Client ESLint; no `import/no-unresolved` in this run.
+
+---
+
+## 2. Legacy summary (prior run – for reference)
 
 | Category                      | Severity | Count   | Rule / Source                          | Plan                                                |
 | ----------------------------- | -------- | ------- | -------------------------------------- | --------------------------------------------------- |
@@ -25,7 +43,119 @@ isProject: false
 | Restricted globals (packages) | Warning  | ~200+   | `no-restricted-globals`                | [Plan E](#plan-e-restricted-globals-in-packages)    |
 | Folder max items (Client)     | Warning  | ~25+    | `silverkey/folder-max-items`           | [Plan F](#plan-f-folder-max-items)                  |
 | Function length / complexity  | Warning  | ~80+    | `max-lines-per-function`, `complexity` | [Plan G](#plan-g-function-length-and-complexity)    |
+| Architecture & boundaries     | Error    | **105** | 3 SilverKey rules (see below)         | [Plan H](#plan-h-architecture--boundaries-105-errors) |
 
+
+---
+
+## Plan H: Architecture & boundaries (105 errors)
+
+**Rules:**  
+- `silverkey/no-cross-feature-internals` (65) – No importing another feature’s components, hooks, utils, store, types, api, or services; apps must not import feature internals (use feature barrel or shared packages).  
+- `silverkey/no-restricted-imports-architecture` (25) – No direct imports of `packages/config/api` or `packages/services` from `packages/features` or `packages/ui` except from feature `api/` or `services/` (and allowed http/security). Use hooks or feature API layer instead.  
+- `silverkey/package-module-allowed-children` (15) – Feature modules may only contain: `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`, index files, README. No extra roots (e.g. `services/`, loose `ChecklistLayout.tsx`).
+
+### H.1 – silverkey/no-cross-feature-internals (65 errors)
+
+#### H.1.A – App importing feature internals (6 errors)
+
+| File | Line | Imported | Fix |
+|------|------|----------|-----|
+| `apps/mobile/app/navigation/RootNavigator.native.tsx` | 3 | homeauth/components | Import from `packages/features/homeauth` barrel |
+| `apps/mobile/app/providers/AppStackIntegrations.native.tsx` | 3, 4 | documents/hooks, search/hooks | Use feature barrels or shared hooks |
+| `apps/mobile/app/providers/auth/AuthProviderNative.native.tsx` | 10 | homeauth/hooks | Use `packages/features/homeauth` barrel |
+| `apps/web/pages/SavedPage.tsx` | 1 | saved/components | Import from `packages/features/saved` barrel |
+| `apps/web/pages/SearchPage.tsx` | 1 | search/components | Import from `packages/features/search` barrel |
+| `apps/web/pages/SettingsPage.tsx` | 11 | profile/utils | Import from `packages/features/profile` barrel or move util to `packages/utils` |
+
+#### H.1.B – Feature → feature (59 errors), by importing feature
+
+**agent** (importing from: homeauth, messaging, documents, profile)  
+- `packages/features/agent/components/AgentFeature.tsx` – homeauth/hooks, messaging/components  
+- `packages/features/agent/components/modals/SelectAgreementModal.tsx` – documents/hooks  
+- `packages/features/agent/components/modals/SelectDocumentModal.tsx` – documents/hooks  
+- `packages/features/agent/components/modals/SettingsModal.tsx` – profile/components  
+
+**calendar** (importing from: dashboard)  
+- `packages/features/calendar/components/SchedulingModal.tsx` – dashboard/components  
+
+**checklists** (importing from: homeauth)  
+- `packages/features/checklists/ChecklistLayout.tsx` – homeauth/hooks  
+
+**compare** (importing from: search)  
+- `packages/features/compare/utils/comparisonFields/coreFields.ts` – search/types (×2)  
+
+**dashboard** (importing from: documents)  
+- `packages/features/dashboard/components/ClientHub/agreements/ClientAgreements.tsx` – documents/hooks  
+
+**homeauth** (importing from: search, checklists)  
+- `packages/features/homeauth/components/homepage/HomeFeature.tsx` – search/types  
+- `packages/features/homeauth/components/pages/homepage/HomePage.tsx` – search/types  
+- `packages/features/homeauth/hooks/data/useChecklistData.ts` – checklists/api  
+
+**messaging** (importing from: agent, documents, search)  
+- `packages/features/messaging/components/AgentMessaging/AgentMessagingModals.tsx` – agent/components (×5)  
+- `packages/features/messaging/components/ClientMessaging/ClientMessageRow.tsx` – documents/hooks  
+- `packages/features/messaging/components/ClientMessaging/ClientMessagingModals.tsx` – agent/components, search/types  
+- `packages/features/messaging/components/ClientMessaging/ClientMessagingSidebar.tsx` – agent/components  
+- `packages/features/messaging/components/cards/SharedAgreementCard.tsx` – documents/hooks  
+- `packages/features/messaging/components/layout/UnifiedMessagesList.tsx` – documents/hooks  
+- `packages/features/messaging/components/layout/UnifiedMessagingSidebar.tsx` – agent/components  
+- `packages/features/messaging/hooks/data/useChats.ts` – search/types  
+- `packages/features/messaging/utils/reportToChat.ts` – search/types  
+
+**saved** (importing from: search, documents)  
+- `packages/features/saved/components/...` – search/components, documents/hooks (multiple files)  
+- `packages/features/saved/components/SavedPageTabsAndSearch.tsx` – documents/hooks  
+
+**search** (importing from: homeauth, feed, compare, saved)  
+- `packages/features/search/components/layout/SearchPageMapContainer.web.tsx` – homeauth/components  
+- `packages/features/search/components/reels/ReelsView.web.tsx` – feed/hooks, feed/types, feed/utils  
+- `packages/features/search/hooks/data/compare/usePropertyComparison.ts` – compare/utils  
+- `packages/features/search/hooks/data/saved/useSavedHomesData.ts` – saved/types (×2)  
+
+**Fix direction (H.1.B):** Move shared code to `packages/hooks`, `packages/utils`, or `packages/ui`; or expose via feature barrel only (no direct imports of another feature’s components/hooks/utils/store/types/api/services).
+
+---
+
+### H.2 – silverkey/no-restricted-imports-architecture (25 errors)
+
+**What’s wrong:** Code under `packages/features` (or `packages/ui`) imports `packages/config/api` or `packages/services` directly. Only feature `api/` or `services/` (and allowed http/security) may do that; elsewhere use hooks from `packages/hooks` or the feature’s API layer.
+
+| Feature | File | Fix |
+|---------|------|-----|
+| agent | `hooks/data/useAgentClients.ts`, `useAgentSearch.ts`, `useAgentTodos.ts`, `useConnectionRequests.ts`, `useEventRequests.ts` | Use shared hooks from `packages/hooks` or feature `api/` layer |
+| agent | `utils/agent.ts` | Use hooks or move API usage to feature `api/` |
+| calendar | `hooks/data/useCalendarPreferences.ts` | Use shared hook or feature `api/` |
+| documents | `hooks/data/useDocumentActions.ts`, `hooks/ui/pdf/pdfModalDiagnosticsHelpers.ts` | Use `packages/hooks` or feature api layer |
+| homeauth | `hooks/data/useAuthActions.ts`, `useAuthVerification.ts`, `useAutoSavePreferences.ts`, `usePreferencesSubmit.ts`, `useProfilePictureUpload.ts`, `useUserData.ts` | Use `packages/hooks` or feature api layer |
+| search | `hooks/data/compare/usePropertyComparison.ts`, `hooks/data/isochrone/useIsochroneData.ts`, `useIsochroneFlow.ts`, `hooks/data/page/useSearchBootstrap.ts`, `hooks/data/property/usePropertyDetails.ts`, `hooks/data/results/useSearchResultsData.ts`, `hooks/data/saved/useNotInterestedHomesData.ts` | Use `packages/hooks` or feature api layer |
+
+**Fix plan:** For each file, either (1) add/use a hook in `packages/hooks` that wraps the config/api or service call, or (2) move the call into the feature’s `api/` (or allowed `services/`) and keep hooks thin.
+
+---
+
+### H.3 – silverkey/package-module-allowed-children (15 errors)
+
+**What’s wrong:** Feature modules may only have: `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`, index files, README. No `services/` folder and no loose files at module root.
+
+#### H.3.A – Disallowed root: `services/` (14 errors)
+
+| Feature | Path | Fix |
+|---------|------|-----|
+| calendar | `packages/features/calendar/services/scheduling.ts` | Move to `api/` or `utils/` (or add rule exception if “services” is allowed) |
+| documents | `packages/features/documents/services/index.ts` | Move service layer into `api/` or `utils/` |
+| homeauth | `packages/features/homeauth/services/auth.ts` | Move into `api/` or `utils/` |
+| search | `packages/features/search/services/googleMaps/*` (GoogleMapsService.ts, index.ts, mapInstanceManager.ts, scriptLoader.ts, singleton.ts, types.ts, utils.ts) | Move into `api/` or `utils/` (e.g. `api/googleMaps/` or `utils/googleMaps/`) |
+| search | `packages/features/search/services/propertySearch.ts`, `savedHomes.ts`, `search.ts`, `searchTransform.ts` | Move into `api/` or `utils/` |
+
+#### H.3.B – Loose file at module root (1 error)
+
+| Feature | File | Fix |
+|---------|------|-----|
+| checklists | `packages/features/checklists/ChecklistLayout.tsx` | Move to `components/ChecklistLayout.tsx` (or under a subfolder of `components/`) and update imports |
+
+**Fix plan (H.3):** (1) Rename or move `services/` into `api/` or `utils/` per feature and update imports. (2) Move `ChecklistLayout.tsx` into `checklists/components/` and update all imports.
 
 ---
 
@@ -122,7 +252,7 @@ isProject: false
 
 ## Plan F: Folder max items
 
-**Client:** `silverkey/folder-max-items` – e.g. `Client/tools/eslint-plugin-silverkey/rules/` has 22 direct children (max 16).  
+**Client:** `silverkey/folder-max-items` – e.g. `Client/packages/config/eslint/eslint-plugin-silverkey/rules/` has 22 direct children (max 16).  
 **Server:** See Plan B.
 
 **Fix plan (Client):**
@@ -158,5 +288,6 @@ isProject: false
 5. **Plan E** (restricted globals) – may need design for storage/DOM abstractions.
 6. **Plan C** (hardcoded JSX text) – many files; can be done incrementally.
 7. **Plan G** (function length/complexity) – refactors; do per-feature or per-file.
+8. **Plan H** (architecture & boundaries) – fix app→feature barrel usage (H.1.A), then feature→feature shared code (H.1.B), then restricted config/api imports (H.2), then package-module structure (H.3).
 
 After Plan A (and optionally B), re-run `./scripts/run-all-linters.sh all` to get updated counts and confirm no new regressions.

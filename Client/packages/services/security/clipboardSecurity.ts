@@ -2,13 +2,8 @@
  * Secure clipboard operations
  */
 
-import { log, LOG_CATEGORIES } from "logger";
-
-import {
-  getDocument,
-  getNavigator,
-  getWindow,
-} from "packages/utils/core/platform";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { getDocument, getNavigator, getWindow } from "packages/utils/platform";
 
 /**
  * Securely copy text to clipboard with fallback

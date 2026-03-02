@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
-import { useLocation } from "react-router-dom";
 
-import { pathMatches } from "packages/utils/domain/layout/dashboardLayoutConfig";
+import { useSearchViewStore } from "packages/store";
 
 import MobileTopBar from "@/app/layouts/mobile/MobileTopBar";
+
+import { useDashboardRoute } from "./useDashboardRoute";
 
 type DashboardHeaderProps = {
   isMobile: boolean;
@@ -11,15 +12,13 @@ type DashboardHeaderProps = {
   mobileHeader?: ReactNode;
 };
 
-const MOBILE_SIDE_PX = "px-4";
-
 function getMobileHeaderContent(
   isMessagingRoute: boolean,
   isDashboard: boolean,
   isSearch: boolean,
   isMobile: boolean,
   mobileHeaderActions: ReactNode | null,
-  mobileHeader: ReactNode | undefined,
+  mobileHeader: ReactNode | undefined
 ): ReactNode {
   if (isMessagingRoute) return mobileHeaderActions;
   if (isDashboard) return null;
@@ -33,7 +32,7 @@ function getShowMobileTopBar(
   isDashboard: boolean,
   mobileHeaderActions: ReactNode | null,
   isSearchReelsShown: boolean,
-  isMobile: boolean,
+  isMobile: boolean
 ): boolean {
   const hideForReels = isSearchReelsShown && isMobile;
   if (hideForReels) return false;
@@ -47,62 +46,42 @@ export function DashboardHeader({
   mobileHeaderActions,
   mobileHeader,
 }: DashboardHeaderProps) {
-  const location = useLocation();
-  const path = location.pathname;
-  const {
-    isSearch,
-    isSaved,
-    isMessaging: isMessagingRoute,
-    isDashboard,
-  } = pathMatches(path);
-  const isSearchReelsShown =
-    isSearch && new URLSearchParams(location.search).has("reels");
+  const route = useDashboardRoute();
+  const searchViewMode = useSearchViewStore((s) => s.mode);
+  const isSearchReelsShown = route.isSearch && searchViewMode === "reels";
 
   const mobileHeaderContent = getMobileHeaderContent(
-    isMessagingRoute,
-    isDashboard,
-    isSearch,
+    route.isMessaging,
+    route.isDashboard,
+    route.isSearch,
     isMobile,
     mobileHeaderActions,
-    mobileHeader,
+    mobileHeader
   );
   const showMobileTopBar = getShowMobileTopBar(
-    isMessagingRoute,
-    isDashboard,
+    route.isMessaging,
+    route.isDashboard,
     mobileHeaderActions,
     isSearchReelsShown,
-    isMobile,
+    isMobile
   );
 
-  const fullWidthLayout = isMessagingRoute || isSearch;
-  const wrapperClassName = fullWidthLayout ? "w-full" : "mx-auto";
-  const wrapperStyle = fullWidthLayout ? {} : { maxWidth: "95vw" };
-  const dynamicHeight =
-    isSaved && mobileHeaderActions !== null && !isMessagingRoute;
-  const noPadding = isSaved && isMobile;
-  const centerPadding = isSaved && isMobile ? "" : MOBILE_SIDE_PX;
+  const fullWidthLayout = route.isMessaging || route.isSearch;
+  const noPadding = route.isSaved && isMobile;
 
   return (
     <>
       {showMobileTopBar && (
-        <div className="md:hidden">
-          <div className={wrapperClassName} style={wrapperStyle}>
-            <MobileTopBar
-              dynamicHeight={dynamicHeight}
-              fullWidth={isMessagingRoute}
-              noPadding={noPadding}
-            >
-              {isMessagingRoute ? (
-                mobileHeaderContent
-              ) : (
-                <div
-                  className={`flex w-full items-center justify-center text-center ${centerPadding}`}
-                >
-                  {mobileHeaderContent ?? null}
-                </div>
-              )}
-            </MobileTopBar>
-          </div>
+        <div className={`md:hidden ${fullWidthLayout ? "w-full" : "mx-auto max-w-[95vw]"}`}>
+          <MobileTopBar fullWidth={route.isMessaging} noPadding={noPadding}>
+            {route.isMessaging ? (
+              mobileHeaderContent
+            ) : (
+              <div className="flex w-full items-center justify-center">
+                {mobileHeaderContent ?? null}
+              </div>
+            )}
+          </MobileTopBar>
         </div>
       )}
     </>

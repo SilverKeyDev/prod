@@ -3,25 +3,29 @@ export { useMediaQuery } from "./responsive";
 export { type ResponsiveState, useIsMobile, useResponsive } from "./responsive";
 
 // Feed
-export { useFeedGestureTrap } from "./feed";
-export { useFeedAxisLock } from "./feed";
-export { useHlsVideo } from "./feed";
-export { useReelsShortcuts, type UseReelsShortcutsParams } from "./feed";
-export { useReelsCleanup } from "./feed";
+export { useFeedGestureTrap } from "../../features/feed/hooks/ui";
+export { useFeedAxisLock } from "../../features/feed/hooks/ui";
+export { useHlsVideo } from "../../features/feed/hooks/ui";
+export { useReelsShortcuts, type UseReelsShortcutsParams } from "../../features/feed/hooks/ui";
+export { useReelsCleanup } from "../../features/feed/hooks/ui";
 export {
   useFeedScrollContainer,
   type UseFeedScrollContainerParams,
-} from "./feed";
+} from "../../features/feed/hooks/ui";
 
 // Documents
-export { useSavedPageEffects } from "./documents";
-export { useSavedPageModals } from "./documents";
-export { useSavedHomesDocuSign } from "./documents";
+export { useSavedPageEffects } from "../../features/documents/hooks/ui";
+export { useSavedPageModals } from "../../features/documents/hooks/ui";
+export { useSavedHomesDocuSign } from "../../features/documents/hooks/ui";
 
 // Auth
-export { formatTimeRemaining, useSessionTimeout } from "./auth";
-export { useLocalStorage, type UseLocalStorageReturn } from "./auth";
-export { checkStepUpRequired, useStepUpAuth, withStepUpAuth } from "./auth";
+export { formatTimeRemaining, useSessionTimeout } from "../../features/homeauth/hooks/ui";
+export { useLocalStorage, type UseLocalStorageReturn } from "../../features/homeauth/hooks/ui";
+export {
+  checkStepUpRequired,
+  useStepUpAuth,
+  withStepUpAuth,
+} from "../../features/homeauth/hooks/ui";
 
 // Toast
 export {
@@ -34,16 +38,13 @@ export {
 } from "./toast";
 
 // Scroll
-export { useMessageScroll } from "./scroll";
+export { useMessageScroll } from "../../features/messaging/hooks/ui";
 
 // Client messaging modals
-export { useClientMessagingModals } from "./useClientMessagingModals";
+export { useClientMessagingModals } from "../../features/messaging/hooks/ui/useClientMessagingModals";
 
 // Container width
-export {
-  useContainerWidth,
-  type UseContainerWidthOptions,
-} from "./useContainerWidth";
+export { useContainerWidth, type UseContainerWidthOptions } from "./useContainerWidth";
 
 // Clipboard
 export { useSecureClipboardCopy } from "./clipboard";

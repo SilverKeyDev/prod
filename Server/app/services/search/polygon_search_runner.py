@@ -206,9 +206,10 @@ def run_polygon_search(user_id: str, data: dict):
             )
         ]
 
-    # Post-filter by days on market max
+    # Post-filter by days on market range (min <= dom <= max)
+    dom_min = user_preferences.get("days_on_market_min")
     dom_max = user_preferences.get("days_on_market_max")
-    if dom_max is not None:
+    if dom_min is not None or dom_max is not None:
 
         def _get_dom(prop):
             v = (
@@ -224,7 +225,45 @@ def run_polygon_search(user_id: str, data: dict):
                 return None
 
         all_properties = [
-            p for p in all_properties if _get_dom(p) is None or _get_dom(p) <= dom_max
+            p
+            for p in all_properties
+            if (
+                _get_dom(p) is None
+                or (
+                    (dom_min is None or _get_dom(p) >= dom_min)
+                    and (dom_max is None or _get_dom(p) <= dom_max)
+                )
+            )
+        ]
+
+    # Post-filter by lot size range (acres: preferred_lot_size_min <= acres <= preferred_lot_size_max)
+    lot_min = user_preferences.get("preferred_lot_size_min")
+    lot_max = user_preferences.get("preferred_lot_size_max")
+    if lot_min is not None or lot_max is not None:
+
+        def _get_lot_acres(prop):
+            raw = prop.get("lotAreaValue") or prop.get("lotSize") or prop.get("lot_size")
+            if raw is None or raw == "":
+                return None
+            unit = str(prop.get("lotAreaUnit") or "").lower()
+            try:
+                val = float(raw)
+            except (TypeError, ValueError):
+                return None
+            if "acre" in unit:
+                return val
+            return val / 43560.0
+
+        all_properties = [
+            p
+            for p in all_properties
+            if (
+                _get_lot_acres(p) is None
+                or (
+                    (lot_min is None or _get_lot_acres(p) >= lot_min)
+                    and (lot_max is None or _get_lot_acres(p) <= lot_max)
+                )
+            )
         ]
 
     # Post-filter by listing type

@@ -1,0 +1,48 @@
+{
+  "name": "@silverkey/mobile",
+  "private": true,
+  "version": "0.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "start:clear": "expo start -c",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "run:ios": "expo run:ios",
+    "run:android": "expo run:android",
+    "prebuild": "expo prebuild",
+    "prebuild:clean": "expo prebuild --clean"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.28.0",
+    "@expo/metro-runtime": "~4.0.1",
+    "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-masked-view/masked-view": "^0.3.2",
+    "@react-navigation/bottom-tabs": "^7.14.0",
+    "@react-navigation/native": "^7.1.28",
+    "@react-navigation/native-stack": "^7.13.0",
+    "@tanstack/react-query": "^5.90.21",
+    "expo": "~52.0.49",
+    "expo-splash-screen": "^0.29.24",
+    "expo-status-bar": "~2.0.0",
+    "nativewind": "4.1.23",
+    "react": "^18.3.1",
+    "react-native": "^0.76.0",
+    "react-native-gesture-handler": "^2.20.2",
+    "react-native-keyboard-controller": "^1.16.0",
+    "react-native-reanimated": "~3.18.0",
+    "react-native-safe-area-context": "^4.12.0",
+    "react-native-screens": "^4.4.0",
+    "react-native-svg": "^15.11.2",
+    "react-native-web": "~0.19.13",
+    "tailwindcss": "^3.4.1",
+    "zustand": "^5.0.8",
+    "expo-av": "~15.0.2",
+    "react-native-phone-number-input": "^2.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "^18.3.5",
+    "typescript": "^5.6.2"
+  }
+}

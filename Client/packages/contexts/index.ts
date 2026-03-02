@@ -5,7 +5,7 @@
 // ============================================================================
 
 // Authentication (migrated to Zustand stores)
-export { useAuthStoreIntegration as useAuth } from "packages/hooks/store/auth/useAuthStoreIntegration";
+export { useAuthStoreIntegration as useAuth } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 
 // Service injection (non-state)
 export { ServiceProvider, useServices } from "./ServiceContext";
@@ -25,22 +25,22 @@ export {
 export { LocalizationProvider, useLocalization } from "./LocalizationContext";
 
 // Search refresh (e.g. Reels refresh when clicking Search nav)
-export { SearchRefreshProvider } from "./SearchRefreshContext";
-export { useSearchRefresh } from "./useSearchRefresh";
+export { SearchRefreshProvider } from "../features/search/hooks/searchRefresh/SearchRefreshContext";
+export { useSearchRefresh } from "../features/search/hooks/searchRefresh/useSearchRefresh";
 
 // Migrated to Zustand stores - use these store integration hooks:
-export { useChats } from "packages/hooks/data/chat/useChats";
+export { useChats } from "packages/features/messaging/hooks/data/useChats";
 
 // Store integration hooks (recommended for components):
-export { useUserStoreIntegration as useUser } from "packages/hooks/store/auth/useUserStoreIntegration";
-export { useUserStoreIntegration as usePreferences } from "packages/hooks/store/auth/useUserStoreIntegration";
-export { useDocumentsStoreIntegration as useDocuments } from "packages/hooks/store/documents/useDocumentsStoreIntegration";
-export { useReportsStoreIntegration as useReports } from "packages/hooks/store/documents/useReportsStoreIntegration";
+export { useDocumentsStoreIntegration as useDocuments } from "@/features/documents/hooks/store/useDocumentsStoreIntegration";
+export { useReportsStoreIntegration as useReports } from "@/features/documents/hooks/store/useReportsStoreIntegration";
+export { useUserStoreIntegration as useUser } from "@/features/homeauth/hooks/store/useUserStoreIntegration";
+export { useUserStoreIntegration as usePreferences } from "@/features/homeauth/hooks/store/useUserStoreIntegration";
+export { useNegotiationStoreIntegration as useNegotiation } from "@/features/negotiate/hooks/store/useNegotiationStoreIntegration";
+export { useSavedHomesStoreIntegration as useSavedHomes } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
 export { useFeature } from "packages/hooks/store/featureFlags/useFeature";
 export { useFeatureFlagsStoreIntegration as useFeatureFlags } from "packages/hooks/store/featureFlags/useFeatureFlagsStoreIntegration";
-export { useFiltersStoreIntegration as useFilters } from "packages/hooks/store/filters/useFiltersStoreIntegration";
 export { useGoogleMapsStoreIntegration as useGoogleMaps } from "packages/hooks/store/map/useGoogleMapsStoreIntegration";
-export { useNegotiationStoreIntegration as useNegotiation } from "packages/hooks/store/negotiation/useNegotiationStoreIntegration";
-export { useSavedHomesStoreIntegration as useSavedHomes } from "packages/hooks/store/search/useSavedHomesStoreIntegration";
-export { useSessionStoreIntegration as useSession } from "packages/hooks/store/session/useSessionStoreIntegration";
-export { useUIStoreIntegration as useUI } from "packages/hooks/store/ui/useUIStoreIntegration";
+export { useFiltersStoreIntegration as useFilters } from "packages/hooks/store/useFiltersStoreIntegration";
+export { useSessionStoreIntegration as useSession } from "packages/hooks/store/useSessionStoreIntegration";
+export { useUIStoreIntegration as useUI } from "packages/hooks/store/useUIStoreIntegration";

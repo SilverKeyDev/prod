@@ -6,9 +6,7 @@ export function createAbortManager() {
     controllers.clear();
   };
 
-  const withAbort = async <T>(
-    fn: (signal: AbortSignal) => Promise<T>,
-  ): Promise<T> => {
+  const withAbort = async <T>(fn: (signal: AbortSignal) => Promise<T>): Promise<T> => {
     const controller = new AbortController();
     controllers.add(controller);
     try {

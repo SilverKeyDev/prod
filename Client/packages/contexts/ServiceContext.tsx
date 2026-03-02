@@ -1,9 +1,9 @@
 import React, { createContext, type ReactNode, useContext } from "react";
 
 import { preferencesApi, userApi } from "packages/config/api";
-import { chatService } from "packages/services/chat/chats";
-import { negotiationService } from "packages/services/negotiation";
-import { googleMapsService } from "packages/services/search/googleMaps";
+
+import { negotiationService } from "@/features/negotiate/utils";
+import { googleMapsService } from "@/features/search/utils/googleMaps";
 
 /**
  * Service injection context - provides access to services without state management
@@ -15,7 +15,6 @@ export type ServiceContextType = {
   preferencesApi: typeof preferencesApi;
 
   // Business logic services
-  chatService: typeof chatService;
   googleMapsService: typeof googleMapsService;
   negotiationService: typeof negotiationService;
 };
@@ -30,14 +29,11 @@ export function ServiceProvider({ children }: ServiceProviderProps) {
   const value: ServiceContextType = {
     userApi,
     preferencesApi,
-    chatService,
     googleMapsService,
     negotiationService,
   };
 
-  return (
-    <ServiceContext.Provider value={value}>{children}</ServiceContext.Provider>
-  );
+  return <ServiceContext.Provider value={value}>{children}</ServiceContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

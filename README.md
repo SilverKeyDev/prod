@@ -107,13 +107,7 @@ From `Client/`:
   pnpm lint
   ```
 
-- **Run architecture/parity linting**:
-
-  ```bash
-  pnpm lint:parity
-  ```
-
-- **Run all lints (standard + parity)**:
+- **Run all lints**:
 
   ```bash
   pnpm lint:all
@@ -220,9 +214,9 @@ At a high level:
 - **`logger/`**
   - Shared frontend logging utilities (`logger.ts`, `pii.ts`, `categories.ts`, `logger.config.json`).
 - **Top-level tooling**
-  - `eslint.config.js`, multiple `tsconfig*.json`, `tools/`, `scripts/`, etc. for linting, builds, diagrams, and dev workflows.
+  - `eslint.config.js`, multiple `tsconfig*.json`, `scripts/`, etc. for linting, builds, diagrams, and dev workflows.
 
-This layered architecture is enforced by custom ESLint rules and is documented in more detail in `Client/CLIENT_STRUCTURE.md` and `Client/ARCHITECTURE.md`.
+This layered architecture is enforced by custom ESLint rules and is documented in `.cursor/rules/frontend/frontend-architecture.mdc` and `documentation/client/` (e.g. [shared-packages.md](documentation/client/shared-packages.md), [thin-app-architecture.md](documentation/client/thin-app-architecture.md)).
 
 ---
 

@@ -2,13 +2,13 @@
  * HTTP method helpers: apiGet, apiPost, apiPut, apiPatch, apiDelete
  */
 
-import type { ApiRequestOptions } from "packages/schemas/api";
+import type { ApiRequestOptions } from "packages/types/api";
 
 import { apiRequest } from "./core";
 
 export function apiGet<T = unknown>(
   endpoint: string,
-  options: Omit<ApiRequestOptions, "method" | "body"> = {},
+  options: Omit<ApiRequestOptions, "method" | "body"> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, { ...options, method: "GET" });
 }
@@ -16,7 +16,7 @@ export function apiGet<T = unknown>(
 export function apiPost<T = unknown>(
   endpoint: string,
   data?: unknown,
-  options: Omit<ApiRequestOptions, "method"> = {},
+  options: Omit<ApiRequestOptions, "method"> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
     ...options,
@@ -28,7 +28,7 @@ export function apiPost<T = unknown>(
 export function apiPut<T = unknown>(
   endpoint: string,
   data?: unknown,
-  options: Omit<ApiRequestOptions, "method"> = {},
+  options: Omit<ApiRequestOptions, "method"> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
     ...options,
@@ -40,7 +40,7 @@ export function apiPut<T = unknown>(
 export function apiPatch<T = unknown>(
   endpoint: string,
   data?: unknown,
-  options: Omit<ApiRequestOptions, "method"> = {},
+  options: Omit<ApiRequestOptions, "method"> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
     ...options,
@@ -52,7 +52,7 @@ export function apiPatch<T = unknown>(
 export function apiDelete<T = unknown>(
   endpoint: string,
   data?: unknown,
-  options: Omit<ApiRequestOptions, "method"> = {},
+  options: Omit<ApiRequestOptions, "method"> = {}
 ): Promise<T> {
   return apiRequest<T>(endpoint, {
     ...options,

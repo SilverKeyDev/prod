@@ -1,4 +1,4 @@
-import { getDocument } from "packages/utils/core/platform";
+import { getDocument } from "packages/utils/platform";
 
 import { createAuthHeaders, normalizeHeaders, normalizeUrl } from "./utils";
 
@@ -26,7 +26,7 @@ export type RequestHelpersOptions = {
 export function buildRequestOptions(
   endpoint: string,
   options: RequestHelpersOptions,
-  config: HttpClientConfig,
+  config: HttpClientConfig
 ): {
   url: string;
   requestOptions: RequestInit;
@@ -63,9 +63,7 @@ export function buildRequestOptions(
     ...fetchOptions,
     headers: mergedHeaders,
     mode: useCors ? "cors" : (fetchOptions.mode ?? "same-origin"),
-    credentials: includeCredentials
-      ? "include"
-      : (fetchOptions.credentials ?? "same-origin"),
+    credentials: includeCredentials ? "include" : (fetchOptions.credentials ?? "same-origin"),
   };
 
   try {
@@ -73,8 +71,7 @@ export function buildRequestOptions(
     const isStateChanging = /^(POST|PUT|PATCH|DELETE)$/.test(methodUpper);
     const doc = getDocument();
     const csrf = doc
-      ? (doc.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)
-          ?.content
+      ? (doc.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content
       : undefined;
     if (isStateChanging && csrf) {
       (requestOptions.headers as Record<string, string>)["X-CSRF-Token"] = csrf;

@@ -1,13 +1,12 @@
 /**
  * Search service for transforming and managing search results
  */
-import { log, LOG_CATEGORIES } from "logger";
-
 import type {
   PropertySearchResult,
   SearchByPolygonResponse,
-} from "packages/schemas/api";
-import type { SearchResult } from "packages/schemas/search";
+} from "packages/features/search/types/api";
+import type { SearchResult } from "packages/features/search/types/result";
+import { log, LOG_CATEGORIES } from "packages/logger";
 
 /**
  * Transform PropertySearchResult from API to SearchResult format
@@ -15,16 +14,14 @@ import type { SearchResult } from "packages/schemas/search";
 export function transformPropertySearchResult(
   property: PropertySearchResult,
   index: number,
-  fallbackCenter?: { lat: number; lng: number },
+  fallbackCenter?: { lat: number; lng: number }
 ): SearchResult {
   const score = property._score ?? 0;
 
   return {
     id: property.zpid ?? `${Date.now()}-${index}`,
     address: property.address ?? "Address not available",
-    price: property.price
-      ? property.price.toLocaleString()
-      : "Price not available",
+    price: property.price ? property.price.toLocaleString() : "Price not available",
     bedrooms: property.bedrooms ?? 0,
     bathrooms: property.bathrooms ?? 0,
     sqft:
@@ -33,14 +30,8 @@ export function transformPropertySearchResult(
         : typeof property.livingArea === "string"
           ? parseInt((property.livingArea as string).replace(/,/g, "")) || 0
           : 0,
-    lat:
-      property.latitude ??
-      fallbackCenter?.lat ??
-      0 + (Math.random() - 0.5) * 0.01,
-    lng:
-      property.longitude ??
-      fallbackCenter?.lng ??
-      0 + (Math.random() - 0.5) * 0.01,
+    lat: property.latitude ?? fallbackCenter?.lat ?? 0 + (Math.random() - 0.5) * 0.01,
+    lng: property.longitude ?? fallbackCenter?.lng ?? 0 + (Math.random() - 0.5) * 0.01,
     lotSize:
       property.lotAreaValue && property.lotAreaUnit
         ? `${property.lotAreaValue.toLocaleString()} ${property.lotAreaUnit}`
@@ -58,7 +49,7 @@ export function transformPropertySearchResult(
  */
 export function transformSearchResponse(
   response: SearchByPolygonResponse,
-  fallbackCenter?: { lat: number; lng: number },
+  fallbackCenter?: { lat: number; lng: number }
 ): SearchResult[] {
   if (!response.success || !response.properties) {
     log.warn(LOG_CATEGORIES.API, "Search response has no properties", {
@@ -69,6 +60,6 @@ export function transformSearchResponse(
   }
 
   return response.properties.map((property, index) =>
-    transformPropertySearchResult(property, index, fallbackCenter),
+    transformPropertySearchResult(property, index, fallbackCenter)
   );
 }

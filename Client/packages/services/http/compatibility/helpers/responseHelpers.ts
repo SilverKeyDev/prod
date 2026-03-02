@@ -2,11 +2,9 @@
  * Response type helpers
  */
 
-import type { ApiResponse } from "packages/schemas/api";
+import type { ApiResponse } from "packages/types/api";
 
-export function isApiResponse<T>(
-  response: unknown,
-): response is ApiResponse<T> {
+export function isApiResponse<T>(response: unknown): response is ApiResponse<T> {
   return (
     typeof response === "object" &&
     response !== null &&
@@ -21,8 +19,7 @@ export function extractApiData<T>(response: ApiResponse<T>): T {
     if ("error" in response && typeof response.error === "string") {
       message = response.error;
     } else if ("message" in (response as unknown as Record<string, unknown>)) {
-      const maybeMessage = (response as unknown as Record<string, unknown>)
-        .message;
+      const maybeMessage = (response as unknown as Record<string, unknown>).message;
       if (typeof maybeMessage === "string") message = maybeMessage;
     }
     const errorMessage = message ?? "API request failed";

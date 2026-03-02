@@ -1,8 +1,8 @@
 {
-  "files": [],
-  "references": [
-    {
-      "path": "apps/web"
-    }
-  ]
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["apps/web/**/*", "packages/**/*"],
+  "exclude": ["node_modules", "dist", "apps/mobile"]
 }

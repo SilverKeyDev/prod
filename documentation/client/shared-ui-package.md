@@ -106,7 +106,7 @@ You do **not** need to move everything at once.
 
 ### 5. Document and enforce
 
-- Update **ARCHITECTURE.md** and any **path alias** / layer docs to state that primitives come from `@silverkey/ui`.
+- Update **.cursor/rules/frontend/frontend-architecture.mdc** and any **path alias** / layer docs to state that primitives come from `@silverkey/ui`.
 - **Lint/architecture:** Optionally enforce that `apps/web` and `apps/mobile` do not define their own Button/Text/Input and instead import from `packages/ui`.
 
 ---
@@ -120,7 +120,7 @@ You do **not** need to move everything at once.
 - **Barrel:** A shared `index.ts` in the component folder can re-export the component; the bundler (Vite/Metro) will resolve `index.web.tsx` or `index.native.tsx` based on platform. Alternatively, the package’s root `index.ts` re-exports from each component folder (and resolution is again by platform).
 - **Types:** Shared props and types can live in `Button.types.ts` (or similar) and be imported by both `.web.tsx` and `.native.tsx`.
 
-Existing platform rules (e.g. `.cursor/rules/frontend/platform-file-extensions.mdc`, `MOBILE_MIGRATION_DESKTOP_FILES.md`) apply: use **`.native.tsx`** for React Native and **`.web.tsx`** for web-only or desktop-only implementations.
+Existing platform rules (e.g. `.cursor/rules/frontend/platform-file-extensions.mdc`) apply: use **`.native.tsx`** for React Native and **`.web.tsx`** for web-only or desktop-only implementations.
 
 ---
 
@@ -159,4 +159,4 @@ Exact `package.json` and `tsconfig.json` snippets are not included here; they de
 - **Migration:** Incremental — create package, move primitives (Button, Text, Input, etc.), add native stubs, update imports in `apps/web`, then expand as needed.
 - **Config:** Package name, exports, workspace, Vite resolution for `.web`, and Metro resolution for `.native` must be set up so both builds work.
 
-For TypeScript-only (`.ts`) layout, see [typescript-files.md](./typescript-files.md). For overall frontend architecture and layer rules, see `Client/ARCHITECTURE.md` and `.cursor/rules/frontend/frontend-architecture.mdc`.
+For TypeScript-only (`.ts`) layout, see [typescript-files.md](./typescript-files.md). For overall frontend architecture and layer rules, see `.cursor/rules/frontend/frontend-architecture.mdc`.

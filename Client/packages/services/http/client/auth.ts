@@ -1,7 +1,6 @@
-import { log, LOG_CATEGORIES } from "logger";
-
-import { getFetch, getWindow } from "packages/utils/core/platform";
-import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { getFetch, getWindow } from "packages/utils/platform";
+import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 import type { AuthenticationError } from "./errors";
 
@@ -10,7 +9,7 @@ let lastAuthEventAt = 0;
 const AUTH_COOLDOWN_MS = 3000;
 
 export function isAuthEndpoint(url: string): boolean {
-  return /\/api\/v1\/(auth\/(verify|login|logout)|user\/profile)/.test(url);
+  return /\/api\/v1\/(auth\/(verify|login|logout|refresh-token)|user\/profile)/.test(url);
 }
 
 let authBroadcastChannel: BroadcastChannel | null = null;
@@ -43,9 +42,9 @@ export function handle401Unauthorized(_url: string): void {
     .then((refreshResult: { success?: boolean }) =>
       refreshResult.success === true
         ? doFetch("/api/v1/user/profile", getOpts).then((r) =>
-            r.ok ? r.json() : { success: false },
+            r.ok ? r.json() : { success: false }
           )
-        : Promise.resolve({ success: false }),
+        : Promise.resolve({ success: false })
     )
     .then((v: { success?: boolean }) => v ?? { success: false })
     .catch(() => null)
@@ -88,11 +87,7 @@ export function handleAuthenticationError(error: AuthenticationError): void {
       try {
         if (win) win.dispatchEvent(authErrorEvent);
       } catch (dispatchError) {
-        log.warn(
-          LOG_CATEGORIES.HTTP,
-          "Authentication error event dispatch failed",
-          dispatchError,
-        );
+        log.warn(LOG_CATEGORIES.HTTP, "Authentication error event dispatch failed", dispatchError);
       }
     }, 0);
   } catch {

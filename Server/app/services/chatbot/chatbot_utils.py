@@ -233,10 +233,13 @@ def generate_action_plan(user_preferences, client_name):
                 context_parts.append(
                     f"Listing types: {', '.join(user_preferences['listing_type'])}"
                 )
-            if user_preferences.get("days_on_market_max") is not None:
-                context_parts.append(
-                    f"Max days on market: {user_preferences['days_on_market_max']}"
-                )
+            if (
+                user_preferences.get("days_on_market_min") is not None
+                or user_preferences.get("days_on_market_max") is not None
+            ):
+                lo = user_preferences.get("days_on_market_min", "")
+                hi = user_preferences.get("days_on_market_max", "")
+                context_parts.append(f"Days on market range: {lo}–{hi} days")
             if user_preferences.get("preferred_architectural_style"):
                 context_parts.append(
                     f"Architectural style: {user_preferences['preferred_architectural_style']}"

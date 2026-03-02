@@ -9,18 +9,13 @@ export function useToast() {
   const enqueueToast = useUIStore((state) => state.enqueueToast);
 
   return {
-    showToast: (
-      message: string,
-      type: "success" | "error" | "info" | "warning" = "info",
-    ) => {
+    showToast: (message: string, type: "success" | "error" | "info" | "warning" = "info") => {
       enqueueToast({ message, type });
     },
-    showSuccess: (message: string) =>
-      enqueueToast({ message, type: "success" }),
+    showSuccess: (message: string) => enqueueToast({ message, type: "success" }),
     showError: (message: string) => enqueueToast({ message, type: "error" }),
     showInfo: (message: string) => enqueueToast({ message, type: "info" }),
-    showWarning: (message: string) =>
-      enqueueToast({ message, type: "warning" }),
+    showWarning: (message: string) => enqueueToast({ message, type: "warning" }),
   };
 }
 
@@ -30,7 +25,7 @@ export function useToast() {
  */
 export function showToast(
   message: string,
-  type: "success" | "error" | "info" | "warning" = "info",
+  type: "success" | "error" | "info" | "warning" = "info"
 ) {
   const { enqueueToast } = useUIStore.getState();
   enqueueToast({ message, type });

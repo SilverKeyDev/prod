@@ -132,9 +132,7 @@ export const httpUtils = {
    */
   shouldRetry: (statusCode: number): boolean => {
     type RetryStatusCode = (typeof HTTP_CONFIG.RETRY_STATUS_CODES)[number];
-    return HTTP_CONFIG.RETRY_STATUS_CODES.includes(
-      statusCode as RetryStatusCode,
-    );
+    return HTTP_CONFIG.RETRY_STATUS_CODES.includes(statusCode as RetryStatusCode);
   },
 
   /**
@@ -150,12 +148,10 @@ export const httpUtils = {
    */
   calculateRetryDelay: (attempt: number): number => {
     const baseDelay =
-      HTTP_CONFIG.RETRY.BACKOFF_BASE *
-      Math.pow(HTTP_CONFIG.RETRY.BACKOFF_MULTIPLIER, attempt - 1);
+      HTTP_CONFIG.RETRY.BACKOFF_BASE * Math.pow(HTTP_CONFIG.RETRY.BACKOFF_MULTIPLIER, attempt - 1);
 
     // Add jitter to prevent thundering herd
-    const jitter =
-      baseDelay * HTTP_CONFIG.RETRY.JITTER_FACTOR * (Math.random() - 0.5);
+    const jitter = baseDelay * HTTP_CONFIG.RETRY.JITTER_FACTOR * (Math.random() - 0.5);
 
     return Math.max(1000, baseDelay + jitter); // Minimum 1 second delay
   },

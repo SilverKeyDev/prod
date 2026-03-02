@@ -2,13 +2,8 @@
    HTTP Client Instance
    ========================= */
 
-import { log, LOG_CATEGORIES } from "logger";
-
-import {
-  getBaseUrl,
-  getDefaultRetries,
-  getDefaultTimeout,
-} from "packages/config";
+import { getBaseUrl, getDefaultRetries, getDefaultTimeout } from "packages/config";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { getAuthToken } from "packages/utils";
 
 import { HttpClient, type HttpClientConfig } from "./client";
@@ -70,7 +65,6 @@ export const httpClient = new HttpClient(defaultHttpConfig);
 export function configureHttpClient(config: Partial<HttpClientConfig>): void {
   if (config.baseUrl) httpClient.setBaseUrl(config.baseUrl);
   if (config.timeout) httpClient.setTimeout(config.timeout);
-  if (config.authTokenProvider)
-    httpClient.setAuthTokenProvider(config.authTokenProvider);
+  if (config.authTokenProvider) httpClient.setAuthTokenProvider(config.authTokenProvider);
   if (config.onAuthError) httpClient.setAuthErrorHandler(config.onAuthError);
 }

@@ -7,11 +7,7 @@ if (typeof console !== "undefined") {
   console.warn = function (...args) {
     const message = args.join(" ");
 
-    if (
-      message.includes(
-        "PostCSS plugin did not pass the `from` option to `postcss.parse`",
-      )
-    ) {
+    if (message.includes("PostCSS plugin did not pass the `from` option to `postcss.parse`")) {
       return;
     }
 

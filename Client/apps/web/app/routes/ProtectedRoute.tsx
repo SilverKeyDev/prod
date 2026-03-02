@@ -26,13 +26,7 @@ export const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
         : "/";
     // Never set /login as a return target
     const safeIntended = intended.startsWith("/login") ? "/" : intended;
-    return (
-      <Navigate
-        to="/login"
-        replace
-        state={{ from: { pathname: safeIntended } }}
-      />
-    );
+    return <Navigate to="/login" replace state={{ from: { pathname: safeIntended } }} />;
   }
 
   // User is authenticated, render protected content

@@ -84,7 +84,7 @@ This document is the **exhaustive** reference for what is **React (web)** specif
 
 - Does the file use only React + shared packages (no DOM, no window, no react-router-dom)? → Use **`.tsx`** / **`.ts`**.
 - Could mobile use this same file or the same API with a `.native` variant? → Do **not** use `.web`.
-- Canonical list of web-only/desktop-only files: **Client/MOBILE_MIGRATION_DESKTOP_FILES.md**.
+- Canonical rules for web-only/desktop-only files: **.cursor/rules/frontend/platform-file-extensions.mdc**.
 
 ---
 
@@ -141,16 +141,12 @@ Use of these in a file means the file must be **web-only** (e.g. in `apps/web` w
 - **Libraries:** `@headlessui/react`, `react-virtuoso`, `react-dom` (for portals, etc.), Google Maps (window) for web.
 - **Storage (web):** `localStorage`, `sessionStorage` — use an adapter or `packages/utils` storage that can be swapped for RN AsyncStorage in mobile.
 
-**ESLint:** `silverkey/platform-allowed-imports` (or equivalent) forbids importing web-only packages (e.g. `react-dom`, `react-router-dom`) in **`.native.*`** files.
-
 ### Native-Only (Do Not Use in Shared Code or in .web.* Files)
 
 Use of these means the file must be **React Native–only** (e.g. in `apps/mobile` with `.native.tsx`/`.native.ts`, or in a shared package only in a `.native.*` implementation):
 
 - **React Native:** `react-native` (View, Text, Pressable, ScrollView, StyleSheet, etc.), `react-native-*` libraries.
 - **Native modules:** Any native bridge or platform-specific native API.
-
-**ESLint:** `.web.*` files must not import React Native–only packages.
 
 ### Safe in Shared Code (Both Platforms)
 
@@ -166,7 +162,7 @@ Use of these means the file must be **React Native–only** (e.g. in `apps/mobil
 
 ### Web-Only / Desktop-Only Files (apps/web)
 
-The **canonical list** with reasons is in **Client/MOBILE_MIGRATION_DESKTOP_FILES.md**. It includes:
+The **canonical guidance** is in **.cursor/rules/frontend/platform-file-extensions.mdc**. It includes:
 
 - **Web-only package or DOM/window:** e.g. ConfirmationDialog (createPortal), Sidebar (react-router-dom), SearchFiltersSheet (Headless UI), ReelsView (react-virtuoso), Input/Label (htmlFor, HTMLInputElement), Google Maps (window), RippleBackground (window/canvas), BudgetRangeSlider, TagInput, etc.
 - **Desktop / large-screen only:** Sidebar nav/tabs, SearchPageDesktopLayout, SidebarList, SearchHeader, SearchFilterBar, SearchFilterChip, SearchFiltersDropdown, Tabs, UnderlineTabs, MapControls, SearchPageMapContainer, etc.
@@ -208,23 +204,13 @@ For a component in a shared location (e.g. future `packages/ui/Button/`):
 
 ## Enforcement and Linting
 
-### Scripts
-
-- **`pnpm lint:platform-imports`** (from `Client/`): Runs `tools/check-platform-imports.mjs`.
-  - Warns when a file is **only** imported by `.web.*` (or only by `.native.*`) but does **not** have the matching platform extension → such files should be renamed to `.web.*` or `.native.*`.
-  - Fails if the same logical component has both `.mobile.*` and `.native.*` → use `.native.*` only.
-- **`pnpm lint:parity`** (when both apps exist): Ensures mirrored feature folders stay in sync; skipped if one app is missing.
-
 ### ESLint
 
-- **`silverkey/platform-allowed-imports`**:  
-  - **`.web.*`** files must not import React Native–only packages.  
-  - **`.native.*`** files must not import web-only packages (e.g. `react-dom`, `react-router-dom`).
 - **`no-restricted-imports`**: In `apps/web/features/**` and `packages/hooks/**`, `react-router-dom` and `react-router` are restricted; use `packages/navigation` instead.
 
 ### CI
 
-- Client lint workflow (e.g. `.github/workflows/client-lint.yml`) runs platform-imports and parity checks so that platform conventions are enforced on every PR.
+- Client lint workflow (e.g. `.github/workflows/lint.yml`) runs typecheck, lint, format:check, lint:cycles, audit, and build so that platform conventions and code quality are enforced on every PR.
 
 ---
 
@@ -233,7 +219,7 @@ For a component in a shared location (e.g. future `packages/ui/Button/`):
 | Question | Answer |
 |----------|--------|
 | New file under **apps/web** that only uses React + shared packages? | Use **`.tsx`** / **`.ts`** (no suffix). |
-| New file under **apps/web** that uses DOM, window, react-router-dom, or Headless UI? | Use **`.web.tsx`** / **`.web.ts`** and add to MOBILE_MIGRATION_DESKTOP_FILES.md if not already listed. |
+| New file under **apps/web** that uses DOM, window, react-router-dom, or Headless UI? | Use **`.web.tsx`** / **`.web.ts`** (see platform-file-extensions.mdc for desktop-only list). |
 | New file under **apps/web** that is desktop/large-screen layout and mobile will have its own? | Use **`.web.tsx`** / **`.web.ts`**. |
 | New file under **apps/mobile** (React/UI)? | Use **`.native.tsx`** / **`.native.ts`**. |
 | New shared primitive that has different web and native implementations? | Use **`.web.tsx`** and **`.native.tsx`** in the same logical module (e.g. in `packages/ui`); import without extension. |
@@ -244,10 +230,9 @@ For a component in a shared location (e.g. future `packages/ui/Button/`):
 
 ## Related Documentation
 
-- **Client/MOBILE_MIGRATION_DESKTOP_FILES.md** — Canonical list of web-only and desktop-only files with reasons.
-- **Client/ARCHITECTURE.md** — Platform file conventions and navigation adapter.
+- **.cursor/rules/frontend/platform-file-extensions.mdc** — Platform file conventions and web-only/desktop-only guidance.
 - **.cursor/rules/frontend/platform-file-extensions.mdc** — Cursor rules for platform extensions.
-- **Client/tools/LINTING.md** — How to run platform-imports and other lint checks.
+- **documentation/client/LINTING.md** — How to run lint and other checks.
 - [shared-packages.md](./shared-packages.md) — Exhaustive list of shared packages and import rules.
 - [shared-ui-package.md](./shared-ui-package.md) — Optional shared `packages/ui` with `.web`/`.native` components.
 - [typescript-files.md](./typescript-files.md) — Where `.ts` files live and their roles.

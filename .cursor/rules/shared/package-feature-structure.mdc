@@ -1,0 +1,52 @@
+---
+description: Allowed folder structure for package modules (e.g. packages/features/*)
+globs:
+  - "Client/packages/features/**/*.{ts,tsx,js,jsx}"
+alwaysApply: false
+---
+
+# Package Feature Module Structure
+
+## Goal
+
+Each **package module** (e.g. a feature under `Client/packages/features/<name>/`) must follow a single, enforced layout. Only the following direct children are allowed.
+
+## Allowed Structure
+
+Under `packages/features/<featureName>/` (and any other package scope that adopts this convention), the **only** allowed direct children are:
+
+| Item | Purpose |
+|------|--------|
+| **`api/`** | Network requests and endpoint definitions |
+| **`components/`** | UI elements specific to this feature |
+| **`hooks/`** | Custom React hooks |
+| **`store/`** | Local state management |
+| **`types/`** | TypeScript interfaces and models |
+| **`utils/`** | Pure helper functions |
+| **`index.ts`** (or `index.tsx` / `index.js`) | The public API (barrel file) |
+
+No other files or folders may exist at the module root. Place new code in the appropriate allowed folder.
+
+## Example
+
+```
+packages/features/saved/
+├── api/          # Network requests and endpoint definitions
+├── components/   # UI elements specific to this feature
+├── hooks/        # Custom React hooks
+├── store/        # Local state management
+├── types/        # TypeScript interfaces and models
+├── utils/        # Pure helper functions
+└── index.ts      # The public API (barrel file)
+```
+
+## Enforcement
+
+- **ESLint:** Rule `silverkey/package-module-allowed-children` runs on `packages/features/**` and reports any file or folder that is not one of the allowed children.
+- **Scope:** By default the rule applies to `packages/features/`. Optionally configurable for other package roots via rule options (`scopeDir`, `allowedDirs`, `allowedRootFiles`).
+
+## References
+
+- **Feature package README:** `Client/packages/features/README.md`
+- **Lint reference:** `documentation/client/LINTING.md` (run lint; package-module-allowed-children is in ESLint)
+- **Shared packages:** `documentation/client/shared-packages.md`

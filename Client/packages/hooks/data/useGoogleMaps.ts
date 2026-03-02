@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "logger";
-
-import { googleMapsService } from "packages/services/search/googleMaps";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { asError } from "packages/utils";
-import { getWindow } from "packages/utils/core/platform";
+import { getWindow } from "packages/utils/platform";
+
+import { googleMapsService } from "@/features/search/utils/googleMaps";
 
 // Global type declaration for Google Maps
 declare global {
@@ -30,10 +30,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
     (container: HTMLElement) => {
       const win = getWindow();
       if (!win) {
-        log.warn(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Google Maps: window not available (SSR)",
-        );
+        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Maps: window not available (SSR)");
         return null;
       }
 
@@ -51,7 +48,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
         return null;
       }
     },
-    [isLoaded],
+    [isLoaded]
   );
 
   useEffect(() => {
@@ -63,18 +60,14 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
       const initializeGoogleMaps = async () => {
         try {
           await googleMapsService.loadGoogleMapsScript();
-          const state = googleMapsService.getState();
+          const state = googleMapsService.getLoaderState();
           setScriptUrl(state.scriptUrl ?? null);
           setIsLoaded(true);
           setError(null);
           setHasInitialized(true);
         } catch (err: unknown) {
           const error = asError(err);
-          log.error(
-            LOG_CATEGORIES.MAP_RENDERING,
-            "Error loading Google Maps",
-            error,
-          );
+          log.error(LOG_CATEGORIES.MAP_RENDERING, "Error loading Google Maps", error);
           setError(error.message);
           setIsLoaded(false);
         }
@@ -83,7 +76,7 @@ export function useGoogleMaps(): UseGoogleMapsReturn {
       void initializeGoogleMaps();
     } else if (hasInitialized) {
       // If already initialized, just get the current state
-      const state = googleMapsService.getState();
+      const state = googleMapsService.getLoaderState();
       setScriptUrl(state.scriptUrl ?? null);
       setIsLoaded(state.isLoaded);
       setError(state.error);

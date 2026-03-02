@@ -2,8 +2,8 @@
  * Specialized API helpers: apiGetOptional, apiAuthRequired, apiPoll
  */
 
-import type { ApiRequestOptions } from "packages/schemas/api";
 import { AuthenticationError, HttpError } from "packages/services/http/client";
+import type { ApiRequestOptions } from "packages/types/api";
 
 import { getAuthToken } from "./core/config";
 import { apiRequest } from "./core/core";
@@ -14,7 +14,7 @@ async function sleep(ms: number) {
 
 export function apiGetOptional<T = unknown>(
   endpoint: string,
-  options: Omit<ApiRequestOptions, "method" | "body" | "acceptStatuses"> = {},
+  options: Omit<ApiRequestOptions, "method" | "body" | "acceptStatuses"> = {}
 ): Promise<T | null> {
   return apiRequest<T>(endpoint, {
     ...options,
@@ -30,7 +30,7 @@ export function apiGetOptional<T = unknown>(
 
 export async function apiAuthRequired<T = unknown>(
   endpoint: string,
-  options: ApiRequestOptions = {},
+  options: ApiRequestOptions = {}
 ): Promise<T> {
   const token = getAuthToken();
   if (!token) {
@@ -49,7 +49,7 @@ export async function apiPoll<T = unknown>(
     maxAttempts?: number;
     intervalMs?: number;
     condition?: (response: T) => boolean;
-  } = {},
+  } = {}
 ): Promise<T> {
   const {
     maxAttempts = 10,

@@ -10,7 +10,7 @@ import { useLocation } from "react-router-dom";
 
 import { secureLogger } from "packages/services/security/secureLogger";
 import { useAuthStore } from "packages/store";
-import { dateNow } from "packages/utils/core/date";
+import { dateNow } from "packages/utils/date";
 
 import { runAuthBootstrap } from "./authBootstrap";
 
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         {
           currentUrl: window.location.href,
           timestamp: dateNow().toISOString(),
-        },
+        }
       );
       return;
     }

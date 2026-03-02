@@ -1,55 +1,51 @@
 // React imports
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
+import {
+  calculateAffordableHomePrice,
+  handleSubmit as handleSubmitUtil,
+  type HomePriceResult,
+  type OnboardingData,
+  validateSettingsData,
+} from "packages/features/profile";
+import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useResponsive } from "packages/hooks/ui";
+import { showErrorToast } from "packages/hooks/ui/toast";
+import { log, LOG_CATEGORIES } from "packages/logger";
+// Core
+import { useGoogleMapsStore } from "packages/store";
 // Google Maps types
 /// <reference types="google.maps" />
-
 // Components
-import { Loading } from "../components/ui";
+import { Loading } from "packages/ui/components/index.web";
+import SettingsSidebar from "packages/ui/components/sidebar/SettingsSidebar";
 
-// Core
-import { useGoogleMapsStore } from "../../../packages/store";
-import { showErrorToast } from "../../../packages/hooks/ui/toast";
-import { useUserPreferences } from "../../../packages/hooks/data/auth/useUserData";
-import { useResponsive } from "../../../packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "../../../logger";
-
+import PersonalizationMobileHeader from "@/features/profile/components/account/MobileHeader";
+import {
+  convertStepsToNavItems,
+  getPersonalizationStepsUi,
+} from "@/features/profile/components/profilePicture/profileStepsUi";
 // Features
 import {
   DemographicsSection,
   HousingSection,
   LocationSection,
-} from "../features/profile/sections";
-import { SettingsFinancialSection } from "../features/profile/sections/SettingsFinancialSection";
-import { SettingsCommunicationSection } from "../features/profile/sections/SettingsCommunicationSection";
-import {
-  getPersonalizationSteps,
-  type OnboardingData,
-  convertStepsToNavItems,
-  calculateAffordableHomePrice,
-  type HomePriceResult,
-  handleSubmit as handleSubmitUtil,
-  validateSettingsData,
-} from "../../../packages/utils/profile";
-import PersonalizationMobileHeader from "../features/profile/account/MobileHeader";
-import SettingsSidebar from "../components/ui/sidebar/SettingsSidebar";
+} from "@/features/profile/components/sections/index.web";
+import { SettingsCommunicationSection } from "@/features/profile/components/sections/SettingsCommunicationSection";
+import { SettingsFinancialSection } from "@/features/profile/components/sections/SettingsFinancialSection";
 
 // Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
 
 // Export SettingsModal for use in other components
-export { default as SettingsModal } from "../features/agent/modals/SettingsModal";
+export { default as SettingsModal } from "packages/features/agent/components/modals/SettingsModal";
 
 type PersonalizationPageProps = {
-  setMobileHeaderActions: React.Dispatch<
-    React.SetStateAction<React.ReactNode | null>
-  >;
+  setMobileHeaderActions: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
 };
 
-const STEPS = getPersonalizationSteps();
+const STEPS = getPersonalizationStepsUi();
 
-export default function PersonalizationPage({
-  setMobileHeaderActions,
-}: PersonalizationPageProps) {
+export default function PersonalizationPage({ setMobileHeaderActions }: PersonalizationPageProps) {
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
@@ -60,12 +56,10 @@ export default function PersonalizationPage({
   // Modal state variables removed - modals not currently implemented
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [homePriceResult, setHomePriceResult] =
-    useState<HomePriceResult | null>(null);
+  const [homePriceResult, setHomePriceResult] = useState<HomePriceResult | null>(null);
   const [homePriceLoading, setHomePriceLoading] = useState(false);
   const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] =
-    useState(false);
+  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
 
   const calculateHomePrice = useCallback(() => {
     // Check if we have all required data
@@ -86,11 +80,7 @@ export default function PersonalizationPage({
         setHomePriceResult(result);
       }
     } catch (error: unknown) {
-      setHomePriceError(
-        error instanceof Error
-          ? error.message
-          : "Failed to calculate home price",
-      );
+      setHomePriceError(error instanceof Error ? error.message : "Failed to calculate home price");
       setHomePriceResult(null);
     } finally {
       setHomePriceLoading(false);
@@ -138,11 +128,7 @@ export default function PersonalizationPage({
         setOriginalData(userPreferences as OnboardingData);
       }
     } catch (error: unknown) {
-      log.error(
-        LOG_CATEGORIES.ERRORS,
-        "Failed to load user preferences from context",
-        error,
-      );
+      log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
     } finally {
       setIsLoading(false);
     }
@@ -237,17 +223,12 @@ export default function PersonalizationPage({
   }, []);
 
   // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
-    useGoogleMapsStore();
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMapsStore();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      log.error(
-        LOG_CATEGORIES.ERRORS,
-        "Google Maps loading error",
-        googleMapsError,
-      );
+      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
       void setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -257,12 +238,9 @@ export default function PersonalizationPage({
     }
   }, [googleMapsLoaded, googleMapsError]);
 
-  const updateFormData = useCallback(
-    (field: string | number | symbol, value: unknown) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    },
-    [],
-  );
+  const updateFormData = useCallback((field: string | number | symbol, value: unknown) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const handleSaveChanges = useCallback(async () => {
     // Increment version for this update
@@ -319,19 +297,12 @@ export default function PersonalizationPage({
           onEdit={() => setIsEditMode(true)}
           onCancel={handleCancel}
           onSave={handleSaveChanges}
-        />,
+        />
       );
     } else {
       setMobileHeaderActions(null);
     }
-  }, [
-    isMobile,
-    isEditMode,
-    isSaving,
-    setMobileHeaderActions,
-    handleCancel,
-    handleSaveChanges,
-  ]);
+  }, [isMobile, isEditMode, isSaving, setMobileHeaderActions, handleCancel, handleSaveChanges]);
 
   // Modal handlers removed - modals not currently implemented
 
@@ -427,8 +398,10 @@ export default function PersonalizationPage({
             onScrollToSection={scrollToSection}
           />
 
-          {/* Main Content Area */}
-          <main
+          {/* Content area: use div with region role to avoid duplicate main landmark (top-level main is in DashboardLayout). */}
+          <div
+            role="region"
+            aria-label="Settings"
             className={`w-full flex-1 space-y-8 ${!isUltraSmallScreen ? "lg:ml-0" : ""}`}
           >
             {STEPS.map((step) => (
@@ -436,7 +409,7 @@ export default function PersonalizationPage({
                 {renderSectionContent(step.id)}
               </section>
             ))}
-          </main>
+          </div>
         </div>
       </div>
     </div>

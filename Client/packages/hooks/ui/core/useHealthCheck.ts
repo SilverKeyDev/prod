@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "logger";
-
-import { healthApi } from "packages/config/api/standalone/health";
+import { healthApi } from "packages/api/health";
+import { log, LOG_CATEGORIES } from "packages/logger";
 
 /**
  * Hook to check application health status
@@ -22,10 +21,7 @@ export function useHealthCheck() {
             setMaintenance(false);
           } else {
             setMaintenance(true);
-            log.warn(
-              LOG_CATEGORIES.ERRORS,
-              "/healthz returned unexpected data",
-            );
+            log.warn(LOG_CATEGORIES.ERRORS, "/healthz returned unexpected data");
           }
         }
       })

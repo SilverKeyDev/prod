@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { getWindow } from "packages/utils/core/platform";
+import { getWindow } from "packages/utils/platform";
 
 export interface UseContainerWidthOptions {
   /** Throttle resize updates (ms). Not used when ResizeObserver is available. */
@@ -20,7 +20,7 @@ const RETRY_DELAY_MS = 50;
  */
 export function useContainerWidth(
   containerRef: React.RefObject<HTMLElement | null>,
-  options: UseContainerWidthOptions = {},
+  options: UseContainerWidthOptions = {}
 ): number {
   const { throttleMs = 100, minDelta = DEFAULT_MIN_DELTA } = options;
   const [width, setWidth] = useState<number>(0);
@@ -52,8 +52,7 @@ export function useContainerWidth(
 
     const win = getWindow();
     if (win && "ResizeObserver" in win) {
-      const RO = (win as Window & { ResizeObserver: typeof ResizeObserver })
-        .ResizeObserver;
+      const RO = (win as Window & { ResizeObserver: typeof ResizeObserver }).ResizeObserver;
       const ro = new RO(() => onResize());
       ro.observe(el);
       return () => {

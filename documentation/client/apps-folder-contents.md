@@ -198,8 +198,8 @@ This prevents “random react-native import inside business logic” later. See 
 
 ## Config & Environment (Build-Time vs Runtime)
 
-- **Web (Vite):** env is **build-time** (injected at build; e.g. `import.meta.env`).
-- **Mobile:** env can be **build-time** (e.g. Babel plugin, Expo config) or **runtime** (native config, env loaded at startup).
+- **Web (Vite):** env is **build-time** (injected at build via `define` in vite.config.ts so `process.env` is populated; use `VITE_*` in .env).
+- **Mobile (Expo):** env is **build-time** (Expo injects `EXPO_PUBLIC_*` into `process.env`).
 
 **Packages must not read env directly.** The app passes configuration in via:
 
@@ -228,6 +228,5 @@ That keeps packages portable; the app is the single place that knows which API U
 ## Related Docs
 
 - [thin-app-architecture.md](./thin-app-architecture.md) — Target state and “what lives in apps vs packages” (overview).
-- [thin-app-implementation-strategy.md](./thin-app-implementation-strategy.md) — How to get there (strategies and steps).
 - [web-mobile-parity-gotchas.md](./web-mobile-parity-gotchas.md) — Stale app/schemas, React version, deep linking.
-- **Client/ARCHITECTURE.md** — Layer rules and import boundaries.
+- **Layer rules and import boundaries:** `.cursor/rules/frontend/frontend-architecture.mdc`.

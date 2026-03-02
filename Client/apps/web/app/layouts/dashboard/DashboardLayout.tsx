@@ -1,21 +1,22 @@
 // React imports
-import React, { type ReactNode, useState } from "react";
+import React, { type ReactNode, useEffect, useState } from "react";
 
 import { useLocation } from "react-router-dom";
 
 import { SearchRefreshProvider } from "packages/contexts";
 // Hooks
 import { useIsMobile } from "packages/hooks/ui";
-import type { UserProfile } from "packages/schemas/app/auth/user";
-import { pathMatches } from "packages/utils/domain/layout/dashboardLayoutConfig";
+import { log, LOG_CATEGORIES } from "packages/logger";
 
 // Sidebar
 import MobileBottomNav from "@/app/layouts/mobile/MobileBottomNav";
 import Sidebar from "@/app/layouts/sidebar/Sidebar.web";
+import type { UserProfile } from "@/features/homeauth/types";
 
 import { DashboardContent } from "./DashboardContent";
 // Layout components
 import { DashboardHeader } from "./DashboardHeader";
+import { useDashboardRoute } from "./useDashboardRoute";
 
 /** Height reserved for fixed MobileBottomNav on mobile (4rem + safe area). */
 const MOBILE_BOTTOM_NAV_OFFSET = "calc(4rem + env(safe-area-inset-bottom))";
@@ -40,13 +41,19 @@ export default function DashboardLayout({
   maxWidth = 85,
 }: DashboardProps) {
   const location = useLocation();
-  const path = location.pathname;
+  const route = useDashboardRoute(maxWidth);
   const isMobile = useIsMobile();
-  const { isFullHeightRoute, isDashboard } = pathMatches(path);
+  const { isFullHeightRoute, isDashboard } = route;
+
+  useEffect(() => {
+    log.debug(LOG_CATEGORIES.ROUTING, "[NAV] DashboardLayout mounted or location changed", {
+      pathname: location.pathname,
+      activeKey: route.activeKey,
+    });
+  }, [location.pathname, route.activeKey]);
 
   // Mobile header slot (e.g. messaging header). Cleared when navigating to dashboard.
-  const [mobileHeaderActions, setMobileHeaderActions] =
-    useState<ReactNode | null>(null);
+  const [mobileHeaderActions, setMobileHeaderActions] = useState<ReactNode | null>(null);
   React.useEffect(() => {
     if (isDashboard) setMobileHeaderActions(null);
   }, [isDashboard]);
@@ -69,8 +76,7 @@ export default function DashboardLayout({
           isMobile
             ? ({
                 "--mobile-bottom-nav-offset": MOBILE_BOTTOM_NAV_OFFSET,
-                "--mobile-bottom-reserved":
-                  "calc(4rem + env(safe-area-inset-bottom, 0))",
+                "--mobile-bottom-reserved": "calc(4rem + env(safe-area-inset-bottom, 0))",
               } as React.CSSProperties & {
                 "--mobile-bottom-nav-offset": string;
                 "--mobile-bottom-reserved": string;
@@ -78,7 +84,8 @@ export default function DashboardLayout({
             : undefined
         }
       >
-        <div className="hidden md:block">
+        {/* Sidebar wrapper: reserve width on desktop so main does not extend under it; z-sidebar keeps nav above full-height content (e.g. search) */}
+        <div className="relative z-sidebar hidden w-52 shrink-0 md:block">
           <Sidebar
             user={user}
             onLogout={onLogout}
@@ -93,10 +100,10 @@ export default function DashboardLayout({
         </div>
 
         <main
-          className={`ml-0 flex-1 min-w-0 transition-all duration-200 md:ml-52 ${
-            isFullHeightRoute
-              ? "min-h-0 h-full flex flex-col overflow-hidden"
-              : ""
+          id="main-content"
+          tabIndex={-1}
+          className={`relative z-0 ml-0 min-w-0 flex-1 transition-all duration-200 md:ml-0 ${
+            isFullHeightRoute ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >
           <DashboardHeader

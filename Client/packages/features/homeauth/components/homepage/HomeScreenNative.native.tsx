@@ -1,0 +1,159 @@
+/**
+ * Mobile-only Auth home / landing screen.
+ * Instagram-style: rippled background, centered logo + buttons, Log in link at bottom.
+ */
+
+import React from "react";
+
+import type { ParamListBase } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { ScrollView, StyleSheet, View } from "react-native";
+
+import { color } from "packages/design-tokens";
+import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
+import AppImage from "packages/ui/components/asset/AppImage.native";
+import { LOGO_SOURCE } from "packages/ui/components/asset/logoSource.native";
+import { Pressable } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives/text";
+
+import RippleBackground from "./RippleBackground";
+
+/** Minimal auth stack screen names we navigate to from Home. Matches AuthStackParamList in apps/mobile. */
+type AuthHomeNavigation = NativeStackNavigationProp<
+  ParamListBase & {
+    Login: undefined;
+    Signup: undefined;
+    Privacy: undefined;
+    Terms: undefined;
+    Contact: undefined;
+  },
+  "Home"
+>;
+
+export function HomeScreenNative() {
+  const navigation = useNavigation<AuthHomeNavigation>();
+
+  return (
+    <View style={styles.root}>
+      <RippleBackground />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.centerBlock}>
+          <AppImage source={LOGO_SOURCE} style={styles.logo} resizeMode="contain" alt="SilverKey" />
+
+          <View style={styles.actions}>
+            <GoogleSignInButton text="Sign up with Google" />
+            <Pressable onPress={() => navigation.navigate("Signup")} style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>Sign up</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.loginRow}>
+            <Text style={styles.loginPrompt}>Have an account? </Text>
+            <Pressable onPress={() => navigation.navigate("Login")} hitSlop={8}>
+              <Text style={styles.loginLink}>Log in</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <Pressable onPress={() => navigation.navigate("Privacy")} style={styles.footerLink}>
+            <Text style={styles.footerLinkText}>Privacy</Text>
+          </Pressable>
+          <Text style={styles.footerDot}> · </Text>
+          <Pressable onPress={() => navigation.navigate("Terms")} style={styles.footerLink}>
+            <Text style={styles.footerLinkText}>Terms</Text>
+          </Pressable>
+          <Text style={styles.footerDot}> · </Text>
+          <Pressable onPress={() => navigation.navigate("Contact")} style={styles.footerLink}>
+            <Text style={styles.footerLinkText}>Contact</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: color("neutral.50"),
+  },
+  scroll: {
+    flex: 1,
+    zIndex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 32,
+    paddingTop: 48,
+    paddingBottom: 24,
+    justifyContent: "space-between",
+  },
+  centerBlock: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logo: {
+    width: 200,
+    height: 72,
+    marginBottom: 48,
+  },
+  actions: {
+    width: "100%",
+    alignItems: "stretch",
+    gap: 12,
+    marginBottom: 24,
+  },
+  primaryButton: {
+    backgroundColor: color("brand.accent"),
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  primaryButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: color("neutral.50"),
+  },
+  loginRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loginPrompt: {
+    fontSize: 14,
+    color: color("neutral.600"),
+  },
+  loginLink: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: color("brand.accent"),
+  },
+  footer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 16,
+  },
+  footerLink: {
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+  },
+  footerLinkText: {
+    fontSize: 12,
+    color: color("neutral.500"),
+  },
+  footerDot: {
+    fontSize: 12,
+    color: color("neutral.400"),
+  },
+});

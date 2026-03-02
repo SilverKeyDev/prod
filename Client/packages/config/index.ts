@@ -14,13 +14,11 @@ export * from "./http";
 // API configuration (existing)
 export * from "./api";
 
+// Abort and auth-error utilities (re-exported so features need not import from services/http)
+export { createAbortManager, isAbortError } from "./abort";
+export type { AuthenticationError } from "./authErrors";
+export { handleAuthenticationError, isAuthenticationError } from "./authErrors";
+
 // Re-export commonly used items for convenience
-export {
-  env,
-  getBaseUrl,
-  getDefaultRetries,
-  getDefaultTimeout,
-  getEnv,
-  getNodeEnv,
-} from "./env";
+export { env, getBaseUrl, getDefaultRetries, getDefaultTimeout, getEnv, getNodeEnv } from "./env";
 export { HTTP_CONFIG, HttpConfigFactory, httpUtils } from "./http";

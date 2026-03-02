@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { useSavedHomesData } from "packages/hooks/data/search/saved/useSavedHomesData";
+import { useSavedHomesData } from "packages/features/search/hooks/data/saved/useSavedHomesData";
 import { useAuthStore, useSavedHomesStore } from "packages/store";
 
 /**
@@ -24,8 +24,7 @@ export function useSavedHomesStoreIntegration() {
     removeSavedHome,
   } = savedHomesResult;
 
-  const { setSavedHomes, setSavedHomesLoading, setSavedHomesError } =
-    useSavedHomesStore();
+  const { setSavedHomes, setSavedHomesLoading, setSavedHomesError } = useSavedHomesStore();
 
   // Sync hook data with store (guard against redundant updates)
   const lastSavedHomesRef = useRef<typeof savedHomes>();

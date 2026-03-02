@@ -2,12 +2,8 @@
    Authentication Configuration Constants
    ========================= */
 
-import { log, LOG_CATEGORIES } from "logger";
-
-import {
-  getLocalStorage,
-  getSessionStorage,
-} from "packages/utils/core/storage/platformStorage";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { getLocalStorage, getSessionStorage } from "packages/utils/storage/platformStorage";
 
 /**
  * Authentication configuration that matches existing patterns
@@ -249,7 +245,7 @@ export const authUtils = {
    */
   isPublicRoute: (path: string): boolean => {
     return AUTH_CONFIG.PUBLIC_ROUTES.some(
-      (route) => path === route || path.startsWith(`${route}/`),
+      (route) => path === route || path.startsWith(`${route}/`)
     );
   },
 
@@ -258,7 +254,7 @@ export const authUtils = {
    */
   isProtectedRoute: (path: string): boolean => {
     return AUTH_CONFIG.PROTECTED_ROUTES.some(
-      (route) => path === route || path.startsWith(`${route}/`),
+      (route) => path === route || path.startsWith(`${route}/`)
     );
   },
 
@@ -320,15 +316,12 @@ export const authUtils = {
      */
     setNonSensitive: (key: string, value: string): void => {
       if (
-        (
-          AUTH_CONFIG.SECURE_STORAGE
-            .FORBIDDEN_LOCALSTORAGE_KEYS as readonly string[]
-        ).includes(key)
+        (AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS as readonly string[]).includes(key)
       ) {
         log.warn(
           LOG_CATEGORIES.AUTH,
           "[AUTH_CONFIG] Attempted to store forbidden key in localStorage. Use sessionStorage instead.",
-          { key },
+          { key }
         );
         return;
       }
@@ -360,9 +353,7 @@ export const authUtils = {
         session.removeItem(key);
       });
       Object.values(AUTH_CONFIG.STORAGE_KEYS).forEach((key) => {
-        if (
-          !AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(key)
-        ) {
+        if (!AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(key)) {
           local.removeItem(key);
         }
       });

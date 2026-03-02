@@ -3,13 +3,9 @@
  */
 
 import { getEnv } from "packages/config/env";
-import type { ApiRequestOptions } from "packages/schemas/api";
-import {
-  HttpError,
-  normalizeHeaders,
-  normalizeUrl,
-} from "packages/services/http/client";
-import { getFetch } from "packages/utils/core/platform";
+import { HttpError, normalizeHeaders, normalizeUrl } from "packages/services/http/client";
+import type { ApiRequestOptions } from "packages/types/api";
+import { getFetch } from "packages/utils/platform";
 
 import { getAuthToken } from "./core/config";
 import { apiRequest } from "./core/core";
@@ -20,7 +16,7 @@ const normalizeBase = normalizeUrl;
 export function apiUpload<T = unknown>(
   endpoint: string,
   formData: FormData,
-  options: Omit<ApiRequestOptions, "method" | "body"> = {},
+  options: Omit<ApiRequestOptions, "method" | "body"> = {}
 ): Promise<T> {
   const plain = toPlainHeaderObject(options.headers);
   delete plain["Content-Type"];
@@ -36,7 +32,7 @@ export function apiUpload<T = unknown>(
 
 export async function apiDownloadBlob(
   endpoint: string,
-  options: Omit<ApiRequestOptions, "method" | "body"> = {},
+  options: Omit<ApiRequestOptions, "method" | "body"> = {}
 ): Promise<Blob> {
   const {
     includeCredentials = true,
@@ -48,9 +44,7 @@ export async function apiDownloadBlob(
     ...fetchOptions
   } = options;
 
-  const base = normalizeBase(
-    baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""),
-  );
+  const base = normalizeBase(baseUrl ?? getEnv().apiBaseUrl.replace(/\/+$/, ""));
   const url = endpoint.startsWith("http")
     ? endpoint
     : `${base}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;

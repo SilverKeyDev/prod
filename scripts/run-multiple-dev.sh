@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 INSTANCE_COUNT="${INSTANCE_COUNT:-2}"
 
 # Base ports (will be incremented for each instance)
-# If INSTANCE_COUNT=1, respect FLASK_PORT for compatibility with run-dev.sh
+# If INSTANCE_COUNT=1, respect FLASK_PORT for compatibility with run-web.sh
 if [[ "${INSTANCE_COUNT}" == "1" ]] && [[ -n "${FLASK_PORT:-}" ]]; then
   BASE_FLASK_PORT="${FLASK_PORT}"
 else
@@ -284,10 +284,10 @@ if [[ "${1:-}" != "--production" ]]; then
     pushd Client >/dev/null
     # Set environment variables for proxy target and port
     # All Vite instances proxy to the same Flask server (BASE_FLASK_PORT)
-    # For single instance with default ports, use same command as run-dev.sh for exact compatibility
+    # For single instance with default ports, use same command as run-web.sh for exact compatibility
     # For multiple instances or custom ports, use exec vite with port override
     if [[ "${INSTANCE_COUNT}" == "1" ]] && [[ "${vite_port}" == "5173" ]] && [[ "${BASE_FLASK_PORT}" == "5000" ]]; then
-      # Single instance on default ports - use exact same command as run-dev.sh
+      # Single instance on default ports - use exact same command as run-web.sh
       npm run dev:web &
     else
       # Multiple instances or custom ports - use exec vite with port override and proxy env var

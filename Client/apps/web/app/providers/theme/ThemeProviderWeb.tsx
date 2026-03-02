@@ -2,11 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { ReactNode } from "react";
 
-import {
-  defaultConfig,
-  type ThemeConfig,
-  ThemeContext,
-} from "packages/contexts/ThemeContext";
+import { defaultConfig, type ThemeConfig, ThemeContext } from "packages/contexts/ThemeContext";
 
 export type ThemeProviderWebProps = {
   children: ReactNode;
@@ -18,10 +14,7 @@ export type ThemeProviderWebProps = {
  * document.documentElement, setProperty, classList) and supplies the
  * theme context value. Use this at the web app root.
  */
-export function ThemeProviderWeb({
-  children,
-  initialConfig,
-}: ThemeProviderWebProps) {
+export function ThemeProviderWeb({ children, initialConfig }: ThemeProviderWebProps) {
   const [config, setConfig] = useState<ThemeConfig>({
     ...defaultConfig,
     ...initialConfig,
@@ -66,9 +59,7 @@ export function ThemeProviderWeb({
   };
 
   const getCSSVariable = (name: string): string => {
-    return getComputedStyle(document.documentElement)
-      .getPropertyValue(`--theme-${name}`)
-      .trim();
+    return getComputedStyle(document.documentElement).getPropertyValue(`--theme-${name}`).trim();
   };
 
   const setCSSVariable = (name: string, value: string) => {
@@ -84,7 +75,5 @@ export function ThemeProviderWeb({
     systemTheme,
   };
 
-  return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

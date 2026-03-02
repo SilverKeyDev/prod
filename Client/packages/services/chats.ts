@@ -1,10 +1,11 @@
-import { log, LOG_CATEGORIES } from "logger";
+import { chatbotApi, reportApi as _reportApi } from "packages/api";
+import type { Chat } from "packages/features/messaging/types/chat";
+import { formatFilenameToAddress } from "packages/features/search/types/search/address";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { dateNow, dayjs } from "packages/utils/date";
+import { getWindow } from "packages/utils/platform";
 
-import { chatbotApi } from "packages/config/api/chatbot";
-import type { Chat } from "packages/schemas";
-import { createAbortManager, isAbortError } from "packages/services/http";
-import { dateNow, dayjs } from "packages/utils/core/date";
-import { formatFilenameToAddress } from "packages/utils/domain/search/address";
+import { createAbortManager, isAbortError } from "./http";
 
 /* =========================
    Chat Service
@@ -18,24 +19,21 @@ export class ChatService {
      ========================= */
 
   async fetchChats(): Promise<Chat[]> {
-    log.debug(LOG_CATEGORIES.API, "[CHAT_SERVICE] Starting fetchChats");
+    log.info(LOG_CATEGORIES.API, "[CHAT_SERVICE] Starting fetchChats");
 
     try {
-      // Check for shared reports data from ReportsContext first (web-only; set by app)
-      const sharedData = (
-        globalThis as unknown as {
-          sharedReportsData?: { timestamp: number; reports: unknown[] };
-        }
-      ).sharedReportsData;
+      // Check for shared reports data from ReportsContext first (web only; getWindow() is null on RN)
+      const win = getWindow();
+      const windowWithSharedData = win as unknown as
+        | { sharedReportsData?: { timestamp: number; reports: unknown[] } }
+        | undefined;
+      const sharedData = windowWithSharedData?.sharedReportsData;
       const CACHE_TTL = 30000; // 30 seconds
 
-      if (
-        sharedData &&
-        dateNow().valueOf() - sharedData.timestamp < CACHE_TTL
-      ) {
-        log.debug(
+      if (sharedData && dateNow().valueOf() - sharedData.timestamp < CACHE_TTL) {
+        log.info(
           LOG_CATEGORIES.API,
-          "[CHAT_SERVICE] Using shared reports data from ReportsContext",
+          "[CHAT_SERVICE] Using shared reports data from ReportsContext"
         );
         const { reports } = sharedData;
 
@@ -55,50 +53,43 @@ export class ChatService {
               typeof reportData.address === "string"
                 ? formatFilenameToAddress(reportData.address)
                 : `Report ${typeof reportData.id === "string" ? reportData.id : typeof reportData.id === "number" ? String(reportData.id) : "unknown"}`,
-            propertyAddress:
-              typeof reportData.address === "string" ? reportData.address : "",
+            propertyAddress: typeof reportData.address === "string" ? reportData.address : "",
             messages: [],
-            createdAt:
+            createdAt: dayjs(
               typeof reportData.generatedAt === "number"
-                ? dayjs(reportData.generatedAt * 1000).toDate()
-                : dateNow().toDate(),
+                ? reportData.generatedAt * 1000
+                : dateNow().valueOf()
+            ).toDate(),
           };
         });
 
-        log.debug(
+        log.info(
           LOG_CATEGORIES.API,
-          "[CHAT_SERVICE] Processed chats from shared data",
+          "[CHAT_SERVICE] Successfully processed chats from shared data",
           {
             chatsCount: newChats.length,
             chatIds: newChats.map((c) => c.id),
-          },
+          }
         );
         return newChats;
       }
 
-      log.debug(
+      // Fallback: API endpoint removed - throw error if no shared data available
+      log.info(
         LOG_CATEGORIES.API,
-        "[CHAT_SERVICE] No shared data available and API endpoint removed",
+        "[CHAT_SERVICE] No shared data available and API endpoint removed"
       );
-      throw new Error(
-        "No shared reports data available and API endpoint removed",
-      );
+      throw new Error("No shared reports data available and API endpoint removed");
     } catch (e: unknown) {
       if (!isAbortError(e)) {
         log.error(LOG_CATEGORIES.ERRORS, "[CHAT_SERVICE] fetchChats error", {
           error: e,
           message:
-            e &&
-            typeof e === "object" &&
-            "message" in e &&
-            typeof e.message === "string"
+            e && typeof e === "object" && "message" in e && typeof e.message === "string"
               ? e.message
               : undefined,
           stack:
-            e &&
-            typeof e === "object" &&
-            "stack" in e &&
-            typeof e.stack === "string"
+            e && typeof e === "object" && "stack" in e && typeof e.stack === "string"
               ? e.stack
               : undefined,
         });
@@ -106,7 +97,7 @@ export class ChatService {
       }
       throw e;
     } finally {
-      log.debug(LOG_CATEGORIES.API, "[CHAT_SERVICE] fetchChats completed");
+      log.info(LOG_CATEGORIES.API, "[CHAT_SERVICE] fetchChats completed");
     }
   }
 
@@ -115,28 +106,22 @@ export class ChatService {
      ========================= */
 
   async sendMessage(reportId: string, message: string): Promise<unknown> {
-    log.debug(LOG_CATEGORIES.API, "[CHAT_SERVICE] Starting sendMessage", {
+    log.info(LOG_CATEGORIES.API, "[CHAT_SERVICE] Starting sendMessage", {
       reportId,
       messageLength: message.length,
     });
     try {
       const cleanReportId =
-        typeof reportId === "string"
-          ? reportId.replace(/\.(pdf|json)$/, "")
-          : String(reportId);
-      log.debug(
-        LOG_CATEGORIES.API,
-        "[CHAT_SERVICE] Calling chatbotApi.chatForAddress",
-        {
-          cleanReportId,
-        },
-      );
+        typeof reportId === "string" ? reportId.replace(/\.(pdf|json)$/, "") : String(reportId);
+      log.info(LOG_CATEGORIES.API, "[CHAT_SERVICE] Calling chatbotApi.chatForAddress", {
+        cleanReportId,
+      });
 
       const response = await chatbotApi.chatForAddress(cleanReportId, message);
       if (!response || typeof response !== "object") {
         throw new Error("Invalid API response structure");
       }
-      log.debug(LOG_CATEGORIES.API, "[CHAT_SERVICE] sendMessage response", {
+      log.info(LOG_CATEGORIES.API, "[CHAT_SERVICE] sendMessage response", {
         hasResponse:
           response &&
           typeof response === "object" &&
@@ -163,9 +148,7 @@ export class ChatService {
       log.error(LOG_CATEGORIES.ERRORS, "[CHAT_SERVICE] sendMessage error", {
         reportId,
         cleanReportId:
-          typeof reportId === "string"
-            ? reportId.replace(/\.(pdf|json)$/, "")
-            : String(reportId),
+          typeof reportId === "string" ? reportId.replace(/\.(pdf|json)$/, "") : String(reportId),
         error,
         message:
           error &&
@@ -180,34 +163,25 @@ export class ChatService {
   }
 
   async getChatHistory(reportId: string): Promise<unknown> {
-    log.debug(LOG_CATEGORIES.API, "[CHAT_SERVICE] Starting getChatHistory", {
-      reportId,
-    });
+    log.info(LOG_CATEGORIES.API, "[CHAT_SERVICE] Starting getChatHistory", { reportId });
     try {
       const cleanReportId =
-        typeof reportId === "string"
-          ? reportId.replace(/\.(pdf|json)$/, "")
-          : String(reportId);
-      log.debug(
-        LOG_CATEGORIES.API,
-        "[CHAT_SERVICE] Calling chatbotApi.getChatHistory",
-        {
-          cleanReportId,
-        },
-      );
+        typeof reportId === "string" ? reportId.replace(/\.(pdf|json)$/, "") : String(reportId);
+      log.info(LOG_CATEGORIES.API, "[CHAT_SERVICE] Calling chatbotApi.getChatHistory", {
+        cleanReportId,
+      });
 
       const response = await chatbotApi.getChatHistory(cleanReportId);
       if (!response || typeof response !== "object") {
         throw new Error("Invalid API response structure");
       }
       const typedResponse = response as Record<string, unknown>;
-      log.debug(LOG_CATEGORIES.API, "[CHAT_SERVICE] getChatHistory response", {
+      log.info(LOG_CATEGORIES.API, "[CHAT_SERVICE] getChatHistory response", {
         messagesCount:
           "messages" in typedResponse && Array.isArray(typedResponse.messages)
             ? typedResponse.messages.length
             : 0,
-        hasMessages:
-          "messages" in typedResponse && Array.isArray(typedResponse.messages),
+        hasMessages: "messages" in typedResponse && Array.isArray(typedResponse.messages),
       });
 
       return response;
@@ -215,9 +189,7 @@ export class ChatService {
       log.error(LOG_CATEGORIES.ERRORS, "[CHAT_SERVICE] getChatHistory error", {
         reportId,
         cleanReportId:
-          typeof reportId === "string"
-            ? reportId.replace(/\.(pdf|json)$/, "")
-            : String(reportId),
+          typeof reportId === "string" ? reportId.replace(/\.(pdf|json)$/, "") : String(reportId),
         error,
         message:
           error &&

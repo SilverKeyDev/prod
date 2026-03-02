@@ -1,10 +1,10 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { log, LOG_CATEGORIES } from "logger";
 
 import type { AgentConversation } from "packages/config/api";
 import { agentApi } from "packages/config/api";
 import { queryKeys } from "packages/config/query/keys";
-import { dateParseISO } from "packages/utils/core/date";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { dateParseISO } from "packages/utils/date";
 
 export type NotificationStoreRef = {
   current: {
@@ -19,17 +19,12 @@ export type RunCheckForNewMessagesParams = {
   previousConversationsRef: { current: AgentConversation[] };
   isCheckingRef: { current: boolean };
   incrementUnreadCount: (conversationId: string) => void;
-  updateLastSeenMessageTimestamp: (
-    conversationId: string,
-    timestamp: number,
-  ) => void;
+  updateLastSeenMessageTimestamp: (conversationId: string, timestamp: number) => void;
   authReady: boolean;
   isAuthenticated: boolean;
 };
 
-export async function runCheckForNewMessages(
-  params: RunCheckForNewMessagesParams,
-): Promise<void> {
+export async function runCheckForNewMessages(params: RunCheckForNewMessagesParams): Promise<void> {
   const {
     queryClient,
     notificationStoreRef,
@@ -74,18 +69,14 @@ export async function runCheckForNewMessages(
 
       if (!lastMessageAt) continue;
 
-      const previousConversation = previousConversations.find(
-        (c) => c.id === conversationId,
-      );
+      const previousConversation = previousConversations.find((c) => c.id === conversationId);
       const previousLastMessageAt = previousConversation?.last_message_at
         ? dateParseISO(previousConversation.last_message_at).valueOf()
         : 0;
 
-      const lastSeenTimestamp =
-        storeState.lastSeenMessageTimestamp[conversationId] ?? 0;
+      const lastSeenTimestamp = storeState.lastSeenMessageTimestamp[conversationId] ?? 0;
       const isNewMessage =
-        lastMessageAt > previousLastMessageAt &&
-        lastMessageAt > lastSeenTimestamp;
+        lastMessageAt > previousLastMessageAt && lastMessageAt > lastSeenTimestamp;
 
       if (isNewMessage) {
         if (conversationId !== activeConversationId) {
@@ -130,7 +121,6 @@ export type SetupPollingEffectParams = {
   inRouter: boolean;
   authReady: boolean;
   isAuthenticated: boolean;
-  route: { pathname: string };
   pathname: string;
   isOnMessagingPage: boolean;
   getPollingInterval: () => number;
@@ -140,14 +130,11 @@ export type SetupPollingEffectParams = {
   doc: Document | null;
 };
 
-export function setupPollingEffect(
-  params: SetupPollingEffectParams,
-): () => void {
+export function setupPollingEffect(params: SetupPollingEffectParams): () => void {
   const {
     inRouter,
     authReady,
     isAuthenticated,
-    route,
     pathname,
     isOnMessagingPage,
     getPollingInterval,
@@ -158,14 +145,10 @@ export function setupPollingEffect(
   } = params;
 
   if (!inRouter) {
-    log.debug(
-      LOG_CATEGORIES.POLLING,
-      "Polling not started - router context not available",
-      {
-        inRouter,
-        pathname: route.pathname,
-      },
-    );
+    log.debug(LOG_CATEGORIES.POLLING, "Polling not started - router context not available", {
+      inRouter,
+      pathname,
+    });
     return () => {};
   }
 
@@ -220,10 +203,7 @@ export function setupPollingEffect(
   };
 
   if (docForVisibility) {
-    docForVisibility.addEventListener(
-      "visibilitychange",
-      handleVisibilityChange,
-    );
+    docForVisibility.addEventListener("visibilitychange", handleVisibilityChange);
     visibilityChangeHandlerRef.current = handleVisibilityChange;
   }
 
@@ -234,10 +214,7 @@ export function setupPollingEffect(
       pollingIntervalRef.current = null;
     }
     if (visibilityChangeHandlerRef.current && docForVisibility) {
-      docForVisibility.removeEventListener(
-        "visibilitychange",
-        visibilityChangeHandlerRef.current,
-      );
+      docForVisibility.removeEventListener("visibilitychange", visibilityChangeHandlerRef.current);
       visibilityChangeHandlerRef.current = null;
     }
   };
@@ -245,12 +222,10 @@ export function setupPollingEffect(
 
 export function setupSyncNotificationEffect(
   queryClient: QueryClient,
-  setTotalUnreadCount: (count: number) => void,
+  setTotalUnreadCount: (count: number) => void
 ): () => void {
   const syncNotificationCounter = () => {
-    const cachedCounter = queryClient.getQueryData<number>(
-      queryKeys.agent.notificationCounter(),
-    );
+    const cachedCounter = queryClient.getQueryData<number>(queryKeys.agent.notificationCounter());
     if (
       cachedCounter !== undefined &&
       typeof cachedCounter === "number" &&
@@ -271,12 +246,7 @@ export function setupSyncNotificationEffect(
       event.query.queryKey[1] === "notification-counter"
     ) {
       const data = event.query.state.data as number | undefined;
-      if (
-        data !== undefined &&
-        typeof data === "number" &&
-        !isNaN(data) &&
-        data >= 0
-      ) {
+      if (data !== undefined && typeof data === "number" && !isNaN(data) && data >= 0) {
         setTotalUnreadCount(data);
       }
     }
