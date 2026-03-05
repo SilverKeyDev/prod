@@ -1,7 +1,5 @@
 import { useMemo } from "react";
 
-import { Handshake } from "lucide-react";
-
 import { useLocalization } from "packages/contexts";
 import type { Agreement, DocumentData, SavedPageViewType } from "packages/features/documents";
 import { AgreementListItem } from "packages/features/documents";
@@ -13,7 +11,6 @@ import { dateParseISO } from "packages/utils/date";
 
 import { PropertyCard } from "@/components/cards";
 import { CardCompareCheckbox, CardViewDetailsButton } from "@/components/cards/base/index.web";
-
 type SavedHomesContentProps = {
   viewType: SavedPageViewType;
   filteredHomes: SavedHome[];
@@ -34,9 +31,7 @@ type SavedHomesContentProps = {
   /** When true, container has no padding (parent provides it for alignment) */
   noPadding?: boolean;
 };
-
 const CONTENT_PADDING = "px-4 sm:px-6 md:px-8 lg:px-12";
-
 export default function SavedHomesContent({
   viewType,
   filteredHomes,
@@ -61,19 +56,23 @@ export default function SavedHomesContent({
   // Merge and sort documents and agreements by date
   const sortedItems = useMemo(() => {
     const items: Array<
-      { type: "document"; data: DocumentData } | { type: "agreement"; data: Agreement }
+      | {
+          type: "document";
+          data: DocumentData;
+        }
+      | {
+          type: "agreement";
+          data: Agreement;
+        }
     > = [];
-
     // Add documents
     documents.forEach((doc) => {
       items.push({ type: "document", data: doc });
     });
-
     // Add agreements
     agreements.forEach((agreement) => {
       items.push({ type: "agreement", data: agreement });
     });
-
     // Sort by created_at/updated_at (most recent first)
     const toMs = (v: number | string) => (typeof v === "number" ? v : dateParseISO(v).valueOf());
     items.sort((a, b) => {
@@ -87,13 +86,10 @@ export default function SavedHomesContent({
           : toMs(b.data.created_at);
       return dateB - dateA;
     });
-
     return items;
   }, [documents, agreements]);
-
   if (viewType === "documents") {
     const isLoading = documentsLoading || agreementsLoading;
-
     if (isLoading) {
       return (
         <div className={`${containerClass} py-responsive-lg flex justify-center`}>
@@ -101,7 +97,6 @@ export default function SavedHomesContent({
         </div>
       );
     }
-
     if (sortedItems.length === 0) {
       return (
         <div className={`${containerClass} py-responsive-lg text-center`}>
@@ -111,7 +106,6 @@ export default function SavedHomesContent({
         </div>
       );
     }
-
     return (
       <div
         className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`}
@@ -135,7 +129,6 @@ export default function SavedHomesContent({
       </div>
     );
   }
-
   if (viewType === "homes") {
     if (filteredHomes.length === 0) {
       if (homesLoading) {
@@ -145,7 +138,6 @@ export default function SavedHomesContent({
           </div>
         );
       }
-
       return (
         <div className={`${containerClass} py-responsive-lg text-center`}>
           <BodyText as="p" size="sm" className="text-responsive-sm text-gray-600">
@@ -154,12 +146,9 @@ export default function SavedHomesContent({
         </div>
       );
     }
-
     return (
       <div
-        className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
-          selectedHomesDataLength >= 1 ? "mb-[140px] sm:mb-[160px]" : ""
-        }`}
+        className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${selectedHomesDataLength >= 1 ? "mb-[140px] sm:mb-[160px]" : ""}`}
       >
         {filteredHomes.map((home: SavedHome) => {
           const isSelected = selectedHomesForComparison.has(home.home_id);
@@ -231,7 +220,7 @@ export default function SavedHomesContent({
                       variant="negotiate"
                       fullWidth
                       text="Negotiate"
-                      icon={Handshake}
+                      iconName="handshake"
                     />
                   </div>
                 }
@@ -242,6 +231,5 @@ export default function SavedHomesContent({
       </div>
     );
   }
-
   return null;
 }

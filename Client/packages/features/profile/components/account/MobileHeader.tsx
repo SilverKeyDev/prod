@@ -1,11 +1,10 @@
 import React from "react";
 
-import { Edit, Save } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
-
 type PersonalizationMobileHeaderProps = {
   isEditMode: boolean;
   isSaving: boolean;
@@ -13,7 +12,6 @@ type PersonalizationMobileHeaderProps = {
   onCancel: () => void;
   onSave: () => void;
 };
-
 const PersonalizationMobileHeader: React.FC<PersonalizationMobileHeaderProps> = ({
   isEditMode,
   isSaving,
@@ -31,14 +29,13 @@ const PersonalizationMobileHeader: React.FC<PersonalizationMobileHeaderProps> = 
           size="sm"
           fullWidth
           className="max-w-sm"
-          icon={<Edit />}
+          icon={<Icon name="edit" />}
         >
           {t("profile.account.edit")}
         </Button>
       </div>
     );
   }
-
   return (
     <div className="mx-auto flex w-full max-w-sm gap-2">
       <CancelButton onClick={onCancel} size="sm" className="flex-1">
@@ -50,12 +47,11 @@ const PersonalizationMobileHeader: React.FC<PersonalizationMobileHeaderProps> = 
         variant="primary"
         size="sm"
         className="flex-1"
-        icon={<Save />}
+        icon={<Icon name="save" />}
       >
         {isSaving ? t("profile.account.saving_save") : t("profile.account.save")}
       </Button>
     </div>
   );
 };
-
 export default PersonalizationMobileHeader;

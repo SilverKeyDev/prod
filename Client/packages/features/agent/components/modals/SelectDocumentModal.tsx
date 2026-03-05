@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { FileText } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useDocumentsStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
@@ -11,13 +11,11 @@ import { BodyText, Title } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
 
 import BaseModal from "@/components/modals/BaseModal";
-
 type SelectDocumentModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (document: DocumentData) => void;
 };
-
 export default function SelectDocumentModal({
   isOpen,
   onClose,
@@ -26,7 +24,6 @@ export default function SelectDocumentModal({
   const documents = useDocumentsStore((s) => s.documents);
   const documentsLoading = useDocumentsStore((s) => s.documentsLoading);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
-
   const mappedDocuments: DocumentData[] = documents.map((d) => ({
     id: d.id,
     filename: d.name,
@@ -38,7 +35,6 @@ export default function SelectDocumentModal({
     document_type: d.document_type ?? null,
     address: d.address ?? null,
   }));
-
   const handleConfirm = () => {
     if (selectedDocumentId) {
       const document = mappedDocuments.find((d) => d.id === selectedDocumentId);
@@ -48,18 +44,16 @@ export default function SelectDocumentModal({
       }
     }
   };
-
   const selectedDocument = selectedDocumentId
     ? mappedDocuments.find((d) => d.id === selectedDocumentId)
     : null;
-
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       headerContent={
         <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 flex-shrink-0 text-gray-900" />
+          <Icon name="file-text" className="h-5 w-5 flex-shrink-0 text-gray-900" />
           <Title as="h3" size="lg" className="truncate font-medium text-gray-900 sm:text-lg">
             Select Document to Share
           </Title>
@@ -95,7 +89,7 @@ export default function SelectDocumentModal({
               >
                 <div className="flex w-full items-start gap-3">
                   <div className="bg-beige/20 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
-                    <FileText className="text-olive h-5 w-5" />
+                    <Icon name="file-text" className="text-olive h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <BodyText as="p" size="sm" className="font-medium text-gray-900">

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 
-import { Download, GitCompare, Settings2, Share, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { usePropertyComparison } from "packages/features/compare/hooks/data/usePropertyComparison";
@@ -26,7 +26,6 @@ import { fallbackComparisonDetails } from "./compareHomesModalHelpers";
 import { PropertyCardsGrid, RemainingLikedHomes } from "./grid";
 import { ManageRowsModal } from "./manage-rows";
 import { ComparisonTable } from "./table";
-
 export type CompareHomesModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -35,7 +34,6 @@ export type CompareHomesModalProps = {
   onAdd?: (homeId: string) => void;
   allLikedHomes?: SavedHome[];
 };
-
 type SavedHomeWithDetails = SavedHome & {
   home_id?: string;
   description?: string;
@@ -48,11 +46,9 @@ type SavedHomeWithDetails = SavedHome & {
   lng?: number | string;
   image_url?: string;
 };
-
 function buildPropertyDataFromHome(home: SavedHomeWithDetails): PropertyDetailsProperty {
   const id = (home.home_id ?? home.address ?? "").toString();
   const address = String(home.address ?? home.description ?? "");
-
   const rawPrice = home.price as unknown as string | number | undefined;
   const price =
     typeof rawPrice === "string"
@@ -62,19 +58,16 @@ function buildPropertyDataFromHome(home: SavedHomeWithDetails): PropertyDetailsP
       : typeof rawPrice === "number"
         ? `$${rawPrice.toLocaleString()}`
         : "Price not available";
-
   const rawBedrooms = home.bedrooms ?? home.beds;
   const bedrooms =
     typeof rawBedrooms === "number"
       ? rawBedrooms
       : Number.parseInt((rawBedrooms ?? "0").toString(), 10) || 0;
-
   const rawBathrooms = home.bathrooms ?? home.baths;
   const bathrooms =
     typeof rawBathrooms === "number"
       ? rawBathrooms
       : Number.parseInt((rawBathrooms ?? "0").toString(), 10) || 0;
-
   const rawSqft = home.sqft;
   let sqft = 0;
   if (typeof rawSqft === "number") {
@@ -88,7 +81,6 @@ function buildPropertyDataFromHome(home: SavedHomeWithDetails): PropertyDetailsP
       }
     }
   }
-
   const rawLat = home.lat;
   const rawLng = home.lng;
   const lat =
@@ -103,7 +95,6 @@ function buildPropertyDataFromHome(home: SavedHomeWithDetails): PropertyDetailsP
       : typeof rawLng === "string"
         ? Number.parseFloat(rawLng) || 0
         : 0;
-
   return {
     id,
     address,
@@ -118,7 +109,6 @@ function buildPropertyDataFromHome(home: SavedHomeWithDetails): PropertyDetailsP
     images: home.image_url ? [home.image_url] : undefined,
   };
 }
-
 function useCompareHomesData(
   selectedHomes: SavedHome[],
   propertyDetails: Record<string, CompareHomesPropertyDetails>,
@@ -137,12 +127,10 @@ function useCompareHomesData(
       return fallbackComparisonDetails(home);
     });
   }, [selectedHomes, propertyDetails]);
-
   const allComparisonFields = useMemo(
     () => getAllComparisonFields(comparisonData, loadingStates, orderedSections),
     [comparisonData, loadingStates, orderedSections]
   );
-
   const hasDataForAnyProperty = useCallback(
     (fieldKey: string): boolean => {
       return comparisonData.some((home) => {
@@ -154,7 +142,6 @@ function useCompareHomesData(
     },
     [comparisonData, allComparisonFields]
   );
-
   const visibleComparisonFields = useMemo(() => {
     return allComparisonFields.filter((field) => {
       if (field.isSectionHeader) return !omittedRows.has(field.key);
@@ -164,7 +151,6 @@ function useCompareHomesData(
       return !isManuallyOmitted && !isAutoOmitted;
     });
   }, [allComparisonFields, omittedRows, manuallyEnabledRows, hasDataForAnyProperty]);
-
   return {
     comparisonData,
     allComparisonFields,
@@ -172,7 +158,6 @@ function useCompareHomesData(
     visibleComparisonFields,
   };
 }
-
 function useCompareHomesCSVActions(
   comparisonData: CompareHomesPropertyDetails[],
   visibleComparisonFields: ReturnType<typeof getAllComparisonFields>,
@@ -196,7 +181,6 @@ function useCompareHomesCSVActions(
       (error) => enqueueToast({ type: "error", message: error })
     );
   }, [selectedCount, comparisonData, visibleComparisonFields, enqueueToast, t]);
-
   const handleShareCSV = useCallback(async () => {
     if (selectedCount === 0) {
       enqueueToast({ type: "error", message: t("compare.no_homes_share") });
@@ -210,10 +194,8 @@ function useCompareHomesCSVActions(
       (error) => enqueueToast({ type: "error", message: error })
     );
   }, [selectedCount, comparisonData, visibleComparisonFields, enqueueToast, t]);
-
   return { handleExportToCSV, handleShareCSV };
 }
-
 type CompareHomesModalHeaderProps = {
   selectedCount: number;
   onOpenRowModal: () => void;
@@ -221,7 +203,6 @@ type CompareHomesModalHeaderProps = {
   onShareCSV: () => void;
   onClose: () => void;
 };
-
 function CompareHomesModalHeader({
   selectedCount,
   onOpenRowModal,
@@ -233,7 +214,7 @@ function CompareHomesModalHeader({
   return (
     <div className="flex w-full items-center justify-between gap-2 sm:gap-4">
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <GitCompare className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+        <Icon name="git-compare" className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
         <BodyText as="span" className="truncate text-base font-medium text-gray-900 sm:text-lg">
           {t("compare.compare_properties")}
         </BodyText>
@@ -243,7 +224,7 @@ function CompareHomesModalHeader({
           onClick={onOpenRowModal}
           variant="ghost"
           size="sm"
-          icon={<Settings2 className="h-4 w-4 sm:h-4 sm:w-4" />}
+          icon={<Icon name="settings-2" className="h-4 w-4 sm:h-4 sm:w-4" />}
           disabled={selectedCount === 0}
           className="touch-manipulation text-gray-600 hover:text-gray-900"
           label={t("compare.manage_aria")}
@@ -252,7 +233,7 @@ function CompareHomesModalHeader({
           onClick={onExportCSV}
           variant="ghost"
           size="sm"
-          icon={<Download className="h-4 w-4 sm:h-4 sm:w-4" />}
+          icon={<Icon name="download" className="h-4 w-4 sm:h-4 sm:w-4" />}
           disabled={selectedCount === 0}
           className="touch-manipulation text-gray-600 hover:text-gray-900"
           label={t("compare.export_aria")}
@@ -261,7 +242,7 @@ function CompareHomesModalHeader({
           onClick={onShareCSV}
           variant="ghost"
           size="sm"
-          icon={<Share className="h-4 w-4 sm:h-4 sm:w-4" />}
+          icon={<Icon name="share" className="h-4 w-4 sm:h-4 sm:w-4" />}
           disabled={selectedCount === 0}
           className="text-gold hover:text-gold/80 touch-manipulation"
           label={t("compare.share_aria")}
@@ -269,7 +250,7 @@ function CompareHomesModalHeader({
         <IconButton
           variant="ghost"
           size="sm"
-          icon={<X className="h-4 w-4 sm:h-5 sm:w-5" />}
+          icon={<Icon name="x" className="h-4 w-4 sm:h-5 sm:w-5" />}
           onClick={onClose}
           className="flex-shrink-0 touch-manipulation text-gray-400 hover:text-gray-500"
           label={t("compare.close_modal_aria")}
@@ -278,7 +259,6 @@ function CompareHomesModalHeader({
     </div>
   );
 }
-
 const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
   isOpen,
   onClose,
@@ -291,11 +271,9 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
   const { fetchPropertyDetails } = usePropertyDetails();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { propertyDetails, loadingStates } = usePropertyComparison(isOpen, selectedHomes);
-
   const [showRowModal, setShowRowModal] = useState(false);
   const [omittedRows, setOmittedRows] = useState<Set<string>>(new Set());
   const [manuallyEnabledRows, setManuallyEnabledRows] = useState<Set<string>>(new Set());
-
   const { comparisonData, allComparisonFields, hasDataForAnyProperty, visibleComparisonFields } =
     useCompareHomesData(
       selectedHomes,
@@ -305,7 +283,6 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
       manuallyEnabledRows,
       t
     );
-
   const { handleExportToCSV, handleShareCSV } = useCompareHomesCSVActions(
     comparisonData,
     visibleComparisonFields,
@@ -313,14 +290,12 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
     enqueueToast,
     t
   );
-
   const handleUnlockHome = useCallback(
     async (home: SavedHome) => {
       await fetchPropertyDetails(buildPropertyDataFromHome(home));
     },
     [fetchPropertyDetails]
   );
-
   return (
     <BaseModal
       isOpen={isOpen}
@@ -387,5 +362,4 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
     </BaseModal>
   );
 };
-
 export default CompareHomesModal;

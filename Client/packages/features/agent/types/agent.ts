@@ -1,3 +1,5 @@
+import type { TodoItem as ApiTodoItem } from "../api/agent";
+
 // Agent type (app-level)
 
 export type Agent = {
@@ -15,3 +17,8 @@ export type Agent = {
   years_experience?: number;
   client_ids?: string[];
 };
+
+// Todo types (re-exported from API for feature consumers)
+export type TodoItem = ApiTodoItem;
+export type TodoPriority = ApiTodoItem["priority"];
+export type TodoType = ApiTodoItem["type"];

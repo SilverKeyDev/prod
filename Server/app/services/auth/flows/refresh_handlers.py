@@ -132,7 +132,8 @@ def handle_google_refresh(
             )
         db.session.commit()
 
-        current_app.logger.info(
+        # Downgrade token update log to debug to reduce INFO noise
+        current_app.logger.debug(
             "AUTH_REFRESH_GOOGLE_TOKEN_UPDATED",
             extra={
                 "request_id": request_id,
@@ -180,7 +181,8 @@ def handle_google_refresh(
     )
 
     duration_ms = int((time.time() - start_time) * 1000)
-    current_app.logger.info(
+    # Downgrade success log to debug to avoid noisy INFO spam on each refresh
+    current_app.logger.debug(
         "AUTH_REFRESH_GOOGLE_SUCCESS",
         extra={"request_id": request_id, "user_id": user_id, "duration_ms": duration_ms},
     )

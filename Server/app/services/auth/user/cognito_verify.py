@@ -110,10 +110,8 @@ def verify_cognito_token_and_get_user(token: str, start_time: float | None = Non
     duration_ms = int((time.time() - _start) * 1000)
     request_id = getattr(request, "request_id", f"session_{int(time.time() * 1000)}")
     endpoint = request.endpoint or "unknown"
-    log_level = (
-        current_app.logger.debug if endpoint != "user.get_user_profile" else current_app.logger.info
-    )
-    log_level(
+    # Always log at DEBUG to avoid noisy INFO logs, even for profile endpoint
+    current_app.logger.debug(
         "🔍 BACKEND_SESSION_VERIFICATION_SUCCESS",
         extra={
             "request_id": request_id,

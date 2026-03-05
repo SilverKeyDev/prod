@@ -7,7 +7,6 @@ import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.we
 import { dateNow } from "packages/utils/date";
 
 import Button from "./Button";
-
 export type NavigationButtonProps = {
   /** Click handler */
   onClick: () => void;
@@ -28,7 +27,6 @@ export type NavigationButtonProps = {
   /** Full width button */
   fullWidth?: boolean;
 };
-
 const NavigationButton: React.FC<NavigationButtonProps> = ({
   onClick,
   loading = false,
@@ -78,10 +76,8 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
       spacing: "gap-6",
     },
   };
-
   const currentSizeStyles = sizeStyles[size];
   const ArrowIcon = arrowType === "arrow" ? ArrowRight : ChevronRight;
-
   const buttonClasses = [
     // Base link-like styling
     "inline-flex items-center justify-center font-medium transition-all duration-200",
@@ -98,7 +94,6 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
   ]
     .filter(Boolean)
     .join(" ");
-
   const handleClick = () => {
     log.debug(LOG_CATEGORIES.HOOKS, "NavigationButton clicked", {
       children: typeof children === "string" ? children : "React element",
@@ -106,7 +101,6 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
       loading,
       timestamp: dateNow().toISOString(),
     });
-
     if (!disabled && !loading) {
       onClick();
     } else {
@@ -116,7 +110,6 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
       );
     }
   };
-
   return (
     <Button
       type="button"
@@ -144,5 +137,4 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
     </Button>
   );
 };
-
 export default NavigationButton;

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import Button from "@ui/button/Button";
-import { ChevronDown, Home } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
@@ -11,9 +11,7 @@ import {
   type FavoriteHomeItem,
   useFavoriteHomesList,
 } from "@/features/profile/hooks/data/useFavoriteHomesList";
-
 type FavoriteHome = FavoriteHomeItem;
-
 type FavoriteHomesDropdownProps = {
   selectedHome: FavoriteHome | null;
   onHomeSelect: (home: FavoriteHome) => void;
@@ -21,7 +19,6 @@ type FavoriteHomesDropdownProps = {
   placeholder?: string;
   disabled?: boolean;
 };
-
 const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
   selectedHome,
   onHomeSelect,
@@ -34,20 +31,17 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
   const displayPlaceholder = placeholder ?? t("favorite_homes.placeholder");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
   // Handle dropdown toggle
   const toggleDropdown = () => {
     if (!disabled && !loadingHomes) {
       setIsDropdownOpen(!isDropdownOpen);
     }
   };
-
   // Handle home selection
   const handleHomeSelection = (home: FavoriteHome) => {
     onHomeSelect(home);
     setIsDropdownOpen(false);
   };
-
   // Handle click outside dropdown (guarded for RN; only runs when document exists)
   useEffect(() => {
     const doc = getDocument();
@@ -62,7 +56,6 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
       doc.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       <Button
@@ -71,9 +64,9 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         onClick={toggleDropdown}
         className={`border-beige hover:border-brown focus:border-brown focus:ring-brown/20 flex h-full w-full items-center gap-2 rounded-lg border bg-white px-2 py-2 transition-colors duration-200 focus:ring-2 lg:px-3 lg:py-3 ${className}`}
         disabled={disabled ?? loadingHomes}
-        icon={<Home className="text-brown h-4 w-4" />}
+        icon={<Icon name="home" className="text-brown h-4 w-4" />}
       >
-        <Home className="text-brown h-4 w-4" />
+        <Icon name="home" className="text-brown h-4 w-4" />
         <div className="flex-1 text-left">
           {loadingHomes ? (
             <KeyTurnLoader message={t("favorite_homes.loading_homes")} />
@@ -106,10 +99,9 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
             </div>
           )}
         </div>
-        <ChevronDown
-          className={`text-brown h-4 w-4 transition-transform duration-200 ${
-            isDropdownOpen ? "rotate-180" : ""
-          }`}
+        <Icon
+          name="chevron-down"
+          className={`text-brown h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
         />
       </Button>
 
@@ -127,9 +119,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                   type="button"
                   variant="ghost"
                   onClick={() => handleHomeSelection(home)}
-                  className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
-                    index === 0 ? "first:rounded-t-lg" : ""
-                  } ${index === favoriteHomes.length - 1 ? "last:rounded-b-lg" : ""} ${
+                  className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${index === 0 ? "first:rounded-t-lg" : ""} ${index === favoriteHomes.length - 1 ? "last:rounded-b-lg" : ""} ${
                     selectedHome?.address === home.address
                       ? "bg-brown/10 text-brown"
                       : "hover:bg-brown/5 text-black"
@@ -164,5 +154,4 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
     </div>
   );
 };
-
 export default FavoriteHomesDropdown;

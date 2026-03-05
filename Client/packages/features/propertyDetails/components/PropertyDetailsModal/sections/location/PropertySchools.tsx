@@ -1,6 +1,6 @@
 import React from "react";
 
-import { GraduationCap } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import { BodyText, Title } from "packages/ui/components/index.web";
@@ -8,42 +8,34 @@ import { BodyText, Title } from "packages/ui/components/index.web";
 import Card from "@/components/layout/Card.web";
 import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
-
 type PropertySchoolsProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
-
 export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, analysisContent }) => {
-  const { schools } = property as unknown as { schools: unknown };
-
+  const { schools } = property as unknown as {
+    schools: unknown;
+  };
   const hasSchools = schools && Array.isArray(schools) && schools.length > 0;
   if (!hasSchools && !analysisContent) {
     return null;
   }
-
   const schoolList = hasSchools ? (schools as Array<Record<string, unknown>>) : [];
-
   const sectionLabel =
     DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "family_friendly")
       ?.label || "Nearby Schools";
-
   const renderAnalysisContent = (data: unknown): React.ReactNode | null => {
     if (!data || typeof data !== "object") return null;
-
     const dataObj = data as Record<string, unknown>;
     const entries = Object.entries(dataObj).filter(
       ([_, value]) => value !== null && value !== undefined && value !== ""
     );
-
     if (entries.length === 0) {
       return null;
     }
-
     return (
       <div className="mt-4 space-y-4">
         {entries.map(([key, value]) => {
           const displayKey = key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-
           if (Array.isArray(value)) {
             return (
               <div key={key}>
@@ -60,7 +52,6 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
               </div>
             );
           }
-
           return (
             <div key={key} className="flex flex-col space-y-1">
               <BodyText as="span" className="text-brown text-sm font-medium">
@@ -75,11 +66,10 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
       </div>
     );
   };
-
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center gap-2">
-        <GraduationCap className="text-brown h-5 w-5" />
+        <Icon name="graduation-cap" className="text-brown h-5 w-5" />
         <Title as="h3" size="lg" className="text-brown font-semibold">
           {sectionLabel}
         </Title>

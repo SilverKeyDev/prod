@@ -63,7 +63,6 @@ jobs:
           plaid_json="$(fetch_json plaid)"
           serp_json="$(fetch_json serp)"
           rapidapi_json="$(fetch_json rapidapi)"
-          docusign_json="$(fetch_json docusign-integration)"
 
           export_if_present () {
             local json="$1"
@@ -102,12 +101,6 @@ jobs:
 
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
-
-          export_if_present "$docusign_json" "DOCUSIGN_INTEGRATION_KEY" "DOCUSIGN_INTEGRATION_KEY"
-          export_if_present "$docusign_json" "DOCUSIGN_USER_CONNECT_HMAC_SECRET" "DOCUSIGN_USER_CONNECT_HMAC_SECRET"
-          export_if_present "$docusign_json" "DOCUSIGN_ORG_CONNECT_HMAC_SECRET" "DOCUSIGN_ORG_CONNECT_HMAC_SECRET"
-          export_if_present "$docusign_json" "DOCUSIGN_ORG_CLIENT_SECRET" "DOCUSIGN_ORG_CLIENT_SECRET"
-          export_if_present "$docusign_json" "DOCUSIGN_USER_CLIENT_SECRET" "DOCUSIGN_USER_CLIENT_SECRET"
 
       - name: Set up Docker Buildx (container driver)
         uses: docker/setup-buildx-action@v3
@@ -191,11 +184,6 @@ jobs:
           VITE_PLAID_CLIENT_ID: ${{ env.VITE_PLAID_CLIENT_ID }}
           SERP_API: ${{ env.SERP_API }}
           RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY }}
-          DOCUSIGN_INTEGRATION_KEY: ${{ env.DOCUSIGN_INTEGRATION_KEY }}
-          DOCUSIGN_USER_CONNECT_HMAC_SECRET: ${{ env.DOCUSIGN_USER_CONNECT_HMAC_SECRET }}
-          DOCUSIGN_ORG_CONNECT_HMAC_SECRET: ${{ env.DOCUSIGN_ORG_CONNECT_HMAC_SECRET }}
-          DOCUSIGN_ORG_CLIENT_SECRET: ${{ env.DOCUSIGN_ORG_CLIENT_SECRET }}
-          DOCUSIGN_USER_CLIENT_SECRET: ${{ env.DOCUSIGN_USER_CLIENT_SECRET }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
@@ -207,8 +195,7 @@ jobs:
             GOOGLE_MAPS_API_KEY,GOOGLE_CALENDAR_SECRET,GOOGLE_CLIENT_ID,
             CENSUS_API_KEY,MAPBOX_API_KEY,OPENAI_KEY,PERPLEXITY_API_KEY,
             PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,
-            SERP_API,RAPIDAPI_KEY,
-            DOCUSIGN_INTEGRATION_KEY,DOCUSIGN_USER_CONNECT_HMAC_SECRET,DOCUSIGN_ORG_CONNECT_HMAC_SECRET,DOCUSIGN_ORG_CLIENT_SECRET,DOCUSIGN_USER_CLIENT_SECRET
+            SERP_API,RAPIDAPI_KEY
           script: |
             set -euo pipefail
 
@@ -344,11 +331,6 @@ jobs:
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
-              -e DOCUSIGN_INTEGRATION_KEY="${DOCUSIGN_INTEGRATION_KEY}" \
-              -e DOCUSIGN_USER_CONNECT_HMAC_SECRET="${DOCUSIGN_USER_CONNECT_HMAC_SECRET}" \
-              -e DOCUSIGN_ORG_CONNECT_HMAC_SECRET="${DOCUSIGN_ORG_CONNECT_HMAC_SECRET}" \
-              -e DOCUSIGN_ORG_CLIENT_SECRET="${DOCUSIGN_ORG_CLIENT_SECRET}" \
-              -e DOCUSIGN_USER_CLIENT_SECRET="${DOCUSIGN_USER_CLIENT_SECRET}" \
               "$IMAGE" >/dev/null
 
             echo "⏳ Waiting for App to start..."
@@ -407,11 +389,6 @@ jobs:
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
-              -e DOCUSIGN_INTEGRATION_KEY="${DOCUSIGN_INTEGRATION_KEY}" \
-              -e DOCUSIGN_USER_CONNECT_HMAC_SECRET="${DOCUSIGN_USER_CONNECT_HMAC_SECRET}" \
-              -e DOCUSIGN_ORG_CONNECT_HMAC_SECRET="${DOCUSIGN_ORG_CONNECT_HMAC_SECRET}" \
-              -e DOCUSIGN_ORG_CLIENT_SECRET="${DOCUSIGN_ORG_CLIENT_SECRET}" \
-              -e DOCUSIGN_USER_CLIENT_SECRET="${DOCUSIGN_USER_CLIENT_SECRET}" \
               "$IMAGE" \
               celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1
 

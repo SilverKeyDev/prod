@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Home } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
@@ -10,17 +10,14 @@ import { BodyText, Title } from "packages/ui/components/index.web";
 import BaseModal from "@/components/modals/BaseModal";
 import { useSavedHomesData } from "@/features/search/hooks/data/saved/useSavedHomesData";
 import type { SavedHome } from "@/features/search/types/property";
-
 type SelectHomeModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (home: SavedHome) => void;
 };
-
 export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHomeModalProps) {
   const { savedHomes, savedHomesLoading } = useSavedHomesData();
   const [selectedHomeId, setSelectedHomeId] = useState<string | null>(null);
-
   const handleConfirm = () => {
     if (selectedHomeId) {
       const home = savedHomes.find((h) => h.home_id === selectedHomeId);
@@ -30,16 +27,14 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
       }
     }
   };
-
   const selectedHome = selectedHomeId ? savedHomes.find((h) => h.home_id === selectedHomeId) : null;
-
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       headerContent={
         <div className="flex items-center gap-2">
-          <Home className="h-5 w-5 flex-shrink-0 text-gray-900" />
+          <Icon name="home" className="h-5 w-5 flex-shrink-0 text-gray-900" />
           <Title as="h3" size="lg" className="truncate font-medium text-gray-900 sm:text-lg">
             Select Home to Share
           </Title>
@@ -75,7 +70,7 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
               >
                 <div className="flex w-full items-start gap-3">
                   <div className="bg-beige/20 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
-                    <Home className="text-olive h-5 w-5" />
+                    <Icon name="home" className="text-olive h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <BodyText as="p" size="sm" className="font-medium text-gray-900">

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Lightbulb } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Button, CancelButton, FavoriteHomesDropdown } from "packages/ui/components/index.web";
@@ -8,7 +8,6 @@ import { Button, CancelButton, FavoriteHomesDropdown } from "packages/ui/compone
 import { AlignedRow } from "@/components/layout";
 
 import SectionBox from "./SectionBox";
-
 type FavoriteHome = {
   user_id: string;
   address: string;
@@ -21,7 +20,6 @@ type FavoriteHome = {
   created_at: string;
   updated_at: string;
 };
-
 type HomeSelectorSectionProps = {
   selectedHome: FavoriteHome | null;
   isLoading: boolean;
@@ -29,7 +27,6 @@ type HomeSelectorSectionProps = {
   onGenerate: () => void;
   onCancel?: () => void;
 };
-
 export function HomeSelectorSection({
   selectedHome,
   isLoading,
@@ -51,7 +48,7 @@ export function HomeSelectorSection({
             variant="primary"
             hideTextBelow="md"
             loading={isLoading}
-            icon={<Lightbulb className="mobile-icon-sm" />}
+            icon={<Icon name="lightbulb" className="mobile-icon-sm" />}
             onClick={onGenerate}
             disabled={!selectedHome || isLoading}
             className="h-full whitespace-nowrap"

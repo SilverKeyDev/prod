@@ -1,9 +1,7 @@
-import { Bot, type LucideIcon, User as UserIcon } from "lucide-react";
+import type { IconName } from "packages/ui/types/icons";
 
 export type MessagingMode = "client" | "agent";
-
 export type MessageRole = "user" | "agent";
-
 export type MessagingConfig = {
   mode: MessagingMode;
   // Message styling
@@ -12,21 +10,21 @@ export type MessagingConfig = {
       bgColor: string;
       textColor: string;
       iconBg: string;
-      icon: LucideIcon;
+      iconName: IconName;
       justify: "start" | "end";
     };
     agent: {
       bgColor: string;
       textColor: string;
       iconBg: string;
-      icon: LucideIcon;
+      iconName: IconName;
       justify: "start" | "end";
     };
   };
   // Typing indicator
   typingIndicator: {
     iconBg: string;
-    icon: LucideIcon;
+    iconName: IconName;
   };
   // Sidebar config
   sidebar: {
@@ -63,7 +61,6 @@ export type MessagingConfig = {
     };
   };
 };
-
 export const CLIENT_MESSAGING_CONFIG: MessagingConfig = {
   mode: "client",
   messageStyles: {
@@ -71,20 +68,20 @@ export const CLIENT_MESSAGING_CONFIG: MessagingConfig = {
       bgColor: "bg-olive text-white",
       textColor: "text-white",
       iconBg: "bg-beige",
-      icon: UserIcon,
+      iconName: "user",
       justify: "end",
     },
     agent: {
       bgColor: "bg-neutral-100 text-black",
       textColor: "text-black",
       iconBg: "bg-gold",
-      icon: UserIcon,
+      iconName: "user",
       justify: "start",
     },
   },
   typingIndicator: {
     iconBg: "bg-gold",
-    icon: Bot,
+    iconName: "bot",
   },
   sidebar: {
     title: "Inbox",
@@ -116,7 +113,6 @@ export const CLIENT_MESSAGING_CONFIG: MessagingConfig = {
     },
   },
 };
-
 export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
   mode: "agent",
   messageStyles: {
@@ -124,20 +120,20 @@ export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
       bgColor: "bg-neutral-100 text-black",
       textColor: "text-black",
       iconBg: "bg-beige",
-      icon: UserIcon,
+      iconName: "user",
       justify: "start",
     },
     agent: {
       bgColor: "bg-olive text-white",
       textColor: "text-white",
       iconBg: "bg-gold",
-      icon: Bot,
+      iconName: "bot",
       justify: "end",
     },
   },
   typingIndicator: {
     iconBg: "bg-gold",
-    icon: Bot,
+    iconName: "bot",
   },
   sidebar: {
     title: "Clients",
@@ -169,7 +165,6 @@ export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
     },
   },
 };
-
 export const getMessagingConfig = (mode: MessagingMode): MessagingConfig => {
   return mode === "agent" ? AGENT_MESSAGING_CONFIG : CLIENT_MESSAGING_CONFIG;
 };

@@ -1,19 +1,33 @@
 /* eslint-disable silverkey/max-lines-hard, max-lines-per-function -- TODO: split into subcomponents (SavedHomesList, SavedDocumentsList, etc.) */
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
-import { Linking, RefreshControl } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { RefreshControl } from "react-native";
 
-import { getEnv } from "packages/config";
 import { useLocalization } from "packages/contexts";
-import type { Agreement, DocumentData } from "packages/features/documents";
+import {
+  type Agreement,
+  AgreementDetailModal,
+  CreateAgreementModal,
+  type DocumentData,
+} from "packages/features/documents";
 import type { SavedHome } from "packages/types";
 import { BaseModal, PdfModal } from "packages/ui/components/modals";
-import { Box, Button, PrimitiveInput, ScrollView, Text } from "packages/ui/components/primitives";
+import {
+  Box,
+  Button,
+  PrimitiveInput,
+  ScrollView,
+  Subtitle,
+  Text,
+} from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
+import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
+
+import DocumentUploadModal from "./DocumentUploadModal";
 import type { SavedPageLayoutProps } from "./SavedPageLayout";
 
-type _SavedPageViewType = "homes" | "documents";
 type _EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";
 
 type CombinedItem =
@@ -34,20 +48,25 @@ function formatPrice(value: string | number | null | undefined): string {
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return "";
-  const parsed = dateParseISO(value);
-  if (Number.isNaN(parsed.valueOf())) return "";
-  return parsed.toLocaleDateString();
+  try {
+    const parsed = dateParseISO(value);
+    if (!parsed.isValid()) return "";
+    return parsed.toDate().toLocaleDateString();
+  } catch {
+    return "";
+  }
 }
 
 export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
+  const navigation = useNavigation();
   const {
     viewType,
     searchTerm,
     setSearchTerm,
     selectedClientId,
-    setSelectedClientId: _setSelectedClientId,
-    eventTypeFilter: _eventTypeFilter,
-    setEventTypeFilter: _setEventTypeFilter,
+    setSelectedClientId,
+    eventTypeFilter,
+    setEventTypeFilter,
     setViewType,
     filteredHomes,
     filteredDocuments,
@@ -57,7 +76,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     agreementsLoading,
     selectedHomesForComparison,
     selectedHomesData,
-    selectedProperty,
+    selectedProperty: _selectedProperty,
     isLoadingPropertyDetails: _isLoadingPropertyDetails,
     isCompareModalOpen,
     setIsCompareModalOpen,
@@ -79,7 +98,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     onDownloadDocument,
     onShareDocument,
     onToggleHomeSelection,
-    onUnlockHome,
+    onUnlockHome: _onUnlockHome,
     onOpenNegotiation,
     onDocumentDelete,
     onAgreementClick,
@@ -89,7 +108,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     onCloseNegotiation,
     onCompare,
     onClearComparison,
-    clearSelectedProperty,
+    clearSelectedProperty: _clearSelectedProperty,
     refetchDocuments: _refetchDocuments,
     onCreateAgreementSuccess,
     refresh,
@@ -97,6 +116,8 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
   } = nativeProps;
 
   const { t } = useLocalization();
+  const { clients, isLoading: isLoadingClients } = useAgentClients();
+  const [isClientSelectorOpen, setIsClientSelectorOpen] = useState(false);
 
   const isHomesView = viewType === "homes";
   const isDocumentsView = viewType === "documents";
@@ -138,15 +159,45 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     void refresh();
   }, [refresh]);
 
-  const handleOpenSavedOnWeb = useCallback(() => {
-    const base = getEnv().isDevelopment ? "http://localhost:5173" : "https://usesilverkey.com";
-    void Linking.openURL(`${base}/saved`);
-  }, []);
-
   const homesCount = filteredHomes.length;
   const documentsCount = (filteredDocuments as DocumentData[]).length;
 
   const isRefreshing = Boolean(refresh && refreshing);
+
+  const selectedClientName = useMemo(() => {
+    if (!isAgent) return null;
+    if (!selectedClientId) {
+      return t("client_selector.me", { defaultValue: "Me" });
+    }
+    const match = clients.find((client) => client.id === selectedClientId);
+    return match?.name ?? t("client_selector.select_client", { defaultValue: "Select client" });
+  }, [clients, isAgent, selectedClientId, t]);
+
+  const eventTypeFilterOptions: Array<{ value: _EventTypeFilter; label: string }> = useMemo(
+    () => [
+      {
+        value: "",
+        label: t("saved.filter_all_events", { defaultValue: "All activity" }),
+      },
+      {
+        value: "listed",
+        label: t("saved.filter_listed", { defaultValue: "Listed" }),
+      },
+      {
+        value: "price_change",
+        label: t("saved.filter_price_change", { defaultValue: "Price changes" }),
+      },
+      {
+        value: "sold",
+        label: t("saved.filter_sold", { defaultValue: "Sold" }),
+      },
+      {
+        value: "withdrawn",
+        label: t("saved.filter_withdrawn", { defaultValue: "Withdrawn" }),
+      },
+    ],
+    [t]
+  );
 
   const renderHomeCard = useCallback(
     (home: SavedHome) => {
@@ -194,7 +245,16 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
             <Button
               variant="secondary"
               size="sm"
-              onPress={() => onUnlockHome(home)}
+              onPress={() => {
+                const address = home.address ?? home.description ?? "";
+                navigation.navigate(
+                  "PropertyDetails" as never,
+                  {
+                    address: address || home.home_id,
+                    propertyId: home.home_id,
+                  } as never
+                );
+              }}
               className="flex-1"
             >
               <Text className="text-sm font-medium">
@@ -215,7 +275,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         </Box>
       );
     },
-    [onOpenNegotiation, onToggleHomeSelection, onUnlockHome, selectedHomesForComparison, t]
+    [navigation, onOpenNegotiation, onToggleHomeSelection, selectedHomesForComparison, t]
   );
 
   const renderDocumentOrAgreement = useCallback(
@@ -352,7 +412,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     ]
   );
 
-  const headerRightText =
+  const summaryCountText =
     viewType === "homes"
       ? t("saved.homes_count", {
           defaultValue: "{{count}} saved",
@@ -370,6 +430,14 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     !documentsLoadingCombined &&
     !agreementsLoadingCombined &&
     combinedItems.length === 0;
+
+  const handleEventTypeFilterChange = useCallback(
+    (next: _EventTypeFilter) => {
+      if (!setEventTypeFilter) return;
+      setEventTypeFilter(next);
+    },
+    [setEventTypeFilter]
+  );
 
   return (
     <>
@@ -389,22 +457,10 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         }
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       >
-        {/* Header */}
-        <Box className="mb-4">
-          <Text className="text-xl font-semibold text-gray-900">
-            {t("saved.title_mobile", { defaultValue: "Saved" })}
-          </Text>
-          <Text className="mt-1 text-sm text-gray-600">
-            {t("saved.subtitle_mobile", {
-              defaultValue:
-                "Review your saved homes and documents, manage DocuSign agreements, and compare options.",
-            })}
-          </Text>
-        </Box>
-
-        {/* View toggle + search */}
-        <Box className="mb-4 rounded-lg border border-gray-200 bg-white p-3">
-          <Box className="mb-3 flex flex-row rounded-full bg-gray-100 p-1">
+        {/* Toolbar: tabs + search + client + event filter (densified, web parity) */}
+        <Box className="mb-3 rounded-lg border border-gray-200 bg-white p-2.5">
+          {/* Tabs row with count repeated for scanability */}
+          <Box className="mb-2 flex flex-row items-center rounded-full bg-gray-100 p-1">
             <Button
               variant={isHomesView ? "primary" : "secondary"}
               size="sm"
@@ -425,6 +481,9 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
                 {t("saved.tab_documents", { defaultValue: "Documents" })}
               </Text>
             </Button>
+            <Subtitle size="xs" className="ml-2 shrink-0 text-gray-600" muted>
+              {summaryCountText}
+            </Subtitle>
           </Box>
 
           <Box className="mb-2">
@@ -440,22 +499,40 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
                       defaultValue: "Search documents…",
                     })
               }
-              className="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm"
+              className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm"
             />
           </Box>
 
-          {/* Client selector (agents only) */}
-          <Box className="mt-1 flex flex-row items-center justify-between">
-            <Text className="text-xs text-gray-600" numberOfLines={1}>
-              {headerRightText}
-            </Text>
-            {selectedClientId ? (
-              <Text className="text-xs font-medium text-gray-700" numberOfLines={1}>
-                {t("saved.client_selected", {
-                  defaultValue: "Client selected",
-                })}
-              </Text>
-            ) : null}
+          {/* Client selector + event filter row (tighter) */}
+          <Box className="flex flex-row flex-wrap items-center justify-between gap-2">
+            {isAgent && (
+              <Button
+                variant="secondary"
+                size="xs"
+                onPress={() => setIsClientSelectorOpen(true)}
+                className="shrink-0 px-2 py-1"
+              >
+                <Text className="text-xs font-medium">
+                  {selectedClientName ??
+                    t("saved.select_client_button", { defaultValue: "Select client" })}
+                </Text>
+              </Button>
+            )}
+            {isDocumentsView && setEventTypeFilter && (
+              <Box className="flex flex-row flex-wrap gap-1.5">
+                {eventTypeFilterOptions.map((option) => (
+                  <Button
+                    key={option.value || "all"}
+                    variant={eventTypeFilter === option.value ? "primary" : "secondary"}
+                    size="xs"
+                    onPress={() => handleEventTypeFilterChange(option.value)}
+                    className="px-2 py-1"
+                  >
+                    <Text className="text-xs font-medium">{option.label}</Text>
+                  </Button>
+                ))}
+              </Box>
+            )}
           </Box>
         </Box>
 
@@ -526,7 +603,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
                 <Text className="text-center text-sm text-gray-600">
                   {t("saved.no_documents_yet", {
                     defaultValue:
-                      "No documents or agreements yet. Upload documents or create DocuSign agreements to see them here.",
+                      "No documents or agreements yet. Upload documents or create agreements to see them here.",
                   })}
                 </Text>
               </Box>
@@ -564,42 +641,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
             </Box>
           </Box>
         )}
-
-        {/* Subtle web link */}
-        <Box className="mt-8">
-          <Text className="text-center text-xs text-gray-500">
-            {t("saved.web_cta_caption", {
-              defaultValue: "Need desktop tools like detailed PDF viewing? Open Saved on the web.",
-            })}
-          </Text>
-          <Button
-            variant="ghost"
-            size="sm"
-            onPress={handleOpenSavedOnWeb}
-            className="mt-2 self-center"
-          >
-            <Text className="text-sm font-medium text-emerald-700">
-              {t("saved.open_on_web", { defaultValue: "Open Saved on web" })}
-            </Text>
-          </Button>
-        </Box>
       </ScrollView>
-
-      {/* Property details modal stub (mobile keeps this minimal; full details on web) */}
-      {selectedProperty && (
-        <BaseModal
-          isOpen={true}
-          onClose={clearSelectedProperty}
-          title={t("saved.property_details_title", { defaultValue: "Property details" })}
-        >
-          <Text className="text-sm text-gray-700">
-            {t("saved.property_details_body", {
-              defaultValue:
-                "Full property details are best viewed on the web app. For now, use the Unlock action to open a rich details view.",
-            })}
-          </Text>
-        </BaseModal>
-      )}
 
       {/* Compare modal */}
       <BaseModal
@@ -659,7 +701,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
             <Text className="mt-3 text-sm text-gray-700">
               {t("saved.negotiate_modal_body", {
                 defaultValue:
-                  "We’ll generate a negotiation strategy for this home in the web app. For now, you can start the conversation with your agent directly from messaging.",
+                  "Start the conversation with your agent from Messaging to discuss this home.",
               })}
             </Text>
           </>
@@ -672,107 +714,78 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         )}
       </BaseModal>
 
-      {/* Document upload modal (stubbed for now) */}
-      <BaseModal
+      <DocumentUploadModal
         isOpen={isDocumentUploadModalOpen}
         onClose={() => setIsDocumentUploadModalOpen(false)}
-        title={t("saved.upload_document_title", { defaultValue: "Upload document" })}
-      >
-        <Text className="text-sm text-gray-700">
-          {t("saved.upload_document_body", {
-            defaultValue:
-              "Mobile document uploads are coming soon. For now, you can upload documents from the web app, and they’ll appear here automatically.",
-          })}
-        </Text>
-        <Button
-          variant="primary"
-          size="sm"
-          onPress={() => {
-            handleOpenSavedOnWeb();
-            setIsDocumentUploadModalOpen(false);
-          }}
-          className="mt-3 self-start"
-        >
-          <Text className="text-sm font-medium text-white">
-            {t("saved.open_on_web", { defaultValue: "Open Saved on web" })}
-          </Text>
-        </Button>
-      </BaseModal>
+        onUploadSuccess={_refetchDocuments}
+      />
 
-      {/* Create agreement modal (stubbed for now) */}
+      {/* Client selector modal (agents only) */}
       {isAgent && (
         <BaseModal
-          isOpen={isCreateAgreementModalOpen}
-          onClose={() => setIsCreateAgreementModalOpen(false)}
-          title={t("saved.create_agreement_title", { defaultValue: "Create agreement" })}
+          isOpen={isClientSelectorOpen}
+          onClose={() => setIsClientSelectorOpen(false)}
+          title={t("saved.select_client_modal_title", { defaultValue: "Select client" })}
         >
-          <Text className="text-sm text-gray-700">
-            {t("saved.create_agreement_body", {
-              defaultValue:
-                "Creating new DocuSign agreements is currently optimized for the web app. Use the web Saved page to create agreements; they’ll sync back here automatically.",
-            })}
-          </Text>
-          <Button
-            variant="primary"
-            size="sm"
-            onPress={() => {
-              handleOpenSavedOnWeb();
-              setIsCreateAgreementModalOpen(false);
-              onCreateAgreementSuccess();
-            }}
-            className="mt-3 self-start"
-          >
-            <Text className="text-sm font-medium text-white">
-              {t("saved.open_on_web", { defaultValue: "Open Saved on web" })}
+          {isLoadingClients ? (
+            <Text className="text-sm text-gray-600">
+              {t("client_selector.loading_clients", { defaultValue: "Loading clients…" })}
             </Text>
-          </Button>
+          ) : clients.length === 0 ? (
+            <Text className="text-sm text-gray-600">
+              {t("client_selector.no_clients_found", {
+                defaultValue: "No clients found.",
+              })}
+            </Text>
+          ) : (
+            <>
+              <Button
+                variant={selectedClientId === null ? "primary" : "secondary"}
+                size="sm"
+                onPress={() => {
+                  setSelectedClientId(null);
+                  setIsClientSelectorOpen(false);
+                }}
+                className="mb-2 w-full"
+              >
+                <Text className="text-sm font-medium">
+                  {t("client_selector.me", { defaultValue: "Me" })}
+                </Text>
+              </Button>
+              {clients.map((client) => (
+                <Button
+                  key={client.id}
+                  variant={selectedClientId === client.id ? "primary" : "secondary"}
+                  size="sm"
+                  onPress={() => {
+                    setSelectedClientId(client.id);
+                    setIsClientSelectorOpen(false);
+                  }}
+                  className="mb-2 w-full"
+                >
+                  <Text className="text-sm font-medium">{client.name}</Text>
+                </Button>
+              ))}
+            </>
+          )}
         </BaseModal>
       )}
 
-      {/* Agreement detail modal (simplified summary) */}
+      {isAgent && (
+        <CreateAgreementModal
+          isOpen={isCreateAgreementModalOpen}
+          onClose={() => setIsCreateAgreementModalOpen(false)}
+          preselectedBuyerId={selectedClientId ?? undefined}
+          onSuccess={onCreateAgreementSuccess}
+        />
+      )}
+
       {selectedAgreementId && (
-        <BaseModal
-          isOpen={true}
+        <AgreementDetailModal
+          agreementId={selectedAgreementId}
+          isOpen={!!selectedAgreementId}
           onClose={() => setSelectedAgreementId(null)}
-          title={t("saved.agreement_details_title", { defaultValue: "Agreement details" })}
-        >
-          {(() => {
-            const agreement = (agreements as Agreement[]).find((a) => a.id === selectedAgreementId);
-            if (!agreement) {
-              return (
-                <Text className="text-sm text-gray-600">
-                  {t("saved.agreement_details_missing", {
-                    defaultValue: "Unable to load agreement details.",
-                  })}
-                </Text>
-              );
-            }
-            return (
-              <>
-                <Text className="text-sm font-semibold text-gray-900" numberOfLines={2}>
-                  {agreement.title}
-                </Text>
-                {agreement.property_address && (
-                  <Text className="mt-1 text-xs text-gray-600" numberOfLines={2}>
-                    {agreement.property_address}
-                  </Text>
-                )}
-                <Text className="mt-2 text-xs text-gray-700">
-                  {t("saved.agreement_status", {
-                    defaultValue: "Status: {{status}}",
-                    status: agreement.status,
-                  })}
-                </Text>
-                <Text className="mt-2 text-xs text-gray-700">
-                  {t("saved.agreement_participants", {
-                    defaultValue: "Participants: {{count}}",
-                    count: agreement.participants?.length ?? 0,
-                  })}
-                </Text>
-              </>
-            );
-          })()}
-        </BaseModal>
+        />
       )}
     </>
   );

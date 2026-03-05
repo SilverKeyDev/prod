@@ -14,9 +14,11 @@ import type {
   ClientTimelineEvent,
   DealStage,
   DecisionLogEntry,
+  UrgentAlert,
 } from "@/features/agent/types/agent";
 import {
   enhanceClientWithDealInfo as enhanceClientWithDealInfoImpl,
+  generateMockAlerts as generateMockAlertsImpl,
   generateMockClientGoals as generateMockClientGoalsImpl,
   generateMockDecisionLog as generateMockDecisionLogImpl,
   generateMockFinancialSnapshot as generateMockFinancialSnapshotImpl,
@@ -53,6 +55,12 @@ export function useAgentDashboardMockData() {
     []
   );
 
+  const generateMockAlerts = useCallback(
+    (clients: AgentClient[], clientId?: string): UrgentAlert[] =>
+      generateMockAlertsImpl(clients, clientId),
+    []
+  );
+
   return {
     enhanceClientWithDealInfo,
     generateMockFinancialSnapshot,
@@ -60,5 +68,6 @@ export function useAgentDashboardMockData() {
     generateMockDecisionLog,
     generateMockNotes,
     generateMockTimelineEvents,
+    generateMockAlerts,
   };
 }

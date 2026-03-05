@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Search, Send, User as UserIcon } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useUIStore } from "packages/store";
@@ -12,12 +12,10 @@ import { BodyText, Input, Textarea, Title } from "packages/ui/components/index.w
 
 import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
-
 type ClientSearchModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
-
 export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [message, setMessage] = useState("");
@@ -27,16 +25,13 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
   const { userProfile } = useUserData();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const inputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen]);
-
   const handleSendRequest = async (clientId: string) => {
     if (!userProfile?.id) return;
-
     try {
       await createRequest(userProfile.id, clientId, message.trim() || undefined);
       enqueueToast({
@@ -53,9 +48,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
       });
     }
   };
-
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-lg">
@@ -70,7 +63,10 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
         {/* Search Input */}
         <div className="border-beige border-b p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-black/40" />
+            <Icon
+              name="search"
+              className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-black/40"
+            />
             <Input
               ref={inputRef}
               type="text"
@@ -107,7 +103,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                     <div className="space-y-3">
                       <div className="flex items-start gap-3">
                         <div className="bg-beige flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                          <UserIcon className="h-5 w-5 text-black" />
+                          <Icon name="user" className="h-5 w-5 text-black" />
                         </div>
                         <div className="flex-1">
                           <Title as="h3" size="md" className="font-semibold text-black">
@@ -131,7 +127,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                           disabled={isCreatingRequest}
                           variant="outline"
                           size="md"
-                          icon={<Send />}
+                          icon={<Icon name="send" />}
                           iconPosition="left"
                           className="bg-gold-lighter hover:bg-gold border-gold-lighter flex-1 text-white hover:text-white"
                         >
@@ -157,7 +153,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                       className="flex h-auto min-h-0 w-full items-start justify-start gap-3 py-0 text-left"
                     >
                       <div className="bg-beige flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                        <UserIcon className="h-5 w-5 text-black" />
+                        <Icon name="user" className="h-5 w-5 text-black" />
                       </div>
                       <div className="flex-1">
                         <Title as="h3" size="md" className="font-semibold text-black">

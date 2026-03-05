@@ -124,20 +124,6 @@ export const queryKeys = {
     results: () => [...queryKeys.search.all, "results"] as const,
     isochrone: () => [...queryKeys.search.all, "isochrone"] as const,
   },
-
-  // DocuSign domain
-  docusign: {
-    all: ["docusign"] as const,
-    agreements: () => [...queryKeys.docusign.all, "agreements"] as const,
-    agreementsList: (filters?: Record<string, unknown>) =>
-      [...queryKeys.docusign.agreements(), "list", filters] as const,
-    agreement: (agreementId: string) => [...queryKeys.docusign.agreements(), agreementId] as const,
-    templates: () => [...queryKeys.docusign.all, "templates"] as const,
-    templatesList: (filters?: Record<string, unknown>) =>
-      [...queryKeys.docusign.templates(), "list", filters] as const,
-    oauth: () => [...queryKeys.docusign.all, "oauth"] as const,
-    oauthStatus: () => [...queryKeys.docusign.oauth(), "status"] as const,
-  },
 } as const;
 
 // Type helper for extracting query key types

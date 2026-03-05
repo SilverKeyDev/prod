@@ -43,14 +43,14 @@ export default function HousingSection({
         updateFormData={updateFormData}
       />
 
+      <HousingTagRows formData={formData} isEditMode={isEditMode} updateFormData={updateFormData} />
+
       <HousingDropdownRows
         formData={formData}
         isEditMode={isEditMode}
         updateFormData={updateFormData}
         isDesktop={isDesktop}
       />
-
-      <HousingTagRows formData={formData} isEditMode={isEditMode} updateFormData={updateFormData} />
     </>
   );
 

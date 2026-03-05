@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExternalLink } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { BodyText, Button, Title } from "packages/ui/components/index.web";
@@ -10,7 +10,6 @@ import {
   getPdfIframeSandbox,
   getPdfViewerStyles,
 } from "@/features/documents/utils/pdf";
-
 export type PdfModalContentProps = {
   optimizedPdfUrl: string | null;
   reportId?: string | null;
@@ -20,7 +19,6 @@ export type PdfModalContentProps = {
   onError: (e: React.SyntheticEvent<HTMLIFrameElement>) => void;
   onOpenInNewTab: () => void;
 };
-
 export const PdfModalContent: React.FC<PdfModalContentProps> = ({
   optimizedPdfUrl,
   reportId,
@@ -61,7 +59,10 @@ export const PdfModalContent: React.FC<PdfModalContentProps> = ({
             className="from-gold to-gold/90 hover:from-gold/90 hover:to-gold/80 group flex items-center gap-2 bg-gradient-to-r font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95"
           >
             <BodyText as="span">{t("pdf.open_in_new_tab")}</BodyText>
-            <ExternalLink className="h-5 w-5 transition-transform duration-200 group-hover:-translate-y-1 group-hover:translate-x-1" />
+            <Icon
+              name="external-link"
+              className="h-5 w-5 transition-transform duration-200 group-hover:-translate-y-1 group-hover:translate-x-1"
+            />
           </Button>
         </div>
       )}

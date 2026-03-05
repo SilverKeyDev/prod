@@ -10,6 +10,7 @@ import { Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { color } from "packages/design-tokens";
 import { Link, useNavigation } from "packages/navigation";
 import { Text } from "packages/ui/components/primitives/text";
+import { SHADOW_OFFSET_SUBTLE } from "packages/ui/styles/shadows.native";
 
 export type SectionProps = {
   title: string;
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     shadowColor: color("neutral.900"),
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: SHADOW_OFFSET_SUBTLE,
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,

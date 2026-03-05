@@ -1,13 +1,12 @@
 import React, { forwardRef, useState } from "react";
 
 import IconButton from "@ui/button/IconButton";
+import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
-import { Eye, EyeOff, X } from "lucide-react";
 
 import { useLocalization } from "packages/contexts";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
-
 export type InputProps = {
   variant?: "default" | "mobile" | "compact" | "search";
   size?: "sm" | "md" | "lg";
@@ -26,7 +25,6 @@ export type InputProps = {
   iconColor?: string;
   iconPosition?: "left" | "right";
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">;
-
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
@@ -55,18 +53,15 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const { t } = useLocalization();
     const [showPassword, setShowPassword] = useState(false);
     const [internalType, setInternalType] = useState(type);
-
     // Handle password visibility toggle
     React.useEffect(() => {
       if (showPasswordToggle && type === "password") {
         setInternalType(showPassword ? "text" : "password");
       }
     }, [showPassword, showPasswordToggle, type]);
-
-    // Base styles - using exact onboarding styling via InputStyles
+    // Base styles - using exact onboarding styling via InputStyles (placeholder matches dropdown empty state)
     const baseStyles =
-      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 transition-colors duration-150 touch-friendly mobile-input";
-
+      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 transition-colors duration-150 touch-friendly mobile-input placeholder:text-gray-400";
     // Variant styles - using exact onboarding styling
     const variantStyles = {
       default: "border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown",
@@ -75,20 +70,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       compact: "border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown",
       search: "border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown",
     };
-
     // Size styles - using exact onboarding sizing
     const sizeStyles = {
       sm: "h-9 px-3",
       md: "h-12 px-4",
       lg: "h-14 px-5",
     };
-
     // Error styles
     const errorStyles = error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "";
-
     // Disabled styles - already included in base styles
     const disabledStyles = "";
-
     // Combine all styles with shared text styles
     const inputClasses = [
       baseStyles,
@@ -103,16 +94,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     ]
       .filter(Boolean)
       .join(" ");
-
     // Container classes for positioning icons
     const containerClasses = "relative";
-
     // Icon positioning classes
     const iconClasses = {
       left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400",
       right: "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400",
     };
-
     return (
       <div className="w-full">
         {/* Label */}
@@ -160,7 +148,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 <IconButton
                   variant="ghost"
                   size="sm"
-                  icon={<X className="h-4 w-4" />}
+                  icon={<Icon name="x" className="h-4 w-4" />}
                   label={t("form.clear_aria")}
                   onClick={onClear}
                   className="rounded p-1 transition-colors hover:bg-gray-100"
@@ -173,7 +161,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 <IconButton
                   variant="ghost"
                   size="sm"
-                  icon={showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  icon={
+                    showPassword ? (
+                      <Icon name="eye-off" className="h-4 w-4" />
+                    ) : (
+                      <Icon name="eye" className="h-4 w-4" />
+                    )
+                  }
                   label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword(!showPassword)}
                   className="rounded p-1 transition-colors hover:bg-gray-100"
@@ -204,9 +198,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     );
   }
 );
-
 Input.displayName = "Input";
-
 // Export both named and default for compatibility
 export { Input };
 export default Input;

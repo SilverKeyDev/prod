@@ -1,11 +1,10 @@
 import React from "react";
 
 import IconButton from "@ui/button/IconButton";
-import { Download, GitCompare, Settings2, Share, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { BodyText } from "packages/ui/components/index.web";
-
 type CompareHomesModalHeaderProps = {
   onClose: () => void;
   onManageRows: () => void;
@@ -14,7 +13,6 @@ type CompareHomesModalHeaderProps = {
   selectedCount: number;
   disabled: boolean;
 };
-
 export function CompareHomesModalHeader({
   onClose,
   onManageRows,
@@ -26,7 +24,7 @@ export function CompareHomesModalHeader({
   return (
     <div className="flex w-full items-center justify-between gap-2 sm:gap-4">
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <GitCompare className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+        <Icon name="git-compare" className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
         <BodyText as="span" className="truncate text-base font-medium text-gray-900 sm:text-lg">
           {t("compare.compare_properties")}
         </BodyText>
@@ -36,7 +34,7 @@ export function CompareHomesModalHeader({
           onClick={onManageRows}
           variant="ghost"
           size="sm"
-          icon={<Settings2 className="h-4 w-4 sm:h-4 sm:w-4" />}
+          icon={<Icon name="settings-2" className="h-4 w-4 sm:h-4 sm:w-4" />}
           disabled={disabled}
           className="touch-manipulation text-gray-600 hover:text-gray-900"
           label={t("compare.manage_aria")}
@@ -45,7 +43,7 @@ export function CompareHomesModalHeader({
           onClick={onExportCSV}
           variant="ghost"
           size="sm"
-          icon={<Download className="h-4 w-4 sm:h-4 sm:w-4" />}
+          icon={<Icon name="download" className="h-4 w-4 sm:h-4 sm:w-4" />}
           disabled={disabled}
           className="touch-manipulation text-gray-600 hover:text-gray-900"
           label={t("compare.export_aria")}
@@ -54,7 +52,7 @@ export function CompareHomesModalHeader({
           onClick={onShareCSV}
           variant="ghost"
           size="sm"
-          icon={<Share className="h-4 w-4 sm:h-4 sm:w-4" />}
+          icon={<Icon name="share" className="h-4 w-4 sm:h-4 sm:w-4" />}
           disabled={disabled}
           className="text-gold hover:text-gold/80 touch-manipulation"
           label={t("compare.share_aria")}
@@ -62,7 +60,7 @@ export function CompareHomesModalHeader({
         <IconButton
           variant="ghost"
           size="sm"
-          icon={<X className="h-4 w-4 sm:h-5 sm:w-5" />}
+          icon={<Icon name="x" className="h-4 w-4 sm:h-5 sm:w-5" />}
           onClick={onClose}
           className="flex-shrink-0 touch-manipulation text-gray-400 hover:text-gray-500"
           label={t("compare.close_modal_aria")}

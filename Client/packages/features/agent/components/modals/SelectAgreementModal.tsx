@@ -22,8 +22,8 @@ type SelectAgreementModalProps = {
 /**
  * Web-only placeholder.
  *
- * The DocuSign agreements domain lives under Documents. This modal exists as a
- * lightweight bridge so Messaging can compile without cross-feature imports.
+ * The agreements domain lives under Documents. This modal exists as a
+ * lightweight bridge so Messaging can compile without creating tight coupling.
  */
 export default function SelectAgreementModal({
   isOpen,

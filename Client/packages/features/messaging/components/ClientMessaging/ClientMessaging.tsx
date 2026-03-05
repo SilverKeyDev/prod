@@ -10,6 +10,7 @@ import { Region } from "packages/ui/components/index.web";
 import UnifiedMessageInput from "@/features/messaging/components/layout/UnifiedMessageInput";
 import UnifiedMessagesList from "@/features/messaging/components/layout/UnifiedMessagesList";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
+import { resolvePrimaryAgentId } from "@/features/messaging/utils";
 
 import { ClientMessagingModals } from "./ClientMessagingModals";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
@@ -21,22 +22,10 @@ type ClientMessagingProps = {
 
 export default function ClientMessaging({ setMobileHeaderActions }: ClientMessagingProps = {}) {
   const { userProfile } = useUserData();
-  const agentId = useMemo(() => {
-    let id: string | undefined;
-    if (userProfile?.agent_id) {
-      if (typeof userProfile.agent_id === "string") {
-        try {
-          const parsed = JSON.parse(userProfile.agent_id);
-          id = Array.isArray(parsed) ? parsed[0] : parsed;
-        } catch {
-          id = userProfile.agent_id.split(",")[0]?.trim();
-        }
-      } else if (Array.isArray(userProfile.agent_id)) {
-        id = userProfile.agent_id[0];
-      }
-    }
-    return id;
-  }, [userProfile?.agent_id]);
+  const agentId = useMemo(
+    () => resolvePrimaryAgentId(userProfile?.agent_id),
+    [userProfile?.agent_id]
+  );
 
   const {
     localMessages,
@@ -160,15 +149,17 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
         />
         <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="hidden flex-shrink-0 md:block">
-              <UnifiedMessagingHeader
-                mode={getHeaderMode()}
-                isSidebarExpanded={isSidebarExpanded}
-                setIsSidebarExpanded={setIsSidebarExpanded}
-                onSearchClick={() => setShowSearchModal(true)}
-                agentName={activeConversation?.agent_name}
-              />
-            </div>
+            {!showInbox && (
+              <div className="hidden flex-shrink-0 md:block">
+                <UnifiedMessagingHeader
+                  mode={getHeaderMode()}
+                  isSidebarExpanded={isSidebarExpanded}
+                  setIsSidebarExpanded={setIsSidebarExpanded}
+                  onSearchClick={() => setShowSearchModal(true)}
+                  agentName={activeConversation?.agent_name}
+                />
+              </div>
+            )}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <Region
                 label="Message list"

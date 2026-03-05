@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
+import { Icon } from "@ui/icons";
 import {
   Activity,
   AlertTriangle,
@@ -32,11 +33,9 @@ import GoalsConstraints from "./overview/GoalsConstraints";
 import RiskWatchlist from "./overview/RiskWatchlist";
 import SearchActivity from "./overview/SearchActivity";
 import ClientSavedHomes from "./saved-homes/ClientSavedHomes";
-
 type ClientHubProps = {
   clientId: string;
 };
-
 type ClientHubTab =
   | "overview"
   | "liked-homes"
@@ -52,7 +51,6 @@ type OverviewSection =
   | "timeline"
   | "communication"
   | "risks";
-
 const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
   const { t } = useLocalization();
   const { navigate } = useNavigation();
@@ -70,7 +68,6 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
   const [checklistTab, setChecklistTab] = useState<
     "escrow" | "inspections" | "financing" | "closing"
   >("escrow");
-
   // Refs for scrolling to sections
   const overviewRef = useRef<HTMLDivElement>(null);
   const goalsRef = useRef<HTMLDivElement>(null);
@@ -79,17 +76,14 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const communicationRef = useRef<HTMLDivElement>(null);
   const risksRef = useRef<HTMLDivElement>(null);
-
   const client = clients.find((c) => c.id === clientId);
   const enhancedClient = client ? enhanceClientWithDealInfo(client, "search") : null;
-
   // Mock data - will be replaced with API calls
   const financial = generateMockFinancialSnapshot();
   const goals = generateMockClientGoals();
   const decisions = generateMockDecisionLog(clientId);
   const notes = generateMockNotes(clientId);
   const timelineEvents = generateMockTimelineEvents(clientId);
-
   // Navigation items for overview sections
   const overviewNavItems: NavItem[] = [
     {
@@ -135,7 +129,6 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
       to: "#risks",
     },
   ];
-
   const scrollToSection = (sectionId: string) => {
     const refMap: Record<string, React.RefObject<HTMLDivElement>> = {
       overview: overviewRef,
@@ -146,18 +139,15 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
       communication: communicationRef,
       risks: risksRef,
     };
-
     const ref = refMap[sectionId];
     if (ref?.current) {
       ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
       setActiveSection(sectionId as OverviewSection);
     }
   };
-
   // Track active section based on scroll position
   useEffect(() => {
     if (activeTab !== "overview") return;
-
     const handleScroll = () => {
       const sections = [
         { id: "overview", ref: overviewRef },
@@ -168,10 +158,8 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
         { id: "communication", ref: communicationRef },
         { id: "risks", ref: risksRef },
       ];
-
       const win = getWindow();
       const scrollPosition = win ? win.scrollY + 200 : 0;
-
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
         if (!section || !section.ref.current) continue;
@@ -182,14 +170,12 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
         }
       }
     };
-
     const win = getWindow();
     if (win) win.addEventListener("scroll", handleScroll);
     return () => {
       if (win) win.removeEventListener("scroll", handleScroll);
     };
   }, [activeTab]);
-
   if (isLoading) {
     return (
       <div className="flex min-h-96 items-center justify-center">
@@ -197,7 +183,6 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
       </div>
     );
   }
-
   if (!client || !enhancedClient) {
     return (
       <div className="py-12 text-center">
@@ -210,8 +195,10 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
       </div>
     );
   }
-
-  const tabs: { id: ClientHubTab; label: string }[] = [
+  const tabs: {
+    id: ClientHubTab;
+    label: string;
+  }[] = [
     { id: "overview", label: t("dashboard.tab_overview") },
     { id: "liked-homes", label: t("dashboard.tab_liked_homes") },
     { id: "documents", label: t("dashboard.tab_documents") },
@@ -219,7 +206,6 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
     { id: "checklists", label: t("dashboard.tab_checklists") },
     { id: "calendar", label: t("dashboard.tab_calendar") },
   ];
-
   return (
     <div className="bg-off-white min-h-screen">
       <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
@@ -236,7 +222,7 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
             </Button>
             <div className="flex items-center gap-3">
               <div className="bg-olive/10 flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12">
-                <User className="text-olive h-5 w-5 sm:h-6 sm:w-6" />
+                <Icon name="user" className="text-olive h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <div>
                 <Title as="h1" size="lg" className="heading-responsive-md text-navy">
@@ -352,5 +338,4 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
     </div>
   );
 };
-
 export default ClientHub;

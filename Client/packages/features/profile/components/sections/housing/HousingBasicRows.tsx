@@ -8,7 +8,6 @@ import OptionTagInput from "@/features/profile/components/settings/inputs/Option
 import {
   FIELD_LABELS,
   HOUSING_TYPE_OPTIONS,
-  LISTING_TYPE_OPTIONS,
   MUST_HAVE_OPTIONS,
   type OnboardingData,
   parseHousingTypes,
@@ -24,6 +23,48 @@ type HousingBasicRowsProps = {
 export function HousingBasicRows({ formData, isEditMode, updateFormData }: HousingBasicRowsProps) {
   return (
     <>
+      <AlignedRow
+        breakIntoRows="md"
+        gap="lg"
+        justify="start"
+        items={[
+          {
+            title: <Label>{FIELD_LABELS.PREFERRED_BEDROOMS}</Label>,
+            content: isEditMode ? (
+              <Input
+                type="number"
+                value={formData.preferred_bedrooms?.toString() ?? ""}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  updateFormData("preferred_bedrooms", parseInt(e.target.value) || undefined)
+                }
+                placeholder="Number of bedrooms"
+              />
+            ) : (
+              <div className="mobile-input bg-gray-50">
+                {formData.preferred_bedrooms ?? "Not specified"}
+              </div>
+            ),
+          },
+          {
+            title: <Label>{FIELD_LABELS.PREFERRED_BATHROOMS}</Label>,
+            content: isEditMode ? (
+              <Input
+                type="number"
+                value={formData.preferred_bathrooms?.toString() ?? ""}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  updateFormData("preferred_bathrooms", parseInt(e.target.value) || undefined)
+                }
+                placeholder="Number of bathrooms"
+              />
+            ) : (
+              <div className="mobile-input bg-gray-50">
+                {formData.preferred_bathrooms ?? "Not specified"}
+              </div>
+            ),
+          },
+        ]}
+      />
+
       <AlignedRow
         breakIntoRows="md"
         gap="lg"
@@ -54,31 +95,6 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
             ),
           },
           {
-            title: <Label>{FIELD_LABELS.PREFERRED_BEDROOMS}</Label>,
-            content: isEditMode ? (
-              <Input
-                type="number"
-                value={formData.preferred_bedrooms?.toString() ?? ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  updateFormData("preferred_bedrooms", parseInt(e.target.value) || undefined)
-                }
-                placeholder="Number of bedrooms"
-              />
-            ) : (
-              <div className="mobile-input bg-gray-50">
-                {formData.preferred_bedrooms ?? "Not specified"}
-              </div>
-            ),
-          },
-        ]}
-      />
-
-      <AlignedRow
-        breakIntoRows="md"
-        gap="lg"
-        justify="start"
-        items={[
-          {
             title: <Label>{FIELD_LABELS.MUST_HAVE}</Label>,
             content: isEditMode ? (
               <OptionTagInput
@@ -93,25 +109,6 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                   ? "Not specified"
                   : ((formData.must_have as string[]) ?? [])
                       .map((v) => MUST_HAVE_OPTIONS.find((o) => o.value === v)?.label ?? v)
-                      .join(", ")}
-              </div>
-            ),
-          },
-          {
-            title: <Label>{FIELD_LABELS.LISTING_TYPE}</Label>,
-            content: isEditMode ? (
-              <OptionTagInput
-                options={LISTING_TYPE_OPTIONS}
-                value={(formData.listing_type as string[]) ?? []}
-                onChange={(arr) => updateFormData("listing_type", arr)}
-                isEditMode={true}
-              />
-            ) : (
-              <div className="mobile-input bg-gray-50">
-                {((formData.listing_type as string[]) ?? []).length === 0
-                  ? "Not specified"
-                  : ((formData.listing_type as string[]) ?? [])
-                      .map((v) => LISTING_TYPE_OPTIONS.find((o) => o.value === v)?.label ?? v)
                       .join(", ")}
               </div>
             ),

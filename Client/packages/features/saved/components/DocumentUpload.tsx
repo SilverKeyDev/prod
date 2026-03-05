@@ -6,61 +6,52 @@ import IconButton from "@ui/button/IconButton";
 import type { DropdownOption } from "@ui/form/Dropdown";
 import Dropdown from "@ui/form/Dropdown";
 import Input from "@ui/form/Input.web";
+import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
-import { FileText, Upload } from "lucide-react";
 
 import { useLocalization } from "packages/contexts";
 import { useDocuments } from "packages/features/documents";
 import { useUIStore } from "packages/store";
 
 import Card from "@/components/layout/Card.web";
-
 type DocumentUploadProps = {
   onUploadSuccess?: () => void | Promise<unknown>;
   /** Whether to wrap content in a Card component */
   useCard?: boolean;
 };
-
 export default function DocumentUpload({ onUploadSuccess, useCard = true }: DocumentUploadProps) {
   const { t } = useLocalization();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { uploadDocument, documentCategories, categoriesLoading, uploadedFiles } = useDocuments();
-
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [address, setAddress] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   // Convert categories to dropdown options
   const categoryOptions: DropdownOption<string>[] = documentCategories.map((cat) => ({
     value: cat.id,
     label: cat.name,
   }));
-
   // Find current upload status for selected file
   const currentUpload = selectedFile
     ? uploadedFiles.find(
         (upload) => upload.file.name === selectedFile.name && upload.file.size === selectedFile.size
       )
     : null;
-
   const uploadStatus = currentUpload?.status;
   const isUploadComplete = uploadStatus === "completed";
   const isUploadFailed = uploadStatus === "failed";
-
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
     }
   }, []);
-
   const handleCategoryChange = useCallback((value: string) => {
     setSelectedCategory(value);
   }, []);
-
   const handleUpload = useCallback(async () => {
     if (!selectedFile || !selectedCategory) {
       enqueueToast({
@@ -69,7 +60,6 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
       });
       return;
     }
-
     setIsUploading(true);
     try {
       await uploadDocument(
@@ -123,16 +113,13 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
       setIsUploading(false);
     }
   }, [selectedFile, selectedCategory, address, uploadDocument, enqueueToast, onUploadSuccess]);
-
   const handleClearFile = useCallback(() => {
     setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   }, []);
-
   const canUpload = selectedFile && selectedCategory && !isUploading;
-
   const content = (
     <div className="space-y-responsive-md">
       <div>
@@ -189,7 +176,10 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
             <div className="gap-responsive-sm flex min-w-0 flex-1 items-center">
               {selectedFile ? (
                 <>
-                  <FileText className="text-brand-accent h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6" />
+                  <Icon
+                    name="file-text"
+                    className="text-brand-accent h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6"
+                  />
                   <div className="min-w-0 flex-1">
                     <BodyText size="sm" className="truncate font-medium">
                       {selectedFile.name}
@@ -201,7 +191,10 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
                 </>
               ) : (
                 <>
-                  <Upload className="h-5 w-5 flex-shrink-0 text-gray-400 sm:h-6 sm:w-6" />
+                  <Icon
+                    name="upload"
+                    className="h-5 w-5 flex-shrink-0 text-gray-400 sm:h-6 sm:w-6"
+                  />
                   <div className="min-w-0 flex-1">
                     <BodyText size="sm">{t("documents_upload.click_to_select")}</BodyText>
                     <BodyText size="xs" muted>
@@ -258,7 +251,6 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
       </div>
     </div>
   );
-
   if (useCard) {
     return (
       <Card className="mx-auto w-[85%]" padding="md">
@@ -266,6 +258,5 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
       </Card>
     );
   }
-
   return content;
 }

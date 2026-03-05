@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { BodyText, Button } from "packages/ui/components/index.web";
@@ -8,13 +8,11 @@ import { BodyText, Button } from "packages/ui/components/index.web";
 import type { OnboardingData } from "@/features/profile/utils";
 
 import OtherFilterContent from "./OtherFilterContent.web";
-
 export type OtherFilterDropdownProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
   defaultOpen?: boolean;
 };
-
 export default function OtherFilterDropdown({
   formData,
   updateFormData,
@@ -22,7 +20,6 @@ export default function OtherFilterDropdown({
 }: OtherFilterDropdownProps): React.ReactElement {
   const { t } = useLocalization();
   const [open, setOpen] = useState(defaultOpen);
-
   return (
     <div className="border-t border-gray-200 pt-3">
       <Button
@@ -35,9 +32,9 @@ export default function OtherFilterDropdown({
         aria-expanded={open}
         icon={
           open ? (
-            <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" />
+            <Icon name="chevron-down" className="h-4 w-4 shrink-0 text-gray-500" />
           ) : (
-            <ChevronRight className="h-4 w-4 shrink-0 text-gray-500" />
+            <Icon name="chevron-right" className="h-4 w-4 shrink-0 text-gray-500" />
           )
         }
         iconPosition="right"

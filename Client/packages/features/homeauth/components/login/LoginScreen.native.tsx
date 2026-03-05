@@ -84,7 +84,7 @@ export function LoginScreenNative() {
 
       <AuthDivider />
 
-      <GoogleSignInButton text="Sign in with Google" />
+      <GoogleSignInButton text="Sign up with Google" />
 
       <View style={styles.links}>
         <AuthLink to="/signup">

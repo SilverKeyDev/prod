@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Calendar, FileSignature, FileText, Home, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { BodyText, Button } from "packages/ui/components/index.web";
 import { getDocument } from "packages/utils/platform";
 
 import { AttachmentMenuItem } from "./AttachmentMenuItem";
-
 type AttachmentMenuProps = {
   onSelectHome: () => void;
   onSelectCalendar: () => void;
@@ -15,7 +14,6 @@ type AttachmentMenuProps = {
   onSelectAgreement?: () => void;
   disabled?: boolean;
 };
-
 export default function AttachmentMenu({
   onSelectHome,
   onSelectCalendar,
@@ -27,7 +25,6 @@ export default function AttachmentMenu({
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -45,12 +42,10 @@ export default function AttachmentMenu({
       if (doc) doc.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
-
   const closeAnd = (fn: () => void) => () => {
     setIsOpen(false);
     fn();
   };
-
   return (
     <div className="relative">
       <Button
@@ -63,7 +58,7 @@ export default function AttachmentMenu({
         label={t("agent.add_attachment")}
       >
         {isOpen ? (
-          <X className="h-4 w-4" />
+          <Icon name="x" className="h-4 w-4" />
         ) : (
           <BodyText as="span" size="md" className="text-lg font-light leading-none">
             +
@@ -78,14 +73,14 @@ export default function AttachmentMenu({
         >
           <div className="px-3 py-2">
             <AttachmentMenuItem
-              icon={Home}
+              iconName="home"
               title={t("agent.share_home")}
               description={t("agent.share_home_description")}
               onClick={closeAnd(onSelectHome)}
             />
             {onSelectDocument && (
               <AttachmentMenuItem
-                icon={FileText}
+                iconName="file-text"
                 title={t("agent.share_document")}
                 description={t("agent.share_document_description")}
                 onClick={closeAnd(onSelectDocument)}
@@ -93,7 +88,7 @@ export default function AttachmentMenu({
             )}
             {onSelectAgreement && (
               <AttachmentMenuItem
-                icon={FileSignature}
+                iconName="file-signature"
                 iconClassName="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50"
                 iconColorClass="text-blue-600"
                 title={t("agent.share_agreement")}
@@ -102,7 +97,7 @@ export default function AttachmentMenu({
               />
             )}
             <AttachmentMenuItem
-              icon={Calendar}
+              iconName="calendar"
               title={t("agent.event_request")}
               description={t("agent.schedule_meeting")}
               onClick={closeAnd(onSelectCalendar)}

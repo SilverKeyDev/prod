@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useUIStore } from "packages/store";
+import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
 
 const TOAST_DURATION_MS = 3000;
 
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
       ? { boxShadow: "0px 2px 4px rgba(0,0,0,0.15)" }
       : {
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
+          shadowOffset: SHADOW_OFFSET_ELEVATED,
           shadowOpacity: 0.15,
           shadowRadius: 4,
           elevation: 4,

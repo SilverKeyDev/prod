@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Calendar } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -18,13 +18,11 @@ import {
   buildEventRequestMessage,
   type EventRequestPayload,
 } from "@/features/messaging/utils/eventRequestPayload";
-
 type CalendarEventRequestModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 };
-
 export default function CalendarEventRequestModal({
   isOpen,
   onClose,
@@ -33,30 +31,24 @@ export default function CalendarEventRequestModal({
   const isAgent = useIsAgent();
   const { clients, isLoading: isLoadingClients } = useAgentClients();
   const { conversations, sendMessage } = useAgentChats();
-
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [isSending, setIsSending] = useState(false);
-
   // Get conversation ID for selected client (for agents)
   const getConversationId = (clientId: string): string | null => {
     const conversation = conversations.find((c) => c.client_id === clientId);
     return conversation?.id ?? null;
   };
-
   // For clients: get their agent conversation
   const clientConversation = !isAgent && conversations.length > 0 ? conversations[0] : null;
-
   const handleSend = async () => {
     if (!eventTitle.trim() || !eventDate || !eventTime) {
       return;
     }
-
     let conversationId: string | null = null;
-
     if (isAgent) {
       if (!selectedClientId) return;
       conversationId = getConversationId(selectedClientId);
@@ -67,7 +59,6 @@ export default function CalendarEventRequestModal({
       if (!clientConversation) return;
       conversationId = clientConversation.id;
     }
-
     // Build structured payload with default duration (30 minutes)
     const dateTime = dateParseISO(`${eventDate}T${eventTime}`);
     const endTime = dateTime.add(30, "minute");
@@ -78,19 +69,16 @@ export default function CalendarEventRequestModal({
       description: eventDescription.trim() || undefined,
     };
     const message = buildEventRequestMessage(payload);
-
     setIsSending(true);
     try {
       const clientIdToPass = isAgent && conversationId === "new" ? selectedClientId : undefined;
       await sendMessage(conversationId, message, clientIdToPass ?? undefined);
-
       // Reset form
       setEventTitle("");
       setEventDescription("");
       setEventDate("");
       setEventTime("");
       setSelectedClientId(null);
-
       if (onSuccess) {
         onSuccess();
       }
@@ -101,24 +89,21 @@ export default function CalendarEventRequestModal({
       setIsSending(false);
     }
   };
-
   const canSend =
     eventTitle.trim() &&
     eventDate &&
     eventTime &&
     (isAgent ? selectedClientId !== null : clientConversation !== null);
-
   // Get tomorrow's date as minimum date
   const tomorrow = dateNow().add(1, "day");
   const minDate = tomorrow.format("YYYY-MM-DD");
-
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       headerContent={
         <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 flex-shrink-0 text-gray-900" />
+          <Icon name="calendar" className="h-5 w-5 flex-shrink-0 text-gray-900" />
           <Title as="h3" size="lg" className="truncate font-medium text-gray-900 sm:text-lg">
             Request Calendar Event
           </Title>
@@ -156,7 +141,7 @@ export default function CalendarEventRequestModal({
                   >
                     <div className="flex w-full items-center gap-2">
                       <div className="bg-beige flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
-                        <Calendar className="h-4 w-4 text-black" />
+                        <Icon name="calendar" className="h-4 w-4 text-black" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <BodyText as="p" size="sm" className="font-medium text-gray-900">

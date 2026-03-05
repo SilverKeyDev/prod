@@ -2,16 +2,8 @@ import { useMemo } from "react";
 
 import { BodyText } from "packages/ui/components/index.web";
 
-import { getStatusIcon } from "@/features/documents/components/docusignIcons";
-import type { AgreementStatus } from "@/features/documents/types/docusign";
-import {
-  getStatusColor,
-  getStatusLabel,
-  getStatusTooltip,
-} from "@/features/documents/utils/docusignHelpers";
-
 type AgreementStatusBadgeProps = {
-  status: AgreementStatus;
+  status: string;
   size?: "sm" | "md" | "lg";
   showIcon?: boolean;
   className?: string;
@@ -20,8 +12,8 @@ type AgreementStatusBadgeProps = {
 /**
  * AgreementStatusBadge Component
  *
- * Displays a color-coded status badge for DocuSign agreements
- * Used across all DocuSign UI components for consistent status display
+ * Displays a color-coded status badge for agreements.
+ * Used across agreement-related UI components for consistent status display.
  */
 export default function AgreementStatusBadge({
   status,
@@ -29,10 +21,15 @@ export default function AgreementStatusBadge({
   showIcon = true,
   className = "",
 }: AgreementStatusBadgeProps) {
-  const colorClass = getStatusColor(status);
-  const Icon = getStatusIcon(status);
-  const label = getStatusLabel(status);
-  const tooltip = getStatusTooltip(status);
+  const colorClass =
+    status === "completed"
+      ? "border-green-200 bg-green-50 text-green-700"
+      : status === "voided"
+        ? "border-red-200 bg-red-50 text-red-700"
+        : status === "sent" || status === "delivered"
+          ? "border-blue-200 bg-blue-50 text-blue-700"
+          : "border-gray-200 bg-gray-50 text-gray-700";
+  const label = status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, " ");
 
   const sizeClasses = useMemo(() => {
     const sizes = {

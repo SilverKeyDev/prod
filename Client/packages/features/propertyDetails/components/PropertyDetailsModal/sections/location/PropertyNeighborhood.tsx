@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Shield } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import { Title } from "packages/ui/components/index.web";
@@ -10,11 +10,9 @@ import type { PropertyComponentProps } from "@/components/modals/PropertyDetails
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
 import { renderAgeDistribution, renderNeighborhoodContent } from "./propertyNeighborhoodHelpers";
-
 type PropertyNeighborhoodProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
-
 export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
   property: _property,
   analysisContent,
@@ -29,17 +27,14 @@ export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
   }
   const hasNeighborhoodContent = neighborhoodContent && Object.keys(neighborhoodContent).length > 0;
   const hasAgeDistribution = ageDistribution && Object.keys(ageDistribution).length > 0;
-
   if (!hasNeighborhoodContent && !hasAgeDistribution) return null;
-
   const sectionLabel =
     DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "neighborhood")
       ?.label || "Neighborhood Information";
-
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Shield className="text-brown h-5 w-5" />
+        <Icon name="shield" className="text-brown h-5 w-5" />
         <Title as="h3" size="lg" className="text-brown font-semibold">
           {sectionLabel}
         </Title>

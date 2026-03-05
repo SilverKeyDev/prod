@@ -39,6 +39,10 @@ logs/
 .run-mobile-logs/
 *.log
 
+# Expo (generated caches)
+.expo/
+.expo-shared/
+
 # Package files
 package-lock.json
 npm-debug.log*

@@ -1,5 +1,6 @@
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
+import type { Location } from "react-router-dom";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { authUtils } from "packages/config/auth";
@@ -15,6 +16,7 @@ import NotFoundPage from "@/pages/NotFoundPage";
 
 // Modular route components
 import { DynamicRoutes } from "./routes/DynamicRoutes";
+import { LocationOverrideContext, useLocationOverride } from "./routes/locationOverrideContext";
 import { PublicRoutes } from "./routes/PublicRoutes";
 
 const MAIN_CONTENT_ID = "main-content";
@@ -56,7 +58,9 @@ type AppRoutesProps = {
 // Router context is always available when hooks execute, preventing timing issues
 // in production builds with code splitting.
 function AppLayout() {
-  const location = useLocation();
+  const routerLocation = useLocation();
+  const locationOverride = useLocationOverride();
+  const location = locationOverride ?? routerLocation;
   const isInitialMount = useRef(true);
   useGoogleMapsStoreIntegration();
   // Initialize data polling (including messages) for notifications
@@ -105,40 +109,97 @@ function AppLayout() {
   );
 }
 
+/**
+ * Workaround for React Router v6 + React 18 bug where useLocation() can lag behind
+ * the actual browser URL (remix-run/react-router#11473). When the URL changes (e.g.
+ * after clicking a sidebar Link from /search) but the router context hasn't updated,
+ * we pass the browser's location to Routes so the UI matches the address bar.
+ */
+function useBrowserLocationOverride(routerLocation: Location) {
+  const [override, setOverride] = useState<Pick<Location, "pathname" | "search" | "key"> | null>(
+    null
+  );
+
+  // When on a full-height route, poll; if browser URL !== router, set override so Routes uses browser URL (set once per browser location).
+  useEffect(() => {
+    if (!isFullHeightRoute(routerLocation.pathname)) return;
+    const interval = setInterval(() => {
+      const winPath = window.location.pathname;
+      const winSearch = window.location.search;
+      const routerPath = routerLocation.pathname;
+      const routerSearch = routerLocation.search ?? "";
+      if (winPath !== routerPath || winSearch !== routerSearch) {
+        setOverride((prev) => {
+          if (prev && prev.pathname === winPath && prev.search === winSearch) return prev;
+          log.debug(LOG_CATEGORIES.ROUTING, "[NAV] Router URL sync: using browser location", {
+            routerPath,
+            browserPath: winPath,
+          });
+          return { pathname: winPath, search: winSearch, key: `sync-${winPath}${winSearch}` };
+        });
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, [routerLocation.pathname, routerLocation.search]);
+
+  // Clear override when router context catches up to the browser.
+  useEffect(() => {
+    if (
+      override &&
+      routerLocation.pathname === window.location.pathname &&
+      (routerLocation.search ?? "") === window.location.search
+    ) {
+      setOverride(null);
+    }
+  }, [override, routerLocation.pathname, routerLocation.search]);
+
+  return override;
+}
+
 export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
   const location = useLocation();
+  const locationOverride = useBrowserLocationOverride(location);
+  const effectiveLocation: Location = locationOverride
+    ? {
+        ...location,
+        pathname: locationOverride.pathname,
+        search: locationOverride.search,
+        key: locationOverride.key,
+      }
+    : location;
+
   useEffect(() => {
-    log.debug(LOG_CATEGORIES.ROUTING, "[NAV] AppRoutes location changed (effect)", {
-      pathname: location.pathname,
-      search: location.search || undefined,
+    log.debug(LOG_CATEGORIES.ROUTING, "[NAV] AppRoutes location changed", {
+      pathname: effectiveLocation.pathname,
+      search: effectiveLocation.search || undefined,
+      isFullHeightRoute: isFullHeightRoute(effectiveLocation.pathname),
     });
-    log.debug(LOG_CATEGORIES.ROUTING, "[ROUTING] AppRoutes location changed", {
-      pathname: location.pathname,
-      search: location.search || undefined,
-    });
-  }, [location.pathname, location.search]);
-  // Pass location explicitly so Routes re-matches when pathname changes. Fixes stale
-  // content when navigating from /search (or other full-height routes) via sidebar.
+  }, [effectiveLocation.pathname, effectiveLocation.search]);
+  // Pass location explicitly so Routes re-matches when pathname changes. Use
+  // effectiveLocation (browser override when router is stale) to fix search->other nav.
+  // Provide effectiveLocation in context so useDashboardRoute/AppLayout see the real URL.
   return (
     <>
       <Suspense fallback={<div className="p-6 text-sm text-gray-600">Loading…</div>}>
-        <Routes location={location}>
-          {/* Layout route that wraps all routes to ensure Router context is available */}
-          {/* This prevents React 18 concurrent rendering issues in production builds */}
-          <Route element={<AppLayout />} errorElement={<RouteErrorBoundary />}>
-            {/* Public Routes */}
-            {PublicRoutes()}
+        <LocationOverrideContext.Provider value={locationOverride ? effectiveLocation : null}>
+          <Routes location={effectiveLocation}>
+            {/* Layout route that wraps all routes to ensure Router context is available */}
+            {/* This prevents React 18 concurrent rendering issues in production builds */}
+            <Route element={<AppLayout />} errorElement={<RouteErrorBoundary />}>
+              {/* Public Routes */}
+              {PublicRoutes()}
 
-            {/* Protected Routes */}
-            {DynamicRoutes({ user, handleLogout })}
+              {/* Protected Routes */}
+              {DynamicRoutes({ user, handleLogout })}
 
-            {/* Legacy redirect */}
-            <Route path={ROUTES.APP} element={<Navigate to={ROUTES.SEARCH} replace />} />
+              {/* Legacy redirect */}
+              <Route path={ROUTES.APP} element={<Navigate to={ROUTES.SEARCH} replace />} />
 
-            {/* 404 catch-all */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
+              {/* 404 catch-all */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </LocationOverrideContext.Provider>
       </Suspense>
     </>
   );

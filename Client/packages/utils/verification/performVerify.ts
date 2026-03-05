@@ -16,7 +16,8 @@ export async function performVerify(
   verificationCode: string,
   getStoredPassword: () => string | null,
   clearSignupStorage: () => void,
-  navigate: (path: string) => void
+  navigate: (path: string) => void,
+  options?: { postSuccessPath?: string }
 ): Promise<void> {
   const storedPassword = getStoredPassword();
   log.debug(LOG_CATEGORIES.AUTH, "Verification retrieved stored data", {
@@ -48,5 +49,6 @@ export async function performVerify(
 
   log.debug(LOG_CATEGORIES.AUTH, "Verification successful, clearing storage and navigating");
   clearSignupStorage();
-  setTimeout(() => void navigate("/onboarding"), 500);
+  const postSuccessPath = options?.postSuccessPath ?? "/onboarding";
+  setTimeout(() => void navigate(postSuccessPath), 500);
 }

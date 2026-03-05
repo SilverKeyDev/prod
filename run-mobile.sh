@@ -130,7 +130,7 @@ fi
 # =========================
 log "Running TypeScript preflight check..."
 pushd Client >/dev/null
-if npm run -s typecheck >/dev/null 2>&1; then
+if pnpm -s typecheck >/dev/null 2>&1; then
   log "${GREEN}✅ TypeScript preflight passed${NC}"
 else
   warn "❌ TypeScript preflight failed. Fix type errors and re-run."
@@ -145,14 +145,14 @@ popd >/dev/null
 if [[ "$PRODUCTION" != "true" ]]; then
   log "Starting Vite client..."
   pushd Client >/dev/null
-  npm run dev:web &
+  pnpm dev:web &
   VITE_PID=$!
 
-  npm run -s typecheck:watch >>"${LOG_DIR}/typecheck-watch.log" 2>&1 &
+  pnpm -s typecheck:watch >>"${LOG_DIR}/typecheck-watch.log" 2>&1 &
   TC_WATCH_PID=$!
 
-  log "Starting Metro bundler (mobile) from Client/apps/mobile..."
-  ( pushd apps/mobile >/dev/null && npx expo start && popd ) &
+  log "Starting Metro bundler (mobile) from Client..."
+  pnpm dev:mobile &
   METRO_PID=$!
   popd >/dev/null
 

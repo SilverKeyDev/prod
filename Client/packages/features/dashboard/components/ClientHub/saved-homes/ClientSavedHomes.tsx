@@ -18,32 +18,25 @@ import {
   usePropertyDetails,
 } from "@/features/search/hooks/data/property/usePropertyDetails";
 import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
-
 type ClientSavedHomesProps = {
   userId: string;
 };
-
-export default function ClientSavedHomes({ userId: _userId }: ClientSavedHomesProps) {
+export default function ClientSavedHomes({ userId }: ClientSavedHomesProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isNegotiationModalOpen, setIsNegotiationModalOpen] = useState(false);
   const [selectedHomeForNegotiation, setSelectedHomeForNegotiation] = useState<SavedHome | null>(
     null
   );
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-
-  // Use Zustand store for saved homes data (React Query integration)
-  // Note: This currently fetches for the authenticated user. Backend API needs to support userId parameter
   const {
     savedHomes: homes,
     savedHomesLoading: loading,
     savedHomesError: error,
     refreshSavedHomes: _refreshSavedHomes,
-  } = useSavedHomesStoreIntegration();
-
+  } = useSavedHomesStoreIntegration(userId);
   // Use centralized document actions for reports
   const { currentPdf, currentDocumentId, currentDocumentName, closePdfModal } =
     useDocumentActions();
-
   // Use property details hook for unlock functionality
   const {
     selectedProperty,
@@ -51,7 +44,6 @@ export default function ClientSavedHomes({ userId: _userId }: ClientSavedHomesPr
     clearSelectedProperty,
     isLoading: isLoadingPropertyDetails,
   } = usePropertyDetails();
-
   // Handle unlocking a home
   const handleUnlockHome = useCallback(
     async (home: SavedHome) => {
@@ -63,7 +55,6 @@ export default function ClientSavedHomes({ userId: _userId }: ClientSavedHomesPr
         });
         return;
       }
-
       // Convert SavedHome to Property format
       const property: Property = {
         id: home.home_id,
@@ -85,24 +76,20 @@ export default function ClientSavedHomes({ userId: _userId }: ClientSavedHomesPr
         longitude: home.lng ?? 0,
         images: home.image_url ? [home.image_url] : [],
       };
-
       await fetchPropertyDetails(property);
     },
     [fetchPropertyDetails, enqueueToast]
   );
-
   // Handle opening negotiation modal
   const handleOpenNegotiation = useCallback((home: SavedHome) => {
     setSelectedHomeForNegotiation(home);
     setIsNegotiationModalOpen(true);
   }, []);
-
   // Handle closing negotiation modal
   const handleCloseNegotiation = useCallback(() => {
     setIsNegotiationModalOpen(false);
     setSelectedHomeForNegotiation(null);
   }, []);
-
   // Convert SavedHome to FavoriteHome format for negotiation
   const convertToFavoriteHome = useCallback((home: SavedHome) => {
     return {
@@ -125,20 +112,17 @@ export default function ClientSavedHomes({ userId: _userId }: ClientSavedHomesPr
       updated_at: "",
     };
   }, []);
-
   const filteredHomes = homes.filter((h: SavedHome) => {
     return (
       h.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       h.home_id.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
-
   // overlay toast component
   useEffect(() => {
     if (error) enqueueToast({ type: "error", message: error });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
-
   return (
     <div>
       <PdfModal

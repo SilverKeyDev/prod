@@ -1,34 +1,31 @@
-import { Bookmark, Home, type LucideIcon, Search, Send, User } from "lucide-react";
+import type { IconName } from "packages/ui/types/icons";
 
 export type SidebarTabKey = "dashboard" | "search" | "decide" | "profile" | "agent";
-
 export type SidebarSubStep = {
   label: string;
   to: string;
-  icon?: LucideIcon;
+  icon?: IconName;
 };
-
 export type SidebarTab = {
   key: SidebarTabKey;
   name: string;
   description: string;
-  icon: LucideIcon;
+  icon: IconName;
   href: string;
   subSteps?: SidebarSubStep[];
 };
-
 export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   dashboard: {
     key: "dashboard",
     name: "Dashboard",
     description: "Overview and quick access to key actions",
-    icon: Home,
+    icon: "home",
     href: "/dashboard",
     subSteps: [
       {
         label: "Dashboard",
         to: "/dashboard",
-        icon: Home,
+        icon: "home",
       },
     ],
   },
@@ -36,13 +33,13 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     key: "search",
     name: "Search",
     description: "Explore homes and neighborhoods",
-    icon: Search,
+    icon: "search",
     href: "/search",
     subSteps: [
       {
         label: "Find Homes",
         to: "/search",
-        icon: Search,
+        icon: "search",
       },
     ],
   },
@@ -50,13 +47,13 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     key: "decide",
     name: "Saved",
     description: "Compare and pick your best options",
-    icon: Bookmark,
+    icon: "bookmark",
     href: "/saved",
     subSteps: [
       {
         label: "Compare Reports",
         to: "/saved",
-        icon: Bookmark,
+        icon: "bookmark",
       },
     ],
   },
@@ -64,13 +61,13 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     key: "profile",
     name: "Profile",
     description: "Manage your profile and preferences",
-    icon: User,
+    icon: "user",
     href: "/profile",
     subSteps: [
       {
         label: "Profile",
         to: "/profile",
-        icon: User,
+        icon: "user",
       },
     ],
   },
@@ -78,18 +75,17 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     key: "agent",
     name: "Messaging",
     description: "Communicate with your agent",
-    icon: Send,
+    icon: "send",
     href: "/messaging",
     subSteps: [
       {
         label: "Messaging",
         to: "/messaging",
-        icon: Send,
+        icon: "send",
       },
     ],
   },
 };
-
 export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   if (pathname.startsWith("/dashboard")) return SIDEBAR_TABS.dashboard;
   if (pathname.startsWith("/profile")) return SIDEBAR_TABS.profile;

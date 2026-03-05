@@ -38,6 +38,7 @@ type LoginSetters = {
   setStoreIsAuthenticated: (v: boolean) => void;
   setStoreAuthStatus: (s: string) => void;
   setStoreAuthReady: (v: boolean) => void;
+  setStorePostAuthRedirectPath: (path: string | null) => void;
   setUserProfile: (p: unknown) => void;
   setLoginRef: (v: boolean) => void;
 };
@@ -53,6 +54,7 @@ function applyLoginSuccess(
     setStoreIsAuthenticated,
     setStoreAuthStatus,
     setStoreAuthReady,
+    setStorePostAuthRedirectPath,
     setUserProfile,
     setLoginRef,
   } = setters;
@@ -80,6 +82,7 @@ function applyLoginSuccess(
     setStoreIsAuthenticated(true);
     setStoreAuthStatus("authenticated");
     setStoreAuthReady(true);
+    setStorePostAuthRedirectPath("/search");
     setUserProfile(userStoreProfile);
     if (getEnv().isDevelopment) {
       log.debug(LOG_CATEGORIES.AUTH, "User state after login", {
@@ -92,6 +95,7 @@ function applyLoginSuccess(
     setStoreIsAuthenticated(true);
     setStoreAuthStatus("authenticated");
     setStoreAuthReady(true);
+    setStorePostAuthRedirectPath("/search");
   }
   setLoginRef(false);
   if (getEnv().isDevelopment) {
@@ -161,6 +165,7 @@ type LogoutSetters = {
   setStoreIsAuthenticated: (v: boolean) => void;
   setStoreAuthStatus: (s: string) => void;
   setStoreAuthReady: (v: boolean) => void;
+  setStorePostAuthRedirectPath: (path: string | null) => void;
   setUserProfile: (p: null) => void;
 };
 
@@ -181,6 +186,7 @@ async function performLogout(setters: LogoutSetters): Promise<void> {
     setStoreIsAuthenticated,
     setStoreAuthStatus,
     setStoreAuthReady,
+    setStorePostAuthRedirectPath,
     setUserProfile,
   } = setters;
   setAccessToken(null);
@@ -189,6 +195,7 @@ async function performLogout(setters: LogoutSetters): Promise<void> {
   setStoreIsAuthenticated(false);
   setStoreAuthStatus("unauthenticated");
   setStoreAuthReady(false);
+  setStorePostAuthRedirectPath(null);
   setUserProfile(null);
   clearSessionStorageForLogout();
   log.security(LOG_CATEGORIES.AUTH, "User logged out - HTTP-only cookies cleared by server");
@@ -281,6 +288,7 @@ export function useSecureAuth(): UseSecureAuthReturn {
   const setStoreIsAuthenticated = useAuthStore((s: AuthState) => s.setIsAuthenticated);
   const setStoreAuthStatus = useAuthStore((s: AuthState) => s.setAuthStatus);
   const setStoreAuthReady = useAuthStore((s: AuthState) => s.setAuthReady);
+  const setStorePostAuthRedirectPath = useAuthStore((s: AuthState) => s.setPostAuthRedirectPath);
   const setUserProfile = useUserStore((s: UserState) => s.setUserProfile);
 
   const login = useCallback(
@@ -295,12 +303,20 @@ export function useSecureAuth(): UseSecureAuthReturn {
         setStoreIsAuthenticated,
         setStoreAuthStatus,
         setStoreAuthReady,
+        setStorePostAuthRedirectPath,
         setUserProfile,
         setLoginRef: (v) => {
           isLoggingInRef.current = v;
         },
       }),
-    [setStoreUser, setStoreIsAuthenticated, setStoreAuthStatus, setStoreAuthReady, setUserProfile]
+    [
+      setStoreUser,
+      setStoreIsAuthenticated,
+      setStoreAuthStatus,
+      setStoreAuthReady,
+      setStorePostAuthRedirectPath,
+      setUserProfile,
+    ]
   );
   const logout = useCallback(
     () =>
@@ -311,9 +327,17 @@ export function useSecureAuth(): UseSecureAuthReturn {
         setStoreIsAuthenticated,
         setStoreAuthStatus,
         setStoreAuthReady,
+        setStorePostAuthRedirectPath,
         setUserProfile,
       }),
-    [setStoreUser, setStoreIsAuthenticated, setStoreAuthStatus, setStoreAuthReady, setUserProfile]
+    [
+      setStoreUser,
+      setStoreIsAuthenticated,
+      setStoreAuthStatus,
+      setStoreAuthReady,
+      setStorePostAuthRedirectPath,
+      setUserProfile,
+    ]
   );
   const refreshToken = useCallback(
     () =>

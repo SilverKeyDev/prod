@@ -172,16 +172,6 @@ def create_app(config=None):
     app.register_blueprint(feed_bp)
     app.register_blueprint(tasks_bp)
 
-    # Try to register DocuSign routes (optional dependency)
-    try:
-        from .routes.documents.docusign import docusign_bp, webhook_bp
-
-        app.register_blueprint(docusign_bp)
-        app.register_blueprint(webhook_bp)
-        app.logger.info("DocuSign routes registered successfully")
-    except ImportError as e:
-        app.logger.warning(f"DocuSign routes not available: {e}")
-
     # ---------- Static asset routes (Vite build) ----------
     # Serve /assets/* out of the Vite dist directory with correct MIME types.
     @app.route("/assets/<path:filename>", methods=["GET", "HEAD"])

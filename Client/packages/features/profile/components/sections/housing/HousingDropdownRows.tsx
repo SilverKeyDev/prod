@@ -4,9 +4,12 @@ import { Dropdown } from "packages/ui/components/index.web";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import Label from "@/features/profile/components/settings/inputs/Label";
+import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
 import {
+  ARCHITECTURAL_STYLE_OPTIONS,
   FIELD_LABELS,
   INTENDED_USE_OPTIONS,
+  LISTING_TYPE_OPTIONS,
   type OnboardingData,
   RENOVATION_OPTIONS,
 } from "@/features/profile/utils";
@@ -32,18 +35,37 @@ export function HousingDropdownRows({
       justify="start"
       items={[
         {
-          title: <Label>{FIELD_LABELS.RENOVATION_PREFERENCE}</Label>,
+          title: <Label>{FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}</Label>,
           content: isEditMode ? (
             <Dropdown
-              value={formData.renovation_preference ?? ""}
-              onChange={(value) => updateFormData("renovation_preference", value)}
-              options={RENOVATION_OPTIONS}
+              value={formData.preferred_architectural_style ?? ""}
+              onChange={(value) => updateFormData("preferred_architectural_style", value)}
+              options={ARCHITECTURAL_STYLE_OPTIONS}
               placeholder="Select..."
             />
           ) : (
             <div className="mobile-input bg-gray-50">
-              {formData.renovation_preference
-                ? RENOVATION_OPTIONS.find((opt) => opt.value === formData.renovation_preference)
+              {formData.preferred_architectural_style
+                ? ARCHITECTURAL_STYLE_OPTIONS.find(
+                    (opt) => opt.value === formData.preferred_architectural_style
+                  )?.label
+                : "Not specified"}
+            </div>
+          ),
+        },
+        {
+          title: <Label>{FIELD_LABELS.WALKABILITY_IMPORTANCE}</Label>,
+          content: isEditMode ? (
+            <Dropdown
+              value={formData.walkability_importance ?? ""}
+              onChange={(value) => updateFormData("walkability_importance", value)}
+              options={WALKABILITY_OPTIONS}
+              placeholder="Select..."
+            />
+          ) : (
+            <div className="mobile-input bg-gray-50">
+              {formData.walkability_importance
+                ? WALKABILITY_OPTIONS.find((opt) => opt.value === formData.walkability_importance)
                     ?.label
                 : "Not specified"}
             </div>
@@ -68,20 +90,39 @@ export function HousingDropdownRows({
           ),
         },
         {
-          title: <Label>{FIELD_LABELS.WALKABILITY_IMPORTANCE}</Label>,
+          title: <Label>{FIELD_LABELS.RENOVATION_PREFERENCE}</Label>,
           content: isEditMode ? (
             <Dropdown
-              value={formData.walkability_importance ?? ""}
-              onChange={(value) => updateFormData("walkability_importance", value)}
-              options={WALKABILITY_OPTIONS}
+              value={formData.renovation_preference ?? ""}
+              onChange={(value) => updateFormData("renovation_preference", value)}
+              options={RENOVATION_OPTIONS}
               placeholder="Select..."
             />
           ) : (
             <div className="mobile-input bg-gray-50">
-              {formData.walkability_importance
-                ? WALKABILITY_OPTIONS.find((opt) => opt.value === formData.walkability_importance)
+              {formData.renovation_preference
+                ? RENOVATION_OPTIONS.find((opt) => opt.value === formData.renovation_preference)
                     ?.label
                 : "Not specified"}
+            </div>
+          ),
+        },
+        {
+          title: <Label>{FIELD_LABELS.LISTING_TYPE}</Label>,
+          content: isEditMode ? (
+            <OptionTagInput
+              options={LISTING_TYPE_OPTIONS}
+              value={(formData.listing_type as string[]) ?? []}
+              onChange={(arr) => updateFormData("listing_type", arr)}
+              isEditMode={true}
+            />
+          ) : (
+            <div className="mobile-input bg-gray-50">
+              {((formData.listing_type as string[]) ?? []).length === 0
+                ? "Not specified"
+                : ((formData.listing_type as string[]) ?? [])
+                    .map((v) => LISTING_TYPE_OPTIONS.find((o) => o.value === v)?.label ?? v)
+                    .join(", ")}
             </div>
           ),
         },

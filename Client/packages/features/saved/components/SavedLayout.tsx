@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Search } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useIsMobile } from "packages/hooks/ui";
@@ -8,9 +8,9 @@ import { Button, Input } from "packages/ui/components/index.web";
 
 import Card from "@/components/layout/Card.web";
 
+import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "../constants";
 export type ViewMode = "grid" | "list";
 export type SortBy = "date" | "address";
-
 type SavedLayoutProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -32,7 +32,6 @@ type SavedLayoutProps = {
     eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
   ) => void;
 };
-
 const SavedLayout: React.FC<SavedLayoutProps> = ({
   searchTerm,
   onSearchChange,
@@ -50,16 +49,13 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
 }) => {
   const { t } = useLocalization();
   const isMobile = useIsMobile();
-
   const ViewToggle = showViewToggle && onViewModeChange && (
     <div className="hidden items-center gap-2 sm:flex">
       <Button
         variant={viewMode === "grid" ? "primary" : "secondary"}
         size="sm"
         onClick={() => onViewModeChange("grid")}
-        className={`touch-friendly rounded px-3 py-2.5 ${
-          viewMode === "grid" ? "bg-olive text-white" : "bg-beige hover:bg-olive/80 text-white"
-        }`}
+        className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "grid" ? "bg-olive text-white" : "bg-beige hover:bg-olive/80 text-white"}`}
       >
         <div className="mobile-icon-xs grid grid-cols-2 gap-1">
           <div className="rounded-sm bg-current" />
@@ -72,9 +68,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
         variant={viewMode === "list" ? "primary" : "secondary"}
         size="sm"
         onClick={() => onViewModeChange("list")}
-        className={`touch-friendly rounded px-3 py-2.5 ${
-          viewMode === "list" ? "bg-olive text-white" : "bg-beige hover:bg-olive/80 text-white"
-        }`}
+        className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "list" ? "bg-olive text-white" : "bg-beige hover:bg-olive/80 text-white"}`}
       >
         <div className="mobile-icon-xs space-y-1">
           <div className="h-0.5 rounded-sm bg-current" />
@@ -84,7 +78,6 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
       </Button>
     </div>
   );
-
   // Tab navigation for homes/documents
   const TabNavigation = viewType && onViewTypeChange && (
     <div className="mb-3 flex items-center gap-2 border-b border-gray-200">
@@ -114,7 +107,6 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
       </Button>
     </div>
   );
-
   return (
     <div className="mb-6 w-full">
       {TabNavigation}
@@ -126,16 +118,14 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
               {leftContent}
               {/* Dropdown for reports view - only show on mobile (desktop shows on right side) */}
               {/* {viewType && onViewTypeChange && isMobile && (
-                <div className="ml-2">{Dropdown}</div>
-              )} */}
+            <div className="ml-2">{Dropdown}</div>
+          )} */}
             </div>
           )}
 
           {/* Separate div for everything else (search, dropdown, refresh, view toggle, etc.) */}
           <div
-            className={`flex flex-1 flex-wrap items-center justify-between ${
-              isMobile && viewType !== "homes" && viewType !== "documents" ? "hidden" : ""
-            }`}
+            className={`flex flex-1 flex-wrap items-center justify-between ${isMobile && viewType !== "homes" && viewType !== "documents" ? "hidden" : ""}`}
           >
             {/* Left side: Search input or empty space */}
             <div
@@ -143,12 +133,15 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
             >
               {showSearch ? (
                 <div className="relative min-w-48 flex-1">
-                  <Search className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 text-black/40" />
+                  <Icon
+                    name="search"
+                    className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 text-black/40"
+                  />
                   <Input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="mobile-input h-11 w-full pl-9 pr-4 font-sans text-sm sm:pl-10"
+                    className={SAVED_PAGE_SEARCH_INPUT_CLASS}
                     placeholder={searchPlaceholder}
                   />
                 </div>
@@ -161,9 +154,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
 
             {/* Right side: View toggle, refresh, dropdown, etc. */}
             <div
-              className={`flex shrink-0 items-center justify-end ${
-                viewType === "homes" && isMobile ? "gap-3" : "gap-2"
-              }`}
+              className={`flex shrink-0 items-center justify-end ${viewType === "homes" && isMobile ? "gap-3" : "gap-2"}`}
             >
               {ViewToggle}
             </div>
@@ -173,5 +164,4 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
     </div>
   );
 };
-
 export default SavedLayout;

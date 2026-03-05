@@ -1,6 +1,6 @@
 import React from "react";
 
-import { BarChart2, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedHome } from "packages/types";
@@ -9,21 +9,27 @@ import IconButton from "packages/ui/components/button/IconButton";
 import BodyText from "packages/ui/components/text/BodyText";
 
 import { StyledImage } from "@/components/cards/base/image";
-
 /** SavedHome from API/saved list may include home_id; type only guarantees address. */
 function getHomeId(home: SavedHome): string {
-  return "home_id" in home && typeof (home as { home_id?: string }).home_id === "string"
-    ? (home as { home_id: string }).home_id
+  return "home_id" in home &&
+    typeof (
+      home as {
+        home_id?: string;
+      }
+    ).home_id === "string"
+    ? (
+        home as {
+          home_id: string;
+        }
+      ).home_id
     : home.address;
 }
-
 export type CompareFloatingBarProps = {
   selectedHomes: SavedHome[];
   onCompare: () => void;
   onClear: () => void;
   onRemove: (homeId: string) => void;
 };
-
 const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
   selectedHomes,
   onCompare,
@@ -31,17 +37,14 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
   onRemove,
 }) => {
   const { t } = useLocalization();
-
   if (selectedHomes.length < 1) {
     return null;
   }
-
   const canCompare = selectedHomes.length >= 2;
   const countLabel =
     selectedHomes.length === 1
       ? t("compare_floating.home_selected")
       : t("compare_floating.homes_selected", { count: selectedHomes.length });
-
   return (
     <div className="safe-bottom bottom-reserved fixed left-0 right-0 z-50 border-t border-gray-200 bg-white shadow-lg transition-all duration-300 ease-in-out md:bottom-0">
       <div className="px-responsive-md py-responsive-sm mx-auto max-w-7xl sm:px-6 sm:py-4">
@@ -50,7 +53,7 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
           <div className="gap-responsive-sm flex flex-1 items-center">
             <div className="flex-shrink-0">
               <div className="bg-olive/10 flex h-8 w-8 items-center justify-center rounded-full sm:h-10 sm:w-10">
-                <BarChart2 className="text-olive h-4 w-4 sm:h-5 sm:w-5" />
+                <Icon name="bar-chart-2" className="text-olive h-4 w-4 sm:h-5 sm:w-5" />
               </div>
             </div>
             <div className="min-w-0 flex-1">
@@ -78,7 +81,7 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gray-100">
-                      <BarChart2 className="h-5 w-5 text-gray-400" />
+                      <Icon name="bar-chart-2" className="h-5 w-5 text-gray-400" />
                     </div>
                   )}
                   <IconButton
@@ -89,7 +92,7 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
                     variant="ghost"
                     size="xs"
                     rounded="full"
-                    icon={<X className="h-3 w-3" />}
+                    icon={<Icon name="x" className="h-3 w-3" />}
                     className="absolute -right-1 -top-1 bg-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
                     label={t("compare_floating.remove_aria")}
                   />
@@ -121,7 +124,7 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
               onClick={onCompare}
               variant="primary"
               size="sm"
-              icon={<BarChart2 />}
+              icon={<Icon name="bar-chart-2" />}
               className="flex-1 sm:flex-none"
               disabled={!canCompare}
             >
@@ -133,5 +136,4 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
     </div>
   );
 };
-
 export default CompareFloatingBar;

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Bath, Bed, Home, Square } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { formatLotSizeInAcres } from "packages/features/search/types/search/address";
@@ -10,18 +10,15 @@ import {
   CARD_PROPERTY_SIZE_STYLES,
   type CardPropertySizeStyles,
 } from "./CardPropertyDetailsStyles";
-
 function formatSqftDisplay(sqft: number | undefined, t: (key: string) => string): string {
   if (sqft === undefined || Number(sqft) <= 0) return t("house.na_sqft");
   return `${Math.round(Number(sqft)).toLocaleString()} ${t("house.sqft")}`;
 }
-
 function formatLotDisplay(lotSize: string | undefined, t: (key: string) => string): string {
   if (!lotSize || lotSize === "N/A" || lotSize.trim() === "") return t("house.no_data");
   const formatted = formatLotSizeInAcres(lotSize);
   return formatted ?? t("house.no_data");
 }
-
 export function CardPropertyDetailsFirstRow({
   bedrooms,
   bathrooms,
@@ -50,14 +47,14 @@ export function CardPropertyDetailsFirstRow({
   return (
     <div className="flex flex-nowrap items-center justify-center gap-1 sm:gap-1.5">
       {bedrooms !== undefined && Number(bedrooms) > 0 && (
-        <PropertyStat icon={showIcons ? <Bed /> : undefined} size={statSize}>
+        <PropertyStat icon={showIcons ? <Icon name="bed" /> : undefined} size={statSize}>
           {variant === "modal"
             ? bedrooms
             : `${bedrooms} ${bedrooms !== 1 ? t("house.beds_plural") : t("house.beds")}`}
         </PropertyStat>
       )}
       {bathrooms !== undefined && Number(bathrooms) > 0 && (
-        <PropertyStat icon={showIcons ? <Bath /> : undefined} size={statSize}>
+        <PropertyStat icon={showIcons ? <Icon name="bath" /> : undefined} size={statSize}>
           {variant === "modal"
             ? bathrooms
             : `${bathrooms} ${bathrooms !== 1 ? t("house.baths_plural") : t("house.baths")}`}
@@ -65,11 +62,11 @@ export function CardPropertyDetailsFirstRow({
       )}
       {hasSqft && !shouldMoveSqftToSecondRow && (
         <>
-          <PropertyStat icon={showIcons ? <Home /> : undefined} size={statSize}>
+          <PropertyStat icon={showIcons ? <Icon name="home" /> : undefined} size={statSize}>
             {formatSqftDisplay(sqft, t)}
           </PropertyStat>
           {!isApartmentOrCondo && (
-            <PropertyStat icon={showIcons ? <Square /> : undefined} size={statSize}>
+            <PropertyStat icon={showIcons ? <Icon name="square" /> : undefined} size={statSize}>
               {formatLotDisplay(lotSize, t)}
             </PropertyStat>
           )}
@@ -78,7 +75,6 @@ export function CardPropertyDetailsFirstRow({
     </div>
   );
 }
-
 export function CardPropertyDetailsSecondRow({
   sqft,
   lotSize,
@@ -96,18 +92,17 @@ export function CardPropertyDetailsSecondRow({
   const statSize = sizeStyles === CARD_PROPERTY_SIZE_STYLES.sm ? "sm" : "md";
   return (
     <div className="flex flex-shrink-0 flex-nowrap items-center justify-center gap-1 sm:gap-1.5">
-      <PropertyStat icon={showIcons ? <Home /> : undefined} size={statSize}>
+      <PropertyStat icon={showIcons ? <Icon name="home" /> : undefined} size={statSize}>
         {formatSqftDisplay(sqft, t)}
       </PropertyStat>
       {!isApartmentOrCondo && (
-        <PropertyStat icon={showIcons ? <Square /> : undefined} size={statSize}>
+        <PropertyStat icon={showIcons ? <Icon name="square" /> : undefined} size={statSize}>
           {formatLotDisplay(lotSize, t)}
         </PropertyStat>
       )}
     </div>
   );
 }
-
 export function CardPropertyDetailsModalSqft({
   sqft,
   t,

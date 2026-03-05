@@ -53,9 +53,12 @@ export function MotionView({
     opacity.value = withTiming(animate.opacity, { duration: durationMs });
   }, [animate?.opacity, transition?.duration, opacity]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return animate?.opacity == null ? {} : { opacity: opacity.value };
-  }, [animate?.opacity]);
+  // Do not read React props (e.g. animate?.opacity) inside the worklet or in deps;
+  // that can cause the worklet to run on the JS thread during render and trigger
+  // "Reading from value during component render". Only read the shared value here.
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   return (
     <Animated.View className={className} style={[style, animatedStyle]} {...rest}>

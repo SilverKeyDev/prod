@@ -2,7 +2,7 @@ import React from "react";
 
 import { Dropdown, Input, Label, Title } from "packages/ui/components/index.web";
 
-import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider.web";
+import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 import HomePriceEstimate from "@/features/profile/components/settings/inputs/HomePriceEstimate";
 import { OnPerLabel } from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
@@ -73,7 +73,6 @@ export default function OnboardingFinancialSection({
             }}
             formatPrefix="$"
             className="mt-2"
-            showTickMarks={false}
           />
         </div>
 
@@ -90,7 +89,6 @@ export default function OnboardingFinancialSection({
             }}
             formatPrefix="$"
             className="mt-2"
-            showTickMarks={false}
           />
         </div>
 

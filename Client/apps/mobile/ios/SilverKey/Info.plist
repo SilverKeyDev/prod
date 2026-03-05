@@ -71,5 +71,7 @@
     <string>Light</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
+    <key>GMSApiKey</key>
+    <string>YOUR_GOOGLE_MAPS_IOS_API_KEY</string>
   </dict>
 </plist>

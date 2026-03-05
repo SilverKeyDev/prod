@@ -1,4 +1,3 @@
-import { useSearchRefresh } from "packages/contexts";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useSearchViewStore } from "packages/store";
@@ -6,6 +5,10 @@ import { AccessibleLink } from "packages/ui/components/index.web";
 
 /** Search tab route - shared constant so packages do not depend on app layout. */
 const SEARCH_HREF = "/search";
+
+function genNavId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+}
 
 type SearchNavLinkProps = {
   className?: string;
@@ -15,10 +18,12 @@ type SearchNavLinkProps = {
   label?: string;
   "aria-current"?: "page" | undefined;
   onClick?: () => void;
+  /** Called before navigation log with same navId for correlating downstream logs (e.g. MobileBottomNav). */
+  onNavigateClick?: (navId: string) => void;
 };
 
 /**
- * Link for Search tab - when already on /search with Reels mode, triggers refresh instead of navigating
+ * Link for Search tab - uses standard navigation semantics while logging route context.
  */
 export function SearchNavLink({
   className,
@@ -27,26 +32,24 @@ export function SearchNavLink({
   label,
   "aria-current": ariaCurrent,
   onClick: onLinkClick,
+  onNavigateClick,
 }: SearchNavLinkProps) {
   const { getCurrentRoute } = useNavigation();
   const route = getCurrentRoute();
-  const refresh = useSearchRefresh();
   const mode = useSearchViewStore((s) => s.mode);
   const isOnSearch = route.pathname.startsWith("/search");
-  const shouldRefresh = isOnSearch && mode === "reels" && refresh?.triggerRefresh;
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = () => {
+    const navId = genNavId();
+    onNavigateClick?.(navId);
     log.info(LOG_CATEGORIES.ROUTING, "[NAV] SearchNavLink click", {
+      navId,
+      target: "/search",
+      prevPathname: route.pathname,
       pathname: route.pathname,
       isOnSearch,
       mode,
-      shouldRefresh: !!shouldRefresh,
-      willPreventDefault: shouldRefresh,
     });
-    if (shouldRefresh) {
-      e.preventDefault();
-      refresh.triggerRefresh();
-    }
     onLinkClick?.();
   };
 

@@ -130,7 +130,8 @@ def refresh_google_access_token(
 
         tokens = response.json()
 
-        logger.info(
+        # Downgrade to debug to avoid noisy INFO logs on every successful refresh
+        logger.debug(
             "GOOGLE_REFRESH_SUCCESS",
             extra={
                 "request_id": request_id,

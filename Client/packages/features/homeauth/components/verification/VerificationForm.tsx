@@ -1,14 +1,12 @@
 import React, { type RefObject } from "react";
 
-import { ArrowLeft, Mail } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { BodyText, Button, Input, Label, MiniLogo, Title } from "packages/ui/components/index.web";
 import { applyCodeChange, applyPaste, getBackspaceFocusIndex } from "packages/utils/verification";
 
 import Card from "@/components/layout/Card.web";
-
 export type VerificationStep = "email" | "code";
-
 type VerificationCodeInputsProps = {
   code: string[];
   setCode: (v: string[]) => void;
@@ -16,7 +14,6 @@ type VerificationCodeInputsProps = {
   loading: boolean;
   onVerify: () => void;
 };
-
 export function VerificationCodeInputs({
   code,
   setCode,
@@ -30,7 +27,6 @@ export function VerificationCodeInputs({
     inputRefs.current?.[nextFocusIndex]?.focus();
     if (index === 5 && nextCode.every((digit) => digit)) void onVerify();
   };
-
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text/plain");
@@ -38,14 +34,12 @@ export function VerificationCodeInputs({
     setCode(nextCode);
     inputRefs.current?.[nextFocusIndex]?.focus();
   };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       const focusIndex = getBackspaceFocusIndex(code, index);
       if (focusIndex !== null) inputRefs.current?.[focusIndex]?.focus();
     }
   };
-
   return (
     <div className="flex justify-center gap-3">
       {code.map((digit, index) => (
@@ -71,7 +65,6 @@ export function VerificationCodeInputs({
     </div>
   );
 }
-
 type VerificationFormProps = {
   activeStep: VerificationStep;
   email: string;
@@ -91,7 +84,6 @@ type VerificationFormProps = {
   onVerify: () => void;
   onResendCode: () => void;
 };
-
 export function VerificationForm({
   activeStep,
   email,
@@ -119,7 +111,7 @@ export function VerificationForm({
             <Button
               onClick={onBack}
               variant="ghost"
-              icon={<ArrowLeft className="mobile-icon-sm" />}
+              icon={<Icon name="arrow-left" className="mobile-icon-sm" />}
               iconPosition="left"
             >
               Back
@@ -166,7 +158,7 @@ export function VerificationForm({
                     setError("");
                   }}
                   placeholder="Enter your email"
-                  leftIcon={<Mail className="mobile-icon-sm" />}
+                  leftIcon={<Icon name="mail" className="mobile-icon-sm" />}
                   autoComplete="email"
                   variant="mobile"
                   size="md"

@@ -1,21 +1,20 @@
 import { useState } from "react";
 
+import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
-import { ChevronDown, User } from "lucide-react";
 
 import { useLocalization } from "packages/contexts";
+import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";
 
 import Button from "./Button";
-
 type ClientSelectorProps = {
   selectedClientId: string | null;
   onClientChange: (clientId: string | null) => void;
   className?: string;
 };
-
 export default function ClientSelector({
   selectedClientId,
   onClientChange,
@@ -25,25 +24,22 @@ export default function ClientSelector({
   const [isOpen, setIsOpen] = useState(false);
   const isAgent = useIsAgent();
   const { t } = useLocalization();
-
   // Don't show if user is not an agent
   if (!isAgent) {
     return null;
   }
-
   const handleSelect = (clientId: string | null) => {
     onClientChange(clientId);
     setIsOpen(false);
   };
-
   return (
     <div className={`relative ${className}`}>
       <Button
         type="button"
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
-        className="focus:ring-olive focus:border-olive flex h-11 max-h-11 min-h-11 items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2"
-        icon={<User className="h-4 w-4" />}
+        className={`focus:ring-olive focus:border-olive flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 ${HEADER_ROW_HEIGHT}`}
+        icon={<Icon name="user" className="h-4 w-4" />}
       >
         <>
           <BodyText as="span">
@@ -52,7 +48,10 @@ export default function ClientSelector({
               : clients.find((c) => c.id === selectedClientId)?.name ||
                 t("client_selector.select_client")}
           </BodyText>
-          <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          <Icon
+            name="chevron-down"
+            className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          />
         </>
       </Button>
 
@@ -80,10 +79,8 @@ export default function ClientSelector({
                 type="button"
                 variant="ghost"
                 onClick={() => handleSelect(null)}
-                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${
-                  selectedClientId === null ? "bg-olive/10 text-olive font-medium" : "text-gray-700"
-                }`}
-                icon={<User className="h-4 w-4" />}
+                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${selectedClientId === null ? "bg-olive/10 text-olive font-medium" : "text-gray-700"}`}
+                icon={<Icon name="user" className="h-4 w-4" />}
               >
                 <BodyText as="span">{t("client_selector.me")}</BodyText>
               </Button>
@@ -112,7 +109,7 @@ export default function ClientSelector({
                         ? "bg-olive/10 text-olive font-medium"
                         : "text-gray-700"
                     }`}
-                    icon={<User className="h-4 w-4" />}
+                    icon={<Icon name="user" className="h-4 w-4" />}
                   >
                     <div className="flex flex-col">
                       <BodyText as="span">{client.name}</BodyText>

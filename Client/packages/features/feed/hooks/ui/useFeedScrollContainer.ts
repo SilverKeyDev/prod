@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import type { VirtuosoHandle } from "react-virtuoso";
 
-import type { SetSearchParamsInput, SetSearchParamsOptions } from "packages/navigation";
-import { ROUTES, useNavigation } from "packages/navigation";
 import { useSearchContextStore } from "packages/store";
 import { useFeedStore } from "packages/store";
 import { getWindow } from "packages/utils/platform";
@@ -18,15 +16,6 @@ import {
   useFeedScrollToInitial,
   useFeedScrollViewport,
 } from "./feedScrollContainerHelpers";
-
-const FEED_PARAM = "feed";
-
-/**
- * Debounce delay for feed URL updates. Only update the URL after the user stops
- * scrolling so we avoid Chrome's "Throttling navigation" (crbug 1038223), which
- * can block sidebar navigation to Saved/Search when too many history updates occur.
- */
-const FEED_URL_UPDATE_DEBOUNCE_MS = 400;
 
 export type UseFeedScrollContainerParams = {
   items: FeedListing[];
@@ -45,44 +34,9 @@ export function useFeedScrollContainer({
   virtuosoRef: externalRef,
   scrollControllerRef,
 }: UseFeedScrollContainerParams) {
-  const { getSearchParams, setSearchParams, getCurrentRoute } = useNavigation();
-  const searchParams = getSearchParams();
-  const getPathname = useCallback(() => getCurrentRoute().pathname, [getCurrentRoute]);
-  const pendingUrlUpdateRef = useRef<{
-    input: SetSearchParamsInput;
-    options?: SetSearchParamsOptions;
-  } | null>(null);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const setSearchParamsDebounced = useCallback(
-    (input: SetSearchParamsInput, options?: SetSearchParamsOptions) => {
-      pendingUrlUpdateRef.current = { input, options };
-      if (debounceTimerRef.current !== null) clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = setTimeout(() => {
-        debounceTimerRef.current = null;
-        const pending = pendingUrlUpdateRef.current;
-        pendingUrlUpdateRef.current = null;
-        if (!pending || !getPathname().startsWith(ROUTES.SEARCH)) return;
-        setSearchParams(pending.input, pending.options);
-      }, FEED_URL_UPDATE_DEBOUNCE_MS);
-    },
-    [getPathname, setSearchParams]
-  );
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current !== null) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
-      pendingUrlUpdateRef.current = null;
-    };
-  }, []);
-
   const anchorListingId = useSearchContextStore((s) => s.anchor.listingId);
   const internalRef = useRef<VirtuosoHandle>(null);
   const ref = externalRef ?? internalRef;
-  const feedIdFromUrl = searchParams.get(FEED_PARAM);
-  // Use only anchor (from search context) for initial scroll, not feed URL param.
-  // This keeps the root reel (index 0) at the top when first opening reels.
   const initialIndex = useMemo(() => {
     if (!anchorListingId || items.length === 0) return 0;
     const idx = items.findIndex((i) => i.id === anchorListingId);
@@ -141,18 +95,8 @@ export function useFeedScrollContainer({
 
   const handleRangeChanged = useCallback(
     (range: { startIndex: number; endIndex: number }) =>
-      applyRangeChanged(
-        range,
-        items,
-        setActiveIndex,
-        setIsVideoPlayingInReel,
-        setUserPaused,
-        setSearchParamsDebounced,
-        feedIdFromUrl,
-        initialIndex,
-        getPathname
-      ),
-    [items, setSearchParamsDebounced, setUserPaused, feedIdFromUrl, initialIndex, getPathname]
+      applyRangeChanged(range, items, setActiveIndex, setIsVideoPlayingInReel, setUserPaused),
+    [items, setUserPaused]
   );
 
   const handleAtBottom = useCallback(() => {
@@ -175,8 +119,6 @@ export function useFeedScrollContainer({
       createFeedCommentAndAppend(listingId, text, setCommentsByListingId),
     []
   );
-
-  const showReelsDebug = searchParams.get("reelsDebug") === "1";
 
   return {
     ref,
@@ -206,7 +148,6 @@ export function useFeedScrollContainer({
     handleMoreCopyLink,
     handleMoreSave,
     handleAddComment,
-    showReelsDebug,
     isVideoPlayingInReel,
   };
 }

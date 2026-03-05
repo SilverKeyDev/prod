@@ -79,8 +79,13 @@ export function DashboardContent({
     </div>
   );
 
+  // Key by pathname so content remounts when navigating (e.g. from search to saved), avoiding stale UI.
   return (
-    <div className={`dashboard-content max-md:pb-mobile-nav w-full ${wrapperClass}`} style={style}>
+    <div
+      key={route.pathname}
+      className={`dashboard-content max-md:pb-mobile-nav w-full ${wrapperClass}`}
+      style={style}
+    >
       {displayContent}
     </div>
   );

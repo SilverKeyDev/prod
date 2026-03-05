@@ -15,6 +15,8 @@ type EventListProps = {
   title?: string;
   emptyMessage?: string;
   onEventClick?: (event: ExtendedGoogleEvent) => void;
+  /** When true, render with View+map instead of FlatList so it can sit inside another VirtualizedList (e.g. list header). */
+  embedInListHeader?: boolean;
 };
 
 export function EventList({
@@ -22,6 +24,7 @@ export function EventList({
   title = "Upcoming Events",
   emptyMessage = "No upcoming events",
   onEventClick,
+  embedInListHeader = false,
 }: EventListProps) {
   const sortedEvents = useMemo(() => {
     return [...events].sort((a, b) => {
@@ -41,6 +44,15 @@ export function EventList({
       {sortedEvents.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>{emptyMessage}</Text>
+        </View>
+      ) : embedInListHeader ? (
+        <View style={styles.list}>
+          {sortedEvents.map((event, index) => (
+            <React.Fragment key={String(event.id ?? `event-${index}`)}>
+              {index > 0 ? <View style={styles.sep} /> : null}
+              <EventCard event={event} onClick={() => onEventClick?.(event)} />
+            </React.Fragment>
+          ))}
         </View>
       ) : (
         <FlatList

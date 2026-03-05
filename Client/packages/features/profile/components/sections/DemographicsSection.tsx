@@ -170,12 +170,6 @@ export default function DemographicsSection({
           ]}
         />
       </div>
-
-      {formData.is_agent === "yes" && (
-        <BodyText as="p" size="xs" className="mt-2 text-black/60 sm:text-sm md:text-base">
-          You only need to fill out the rest of this information for toying around or personal use.
-        </BodyText>
-      )}
     </>
   );
   return wrapInCard ? (

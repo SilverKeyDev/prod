@@ -5,7 +5,6 @@ import { dateNow } from "packages/utils/date";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
 import type { TodoPriority, TodoType } from "@/features/agent/types/agent";
-import DocuSignWidget from "@/features/dashboard/widgets/DocuSignWidget";
 import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";
 
 import TodoList from "./TodoList";
@@ -71,12 +70,7 @@ const TodayPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* DocuSign Widget - Only show for agents */}
-      {isAgent && (
-        <div>
-          <DocuSignWidget />
-        </div>
-      )}
+      {/* Agreement widgets have been disabled while the signing provider is migrated. */}
     </div>
   );
 };

@@ -1,11 +1,11 @@
-import { Video } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { Button, CancelButton, IconButton } from "packages/ui/components/index.web";
+import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import SearchFiltersDropdown from "./SearchFiltersDropdown.web";
-
 type SearchActionsProps = {
   /** Called when filters dropdown is closed and preferences were changed (e.g. trigger search) */
   onPreferencesChanged?: () => void | Promise<void>;
@@ -24,7 +24,6 @@ type SearchActionsProps = {
   /** Show Map button to switch back from reels - only in reels mode */
   showMapButton?: boolean;
 };
-
 export default function SearchActions({
   onPreferencesChanged,
   onSearchProperties,
@@ -40,7 +39,6 @@ export default function SearchActions({
   const { t } = useLocalization();
   const showReels = showReelsButton && onToggleMode != null;
   const showMap = showMapButton && onToggleMode != null;
-
   const handleSearchClick = () => {
     if (!hasLocations) {
       showErrorToast(t("search.add_location_to_search"));
@@ -48,12 +46,11 @@ export default function SearchActions({
     }
     onSearchProperties();
   };
-
-  const rowHeight = "h-11 min-h-11 max-h-11";
+  const btnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
   if (variant === "mobile") {
     return (
-      <div className={`flex w-full flex-shrink-0 items-center gap-2 ${rowHeight}`}>
-        <div className={`flex flex-1 shrink-0 items-center gap-2 ${rowHeight}`}>
+      <div className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <SearchFiltersDropdown onPreferencesChanged={onPreferencesChanged} variant="mobile" />
           <Button
             variant="tertiary"
@@ -63,7 +60,7 @@ export default function SearchActions({
             disabled={isSearching || !hasLocations}
             title={!hasLocations ? t("search.add_location_to_search") : undefined}
             iconName={!isSearching ? "search" : undefined}
-            className={`touch-friendly min-w-0 flex-1 shrink-0 ${rowHeight}`}
+            className={`touch-friendly min-w-0 flex-1 ${btnClass}`}
           >
             {isSearching ? t("search.searching") : t("search.search")}
           </Button>
@@ -71,7 +68,7 @@ export default function SearchActions({
             <CancelButton
               onClick={onCancelSearch}
               size="sm"
-              className={`touch-friendly shrink-0 ${rowHeight}`}
+              className={`touch-friendly ${btnClass}`}
             >
               {t("common.cancel")}
             </CancelButton>
@@ -81,12 +78,12 @@ export default function SearchActions({
           <IconButton
             variant="toolbar"
             size="sm"
-            icon={<Video className="h-5 w-5" />}
+            icon={<Icon name="video" className="h-5 w-5" />}
             onClick={() => {
               onBeforeSwitchToReels?.();
               onToggleMode();
             }}
-            className={`touch-friendly w-11 shrink-0 ${rowHeight}`}
+            className={`touch-friendly w-11 ${btnClass}`}
             label={t("search.reels")}
           />
         )}
@@ -96,7 +93,7 @@ export default function SearchActions({
             size="sm"
             iconName="map"
             onClick={onToggleMode}
-            className={`touch-friendly shrink-0 ${rowHeight}`}
+            className={`touch-friendly ${btnClass}`}
           >
             {t("search.map")}
           </Button>
@@ -104,42 +101,39 @@ export default function SearchActions({
       </div>
     );
   }
-
   return (
-    <div className="flex h-11 flex-shrink-0 flex-wrap items-center gap-3">
+    <div className={`flex flex-shrink-0 flex-nowrap items-center gap-3 ${HEADER_ROW_HEIGHT}`}>
       <SearchFiltersDropdown onPreferencesChanged={onPreferencesChanged} variant="desktop" />
-      <div className="flex h-11 items-center gap-2">
-        <Button
-          variant="tertiary"
+      <Button
+        variant="tertiary"
+        size="sm"
+        loading={isSearching}
+        onClick={handleSearchClick}
+        disabled={isSearching || !hasLocations}
+        title={!hasLocations ? t("search.add_location_to_search") : undefined}
+        iconName={!isSearching ? "search" : undefined}
+        className={btnClass}
+      >
+        {isSearching ? t("search.searching") : t("search.search")}
+      </Button>
+      {isSearching && onCancelSearch && (
+        <CancelButton onClick={onCancelSearch} size="sm" className={btnClass}>
+          {t("common.cancel")}
+        </CancelButton>
+      )}
+      {showReels && (
+        <IconButton
+          variant="toolbar"
           size="sm"
-          loading={isSearching}
-          onClick={handleSearchClick}
-          disabled={isSearching || !hasLocations}
-          title={!hasLocations ? t("search.add_location_to_search") : undefined}
-          iconName={!isSearching ? "search" : undefined}
-          className="h-11 shrink-0"
-        >
-          {isSearching ? t("search.searching") : t("search.search")}
-        </Button>
-        {isSearching && onCancelSearch && (
-          <CancelButton onClick={onCancelSearch} size="sm" className="h-11 shrink-0">
-            {t("common.cancel")}
-          </CancelButton>
-        )}
-        {showReels && (
-          <IconButton
-            variant="toolbar"
-            size="sm"
-            icon={<Video className="h-8 w-8" />}
-            onClick={() => {
-              onBeforeSwitchToReels?.();
-              onToggleMode();
-            }}
-            className="ml-2 mr-2 h-11 w-11 shrink-0"
-            label={t("search.reels")}
-          />
-        )}
-      </div>
+          icon={<Icon name="video" className="h-8 w-8" />}
+          onClick={() => {
+            onBeforeSwitchToReels?.();
+            onToggleMode();
+          }}
+          className={`ml-2 mr-2 w-11 ${btnClass}`}
+          label={t("search.reels")}
+        />
+      )}
     </div>
   );
 }

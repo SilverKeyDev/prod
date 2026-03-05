@@ -1,9 +1,8 @@
 import React, { forwardRef } from "react";
 
-import { X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import Button, { ButtonProps } from "./Button";
-
 export type CancelButtonProps = Omit<ButtonProps, "variant"> & {
   /**
    * Variant for cancel button. Defaults to "cancel" (gray preset matching settings).
@@ -11,7 +10,6 @@ export type CancelButtonProps = Omit<ButtonProps, "variant"> & {
    */
   variant?: "cancel" | "outline" | "ghost";
 };
-
 /**
  * Standardized Cancel Button component.
  *
@@ -24,13 +22,11 @@ export type CancelButtonProps = Omit<ButtonProps, "variant"> & {
 const CancelButton = forwardRef<HTMLButtonElement, CancelButtonProps>(
   ({ variant = "cancel", size = "md", children = "Cancel", icon, ...props }, ref) => {
     return (
-      <Button ref={ref} variant={variant} size={size} icon={icon ?? <X />} {...props}>
+      <Button ref={ref} variant={variant} size={size} icon={icon ?? <Icon name="x" />} {...props}>
         {children}
       </Button>
     );
   }
 );
-
 CancelButton.displayName = "CancelButton";
-
 export default CancelButton;

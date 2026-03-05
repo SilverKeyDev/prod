@@ -1,4 +1,6 @@
 export * from "./feedAnalyticsQueue";
+export * from "./feedCommentPool";
+export * from "./feedDisplayStats";
 export * from "./listingToReelMedia";
 export * from "./mediaCarouselConstants";
 export * from "./mediaState";

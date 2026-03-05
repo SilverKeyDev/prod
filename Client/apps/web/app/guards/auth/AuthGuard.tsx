@@ -3,26 +3,22 @@
  * Shows UI based on auth status - NEVER redirects
  * All redirects are owned by ProtectedRoute or LoginPage
  */
-
 import { type ReactNode } from "react";
 
-import { Loader2, Lock, LogIn } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import Button from "packages/ui/components/button/Button";
 import { BodyText, Title } from "packages/ui/components/index.web";
 
 import Card from "@/components/layout/Card.web";
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
-
 type AuthGuardProps = {
   children: ReactNode;
   redirectTo?: string;
   fallback?: ReactNode;
   requireAuth?: boolean;
 };
-
 export type { AuthGuardProps };
-
 export function AuthGuard({
   children,
   redirectTo = "/login",
@@ -30,7 +26,6 @@ export function AuthGuard({
   requireAuth = true,
 }: AuthGuardProps) {
   const { authStatus } = useAuthStoreIntegration();
-
   // Show loading state while checking
   if (authStatus === "checking") {
     return (
@@ -38,7 +33,10 @@ export function AuthGuard({
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
           <Card className="w-full max-w-sm" padding="lg">
             <div className="text-center">
-              <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-brand-accent" />
+              <Icon
+                name="loader-2"
+                className="mx-auto mb-4 h-8 w-8 animate-spin text-brand-accent"
+              />
               <BodyText size="sm" muted>
                 Checking authentication...
               </BodyText>
@@ -48,7 +46,6 @@ export function AuthGuard({
       )
     );
   }
-
   // If authentication is required but user is not authenticated
   // Show inline prompt - do NOT redirect (that's ProtectedRoute's job)
   if (requireAuth && authStatus === "unauthenticated") {
@@ -59,7 +56,7 @@ export function AuthGuard({
             <div className="text-center">
               <div className="mb-4 flex justify-center">
                 <div className="rounded-full bg-brand-accent/10 p-3">
-                  <Lock className="h-8 w-8 text-brand-accent" />
+                  <Icon name="lock" className="h-8 w-8 text-brand-accent" />
                 </div>
               </div>
 
@@ -74,7 +71,7 @@ export function AuthGuard({
               <Button
                 variant="primary"
                 onClick={() => (window.location.href = redirectTo)}
-                icon={<LogIn className="h-4 w-4" />}
+                icon={<Icon name="log-in" className="h-4 w-4" />}
                 className="w-full"
               >
                 Sign In
@@ -85,9 +82,7 @@ export function AuthGuard({
       )
     );
   }
-
   // User is authenticated or authentication is not required
   return <>{children}</>;
 }
-
 export default AuthGuard;

@@ -1,27 +1,27 @@
 import { useMemo } from "react";
 
-import { FileText, Users } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { BodyText, Button, Title } from "packages/ui/components/index.web";
 
-import type { Agreement } from "@/features/documents/types/docusign";
-import {
-  calculateSigningProgress,
-  formatAgreementDate,
-  getAgreementTypeLabel,
-} from "@/features/documents/utils/docusignHelpers";
-
 import AgreementStatusBadge from "./AgreementStatusBadge";
-
 type AgreementCardProps = {
-  agreement: Agreement;
+  agreement: {
+    id: string;
+    title: string;
+    status: string;
+    agreement_type: string;
+    property_address?: string | null;
+    created_at: string;
+    sent_at?: string | null;
+    participants?: { id: string; user_id?: string | null; status?: string | null }[];
+  };
   onClick?: () => void;
   onActionClick?: (action: "view" | "send" | "sign" | "void") => void;
   showActions?: boolean;
   compact?: boolean;
   className?: string;
 };
-
 /**
  * AgreementCard Component
  *
@@ -36,31 +36,32 @@ export default function AgreementCard({
   compact = false,
   className = "",
 }: AgreementCardProps) {
-  const signingProgress = useMemo(
-    () => calculateSigningProgress(agreement.participants),
-    [agreement.participants]
-  );
-
+  const signingProgress = useMemo(() => {
+    const participants = agreement.participants ?? [];
+    if (participants.length === 0) {
+      return { signed: 0, total: 0, percentage: 0 };
+    }
+    const signed = participants.filter((p) => p.status === "signed").length;
+    const total = participants.length;
+    const percentage = Math.round((signed / total) * 100);
+    return { signed, total, percentage };
+  }, [agreement.participants]);
   const handleCardClick = () => {
     if (onClick) {
       onClick();
     }
   };
-
   const handleActionClick = (action: "view" | "send" | "sign" | "void", e: React.MouseEvent) => {
     e.stopPropagation();
     if (onActionClick) {
       onActionClick(action);
     }
   };
-
   return (
     <div
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={`rounded-lg border border-gray-200 bg-white transition-colors hover:border-gray-300 ${
-        onClick ? "cursor-pointer" : ""
-      } ${className}`}
+      className={`rounded-lg border border-gray-200 bg-white transition-colors hover:border-gray-300 ${onClick ? "cursor-pointer" : ""} ${className}`}
       onClick={handleCardClick}
       onKeyDown={
         onClick
@@ -78,7 +79,7 @@ export default function AgreementCard({
         <div className="mb-2 flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-start gap-2">
             <div className="mt-1 flex-shrink-0">
-              <FileText className="h-5 w-5 text-gray-600" />
+              <Icon name="file-text" className="h-5 w-5 text-gray-600" />
             </div>
             <div className="min-w-0 flex-1">
               <Title size="sm" className="truncate">
@@ -116,7 +117,7 @@ export default function AgreementCard({
           <div className="mt-3">
             <div className="mb-1 flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                <Users className="h-3.5 w-3.5" />
+                <Icon name="users" className="h-3.5 w-3.5" />
                 <BodyText as="span" size="xs" className="text-gray-600">
                   {signingProgress.signed}/{signingProgress.total} signed
                 </BodyText>

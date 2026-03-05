@@ -1,4 +1,4 @@
-import { Bath, Bed, MapPin, Square, User } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import {
   formatAgentName,
@@ -8,7 +8,6 @@ import {
 import { Image } from "packages/ui/components/primitives/media";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
-
 export type CompData = {
   address: {
     city: string;
@@ -29,7 +28,9 @@ export type CompData = {
   lotAreaValue?: number;
   lotAreaUnits?: string;
   lotSize?: number;
-  miniCardPhotos?: Array<{ url: string }>;
+  miniCardPhotos?: Array<{
+    url: string;
+  }>;
   parentRegion?: {
     name: string;
   };
@@ -41,26 +42,20 @@ export type CompData = {
     trueStatus?: string;
   };
 };
-
 type CompCardProps = {
   comp: CompData;
   className?: string;
 };
-
 export default function CompCard({ comp, className = "" }: CompCardProps) {
   const imageUrl = comp.miniCardPhotos?.[0]?.url ?? "/defaut-home.jpg";
-
   // Format lot size for display
   // Try lotAreaValue first, then fall back to lotSize
   const rawLotSize = comp.lotAreaValue ?? comp.lotSize;
   const lotSizeDisplay = (() => {
     if (!rawLotSize) return null;
-
     // Ensure we have a number
     const lotSizeValue = typeof rawLotSize === "string" ? parseFloat(rawLotSize) : rawLotSize;
-
     if (isNaN(lotSizeValue) || lotSizeValue <= 0) return null;
-
     // Check if we need to convert from acres to square feet
     const unit = comp.lotAreaUnits?.toLowerCase();
     if (unit?.includes("acre")) {
@@ -68,11 +63,9 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
       const sqft = lotSizeValue * 43560;
       return formatLotSize(sqft);
     }
-
     // Otherwise, format as-is (assumed to be in square feet)
     return formatLotSize(lotSizeValue);
   })();
-
   return (
     <div
       className={`flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}
@@ -99,7 +92,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         {/* Address */}
         <div className="mb-3 text-left">
           <div className="mb-1 flex items-center gap-1">
-            <MapPin className="h-3 w-3 flex-shrink-0 text-gray-400" />
+            <Icon name="map-pin" className="h-3 w-3 flex-shrink-0 text-gray-400" />
             <Title as="h3" size="sm" className="truncate font-medium text-black sm:text-base">
               {comp.address.streetAddress}
             </Title>
@@ -114,7 +107,10 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {comp.bedrooms > 0 && (
               <div className="flex items-center gap-1">
-                <Bed className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3" />
+                <Icon
+                  name="bed"
+                  className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3"
+                />
                 <BodyText as="span" size="xs" className="text-gray-500 sm:text-sm">
                   {comp.bedrooms} bed{comp.bedrooms !== 1 ? "s" : ""}
                 </BodyText>
@@ -122,7 +118,10 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
             )}
             {comp.bathrooms > 0 && (
               <div className="flex items-center gap-1">
-                <Bath className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3" />
+                <Icon
+                  name="bath"
+                  className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3"
+                />
                 <BodyText as="span" size="xs" className="text-gray-500 sm:text-sm">
                   {comp.bathrooms} bath{comp.bathrooms !== 1 ? "s" : ""}
                 </BodyText>
@@ -130,14 +129,20 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
             )}
             {comp.livingArea > 0 ? (
               <div className="flex items-center gap-1">
-                <Square className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3" />
+                <Icon
+                  name="square"
+                  className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3"
+                />
                 <BodyText as="span" size="xs" className="text-gray-500 sm:text-sm">
                   {Math.round(comp.livingArea).toLocaleString()} sqft
                 </BodyText>
               </div>
             ) : (
               <div className="flex items-center gap-1">
-                <Square className="h-2.5 w-2.5 flex-shrink-0 text-transparent sm:h-3 sm:w-3" />
+                <Icon
+                  name="square"
+                  className="h-2.5 w-2.5 flex-shrink-0 text-transparent sm:h-3 sm:w-3"
+                />
                 <BodyText as="span" size="xs" className="text-transparent sm:text-sm">
                   {" ".repeat(8)}sqft
                 </BodyText>
@@ -150,14 +155,20 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         <div className="mb-3 flex items-center gap-1 text-left">
           {lotSizeDisplay ? (
             <>
-              <MapPin className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3" />
+              <Icon
+                name="map-pin"
+                className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3"
+              />
               <BodyText as="span" size="xs" className="text-gray-500 sm:text-sm">
                 Lot: {lotSizeDisplay}
               </BodyText>
             </>
           ) : (
             <>
-              <MapPin className="h-2.5 w-2.5 flex-shrink-0 text-transparent sm:h-3 sm:w-3" />
+              <Icon
+                name="map-pin"
+                className="h-2.5 w-2.5 flex-shrink-0 text-transparent sm:h-3 sm:w-3"
+              />
               <BodyText as="span" size="xs" className="text-transparent sm:text-sm">
                 Lot: {" ".repeat(6)}
               </BodyText>
@@ -168,7 +179,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         {/* Agent and Brokerage Info */}
         <div className="mt-auto space-y-2 text-left">
           <div className="flex items-center gap-1">
-            <User className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3" />
+            <Icon name="user" className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3" />
             <BodyText as="span" size="xs" className="text-gray-500 sm:text-sm">
               Agent:{" "}
               {comp.attributionInfo?.agentName

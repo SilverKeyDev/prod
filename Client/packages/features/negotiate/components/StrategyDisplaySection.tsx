@@ -1,18 +1,16 @@
 import React from "react";
 
-import { Share } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { BodyText, Button, MiniLogo } from "packages/ui/components";
 
 import SectionBox from "./SectionBox";
 import { formatStrategyValue } from "./StrategyFieldFormatter";
-
 type StrategyDisplaySectionProps = {
   strategyData: unknown;
   onShareJson: () => void;
 };
-
 export function StrategyDisplaySection({
   strategyData,
   onShareJson,
@@ -21,7 +19,6 @@ export function StrategyDisplaySection({
   if (!strategyData) {
     return null;
   }
-
   // Handle nested data structure - check if data is under a 'data' property
   const actualData =
     strategyData && typeof strategyData === "object" && !Array.isArray(strategyData)
@@ -30,18 +27,15 @@ export function StrategyDisplaySection({
         ? ((strategyData as Record<string, unknown>).data as Record<string, unknown>)
         : (strategyData as Record<string, unknown>)
       : null;
-
   if (!actualData) {
     return null;
   }
-
   // Sort entries - price_section first
   const sortedEntries = Object.entries(actualData).sort(([keyA], [keyB]) => {
     if (keyA === "price_section") return -1;
     if (keyB === "price_section") return 1;
     return 0;
   });
-
   return (
     <div className="space-y-responsive-md">
       {sortedEntries.map(([key, value], index) => {
@@ -49,7 +43,6 @@ export function StrategyDisplaySection({
         if (!value || (typeof value === "string" && value.trim() === "")) {
           return null;
         }
-
         // Skip metadata fields that shouldn't be displayed
         const metadataFields = [
           "section",
@@ -62,7 +55,6 @@ export function StrategyDisplaySection({
         if (metadataFields.includes(key.toLowerCase())) {
           return null;
         }
-
         // Skip opening_offer from price_section since it's displayed above
         let processedValue = value;
         if (key === "price_section" && typeof value === "object" && value !== null) {
@@ -73,9 +65,7 @@ export function StrategyDisplaySection({
             processedValue = priceSectionWithoutOffer;
           }
         }
-
         const formattedValue = formatStrategyValue(processedValue, t);
-
         return (
           <SectionBox key={key}>
             {/* Add share button to the first card */}
@@ -89,7 +79,7 @@ export function StrategyDisplaySection({
                     variant="primary"
                     size="sm"
                     onClick={onShareJson}
-                    icon={<Share className="mobile-icon-xs" />}
+                    icon={<Icon name="share" className="mobile-icon-xs" />}
                     label={t("negotiate.strategy.share")}
                   >
                     {t("negotiate.strategy.share")}

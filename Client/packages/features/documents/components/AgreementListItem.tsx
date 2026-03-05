@@ -1,26 +1,24 @@
-import { Eye, FileText, Send, XCircle } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useAuthStore } from "packages/store";
 import { BodyText, IconButton, Title } from "packages/ui/components/index.web";
 
-import type { Agreement } from "@/features/documents/types/docusign";
+import type { Agreement } from "@/features/documents/types/agreements";
 import {
   calculateSigningProgress,
   canUserSend,
   canUserVoid,
   formatAgreementDate,
   getAgreementTypeLabel,
-} from "@/features/documents/utils/docusignHelpers";
+} from "@/features/documents/utils/agreements";
 
 import AgreementStatusBadge from "./AgreementStatusBadge";
-
 type AgreementListItemProps = {
   agreement: Agreement;
   onClick: () => void;
   onSend?: (agreementId: string) => void;
   onVoid?: (agreementId: string) => void;
 };
-
 /**
  * AgreementListItem Component
  *
@@ -35,16 +33,13 @@ export default function AgreementListItem({
 }: AgreementListItemProps) {
   const user = useAuthStore((s) => s.user);
   const isAgent = user?.user_type === "agent";
-
   const signingProgress = calculateSigningProgress(agreement.participants);
   const canSend = canUserSend(agreement, user?.id ?? "", isAgent);
   const canVoid = canUserVoid(agreement, user?.id ?? "", isAgent);
-
   const handleActionClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
     action();
   };
-
   return (
     <div
       role="button"
@@ -62,7 +57,7 @@ export default function AgreementListItem({
         {/* Icon */}
         <div className="mt-1 flex-shrink-0">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-            <FileText className="h-5 w-5 text-blue-600" />
+            <Icon name="file-text" className="h-5 w-5 text-blue-600" />
           </div>
         </div>
 
@@ -129,7 +124,7 @@ export default function AgreementListItem({
             onClick={(e) => handleActionClick(e, onClick)}
             title="View Details"
           >
-            <Eye className="h-4 w-4" />
+            <Icon name="eye" className="h-4 w-4" />
           </IconButton>
           {canSend && onSend && (
             <IconButton
@@ -138,7 +133,7 @@ export default function AgreementListItem({
               onClick={(e) => handleActionClick(e, () => onSend(agreement.id))}
               title="Send for Signature"
             >
-              <Send className="h-4 w-4" />
+              <Icon name="send" className="h-4 w-4" />
             </IconButton>
           )}
           {canVoid && onVoid && (
@@ -148,7 +143,7 @@ export default function AgreementListItem({
               onClick={(e) => handleActionClick(e, () => onVoid(agreement.id))}
               title="Void Agreement"
             >
-              <XCircle className="h-4 w-4" />
+              <Icon name="x-circle" className="h-4 w-4" />
             </IconButton>
           )}
         </div>

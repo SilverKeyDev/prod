@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 
-import { Check } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import Dropdown from "packages/ui/components/form/Dropdown";
 import { BodyText, Button, CancelButton, Input, Title } from "packages/ui/components/index.web";
@@ -8,7 +8,6 @@ import { dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
 import type { TodoItem, TodoPriority, TodoType } from "@/features/agent/types/agent";
-
 type TodoListProps = {
   todos: TodoItem[];
   onToggleComplete: (id: string) => void;
@@ -16,14 +15,12 @@ type TodoListProps = {
   onUpdatePriority?: (id: string, priority: TodoPriority) => void;
   canEdit?: boolean;
 };
-
 const priorityOrder: Record<TodoPriority, number> = {
   urgent: 4,
   high: 3,
   medium: 2,
   low: 1,
 };
-
 const TodoList: React.FC<TodoListProps> = ({
   todos,
   onToggleComplete,
@@ -34,14 +31,12 @@ const TodoList: React.FC<TodoListProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [selectedPriority, setSelectedPriority] = useState<TodoPriority>("medium");
-
   const sortedTodos = useMemo(() => {
     const incomplete = todos.filter((todo) => !todo.completed);
     return [...incomplete].sort((a, b) => {
       return priorityOrder[b.priority] - priorityOrder[a.priority];
     });
   }, [todos]);
-
   const handleAddTodo = () => {
     if (newTodoTitle.trim()) {
       onAddTodo(newTodoTitle.trim(), selectedPriority, "manual");
@@ -50,14 +45,12 @@ const TodoList: React.FC<TodoListProps> = ({
       setShowAddForm(false);
     }
   };
-
   const priorityColors: Record<TodoPriority, string> = {
     low: "text-neutral-600",
     medium: "text-gold",
     high: "text-olive",
     urgent: "text-rose-600",
   };
-
   return (
     <Card className="h-full">
       <div className="mb-4 flex items-center justify-between">
@@ -93,7 +86,7 @@ const TodoList: React.FC<TodoListProps> = ({
                       : "border-beige/50"
                 }`}
               >
-                {todo.completed && <Check className="h-3 w-3 sm:h-4 sm:w-4" />}
+                {todo.completed && <Icon name="check" className="h-3 w-3 sm:h-4 sm:w-4" />}
               </Button>
               <div className="min-w-0 flex-1">
                 <BodyText
@@ -207,5 +200,4 @@ const TodoList: React.FC<TodoListProps> = ({
     </Card>
   );
 };
-
 export default TodoList;

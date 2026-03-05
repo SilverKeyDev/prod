@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { CalendarConnectionPrompt } from "packages/features/calendar";
 import { useGoogleCalendarStoreIntegration } from "packages/hooks/store/useGoogleCalendarStoreIntegration";
 import { type UIState, useUIStore } from "packages/store";
 import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
 import { getDocument, getWindow } from "packages/utils/platform";
 
-import { CalendarConnectionPrompt } from "./components/CalendarConnectionPrompt";
 import { CalendarHeader } from "./components/CalendarHeader";
 import { CalendarView } from "./components/CalendarView";
 import { EventList } from "./components/EventList";

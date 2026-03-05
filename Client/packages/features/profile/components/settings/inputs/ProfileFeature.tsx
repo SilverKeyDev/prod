@@ -15,7 +15,7 @@ import {
 import { SettingsCommunicationSection } from "packages/features/profile/components/sections/SettingsCommunicationSection";
 import { SettingsFinancialSection } from "packages/features/profile/components/sections/SettingsFinancialSection";
 import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
-import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useResponsive } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -33,6 +33,7 @@ import {
   handleSubmit as handleSubmitUtil,
   type HomePriceResult,
   type OnboardingData,
+  userPreferencesToOnboardingData,
   validateSettingsData,
 } from "@/features/profile/utils";
 
@@ -45,6 +46,7 @@ type ProfileFeatureProps = {
 const STEPS = getPersonalizationStepsUi();
 
 export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatureProps) {
+  const { userProfile } = useUserData();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
   const [formData, setFormData] = useState<OnboardingData>({});
@@ -124,15 +126,19 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
       setIsLoading(true);
 
       if (userPreferences) {
-        setFormData(userPreferences as OnboardingData);
-        setOriginalData(userPreferences as OnboardingData);
+        const normalized = userPreferencesToOnboardingData(
+          userPreferences as Record<string, unknown>,
+          userProfile ?? undefined
+        );
+        setFormData(normalized);
+        setOriginalData(normalized);
       }
     } catch (error: unknown) {
       log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
     } finally {
       setIsLoading(false);
     }
-  }, [userPreferences]);
+  }, [userPreferences, userProfile]);
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {

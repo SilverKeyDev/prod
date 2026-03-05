@@ -148,18 +148,20 @@ export default function AgentMessaging({
         />
         <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="hidden flex-shrink-0 md:block">
-              <UnifiedMessagingHeader
-                mode={getHeaderMode()}
-                isSidebarExpanded={isSidebarExpanded}
-                setIsSidebarExpanded={setIsSidebarExpanded}
-                chatTitle={
-                  selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle
-                }
-                selectedClientName={selectedClient?.name}
-                onSearchClick={() => setShowSearchModal(true)}
-              />
-            </div>
+            {!showInbox && (
+              <div className="hidden flex-shrink-0 md:block">
+                <UnifiedMessagingHeader
+                  mode={getHeaderMode()}
+                  isSidebarExpanded={isSidebarExpanded}
+                  setIsSidebarExpanded={setIsSidebarExpanded}
+                  chatTitle={
+                    selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle
+                  }
+                  selectedClientName={selectedClient?.name}
+                  onSearchClick={() => setShowSearchModal(true)}
+                />
+              </div>
+            )}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <Region
                 label="Message list"

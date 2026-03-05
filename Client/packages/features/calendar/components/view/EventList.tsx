@@ -11,6 +11,8 @@ type EventListProps = {
   title?: string;
   emptyMessage?: string;
   onEventClick?: (event: ExtendedGoogleEvent) => void;
+  /** Native only: render without FlatList when inside another VirtualizedList. Ignored on web. */
+  embedInListHeader?: boolean;
 };
 
 export function EventList({

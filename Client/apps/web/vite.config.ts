@@ -1,11 +1,9 @@
 import { defineConfig, loadEnv, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-
 const root = path.resolve(__dirname, "../..");
 const packages = path.join(root, "packages");
 const uiComponents = path.join(packages, "ui/components");
-
 export default defineConfig(({ mode }) => {
   // .env is NOT loaded into process.env before config runs; load it so define has correct values
   const env = loadEnv(mode, root, "");
@@ -196,10 +194,6 @@ export default defineConfig(({ mode }) => {
         {
           find: "@/features/agent/modals",
           replacement: path.join(packages, "features/agent/components/modals"),
-        },
-        {
-          find: "@/features/documents/docusign/components",
-          replacement: path.join(packages, "features/documents/components"),
         },
         {
           find: "@/features/documents/data",

@@ -94,7 +94,7 @@ export function DashboardScreenNative() {
         <Box className="gap-2">
           <Text className="text-lg font-medium text-gray-800">Upcoming</Text>
           <Text className="text-sm text-gray-600">
-            Connect your calendar on web to see upcoming events here.
+            Connect your calendar to see upcoming events.
           </Text>
         </Box>
         {/* More mobile-optimized content */}

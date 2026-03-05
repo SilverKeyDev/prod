@@ -1,11 +1,69 @@
 /** Saved feature translation strings (saved, why_not, modals.not_interested, modals.share_home). */
 export const SAVED_TRANSLATIONS: Record<string, string> = {
+  // Saved tab labels and loading states
   "saved.tab_homes": "Homes",
   "saved.tab_documents": "Documents",
   "saved.loading_documents": "Loading documents...",
   "saved.no_documents_yet": "You have no documents or agreements yet.",
   "saved.loading_homes": "Loading saved homes...",
   "saved.no_homes_yet": "You have no saved homes yet.",
+
+  // Saved list toolbar, filters, and counts
+  "saved.search_homes_placeholder": "Search saved homes…",
+  "saved.search_documents_placeholder": "Search documents…",
+  "saved.homes_count": "{{count}} saved",
+  "saved.documents_count": "{{count}} documents",
+  "saved.filter_all_events": "All activity",
+  "saved.filter_listed": "Listed",
+  "saved.filter_price_change": "Price changes",
+  "saved.filter_sold": "Sold",
+  "saved.filter_withdrawn": "Withdrawn",
+  "saved.select_client_button": "Select client",
+  "saved.select_client_modal_title": "Select client",
+
+  // Saved homes list items and comparison
+  "saved.address_fallback": "Unknown address",
+  "saved.price_fallback": "Price not available",
+  "saved.bedrooms_label": "{{count}} bed",
+  "saved.bathrooms_label": "{{count}} bath",
+  "saved.sqft_label": "{{value}} sqft",
+  "saved.view_details_button": "View details",
+  "saved.unknown_address": "Address unknown",
+  "saved.selected_for_comparison": "Selected for comparison",
+  "saved.add_to_compare": "Add to compare",
+  "saved.remove_from_compare": "Remove from compare",
+  "saved.unlock_home": "Unlock",
+  "saved.negotiate": "Negotiate",
+  "saved.compare_bar_title": "Compare selected homes",
+  "saved.compare_bar_subtitle": "{{count}} selected",
+  "saved.compare_now": "Compare now",
+  "saved.clear_selection": "Clear",
+  "saved.compare_modal_title": "Compare homes",
+  "saved.compare_modal_empty": "Select at least two homes to compare.",
+
+  // Saved documents and agreements
+  "saved.view_document": "View",
+  "saved.download_document": "Download",
+  "saved.share_document": "Share",
+  "saved.delete_document": "Delete",
+  "saved.agreement_status": "Status: {{status}}",
+  "saved.view_agreement": "Details",
+  "saved.send_agreement": "Send",
+  "saved.void_agreement": "Void",
+  "saved.create_agreement": "Create agreement",
+  "saved.upload_document": "Upload document",
+
+  // Negotiation flows
+  "saved.negotiate_modal_title": "Negotiate",
+  "saved.negotiate_modal_body":
+    "Start the conversation with your agent from Messaging to discuss this home.",
+  "saved.negotiate_modal_empty": "Select a home to start negotiation.",
+  "saved.price_label_with_value": "Price: {{price}}",
+
+  // Client hub empty / error states
+  "saved.error_generic":
+    "We couldn't load saved homes. Pull to refresh to try again.",
+  "saved.client_empty": "No liked homes for this client yet.",
 
   "why_not.reason": "Reason",
   "why_not.other": "Other",

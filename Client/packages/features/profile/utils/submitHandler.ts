@@ -1,6 +1,7 @@
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
+import { formDataToPreferencesPayload } from "./profileFormSync";
 import type { OnboardingData } from "./types";
 import { validateOnboardingData, type ValidationResult } from "./validation";
 
@@ -67,7 +68,8 @@ export const handleSubmit = async ({
 
   setLoading(true);
   try {
-    const result = await submitPreferences(formData);
+    const payload = formDataToPreferencesPayload(formData);
+    const result = await submitPreferences(payload as OnboardingData);
     log.info(LOG_CATEGORIES.API, "Preferences submitted successfully", {
       success: result.success,
     });

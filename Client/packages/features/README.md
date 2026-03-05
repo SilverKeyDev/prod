@@ -18,7 +18,7 @@ packages/features/
 ├── search/         # Filters, list, map
 ├── agent/          # Agent dashboard, messaging, settings
 ├── profile/        # User profile, preferences, settings
-├── documents/      # Document management, DocuSign integration
+├── documents/      # Document and agreement management (provider-agnostic)
 ├── negotiate/      # Negotiation strategies and tools
 └── ...
 ```

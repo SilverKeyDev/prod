@@ -166,8 +166,8 @@ export const validateOnboardingData = (formData: OnboardingData): ValidationResu
 };
 
 /**
- * Validation function for mobile onboarding (no financial step)
- * Uses REQUIRED_FIELDS_ONBOARDING_MOBILE
+ * Validation function for mobile onboarding
+ * Uses REQUIRED_FIELDS_ONBOARDING_MOBILE (can diverge from web if needed)
  */
 export const validateOnboardingDataMobile = (formData: OnboardingData): ValidationResult => {
   return validateFormData(formData, REQUIRED_FIELDS_ONBOARDING_MOBILE);

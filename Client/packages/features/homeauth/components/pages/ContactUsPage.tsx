@@ -1,4 +1,4 @@
-import { Mail, Phone } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import StaticPageLayout, {
   EmailLink,
@@ -6,7 +6,6 @@ import StaticPageLayout, {
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout";
 import { BodyText, Title } from "packages/ui/components/index.web";
-
 export default function ContactUs() {
   return (
     <StaticPageLayout title="Contact Us" subtitle="Last updated: 8/27/2025" centered={true}>
@@ -20,7 +19,7 @@ export default function ContactUs() {
       <Section title="Contact Information">
         <div className="gap-responsive-md grid grid-cols-1 md:grid-cols-2">
           <div className="gap-responsive-sm flex items-start">
-            <Mail className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
+            <Icon name="mail" className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
             <div>
               <Title size="md" as="h3" className="space-y-responsive-xs">
                 Email
@@ -32,7 +31,7 @@ export default function ContactUs() {
           </div>
 
           <div className="gap-responsive-sm flex items-start">
-            <Phone className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
+            <Icon name="phone" className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
             <div>
               <Title size="md" as="h3" className="space-y-responsive-xs">
                 Phone

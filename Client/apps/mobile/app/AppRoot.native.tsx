@@ -4,9 +4,10 @@ import { CommonActions } from "@react-navigation/native";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { color } from "packages/design-tokens";
 
 import { runPlatformBootstrap } from "@/bootstrap/platformBootstrap.native";
 
@@ -112,7 +113,7 @@ export function AppRoot() {
   if (!bootstrapped) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#A3B18A" />
+        <ActivityIndicator size="large" color={color("brand.accent")} />
         <Text style={styles.loadingLabel}>Loading…</Text>
         <StatusBar style="auto" />
       </View>
@@ -131,9 +132,11 @@ export function AppRoot() {
     <View style={styles.root}>
       <ErrorBoundaryNative onGoHome={onGoHome} onError={onRootError}>
         <SafeAreaProvider style={styles.flex1}>
-          <KeyboardProviderRefSafe keyboardProvider={keyboardProvider}>
-            <CoreProvidersNative onGoHome={onGoHome}>{appContent}</CoreProvidersNative>
-          </KeyboardProviderRefSafe>
+          <SafeAreaView style={styles.flex1} edges={["top"]}>
+            <KeyboardProviderRefSafe keyboardProvider={keyboardProvider}>
+              <CoreProvidersNative onGoHome={onGoHome}>{appContent}</CoreProvidersNative>
+            </KeyboardProviderRefSafe>
+          </SafeAreaView>
         </SafeAreaProvider>
       </ErrorBoundaryNative>
     </View>
@@ -143,6 +146,7 @@ export function AppRoot() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: color("neutral.50"),
   },
   flex1: {
     flex: 1,
@@ -151,12 +155,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f0",
+    backgroundColor: color("neutral.50"),
   },
   loadingLabel: {
     marginTop: 12,
     fontSize: 14,
-    color: "#666",
+    color: color("neutral.600"),
   },
   keyboardProviderWrapper: {
     flex: 1,

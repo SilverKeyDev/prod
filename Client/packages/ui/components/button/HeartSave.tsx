@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Heart, Sparkles } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
@@ -13,13 +13,11 @@ import {
   OVERLAY_MARKER_CIRCLE_CLASSES,
   OVERLAY_MARKER_ICON_CLASSES,
 } from "./overlayMarkerButtonTypes";
-
 /** Minimal property shape for presentational heart (no feature dependency). */
 export type CardHeartSavePropertyLike = {
   id: string;
   address?: string;
 };
-
 /** Props for presentational heart when parent provides save state. Use ConnectedCardHeartSave from features/search for connected behavior. */
 export type CardHeartSaveWithPropsProps = {
   property: CardHeartSavePropertyLike;
@@ -31,28 +29,24 @@ export type CardHeartSaveWithPropsProps = {
   className?: string;
   ariaLabel?: string;
 };
-
 /** Maps small/medium/large to legacy sizes for card overlay */
 const TOOLBAR_TO_LEGACY: Record<"small" | "medium" | "large", "xs" | "sm" | "md" | "lg"> = {
   small: "sm",
   medium: "md",
   large: "lg",
 };
-
 const ICON_SIZE_FALLBACK: Record<"xs" | "sm" | "md" | "lg", string> = {
   xs: "w-3.5 h-3.5",
   sm: "w-4 h-4",
   md: "w-5 h-5",
   lg: "w-6 h-6",
 };
-
 const POSITION_MAP: Record<NonNullable<CardHeartSaveWithPropsProps["position"]>, string> = {
   "top-left": "top-2 left-2",
   "top-right": "top-2 right-2",
   "bottom-left": "bottom-2 left-2",
   "bottom-right": "bottom-2 right-2",
 };
-
 /**
  * Presentational heart that does not use useSavedHomesData. Use when the parent
  * provides isSaved and save/remove callbacks (e.g. map card) to avoid rerenders
@@ -70,7 +64,6 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
 }) => {
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const propertyAddress = typeof property.address === "string" ? property.address : undefined;
-
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -94,7 +87,6 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
       });
     }
   };
-
   const isToolbarSize = (s: string): s is "small" | "medium" | "large" =>
     s === "small" || s === "medium" || s === "large";
   const effectiveSize = isToolbarSize(size) ? TOOLBAR_TO_LEGACY[size] : size;
@@ -102,7 +94,6 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
   const iconSizeClass = sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[effectiveSize];
   const isInlineButton =
     !position || className.includes("border") || className.includes("rounded-md");
-
   if (isInlineButton && isToolbarSize(size)) {
     return (
       <IconButton
@@ -110,7 +101,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         size={size}
         rounded="md"
         icon={
-          <Heart
+          <Icon
+            name="heart"
             className={`h-full w-full ${isSaved ? "fill-current" : ""} transition-transform duration-200`}
           />
         }
@@ -122,13 +114,13 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
       />
     );
   }
-
   if (isInlineButton) {
     return (
       <IconButton
         variant="ghost"
         icon={
-          <Heart
+          <Icon
+            name="heart"
             className={`${iconSizeClass} ${isSaved ? "fill-current" : ""} transition-transform duration-200`}
           />
         }
@@ -140,7 +132,6 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
       />
     );
   }
-
   return (
     <div className={`absolute ${POSITION_MAP[position]} z-10`}>
       <IconButton
@@ -148,10 +139,12 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         size="sm"
         icon={
           <>
-            <Heart
+            <Icon
+              name="heart"
               className={`${OVERLAY_MARKER_ICON_CLASSES} ${isSaved ? "fill-current" : ""} transition-transform duration-200 group-hover:scale-110`}
             />
-            <Sparkles
+            <Icon
+              name="sparkles"
               className={`absolute left-1 top-1 h-2 w-2 scale-50 text-white opacity-0 transition-all duration-300 group-hover:scale-75 group-hover:opacity-30 group-active:opacity-50`}
             />
           </>
@@ -165,5 +158,4 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
     </div>
   );
 };
-
 export default CardHeartSaveWithProps;

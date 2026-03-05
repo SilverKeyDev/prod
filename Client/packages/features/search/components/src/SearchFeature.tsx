@@ -1,7 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useQueryClient } from "@tanstack/react-query";
-
 import { useSearchRefresh } from "packages/contexts";
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
 import {
@@ -19,7 +17,9 @@ import type { Property } from "packages/features/search/hooks/data/property/useP
 import { useSearchViewIntegration } from "packages/features/search/hooks/store/useSearchViewIntegration";
 import { useSearchMobileHeaderActions } from "packages/features/search/hooks/ui/useSearchMobileHeaderActions";
 import type { SearchResult } from "packages/features/search/types";
+import { useSearchRefreshIntegration } from "packages/hooks/data/useSearchRefreshIntegration";
 import { usePreActionSnapshot } from "packages/hooks/ui";
+import { log, LOG_CATEGORIES } from "packages/logger";
 import { useSearchContextStore, useSearchViewStore } from "packages/store";
 import { MotionView } from "packages/ui/components/adapters/motion";
 import { IconButton } from "packages/ui/components/primitives";
@@ -40,7 +40,7 @@ export function SearchFeature({
   const { mode: searchViewMode } = useSearchViewIntegration();
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
   const searchRefresh = useSearchRefresh();
-  const queryClient = useQueryClient();
+  const { invalidateSearchAndFeed } = useSearchRefreshIntegration();
   const feedScrollRef = useRef<unknown>(null);
   const setAnchor = useSearchContextStore((s) => s.setAnchor);
   const searchAbortControllerRef = useRef<AbortController | null>(null);
@@ -191,10 +191,10 @@ export function SearchFeature({
     if (!searchRefresh?.setTriggerRefresh) return;
     searchRefresh.setTriggerRefresh(() => {
       feedScrollRef.current?.scrollToIndex({ index: 0, behavior: "smooth" });
-      void queryClient.invalidateQueries({ queryKey: ["feed"] });
+      void invalidateSearchAndFeed();
     });
     return () => searchRefresh.setTriggerRefresh(null);
-  }, [searchRefresh, queryClient]);
+  }, [searchRefresh, invalidateSearchAndFeed]);
 
   // Trigger map resize when switching back to map so it repaints (stays preloaded but was hidden)
   useEffect(() => {
@@ -209,6 +209,29 @@ export function SearchFeature({
       searchRef.current = { triggerSearch: memoizedSearchFunction };
     }
   }, [searchRef, memoizedSearchFunction]);
+
+  // Mount/unmount logging for navigation debugging
+  useEffect(() => {
+    log.info(LOG_CATEGORIES.ROUTING, "[SEARCH] SearchFeature mounted", {
+      mode: searchViewMode,
+      activeTab,
+      resultsCount: filteredSearchResults.length,
+      savedCount: savedHomes.length,
+    });
+    return () => {
+      log.info(LOG_CATEGORIES.ROUTING, "[SEARCH] SearchFeature unmounted", {});
+    };
+  }, []);
+
+  // Self-cleanup when leaving /search: abort in-flight search so no state updates after unmount
+  useEffect(() => {
+    return () => {
+      if (searchAbortControllerRef.current) {
+        log.debug(LOG_CATEGORIES.ROUTING, "[SEARCH] Aborting in-flight search on unmount", {});
+        searchAbortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const { isCompactHeader, headerProps } = useSearchMobileHeaderActions({
     isSearching,

@@ -8,6 +8,7 @@ import {
 import { useContainerWidth } from "packages/hooks/ui/useContainerWidth";
 import { useSearchContextStore } from "packages/store";
 import { BodyText, Button, DropdownChevron, Popover } from "packages/ui/components/index.web";
+import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import type { OnboardingData } from "@/features/profile/utils";
 import { HOUSING_TYPE_OPTIONS } from "@/features/profile/utils";
@@ -17,12 +18,16 @@ import OtherFilterContent from "@/features/search/components/filters/OtherFilter
 import PriceRangeFilter from "@/features/search/components/filters/PriceRangeFilter.web";
 
 import SearchFilterChip from "./SearchFilterChip.web";
+import {
+  SEARCH_HEADER_PANEL_CLASS_DEFAULT,
+  SEARCH_HEADER_PANEL_CLASS_HOME_TYPE,
+  SEARCH_HEADER_PANEL_MAX_HEIGHT,
+} from "./searchHeaderConstants";
 
-const FILTER_ROW_HEIGHT = "h-11";
 const GAP_PX = 8;
-const buttonBase = `inline-flex ${FILTER_ROW_HEIGHT} min-h-11 max-h-11 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors touch-friendly whitespace-nowrap shrink-0`;
-const panelClass = "scrollbar-styled p-4 w-[min(90vw,420px)] max-h-[85vh] overflow-y-auto";
-const homeTypePanelClass = "scrollbar-styled p-4 w-[min(90vw,280px)]";
+const panelClass = SEARCH_HEADER_PANEL_CLASS_DEFAULT;
+const homeTypePanelClass = SEARCH_HEADER_PANEL_CLASS_HOME_TYPE;
+const buttonBase = `inline-flex items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 justify-between ${HEADER_ROW_HEIGHT}`;
 
 function getHomeTypeLabel(value: string): string {
   if (!value) return "Any";
@@ -270,17 +275,11 @@ export default function SearchFilterControls({
 
       <div
         ref={containerRef}
-        className={`flex min-w-0 flex-nowrap items-stretch gap-2 ${FILTER_ROW_HEIGHT}`}
+        className={`flex min-w-0 flex-nowrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}
       >
-        {overflowFromIndex >= 1 && (
-          <div className="flex h-11 shrink-0 items-center">{renderPriceChip()}</div>
-        )}
-        {overflowFromIndex >= 2 && (
-          <div className="flex h-11 shrink-0 items-center">{renderBedBathChip()}</div>
-        )}
-        {overflowFromIndex >= 3 && (
-          <div className="flex h-11 shrink-0 items-center">{renderHomeTypeChip()}</div>
-        )}
+        {overflowFromIndex >= 1 && <div className="shrink-0">{renderPriceChip()}</div>}
+        {overflowFromIndex >= 2 && <div className="shrink-0">{renderBedBathChip()}</div>}
+        {overflowFromIndex >= 3 && <div className="shrink-0">{renderHomeTypeChip()}</div>}
 
         <Popover
           open={moreOpen}
@@ -291,7 +290,7 @@ export default function SearchFilterControls({
           usePortal={true}
           side="left"
           panelClassName={panelClass}
-          panelMaxHeight="85vh"
+          panelMaxHeight={SEARCH_HEADER_PANEL_MAX_HEIGHT}
           panelMinWidth="320px"
           trigger={({ open: isActive, onToggle }) => (
             <Button
@@ -300,7 +299,7 @@ export default function SearchFilterControls({
               variant={isActive ? "outline" : "secondary"}
               size="sm"
               rounded="lg"
-              className={`${buttonBase} shrink-0 justify-between`}
+              className={buttonBase}
               aria-expanded={isActive}
               aria-haspopup="true"
             >

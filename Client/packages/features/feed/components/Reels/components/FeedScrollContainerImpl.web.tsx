@@ -1,5 +1,7 @@
 import { forwardRef, useCallback, useMemo } from "react";
 
+import { useFeedComments } from "packages/features/feed/hooks/data/useFeedComments";
+import { useFeedLikes } from "packages/features/feed/hooks/data/useFeedLikes";
 import { FeedReelsProvider } from "packages/features/feed/hooks/feedReels/FeedReelsContext";
 import { useFeedReelsContext } from "packages/features/feed/hooks/feedReels/useFeedReelsContext";
 import { useFeedScrollContainer } from "packages/hooks/ui";
@@ -55,7 +57,7 @@ export function FeedScrollContainer({
     moreSheetItem,
     commentsForSheet,
     autoplayEnabled,
-    handleLike,
+    handleLike: _localHandleLike,
     handleTogglePlayPause,
     handleReportSlideChange,
     handleReportVideoPlaying,
@@ -63,9 +65,7 @@ export function FeedScrollContainer({
     handleAtBottom,
     handleMoreCopyLink,
     handleMoreSave,
-    handleAddComment,
-    showReelsDebug,
-    isVideoPlayingInReel,
+    handleAddComment: _localHandleAddComment,
   } = useFeedScrollContainer({
     items,
     fetchNextPage,
@@ -75,17 +75,26 @@ export function FeedScrollContainer({
     scrollControllerRef,
   });
 
+  const homeIds = useMemo(() => items.map((i) => i.id), [items]);
+  const { likesByHomeId, toggleLike } = useFeedLikes(homeIds);
+  const commentsHook = useFeedComments(commentsSheetListingId, commentsSheetListingId !== null);
+  const sheetComments = commentsSheetListingId ? commentsHook.comments : commentsForSheet;
+  const sheetOnAddComment = commentsSheetListingId
+    ? (text: string) => commentsHook.addComment(text)
+    : undefined;
+
   const contextValue = useMemo(
     () => ({
       activeIndex,
       autoplayEnabled,
       slideIndexByReelIndex,
       likedIds,
+      likesByHomeId,
       isHorizontalGestureActive,
       setCommentsSheetListingId,
       setMoreSheetListingId,
       setIsHorizontalGestureActive,
-      handleLike,
+      handleLike: toggleLike,
       handleTogglePlayPause,
       handleReportSlideChange,
       handleReportVideoPlaying,
@@ -95,11 +104,12 @@ export function FeedScrollContainer({
       autoplayEnabled,
       slideIndexByReelIndex,
       likedIds,
+      likesByHomeId,
       isHorizontalGestureActive,
       setCommentsSheetListingId,
       setMoreSheetListingId,
       setIsHorizontalGestureActive,
-      handleLike,
+      toggleLike,
       handleTogglePlayPause,
       handleReportSlideChange,
       handleReportVideoPlaying,
@@ -144,17 +154,6 @@ export function FeedScrollContainer({
         } as React.CSSProperties
       }
     >
-      {showReelsDebug && (
-        <div
-          className="fixed left-2 top-2 z-50 rounded bg-black/80 px-2 py-1 font-mono text-xs text-white"
-          aria-hidden
-        >
-          <div>reel: {activeIndex}</div>
-          <div>slide: {slideIndexByReelIndex[activeIndex] ?? 0}</div>
-          <div>gestureLock: {isHorizontalGestureActive ? "on" : "off"}</div>
-          <div>videoPlaying: {isVideoPlayingInReel ? "yes" : "no"}</div>
-        </div>
-      )}
       <FeedReelsProvider value={contextValue}>
         <Virtuoso
           ref={ref as React.Ref<VirtuosoHandle>}
@@ -173,12 +172,8 @@ export function FeedScrollContainer({
         isOpen={commentsSheetListingId !== null}
         onClose={() => setCommentsSheetListingId(null)}
         item={commentsSheetItem}
-        comments={commentsForSheet}
-        onAddComment={
-          commentsSheetListingId
-            ? (text) => handleAddComment(commentsSheetListingId, text)
-            : undefined
-        }
+        comments={sheetComments}
+        onAddComment={sheetOnAddComment}
       />
       <ReelsMoreSheet
         isOpen={moreSheetListingId !== null}

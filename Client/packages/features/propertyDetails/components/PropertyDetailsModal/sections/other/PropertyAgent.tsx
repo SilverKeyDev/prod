@@ -1,30 +1,29 @@
 import React from "react";
 
-import { Phone, User } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { BodyText, Title } from "packages/ui/components/index.web";
 import { Image } from "packages/ui/components/primitives/media";
 
 import Card from "@/components/layout/Card.web";
 import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
-
 interface PropertyAgentProps extends PropertyComponentProps {
   noCard?: boolean;
 }
-
 export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard = false }) => {
-  const listedBy = (property as unknown as { listed_by: unknown }).listed_by;
-
+  const listedBy = (
+    property as unknown as {
+      listed_by: unknown;
+    }
+  ).listed_by;
   if (!listedBy || typeof listedBy !== "object") {
     return null;
   }
-
   const agent = listedBy as Record<string, unknown>;
   const imageUrl = agent.image_url as string | undefined;
   const displayName = agent.display_name as string | undefined;
   const businessName = agent.business_name as string | undefined;
   const phone = agent.phone as Record<string, unknown> | undefined;
-
   const agentContent = (
     <div className="flex items-start space-x-4">
       <div className="border-brown/20 bg-brown/10 h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
@@ -38,7 +37,7 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
           <div
             className={`h-full w-full items-center justify-center ${imageUrl ? "hidden" : "flex"}`}
           >
-            <User className="text-brown/60 h-8 w-8" />
+            <Icon name="user" className="text-brown/60 h-8 w-8" />
           </div>
         )}
       </div>
@@ -54,13 +53,12 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
         )}
         {phone && (
           <div className="text-brown mt-2 flex items-center">
-            <Phone className="mr-1 h-4 w-4" />
+            <Icon name="phone" className="mr-1 h-4 w-4" />
 
             {(() => {
               const ph = phone;
               if (!ph) return "Phone available";
               const { areacode, prefix, number } = ph;
-
               const safeStringify = (value: unknown): string => {
                 if (typeof value === "string") return value;
                 if (typeof value === "number") return String(value);
@@ -82,7 +80,6 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
                   return "[Unknown]";
                 }
               };
-
               if (areacode && prefix && number) {
                 return `(${safeStringify(areacode)}) ${safeStringify(prefix)}-${safeStringify(number)}`;
               }
@@ -98,12 +95,11 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
       </div>
     </div>
   );
-
   if (noCard) {
     return (
       <div>
         <div className="mb-4 flex items-center gap-2">
-          <User className="text-brown h-5 w-5" />
+          <Icon name="user" className="text-brown h-5 w-5" />
           <Title as="h3" size="lg" className="text-brown font-semibold">
             Listing Agent
           </Title>
@@ -112,11 +108,10 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
       </div>
     );
   }
-
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
-        <User className="text-brown h-5 w-5" />
+        <Icon name="user" className="text-brown h-5 w-5" />
         <Title as="h3" size="lg" className="text-brown font-semibold">
           Listing Agent
         </Title>

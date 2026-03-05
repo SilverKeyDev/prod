@@ -1,15 +1,14 @@
-import { Edit, type LucideIcon, Save } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { spacing } from "packages/design-tokens";
 import { getPersonalizationNavItems } from "packages/features/profile/components/profilePicture/profileStepsUi";
 import { useResponsive } from "packages/hooks/ui";
 import type { NavItem } from "packages/navigation";
 import { BodyText, Button, CancelButton } from "packages/ui/components/index.web";
+import type { IconName } from "packages/ui/types/icons";
 
 import Card from "@/components/layout/Card.web";
-
 const STEPS: NavItem[] = getPersonalizationNavItems();
-
 type PersonalizationSidebarProps = {
   activeSection: string;
   isEditMode: boolean;
@@ -19,7 +18,6 @@ type PersonalizationSidebarProps = {
   onCancel: () => void;
   onScrollToSection: (sectionId: string) => void;
 };
-
 export default function PersonalizationSidebar({
   activeSection,
   isEditMode,
@@ -34,7 +32,6 @@ export default function PersonalizationSidebar({
   const isLargeScreen = isLgUp;
   // Default to the first step when no active section is provided
   const currentActiveSection = activeSection || STEPS[0]?.key;
-
   return (
     <aside
       className="sticky top-24 h-fit shrink-0"
@@ -52,46 +49,36 @@ export default function PersonalizationSidebar({
       >
         {/* Edit/Save Buttons - Full width on desktop, centered on mobile */}
         <div
-          className={`${isLargeScreen ? "mb-8" : "mb-4"} ${
-            isLargeScreen ? "w-full" : "flex justify-center"
-          }`}
+          className={`${isLargeScreen ? "mb-8" : "mb-4"} ${isLargeScreen ? "w-full" : "flex justify-center"}`}
         >
           {!isEditMode ? (
             <Button
               onClick={onEdit}
               variant="primary"
               size="sm"
-              className={`items-center justify-center rounded-lg p-2 text-sm font-medium ${
-                isLargeScreen ? "w-full" : ""
-              }`}
-              icon={<Edit />}
+              className={`items-center justify-center rounded-lg p-2 text-sm font-medium ${isLargeScreen ? "w-full" : ""}`}
+              icon={<Icon name="edit" />}
             >
               {isLargeScreen ? "Edit" : ""}
             </Button>
           ) : (
             <div
-              className={`flex flex-col space-y-2 ${
-                isLargeScreen ? "w-full" : "w-full items-center"
-              }`}
+              className={`flex flex-col space-y-2 ${isLargeScreen ? "w-full" : "w-full items-center"}`}
             >
               <Button
                 onClick={onSave}
                 disabled={isSaving}
                 variant="primary"
                 size="sm"
-                className={`items-center justify-center rounded-lg p-2 text-sm font-medium ${
-                  isLargeScreen ? "w-full" : ""
-                }`}
-                icon={<Save />}
+                className={`items-center justify-center rounded-lg p-2 text-sm font-medium ${isLargeScreen ? "w-full" : ""}`}
+                icon={<Icon name="save" />}
               >
                 {isLargeScreen ? (isSaving ? "Saving..." : "Save") : ""}
               </Button>
               <CancelButton
                 onClick={onCancel}
                 size="sm"
-                className={`items-center justify-center rounded-lg p-2 text-sm font-medium ${
-                  isLargeScreen ? "w-full" : ""
-                }`}
+                className={`items-center justify-center rounded-lg p-2 text-sm font-medium ${isLargeScreen ? "w-full" : ""}`}
               >
                 {isLargeScreen ? "Cancel" : ""}
               </CancelButton>
@@ -101,24 +88,23 @@ export default function PersonalizationSidebar({
 
         {/* Navigation Links - Left aligned on desktop, icon only on mobile */}
         {STEPS.map((step) => {
-          const Icon = step.icon as LucideIcon | undefined;
+          const stepIconName = step.icon as IconName | undefined;
           return (
             <Button
               key={step.key}
               variant="ghost"
               size="sm"
               onClick={() => onScrollToSection(step.key)}
-              className={`group flex w-full items-center rounded-lg px-3 py-2 transition-colors ${
-                isLargeScreen ? "gap-3" : "justify-center"
-              } ${
+              className={`group flex w-full items-center rounded-lg px-3 py-2 transition-colors ${isLargeScreen ? "gap-3" : "justify-center"} ${
                 currentActiveSection === step.key
                   ? "bg-gold text-off-white"
                   : "hover:bg-gold-lighter hover:text-off-white"
               }`}
               title={!isLargeScreen ? step.label : undefined}
             >
-              {Icon && (
+              {stepIconName && (
                 <Icon
+                  name={stepIconName}
                   size={20}
                   className={`flex-shrink-0 transition-colors ${
                     currentActiveSection === step.key

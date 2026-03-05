@@ -1,19 +1,17 @@
 import React, { useMemo } from "react";
 
-import { AlertTriangle, Clock, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import type { UrgentAlert } from "packages/types";
 import { BodyText, Button, Title } from "packages/ui/components/index.web";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
-
 type UrgentAlertsProps = {
   alerts: UrgentAlert[];
   onDismiss: (id: string) => void;
   onNavigateToClient?: (clientId: string) => void;
 };
-
 const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNavigateToClient }) => {
   const sortedAlerts = useMemo(() => {
     return [...alerts].sort((a, b) => {
@@ -26,8 +24,14 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
       return severityOrder[b.severity] - severityOrder[a.severity];
     });
   }, [alerts]);
-
-  const severityColors: Record<string, { bg: string; border: string; text: string }> = {
+  const severityColors: Record<
+    string,
+    {
+      bg: string;
+      border: string;
+      text: string;
+    }
+  > = {
     critical: {
       bg: "bg-rose-50",
       border: "border-rose-300",
@@ -49,7 +53,6 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
       text: "text-navy",
     },
   };
-
   const formatTimeRemaining = (deadline?: string) => {
     if (!deadline) return null;
     const now = dateNow();
@@ -57,7 +60,6 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
     const diff = deadlineDate.valueOf() - now.valueOf();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     }
@@ -66,11 +68,10 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
     }
     return "Due now";
   };
-
   return (
     <Card className="h-full">
       <div className="mb-4 flex items-center gap-2">
-        <AlertTriangle className="h-5 w-5 text-rose-600 sm:h-6 sm:w-6" />
+        <Icon name="alert-triangle" className="h-5 w-5 text-rose-600 sm:h-6 sm:w-6" />
         <Title as="h2" size="sm" className="text-navy">
           Urgent Alerts
         </Title>
@@ -98,7 +99,7 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
                     </BodyText>
                     {alert.deadline && (
                       <div className="mt-2 flex items-center gap-1.5">
-                        <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Icon name="clock" className="h-3 w-3 sm:h-4 sm:w-4" />
                         <BodyText as="span" size="sm" className="font-medium">
                           {formatTimeRemaining(alert.deadline)}
                         </BodyText>
@@ -122,7 +123,7 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
                     className="h-auto min-w-0 flex-shrink-0 p-1 hover:bg-black/10"
                     label="Dismiss alert"
                   >
-                    <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <Icon name="x" className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
                 </div>
               </div>
@@ -133,5 +134,4 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
     </Card>
   );
 };
-
 export default UrgentAlerts;

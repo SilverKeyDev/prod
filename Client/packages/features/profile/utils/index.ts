@@ -5,6 +5,7 @@ export * from "./homePriceCalculation";
 export * from "./housingOptions";
 export * from "./importantLocations";
 export * from "./preferencesUtils";
+export * from "./profileFormSync";
 export * from "./propertyTax";
 export * from "./steps";
 export * from "./submitHandler";

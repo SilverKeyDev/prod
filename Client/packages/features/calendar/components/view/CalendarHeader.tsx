@@ -1,4 +1,4 @@
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import type { GoogleCalendar } from "packages/config/api";
 import { BodyText, Button } from "packages/ui/components/index.web";
@@ -7,7 +7,6 @@ import { getVisibleDateRange } from "@/features/calendar/utils/date";
 
 import { CalendarDateRange } from "./CalendarDateRange";
 import { CalendarDropdown } from "./CalendarDropdown";
-
 type CalendarHeaderProps = {
   currentDate: Date;
   onPreviousWeek: () => void;
@@ -18,9 +17,11 @@ type CalendarHeaderProps = {
   onToggleCalendar?: (calendarId: string, enabled: boolean) => void;
   silverKeyCalendarId?: string | null;
   onCreateEvent?: () => void;
-  visibleDateRange?: { firstDate: Date; lastDate: Date } | null;
+  visibleDateRange?: {
+    firstDate: Date;
+    lastDate: Date;
+  } | null;
 };
-
 export function CalendarHeader({
   currentDate,
   onPreviousWeek,
@@ -36,7 +37,6 @@ export function CalendarHeader({
   // Derive displayed range from currentDate so the title updates immediately when
   // the user changes the month (avoiding stale visibleDateRange from child effect)
   const { start: displayFirstDate, end: displayLastDate } = getVisibleDateRange(currentDate);
-
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       {/* Week Range and Navigation */}
@@ -50,7 +50,7 @@ export function CalendarHeader({
             className="h-8 w-8 p-0"
             label="Previous week"
           >
-            <ChevronLeft className="h-4 w-4 text-gray-500" />
+            <Icon name="chevron-left" className="h-4 w-4 text-gray-500" />
           </Button>
           <Button
             variant="ghost"
@@ -59,7 +59,7 @@ export function CalendarHeader({
             className="h-8 w-8 p-0"
             label="Next week"
           >
-            <ChevronRight className="h-4 w-4 text-gray-500" />
+            <Icon name="chevron-right" className="h-4 w-4 text-gray-500" />
           </Button>
         </div>
       </div>
@@ -90,7 +90,7 @@ export function CalendarHeader({
                 variant="primary"
                 size="sm"
                 onClick={onCreateEvent}
-                icon={<Plus className="h-4 w-4" />}
+                icon={<Icon name="plus" className="h-4 w-4" />}
                 className="ml-2"
               >
                 Create Event
@@ -99,7 +99,7 @@ export function CalendarHeader({
           </>
         ) : (
           <div className="flex items-center gap-2 text-sm text-gray-400">
-            <CalendarIcon className="h-4 w-4" />
+            <Icon name="calendar" className="h-4 w-4" />
             <BodyText as="span" size="sm" className="text-gray-400">
               Not connected
             </BodyText>

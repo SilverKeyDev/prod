@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Search, Send, User as UserIcon, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useUIStore } from "packages/store";
@@ -11,12 +11,10 @@ import { BodyText, Input, Label, Textarea, Title } from "packages/ui/components/
 
 import { useAgentSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
-
 type AgentSearchModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
-
 export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [message, setMessage] = useState("");
@@ -26,16 +24,13 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
   const { userProfile } = useUserData();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const inputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen]);
-
   const handleSendRequest = async (agentId: string) => {
     if (!userProfile?.id) return;
-
     try {
       await createRequest(agentId, userProfile.id, message.trim() || undefined);
       enqueueToast({
@@ -52,9 +47,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
       });
     }
   };
-
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-lg">
@@ -69,7 +62,10 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
         {/* Search Input */}
         <div className="border-b border-neutral-200 p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-black/40" />
+            <Icon
+              name="search"
+              className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-black/40"
+            />
             <Input
               ref={inputRef}
               type="text"
@@ -106,7 +102,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                     <div className="space-y-4">
                       <div className="flex items-start gap-3 border-b border-neutral-200 pb-3">
                         <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
-                          <UserIcon className="h-6 w-6 text-neutral-600" />
+                          <Icon name="user" className="h-6 w-6 text-neutral-600" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <Title
@@ -143,7 +139,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                           disabled={isCreatingRequest}
                           variant="outline"
                           size="md"
-                          icon={<Send />}
+                          icon={<Icon name="send" />}
                           iconPosition="left"
                           className="bg-gold-lighter hover:bg-gold border-gold-lighter min-w-0 flex-1 text-white hover:text-white"
                         >
@@ -156,7 +152,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                           }}
                           variant="outline"
                           size="md"
-                          icon={<X />}
+                          icon={<Icon name="x" />}
                           iconPosition="left"
                           className="border-neutral-200 bg-neutral-200 px-6 text-neutral-700 hover:bg-neutral-200/80"
                         >
@@ -173,7 +169,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                       className="flex h-auto min-h-0 w-full items-start justify-start gap-3 py-0 text-left"
                     >
                       <div className="bg-beige flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                        <UserIcon className="h-5 w-5 text-black" />
+                        <Icon name="user" className="h-5 w-5 text-black" />
                       </div>
                       <div className="flex-1">
                         <Title as="h3" size="sm" className="font-medium text-black">

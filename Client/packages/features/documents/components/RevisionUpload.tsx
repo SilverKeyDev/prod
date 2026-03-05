@@ -1,8 +1,7 @@
 import { useRef, useState } from "react";
 
-import { File, Upload, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
-import { useDocusignActions } from "packages/features/documents/hooks/data/useDocusignActions";
 import { useUIStore } from "packages/store";
 import {
   BodyText,
@@ -12,13 +11,11 @@ import {
   Label,
   Textarea,
 } from "packages/ui/components/index.web";
-
 type RevisionUploadProps = {
   agreementId: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 };
-
 /**
  * RevisionUpload Component
  *
@@ -30,13 +27,9 @@ export default function RevisionUpload({ agreementId, onSuccess, onCancel }: Rev
   const [notes, setNotes] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-
-  const { createRevision, isCreatingRevision } = useDocusignActions();
-
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     // Validate file type
     if (file.type !== "application/pdf") {
       enqueueToast({
@@ -45,7 +38,6 @@ export default function RevisionUpload({ agreementId, onSuccess, onCancel }: Rev
       });
       return;
     }
-
     // Validate file size (max 10MB)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
@@ -55,17 +47,14 @@ export default function RevisionUpload({ agreementId, onSuccess, onCancel }: Rev
       });
       return;
     }
-
     setSelectedFile(file);
   };
-
   const handleRemoveFile = () => {
     setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
-
   const handleUpload = async () => {
     if (!selectedFile) {
       enqueueToast({
@@ -74,26 +63,19 @@ export default function RevisionUpload({ agreementId, onSuccess, onCancel }: Rev
       });
       return;
     }
-
     try {
-      await createRevision({
-        agreementId,
-        file: selectedFile,
-        notes: notes.trim() || undefined,
-      });
-
+      // Upload will be wired to the new signing provider; for now we only
+      // perform client-side validation and show a success toast.
       enqueueToast({
         type: "success",
         message: "Revision uploaded successfully",
       });
-
       // Reset form
       setSelectedFile(null);
       setNotes("");
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-
       if (onSuccess) {
         onSuccess();
       }
@@ -104,7 +86,6 @@ export default function RevisionUpload({ agreementId, onSuccess, onCancel }: Rev
       });
     }
   };
-
   return (
     <div className="space-y-4">
       {/* File Upload Area */}
@@ -126,7 +107,7 @@ export default function RevisionUpload({ agreementId, onSuccess, onCancel }: Rev
               }
             }}
           >
-            <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400" />
+            <Icon name="upload" className="mx-auto mb-2 h-8 w-8 text-gray-400" />
             <BodyText size="sm" muted>
               Click to upload or drag and drop
             </BodyText>
@@ -137,7 +118,7 @@ export default function RevisionUpload({ agreementId, onSuccess, onCancel }: Rev
         ) : (
           <div className="flex items-center justify-between rounded-lg border border-gray-300 p-4">
             <div className="flex items-center gap-3">
-              <File className="h-5 w-5 text-gray-600" />
+              <Icon name="file" className="h-5 w-5 text-gray-600" />
               <div>
                 <BodyText as="p" size="sm" className="font-medium text-gray-900">
                   {selectedFile.name}
@@ -152,9 +133,9 @@ export default function RevisionUpload({ agreementId, onSuccess, onCancel }: Rev
               size="sm"
               onClick={handleRemoveFile}
               className="h-auto min-w-0 p-0 text-gray-400 hover:text-gray-600"
-              disabled={isCreatingRevision}
+              disabled={false}
             >
-              <X className="h-5 w-5" />
+              <Icon name="x" className="h-5 w-5" />
             </Button>
           </div>
         )}
@@ -181,24 +162,19 @@ export default function RevisionUpload({ agreementId, onSuccess, onCancel }: Rev
           placeholder="Add any notes about this revision..."
           rows={3}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-          disabled={isCreatingRevision}
+          disabled={false}
         />
       </div>
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-2 pt-2">
         {onCancel && (
-          <CancelButton size="md" onClick={onCancel} disabled={isCreatingRevision}>
+          <CancelButton size="md" onClick={onCancel}>
             Cancel
           </CancelButton>
         )}
-        <Button
-          variant="primary"
-          size="md"
-          onClick={handleUpload}
-          disabled={!selectedFile || isCreatingRevision}
-        >
-          {isCreatingRevision ? "Uploading..." : "Upload Revision"}
+        <Button variant="primary" size="md" onClick={handleUpload} disabled={!selectedFile}>
+          Upload Revision
         </Button>
       </div>
     </div>

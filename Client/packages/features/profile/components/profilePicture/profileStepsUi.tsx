@@ -7,9 +7,9 @@ import {
   getPersonalizationSteps,
   type ProfileStep,
 } from "@/features/profile/utils";
-
-type StepWithIcon = ProfileStep & { icon: unknown };
-
+type StepWithIcon = ProfileStep & {
+  icon: unknown;
+};
 const iconForStepId = (id: string) => {
   switch (id) {
     case "demographics":
@@ -26,14 +26,10 @@ const iconForStepId = (id: string) => {
       return undefined;
   }
 };
-
 const withIcons = (steps: ProfileStep[]): StepWithIcon[] =>
   steps.map((step) => ({ ...step, icon: iconForStepId(step.id) }));
-
 export const getOnboardingStepsUi = (): StepWithIcon[] => withIcons(getOnboardingSteps());
-
 export const getPersonalizationStepsUi = (): StepWithIcon[] => withIcons(getPersonalizationSteps());
-
 export const convertStepsToNavItems = (steps: StepWithIcon[]): NavItem[] =>
   steps.map((step) => ({
     key: step.id,
@@ -41,6 +37,5 @@ export const convertStepsToNavItems = (steps: StepWithIcon[]): NavItem[] =>
     label: step.title,
     icon: step.icon,
   }));
-
 export const getPersonalizationNavItems = (): NavItem[] =>
   convertStepsToNavItems(getPersonalizationStepsUi());

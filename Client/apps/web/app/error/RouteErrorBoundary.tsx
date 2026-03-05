@@ -2,10 +2,9 @@
  * Route Error Boundary for React Router
  * Handles route-specific errors with navigation options
  */
-
 import { useEffect } from "react";
 
-import { AlertTriangle, ArrowLeft, Home, RefreshCw } from "lucide-react";
+import { Icon } from "@ui/icons";
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router-dom";
 
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
@@ -14,7 +13,6 @@ import { BodyText, Title } from "packages/ui/components/index.web";
 import { getUserFriendlyMessage, normalizeError } from "packages/utils/errorHandling";
 
 import Card from "@/components/layout/Card.web";
-
 type RouteErrorResponseViewProps = {
   status: number;
   statusText: string;
@@ -22,7 +20,6 @@ type RouteErrorResponseViewProps = {
   onGoHome: () => void;
   onGoBack: () => void;
 };
-
 function RouteErrorResponseView({
   status,
   statusText,
@@ -36,7 +33,7 @@ function RouteErrorResponseView({
         <div className="text-center">
           <div className="mb-4 flex justify-center">
             <div className="rounded-full bg-red-100 p-3">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
+              <Icon name="alert-triangle" className="h-8 w-8 text-red-600" />
             </div>
           </div>
           <Title size="xl" as="h1" className="mb-2 text-gray-900">
@@ -52,7 +49,7 @@ function RouteErrorResponseView({
             <Button
               variant="primary"
               onClick={onGoHome}
-              icon={<Home className="h-4 w-4" />}
+              icon={<Icon name="home" className="h-4 w-4" />}
               className="flex-1"
             >
               Go Home
@@ -60,7 +57,7 @@ function RouteErrorResponseView({
             <Button
               variant="outline"
               onClick={onGoBack}
-              icon={<ArrowLeft className="h-4 w-4" />}
+              icon={<Icon name="arrow-left" className="h-4 w-4" />}
               className="flex-1"
             >
               Go Back
@@ -71,14 +68,12 @@ function RouteErrorResponseView({
     </div>
   );
 }
-
 type GenericRouteErrorViewProps = {
   userMessage: string;
   onRetry: () => void;
   onGoHome: () => void;
   onGoBack: () => void;
 };
-
 function GenericRouteErrorView({
   userMessage,
   onRetry,
@@ -91,7 +86,7 @@ function GenericRouteErrorView({
         <div className="text-center">
           <div className="mb-4 flex justify-center">
             <div className="rounded-full bg-red-100 p-3">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
+              <Icon name="alert-triangle" className="h-8 w-8 text-red-600" />
             </div>
           </div>
           <Title size="lg" as="h1" className="mb-2 text-gray-900">
@@ -104,7 +99,7 @@ function GenericRouteErrorView({
             <Button
               variant="primary"
               onClick={onRetry}
-              icon={<RefreshCw className="h-4 w-4" />}
+              icon={<Icon name="refresh-cw" className="h-4 w-4" />}
               className="flex-1"
             >
               Try Again
@@ -112,7 +107,7 @@ function GenericRouteErrorView({
             <Button
               variant="outline"
               onClick={onGoHome}
-              icon={<Home className="h-4 w-4" />}
+              icon={<Icon name="home" className="h-4 w-4" />}
               className="flex-1"
             >
               Go Home
@@ -122,7 +117,7 @@ function GenericRouteErrorView({
             variant="ghost"
             size="sm"
             onClick={onGoBack}
-            icon={<ArrowLeft className="h-4 w-4" />}
+            icon={<Icon name="arrow-left" className="h-4 w-4" />}
           >
             Go Back
           </Button>
@@ -131,36 +126,33 @@ function GenericRouteErrorView({
     </div>
   );
 }
-
 export function RouteErrorBoundary() {
   const error = useRouteError();
   const navigate = useNavigate();
-
   useEffect(() => {
     reportErrorWithCapture(error, {
       routeError: true,
       url: window.location.href,
     });
   }, [error]);
-
   const handleGoBack = () => {
     void navigate(-1);
   };
-
   const handleGoHome = () => {
     void navigate("/");
   };
-
   const handleRetry = () => {
     window.location.reload();
   };
-
   if (isRouteErrorResponse(error)) {
     const message =
       error.status === 404
         ? "The page you're looking for doesn't exist or has been moved."
-        : ((error.data as { message?: string })?.message ??
-          "An error occurred while loading this page.");
+        : ((
+            error.data as {
+              message?: string;
+            }
+          )?.message ?? "An error occurred while loading this page.");
     return (
       <RouteErrorResponseView
         status={error.status}
@@ -171,7 +163,6 @@ export function RouteErrorBoundary() {
       />
     );
   }
-
   const normalizedError = normalizeError(error);
   const userMessage = getUserFriendlyMessage(normalizedError);
   return (
@@ -183,5 +174,4 @@ export function RouteErrorBoundary() {
     />
   );
 }
-
 export default RouteErrorBoundary;

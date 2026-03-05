@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import type { AgentClient, AgentConversation } from "packages/api";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
@@ -11,7 +11,6 @@ import {
   type MessagingMode,
 } from "@/features/agent/components/messagingConfig";
 import { ConnectionRequestsInbox } from "@/features/agent/components/modals/ConnectionRequestsInbox";
-
 type UnifiedMessagingSidebarProps = {
   mode: MessagingMode;
   isSidebarExpanded: boolean;
@@ -32,7 +31,6 @@ type UnifiedMessagingSidebarProps = {
   conversations?: AgentConversation[];
   onSearchClick?: () => void;
 };
-
 export default function UnifiedMessagingSidebar({
   mode,
   isSidebarExpanded,
@@ -54,10 +52,8 @@ export default function UnifiedMessagingSidebar({
   onSearchClick,
 }: UnifiedMessagingSidebarProps) {
   const config = getMessagingConfig(mode);
-
   // Create a map of client_id -> conversation for quick lookup (agent mode)
   const conversationMap = new Map(conversations.map((conv) => [conv.client_id, conv]));
-
   const renderSidebarContent = () => {
     if (showInbox) {
       return (
@@ -68,14 +64,13 @@ export default function UnifiedMessagingSidebar({
         />
       );
     }
-
     if (mode === "client") {
       if (!agentId) {
         return (
           <div className="flex h-full items-center justify-center p-3">
             <div className="text-center">
               <div className="bg-beige/30 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                <MessageCircle className="h-6 w-6 text-black/40" />
+                <Icon name="message-circle" className="h-6 w-6 text-black/40" />
               </div>
               <BodyText as="p" size="sm" className="mb-4 text-black/60">
                 {config.sidebar.emptyMessage}
@@ -84,7 +79,6 @@ export default function UnifiedMessagingSidebar({
           </div>
         );
       }
-
       const handleYourAgentClick = () => {
         if (activeConversation && setActiveConversationId) {
           setActiveConversationId(activeConversation.id);
@@ -137,13 +131,12 @@ export default function UnifiedMessagingSidebar({
           </div>
         );
       }
-
       if (clients.length === 0) {
         return (
           <div className="flex h-full items-center justify-center p-3">
             <div className="text-center">
               <div className="bg-beige/30 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                <MessageCircle className="h-6 w-6 text-black/40" />
+                <Icon name="message-circle" className="h-6 w-6 text-black/40" />
               </div>
               <BodyText as="p" size="sm" className="mb-4 text-black/60">
                 {config.sidebar.emptyMessage}
@@ -152,7 +145,6 @@ export default function UnifiedMessagingSidebar({
           </div>
         );
       }
-
       return (
         <>
           {clients.map((client) => {
@@ -175,9 +167,7 @@ export default function UnifiedMessagingSidebar({
                     handleClientClick();
                   }
                 }}
-                className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${
-                  selectedClientId === client.id ? "bg-beige/30 border-l-beige border-l-4" : ""
-                }`}
+                className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${selectedClientId === client.id ? "bg-beige/30 border-l-beige border-l-4" : ""}`}
               >
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
@@ -207,13 +197,11 @@ export default function UnifiedMessagingSidebar({
       );
     }
   };
-
   const getHeaderMode = () => {
     if (showInbox) return "connection-requests";
     if (mode === "client") return "inbox";
     return "clients";
   };
-
   return (
     <>
       {/* Backdrop for mobile - only show when sidebar is expanded on mobile, positioned relative to messaging container */}
@@ -231,9 +219,7 @@ export default function UnifiedMessagingSidebar({
           isSidebarExpanded
             ? "absolute bottom-0 left-0 top-0 z-50 flex h-full w-80 translate-x-0 xl:relative xl:z-0"
             : "hidden -translate-x-full xl:flex xl:translate-x-0"
-        } flex-col transition-transform duration-300 ease-in-out xl:w-80 ${
-          isSidebarExpanded ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none" : ""
-        }`}
+        } flex-col transition-transform duration-300 ease-in-out xl:w-80 ${isSidebarExpanded ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none" : ""}`}
       >
         {/* Fixed Header */}
         <UnifiedMessagingHeader
@@ -243,16 +229,12 @@ export default function UnifiedMessagingSidebar({
           onInboxClick={mode === "client" ? () => setShowInbox(true) : undefined}
           onBackClick={() => setShowInbox(false)}
           onSearchClick={onSearchClick}
-          className={`${
-            isSidebarExpanded ? "rounded-t-xl" : ""
-          } xl:rounded-tl-xl xl:rounded-tr-none`}
+          className={`${isSidebarExpanded ? "rounded-t-xl" : ""} xl:rounded-tl-xl xl:rounded-tr-none`}
         />
 
         {/* Scrollable Content */}
         <div
-          className={`flex-1 overflow-y-auto border-r border-neutral-200 bg-white ${
-            isSidebarExpanded ? "rounded-b-xl" : ""
-          } xl:rounded-bl-xl xl:rounded-br-none`}
+          className={`flex-1 overflow-y-auto border-r border-neutral-200 bg-white ${isSidebarExpanded ? "rounded-b-xl" : ""} xl:rounded-bl-xl xl:rounded-br-none`}
         >
           {renderSidebarContent()}
         </div>

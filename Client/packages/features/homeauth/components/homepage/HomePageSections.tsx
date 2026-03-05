@@ -1,6 +1,4 @@
-/// <reference types="google.maps" />
-
-import { BarChart2, Building2, FolderLock, Handshake, Lock } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { Link, ROUTES } from "packages/navigation";
 import { BodyText, Button, CloseButton, Title } from "packages/ui/components/index.web";
@@ -9,33 +7,31 @@ import { Image } from "packages/ui/components/primitives/media";
 import KeyLogo from "/logo.png?url";
 
 import RippleBackground from "./RippleBackground.web";
-
 const FEATURE_CARDS = [
   {
     title: "Find Properties",
     description: "Select your preferences and let our AI find the best homes for you",
-    icon: <Building2 className="mobile-icon-lg text-gray-500" />,
+    icon: <Icon name="building-2" className="mobile-icon-lg text-gray-500" />,
   },
   {
     title: "Decide on a Home",
     description:
       "Input the facts of homes into spreadsheets or reports and get detailed analysis of the neighborhood.",
-    icon: <BarChart2 className="mobile-icon-lg text-gray-500" />,
+    icon: <Icon name="bar-chart-2" className="mobile-icon-lg text-gray-500" />,
   },
   {
     title: "Negotiate",
     description:
       "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
-    icon: <Handshake className="mobile-icon-lg text-gray-500" />,
+    icon: <Icon name="handshake" className="mobile-icon-lg text-gray-500" />,
   },
   {
     title: "Purchase",
     description:
       "Use our timelines and paperwork to find and submit the appropriate paperwork, disclosures, etc, without paying legal fees.",
-    icon: <FolderLock className="mobile-icon-lg text-gray-500" />,
+    icon: <Icon name="folder-lock" className="mobile-icon-lg text-gray-500" />,
   },
 ] as const;
-
 export function HomePageHeader() {
   return (
     <header className="px-responsive-sm fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between border-b border-gray-200 bg-white py-2 shadow-lg sm:py-3">
@@ -57,7 +53,6 @@ export function HomePageHeader() {
     </header>
   );
 }
-
 export function HomePageHero({ onStartNow }: { onStartNow: () => void }) {
   return (
     <main className="px-responsive-sm py-responsive-lg relative flex flex-1 flex-col items-center justify-center">
@@ -122,7 +117,6 @@ export function HomePageHero({ onStartNow }: { onStartNow: () => void }) {
     </main>
   );
 }
-
 export function HomePageAuthModal({
   onClose,
   onLogin,
@@ -137,7 +131,7 @@ export function HomePageAuthModal({
       <div className="space-responsive-lg w-full max-w-md rounded-2xl bg-white shadow">
         <div className="mb-4 flex justify-between">
           <div className="gap-responsive-xs flex items-center">
-            <Lock className="mobile-icon-sm text-gray-600" />
+            <Icon name="lock" className="mobile-icon-sm text-gray-600" />
             Account Required
           </div>
           <CloseButton onClick={onClose} />

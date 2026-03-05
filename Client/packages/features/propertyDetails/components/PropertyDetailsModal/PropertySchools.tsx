@@ -1,6 +1,6 @@
 import React from "react";
 
-import { GraduationCap } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Title } from "packages/ui/components/index.web";
@@ -8,21 +8,19 @@ import { Title } from "packages/ui/components/index.web";
 import Card from "@/components/layout/Card.web";
 
 import type { PropertyComponentProps } from "./types";
-
 export const PropertySchools: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
-  const { schools } = property as unknown as { schools: unknown };
-
+  const { schools } = property as unknown as {
+    schools: unknown;
+  };
   if (!schools || !Array.isArray(schools) || schools.length === 0) {
     return null;
   }
-
   const schoolList = schools as Array<Record<string, unknown>>;
-
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
-        <GraduationCap className="h-5 w-5 text-gray-600" />
+        <Icon name="graduation-cap" className="h-5 w-5 text-gray-600" />
         <Title as="h3" size="lg" className="text-brown font-semibold">
           {t("property_details.nearby_schools")}
         </Title>

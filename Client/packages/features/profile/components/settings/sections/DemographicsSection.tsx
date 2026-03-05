@@ -133,15 +133,22 @@ export default function DemographicsSection({
                             }
                             label="I am looking for a buyer's agent"
                           />
-                          <OliveCheckbox
-                            checked={!!formData.looking_for_buyers_agent}
-                            onToggle={() =>
-                              updateFormData(
-                                "looking_for_buyers_agent",
-                                !formData.looking_for_buyers_agent
-                              )
-                            }
-                          />
+                          {/* Stop propagation so clicking the box doesn't also trigger the label's linked input (double-toggle) */}
+                          <span
+                            className="flex-shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
+                          >
+                            <OliveCheckbox
+                              checked={!!formData.looking_for_buyers_agent}
+                              onToggle={() =>
+                                updateFormData(
+                                  "looking_for_buyers_agent",
+                                  !formData.looking_for_buyers_agent
+                                )
+                              }
+                            />
+                          </span>
                         </>
                       ) : (
                         <div
@@ -178,13 +185,6 @@ export default function DemographicsSection({
           ]}
         />
       </div>
-
-      {/* Show message if user is an agent */}
-      {formData.is_agent === "yes" && (
-        <BodyText as="p" size="xs" className="mt-2 text-black/60 sm:text-sm md:text-base">
-          You only need to fill out the rest of this information for toying around or personal use.
-        </BodyText>
-      )}
     </Card>
   );
 }

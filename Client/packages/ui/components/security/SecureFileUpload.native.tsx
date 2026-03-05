@@ -4,7 +4,6 @@ import { StyleSheet, View } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import { Button } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives/text";
 
 import type { SecureFileUploadProps } from "./SecureFileUpload";
@@ -12,10 +11,11 @@ import type { SecureFileUploadProps } from "./SecureFileUpload";
 /**
  * Native stub for SecureFileUpload.
  *
- * On mobile, we currently do not support in-app secure file upload with
- * EXIF stripping. This component surfaces a clear message so that shared
- * flows can render without breaking, and can be upgraded later to use a
- * native file/image picker.
+ * On mobile, in-app secure file upload (with EXIF stripping) is not yet
+ * available. This component shows neutral copy so shared flows render
+ * without "coming soon" or "view on web" messaging (parity).
+ * Documents added by the team appear here; upgrade path is a native
+ * file/image picker when implemented.
  */
 export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   label,
@@ -32,28 +32,15 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
           {required ? <Text style={styles.required}> *</Text> : null}
         </Text>
       ) : (
-        <Text style={styles.label}>{t("secure_upload.title_mobile_fallback")}</Text>
+        <Text style={styles.label}>
+          {t("secure_upload.title_mobile_fallback", { defaultValue: "Document upload" })}
+        </Text>
       )}
       <Text style={styles.description}>
-        {t("secure_upload.mobile_not_supported", {
-          defaultValue:
-            "Secure file upload is currently available on the web experience. Please use the web app to upload documents.",
+        {t("secure_upload.mobile_description", {
+          defaultValue: "Documents added by your team will appear here.",
         })}
       </Text>
-      <Button
-        variant="secondary"
-        size="sm"
-        disabled={disabled}
-        onPress={() => {
-          // Intentionally no-op for now. We can later wire this to open
-          // a help article or deep link into the web experience.
-        }}
-        style={styles.button}
-      >
-        <Text style={styles.buttonLabel}>
-          {t("secure_upload.view_on_web_cta", { defaultValue: "Open web app" })}
-        </Text>
-      </Button>
     </View>
   );
 };
@@ -86,13 +73,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: color("neutral.600"),
     marginBottom: 12,
-  },
-  button: {
-    alignSelf: "flex-start",
-  },
-  buttonLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: color("neutral.800"),
   },
 });

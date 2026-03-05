@@ -1,4 +1,4 @@
-import { Plus, Search } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
@@ -7,6 +7,7 @@ import { IconButton, Input } from "packages/ui/components/index.web";
 import Card from "@/components/layout/Card.web";
 import { UnderlineTabs } from "@/components/ui/tabs/index.web";
 
+import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "../constants";
 type SavedPageTabsAndSearchProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -20,7 +21,6 @@ type SavedPageTabsAndSearchProps = {
   rightText?: string;
   onUploadClick?: () => void;
 };
-
 function SavedPageTabNav({
   viewType,
   onViewTypeChange,
@@ -41,7 +41,6 @@ function SavedPageTabNav({
     />
   );
 }
-
 export default function SavedPageTabsAndSearch({
   searchTerm,
   onSearchChange,
@@ -61,30 +60,33 @@ export default function SavedPageTabsAndSearch({
           {/* Search input */}
           <div className="flex w-full min-w-0 flex-1 items-center justify-center gap-3 sm:w-auto sm:justify-start">
             <div className="relative min-w-48 flex-1">
-              <Search className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 text-black/40" />
+              <Icon
+                name="search"
+                className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 text-black/40"
+              />
               <Input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="mobile-input h-11 w-full pl-9 pr-4 font-sans text-sm sm:pl-10"
+                className={SAVED_PAGE_SEARCH_INPUT_CLASS}
                 placeholder={searchPlaceholder}
               />
             </div>
 
             {/* Event type filter - only show when viewing documents */}
             {/* {viewType === "documents" && onEventTypeFilterChange && (
-              <div className="w-full sm:w-auto min-w-[150px]">
-                <Dropdown
-                  options={eventTypeOptions}
-                  value={eventTypeFilter}
-                  onChange={(value) =>
-                    onEventTypeFilterChange(value as "listed" | "price_change" | "sold" | "withdrawn" | "")
-                  }
-                  placeholder="Filter by event..."
-                  variant="mobile"
-                />
-              </div>
-            )} */}
+      <div className="w-full sm:w-auto min-w-[150px]">
+        <Dropdown
+          options={eventTypeOptions}
+          value={eventTypeFilter}
+          onChange={(value) =>
+            onEventTypeFilterChange(value as "listed" | "price_change" | "sold" | "withdrawn" | "")
+          }
+          placeholder="Filter by event..."
+          variant="mobile"
+        />
+      </div>
+    )} */}
 
             {rightText && (
               <div className="mr-2 whitespace-nowrap text-sm text-gray-600">{rightText}</div>
@@ -98,7 +100,7 @@ export default function SavedPageTabsAndSearch({
               size="sm"
               onClick={onUploadClick}
               label="Upload"
-              icon={<Plus className="h-4 w-4" />}
+              icon={<Icon name="plus" className="h-4 w-4" />}
               className="text-black/40 hover:bg-transparent focus:ring-black/10 active:bg-transparent"
             />
           )}

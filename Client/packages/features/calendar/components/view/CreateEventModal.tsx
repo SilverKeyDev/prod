@@ -3,14 +3,21 @@ import { useEffect, useState } from "react";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleCalendar, GoogleEvent } from "packages/schemas/calendar";
 import type { UIState } from "packages/store";
-import { useUIStore } from "packages/store";
+import { useGoogleMapsStore, useUIStore } from "packages/store";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import Dropdown from "packages/ui/components/form/Dropdown";
 import { Textarea } from "packages/ui/components/form/FormField";
-import { DateInput, Input, TimeInput } from "packages/ui/components/index.web";
+import { CloseButton, DateInput, Input, TimeInput } from "packages/ui/components/index.web";
 import { Box } from "packages/ui/components/primitives/box";
+import type {
+  AutocompleteRequest,
+  AutocompleteSuggestion,
+  GoogleMapsWindow,
+} from "packages/types/google-maps";
+import { asError } from "packages/utils";
 import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
+import { getWindow } from "packages/utils/platform";
 
 import BaseModal from "@/components/modals/BaseModal";
 import Label from "@/components/ui/text/Label.web";
@@ -65,10 +72,17 @@ export function CreateEventModal({
 }: CreateEventModalProps) {
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const { createEvent, isCreatingEvent } = useGoogleEvents();
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMapsStore();
 
   const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventLocation, setEventLocation] = useState("");
+  const [locationSuggestions, setLocationSuggestions] = useState<
+    Array<{ description: string; placePrediction: AutocompleteSuggestion["placePrediction"] }>
+  >([]);
+  const [hasSelectedLocation, setHasSelectedLocation] = useState(false);
+  const [scriptsReady, setScriptsReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -109,6 +123,74 @@ export function CreateEventModal({
     }
   }, [initialDateMs, isOpen]);
 
+  // Update scriptsReady based on centralized Google Maps loading
+  useEffect(() => {
+    if (googleMapsError) {
+      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      setLoadError("Failed to load Google Maps script.");
+      return;
+    }
+
+    const win = getWindow();
+    if (
+      googleMapsLoaded &&
+      (win as unknown as GoogleMapsWindow | null)?.google?.maps?.places
+    ) {
+      setScriptsReady(true);
+    }
+  }, [googleMapsLoaded, googleMapsError]);
+
+  // Fetch autocomplete suggestions for event location as the user types
+  useEffect(() => {
+    if (!scriptsReady || !isOpen || eventLocation.trim().length < 3 || hasSelectedLocation) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      try {
+        const win = getWindow();
+        const googleMapsWindow = win as unknown as GoogleMapsWindow | null;
+        if (!googleMapsWindow?.google?.maps?.places) {
+          setLocationSuggestions([]);
+          return;
+        }
+
+        const sessionToken =
+          new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
+        const request: AutocompleteRequest = {
+          input: eventLocation,
+          sessionToken,
+          componentRestrictions: {
+            country: "US",
+          },
+        };
+
+        const { suggestions } =
+          await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+            request
+          );
+
+        const built =
+          suggestions?.map((s) => ({
+            description: s.placePrediction.text.text,
+            placePrediction: s.placePrediction,
+          })) ?? [];
+
+        setLocationSuggestions(built);
+      } catch (err: unknown) {
+        const error = asError(err);
+        log.error(LOG_CATEGORIES.ERRORS, "Event location autocomplete error", error);
+        setLocationSuggestions([]);
+      }
+    };
+
+    const timeoutId = window.setTimeout(fetchSuggestions, 400);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [eventLocation, hasSelectedLocation, isOpen, scriptsReady]);
+
   // Set default calendar when calendars are loaded (only update when value actually changes)
   useEffect(() => {
     if (calendars.length === 0 || !isOpen) return;
@@ -133,6 +215,8 @@ export function CreateEventModal({
       setEventTitle("");
       setEventDescription("");
       setEventLocation("");
+      setLocationSuggestions([]);
+      setHasSelectedLocation(false);
     }
   }, [isOpen]);
 
@@ -206,9 +290,29 @@ export function CreateEventModal({
 
   const canCreate = eventTitle.trim() && startDate && startTime && endDate && endTime;
 
+  const handleEventLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHasSelectedLocation(false);
+    setEventLocation(e.target.value);
+  };
+
+  const handleLocationSelect = (suggestion: {
+    description: string;
+    placePrediction: AutocompleteSuggestion["placePrediction"];
+  }) => {
+    setHasSelectedLocation(true);
+    setEventLocation(suggestion.description);
+    setLocationSuggestions([]);
+  };
+
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} title="Create New Event" size="md">
+    <BaseModal isOpen={isOpen} onClose={onClose} size="md">
       <Box className="space-y-4">
+        <Box className="flex items-center justify-between border-b border-gray-200 pb-3">
+          <Label as="h3" htmlFor="event-title" className="text-base font-medium text-gray-900">
+            Create New Event
+          </Label>
+          <CloseButton onClick={onClose} size="overlay" className="ml-2" />
+        </Box>
         {/* Calendar Selection */}
         {calendars.length > 1 && (
           <Dropdown
@@ -281,10 +385,32 @@ export function CreateEventModal({
           <Input
             id="event-location"
             value={eventLocation}
-            onChange={(e) => setEventLocation(e.target.value)}
+            onChange={handleEventLocationChange}
             placeholder="e.g., 123 Main St, City, State"
             className="mt-1"
+            autoComplete="off"
           />
+          {loadError && (
+            <p className="mt-1 text-xs text-rose">
+              {loadError} You can still type an address manually.
+            </p>
+          )}
+          {locationSuggestions.length > 0 && (
+            <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
+              {locationSuggestions.map((s, idx) => (
+                <li key={s.placePrediction.text.text + idx}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleLocationSelect(s)}
+                    className="w-full cursor-pointer justify-start px-3 py-2 text-left text-sm hover:bg-gray-100"
+                  >
+                    {s.description}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
         </Box>
 
         {/* Event Description */}

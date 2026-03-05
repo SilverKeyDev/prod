@@ -7,6 +7,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { useGoogleCalendarStore } from "packages/store";
 import { getDocument, getWindow } from "packages/utils/platform";
 
+import { googleCalendarApi } from "@/features/calendar/api";
 import { useGoogleEvents } from "@/features/calendar/hooks/data";
 
 function useCalendarCache(queryClient: ReturnType<typeof useQueryClient>, shouldLoadData: boolean) {
@@ -30,21 +31,8 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
 
   const connectionStatusQuery = useQuery({
     queryKey: [...queryKeys.googleCalendar.all, "connection"],
-    queryFn: async () => {
-      throw new Error("Connection status fetching is disabled - use cache only");
-    },
-    enabled: false,
-    staleTime: 5 * 60 * 1000,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  });
-
-  const calendarsQuery = useQuery({
-    queryKey: queryKeys.googleCalendar.calendars(),
-    queryFn: async () => {
-      throw new Error("Calendars fetching is disabled - use cache only");
-    },
-    enabled: false,
+    queryFn: () => googleCalendarApi.isConnected(),
+    enabled: shouldLoadData,
     staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -53,6 +41,22 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
   const { cachedConnectionStatus, cachedCalendars } = useCalendarCache(queryClient, shouldLoadData);
 
   const isConnected = connectionStatusQuery.data ?? cachedConnectionStatus ?? false;
+
+  const calendarsQuery = useQuery({
+    queryKey: queryKeys.googleCalendar.calendars(),
+    queryFn: async () => {
+      const response = await googleCalendarApi.listCalendars();
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to fetch calendars");
+      }
+      return response.data?.items ?? [];
+    },
+    enabled: shouldLoadData && isConnected,
+    staleTime: 5 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
   const calendars = useMemo(
     () => calendarsQuery.data ?? cachedCalendars ?? [],
     [calendarsQuery.data, cachedCalendars]

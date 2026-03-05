@@ -1,8 +1,4 @@
-import { useState } from "react";
-
-import { useDocusignActions } from "packages/features/documents/hooks/data/useDocusignActions";
-import { useDocusignTemplates } from "packages/features/documents/hooks/data/useDocusignTemplates";
-import { useUIStore } from "packages/store";
+import { useLocalization } from "packages/contexts";
 import {
   BodyText,
   Button,
@@ -16,9 +12,7 @@ import {
 } from "packages/ui/components/index.web";
 
 import BaseModal from "@/components/modals/BaseModal";
-import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
-import type { AgreementType, CreateAgreementRequest } from "@/features/documents/types/docusign";
-import { getAgreementTypeLabel } from "@/features/documents/utils/docusignHelpers";
+import { useCreateAgreementForm } from "@/features/documents/hooks/ui/useCreateAgreementForm";
 
 type CreateAgreementModalProps = {
   isOpen: boolean;
@@ -30,8 +24,8 @@ type CreateAgreementModalProps = {
 /**
  * CreateAgreementModal Component
  *
- * Modal for creating new DocuSign agreements (agent-only)
- * Includes form for title, type, buyer selection, property address
+ * Modal for configuring new agreements (agent-only).
+ * Includes form for title, type, buyer selection, property address.
  */
 export default function CreateAgreementModal({
   isOpen,
@@ -39,93 +33,39 @@ export default function CreateAgreementModal({
   preselectedBuyerId,
   onSuccess,
 }: CreateAgreementModalProps) {
-  const [title, setTitle] = useState("");
-  const [agreementType, setAgreementType] = useState<AgreementType>("buyer_representation");
-  const [selectedBuyerId, setSelectedBuyerId] = useState(preselectedBuyerId || "");
-  const [propertyAddress, setPropertyAddress] = useState("");
-  const [description, setDescription] = useState("");
+  const {
+    title,
+    agreementType,
+    selectedBuyerId,
+    propertyAddress,
+    description,
+    setTitle,
+    setAgreementType,
+    setSelectedBuyerId,
+    setPropertyAddress,
+    setDescription,
+    agreementTypes,
+    templates,
+    clients,
+    isCreatingAgreement,
+    submit,
+    handleClose,
+  } = useCreateAgreementForm({
+    preselectedBuyerId,
+    onSuccess,
+    onClose,
+  });
 
-  const { createAgreement, isCreatingAgreement } = useDocusignActions();
-  const { templates } = useDocusignTemplates();
-  const { clients } = useAgentClients();
-  const enqueueToast = useUIStore((s) => s.enqueueToast);
-
-  const agreementTypes: AgreementType[] = [
-    "buyer_representation",
-    "offer",
-    "inspection_addendum",
-    "financing_contingency",
-    "closing_disclosure",
-    "other",
-  ];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!title.trim()) {
-      enqueueToast({
-        type: "error",
-        message: "Please enter an agreement title",
-      });
-      return;
-    }
-
-    if (!selectedBuyerId) {
-      enqueueToast({
-        type: "error",
-        message: "Please select a buyer",
-      });
-      return;
-    }
-
-    try {
-      const request: CreateAgreementRequest = {
-        title: title.trim(),
-        agreement_type: agreementType,
-        buyer_id: selectedBuyerId,
-        property_address: propertyAddress.trim() || undefined,
-        description: description.trim() || undefined,
-      };
-
-      const agreement = await createAgreement(request);
-
-      enqueueToast({
-        type: "success",
-        message: "Agreement created successfully",
-      });
-
-      // Reset form
-      setTitle("");
-      setAgreementType("buyer_representation");
-      setSelectedBuyerId(preselectedBuyerId || "");
-      setPropertyAddress("");
-      setDescription("");
-
-      if (onSuccess && agreement?.id) {
-        onSuccess(agreement.id);
-      }
-
-      onClose();
-    } catch (error) {
-      enqueueToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Failed to create agreement",
-      });
-    }
-  };
-
-  const handleClose = () => {
-    if (!isCreatingAgreement) {
-      onClose();
-    }
-  };
+  const { t } = useLocalization();
 
   return (
     <BaseModal isOpen={isOpen} onClose={handleClose}>
       <div className="p-6">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
-          <Title size="lg">Create Agreement</Title>
+          <Title size="lg">
+            {t("documents_create.title", { defaultValue: "Create Agreement" })}
+          </Title>
           <CloseButton
             onClick={handleClose}
             size="sm"
@@ -135,18 +75,26 @@ export default function CreateAgreementModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit();
+          }}
+          className="space-y-4"
+        >
           {/* Title */}
           <div>
             <Label htmlFor="agreement-title" className="mb-2 block font-medium text-gray-700">
-              Agreement Title *
+              {t("documents_create.field_title", { defaultValue: "Agreement Title *" })}
             </Label>
             <Input
               id="agreement-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Buyer Representation Agreement - John Doe"
+              placeholder={t("documents_create.field_title_placeholder", {
+                defaultValue: "e.g., Buyer Representation Agreement - John Doe",
+              })}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               disabled={isCreatingAgreement}
               required
@@ -157,13 +105,13 @@ export default function CreateAgreementModal({
           <div>
             <Select
               id="agreement-type"
-              label="Agreement Type *"
+              label={t("documents_create.field_type", { defaultValue: "Agreement Type *" })}
               options={agreementTypes.map((type) => ({
                 value: type,
-                label: getAgreementTypeLabel(type),
+                label: type,
               }))}
               value={agreementType}
-              onChange={(v) => setAgreementType(v as AgreementType)}
+              onChange={(v) => setAgreementType(v)}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               disabled={isCreatingAgreement}
               required
@@ -174,8 +122,10 @@ export default function CreateAgreementModal({
           <div>
             <Select
               id="agreement-buyer"
-              label="Buyer *"
-              placeholder="Select a buyer..."
+              label={t("documents_create.field_buyer", { defaultValue: "Buyer *" })}
+              placeholder={t("documents_create.field_buyer_placeholder", {
+                defaultValue: "Select a buyer...",
+              })}
               options={clients.map((client) => ({
                 value: client.id,
                 label: `${client.name} - ${client.email}`,
@@ -194,14 +144,18 @@ export default function CreateAgreementModal({
               htmlFor="agreement-property-address"
               className="mb-2 block font-medium text-gray-700"
             >
-              Property Address (Optional)
+              {t("documents_create.field_address", {
+                defaultValue: "Property Address (Optional)",
+              })}
             </Label>
             <Input
               id="agreement-property-address"
               type="text"
               value={propertyAddress}
               onChange={(e) => setPropertyAddress(e.target.value)}
-              placeholder="e.g., 123 Main St, San Francisco, CA 94102"
+              placeholder={t("documents_create.field_address_placeholder", {
+                defaultValue: "e.g., 123 Main St, San Francisco, CA 94102",
+              })}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               disabled={isCreatingAgreement}
             />
@@ -210,13 +164,17 @@ export default function CreateAgreementModal({
           {/* Description */}
           <div>
             <Label htmlFor="agreement-description" className="mb-2 block font-medium text-gray-700">
-              Description (Optional)
+              {t("documents_create.field_description", {
+                defaultValue: "Description (Optional)",
+              })}
             </Label>
             <Textarea
               id="agreement-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add any additional details..."
+              placeholder={t("documents_create.field_description_placeholder", {
+                defaultValue: "Add any additional details...",
+              })}
               rows={3}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               disabled={isCreatingAgreement}
@@ -227,7 +185,11 @@ export default function CreateAgreementModal({
           {templates && templates.length > 0 && (
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
               <BodyText size="sm" className="text-blue-900">
-                💡 Tip: After creating the agreement, you can upload the document PDF as a revision.
+                💡{" "}
+                {t("documents_create.templates_tip", {
+                  defaultValue:
+                    "Tip: After creating the agreement, you can upload the document PDF as a revision.",
+                })}
               </BodyText>
             </div>
           )}
@@ -240,10 +202,12 @@ export default function CreateAgreementModal({
               onClick={handleClose}
               disabled={isCreatingAgreement}
             >
-              Cancel
+              {t("common.cancel", { defaultValue: "Cancel" })}
             </CancelButton>
             <Button type="submit" variant="primary" size="md" disabled={isCreatingAgreement}>
-              {isCreatingAgreement ? "Creating..." : "Create Agreement"}
+              {isCreatingAgreement
+                ? t("documents_create.submitting", { defaultValue: "Creating..." })
+                : t("documents_create.submit", { defaultValue: "Create Agreement" })}
             </Button>
           </div>
         </form>

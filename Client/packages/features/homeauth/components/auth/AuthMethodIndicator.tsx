@@ -1,29 +1,26 @@
 import React from "react";
 
-import { Key, Link2, Shield } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { AuthMethod } from "packages/features/homeauth/types";
 import { BodyText, Title } from "packages/ui/components/index.web";
-
 interface AuthMethodIndicatorProps {
   authMethod?: AuthMethod;
   showDetails?: boolean;
   className?: string;
 }
-
 const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
   authMethod = "unknown",
   showDetails = true,
   className = "",
 }) => {
   const { t } = useLocalization();
-
   const getAuthMethodInfo = () => {
     switch (authMethod) {
       case "google":
         return {
-          icon: <Shield className="h-4 w-4" />,
+          icon: <Icon name="shield" className="h-4 w-4" />,
           labelKey: "auth.method.google_oauth",
           color: "text-blue-600",
           bgColor: "bg-blue-50",
@@ -33,7 +30,7 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
         };
       case "cognito":
         return {
-          icon: <Key className="h-4 w-4" />,
+          icon: <Icon name="key" className="h-4 w-4" />,
           labelKey: "auth.method.email_password",
           color: "text-green-600",
           bgColor: "bg-green-50",
@@ -43,7 +40,7 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
         };
       case "both":
         return {
-          icon: <Link2 className="h-4 w-4" />,
+          icon: <Icon name="link-2" className="h-4 w-4" />,
           labelKey: "auth.method.linked",
           color: "text-purple-600",
           bgColor: "bg-purple-50",
@@ -53,7 +50,7 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
         };
       default:
         return {
-          icon: <Shield className="h-4 w-4" />,
+          icon: <Icon name="shield" className="h-4 w-4" />,
           labelKey: "auth.method.unknown",
           color: "text-gray-600",
           bgColor: "bg-gray-50",
@@ -63,9 +60,7 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
         };
     }
   };
-
   const authInfo = getAuthMethodInfo();
-
   if (!showDetails) {
     return (
       <div
@@ -78,7 +73,6 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
       </div>
     );
   }
-
   return (
     <div
       className={`rounded-lg border p-4 ${authInfo.bgColor} ${authInfo.borderColor} ${className}`}
@@ -117,5 +111,4 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
     </div>
   );
 };
-
 export default AuthMethodIndicator;

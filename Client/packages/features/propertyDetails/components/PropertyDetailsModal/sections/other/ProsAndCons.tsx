@@ -1,32 +1,27 @@
 import React from "react";
 
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import type { PropertyWithAnalysis } from "packages/types/property-analysis";
 import { BodyText, Title } from "packages/ui/components/index.web";
 
 import Card from "@/components/layout/Card.web";
 import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
-
 export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
   const propertyWithAnalysis = property as PropertyWithAnalysis;
   const propertyAnalysis = propertyWithAnalysis.property_analysis;
-
   if (!propertyAnalysis) {
     return null;
   }
-
   const { pros } = propertyAnalysis;
   const { cons } = propertyAnalysis;
-
   if (!pros && !cons) {
     return null;
   }
-
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center gap-2">
-        <AlertTriangle className="text-brown h-5 w-5" />
+        <Icon name="alert-triangle" className="text-brown h-5 w-5" />
         <Title as="h3" size="lg" className="text-brown font-semibold">
           Pros & Cons
         </Title>
@@ -49,7 +44,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             size="sm"
             className="mb-3 flex items-center gap-2 font-medium text-gray-600"
           >
-            <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-600" />
+            <Icon name="check-circle" className="h-4 w-4 flex-shrink-0 text-green-600" />
             Pros
             {pros && (
               <BodyText as="span" className="ml-1 text-xs text-gray-500">
@@ -61,7 +56,10 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             {pros && pros.length > 0 ? (
               pros.map((pro: string, i: number) => (
                 <div key={i} className="flex items-start gap-2 text-left text-sm text-gray-700">
-                  <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
+                  <Icon
+                    name="check-circle"
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600"
+                  />
                   <BodyText as="span" className="text-left">
                     {pro}
                   </BodyText>
@@ -69,7 +67,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
               ))
             ) : (
               <div className="flex items-center gap-2 text-left text-sm text-gray-500">
-                <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                <Icon name="check-circle" className="h-4 w-4 flex-shrink-0" />
                 No pros identified
               </div>
             )}
@@ -88,7 +86,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             size="sm"
             className="mb-3 flex items-center gap-2 font-medium text-gray-600"
           >
-            <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-600" />
+            <Icon name="alert-triangle" className="h-4 w-4 flex-shrink-0 text-red-600" />
             Cons
             {cons && (
               <BodyText as="span" className="ml-1 text-xs text-gray-500">
@@ -100,7 +98,10 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             {cons && cons.length > 0 ? (
               cons.map((con: string, i: number) => (
                 <div key={i} className="flex items-start gap-2 text-left text-sm text-gray-700">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
+                  <Icon
+                    name="alert-triangle"
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600"
+                  />
                   <BodyText as="span" className="text-left">
                     {con}
                   </BodyText>
@@ -108,7 +109,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
               ))
             ) : (
               <div className="flex items-center gap-2 text-left text-sm text-gray-500">
-                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                <Icon name="alert-triangle" className="h-4 w-4 flex-shrink-0" />
                 No cons identified
               </div>
             )}

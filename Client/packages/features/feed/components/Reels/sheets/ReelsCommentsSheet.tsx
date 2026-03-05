@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { Heart } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { Transition } from "packages/ui/components/adapters/headless";
 import {
@@ -19,16 +19,14 @@ import { dateNow, dateParseISO } from "packages/utils/date";
 import { FEED_AVATAR_IMAGE_CLASS } from "@/features/feed/components/Overlay/FeedActionButton";
 import type { FeedComment, FeedListing } from "@/features/feed/types/feed";
 import { DEFAULT_AVATAR_IMAGE } from "@/features/feed/utils";
-
 function formatCommentTime(createdAt: string): string {
   const date = dateParseISO(createdAt);
   const now = dateNow();
   const diffMs = now.valueOf() - date.valueOf();
-  const diffMins = Math.floor(diffMs / 60_000);
-  const diffHours = Math.floor(diffMs / 3_600_000);
-  const diffDays = Math.floor(diffMs / 86_400_000);
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
   const diffWeeks = Math.floor(diffDays / 7);
-
   if (diffMins < 1) return "Just now";
   if (diffMins < 60) return `${diffMins}m`;
   if (diffHours < 24) return `${diffHours}h`;
@@ -36,7 +34,6 @@ function formatCommentTime(createdAt: string): string {
   if (diffWeeks < 52) return `${diffWeeks}w`;
   return date.toDate().toLocaleDateString();
 }
-
 type ReelsCommentsSheetProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -46,9 +43,11 @@ type ReelsCommentsSheetProps = {
   /** Callback when user submits a new comment. Optional for UI-only. */
   onAddComment?: (text: string) => void;
   /** Current user for the add-comment row (avatar + label). Optional. */
-  currentUser?: { name: string; avatarUrl?: string };
+  currentUser?: {
+    name: string;
+    avatarUrl?: string;
+  };
 };
-
 export function ReelsCommentsSheet({
   isOpen,
   onClose,
@@ -58,7 +57,6 @@ export function ReelsCommentsSheet({
   currentUser,
 }: ReelsCommentsSheetProps) {
   const [draft, setDraft] = useState("");
-
   const canPost = draft.trim().length > 0;
   const handlePost = useCallback(() => {
     const text = draft.trim();
@@ -66,7 +64,6 @@ export function ReelsCommentsSheet({
     onAddComment?.(text);
     setDraft("");
   }, [draft, onAddComment]);
-
   return (
     <Transition show={isOpen} as="div">
       <AccessibleDialog onClose={onClose} className="relative z-50" label="Comments">
@@ -167,7 +164,7 @@ export function ReelsCommentsSheet({
                                   className="flex items-center gap-1 text-neutral-500 hover:text-neutral-700"
                                   label="Like comment"
                                 >
-                                  <Heart className="h-3.5 w-3.5" />
+                                  <Icon name="heart" className="h-3.5 w-3.5" />
                                   <BodyText as="span" size="xs">
                                     {formatCompactCount(comment.likes)}
                                   </BodyText>
@@ -180,7 +177,7 @@ export function ReelsCommentsSheet({
                           variant="ghost"
                           size="sm"
                           className="shrink-0 text-neutral-400 hover:text-neutral-600"
-                          icon={<Heart className="h-4 w-4" />}
+                          icon={<Icon name="heart" className="h-4 w-4" />}
                           label="Like comment"
                         />
                       </li>

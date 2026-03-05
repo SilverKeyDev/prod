@@ -1,3 +1,8 @@
+// Base primitives (platform-resolved .web / .native; use for shared web/native code)
+export { Box } from "./box";
+export { Button as Pressable } from "./button";
+export { Text } from "./text";
+
 // UI Components - Buttons
 export { default as Button } from "@ui/button/Button";
 export { default as CancelButton } from "@ui/button/CancelButton";

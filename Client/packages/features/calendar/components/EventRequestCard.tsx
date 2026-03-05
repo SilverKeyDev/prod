@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Calendar, Check, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
@@ -9,9 +9,7 @@ import { dateParseISO } from "packages/utils/date";
 import BodyText from "@/components/ui/text/BodyText";
 import Title from "@/components/ui/text/Title";
 import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
-
 export type EventRequestStatus = "pending" | "accepted" | "cancelled";
-
 type EventRequestCardProps = {
   payload: EventRequestPayload;
   onAccept: () => Promise<void>;
@@ -22,7 +20,6 @@ type EventRequestCardProps = {
   messageId?: string;
   acceptingMessageId?: string | null;
 };
-
 function formatEventDateTime(start: string, end: string): string {
   const startDate = dateParseISO(start).toDate();
   const endDate = dateParseISO(end).toDate();
@@ -43,7 +40,6 @@ function formatEventDateTime(start: string, end: string): string {
   })}`;
   return `${dateStr} at ${timeStr}`;
 }
-
 export default function EventRequestCard({
   payload,
   onAccept,
@@ -59,7 +55,6 @@ export default function EventRequestCard({
   const [cancelSubmitting, setCancelSubmitting] = React.useState(false);
   const isAccepting = isAcceptingProp || (messageId != null && messageId === acceptingMessageId);
   const loading = isAccepting || isSubmitting || cancelSubmitting;
-
   const handleAccept = React.useCallback(async () => {
     if (status !== "pending" || loading) return;
     setIsSubmitting(true);
@@ -69,7 +64,6 @@ export default function EventRequestCard({
       setIsSubmitting(false);
     }
   }, [status, loading, onAccept]);
-
   const handleCancel = React.useCallback(async () => {
     if (status !== "pending" && status !== "accepted") return;
     if (loading) return;
@@ -80,15 +74,13 @@ export default function EventRequestCard({
       setCancelSubmitting(false);
     }
   }, [status, loading, onCancel]);
-
   const dateTimeStr = formatEventDateTime(payload.start, payload.end);
-
   if (status === "cancelled") {
     return (
       <div className="w-full min-w-0 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="bg-beige/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-            <Calendar className="h-5 w-5 text-black/70" />
+            <Icon name="calendar" className="h-5 w-5 text-black/70" />
           </div>
           <div className="min-w-0 flex-1">
             <Title size="sm" as="h4" className="mb-1">
@@ -103,7 +95,7 @@ export default function EventRequestCard({
               </BodyText>
             )}
             <div className="flex items-center gap-2 text-sm font-medium text-neutral-500">
-              <X className="h-4 w-4 flex-shrink-0" />
+              <Icon name="x" className="h-4 w-4 flex-shrink-0" />
               Event request cancelled
             </div>
           </div>
@@ -111,13 +103,12 @@ export default function EventRequestCard({
       </div>
     );
   }
-
   if (status === "accepted") {
     return (
       <div className="w-full min-w-0 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="bg-beige/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-            <Calendar className="h-5 w-5 text-black/70" />
+            <Icon name="calendar" className="h-5 w-5 text-black/70" />
           </div>
           <div className="min-w-0 flex-1">
             <Title size="sm" as="h4" className="mb-1">
@@ -132,7 +123,7 @@ export default function EventRequestCard({
               </BodyText>
             )}
             <div className="flex items-center gap-2 text-sm font-medium text-green-700">
-              <Check className="h-4 w-4 flex-shrink-0" />
+              <Icon name="check" className="h-4 w-4 flex-shrink-0" />
               {t("agent.added_to_calendar")}
             </div>
           </div>
@@ -140,16 +131,14 @@ export default function EventRequestCard({
       </div>
     );
   }
-
   // status === "pending"
   const showAccept = !isFromCurrentUser;
   const showCancel = true;
-
   return (
     <div className="w-full min-w-0 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="flex items-start gap-3">
         <div className="bg-beige/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-          <Calendar className="h-5 w-5 text-black/70" />
+          <Icon name="calendar" className="h-5 w-5 text-black/70" />
         </div>
         <div className="min-w-0 flex-1">
           <Title size="sm" as="h4" className="mb-1">
@@ -171,7 +160,7 @@ export default function EventRequestCard({
                 onClick={handleAccept}
                 disabled={loading}
                 loading={isAccepting || isSubmitting}
-                icon={<Check className="h-4 w-4" />}
+                icon={<Icon name="check" className="h-4 w-4" />}
               >
                 {t("agent.accept")}
               </Button>
@@ -183,7 +172,7 @@ export default function EventRequestCard({
                 onClick={handleCancel}
                 disabled={loading}
                 loading={cancelSubmitting}
-                icon={<X className="h-4 w-4" />}
+                icon={<Icon name="x" className="h-4 w-4" />}
               >
                 {t("common.cancel")}
               </Button>

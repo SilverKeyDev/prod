@@ -109,3 +109,10 @@ export function useUserPreferences(): UseUserPreferencesReturn {
     refreshUserPreferences,
   };
 }
+
+/** Submit preferences (create/update). Use this from components instead of importing preferencesApi. */
+export function usePreferencesSubmit(): (
+  preferences: Parameters<typeof preferencesApi.createOrUpdate>[0]
+) => ReturnType<typeof preferencesApi.createOrUpdate> {
+  return useCallback((preferences) => preferencesApi.createOrUpdate(preferences), []);
+}

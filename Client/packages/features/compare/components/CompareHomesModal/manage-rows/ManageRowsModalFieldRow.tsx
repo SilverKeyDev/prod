@@ -1,11 +1,10 @@
 import React from "react";
 
-import { Check } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { CompareHomesComparisonField } from "packages/features/compare/utils/types";
 import { BodyText, Input, Label } from "packages/ui/components/index.web";
-
 type ManageRowsModalFieldRowProps = {
   field: CompareHomesComparisonField;
   index: number;
@@ -15,7 +14,6 @@ type ManageRowsModalFieldRowProps = {
   isManuallyEnabled: boolean;
   onToggle: (checked: boolean) => void;
 };
-
 export function ManageRowsModalFieldRow({
   field,
   index,
@@ -27,12 +25,9 @@ export function ManageRowsModalFieldRow({
 }: ManageRowsModalFieldRowProps) {
   const { t } = useLocalization();
   const isAutoOmitted = !hasData && !isManuallyEnabled;
-
   return (
     <Label
-      className={`hover:bg-beige/20 flex cursor-pointer items-center space-x-3 p-4 transition-colors ${
-        index !== totalCount - 1 ? "border-b border-gray-100" : ""
-      }`}
+      className={`hover:bg-beige/20 flex cursor-pointer items-center space-x-3 p-4 transition-colors ${index !== totalCount - 1 ? "border-b border-gray-100" : ""}`}
     >
       <div className="relative">
         <Input
@@ -48,15 +43,13 @@ export function ManageRowsModalFieldRow({
               : "border-beige hover:border-beige/50 bg-white"
           }`}
         >
-          {!isOmitted && <Check className="h-3 w-3 fill-current" />}
+          {!isOmitted && <Icon name="check" className="h-3 w-3 fill-current" />}
         </div>
       </div>
       <div className="flex-1">
         <BodyText
           as="span"
-          className={`text-sm font-medium transition-colors ${
-            isOmitted ? "text-black/40 line-through" : "text-black"
-          }`}
+          className={`text-sm font-medium transition-colors ${isOmitted ? "text-black/40 line-through" : "text-black"}`}
         >
           {field.label}
         </BodyText>

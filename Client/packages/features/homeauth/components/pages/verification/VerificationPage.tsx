@@ -87,7 +87,8 @@ export default function VerificationPage() {
           session.removeItem("signupEmail");
           session.removeItem("signupPassword");
         },
-        navigateToPath
+        navigateToPath,
+        { postSuccessPath: locationState?.fromLogin ? "/search" : "/onboarding" }
       );
     } catch (err: unknown) {
       log.error(LOG_CATEGORIES.AUTH, "Verification error", err);

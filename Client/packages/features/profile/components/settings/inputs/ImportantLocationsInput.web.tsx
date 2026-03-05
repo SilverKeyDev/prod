@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { Clock, MapPin, Pencil, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/google-maps";
@@ -9,12 +9,10 @@ import { BodyText, Button, CancelButton, IconButton } from "packages/ui/componen
 import { asError } from "packages/utils";
 import { hasProperty, isFunction, isObject } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
-
 type ImportantLocation = {
   address: string;
   commute_tolerance?: number;
 };
-
 // Google Places API types
 interface GooglePlacePrediction {
   text: {
@@ -22,19 +20,16 @@ interface GooglePlacePrediction {
   };
   toPlace: () => google.maps.places.Place;
 }
-
 type Suggestion = {
   placePrediction: GooglePlacePrediction;
   description: string;
 };
-
 type ImportantLocationsInputProps = {
   locations: ImportantLocation[];
   onChange: (locations: ImportantLocation[]) => void;
   scriptsReady: boolean;
   isEditMode?: boolean;
 };
-
 const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   locations,
   onChange,
@@ -47,18 +42,14 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   const [commuteTime, setCommuteTime] = useState<string>("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
-
   const addressInputRef = useRef<HTMLInputElement>(null);
-
   const isFormVisible = isAddingLocation || editingIndex !== null;
-
   // Fetch autocomplete suggestions as the user types
   useEffect(() => {
     if (!scriptsReady || locationAddress.trim().length < 3 || hasSelected) {
       setSuggestions([]);
       return;
     }
-
     const fetchSuggestions = async () => {
       try {
         const win = getWindow();
@@ -73,14 +64,14 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
           sessionToken,
           includedRegionCodes: ["US"],
         };
-
         const { suggestions: fetched } =
           await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
             request
           );
-
         const built: Suggestion[] = (
-          fetched as Array<{ placePrediction: GooglePlacePrediction | null }>
+          fetched as Array<{
+            placePrediction: GooglePlacePrediction | null;
+          }>
         ).flatMap((s) => {
           const prediction = s.placePrediction;
           if (!prediction) return [];
@@ -98,16 +89,13 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
         setSuggestions([]);
       }
     };
-
     const t = setTimeout(fetchSuggestions, 500);
     return () => clearTimeout(t);
   }, [locationAddress, scriptsReady, hasSelected]);
-
   const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHasSelected(false);
     setLocationAddress(e.target.value);
   };
-
   const handleSelect = async (suggestion: Suggestion) => {
     setHasSelected(true);
     const suggestionData = suggestion as Record<string, unknown>;
@@ -117,9 +105,12 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       typeof placePrediction === "object" &&
       "toPlace" in placePrediction &&
       typeof placePrediction.toPlace === "function"
-        ? (placePrediction as { toPlace: () => unknown }).toPlace()
+        ? (
+            placePrediction as {
+              toPlace: () => unknown;
+            }
+          ).toPlace()
         : null;
-
     if (isObject(place) && hasProperty(place, "fetchFields") && isFunction(place.fetchFields)) {
       try {
         // Call fetchFields with proper 'this' binding to preserve Google Maps context
@@ -132,19 +123,16 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       } catch (error) {
         log.warn(LOG_CATEGORIES.ERRORS, "Error fetching place fields", error);
       }
-
       if (hasProperty(place, "formattedAddress") && typeof place.formattedAddress === "string") {
         setLocationAddress(place.formattedAddress);
       }
     }
     setSuggestions([]);
   };
-
   const parseCommuteTolerance = (): number | undefined => {
     const parsed = commuteTime.trim() === "" ? undefined : parseInt(commuteTime.trim(), 10);
     return parsed !== undefined && !isNaN(parsed) && parsed >= 0 ? parsed : undefined;
   };
-
   const handleAddLocation = () => {
     if (locationAddress.trim()) {
       const newLocation: ImportantLocation = {
@@ -155,7 +143,6 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       handleCancel();
     }
   };
-
   const handleUpdateLocation = () => {
     if (editingIndex !== null && locationAddress.trim()) {
       const updatedLocation: ImportantLocation = {
@@ -169,7 +156,6 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       handleCancel();
     }
   };
-
   const handleEditLocation = (index: number) => {
     const loc = locations[index];
     setLocationAddress(loc.address);
@@ -178,7 +164,6 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
     setIsAddingLocation(false);
     setHasSelected(false);
   };
-
   const handleRemoveLocation = (index: number) => {
     if (editingIndex === index) {
       handleCancel();
@@ -186,7 +171,6 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
     const updatedLocations = locations.filter((_, i) => i !== index);
     onChange(updatedLocations);
   };
-
   const handleCancel = () => {
     setLocationAddress("");
     setCommuteTime("");
@@ -195,7 +179,6 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
     setHasSelected(false);
     setSuggestions([]);
   };
-
   const handleFormSubmit = () => {
     if (editingIndex !== null) {
       handleUpdateLocation();
@@ -203,7 +186,6 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       handleAddLocation();
     }
   };
-
   return (
     <div className="space-y-4">
       {/* Existing Locations */}
@@ -229,7 +211,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                   <IconButton
                     variant="ghost"
                     size="sm"
-                    icon={<Pencil className="h-4 w-4" />}
+                    icon={<Icon name="pencil" className="h-4 w-4" />}
                     onClick={() => handleEditLocation(index)}
                     title="Edit location"
                     className="text-brown/70 hover:text-brown"
@@ -237,7 +219,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                   <IconButton
                     variant="ghost"
                     size="sm"
-                    icon={<X className="h-4 w-4" />}
+                    icon={<Icon name="x" className="h-4 w-4" />}
                     onClick={() => handleRemoveLocation(index)}
                     title="Remove location"
                     className="text-rose hover:text-rose-light"
@@ -273,7 +255,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 onChange={handleAddressInputChange}
                 placeholder={scriptsReady ? "Search for address..." : "Loading..."}
                 disabled={!scriptsReady}
-                leftIcon={<MapPin className="h-4 w-4" />}
+                leftIcon={<Icon name="map-pin" className="h-4 w-4" />}
                 autoComplete="off"
                 size="md"
               />
@@ -309,7 +291,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 placeholder="30"
                 min="0"
                 max="180"
-                leftIcon={<Clock className="h-4 w-4" />}
+                leftIcon={<Icon name="clock" className="h-4 w-4" />}
                 autoComplete="off"
                 size="md"
                 helperText="Maximum acceptable commute time to this location"
@@ -335,5 +317,4 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
     </div>
   );
 };
-
 export default ImportantLocationsInput;

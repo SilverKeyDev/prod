@@ -45,6 +45,12 @@ function pathnameFromScreen(screenName: string, params?: Record<string, unknown>
   return pathFor(routeName, params as ParamsForRoute<RouteName>);
 }
 
+function unwrapRouteState(params: unknown): unknown {
+  if (!params || typeof params !== "object") return params;
+  const record = params as Record<string, unknown>;
+  return "state" in record ? record.state : params;
+}
+
 export function useNavigation(): NavigationApi {
   const rnNav = useRNNavigation();
   const route = useRoute();
@@ -54,7 +60,7 @@ export function useNavigation(): NavigationApi {
     return {
       pathname,
       search: "",
-      state: route.params,
+      state: unwrapRouteState(route.params),
     };
   }, [route.name, route.params]);
 

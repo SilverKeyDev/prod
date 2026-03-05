@@ -1,14 +1,12 @@
 import React, { type RefObject } from "react";
 
-import { Lock, Mail } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Button, Input, VerificationCodeInput } from "packages/ui/components/index.web";
 
 import { PasswordValidation } from "@/components/feedback/PasswordValidation";
-
 export type ResetPasswordStep = "request" | "verify" | "reset";
-
 type ResetPasswordFormProps = {
   step: ResetPasswordStep;
   email: string;
@@ -27,7 +25,6 @@ type ResetPasswordFormProps = {
   onSubmitReset: (e: React.FormEvent) => void;
   onResendCode: () => void;
 };
-
 export function ResetPasswordForm({
   step,
   email,
@@ -48,7 +45,6 @@ export function ResetPasswordForm({
 }: ResetPasswordFormProps) {
   const onSubmit =
     step === "request" ? onSubmitRequest : step === "verify" ? onSubmitVerify : onSubmitReset;
-
   return (
     <form onSubmit={onSubmit} className="card space-y-responsive-md">
       {step === "request" ? (
@@ -58,7 +54,7 @@ export function ResetPasswordForm({
           value={email}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           placeholder="Enter your email"
-          leftIcon={<Mail className="h-4 w-4" />}
+          leftIcon={<Icon name="mail" className="h-4 w-4" />}
           name="email"
           id="email-request"
           autoComplete="username"
@@ -88,7 +84,7 @@ export function ResetPasswordForm({
             value={newPassword}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
             placeholder="Enter new password"
-            leftIcon={<Lock className="h-4 w-4" />}
+            leftIcon={<Icon name="lock" className="h-4 w-4" />}
             name="new-password"
             id="new-password"
             autoComplete="new-password"

@@ -1,8 +1,7 @@
 /// <reference types="google.maps" />
-
 import { useEffect, useState } from "react";
 
-import { BarChart2, Building2, FolderLock, Lightbulb, Lock } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import RippleBackground from "packages/features/homeauth/components/homepage/RippleBackground";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -14,19 +13,16 @@ import { asError } from "packages/utils/error";
 import { getWindow } from "packages/utils/platform";
 
 import KeyLogo from "/logo.png?url";
-
 type Suggestion = {
   description: string;
   placePrediction: unknown;
 };
-
 declare global {
   interface Window {
     initMapScripts?: () => void;
     google?: unknown;
   }
 }
-
 export default function HomePage() {
   const { navigate } = useNavigation();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -35,11 +31,9 @@ export default function HomePage() {
   const [scriptsReady, setScriptsReady] = useState(false);
   const [, setLoadError] = useState<string | null>(null);
   const [hasSelected] = useState(false);
-
   // Temporarily disable Google Maps functionality
   const googleMapsLoaded = false;
   const googleMapsError = null;
-
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
@@ -47,26 +41,31 @@ export default function HomePage() {
       void void setLoadError("Failed to load Google Maps script.");
       return;
     }
-
     const win = getWindow();
     if (googleMapsLoaded && win?.google?.maps?.places) {
       setScriptsReady(true);
     }
   }, [googleMapsLoaded, googleMapsError]);
-
   // Fetch autocomplete suggestions as the user types
   useEffect(() => {
     if (!scriptsReady || address.trim().length < 3 || hasSelected) {
       setSuggestions([]);
       return;
     }
-
     const fetchSuggestions = async () => {
       try {
         // Use Window.google; global 'google' from @types/google.maps may not resolve in all lint contexts
         const win = getWindow();
         const g = win
-          ? (win as unknown as { google?: { maps?: { places?: unknown } } }).google
+          ? (
+              win as unknown as {
+                google?: {
+                  maps?: {
+                    places?: unknown;
+                  };
+                };
+              }
+            ).google
           : undefined;
         if (!g?.maps?.places) {
           setSuggestions([]);
@@ -78,12 +77,16 @@ export default function HomePage() {
           sessionToken,
           componentRestrictions: { country: "US" },
         };
-
         const { suggestions: fetched } =
           await g.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
-
         const built = fetched.flatMap(
-          (s: AutocompleteSuggestion | { placePrediction: unknown }) => {
+          (
+            s:
+              | AutocompleteSuggestion
+              | {
+                  placePrediction: unknown;
+                }
+          ) => {
             const sWithPred = s as {
               placePrediction: google.maps.places.PlacePrediction | null;
             };
@@ -107,11 +110,9 @@ export default function HomePage() {
         setSuggestions([]);
       }
     };
-
     const debounce = void void setTimeout(fetchSuggestions, 200);
     return () => clearTimeout(debounce);
   }, [address, scriptsReady, hasSelected]);
-
   return (
     <div className="hide-scrollbar flex min-h-screen flex-col bg-white">
       {/* Header */}
@@ -171,25 +172,25 @@ export default function HomePage() {
               {
                 title: "Find Properties",
                 description: "Select your preferences and let our AI find the best homes for you",
-                icon: <Building2 className="mobile-icon-lg text-gray-500" />,
+                icon: <Icon name="building-2" className="mobile-icon-lg text-gray-500" />,
               },
               {
                 title: "Decide on a Home",
                 description:
                   "Input the facts of homes into spreadsheets or reports and get detailed analysis of the neighborhood.",
-                icon: <BarChart2 className="mobile-icon-lg text-gray-500" />,
+                icon: <Icon name="bar-chart-2" className="mobile-icon-lg text-gray-500" />,
               },
               {
                 title: "Negotiate",
                 description:
                   "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
-                icon: <Lightbulb className="mobile-icon-lg text-gray-500" />,
+                icon: <Icon name="lightbulb" className="mobile-icon-lg text-gray-500" />,
               },
               {
                 title: "Purchase",
                 description:
                   "Use our timelines and paperwork to find and submit the appropriate paperwork, disclosures, etc, without paying legal fees.",
-                icon: <FolderLock className="mobile-icon-lg text-gray-500" />,
+                icon: <Icon name="folder-lock" className="mobile-icon-lg text-gray-500" />,
               },
             ].map((f, i) => (
               <div
@@ -237,7 +238,7 @@ export default function HomePage() {
           <div className="space-responsive-lg w-full max-w-md rounded-2xl bg-white shadow">
             <div className="mb-4 flex justify-between">
               <div className="gap-responsive-xs flex items-center">
-                <Lock className="mobile-icon-sm text-gray-600" />
+                <Icon name="lock" className="mobile-icon-sm text-gray-600" />
                 Account Required
               </div>
               <CloseButton onClick={() => setShowAuthModal(false)} />

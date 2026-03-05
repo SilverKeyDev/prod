@@ -1,31 +1,26 @@
 import React from "react";
 
-import { MapPin } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { BodyText } from "packages/ui/components/index.web";
-
 const MAX_VISIBLE = 3;
 const ADDRESS_MAX_LENGTH = 28;
-
 function truncateAddress(address: string): string {
   if (address.length <= ADDRESS_MAX_LENGTH) return address;
   return `${address.slice(0, ADDRESS_MAX_LENGTH - 3)}...`;
 }
-
 export default function ImportantLocationsSummary(): React.ReactElement | null {
   const { t } = useLocalization();
   const { userPreferences } = useUserPreferences();
   const locations = userPreferences?.important_locations;
   if (!locations?.length) return null;
-
   const visible = locations.slice(0, MAX_VISIBLE);
   const remaining = locations.length - MAX_VISIBLE;
-
   return (
     <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
-      <MapPin className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+      <Icon name="map-pin" className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {visible.map((loc, i) => (
           <BodyText

@@ -83,7 +83,8 @@ export function VerificationScreenNative() {
           session.removeItem("signupEmail");
           session.removeItem("signupPassword");
         },
-        (path) => navigateToPath(path)
+        (path) => navigateToPath(path),
+        { postSuccessPath: routeState?.fromLogin ? "/search" : "/onboarding" }
       );
     } catch (err: unknown) {
       log.error(LOG_CATEGORIES.AUTH, "Verification error", err);

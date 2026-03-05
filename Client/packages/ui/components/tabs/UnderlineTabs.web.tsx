@@ -38,7 +38,9 @@ export function UnderlineTabs({
   const textSizeClass = compact ? "text-responsive-sm" : "text-sm";
 
   return (
-    <div className={className ? `${containerClass} ${className}` : containerClass}>
+    <div
+      className={className ? `${containerClass} ${className}` : containerClass}
+    >
       {items.map((item) => {
         const isActive = activeId === item.id;
         return (

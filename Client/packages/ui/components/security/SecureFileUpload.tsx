@@ -2,10 +2,9 @@
  * Secure File Upload Component
  * Provides secure file upload with EXIF stripping, validation, and preview
  */
-
 import React, { useCallback, useRef, useState } from "react";
 
-import { AlertTriangle, CheckCircle, FileImage, Upload } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { formatFileSize, processImage } from "packages/services/security/imageProcessor";
@@ -14,7 +13,6 @@ import { BodyText, Button, Input, Label, Title } from "packages/ui/components/in
 import { Image } from "packages/ui/components/primitives/media";
 
 import Card from "@/components/layout/Card.web";
-
 type SecureFileUploadProps = {
   onFilesProcessed: (files: ProcessedImage[]) => void;
   maxFiles?: number;
@@ -27,7 +25,6 @@ type SecureFileUploadProps = {
   disabled?: boolean;
   className?: string;
 };
-
 type ProcessedImage = {
   file: File;
   originalSize: number;
@@ -35,12 +32,10 @@ type ProcessedImage = {
   metadataRemoved: string[];
   warnings: string[];
 };
-
 type FileWithPreview = {
   preview?: string;
   id: string;
 } & ProcessedImage;
-
 export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   onFilesProcessed,
   maxFiles = 5,
@@ -60,52 +55,41 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<FileWithPreview | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const validateFile = useCallback(
     (file: File): string[] => {
       const errors: string[] = [];
       if (file.size > maxSize) {
         errors.push(
-          `File "${file.name}" is too large (${formatFileSize(
-            file.size
-          )}). Maximum size is ${formatFileSize(maxSize)}.`
+          `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxSize)}.`
         );
       }
       if (!acceptedTypes.includes(file.type)) {
         errors.push(
-          `File "${file.name}" has unsupported type (${
-            file.type
-          }). Accepted types: ${acceptedTypes.join(", ")}.`
+          `File "${file.name}" has unsupported type (${file.type}). Accepted types: ${acceptedTypes.join(", ")}.`
         );
       }
       return errors;
     },
     [maxSize, acceptedTypes]
   );
-
   const processFiles = useCallback(
     (fileList: File[]) => {
       setProcessing(true);
       setError(null);
-
       try {
         log.info("SECURE_UPLOAD", "Processing files", {
           count: fileList.length,
         });
-
         const validationErrors: string[] = [];
         fileList.forEach((file) => {
           validationErrors.push(...validateFile(file));
         });
-
         if (validationErrors.length > 0) {
           setError(validationErrors.join(", "));
           setProcessing(false);
           return;
         }
-
         const validFiles = fileList.filter((file) => file.type.startsWith("image/"));
-
         const processedFiles: ProcessedImage[] = validFiles.map((file): ProcessedImage => {
           try {
             return processImage(file, {
@@ -125,19 +109,15 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
             };
           }
         });
-
         const filesWithPreview: FileWithPreview[] = processedFiles.map((processed, index) => ({
           ...processed,
           preview: showPreview ? URL.createObjectURL(processed.file) : undefined,
           id: `file-${Date.now()}-${index}`,
         }));
-
         setFiles((prev) => [...prev, ...filesWithPreview]);
-
         if (autoProcess) {
           onFilesProcessed(processedFiles);
         }
-
         log.info("SECURE_UPLOAD", "Files processed successfully", {
           totalFiles: processedFiles.length,
           totalSizeReduction: processedFiles.reduce(
@@ -154,13 +134,11 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
     },
     [showPreview, autoProcess, onFilesProcessed, validateFile]
   );
-
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragOver(false);
-
       const droppedFiles = Array.from(e.dataTransfer.files);
       if (files.length + droppedFiles.length > maxFiles) {
         setError(`Too many files. Maximum ${maxFiles} files allowed.`);
@@ -170,19 +148,16 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
     },
     [files.length, maxFiles, processFiles]
   );
-
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(true);
   }, []);
-
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
   }, []);
-
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files ?? []);
     if (files.length + selectedFiles.length > maxFiles) {
@@ -191,7 +166,6 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
     }
     void processFiles(selectedFiles);
   };
-
   const removeFile = (id: string) => {
     setFiles((prev) => {
       const fileToRemove = prev.find((f) => f.id === id);
@@ -201,7 +175,6 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       return prev.filter((f) => f.id !== id);
     });
   };
-
   React.useEffect(() => {
     return () => {
       files.forEach((file) => {
@@ -211,7 +184,6 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       });
     };
   }, [files]);
-
   return (
     <Card className={`w-full ${className}`} padding="md">
       {label && (
@@ -255,7 +227,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         />
 
         <div className="space-y-3">
-          <Upload className="mx-auto h-10 w-10 text-gray-400" />
+          <Icon name="upload" className="mx-auto h-10 w-10 text-gray-400" />
           <div>
             <BodyText as="p" size="sm" className="text-gray-600">
               {t("secure_upload.click_or_drag")}
@@ -279,7 +251,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       {error && (
         <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
           <div className="flex items-center space-x-2">
-            <AlertTriangle className="h-4 w-4 flex-shrink-0 text-red-600" />
+            <Icon name="alert-triangle" className="h-4 w-4 flex-shrink-0 text-red-600" />
             <BodyText as="p" size="sm" className="text-red-800">
               {error}
             </BodyText>
@@ -291,7 +263,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         <div className="mt-6 space-y-4">
           <div className="flex items-center justify-between">
             <Title as="h4" size="sm" className="flex items-center font-medium text-gray-700">
-              <FileImage className="mr-2 h-4 w-4" />
+              <Icon name="file-image" className="mr-2 h-4 w-4" />
               {t("secure_upload.uploaded_files", { count: files.length })}
             </Title>
             <Button
@@ -339,7 +311,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                       {formatFileSize(file.processedSize)}
                       {file.originalSize !== file.processedSize && (
                         <BodyText as="span" className="flex items-center">
-                          <CheckCircle className="mr-1 h-3 w-3" />
+                          <Icon name="check-circle" className="mr-1 h-3 w-3" />
                           {t("secure_upload.exif_stripped")}
                         </BodyText>
                       )}

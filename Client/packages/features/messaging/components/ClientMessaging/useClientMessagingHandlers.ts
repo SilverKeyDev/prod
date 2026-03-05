@@ -10,6 +10,10 @@ import { useEventRequests } from "@/features/agent/hooks/data/useEventRequests";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents";
 import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 
+// Parity note: this hook is used by both web (`ClientMessaging`) and mobile (`MessagingScreen.native`).
+// When adding new messaging attachment or event-request behaviors, update both platforms and
+// keep `documentation/client/mobile-parity/messaging-mobile-parity.md` in sync.
+
 type UseClientMessagingHandlersArgs = {
   activeConversationId: string | null;
   agentId: string | undefined;

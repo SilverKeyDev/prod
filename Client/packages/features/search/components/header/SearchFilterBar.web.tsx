@@ -2,6 +2,7 @@ import React, { useCallback, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { Button } from "packages/ui/components/index.web";
+import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import type { OnboardingData } from "@/features/profile/utils";
 
@@ -41,7 +42,7 @@ export default function SearchFilterBar({
           size="sm"
           iconName="sliders-horizontal"
           onClick={() => setSheetOpen(true)}
-          className="touch-friendly h-11 max-h-11 min-h-11 shrink-0"
+          className={`touch-friendly shrink-0 ${HEADER_ROW_HEIGHT}`}
           aria-expanded={sheetOpen}
           aria-haspopup="dialog"
         >

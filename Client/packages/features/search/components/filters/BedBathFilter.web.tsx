@@ -3,7 +3,7 @@ import React from "react";
 import { useLocalization } from "packages/contexts";
 import { BodyText } from "packages/ui/components/index.web";
 
-import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider.web";
+import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 
 const BED_TICKS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 const BATH_TICKS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
@@ -56,9 +56,6 @@ export default function BedBathFilter({
 
   return (
     <div className={`${compact ? "space-y-2" : "space-y-4"} ${className}`}>
-      <BodyText size="sm" className={`font-medium text-gray-700 ${compact ? "mb-1" : "mb-2"}`}>
-        {t("search.filters_beds_baths_range")}
-      </BodyText>
       <div className={`grid grid-cols-1 sm:grid-cols-2 ${compact ? "gap-2" : "gap-4"}`}>
         <div className="touch-friendly">
           <BodyText as="div" size="xs" className={`${compact ? "mb-0.5" : "mb-1"} text-gray-500`}>

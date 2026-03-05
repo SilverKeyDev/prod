@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 
-import { X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import IconButton, { IconButtonProps } from "./IconButton";
 import {
@@ -8,9 +8,7 @@ import {
   OVERLAY_MARKER_ICON_BUTTON_SIZE,
   OVERLAY_MARKER_ICON_CLASSES,
 } from "./overlayMarkerButtonTypes";
-
 export type CloseButtonSize = IconButtonProps["size"] | "overlay";
-
 export type CloseButtonProps = Omit<IconButtonProps, "icon" | "variant" | "size"> & {
   /**
    * Variant for close button. Defaults to "ghost" for standard close buttons.
@@ -26,7 +24,6 @@ export type CloseButtonProps = Omit<IconButtonProps, "icon" | "variant" | "size"
    */
   label?: string;
 };
-
 /**
  * Standardized Close Button component.
  *
@@ -46,13 +43,12 @@ const CloseButton = forwardRef<HTMLButtonElement, CloseButtonProps>(
     const iconButtonSize = isOverlay ? OVERLAY_MARKER_ICON_BUTTON_SIZE : size;
     const sizeClassName = isOverlay ? OVERLAY_MARKER_CIRCLE_CLASSES : "";
     const iconClassName = isOverlay ? OVERLAY_MARKER_ICON_CLASSES : "h-full w-full";
-
     return (
       <IconButton
         ref={ref}
         variant={variant}
         size={iconButtonSize}
-        icon={<X className={iconClassName} />}
+        icon={<Icon name="x" className={iconClassName} />}
         label={label}
         className={`${sizeClassName} ${className}`.trim()}
         {...props}
@@ -60,7 +56,5 @@ const CloseButton = forwardRef<HTMLButtonElement, CloseButtonProps>(
     );
   }
 );
-
 CloseButton.displayName = "CloseButton";
-
 export default CloseButton;

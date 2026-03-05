@@ -26,7 +26,7 @@ perplexity
 plaid
 serp
 rapidapi
-docusign-integration
+skyslope
 "
 
 REGION="${1:-${AWS_REGION:-us-east-2}}"

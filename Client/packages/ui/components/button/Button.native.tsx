@@ -2,7 +2,7 @@
 import React, { forwardRef } from "react";
 
 import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
-import { getIcon } from "@ui/icons/iconMap";
+import { Icon } from "@ui/icons";
 import type { PressableProps } from "react-native";
 import { Pressable } from "react-native";
 
@@ -85,7 +85,9 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
     const sizeClass = SIZE_CLASSES[size];
     const textColorClass = TEXT_COLOR_CLASSES[effectiveVariant];
 
-    const resolvedIcon = icon ?? (iconName ? getIcon(iconName) : null);
+    const iconClassName = `${size === "lg" ? "h-5 w-5" : "h-4 w-4"} ${textColorClass}`;
+    const resolvedIcon =
+      icon ?? (iconName ? <Icon name={iconName} className={iconClassName} /> : null);
 
     const handlePress = onPress ?? (onClick as (() => void) | undefined);
 

@@ -1,13 +1,10 @@
 import React from "react";
 
-import { Dropdown, Input } from "packages/ui/components/index.web";
-
 import AlignedRow from "@/components/layout/AlignedRow";
-import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider.web";
+import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
 import {
-  ARCHITECTURAL_STYLE_OPTIONS,
   DAYS_ON_MARKET_TICK_VALUES,
   FIELD_LABELS,
   HOME_AGE_YEARS_TICK_VALUES,
@@ -90,23 +87,6 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
         justify="start"
         items={[
           {
-            title: <Label>{FIELD_LABELS.PREFERRED_BATHROOMS}</Label>,
-            content: isEditMode ? (
-              <Input
-                type="number"
-                value={formData.preferred_bathrooms?.toString() ?? ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  updateFormData("preferred_bathrooms", parseInt(e.target.value) || undefined)
-                }
-                placeholder="Number of bathrooms"
-              />
-            ) : (
-              <div className="mobile-input bg-gray-50">
-                {formData.preferred_bathrooms ?? "Not specified"}
-              </div>
-            ),
-          },
-          {
             title: <Label>{FIELD_LABELS.PREFERRED_LOT_SIZE}</Label>,
             content: isEditMode ? (
               <BudgetRangeSlider
@@ -132,14 +112,6 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
               </div>
             ),
           },
-        ]}
-      />
-
-      <AlignedRow
-        breakIntoRows="md"
-        gap="lg"
-        justify="start"
-        items={[
           {
             title: <Label>{FIELD_LABELS.PREFERRED_HOME_AGE}</Label>,
             content: isEditMode ? (
@@ -157,25 +129,6 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
               <div className="mobile-input bg-gray-50">
                 {formData.preferred_home_age_max != null
                   ? `Up to ${formData.preferred_home_age_max} years`
-                  : "Not specified"}
-              </div>
-            ),
-          },
-          {
-            title: <Label>{FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}</Label>,
-            content: isEditMode ? (
-              <Dropdown
-                value={formData.preferred_architectural_style ?? ""}
-                onChange={(value) => updateFormData("preferred_architectural_style", value)}
-                options={ARCHITECTURAL_STYLE_OPTIONS}
-                placeholder="Select..."
-              />
-            ) : (
-              <div className="mobile-input bg-gray-50">
-                {formData.preferred_architectural_style
-                  ? ARCHITECTURAL_STYLE_OPTIONS.find(
-                      (opt) => opt.value === formData.preferred_architectural_style
-                    )?.label
                   : "Not specified"}
               </div>
             ),

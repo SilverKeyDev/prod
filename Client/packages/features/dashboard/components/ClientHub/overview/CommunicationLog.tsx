@@ -1,23 +1,21 @@
 import React from "react";
 
-import { CheckCircle, FileText, MessageSquare } from "lucide-react";
+import { Icon } from "@ui/icons";
+import { MessageSquare } from "lucide-react";
 
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import type { AgentNote, DecisionLogEntry } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
 import { BodyText, Title } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
-
 type CommunicationLogProps = {
   clientId: string;
   decisions: DecisionLogEntry[];
   notes: AgentNote[];
 };
-
 const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions, notes }) => {
   const { conversations } = useAgentChats(clientId);
   const conversation = conversations.find((c) => c.client_id === clientId);
-
   const formatDate = (dateString: string) => {
     const date = dateParseISO(dateString).toDate();
     return date.toLocaleDateString("en-US", {
@@ -28,7 +26,6 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
       minute: "2-digit",
     });
   };
-
   // Combine all communication items and sort by date
   const allItems = [
     ...decisions.map((d) => ({
@@ -46,7 +43,6 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
       context: undefined,
     })),
   ].sort((a, b) => dateParseISO(b.date).valueOf() - dateParseISO(a.date).valueOf());
-
   return (
     <SectionCard title="Communication Log" icon={MessageSquare}>
       <div className="space-y-6">
@@ -91,9 +87,9 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
                 >
                   <div className="mt-1 flex-shrink-0">
                     {item.type === "decision" ? (
-                      <CheckCircle className="text-olive h-5 w-5" />
+                      <Icon name="check-circle" className="text-olive h-5 w-5" />
                     ) : (
-                      <FileText className="text-gold h-5 w-5" />
+                      <Icon name="file-text" className="text-gold h-5 w-5" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -123,5 +119,4 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
     </SectionCard>
   );
 };
-
 export default CommunicationLog;

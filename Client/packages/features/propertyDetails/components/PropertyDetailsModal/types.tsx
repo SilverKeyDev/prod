@@ -17,6 +17,8 @@ export type PropertyComponentProps = {
 
 export type PropertyHeaderProps = PropertyComponentProps & {
   onClose: () => void;
+  /** When provided (e.g. native page), show Back instead of Close */
+  onBack?: () => void;
   onGenerateReport?: (address: string) => void;
   /** Size for toolbar buttons (heart, share, close). Default: medium */
   toolbarButtonSize?: "small" | "medium" | "large";

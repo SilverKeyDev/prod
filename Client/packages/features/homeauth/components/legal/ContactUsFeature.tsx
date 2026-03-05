@@ -1,4 +1,4 @@
-import { Mail, Phone } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import StaticPageLayout, {
   EmailLink,
@@ -10,17 +10,17 @@ import { BodyText, Title } from "packages/ui/components/index.web";
 
 import { ContactUsContent } from "./ContactUsContent";
 
-function WebContactInfoContainer({ children }: { children: React.ReactNode }) {
+function ContactInfoContainer({ children }: { children: React.ReactNode }) {
   return <div className="gap-responsive-md grid grid-cols-1 md:grid-cols-2">{children}</div>;
 }
 
-function WebContactInfoBlock({ label, value }: { label: string; value: React.ReactNode }) {
+function ContactInfoBlock({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="gap-responsive-sm flex items-start">
       {label === "Email" ? (
-        <Mail className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
+        <Icon name="mail" className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
       ) : (
-        <Phone className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
+        <Icon name="phone" className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
       )}
       <div>
         <Title as="h3" size="sm" className="space-y-responsive-xs font-semibold text-black">
@@ -34,7 +34,7 @@ function WebContactInfoBlock({ label, value }: { label: string; value: React.Rea
   );
 }
 
-function WebFAQItem({ question, children }: { question: string; children: React.ReactNode }) {
+function FAQItem({ question, children }: { question: string; children: React.ReactNode }) {
   return (
     <div>
       <Title as="h3" size="sm" className="space-y-responsive-xs font-semibold text-black">
@@ -55,9 +55,9 @@ export function ContactUsFeature() {
         Paragraph={Paragraph}
         List={List}
         EmailLink={EmailLink}
-        ContactInfoContainer={WebContactInfoContainer}
-        ContactInfoBlock={WebContactInfoBlock}
-        FAQItem={WebFAQItem}
+        ContactInfoContainer={ContactInfoContainer}
+        ContactInfoBlock={ContactInfoBlock}
+        FAQItem={FAQItem}
       />
     </StaticPageLayout>
   );

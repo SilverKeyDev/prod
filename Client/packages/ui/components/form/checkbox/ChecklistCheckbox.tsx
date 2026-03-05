@@ -1,16 +1,14 @@
 import React from "react";
 
+import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
-import { Check } from "lucide-react";
 
 import AccessibleCheckboxInput from "./AccessibleCheckboxInput";
-
 type ResourceLink = {
   label: string;
   href?: string;
 };
-
 export type ChecklistItem = {
   id: number;
   label: string;
@@ -19,7 +17,6 @@ export type ChecklistItem = {
   tip?: string;
   resource?: ResourceLink;
 };
-
 type ChecklistCheckboxProps = {
   item: ChecklistItem;
   checked: boolean;
@@ -29,7 +26,6 @@ type ChecklistCheckboxProps = {
   checkboxContainerClass: string;
   number?: number;
 };
-
 /**
  * Reusable styled checkbox row for checklist pages.
  * Keeps consistent styling across Closing & Moving In, Inspections & Inspections, etc.
@@ -67,7 +63,9 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
           }
         }}
       >
-        {checked && <Check className="h-3.5 w-3.5 text-white lg:h-4 lg:w-4" strokeWidth={4} />}
+        {checked && (
+          <Icon name="check" className="h-3.5 w-3.5 text-white lg:h-4 lg:w-4" strokeWidth={4} />
+        )}
       </div>
       <div className="flex-1">
         <Label htmlFor={`item-${item.id}`} className={itemLabelClass}>
@@ -109,5 +107,4 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
     </div>
   );
 };
-
 export default ChecklistCheckbox;

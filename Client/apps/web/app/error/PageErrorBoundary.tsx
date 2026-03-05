@@ -3,44 +3,36 @@
  * shows an in-page error with retry instead of breaking the whole route.
  * Keeps sidebar and layout mounted.
  */
-
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { RefreshCw } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link } from "packages/navigation";
 import { BodyText, Button, Title } from "packages/ui/components/index.web";
-
 type PageErrorBoundaryProps = {
   children: ReactNode;
   /** Optional label for the page (e.g. "Search", "Saved") for the error message. */
   pageLabel?: string;
 };
-
 type PageErrorBoundaryState = {
   hasError: boolean;
   error: Error | null;
 };
-
 export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErrorBoundaryState> {
   constructor(props: PageErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
   }
-
   static getDerivedStateFromError(error: Error): PageErrorBoundaryState {
     return { hasError: true, error };
   }
-
   componentDidCatch(error: Error, _errorInfo: ErrorInfo): void {
     log.error(LOG_CATEGORIES.ERRORS, "PageErrorBoundary caught error", error);
   }
-
   handleRetry = (): void => {
     this.setState({ hasError: false, error: null });
   };
-
   render(): ReactNode {
     if (this.state.hasError) {
       const label = this.props.pageLabel ?? "This page";
@@ -56,7 +48,7 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
             <Button
               variant="primary"
               onClick={this.handleRetry}
-              icon={<RefreshCw className="h-4 w-4" />}
+              icon={<Icon name="refresh-cw" className="h-4 w-4" />}
               size="md"
             >
               Try again
@@ -73,5 +65,4 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
     return this.props.children;
   }
 }
-
 export default PageErrorBoundary;

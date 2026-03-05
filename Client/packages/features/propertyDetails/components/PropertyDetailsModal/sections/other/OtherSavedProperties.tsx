@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Plus } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { BodyText, Button, Title } from "packages/ui/components/index.web";
 
@@ -8,13 +8,10 @@ import { StyledImage } from "@/components/cards/base/index.web";
 import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
 import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
 import { useSavedHomesData } from "@/features/search/hooks/data/saved/useSavedHomesData";
-
 export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ property }) => {
   const { savedHomes, savedHomesLoading } = useSavedHomesData();
   const { fetchPropertyDetails } = usePropertyDetails();
-
   const currentPropertyId = property?.id;
-
   const otherSavedHomes = React.useMemo(() => {
     return savedHomes
       .filter(
@@ -24,7 +21,6 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ propert
       )
       .slice(0, 6);
   }, [savedHomes, currentPropertyId]);
-
   const handleViewProperty = async (home: (typeof savedHomes)[0]) => {
     const propertyData = {
       id: home.home_id,
@@ -46,14 +42,11 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ propert
       longitude: home.lng ?? 0,
       images: home.image_url ? [home.image_url] : undefined,
     };
-
     await fetchPropertyDetails(propertyData);
   };
-
   if (savedHomesLoading || otherSavedHomes.length === 0) {
     return null;
   }
-
   return (
     <div className="border-t border-gray-200 bg-white px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-4">
@@ -72,9 +65,7 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ propert
             (Array.isArray(home.image_urls) && home.image_urls.length > 0
               ? home.image_urls[0]
               : null);
-
           if (!imageUrl) return null;
-
           return (
             <Button
               key={home.home_id}
@@ -97,7 +88,7 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ propert
               </div>
               <div className="absolute right-2 top-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                 <div className="bg-gold rounded-full p-1.5 shadow-lg">
-                  <Plus className="h-3 w-3 text-white" />
+                  <Icon name="plus" className="h-3 w-3 text-white" />
                 </div>
               </div>
             </Button>

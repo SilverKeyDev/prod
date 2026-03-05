@@ -58,9 +58,6 @@
       "@ui/*": ["packages/ui/components/*"],
       "@/features/documents/data": ["packages/features/documents/hooks/data"],
       "@/features/documents/data/*": ["packages/features/documents/hooks/data/*"],
-      "@/features/dashboard/widgets/DocuSignWidget": [
-        "packages/features/documents/components/DocuSignWidget"
-      ],
       "packages/ui/components/ui": ["packages/ui/components"],
       "packages/ui/components/ui/*": ["packages/ui/components/*"],
       "packages/features/homeauth/Auth/Button": [

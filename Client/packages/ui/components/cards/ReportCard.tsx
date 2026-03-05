@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Clock, Download, Eye, Share, Trash2 } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { formatDate, formatFilenameToAddress } from "packages/features/search/types/search/address";
@@ -13,7 +13,6 @@ import { BodyText, Button, StatusBadge, Title } from "@/components/ui/index.web"
 
 import ActionButton from "./ActionButton";
 import { getInteractiveCardClasses } from "./base/index.web";
-
 export type ReportCardProps = {
   report: Report;
   viewMode: "grid" | "list";
@@ -23,7 +22,6 @@ export type ReportCardProps = {
   onDelete: (id: string, s3Key: string) => void;
   loadingUrls: Set<string>;
 };
-
 function getStatusVariant(
   status: string
 ): "success" | "warning" | "error" | "info" | "processing" | "default" {
@@ -38,7 +36,6 @@ function getStatusVariant(
       return "default";
   }
 }
-
 function formatReportDate(report: Report): string {
   try {
     if (report.generatedAt && typeof report.generatedAt.toISOString === "function") {
@@ -49,7 +46,6 @@ function formatReportDate(report: Report): string {
     return formatDate(dateNow().toISOString());
   }
 }
-
 const reportTitleStyleGrid = {
   display: "-webkit-box" as const,
   WebkitLineClamp: 2,
@@ -60,7 +56,6 @@ const reportTitleStyleGrid = {
   maxHeight: "3rem",
   lineHeight: "1.5",
 };
-
 const reportTitleStyleList = {
   maxWidth: "calc(100% - 10rem)",
   display: "-webkit-box" as const,
@@ -72,7 +67,6 @@ const reportTitleStyleList = {
   maxHeight: "2.4rem",
   lineHeight: "1.2",
 };
-
 function ReportCardDate({ report }: { report: Report }) {
   return (
     <div className="absolute left-3 top-3 z-10">
@@ -81,13 +75,12 @@ function ReportCardDate({ report }: { report: Report }) {
         size="xs"
         className="flex items-center rounded-md bg-white/90 px-2 py-1 text-black/60 shadow-sm sm:text-sm"
       >
-        <Clock className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+        <Icon name="clock" className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
         {formatReportDate(report)}
       </BodyText>
     </div>
   );
 }
-
 function ReportCardTitle({ report, viewMode }: { report: Report; viewMode: "grid" | "list" }) {
   const address = formatFilenameToAddress(report.address);
   if (viewMode === "grid") {
@@ -122,7 +115,6 @@ function ReportCardTitle({ report, viewMode }: { report: Report; viewMode: "grid
     </div>
   );
 }
-
 function ReportCardCompletedActions({
   report,
   viewMode,
@@ -154,17 +146,15 @@ function ReportCardCompletedActions({
     });
     onView(report.id, report.address);
   };
-
   const disabled = loadingUrls.has(report.id);
   const canDelete = !!report.s3Key;
-
   if (viewMode === "grid") {
     return (
       <div className="flex w-full min-w-0 flex-col gap-2">
         <ActionButton
           onClick={handleView}
           disabled={disabled}
-          icon={<Eye />}
+          icon={<Icon name="eye" />}
           text={viewLabel}
           colorClasses="bg-olive-muted hover:bg-olive-light text-white"
           className="w-full"
@@ -173,7 +163,7 @@ function ReportCardCompletedActions({
           <ActionButton
             onClick={() => onDownload(report.id, report.address)}
             disabled={disabled}
-            icon={<Download />}
+            icon={<Icon name="download" />}
             text=""
             colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
             className="min-w-0 flex-1"
@@ -182,7 +172,7 @@ function ReportCardCompletedActions({
           <ActionButton
             onClick={() => onShare(report)}
             disabled={disabled}
-            icon={<Share />}
+            icon={<Icon name="share" />}
             text=""
             colorClasses="bg-gold hover:bg-gold/90 text-white"
             className="min-w-0 flex-1"
@@ -191,7 +181,7 @@ function ReportCardCompletedActions({
           <ActionButton
             onClick={() => report.s3Key && onDelete(report.id, report.s3Key)}
             disabled={disabled || !canDelete}
-            icon={<Trash2 />}
+            icon={<Icon name="trash-2" />}
             colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
             title={deleteTitle}
             className="min-w-0 flex-1 sm:w-auto sm:flex-initial"
@@ -201,13 +191,12 @@ function ReportCardCompletedActions({
       </div>
     );
   }
-
   return (
     <div className="flex min-w-0 items-center gap-2">
       <ActionButton
         onClick={() => onDownload(report.id, report.address)}
         disabled={disabled}
-        icon={<Download />}
+        icon={<Icon name="download" />}
         text=""
         colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
         className="min-w-0 flex-1"
@@ -216,7 +205,7 @@ function ReportCardCompletedActions({
       <ActionButton
         onClick={handleView}
         disabled={disabled}
-        icon={<Eye />}
+        icon={<Icon name="eye" />}
         text={viewLabel}
         colorClasses="bg-olive-muted hover:bg-olive-light text-white"
         className="min-w-0 flex-1"
@@ -224,7 +213,7 @@ function ReportCardCompletedActions({
       <ActionButton
         onClick={() => onShare(report)}
         disabled={disabled}
-        icon={<Share />}
+        icon={<Icon name="share" />}
         text=""
         colorClasses="bg-gold hover:bg-gold/90 text-white"
         className="min-w-0 flex-1"
@@ -233,7 +222,7 @@ function ReportCardCompletedActions({
       <ActionButton
         onClick={() => report.s3Key && onDelete(report.id, report.s3Key)}
         disabled={disabled || !canDelete}
-        icon={<Trash2 />}
+        icon={<Icon name="trash-2" />}
         colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
         title={deleteTitle}
         className="min-w-0 sm:w-auto sm:flex-initial"
@@ -242,7 +231,6 @@ function ReportCardCompletedActions({
     </div>
   );
 }
-
 function ReportCardGeneratingProgress({ viewMode }: { viewMode: "grid" | "list" }) {
   return (
     <div className={viewMode === "grid" ? "w-full py-2" : "w-full space-y-2"}>
@@ -252,7 +240,6 @@ function ReportCardGeneratingProgress({ viewMode }: { viewMode: "grid" | "list" 
     </div>
   );
 }
-
 function ReportCardErrorAction({
   report,
   loadingUrls,
@@ -272,12 +259,11 @@ function ReportCardErrorAction({
       disabled={loadingUrls.has(report.id) || !report.s3Key}
       className="w-full"
     >
-      <Trash2 className="mr-1 h-4 w-4" />
+      <Icon name="trash-2" className="mr-1 h-4 w-4" />
       {deleteLabel}
     </Button>
   );
 }
-
 const ReportCard: React.FC<ReportCardProps> = ({
   report,
   loadingUrls,
@@ -300,7 +286,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
         return report.status;
     }
   })();
-
   return (
     <Card
       className={
@@ -346,5 +331,4 @@ const ReportCard: React.FC<ReportCardProps> = ({
     </Card>
   );
 };
-
 export default ReportCard;

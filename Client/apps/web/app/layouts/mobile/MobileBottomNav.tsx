@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
 
-import { Link, useLocation } from "react-router-dom";
+import { Icon } from "@ui/icons";
+import { useLocation } from "react-router-dom";
 
 import { SearchNavLink } from "packages/features/search";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { Link } from "packages/navigation";
 import { useNotificationStore } from "packages/store";
 import { Portal } from "packages/ui/components/portal";
 import { NotificationBadge } from "packages/ui/components/primitives/index.web";
 
 import { SIDEBAR_TABS, type SidebarTabKey } from "@/app/layouts/sidebar/sidebarTabs.web";
 import type { UserProfile } from "@/features/homeauth/types";
+
+function genNavId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+}
 
 const BOTTOM_NAV_KEYS: SidebarTabKey[] = ["dashboard", "search", "decide", "agent", "profile"];
 const navItems = BOTTOM_NAV_KEYS.map((k) => SIDEBAR_TABS[k]);
@@ -30,18 +37,26 @@ type BottomNavItemsProps = {
   isActive: (href: string) => boolean;
   unreadCount: number;
   isLoaded: boolean;
+  pathname: string;
+  onSearchNavigateClick?: (navId: string) => void;
 };
 
-function BottomNavItems({ items, isActive, unreadCount, isLoaded }: BottomNavItemsProps) {
+function BottomNavItems({
+  items,
+  isActive,
+  unreadCount,
+  isLoaded,
+  pathname,
+  onSearchNavigateClick,
+}: BottomNavItemsProps) {
   return (
     <>
       {items.map((item) => {
         const active = isActive(item.href);
-        const Icon = item.icon;
         const content = (
           <>
             <div className="relative">
-              <Icon className={iconClass(active)} strokeWidth={active ? 2.5 : 2} />
+              <Icon name={item.icon} className={iconClass(active)} />
               {item.key === "agent" && isLoaded && (
                 <NotificationBadge
                   count={unreadCount}
@@ -58,6 +73,7 @@ function BottomNavItems({ items, isActive, unreadCount, isLoaded }: BottomNavIte
             className={linkClass(active)}
             aria-label={item.name}
             aria-current={active ? "page" : undefined}
+            onNavigateClick={onSearchNavigateClick}
           >
             {content}
           </SearchNavLink>
@@ -68,6 +84,15 @@ function BottomNavItems({ items, isActive, unreadCount, isLoaded }: BottomNavIte
             className={linkClass(active)}
             aria-label={item.name}
             aria-current={active ? "page" : undefined}
+            onClick={() => {
+              const navId = genNavId();
+              log.info(LOG_CATEGORIES.ROUTING, "[NAV] MobileBottomNav click", {
+                navId,
+                from: pathname,
+                to: item.href,
+                categoryKey: item.key,
+              });
+            }}
           >
             {content}
           </Link>
@@ -96,6 +121,13 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
     return currentPath === path || currentPath.startsWith(path + "/");
   };
 
+  const handleSearchNavigateClick = (navId: string) => {
+    log.info(LOG_CATEGORIES.ROUTING, "[NAV] MobileBottomNav Search click", {
+      navId,
+      pathname: location.pathname,
+    });
+  };
+
   const nav = (
     <nav
       className={BAR_CLASS}
@@ -113,6 +145,8 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
             isActive={isActive}
             unreadCount={unreadCount}
             isLoaded={isLoaded}
+            pathname={location.pathname}
+            onSearchNavigateClick={handleSearchNavigateClick}
           />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { Bookmark, Copy, Flag, XCircle } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { Transition } from "packages/ui/components/adapters/headless";
 import {
@@ -10,9 +10,7 @@ import {
 } from "packages/ui/components/index.web";
 
 import type { FeedListing } from "@/features/feed/types/feed";
-
 export type ReelsMoreActionId = "not-interested" | "report" | "copy-link" | "save";
-
 type ReelsMoreSheetProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -23,10 +21,8 @@ type ReelsMoreSheetProps = {
   onCopyLink?: () => void;
   onSave?: () => void;
 };
-
 const ACTION_ROW_CLASS =
   "flex w-full items-center gap-3 px-4 py-3 text-left border-0 rounded-none bg-transparent hover:bg-neutral-50 active:bg-neutral-100 text-neutral-900";
-
 export function ReelsMoreSheet({
   isOpen,
   onClose,
@@ -53,7 +49,6 @@ export function ReelsMoreSheet({
     onSave?.();
     onClose();
   };
-
   return (
     <Transition show={isOpen} as="div">
       <AccessibleDialog onClose={onClose} className="relative z-50" label="More options">
@@ -104,7 +99,7 @@ export function ReelsMoreSheet({
                     onClick={handleNotInterested}
                     label="Not interested"
                   >
-                    <XCircle className="h-5 w-5 shrink-0 text-neutral-600" />
+                    <Icon name="x-circle" className="h-5 w-5 shrink-0 text-neutral-600" />
                     <BodyText as="span" size="sm">
                       Not interested
                     </BodyText>
@@ -116,7 +111,7 @@ export function ReelsMoreSheet({
                     onClick={handleReport}
                     label="Report"
                   >
-                    <Flag className="h-5 w-5 shrink-0 text-neutral-600" />
+                    <Icon name="flag" className="h-5 w-5 shrink-0 text-neutral-600" />
                     <BodyText as="span" size="sm">
                       Report
                     </BodyText>
@@ -128,7 +123,7 @@ export function ReelsMoreSheet({
                     onClick={handleCopyLink}
                     label="Copy link"
                   >
-                    <Copy className="h-5 w-5 shrink-0 text-neutral-600" />
+                    <Icon name="copy" className="h-5 w-5 shrink-0 text-neutral-600" />
                     <BodyText as="span" size="sm">
                       Copy link
                     </BodyText>
@@ -140,7 +135,8 @@ export function ReelsMoreSheet({
                     onClick={handleSave}
                     label={isSaved ? "Unsave" : "Save"}
                   >
-                    <Bookmark
+                    <Icon
+                      name="bookmark"
                       className={`h-5 w-5 shrink-0 ${isSaved ? "fill-neutral-700 text-neutral-700" : "text-neutral-600"}`}
                     />
                     <BodyText as="span" size="sm">

@@ -9,6 +9,7 @@ import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
+import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
 import { normalizeError } from "packages/utils/errorHandling";
 
 type Props = {
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
       ? { boxShadow: "0px 2px 4px rgba(0,0,0,0.1)" }
       : {
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
+          shadowOffset: SHADOW_OFFSET_ELEVATED,
           shadowOpacity: 0.1,
           shadowRadius: 4,
           elevation: 3,

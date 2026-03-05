@@ -1,11 +1,9 @@
-import { ArrowLeft, ChevronLeft, Inbox, Menu, Plus } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
 import { BodyText, Button, Title } from "packages/ui/components/index.web";
-
 export type HeaderMode = "inbox" | "connection-requests" | "chat" | "no-agent" | "clients";
-
 type UnifiedMessagingHeaderProps = {
   mode: HeaderMode;
   isSidebarExpanded?: boolean;
@@ -18,7 +16,6 @@ type UnifiedMessagingHeaderProps = {
   selectedClientName?: string;
   agentName?: string;
 };
-
 function HeaderLeftContent({
   mode,
   isSidebarExpanded = false,
@@ -45,7 +42,7 @@ function HeaderLeftContent({
               className="hover:bg-beige/10 flex items-center justify-center rounded-lg p-1.5 transition"
               label={t("agent.back_to_inbox")}
             >
-              <ArrowLeft className="h-4 w-4 text-black" />
+              <Icon name="arrow-left" className="h-4 w-4 text-black" />
             </Button>
           )}
           <Title as="h2" size="sm" className="font-medium text-black">
@@ -83,9 +80,9 @@ function HeaderLeftContent({
               aria-expanded={isSidebarExpanded}
             >
               {isSidebarExpanded ? (
-                <ArrowLeft className="h-5 w-5 text-black" />
+                <Icon name="arrow-left" className="h-5 w-5 text-black" />
               ) : (
-                <Menu className="h-5 w-5 text-black" />
+                <Icon name="menu" className="h-5 w-5 text-black" />
               )}
             </Button>
           )}
@@ -98,7 +95,6 @@ function HeaderLeftContent({
       );
   }
 }
-
 function HeaderRightContent({
   mode,
   isSidebarExpanded = false,
@@ -125,10 +121,9 @@ function HeaderRightContent({
         label={t("agent.collapse_sidebar")}
         aria-expanded={isSidebarExpanded}
       >
-        <ChevronLeft className="h-4 w-4 text-black" />
+        <Icon name="chevron-left" className="h-4 w-4 text-black" />
       </Button>
     ) : null;
-
   switch (mode) {
     case "connection-requests":
       return <div className="flex items-center gap-2">{collapseBtn}</div>;
@@ -142,7 +137,7 @@ function HeaderRightContent({
               onClick={onInboxClick}
               className="hover:bg-beige/10 flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition"
             >
-              <Inbox className="h-4 w-4 text-black" />
+              <Icon name="inbox" className="h-4 w-4 text-black" />
               <BodyText as="span" size="sm" className="text-black/70">
                 {t("agent.requests")}
               </BodyText>
@@ -163,7 +158,7 @@ function HeaderRightContent({
               label="Search for clients"
               title="Add client"
             >
-              <Plus className="h-4 w-4 text-black" />
+              <Icon name="plus" className="h-4 w-4 text-black" />
             </Button>
           )}
           {collapseBtn}
@@ -187,7 +182,6 @@ function HeaderRightContent({
       return null;
   }
 }
-
 export default function UnifiedMessagingHeader({
   mode,
   isSidebarExpanded = false,

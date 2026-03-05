@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 
-import { ChevronDown, ChevronRight, LogOut } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Icon } from "@ui/icons";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { SearchNavLink } from "packages/features/search";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { Link } from "packages/navigation";
 import { useViewStore, type ViewState } from "packages/store";
 import { useNotificationStore } from "packages/store";
 import WhiteLogo from "packages/ui/components/asset/WhiteLogo";
@@ -17,29 +18,23 @@ import type { UserProfile } from "@/features/homeauth/types";
 import { useUserData } from "@/features/profile/hooks/data/useUserData";
 
 import { getNavigation, type NavCategory, type SidebarNavItem } from "./sidebarNav.web";
-
 function getButtonStyles(isActive: boolean): string {
   const baseStyles =
     "w-full flex items-center py-3 transition-all duration-200 font-medium text-white touch-friendly rounded-lg";
   const activeStyles = "bg-brown-light/70 text-white font-semibold hover:bg-brown-light/80";
   const inactiveStyles =
     "text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige";
-
   return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
 }
-
 function getSubItemStyles(isActive: boolean): string {
   const baseStyles =
     "flex items-center transition-all duration-200 font-medium text-white touch-friendly rounded-lg";
   const activeStyles = "bg-brown-light text-white font-semibold hover:bg-brown-light/80";
   const inactiveStyles =
     "text-white/50 hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/30 active:text-beige";
-
   return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
 }
-
 const SINGLE_LINK_KEYS = new Set(["dashboard", "search", "decide", "profile", "agent"]);
-
 type SidebarNavSingleLinkProps = {
   categoryKey: string;
   firstItem: SidebarNavItem;
@@ -49,7 +44,6 @@ type SidebarNavSingleLinkProps = {
   isLoaded: boolean;
   onLinkClick?: () => void;
 };
-
 function SidebarNavSingleLink({
   categoryKey,
   firstItem,
@@ -60,12 +54,15 @@ function SidebarNavSingleLink({
   onLinkClick,
 }: SidebarNavSingleLinkProps) {
   const location = useLocation();
-  const ItemIcon = firstItem?.icon;
+  const itemIconName = firstItem.icon;
   const buttonClass = `${getButtonStyles(isActive)} ${!expanded ? "justify-center" : ""}`;
   const titleAttr = !expanded ? firstItem?.name : "";
-  const iconEl = ItemIcon && (
+  const iconEl = (
     <div className="relative inline-flex items-center">
-      <ItemIcon className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""}`} />
+      <Icon
+        name={itemIconName}
+        className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""}`}
+      />
       {categoryKey === "agent" && isLoaded && (
         <NotificationBadge
           count={unreadCount}
@@ -74,7 +71,6 @@ function SidebarNavSingleLink({
       )}
     </div>
   );
-
   if (categoryKey === "search") {
     return (
       <SearchNavLink
@@ -90,14 +86,14 @@ function SidebarNavSingleLink({
   }
   const to = firstItem?.href ?? "/";
   const handleClick = () => {
+    const navId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
     log.info(LOG_CATEGORIES.ROUTING, "[NAV] Sidebar nav click (link)", {
-      categoryKey,
+      navId,
+      from: location.pathname,
       to,
-      currentPathname: location.pathname,
+      categoryKey,
     });
     onLinkClick?.();
-    // Let Link handle navigation (no preventDefault + navigate) so nav works reliably
-    // when leaving /search, where the sidebar unmounts immediately after click.
   };
   return (
     <Link
@@ -113,7 +109,6 @@ function SidebarNavSingleLink({
     </Link>
   );
 }
-
 type SidebarNavCategoryProps = {
   categoryKey: string;
   category: NavCategory;
@@ -126,7 +121,6 @@ type SidebarNavCategoryProps = {
   unreadCount: number;
   isLoaded: boolean;
 };
-
 function SidebarNavCategory({
   categoryKey,
   category,
@@ -156,7 +150,6 @@ function SidebarNavCategory({
       />
     );
   }
-
   const firstItemHref = category.items[0]?.href;
   const handleCategoryHeaderClick = () => {
     if (category.items.length === 1 && firstItemHref) {
@@ -171,7 +164,6 @@ function SidebarNavCategory({
     }
     toggleCategory(categoryKey);
   };
-
   const categoryPanelId = `sidebar-category-${categoryKey}`;
   return (
     <>
@@ -187,7 +179,8 @@ function SidebarNavCategory({
           <div
             className={`${!expanded && openCategories[categoryKey] ? "flex h-8 w-8 items-center justify-center rounded-full bg-gold/20" : ""}`}
           >
-            <category.icon
+            <Icon
+              name={category.icon}
               className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""} ${!expanded && openCategories[categoryKey] ? "text-gold" : ""}`}
             />
           </div>
@@ -198,9 +191,9 @@ function SidebarNavCategory({
         )}
         {expanded &&
           (openCategories[categoryKey] ? (
-            <ChevronDown className="h-5 w-5" />
+            <Icon name="chevron-down" className="h-5 w-5" />
           ) : (
-            <ChevronRight className="h-5 w-5" />
+            <Icon name="chevron-right" className="h-5 w-5" />
           ))}
       </button>
       {openCategories[categoryKey] && (
@@ -219,7 +212,8 @@ function SidebarNavCategory({
               aria-label={item.name}
               aria-current={isActive(item.href) ? "page" : undefined}
             >
-              <item.icon
+              <Icon
+                name={item.icon}
                 className={`${isActive(item.href) ? "h-6 w-6" : "h-5 w-5"} transition-all duration-200 ${expanded ? "mr-3" : ""}`}
               />
               {expanded && <span className="text-sm">{item.name}</span>}
@@ -230,7 +224,6 @@ function SidebarNavCategory({
     </>
   );
 }
-
 function SidebarHeader({
   expanded,
   isLoading,
@@ -275,7 +268,6 @@ function SidebarHeader({
     </div>
   );
 }
-
 function SidebarFooter({
   expanded,
   showLogoutConfirm,
@@ -293,12 +285,9 @@ function SidebarFooter({
     <div className="flex-shrink-0 border-t border-brown-light py-4">
       <button
         onClick={onLogoutClick}
-        className={`${getButtonStyles(false).replace(
-          "text-white/70",
-          "text-white"
-        )} ${!expanded ? "justify-center py-3" : "py-3"} cursor-pointer`}
+        className={`${getButtonStyles(false).replace("text-white/70", "text-white")} ${!expanded ? "justify-center py-3" : "py-3"} cursor-pointer`}
       >
-        <LogOut className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />
+        <Icon name="log-out" className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />
         {expanded && <span>Logout</span>}
       </button>
       <ConfirmationDialog
@@ -312,7 +301,6 @@ function SidebarFooter({
     </div>
   );
 }
-
 type SidebarNavProps = {
   navigation: Record<string, NavCategory>;
   expanded: boolean;
@@ -324,7 +312,6 @@ type SidebarNavProps = {
   unreadCount: number;
   isLoaded: boolean;
 };
-
 function SidebarNav({
   navigation,
   expanded,
@@ -357,7 +344,6 @@ function SidebarNav({
     </nav>
   );
 }
-
 export type SidebarProps = {
   user?: UserProfile;
   onLogout: () => void;
@@ -365,7 +351,6 @@ export type SidebarProps = {
   isMobile?: boolean;
   onLinkClick?: () => void;
 };
-
 function useSidebarLogoutConfirm(onLogout: () => void) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogoutClick = (e: React.MouseEvent) => {
@@ -384,7 +369,6 @@ function useSidebarLogoutConfirm(onLogout: () => void) {
     handleCancelLogout,
   };
 }
-
 export default function Sidebar({
   onLogout,
   expanded,
@@ -403,7 +387,6 @@ export default function Sidebar({
   const location = useLocation();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const isLoaded = useNotificationStore((s) => s.isLoaded);
-
   const isActive = (href: string) => {
     const part = href.split("?")[0];
     const hrefPathname = part?.split("#")[0];
@@ -412,9 +395,7 @@ export default function Sidebar({
   };
   const toggleCategory = (category: string) => toggleCategoryInStore(category);
   const isCategoryActive = (items: SidebarNavItem[]) => items.some((item) => isActive(item.href));
-
   const navigation = getNavigation(_isAgent, hasAgent, isMobile);
-
   return (
     <div
       className={`safe-top fixed left-0 top-0 z-sidebar h-full bg-brown text-white transition-all duration-300 ease-in-out ${expanded ? "w-52 px-4" : "w-16 px-2"} `}

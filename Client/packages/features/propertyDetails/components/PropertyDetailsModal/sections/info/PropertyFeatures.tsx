@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { BodyText, Button, Title } from "packages/ui/components/index.web";
 
 import Card from "@/components/layout/Card.web";
 import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
-
-type ImageFeatures = { clean: string[]; error?: unknown };
+type ImageFeatures = {
+  clean: string[];
+  error?: unknown;
+};
 type Features = Record<string, string[]>;
-
 function isImageFeatures(x: unknown): x is ImageFeatures {
   return (
     typeof x === "object" &&
@@ -18,26 +19,20 @@ function isImageFeatures(x: unknown): x is ImageFeatures {
     Array.isArray((x as Record<string, unknown>).clean)
   );
 }
-
 function isFeatures(x: unknown): x is Features {
   if (typeof x !== "object" || x === null) return false;
   return Object.values(x as Record<string, unknown>).every(
     (v) => Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
   );
 }
-
 const deduplicateFeatures = (features: string[]): string[] => {
   const seen = new Set<string>();
   const normalized = new Map<string, string>();
-
   return features.filter((feature) => {
     const trimmed = feature.trim();
     if (!trimmed) return false;
-
     const normalizedKey = trimmed.toLowerCase().replace(/\s+/g, " ");
-
     if (seen.has(normalizedKey)) return false;
-
     const unneededPatterns = [
       /^none$/i,
       /^n\/a$/i,
@@ -48,21 +43,17 @@ const deduplicateFeatures = (features: string[]): string[] => {
       /^null$/i,
       /^undefined$/i,
     ];
-
     if (unneededPatterns.some((pattern) => pattern.test(trimmed))) {
       return false;
     }
-
     seen.add(normalizedKey);
     normalized.set(normalizedKey, trimmed);
     return true;
   });
 };
-
 const deduplicateCategoryFeatures = (feats: Features): Features => {
   const allFeatures = new Set<string>();
   const result: Features = {};
-
   Object.entries(feats).forEach(([category, list]) => {
     const deduplicated = deduplicateFeatures(list).filter((feature) => {
       const normalized = feature.toLowerCase().replace(/\s+/g, " ");
@@ -72,31 +63,24 @@ const deduplicateCategoryFeatures = (feats: Features): Features => {
       allFeatures.add(normalized);
       return true;
     });
-
     if (deduplicated.length > 0) {
       result[category] = deduplicated;
     }
   });
-
   return result;
 };
-
 export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property }) => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-
   const { features, image_features: imageFeatures } = property as unknown as {
     features: unknown;
     image_features: unknown;
   };
-
   const img =
     isImageFeatures(imageFeatures) && !imageFeatures.error
       ? { ...imageFeatures, clean: deduplicateFeatures(imageFeatures.clean) }
       : null;
   const feats = isFeatures(features) ? deduplicateCategoryFeatures(features) : null;
-
   if (!img && !feats) return null;
-
   const toggleCategory = (category: string) => {
     setExpandedCategories((prev) => {
       const next = new Set(prev);
@@ -108,7 +92,6 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
       return next;
     });
   };
-
   return (
     <div className="px-6 py-6">
       <div className="mb-4 flex items-center gap-2">
@@ -143,7 +126,6 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
             {Object.entries(feats).map(([category, list]) => {
               const isExpanded = expandedCategories.has(category);
               const displayName = category.replace(/_/g, " ");
-
               return (
                 <div key={category} className="text-left">
                   <Button
@@ -160,9 +142,9 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                       {displayName} ({list.length})
                     </Title>
                     {isExpanded ? (
-                      <ChevronUp className="text-brown h-4 w-4" />
+                      <Icon name="chevron-up" className="text-brown h-4 w-4" />
                     ) : (
-                      <ChevronDown className="text-brown h-4 w-4" />
+                      <Icon name="chevron-down" className="text-brown h-4 w-4" />
                     )}
                   </Button>
                   {isExpanded && (

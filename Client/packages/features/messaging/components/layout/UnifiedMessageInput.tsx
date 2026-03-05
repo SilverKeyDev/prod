@@ -1,4 +1,4 @@
-import { Send } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import Button from "packages/ui/components/button/Button";
 import { Textarea } from "packages/ui/components/index.web";
@@ -8,7 +8,6 @@ import {
   getMessagingConfig,
   type MessagingMode,
 } from "@/features/agent/components/messagingConfig";
-
 type UnifiedMessageInputProps = {
   mode: MessagingMode;
   message: string;
@@ -23,7 +22,6 @@ type UnifiedMessageInputProps = {
   onAttachmentDocument?: () => void;
   onAttachmentAgreement?: () => void;
 };
-
 export default function UnifiedMessageInput({
   mode,
   message,
@@ -44,7 +42,6 @@ export default function UnifiedMessageInput({
     (mode === "agent" && selectedClientName
       ? `Message ${selectedClientName}...`
       : config.input.placeholder);
-
   return (
     <div className="border-beige flex-shrink-0 border-t bg-white p-4">
       <div className="flex items-center gap-3">
@@ -72,7 +69,7 @@ export default function UnifiedMessageInput({
               }
             }}
             placeholder={finalPlaceholder}
-            className="scrollbar-hide border-beige focus:border-brown focus:ring-brown/20 w-full resize-none rounded-lg border px-3 py-2.5 text-sm transition-colors duration-150 focus:outline-none focus:ring-2 md:py-3 md:text-base"
+            className="scrollbar-hide border-beige focus:border-brown focus:ring-brown/20 h-10 min-h-0 w-full resize-none rounded-lg border px-3 py-2 text-sm leading-none transition-colors duration-150 focus:outline-none focus:ring-2 md:h-11 md:py-2.5 md:text-base md:leading-none"
             disabled={isTyping || disabled}
             rows={1}
           />
@@ -83,7 +80,7 @@ export default function UnifiedMessageInput({
           variant={config.input.buttonVariant}
           className="flex-shrink-0 px-4 py-2.5 md:py-3"
         >
-          <Send className="h-4 w-4 md:h-5 md:w-5" />
+          <Icon name="send" className="h-4 w-4 md:h-5 md:w-5" />
         </Button>
       </div>
     </div>

@@ -43,14 +43,14 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
 
   return (
     <Box className="flex flex-col gap-6 sm:gap-8">
-      {/* Upcoming Events above Calendar */}
-      <Box className="flex flex-col gap-6">
-        <UpcomingEvents />
-        <Calendar />
-      </Box>
+      {/* Upcoming Events */}
+      <UpcomingEvents />
 
       {/* Checklists Section */}
       <DashboardChecklists />
+
+      {/* Calendar */}
+      <Calendar />
 
       {/* Client List */}
       {isAgent && <ClientList onClientClick={handleClientClick} />}

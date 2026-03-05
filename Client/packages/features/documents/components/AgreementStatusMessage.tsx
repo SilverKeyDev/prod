@@ -1,16 +1,14 @@
 import { useState } from "react";
 
-import { CheckCircle2, FileSignature, Send } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { BodyText } from "packages/ui/components/index.web";
 
 import { AgreementDetailModal } from "@/features/documents/components/modals";
-import type { AgreementStatus } from "@/features/documents/types/docusign";
+import type { AgreementStatus } from "@/features/documents/types/agreements";
 
 import AgreementStatusBadge from "./AgreementStatusBadge";
-
 type SystemMessageType = "agreement_sent" | "agreement_signed" | "agreement_completed";
-
 type AgreementStatusMessageProps = {
   agreementId: string;
   agreementTitle: string;
@@ -19,7 +17,6 @@ type AgreementStatusMessageProps = {
   participantName?: string;
   timestamp: Date;
 };
-
 /**
  * AgreementStatusMessage Component
  *
@@ -38,18 +35,16 @@ export default function AgreementStatusMessage({
   timestamp,
 }: AgreementStatusMessageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const getIcon = () => {
     switch (messageType) {
       case "agreement_sent":
-        return <Send className="h-4 w-4 text-blue-600" />;
+        return <Icon name="send" className="h-4 w-4 text-blue-600" />;
       case "agreement_signed":
-        return <FileSignature className="h-4 w-4 text-purple-600" />;
+        return <Icon name="file-signature" className="h-4 w-4 text-purple-600" />;
       case "agreement_completed":
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />;
+        return <Icon name="check-circle-2" className="h-4 w-4 text-green-600" />;
     }
   };
-
   const getMessage = () => {
     switch (messageType) {
       case "agreement_sent":
@@ -62,7 +57,6 @@ export default function AgreementStatusMessage({
         return `Agreement completed: ${agreementTitle}`;
     }
   };
-
   return (
     <>
       <div className="my-3 flex justify-center">

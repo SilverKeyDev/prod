@@ -2,10 +2,9 @@
  * Generic React Error Boundary Wrapper
  * Centralized error handling for the entire application
  */
-
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { AlertTriangle, Home, MessageSquare, RefreshCw } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
@@ -14,13 +13,11 @@ import { BodyText, Title } from "packages/ui/components/index.web";
 import { normalizeError } from "packages/utils/errorHandling";
 
 import Card from "@/components/layout/Card.web";
-
 type Props = {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 };
-
 type State = {
   hasError: boolean;
   error: Error | null;
@@ -29,9 +26,11 @@ type State = {
   feedbackMessage: string;
   feedbackSubmitted: boolean;
 };
-
 type ErrorFallbackContentProps = {
-  normalizedError: { message: string; stack?: string };
+  normalizedError: {
+    message: string;
+    stack?: string;
+  };
   errorInfo: ErrorInfo | null;
   showDetails: boolean;
   feedbackMessage: string;
@@ -42,7 +41,6 @@ type ErrorFallbackContentProps = {
   onRetry: () => void;
   onGoHome: () => void;
 };
-
 function ErrorFallbackContent({
   normalizedError,
   errorInfo,
@@ -61,7 +59,7 @@ function ErrorFallbackContent({
         <div className="text-center">
           <div className="mb-responsive-md flex justify-center">
             <div className="p-responsive-sm rounded-full bg-brown/10">
-              <AlertTriangle className="mobile-icon-lg text-brown" />
+              <Icon name="alert-triangle" className="mobile-icon-lg text-brown" />
             </div>
           </div>
 
@@ -78,7 +76,7 @@ function ErrorFallbackContent({
             <Button
               variant="primary"
               onClick={onRetry}
-              icon={<RefreshCw className="mobile-icon-xs" />}
+              icon={<Icon name="refresh-cw" className="mobile-icon-xs" />}
               className="flex-1"
             >
               Try Again
@@ -86,7 +84,7 @@ function ErrorFallbackContent({
             <Button
               variant="outline"
               onClick={onGoHome}
-              icon={<Home className="mobile-icon-xs" />}
+              icon={<Icon name="home" className="mobile-icon-xs" />}
               className="flex-1"
             >
               Go Home
@@ -111,14 +109,16 @@ function ErrorFallbackContent({
     </div>
   );
 }
-
 function ErrorDetailsSection({
   normalizedError,
   errorInfo,
   showDetails,
   onToggleDetails,
 }: {
-  normalizedError: { message: string; stack?: string };
+  normalizedError: {
+    message: string;
+    stack?: string;
+  };
   errorInfo: ErrorInfo | null;
   showDetails: boolean;
   onToggleDetails: () => void;
@@ -161,7 +161,6 @@ function ErrorDetailsSection({
     </div>
   );
 }
-
 function ErrorFeedbackSection({
   feedbackMessage,
   feedbackSubmitted,
@@ -176,7 +175,7 @@ function ErrorFeedbackSection({
   return (
     <Card className="border-olive/20 bg-olive/10" padding="md">
       <div className="space-responsive-xs flex items-start">
-        <MessageSquare className="mobile-icon-sm mt-0.5 flex-shrink-0 text-olive" />
+        <Icon name="message-square" className="mobile-icon-sm mt-0.5 flex-shrink-0 text-olive" />
         <div className="flex-1">
           <Title size="sm" as="h3" className="mb-responsive-xs text-navy">
             Help us improve
@@ -210,7 +209,6 @@ function ErrorFeedbackSection({
     </Card>
   );
 }
-
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -223,20 +221,17 @@ export class ErrorBoundary extends Component<Props, State> {
       feedbackSubmitted: false,
     };
   }
-
   static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
       error,
     };
   }
-
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({
       error,
       errorInfo,
     });
-
     // Log error details for debugging
     log.error(LOG_CATEGORIES.ERRORS, "ErrorBoundary caught error", {
       message: error.message,
@@ -244,17 +239,14 @@ export class ErrorBoundary extends Component<Props, State> {
       stack: error.stack,
       componentStack: errorInfo.componentStack,
     });
-
     // Report error using centralized error reporting
     reportErrorWithCapture(error, {
       componentStack: errorInfo.componentStack,
       errorBoundary: true,
     });
-
     // Call optional onError callback
     this.props.onError?.(error, errorInfo);
   }
-
   handleRetry = () => {
     this.setState({
       hasError: false,
@@ -265,26 +257,21 @@ export class ErrorBoundary extends Component<Props, State> {
       feedbackSubmitted: false,
     });
   };
-
   handleGoHome = () => {
     window.location.href = "/";
   };
-
   handleToggleDetails = () => {
     this.setState((prev) => ({ showDetails: !prev.showDetails }));
   };
-
   handleFeedbackSubmit = () => {
     if (this.state.feedbackMessage.trim()) {
       reportErrorWithCapture(this.state.error ?? new Error("User feedback"), {
         userFeedback: this.state.feedbackMessage,
         errorBoundary: true,
       });
-
       this.setState({ feedbackSubmitted: true });
     }
   };
-
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
@@ -309,5 +296,4 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
 export default ErrorBoundary;

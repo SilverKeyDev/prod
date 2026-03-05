@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import Button from "@ui/button/Button";
 import CancelButton from "@ui/button/CancelButton";
-import { MessageCircle, Share, User } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { Property, SearchResult } from "packages/features/search/types";
@@ -16,14 +16,12 @@ import { getShareHomeConversationId, getShareHomePropertyId } from "packages/uti
 import BaseModal from "@/components/modals/BaseModal";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";
-
 type ShareHomeModalProps = {
   isOpen: boolean;
   onClose: () => void;
   property: Property | SearchResult | null;
   onShareSuccess?: () => void;
 };
-
 export default function ShareHomeModal({
   isOpen,
   onClose,
@@ -32,31 +30,23 @@ export default function ShareHomeModal({
 }: ShareHomeModalProps) {
   const { t } = useLocalization();
   const isAgent = useIsAgent();
-
   // For agents: get list of clients
   const { clients, isLoading: isLoadingClients } = useAgentClients();
-
   // For both: get conversations
   const { conversations, isLoading: isLoadingConversations, sendMessage } = useAgentChats();
-
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
-
   const propertyId = getShareHomePropertyId(property);
   const propertyAddress =
     formatAddress(property?.address as string | object | null | undefined) || "this property";
-
   // For clients: get their agent conversation
   const clientConversation = !isAgent && conversations.length > 0 ? conversations[0] : null;
-
   const handleShare = async () => {
     if (!propertyId) {
       return;
     }
-
     let conversationId: string | null = null;
-
     if (isAgent) {
       // Agent sharing with a client
       if (!selectedClientId) {
@@ -74,18 +64,15 @@ export default function ShareHomeModal({
       }
       conversationId = clientConversation.id;
     }
-
     setIsSharing(true);
     try {
       const message = shareMessage.trim() || `Check out ${propertyAddress}!`;
       // Pass client_id when creating a new conversation (for agents)
       const clientIdToPass = isAgent && conversationId === "new" ? selectedClientId : undefined;
       await sendMessage(conversationId, message, clientIdToPass ?? undefined, propertyId);
-
       // Reset state
       setSelectedClientId(null);
       setShareMessage("");
-
       if (onShareSuccess) {
         onShareSuccess();
       }
@@ -96,11 +83,9 @@ export default function ShareHomeModal({
       setIsSharing(false);
     }
   };
-
   const canShare = isAgent
     ? selectedClientId !== null && propertyId !== null
     : clientConversation !== null && propertyId !== null;
-
   return (
     <BaseModal
       isOpen={isOpen}
@@ -109,7 +94,7 @@ export default function ShareHomeModal({
       size="md"
       headerContent={
         <div className="flex items-center gap-2">
-          <Share className="h-5 w-5 text-gray-600" />
+          <Icon name="share" className="h-5 w-5 text-gray-600" />
           <Title as="h3" size="lg" className="font-medium text-gray-900">
             {t("modals.share_home.title")}
           </Title>
@@ -165,7 +150,7 @@ export default function ShareHomeModal({
                   >
                     <div className="flex items-center gap-2">
                       <div className="bg-beige flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
-                        <User className="h-4 w-4 text-black" />
+                        <Icon name="user" className="h-4 w-4 text-black" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <BodyText as="p" size="sm" className="font-medium text-gray-900">
@@ -200,7 +185,7 @@ export default function ShareHomeModal({
               <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <div className="flex items-center gap-2">
                   <div className="bg-gold flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
-                    <MessageCircle className="h-4 w-4 text-black" />
+                    <Icon name="message-circle" className="h-4 w-4 text-black" />
                   </div>
                   <div>
                     <BodyText as="p" size="sm" className="font-medium text-gray-900">

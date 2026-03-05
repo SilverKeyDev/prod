@@ -4,7 +4,7 @@ import { Dropdown, Input, Title } from "packages/ui/components/index.web";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import Card from "@/components/layout/Card.web";
-import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider.web";
+import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 import HomePriceEstimate from "@/features/profile/components/settings/inputs/HomePriceEstimate";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
@@ -84,7 +84,6 @@ export function SettingsFinancialSection({
                 }}
                 formatPrefix="$"
                 className="mt-2"
-                showTickMarks={false}
               />
             ) : (
               <div className="mobile-input bg-gray-50 text-left">
@@ -106,7 +105,6 @@ export function SettingsFinancialSection({
                 }}
                 formatPrefix="$"
                 className="mt-2"
-                showTickMarks={false}
               />
             ) : (
               <div className="mobile-input bg-gray-50 text-left">

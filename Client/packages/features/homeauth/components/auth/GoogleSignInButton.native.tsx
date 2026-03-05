@@ -5,20 +5,31 @@
 
 import React from "react";
 
-import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { Linking, Platform, Pressable, StyleSheet } from "react-native";
 
 import { getEnv } from "packages/config";
-import { color } from "packages/design-tokens";
 import AppImage from "packages/ui/components/asset/AppImage.native";
-import { GOOGLE_ICON_URI } from "packages/ui/components/asset/logoSource.native";
-import { Text } from "packages/ui/components/primitives/text";
+import {
+  GOOGLE_SIGN_IN_ANDROID_SOURCE,
+  GOOGLE_SIGN_IN_IOS_SOURCE,
+} from "packages/ui/components/asset/logoSource.native";
 
 interface GoogleSignInButtonProps {
   text?: string;
 }
 
 function GoogleIcon() {
-  return <AppImage uri={GOOGLE_ICON_URI} style={styles.icon} resizeMode="contain" alt="Google" />;
+  const source = Platform.OS === "ios" ? GOOGLE_SIGN_IN_IOS_SOURCE : GOOGLE_SIGN_IN_ANDROID_SOURCE;
+
+  return (
+    <AppImage
+      source={source}
+      style={styles.icon}
+      resizeMode="contain"
+      alt="Sign up with Google"
+      accessibilityRole="image"
+    />
+  );
 }
 
 export default function GoogleSignInButton({
@@ -30,39 +41,28 @@ export default function GoogleSignInButton({
   };
 
   return (
-    <Pressable onPress={handlePress} style={styles.button}>
-      <View style={styles.content}>
-        <GoogleIcon />
-        <Text style={styles.label}>{text}</Text>
-      </View>
+    <Pressable
+      onPress={handlePress}
+      style={styles.button}
+      accessibilityRole="button"
+      accessibilityLabel={text}
+    >
+      <GoogleIcon />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: color("neutral.50"),
-    borderWidth: 1,
-    borderColor: color("neutral.300"),
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
+    alignSelf: "stretch",
     alignItems: "center",
     justifyContent: "center",
-  },
-  content: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 10,
   },
   icon: {
-    width: 22,
-    height: 22,
-    flexShrink: 0,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: color("neutral.700"),
+    height: 48,
+    resizeMode: "contain",
   },
 });

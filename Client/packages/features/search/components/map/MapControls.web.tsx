@@ -1,8 +1,7 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Button } from "packages/ui/components/index.web";
-
 export function MapControls(props: {
   page: number;
   total: number;
@@ -14,13 +13,11 @@ export function MapControls(props: {
   disabled?: boolean;
 }): JSX.Element {
   const { page, total, perPage, onPrev, onNext, onZoomIn, onZoomOut, disabled = false } = props;
-
   const { t } = useLocalization();
   const showNavigation = total > perPage;
   const currentItem = Math.min((page + 1) * perPage, total);
   const isPrevDisabled = page === 0;
   const isNextDisabled = (page + 1) * perPage >= total;
-
   // Unified controls (single layout, equal button sizing)
   return (
     <>
@@ -62,7 +59,7 @@ export function MapControls(props: {
             className="hover:border-olive hover:text-olive focus:ring-olive/20 h-8 w-8 border border-gray-300 bg-white p-0 text-gray-700 shadow-md transition-all duration-200 hover:bg-white hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-300 disabled:hover:bg-white disabled:hover:text-gray-700 lg:h-10 lg:w-10"
             title={t("search.previous_properties")}
           >
-            <ChevronLeft className="h-3 w-3 lg:h-3 lg:w-3" />
+            <Icon name="chevron-left" className="h-3 w-3 lg:h-3 lg:w-3" />
           </Button>
           <div className="flex h-8 w-auto items-center justify-center rounded-lg border border-gray-300 bg-white px-2 text-xs font-medium text-gray-700 shadow-md lg:h-10 lg:px-2 lg:text-xs">
             {t("search.page_of", { current: currentItem, total })}
@@ -76,7 +73,7 @@ export function MapControls(props: {
             className="hover:border-olive hover:text-olive focus:ring-olive/20 h-8 w-8 border border-gray-300 bg-white p-0 text-gray-700 shadow-md transition-all duration-200 hover:bg-white hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-300 disabled:hover:bg-white disabled:hover:text-gray-700 lg:h-10 lg:w-10"
             title={t("search.next_properties")}
           >
-            <ChevronRight className="h-3 w-3 lg:h-3 lg:w-3" />
+            <Icon name="chevron-right" className="h-3 w-3 lg:h-3 lg:w-3" />
           </Button>
         </div>
       )}

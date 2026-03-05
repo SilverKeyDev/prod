@@ -5,7 +5,7 @@ import type { SearchResult } from "@/features/search/types";
 import type { SavedHome } from "@/features/search/types/property";
 
 import { SearchPageDesktopLayout } from "./SearchPageDesktopLayout.web";
-import { SearchPageMobileLayout } from "./SearchPageMobileLayout";
+import { SearchPageMobileLayout } from "./SearchPageMobileLayout.web";
 
 export type SearchPageMapViewProps = {
   activeTab: "results" | "saved";

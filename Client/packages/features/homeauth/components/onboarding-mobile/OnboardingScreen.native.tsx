@@ -10,6 +10,7 @@ import { Box } from "packages/ui/components/primitives/box";
 import { Text } from "packages/ui/components/primitives/text";
 
 import { DemographicsStep } from "./DemographicsStep.native";
+import { FinancialStep } from "./FinancialStep.native";
 import { HousingStep } from "./HousingStep.native";
 import { LocationStep } from "./LocationStep.native";
 
@@ -29,12 +30,18 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     currentStep,
     nextStep,
     prevStep,
+    goToStep,
     loading,
     showValidationWarning,
     validationResult,
     handleSubmit,
     handleCloseValidationWarning,
     handleReviewInformation,
+    homePriceLoading,
+    homePriceError,
+    homePriceResult,
+    isAffordabilityCollapsed,
+    setIsAffordabilityCollapsed,
   } = useOnboardingForm({ onSubmitSuccess });
 
   React.useEffect(() => {
@@ -64,12 +71,33 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     switch (step.id) {
       case "demographics":
         return <DemographicsStep formData={formData} updateFormData={updateFormData} />;
+      case "financial":
+        return (
+          <FinancialStep
+            formData={formData}
+            updateFormData={updateFormData}
+            homePriceLoading={homePriceLoading}
+            homePriceError={homePriceError}
+            homePriceResult={homePriceResult}
+            isAffordabilityCollapsed={isAffordabilityCollapsed}
+            setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
+          />
+        );
       case "housing":
         return <HousingStep formData={formData} updateFormData={updateFormData} />;
       case "location":
         return <LocationStep formData={formData} updateFormData={updateFormData} />;
       default:
-        return null;
+        return (
+          <Box className="py-6">
+            <Text className="mb-2 text-center text-lg font-semibold text-gray-900">
+              Complete your profile
+            </Text>
+            <Text className="text-center text-sm text-gray-600">
+              Use the buttons below to continue or go back to another step.
+            </Text>
+          </Box>
+        );
     }
   };
 
@@ -83,6 +111,23 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
         <Text className="text-sm text-gray-600">
           Step {currentStep + 1} of {steps.length}
         </Text>
+        <Box className="mt-2 flex flex-row items-center justify-center gap-2">
+          {steps.map((s, index) => {
+            const isActive = index === currentStep;
+            return (
+              <Pressable
+                key={s.id}
+                onPress={() => goToStep(index)}
+                style={[
+                  styles.stepPill,
+                  isActive ? styles.stepPillActive : styles.stepPillInactive,
+                ]}
+              >
+                <Text className="text-xs font-medium">{s.title}</Text>
+              </Pressable>
+            );
+          })}
+        </Box>
       </View>
 
       <ScrollView
@@ -125,6 +170,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 4,
+  },
+  stepPill: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+  },
+  stepPillActive: {
+    backgroundColor: color("brand.accent"),
+  },
+  stepPillInactive: {
+    backgroundColor: color("neutral.0"),
   },
   scroll: {
     flex: 1,

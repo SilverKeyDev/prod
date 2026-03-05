@@ -91,14 +91,11 @@ def _verify_minimal_token(token: str, start_time: float | None = None) -> User:
         raise SecurityException(SecurityError.UNAUTHORIZED)
 
     # Log successful minimal token verification at DEBUG level (too verbose for INFO)
-    # Only log at INFO for profile endpoint (used for bootstrap verification)
     duration_ms = int((time.time() - start_time) * 1000)
     request_id = getattr(request, "request_id", f"session_{int(time.time() * 1000)}")
     endpoint = request.endpoint or "unknown"
-    log_level = (
-        current_app.logger.debug if endpoint != "user.get_user_profile" else current_app.logger.info
-    )
-    log_level(
+    # Always log at DEBUG to avoid noisy INFO logs, even for profile endpoint
+    current_app.logger.debug(
         "🔍 BACKEND_SESSION_VERIFICATION_SUCCESS",
         extra={
             "request_id": request_id,
@@ -137,12 +134,8 @@ def get_current_user():
     request_id = getattr(request, "request_id", f"session_{int(time.time() * 1000)}")
     endpoint = request.endpoint or "unknown"
 
-    # Log session verification start at DEBUG level (too verbose for INFO)
-    # Only log at INFO for profile endpoint (used for bootstrap verification)
-    log_level = (
-        current_app.logger.debug if endpoint != "user.get_user_profile" else current_app.logger.info
-    )
-    log_level(
+    # Always log at DEBUG to avoid noisy INFO logs, even for profile endpoint
+    current_app.logger.debug(
         "🔍 BACKEND_SESSION_VERIFICATION_START",
         extra={
             "request_id": request_id,

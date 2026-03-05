@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
@@ -9,7 +9,6 @@ import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/type
 import { getMessagePreview } from "@/features/messaging/utils";
 
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
-
 type ClientMessagingSidebarProps = {
   isSidebarExpanded: boolean;
   setIsSidebarExpanded: (expanded: boolean) => void;
@@ -21,7 +20,6 @@ type ClientMessagingSidebarProps = {
   setActiveConversationId: (id: string) => void;
   localMessages: ChatMessage[];
 };
-
 export default function ClientMessagingSidebar({
   isSidebarExpanded,
   setIsSidebarExpanded,
@@ -51,9 +49,7 @@ export default function ClientMessagingSidebar({
           isSidebarExpanded
             ? "fixed left-0 top-0 z-50 flex h-full w-80 translate-x-0 xl:relative xl:z-0"
             : "hidden -translate-x-full xl:flex xl:translate-x-0"
-        } flex-col transition-transform duration-300 ease-in-out xl:w-80 ${
-          isSidebarExpanded ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none" : ""
-        }`}
+        } flex-col transition-transform duration-300 ease-in-out xl:w-80 ${isSidebarExpanded ? "rounded-xl shadow-xl xl:rounded-l-xl xl:shadow-none" : ""}`}
       >
         {/* Fixed Header */}
         <UnifiedMessagingHeader
@@ -62,16 +58,12 @@ export default function ClientMessagingSidebar({
           setIsSidebarExpanded={setIsSidebarExpanded}
           onInboxClick={() => setShowInbox(true)}
           onBackClick={() => setShowInbox(false)}
-          className={`${
-            isSidebarExpanded ? "rounded-t-xl" : ""
-          } xl:rounded-tl-xl xl:rounded-tr-none`}
+          className={`${isSidebarExpanded ? "rounded-t-xl" : ""} xl:rounded-tl-xl xl:rounded-tr-none`}
         />
 
         {/* Scrollable Agent List */}
         <div
-          className={`flex-1 overflow-y-auto border-r border-neutral-200 bg-white ${
-            isSidebarExpanded ? "rounded-b-xl" : ""
-          } xl:rounded-bl-xl xl:rounded-br-none`}
+          className={`flex-1 overflow-y-auto border-r border-neutral-200 bg-white ${isSidebarExpanded ? "rounded-b-xl" : ""} xl:rounded-bl-xl xl:rounded-br-none`}
         >
           {showInbox ? (
             <ConnectionRequestsInbox
@@ -82,7 +74,7 @@ export default function ClientMessagingSidebar({
           ) : !agentId ? (
             <div className="flex h-full items-center justify-center p-3">
               <div className="text-center">
-                <MessageCircle className="mx-auto mb-3 h-12 w-12 text-black/30" />
+                <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-black/30" />
                 <BodyText as="p" size="sm" className="mb-4 text-black/60">
                   {t("agent.search_agent_to_start_messaging")}
                 </BodyText>
@@ -107,9 +99,7 @@ export default function ClientMessagingSidebar({
                   setIsSidebarExpanded(false);
                 }
               }}
-              className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${
-                activeConversationId === activeConversation?.id ? "bg-beige/20" : ""
-              }`}
+              className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${activeConversationId === activeConversation?.id ? "bg-beige/20" : ""}`}
             >
               <div className="flex items-start justify-between">
                 <div className="min-w-0 flex-1">

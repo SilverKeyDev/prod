@@ -1,76 +1,74 @@
-import type React from "react";
+import type { IconName } from "packages/ui/types/icons";
 
 import { SIDEBAR_TABS } from "./sidebarTabs.web";
 
 export type SidebarNavItem = {
   name: string;
   href: string;
-  icon: React.FC<{ className?: string }>;
+  icon: IconName;
 };
 
 export type NavCategory = {
   name: string;
-  icon: React.FC<{ className?: string }>;
+  icon: IconName;
   items: SidebarNavItem[];
 };
 
 export type NavigationStructure = Record<string, NavCategory>;
 
-const iconType = (icon: unknown) => icon as unknown as React.FC<{ className?: string }>;
-
 const navigationStructure: NavigationStructure = {
   dashboard: {
     name: SIDEBAR_TABS.dashboard.name,
-    icon: iconType(SIDEBAR_TABS.dashboard.icon),
+    icon: SIDEBAR_TABS.dashboard.icon,
     items: [
       {
         name: SIDEBAR_TABS.dashboard.name,
         href: SIDEBAR_TABS.dashboard.href,
-        icon: iconType(SIDEBAR_TABS.dashboard.icon),
+        icon: SIDEBAR_TABS.dashboard.icon,
       },
     ],
   },
   search: {
     name: SIDEBAR_TABS.search.name,
-    icon: iconType(SIDEBAR_TABS.search.icon),
+    icon: SIDEBAR_TABS.search.icon,
     items: [
       {
         name: SIDEBAR_TABS.search.name,
         href: SIDEBAR_TABS.search.href,
-        icon: iconType(SIDEBAR_TABS.search.icon),
+        icon: SIDEBAR_TABS.search.icon,
       },
     ],
   },
   decide: {
     name: SIDEBAR_TABS.decide.name,
-    icon: iconType(SIDEBAR_TABS.decide.icon),
+    icon: SIDEBAR_TABS.decide.icon,
     items: [
       {
         name: SIDEBAR_TABS.decide.name,
         href: SIDEBAR_TABS.decide.href,
-        icon: iconType(SIDEBAR_TABS.decide.icon),
+        icon: SIDEBAR_TABS.decide.icon,
       },
     ],
   },
   agent: {
     name: SIDEBAR_TABS.agent.name,
-    icon: iconType(SIDEBAR_TABS.agent.icon),
+    icon: SIDEBAR_TABS.agent.icon,
     items: [
       {
         name: SIDEBAR_TABS.agent.name,
         href: SIDEBAR_TABS.agent.href,
-        icon: iconType(SIDEBAR_TABS.agent.icon),
+        icon: SIDEBAR_TABS.agent.icon,
       },
     ],
   },
   profile: {
     name: SIDEBAR_TABS.profile.name,
-    icon: iconType(SIDEBAR_TABS.profile.icon),
+    icon: SIDEBAR_TABS.profile.icon,
     items: [
       {
         name: SIDEBAR_TABS.profile.name,
         href: SIDEBAR_TABS.profile.href,
-        icon: iconType(SIDEBAR_TABS.profile.icon),
+        icon: SIDEBAR_TABS.profile.icon,
       },
     ],
   },

@@ -2,11 +2,17 @@
 export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.search": "Search",
   "search.searching": "Searching...",
+  "search.searching_properties": "Searching properties...",
   "search.filters": "Filters",
+  "search.list": "List",
   "search.add_location_to_search": "Add at least one location to search",
   "search.reels": "Reels",
   "search.map": "Map",
   "search.add_location": "Add location",
+  "search.edit_locations": "Edit locations",
+  "search.location_preferences": "Location preferences",
+  "search.location_preferences_description":
+    "Add work, family, or other places. We'll use these to find homes that fit your life.",
   "search.sale_type": "Sale type",
   "search.sale_type_all": "All",
   "search.sale_type_for_sale": "For sale",
@@ -33,6 +39,9 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.click_heart_to_save": "Click the heart on a home to save it",
   "search.no_properties_yet": "No properties yet",
   "search.tap_search_to_find": "Tap Search to find homes that match your preferences",
+  "search.no_results_try_adjusting":
+    "No homes match your search yet. Try adjusting your preferences.",
+  "search.run_search_to_see_homes": "Run a search to see homes that match your profile.",
   "search.price_range": "Price range",
   "search.filters_beds_baths_range": "Beds and baths",
 };

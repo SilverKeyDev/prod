@@ -1,5 +1,5 @@
 import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboardingForm";
-import { NavigationButtons } from "packages/ui/components/index.web";
+import { BodyText, NavigationButtons, Title } from "packages/ui/components/index.web";
 import { Image } from "packages/ui/components/primitives/media";
 
 import { ValidationWarning } from "@/components/feedback";
@@ -91,7 +91,16 @@ export function OnboardingFeature() {
         );
 
       default:
-        return <div>Step content for {step.title} coming soon...</div>;
+        return (
+          <div className="py-8 text-center">
+            <Title as="h2" size="md" className="mb-2 text-gray-900">
+              Complete your profile
+            </Title>
+            <BodyText size="sm" muted className="mx-auto max-w-md">
+              Use the buttons below to continue or go back to another step.
+            </BodyText>
+          </div>
+        );
     }
   };
 

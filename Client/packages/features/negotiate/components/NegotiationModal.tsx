@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import { Handshake } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useNegotiationStore } from "packages/store";
@@ -15,7 +15,6 @@ import { LoadingSection } from "@/features/negotiate/components/LoadingSection";
 import { OpeningOfferSection } from "@/features/negotiate/components/OpeningOfferSection";
 import { StrategyDisplaySection } from "@/features/negotiate/components/StrategyDisplaySection";
 import { useNegotiation } from "@/features/negotiate/hooks/data/useNegotiation";
-
 // Types for negotiation data
 type FavoriteHome = {
   user_id: string;
@@ -29,58 +28,48 @@ type FavoriteHome = {
   created_at: string;
   updated_at: string;
 };
-
 type NegotiationModalProps = {
   isOpen: boolean;
   onClose: () => void;
   initialHome?: FavoriteHome | null;
 };
-
 export default function NegotiationModal({ isOpen, onClose, initialHome }: NegotiationModalProps) {
   const { t } = useLocalization();
   const { selectedHome, strategyData, compsData, isLoading, error, setLoading, setError } =
     useNegotiationStore();
   const { generateStrategy, cancelGeneration, selectHome, shareStrategyJson } = useNegotiation();
-
   // Ref for the price element to scroll to
   const priceElementRef = useRef<HTMLDivElement>(null);
   const previousLoadingRef = useRef<boolean>(false);
   // Ref to track the last home address we generated for (to prevent duplicate generation)
   const lastGeneratedHomeRef = useRef<string | null>(null);
-
   // Normalized boolean flag so we never treat `unknown` as a ReactNode
   const hasStrategyData = Boolean(strategyData);
-
   const handleGenerate = useCallback(async () => {
     setLoading(true);
     setError(null);
     await generateStrategy();
   }, [setLoading, setError, generateStrategy]);
-
   // Cancel generation when modal closes
   useEffect(() => {
     if (!isOpen) {
       cancelGeneration();
     }
   }, [isOpen, cancelGeneration]);
-
   // Set initial home and auto-generate when modal opens
   useEffect(() => {
     if (isOpen && initialHome) {
       const homeAddress = initialHome.address;
-
       // Only generate if this is a different home than the last one we generated for
       if (lastGeneratedHomeRef.current !== homeAddress) {
         lastGeneratedHomeRef.current = homeAddress;
         selectHome(initialHome);
-
         // Auto-generate strategy after a short delay to ensure home is selected
         const generateTimer = setTimeout(async () => {
           setLoading(true);
           setError(null);
           await generateStrategy();
         }, 100);
-
         return () => {
           clearTimeout(generateTimer);
           cancelGeneration();
@@ -100,25 +89,20 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
     generateStrategy,
     cancelGeneration,
   ]); // Only depend on address, not the whole object
-
   // Create handler functions for compatibility
   const handleHomeSelection = (home: unknown) => {
     selectHome(home);
   };
-
   const handleShareJson = async () => {
     await shareStrategyJson();
   };
-
   // Extract error message for proper type handling
   const errorMessage: string | null =
     error && typeof error !== "object" ? (typeof error === "string" ? error : String(error)) : null;
-
   // Auto-scroll to price element when strategy finishes loading
   useEffect(() => {
     // Check if loading just finished (was true, now false)
     const loadingJustFinished = previousLoadingRef.current === true && isLoading === false;
-
     if (loadingJustFinished && priceElementRef.current && strategyData) {
       // Small delay to ensure DOM is updated
       setTimeout(() => {
@@ -129,11 +113,9 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
         });
       }, 100);
     }
-
     // Update previous loading state
     previousLoadingRef.current = isLoading;
   }, [isLoading, strategyData]);
-
   return (
     <BaseModal
       isOpen={isOpen}
@@ -142,7 +124,7 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
       showCloseButton={true}
       headerContent={
         <div className="flex min-w-0 items-center gap-2">
-          <Handshake className="h-5 w-5 flex-shrink-0 text-gray-600" />
+          <Icon name="handshake" className="h-5 w-5 flex-shrink-0 text-gray-600" />
           <Title as="h3" size="sm" className="truncate font-sans font-medium text-gray-900">
             {t("negotiation.title")}
           </Title>

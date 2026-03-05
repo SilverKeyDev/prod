@@ -17,7 +17,6 @@ class LogCategory(str, Enum):
     API = "API"
     ERRORS = "ERRORS"
     SECURITY = "SECURITY"
-    DOCUSIGN = "DOCUSIGN"
 
 
 # Constant dict for easy access
@@ -30,7 +29,6 @@ LOG_CATEGORIES: dict[str, LogCategory] = {
     "API": LogCategory.API,
     "ERRORS": LogCategory.ERRORS,
     "SECURITY": LogCategory.SECURITY,
-    "DOCUSIGN": LogCategory.DOCUSIGN,
 }
 
 
@@ -53,7 +51,6 @@ def category_to_config_key(category: LogCategory) -> str:
         LogCategory.API: "api",
         LogCategory.ERRORS: "errors",
         LogCategory.SECURITY: "security",
-        LogCategory.DOCUSIGN: "docusign",
     }
     return mapping[category]
 

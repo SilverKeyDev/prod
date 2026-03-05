@@ -223,7 +223,7 @@ export const LISTING_TYPE_OPTIONS: DropdownOption[] = [
   { value: "pre_foreclosed", label: "Pre-foreclosed" },
 ];
 
-// Slider tick values (for range/single sliders)
+// Slider scale values (for range/single sliders)
 export const SQFT_TICK_VALUES = [500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 7500, 10000];
 export const DAYS_ON_MARKET_TICK_VALUES = [0, 7, 14, 30, 60, 90, 180, 365];
 export const LOT_SIZE_ACRES_TICK_VALUES = [0, 0.25, 0.5, 1, 2, 5];
@@ -382,15 +382,9 @@ export const REQUIRED_FIELDS_SETTINGS: Record<string, boolean> = {
   looking_for_buyers_agent: false,
 } as const;
 
-// Required fields for mobile onboarding (no financial step)
+/** Required fields for mobile onboarding. Kept in sync with web (REQUIRED_FIELDS_ONBOARDING). */
 export const REQUIRED_FIELDS_ONBOARDING_MOBILE: Record<string, boolean> = {
   ...REQUIRED_FIELDS_ONBOARDING,
-  gross_income: false,
-  home_budget_min: false,
-  home_budget_max: false,
-  down_payment: false,
-  credit_score_range: false,
-  ideal_zip_code: false,
 };
 
 // Legacy export for backward compatibility (deprecated - use REQUIRED_FIELDS_ONBOARDING or REQUIRED_FIELDS_SETTINGS)

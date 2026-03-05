@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
-import { ChevronLeft, ChevronRight, Grid3X3 } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Button } from "packages/ui/components/index.web";
@@ -11,7 +11,6 @@ import type { PropertyImageGalleryProps } from "@/components/modals/PropertyDeta
 import { getPropertyImages } from "@/features/search/types/search/propertyDetailsFormatters";
 
 import { PropertyImageGalleryFullScreen } from "./PropertyImageGalleryFullScreen";
-
 export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   property,
   currentImageIndex,
@@ -21,24 +20,19 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   const propertyImages = getPropertyImages(property);
   const [showFullGallery, setShowFullGallery] = useState(false);
   const [fullGalleryIndex, setFullGalleryIndex] = useState(currentImageIndex);
-
   const nextFullGalleryImage = useCallback(() => {
     setFullGalleryIndex((prev) => (prev + 1) % propertyImages.length);
   }, [propertyImages.length]);
-
   const prevFullGalleryImage = useCallback(() => {
     setFullGalleryIndex((prev) => (prev - 1 + propertyImages.length) % propertyImages.length);
   }, [propertyImages.length]);
-
   const handleCloseFullGallery = useCallback(() => {
     setShowFullGallery(false);
     onImageChange(fullGalleryIndex);
   }, [fullGalleryIndex, onImageChange]);
-
   useEffect(() => {
     if (!showFullGallery) setFullGalleryIndex(currentImageIndex);
   }, [currentImageIndex, showFullGallery]);
-
   useEffect(() => {
     if (!showFullGallery) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -57,20 +51,16 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
       if (win) win.removeEventListener("keydown", handleKeyDown);
     };
   }, [showFullGallery, handleCloseFullGallery, prevFullGalleryImage, nextFullGalleryImage]);
-
   const nextImage = () => onImageChange((currentImageIndex + 1) % propertyImages.length);
   const prevImage = () =>
     onImageChange((currentImageIndex - 1 + propertyImages.length) % propertyImages.length);
   const goToImage = (index: number) => onImageChange(index);
-
   const handleSeeAllClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setFullGalleryIndex(currentImageIndex);
     setShowFullGallery(true);
   };
-
   if (propertyImages.length === 0) return null;
-
   return (
     <div className="relative bg-gray-100">
       <div className="flex h-96">
@@ -88,7 +78,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                 onClick={prevImage}
                 className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
               >
-                <ChevronLeft className="h-6 w-6" />
+                <Icon name="chevron-left" className="h-6 w-6" />
               </Button>
               <Button
                 type="button"
@@ -96,7 +86,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                 onClick={nextImage}
                 className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
               >
-                <ChevronRight className="h-6 w-6" />
+                <Icon name="chevron-right" className="h-6 w-6" />
               </Button>
             </>
           )}
@@ -142,7 +132,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                       }}
                     >
                       <div className="flex items-center gap-1 rounded bg-white px-2 py-1 text-xs font-medium text-gray-700">
-                        <Grid3X3 className="h-3 w-3" />
+                        <Icon name="grid-3x3" className="h-3 w-3" />
                         {t("property_details_gallery.see_all_photos", {
                           count: propertyImages.length,
                         })}

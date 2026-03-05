@@ -1,12 +1,11 @@
-import { Download, FileText } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { BodyText, Button } from "packages/ui/components/index.web";
 
-import type { AgreementRevision } from "@/features/documents/types/docusign";
-import { formatAgreementDateTime } from "@/features/documents/utils/docusignHelpers";
+import type { AgreementRevision } from "@/features/documents/types/agreements";
+import { formatAgreementDateTime } from "@/features/documents/utils/agreements";
 
 import RevisionUpload from "./RevisionUpload";
-
 type AgreementRevisionsTabProps = {
   agreementId: string;
   revisions: AgreementRevision[];
@@ -17,7 +16,6 @@ type AgreementRevisionsTabProps = {
   onUploadCancel: () => void;
   onDownloadClick: (revisionId: string) => void;
 };
-
 /**
  * AgreementRevisionsTab Component
  *
@@ -62,7 +60,7 @@ export default function AgreementRevisionsTab({
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  <FileText className="mt-0.5 h-5 w-5 text-gray-600" />
+                  <Icon name="file-text" className="mt-0.5 h-5 w-5 text-gray-600" />
                   <div>
                     <BodyText as="p" className="font-medium text-gray-900">
                       {revision.file_name}
@@ -85,7 +83,7 @@ export default function AgreementRevisionsTab({
                   </div>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => onDownloadClick(revision.id)}>
-                  <Download className="h-4 w-4" />
+                  <Icon name="download" className="h-4 w-4" />
                 </Button>
               </div>
             </div>

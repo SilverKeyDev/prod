@@ -19,8 +19,8 @@ export default function SchedulingModal({ isOpen, onClose, buyerName }: Scheduli
       closeOnEscape={true}
     >
       <BodyText size="sm" muted>
-        Scheduling is being migrated into the Calendar feature. Please use the web dashboard
-        calendar for scheduling{buyerName ? ` with ${buyerName}` : ""}.
+        Use Calendar to choose a time and schedule an event.
+        {buyerName ? ` You can schedule with ${buyerName}.` : ""}
       </BodyText>
     </BaseModal>
   );

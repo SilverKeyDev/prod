@@ -1,21 +1,19 @@
-import { User } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { BodyText } from "packages/ui/components/index.web";
 
-import { getParticipantStatusIcon } from "@/features/documents/components/docusignIcons";
-import type { AgreementParticipant } from "@/features/documents/types/docusign";
+import { getAgreementStatusIcon } from "@/features/documents/components/agreementsIcons";
+import type { AgreementParticipant } from "@/features/documents/types/agreements";
 import {
   formatAgreementDateTime,
   formatParticipantRole,
   getParticipantStatusColor,
-} from "@/features/documents/utils/docusignHelpers";
-
+} from "@/features/documents/utils/agreements";
 type ParticipantsListProps = {
   participants: AgreementParticipant[];
   showOrder?: boolean;
   compact?: boolean;
 };
-
 /**
  * ParticipantsList Component
  *
@@ -36,16 +34,13 @@ export default function ParticipantsList({
       </div>
     );
   }
-
   // Sort by signing order
   const sortedParticipants = [...participants].sort((a, b) => a.signing_order - b.signing_order);
-
   return (
     <div className={`space-y-${compact ? "2" : "3"}`}>
       {sortedParticipants.map((participant) => {
-        const StatusIcon = getParticipantStatusIcon(participant.status);
+        const StatusIcon = getAgreementStatusIcon(participant.status);
         const statusColor = getParticipantStatusColor(participant.status);
-
         return (
           <div
             key={participant.id}
@@ -53,7 +48,7 @@ export default function ParticipantsList({
           >
             {/* Avatar */}
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
-              <User className="h-5 w-5 text-gray-600" />
+              <Icon name="user" className="h-5 w-5 text-gray-600" />
             </div>
 
             {/* Participant Info */}

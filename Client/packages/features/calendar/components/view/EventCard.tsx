@@ -1,7 +1,8 @@
-import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
-import { BodyText, Title } from "packages/ui/components/index.web";
+import { useMemo } from "react";
 
-import Card from "@/components/layout/Card.web";
+import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
+import { Box, Pressable, Text } from "packages/ui/components/primitives";
+
 import { getEventEndDate, getEventStartDate } from "@/features/calendar/utils/eventParsing";
 
 type EventCardProps = {
@@ -9,32 +10,32 @@ type EventCardProps = {
   onClick?: () => void;
 };
 
+function formatDate(date: Date) {
+  try {
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+function formatTime(date: Date) {
+  try {
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return "";
+  }
+}
+
 export function EventCard({ event, onClick }: EventCardProps) {
-  const formatDate = (date: Date) => {
-    try {
-      return date.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return "";
-    }
-  };
-
-  const formatTime = (date: Date) => {
-    try {
-      return date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch {
-      return "";
-    }
-  };
-
-  const formatDateRange = () => {
+  const dateRange = useMemo(() => {
     try {
       const start = getEventStartDate(event);
       const end = getEventEndDate(event);
@@ -43,45 +44,39 @@ export function EventCard({ event, onClick }: EventCardProps) {
         return "";
       }
 
-      // Same day event
       if (start.toDateString() === end.toDateString()) {
         return `${formatDate(start)} • ${formatTime(start)} - ${formatTime(end)}`;
       }
 
-      // Multi-day event
       return `${formatDate(start)} ${formatTime(start)} - ${formatDate(end)} ${formatTime(end)}`;
     } catch {
       return "";
     }
-  };
+  }, [event]);
 
   return (
-    <Card
-      padding="sm"
-      hover={!!onClick}
-      onClick={onClick}
-      className="border-l-gold mb-2 w-full cursor-pointer border-l-4 transition-all hover:shadow-md"
+    <Pressable
+      onPress={onClick}
+      disabled={!onClick}
+      className="mb-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md disabled:cursor-default disabled:opacity-100"
     >
-      <div className="flex flex-col gap-1">
-        <Title as="h4" size="sm" className="font-medium text-gray-900">
-          {event.summary || "Untitled Event"}
-        </Title>
-        {formatDateRange() && (
-          <BodyText as="p" size="xs" className="text-gray-600 sm:text-sm">
-            {formatDateRange()}
-          </BodyText>
-        )}
-        {event.location && (
-          <BodyText as="p" size="xs" className="text-gray-500 sm:text-sm">
-            {event.location}
-          </BodyText>
-        )}
-        {event.description && (
-          <BodyText as="p" size="xs" className="mt-1 line-clamp-2 text-gray-500 sm:text-sm">
-            {event.description}
-          </BodyText>
-        )}
-      </div>
-    </Card>
+      <Box className="flex flex-row items-stretch">
+        <Box className="bg-gold w-1" />
+        <Box className="flex-1 space-y-1 p-3">
+          <Text className="text-sm font-semibold text-gray-900">
+            {event.summary || "Untitled Event"}
+          </Text>
+          {dateRange ? <Text className="text-xs text-gray-600 sm:text-sm">{dateRange}</Text> : null}
+          {event.location ? (
+            <Text className="text-xs text-gray-500 sm:text-sm">{event.location}</Text>
+          ) : null}
+          {event.description ? (
+            <Text className="line-clamp-2 text-xs text-gray-500 sm:text-sm">
+              {event.description}
+            </Text>
+          ) : null}
+        </Box>
+      </Box>
+    </Pressable>
   );
 }

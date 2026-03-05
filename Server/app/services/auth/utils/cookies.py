@@ -39,8 +39,8 @@ def set_auth_cookies(
             max_age=60 * 60 * 24 * 30,  # 30 days
         )
 
-        # Log successful cookie setting
-        current_app.logger.info(
+        # Log successful cookie setting at debug level to avoid noisy INFO logs
+        current_app.logger.debug(
             "🔍 BACKEND_AUTH_COOKIES_SET",
             extra={
                 "request_id": request_id or "unknown",

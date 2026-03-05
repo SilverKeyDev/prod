@@ -1,6 +1,6 @@
 import React from "react";
 
-import { MapPin } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { BodyText, Title } from "packages/ui/components/index.web";
@@ -9,10 +9,13 @@ import { Image } from "packages/ui/components/primitives/media";
 import Card from "@/components/layout/Card.web";
 
 import type { PropertyComponentProps } from "./types";
-
 export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
-  const commute = (property as unknown as { commute_data?: unknown }).commute_data as
+  const commute = (
+    property as unknown as {
+      commute_data?: unknown;
+    }
+  ).commute_data as
     | {
         map_url?: string;
         travel_times?: Array<{
@@ -27,17 +30,14 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
         commute_distance?: string | number;
       }
     | undefined;
-
   if (!commute) return null;
-
   const hasTravelTimes = Array.isArray(commute.travel_times) && commute.travel_times.length > 0;
   const hasSimple = commute.commute_time != null || commute.commute_distance != null;
   if (!hasTravelTimes && !hasSimple) return null;
-
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center gap-2">
-        <MapPin className="h-5 w-5 text-gray-600" />
+        <Icon name="map-pin" className="h-5 w-5 text-gray-600" />
         <Title as="h3" size="lg" className="text-brown font-semibold">
           {t("property_details.commute_information")}
         </Title>
@@ -61,7 +61,7 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
                 <div className="border-beige/40 rounded-lg border bg-white p-4">
                   <div className="flex aspect-square w-full items-center justify-center">
                     <div className="text-brown/60 text-center">
-                      <MapPin className="text-brown/40 mx-auto mb-3 h-12 w-12" />
+                      <Icon name="map-pin" className="text-brown/40 mx-auto mb-3 h-12 w-12" />
                       <BodyText as="p" className="text-brown font-medium">
                         {t("property_details.commute_map")}
                       </BodyText>
@@ -80,7 +80,6 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
                   ? parseInt(String(c.travel_time).replace(/\D/g, ""))
                   : null;
                 const tolerance = c.commute_tolerance;
-
                 let colorClass = "text-olive bg-olive/10";
                 if (typeof travelTimeMinutes === "number" && typeof tolerance === "number") {
                   if (travelTimeMinutes > tolerance * 1.2) {
@@ -89,7 +88,6 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
                     colorClass = "text-amber-600 bg-amber-50";
                   }
                 }
-
                 return (
                   <Card key={i}>
                     <div className="flex items-center justify-between">

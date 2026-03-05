@@ -3,8 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   useDocumentActions,
   useDocumentsDataIntegration,
-  useDocusignActions,
-  useDocusignAgreements,
   useHomeComparison,
   useSavedPageDocumentHandlers,
   useSavedPageView,
@@ -14,12 +12,7 @@ import {
   convertSavedHomeToProperty,
   filterHomesBySearchTerm,
 } from "packages/features/saved/types/savedHomeUtils";
-import {
-  useIsMobile,
-  useSavedHomesDocuSign,
-  useSavedPageEffects,
-  useSavedPageModals,
-} from "packages/hooks/ui";
+import { useIsMobile, useSavedPageEffects, useSavedPageModals } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { useUIStore } from "packages/store";
@@ -65,23 +58,30 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     handleDownloadDocument,
     handleShareDocument,
   } = useDocumentActions();
-  const {
-    agreements,
-    isLoading: agreementsLoading,
-    error: agreementsError,
-    refetchAgreements,
-  } = useDocusignAgreements();
-  const { sendAgreement, voidAgreement } = useDocusignActions();
-  const {
-    isCreateAgreementModalOpen,
-    setIsCreateAgreementModalOpen,
-    selectedAgreementId,
-    setSelectedAgreementId,
-    handleAgreementClick,
-    handleAgreementSend,
-    handleAgreementVoid,
-    handleCreateAgreementSuccess,
-  } = useSavedHomesDocuSign(sendAgreement, voidAgreement, refetchAgreements, enqueueToast);
+  const agreements: Agreement[] = [];
+  const agreementsLoading = false;
+  const agreementsError: unknown = null;
+  const refetchAgreements = useCallback(async () => {}, []);
+  const [isCreateAgreementModalOpen, setIsCreateAgreementModalOpen] = useState(false);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
+  const handleAgreementClick = (id: string) => {
+    setSelectedAgreementId(id);
+  };
+  const handleAgreementSend = (_id: string) => {
+    enqueueToast({
+      type: "info",
+      message: "Agreement sending will be available soon.",
+    });
+  };
+  const handleAgreementVoid = (_id: string) => {
+    enqueueToast({
+      type: "info",
+      message: "Voiding agreements will be available soon.",
+    });
+  };
+  const handleCreateAgreementSuccess = (_id: string) => {
+    setIsCreateAgreementModalOpen(false);
+  };
   const {
     documents,
     documentsLoading: documentsLoadingState,

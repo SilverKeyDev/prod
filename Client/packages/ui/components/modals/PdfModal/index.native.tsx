@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 
-import { Linking, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Linking, StyleSheet, View } from "react-native";
+import { WebView } from "react-native-webview";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
@@ -10,13 +11,6 @@ import { Text } from "packages/ui/components/primitives/text";
 
 import type { PdfModalProps } from "./index";
 
-/**
- * Native-friendly PdfModal implementation.
- *
- * For now, we delegate actual PDF viewing to the system browser. This keeps
- * the shared API working on mobile without introducing a heavy WebView/SDK
- * dependency, and can be upgraded later.
- */
 const PdfModalNative: React.FC<PdfModalProps> = ({
   currentPdf,
   currentReportAddress,
@@ -26,14 +20,18 @@ const PdfModalNative: React.FC<PdfModalProps> = ({
 }) => {
   const { t } = useLocalization();
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasError, setHasError] = useState<boolean>(false);
+
   const isOpen = !!currentPdf;
+  // Keep default copy platform-neutral: no "Open in browser" or "coming soon"
   const title =
     currentReportAddress ??
     t("pdf.viewer_title_mobile", {
       defaultValue: "Property report",
     });
 
-  const handleOpenInBrowser = () => {
+  const handleOpen = () => {
     if (!currentPdf) return;
     void Linking.openURL(currentPdf);
   };
@@ -42,31 +40,74 @@ const PdfModalNative: React.FC<PdfModalProps> = ({
     if (onShare) {
       onShare();
     } else {
-      handleOpenInBrowser();
+      handleOpen();
     }
+  };
+
+  const handleLoadEnd = () => {
+    setIsLoading(false);
+    setHasError(false);
+  };
+
+  const handleWebViewError = () => {
+    setIsLoading(false);
+    setHasError(true);
   };
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title={title}>
       <View style={styles.body}>
-        <Text style={styles.description}>
-          {t("pdf.mobile_fallback_message", {
-            defaultValue:
-              "PDF viewing is currently optimized for the web app. You can open this report in your browser from your device.",
-          })}
-        </Text>
-        <View style={styles.actions}>
-          <Button variant="primary" size="sm" onPress={handleOpenInBrowser}>
-            <Text style={styles.primaryLabel}>
-              {t("pdf.open_in_browser", { defaultValue: "Open in browser" })}
-            </Text>
-          </Button>
-          <Button variant="secondary" size="sm" onPress={handleShare}>
-            <Text style={styles.secondaryLabel}>
-              {t("pdf.share_report", { defaultValue: "Share report" })}
-            </Text>
-          </Button>
-        </View>
+        {currentPdf ? (
+          <>
+            <View style={styles.viewerContainer}>
+              <WebView
+                source={{ uri: currentPdf }}
+                style={styles.webview}
+                originWhitelist={["*"]}
+                onLoadEnd={handleLoadEnd}
+                onError={handleWebViewError}
+              />
+              {isLoading && (
+                <View style={styles.loadingOverlay}>
+                  <ActivityIndicator size="small" color={color("neutral.800")} />
+                  <Text style={styles.loadingText}>
+                    {t("pdf.loading", { defaultValue: "Loading PDF..." })}
+                  </Text>
+                </View>
+              )}
+              {hasError && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>
+                    {t("pdf.load_failed", { defaultValue: "Couldn't load the report." })}
+                  </Text>
+                  <Button variant="primary" size="sm" onPress={handleOpen}>
+                    <Text style={styles.primaryLabel}>
+                      {t("pdf.try_again", { defaultValue: "Try again" })}
+                    </Text>
+                  </Button>
+                </View>
+              )}
+            </View>
+            <View style={styles.actions}>
+              <Button variant="secondary" size="sm" onPress={handleOpen}>
+                <Text style={styles.secondaryLabel}>
+                  {t("pdf.open_report", { defaultValue: "Open" })}
+                </Text>
+              </Button>
+              <Button variant="secondary" size="sm" onPress={handleShare}>
+                <Text style={styles.secondaryLabel}>
+                  {t("pdf.share_report", { defaultValue: "Share report" })}
+                </Text>
+              </Button>
+            </View>
+          </>
+        ) : (
+          <Text style={styles.description}>
+            {t("pdf.fallback_unavailable", {
+              defaultValue: "This report isn't available to view right now.",
+            })}
+          </Text>
+        )}
       </View>
     </BaseModal>
   );
@@ -78,6 +119,16 @@ const styles = StyleSheet.create({
   body: {
     paddingVertical: 8,
   },
+  viewerContainer: {
+    height: 320,
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: color("neutral.100"),
+    marginBottom: 16,
+  },
+  webview: {
+    flex: 1,
+  },
   description: {
     fontSize: 14,
     color: color("neutral.700"),
@@ -87,6 +138,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     columnGap: 12,
+    marginTop: 4,
   },
   primaryLabel: {
     fontSize: 14,
@@ -97,5 +149,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: color("neutral.800"),
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.75)",
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: color("neutral.700"),
+  },
+  errorContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: color("neutral.50"),
+  },
+  errorText: {
+    fontSize: 14,
+    color: color("danger.700"),
+    textAlign: "center",
+    marginBottom: 12,
   },
 });

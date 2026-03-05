@@ -18,6 +18,11 @@ export type AuthState = {
   error: string | null;
   authReady: boolean;
   authStatus: AuthStatus; // 3-state: checking/authenticated/unauthenticated
+  /**
+   * One-time redirect target used by platform routers (e.g. RN) after auth transitions.
+   * Not persisted.
+   */
+  postAuthRedirectPath: string | null;
 
   // Actions
   setUser: (user: UserProfile | null) => void;
@@ -26,6 +31,7 @@ export type AuthState = {
   setError: (error: string | null) => void;
   setAuthReady: (ready: boolean) => void;
   setAuthStatus: (status: AuthStatus) => void;
+  setPostAuthRedirectPath: (path: string | null) => void;
 
   // Auth actions (will be implemented by hooks)
   login: (email: string, password: string) => Promise<LoginResult>;
@@ -49,6 +55,7 @@ const initialState = (): Omit<
   | "setError"
   | "setAuthReady"
   | "setAuthStatus"
+  | "setPostAuthRedirectPath"
   | "login"
   | "logout"
   | "refreshToken"
@@ -64,6 +71,7 @@ const initialState = (): Omit<
   error: null,
   authReady: false,
   authStatus: "checking", // Start in checking state
+  postAuthRedirectPath: null,
 });
 
 const baseCreator: import("zustand").StateCreator<AuthState> = (set) => ({
@@ -75,6 +83,7 @@ const baseCreator: import("zustand").StateCreator<AuthState> = (set) => ({
   setError: (error) => set({ error }),
   setAuthReady: (authReady) => set({ authReady }),
   setAuthStatus: (authStatus) => set({ authStatus }),
+  setPostAuthRedirectPath: (postAuthRedirectPath) => set({ postAuthRedirectPath }),
 
   // Auth actions will be implemented by hooks that use this store
   login: () => {
@@ -108,6 +117,7 @@ const withReset = withResettable<AuthState>(baseCreator, (set) => ({
   setError: (error) => set({ error }),
   setAuthReady: (authReady) => set({ authReady }),
   setAuthStatus: (authStatus) => set({ authStatus }),
+  setPostAuthRedirectPath: (postAuthRedirectPath) => set({ postAuthRedirectPath }),
   login: async () => ({ success: false }),
   logout: () => {},
   refreshToken: async () => false,

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Check } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useSearchContextStore } from "packages/store";
@@ -11,13 +11,11 @@ import type { OnboardingData } from "@/features/profile/utils";
 import BedBathFilter from "./BedBathFilter.web";
 import OtherFilterDropdown from "./OtherFilterDropdown.web";
 import PriceRangeFilter from "./PriceRangeFilter.web";
-
 export type SearchFiltersPanelProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
   saveStatus?: "idle" | "saving" | "saved";
 };
-
 export default function SearchFiltersPanel({
   formData,
   updateFormData,
@@ -25,7 +23,6 @@ export default function SearchFiltersPanel({
 }: SearchFiltersPanelProps): React.ReactElement {
   const { t } = useLocalization();
   const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
-
   return (
     <div className="space-y-4 pb-8">
       {saveStatus !== "idle" && (
@@ -37,7 +34,7 @@ export default function SearchFiltersPanel({
           )}
           {saveStatus === "saved" && (
             <BodyText as="span" size="sm" className="flex items-center gap-1 text-green-600">
-              <Check className="h-4 w-4" />
+              <Icon name="check" className="h-4 w-4" />
               {t("search.saved")}
             </BodyText>
           )}
@@ -45,8 +42,8 @@ export default function SearchFiltersPanel({
       )}
 
       <PriceRangeFilter
-        minValue={formData.home_budget_min ?? 100_000}
-        maxValue={formData.home_budget_max ?? 2_000_000}
+        minValue={formData.home_budget_min ?? 100000}
+        maxValue={formData.home_budget_max ?? 2000000}
         onChange={(minVal, maxVal) => {
           updateFormData("home_budget_min", minVal);
           updateFormData("home_budget_max", maxVal);

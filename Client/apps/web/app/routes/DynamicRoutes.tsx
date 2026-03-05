@@ -17,8 +17,13 @@ type DynamicRoutesProps = {
   handleLogout: () => void;
 };
 
+/** Single shared element so the dashboard shell stays mounted across route changes. */
+function useProtectedDashboardElement(user: UserProfile | null, handleLogout: () => void) {
+  return useMemo(() => createProtectedRoute(user ?? undefined, handleLogout), [handleLogout, user]);
+}
+
 export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
-  const userProfile = user ?? undefined;
+  const protectedElement = useProtectedDashboardElement(user, handleLogout);
 
   const routes = useMemo(
     () => [
@@ -29,32 +34,20 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
         element={<Navigate to="/dashboard" replace />}
       />,
       <Route key="settings-redirect" path="/settings/*" element={<SettingsRedirect />} />,
-      /* Lightweight Protected Routes */
+      /* Lightweight Protected Routes – same element so shell persists */
       ...ROUTE_CONFIGS.lightweight.map((path) => (
-        <Route
-          key={path}
-          path={path}
-          element={createProtectedRoute(userProfile, handleLogout, undefined, path)}
-        />
+        <Route key={path} path={path} element={protectedElement} />
       )),
       /* Standard Protected Routes */
       ...ROUTE_CONFIGS.standard.map((path) => (
-        <Route
-          key={path}
-          path={path}
-          element={createProtectedRoute(userProfile, handleLogout, undefined, path)}
-        />
+        <Route key={path} path={path} element={protectedElement} />
       )),
-      /* Specialized Protected Routes - Full providers with additional page-specific providers */
-      ...ROUTE_CONFIGS.specialized.map(({ path, providerType }) => (
-        <Route
-          key={path}
-          path={path}
-          element={createProtectedRoute(userProfile, handleLogout, providerType, path)}
-        />
+      /* Specialized Protected Routes (e.g. search with maps) – same shell */
+      ...ROUTE_CONFIGS.specialized.map(({ path }) => (
+        <Route key={path} path={path} element={protectedElement} />
       )),
     ],
-    [handleLogout, userProfile]
+    [protectedElement]
   );
 
   return routes;

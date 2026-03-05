@@ -12,26 +12,25 @@ export function inspectIframeContentAfterLoad(
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
       if (doc) {
         const bodyText = doc.body?.innerText || "";
-        const bodyHTML = doc.body?.innerHTML || "";
+        const bodyHTMLLength = doc.body?.innerHTML.length || 0;
+        const hasError =
+          bodyText.includes("blocked") ||
+          bodyText.includes("error") ||
+          bodyText.includes("ERR_") ||
+          bodyText.toLowerCase().includes("this document cannot be displayed");
 
         log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] iframe content accessible", {
-          bodyText: bodyText.substring(0, 200),
-          bodyHTMLLength: bodyHTML.length,
-          hasError:
-            bodyText.includes("blocked") || bodyText.includes("error") || bodyText.includes("ERR_"),
+          bodyHTMLLength,
+          hasError,
         });
 
-        if (
-          bodyText.includes("blocked") ||
-          bodyText.includes("ERR_") ||
-          bodyText.toLowerCase().includes("this document cannot be displayed")
-        ) {
+        if (hasError) {
           log.error(
             LOG_CATEGORIES.ERRORS,
             "[PdfModal] Browser blocked or failed to load PDF content"
           );
           log.warn(LOG_CATEGORIES.HTTP, "[PdfModal] User can use Open in New Tab to view PDF");
-        } else if (bodyHTML.length === 0 && bodyText.length === 0) {
+        } else if (bodyHTMLLength === 0 && bodyText.length === 0) {
           log.warn(
             LOG_CATEGORIES.HTTP,
             "[PdfModal] iframe content is empty; PDF may still be loading or failed silently"

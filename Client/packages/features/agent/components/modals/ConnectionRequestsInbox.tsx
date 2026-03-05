@@ -1,4 +1,4 @@
-import { Check, MessageSquare, User as UserIcon, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
@@ -6,17 +6,14 @@ import Button from "packages/ui/components/button/Button";
 import { BodyText, Title } from "packages/ui/components/index.web";
 
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
-
 type ConnectionRequestsInboxProps = {
   onRequestAccepted?: () => void;
 };
-
 export default function ConnectionRequestsInbox({
   onRequestAccepted,
 }: ConnectionRequestsInboxProps) {
   const { requests, isLoading, respondToRequest, isResponding } = useConnectionRequests();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-
   const handleRespond = async (requestId: string, accept: boolean) => {
     try {
       await respondToRequest(requestId, accept);
@@ -41,7 +38,6 @@ export default function ConnectionRequestsInbox({
       });
     }
   };
-
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center p-4">
@@ -49,12 +45,11 @@ export default function ConnectionRequestsInbox({
       </div>
     );
   }
-
   if (requests.length === 0) {
     return (
       <div className="flex h-full items-center justify-center p-4">
         <div className="text-center">
-          <MessageSquare className="mx-auto mb-3 h-12 w-12 text-black/30" />
+          <Icon name="message-square" className="mx-auto mb-3 h-12 w-12 text-black/30" />
           <BodyText as="p" size="sm" className="text-black/60">
             No pending connection requests
           </BodyText>
@@ -62,7 +57,6 @@ export default function ConnectionRequestsInbox({
       </div>
     );
   }
-
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
@@ -70,7 +64,7 @@ export default function ConnectionRequestsInbox({
           <div key={request.id} className="border-beige rounded-lg border bg-white p-4">
             <div className="flex items-start gap-3">
               <div className="bg-beige flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                <UserIcon className="h-5 w-5 text-black" />
+                <Icon name="user" className="h-5 w-5 text-black" />
               </div>
               <div className="flex-1">
                 <Title as="h3" size="sm" className="font-medium text-black">
@@ -97,7 +91,7 @@ export default function ConnectionRequestsInbox({
                 onClick={() => handleRespond(request.id, true)}
                 disabled={isResponding}
                 className="hover:bg-olive/90 flex-1"
-                icon={<Check />}
+                icon={<Icon name="check" />}
                 iconPosition="left"
               >
                 Accept
@@ -107,7 +101,7 @@ export default function ConnectionRequestsInbox({
                 onClick={() => handleRespond(request.id, false)}
                 className="flex-1 border border-neutral-200 bg-neutral-100 text-black hover:bg-neutral-200"
                 disabled={isResponding}
-                icon={<X />}
+                icon={<Icon name="x" />}
                 iconPosition="left"
               >
                 Reject
@@ -119,5 +113,4 @@ export default function ConnectionRequestsInbox({
     </div>
   );
 }
-
 export { ConnectionRequestsInbox };

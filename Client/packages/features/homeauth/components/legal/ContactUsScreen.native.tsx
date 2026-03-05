@@ -11,30 +11,39 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout.native";
+import { Icon } from "packages/ui/components/icons/Icon.native";
 import { Text } from "packages/ui/components/primitives/text";
 
 import { ContactUsContent } from "./ContactUsContent";
 
-function NativeContactInfoContainer({ children }: { children: React.ReactNode }) {
+function ContactInfoContainer({ children }: { children: React.ReactNode }) {
   return <View style={contactStyles.container}>{children}</View>;
 }
 
-function NativeContactInfoBlock({ label, value }: { label: string; value: React.ReactNode }) {
+function ContactInfoBlock({ label, value }: { label: string; value: React.ReactNode }) {
+  const isEmail = label === "Email";
   return (
     <View style={contactStyles.block}>
-      <Text style={contactStyles.blockLabel}>{label}</Text>
-      <View style={contactStyles.blockValue}>
-        {typeof value === "string" ? (
-          <Text style={contactStyles.blockValueText}>{value}</Text>
-        ) : (
-          value
-        )}
+      <View style={contactStyles.blockRow}>
+        <View style={contactStyles.blockIcon}>
+          <Icon name={isEmail ? "mail" : "phone"} size={18} color={color("brown.DEFAULT")} />
+        </View>
+        <View style={contactStyles.blockContent}>
+          <Text style={contactStyles.blockLabel}>{label}</Text>
+          <View style={contactStyles.blockValue}>
+            {typeof value === "string" ? (
+              <Text style={contactStyles.blockValueText}>{value}</Text>
+            ) : (
+              value
+            )}
+          </View>
+        </View>
       </View>
     </View>
   );
 }
 
-function NativeFAQItem({ question, children }: { question: string; children: React.ReactNode }) {
+function FAQItem({ question, children }: { question: string; children: React.ReactNode }) {
   return (
     <View style={contactStyles.faqItem}>
       <Text style={contactStyles.faqQuestion}>{question}</Text>
@@ -49,6 +58,17 @@ const contactStyles = StyleSheet.create({
   },
   block: {
     marginBottom: 12,
+  },
+  blockRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  blockIcon: {
+    marginTop: 4,
+    marginRight: 12,
+  },
+  blockContent: {
+    flex: 1,
   },
   blockLabel: {
     fontSize: 16,
@@ -89,9 +109,9 @@ export function ContactUsScreenNative() {
         ListItem={ListItem}
         Bold={Bold}
         EmailLink={EmailLink}
-        ContactInfoContainer={NativeContactInfoContainer}
-        ContactInfoBlock={NativeContactInfoBlock}
-        FAQItem={NativeFAQItem}
+        ContactInfoContainer={ContactInfoContainer}
+        ContactInfoBlock={ContactInfoBlock}
+        FAQItem={FAQItem}
       />
     </StaticPageLayout>
   );

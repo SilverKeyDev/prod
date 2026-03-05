@@ -1,6 +1,6 @@
 import React from "react";
 
-import { MessageCircle, Search } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
@@ -23,7 +23,6 @@ import type {
 import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 import { parseEventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 import { getDateDividerText } from "@/features/messaging/utils/messageDateUtils";
-
 type UnifiedMessagesListProps = {
   mode: MessagingMode;
   canSendMessage: boolean;
@@ -41,7 +40,6 @@ type UnifiedMessagesListProps = {
   acceptedEventRequestIds?: Set<string>;
   acceptingEventRequestId?: string | null;
 };
-
 export default function UnifiedMessagesList({
   mode,
   canSendMessage,
@@ -65,7 +63,6 @@ export default function UnifiedMessagesList({
     isHomeSaved && saveHome && removeSavedHome
       ? { isHomeSaved, saveHome, removeSavedHome }
       : undefined;
-
   if (!canSendMessage) {
     // In agent mode, when canSendMessage is false, just show the same empty state as no messages
     // In client mode, when canSendMessage is false, it means no agent is assigned
@@ -75,7 +72,7 @@ export default function UnifiedMessagesList({
         <div className="flex h-full items-center justify-center">
           <div className="text-center">
             <div className="bg-beige/30 mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full">
-              <MessageCircle className="h-8 w-8 text-black/40" />
+              <Icon name="message-circle" className="h-8 w-8 text-black/40" />
             </div>
             <Title as="h3" size="lg" className="mb-2 font-medium text-black">
               {config.emptyStates.noMessages.title}
@@ -87,12 +84,11 @@ export default function UnifiedMessagesList({
         </div>
       );
     }
-
     // Client mode - show no agent assigned state
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <MessageCircle className="mx-auto mb-3 h-16 w-16 text-black/40" />
+          <Icon name="message-circle" className="mx-auto mb-3 h-16 w-16 text-black/40" />
           <Title as="h3" size="lg" className="mb-2 font-medium text-black">
             {config.emptyStates.noAgent.title}
           </Title>
@@ -103,7 +99,7 @@ export default function UnifiedMessagesList({
             <Button
               variant="outline"
               size="sm"
-              icon={<Search className="h-4 w-4" />}
+              icon={<Icon name="search" className="h-4 w-4" />}
               iconPosition="left"
               onClick={onSearchClick}
               className="border-beige/50 hover:border-beige hover:bg-beige/5 mx-auto flex items-center justify-center gap-2 bg-white text-black/70 hover:text-black"
@@ -115,7 +111,6 @@ export default function UnifiedMessagesList({
       </div>
     );
   }
-
   if (isLoadingHistory) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -123,13 +118,12 @@ export default function UnifiedMessagesList({
       </div>
     );
   }
-
   if (localMessages.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <div className="bg-beige/30 mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full">
-            <MessageCircle className="h-8 w-8 text-black/40" />
+            <Icon name="message-circle" className="h-8 w-8 text-black/40" />
           </div>
           <Title as="h3" size="lg" className="mb-2 font-medium text-black">
             {config.emptyStates.noMessages.title}
@@ -143,7 +137,6 @@ export default function UnifiedMessagesList({
       </div>
     );
   }
-
   return (
     <>
       {localMessages.map((msg, index) => {
@@ -155,7 +148,6 @@ export default function UnifiedMessagesList({
         const isCurrentUserMessage = msg.role === currentUserRole;
         const shouldShowDelivered =
           isCurrentUserMessage && msg.status === "delivered" && isMostRecentMessage;
-
         // Get previous message for date divider logic
         const previousMessage = index > 0 ? localMessages[index - 1] : null;
         const dateDividerText = getDateDividerText(
@@ -170,7 +162,6 @@ export default function UnifiedMessagesList({
         const eventRequestStatus: EventRequestStatus =
           msg.event_request_status ??
           (acceptedEventRequestIds.has(msg.id) ? "accepted" : "pending");
-
         return (
           <React.Fragment key={msg.id}>
             {/* Date divider */}
@@ -184,9 +175,7 @@ export default function UnifiedMessagesList({
               </div>
             )}
             <div
-              className={`flex w-full min-w-0 max-w-full flex-col overflow-hidden ${
-                messageConfig.justify === "end" ? "items-end" : "items-start"
-              }`}
+              className={`flex w-full min-w-0 max-w-full flex-col overflow-hidden ${messageConfig.justify === "end" ? "items-end" : "items-start"}`}
             >
               <div
                 className={`min-w-0 max-w-[85%] overflow-hidden rounded-xl md:max-w-[60%] ${
@@ -256,9 +245,7 @@ export default function UnifiedMessagesList({
               {/* Status text for current user's messages only - below the entire message row */}
               {isCurrentUserMessage && msg.status && (
                 <div
-                  className={`mt-1 flex w-full gap-1.5 ${
-                    messageConfig.justify === "end" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`mt-1 flex w-full gap-1.5 ${messageConfig.justify === "end" ? "justify-end" : "justify-start"}`}
                 >
                   {msg.status === "failed" && onRetryMessage && (
                     <Button
@@ -274,9 +261,7 @@ export default function UnifiedMessagesList({
                   <BodyText
                     as="span"
                     size="xs"
-                    className={`font-medium ${
-                      msg.status === "failed" ? "text-red-500" : "text-black/60"
-                    }`}
+                    className={`font-medium ${msg.status === "failed" ? "text-red-500" : "text-black/60"}`}
                   >
                     {msg.status === "sending"
                       ? "Sending..."
@@ -296,27 +281,27 @@ export default function UnifiedMessagesList({
       {/* Typing indicator disabled - this is agent messaging, not chatbot */}
       {/* Never show typing indicator in agent-client messaging - explicitly disabled for both agent and client modes */}
       {/* {mode === "agent" ? null : isTyping && (
-        <div className="flex items-center gap-2">
-          <div
-            className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${config.typingIndicator.iconBg}`}
-          >
-            <MessageIcon className="h-4 w-4 text-black" />
-          </div>
-          <div className="rounded-xl border border-beige bg-white px-3 py-2">
-            <div className="flex gap-1">
-              <div className="h-2 w-2 animate-bounce rounded-full bg-navy/40"></div>
+            <div className="flex items-center gap-2">
               <div
-                className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
-                style={{ animationDelay: "0.1s" }}
-              ></div>
-              <div
-                className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
-                style={{ animationDelay: "0.2s" }}
-              ></div>
+                className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${config.typingIndicator.iconBg}`}
+              >
+                <MessageIcon className="h-4 w-4 text-black" />
+              </div>
+              <div className="rounded-xl border border-beige bg-white px-3 py-2">
+                <div className="flex gap-1">
+                  <div className="h-2 w-2 animate-bounce rounded-full bg-navy/40"></div>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
+                    style={{ animationDelay: "0.1s" }}
+                  ></div>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
+                    style={{ animationDelay: "0.2s" }}
+                  ></div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )} */}
+          )} */}
       <div ref={messagesEndRef} />
     </>
   );

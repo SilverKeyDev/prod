@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import KeyLogo from "@ui/asset/KeyLogo";
 import Button from "@ui/button/Button";
-import { FileText, Share } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useNavigation } from "packages/navigation";
@@ -16,7 +16,6 @@ import type { AddressObject } from "@/features/search/types/search/propertyDetai
 import { formatAddress } from "@/features/search/types/search/propertyDetailsFormatters";
 
 import type { PropertyHeaderProps } from "./types";
-
 /** Normalize property for favorites API - address must be a string (API rejects object addresses) */
 function normalizePropertyForFavorites(property: PropertyHeaderProps["property"]): {
   id: string;
@@ -47,7 +46,6 @@ function normalizePropertyForFavorites(property: PropertyHeaderProps["property"]
     address: addressStr || p.streetAddress || "",
   };
 }
-
 function getDisplayAddress(address: unknown): string | null {
   if (typeof address === "string") return address;
   if (typeof address === "object" && address !== null && "streetAddress" in address) {
@@ -55,7 +53,6 @@ function getDisplayAddress(address: unknown): string | null {
   }
   return null;
 }
-
 export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   property,
   onClose,
@@ -65,31 +62,28 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   const { t } = useLocalization();
   const { navigate } = useNavigation();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-
-  const propertyAddress = (property as unknown as { address: unknown }).address;
+  const propertyAddress = (
+    property as unknown as {
+      address: unknown;
+    }
+  ).address;
   const displayAddress = getDisplayAddress(propertyAddress);
-
   const handleGenerateFullReport = () => {
     const address = formatAddress(propertyAddress as string | AddressObject | null | undefined);
-
     // Save the address to platform storage for the GenerateReportPage (RN-safe)
     const generateReportState = {
       address,
       reportType: "detailed",
       selectedClientId: "",
     };
-
     setToStorage("generateReportState", generateReportState);
-
     // Call the optional callback if provided
     if (onGenerateReport) {
       onGenerateReport(address);
     }
-
     // Navigate to the saved page
     navigate("SAVED");
   };
-
   return (
     <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4">
       {/* Left side - Logo and Title */}
@@ -119,7 +113,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
             variant="outline"
             size="md"
             onClick={handleGenerateFullReport}
-            icon={<FileText className="h-5 w-5 text-gray-600" />}
+            icon={<Icon name="file-text" className="h-5 w-5 text-gray-600" />}
             className="border-gray-600 text-gray-600 hover:bg-gray-50"
           >
             {t("property_details.generate_report")}
@@ -129,7 +123,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           variant="toolbar"
           size={toolbarButtonSize}
           rounded="md"
-          icon={<Share className="h-full w-full" />}
+          icon={<Icon name="share" className="h-full w-full" />}
           onClick={() => setIsShareModalOpen(true)}
           label={t("common.share_aria")}
         />

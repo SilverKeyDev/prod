@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Check } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import {
@@ -16,13 +16,11 @@ import { BodyText } from "packages/ui/components/index.web";
 import { getWindow } from "packages/utils/platform";
 
 import type { OnboardingData } from "@/features/profile/utils";
-import { parseUserPreferencesArrays } from "@/features/profile/utils";
-
+import { userPreferencesToOnboardingData } from "@/features/profile/utils";
 export type PreferencesFormContentRef = {
   formData: Partial<OnboardingData>;
   preventedDeleteWarning: boolean;
 };
-
 type PreferencesFormContentProps = {
   /** Optional ref for parent to read current form state (e.g. on close for dirty check) */
   formContentRef?: React.MutableRefObject<PreferencesFormContentRef | null>;
@@ -39,7 +37,6 @@ type PreferencesFormContentProps = {
     saveStatus: "idle" | "saving" | "saved";
   }) => React.ReactNode;
 };
-
 export default function PreferencesFormContent({
   formContentRef,
   showErrorToastOnError = false,
@@ -60,57 +57,30 @@ export default function PreferencesFormContent({
     return (
       !!googleMapsLoaded &&
       !!win &&
-      !!(win as unknown as { google?: { maps?: { places?: unknown } } }).google?.maps?.places
+      !!(
+        win as unknown as {
+          google?: {
+            maps?: {
+              places?: unknown;
+            };
+          };
+        }
+      ).google?.maps?.places
     );
   })();
-
   const { saveStatus, updateFormData: updateFormDataWithAutoSave } = useAutoSavePreferences({
     refreshUserPreferences,
     showErrorToastOnError,
     onAfterSave: onPreferencesSaved,
   });
-
   useEffect(() => {
     if (userPreferences) {
-      const arrayFields = parseUserPreferencesArrays(userPreferences, [
-        "preferred_home_features",
-        "deal_breakers",
-        "important_locations",
-        "why_joining_silverkey",
-        "must_have",
-        "listing_type",
-      ]);
-      const getString = (value: unknown): string | undefined =>
-        typeof value === "string" ? value : undefined;
-      const getNumber = (value: unknown): number | undefined =>
-        typeof value === "number" ? value : undefined;
-      const prefs = userPreferences as Record<string, unknown>;
-      const initialData: Partial<OnboardingData> = {
-        home_budget_min: getNumber(prefs.home_budget_min),
-        home_budget_max: getNumber(prefs.home_budget_max),
-        listing_status: getString(prefs.listing_status),
-        preferred_housing_type: getString(userPreferences.preferred_housing_type),
-        preferred_bedrooms: getNumber(userPreferences.preferred_bedrooms),
-        preferred_bathrooms: getNumber(userPreferences.preferred_bathrooms),
-        preferred_lot_size: getString(userPreferences.preferred_lot_size),
-        preferred_home_age: getString(userPreferences.preferred_home_age),
-        preferred_sqft_min: getNumber(prefs.preferred_sqft_min),
-        preferred_sqft_max: getNumber(prefs.preferred_sqft_max),
-        days_on_market_min: getNumber(prefs.days_on_market_min),
-        days_on_market_max: getNumber(prefs.days_on_market_max),
-        preferred_lot_size_min: getNumber(prefs.preferred_lot_size_min),
-        preferred_lot_size_max: getNumber(prefs.preferred_lot_size_max),
-        preferred_home_age_max: getNumber(prefs.preferred_home_age_max),
-        preferred_architectural_style: getString(userPreferences.preferred_architectural_style),
-        renovation_preference: getString(userPreferences.renovation_preference),
-        intended_property_use: getString(userPreferences.intended_property_use),
-        walkability_importance: getString(userPreferences.walkability_importance),
-        ...(arrayFields as Partial<OnboardingData>),
-      };
+      const initialData = userPreferencesToOnboardingData(
+        userPreferences as Record<string, unknown>
+      );
       setFormData(initialData);
     }
   }, [userPreferences]);
-
   useEffect(() => {
     if (formContentRef) {
       formContentRef.current = {
@@ -119,14 +89,12 @@ export default function PreferencesFormContent({
       };
     }
   }, [formContentRef, formData, preventedDeleteWarning]);
-
   useEffect(() => {
     if (onInitialSnapshot && !hasReportedInitialRef.current && Object.keys(formData).length > 0) {
       hasReportedInitialRef.current = true;
       onInitialSnapshot(formData);
     }
   }, [formData, onInitialSnapshot]);
-
   const updateFormData = useCallback(
     (field: string | number | symbol, value: unknown) => {
       if (field === "important_locations") {
@@ -151,10 +119,9 @@ export default function PreferencesFormContent({
     },
     [formData, updateFormDataWithAutoSave]
   );
-
   if (renderContent) {
     return (
-      <div className="space-y-6">
+      <div>
         {renderContent({
           formData,
           updateFormData,
@@ -163,9 +130,8 @@ export default function PreferencesFormContent({
       </div>
     );
   }
-
   return (
-    <div className="space-y-6">
+    <div>
       {saveStatus !== "idle" && (
         <div className="flex items-center gap-2 text-sm">
           {saveStatus === "saving" && (
@@ -175,7 +141,7 @@ export default function PreferencesFormContent({
           )}
           {saveStatus === "saved" && (
             <BodyText as="span" size="sm" className="flex items-center gap-1 text-green-600">
-              <Check className="h-4 w-4" />
+              <Icon name="check" className="h-4 w-4" />
               {t("common.saved")}
             </BodyText>
           )}

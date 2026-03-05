@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { ChevronLeft, MessageCircle, Plus, User as UserIcon } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import type { AgentClient } from "packages/config/api";
 import { useLocalization } from "packages/contexts";
@@ -8,14 +8,12 @@ import { ClientSearchModal } from "packages/features/agent/components/modals";
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
 import { BodyText, Button, KeyTurnLoader, Title } from "packages/ui/components/index.web";
-
 type ClientManagementProps = {
   clients: AgentClient[];
   isLoading: boolean;
   selectedClientId: string | null;
   onClientSelect: (clientId: string) => void;
 };
-
 export default function ClientManagement({
   clients,
   isLoading,
@@ -26,15 +24,11 @@ export default function ClientManagement({
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const { conversations } = useAgentChats();
-
   // Create a map of client_id -> conversation for quick lookup
   const conversationMap = new Map(conversations.map((conv) => [conv.client_id, conv]));
-
   return (
     <aside
-      className={`${
-        isSidebarExpanded ? "flex translate-x-0" : "hidden -translate-x-full"
-      } flex-col transition-transform duration-300 ease-in-out xl:flex xl:w-80 xl:translate-x-0`}
+      className={`${isSidebarExpanded ? "flex translate-x-0" : "hidden -translate-x-full"} flex-col transition-transform duration-300 ease-in-out xl:flex xl:w-80 xl:translate-x-0`}
     >
       {/* Fixed Header */}
       <div className="border-beige flex-shrink-0 rounded-t-xl border-b bg-white p-3">
@@ -53,7 +47,7 @@ export default function ClientManagement({
               label="Search for clients"
               title="Add client"
             >
-              <Plus className="h-4 w-4 text-black" />
+              <Icon name="plus" className="h-4 w-4 text-black" />
             </Button>
             {/* TABLET/MOBILE side arrow button to collapse when extended */}
             {isSidebarExpanded && (
@@ -65,7 +59,7 @@ export default function ClientManagement({
                 label={t("agent.collapse_client_list")}
                 aria-expanded={isSidebarExpanded}
               >
-                <ChevronLeft className="h-4 w-4 text-black" />
+                <Icon name="chevron-left" className="h-4 w-4 text-black" />
               </Button>
             )}
           </div>
@@ -82,7 +76,7 @@ export default function ClientManagement({
           </div>
         ) : clients.length === 0 ? (
           <div className="p-3 text-center">
-            <MessageCircle className="mx-auto mb-3 h-12 w-12 text-black/30" />
+            <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-black/30" />
             <BodyText as="p" size="sm" className="text-black/60">
               {t("agent.no_clients_yet")}
             </BodyText>
@@ -109,13 +103,11 @@ export default function ClientManagement({
                     setIsSidebarExpanded(false);
                   }
                 }}
-                className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${
-                  selectedClientId === client.id ? "bg-beige/20" : ""
-                }`}
+                className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${selectedClientId === client.id ? "bg-beige/20" : ""}`}
               >
                 <div className="flex items-start gap-3">
                   <div className="bg-beige flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                    <UserIcon className="h-5 w-5 text-black" />
+                    <Icon name="user" className="h-5 w-5 text-black" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <Title as="h3" size="sm" className="mb-1 truncate font-medium text-black">

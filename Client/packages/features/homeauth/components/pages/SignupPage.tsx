@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Lock, Mail, Phone, User as UserIcon } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { spacing } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
@@ -19,12 +19,8 @@ import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 
 import { PasswordValidation, usePasswordValidation } from "@/components/feedback";
 import { Button, FieldShell, Input, PhoneInput } from "@/components/ui";
-
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type SignupPageProps = {
-  // No props currently needed
-};
-
+type SignupPageProps = {};
 const BarePhoneTextInput = React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement>
@@ -35,9 +31,7 @@ const BarePhoneTextInput = React.forwardRef<
       ref={ref}
       {...rest}
       placeholder={placeholder}
-      className={`autofill-gold h-full w-full border-0 bg-transparent outline-none focus:outline-none focus:ring-0 ${(getSharedInputTextStyles as () => string)()} ${
-        className ?? ""
-      }`}
+      className={`autofill-gold h-full w-full border-0 bg-transparent outline-none focus:outline-none focus:ring-0 ${(getSharedInputTextStyles as () => string)()} ${className ?? ""}`}
       style={{
         // real input owns the space & is clickable
         flex: 1,
@@ -46,7 +40,6 @@ const BarePhoneTextInput = React.forwardRef<
         zIndex: 1,
         cursor: "text",
         pointerEvents: "auto",
-
         // strip native styles
         border: "none",
         outline: "none",
@@ -59,38 +52,30 @@ const BarePhoneTextInput = React.forwardRef<
         WebkitTapHighlightColor: "transparent",
         background: "transparent",
         WebkitTextFillColor: "inherit",
-
         ...style,
       }}
     />
   );
 });
 BarePhoneTextInput.displayName = "BarePhoneTextInput";
-
 // E.164 normalizer with email validation guard
 const formatToE164 = (phoneNumber: string | undefined): string | undefined => {
   if (!phoneNumber?.trim()) return undefined;
-
   // If the value looks like an email (common autofill quirk), ignore
   if (phoneNumber.includes("@")) {
     // Phone autofill received email value, ignoring
     return undefined;
   }
-
   const cleaned = phoneNumber.replace(/[\s\-().]/g, "");
-
   // Basic phone validation: digits and optional leading +
   if (!/^[+]?[\d]+$/.test(cleaned)) {
     // Phone autofill received invalid format, ignoring
     return undefined;
   }
-
   if (!cleaned.startsWith("+")) return `+1${cleaned}`;
   return cleaned;
 };
-
 type FieldKey = "all" | "name" | "email" | "password" | "phone";
-
 export default function SignupPage(_props: SignupPageProps) {
   const [formData, setFormData] = useState({
     name: "",
@@ -101,10 +86,8 @@ export default function SignupPage(_props: SignupPageProps) {
   const [phoneValue, setPhoneValue] = useState<string | undefined>(undefined);
   const [, setAutofilled] = useState(false);
   const lastFocusRef = useRef<FieldKey>("all"); // tracks which field initiated sync intent
-
   const { navigate } = useNavigation();
   const { signup, isLoading: isSignupLoading } = useSignup();
-
   // DOM getters (use platform document so shared package stays RN-safe)
   const getDomEls = () => {
     const doc = getDocument();
@@ -115,11 +98,9 @@ export default function SignupPage(_props: SignupPageProps) {
     const phoneEl = doc.querySelector("input.PhoneInputInput");
     return { nameEl, emailEl, pwdEl, phoneEl };
   };
-
   // Field-aware sync function
   const syncFromDom = useCallback((which: FieldKey) => {
     const { nameEl, emailEl, pwdEl, phoneEl } = getDomEls();
-
     // Helper readers
     const readName = () => nameEl?.value ?? "";
     const readEmail = () => emailEl?.value ?? "";
@@ -132,7 +113,6 @@ export default function SignupPage(_props: SignupPageProps) {
       if (!raw) return undefined;
       return formatToE164(raw);
     };
-
     // Determine if anything is actually filled (to avoid wiping)
     const anyFilled: boolean =
       !!nameEl?.value?.trim() ||
@@ -141,9 +121,7 @@ export default function SignupPage(_props: SignupPageProps) {
       !!(phoneEl && "value" in phoneEl && typeof phoneEl.value === "string"
         ? (phoneEl.value as string).trim()
         : undefined);
-
     if (!anyFilled) return;
-
     // Apply per-field rules
     if (which === "all" || which === "name") {
       // Name autofill should pull name, email, phone, and password
@@ -153,13 +131,11 @@ export default function SignupPage(_props: SignupPageProps) {
         password: readPwd(),
       };
       const p = readPhone();
-
       setFormData((prev) => ({ ...prev, ...nextData }));
       if (p !== undefined) setPhoneValue(p);
       setAutofilled(true);
       return;
     }
-
     // Email-only
     if (which === "email") {
       const nextEmail = readEmail();
@@ -169,7 +145,6 @@ export default function SignupPage(_props: SignupPageProps) {
       setAutofilled(true);
       return;
     }
-
     // Password-only (do not autofill email)
     if (which === "password") {
       const nextPwd = readPwd();
@@ -179,7 +154,6 @@ export default function SignupPage(_props: SignupPageProps) {
       setAutofilled(true);
       return;
     }
-
     // Phone-only
     if (which === "phone") {
       const p = readPhone();
@@ -188,7 +162,6 @@ export default function SignupPage(_props: SignupPageProps) {
       return;
     }
   }, []);
-
   // Initial + safety resyncs pull *all* (mimics browser-wide autofill on load)
   useEffect(() => {
     // First pass: try to capture any page-load autofill
@@ -197,26 +170,21 @@ export default function SignupPage(_props: SignupPageProps) {
     const t1 = setTimeout(() => syncFromDom("all"), 250);
     const t2 = setTimeout(() => syncFromDom("all"), 800);
     const t3 = setTimeout(() => syncFromDom("all"), 1500);
-
     const onVisibility = () => syncFromDom("all");
-
     // Add input event listeners to detect autofill
     const handleInputEvent = (e: Event) => {
       const target = e.target as HTMLInputElement;
-
       if (target.id === "name" || target.name === "name") {
         setTimeout(() => syncFromDom("name"), 50);
       } else if (target.id === "password" || target.name === "new-password") {
         setTimeout(() => syncFromDom("password"), 50);
       }
     };
-
     const doc = getDocument();
     if (doc) {
       doc.addEventListener("visibilitychange", onVisibility);
       doc.addEventListener("input", handleInputEvent, true);
     }
-
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -228,24 +196,20 @@ export default function SignupPage(_props: SignupPageProps) {
       }
     };
   }, [syncFromDom]);
-
   const { isValid: isPasswordValid, errors: passwordErrors } = (
     usePasswordValidation as (password: string) => {
       isValid: boolean;
       errors: string[];
     }
   )(formData.password);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!isPasswordValid) {
       showErrorToast(
         `Password must meet all requirements: ${Array.isArray(passwordErrors) ? passwordErrors.join(", ") : "Unknown error"}`
       );
       return;
     }
-
     const result = await signup(
       getSignupPayload({
         name: formData.name,
@@ -255,7 +219,6 @@ export default function SignupPage(_props: SignupPageProps) {
         agencyName: formData.agencyName ?? undefined,
       })
     );
-
     if (result.success) {
       persistSignupEmailForVerification(formData.email, formData.password);
       navigate("VERIFICATION", undefined, { state: { email: formData.email } });
@@ -263,14 +226,12 @@ export default function SignupPage(_props: SignupPageProps) {
       showErrorToast(result.error);
     }
   };
-
   const handlePhoneChange = (value: string | undefined) => {
     const doc = getDocument();
     const fieldShell = doc?.querySelector("#phone.autofill-parent");
     if (fieldShell) (fieldShell as HTMLElement).classList.remove("is-autofilled");
     setPhoneValue(formatToE164(value));
   };
-
   return (
     <AuthPageLayout
       title="Create your account"
@@ -344,7 +305,7 @@ export default function SignupPage(_props: SignupPageProps) {
             setTimeout(() => syncFromDom("name"), 100);
           }}
           placeholder="Enter your full name"
-          leftIcon={<UserIcon className="pointer-events-none h-4 w-4" />}
+          leftIcon={<Icon name="user" className="pointer-events-none h-4 w-4" />}
           name="name"
           id="name"
           autoComplete="name"
@@ -368,7 +329,7 @@ export default function SignupPage(_props: SignupPageProps) {
             setFormData((prev) => ({ ...prev, email: e.target.value }))
           }
           placeholder="Enter your email"
-          leftIcon={<Mail className="pointer-events-none h-4 w-4" />}
+          leftIcon={<Icon name="mail" className="pointer-events-none h-4 w-4" />}
           name="email"
           id="email"
           autoComplete="email"
@@ -383,7 +344,7 @@ export default function SignupPage(_props: SignupPageProps) {
 
         <FieldShell
           label="Phone Number"
-          leftIcon={<Phone className="pointer-events-none h-4 w-4" />}
+          leftIcon={<Icon name="phone" className="pointer-events-none h-4 w-4" />}
           variant="mobile"
           size="md"
           className="autofill-parent"
@@ -433,7 +394,7 @@ export default function SignupPage(_props: SignupPageProps) {
             setFormData((prev) => ({ ...prev, password: e.target.value }))
           }
           placeholder="Create a password"
-          leftIcon={<Lock className="pointer-events-none h-4 w-4" />}
+          leftIcon={<Icon name="lock" className="pointer-events-none h-4 w-4" />}
           name="new-password"
           id="password"
           autoComplete="new-password"

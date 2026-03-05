@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Lock, Mail, Phone, User as UserIcon } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { spacing } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
@@ -11,7 +11,6 @@ import { Button, FieldShell, Input, PhoneInput } from "packages/ui/components/in
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 
 import { PasswordValidation } from "@/components/feedback";
-
 const BarePhoneTextInput = React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement>
@@ -47,7 +46,6 @@ const BarePhoneTextInput = React.forwardRef<
   );
 });
 BarePhoneTextInput.displayName = "BarePhoneTextInput";
-
 export type SignupFormFieldsProps = {
   formData: SignupFormData;
   setFormData: React.Dispatch<React.SetStateAction<SignupFormData>>;
@@ -60,7 +58,6 @@ export type SignupFormFieldsProps = {
   /** When true (e.g. on onboarding page), the name input is hidden. */
   onboarding?: boolean;
 };
-
 export default function SignupFormFields({
   formData,
   setFormData,
@@ -84,7 +81,7 @@ export default function SignupFormFields({
             setTimeout(() => syncFromDom("name"), 100);
           }}
           placeholder="Enter your full name"
-          leftIcon={<UserIcon className="pointer-events-none h-4 w-4" />}
+          leftIcon={<Icon name="user" className="pointer-events-none h-4 w-4" />}
           name="name"
           id="name"
           autoComplete="name"
@@ -107,7 +104,7 @@ export default function SignupFormFields({
           setFormData((prev) => ({ ...prev, email: e.target.value }))
         }
         placeholder="Enter your email"
-        leftIcon={<Mail className="pointer-events-none h-4 w-4" />}
+        leftIcon={<Icon name="mail" className="pointer-events-none h-4 w-4" />}
         name="email"
         id="email"
         autoComplete="email"
@@ -121,7 +118,7 @@ export default function SignupFormFields({
 
       <FieldShell
         label="Phone Number"
-        leftIcon={<Phone className="pointer-events-none h-4 w-4" />}
+        leftIcon={<Icon name="phone" className="pointer-events-none h-4 w-4" />}
         variant="mobile"
         size="md"
         className="autofill-parent"
@@ -167,7 +164,7 @@ export default function SignupFormFields({
           setFormData((prev) => ({ ...prev, password: e.target.value }))
         }
         placeholder="Create a password"
-        leftIcon={<Lock className="pointer-events-none h-4 w-4" />}
+        leftIcon={<Icon name="lock" className="pointer-events-none h-4 w-4" />}
         name="new-password"
         id="password"
         autoComplete="new-password"

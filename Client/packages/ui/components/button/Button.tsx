@@ -1,14 +1,13 @@
 import React, { forwardRef, useMemo } from "react";
 
 import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader.web";
+import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { BUTTON_VARIANT_STYLES, type ButtonStyleVariant } from "packages/ui/types/button";
 import type { IconName } from "packages/ui/types/icons";
-
-import { getIcon } from "@/components/ui/icons/iconMap";
 
 /**
  * Variants: primary (CTA), secondary (neutral), tertiary (gold), outline, ghost, danger, success.
@@ -67,7 +66,7 @@ export type ButtonProps = {
 
 /** Single base string all variants share. Ensures spacing and icon alignment. */
 const BASE_CLASSES =
-  "inline-flex items-center justify-center gap-2 font-medium leading-none select-none transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:translate-y-[0.5px]";
+  "inline-flex items-center gap-2 font-medium leading-none select-none transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:translate-y-[0.5px]";
 
 const SIZE_CLASSES: Record<"sm" | "md" | "lg", string> = {
   sm: "btn-responsive-sm",
@@ -136,7 +135,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     );
     const innerTextColorClass = isFilledWithWhiteText ? "text-inherit" : "";
 
-    const resolvedIcon = icon ?? (iconName ? getIcon(iconName) : null);
+    const resolvedIcon = icon ?? (iconName ? <Icon name={iconName} /> : null);
 
     const textVisibilityClass = useMemo(() => {
       if (!children || !hideTextBelow) return "";
@@ -152,7 +151,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const isEdgeRight =
       iconPosition === "right" && iconAlign === "edge" && (resolvedIcon || loading);
-    const layoutClass = isEdgeRight ? "justify-between" : "justify-center";
+    const layoutClass = isEdgeRight ? "justify-between" : "";
 
     const buttonClasses = [
       BASE_CLASSES,
@@ -173,7 +172,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const textSpan = (
       <BodyText
         as="span"
-        className={["inline-flex items-center gap-2", textVisibilityClass, innerTextColorClass]
+        className={[
+          "inline-flex w-full items-center justify-center gap-2",
+          textVisibilityClass,
+          innerTextColorClass,
+        ]
           .filter(Boolean)
           .join(" ")}
       >

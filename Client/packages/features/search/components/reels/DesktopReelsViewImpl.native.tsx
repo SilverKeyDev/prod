@@ -9,7 +9,7 @@ type DesktopReelsViewProps = {
 };
 
 /**
- * Native: full-screen reels feed. Same data as web; no theater layout or shortcuts.
+ * Native: full-screen reels feed. Uses same data and controls as web; layout adapts to viewport.
  */
 export function DesktopReelsView({ virtuosoRef: _virtuosoRef }: DesktopReelsViewProps) {
   const scrollControllerRef = useRef<FeedScrollController | null>(null);

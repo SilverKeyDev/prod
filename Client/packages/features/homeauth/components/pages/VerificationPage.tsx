@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { ArrowLeft, Mail } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useAuthVerification } from "packages/hooks/data/auth/useAuthVerification";
 import { useCountdown } from "packages/hooks/ui";
@@ -11,12 +11,10 @@ import Card from "packages/ui/components/cards/Card";
 import { dateNow } from "packages/utils/date";
 import { getSessionStorage } from "packages/utils/storage";
 import { applyCodeChange, applyPaste, getBackspaceFocusIndex } from "packages/utils/verification";
-
 type LocationState = {
   email?: string;
   fromLogin?: boolean;
 };
-
 export default function VerificationPage() {
   const { verify, resendCode } = useAuthVerification();
   const { countdown, canResend, startCountdown } = useCountdown(30);
@@ -27,13 +25,11 @@ export default function VerificationPage() {
   const [error, setError] = useState("");
   const [isFromSignup, setIsFromSignup] = useState(false);
   const [isFromLogin, setIsFromLogin] = useState(false);
-
   const { navigate, goBack, getCurrentRoute } = useNavigation();
   const locationState = getCurrentRoute().state as LocationState;
   const inputRefs = useRef<Array<HTMLInputElement | null>>(
     Array(6).fill(null) as Array<HTMLInputElement | null>
   );
-
   // Pre-fill email if coming from signup or login
   useEffect(() => {
     if (locationState?.email) {
@@ -48,7 +44,6 @@ export default function VerificationPage() {
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     }
   }, [locationState, startCountdown]);
-
   const handleCodeChange = (value: string, index: number) => {
     const { nextCode, nextFocusIndex } = applyCodeChange(code, value, index);
     setCode(nextCode);
@@ -57,7 +52,6 @@ export default function VerificationPage() {
       void handleVerify();
     }
   };
-
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text/plain");
@@ -65,7 +59,6 @@ export default function VerificationPage() {
     setCode(nextCode);
     inputRefs.current[nextFocusIndex]?.focus();
   };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       const focusIndex = getBackspaceFocusIndex(code, index);
@@ -74,24 +67,19 @@ export default function VerificationPage() {
       }
     }
   };
-
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       setError("Please enter your email address");
       return;
     }
-
     setLoading(true);
     setError("");
-
     try {
       const { success, error } = await resendCode(email);
-
       if (!success) {
         throw new Error(error ?? "Failed to send verification code");
       }
-
       setActiveStep("code");
       startCountdown();
     } catch (error: unknown) {
@@ -105,65 +93,52 @@ export default function VerificationPage() {
       setLoading(false);
     }
   };
-
   const handleVerify = async () => {
     const verificationCode = code.join("");
     if (verificationCode.length !== 6) {
       setError("Please enter a 6-digit code");
       return;
     }
-
     log.debug(LOG_CATEGORIES.AUTH, "Verification handleVerify called", {
       codeLength: verificationCode.length,
       email,
       timestamp: dateNow().toISOString(),
     });
-
     setLoading(true);
     setError("");
-
     try {
       // Get the stored password from signup (platform storage for RN parity)
       const session = getSessionStorage();
       const storedPassword = session.getItem("signupPassword");
       const userEmail = email ?? session.getItem("signupEmail");
-
       log.debug(LOG_CATEGORIES.AUTH, "Verification retrieved stored data", {
         hasEmail: !!userEmail,
         hasPassword: !!storedPassword,
         email: userEmail,
       });
-
       if (!userEmail || !storedPassword) {
         log.error(LOG_CATEGORIES.AUTH, "Verification missing email or password");
         throw new Error("Email or password not found. Please go back and sign up again.");
       }
-
       log.debug(LOG_CATEGORIES.AUTH, "Verification calling authApi.verify");
-
       // Call the verify API
       const {
         success,
         error: apiError,
         message,
       } = await verify(userEmail, verificationCode, storedPassword);
-
       log.debug(LOG_CATEGORIES.AUTH, "Verification authApi.verify response", {
         success,
         error: apiError,
         message,
       });
-
       if (!success) {
         throw new Error(apiError ?? message ?? "Failed to verify email. Please try again.");
       }
-
       log.debug(LOG_CATEGORIES.AUTH, "Verification successful, clearing storage and navigating");
-
       // Clear the stored signup data
       session.removeItem("signupEmail");
       session.removeItem("signupPassword");
-
       // On success, redirect to onboarding after a brief delay
       // Auth state will be picked up by AuthProvider via session verification
       setTimeout(() => {
@@ -181,26 +156,20 @@ export default function VerificationPage() {
       setLoading(false);
     }
   };
-
   const handleResendCode = async () => {
     if (!canResend) return;
-
     setLoading(true);
     setError("");
-
     try {
       const session = getSessionStorage();
       const userEmail = email ?? session.getItem("signupEmail");
       if (!userEmail) {
         throw new Error("Email not found. Please go back and try again.");
       }
-
       const { success, error } = await resendCode(userEmail);
-
       if (!success) {
         throw new Error(error ?? "Failed to resend verification code");
       }
-
       // Reset UI state
       startCountdown();
       setCode(["", "", "", "", "", ""]);
@@ -216,7 +185,6 @@ export default function VerificationPage() {
       setLoading(false);
     }
   };
-
   const handleBack = () => {
     if (activeStep === "code") {
       setActiveStep("email");
@@ -225,7 +193,6 @@ export default function VerificationPage() {
       goBack();
     }
   };
-
   const renderCodeInputs = () => (
     <div className="flex justify-center gap-3">
       {code.map((digit, index) => (
@@ -248,7 +215,6 @@ export default function VerificationPage() {
       ))}
     </div>
   );
-
   return (
     <div className="px-responsive-sm py-responsive-md bg-off-white flex min-h-screen items-center justify-center">
       <div className="w-full max-w-md">
@@ -258,7 +224,7 @@ export default function VerificationPage() {
             <Button
               onClick={handleBack}
               variant="ghost"
-              icon={<ArrowLeft className="mobile-icon-sm" />}
+              icon={<Icon name="arrow-left" className="mobile-icon-sm" />}
               iconPosition="left"
             >
               Back
@@ -315,7 +281,7 @@ export default function VerificationPage() {
                     setError("");
                   }}
                   placeholder="Enter your email"
-                  leftIcon={<Mail className="mobile-icon-sm" />}
+                  leftIcon={<Icon name="mail" className="mobile-icon-sm" />}
                   autoComplete="email"
                   variant="mobile"
                   size="md"

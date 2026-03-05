@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { Button } from "@ui";
 import { Card } from "@ui/layout";
 
-import type { GoogleEvent } from "packages/config/api/googleCalendar";
+import type { GoogleEvent } from "packages/features/calendar/api";
 import { dateFormat, dateNow, dateParseISO, dayjs } from "packages/utils/date";
 
 type CalendarViewProps = {

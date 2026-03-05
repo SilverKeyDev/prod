@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Lock, Mail } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
 import AuthButton from "packages/features/homeauth/components/auth/Button";
@@ -12,34 +12,33 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { Input } from "packages/ui/components";
 import { getLocalStorage } from "packages/utils/storage";
-
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { navigate, navigateToPath, getCurrentRoute } = useNavigation();
   const route = getCurrentRoute();
-
   // Use secure authentication hook
   const { login, isLoading, error, clearError } = useSecureAuth();
-
   // No token cleanup needed - auth is managed via HTTP-only cookies
   // All authentication state is handled by the server
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-
     const result = await login(email, password);
-
     if (result.success) {
       // Read intended destination from state, sanitize, and fallback
       const from =
-        (route.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? "/dashboard";
+        (
+          route.state as {
+            from?: {
+              pathname?: string;
+            };
+          } | null
+        )?.from?.pathname ?? "/dashboard";
       const safe =
         typeof from === "string" && from.startsWith("/") && !from.startsWith("/login")
           ? from
           : "/dashboard";
-
       if (route.pathname !== safe) {
         navigateToPath(safe, { replace: true });
       }
@@ -53,7 +52,6 @@ export default function LoginPage() {
       log.error(LOG_CATEGORIES.AUTH, "Login failed, not navigating");
     }
   };
-
   return (
     <AuthPageLayout
       title="Welcome back"
@@ -70,7 +68,7 @@ export default function LoginPage() {
           value={email}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           placeholder="Enter your email"
-          leftIcon={<Mail className="h-4 w-4" />}
+          leftIcon={<Icon name="mail" className="h-4 w-4" />}
           name="email"
           id="email"
           autoComplete="email"
@@ -84,7 +82,7 @@ export default function LoginPage() {
           value={password}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
           placeholder="Enter your password"
-          leftIcon={<Lock className="h-4 w-4" />}
+          leftIcon={<Icon name="lock" className="h-4 w-4" />}
           name="password"
           id="password"
           autoComplete="current-password"

@@ -1,16 +1,14 @@
 import React from "react";
 
-import { Calendar, CheckCircle, FileText, Home, Search } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import type { DealStage } from "packages/schemas/agent";
 
 import StatusBadge from "@/components/ui/asset/StatusBadge";
-
 type DealStageBadgeProps = {
   stage: DealStage;
   className?: string;
 };
-
 const DealStageBadge: React.FC<DealStageBadgeProps> = ({ stage, className = "" }) => {
   const stageConfig: Record<
     DealStage,
@@ -23,32 +21,30 @@ const DealStageBadge: React.FC<DealStageBadgeProps> = ({ stage, className = "" }
     search: {
       label: "Search",
       variant: "info",
-      icon: <Search className="h-3 w-3 sm:h-4 sm:w-4" />,
+      icon: <Icon name="search" className="h-3 w-3 sm:h-4 sm:w-4" />,
     },
     touring: {
       label: "Touring",
       variant: "processing",
-      icon: <Home className="h-3 w-3 sm:h-4 sm:w-4" />,
+      icon: <Icon name="home" className="h-3 w-3 sm:h-4 sm:w-4" />,
     },
     offer: {
       label: "Offer",
       variant: "warning",
-      icon: <FileText className="h-3 w-3 sm:h-4 sm:w-4" />,
+      icon: <Icon name="file-text" className="h-3 w-3 sm:h-4 sm:w-4" />,
     },
     under_contract: {
       label: "Under Contract",
       variant: "processing",
-      icon: <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />,
+      icon: <Icon name="check-circle" className="h-3 w-3 sm:h-4 sm:w-4" />,
     },
     closing: {
       label: "Closing",
       variant: "success",
-      icon: <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />,
+      icon: <Icon name="calendar" className="h-3 w-3 sm:h-4 sm:w-4" />,
     },
   };
-
   const config = stageConfig[stage];
-
   return (
     <div className={`inline-flex items-center gap-1.5 sm:gap-2 ${className}`}>
       {config.icon}
@@ -56,5 +52,4 @@ const DealStageBadge: React.FC<DealStageBadgeProps> = ({ stage, className = "" }
     </div>
   );
 };
-
 export default DealStageBadge;

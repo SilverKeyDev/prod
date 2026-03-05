@@ -15,7 +15,7 @@ import { getDocument } from "packages/utils/platform";
 
 import { usePasswordValidation } from "@/components/feedback";
 
-import SignupFormFields from "./SignupFormFields";
+import SignupFormFields from "../signup/SignupFormFields";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type SignupPageProps = {

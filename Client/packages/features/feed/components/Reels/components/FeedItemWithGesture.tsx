@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Heart } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useFeedReelsContext } from "packages/features/feed/hooks/feedReels/useFeedReelsContext";
 import { useFeedAxisLock, useFeedGestureTrap } from "packages/hooks/ui";
@@ -11,17 +11,18 @@ import { MediaCarousel } from "@/features/feed/components/carousel/MediaCarousel
 import { BottomInfo } from "@/features/feed/components/Overlay/BottomInfo";
 import { FeedActionStack } from "@/features/feed/components/Overlay/FeedActionStack";
 import type { FeedListing } from "@/features/feed/types/feed";
-
 export type FeedItemWithGestureProps = {
-  item: FeedListing & { media: NonNullable<FeedListing["media"]> };
+  item: FeedListing & {
+    media: NonNullable<FeedListing["media"]>;
+  };
   index: number;
 };
-
 export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
   const {
     activeIndex,
     autoplayEnabled: _autoplayEnabled,
     likedIds,
+    likesByHomeId,
     slideIndexByReelIndex,
     isHorizontalGestureActive = false,
     setCommentsSheetListingId,
@@ -32,8 +33,7 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
     handleReportSlideChange,
     handleReportVideoPlaying,
   } = useFeedReelsContext();
-
-  const isLiked = likedIds.has(item.id);
+  const isLiked = likesByHomeId?.[item.id]?.isLikedByMe ?? likedIds.has(item.id);
   const currentSlideIndex = slideIndexByReelIndex[index] ?? 0;
   const totalSlides = item.media?.length ?? 0;
   const onLike = useCallback(() => handleLike(item.id), [handleLike, item.id]);
@@ -57,7 +57,6 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
   const [showHeartBurst, setShowHeartBurst] = useState(false);
   const heartBurstTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mediaCarouselRef = useRef<MediaCarouselRef>(null);
-
   const handleDoubleTap = useCallback(() => {
     onLike();
     setShowHeartBurst(true);
@@ -67,7 +66,6 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
       heartBurstTimeoutRef.current = null;
     }, 600);
   }, [onLike]);
-
   useEffect(() => {
     return () => {
       if (heartBurstTimeoutRef.current) {
@@ -75,7 +73,6 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
       }
     };
   }, []);
-
   const { onTap } = useFeedGestureTrap({
     onSingleTap: handleTogglePlayPause,
     onDoubleTap: handleDoubleTap,
@@ -84,10 +81,8 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
     onLockChange: onGestureLock,
   });
   const containerRef = useRef<HTMLDivElement>(null);
-
   const isReelActive = index === activeIndex;
   const isVisible = Math.abs(index - activeIndex) <= 1;
-
   return (
     <div
       ref={containerRef}
@@ -107,7 +102,8 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
             className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
             aria-hidden
           >
-            <Heart
+            <Icon
+              name="heart"
               className="animate-heart-burst h-24 w-24 shrink-0 fill-red-500 text-red-500"
               strokeWidth={1.5}
             />

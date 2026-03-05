@@ -3,7 +3,6 @@ import React from "react";
 import { ExternalLink, Eye } from "lucide-react";
 
 import { Button, KeyTurnLoader } from "packages/ui/components/index.web";
-
 export type CardViewButtonProps = {
   /** Click handler */
   onClick: () => void;
@@ -22,7 +21,6 @@ export type CardViewButtonProps = {
   /** Additional className */
   className?: string;
 };
-
 const SIZE_STYLES = {
   sm: {
     padding: "space-responsive-xs",
@@ -40,14 +38,12 @@ const SIZE_STYLES = {
     icon: "mobile-icon-md",
   },
 } as const;
-
 const VARIANT_STYLES = {
   primary: "bg-olive text-white hover:bg-olive/90 border-olive",
   secondary: "bg-white text-olive border-olive hover:bg-olive/5",
   muted: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200",
   ghost: "text-olive hover:bg-olive/10 border-transparent",
 } as const;
-
 const CardViewButton: React.FC<CardViewButtonProps> = ({
   onClick,
   loading = false,
@@ -60,7 +56,6 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
 }) => {
   const currentSizeStyles = SIZE_STYLES[size];
   const currentVariantStyles = VARIANT_STYLES[variant];
-
   const buttonClasses = [
     "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200",
     "border touch-friendly disabled:opacity-50 disabled:cursor-not-allowed",
@@ -71,17 +66,13 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
   ]
     .filter(Boolean)
     .join(" ");
-
   const iconClasses = `${currentSizeStyles.icon} ${text ? "mr-1" : ""}`;
-
   const getIcon = () => {
     if (iconType === "external") return ExternalLink;
     if (iconType === "eye") return Eye;
     return null;
   };
-
   const Icon = getIcon();
-
   return (
     <Button
       type="button"
@@ -107,5 +98,4 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
     </Button>
   );
 };
-
 export default CardViewButton;

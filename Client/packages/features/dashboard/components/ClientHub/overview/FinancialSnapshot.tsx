@@ -1,17 +1,16 @@
 import React from "react";
 
-import { CreditCard, DollarSign } from "lucide-react";
+import { Icon } from "@ui/icons";
+import { CreditCard } from "lucide-react";
 
 import type { ClientFinancialSnapshot } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
 import { BodyText, Title } from "packages/ui/components/index.web";
 
 import StatusBadge from "@/components/ui/asset/StatusBadge";
-
 type FinancialSnapshotProps = {
   financial: ClientFinancialSnapshot;
 };
-
 const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
   const formatCurrency = (amount?: number) => {
     if (!amount) return "Not set";
@@ -22,7 +21,6 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
       maximumFractionDigits: 0,
     }).format(amount);
   };
-
   const getPreApprovalBadge = () => {
     const statusConfig = {
       not_started: { variant: "default" as const, label: "Not Started" },
@@ -34,7 +32,6 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
     const config = statusConfig[financial.pre_approval_status];
     return <StatusBadge text={config.label} variant={config.variant} size="md" />;
   };
-
   const loanTypeLabels: Record<string, string> = {
     conventional: "Conventional",
     fha: "FHA",
@@ -43,7 +40,6 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
     cash: "Cash",
     other: "Other",
   };
-
   return (
     <SectionCard title="Financial Snapshot" icon={CreditCard}>
       <div className="space-y-6">
@@ -69,7 +65,7 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
               Loan Type
             </Title>
             <div className="flex items-center gap-2">
-              <CreditCard className="text-olive h-5 w-5" />
+              <Icon name="credit-card" className="text-olive h-5 w-5" />
               <BodyText as="span" size="sm" className="text-black">
                 {loanTypeLabels[financial.loan_type] || financial.loan_type}
               </BodyText>
@@ -81,7 +77,7 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
         {financial.cash_to_close && (
           <div>
             <div className="mb-3 flex items-center gap-2">
-              <DollarSign className="text-gold h-5 w-5" />
+              <Icon name="dollar-sign" className="text-gold h-5 w-5" />
               <Title as="h3" size="md" className="text-navy font-semibold">
                 Cash to Close
               </Title>
@@ -95,5 +91,4 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
     </SectionCard>
   );
 };
-
 export default FinancialSnapshot;

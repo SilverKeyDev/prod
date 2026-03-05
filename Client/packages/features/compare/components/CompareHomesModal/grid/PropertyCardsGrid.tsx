@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { ConnectedCardHeartSave } from "packages/features/search";
@@ -6,7 +6,6 @@ import type { SavedHome } from "packages/types";
 import { Button, Title } from "packages/ui/components/index.web";
 
 import { PropertyCard } from "@/components/cards";
-
 function toCardProperty(home: SavedHome) {
   return {
     id: home.home_id,
@@ -21,7 +20,6 @@ function toCardProperty(home: SavedHome) {
     images: home.image_url ? [home.image_url] : [],
   };
 }
-
 function SelectedCompareCard({
   home,
   onRemove,
@@ -65,7 +63,7 @@ function SelectedCompareCard({
               className="group relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-400 shadow-md ring-1 ring-black/5 transition-all duration-300 hover:scale-110 hover:text-gray-600 active:scale-95"
               label={t("compare.remove_aria")}
             >
-              <X className="h-4 w-4 transition-transform duration-200" />
+              <Icon name="x" className="h-4 w-4 transition-transform duration-200" />
             </Button>
           </div>
         }
@@ -73,13 +71,11 @@ function SelectedCompareCard({
     </div>
   );
 }
-
 type PropertyCardsGridProps = {
   selectedHomes: SavedHome[];
   onRemove: (homeId: string) => void;
   onUnlock: (home: SavedHome) => Promise<void>;
 };
-
 export function PropertyCardsGrid({ selectedHomes, onRemove }: PropertyCardsGridProps) {
   const { t } = useLocalization();
   if (selectedHomes.length === 0) return null;

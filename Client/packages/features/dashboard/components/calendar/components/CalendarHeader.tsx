@@ -1,8 +1,7 @@
 import { BodyText, Button, Title } from "@ui";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import type { GoogleCalendar } from "packages/config/api/googleCalendar";
-
 type CalendarHeaderProps = {
   currentDate: Date;
   onPreviousMonth: () => void;
@@ -11,7 +10,6 @@ type CalendarHeaderProps = {
   isConnected: boolean;
   calendars?: GoogleCalendar[];
 };
-
 export function CalendarHeader({
   currentDate,
   onPreviousMonth,
@@ -24,7 +22,6 @@ export function CalendarHeader({
     month: "long",
     year: "numeric",
   });
-
   return (
     <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       {/* Month/Year and Navigation */}
@@ -40,7 +37,7 @@ export function CalendarHeader({
             className="h-8 w-8 p-0"
             label="Previous month"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <Icon name="chevron-left" className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
@@ -49,7 +46,7 @@ export function CalendarHeader({
             className="h-8 w-8 p-0"
             label="Next month"
           >
-            <ChevronRight className="h-4 w-4" />
+            <Icon name="chevron-right" className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="sm" onClick={onToday} className="ml-2">
             Today
@@ -73,7 +70,7 @@ export function CalendarHeader({
           </div>
         ) : (
           <div className="flex items-center gap-2 text-sm text-gray-400">
-            <CalendarIcon className="h-4 w-4" />
+            <Icon name="calendar" className="h-4 w-4" />
             <BodyText as="span" size="sm">
               Not connected
             </BodyText>

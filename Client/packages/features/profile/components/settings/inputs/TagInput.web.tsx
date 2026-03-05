@@ -1,9 +1,8 @@
 import React from "react";
 
-import { X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { Button, Input } from "packages/ui/components/index.web";
-
 type OnPerTagInputProps = {
   value: string[];
   onChange: (value: string[]) => void;
@@ -12,7 +11,6 @@ type OnPerTagInputProps = {
   disabled?: boolean;
   isEditMode?: boolean;
 };
-
 const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
   value = [],
   onChange,
@@ -22,10 +20,8 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
   isEditMode = true,
 }) => {
   const [draftText, setDraftText] = React.useState("");
-
   const handleAddTag = (tagValue: string) => {
     if (!tagValue.trim()) return;
-
     // Auto-capitalize: first letter of each word uppercase, rest lowercase
     const capitalizedValue = tagValue
       .trim()
@@ -33,28 +29,23 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
       .split(" ")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
-
     if (!value.includes(capitalizedValue)) {
       onChange([...value, capitalizedValue]);
     }
     setDraftText("");
   };
-
   const handleRemoveTag = (valueToRemove: string) => {
     onChange(value.filter((item) => item !== valueToRemove));
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       handleAddTag(draftText);
     }
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDraftText(e.target.value);
   };
-
   return (
     <div className={`${className}`}>
       {/* Input container with same styling as OnPerDropdown - only show in edit mode */}
@@ -100,9 +91,9 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
                   type="button"
                   onClick={() => handleRemoveTag(tag)}
                   disabled={disabled}
-                  className="text-off-white/60 hover:text-off-white disabled:text-off-white/30 ml-2 h-auto min-w-0 p-0"
+                  className="text-off-white hover:text-off-white ml-4 h-auto min-w-0 p-0 hover:bg-transparent disabled:opacity-60"
                 >
-                  <X className="h-3 w-3" />
+                  <Icon name="x" className="h-3 w-3 text-current" />
                 </Button>
               )}
             </div>
@@ -112,5 +103,4 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
     </div>
   );
 };
-
 export default OnPerTagInput;

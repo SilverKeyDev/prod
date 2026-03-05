@@ -7,12 +7,13 @@ type PlaceholderScreenProps = {
   title?: string;
 };
 
+/** Generic empty-state screen for routes that have no content yet. No "Placeholder" or "coming soon" copy. */
 export function PlaceholderScreen({ route, title: titleProp }: PlaceholderScreenProps) {
-  const title = titleProp ?? route?.params?.title ?? "Screen";
+  const sectionTitle = titleProp ?? route?.params?.title ?? "";
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>SilverKey · Placeholder</Text>
+      {sectionTitle ? <Text style={styles.title}>{sectionTitle}</Text> : null}
+      <Text style={styles.subtitle}>This section is empty.</Text>
     </View>
   );
 }

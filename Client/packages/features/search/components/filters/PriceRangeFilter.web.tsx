@@ -4,7 +4,7 @@ import { useLocalization } from "packages/contexts";
 import { BodyText } from "packages/ui/components/index.web";
 import { formatCompactNumber } from "packages/utils";
 
-import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider.web";
+import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 
 const DEFAULT_MIN = 100_000;
 const DEFAULT_MAX = 2_000_000;
@@ -55,6 +55,7 @@ export default function PriceRangeFilter({
         formatValue={(v) => `$${formatCompactNumber(v)}`}
         disabled={disabled}
         minGap={25000}
+        showTextHeader={false}
       />
     </div>
   );

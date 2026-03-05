@@ -1,16 +1,22 @@
 import { BodyText, Button } from "packages/ui/components/index.web";
 
-import type { Agreement } from "@/features/documents/types/docusign";
-import {
-  formatAgreementDate,
-  getAgreementTypeLabel,
-} from "@/features/documents/utils/docusignHelpers";
-
 import AgreementStatusBadge from "./AgreementStatusBadge";
 import VoidConfirmation from "./VoidConfirmation";
 
 type AgreementOverviewTabProps = {
-  agreement: Agreement;
+  agreement: {
+    id: string;
+    title: string;
+    status: string;
+    agreement_type: string;
+    property_address?: string | null;
+    created_at: string;
+    sent_at?: string | null;
+    completed_at?: string | null;
+    voided_at?: string | null;
+    void_reason?: string | null;
+    description?: string | null;
+  };
   userCanSend: boolean;
   userCanVoid: boolean;
   isSendingAgreement: boolean;
@@ -51,7 +57,10 @@ export default function AgreementOverviewTab({
           <BodyText size="xs" muted className="mb-1">
             Agreement Type
           </BodyText>
-          <BodyText size="sm">{getAgreementTypeLabel(agreement.agreement_type)}</BodyText>
+          <BodyText size="sm">
+            {agreement.agreement_type.charAt(0).toUpperCase() +
+              agreement.agreement_type.slice(1).replace(/_/g, " ")}
+          </BodyText>
         </div>
         <div>
           <BodyText size="xs" muted className="mb-1">
@@ -71,14 +80,14 @@ export default function AgreementOverviewTab({
           <BodyText size="xs" muted className="mb-1">
             Created
           </BodyText>
-          <BodyText size="sm">{formatAgreementDate(agreement.created_at)}</BodyText>
+          <BodyText size="sm">{agreement.created_at}</BodyText>
         </div>
         {agreement.sent_at && (
           <div>
             <BodyText size="xs" muted className="mb-1">
               Sent
             </BodyText>
-            <BodyText size="sm">{formatAgreementDate(agreement.sent_at)}</BodyText>
+            <BodyText size="sm">{agreement.sent_at}</BodyText>
           </div>
         )}
         {agreement.completed_at && (
@@ -86,7 +95,7 @@ export default function AgreementOverviewTab({
             <BodyText size="xs" muted className="mb-1">
               Completed
             </BodyText>
-            <BodyText size="sm">{formatAgreementDate(agreement.completed_at)}</BodyText>
+            <BodyText size="sm">{agreement.completed_at}</BodyText>
           </div>
         )}
         {agreement.voided_at && (
@@ -94,7 +103,7 @@ export default function AgreementOverviewTab({
             <BodyText size="xs" muted className="mb-1">
               Voided
             </BodyText>
-            <BodyText size="sm">{formatAgreementDate(agreement.voided_at)}</BodyText>
+            <BodyText size="sm">{agreement.voided_at}</BodyText>
             {agreement.void_reason && (
               <BodyText size="sm" className="mt-1 text-red-600">
                 Reason: {agreement.void_reason}

@@ -1,34 +1,31 @@
 import React from "react";
 
-import { AlertCircle, Calendar, CheckCircle, FileText } from "lucide-react";
+import { Icon } from "@ui/icons";
+import { Calendar } from "lucide-react";
 
 import type { ClientTimelineEvent } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
 import { BodyText, Title } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
-
 type ClientTimelineProps = {
   events: ClientTimelineEvent[];
 };
-
 const ClientTimeline: React.FC<ClientTimelineProps> = ({ events }) => {
   const sortedEvents = [...events].sort(
     (a, b) => dateParseISO(a.date).valueOf() - dateParseISO(b.date).valueOf()
   );
-
   const getEventIcon = (type: ClientTimelineEvent["type"]) => {
     switch (type) {
       case "offer":
-        return <FileText className="text-navy h-5 w-5" />;
+        return <Icon name="file-text" className="text-navy h-5 w-5" />;
       case "inspection":
-        return <AlertCircle className="text-gold h-5 w-5" />;
+        return <Icon name="alert-circle" className="text-gold h-5 w-5" />;
       case "closing":
-        return <CheckCircle className="text-olive h-5 w-5" />;
+        return <Icon name="check-circle" className="text-olive h-5 w-5" />;
       default:
-        return <Calendar className="text-gold h-5 w-5" />;
+        return <Icon name="calendar" className="text-gold h-5 w-5" />;
     }
   };
-
   const formatDate = (dateString: string) => {
     const date = dateParseISO(dateString).toDate();
     return date.toLocaleDateString("en-US", {
@@ -37,7 +34,6 @@ const ClientTimeline: React.FC<ClientTimelineProps> = ({ events }) => {
       year: "numeric",
     });
   };
-
   return (
     <SectionCard title="Client Timeline" icon={Calendar}>
       <div className="space-y-4">
@@ -86,5 +82,4 @@ const ClientTimeline: React.FC<ClientTimelineProps> = ({ events }) => {
     </SectionCard>
   );
 };
-
 export default ClientTimeline;

@@ -1,11 +1,14 @@
 import React from "react";
 
 import { BodyText, Button, DropdownChevron, Popover } from "packages/ui/components/index.web";
+import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
-const CHIP_HEIGHT = "h-11 min-h-11 max-h-11 overflow-hidden";
-const chipBase =
-  "inline-flex touch-friendly shrink-0 items-center gap-1.5 rounded-lg border px-3 text-left text-sm font-medium transition-colors whitespace-nowrap " +
-  CHIP_HEIGHT;
+import {
+  SEARCH_HEADER_PANEL_CLASS_DEFAULT,
+  SEARCH_HEADER_PANEL_MAX_HEIGHT,
+} from "./searchHeaderConstants";
+
+const chipBase = `inline-flex touch-friendly shrink-0 items-center gap-1.5 rounded-lg border px-3 text-left text-sm font-medium transition-colors min-w-0 overflow-hidden ${HEADER_ROW_HEIGHT}`;
 
 export type SearchFilterChipProps = {
   /** Short label (e.g. "Price") */
@@ -26,8 +29,8 @@ export default function SearchFilterChip({
   label,
   summary,
   children,
-  panelClassName = "scrollbar-styled p-4 w-[min(90vw,420px)] max-h-[85vh] overflow-y-auto",
-  panelMaxHeight = "85vh",
+  panelClassName = SEARCH_HEADER_PANEL_CLASS_DEFAULT,
+  panelMaxHeight = SEARCH_HEADER_PANEL_MAX_HEIGHT,
   panelMinWidth = "320px",
   side = "bottom",
 }: SearchFilterChipProps): React.ReactElement {
@@ -49,14 +52,9 @@ export default function SearchFilterChip({
           aria-expanded={isActive}
           aria-haspopup="true"
         >
-          <div className="flex min-w-0 flex-col items-start gap-0">
-            <BodyText size="xs" className="text-inherit opacity-90">
-              {label}
-            </BodyText>
-            <BodyText size="sm" className="truncate font-medium">
-              {summary}
-            </BodyText>
-          </div>
+          <BodyText size="sm" className="min-w-0 truncate font-medium text-inherit">
+            {label}: {summary}
+          </BodyText>
           <DropdownChevron open={isActive} className="h-4 w-4 shrink-0" />
         </Button>
       )}

@@ -7,6 +7,5 @@
   "api": true,
   "errors": true,
   "security": true,
-  "docusign": true,
   "logLevel": "DEBUG"
 }

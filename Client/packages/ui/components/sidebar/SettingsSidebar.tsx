@@ -1,12 +1,11 @@
 import Button from "@ui/button/Button";
 import CancelButton from "@ui/button/CancelButton";
-import { Edit, Save } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { NavItem } from "packages/navigation";
 
 import SidebarNavigation from "./SidebarNavigation";
-
 type SettingsSidebarProps = {
   items: NavItem[];
   activeSection: string;
@@ -17,7 +16,6 @@ type SettingsSidebarProps = {
   onCancel: () => void;
   onScrollToSection: (sectionId: string) => void;
 };
-
 export default function SettingsSidebar({
   items,
   activeSection,
@@ -37,7 +35,7 @@ export default function SettingsSidebar({
       hideTextBelow="lg"
       label={t("common.edit")}
       className="h-8 min-h-8 w-8 min-w-8 items-center justify-center rounded-lg p-0 text-sm font-medium lg:h-auto lg:min-h-0 lg:w-full lg:min-w-0 lg:p-2"
-      icon={<Edit />}
+      icon={<Icon name="edit" />}
     >
       {t("common.edit")}
     </Button>
@@ -51,7 +49,7 @@ export default function SettingsSidebar({
         hideTextBelow="lg"
         label={isSaving ? t("common.saving") : t("common.save")}
         className="h-8 min-h-8 w-8 min-w-8 items-center justify-center rounded-lg p-0 text-sm font-medium lg:h-auto lg:min-h-0 lg:w-full lg:min-w-0 lg:p-2"
-        icon={<Save />}
+        icon={<Icon name="save" />}
       >
         {isSaving ? t("common.saving") : t("common.save")}
       </Button>
@@ -66,7 +64,6 @@ export default function SettingsSidebar({
       </CancelButton>
     </div>
   );
-
   return (
     <SidebarNavigation
       items={items}

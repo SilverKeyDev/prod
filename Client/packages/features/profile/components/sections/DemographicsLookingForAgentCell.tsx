@@ -46,7 +46,14 @@ export function DemographicsLookingForAgentCell({
               onChange={toggle}
               label="I am looking for a buyer's agent"
             />
-            <OliveCheckbox checked={!!formData.looking_for_buyers_agent} onToggle={toggle} />
+            {/* Stop propagation so clicking the box doesn't also trigger the label's linked input (double-toggle) */}
+            <span
+              className="flex-shrink-0"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <OliveCheckbox checked={!!formData.looking_for_buyers_agent} onToggle={toggle} />
+            </span>
           </>
         ) : (
           <div

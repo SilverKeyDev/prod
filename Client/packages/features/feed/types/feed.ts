@@ -17,6 +17,7 @@ export type FeedListingMusic = {
 export type FeedListingStats = {
   likes: number;
   comments: number;
+  shares?: number;
 };
 
 /** Single comment on a feed/reels listing (Instagram-style) */

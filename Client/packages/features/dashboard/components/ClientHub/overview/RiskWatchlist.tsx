@@ -1,18 +1,17 @@
 import React from "react";
 
-import { AlertTriangle, Heart, Home, TrendingDown } from "lucide-react";
+import { Icon } from "@ui/icons";
+import { AlertTriangle } from "lucide-react";
 
 import type { RiskFlag as RiskFlagType } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
 import { BodyText, Title } from "packages/ui/components/index.web";
 
 import RiskFlag from "@/features/dashboard/components/RiskFlag";
-
 type RiskWatchlistProps = {
   riskFlags: RiskFlagType[];
   emotionalVolatility?: "low" | "medium" | "high";
 };
-
 const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
   riskFlags,
   emotionalVolatility = "low",
@@ -22,27 +21,31 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
     medium: "text-gold bg-gold/10",
     high: "text-rose-600 bg-rose-50",
   };
-
-  const riskCategories: Record<RiskFlagType["type"], { label: string; icon: React.ReactNode }> = {
+  const riskCategories: Record<
+    RiskFlagType["type"],
+    {
+      label: string;
+      icon: React.ReactNode;
+    }
+  > = {
     financing: {
       label: "Financing",
-      icon: <TrendingDown className="h-4 w-4" />,
+      icon: <Icon name="trending-down" className="h-4 w-4" />,
     },
     timeline: {
       label: "Timeline",
-      icon: <AlertTriangle className="h-4 w-4" />,
+      icon: <Icon name="alert-triangle" className="h-4 w-4" />,
     },
-    inspection: { label: "Inspection", icon: <Home className="h-4 w-4" /> },
-    emotions: { label: "Emotions", icon: <Heart className="h-4 w-4" /> },
-    hoa: { label: "HOA", icon: <Home className="h-4 w-4" /> },
-    resale: { label: "Resale", icon: <TrendingDown className="h-4 w-4" /> },
+    inspection: { label: "Inspection", icon: <Icon name="home" className="h-4 w-4" /> },
+    emotions: { label: "Emotions", icon: <Icon name="heart" className="h-4 w-4" /> },
+    hoa: { label: "HOA", icon: <Icon name="home" className="h-4 w-4" /> },
+    resale: { label: "Resale", icon: <Icon name="trending-down" className="h-4 w-4" /> },
     appraisal: {
       label: "Appraisal",
-      icon: <AlertTriangle className="h-4 w-4" />,
+      icon: <Icon name="alert-triangle" className="h-4 w-4" />,
     },
-    other: { label: "Other", icon: <AlertTriangle className="h-4 w-4" /> },
+    other: { label: "Other", icon: <Icon name="alert-triangle" className="h-4 w-4" /> },
   };
-
   return (
     <SectionCard title="Risk & Watchlist" icon={AlertTriangle}>
       <div className="space-y-6">
@@ -88,7 +91,7 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
         {/* Emotional Volatility Indicator */}
         <div>
           <Title as="h3" size="md" className="text-navy mb-3 flex items-center gap-2 font-semibold">
-            <Heart className="h-5 w-5 text-rose-600" />
+            <Icon name="heart" className="h-5 w-5 text-rose-600" />
             Emotional Volatility
           </Title>
           <div
@@ -106,5 +109,4 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
     </SectionCard>
   );
 };
-
 export default RiskWatchlist;

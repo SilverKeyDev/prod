@@ -1,15 +1,13 @@
-import { Send } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import Button from "packages/ui/components/button/Button";
 import { Textarea } from "packages/ui/components/index.web";
-
 type ClientMessageInputProps = {
   message: string;
   setMessage: (message: string) => void;
   isTyping: boolean;
   onSendMessage: () => void;
 };
-
 export default function ClientMessageInput({
   message,
   setMessage,
@@ -41,7 +39,7 @@ export default function ClientMessageInput({
           variant="primary"
           className="flex-shrink-0 px-4 py-2.5 md:py-3"
         >
-          <Send className="h-4 w-4 md:h-5 md:w-5" />
+          <Icon name="send" className="h-4 w-4 md:h-5 md:w-5" />
         </Button>
       </div>
     </div>

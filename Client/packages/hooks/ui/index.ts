@@ -16,7 +16,6 @@ export {
 // Documents
 export { useSavedPageEffects } from "../../features/documents/hooks/ui";
 export { useSavedPageModals } from "../../features/documents/hooks/ui";
-export { useSavedHomesDocuSign } from "../../features/documents/hooks/ui";
 
 // Auth
 export { formatTimeRemaining, useSessionTimeout } from "../../features/homeauth/hooks/ui";

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AlertCircle } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { spacing } from "packages/design-tokens";
@@ -9,7 +9,6 @@ import CloseButton from "packages/ui/components/button/CloseButton";
 import { Portal } from "packages/ui/components/portal";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
-
 type ValidationWarningProps = {
   isVisible: boolean;
   onClose: () => void;
@@ -17,7 +16,6 @@ type ValidationWarningProps = {
   missingFields: string[];
   errors: string[];
 };
-
 const ValidationWarning: React.FC<ValidationWarningProps> = ({
   isVisible,
   onClose,
@@ -26,7 +24,6 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
 }) => {
   const { t } = useLocalization();
   if (!isVisible) return null;
-
   const insetZero = {
     left: spacing(0),
     right: spacing(0),
@@ -65,7 +62,7 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
 
           {/* Warning Icon */}
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
-            <AlertCircle className="h-6 w-6 text-amber-600" />
+            <Icon name="alert-circle" className="h-6 w-6 text-amber-600" />
           </div>
 
           {/* Content */}
@@ -138,8 +135,6 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
       </div>
     </div>
   );
-
   return <Portal>{dialogContent}</Portal>;
 };
-
 export default ValidationWarning;

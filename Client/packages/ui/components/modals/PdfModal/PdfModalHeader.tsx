@@ -1,9 +1,8 @@
 import React from "react";
 
-import { Download, Share, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { IconButton, MiniLogo, Title } from "packages/ui/components";
-
 export type PdfModalHeaderProps = {
   title: string;
   onDownload: () => void;
@@ -11,7 +10,6 @@ export type PdfModalHeaderProps = {
   onShare?: () => void;
   onClose: () => void;
 };
-
 const ExternalLinkIcon = () => (
   <svg
     className="h-6 w-6 transition-transform duration-200 group-hover:scale-110"
@@ -27,10 +25,8 @@ const ExternalLinkIcon = () => (
     />
   </svg>
 );
-
 const headerButtonClass =
   "text-white hover:bg-white/10 rounded-lg p-2 transition-colors duration-200";
-
 export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
   title,
   onDownload,
@@ -54,7 +50,10 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
     <div className="gap-responsive-sm flex flex-shrink-0 items-center">
       <IconButton
         icon={
-          <Download className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
+          <Icon
+            name="download"
+            className="h-6 w-6 transition-transform duration-200 group-hover:scale-110"
+          />
         }
         onClick={onDownload}
         title="Download PDF"
@@ -73,7 +72,10 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
       {onShare && (
         <IconButton
           icon={
-            <Share className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
+            <Icon
+              name="share"
+              className="h-6 w-6 transition-transform duration-200 group-hover:scale-110"
+            />
           }
           onClick={onShare}
           title="Share Report"
@@ -83,7 +85,12 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
         />
       )}
       <IconButton
-        icon={<X className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />}
+        icon={
+          <Icon
+            name="x"
+            className="h-6 w-6 transition-transform duration-200 group-hover:scale-110"
+          />
+        }
         onClick={onClose}
         title="Close"
         aria-label="Close"

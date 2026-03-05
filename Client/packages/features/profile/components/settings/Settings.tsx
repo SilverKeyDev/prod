@@ -5,7 +5,7 @@ import PersonalizationMobileHeader from "packages/features/profile/components/ac
 // Hooks and utilities
 import { useHomePriceCalculation } from "packages/features/profile/hooks";
 import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
-import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useResponsive } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -29,9 +29,12 @@ import {
   HousingSection,
   LocationSection,
 } from "@/features/profile/components/sections/index.web";
-import { type OnboardingData } from "@/features/profile/utils";
-import { handleSubmit as handleSubmitUtil } from "@/features/profile/utils";
-import { validateSettingsData } from "@/features/profile/utils";
+import {
+  handleSubmit as handleSubmitUtil,
+  type OnboardingData,
+  userPreferencesToOnboardingData,
+  validateSettingsData,
+} from "@/features/profile/utils";
 
 import CommunicationSection from "./sections/CommunicationSection";
 // Settings sections
@@ -46,6 +49,7 @@ type SettingsProps = {
 const STEPS = getPersonalizationStepsUi();
 
 export default function Settings({ setMobileHeaderActions }: SettingsProps) {
+  const { userProfile } = useUserData();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
   const [formData, setFormData] = useState<OnboardingData>({});
@@ -87,15 +91,19 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
       setIsLoading(true);
 
       if (userPreferences) {
-        setFormData(userPreferences as OnboardingData);
-        setOriginalData(userPreferences as OnboardingData);
+        const normalized = userPreferencesToOnboardingData(
+          userPreferences as Record<string, unknown>,
+          userProfile ?? undefined
+        );
+        setFormData(normalized);
+        setOriginalData(normalized);
       }
     } catch (error: unknown) {
       log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
     } finally {
       setIsLoading(false);
     }
-  }, [userPreferences]);
+  }, [userPreferences, userProfile]);
 
   // Refresh data when page loads to ensure latest updates
   useEffect(() => {

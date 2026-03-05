@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { Box, Text } from "packages/ui/components/primitives";
 import { dateNow, dayjs } from "packages/utils/date";
 
 import { useGoogleCalendarPermissions, useGoogleEvents } from "@/features/calendar/hooks/data";
@@ -18,7 +19,12 @@ import {
 import { CalendarConnectionPrompt } from "./view/CalendarConnectionPrompt";
 import { EventList } from "./view/EventList";
 
-export function UpcomingEvents() {
+type UpcomingEventsProps = {
+  /** When true, EventList renders without FlatList (for use inside another VirtualizedList). */
+  embedInListHeader?: boolean;
+};
+
+export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProps = {}) {
   const { isConnected, calendars, calendarsLoading, connectGoogleCalendar } =
     useGoogleCalendarStoreIntegration();
 
@@ -140,27 +146,28 @@ export function UpcomingEvents() {
 
   if (!permissionsReady) {
     return (
-      <div className="w-full">
-        <div className="text-center text-sm text-gray-500">Loading calendar permissions...</div>
-      </div>
+      <Box className="w-full">
+        <Text className="text-center text-sm text-gray-500">Loading calendar permissions...</Text>
+      </Box>
     );
   }
 
   if (shouldShowConnectionPrompt) {
     return (
-      <div className="w-full">
+      <Box className="w-full">
         <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="w-full">
+    <Box className="w-full">
       <EventList
         events={upcomingEvents}
         title="Upcoming Events (Next 7 Days)"
         emptyMessage="No upcoming events"
+        embedInListHeader={embedInListHeader}
       />
-    </div>
+    </Box>
   );
 }

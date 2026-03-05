@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Eye, type LucideIcon } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { getEnv } from "packages/config";
 import { useLocalization } from "packages/contexts";
@@ -8,8 +8,8 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import { BodyText, Button } from "packages/ui/components/index.web";
 import { Box } from "packages/ui/components/primitives/box";
+import type { IconName } from "packages/ui/types/icons";
 import { dateNow } from "packages/utils/date";
-
 export type CardViewDetailsButtonProps = {
   /** Click handler - can be async */
   onClick: () => void | Promise<void>;
@@ -22,7 +22,7 @@ export type CardViewDetailsButtonProps = {
   /** Button text */
   text?: string;
   /** Icon to display (defaults to Eye) */
-  icon?: LucideIcon;
+  iconName?: IconName;
   /** Show icon */
   showIcon?: boolean;
   /** Disabled state */
@@ -30,14 +30,13 @@ export type CardViewDetailsButtonProps = {
   /** Additional className */
   className?: string;
 };
-
 function CardViewDetailsButton({
   onClick,
   size = "md",
   variant = "primary",
   fullWidth = false,
   text: textProp,
-  icon: Icon = Eye,
+  iconName = "eye",
   showIcon = true,
   disabled = false,
   className = "",
@@ -68,7 +67,6 @@ function CardViewDetailsButton({
       icon: "mobile-icon-md",
     },
   };
-
   // Variant styles
   const variantStyles = {
     primary: "bg-olive text-white hover:bg-olive/90 border-olive",
@@ -77,7 +75,6 @@ function CardViewDetailsButton({
     unlock: "bg-olive text-white hover:bg-olive/90 border-olive",
     negotiate: "bg-gold text-white hover:bg-gold/90 border-gold",
   };
-
   // Ensure size and variant are valid to avoid undefined style access
   const validSize = sizeStyles[size] ? size : "md";
   const validVariant =
@@ -85,12 +82,10 @@ function CardViewDetailsButton({
   const currentSizeStyles = sizeStyles[validSize];
   const currentVariantStyles =
     variantStyles[validVariant as keyof typeof variantStyles] ?? variantStyles.primary;
-
   // Filled variants use white text on the button; BodyText defaults to text-gray-900, so we
   // pass text-inherit so the label inherits the button's text color.
   const filledVariants = ["primary", "unlock", "negotiate"];
   const textColorClass = filledVariants.includes(validVariant) ? "!text-inherit" : "";
-
   const buttonClasses = [
     "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200",
     "border touch-friendly disabled:opacity-50 disabled:cursor-not-allowed",
@@ -102,16 +97,11 @@ function CardViewDetailsButton({
   ]
     .filter(Boolean)
     .join(" ");
-
   const iconClasses = `${currentSizeStyles.icon} ${showIcon && text ? "mr-1 sm:mr-2" : ""}`;
-
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event from bubbling up to parent card
-
     if (disabled || isUnlocking || typeof onClick !== "function") return;
-
     const isDev = getEnv().isDevelopment;
-
     try {
       setIsUnlocking(true);
       await onClick();
@@ -126,7 +116,6 @@ function CardViewDetailsButton({
       setIsUnlocking(false);
     }
   };
-
   return (
     <Button
       type="button"
@@ -154,7 +143,7 @@ function CardViewDetailsButton({
         </Box>
       ) : (
         <Box className="flex items-center justify-center">
-          {showIcon && <Icon className={iconClasses} />}
+          {showIcon && <Icon name={iconName} className={iconClasses} />}
           <BodyText
             as="span"
             className={["whitespace-nowrap", textColorClass].filter(Boolean).join(" ")}
@@ -166,5 +155,4 @@ function CardViewDetailsButton({
     </Button>
   );
 }
-
 export default CardViewDetailsButton;

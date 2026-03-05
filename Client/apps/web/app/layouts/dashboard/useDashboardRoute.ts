@@ -4,12 +4,26 @@
  * drives content and layout—no stale pathname or prefix bugs.
  *
  * Route patterns must match DynamicRoutes (packages/navigation + RouteConfig).
+ * When LocationOverrideContext is set (router URL sync workaround), we derive
+ * activeKey from pathname so the UI matches the browser URL.
  */
 
 import { useLocation, useMatch } from "react-router-dom";
 
+import { ROUTES } from "packages/navigation";
 import type { PathPrefix } from "packages/utils/layout/dashboardLayoutConfig";
 import { getWidthPercent } from "packages/utils/layout/dashboardLayoutConfig";
+
+import { useLocationOverride } from "@/app/routes/locationOverrideContext";
+
+function activeKeyFromPathname(pathname: string): PathPrefix | null {
+  if (pathname.startsWith("/search")) return "search";
+  if (pathname.startsWith("/messaging")) return "messaging";
+  if (pathname.startsWith("/dashboard")) return "dashboard";
+  if (pathname.startsWith("/saved")) return "saved";
+  if (pathname.startsWith("/profile")) return "profile";
+  return null;
+}
 
 export type DashboardRouteResult = {
   /** Current dashboard area from router match; null if not a dashboard route. */
@@ -30,27 +44,33 @@ export type DashboardRouteResult = {
  * Use in DashboardLayout, DashboardContent, DashboardHeader for consistent behavior.
  */
 export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResult {
-  const location = useLocation();
+  const routerLocation = useLocation();
+  const locationOverride = useLocationOverride();
+  const location = locationOverride ?? routerLocation;
   const pathname = location.pathname;
   const search = location.search;
 
-  const searchMatch = useMatch("/search/*");
-  const messagingMatch = useMatch("/messaging");
-  const dashboardMatch = useMatch("/dashboard/*");
-  const savedMatch = useMatch("/saved/*");
-  const profileMatch = useMatch("/profile/*");
+  // When override is set (browser URL diverged from router), derive activeKey from pathname.
+  // Otherwise use useMatch so the router drives the result.
+  const searchMatch = useMatch(ROUTES.SEARCH);
+  const messagingMatch = useMatch(ROUTES.MESSAGING);
+  const dashboardMatch = useMatch(ROUTES.DASHBOARD);
+  const savedMatch = useMatch(ROUTES.SAVED);
+  const profileMatch = useMatch(ROUTES.PROFILE);
 
-  const activeKey: PathPrefix | null = searchMatch
-    ? "search"
-    : messagingMatch
-      ? "messaging"
-      : dashboardMatch
-        ? "dashboard"
-        : savedMatch
-          ? "saved"
-          : profileMatch
-            ? "profile"
-            : null;
+  const activeKey: PathPrefix | null = locationOverride
+    ? activeKeyFromPathname(pathname)
+    : searchMatch
+      ? "search"
+      : messagingMatch
+        ? "messaging"
+        : dashboardMatch
+          ? "dashboard"
+          : savedMatch
+            ? "saved"
+            : profileMatch
+              ? "profile"
+              : null;
 
   const isFullHeightRoute = activeKey === "search" || activeKey === "messaging";
   const widthPercent = getWidthPercent(pathname, defaultWidthPercent);

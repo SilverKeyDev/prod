@@ -36,7 +36,11 @@ export const getPersonalizationSteps = (): ProfileStep[] => {
   return [...(demographics ? [demographics] : []), ...middle, ...(financial ? [financial] : [])];
 };
 
-/** Onboarding steps for mobile: demographics, housing, location only (no financial). */
+/**
+ * Onboarding steps for mobile. Currently matches web (demographics, housing, location, financial).
+ * To exclude the financial step on mobile, return getOnboardingSteps({ platform: "mobile" })
+ * and align REQUIRED_FIELDS_ONBOARDING_MOBILE in constants.ts (see documentation/client/mobile-parity/DISPARITY_AUDIT_REMEDIATION.md).
+ */
 export const getOnboardingStepsMobile = (): ProfileStep[] => {
-  return getOnboardingSteps({ platform: "mobile" });
+  return getOnboardingSteps();
 };

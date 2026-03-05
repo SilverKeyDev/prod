@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Sparkles, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/schemas/property";
@@ -13,7 +13,6 @@ import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/us
 import type { SearchResult } from "@/features/search/types";
 
 import IconButton from "./IconButton";
-
 export type CardNotInterestedProps = {
   property: SearchResult | Property;
   /** Optional not-interested state functions for use outside React context (e.g., map markers) */
@@ -27,28 +26,24 @@ export type CardNotInterestedProps = {
   className?: string;
   ariaLabel?: string;
 };
-
 const CIRCLE_SIZE: Record<NonNullable<CardNotInterestedProps["size"]>, string> = {
   xs: "w-8 h-8",
   sm: "w-9 h-9",
   md: "w-11 h-11",
   lg: "w-13 h-13",
 };
-
 const ICON_SIZE_FALLBACK: Record<NonNullable<CardNotInterestedProps["size"]>, string> = {
   xs: "w-3.5 h-3.5",
   sm: "w-4 h-4",
   md: "w-5 h-5",
   lg: "w-6 h-6",
 };
-
 const POSITION_MAP: Record<NonNullable<CardNotInterestedProps["position"]>, string> = {
   "top-left": "top-2 left-2",
   "top-right": "top-2 right-2",
   "bottom-left": "bottom-2 left-2",
   "bottom-right": "bottom-2 right-2",
 };
-
 const CardNotInterested: React.FC<CardNotInterestedProps> = ({
   property,
   isHomeNotInterested: providedIsHomeNotInterested,
@@ -61,23 +56,19 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
   ariaLabel,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   // Always call the hook to respect React's Rules of Hooks
   const hookData = useNotInterestedHomesData();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-
   // Prefer provided functions (e.g., from map markers) but keep hook values as fallback
   const isHomeNotInterested = providedIsHomeNotInterested || hookData?.isNotInterested;
   const markNotInterested = providedMarkNotInterested || hookData?.markNotInterested;
   const removeNotInterested = providedRemoveNotInterested || hookData?.removeNotInterested;
-
   // Determine if home is not-interested - use address for matching
   // Ensure address is a string before passing it
   const propertyAddress = typeof property.address === "string" ? property.address : undefined;
   const isNotInterested = isHomeNotInterested
     ? isHomeNotInterested(property.id, propertyAddress)
     : false;
-
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -111,7 +102,6 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
       });
     }
   };
-
   const handleModalConfirm = async (why?: string) => {
     setIsModalOpen(false);
     try {
@@ -133,15 +123,12 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
       });
     }
   };
-
   const sizeConfig = getCardBubbleSizeClasses(size);
   const circleClass = CIRCLE_SIZE[size];
   const iconSizeClass = sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[size];
-
   // Check if this is being used as an inline button (no position specified or position is not absolute)
   const isInlineButton =
     !position || className.includes("border") || className.includes("rounded-md");
-
   return (
     <>
       {isInlineButton ? (
@@ -150,7 +137,8 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
           <IconButton
             variant="ghost"
             icon={
-              <X
+              <Icon
+                name="x"
                 className={`${iconSizeClass} ${isNotInterested ? "fill-current" : ""} transition-transform duration-200`}
               />
             }
@@ -172,19 +160,18 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
       ) : (
         // Original card overlay styling
         <>
-          <div
-            className={`absolute ${POSITION_MAP[position]} z-10`}
-            // ensure the card container is `relative`
-          >
+          <div className={`absolute ${POSITION_MAP[position]} z-10`}>
             <IconButton
               variant="ghost"
               icon={
                 <>
-                  <X
+                  <Icon
+                    name="x"
                     className={`${iconSizeClass} ${isNotInterested ? "fill-current" : ""} transition-transform duration-200 group-hover:scale-110`}
                   />
                   {/* Sparkles micro-accent on hover/active */}
-                  <Sparkles
+                  <Icon
+                    name="sparkles"
                     className={`absolute left-1 top-1 h-2 w-2 scale-50 text-white opacity-0 transition-all duration-300 group-hover:scale-75 group-hover:opacity-30 group-active:opacity-50`}
                   />
                 </>
@@ -209,5 +196,4 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
     </>
   );
 };
-
 export default CardNotInterested;

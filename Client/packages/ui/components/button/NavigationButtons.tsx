@@ -1,9 +1,8 @@
 import React from "react";
 
-import { Check, ChevronLeft, ChevronRight, ChevronRight as SkipArrow } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import Button from "./Button";
-
 export type NavigationButtonsProps = {
   /** Current step index (0-based) */
   currentStep: number;
@@ -34,7 +33,6 @@ export type NavigationButtonsProps = {
   /** Custom class name */
   className?: string;
 };
-
 const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   currentStep,
   totalSteps,
@@ -53,26 +51,21 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
 }) => {
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
-
   // Layout styles
   const layoutStyles = {
     centered: "relative flex items-center justify-between w-full",
     spaced: "flex items-center justify-between w-full",
     inline: "flex items-center gap-4",
   };
-
   // Position styles for centered layout
   const getCenteredPositionStyles = () => {
     if (layout !== "centered") return {};
-
     return {
       previous: "absolute left-1/4 transform -translate-x-1/2",
       next: "absolute left-3/4 transform -translate-x-1/2",
     };
   };
-
   const positionStyles = getCenteredPositionStyles();
-
   const renderPreviousButton = () => (
     <div className={layout === "centered" ? positionStyles.previous : ""}>
       <Button
@@ -80,7 +73,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         size={size}
         onClick={onPrevious}
         disabled={isFirstStep ?? disablePrevious}
-        icon={<ChevronLeft />}
+        icon={<Icon name="chevron-left" />}
         iconPosition="left"
         className={`w-30 xs:w-24 sm:w-36 md:w-40 ${
           (isFirstStep ?? disablePrevious)
@@ -92,7 +85,6 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
       </Button>
     </div>
   );
-
   const renderNextButton = () => (
     <div className={layout === "centered" ? positionStyles.next : ""}>
       {isLastStep && onSubmit ? (
@@ -102,7 +94,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           onClick={onSubmit}
           disabled={loading ?? disableNext}
           loading={loading}
-          icon={!loading ? <Check /> : undefined}
+          icon={!loading ? <Icon name="check" /> : undefined}
           iconPosition="right"
           className="w-30 font-bold sm:w-36 md:w-40"
         >
@@ -114,7 +106,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           size={size}
           onClick={onNext}
           disabled={disableNext}
-          icon={<ChevronRight />}
+          icon={<Icon name="chevron-right" />}
           iconPosition="right"
           className="w-30 font-bold sm:w-36 md:w-40"
         >
@@ -123,7 +115,6 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
       )}
     </div>
   );
-
   return (
     <div className={`${layoutStyles[layout]} ${className ?? ""}`}>
       {renderPreviousButton()}
@@ -132,7 +123,6 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
     </div>
   );
 };
-
 // Export the skip button as a separate component for external use
 export const SkipButton: React.FC<{
   onSkip: () => void;
@@ -157,9 +147,7 @@ export const SkipButton: React.FC<{
       spacing: "gap-2",
     },
   };
-
   const currentSizeStyles = sizeStyles[size];
-
   const buttonClasses = [
     // Base link-like styling matching NavigationButton
     "inline-flex items-center justify-center font-medium transition-all duration-200",
@@ -172,13 +160,12 @@ export const SkipButton: React.FC<{
   ]
     .filter(Boolean)
     .join(" ");
-
   return (
     <Button
       variant="ghost"
       size={size}
       onClick={onSkip}
-      icon={<SkipArrow className={currentSizeStyles.icon} />}
+      icon={<Icon name="chevron-right" className={currentSizeStyles.icon} />}
       iconPosition="right"
       className={buttonClasses}
     >
@@ -186,5 +173,4 @@ export const SkipButton: React.FC<{
     </Button>
   );
 };
-
 export default NavigationButtons;

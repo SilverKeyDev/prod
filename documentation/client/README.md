@@ -19,6 +19,8 @@ Docs for the SilverKey frontend: TypeScript/React (web) and React Native (mobile
 | [tsconfig-reference.md](./tsconfig-reference.md) | TypeScript config hierarchy: root, web, mobile, packages/config; how they extend and reference each other; scripts. |
 | [tailwind-config-reference.md](./tailwind-config-reference.md) | Tailwind and PostCSS: web vs mobile, shared preset (ESM vs CJS), content paths, and how they work with Vite and Metro. |
 | [platformVariants/README.md](./platformVariants/README.md) | Package-level adaptations: web dependencies that need a different package or implementation on React Native (by package.json). |
+| [mobile-parity/DISPARITY_AUDIT_REMEDIATION.md](./mobile-parity/DISPARITY_AUDIT_REMEDIATION.md) | Decisions from the Mobile vs Web Disparity Audit: location, Settings vs Profile, i18n, ClientHub, dashboard, validation. |
+| [mobile-parity/mobile-parity-backlog.md](./mobile-parity/mobile-parity-backlog.md) | Backlog of remaining mobile parity gaps (onboarding, profile, search, etc.). |
 
 ## Related in repo
 

@@ -1,6 +1,7 @@
 import React from "react";
 
 import { ClientSelector } from "packages/ui/components/index.web";
+import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import SearchActions from "./SearchActions.web";
 
@@ -29,11 +30,9 @@ const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
   onBeforeSwitchToReels,
 }) => {
   return (
-    <div className="flex h-11 max-h-11 min-h-11 w-full max-w-full items-center gap-2 sm:max-w-lg">
+    <div className={`flex w-full max-w-full items-center gap-2 sm:max-w-lg ${HEADER_ROW_HEIGHT}`}>
       {selectedClientId !== undefined && onClientChange ? (
-        <div className="h-11 max-h-11 min-h-11 shrink-0">
-          <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
-        </div>
+        <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
       ) : null}
       <SearchActions
         onPreferencesChanged={onPreferencesChanged}

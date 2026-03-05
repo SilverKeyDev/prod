@@ -1,44 +1,40 @@
 import { useMemo, useState } from "react";
 
-import { FileText, Plus } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { useDocusignAgreements } from "packages/features/documents";
 import {
   AgreementDetailModal,
   AgreementListItem,
   CreateAgreementModal,
-  useDocusignActions,
 } from "packages/features/documents";
 import { useUIStore } from "packages/store";
 import { BodyText, Button, Title } from "packages/ui/components/index.web";
 import { KeyTurnLoader } from "packages/ui/components/index.web";
 import { getWindow } from "packages/utils/platform";
-
 type ClientAgreementsProps = {
   clientId: string;
 };
-
 /**
  * ClientAgreements Component
  *
- * Shows all DocuSign agreements for a specific client in ClientHub
+ * Shows agreement-related information for a specific client in ClientHub.
+ * The actual signing provider integration is temporarily disabled.
  * Grouped by status: Active, Completed, Voided
  */
 export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
   const { t } = useLocalization();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
-
-  const { agreements, isLoading, error, refetchAgreements } = useDocusignAgreements();
-  const { sendAgreement, voidAgreement } = useDocusignActions();
+  const agreements: Agreement[] = [];
+  const isLoading = false;
+  const error: unknown = null;
+  const refetchAgreements = async () => {};
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-
   // Filter agreements for this client
   const clientAgreements = useMemo(() => {
     return agreements.filter((a) => a.buyer_id === clientId);
   }, [agreements, clientId]);
-
   // Group by status
   const groupedAgreements = useMemo(() => {
     const active = clientAgreements.filter(
@@ -50,64 +46,27 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
     );
     const completed = clientAgreements.filter((a) => a.status === "completed");
     const voided = clientAgreements.filter((a) => a.status === "voided" || a.status === "declined");
-
     return { active, completed, voided };
   }, [clientAgreements]);
-
   const handleAgreementClick = (agreementId: string) => {
     setSelectedAgreementId(agreementId);
   };
-
-  const handleAgreementSend = async (agreementId: string) => {
-    try {
-      await sendAgreement({
-        agreementId,
-        signingMethod: "embedded",
-      });
-      enqueueToast({
-        type: "success",
-        message: "Agreement sent for signature",
-      });
-      await refetchAgreements();
-    } catch (err) {
-      enqueueToast({
-        type: "error",
-        message: err instanceof Error ? err.message : "Failed to send agreement",
-      });
-    }
+  const handleAgreementSend = async (_agreementId: string) => {
+    enqueueToast({
+      type: "info",
+      message: "Agreement sending will be available soon.",
+    });
   };
-
-  const handleAgreementVoid = async (agreementId: string) => {
-    const win = getWindow();
-    const confirmed =
-      win?.confirm?.(
-        "Are you sure you want to void this agreement? This action cannot be undone."
-      ) ?? false;
-    if (!confirmed) return;
-
-    try {
-      await voidAgreement({
-        agreementId,
-        reason: "Voided from ClientHub",
-      });
-      enqueueToast({
-        type: "success",
-        message: "Agreement voided successfully",
-      });
-      await refetchAgreements();
-    } catch (err) {
-      enqueueToast({
-        type: "error",
-        message: err instanceof Error ? err.message : "Failed to void agreement",
-      });
-    }
+  const handleAgreementVoid = async (_agreementId: string) => {
+    enqueueToast({
+      type: "info",
+      message: "Voiding agreements will be available soon.",
+    });
   };
-
   const handleCreateSuccess = () => {
     void refetchAgreements();
     setIsCreateModalOpen(false);
   };
-
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
@@ -115,7 +74,6 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="py-8 text-center">
@@ -125,18 +83,17 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
       </div>
     );
   }
-
   return (
     <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-gray-600" />
+            <Icon name="file-text" className="h-5 w-5 text-gray-600" />
             <Title size="md">{t("dashboard.agreements_title")}</Title>
           </div>
           <Button variant="primary" size="sm" onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="mr-1 h-4 w-4" />
+            <Icon name="plus" className="mr-1 h-4 w-4" />
             {t("dashboard.agreements_create")}
           </Button>
         </div>
@@ -144,7 +101,7 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
         {/* Empty State */}
         {clientAgreements.length === 0 ? (
           <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center">
-            <FileText className="mx-auto mb-3 h-12 w-12 text-gray-400" />
+            <Icon name="file-text" className="mx-auto mb-3 h-12 w-12 text-gray-400" />
             <BodyText size="md" className="mb-2 text-gray-700">
               {t("dashboard.agreements_no_yet")}
             </BodyText>

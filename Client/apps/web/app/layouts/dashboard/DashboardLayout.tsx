@@ -1,5 +1,5 @@
 // React imports
-import React, { type ReactNode, useEffect, useState } from "react";
+import React, { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { useLocation } from "react-router-dom";
 
@@ -44,13 +44,25 @@ export default function DashboardLayout({
   const route = useDashboardRoute(maxWidth);
   const isMobile = useIsMobile();
   const { isFullHeightRoute, isDashboard } = route;
+  const prevRef = useRef<{ pathname: string; activeKey: string | null }>({
+    pathname: location.pathname,
+    activeKey: route.activeKey,
+  });
 
   useEffect(() => {
+    const from = prevRef.current;
+    const toPathname = location.pathname;
+    const toActiveKey = route.activeKey;
     log.debug(LOG_CATEGORIES.ROUTING, "[NAV] DashboardLayout mounted or location changed", {
-      pathname: location.pathname,
-      activeKey: route.activeKey,
+      from: from.pathname,
+      to: toPathname,
+      fromActiveKey: from.activeKey,
+      toActiveKey: toActiveKey,
+      isFullHeightRoute: route.isFullHeightRoute,
+      isSearch: route.isSearch,
     });
-  }, [location.pathname, route.activeKey]);
+    prevRef.current = { pathname: toPathname, activeKey: toActiveKey };
+  }, [location.pathname, route.activeKey, route.isFullHeightRoute, route.isSearch]);
 
   // Mobile header slot (e.g. messaging header). Cleared when navigating to dashboard.
   const [mobileHeaderActions, setMobileHeaderActions] = useState<ReactNode | null>(null);

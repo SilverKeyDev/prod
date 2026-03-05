@@ -14,7 +14,7 @@ type ClientDocumentsProps = {
 
 export default function ClientDocuments({ userId: _userId }: ClientDocumentsProps) {
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const { currentPdf, currentDocumentId, currentDocumentName, closePdfModal } =
+  const { currentPdf, currentDocumentId, currentDocumentName, closePdfModal, handleViewDocument } =
     useDocumentActions();
 
   // Use documents store integration
@@ -60,18 +60,18 @@ export default function ClientDocuments({ userId: _userId }: ClientDocumentsProp
                 tabIndex={0}
                 className="cursor-pointer rounded-md border border-gray-200 p-4 hover:bg-gray-50"
                 onClick={() => {
-                  // Open document in PDF modal
-                  // This would need to be implemented based on your document viewing logic
-                  log.debug(LOG_CATEGORIES.DASHBOARD, "Open document", {
+                  log.debug(LOG_CATEGORIES.DASHBOARD, "Open document from client hub", {
                     documentId: doc.id,
                   });
+                  handleViewDocument(doc.id, doc.name);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    log.debug(LOG_CATEGORIES.DASHBOARD, "Open document", {
+                    log.debug(LOG_CATEGORIES.DASHBOARD, "Open document from client hub", {
                       documentId: doc.id,
                     });
+                    handleViewDocument(doc.id, doc.name);
                   }
                 }}
               >

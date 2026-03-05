@@ -6,7 +6,6 @@ export { mapsApi } from "./maps";
 export { offerApi } from "./offer";
 export { agentApi } from "packages/features/agent/api/agent";
 export { googleCalendarApi } from "packages/features/calendar/api";
-export { docusignApi } from "packages/features/documents/api/docusign";
 export { reportApi } from "packages/features/documents/api/report";
 export { secureUploadApi } from "packages/features/documents/api/secureUpload";
 export { feedApi } from "packages/features/feed/api/feed";
@@ -78,32 +77,6 @@ export type {
   GoogleEventCreateResponse,
   GoogleEventListResponse,
 } from "packages/features/calendar/api";
-export type {
-  Agreement,
-  AgreementEvent,
-  AgreementParticipant,
-  AgreementRevision,
-  AgreementStatus,
-  AgreementType,
-  CreateAgreementRequest,
-  CreateAgreementResponse,
-  CreateRevisionResponse,
-  DocusignTemplate,
-  GetAgreementResponse,
-  GetSigningUrlRequest,
-  GetSigningUrlResponse,
-  ListAgreementsResponse,
-  ListTemplatesResponse,
-  OAuthStartResponse,
-  ParticipantRole,
-  ParticipantStatus,
-  SendAgreementRequest,
-  SendAgreementResponse,
-  SigningMethod,
-  SyncTemplatesResponse,
-  VoidAgreementRequest,
-  VoidAgreementResponse,
-} from "packages/features/documents/api/docusign";
 export type {
   CompareReportsRequest,
   CompareReportsResponse,

@@ -33,6 +33,10 @@ target 'SilverKey' do
 
   config = use_native_modules!(config_command)
 
+  # Google Maps for react-native-maps (PROVIDER_GOOGLE on iOS)
+  rn_maps_path = File.join(__dir__, '..', '..', '..', 'node_modules', 'react-native-maps')
+  pod 'react-native-google-maps', :path => rn_maps_path
+
   use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
   use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
 

@@ -121,6 +121,11 @@ function resolvePackagesPath(moduleName, platform) {
     if (fs.existsSync(withPlatform(".native", ".tsx"))) return withPlatform(".native", ".tsx");
   }
   const indexBase = path.join(base, "index");
+  // Prefer index.native for package barrels on iOS/Android so exports (e.g. ConnectedCardHeartSave) use RN-safe components.
+  if (platform === "ios" || platform === "android") {
+    if (fs.existsSync(indexBase + ".native.ts")) return indexBase + ".native.ts";
+    if (fs.existsSync(indexBase + ".native.tsx")) return indexBase + ".native.tsx";
+  }
   if (fs.existsSync(indexBase + ".ts")) return indexBase + ".ts";
   if (fs.existsSync(indexBase + ".tsx")) return indexBase + ".tsx";
   if (fs.existsSync(indexBase + ".js")) return indexBase + ".js";
@@ -328,6 +333,60 @@ function customResolveRequestImpl(context, moduleName, platform) {
     ];
     for (const p of candidates) {
       if (fs.existsSync(p)) return { type: "sourceFile", filePath: p };
+    }
+  }
+
+  // 0e) On native, force HeartSave and IconButton to .native so we never load web implementations
+  //     that use <button> or <div> (RN has no View config for those).
+  if ((platform === "ios" || platform === "android") && typeof moduleName === "string") {
+    const uiButtonDir = path.join(monorepoRoot, "packages/ui/components/button");
+    let stem = null;
+    if (
+      moduleName === "@ui/button/HeartSave" ||
+      moduleName.startsWith("@ui/button/HeartSave/") ||
+      moduleName === "packages/ui/components/button/HeartSave" ||
+      moduleName === "./HeartSave" ||
+      moduleName === "../button/HeartSave"
+    ) {
+      stem = "HeartSave";
+    } else if (
+      moduleName === "@ui/button/IconButton" ||
+      moduleName.startsWith("@ui/button/IconButton/") ||
+      moduleName === "packages/ui/components/button/IconButton" ||
+      moduleName === "./IconButton" ||
+      moduleName === "../button/IconButton"
+    ) {
+      stem = "IconButton";
+    }
+    if (stem) {
+      const nativeTsx = path.join(uiButtonDir, stem + ".native.tsx");
+      if (fs.existsSync(nativeTsx)) return { type: "sourceFile", filePath: nativeTsx };
+    }
+  }
+
+  // 0f) Relative requires to public/ (e.g. ../../../../public/signin-assets/... from packages/ui).
+  //     Resolve from origin so Metro can bundle assets under Client/public even when projectRoot is apps/mobile.
+  if (
+    typeof moduleName === "string" &&
+    (moduleName.startsWith("./") || moduleName.startsWith("../")) &&
+    moduleName.includes("public/")
+  ) {
+    const originDir = origin
+      ? path.dirname(origin)
+      : path.resolve(monorepoRoot, "packages/ui/components/asset");
+    let absolutePath = path.resolve(originDir, moduleName);
+    const rootNorm = path.normalize(monorepoRoot);
+    let pathNorm = path.normalize(absolutePath);
+    if (!pathNorm.startsWith(rootNorm) || !fs.existsSync(absolutePath)) {
+      const publicIndex = moduleName.indexOf("public/");
+      if (publicIndex !== -1) {
+        const suffix = moduleName.slice(publicIndex + "public/".length);
+        absolutePath = path.join(monorepoRoot, "public", suffix);
+        pathNorm = path.normalize(absolutePath);
+      }
+    }
+    if (pathNorm.startsWith(rootNorm) && fs.existsSync(absolutePath)) {
+      return { type: "sourceFile", filePath: absolutePath };
     }
   }
 

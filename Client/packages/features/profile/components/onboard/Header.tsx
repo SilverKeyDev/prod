@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import { Check } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import {
   AnimatePresence,
@@ -12,19 +12,18 @@ import { Region } from "packages/ui/components/index.web";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import Card from "@/components/layout/Card.web";
-
 type Step = {
   id: string;
   title: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{
+    className?: string;
+  }>;
 };
-
 type OnboardingHeaderProps = {
   steps: Step[];
   currentStep: number;
   onStepClick: (stepIndex: number) => void;
 };
-
 const spring = {
   type: "spring",
   stiffness: 600,
@@ -33,61 +32,55 @@ const spring = {
 } as const;
 const fade = { type: "tween", ease: "easeOut", duration: 0.22 } as const;
 const instant = { type: "tween", duration: 0 } as const;
-
 // Layout scaling constants
 const MIN_SCALE = 0.2; // allow icons to get much smaller on narrow screens
-
 const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep, onStepClick }) => {
   // Track previous step to detect direction and handle multi-step jumps
   const prevStepRef = useRef(currentStep);
   const prevStep = prevStepRef.current;
   const direction =
     currentStep > prevStep ? "forward" : currentStep < prevStep ? "backward" : "none";
-
   useEffect(() => {
     prevStepRef.current = currentStep;
   }, [currentStep]);
-
   // Refs for adaptive scaling so content never exceeds container width
   const outerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
-
   useEffect(() => {
     // Capture refs at the beginning of the effect
     const outerElement = outerRef.current;
     const gridElement = gridRef.current;
-
     const recalc = () => {
       const outer = outerRef.current;
       const grid = gridRef.current;
       if (!outer || !grid) return;
-
       const available = outer.clientWidth;
       const natural = grid.scrollWidth;
-
       if (natural <= 0 || available <= 0) {
         setScale(1);
         return;
       }
-
       const needed = available / natural;
       const newScale = Math.max(MIN_SCALE, Math.min(1, needed));
       setScale(newScale);
     };
-
     const win = getWindow();
     const doc = getDocument();
-    const RO = win ? (win as unknown as { ResizeObserver: unknown }).ResizeObserver : undefined;
+    const RO = win
+      ? (
+          win as unknown as {
+            ResizeObserver: unknown;
+          }
+        ).ResizeObserver
+      : undefined;
     const ro =
       RO && typeof RO === "function"
         ? new (RO as new (callback: () => void) => ResizeObserver)(() =>
             requestAnimationFrame(recalc)
           )
         : null;
-
     recalc();
-
     if (ro) {
       if (outerElement) ro.observe(outerElement);
       if (gridElement) ro.observe(gridElement);
@@ -95,7 +88,6 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
     } else if (win) {
       win.addEventListener("resize", recalc);
     }
-
     return () => {
       if (ro) {
         try {
@@ -110,7 +102,6 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
       }
     };
   }, [steps.length]);
-
   // Grid template: auto (icon) / 1fr (connector) / auto / 1fr ... / auto
   const templateCols = useMemo(
     () =>
@@ -119,13 +110,11 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
       ),
     [steps.length]
   );
-
   // Helper: for connector at index (between step i and i+1), compute motion props
   const connectorMotion = (index: number) => {
     const isCompletedNow = index < currentStep;
     const wasCompletedBefore = index < prevStep;
     const newlyCompleted = direction === "forward" && !wasCompletedBefore && isCompletedNow;
-
     if (direction === "forward") {
       return {
         initial: {
@@ -137,7 +126,6 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
           : instant,
       };
     }
-
     // Backward or no movement: snap without animation
     return {
       initial: { width: isCompletedNow ? "100%" : "0%" },
@@ -145,11 +133,9 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
       transition: instant,
     };
   };
-
   // Helper: choose transition depending on direction (disable on backward)
   const t = direction === "backward" ? instant : fade;
   const tSpring = direction === "backward" ? instant : spring;
-
   // Calculate connector visibility - uniform spacing and sizing across all screens
   const calculateConnectorLayout = () => {
     const outer = outerRef.current;
@@ -161,17 +147,13 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
         connectorWidth: "70%",
         connectorMargin: "15%",
       };
-
     const availableWidth = outer.clientWidth;
     const stepCount = steps.length;
-
     // Estimate minimum space needed for icons only (no connectors)
     const minIconWidth = 20; // minimum tappable size
     const minSpaceForIcons = stepCount * minIconWidth;
-
     // If we don't have enough space for connectors, hide them
     const showConnectors = availableWidth > minSpaceForIcons * 1.5;
-
     // UNIFORM SPACING: Same gaps and sizing regardless of screen size
     return {
       columnGap: 8, // Always 8px between elements
@@ -181,10 +163,8 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
       connectorMargin: "15%",
     };
   };
-
   const { columnGap, rowGap, showConnectors, connectorWidth, connectorMargin } =
     calculateConnectorLayout();
-
   return (
     // EXTRA WRAPPER to add top spacing and bottom margin
     <div className="mb-6 mt-6">
@@ -226,7 +206,6 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                     const isCompleted = index < currentStep;
                     const wasCompleted = index < prevStep;
                     const newlyCompleted = direction === "forward" && !wasCompleted && isCompleted;
-
                     return (
                       <React.Fragment key={step.id}>
                         {/* Icon cell */}
@@ -295,7 +274,10 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                                   }
                                   className="flex"
                                 >
-                                  <Check className="xs:h-3 xs:w-3 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 2xl:h-7 2xl:w-7" />
+                                  <Icon
+                                    name="check"
+                                    className="xs:h-3 xs:w-3 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 2xl:h-7 2xl:w-7"
+                                  />
                                 </MotionSpan>
                               ) : (
                                 <MotionSpan
@@ -391,5 +373,4 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
     </div>
   );
 };
-
 export default OnboardingHeader;

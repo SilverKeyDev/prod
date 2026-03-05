@@ -3,12 +3,11 @@ import React, { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { type ChecklistType, useChecklistData } from "packages/features/homeauth";
-import { CHECKLIST_SUBTITLES, CHECKLIST_TITLES } from "packages/types";
+import { CHECKLIST_SUBTITLES, CHECKLIST_TITLES, type ChecklistTab } from "packages/types";
+import ClientSelector from "packages/ui/components/button/ClientSelector";
 import { Box, Loading, Pressable, Text } from "packages/ui/components/primitives";
 
-type ChecklistTab = "escrow" | "inspections" | "financing" | "closing";
-
-const CHECKLIST_TABS: ChecklistTab[] = ["escrow", "inspections", "financing", "closing"];
+import DashboardChecklistsHeader from "./DashboardChecklistsHeader.native";
 
 const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
   escrow: "escrow",
@@ -19,11 +18,13 @@ const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
 
 export function DashboardChecklistsNative() {
   const [activeTab, setActiveTab] = useState<ChecklistTab>("escrow");
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   const checklistType = useMemo<ChecklistType>(() => TAB_TO_CHECKLIST_TYPE[activeTab], [activeTab]);
 
   const { items, checkedIds, isLoading, error, toggleItem, refreshChecklist } =
     useChecklistData(checklistType);
+  // When checklist API supports client scoping, pass selectedClientId into useChecklistData (DASH-1).
 
   const completedCount = checkedIds.length;
   const totalCount = items.length;
@@ -41,41 +42,19 @@ export function DashboardChecklistsNative() {
 
   return (
     <Box className="gap-3">
-      <Box className="flex-row items-center justify-between">
-        <Text className="text-lg font-medium text-gray-800">Checklists</Text>
-        {totalCount > 0 ? (
-          <Text className="text-xs text-gray-600">
-            {completedCount} of {totalCount} items complete
-          </Text>
-        ) : null}
+      <Box className="mb-2">
+        <ClientSelector selectedClientId={selectedClientId} onClientChange={setSelectedClientId} />
       </Box>
 
-      <Text className="text-xs text-gray-600">
-        {CHECKLIST_SUBTITLES[activeTab] ?? CHECKLIST_SUBTITLES.escrow}
-      </Text>
-
-      {/* Tab selector */}
-      <Box className="mt-2 flex-row rounded-lg bg-gray-100 p-1">
-        {CHECKLIST_TABS.map((tab) => {
-          const isActive = tab === activeTab;
-          return (
-            <Pressable
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              className={`flex-1 rounded-md px-2 py-1.5 ${isActive ? "bg-white shadow-sm" : ""}`}
-            >
-              <Text
-                className={`text-center text-xs font-medium ${
-                  isActive ? "text-gray-900" : "text-gray-600"
-                }`}
-                numberOfLines={1}
-              >
-                {CHECKLIST_TITLES[tab]}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </Box>
+      <DashboardChecklistsHeader
+        title={CHECKLIST_TITLES[activeTab]}
+        subtitle={CHECKLIST_SUBTITLES[activeTab] ?? CHECKLIST_SUBTITLES.escrow}
+        completedCount={completedCount}
+        totalCount={totalCount}
+        loading={isLoading}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* Content */}
       <View style={styles.card}>

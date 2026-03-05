@@ -60,12 +60,12 @@ export function MotionButton({
     if (animate?.scale != null) scale.value = withTiming(animate.scale, { duration: durationMs });
   }, [animate?.opacity, animate?.scale, transition?.duration, opacity, scale]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: opacity.value,
-      transform: [{ scale: scale.value }],
-    };
-  }, []);
+  // Worklet must only read shared values; no React props/state in body or deps
+  // to avoid Reanimated running on JS thread during render (strict-mode warning).
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
 
   const durationMs = Math.max(0, Math.round((transition?.duration ?? 0.15) * 1000));
   const handlePressIn = useCallback(

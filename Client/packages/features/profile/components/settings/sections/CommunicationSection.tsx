@@ -140,15 +140,22 @@ export default function CommunicationSection({
                           }
                           label="I am looking for a buyer's agent"
                         />
-                        <OliveCheckbox
-                          checked={!!formData.looking_for_buyers_agent}
-                          onToggle={() =>
-                            updateFormData(
-                              "looking_for_buyers_agent",
-                              !formData.looking_for_buyers_agent
-                            )
-                          }
-                        />
+                        {/* Stop propagation so clicking the box doesn't also trigger the label's linked input (double-toggle) */}
+                        <span
+                          className="flex-shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
+                          <OliveCheckbox
+                            checked={!!formData.looking_for_buyers_agent}
+                            onToggle={() =>
+                              updateFormData(
+                                "looking_for_buyers_agent",
+                                !formData.looking_for_buyers_agent
+                              )
+                            }
+                          />
+                        </span>
                       </>
                     ) : (
                       <div

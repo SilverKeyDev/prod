@@ -8,7 +8,7 @@ module.exports = function (api) {
     presets: [["babel-preset-expo", { jsxImportSource: "nativewind" }], "nativewind/babel"],
     plugins: ["react-native-reanimated/plugin"],
   };
-  // eslint-disable-next-line no-console -- Babel runs in Node; console logging is required for debugging
+
   console.info("[Babel] Using NativeWind preset for mobile app", {
     presets: config.presets,
     plugins: config.plugins,

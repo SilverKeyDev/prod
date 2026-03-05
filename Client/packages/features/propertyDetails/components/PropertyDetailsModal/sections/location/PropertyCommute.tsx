@@ -1,6 +1,6 @@
 import React from "react";
 
-import { MapPin } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import { BodyText, Title } from "packages/ui/components/index.web";
@@ -12,13 +12,15 @@ import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
 import { CommuteTravelTimeCards } from "./propertyCommuteHelpers";
 import { CommuteAnalysisContent } from "./propertyCommuteRender";
-
 type PropertyCommuteProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
-
 export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, analysisContent }) => {
-  const commute = (property as unknown as { commute_data?: unknown }).commute_data as
+  const commute = (
+    property as unknown as {
+      commute_data?: unknown;
+    }
+  ).commute_data as
     | {
         map_url?: string;
         travel_times?: Array<{
@@ -33,21 +35,17 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
         commute_distance?: string | number;
       }
     | undefined;
-
   if (!commute) return null;
-
   const hasTravelTimes = Array.isArray(commute.travel_times) && commute.travel_times.length > 0;
   const hasSimple = commute.commute_time != null || commute.commute_distance != null;
   if (!hasTravelTimes && !hasSimple && !analysisContent) return null;
-
   const sectionLabel =
     DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "commute")
       ?.label || "Commute Information";
-
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center gap-2">
-        <MapPin className="text-brown h-5 w-5" />
+        <Icon name="map-pin" className="text-brown h-5 w-5" />
         <Title as="h3" size="lg" className="text-brown font-semibold">
           {sectionLabel}
         </Title>
@@ -70,7 +68,7 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
                 <div className="border-beige/40 rounded-lg border bg-white p-4">
                   <div className="flex aspect-square w-full items-center justify-center">
                     <div className="text-brown/60 text-center">
-                      <MapPin className="text-brown/40 mx-auto mb-3 h-12 w-12" />
+                      <Icon name="map-pin" className="text-brown/40 mx-auto mb-3 h-12 w-12" />
                       <BodyText as="p" className="text-brown font-medium">
                         Commute Map
                       </BodyText>

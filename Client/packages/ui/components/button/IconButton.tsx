@@ -2,10 +2,9 @@
 import React, { cloneElement, forwardRef, isValidElement } from "react";
 
 import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader.web";
+import { Icon } from "@ui/icons";
 
 import type { IconName } from "packages/ui/types/icons";
-
-import { getIcon } from "@/components/ui/icons/iconMap";
 
 /** strokeWidth for toolbar variant icons - 50% thinner than default (2) */
 const TOOLBAR_ICON_STROKE_WIDTH = 1;
@@ -132,7 +131,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>((props, ref) =
     .filter(Boolean)
     .join(" ");
 
-  const resolvedIcon = icon ?? (iconName ? getIcon(iconName) : null);
+  const resolvedIcon = icon ?? (iconName ? <Icon name={iconName} /> : null);
 
   const iconWithStroke =
     variant === "toolbar" &&

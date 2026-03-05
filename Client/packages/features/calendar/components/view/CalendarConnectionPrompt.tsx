@@ -1,8 +1,5 @@
-import { Calendar } from "lucide-react";
-
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
-
-import Card from "@/components/layout/Card.web";
+import { Icon } from "packages/ui/components/icons";
+import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
 type CalendarConnectionPromptProps = {
   onConnect: () => void;
@@ -14,31 +11,27 @@ export function CalendarConnectionPrompt({
   isLoading = false,
 }: CalendarConnectionPromptProps) {
   return (
-    <Card padding="lg" className="w-full">
-      <div className="flex flex-col items-center justify-center py-8 text-center sm:py-12">
-        <Calendar className="text-olive/60 mb-4 h-12 w-12 sm:h-16 sm:w-16" />
-        <Title
-          as="h3"
-          size="lg"
-          className="mb-2 font-semibold text-gray-900 sm:text-xl md:text-2xl"
-        >
+    <Box className="w-full rounded-xl border border-gray-200 bg-gray-50 p-6">
+      <Box className="flex flex-col items-center justify-center text-center sm:py-2">
+        <Icon name="calendar" className="text-olive/60 mb-4 h-12 w-12 sm:h-16 sm:w-16" />
+        <Text className="mb-2 text-base font-semibold text-gray-900 sm:text-lg">
           Connect Your Google Calendar
-        </Title>
-        <BodyText as="p" size="sm" className="mb-6 max-w-md text-gray-600 sm:text-base">
+        </Text>
+        <Text className="mb-6 max-w-md text-sm text-gray-600">
           Sync your Google Calendar to view your upcoming events and appointments directly on your
           dashboard.
-        </BodyText>
-        <Button
-          variant="primary"
-          size="md"
-          onClick={onConnect}
-          loading={isLoading}
-          icon={<Calendar className="h-4 w-4" />}
-          iconPosition="left"
+        </Text>
+        <Pressable
+          onPress={onConnect}
+          disabled={isLoading}
+          className="bg-olive inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-75"
         >
-          Connect Google Calendar
-        </Button>
-      </div>
-    </Card>
+          <Icon name="calendar" className="mr-2 h-4 w-4" />
+          <Text className="text-sm font-semibold text-white">
+            {isLoading ? "Connecting…" : "Connect Google Calendar"}
+          </Text>
+        </Pressable>
+      </Box>
+    </Box>
   );
 }

@@ -1,6 +1,7 @@
 import { apiGet } from "packages/services/http/compatibility";
 
 import type { FeedListing } from "@/features/feed/types/feed";
+import { getDisplayStatsForListingId } from "@/features/feed/utils/feedDisplayStats";
 
 export type FeedResponse = {
   items: FeedListing[];
@@ -58,11 +59,17 @@ function createDummyListing(index: number): FeedListing {
   const img0 = getPlaceholderImage(index);
   const img1 = getPlaceholderImage(index + 1);
   const _img2 = getPlaceholderImage(index + 2);
+  const listingId = `dummy-${index}`;
+  const displayStats = getDisplayStatsForListingId(listingId);
   const base = {
-    id: `dummy-${index}`,
+    id: listingId,
     thumbnailUrl: img0,
     user: { id: "dummy-user", name: "SilverKey", avatarUrl: img1 },
-    stats: { likes: index % 3 === 0 ? 12 : 0, comments: index % 5 },
+    stats: {
+      likes: displayStats.likes,
+      comments: displayStats.comments,
+      shares: displayStats.shares,
+    },
     images: [img0],
   };
 

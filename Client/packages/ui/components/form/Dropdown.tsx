@@ -1,21 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import Button from "@ui/button/Button";
+import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
-import { Check, ChevronDown, Search } from "lucide-react";
 
 import { useLocalization } from "packages/contexts";
 import { getDocument } from "packages/utils/platform";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
-
 export type DropdownOption<T = unknown> = {
   value: T;
   label: string;
   disabled?: boolean;
   icon?: React.ReactNode;
 };
-
 export type DropdownProps<T = unknown> = {
   options: DropdownOption<T>[];
   value?: T;
@@ -33,7 +31,6 @@ export type DropdownProps<T = unknown> = {
   dropdownClassName?: string;
   onClear?: () => void;
 };
-
 function Dropdown<T = unknown>({
   options,
   value,
@@ -59,14 +56,13 @@ function Dropdown<T = unknown>({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const triggerLabelRef = useRef<HTMLSpanElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
-
+  const optionMeasureRefs = useRef<Record<number, HTMLSpanElement | null>>({});
+  const [wrappingOptionIndices, setWrappingOptionIndices] = useState<Set<number>>(new Set());
   // Find selected option
   const selectedOption = options.find((option) => option.value === value);
-
   const displayLabel = selectedOption
     ? selectedOption.label
     : (placeholder ?? t("form.select_option"));
-
   // Detect wrap using a hidden element that always has default (unshrunk) font size,
   // so changing the visible text size doesn't flip the measurement and cause glitching.
   const checkLabelWrap = useCallback(() => {
@@ -80,11 +76,9 @@ function Dropdown<T = unknown>({
     const wraps = measureEl.scrollHeight > singleLineHeight * 1.5;
     setLabelWraps(wraps);
   }, []);
-
   useEffect(() => {
     checkLabelWrap();
   }, [displayLabel, checkLabelWrap]);
-
   useEffect(() => {
     const el = measureRef.current;
     if (!el) return;
@@ -92,12 +86,52 @@ function Dropdown<T = unknown>({
     observer.observe(el);
     return () => observer.disconnect();
   }, [checkLabelWrap]);
-
-  // Filter options based on search term
+  // Measure which option labels wrap to two lines so we can use slightly smaller text
+  const checkOptionWraps = useCallback(() => {
+    const next = new Set<number>();
+    Object.entries(optionMeasureRefs.current).forEach(([iStr, el]) => {
+      if (!el) return;
+      const index = Number(iStr);
+      if (Number.isNaN(index)) return;
+      const style = getComputedStyle(el);
+      const lineHeight = parseFloat(style.lineHeight);
+      const singleLineHeight = Number.isFinite(lineHeight)
+        ? lineHeight
+        : parseFloat(style.fontSize) * 1.2;
+      if (el.scrollHeight > singleLineHeight * 1.5) next.add(index);
+    });
+    setWrappingOptionIndices(next);
+  }, []);
+  const setOptionMeasureRef = useCallback(
+    (index: number) => (el: HTMLSpanElement | null) => {
+      optionMeasureRefs.current[index] = el;
+    },
+    []
+  );
+  // Filter options based on search term (must be defined before useEffects that depend on it)
   const filteredOptions = searchable
     ? options.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()))
     : options;
-
+  useEffect(() => {
+    if (!isOpen) {
+      setWrappingOptionIndices(new Set());
+      return;
+    }
+    checkOptionWraps();
+  }, [isOpen, checkOptionWraps, filteredOptions.length]);
+  useEffect(() => {
+    if (!isOpen) return;
+    const refs = optionMeasureRefs.current;
+    const observers: ResizeObserver[] = [];
+    Object.keys(refs).forEach((iStr) => {
+      const el = refs[Number(iStr)];
+      if (!el) return;
+      const observer = new ResizeObserver(checkOptionWraps);
+      observer.observe(el);
+      observers.push(observer);
+    });
+    return () => observers.forEach((o) => o.disconnect());
+  }, [isOpen, checkOptionWraps, filteredOptions]);
   // Variant styles - using exact onboarding styling
   const variantStyles = {
     default: "border-beige bg-white hover:border-brown/50 focus:ring-brown/20 focus:border-brown",
@@ -105,26 +139,22 @@ function Dropdown<T = unknown>({
       "mobile-input border-beige bg-white hover:border-brown/50 focus:ring-brown/20 focus:border-brown touch-friendly",
     compact: "border-beige bg-white hover:border-brown/50 focus:ring-brown/20 focus:border-brown",
   };
-
   // Size styles - using exact onboarding sizing
   const sizeStyles = {
     sm: "h-9 px-3",
     md: "h-12 px-4",
     lg: "h-14 px-5",
   };
-
   // Error styles
   const errorStyles = error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "";
-
   // Disabled styles
   const disabledStyles = disabled
     ? "bg-gray-50 text-gray-400 cursor-not-allowed"
     : "cursor-pointer";
-
   // Button classes - using exact onboarding styling with InputStyles
   const buttonClasses = [
     "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2",
-    "flex items-center justify-between cursor-pointer touch-friendly mobile-input",
+    "flex items-center !justify-between cursor-pointer touch-friendly mobile-input",
     "disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed",
     (getSharedInputTextStyles as () => string)(),
     variantStyles[variant],
@@ -135,7 +165,6 @@ function Dropdown<T = unknown>({
   ]
     .filter(Boolean)
     .join(" ");
-
   // Dropdown classes - using exact onboarding styling
   const dropdownClasses = [
     "absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300",
@@ -144,41 +173,34 @@ function Dropdown<T = unknown>({
   ]
     .filter(Boolean)
     .join(" ");
-
   // Handle click outside
   useEffect(() => {
     const doc = getDocument();
     if (!doc) return;
-
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchTerm("");
       }
     };
-
     if (isOpen) {
       doc.addEventListener("mousedown", handleClickOutside);
     }
-
     return () => {
       doc.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
-
   // Focus search input when dropdown opens
   useEffect(() => {
     if (isOpen && searchable && searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, [isOpen, searchable]);
-
   const handleToggle = () => {
     if (!disabled) {
       setIsOpen(!isOpen);
     }
   };
-
   const handleOptionSelect = (option: DropdownOption<T>) => {
     if (!option.disabled) {
       onChange(option.value);
@@ -186,7 +208,6 @@ function Dropdown<T = unknown>({
       setSearchTerm("");
     }
   };
-
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onClear) {
@@ -195,11 +216,9 @@ function Dropdown<T = unknown>({
       onChange(undefined as T);
     }
   };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
-
   return (
     <div className="w-full">
       {/* Label */}
@@ -224,10 +243,11 @@ function Dropdown<T = unknown>({
           disabled={disabled}
           className={`${buttonClasses} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
         >
+          {/* Label/placeholder bound left */}
           <BodyText
             as="span"
             ref={triggerLabelRef}
-            className={`relative min-w-0 flex-1 text-left ${selectedOption ? "text-gray-600" : "text-gray-400"} ${labelWraps ? "text-[13px]" : ""}`}
+            className={`relative min-w-0 flex-1 truncate text-left ${selectedOption ? "text-gray-600" : "!text-gray-400"} ${labelWraps ? "text-[13px]" : ""}`}
           >
             {displayLabel}
             {/* Hidden measurer: always default size so wrap detection is stable and doesn't glitch */}
@@ -242,7 +262,8 @@ function Dropdown<T = unknown>({
             </BodyText>
           </BodyText>
 
-          <div className="flex items-center gap-1">
+          {/* Arrow and clear bound right */}
+          <div className="flex shrink-0 items-center gap-1">
             {clearable && selectedOption && !disabled && (
               <Button
                 type="button"
@@ -256,10 +277,9 @@ function Dropdown<T = unknown>({
                 {t("form.clear_aria")}
               </Button>
             )}
-            <ChevronDown
-              className={`h-4 w-4 transition-transform duration-200 ${
-                isOpen ? "rotate-180 transform" : ""
-              }`}
+            <Icon
+              name="chevron-down"
+              className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 transform" : ""}`}
             />
           </div>
         </Button>
@@ -271,7 +291,10 @@ function Dropdown<T = unknown>({
             {searchable && (
               <div className="border-b border-gray-100 p-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                  <Icon
+                    name="search"
+                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+                  />
                   {/* eslint-disable-next-line silverkey/no-primitive-components -- search filter input */}
                   <input
                     ref={searchInputRef}
@@ -279,7 +302,7 @@ function Dropdown<T = unknown>({
                     value={searchTerm}
                     onChange={handleSearchChange}
                     placeholder={t("form.search_options")}
-                    className={`border-beige hover:border-brown/50 focus:border-brown focus:ring-brown/20 w-full rounded border py-2 pl-9 pr-3 transition-all duration-200 focus:outline-none focus:ring-2 ${(getSharedInputTextStyles as () => string)()}`}
+                    className={`border-beige hover:border-brown/50 focus:border-brown focus:ring-brown/20 w-full rounded border py-2 pl-9 pr-3 transition-all duration-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 ${(getSharedInputTextStyles as () => string)()}`}
                   />
                 </div>
               </div>
@@ -303,15 +326,28 @@ function Dropdown<T = unknown>({
                       option.disabled
                         ? "cursor-not-allowed text-gray-400"
                         : "cursor-pointer text-gray-600 hover:bg-gray-50 hover:text-gray-700"
-                    } ${
-                      option.value === value ? "bg-gray-100 font-medium text-gray-900" : ""
-                    } ${index > 0 ? "border-t border-gray-200" : ""} hover:font-normal focus:bg-gray-50 active:bg-gray-100`}
+                    } ${option.value === value ? "bg-gray-100 font-medium text-gray-900" : ""} ${index > 0 ? "border-t border-gray-200" : ""} hover:font-normal focus:bg-gray-50 active:bg-gray-100`}
                   >
-                    <BodyText as="span" className="flex items-center">
-                      {option.icon}
-                      {option.label}
-                    </BodyText>
-                    {option.value === value && <Check className="text-brown h-4 w-4" />}
+                    <div className="relative flex min-w-0 flex-1 items-center gap-2">
+                      <BodyText
+                        as="span"
+                        ref={setOptionMeasureRef(index)}
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 overflow-hidden text-transparent"
+                        style={{ visibility: "hidden" }}
+                      >
+                        {option.label}
+                      </BodyText>
+                      <BodyText
+                        as="span"
+                        size={wrappingOptionIndices.has(index) ? "sm" : "md"}
+                        className="relative z-10 flex items-center"
+                      >
+                        {option.icon}
+                        {option.label}
+                      </BodyText>
+                    </div>
+                    {option.value === value && <Icon name="check" className="text-brown h-4 w-4" />}
                   </Button>
                 ))
               )}
@@ -329,5 +365,4 @@ function Dropdown<T = unknown>({
     </div>
   );
 }
-
 export default Dropdown;

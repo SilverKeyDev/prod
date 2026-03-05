@@ -10,27 +10,16 @@ import { getWindow } from "packages/utils/platform";
 import type { FeedComment, FeedListing, FeedScrollController } from "@/features/feed/types/feed";
 import { schedulePreload } from "@/features/feed/utils";
 
-const FEED_PARAM = "feed";
-
 /**
- * Apply range change: update active index, preload, and optionally URL.
+ * Apply range change: update active index, preload. No URL sync.
  * Extracted to satisfy max-lines-per-function in useFeedScrollContainer.
- * Only updates URL when getPathname() is on /search to avoid racing with
- * sidebar navigation away from search (would overwrite nav with setSearchParams).
  */
 export function applyRangeChanged(
   range: { startIndex: number; endIndex: number },
   items: FeedListing[],
   setActiveIndex: (v: number | ((p: number) => number)) => void,
   setIsVideoPlayingInReel: (v: boolean) => void,
-  setUserPaused: (paused: boolean) => void,
-  setSearchParams: (
-    fn: (prev: URLSearchParams) => URLSearchParams,
-    opts: { replace: boolean }
-  ) => void,
-  feedIdFromUrl: string | null,
-  initialIndex: number,
-  getPathname: () => string
+  setUserPaused: (paused: boolean) => void
 ) {
   const idx = range.startIndex;
   setActiveIndex((prev) => (prev === idx ? prev : idx));
@@ -40,21 +29,6 @@ export function applyRangeChanged(
     items.map((i) => ({ id: i.id, thumbnailUrl: i.thumbnailUrl })),
     idx
   );
-  const item = items[idx];
-  const shouldUpdateUrl =
-    item &&
-    (feedIdFromUrl != null || idx !== initialIndex) &&
-    getPathname().startsWith(ROUTES.SEARCH);
-  if (shouldUpdateUrl) {
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        next.set(FEED_PARAM, item.id);
-        return next;
-      },
-      { replace: true }
-    );
-  }
 }
 
 /**
@@ -151,16 +125,16 @@ export function useFeedScrollSheetAndMore(
     : [];
 
   const copyToClipboard = useSecureClipboardCopy();
-  const buildFeedDeepLink = useCallback((listingId: string) => {
+  const getSearchPageShareUrl = useCallback(() => {
     const win = getWindow();
     const base = win ? win.location.origin : "";
-    return `${base}${ROUTES.SEARCH}?feed=${encodeURIComponent(listingId)}`;
+    return `${base}${ROUTES.SEARCH}`;
   }, []);
 
   const handleMoreCopyLink = useCallback(() => {
     if (!moreSheetListingId) return;
-    void copyToClipboard(buildFeedDeepLink(moreSheetListingId));
-  }, [moreSheetListingId, copyToClipboard, buildFeedDeepLink]);
+    void copyToClipboard(getSearchPageShareUrl());
+  }, [moreSheetListingId, copyToClipboard, getSearchPageShareUrl]);
 
   const handleMoreSave = useCallback(() => {
     if (!moreSheetListingId) return;

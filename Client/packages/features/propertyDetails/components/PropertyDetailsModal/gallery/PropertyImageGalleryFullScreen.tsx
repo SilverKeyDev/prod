@@ -1,12 +1,11 @@
 import React from "react";
 
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Button } from "packages/ui/components/index.web";
 
 import { StyledImage } from "@/components/cards/base/image";
-
 type PropertyImageGalleryFullScreenProps = {
   images: string[];
   currentIndex: number;
@@ -15,7 +14,6 @@ type PropertyImageGalleryFullScreenProps = {
   onPrev: () => void;
   onNext: () => void;
 };
-
 export function PropertyImageGalleryFullScreen({
   images,
   currentIndex,
@@ -25,7 +23,6 @@ export function PropertyImageGalleryFullScreen({
   onNext,
 }: PropertyImageGalleryFullScreenProps) {
   const { t } = useLocalization();
-
   return (
     <div
       role="button"
@@ -54,7 +51,7 @@ export function PropertyImageGalleryFullScreen({
           onClick={onClose}
           className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
         >
-          <X className="h-6 w-6" />
+          <Icon name="x" className="h-6 w-6" />
         </Button>
         <div className="relative flex flex-1 items-center justify-center overflow-hidden">
           <StyledImage
@@ -70,7 +67,7 @@ export function PropertyImageGalleryFullScreen({
                 onClick={onPrev}
                 className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70"
               >
-                <ChevronLeft className="h-8 w-8" />
+                <Icon name="chevron-left" className="h-8 w-8" />
               </Button>
               <Button
                 type="button"
@@ -78,7 +75,7 @@ export function PropertyImageGalleryFullScreen({
                 onClick={onNext}
                 className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70"
               >
-                <ChevronRight className="h-8 w-8" />
+                <Icon name="chevron-right" className="h-8 w-8" />
               </Button>
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-4 py-2 text-sm text-white">
                 {currentIndex + 1}

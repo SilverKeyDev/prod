@@ -4,7 +4,7 @@ import { showErrorToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import { preferencesApi } from "@/features/homeauth/api/preferences";
-import type { OnboardingData } from "@/features/profile/utils";
+import { formDataToPreferencesPayload, type OnboardingData } from "@/features/profile/utils";
 
 type SaveStatus = "idle" | "saving" | "saved";
 
@@ -54,7 +54,8 @@ export function useAutoSavePreferences({
       // Debounce save
       saveTimeoutRef.current = setTimeout(async () => {
         try {
-          await preferencesApi.createOrUpdate(data);
+          const payload = formDataToPreferencesPayload(data as OnboardingData);
+          await preferencesApi.createOrUpdate(payload);
           setSaveStatus("saved");
           setIsSaving(false);
 

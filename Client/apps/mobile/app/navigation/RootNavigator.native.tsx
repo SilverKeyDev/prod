@@ -1,8 +1,11 @@
+import { useEffect } from "react";
+
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet } from "react-native";
 
 import { OnboardingScreenNative } from "packages/features/homeauth/native";
+import { PropertyDetailsScreenNative } from "packages/features/propertyDetails/native";
 import { useAuthStore } from "packages/store";
 
 import { AppStackIntegrations } from "../providers/AppStackIntegrations.native";
@@ -11,9 +14,15 @@ import { AuthStack } from "./AuthStack.native";
 import { rootNavigationRef } from "./rootNavigationRef.native";
 import { useDeepLink } from "./useDeepLink.native";
 
+type PropertyDetailsScreenParams = {
+  address: string;
+  propertyId?: string;
+};
+
 type AuthenticatedStackParamList = {
   Onboarding: undefined;
   Main: undefined;
+  PropertyDetails: PropertyDetailsScreenParams;
 };
 
 const AuthenticatedStack = createNativeStackNavigator<AuthenticatedStackParamList>();
@@ -46,19 +55,30 @@ function MainScreen() {
 function RootContent() {
   useDeepLink();
   const authStatus = useAuthStore((s) => s.authStatus);
-  const user = useAuthStore((s) => s.user);
   const isAuthenticated = authStatus === "authenticated";
+  const postAuthRedirectPath = useAuthStore((s) => s.postAuthRedirectPath);
+  const setPostAuthRedirectPath = useAuthStore((s) => s.setPostAuthRedirectPath);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (!postAuthRedirectPath) return;
+    if (!rootNavigationRef.isReady()) return;
+    const normalized = postAuthRedirectPath.replace(/\/$/, "") || "/";
+    if (normalized === "/search") {
+      rootNavigationRef.navigate("Search" as never);
+    } else if (normalized === "/onboarding") {
+      rootNavigationRef.navigate("Onboarding" as never);
+    }
+    setPostAuthRedirectPath(null);
+  }, [isAuthenticated, postAuthRedirectPath, setPostAuthRedirectPath]);
 
   if (!isAuthenticated) {
     return <AuthStack />;
   }
 
-  const initialRoute: keyof AuthenticatedStackParamList =
-    user?.has_preferences === true ? "Main" : "Onboarding";
-
   return (
     <AuthenticatedStack.Navigator
-      initialRouteName={initialRoute}
+      initialRouteName="Main"
       screenOptions={{
         headerShown: false,
         contentStyle: { flex: 1 },
@@ -66,6 +86,11 @@ function RootContent() {
     >
       <AuthenticatedStack.Screen name="Onboarding" component={OnboardingScreenWrapper} />
       <AuthenticatedStack.Screen name="Main" component={MainScreen} />
+      <AuthenticatedStack.Screen
+        name="PropertyDetails"
+        component={PropertyDetailsScreenNative}
+        options={{ headerShown: false }}
+      />
     </AuthenticatedStack.Navigator>
   );
 }

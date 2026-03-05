@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { spacing } from "packages/design-tokens";
 import {
@@ -11,11 +11,9 @@ import {
 import { Portal } from "packages/ui/components/portal";
 
 import type { ConfirmationDialogProps } from "./ConfirmationDialog.types";
-
 type ConfirmationDialogContentProps = Omit<ConfirmationDialogProps, "isOpen"> & {
   showLogoutIcon: boolean;
 };
-
 function ConfirmationDialogContent({
   title,
   message,
@@ -73,7 +71,7 @@ function ConfirmationDialogContent({
               size="md"
               onClick={onConfirm}
               className="w-full sm:w-auto"
-              icon={confirmIcon ?? (showLogoutIcon ? <LogOut /> : undefined)}
+              icon={confirmIcon ?? (showLogoutIcon ? <Icon name="log-out" /> : undefined)}
             >
               {confirmText}
             </Button>
@@ -86,7 +84,6 @@ function ConfirmationDialogContent({
     </div>
   );
 }
-
 export default function ConfirmationDialog(props: ConfirmationDialogProps) {
   const {
     isOpen,

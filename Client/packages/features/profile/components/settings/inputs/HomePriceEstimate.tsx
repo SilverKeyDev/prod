@@ -1,11 +1,10 @@
 import React from "react";
 
-import { ChevronDown } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { BodyText, Title } from "packages/ui/components/index.web";
 
 import type { HomePriceResult } from "@/features/profile/utils";
-
 type HomePriceEstimateProps = {
   homePriceLoading: boolean;
   homePriceError: string | null;
@@ -14,7 +13,6 @@ type HomePriceEstimateProps = {
   setIsAffordabilityCollapsed: (collapsed: boolean) => void;
   idealZipCode?: string;
 };
-
 const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
   homePriceLoading,
   homePriceError,
@@ -42,17 +40,14 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
         <Title as="h3" size="md" className="text-olive font-medium sm:text-lg">
           Estimated Home Affordability
         </Title>
-        <ChevronDown
-          className={`mobile-icon-sm text-olive transition-transform duration-300 ease-in-out ${
-            isAffordabilityCollapsed ? "rotate-180" : ""
-          }`}
+        <Icon
+          name="chevron-down"
+          className={`mobile-icon-sm text-olive transition-transform duration-300 ease-in-out ${isAffordabilityCollapsed ? "rotate-180" : ""}`}
         />
       </div>
 
       <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
-        }`}
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"}`}
       >
         <div className="pt-2">
           {homePriceLoading ? (
@@ -212,5 +207,4 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
     </div>
   );
 };
-
 export default HomePriceEstimate;

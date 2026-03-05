@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Bookmark, MapPin } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
@@ -19,7 +19,6 @@ import {
 import WhyNotInterestedCard from "@/components/cards/WhyNotInterestedCard.web";
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
 import { getMatchScore, type SearchResult } from "@/features/search/types";
-
 export function SidebarList(props: {
   items: SearchResult[];
   selectedId?: string;
@@ -41,15 +40,12 @@ export function SidebarList(props: {
     saveHome,
     removeSavedHome,
   } = props;
-
   const SIDEBAR_INITIAL = 10;
   const SIDEBAR_PAGE_SIZE = 10;
-
   // Track which property is showing the reason card
   const [reasonCardPropertyId, setReasonCardPropertyId] = useState<string | null>(null);
   const { t } = useLocalization();
   const { markNotInterested, removeNotInterested, isNotInterested } = useNotInterestedHomesData();
-
   // Filter out not-interested homes from results tab so they disappear after marking
   const filteredByTab =
     activeTab === "results"
@@ -57,7 +53,6 @@ export function SidebarList(props: {
           (p) => !isNotInterested(p.id, typeof p.address === "string" ? p.address : undefined)
         )
       : items;
-
   // Deduplicate by id so React keys are unique (API may return same listing twice)
   const seenIds = new Set<string>();
   const displayItems = filteredByTab.filter((p) => {
@@ -65,13 +60,11 @@ export function SidebarList(props: {
     seenIds.add(p.id);
     return true;
   });
-
   // Results tab with many items: show 10 initially, then +10 on scroll to bottom
   const useIncrementalLoad = activeTab === "results" && displayItems.length > SIDEBAR_INITIAL;
   const [visibleCount, setVisibleCount] = useState(() =>
     useIncrementalLoad ? SIDEBAR_INITIAL : displayItems.length
   );
-
   // Reset visible count when items or tab change
   useEffect(() => {
     if (activeTab === "results" && displayItems.length > SIDEBAR_INITIAL) {
@@ -80,20 +73,21 @@ export function SidebarList(props: {
       setVisibleCount(displayItems.length);
     }
   }, [activeTab, displayItems.length]);
-
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadMore = useCallback(() => {
     setVisibleCount((prev) => Math.min(prev + SIDEBAR_PAGE_SIZE, displayItems.length));
   }, [displayItems.length]);
-
   useEffect(() => {
     if (!useIncrementalLoad || visibleCount >= displayItems.length) return;
     const el = sentinelRef.current;
     if (!el) return;
     const win = getWindow();
     const IO = win
-      ? (win as unknown as { IntersectionObserver?: typeof globalThis.IntersectionObserver })
-          .IntersectionObserver
+      ? (
+          win as unknown as {
+            IntersectionObserver?: typeof globalThis.IntersectionObserver;
+          }
+        ).IntersectionObserver
       : undefined;
     if (!IO || typeof IO !== "function") return;
     const observer = new IO(
@@ -109,25 +103,26 @@ export function SidebarList(props: {
     observer.observe(el);
     return () => observer.disconnect();
   }, [useIncrementalLoad, visibleCount, displayItems.length, loadMore]);
-
   // Use centralized score calculation
   const calculatePropertyScore = (property: SearchResult) => {
     return getMatchScore(property);
   };
-
   if (items.length === 0) {
     return (
       <div className="py-8 text-center text-gray-500">
         {activeTab === "results" ? (
           <>
-            <MapPin className="mobile-icon-lg mx-auto mb-2 text-gray-300" />
+            <Icon name="map-pin" className="mobile-icon-lg mx-auto mb-2 text-gray-300" />
             <BodyText as="p" size="sm">
               {t("search.click_map_to_search")}
             </BodyText>
           </>
         ) : (
           <>
-            <Bookmark className="mx-auto mb-2 h-6 w-6 text-gray-300 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12" />
+            <Icon
+              name="bookmark"
+              className="mx-auto mb-2 h-6 w-6 text-gray-300 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12"
+            />
             <BodyText as="p" size="sm">
               {t("search.no_saved_homes_yet")}
             </BodyText>
@@ -139,7 +134,6 @@ export function SidebarList(props: {
       </div>
     );
   }
-
   // Handle reason selection - use markNotInterested (add) since we show the reason card
   // before any API call; the home is not in the not-interested list yet
   const handleSelectReason = async (property: SearchResult, why: string) => {
@@ -151,11 +145,9 @@ export function SidebarList(props: {
       throw error;
     }
   };
-
   // Handle undo
   const handleUndo = async (property: SearchResult) => {
     const propertyAddress = typeof property.address === "string" ? property.address : "";
-
     try {
       await removeNotInterested(property.id, propertyAddress);
       setReasonCardPropertyId(null);
@@ -164,22 +156,17 @@ export function SidebarList(props: {
       throw error;
     }
   };
-
   const itemsToRender = useIncrementalLoad ? displayItems.slice(0, visibleCount) : displayItems;
-
   return (
     <div className="scrollbar-hide max-md:pb-mobile-nav h-full space-y-3 overflow-y-auto pr-2">
       {itemsToRender.map((property: SearchResult) => {
         const showReasonCard = reasonCardPropertyId === property.id && activeTab === "results";
-
         return (
           <div
             key={property.id}
             role={showReasonCard ? undefined : "button"}
             tabIndex={showReasonCard ? undefined : 0}
-            className={`relative overflow-hidden rounded-lg border transition-all ${
-              showReasonCard ? "" : "cursor-pointer"
-            } ${
+            className={`relative overflow-hidden rounded-lg border transition-all ${showReasonCard ? "" : "cursor-pointer"} ${
               selectedId === property.id
                 ? "border-olive bg-olive/5"
                 : "hover:border-olive/50 border-gray-200 hover:bg-gray-50"

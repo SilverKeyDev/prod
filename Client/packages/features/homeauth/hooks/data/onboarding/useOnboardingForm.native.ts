@@ -1,5 +1,6 @@
 import { getOnboardingStepsMobile, validateOnboardingDataMobile } from "@/features/profile/utils";
 
+import { useOnboardingAffordability } from "./useOnboardingAffordability";
 import { useOnboardingFormCore } from "./useOnboardingFormCore";
 
 export type UseOnboardingFormOptions = {
@@ -16,9 +17,22 @@ export function useOnboardingForm(options: UseOnboardingFormOptions = {}) {
     onSubmitSuccess,
   });
 
+  const {
+    homePriceLoading,
+    homePriceError,
+    homePriceResult,
+    isAffordabilityCollapsed,
+    setIsAffordabilityCollapsed,
+  } = useOnboardingAffordability(core.formData, core.currentStep, core.steps);
+
   return {
     ...core,
     scriptsReady: false,
     loadError: null,
+    homePriceLoading,
+    homePriceError,
+    homePriceResult,
+    isAffordabilityCollapsed,
+    setIsAffordabilityCollapsed,
   };
 }

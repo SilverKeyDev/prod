@@ -6,14 +6,37 @@ import { Input } from "packages/ui/components/primitives/input";
 import { Text } from "packages/ui/components/primitives/text";
 import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.native";
 
-import { FIELD_LABELS, IS_AGENT_OPTIONS, type OnboardingData } from "@/features/profile/utils";
+import {
+  FIELD_LABELS,
+  IS_AGENT_OPTIONS,
+  type OnboardingData,
+  WHY_JOINING_SILVERKEY_OPTIONS,
+} from "@/features/profile/utils";
 
 type DemographicsStepProps = {
   formData: OnboardingData;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
 };
 
+const HAS_BUYERS_AGENT_OPTIONS = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+];
+
 export function DemographicsStep({ formData, updateFormData }: DemographicsStepProps) {
+  const toggleWhyJoining = (value: string) => {
+    const current = Array.isArray(formData.why_joining_silverkey)
+      ? formData.why_joining_silverkey
+      : [];
+    const exists = current.includes(value);
+    const next = exists ? current.filter((v) => v !== value) : [...current, value];
+    updateFormData("why_joining_silverkey", next);
+  };
+
+  const toggleLookingForAgent = () => {
+    updateFormData("looking_for_buyers_agent", !formData.looking_for_buyers_agent);
+  };
+
   return (
     <Box className="gap-5">
       <Text className="text-lg font-semibold text-gray-900">About You</Text>
@@ -65,6 +88,87 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
           keyboardType="number-pad"
           className={MOBILE_TEXT_INPUT_CLASS}
         />
+      </Box>
+
+      <Box>
+        <Text className="mb-2 text-sm font-medium text-gray-700">
+          {FIELD_LABELS.WHY_JOINING_SILVERKEY}
+        </Text>
+        <Text className="mb-3 text-xs text-gray-500">
+          Choose all that apply. This helps us personalize your experience.
+        </Text>
+        <Box className="flex flex-row flex-wrap gap-2">
+          {WHY_JOINING_SILVERKEY_OPTIONS.map((option) => {
+            const selected =
+              Array.isArray(formData.why_joining_silverkey) &&
+              formData.why_joining_silverkey.includes(option.value);
+            return (
+              <Pressable
+                key={option.value}
+                onPress={() => toggleWhyJoining(option.value)}
+                className={`rounded-full border px-4 py-2 ${
+                  selected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                }`}
+              >
+                <Text
+                  className={`text-xs font-medium ${
+                    selected ? "text-brand-accent" : "text-gray-700"
+                  }`}
+                >
+                  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </Box>
+      </Box>
+
+      <Box className="gap-3">
+        <Box>
+          <Text className="mb-2 text-sm font-medium text-gray-700">
+            {FIELD_LABELS.HAS_BUYERS_AGENT}
+          </Text>
+          <Box className="flex flex-row gap-3">
+            {HAS_BUYERS_AGENT_OPTIONS.map((opt) => {
+              const selected = formData.has_buyers_agent === opt.value;
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => updateFormData("has_buyers_agent", opt.value)}
+                  className={`flex-1 rounded-lg border-2 px-4 py-3 ${
+                    selected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                  }`}
+                >
+                  <Text
+                    className={`text-center text-base font-medium ${
+                      selected ? "text-brand-accent" : "text-gray-700"
+                    }`}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </Box>
+        </Box>
+
+        {formData.has_buyers_agent === "no" && (
+          <Pressable
+            onPress={toggleLookingForAgent}
+            className="flex flex-row items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3"
+          >
+            <Box
+              className={`h-5 w-5 items-center justify-center rounded border ${
+                formData.looking_for_buyers_agent
+                  ? "border-brand-accent bg-brand-accent"
+                  : "border-gray-300 bg-gray-50"
+              }`}
+            />
+            <Text className="text-sm font-medium text-gray-800">
+              I am looking for a buyer&apos;s agent
+            </Text>
+          </Pressable>
+        )}
       </Box>
     </Box>
   );

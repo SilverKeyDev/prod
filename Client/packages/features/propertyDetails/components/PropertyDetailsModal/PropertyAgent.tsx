@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Phone, User } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { BodyText, Title } from "packages/ui/components/index.web";
@@ -9,25 +9,25 @@ import { Image } from "packages/ui/components/primitives/media";
 import Card from "@/components/layout/Card.web";
 
 import type { PropertyComponentProps } from "./types";
-
 export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
-  const listedBy = (property as unknown as { listed_by: unknown }).listed_by;
-
+  const listedBy = (
+    property as unknown as {
+      listed_by: unknown;
+    }
+  ).listed_by;
   if (!listedBy || typeof listedBy !== "object") {
     return null;
   }
-
   const agent = listedBy as Record<string, unknown>;
   const imageUrl = agent.image_url as string | undefined;
   const displayName = agent.display_name as string | undefined;
   const businessName = agent.business_name as string | undefined;
   const phone = agent.phone as Record<string, unknown> | undefined;
-
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
-        <User className="h-5 w-5 text-gray-600" />
+        <Icon name="user" className="h-5 w-5 text-gray-600" />
         <Title as="h3" size="lg" className="text-brown font-semibold">
           {t("property_details.listing_agent")}
         </Title>
@@ -44,11 +44,9 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) =>
               />
             ) : (
               <div
-                className={`h-full w-full items-center justify-center ${
-                  imageUrl ? "hidden" : "flex"
-                }`}
+                className={`h-full w-full items-center justify-center ${imageUrl ? "hidden" : "flex"}`}
               >
-                <User className="text-brown/60 h-8 w-8" />
+                <Icon name="user" className="text-brown/60 h-8 w-8" />
               </div>
             )}
           </div>
@@ -64,13 +62,12 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) =>
             )}
             {phone && (
               <div className="text-brown mt-2 flex items-center">
-                <Phone className="mr-1 h-4 w-4" />
+                <Icon name="phone" className="mr-1 h-4 w-4" />
 
                 {(() => {
                   const ph = phone;
                   if (!ph) return "Phone available";
                   const { areacode, prefix, number } = ph;
-
                   // Type-safe string conversion with proper type guards
                   const safeStringify = (value: unknown): string => {
                     if (typeof value === "string") return value;
@@ -93,7 +90,6 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) =>
                       return "[Unknown]";
                     }
                   };
-
                   if (areacode && prefix && number) {
                     return `(${safeStringify(areacode)}) ${safeStringify(prefix)}-${safeStringify(number)}`;
                   }

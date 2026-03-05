@@ -1,5 +1,6 @@
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { ClientSelector } from "packages/ui/components/index.web";
+import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import SearchActions from "./SearchActions.web";
 import SearchHeaderLocations from "./SearchHeaderLocations.web";
@@ -40,20 +41,22 @@ export default function SearchHeader({
   const hasLocations = Array.isArray(locations) && locations.length > 0;
 
   return (
-    <div className="mb-responsive-md mb-6 mt-6 flex h-11 max-h-11 min-h-11 w-full flex-shrink-0 flex-wrap items-center justify-between gap-3">
+    <div
+      className={`mb-responsive-md mb-6 mt-6 flex w-full flex-shrink-0 flex-nowrap items-center justify-between gap-3 pr-8 ${HEADER_ROW_HEIGHT}`}
+    >
       {selectedClientId !== undefined && onClientChange ? (
-        <div className="flex h-11 max-h-11 min-h-11 shrink-0 items-center">
+        <div className="flex shrink-0">
           <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
         </div>
       ) : (
-        <div className="flex-1" />
+        <div className="min-w-0 flex-1" />
       )}
 
-      <div className="flex h-11 max-h-11 min-h-11 min-w-0 flex-1 items-center">
+      <div className="flex min-w-0 flex-1 items-center">
         <SearchHeaderLocations onPreferencesChanged={onPreferencesChanged} />
       </div>
 
-      <div className="ml-auto flex h-11 max-h-11 min-h-11 items-center gap-2 pr-8">
+      <div className="ml-auto flex items-center gap-2">
         <SearchActions
           onPreferencesChanged={onPreferencesChanged}
           onSearchProperties={onSearchProperties}

@@ -1,13 +1,12 @@
 import React from "react";
 
-import { ClipboardCheck, DollarSign, FileText, Home } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklists/types/checklists";
 import { BodyText, Button, Title } from "packages/ui/components/index.web";
 
 import MiniLogo from "@/components/asset/MiniLogo";
 import Card from "@/components/layout/Card.web";
-
 type ClosePageHeaderProps = {
   title: string;
   subtitle: string;
@@ -17,22 +16,34 @@ type ClosePageHeaderProps = {
   activeTab?: ChecklistTab;
   onTabChange?: (tab: ChecklistTab) => void;
 };
-
 const tabs: Array<{
   id: ChecklistTab;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{
+    className?: string;
+  }>;
 }> = [
-  { id: "escrow", label: CHECKLIST_TITLES.escrow, icon: FileText },
+  {
+    id: "escrow",
+    label: CHECKLIST_TITLES.escrow,
+    icon: (props) => <Icon name="file-text" {...props} />,
+  },
   {
     id: "inspections",
     label: CHECKLIST_TITLES.inspections,
-    icon: ClipboardCheck,
+    icon: (props) => <Icon name="clipboard-check" {...props} />,
   },
-  { id: "financing", label: CHECKLIST_TITLES.financing, icon: DollarSign },
-  { id: "closing", label: CHECKLIST_TITLES.closing, icon: Home },
+  {
+    id: "financing",
+    label: CHECKLIST_TITLES.financing,
+    icon: (props) => <Icon name="dollar-sign" {...props} />,
+  },
+  {
+    id: "closing",
+    label: CHECKLIST_TITLES.closing,
+    icon: (props) => <Icon name="home" {...props} />,
+  },
 ];
-
 export default function ClosePageHeader({
   title,
   subtitle: _subtitle, // hidden below the main title per design

@@ -1,9 +1,8 @@
-import type { LucideIcon } from "lucide-react";
-import { Calendar, ClipboardCheck, FileSignature, FileText, Receipt } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { BodyText, Subtitle } from "packages/ui/components/index.web";
-
+import type { IconName } from "packages/ui/types/icons";
 interface DocumentCardHeaderProps {
   /**
    * Document title to display
@@ -18,24 +17,22 @@ interface DocumentCardHeaderProps {
    */
   uploadedDate: string;
 }
-
 /**
- * Maps document type to appropriate Lucide icon
+ * Maps document type to appropriate icon name.
  */
-function getDocumentIcon(documentType: string | null): LucideIcon {
+function getDocumentIconName(documentType: string | null): IconName {
   switch (documentType) {
     case "contract":
-      return FileSignature;
+      return "file-signature";
     case "inspection":
-      return ClipboardCheck;
+      return "clipboard-check";
     case "financial":
-      return Receipt;
+      return "receipt";
     case "report":
     default:
-      return FileText;
+      return "file-text";
   }
 }
-
 /**
  * Formats document type for display, returning 'other' if type is null or unknown
  */
@@ -43,18 +40,14 @@ function formatDocumentType(documentType: string | null): string {
   if (!documentType) {
     return "other";
   }
-
   const normalizedType = documentType.toLowerCase();
   const validTypes = ["report", "contract", "inspection", "financial"];
-
   if (validTypes.includes(normalizedType)) {
     // Capitalize first letter
     return normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1);
   }
-
   return "other";
 }
-
 /**
  * Document card header component displaying icon, title, and upload date.
  * Icon changes based on document type.
@@ -65,15 +58,14 @@ export default function DocumentCardHeader({
   uploadedDate,
 }: DocumentCardHeaderProps) {
   const { t } = useLocalization();
-  const Icon = getDocumentIcon(documentType);
+  const documentIconName = getDocumentIconName(documentType);
   const displayType = formatDocumentType(documentType);
-
   return (
     <>
       {/* Header with icon and title */}
       <div className="mb-2 flex items-start gap-3">
         <div className="text-brown flex-shrink-0">
-          <Icon size={24} />
+          <Icon name={documentIconName} size={24} />
         </div>
         <div className="h-[2.75rem] min-w-0 flex-1 overflow-hidden">
           <Subtitle size="sm" className="line-clamp-2">
@@ -91,7 +83,7 @@ export default function DocumentCardHeader({
 
       {/* Upload date */}
       <div className="mb-4 flex items-center gap-2">
-        <Calendar size={14} className="flex-shrink-0 text-gray-400" />
+        <Icon name="calendar" size={14} className="flex-shrink-0 text-gray-400" />
         <BodyText size="xs" muted>
           {t("documents.uploaded", { date: uploadedDate })}
         </BodyText>
