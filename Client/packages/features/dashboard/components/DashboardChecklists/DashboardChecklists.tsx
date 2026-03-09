@@ -8,7 +8,8 @@ import {
 } from "packages/features/checklists";
 import { useViewStore, type ViewState } from "packages/store";
 import { CHECKLIST_SUBTITLES, CHECKLIST_TITLES, type ChecklistTab } from "packages/types";
-import { ClientSelector } from "packages/ui/components/index.web";
+
+import { ClientSelector } from "@/components/ui";
 
 import DashboardChecklistsHeader from "./DashboardChecklistsHeader";
 

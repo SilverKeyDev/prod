@@ -9,6 +9,12 @@ export type VideoProps = {
   className?: string;
   /** "cover" | "contain" | "stretch" — maps to expo-av ResizeMode. */
   resizeMode?: "cover" | "contain" | "stretch";
+  /** Control playback; defaults to true for backwards-compat. */
+  shouldPlay?: boolean;
+  /** Looping; defaults to true. */
+  isLooping?: boolean;
+  /** Mute audio. Defaults to true (autoplay-safe). */
+  isMuted?: boolean;
   /** HLS and standard video URLs are supported by the native player. */
   children?: React.ReactNode;
 };
@@ -25,7 +31,7 @@ const RESIZE_MODE_MAP: Record<NonNullable<VideoProps["resizeMode"]>, ExpoResizeM
  * Web uses <video> (Video.web.tsx).
  */
 const Video = forwardRef<ExpoVideo, VideoProps>(function Video(
-  { source, style, resizeMode = "cover" },
+  { source, style, resizeMode = "cover", shouldPlay = true, isLooping = true, isMuted = true },
   ref
 ) {
   const uri = source?.uri;
@@ -42,8 +48,9 @@ const Video = forwardRef<ExpoVideo, VideoProps>(function Video(
       style={style}
       resizeMode={RESIZE_MODE_MAP[resizeMode]}
       useNativeControls={false}
-      isLooping
-      shouldPlay
+      isLooping={isLooping}
+      shouldPlay={shouldPlay}
+      isMuted={isMuted}
     />
   );
 });

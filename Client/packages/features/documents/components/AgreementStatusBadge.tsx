@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 
-import { BodyText } from "packages/ui/components/index.web";
+import { BodyText } from "@/components/ui";
+
+import { getAgreementStatusIcon } from "./agreementsIcons";
 
 type AgreementStatusBadgeProps = {
   status: string;
@@ -49,14 +51,16 @@ export default function AgreementStatusBadge({
     return sizes[size];
   }, [size]);
 
+  const StatusIcon = getAgreementStatusIcon(status);
+
   return (
     <BodyText
       as="span"
       size={size === "lg" ? "md" : size === "md" ? "sm" : "xs"}
       className={`inline-flex items-center gap-1.5 rounded-full border font-medium ${colorClass} ${sizeClasses} ${className}`}
-      title={tooltip}
+      title={label}
     >
-      {showIcon && <Icon className={iconSizes} />}
+      {showIcon && <StatusIcon className={iconSizes} />}
       {label}
     </BodyText>
   );

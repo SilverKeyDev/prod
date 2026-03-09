@@ -1,5 +1,6 @@
-import { BodyText } from "packages/ui/components/index.web";
 import BaseModal from "packages/ui/components/modals/BaseModal";
+
+import { BodyText } from "@/components/ui";
 
 interface SchedulingModalProps {
   isOpen: boolean;

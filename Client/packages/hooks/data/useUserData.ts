@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { preferencesApi, userApi } from "packages/config/api";
 import { queryKeys } from "packages/config/query/keys";
@@ -73,9 +73,12 @@ export type UseUserPreferencesReturn = {
   preferencesLoading: boolean;
   preferencesError: string | null;
   refreshUserPreferences: () => Promise<void>;
+  updatePreferences: (preferences: Partial<UserPreferences>) => Promise<void>;
+  isUpdating: boolean;
 };
 
 export function useUserPreferences(): UseUserPreferencesReturn {
+  const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
 
@@ -98,15 +101,37 @@ export function useUserPreferences(): UseUserPreferencesReturn {
     refetchOnMount: false, // Don't refetch if data exists (matches reports)
   });
 
+  const updatePreferencesMutation = useMutation({
+    mutationFn: async (preferences: Partial<UserPreferences>) => {
+      const response = await preferencesApi.createOrUpdate(preferences);
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to update preferences");
+      }
+      return response.preferences;
+    },
+    onSuccess: (updatedPreferences) => {
+      queryClient.setQueryData(queryKeys.user.preferences(), updatedPreferences);
+    },
+  });
+
   const refreshUserPreferences = useCallback(async () => {
     await refetchUserPreferences();
   }, [refetchUserPreferences]);
+
+  const updatePreferences = useCallback(
+    async (preferences: Partial<UserPreferences>) => {
+      await updatePreferencesMutation.mutateAsync(preferences);
+    },
+    [updatePreferencesMutation]
+  );
 
   return {
     userPreferences: userPreferences ?? null,
     preferencesLoading,
     preferencesError: preferencesError?.message ?? null,
     refreshUserPreferences,
+    updatePreferences,
+    isUpdating: updatePreferencesMutation.isPending,
   };
 }
 

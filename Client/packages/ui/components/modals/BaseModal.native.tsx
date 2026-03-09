@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
 
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
+import { Text } from "packages/ui/components/primitives";
 
 import type { BaseModalProps } from "./BaseModalTypes";
 

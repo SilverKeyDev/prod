@@ -10,7 +10,8 @@ import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAu
 import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginResult";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { Button, Input } from "packages/ui/components/index.web";
+
+import { Button, Input } from "@/components/ui";
 export function LoginFeature() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

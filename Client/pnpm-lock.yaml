@@ -201,8 +201,8 @@ importers:
         specifier: ^1.16.0
         version: 1.20.7(react-native-reanimated@3.18.2(@babel/core@7.29.0)(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.25)(react@18.3.1))(react@18.3.1))(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.25)(react@18.3.1))(react@18.3.1)
       react-native-maps:
-        specifier: 1.18.0
-        version: 1.18.0(react-native-web@0.19.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.25)(react@18.3.1))(react@18.3.1)
+        specifier: 1.21.0
+        version: 1.21.0(react-native-web@0.19.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.25)(react@18.3.1))(react@18.3.1)
       react-native-phone-number-input:
         specifier: ^2.1.0
         version: 2.1.0(@types/react@18.3.25)(react-art@16.13.1(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react-native-web@0.19.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.25)(react@18.3.1))(react@18.3.1)
@@ -9583,15 +9583,15 @@ packages:
       react-native: "*"
       react-native-reanimated: ">=3.0.0"
 
-  react-native-maps@1.18.0:
+  react-native-maps@1.21.0:
     resolution:
       {
-        integrity: sha512-S17nYUqeMptgIPaAZuVRo+eRelPreBBYQWw6jsxU7qQ12p+THSfFaqabcNn7fBmsXhT3T27iIl8ek8v1H8BaGw==,
+        integrity: sha512-PAy2nnQGlea93BYaiu7OU5YGgx3l6oOV9mUYW/Mc2G0rvqSLHuXVzGqX1SbfC1kdk6fQ/smNf86q4Q+FW+RntQ==,
       }
     engines: { node: ">=18" }
     peerDependencies:
-      react: ">= 17.0.1"
-      react-native: ">= 0.64.3"
+      react: ">= 18.3.1"
+      react-native: ">= 0.76.0"
       react-native-web: ">= 0.11"
     peerDependenciesMeta:
       react-native-web:
@@ -18048,7 +18048,7 @@ snapshots:
       react-native-is-edge-to-edge: 1.2.1(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.25)(react@18.3.1))(react@18.3.1)
       react-native-reanimated: 3.18.2(@babel/core@7.29.0)(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.25)(react@18.3.1))(react@18.3.1)
 
-  react-native-maps@1.18.0(react-native-web@0.19.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.25)(react@18.3.1))(react@18.3.1):
+  react-native-maps@1.21.0(react-native-web@0.19.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.25)(react@18.3.1))(react@18.3.1):
     dependencies:
       "@types/geojson": 7946.0.16
       react: 18.3.1

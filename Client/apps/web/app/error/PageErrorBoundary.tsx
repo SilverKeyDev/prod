@@ -9,7 +9,8 @@ import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link } from "packages/navigation";
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
+
+import { BodyText, Button, Title } from "@/components/ui";
 type PageErrorBoundaryProps = {
   children: ReactNode;
   /** Optional label for the page (e.g. "Search", "Saved") for the error message. */

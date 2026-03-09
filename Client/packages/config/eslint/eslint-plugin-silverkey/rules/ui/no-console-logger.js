@@ -44,8 +44,16 @@ module.exports = {
       return {};
     }
 
-    // Allow in Node scripts
-    if (exceptions.nodeScripts && (filename.includes("scripts/") || filename.includes("tools/"))) {
+    // Allow in Node scripts and build config (Metro, Babel, Tailwind)
+    if (
+      exceptions.nodeScripts &&
+      (filename.includes("scripts/") ||
+        filename.includes("tools/") ||
+        filename.includes("metroTransformerWrapper") ||
+        filename.includes("metro.config") ||
+        filename.includes("babel.config") ||
+        filename.includes("tailwind.config"))
+    ) {
       return {};
     }
 

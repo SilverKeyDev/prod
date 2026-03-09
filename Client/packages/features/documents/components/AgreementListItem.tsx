@@ -1,8 +1,8 @@
 import { Icon } from "@ui/icons";
 
 import { useAuthStore } from "packages/store";
-import { BodyText, IconButton, Title } from "packages/ui/components/index.web";
 
+import { BodyText, IconButton, Title } from "@/components/ui";
 import type { Agreement } from "@/features/documents/types/agreements";
 import {
   calculateSigningProgress,

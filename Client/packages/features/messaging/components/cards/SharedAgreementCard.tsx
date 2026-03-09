@@ -4,7 +4,8 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { AgreementDetailModal } from "packages/features/documents";
-import { BodyText, KeyTurnLoader } from "packages/ui/components/index.web";
+
+import { BodyText } from "@/components/ui";
 type SharedAgreementCardProps = {
   agreementId: string;
   compact?: boolean;

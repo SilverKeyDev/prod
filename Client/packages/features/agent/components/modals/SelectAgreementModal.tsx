@@ -1,12 +1,5 @@
-import {
-  BodyText,
-  Button,
-  CancelButton,
-  CloseButton,
-  Title,
-} from "packages/ui/components/index.web";
-
 import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, Button, CancelButton, CloseButton, Title } from "@/components/ui";
 
 type Agreement = {
   title?: string;

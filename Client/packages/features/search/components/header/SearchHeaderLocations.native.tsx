@@ -1,15 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Input from "@ui/form/Input";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { useUserPreferences } from "packages/hooks/data/useUserData";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-import { CloseButton } from "packages/ui/components/button/CloseButton";
-import { Box } from "packages/ui/components/primitives/box";
-import { Input } from "packages/ui/components/primitives/input";
-import { Text } from "packages/ui/components/primitives/text";
+import CloseButton from "packages/ui/components/button/CloseButton";
+import { ScrollView } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.native";
 
@@ -31,10 +32,13 @@ function truncateAddress(address: string): string {
 export type SearchHeaderLocationsNativeProps = {
   /** Called after locations are saved (e.g. refresh isochrone) */
   onPreferencesChanged?: () => void | Promise<void>;
+  /** When true, trigger does not use flex-1 (for use as right side of criteria bar). */
+  compact?: boolean;
 };
 
 export function SearchHeaderLocationsNative({
   onPreferencesChanged,
+  compact = false,
 }: SearchHeaderLocationsNativeProps): React.ReactElement {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [localLocations, setLocalLocations] = useState<SearchImportantLocation[]>([]);
@@ -168,32 +172,34 @@ export function SearchHeaderLocationsNative({
     return (
       <Pressable
         onPress={handleOpenSheet}
-        className={`flex-1 flex-row items-center justify-between gap-2 overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-white/70 px-3 ${HEADER_ROW_HEIGHT}`}
+        className={`flex-row items-center justify-between gap-2 overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-white/70 px-3 ${HEADER_ROW_HEIGHT} ${compact ? "shrink-0" : "min-w-0 flex-1"}`}
       >
         {hasLocations ? (
           <>
-            <Box className="min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center gap-x-2 overflow-hidden">
-              {locationsList.slice(0, MAX_VISIBLE).map((loc, i) => (
-                <Box
-                  key={`${loc.address}-${loc.commute_tolerance ?? ""}-${i}`}
-                  className="shrink-0 flex-row items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5"
-                >
-                  <Text className="max-w-28 truncate text-xs text-gray-700" numberOfLines={1}>
-                    {truncateAddress(loc.address)}
-                  </Text>
-                  {loc.commute_tolerance != null ? (
-                    <Text className="shrink-0 text-xs text-gray-500" numberOfLines={1}>
-                      {commuteLabel(loc.commute_tolerance)}
+            {!compact && (
+              <Box className="min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center gap-x-2 overflow-hidden">
+                {locationsList.slice(0, MAX_VISIBLE).map((loc, i) => (
+                  <Box
+                    key={`${loc.address}-${loc.commute_tolerance ?? ""}-${i}`}
+                    className="shrink-0 flex-row items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5"
+                  >
+                    <Text className="max-w-28 truncate text-xs text-gray-700" numberOfLines={1}>
+                      {truncateAddress(loc.address)}
                     </Text>
-                  ) : null}
-                </Box>
-              ))}
-              {locationsList.length > MAX_VISIBLE ? (
-                <Text className="shrink-0 text-xs text-gray-500">
-                  {moreLabel(locationsList.length - MAX_VISIBLE)}
-                </Text>
-              ) : null}
-            </Box>
+                    {loc.commute_tolerance != null ? (
+                      <Text className="shrink-0 text-xs text-gray-500" numberOfLines={1}>
+                        {commuteLabel(loc.commute_tolerance)}
+                      </Text>
+                    ) : null}
+                  </Box>
+                ))}
+                {locationsList.length > MAX_VISIBLE ? (
+                  <Text className="shrink-0 text-xs text-gray-500">
+                    {moreLabel(locationsList.length - MAX_VISIBLE)}
+                  </Text>
+                ) : null}
+              </Box>
+            )}
             <Text className="shrink-0 text-sm text-gray-400">
               {SEARCH_TRANSLATIONS["search.edit_locations"] ?? "Edit locations"}
             </Text>

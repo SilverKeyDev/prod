@@ -4,12 +4,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
 import { useFiltersStore } from "packages/store";
-import { useUserStore } from "packages/store";
 import type { SearchResult } from "packages/types";
 import { createGuardedSetter } from "packages/utils";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 type UseSearchResultsReturn = {
   searchResults: SearchResult[];
@@ -42,8 +39,6 @@ type UseSearchResultsReturn = {
 };
 
 export const useSearchResults = (): UseSearchResultsReturn => {
-  const userPreferences = useUserStore((state) => state.userPreferences);
-
   const [searchResults, _setSearchResults] = useState<SearchResult[]>([]);
   const [savedHomes, _setSavedHomes] = useState<SearchResult[]>([]);
 
@@ -66,64 +61,9 @@ export const useSearchResults = (): UseSearchResultsReturn => {
   const PROPERTIES_PER_PAGE = 1;
 
   useEffect(() => {
-    const initializeSearchResults = () => {
-      try {
-        let currentPreferencesVersion = "0";
-
-        try {
-          if (userPreferences) {
-            currentPreferencesVersion = userPreferences.preferences_version ?? "1.0";
-          }
-        } catch (error: unknown) {
-          log.warn(LOG_CATEGORIES.SEARCH, "Error accessing user preferences", error);
-        }
-
-        const local = getLocalStorage();
-        const savedSearchResults = local.getItem("searchResults");
-        const savedPreferencesVersion = local.getItem("searchResultsPreferencesVersion");
-
-        if (savedSearchResults && savedPreferencesVersion === currentPreferencesVersion) {
-          try {
-            const parsedResults = JSON.parse(savedSearchResults) as unknown[];
-            if (Array.isArray(parsedResults) && parsedResults.length > 0) {
-              const validResults = parsedResults.filter(
-                (result: unknown): result is SearchResult => {
-                  return (
-                    result !== null &&
-                    typeof result === "object" &&
-                    "id" in result &&
-                    "address" in result
-                  );
-                }
-              );
-
-              if (validResults.length > 0) {
-                log.info(LOG_CATEGORIES.SEARCH, "Loaded search results from localStorage", {
-                  count: validResults.length,
-                });
-                setSearchResults(validResults);
-                setHasSearched(true);
-              }
-            }
-          } catch (error: unknown) {
-            log.warn(LOG_CATEGORIES.SEARCH, "Error parsing saved search results", error);
-          }
-        } else {
-          log.info(
-            LOG_CATEGORIES.SEARCH,
-            "Preferences version mismatch or no saved results. Will run fresh search"
-          );
-        }
-
-        setIsLocalStorageLoaded(true);
-      } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.ERRORS, "Error initializing search results", error);
-        setIsLocalStorageLoaded(true);
-      }
-    };
-
-    void initializeSearchResults();
-  }, [setSearchResults, userPreferences]);
+    // Search results come from DB via useSearchResultsData - no localStorage
+    setIsLocalStorageLoaded(true);
+  }, []);
 
   const paginatedSearchResults = useMemo(
     () =>

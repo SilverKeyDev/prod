@@ -4,7 +4,8 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import { BodyText } from "packages/ui/components/index.web";
+
+import { BodyText } from "@/components/ui";
 const MAX_VISIBLE = 3;
 const ADDRESS_MAX_LENGTH = 28;
 function truncateAddress(address: string): string {

@@ -1,9 +1,9 @@
 import { useLocalization } from "packages/contexts";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
-import { BodyText } from "packages/ui/components/index.web";
 
 import { PropertyCard } from "@/components/cards";
 import { CardCarousel, CardHeartSaveWithProps } from "@/components/cards/base/index.web";
+import { BodyText } from "@/components/ui";
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
 import type { SearchResult } from "@/features/search/types";
 

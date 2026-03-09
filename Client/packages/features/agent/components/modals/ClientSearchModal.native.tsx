@@ -7,7 +7,7 @@ import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAuthStore } from "packages/store";
 import { useUIStore } from "packages/store";
 import { Loading } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 import { useAgentSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
@@ -88,7 +88,7 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
             <View style={styles.centered}>
               <Loading />
             </View>
-          ) : items.length === 0 ? (
+          ) : list.length === 0 ? (
             <View style={styles.centered}>
               <Text className="text-sm text-gray-500">No results found</Text>
             </View>
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    backgroundColor: "#fff",
+    backgroundColor: color("neutral.50"),
   },
   list: {
     maxHeight: 360,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: color("neutral.200"),
-    backgroundColor: "#fff",
+    backgroundColor: color("neutral.50"),
     overflow: "hidden",
   },
   itemPressable: {

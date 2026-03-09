@@ -9,7 +9,8 @@ import {
 } from "packages/features/checklists/hooks/data/useChecklistData";
 import Card from "packages/ui/components/cards/Card";
 import ChecklistCheckbox from "packages/ui/components/form/ChecklistCheckbox";
-import { BodyText } from "packages/ui/components/index.web";
+
+import { BodyText } from "@/components/ui";
 // Shared CSS classes - now using Card component instead with mobile-first responsive design
 const sectionTitle =
   "text-responsive-xs font-semibold text-navy flex items-center gap-responsive-xs mb-responsive-md";

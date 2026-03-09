@@ -4,9 +4,9 @@ import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import { ClientSelector } from "packages/ui/components/index.web";
 import { dateNow } from "packages/utils/date";
 
+import { ClientSelector } from "@/components/ui";
 import {
   useCalendarErrorToasts,
   useCalendarOAuthCallback,

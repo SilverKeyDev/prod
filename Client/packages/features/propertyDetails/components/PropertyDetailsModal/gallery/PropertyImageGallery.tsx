@@ -3,11 +3,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { Button } from "packages/ui/components/index.web";
+import type { PropertyImageGalleryProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { getWindow } from "packages/utils/platform";
 
 import { StyledImage } from "@/components/cards/base/image";
-import type { PropertyImageGalleryProps } from "@/components/modals/PropertyDetailsModal/types";
+import { Button } from "@/components/ui";
 import { getPropertyImages } from "@/features/search/types/search/propertyDetailsFormatters";
 
 import { PropertyImageGalleryFullScreen } from "./PropertyImageGalleryFullScreen";

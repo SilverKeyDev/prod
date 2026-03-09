@@ -57,6 +57,20 @@ export default tseslint.config(
     files: ["**/*.{js,jsx,ts,tsx}"],
     plugins: { silverkey },
     rules: {
+      // Platform variants: prevent ad-hoc imports of .web/.native modules; keep divergence in config/platform/variants.json
+      "silverkey/platform-variants-exception-list": [
+        "warn",
+        {
+          allowlist: [],
+        },
+      ],
+      // UI primitives: ensure core primitives (Button, Title, Box, etc.) come from shared UI modules, not ad-hoc feature modules
+      "silverkey/require-platform-primitives": [
+        "warn",
+        {
+          primitiveNames: undefined,
+        },
+      ],
       "silverkey/max-lines-hard": [
         "warn",
         { warnAt: 500, max: 650, ignorePatterns: ["dist/", "build/", "coverage/", ".d.ts"] },
@@ -73,7 +87,7 @@ export default tseslint.config(
       // Allow 15–16 item folders (modals, HomeAuth, hooks/data/auth) to avoid fragmentation; warn at 17+, error at 20+
       "silverkey/folder-max-items": [
         "warn",
-        { warnAt: 17, errorAt: 20, skipDirNames: ["Client", "api"] },
+        { warnAt: 17, errorAt: 20, skipDirNames: ["Client", "api", "features"] },
       ],
       "silverkey/no-empty-folders": [
         "error",
@@ -126,7 +140,14 @@ export default tseslint.config(
         "error",
         {
           scopeDir: "packages/features",
-          allowedRootFiles: ["index.ts", "index.tsx", "index.js", "README.md", "native.ts"],
+          allowedRootFiles: [
+            "index.ts",
+            "index.tsx",
+            "index.js",
+            "index.native.ts",
+            "README.md",
+            "native.ts",
+          ],
         },
       ],
     },

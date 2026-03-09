@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
-import { Input, Label, Textarea } from "packages/ui/components/index.web";
+
+import { Input, Label, Textarea } from "@/components/ui";
 
 type TimeSlot = { start: Date; end: Date; isAvailable: boolean };
 

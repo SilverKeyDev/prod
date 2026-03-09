@@ -2,9 +2,9 @@ import React from "react";
 
 import { Modal, View } from "react-native";
 
-import { Box } from "packages/ui/components/primitives/box";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives/button";
-import { Text } from "packages/ui/components/primitives/text";
 
 import type { ConfirmationDialogProps } from "./ConfirmationDialog.types";
 

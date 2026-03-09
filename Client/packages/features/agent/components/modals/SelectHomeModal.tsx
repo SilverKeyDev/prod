@@ -5,9 +5,9 @@ import { Icon } from "@ui/icons";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
-import { BodyText, Title } from "packages/ui/components/index.web";
 
 import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, Title } from "@/components/ui";
 import { useSavedHomesData } from "@/features/search/hooks/data/saved/useSavedHomesData";
 import type { SavedHome } from "@/features/search/types/property";
 type SelectHomeModalProps = {

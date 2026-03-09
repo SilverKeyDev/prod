@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ui-root-barrel",
+    "kind": "layout",
+    "module": "@/components/ui",
+    "platformIndependent": true
+  },
+  {
+    "id": "ui-primitives-root",
+    "kind": "layout",
+    "module": "packages/ui/components/primitives",
+    "platformIndependent": true
+  },
+  {
+    "id": "ui-primitives-media",
+    "kind": "layout",
+    "module": "packages/ui/components/primitives/media",
+    "platformIndependent": true
+  },
+  {
+    "id": "ui-root-alias",
+    "kind": "layout",
+    "module": "@ui",
+    "platformIndependent": true
+  }
+]

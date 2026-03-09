@@ -3,11 +3,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { CommonActions } from "@react-navigation/native";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
 import { color } from "packages/design-tokens";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { Text } from "packages/ui/components/primitives";
 
 import { runPlatformBootstrap } from "@/bootstrap/platformBootstrap.native";
 

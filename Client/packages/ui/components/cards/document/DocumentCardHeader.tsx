@@ -1,8 +1,9 @@
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText, Subtitle } from "packages/ui/components/index.web";
 import type { IconName } from "packages/ui/types/icons";
+
+import { BodyText, Subtitle } from "@/components/ui";
 interface DocumentCardHeaderProps {
   /**
    * Document title to display

@@ -4,7 +4,8 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { CompareHomesComparisonField } from "packages/features/compare/utils/types";
-import { BodyText, Input, Label } from "packages/ui/components/index.web";
+
+import { BodyText, Input, Label } from "@/components/ui";
 type ManageRowsModalFieldRowProps = {
   field: CompareHomesComparisonField;
   index: number;

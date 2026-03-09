@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { useUIStore } from "packages/store";
+import { Text } from "packages/ui/components/primitives";
 import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
 
 const TOAST_DURATION_MS = 3000;

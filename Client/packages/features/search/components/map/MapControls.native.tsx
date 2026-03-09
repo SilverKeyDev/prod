@@ -5,9 +5,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import { Icon } from "packages/ui/components/icons/Icon.native";
+import { Icon } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 export type MapControlsNativeProps = {
   page: number;

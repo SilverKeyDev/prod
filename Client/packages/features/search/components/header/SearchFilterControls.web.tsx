@@ -7,9 +7,9 @@ import {
 } from "packages/features/search/types/search/searchFilterSummaries";
 import { useContainerWidth } from "packages/hooks/ui/useContainerWidth";
 import { useSearchContextStore } from "packages/store";
-import { BodyText, Button, DropdownChevron, Popover } from "packages/ui/components/index.web";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
+import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 import { HOUSING_TYPE_OPTIONS } from "@/features/profile/utils";
 import BedBathFilter from "@/features/search/components/filters/BedBathFilter.web";

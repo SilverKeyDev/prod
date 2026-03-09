@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
 
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { useDocumentActions, useDocumentsStoreIntegration } from "packages/features/documents";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
 import { PdfModal } from "packages/ui/components/modals";
+import { ScrollView } from "packages/ui/components/primitives";
 import { Box, Loading, Pressable, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 

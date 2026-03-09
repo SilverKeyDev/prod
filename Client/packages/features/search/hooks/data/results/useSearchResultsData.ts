@@ -23,18 +23,17 @@ export type UseSearchResultsDataReturn = {
 };
 
 /**
- * Hook for managing search results with React Query
- * Replaces localStorage-based caching with React Query cache
+ * Hook for managing search results with React Query.
+ * Always fetches current search results from the database when visiting the search page.
+ * No localStorage or client-side cache - results come from the backend (HomeUniversal table).
  */
 export function useSearchResultsData(): UseSearchResultsDataReturn {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
 
-  // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
-  // Fetch cached search results on mount
   const {
     data: searchResultsData,
     isLoading,
@@ -43,13 +42,11 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
   } = useQuery({
     queryKey: queryKeys.search.results(),
     queryFn: async () => {
-      // Call search API which will return cached results if available
-      // Backend handles cache validation and returns cached or performs new search
       try {
-        log.debug(LOG_CATEGORIES.SEARCH, "Fetching cached search results");
+        log.debug(LOG_CATEGORIES.SEARCH, "Fetching search results from database");
         const response = await searchApi.searchByPolygon({
           perBucketPages: 20,
-          onlyCached: true, // Only fetch cached results, don't trigger search
+          onlyCached: true, // Return stored results from DB (HomeUniversal), don't trigger new search
         });
 
         if (!response.success) {
@@ -59,39 +56,31 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
           return [] as SearchResult[];
         }
 
-        // Transform API response to SearchResult format
         const transformedResults = transformSearchResponse(response);
 
-        // Log cache status if available
-        if (response.meta?.cached) {
-          log.info(LOG_CATEGORIES.SEARCH, "Loaded cached search results", {
+        if (transformedResults.length > 0) {
+          log.info(LOG_CATEGORIES.SEARCH, "Loaded search results from database", {
             count: transformedResults.length,
-            cacheAge: response.meta.cacheAge,
           });
         } else {
-          log.info(LOG_CATEGORIES.SEARCH, "No cached results available, returned empty");
+          log.info(LOG_CATEGORIES.SEARCH, "No search results in database, returned empty");
         }
 
         return transformedResults;
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch cached search results", error);
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch search results from database", error);
         return [] as SearchResult[];
       }
     },
     enabled: shouldLoadData,
-    // Use placeholderData to provide cached data immediately when query becomes enabled
-    placeholderData: (previousValue) => {
-      const cached = queryClient.getQueryData<SearchResult[]>(queryKeys.search.results());
-      return cached ?? previousValue ?? [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for this long
-    gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
-    refetchOnWindowFocus: false,
-    refetchOnMount: false, // Don't refetch if data exists (cached from initial load)
-    refetchOnReconnect: false,
+    staleTime: 0, // Always consider stale so we refetch from DB on mount
+    gcTime: 5 * 60 * 1000, // 5 minutes - keep in memory for quick back/forward
+    refetchOnMount: true, // Always fetch fresh from DB when visiting search page
+    refetchOnWindowFocus: true, // Refetch when returning to tab
+    refetchOnReconnect: true,
   });
 
-  // Mutation to set search results (updates cache)
+  // Mutation to set search results (updates React Query cache after new search)
   const setSearchResultsMutation = useMutation({
     mutationFn: async (results: SearchResult[]) => {
       // Update cache directly

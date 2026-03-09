@@ -1,7 +1,6 @@
 import { Icon } from "@ui/icons";
 
-import { BodyText, Button } from "packages/ui/components/index.web";
-
+import { BodyText, Button } from "@/components/ui";
 import type { AgreementRevision } from "@/features/documents/types/agreements";
 import { formatAgreementDateTime } from "@/features/documents/utils/agreements";
 

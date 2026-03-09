@@ -81,6 +81,7 @@ async function main() {
       if (scenario.localStorage?.length) {
         await context.addInitScript((entries) => {
           try {
+            /* eslint-disable-next-line no-undef */
             for (const [k, v] of entries) window.localStorage.setItem(k, v);
           } catch {
             // ignore

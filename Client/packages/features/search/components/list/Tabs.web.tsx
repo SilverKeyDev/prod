@@ -1,6 +1,6 @@
 import { useLocalization } from "packages/contexts";
-import { BodyText } from "packages/ui/components/index.web";
 
+import { BodyText } from "@/components/ui";
 import { UnderlineTabs } from "@/components/ui/tabs/index.web";
 
 export function Tabs(props: {

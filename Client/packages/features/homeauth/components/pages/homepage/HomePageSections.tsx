@@ -1,9 +1,9 @@
 import { Icon } from "@ui/icons";
 
 import { Link, ROUTES } from "packages/navigation";
-import { BodyText, Button, CloseButton, Title } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 
+import { BodyText, Button, CloseButton, Title } from "@/components/ui";
 import RippleBackground from "@/features/homeauth/components/homepage/RippleBackground.web";
 
 import KeyLogo from "/logo.png?url";

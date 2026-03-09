@@ -9,10 +9,10 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { formatFileSize, processImage } from "packages/services/security/imageProcessor";
 import { log } from "packages/services/security/secureLogger";
-import { BodyText, Button, Input, Label, Title } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Button, Input, Label, Title } from "@/components/ui";
 type SecureFileUploadProps = {
   onFilesProcessed: (files: ProcessedImage[]) => void;
   maxFiles?: number;

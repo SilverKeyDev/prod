@@ -1,8 +1,8 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText } from "packages/ui/components/index.web";
 
+import { BodyText } from "@/components/ui";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 
 const BED_TICKS = [0, 1, 2, 3, 4, 5, 6, 7, 8];

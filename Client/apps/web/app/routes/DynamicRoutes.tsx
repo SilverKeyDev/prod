@@ -3,8 +3,10 @@ import { useMemo } from "react";
 import { Navigate, Route, useLocation } from "react-router-dom";
 
 import type { UserProfile } from "@/features/homeauth/types";
+import AdminPage from "@/pages/AdminPage";
 
-import { createProtectedRoute, ROUTE_CONFIGS } from "./RouteConfig";
+import { createProtectedRoute } from "./RouteConfig";
+import { ROUTE_CONFIGS } from "./routeConfigExports";
 
 function SettingsRedirect() {
   const location = useLocation();
@@ -25,8 +27,8 @@ function useProtectedDashboardElement(user: UserProfile | null, handleLogout: ()
 export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
   const protectedElement = useProtectedDashboardElement(user, handleLogout);
 
-  const routes = useMemo(
-    () => [
+  const routes = useMemo(() => {
+    const baseRoutes = [
       /* Redirect deprecated routes */
       <Route
         key="buyer-checklists-redirect"
@@ -46,9 +48,14 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
       ...ROUTE_CONFIGS.specialized.map(({ path }) => (
         <Route key={path} path={path} element={protectedElement} />
       )),
-    ],
-    [protectedElement]
-  );
+    ];
+
+    // Admin route: always registered so /admin is reachable; access is enforced by AuthGuard + AdminGuard + step-up on the page.
+    // Use VITE_ENABLE_ADMIN_PANEL=false in production .env to optionally hide the route at build time if desired.
+    baseRoutes.push(<Route key="/admin" path="/admin" element={<AdminPage />} />);
+
+    return baseRoutes;
+  }, [protectedElement]);
 
   return routes;
 }

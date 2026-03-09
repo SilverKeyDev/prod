@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 
+import { spacing } from "packages/design-tokens";
 import RangeInput from "packages/ui/components/form/RangeInput";
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { formatNumber } from "packages/utils";
 
 type PriceRangeSliderProps = {
@@ -65,7 +66,7 @@ export default function PriceRangeSlider({
     onChange(fromSliderPercent(newSliderPercent));
   };
 
-  const trackHeight = 8;
+  const trackHeight = spacing(2);
   const valueBlock = (
     <Box className="flex flex-row items-center justify-center">
       <Text className="text-sm font-medium text-gray-900">{formattedValue(value)}</Text>
@@ -84,7 +85,7 @@ export default function PriceRangeSlider({
             <Box
               className="bg-gold absolute rounded-lg"
               style={{
-                left: 0,
+                left: spacing(0),
                 width: `${sliderValue}%`,
                 height: trackHeight,
                 borderRadius: 4,
@@ -93,8 +94,8 @@ export default function PriceRangeSlider({
             <Box
               className="absolute"
               style={{
-                left: 0,
-                right: 0,
+                left: spacing(0),
+                right: spacing(0),
                 height: trackHeight,
                 zIndex: 3,
               }}

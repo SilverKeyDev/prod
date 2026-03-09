@@ -1,7 +1,15 @@
 import React from "react";
 
-import { Dropdown } from "packages/ui/components/index.web";
+import {
+  ARCHITECTURAL_STYLE_OPTIONS,
+  HOME_AGE_OPTIONS,
+  LOT_SIZE_OPTIONS,
+  PROPERTY_USE_OPTIONS,
+  RENOVATION_OPTIONS,
+  WALKABILITY_OPTIONS,
+} from "packages/features/search/types/otherFilterOptions";
 
+import { Dropdown } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
 import OnPerTagInput from "@/features/profile/components/settings/inputs/TagInput.web";
@@ -12,15 +20,6 @@ import {
   parseHousingTypes,
   serializeHousingTypes,
 } from "@/features/profile/utils";
-
-import {
-  ARCHITECTURAL_STYLE_OPTIONS,
-  HOME_AGE_OPTIONS,
-  LOT_SIZE_OPTIONS,
-  PROPERTY_USE_OPTIONS,
-  RENOVATION_OPTIONS,
-  WALKABILITY_OPTIONS,
-} from "../../types/otherFilterOptions";
 
 export type OtherFilterContentProps = {
   formData: Partial<OnboardingData>;

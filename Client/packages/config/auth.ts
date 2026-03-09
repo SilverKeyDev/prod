@@ -154,6 +154,7 @@ export const AUTH_CONFIG = {
     "/offer-draft",
     "/negotiation",
     "/client-intel",
+    "/admin",
   ],
 
   // Default redirect routes

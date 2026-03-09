@@ -8,8 +8,8 @@ import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.we
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import CloseButton from "packages/ui/components/button/CloseButton";
-import { BodyText, Input, Textarea, Title } from "packages/ui/components/index.web";
 
+import { BodyText, Input, Textarea, Title } from "@/components/ui";
 import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 type ClientSearchModalProps = {

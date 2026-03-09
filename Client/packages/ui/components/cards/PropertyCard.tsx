@@ -4,8 +4,8 @@ import { getEnv } from "packages/config";
 import { useWhyRender } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/schemas/property";
-import { BodyText } from "packages/ui/components/index.web";
 
+import { BodyText } from "@/components/ui";
 import type { SearchResult } from "@/features/search/types";
 
 import { CardNotInterested, StyledImage } from "./base/index.web";

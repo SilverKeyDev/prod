@@ -1,5 +1,8 @@
 /**
- * Barrel so that "primitives/media/Image" and "./Image" resolve for TypeScript/ESLint.
- * Web build uses this; Metro resolves to Image.native.tsx for RN.
+ * Barrel so that "./Image" resolves for TypeScript/ESLint.
+ * Bundlers still pick the platform file:
+ * - Image.native.tsx for React Native
+ * - Image.web.tsx for web
  */
 export { default } from "./Image.web";
+export * from "./Image.web";

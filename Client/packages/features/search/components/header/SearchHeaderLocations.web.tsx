@@ -6,10 +6,10 @@ import { useLocalization } from "packages/contexts";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-import { BodyText, Button, Popover } from "packages/ui/components/index.web";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 import { getWindow } from "packages/utils/platform";
 
+import { BodyText, Button, Popover } from "@/components/ui";
 import LocationSection from "@/features/profile/components/sections/LocationSection";
 import type { OnboardingData } from "@/features/profile/utils";
 
@@ -117,8 +117,8 @@ export default function SearchHeaderLocations({
       panelClassName={SEARCH_HEADER_PANEL_CLASS_LOCATIONS}
       panelMaxHeight={SEARCH_HEADER_PANEL_MAX_HEIGHT}
       panelMinWidth="320px"
-      className="w-full min-w-0"
-      triggerWrapperClassName="w-full flex"
+      className="w-full min-w-0 flex-1"
+      triggerWrapperClassName="flex min-w-0 w-full flex-1"
       trigger={({ onToggle }) =>
         hasLocations ? (
           <Button
@@ -131,7 +131,7 @@ export default function SearchHeaderLocations({
           >
             <div className="scrollbar-hide flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
               <Icon name="map-pin" className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
                 {locationsList.slice(0, MAX_VISIBLE).map((loc, i) => (
                   <BodyText
                     key={`${loc.address}-${loc.commute_tolerance ?? ""}-${i}`}

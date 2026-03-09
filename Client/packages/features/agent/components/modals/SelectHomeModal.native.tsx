@@ -6,8 +6,8 @@ import { color } from "packages/design-tokens";
 import { useSavedHomesData } from "packages/features/search";
 import type { SavedHome } from "packages/types";
 import { Loading } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
 type SelectHomeModalNativeProps = {
   isOpen: boolean;
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: color("neutral.200"),
-    backgroundColor: "#fff",
+    backgroundColor: color("neutral.50"),
   },
   homeRowSelected: {
     borderColor: color("brand.accent"),

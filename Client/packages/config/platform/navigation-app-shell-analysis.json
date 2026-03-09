@@ -1,0 +1,491 @@
+{
+  "analysis_metadata": {
+    "total_files_analyzed": 25,
+    "analysis_date": "2026-03-09",
+    "directories_scanned": ["Client/apps/mobile/", "Client/packages/navigation/"],
+    "total_lines_analyzed": 1847
+  },
+  "consolidation_summary": {
+    "keep_native": 12,
+    "consolidate_high": 4,
+    "consolidate_medium": 5,
+    "extract_logic": 4,
+    "estimated_total_lines_saved": 487
+  },
+  "files": {
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/packages/navigation/router/routerContext.native.ts": {
+      "file_category": "navigation_adapter",
+      "platform_apis_used": ["React Navigation Context"],
+      "shared_logic_percentage": 0,
+      "shared_equivalent": null,
+      "justification": "Simple navigation context adapter - returns hardcoded true for React Navigation presence. Pure infrastructure.",
+      "estimated_lines_saved": 0,
+      "consolidation_strategy": "keep_native",
+      "consolidation_priority": "keep_native"
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/packages/navigation/hooks/useNavigation.native.ts": {
+      "file_category": "navigation_adapter",
+      "platform_apis_used": ["@react-navigation/native", "React Navigation APIs"],
+      "shared_logic_percentage": 25,
+      "shared_equivalent": "packages/navigation/hooks/useNavigation.web.ts",
+      "justification": "Navigation adapter that bridges React Navigation to shared interface. Route mapping constants could be shared.",
+      "estimated_lines_saved": 37,
+      "consolidation_strategy": "extract_logic",
+      "consolidation_priority": "extract_logic",
+      "extractable_logic": [
+        "ROUTE_TO_SCREEN mapping constants (lines 23-39)",
+        "Route name type definitions",
+        "Path building utilities"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/packages/navigation/link/Link.native.tsx": {
+      "file_category": "navigation_component",
+      "platform_apis_used": ["React Context", "LinkPrimitiveContext"],
+      "shared_logic_percentage": 15,
+      "shared_equivalent": "packages/navigation/link/Link.web.tsx",
+      "justification": "Navigation Link component that delegates to platform-specific primitives. Core navigation logic could be shared.",
+      "estimated_lines_saved": 6,
+      "consolidation_strategy": "extract_logic",
+      "consolidation_priority": "extract_logic",
+      "extractable_logic": ["Link props interface (lines 15-21)", "Navigation logic (lines 27-30)"]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/packages/navigation/link/linkPrimitiveContext.native.ts": {
+      "file_category": "navigation_primitive",
+      "platform_apis_used": ["React Context"],
+      "shared_logic_percentage": 0,
+      "shared_equivalent": null,
+      "justification": "Platform-specific primitive context for React Native. Pure infrastructure dependency injection.",
+      "estimated_lines_saved": 0,
+      "consolidation_strategy": "keep_native",
+      "consolidation_priority": "keep_native"
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/navigation/RootNavigator.native.tsx": {
+      "file_category": "navigation_stack",
+      "platform_apis_used": [
+        "@react-navigation/native",
+        "NavigationContainer",
+        "createNativeStackNavigator"
+      ],
+      "shared_logic_percentage": 30,
+      "shared_equivalent": null,
+      "justification": "Root navigation structure using React Navigation. Auth flow logic and route handling could be extracted.",
+      "estimated_lines_saved": 35,
+      "consolidation_strategy": "extract_logic",
+      "consolidation_priority": "extract_logic",
+      "extractable_logic": [
+        "Post-auth redirect logic (lines 62-73)",
+        "Route parameter types (lines 17-26)",
+        "Navigation state management"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/navigation/AppStack.native.tsx": {
+      "file_category": "navigation_stack",
+      "platform_apis_used": ["@react-navigation/bottom-tabs", "React Navigation"],
+      "shared_logic_percentage": 20,
+      "shared_equivalent": null,
+      "justification": "Bottom tab navigation structure. Tab configuration and icon mapping could be shared.",
+      "estimated_lines_saved": 24,
+      "consolidation_strategy": "extract_logic",
+      "consolidation_priority": "extract_logic",
+      "extractable_logic": [
+        "TAB_ICONS mapping (lines 23-29)",
+        "Tab configuration constants",
+        "Badge logic (lines 97-98)"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/navigation/AuthStack.native.tsx": {
+      "file_category": "navigation_stack",
+      "platform_apis_used": ["@react-navigation/native-stack", "React Navigation"],
+      "shared_logic_percentage": 15,
+      "shared_equivalent": null,
+      "justification": "Authentication flow navigation stack. Screen configuration could be shared but navigation structure is RN-specific.",
+      "estimated_lines_saved": 13,
+      "consolidation_strategy": "keep_native",
+      "consolidation_priority": "keep_native"
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/navigation/DashboardStack.native.tsx": {
+      "file_category": "navigation_stack",
+      "platform_apis_used": ["@react-navigation/native-stack"],
+      "shared_logic_percentage": 10,
+      "shared_equivalent": null,
+      "justification": "Simple dashboard navigation stack. Minimal logic, mostly React Navigation configuration.",
+      "estimated_lines_saved": 3,
+      "consolidation_strategy": "keep_native",
+      "consolidation_priority": "keep_native"
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/navigation/rootNavigationRef.native.ts": {
+      "file_category": "navigation_infrastructure",
+      "platform_apis_used": ["@react-navigation/native"],
+      "shared_logic_percentage": 0,
+      "shared_equivalent": null,
+      "justification": "React Navigation reference for imperative navigation. Pure infrastructure.",
+      "estimated_lines_saved": 0,
+      "consolidation_strategy": "keep_native",
+      "consolidation_priority": "keep_native"
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/navigation/useDeepLink.native.ts": {
+      "file_category": "navigation_utility",
+      "platform_apis_used": ["react-native Linking", "React Navigation"],
+      "shared_logic_percentage": 60,
+      "shared_equivalent": "packages/hooks/routing/useDeepLink.web.ts",
+      "justification": "Deep link handling with React Native Linking API. Route mapping and path parsing logic is highly shareable.",
+      "estimated_lines_saved": 51,
+      "consolidation_strategy": "consolidate_high",
+      "consolidation_priority": "consolidate_high",
+      "extractable_logic": [
+        "AUTH_SCREENS mapping (lines 10-20)",
+        "APP_TABS mapping (lines 22-28)",
+        "Path parsing logic (lines 30-38)",
+        "Route resolution logic (lines 40-56)"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/providers/CoreProvidersNative.native.tsx": {
+      "file_category": "provider_composition",
+      "platform_apis_used": ["react-native View"],
+      "shared_logic_percentage": 40,
+      "shared_equivalent": "apps/web/providers/CoreProviders.tsx",
+      "justification": "Provider composition with null-safety guards. Provider ordering and safety logic could be shared.",
+      "estimated_lines_saved": 21,
+      "consolidation_strategy": "consolidate_medium",
+      "consolidation_priority": "consolidate_medium",
+      "extractable_logic": [
+        "Provider ordering logic (lines 39-52)",
+        "Null safety patterns (lines 26-37)",
+        "Provider composition strategy"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/providers/QueryProvider.native.tsx": {
+      "file_category": "provider_wrapper",
+      "platform_apis_used": ["@tanstack/react-query"],
+      "shared_logic_percentage": 90,
+      "shared_equivalent": "apps/web/providers/QueryProvider.tsx",
+      "justification": "Simple React Query provider wrapper. Nearly identical to web version except for platform-specific imports.",
+      "estimated_lines_saved": 11,
+      "consolidation_strategy": "consolidate_high",
+      "consolidation_priority": "consolidate_high"
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/providers/auth/AuthProviderNative.native.tsx": {
+      "file_category": "provider_auth",
+      "platform_apis_used": [
+        "react-native Linking",
+        "react-native ActivityIndicator",
+        "AsyncStorage via platformStorage"
+      ],
+      "shared_logic_percentage": 65,
+      "shared_equivalent": "apps/web/providers/auth/AuthProvider.tsx",
+      "justification": "Auth bootstrap provider with RN-specific URL handling. Core auth logic and bootstrap flow is shareable.",
+      "estimated_lines_saved": 65,
+      "consolidation_strategy": "consolidate_high",
+      "consolidation_priority": "consolidate_high",
+      "extractable_logic": [
+        "Auth bootstrap logic (lines 60-74)",
+        "Initial path resolution (lines 47-58)",
+        "Loading state management",
+        "Auth status constants"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/providers/NavigationLinkPrimitiveProvider.native.tsx": {
+      "file_category": "provider_primitive",
+      "platform_apis_used": ["react-native Pressable", "packages/ui primitives"],
+      "shared_logic_percentage": 20,
+      "shared_equivalent": null,
+      "justification": "Navigation primitive provider for React Native. Provides platform-specific Pressable component for Link abstraction.",
+      "estimated_lines_saved": 8,
+      "consolidation_strategy": "keep_native",
+      "consolidation_priority": "keep_native"
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/providers/ErrorProviderNative.native.tsx": {
+      "file_category": "provider_error",
+      "platform_apis_used": ["React ErrorInfo", "packages/logger", "packages/services/security"],
+      "shared_logic_percentage": 75,
+      "shared_equivalent": "apps/web/providers/ErrorProvider.tsx",
+      "justification": "Error handling provider with logging and reporting. Core error handling logic is platform-agnostic.",
+      "estimated_lines_saved": 35,
+      "consolidation_strategy": "consolidate_high",
+      "consolidation_priority": "consolidate_high",
+      "extractable_logic": [
+        "Error handling logic (lines 21-39)",
+        "Error reporting integration",
+        "Component error metadata processing"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/providers/AppStackIntegrations.native.tsx": {
+      "file_category": "provider_integration",
+      "platform_apis_used": ["packages/features store integrations"],
+      "shared_logic_percentage": 85,
+      "shared_equivalent": "apps/web/providers/AppIntegrations.tsx",
+      "justification": "Store integration provider. Business logic integration is platform-agnostic, only wrapper differs.",
+      "estimated_lines_saved": 13,
+      "consolidation_strategy": "consolidate_medium",
+      "consolidation_priority": "consolidate_medium"
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/providers/theme/ThemeProviderNative.native.tsx": {
+      "file_category": "provider_theme",
+      "platform_apis_used": ["react-native Appearance", "React Native color scheme"],
+      "shared_logic_percentage": 50,
+      "shared_equivalent": "apps/web/providers/theme/ThemeProvider.tsx",
+      "justification": "Theme provider with RN Appearance API. Theme config logic and CSS variable mapping could be shared.",
+      "estimated_lines_saved": 36,
+      "consolidation_strategy": "consolidate_medium",
+      "consolidation_priority": "consolidate_medium",
+      "extractable_logic": [
+        "Theme configuration management (lines 24-27)",
+        "CSS variable mapping (lines 45-51)",
+        "Theme application logic (lines 41-43)"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/bootstrap/platformBootstrap.native.ts": {
+      "file_category": "app_bootstrap",
+      "platform_apis_used": ["@react-native-async-storage/async-storage", "Zustand StateStorage"],
+      "shared_logic_percentage": 35,
+      "shared_equivalent": "apps/web/bootstrap/platformBootstrap.web.ts",
+      "justification": "Platform bootstrap with AsyncStorage setup. Storage key constants and platform globals setup could be shared.",
+      "estimated_lines_saved": 37,
+      "consolidation_strategy": "consolidate_medium",
+      "consolidation_priority": "consolidate_medium",
+      "extractable_logic": [
+        "Storage key prefixes (lines 17-19)",
+        "Platform globals configuration (lines 96-104)",
+        "Storage adapter interface patterns"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/AppRoot.native.tsx": {
+      "file_category": "app_bootstrap",
+      "platform_apis_used": [
+        "expo-splash-screen",
+        "react-native SafeAreaProvider",
+        "react-native StatusBar",
+        "react-native-keyboard-controller"
+      ],
+      "shared_logic_percentage": 30,
+      "shared_equivalent": "apps/web/AppRoot.tsx",
+      "justification": "App root with RN-specific providers and splash screen. Bootstrap flow and error handling could be shared.",
+      "estimated_lines_saved": 51,
+      "consolidation_strategy": "consolidate_medium",
+      "consolidation_priority": "consolidate_medium",
+      "extractable_logic": [
+        "Bootstrap flow management (lines 74-81)",
+        "Navigation reset logic (lines 83-97)",
+        "Error handling patterns (lines 99-112)"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/AppContent.native.tsx": {
+      "file_category": "app_content",
+      "platform_apis_used": [
+        "expo-splash-screen",
+        "react-native ActivityIndicator",
+        "packages/hooks/ui"
+      ],
+      "shared_logic_percentage": 70,
+      "shared_equivalent": "apps/web/AppContent.tsx",
+      "justification": "App content with health check and maintenance logic. Business logic is highly shareable, only UI components differ.",
+      "estimated_lines_saved": 61,
+      "consolidation_strategy": "consolidate_high",
+      "consolidation_priority": "consolidate_high",
+      "extractable_logic": [
+        "Health check integration (lines 18-19)",
+        "Session timeout handling (lines 25-31)",
+        "Loading state management (lines 33-41, 44-56)",
+        "Maintenance mode logic (lines 67-69)"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/error/ErrorBoundaryNative.native.tsx": {
+      "file_category": "error_handling",
+      "platform_apis_used": [
+        "react-native TouchableOpacity",
+        "react-native View",
+        "packages/ui primitives"
+      ],
+      "shared_logic_percentage": 60,
+      "shared_equivalent": "apps/web/error/ErrorBoundary.tsx",
+      "justification": "Error boundary with RN-specific UI. Error handling logic and reporting integration could be shared.",
+      "estimated_lines_saved": 114,
+      "consolidation_strategy": "consolidate_medium",
+      "consolidation_priority": "consolidate_medium",
+      "extractable_logic": [
+        "Error catching logic (lines 39-56)",
+        "Error state management",
+        "Error reporting integration",
+        "Recovery actions (lines 58-68)"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/screens/MaintenanceScreen.native.tsx": {
+      "file_category": "screen_utility",
+      "platform_apis_used": ["react-native View", "packages/ui primitives"],
+      "shared_logic_percentage": 80,
+      "shared_equivalent": "apps/web/screens/MaintenanceScreen.tsx",
+      "justification": "Simple maintenance screen. Content and messaging logic is platform-agnostic, only styling differs.",
+      "estimated_lines_saved": 44,
+      "consolidation_strategy": "consolidate_high",
+      "consolidation_priority": "consolidate_high",
+      "extractable_logic": ["Maintenance message content (lines 10-13)", "Screen layout logic"]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/screens/PlaceholderScreen.native.tsx": {
+      "file_category": "screen_utility",
+      "platform_apis_used": ["react-native View", "packages/ui primitives"],
+      "shared_logic_percentage": 75,
+      "shared_equivalent": "apps/web/screens/PlaceholderScreen.tsx",
+      "justification": "Generic placeholder screen. Title resolution logic and empty state messaging could be shared.",
+      "estimated_lines_saved": 31,
+      "consolidation_strategy": "consolidate_medium",
+      "consolidation_priority": "consolidate_medium",
+      "extractable_logic": [
+        "Title resolution logic (lines 14)",
+        "Empty state messaging",
+        "Route parameter handling"
+      ]
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/screens/KeyboardAvoidingPlaceholder.native.tsx": {
+      "file_category": "screen_utility",
+      "platform_apis_used": ["react-native KeyboardAvoidingView"],
+      "shared_logic_percentage": 20,
+      "shared_equivalent": null,
+      "justification": "Keyboard-avoiding wrapper specific to React Native. Platform-specific keyboard behavior handling.",
+      "estimated_lines_saved": 5,
+      "consolidation_strategy": "keep_native",
+      "consolidation_priority": "keep_native"
+    },
+    "/Users/jaycewalzer/Desktop/SilverKey/Client/apps/mobile/app/components/ToastsPortalNative.native.tsx": {
+      "file_category": "ui_component",
+      "platform_apis_used": [
+        "react-native TouchableOpacity",
+        "react-native View",
+        "packages/store ui"
+      ],
+      "shared_logic_percentage": 65,
+      "shared_equivalent": "apps/web/components/ToastsPortal.tsx",
+      "justification": "Toast notification system. Toast queue logic and timing management could be shared, only UI rendering differs.",
+      "estimated_lines_saved": 69,
+      "consolidation_strategy": "consolidate_medium",
+      "consolidation_priority": "consolidate_medium",
+      "extractable_logic": [
+        "Toast duration constants (line 9)",
+        "Toast queue management (lines 12-16)",
+        "Toast timing logic (lines 18-27)",
+        "Toast lifecycle management (lines 31-32)"
+      ]
+    }
+  },
+  "consolidation_recommendations": {
+    "immediate_high_priority": [
+      {
+        "file": "useDeepLink.native.ts",
+        "action": "Extract route mapping constants and path parsing logic to packages/utils/navigation/",
+        "impact": "High - affects navigation consistency across platforms"
+      },
+      {
+        "file": "AuthProviderNative.native.tsx",
+        "action": "Extract auth bootstrap logic to packages/hooks/auth/useAuthBootstrap.ts",
+        "impact": "High - core authentication flow should be shared"
+      },
+      {
+        "file": "QueryProvider.native.tsx",
+        "action": "Consolidate with web version in packages/contexts/QueryProvider.tsx",
+        "impact": "Medium - simple provider consolidation"
+      },
+      {
+        "file": "ErrorProviderNative.native.tsx",
+        "action": "Extract error handling logic to packages/utils/errors/errorHandling.ts",
+        "impact": "High - error handling patterns should be consistent"
+      },
+      {
+        "file": "AppContent.native.tsx",
+        "action": "Extract health check and loading logic to packages/hooks/app/useAppContent.ts",
+        "impact": "High - app initialization logic should be shared"
+      },
+      {
+        "file": "MaintenanceScreen.native.tsx",
+        "action": "Create shared MaintenanceScreen component in packages/features/maintenance/",
+        "impact": "Medium - content should be consistent across platforms"
+      }
+    ],
+    "medium_priority": [
+      {
+        "file": "CoreProvidersNative.native.tsx",
+        "action": "Extract provider ordering and safety patterns to packages/utils/providers/",
+        "impact": "Medium - provider composition patterns"
+      },
+      {
+        "file": "ThemeProviderNative.native.tsx",
+        "action": "Extract theme config management to packages/contexts/theme/",
+        "impact": "Medium - theme consistency across platforms"
+      },
+      {
+        "file": "AppStackIntegrations.native.tsx",
+        "action": "Consolidate with web version in packages/providers/AppIntegrations.tsx",
+        "impact": "Medium - store integration consistency"
+      },
+      {
+        "file": "platformBootstrap.native.ts",
+        "action": "Extract constants and platform globals setup to packages/utils/platform/",
+        "impact": "Medium - bootstrap consistency"
+      },
+      {
+        "file": "AppRoot.native.tsx",
+        "action": "Extract bootstrap flow and error handling to packages/hooks/app/",
+        "impact": "Medium - app initialization patterns"
+      },
+      {
+        "file": "ErrorBoundaryNative.native.tsx",
+        "action": "Extract error boundary logic to packages/utils/errors/",
+        "impact": "Medium - error boundary patterns"
+      },
+      {
+        "file": "PlaceholderScreen.native.tsx",
+        "action": "Create shared placeholder logic in packages/features/placeholder/",
+        "impact": "Low - simple screen logic"
+      },
+      {
+        "file": "ToastsPortalNative.native.tsx",
+        "action": "Extract toast queue logic to packages/hooks/ui/useToasts.ts",
+        "impact": "Medium - toast behavior consistency"
+      }
+    ],
+    "extract_logic_candidates": [
+      {
+        "file": "useNavigation.native.ts",
+        "action": "Move ROUTE_TO_SCREEN mapping to packages/navigation/constants/routes.ts",
+        "impact": "Medium - route consistency"
+      },
+      {
+        "file": "Link.native.tsx",
+        "action": "Extract Link props and navigation logic to packages/navigation/types/",
+        "impact": "Low - type consistency"
+      },
+      {
+        "file": "RootNavigator.native.tsx",
+        "action": "Extract post-auth redirect logic to packages/hooks/auth/",
+        "impact": "Medium - auth flow consistency"
+      },
+      {
+        "file": "AppStack.native.tsx",
+        "action": "Move TAB_ICONS mapping to packages/navigation/constants/tabs.ts",
+        "impact": "Low - icon consistency"
+      }
+    ]
+  },
+  "architecture_insights": {
+    "navigation_layer_analysis": {
+      "total_navigation_files": 9,
+      "infrastructure_files": 6,
+      "logic_extraction_candidates": 3,
+      "key_insight": "Navigation infrastructure must remain platform-specific, but route constants and deep linking logic can be shared"
+    },
+    "provider_layer_analysis": {
+      "total_provider_files": 7,
+      "high_consolidation_potential": 3,
+      "medium_consolidation_potential": 3,
+      "key_insight": "Provider composition and business logic can be largely shared, only platform-specific APIs differ"
+    },
+    "app_bootstrap_analysis": {
+      "total_bootstrap_files": 3,
+      "shared_logic_percentage": 45,
+      "key_insight": "Bootstrap flows and error handling patterns should be consistent, only platform APIs differ"
+    },
+    "screen_component_analysis": {
+      "total_screen_files": 4,
+      "consolidation_potential": "High - mostly display logic with shared business rules",
+      "key_insight": "Screen content and messaging should be consistent across platforms"
+    }
+  }
+}

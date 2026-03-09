@@ -6,7 +6,7 @@ import { color } from "packages/design-tokens";
 import { buildEventRequestMessage } from "packages/features/messaging/utils/eventRequestPayload"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Shared event request builder; utils live in messaging. */
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { useAuthStore } from "packages/store";
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    backgroundColor: "#fff",
+    backgroundColor: color("neutral.50"),
   },
   textArea: {
     minHeight: 80,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: color("neutral.200"),
-    backgroundColor: "#fff",
+    backgroundColor: color("neutral.50"),
   },
   clientChipSelected: {
     backgroundColor: color("brand.accent"),

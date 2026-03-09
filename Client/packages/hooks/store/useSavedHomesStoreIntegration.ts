@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { useSavedHomesData } from "packages/features/search/hooks/data/saved/useSavedHomesData";
+import { useSavedHomesData } from "packages/hooks/data/useSavedHomesData";
 import { useAuthStore, useSavedHomesStore } from "packages/store";
 
 /**

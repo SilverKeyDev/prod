@@ -4,6 +4,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 import { Pressable, StyleSheet, View } from "react-native";
 
+import { color } from "packages/design-tokens";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
 import { dateNow } from "packages/utils/date";
@@ -38,7 +39,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
   isSaved,
   saveHome,
   removeSavedHome,
-  size = "md",
+  size: _size = "md",
   ariaLabel,
 }) => {
   const enqueueToast = useUIStore((s) => s.enqueueToast);
@@ -81,7 +82,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         <Icon
           name="heart"
           size={ICON_SIZE}
-          color={isSaved ? "#ef4444" : "#9ca3af"}
+          color={isSaved ? color("rose.DEFAULT") : color("neutral.400")}
           strokeWidth={isSaved ? 0 : 2}
         />
       </View>
@@ -96,10 +97,10 @@ const styles = StyleSheet.create({
     minWidth: CIRCLE_SIZE,
     minHeight: CIRCLE_SIZE,
     borderRadius: CIRCLE_SIZE / 2,
-    backgroundColor: "#ffffff",
+    backgroundColor: color("neutral.50"),
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
+    shadowColor: color("neutral.900"),
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 3,

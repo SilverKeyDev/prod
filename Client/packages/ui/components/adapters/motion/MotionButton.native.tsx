@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 
 import type { PressableProps, StyleProp, ViewStyle } from "react-native";
-import { Pressable, Text } from "react-native";
+import { Pressable } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+
+import { Text } from "packages/ui/components/primitives";
 
 type MotionAnimate = {
   opacity?: number;

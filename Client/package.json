@@ -12,6 +12,7 @@
     "dev:mobile:subpath": "EXPO_MOBILE_BASE_URL=/apps/mobile pnpm --filter @silverkey/mobile start",
     "dev:web:gateway": "VITE_PORT=3000 pnpm --filter @silverkey/web dev",
     "ios": "pnpm --filter @silverkey/mobile ios",
+    "ios:clean": "pnpm --filter @silverkey/mobile ios:clean",
     "ios:native": "pnpm --filter @silverkey/mobile run:ios",
     "android": "pnpm --filter @silverkey/mobile android",
     "lint": "eslint . --config packages/config/eslint/eslint.config.cjs",

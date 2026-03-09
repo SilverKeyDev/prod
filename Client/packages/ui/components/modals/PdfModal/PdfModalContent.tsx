@@ -3,8 +3,8 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
 
+import { BodyText, Button, Title } from "@/components/ui";
 import {
   getPdfIframeAllow,
   getPdfIframeSandbox,

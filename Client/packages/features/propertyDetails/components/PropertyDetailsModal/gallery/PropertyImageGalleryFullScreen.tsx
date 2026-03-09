@@ -3,9 +3,9 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { Button } from "packages/ui/components/index.web";
 
 import { StyledImage } from "@/components/cards/base/image";
+import { Button } from "@/components/ui";
 type PropertyImageGalleryFullScreenProps = {
   images: string[];
   currentIndex: number;

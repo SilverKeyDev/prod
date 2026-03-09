@@ -9,9 +9,10 @@ import {
   CreateAgreementModal,
 } from "packages/features/documents";
 import { useUIStore } from "packages/store";
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
-import { KeyTurnLoader } from "packages/ui/components/index.web";
-import { getWindow } from "packages/utils/platform";
+import type { Agreement } from "packages/types";
+
+import { BodyText, Button, Title } from "@/components/ui";
+import { KeyTurnLoader } from "@/components/ui";
 type ClientAgreementsProps = {
   clientId: string;
 };
@@ -26,7 +27,7 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
   const { t } = useLocalization();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
-  const agreements: Agreement[] = [];
+  const agreements = useMemo(() => [] as Agreement[], []);
   const isLoading = false;
   const error: unknown = null;
   const refetchAgreements = async () => {};

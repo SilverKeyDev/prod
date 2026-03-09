@@ -120,22 +120,26 @@ export function ClientChecklistsNative({ userId: _userId }: ClientChecklistsNati
                   </Box>
                   <Box className="flex-1">
                     <Text className="text-sm font-medium text-gray-900">{item.label}</Text>
-                    {item.explanation ? (
-                      <Text className="mt-1 text-xs text-gray-600">{item.explanation}</Text>
-                    ) : null}
-                    {item.bullets && item.bullets.length > 0 && (
-                      <Box className="mt-1 gap-1">
-                        {item.bullets.map((bullet) => (
-                          <Box key={bullet} className="flex-row gap-1">
-                            <Text className="mt-px text-xs text-gray-500">•</Text>
-                            <Text className="flex-1 text-xs text-gray-500">{bullet}</Text>
+                    {!checked && (
+                      <>
+                        {item.explanation ? (
+                          <Text className="mt-1 text-xs text-gray-600">{item.explanation}</Text>
+                        ) : null}
+                        {item.bullets && item.bullets.length > 0 ? (
+                          <Box className="mt-1 gap-1">
+                            {item.bullets.map((bullet) => (
+                              <Box key={bullet} className="flex-row gap-1">
+                                <Text className="mt-px text-xs text-gray-500">•</Text>
+                                <Text className="flex-1 text-xs text-gray-500">{bullet}</Text>
+                              </Box>
+                            ))}
                           </Box>
-                        ))}
-                      </Box>
+                        ) : null}
+                        {item.tip ? (
+                          <Text className="text-olive-700 mt-1 text-xs">{item.tip}</Text>
+                        ) : null}
+                      </>
                     )}
-                    {item.tip ? (
-                      <Text className="text-olive-700 mt-1 text-xs">{item.tip}</Text>
-                    ) : null}
                   </Box>
                 </Pressable>
               );

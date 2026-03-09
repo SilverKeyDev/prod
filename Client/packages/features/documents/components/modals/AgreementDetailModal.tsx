@@ -1,6 +1,5 @@
-import { BodyText, CloseButton, Title } from "packages/ui/components/index.web";
-
 import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, CloseButton, Title } from "@/components/ui";
 
 type AgreementDetailModalProps = {
   agreementId: string | null;
@@ -18,7 +17,7 @@ type AgreementDetailModalProps = {
  * - Sign: embedded signing (if applicable)
  */
 export default function AgreementDetailModal({
-  agreementId,
+  agreementId: _agreementId,
   isOpen,
   onClose,
 }: AgreementDetailModalProps) {

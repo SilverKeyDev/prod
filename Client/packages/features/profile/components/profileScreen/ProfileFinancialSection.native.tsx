@@ -1,0 +1,229 @@
+import React from "react";
+
+import Input from "@ui/form/Input";
+
+import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/BudgetRangeSlider";
+import PriceRangeSlider from "packages/features/profile/components/settings/inputs/PriceRangeSlider";
+import type { HomePriceResult, OnboardingData } from "packages/features/profile/utils";
+import {
+  CREDIT_SCORE_OPTIONS,
+  FIELD_LABELS,
+  SECTION_TITLES,
+} from "packages/features/profile/utils";
+import { Pressable } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
+
+import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue.native";
+
+function getOptionLabel(
+  options: readonly { value: string; label: string }[],
+  value?: string
+): string {
+  if (!value) return "Not specified";
+  return options.find((opt) => opt.value === value)?.label ?? "Not specified";
+}
+
+type ProfileFinancialSectionProps = {
+  formData: OnboardingData;
+  isEditMode: boolean;
+  updateField: (field: keyof OnboardingData, value: unknown) => void;
+  homePriceResult: HomePriceResult | null;
+  homePriceLoading: boolean;
+  homePriceError: string | null;
+  isAffordabilityCollapsed: boolean;
+  setIsAffordabilityCollapsed: (fn: (prev: boolean) => boolean) => void;
+};
+
+export function ProfileFinancialSection({
+  formData,
+  isEditMode,
+  updateField,
+  homePriceResult,
+  homePriceLoading,
+  homePriceError,
+  isAffordabilityCollapsed,
+  setIsAffordabilityCollapsed,
+}: ProfileFinancialSectionProps) {
+  return (
+    <Box className="gap-4">
+      <Title size="md">{SECTION_TITLES.FINANCIAL_PROFILE}</Title>
+
+      <Box>
+        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+          {FIELD_LABELS.HOME_BUDGET}
+        </BodyText>
+        {isEditMode ? (
+          <BudgetRangeSlider
+            tickValues={[
+              200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000, 10000000,
+            ]}
+            minValue={formData.home_budget_min ?? 200000}
+            maxValue={formData.home_budget_max ?? 1000000}
+            onChange={(minVal, maxVal) => {
+              const roundedMin = Math.round(minVal / 25000) * 25000;
+              const roundedMax = Math.round(maxVal / 25000) * 25000;
+              updateField("home_budget_min", roundedMin);
+              updateField("home_budget_max", roundedMax);
+            }}
+            formatPrefix="$"
+            className="mt-2"
+          />
+        ) : (
+          <Box className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+            <Text className="text-center text-base text-gray-900">
+              ${(formData.home_budget_min ?? 0).toLocaleString()} – $
+              {(formData.home_budget_max ?? 0).toLocaleString()}
+            </Text>
+          </Box>
+        )}
+      </Box>
+
+      <Box>
+        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+          {FIELD_LABELS.GROSS_INCOME}
+        </BodyText>
+        {isEditMode ? (
+          <PriceRangeSlider
+            tickValues={[50000, 100000, 200000, 300000, 500000, 750000, 1000000]}
+            value={formData.gross_income ?? 100000}
+            onChange={(v) => {
+              updateField("gross_income", Math.round(v / 5000) * 5000);
+            }}
+            formatPrefix="$"
+            className="mt-2"
+          />
+        ) : (
+          <ProfileReadOnlyValue
+            value={formData.gross_income ? `$${formData.gross_income.toLocaleString()}` : undefined}
+          />
+        )}
+      </Box>
+
+      <Box>
+        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+          {FIELD_LABELS.DOWN_PAYMENT}
+        </BodyText>
+        {isEditMode ? (
+          <PriceRangeSlider
+            tickValues={[100000, 250000, 500000, 1000000, 2000000, 5000000]}
+            value={formData.down_payment ?? 100000}
+            onChange={(v) => {
+              updateField("down_payment", Math.round(v / 5000) * 5000);
+            }}
+            formatPrefix="$"
+            className="mt-2"
+          />
+        ) : (
+          <ProfileReadOnlyValue
+            value={formData.down_payment ? `$${formData.down_payment.toLocaleString()}` : undefined}
+          />
+        )}
+      </Box>
+
+      <Box>
+        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+          {FIELD_LABELS.IDEAL_ZIP_CODE}
+        </BodyText>
+        {isEditMode ? (
+          <Input
+            value={formData.ideal_zip_code ?? ""}
+            onValueChange={(v) => updateField("ideal_zip_code", v || undefined)}
+            placeholder="e.g. 90210"
+            keyboardType="default"
+            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+          />
+        ) : (
+          <ProfileReadOnlyValue value={formData.ideal_zip_code} />
+        )}
+      </Box>
+
+      <Box>
+        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+          {FIELD_LABELS.CREDIT_SCORE_RANGE}
+        </BodyText>
+        {isEditMode ? (
+          <Box className="flex-row flex-wrap gap-2">
+            {CREDIT_SCORE_OPTIONS.map((option) => {
+              const selected = formData.credit_score_range === option.value;
+              return (
+                <Pressable
+                  key={option.value}
+                  onPress={() => updateField("credit_score_range", option.value)}
+                  className={`rounded-full px-4 py-2 ${
+                    selected ? "bg-brand-accent" : "border border-gray-200 bg-white"
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-medium ${selected ? "text-white" : "text-gray-800"}`}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </Box>
+        ) : (
+          <ProfileReadOnlyValue
+            value={getOptionLabel(CREDIT_SCORE_OPTIONS, formData.credit_score_range)}
+          />
+        )}
+      </Box>
+
+      <Box className="mt-2 rounded-lg border border-gray-200 bg-white px-4 py-3">
+        <Box className="flex-row items-center justify-between">
+          <Text className="text-base font-semibold text-gray-900">Affordability estimate</Text>
+          <Pressable
+            onPress={() => setIsAffordabilityCollapsed((prev) => !prev)}
+            className="px-2 py-1"
+          >
+            <Text className="text-brand-accent text-xs font-medium">
+              {isAffordabilityCollapsed ? "Show details" : "Hide details"}
+            </Text>
+          </Pressable>
+        </Box>
+
+        {homePriceLoading ? (
+          <Box className="mt-2">
+            <Text className="text-sm text-gray-600">Calculating estimate…</Text>
+          </Box>
+        ) : homePriceError ? (
+          <Box className="mt-2">
+            <Text className="text-sm text-red-500">{homePriceError}</Text>
+          </Box>
+        ) : homePriceResult ? (
+          <Box className="mt-3 gap-1">
+            <Text className="text-sm text-gray-800">
+              Estimated max home price:{" "}
+              <Text className="font-semibold">
+                ${homePriceResult.maxHomePrice.toLocaleString()}
+              </Text>
+            </Text>
+            {!isAffordabilityCollapsed && (
+              <>
+                <Text className="text-sm text-gray-800">
+                  Estimated monthly housing cost:{" "}
+                  <Text className="font-semibold">
+                    ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
+                  </Text>
+                </Text>
+                <Text className="mt-1 text-xs text-gray-600">
+                  This estimate uses your income, down payment, and credit band to give a realistic
+                  upper bound on what you can comfortably afford.
+                </Text>
+              </>
+            )}
+          </Box>
+        ) : (
+          <Box className="mt-2">
+            <Text className="text-sm text-gray-600">
+              Enter your income and ideal zip code to see an affordability estimate.
+            </Text>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+}

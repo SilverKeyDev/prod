@@ -3,9 +3,9 @@ import React from "react";
 import { useDocumentsData } from "packages/features/documents";
 import SharedDocumentCard from "packages/features/messaging/components/cards/SharedDocumentCard";
 import { useSavedHomesData } from "packages/features/search";
-import { BodyText, Button } from "packages/ui/components/index.web";
 
 import HomeCard from "@/components/cards/HomeCard";
+import { BodyText, Button } from "@/components/ui";
 import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
 import { getDateDividerText } from "@/features/messaging/utils/messageDateUtils";
 

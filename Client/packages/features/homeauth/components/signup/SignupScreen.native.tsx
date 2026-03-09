@@ -4,6 +4,7 @@
 
 import React, { useState } from "react";
 
+import Input from "@ui/form/Input";
 import { StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
@@ -19,9 +20,8 @@ import {
 import { useNavigation } from "packages/navigation";
 import { PasswordValidation, usePasswordValidation } from "packages/ui/components/feedback";
 import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Input } from "packages/ui/components/primitives/input";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
 export function SignupScreenNative() {
   const [name, setName] = useState("");

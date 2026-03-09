@@ -5,7 +5,8 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout";
-import { BodyText, Title } from "packages/ui/components/index.web";
+
+import { BodyText, Title } from "@/components/ui";
 export default function ContactUs() {
   return (
     <StaticPageLayout title="Contact Us" subtitle="Last updated: 8/27/2025" centered={true}>

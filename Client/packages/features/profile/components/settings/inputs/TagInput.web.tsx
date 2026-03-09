@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Button, Input } from "packages/ui/components/index.web";
+import { Button, Input } from "@/components/ui";
 type OnPerTagInputProps = {
   value: string[];
   onChange: (value: string[]) => void;

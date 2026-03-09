@@ -2,7 +2,8 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { CompareHomesComparisonField } from "packages/features/compare/utils/types";
-import { Button, CloseButton, Subtitle, Title } from "packages/ui/components/index.web";
+
+import { Button, CloseButton, Subtitle, Title } from "@/components/ui";
 
 import { ManageRowsModalFieldRow } from "./ManageRowsModalFieldRow";
 

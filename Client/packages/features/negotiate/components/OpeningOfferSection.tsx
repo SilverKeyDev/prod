@@ -1,7 +1,8 @@
 import React, { RefObject } from "react";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText } from "packages/ui/components/index.web";
+
+import { BodyText } from "@/components/ui";
 
 type OpeningOfferSectionProps = {
   strategyData: unknown;

@@ -9,4 +9,4 @@ export {
   type ChatbotHistoryResponse,
   type ChatbotResponse,
   type ChatbotSendRequest,
-} from "../api/chatbot";
+} from "packages/features/messaging/api/chatbot";

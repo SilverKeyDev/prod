@@ -10,5 +10,6 @@ export {
   getMessagingConfig,
 } from "./components/messagingConfig";
 export * from "./components/modals";
+export { useAgentClients } from "./hooks/data/useAgentClients";
 export { useEventRequests } from "./hooks/data/useEventRequests";
 export { AGENT_TRANSLATIONS } from "./types/translations";

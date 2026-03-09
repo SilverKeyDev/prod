@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 
+import Input from "@ui/form/Input";
 import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/google-maps";
-import { Input } from "packages/ui/components/form/Input";
-import { BodyText, Button, CancelButton, IconButton } from "packages/ui/components/index.web";
 import { asError } from "packages/utils";
 import { hasProperty, isFunction, isObject } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
+
+import { BodyText, Button, CancelButton, IconButton } from "@/components/ui";
 type ImportantLocation = {
   address: string;
   commute_tolerance?: number;

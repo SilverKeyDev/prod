@@ -9,10 +9,10 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router-d
 
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
 import Button from "packages/ui/components/button/Button";
-import { BodyText, Title } from "packages/ui/components/index.web";
 import { getUserFriendlyMessage, normalizeError } from "packages/utils/errorHandling";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Title } from "@/components/ui";
 type RouteErrorResponseViewProps = {
   status: number;
   statusText: string;

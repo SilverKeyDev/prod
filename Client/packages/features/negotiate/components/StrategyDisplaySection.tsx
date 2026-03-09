@@ -3,7 +3,8 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText, Button, MiniLogo } from "packages/ui/components";
+
+import { BodyText, Button, MiniLogo } from "@/components/ui";
 
 import SectionBox from "./SectionBox";
 import { formatStrategyValue } from "./StrategyFieldFormatter";

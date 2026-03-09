@@ -1,11 +1,11 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
-import { Target } from "lucide-react";
 
 import type { ClientGoals } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
-import { BodyText, Title } from "packages/ui/components/index.web";
+
+import { BodyText, Title } from "@/components/ui";
 type GoalsConstraintsProps = {
   goals: ClientGoals;
 };
@@ -25,7 +25,7 @@ const GoalsConstraints: React.FC<GoalsConstraintsProps> = ({ goals }) => {
     high: "text-rose-600 bg-rose-50",
   };
   return (
-    <SectionCard title="Goals & Constraints" icon={Target}>
+    <SectionCard title="Goals & Constraints" iconName="target">
       <div className="space-y-6">
         {/* Budget */}
         <div>

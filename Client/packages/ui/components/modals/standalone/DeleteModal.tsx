@@ -1,4 +1,4 @@
-import { BodyText, Button, CancelButton, Title } from "packages/ui/components/index.web";
+import { BodyText, Button, CancelButton, Title } from "@/components/ui";
 
 type DeleteModalProps = {
   isOpen: boolean;

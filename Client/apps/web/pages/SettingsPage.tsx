@@ -14,12 +14,12 @@ import { showErrorToast } from "packages/hooks/ui/toast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 // Core
 import { useGoogleMapsStore } from "packages/store";
+import SettingsSidebar from "packages/ui/components/sidebar/SettingsSidebar";
+
 // Google Maps types
 /// <reference types="google.maps" />
 // Components
-import { Loading } from "packages/ui/components/index.web";
-import SettingsSidebar from "packages/ui/components/sidebar/SettingsSidebar";
-
+import { Loading } from "@/components/ui";
 import PersonalizationMobileHeader from "@/features/profile/components/account/MobileHeader";
 import {
   convertStepsToNavItems,
@@ -401,7 +401,6 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
           {/* Content area: use div with region role to avoid duplicate main landmark (top-level main is in DashboardLayout). */}
           <div
             role="region"
-            aria-label="Settings"
             className={`w-full flex-1 space-y-8 ${!isUltraSmallScreen ? "lg:ml-0" : ""}`}
           >
             {STEPS.map((step) => (

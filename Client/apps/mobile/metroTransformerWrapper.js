@@ -5,7 +5,7 @@
  */
 /* eslint-disable @typescript-eslint/no-require-imports -- Metro runs in Node CJS */
 /* eslint-env node */
-/* eslint-disable silverkey/no-console-logger -- Metro transformer runs in Node; stderr logging is required */
+
 /* eslint-disable silverkey/no-process-env-outside-config -- Metro transformer is a build-time file */
 
 const path = require("node:path");
@@ -55,9 +55,9 @@ const innerTransformerPath =
 
 // Log which inner transformer Metro will delegate to so we can confirm
 // NativeWind is wired in correctly during bundling.
-/* eslint-disable silverkey/no-console-logger -- Metro transformer runs in Node; console logging is required */
+
 console.info("[Metro transform] Using inner transformer:", innerTransformerPath);
-/* eslint-enable silverkey/no-console-logger */
+
 const inner = require(innerTransformerPath);
 
 function formatTransformError(filename, err) {

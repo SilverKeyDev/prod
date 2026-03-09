@@ -12,9 +12,9 @@ import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePref
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
 import { useResponsive } from "packages/hooks/ui";
-import { BodyText } from "packages/ui/components/index.web";
 import { getWindow } from "packages/utils/platform";
 
+import { BodyText } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";
 export type PreferencesFormContentRef = {

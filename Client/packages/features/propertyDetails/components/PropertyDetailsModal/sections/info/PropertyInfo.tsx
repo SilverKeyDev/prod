@@ -1,6 +1,7 @@
 import React from "react";
 
-import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
+import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+
 import { formatStructuredAddress } from "@/features/search/types/search/address";
 import { formatPrice } from "@/features/search/types/search/propertyDetailsFormatters";
 

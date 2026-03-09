@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 export type TitleSize = "sm" | "md" | "lg" | "xl";
 

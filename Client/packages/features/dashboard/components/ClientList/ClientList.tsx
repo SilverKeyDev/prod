@@ -3,9 +3,9 @@ import React, { useMemo, useState } from "react";
 import type { ClientDealInfo, DealStage } from "packages/schemas/agent";
 import type { DropdownOption } from "packages/ui/components/form/Dropdown";
 import Dropdown from "packages/ui/components/form/Dropdown";
-import { BodyText, Title } from "packages/ui/components/index.web";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Title } from "@/components/ui";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useAgentDashboardMockData } from "@/features/agent/hooks/data/useAgentDashboardMockData";
 

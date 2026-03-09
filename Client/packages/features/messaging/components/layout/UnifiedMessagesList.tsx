@@ -9,9 +9,9 @@ import { useDocumentsData } from "packages/features/documents";
 import SharedDocumentCard from "packages/features/messaging/components/cards/SharedDocumentCard";
 import { useSavedHomesData } from "packages/features/search";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
 
 import HomeCard from "@/components/cards/HomeCard";
+import { BodyText, Button, Title } from "@/components/ui";
 import {
   getMessagingConfig,
   type MessagingMode,

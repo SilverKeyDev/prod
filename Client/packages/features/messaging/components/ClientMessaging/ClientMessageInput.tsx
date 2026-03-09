@@ -1,7 +1,8 @@
 import { Icon } from "@ui/icons";
 
 import Button from "packages/ui/components/button/Button";
-import { Textarea } from "packages/ui/components/index.web";
+
+import { Textarea } from "@/components/ui";
 type ClientMessageInputProps = {
   message: string;
   setMessage: (message: string) => void;

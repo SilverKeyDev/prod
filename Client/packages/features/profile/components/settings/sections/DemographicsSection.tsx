@@ -1,5 +1,7 @@
 import React from "react";
 
+import AlignedRow from "@/components/layout/AlignedRow";
+import Card from "@/components/layout/Card.web";
 import {
   AccessibleCheckboxInput,
   BodyText,
@@ -8,10 +10,7 @@ import {
   Label,
   OliveCheckbox,
   Title,
-} from "packages/ui/components/index.web";
-
-import AlignedRow from "@/components/layout/AlignedRow";
-import Card from "@/components/layout/Card.web";
+} from "@/components/ui";
 import { FIELD_LABELS, IS_AGENT_OPTIONS, type OnboardingData } from "@/features/profile/utils";
 
 type DemographicsSectionProps = {
@@ -51,12 +50,12 @@ export default function DemographicsSection({
                 placeholder="Select..."
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
                 {formData.is_agent
                   ? (IS_AGENT_OPTIONS.find((option) => option.value === formData.is_agent)?.label ??
                     "Not specified")
                   : "Not specified"}
-              </div>
+              </BodyText>
             ),
           },
           {
@@ -73,7 +72,9 @@ export default function DemographicsSection({
                 max={100}
               />
             ) : (
-              <div className="mobile-input bg-gray-50">{formData.age ?? "Not specified"}</div>
+              <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
+                {formData.age ?? "Not specified"}
+              </BodyText>
             ),
           },
         ]}
@@ -96,13 +97,13 @@ export default function DemographicsSection({
                   placeholder="Select..."
                 />
               ) : (
-                <div className="mobile-input bg-gray-50">
+                <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
                   {formData.has_buyers_agent
                     ? (HAS_BUYERS_AGENT_OPTIONS.find(
                         (option) => option.value === formData.has_buyers_agent
                       )?.label ?? "Not specified")
                     : "Not specified"}
-                </div>
+                </BodyText>
               ),
             },
             {
@@ -110,7 +111,9 @@ export default function DemographicsSection({
                 formData.has_buyers_agent === "no" ? (
                   <Label>Looking for Agent?</Label>
                 ) : (
-                  <div className="mb-2 block text-sm font-medium text-transparent">&nbsp;</div>
+                  <BodyText as="div" size="sm" className="mb-2 block font-medium text-transparent">
+                    &nbsp;
+                  </BodyText>
                 ),
               content:
                 formData.has_buyers_agent === "no" ? (
@@ -134,10 +137,22 @@ export default function DemographicsSection({
                             label="I am looking for a buyer's agent"
                           />
                           {/* Stop propagation so clicking the box doesn't also trigger the label's linked input (double-toggle) */}
-                          <span
+                          <BodyText
+                            as="span"
+                            role="button"
+                            tabIndex={0}
                             className="flex-shrink-0"
                             onClick={(e) => e.stopPropagation()}
-                            onKeyDown={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => {
+                              e.stopPropagation();
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                updateFormData(
+                                  "looking_for_buyers_agent",
+                                  !formData.looking_for_buyers_agent
+                                );
+                              }
+                            }}
                           >
                             <OliveCheckbox
                               checked={!!formData.looking_for_buyers_agent}
@@ -148,7 +163,7 @@ export default function DemographicsSection({
                                 )
                               }
                             />
-                          </span>
+                          </BodyText>
                         </>
                       ) : (
                         <div
@@ -179,7 +194,9 @@ export default function DemographicsSection({
                     </Label>
                   </div>
                 ) : (
-                  <div className="mobile-input bg-gray-50 opacity-0">&nbsp;</div>
+                  <BodyText as="div" size="sm" className="mobile-input bg-gray-50 opacity-0">
+                    &nbsp;
+                  </BodyText>
                 ),
             },
           ]}

@@ -6,7 +6,7 @@ import { color } from "packages/design-tokens";
 import { useDocumentsStore } from "packages/store";
 import type { DocumentData } from "packages/ui/components/cards/document/DocumentCard";
 import { Loading } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 type SelectDocumentModalNativeProps = {
   isOpen: boolean;
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: color("neutral.200"),
-    backgroundColor: "#fff",
+    backgroundColor: color("neutral.50"),
   },
   docRowSelected: {
     borderColor: color("brand.accent"),

@@ -6,7 +6,6 @@ import { useLocalization } from "packages/contexts";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { formatPropertyType } from "packages/features/search/types/search/propertyFormatters";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { BodyText, KeyTurnLoader, Title } from "packages/ui/components/index.web";
 import { getWindow } from "packages/utils/platform";
 
 import {
@@ -17,6 +16,7 @@ import {
   CardPropertyDetails,
 } from "@/components/cards/base/index.web";
 import WhyNotInterestedCard from "@/components/cards/WhyNotInterestedCard.web";
+import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
 import { getMatchScore, type SearchResult } from "@/features/search/types";
 export function SidebarList(props: {

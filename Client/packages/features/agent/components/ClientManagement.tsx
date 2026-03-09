@@ -7,7 +7,8 @@ import { useLocalization } from "packages/contexts";
 import { ClientSearchModal } from "packages/features/agent/components/modals";
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
-import { BodyText, Button, KeyTurnLoader, Title } from "packages/ui/components/index.web";
+
+import { BodyText, Button, KeyTurnLoader, Title } from "@/components/ui";
 type ClientManagementProps = {
   clients: AgentClient[];
   isLoading: boolean;

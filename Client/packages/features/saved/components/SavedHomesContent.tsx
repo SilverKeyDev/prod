@@ -3,14 +3,13 @@ import { useMemo } from "react";
 import { useLocalization } from "packages/contexts";
 import type { Agreement, DocumentData, SavedPageViewType } from "packages/features/documents";
 import { AgreementListItem } from "packages/features/documents";
-import { ConnectedCardHeartSave } from "packages/features/search";
 import type { SavedHome } from "packages/types";
 import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
-import { BodyText, KeyTurnLoader } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
 
-import { PropertyCard } from "@/components/cards";
-import { CardCompareCheckbox, CardViewDetailsButton } from "@/components/cards/base/index.web";
+import { BodyText, KeyTurnLoader } from "@/components/ui";
+
+import { SavedHomeCard } from "./SavedHomeCard";
 type SavedHomesContentProps = {
   viewType: SavedPageViewType;
   filteredHomes: SavedHome[];
@@ -148,86 +147,21 @@ export default function SavedHomesContent({
     }
     return (
       <div
-        className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${selectedHomesDataLength >= 1 ? "mb-[140px] sm:mb-[160px]" : ""}`}
+        className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
+          selectedHomesDataLength >= 1 ? "mb-36 sm:mb-40" : ""
+        }`}
       >
-        {filteredHomes.map((home: SavedHome) => {
-          const isSelected = selectedHomesForComparison.has(home.home_id);
-          return (
-            <div key={home.home_id} className="group relative w-full">
-              <PropertyCard
-                id={home.home_id}
-                imageUrl={home.image_url}
-                address={
-                  typeof home.address === "string" || typeof home.address === "number"
-                    ? home.address.toString()
-                    : (home.description ?? "[Invalid address]")
-                }
-                price={
-                  typeof home.price === "string" || typeof home.price === "number"
-                    ? home.price.toString()
-                    : "[Invalid price]"
-                }
-                bedrooms={home.bedrooms}
-                bathrooms={home.bathrooms}
-                sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
-                lotSize={typeof home.lot_size === "string" ? home.lot_size : undefined}
-                pricePosition="below-address"
-                cardType="searchpage"
-                showScore={false}
-                width="full"
-                topContent={
-                  <>
-                    {/* Compare checkbox - top-left on image */}
-                    <CardCompareCheckbox
-                      isSelected={isSelected}
-                      onToggle={() => onToggleHomeSelection(home.home_id)}
-                      position="top-left"
-                      size="sm"
-                    />
-                    {/* Heart save - top-right on image */}
-                    <ConnectedCardHeartSave
-                      property={{
-                        id: home.home_id,
-                        address: home.address ?? home.description ?? "",
-                        price:
-                          typeof home.price === "string" || typeof home.price === "number"
-                            ? String(home.price)
-                            : "",
-                        bedrooms: home.bedrooms ?? 0,
-                        bathrooms: home.bathrooms ?? 0,
-                        sqft: home.sqft ?? 0,
-                        lat: home.lat ?? 0,
-                        lng: home.lng ?? 0,
-                        images: home.image_url ? [home.image_url] : [],
-                      }}
-                      position="top-right"
-                      size="sm"
-                    />
-                  </>
-                }
-                bottomContent={
-                  <div className="flex flex-col gap-2">
-                    <CardViewDetailsButton
-                      onClick={() => onUnlockHome(home)}
-                      size="sm"
-                      variant="unlock"
-                      fullWidth
-                      text="Unlock"
-                    />
-                    <CardViewDetailsButton
-                      onClick={() => onOpenNegotiation(home)}
-                      size="sm"
-                      variant="negotiate"
-                      fullWidth
-                      text="Negotiate"
-                      iconName="handshake"
-                    />
-                  </div>
-                }
-              />
-            </div>
-          );
-        })}
+        {filteredHomes.map((home: SavedHome) => (
+          <div key={home.home_id} className="w-full">
+            <SavedHomeCard
+              home={home}
+              isSelected={selectedHomesForComparison.has(home.home_id)}
+              onToggleCompare={onToggleHomeSelection}
+              onUnlock={onUnlockHome}
+              onNegotiate={onOpenNegotiation}
+            />
+          </div>
+        ))}
       </div>
     );
   }

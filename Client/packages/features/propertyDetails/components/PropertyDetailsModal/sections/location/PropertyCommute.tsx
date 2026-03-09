@@ -3,11 +3,11 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
-import { BodyText, Title } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import { Image } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
-import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
+import { BodyText, Title } from "@/components/ui";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
 import { CommuteTravelTimeCards } from "./propertyCommuteHelpers";

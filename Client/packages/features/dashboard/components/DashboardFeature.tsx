@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Calendar, UpcomingEvents } from "packages/features/calendar";
 import { useIsAgent } from "packages/features/homeauth";
 import { useNavigation } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives/box";
+import { Box } from "packages/ui/components/primitives";
 
 import ClientHub from "./ClientHub/ClientHub";
 import ClientList from "./ClientList/ClientList";

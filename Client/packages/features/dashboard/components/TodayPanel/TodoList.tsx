@@ -3,10 +3,10 @@ import React, { useMemo, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import Dropdown from "packages/ui/components/form/Dropdown";
-import { BodyText, Button, CancelButton, Input, Title } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Button, CancelButton, Input, Title } from "@/components/ui";
 import type { TodoItem, TodoPriority, TodoType } from "@/features/agent/types/agent";
 type TodoListProps = {
   todos: TodoItem[];

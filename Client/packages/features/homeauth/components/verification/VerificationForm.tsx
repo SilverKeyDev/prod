@@ -2,10 +2,10 @@ import React, { type RefObject } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { BodyText, Button, Input, Label, MiniLogo, Title } from "packages/ui/components/index.web";
 import { applyCodeChange, applyPaste, getBackspaceFocusIndex } from "packages/utils/verification";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Button, Input, Label, MiniLogo, Title } from "@/components/ui";
 export type VerificationStep = "email" | "code";
 type VerificationCodeInputsProps = {
   code: string[];

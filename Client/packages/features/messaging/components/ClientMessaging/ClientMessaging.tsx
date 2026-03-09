@@ -5,8 +5,8 @@ import type { ReactNode } from "react";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useMessaging } from "packages/hooks/data/chat/useMessaging";
 import { useClientMessagingModals, useMessageScroll } from "packages/hooks/ui";
-import { Region } from "packages/ui/components/index.web";
 
+import { Region } from "@/components/ui";
 import UnifiedMessageInput from "@/features/messaging/components/layout/UnifiedMessageInput";
 import UnifiedMessagesList from "@/features/messaging/components/layout/UnifiedMessagesList";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";

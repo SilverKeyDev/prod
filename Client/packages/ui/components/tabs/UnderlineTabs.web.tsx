@@ -1,7 +1,8 @@
 import React from "react";
 
-import { Button } from "packages/ui/components/index.web";
 import BodyText from "packages/ui/components/text/BodyText";
+
+import { Button } from "@/components/ui";
 
 export type UnderlineTabItem = {
   id: string;
@@ -38,9 +39,7 @@ export function UnderlineTabs({
   const textSizeClass = compact ? "text-responsive-sm" : "text-sm";
 
   return (
-    <div
-      className={className ? `${containerClass} ${className}` : containerClass}
-    >
+    <div className={className ? `${containerClass} ${className}` : containerClass}>
       {items.map((item) => {
         const isActive = activeId === item.id;
         return (

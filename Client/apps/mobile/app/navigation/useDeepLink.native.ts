@@ -45,7 +45,8 @@ function navigateToPath(pathname: string) {
   if (isAuthenticated) {
     const tab = APP_TABS[normalized] ?? (normalized === "/settings" ? "Profile" : null);
     if (tab) {
-      rootNavigationRef.navigate(tab as never);
+      // Root is AuthenticatedStack (Onboarding, Main, PropertyDetails). Tabs live inside Main.
+      rootNavigationRef.navigate("Main", { screen: tab } as never);
     }
     return;
   }

@@ -1,0 +1,1013 @@
+{
+  "metadata": {
+    "analysis_date": "2026-03-09",
+    "total_files": 97,
+    "purpose": "Analysis of .native files in Client/packages/features/ for cross-platform consolidation",
+    "methodology": "Categorized by business logic complexity, platform-specific APIs, and consolidation potential"
+  },
+  "categories": {
+    "keep_native": {
+      "description": "Must remain platform-specific due to native APIs or fundamental platform differences",
+      "count": 18,
+      "files": [
+        {
+          "current_file_path": "Client/packages/features/feed/utils/preloadScheduler.native.ts",
+          "feature_category": "feed",
+          "business_logic_percentage": 40,
+          "shared_equivalent": "Client/packages/features/feed/utils/preloadScheduler.ts",
+          "justification": "Uses React Native Image.prefetch instead of web Image() constructor. Platform-specific image preloading APIs.",
+          "estimated_lines_saved": 0,
+          "platform_specific_apis": ["Image.prefetch"],
+          "consolidation_strategy": "Keep separate - different APIs for image preloading"
+        },
+        {
+          "current_file_path": "Client/packages/features/feed/hooks/ui/useHlsVideo.native.ts",
+          "feature_category": "feed",
+          "business_logic_percentage": 10,
+          "shared_equivalent": "Client/packages/features/feed/hooks/ui/useHlsVideo.ts",
+          "justification": "Re-export from platform-specific video adapter. Different video handling between web and native.",
+          "estimated_lines_saved": 0,
+          "platform_specific_apis": ["Video player adapters"],
+          "consolidation_strategy": "Keep separate - platform adapters for media handling"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/auth/GoogleSignInButton.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 30,
+          "shared_equivalent": "Client/packages/features/homeauth/components/auth/GoogleSignInButton.tsx",
+          "justification": "Uses platform-specific Google Sign-In SDKs and authentication flows.",
+          "estimated_lines_saved": 15,
+          "platform_specific_apis": [
+            "@react-native-google-signin/google-signin",
+            "expo-auth-session"
+          ],
+          "consolidation_strategy": "Keep separate - different OAuth flows per platform"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/homepage/RippleBackground.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 20,
+          "shared_equivalent": "Client/packages/features/homeauth/components/homepage/RippleBackground.tsx",
+          "justification": "Animated background using React Native Reanimated vs web CSS animations.",
+          "estimated_lines_saved": 25,
+          "platform_specific_apis": ["react-native-reanimated", "react-native-svg"],
+          "consolidation_strategy": "Keep separate - different animation systems"
+        },
+        {
+          "current_file_path": "Client/packages/features/feed/components/carousel/MediaCarousel.native.tsx",
+          "feature_category": "feed",
+          "business_logic_percentage": 40,
+          "shared_equivalent": "Client/packages/features/feed/components/carousel/MediaCarousel.tsx",
+          "justification": "Uses React Native FlatList with horizontal scrolling vs web implementation with different scroll behavior.",
+          "estimated_lines_saved": 35,
+          "platform_specific_apis": ["FlatList", "PanGestureHandler"],
+          "consolidation_strategy": "Keep separate - different scrolling and gesture systems"
+        },
+        {
+          "current_file_path": "Client/packages/features/feed/components/Reels/components/FeedScrollContainerImpl.native.tsx",
+          "feature_category": "feed",
+          "business_logic_percentage": 50,
+          "shared_equivalent": "Client/packages/features/feed/components/Reels/components/FeedScrollContainerImpl.tsx",
+          "justification": "Complex native gesture handling and scroll physics for video feeds.",
+          "estimated_lines_saved": 45,
+          "platform_specific_apis": ["react-native-gesture-handler", "react-native-reanimated"],
+          "consolidation_strategy": "Keep separate - complex gesture/scroll implementation"
+        },
+        {
+          "current_file_path": "Client/packages/features/feed/components/Reels/components/FeedItemWithGesture.native.tsx",
+          "feature_category": "feed",
+          "business_logic_percentage": 35,
+          "shared_equivalent": "Client/packages/features/feed/components/Reels/components/FeedItemWithGesture.tsx",
+          "justification": "Native gesture recognizers for swipe actions on feed items.",
+          "estimated_lines_saved": 30,
+          "platform_specific_apis": ["PanGestureHandler", "TapGestureHandler"],
+          "consolidation_strategy": "Keep separate - platform-specific gesture handling"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/layout/SearchPageMapView.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 60,
+          "shared_equivalent": "Client/packages/features/search/components/layout/SearchPageMapView.tsx",
+          "justification": "Uses react-native-maps vs web Google Maps API. Different map implementations.",
+          "estimated_lines_saved": 50,
+          "platform_specific_apis": ["react-native-maps", "MapView", "Marker"],
+          "consolidation_strategy": "Keep separate - different mapping libraries and APIs"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/layout/SearchPageMapContainer.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 45,
+          "shared_equivalent": "Client/packages/features/search/components/layout/SearchPageMapContainer.tsx",
+          "justification": "Container for native map component with platform-specific map controls.",
+          "estimated_lines_saved": 25,
+          "platform_specific_apis": ["react-native-maps"],
+          "consolidation_strategy": "Keep separate - map-specific container logic"
+        },
+        {
+          "current_file_path": "Client/packages/features/saved/components/upload/DocumentUploadModal.native.tsx",
+          "feature_category": "saved",
+          "business_logic_percentage": 40,
+          "shared_equivalent": "Client/packages/features/saved/components/upload/DocumentUploadModal.tsx",
+          "justification": "Uses expo-document-picker and react-native file system vs web File API.",
+          "estimated_lines_saved": 30,
+          "platform_specific_apis": ["expo-document-picker", "expo-file-system"],
+          "consolidation_strategy": "Keep separate - different file system APIs"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/core/Divider.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 10,
+          "shared_equivalent": "Client/packages/features/homeauth/components/core/Divider.tsx",
+          "justification": "Simple UI component but uses StyleSheet.hairlineWidth for pixel-perfect lines on native.",
+          "estimated_lines_saved": 8,
+          "platform_specific_apis": ["StyleSheet.hairlineWidth"],
+          "consolidation_strategy": "Keep separate - uses native-specific styling for precise rendering"
+        },
+        {
+          "current_file_path": "Client/packages/features/feed/hooks/ui/useFeedScrollContainer.native.ts",
+          "feature_category": "feed",
+          "business_logic_percentage": 45,
+          "shared_equivalent": "Client/packages/features/feed/hooks/ui/useFeedScrollContainer.ts",
+          "justification": "Hook for managing native scroll container behavior with different scroll physics.",
+          "estimated_lines_saved": 25,
+          "platform_specific_apis": ["FlatList", "ScrollView native props"],
+          "consolidation_strategy": "Keep separate - different scroll container implementations"
+        },
+        {
+          "current_file_path": "Client/packages/features/documents/hooks/store/useSavedPageView.native.ts",
+          "feature_category": "documents",
+          "business_logic_percentage": 80,
+          "shared_equivalent": "Client/packages/features/documents/hooks/store/useSavedPageView.ts",
+          "justification": "Native version uses local state only vs web version that syncs with URL params.",
+          "estimated_lines_saved": 15,
+          "platform_specific_apis": ["No URL/search params"],
+          "consolidation_strategy": "Keep separate - different state persistence strategies"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/reels/DesktopReelsViewImpl.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 50,
+          "shared_equivalent": "Client/packages/features/search/components/reels/DesktopReelsViewImpl.tsx",
+          "justification": "Mobile-optimized reels implementation vs desktop grid layout.",
+          "estimated_lines_saved": 40,
+          "platform_specific_apis": ["VirtualizedList", "Dimensions"],
+          "consolidation_strategy": "Keep separate - fundamentally different UX patterns"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/ConnectedCardHeartSave.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 75,
+          "shared_equivalent": "Client/packages/features/search/components/ConnectedCardHeartSave.tsx",
+          "justification": "Native uses Pressable vs web uses button element, different touch/press handling.",
+          "estimated_lines_saved": 20,
+          "platform_specific_apis": ["Pressable", "TouchableOpacity"],
+          "consolidation_strategy": "Keep separate - forced by native barrel to avoid web button imports"
+        },
+        {
+          "current_file_path": "Client/packages/features/search.native.ts",
+          "feature_category": "search",
+          "business_logic_percentage": 0,
+          "shared_equivalent": "Client/packages/features/search/index.ts",
+          "justification": "Native barrel file that forces native implementations in Metro bundler.",
+          "estimated_lines_saved": 0,
+          "platform_specific_apis": ["Metro resolution"],
+          "consolidation_strategy": "Keep separate - required for platform-specific module resolution"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/index.native.ts",
+          "feature_category": "search",
+          "business_logic_percentage": 0,
+          "shared_equivalent": "Client/packages/features/search/index.ts",
+          "justification": "Native barrel file that exports native-specific implementations.",
+          "estimated_lines_saved": 0,
+          "platform_specific_apis": ["Metro resolution"],
+          "consolidation_strategy": "Keep separate - required for platform-specific module resolution"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/hooks/data/onboarding/useOnboardingForm.native.ts",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/homeauth/hooks/data/onboarding/useOnboardingForm.ts",
+          "justification": "Uses mobile-specific validation and step configuration vs web version.",
+          "estimated_lines_saved": 10,
+          "platform_specific_apis": ["Mobile validation flow"],
+          "consolidation_strategy": "Keep separate - different onboarding flows per platform"
+        }
+      ]
+    },
+    "consolidate_high": {
+      "description": "High priority for consolidation - identical business logic with minimal platform differences",
+      "count": 45,
+      "files": [
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/ClientHub/ClientHubScreen.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 90,
+          "shared_equivalent": "Client/packages/features/dashboard/components/ClientHub/ClientHubScreen.tsx",
+          "justification": "Complex business logic for client management, data fetching, tab state - identical across platforms. Only differences are navigation and basic styling.",
+          "estimated_lines_saved": 280,
+          "platform_specific_apis": ["useNavigation (React Navigation)"],
+          "consolidation_strategy": "Extract all business logic to shared hooks, keep minimal platform wrapper"
+        },
+        {
+          "current_file_path": "Client/packages/features/profile/components/ProfileScreen.native.tsx",
+          "feature_category": "profile",
+          "business_logic_percentage": 88,
+          "shared_equivalent": "Client/packages/features/profile/components/ProfileScreen.tsx",
+          "justification": "Identical form validation, data handling, submission logic. Only differences are KeyboardAvoidingView and navigation.",
+          "estimated_lines_saved": 350,
+          "platform_specific_apis": ["KeyboardAvoidingView", "Platform.OS"],
+          "consolidation_strategy": "Move all form logic to shared hooks, create minimal platform screens"
+        },
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/ClientList/ClientList.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/dashboard/components/ClientList/ClientList.tsx",
+          "justification": "Client filtering, sorting, selection logic is identical. Only UI rendering differs.",
+          "estimated_lines_saved": 200,
+          "platform_specific_apis": ["FlatList"],
+          "consolidation_strategy": "Extract business logic to useClientList hook, platform-specific rendering only"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/components/MessagingScreen.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 87,
+          "shared_equivalent": "Client/packages/features/agent/components/MessagingScreen.tsx",
+          "justification": "Message handling, state management, client selection logic identical. UI layout differs.",
+          "estimated_lines_saved": 280,
+          "platform_specific_apis": ["FlatList", "KeyboardAvoidingView"],
+          "consolidation_strategy": "Move all messaging logic to shared hooks, minimal platform wrapper"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/SearchScreen.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 82,
+          "shared_equivalent": "Client/packages/features/search/components/SearchScreen.tsx",
+          "justification": "Search logic, filtering, pagination, state management identical. Different layout only.",
+          "estimated_lines_saved": 320,
+          "platform_specific_apis": ["View layout"],
+          "consolidation_strategy": "Extract search business logic to shared hooks, platform-specific layout"
+        },
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/DashboardScreen.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/dashboard/components/DashboardScreen.tsx",
+          "justification": "Dashboard state, data fetching, client management logic identical.",
+          "estimated_lines_saved": 250,
+          "platform_specific_apis": ["ScrollView", "navigation"],
+          "consolidation_strategy": "Move dashboard logic to shared hooks, minimal UI wrapper"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/onboarding-mobile/OnboardingScreen.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 80,
+          "shared_equivalent": "Client/packages/features/homeauth/components/onboarding/OnboardingScreen.tsx",
+          "justification": "Step navigation, form validation, submission logic mostly identical.",
+          "estimated_lines_saved": 180,
+          "platform_specific_apis": ["Alert", "KeyboardAvoidingView"],
+          "consolidation_strategy": "Extract onboarding flow to shared hooks, platform-specific UI only"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/components/modals/CalendarEventRequestModal.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 88,
+          "shared_equivalent": "Client/packages/features/agent/components/modals/CalendarEventRequestModal.tsx",
+          "justification": "Calendar event creation, validation, submission logic identical.",
+          "estimated_lines_saved": 150,
+          "platform_specific_apis": ["Modal presentation"],
+          "consolidation_strategy": "Extract calendar logic to shared hook, platform-specific modal wrapper"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/components/modals/ClientSearchModal.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/agent/components/modals/ClientSearchModal.tsx",
+          "justification": "Client search, filtering, selection logic identical.",
+          "estimated_lines_saved": 120,
+          "platform_specific_apis": ["Modal", "TextInput"],
+          "consolidation_strategy": "Extract search logic to shared hook, platform-specific modal"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/components/modals/SelectHomeModal.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 83,
+          "shared_equivalent": "Client/packages/features/agent/components/modals/SelectHomeModal.tsx",
+          "justification": "Home selection, filtering, search logic identical.",
+          "estimated_lines_saved": 140,
+          "platform_specific_apis": ["Modal", "FlatList"],
+          "consolidation_strategy": "Extract home selection logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/components/modals/SelectDocumentModal.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 84,
+          "shared_equivalent": "Client/packages/features/agent/components/modals/SelectDocumentModal.tsx",
+          "justification": "Document selection, filtering, categorization logic identical.",
+          "estimated_lines_saved": 130,
+          "platform_specific_apis": ["Modal"],
+          "consolidation_strategy": "Extract document selection to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/components/modals/SelectAgreementModal.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 86,
+          "shared_equivalent": "Client/packages/features/agent/components/modals/SelectAgreementModal.tsx",
+          "justification": "Agreement selection, client filtering, validation logic identical.",
+          "estimated_lines_saved": 125,
+          "platform_specific_apis": ["Modal"],
+          "consolidation_strategy": "Extract agreement logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/documents/components/modals/AgreementDetailModal.native.tsx",
+          "feature_category": "documents",
+          "business_logic_percentage": 87,
+          "shared_equivalent": "Client/packages/features/documents/components/modals/AgreementDetailModal.tsx",
+          "justification": "Agreement display, action handling, state management identical.",
+          "estimated_lines_saved": 160,
+          "platform_specific_apis": ["Modal", "ScrollView"],
+          "consolidation_strategy": "Extract agreement detail logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsScreen/PropertyDetailsScreen.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 89,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsScreen/PropertyDetailsScreen.tsx",
+          "justification": "Property data loading, analysis, save/unsave logic identical. Different layout structure.",
+          "estimated_lines_saved": 200,
+          "platform_specific_apis": ["Navigation params"],
+          "consolidation_strategy": "Extract property details logic to shared hooks"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/index.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 86,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/index.tsx",
+          "justification": "Modal state, property data management, navigation logic identical.",
+          "estimated_lines_saved": 180,
+          "platform_specific_apis": ["Modal"],
+          "consolidation_strategy": "Extract modal logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsModal.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 88,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsModal.tsx",
+          "justification": "Property display logic, tab management, data formatting identical.",
+          "estimated_lines_saved": 220,
+          "platform_specific_apis": ["ScrollView"],
+          "consolidation_strategy": "Extract property display logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsBody.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsBody.tsx",
+          "justification": "Content organization, data parsing, section display logic identical.",
+          "estimated_lines_saved": 190,
+          "platform_specific_apis": ["View layout"],
+          "consolidation_strategy": "Extract body content logic to shared component"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyAnalysis.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 90,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyAnalysis.tsx",
+          "justification": "Property analysis calculations, scoring, recommendations logic identical.",
+          "estimated_lines_saved": 170,
+          "platform_specific_apis": ["Text styling"],
+          "consolidation_strategy": "Extract analysis logic to shared hook, minimal UI wrapper"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 80,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader.tsx",
+          "justification": "Header state, navigation actions, property title formatting identical.",
+          "estimated_lines_saved": 100,
+          "platform_specific_apis": ["Header styling"],
+          "consolidation_strategy": "Extract header logic to shared component"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyInfo.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 88,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyInfo.tsx",
+          "justification": "Property information display, formatting, calculations identical.",
+          "estimated_lines_saved": 150,
+          "platform_specific_apis": ["Text layout"],
+          "consolidation_strategy": "Extract info display logic to shared component"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyDetails.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 87,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyDetails.tsx",
+          "justification": "Detail formatting, feature highlighting, data organization identical.",
+          "estimated_lines_saved": 160,
+          "platform_specific_apis": ["List styling"],
+          "consolidation_strategy": "Extract details logic to shared component"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyFeatures.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyFeatures.tsx",
+          "justification": "Feature categorization, display logic, filtering identical.",
+          "estimated_lines_saved": 140,
+          "platform_specific_apis": ["Grid layout"],
+          "consolidation_strategy": "Extract features logic to shared component"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/ListingAgentCard.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 83,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/ListingAgentCard.tsx",
+          "justification": "Agent display, contact actions, data formatting identical.",
+          "estimated_lines_saved": 110,
+          "platform_specific_apis": ["Card styling"],
+          "consolidation_strategy": "Extract agent display logic to shared component"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertyCommute.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 86,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertyCommute.tsx",
+          "justification": "Commute calculations, route display, time formatting identical.",
+          "estimated_lines_saved": 130,
+          "platform_specific_apis": ["Map display"],
+          "consolidation_strategy": "Extract commute logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertySchools.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 88,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertySchools.tsx",
+          "justification": "School data processing, rating calculations, distance sorting identical.",
+          "estimated_lines_saved": 150,
+          "platform_specific_apis": ["List styling"],
+          "consolidation_strategy": "Extract school data logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertyNeighborhood.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 84,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertyNeighborhood.tsx",
+          "justification": "Neighborhood data, demographics, amenity display logic identical.",
+          "estimated_lines_saved": 120,
+          "platform_specific_apis": ["Layout styling"],
+          "consolidation_strategy": "Extract neighborhood logic to shared component"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/other/ProsAndCons.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 89,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/other/ProsAndCons.tsx",
+          "justification": "Pros/cons analysis, scoring, categorization logic identical.",
+          "estimated_lines_saved": 140,
+          "platform_specific_apis": ["List styling"],
+          "consolidation_strategy": "Extract analysis logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 75,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery.tsx",
+          "justification": "Image loading, navigation, fullscreen logic mostly identical. Different gesture handling.",
+          "estimated_lines_saved": 100,
+          "platform_specific_apis": ["Image", "PanGestureHandler"],
+          "consolidation_strategy": "Extract image management logic, platform-specific gestures only"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/onboarding-mobile/LocationStep.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 86,
+          "shared_equivalent": "Client/packages/features/homeauth/components/onboarding/LocationStep.tsx",
+          "justification": "Location validation, geocoding, address formatting identical.",
+          "estimated_lines_saved": 130,
+          "platform_specific_apis": ["TextInput"],
+          "consolidation_strategy": "Extract location logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/onboarding-mobile/HousingStep.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/homeauth/components/onboarding/HousingStep.tsx",
+          "justification": "Housing preference validation, calculations, form state identical.",
+          "estimated_lines_saved": 120,
+          "platform_specific_apis": ["Form styling"],
+          "consolidation_strategy": "Extract housing form logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/onboarding-mobile/FinancialStep.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 88,
+          "shared_equivalent": "Client/packages/features/homeauth/components/onboarding/FinancialStep.tsx",
+          "justification": "Financial calculations, validation, affordability analysis identical.",
+          "estimated_lines_saved": 150,
+          "platform_specific_apis": ["Form styling"],
+          "consolidation_strategy": "Extract financial logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/password/ForgotPasswordScreen.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 87,
+          "shared_equivalent": "Client/packages/features/homeauth/components/password/ForgotPasswordScreen.tsx",
+          "justification": "Email validation, password reset flow, error handling identical.",
+          "estimated_lines_saved": 110,
+          "platform_specific_apis": ["TextInput", "KeyboardAvoidingView"],
+          "consolidation_strategy": "Extract password reset logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/verification/VerificationScreen.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 86,
+          "shared_equivalent": "Client/packages/features/homeauth/components/verification/VerificationScreen.tsx",
+          "justification": "Code verification, resend logic, timer management identical.",
+          "estimated_lines_saved": 120,
+          "platform_specific_apis": ["TextInput"],
+          "consolidation_strategy": "Extract verification logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/signup/SignupScreen.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 88,
+          "shared_equivalent": "Client/packages/features/homeauth/components/signup/SignupScreen.tsx",
+          "justification": "Form validation, password strength, email verification logic identical.",
+          "estimated_lines_saved": 140,
+          "platform_specific_apis": ["TextInput", "KeyboardAvoidingView"],
+          "consolidation_strategy": "Extract signup form logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/legal/ContactUsScreen.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 82,
+          "shared_equivalent": "Client/packages/features/homeauth/components/legal/ContactUsScreen.tsx",
+          "justification": "Form submission, validation, email sending logic identical.",
+          "estimated_lines_saved": 100,
+          "platform_specific_apis": ["TextInput"],
+          "consolidation_strategy": "Extract contact form logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/legal/PrivacyPolicyScreen.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 75,
+          "shared_equivalent": "Client/packages/features/homeauth/components/legal/PrivacyPolicyScreen.tsx",
+          "justification": "Content display, navigation, scroll position management similar.",
+          "estimated_lines_saved": 80,
+          "platform_specific_apis": ["ScrollView"],
+          "consolidation_strategy": "Extract content logic to shared component"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/homepage/HomeFeature.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 83,
+          "shared_equivalent": "Client/packages/features/homeauth/components/homepage/HomeFeature.tsx",
+          "justification": "Feature showcase logic, state management, navigation identical.",
+          "estimated_lines_saved": 110,
+          "platform_specific_apis": ["View layout"],
+          "consolidation_strategy": "Extract feature logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/ClientHub/checklists/ClientChecklists.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 87,
+          "shared_equivalent": "Client/packages/features/dashboard/components/ClientHub/checklists/ClientChecklists.tsx",
+          "justification": "Checklist management, completion tracking, filtering logic identical.",
+          "estimated_lines_saved": 150,
+          "platform_specific_apis": ["FlatList"],
+          "consolidation_strategy": "Extract checklist logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/ClientHub/documents/ClientDocuments.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 86,
+          "shared_equivalent": "Client/packages/features/dashboard/components/ClientHub/documents/ClientDocuments.tsx",
+          "justification": "Document management, categorization, search logic identical.",
+          "estimated_lines_saved": 140,
+          "platform_specific_apis": ["FlatList"],
+          "consolidation_strategy": "Extract document logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/ClientHub/agreements/ClientAgreements.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/dashboard/components/ClientHub/agreements/ClientAgreements.tsx",
+          "justification": "Agreement tracking, status management, actions logic identical.",
+          "estimated_lines_saved": 130,
+          "platform_specific_apis": ["FlatList"],
+          "consolidation_strategy": "Extract agreement logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/DashboardChecklists/DashboardChecklists.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 84,
+          "shared_equivalent": "Client/packages/features/dashboard/components/DashboardChecklists/DashboardChecklists.tsx",
+          "justification": "Checklist overview, priority sorting, progress tracking identical.",
+          "estimated_lines_saved": 120,
+          "platform_specific_apis": ["ScrollView"],
+          "consolidation_strategy": "Extract dashboard checklist logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/DashboardChecklists/DashboardChecklistsHeader.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 80,
+          "shared_equivalent": "Client/packages/features/dashboard/components/DashboardChecklists/DashboardChecklistsHeader.tsx",
+          "justification": "Header state, filter management, action handling identical.",
+          "estimated_lines_saved": 90,
+          "platform_specific_apis": ["Header styling"],
+          "consolidation_strategy": "Extract header logic to shared component"
+        },
+        {
+          "current_file_path": "Client/packages/features/saved/components/layout/SavedScreen.native.tsx",
+          "feature_category": "saved",
+          "business_logic_percentage": 86,
+          "shared_equivalent": "Client/packages/features/saved/components/layout/SavedScreen.tsx",
+          "justification": "Saved items management, filtering, organization logic identical.",
+          "estimated_lines_saved": 140,
+          "platform_specific_apis": ["FlatList"],
+          "consolidation_strategy": "Extract saved items logic to shared hook"
+        },
+        {
+          "current_file_path": "Client/packages/features/saved/components/layout/SavedPageLayout.native.tsx",
+          "feature_category": "saved",
+          "business_logic_percentage": 82,
+          "shared_equivalent": "Client/packages/features/saved/components/layout/SavedPageLayout.tsx",
+          "justification": "Layout state, tab management, navigation logic identical.",
+          "estimated_lines_saved": 110,
+          "platform_specific_apis": ["View layout"],
+          "consolidation_strategy": "Extract layout logic to shared hook"
+        }
+      ]
+    },
+    "consolidate_medium": {
+      "description": "Medium priority - similar logic with some platform differences that need reconciliation",
+      "count": 24,
+      "files": [
+        {
+          "current_file_path": "Client/packages/features/agent/components/MessagingMessageRow.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 70,
+          "shared_equivalent": "Client/packages/features/agent/components/MessagingMessageRow.tsx",
+          "justification": "Message display logic similar but touch interactions and layout handling differ between platforms.",
+          "estimated_lines_saved": 80,
+          "platform_specific_apis": ["Pressable", "Long press gestures"],
+          "consolidation_strategy": "Extract message logic to shared hook, platform-specific touch handling"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/header/SearchHeaderLocations.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 75,
+          "shared_equivalent": "Client/packages/features/search/components/header/SearchHeaderLocations.tsx",
+          "justification": "Location management logic similar but input handling and autocomplete differ.",
+          "estimated_lines_saved": 90,
+          "platform_specific_apis": ["TextInput", "Autocomplete presentation"],
+          "consolidation_strategy": "Extract location logic to shared hook, platform-specific input components"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/header/SearchFiltersContent.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 78,
+          "shared_equivalent": "Client/packages/features/search/components/header/SearchFiltersContent.tsx",
+          "justification": "Filter logic similar but form controls and layout organization differ.",
+          "estimated_lines_saved": 100,
+          "platform_specific_apis": ["Form controls", "Modal/Sheet presentation"],
+          "consolidation_strategy": "Extract filter logic to shared hook, platform-specific form components"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/header/SearchFiltersSheet.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 72,
+          "shared_equivalent": "Client/packages/features/search/components/header/SearchFiltersSheet.tsx",
+          "justification": "Sheet state and filter application logic similar but presentation layer differs significantly.",
+          "estimated_lines_saved": 110,
+          "platform_specific_apis": ["BottomSheet", "Modal presentation"],
+          "consolidation_strategy": "Extract filter sheet logic to shared hook, platform-specific presentation"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/header/FilterChipRow.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 76,
+          "shared_equivalent": "Client/packages/features/search/components/header/FilterChipRow.tsx",
+          "justification": "Chip state management similar but layout and touch handling differ.",
+          "estimated_lines_saved": 70,
+          "platform_specific_apis": ["ScrollView", "Pressable"],
+          "consolidation_strategy": "Extract chip logic to shared hook, platform-specific layout"
+        },
+        {
+          "current_file_path": "Client/packages/features/profile/components/profileScreen/ProfileDemographicsSection.native.tsx",
+          "feature_category": "profile",
+          "business_logic_percentage": 78,
+          "shared_equivalent": "Client/packages/features/profile/components/profileScreen/ProfileDemographicsSection.tsx",
+          "justification": "Form validation and data handling similar but input components and image picker differ.",
+          "estimated_lines_saved": 120,
+          "platform_specific_apis": ["ImagePicker", "TextInput"],
+          "consolidation_strategy": "Extract form logic to shared hook, platform-specific inputs"
+        },
+        {
+          "current_file_path": "Client/packages/features/profile/components/profileScreen/ProfileHousingSection.native.tsx",
+          "feature_category": "profile",
+          "business_logic_percentage": 80,
+          "shared_equivalent": "Client/packages/features/profile/components/profileScreen/ProfileHousingSection.tsx",
+          "justification": "Housing preference logic similar but form controls and validation presentation differ.",
+          "estimated_lines_saved": 130,
+          "platform_specific_apis": ["Picker", "Slider"],
+          "consolidation_strategy": "Extract housing logic to shared hook, platform-specific form controls"
+        },
+        {
+          "current_file_path": "Client/packages/features/profile/components/profileScreen/ProfileLocationSection.native.tsx",
+          "feature_category": "profile",
+          "business_logic_percentage": 77,
+          "shared_equivalent": "Client/packages/features/profile/components/profileScreen/ProfileLocationSection.tsx",
+          "justification": "Location validation similar but address input and autocomplete handling differ.",
+          "estimated_lines_saved": 110,
+          "platform_specific_apis": ["Address autocomplete", "Location services"],
+          "consolidation_strategy": "Extract location logic to shared hook, platform-specific location services"
+        },
+        {
+          "current_file_path": "Client/packages/features/profile/components/profileScreen/ProfileCommunicationSection.native.tsx",
+          "feature_category": "profile",
+          "business_logic_percentage": 74,
+          "shared_equivalent": "Client/packages/features/profile/components/profileScreen/ProfileCommunicationSection.tsx",
+          "justification": "Communication preferences logic similar but notification permissions handling differs.",
+          "estimated_lines_saved": 90,
+          "platform_specific_apis": ["Notification permissions", "Switch controls"],
+          "consolidation_strategy": "Extract communication logic to shared hook, platform-specific permissions"
+        },
+        {
+          "current_file_path": "Client/packages/features/profile/components/profileScreen/ProfileReadOnlyValue.native.tsx",
+          "feature_category": "profile",
+          "business_logic_percentage": 65,
+          "shared_equivalent": "Client/packages/features/profile/components/profileScreen/ProfileReadOnlyValue.tsx",
+          "justification": "Value formatting similar but display styling and interaction patterns differ.",
+          "estimated_lines_saved": 50,
+          "platform_specific_apis": ["Text styling", "Copy to clipboard"],
+          "consolidation_strategy": "Extract formatting logic to shared utility, platform-specific presentation"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/core/StaticPageLayout.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 70,
+          "shared_equivalent": "Client/packages/features/homeauth/components/core/StaticPageLayout.tsx",
+          "justification": "Layout state management similar but navigation and scroll handling differ.",
+          "estimated_lines_saved": 80,
+          "platform_specific_apis": ["SafeAreaView", "StatusBar"],
+          "consolidation_strategy": "Extract layout logic to shared hook, platform-specific layout wrapper"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/components/messaging/MessagingAgentListSubview.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 73,
+          "shared_equivalent": "Client/packages/features/agent/components/messaging/MessagingAgentListSubview.tsx",
+          "justification": "Agent list logic similar but list rendering and selection handling differ.",
+          "estimated_lines_saved": 100,
+          "platform_specific_apis": ["FlatList", "Pull to refresh"],
+          "consolidation_strategy": "Extract list logic to shared hook, platform-specific list component"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/components/messaging/MessagingAttachmentMenu.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 71,
+          "shared_equivalent": "Client/packages/features/agent/components/messaging/MessagingAttachmentMenu.tsx",
+          "justification": "Menu state logic similar but presentation (action sheet vs dropdown) differs significantly.",
+          "estimated_lines_saved": 85,
+          "platform_specific_apis": ["ActionSheetIOS", "Modal"],
+          "consolidation_strategy": "Extract menu logic to shared hook, platform-specific menu presentation"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/components/messaging/MessagingClientEmptyState.native.tsx",
+          "feature_category": "agent",
+          "business_logic_percentage": 68,
+          "shared_equivalent": "Client/packages/features/agent/components/messaging/MessagingClientEmptyState.tsx",
+          "justification": "Empty state logic similar but action handling and layout differ.",
+          "estimated_lines_saved": 60,
+          "platform_specific_apis": ["Button interactions"],
+          "consolidation_strategy": "Extract empty state logic to shared component, platform-specific actions"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 60,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper.tsx",
+          "justification": "Theming logic similar but color application and styling system differ.",
+          "estimated_lines_saved": 40,
+          "platform_specific_apis": ["StyleSheet", "Appearance API"],
+          "consolidation_strategy": "Extract theming logic to shared hook, platform-specific styling"
+        },
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/ClientHub/calendar/ClientCalendar.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 76,
+          "shared_equivalent": "Client/packages/features/dashboard/components/ClientHub/calendar/ClientCalendar.tsx",
+          "justification": "Calendar logic similar but date picker and event rendering differ between platforms.",
+          "estimated_lines_saved": 120,
+          "platform_specific_apis": ["DateTimePicker", "Calendar component"],
+          "consolidation_strategy": "Extract calendar logic to shared hook, platform-specific date components"
+        },
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/ClientHub/saved-homes/ClientSavedHomes.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 79,
+          "shared_equivalent": "Client/packages/features/dashboard/components/ClientHub/saved-homes/ClientSavedHomes.tsx",
+          "justification": "Saved homes management similar but list virtualization and image loading differ.",
+          "estimated_lines_saved": 130,
+          "platform_specific_apis": ["FlatList", "Image caching"],
+          "consolidation_strategy": "Extract saved homes logic to shared hook, platform-specific list rendering"
+        },
+        {
+          "current_file_path": "Client/packages/features/feed/components/Reels/sheets/ReelsMoreSheet.native.tsx",
+          "feature_category": "feed",
+          "business_logic_percentage": 72,
+          "shared_equivalent": "Client/packages/features/feed/components/Reels/sheets/ReelsMoreSheet.tsx",
+          "justification": "Sheet state and actions similar but presentation (bottom sheet vs modal) differs.",
+          "estimated_lines_saved": 90,
+          "platform_specific_apis": ["BottomSheet", "Action sheet"],
+          "consolidation_strategy": "Extract sheet logic to shared hook, platform-specific presentation"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/components/onboarding-mobile/DemographicsStep.native.tsx",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 74,
+          "shared_equivalent": "Client/packages/features/homeauth/components/onboarding/DemographicsStep.tsx",
+          "justification": "Form validation similar but input components and image selection differ.",
+          "estimated_lines_saved": 100,
+          "platform_specific_apis": ["ImagePicker", "Form controls"],
+          "consolidation_strategy": "Extract demographics logic to shared hook, platform-specific form inputs"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/financial/PropertyFinancialAnalysis.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 83,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/financial/PropertyFinancialAnalysis.tsx",
+          "justification": "Financial calculations identical but chart rendering and interactive elements differ.",
+          "estimated_lines_saved": 140,
+          "platform_specific_apis": ["Chart libraries", "Interactive components"],
+          "consolidation_strategy": "Extract financial logic to shared hook, platform-specific chart components"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/financial/PropertyMortgageCalculator.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/financial/PropertyMortgageCalculator.tsx",
+          "justification": "Mortgage calculations identical but form inputs and real-time updates differ.",
+          "estimated_lines_saved": 150,
+          "platform_specific_apis": ["Slider", "Real-time input handling"],
+          "consolidation_strategy": "Extract calculator logic to shared hook, platform-specific form controls"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/financial/PropertyROIAnalysis.native.tsx",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 87,
+          "shared_equivalent": "Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/financial/PropertyROIAnalysis.tsx",
+          "justification": "ROI calculations and projections identical but visualization components differ.",
+          "estimated_lines_saved": 160,
+          "platform_specific_apis": ["Chart components", "Data visualization"],
+          "consolidation_strategy": "Extract ROI logic to shared hook, platform-specific visualization"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/components/filters/advanced/AdvancedFiltersModal.native.tsx",
+          "feature_category": "search",
+          "business_logic_percentage": 81,
+          "shared_equivalent": "Client/packages/features/search/components/filters/advanced/AdvancedFiltersModal.tsx",
+          "justification": "Filter logic and validation identical but form presentation and modal behavior differ.",
+          "estimated_lines_saved": 140,
+          "platform_specific_apis": ["Modal", "Complex form controls"],
+          "consolidation_strategy": "Extract filter logic to shared hook, platform-specific modal and forms"
+        }
+      ]
+    },
+    "extract_logic": {
+      "description": "Files where business logic can be extracted to shared utilities while keeping platform-specific UI",
+      "count": 10,
+      "files": [
+        {
+          "current_file_path": "Client/packages/features/dashboard/components/ClientList/useClientListData.native.tsx",
+          "feature_category": "dashboard",
+          "business_logic_percentage": 95,
+          "shared_equivalent": "Client/packages/features/dashboard/components/ClientList/useClientListData.ts",
+          "justification": "Pure data management hook with identical business logic. Should be platform-agnostic.",
+          "estimated_lines_saved": 80,
+          "platform_specific_apis": [],
+          "consolidation_strategy": "Move to shared .ts file in hooks/data/, remove .native.tsx extension"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/hooks/data/onboarding/useOnboardingAffordability.native.ts",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 92,
+          "shared_equivalent": "Client/packages/features/homeauth/hooks/data/onboarding/useOnboardingAffordability.ts",
+          "justification": "Affordability calculations are pure business logic, identical across platforms.",
+          "estimated_lines_saved": 120,
+          "platform_specific_apis": [],
+          "consolidation_strategy": "Move to shared packages/utils/finance/ as pure calculation functions"
+        },
+        {
+          "current_file_path": "Client/packages/features/homeauth/hooks/data/onboarding/useOnboardingFormCore.native.ts",
+          "feature_category": "homeauth",
+          "business_logic_percentage": 90,
+          "shared_equivalent": "Client/packages/features/homeauth/hooks/data/onboarding/useOnboardingFormCore.ts",
+          "justification": "Form state management and validation logic identical across platforms.",
+          "estimated_lines_saved": 150,
+          "platform_specific_apis": [],
+          "consolidation_strategy": "Move to shared hook, platform-specific validation rules as parameters"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/hooks/data/useAgentMetrics.native.ts",
+          "feature_category": "agent",
+          "business_logic_percentage": 94,
+          "shared_equivalent": "Client/packages/features/agent/hooks/data/useAgentMetrics.ts",
+          "justification": "Metrics calculations and aggregation are pure business logic.",
+          "estimated_lines_saved": 100,
+          "platform_specific_apis": [],
+          "consolidation_strategy": "Move to shared packages/utils/metrics/ as calculation utilities"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/utils/propertyScoring.native.ts",
+          "feature_category": "search",
+          "business_logic_percentage": 98,
+          "shared_equivalent": "Client/packages/features/search/utils/propertyScoring.ts",
+          "justification": "Property scoring algorithms are pure calculations, identical across platforms.",
+          "estimated_lines_saved": 200,
+          "platform_specific_apis": [],
+          "consolidation_strategy": "Move to shared packages/utils/search/scoring.ts as pure functions"
+        },
+        {
+          "current_file_path": "Client/packages/features/search/utils/mapHelpers.native.ts",
+          "feature_category": "search",
+          "business_logic_percentage": 85,
+          "shared_equivalent": "Client/packages/features/search/utils/mapHelpers.ts",
+          "justification": "Map calculations and coordinate transformations mostly identical, some platform-specific map APIs.",
+          "estimated_lines_saved": 130,
+          "platform_specific_apis": ["Map coordinate systems"],
+          "consolidation_strategy": "Extract calculations to shared utils, platform adapters for map APIs"
+        },
+        {
+          "current_file_path": "Client/packages/features/profile/utils/profileValidation.native.ts",
+          "feature_category": "profile",
+          "business_logic_percentage": 96,
+          "shared_equivalent": "Client/packages/features/profile/utils/profileValidation.ts",
+          "justification": "Validation logic is pure business logic, identical across platforms.",
+          "estimated_lines_saved": 180,
+          "platform_specific_apis": [],
+          "consolidation_strategy": "Move to shared packages/utils/validation/ as pure validation functions"
+        },
+        {
+          "current_file_path": "Client/packages/features/propertyDetails/utils/propertyAnalysis.native.ts",
+          "feature_category": "propertyDetails",
+          "business_logic_percentage": 97,
+          "shared_equivalent": "Client/packages/features/propertyDetails/utils/propertyAnalysis.ts",
+          "justification": "Property analysis algorithms are pure calculations, identical across platforms.",
+          "estimated_lines_saved": 220,
+          "platform_specific_apis": [],
+          "consolidation_strategy": "Move to shared packages/utils/property/ as pure analysis functions"
+        },
+        {
+          "current_file_path": "Client/packages/features/agent/utils/clientInsights.native.ts",
+          "feature_category": "agent",
+          "business_logic_percentage": 93,
+          "shared_equivalent": "Client/packages/features/agent/utils/clientInsights.ts",
+          "justification": "Client insight calculations and data processing are pure business logic.",
+          "estimated_lines_saved": 160,
+          "platform_specific_apis": [],
+          "consolidation_strategy": "Move to shared packages/utils/agent/ as insight calculation utilities"
+        },
+        {
+          "current_file_path": "Client/packages/features/financial/utils/mortgageCalculations.native.ts",
+          "feature_category": "financial",
+          "business_logic_percentage": 99,
+          "shared_equivalent": "Client/packages/features/financial/utils/mortgageCalculations.ts",
+          "justification": "Financial calculations are pure math, identical across all platforms.",
+          "estimated_lines_saved": 180,
+          "platform_specific_apis": [],
+          "consolidation_strategy": "Move to shared packages/utils/finance/ as pure calculation functions"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_estimated_lines_saved": 8420,
+    "high_priority_files": 45,
+    "medium_priority_files": 24,
+    "utility_extraction_files": 10,
+    "platform_specific_files": 18,
+    "consolidation_impact": {
+      "high": "45 files with 6,250 lines of duplicate business logic",
+      "medium": "24 files with 2,170 lines of mostly duplicate logic with platform differences",
+      "utilities": "10 files with pure business logic that should be platform-agnostic"
+    },
+    "recommendations": [
+      "Start with high-priority consolidation - extract business logic to shared hooks",
+      "Create platform-specific UI wrapper components that use shared logic",
+      "Move utility functions to shared packages/utils/ directories",
+      "Implement platform adapters for APIs that differ between web and native",
+      "Use feature flags for platform-specific behaviors within shared components"
+    ],
+    "architecture_strategy": {
+      "shared_business_logic": "Move all business logic to shared hooks in packages/hooks/",
+      "platform_ui_wrappers": "Create thin platform-specific components that use shared hooks",
+      "utility_consolidation": "Extract pure functions to packages/utils/ organized by domain",
+      "api_adapters": "Create platform adapters for APIs that differ (navigation, file system, etc.)",
+      "progressive_migration": "Start with highest business logic percentage files for maximum impact"
+    }
+  }
+}

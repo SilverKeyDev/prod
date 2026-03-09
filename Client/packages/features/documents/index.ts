@@ -15,3 +15,4 @@ export { useHomeComparison } from "./hooks/store/useHomeComparison";
 export { useReportsStoreIntegration } from "./hooks/store/useReportsStoreIntegration";
 export type { SavedPageViewType } from "./hooks/store/useSavedPageView";
 export { useSavedPageView } from "./hooks/store/useSavedPageView";
+export type { Agreement } from "./types/agreements";

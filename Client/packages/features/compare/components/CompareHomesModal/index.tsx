@@ -13,9 +13,9 @@ import {
 import type { CompareHomesPropertyDetails } from "packages/features/compare/utils/types";
 import { useUIStore } from "packages/store";
 import type { SavedHome } from "packages/types";
-import { BodyText, IconButton, Subtitle } from "packages/ui/components/index.web";
 
 import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, IconButton, Subtitle } from "@/components/ui";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 import {
   type Property as PropertyDetailsProperty,

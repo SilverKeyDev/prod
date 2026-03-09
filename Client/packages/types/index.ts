@@ -9,6 +9,7 @@ export {
   CHECKLIST_TITLES,
   type ChecklistTab,
 } from "packages/features/checklists/types/checklists";
+export type { Agreement } from "packages/features/documents/types/agreements";
 export type { Document, DocumentCategory } from "packages/features/documents/types/documents";
 export type { CompareReport, Report } from "packages/features/documents/types/reports";
 export type { UserPreferences, UserProfile } from "packages/features/homeauth/types/index";

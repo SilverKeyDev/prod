@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 import type { SecureFileUploadProps } from "./SecureFileUpload";
 

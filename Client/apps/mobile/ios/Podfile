@@ -33,9 +33,10 @@ target 'SilverKey' do
 
   config = use_native_modules!(config_command)
 
-  # Google Maps for react-native-maps (PROVIDER_GOOGLE on iOS)
+  # Google Maps for react-native-maps (PROVIDER_GOOGLE on iOS); 1.21+ needs maps-generated
   rn_maps_path = File.join(__dir__, '..', '..', '..', 'node_modules', 'react-native-maps')
   pod 'react-native-google-maps', :path => rn_maps_path
+  pod 'react-native-maps-generated', :path => rn_maps_path
 
   use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
   use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
@@ -64,6 +65,32 @@ target 'SilverKey' do
         resource_bundle_target.build_configurations.each do |config|
           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
+      end
+    end
+
+    # Silence "will be run during every build because it does not specify any outputs"
+    # by marking script phases with no outputs as always-out-of-date (run every build).
+    [installer.pods_project, installer.aggregate_targets.map(&:user_project).compact.first].each do |proj|
+      next unless proj
+      proj.targets.each do |target|
+        target.build_phases.each do |phase|
+          next unless phase.respond_to?(:output_paths) && (phase.output_paths || []).empty?
+          next unless phase.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
+          phase.always_out_of_date = '1' if phase.respond_to?(:always_out_of_date=)
+        end
+      end
+      proj.save
+    end
+
+    # Google-Maps-iOS-Utils GMUWeightedLatLng.h uses @import GoogleMaps; which requires C++ modules.
+    # Enabling C++ modules for react-native-google-maps breaks glog. Patch the header to use
+    # #import so no module flags are needed.
+    gmu_header = File.join(installer.sandbox.root, 'Google-Maps-iOS-Utils', 'Sources', 'GoogleMapsUtilsObjC', 'include', 'GMUWeightedLatLng.h')
+    if File.file?(gmu_header)
+      contents = File.read(gmu_header)
+      if contents.include?('@import GoogleMaps;')
+        File.chmod(0644, gmu_header)
+        File.write(gmu_header, contents.gsub('@import GoogleMaps;', '#import <GoogleMaps/GoogleMaps.h>'))
       end
     end
   end

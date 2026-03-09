@@ -1,8 +1,8 @@
 import type { RefObject } from "react";
 
-import { RippleBackground } from "packages/features/homeauth";
 import { MapControls } from "packages/features/search/components/map/MapControls.web";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { RippleBackground } from "packages/ui/components/backgrounds";
 
 type SearchPageMapContainerProps = {
   mapRef: RefObject<HTMLDivElement | null>;

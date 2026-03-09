@@ -1,6 +1,7 @@
 import { useLocalization } from "packages/contexts";
-import { BodyText } from "packages/ui/components/index.web";
 import { dateNow } from "packages/utils/date";
+
+import { BodyText } from "@/components/ui";
 
 import AuthLink from "./Link";
 

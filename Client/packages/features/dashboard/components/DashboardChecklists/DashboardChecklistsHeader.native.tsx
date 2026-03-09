@@ -2,6 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { color } from "packages/design-tokens";
 import { CHECKLIST_TITLES, type ChecklistTab } from "packages/types";
 import Button from "packages/ui/components/button/Button.native";
 import { Box } from "packages/ui/components/primitives";
@@ -100,7 +101,7 @@ export default function DashboardChecklistsHeader({
                   }`}
                 >
                   <Box className="flex-row items-center justify-center gap-1.5">
-                    <tab.icon size={14} color="#1A1F36" />
+                    <tab.icon size={14} color={color("navy")} />
                     <BodyText as="span" size="sm" className="text-navy/70" numberOfLines={1}>
                       {tab.label}
                     </BodyText>

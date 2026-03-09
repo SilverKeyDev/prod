@@ -66,7 +66,8 @@ export function handleHttpResponse<T>(
             /^(127\.0\.0\.1|localhost)$/.test(originHost) &&
             /^(127\.0\.0\.1|localhost)$/.test(apiHost);
 
-          log.error(LOG_CATEGORIES.HTTP, "❌ AUTH_ERROR_401", {
+          const isExpectedUnauthenticated = isAuthEndpoint(url) && allCookies.length === 0;
+          const logPayload = {
             url,
             errorCode: errorBody.error,
             message: errorBody.message,
@@ -82,9 +83,19 @@ export function handleHttpResponse<T>(
                     "App and API use different hosts (e.g. 127.0.0.1 vs localhost). Open the app at the same host as the API (e.g. http://localhost:5173) and ensure you are logged in.",
                 }
               : {}),
-          });
+          };
+          if (isExpectedUnauthenticated) {
+            log.debug(LOG_CATEGORIES.HTTP, "Auth endpoint 401 (no session - expected)", logPayload);
+          } else {
+            log.error(LOG_CATEGORIES.HTTP, "❌ AUTH_ERROR_401", logPayload);
+          }
 
-          if (authErrorCodes.includes(errorBody.error)) {
+          const isKnownAuthError =
+            authErrorCodes.includes(errorBody.error) ||
+            errorBody.error === "ACCESS_TOKEN_MISSING" ||
+            errorBody.error === "Authentication required" ||
+            errorBody.error === "Unauthorized";
+          if (isKnownAuthError) {
             // Auth endpoints (e.g. /api/v1/user/profile during bootstrap): throw HttpError
             // so callers can return { success: false } without triggering global logout/redirect
             if (isAuthEndpoint(url)) {

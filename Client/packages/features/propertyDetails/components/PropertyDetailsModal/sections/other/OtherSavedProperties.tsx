@@ -2,10 +2,10 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
+import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 
 import { StyledImage } from "@/components/cards/base/index.web";
-import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
+import { BodyText, Button, Title } from "@/components/ui";
 import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
 import { useSavedHomesData } from "@/features/search/hooks/data/saved/useSavedHomesData";
 export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ property }) => {

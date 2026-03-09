@@ -3,10 +3,10 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import type { ClientDealInfo } from "packages/schemas/agent";
-import { BodyText, Title } from "packages/ui/components/index.web";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Title } from "@/components/ui";
 import ActionButton from "@/features/dashboard/components/ActionButton";
 import DealStageBadge from "@/features/dashboard/components/DealStageBadge";
 import RiskFlag from "@/features/dashboard/components/RiskFlag";

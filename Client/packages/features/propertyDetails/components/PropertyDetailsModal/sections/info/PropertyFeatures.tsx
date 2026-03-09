@@ -2,10 +2,10 @@ import React, { useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
+import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 
 import Card from "@/components/layout/Card.web";
-import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
+import { BodyText, Button, Title } from "@/components/ui";
 type ImageFeatures = {
   clean: string[];
   error?: unknown;

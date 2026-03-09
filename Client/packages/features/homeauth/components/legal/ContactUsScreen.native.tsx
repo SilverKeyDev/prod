@@ -11,8 +11,8 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout.native";
-import { Icon } from "packages/ui/components/icons/Icon.native";
-import { Text } from "packages/ui/components/primitives/text";
+import { Icon } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
 import { ContactUsContent } from "./ContactUsContent";
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { Input } from "packages/ui/components/form/Input";
+import Input from "@ui/form/Input";
+
 import BodyText from "packages/ui/components/text/BodyText";
 import Label from "packages/ui/components/text/Label.web";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";

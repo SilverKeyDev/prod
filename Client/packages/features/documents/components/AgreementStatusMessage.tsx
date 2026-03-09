@@ -2,8 +2,7 @@ import { useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { BodyText } from "packages/ui/components/index.web";
-
+import { BodyText } from "@/components/ui";
 import { AgreementDetailModal } from "@/features/documents/components/modals";
 import type { AgreementStatus } from "@/features/documents/types/agreements";
 

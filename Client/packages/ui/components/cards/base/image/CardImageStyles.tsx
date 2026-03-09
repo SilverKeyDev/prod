@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 
 import {
   getImageInlineStyles,

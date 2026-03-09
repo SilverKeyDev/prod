@@ -1,9 +1,8 @@
 import React from "react";
 
-import { BodyText, Dropdown, Input, Title } from "packages/ui/components/index.web";
-
 import AlignedRow from "@/components/layout/AlignedRow";
 import Card from "@/components/layout/Card.web";
+import { Dropdown, Input, Title } from "@/components/ui";
 import ProfilePictureUpload from "@/features/profile/components/profilePicture/ProfilePictureUpload";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";

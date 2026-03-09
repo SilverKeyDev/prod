@@ -66,7 +66,7 @@ type TextareaProps = {
 
 export function Textarea({ error, className = "", ...props }: TextareaProps) {
   const baseClasses =
-    "w-full border rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-olive focus:border-olive transition-colors resize-vertical";
+    "w-full border rounded-lg px-3 py-2 min-h-20 focus:outline-none focus:ring-2 focus:ring-olive focus:border-olive transition-colors resize-vertical";
   const errorClasses = error ? "border-red-500" : "border-beige";
 
   return <textarea className={`${baseClasses} ${errorClasses} ${className}`} {...props} />;

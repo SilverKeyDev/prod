@@ -4,8 +4,8 @@ import type { AgentClient, AgentConversation } from "packages/api";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
 import { getMessagePreview } from "packages/features/messaging/utils";
-import { BodyText, KeyTurnLoader, Title } from "packages/ui/components/index.web";
 
+import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
 import {
   getMessagingConfig,
   type MessagingMode,

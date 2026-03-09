@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { IconButton, MiniLogo, Title } from "packages/ui/components";
+import { IconButton, MiniLogo, Title } from "@/components/ui";
 export type PdfModalHeaderProps = {
   title: string;
   onDownload: () => void;

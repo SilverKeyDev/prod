@@ -30,7 +30,9 @@ export class ScriptLoader {
           LOG_CATEGORIES.MAP_RENDERING,
           "VITE_GOOGLE_MAPS_ID not configured - using default map styling"
         );
+        return undefined;
       }
+      log.info(LOG_CATEGORIES.MAP_RENDERING, "Web map ID resolved for Cloud styling", { mapId });
       return mapId;
     } catch {
       log.warn(LOG_CATEGORIES.MAP_RENDERING, "Could not load config, using fallback");

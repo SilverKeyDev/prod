@@ -88,6 +88,10 @@ export const SECTION_TITLES = {
   COMMUNICATION_PREFERENCES: "Communication",
 } as const;
 
+/** Location section subtitle (web and native). */
+export const LOCATION_SUBTITLE =
+  "Locations set an exact search range; give work, family, or frequently visited places.";
+
 // Shared field labels
 export const FIELD_LABELS = {
   // Demographics

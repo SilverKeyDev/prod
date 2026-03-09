@@ -2,8 +2,9 @@ import { useMemo } from "react";
 
 import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
-import { BodyText } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
+
+import { BodyText, Button } from "@/components/ui";
 
 import type { GridDay } from "./types";
 
@@ -89,11 +90,9 @@ function EventChip({
   return (
     <div className={`${baseClasses} ${variantClasses}`} title={tooltipText}>
       {allDay ? (
-        <span className="block min-w-0 truncate">
-          <BodyText as="span" size="xs" muted className="font-medium">
-            All day · {displayTitle}
-          </BodyText>
-        </span>
+        <BodyText as="span" size="xs" muted className="block min-w-0 truncate font-medium">
+          All day · {displayTitle}
+        </BodyText>
       ) : (
         <div className="flex w-full min-w-0 items-center overflow-hidden">
           {event.start.dateTime && (
@@ -146,12 +145,10 @@ function AvailabilityChip({ block, isPast }: { block: FreebusyTimeBlock; isPast:
 
 export function DayCell({
   day,
-  index,
   onDateClick,
   silverKeyCalendarId,
   showAvailability = false,
 }: DayCellProps) {
-  const dateKey = day.date.toISOString().split("T")[0];
   const dayNumber = day.date.getDate();
   const dayItems = useMemo(
     () => buildDayItems(day.events, day.availability, showAvailability),
@@ -170,17 +167,19 @@ export function DayCell({
   const chipSlotHeight = "h-6 min-h-6";
 
   return (
-    <button
-      key={`${dateKey}-${index}`}
+    <Button
       type="button"
+      variant="ghost"
       onClick={() => onDateClick?.(day.date)}
       className={`relative flex min-h-16 w-full min-w-0 flex-col items-start overflow-hidden rounded border p-1 text-left transition-colors sm:min-h-20 ${borderClass} ${day.isPast ? "opacity-50" : ""} hover:border-brown/50 hover:bg-brown/5 ${onDateClick ? "cursor-pointer" : "cursor-default"} bg-transparent`}
     >
-      <div
-        className={`absolute left-1 top-1 text-xs font-medium sm:text-sm ${day.isPast ? "text-gray-400" : "text-gray-900"} ${day.isToday ? "text-olive font-semibold" : ""} pointer-events-none`}
+      <BodyText
+        as="span"
+        size="xs"
+        className={`absolute left-1 top-1 font-medium sm:text-sm ${day.isPast ? "text-gray-400" : "text-gray-900"} ${day.isToday ? "text-olive font-semibold" : ""} pointer-events-none`}
       >
         {dayNumber}
-      </div>
+      </BodyText>
 
       <div className="flex w-[80%] min-w-0 max-w-[80%] flex-col items-stretch gap-0.5 overflow-hidden pt-5">
         {[0, 1, 2].map((slotIndex) => {
@@ -215,9 +214,13 @@ export function DayCell({
         <div
           className={`flex ${chipSlotHeight} w-full min-w-0 shrink-0 items-center overflow-hidden px-1 text-xs ${day.isPast ? "text-gray-400" : "text-gray-500"}`}
         >
-          {showMoreIndicator ? `+${totalItems - 3} more` : null}
+          {showMoreIndicator ? (
+            <BodyText as="span" size="xs" muted>
+              +{totalItems - 3} more
+            </BodyText>
+          ) : null}
         </div>
       </div>
-    </button>
+    </Button>
   );
 }

@@ -3,7 +3,8 @@ import type { VirtuosoHandle } from "react-virtuoso";
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
 import { DesktopReelsView, SearchPageMapView, SearchPageModals } from "packages/features/search";
 import { MotionView } from "packages/ui/components/adapters/motion";
-import { IconButton } from "packages/ui/components/index.web";
+
+import { IconButton } from "@/components/ui";
 
 export type SearchPageContentProps = {
   searchViewMode: "map" | "reels";

@@ -1,7 +1,8 @@
 import React from "react";
 
 import { Link } from "packages/navigation";
-import { BodyText, Title } from "packages/ui/components/index.web";
+
+import { BodyText, Title } from "@/components/ui";
 
 import BackButton from "./BackButton";
 

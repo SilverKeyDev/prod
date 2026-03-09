@@ -3,9 +3,9 @@ import React, { useRef } from "react";
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-import { BodyText, Button } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 
+import { BodyText, Button } from "@/components/ui";
 import { FEED_AVATAR_IMAGE_CLASS } from "@/features/feed/components/Overlay/FeedActionButton";
 import { DEFAULT_AVATAR_IMAGE } from "@/features/feed/utils";
 import Label from "@/features/profile/components/settings/inputs/Label";

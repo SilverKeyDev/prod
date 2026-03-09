@@ -1,3 +1,5 @@
+import { dateFormat, dateParseLenient } from "packages/utils/date";
+
 import type {
   Agreement,
   AgreementParticipant,
@@ -40,35 +42,17 @@ export function canUserVoid(agreement: Agreement, userId: string, isAgent: boole
 }
 
 export function formatAgreementDate(value?: string | null): string {
-  if (!value) {
-    return "";
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  if (!value) return "";
+  const d = dateParseLenient(value);
+  if (!d.isValid()) return "";
+  return dateFormat(d, "MMM D, YYYY");
 }
 
 export function formatAgreementDateTime(value?: string | null): string {
-  if (!value) {
-    return "";
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-  return date.toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  if (!value) return "";
+  const d = dateParseLenient(value);
+  if (!d.isValid()) return "";
+  return dateFormat(d, "MMM D, YYYY, h:mm A");
 }
 
 export function getAgreementTypeLabel(type: AgreementType): string {

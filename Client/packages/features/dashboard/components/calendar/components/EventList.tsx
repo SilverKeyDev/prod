@@ -1,7 +1,7 @@
 import { BodyText, Title } from "@ui";
 import { Card } from "@ui/layout";
 
-import type { GoogleEvent } from "packages/features/calendar/api";
+import type { GoogleEvent } from "packages/features/calendar";
 import { dateParseISO } from "packages/utils/date";
 
 import { EventCard } from "./EventCard";

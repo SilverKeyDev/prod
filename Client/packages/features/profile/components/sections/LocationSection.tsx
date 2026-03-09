@@ -1,12 +1,11 @@
 import React from "react";
 
-import { BodyText, Subtitle, Title } from "packages/ui/components/index.web";
-
 // Components
 import Card from "@/components/layout/Card.web";
+import { BodyText, Subtitle, Title } from "@/components/ui";
 import ImportantLocationsInput from "@/features/profile/components/settings/inputs/ImportantLocationsInput.web";
 // Constants
-import { type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
+import { LOCATION_SUBTITLE, type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
 
 type LocationSectionProps = {
   formData: OnboardingData;
@@ -36,7 +35,7 @@ export default function LocationSection({
       {/* Important Locations for Commute */}
       <div className="flex w-full flex-col">
         <Subtitle size="xs" muted className="mb-4">
-          Locations set an exact search range; give work, family, or frequently visited places.
+          {LOCATION_SUBTITLE}
         </Subtitle>
         <ImportantLocationsInput
           locations={

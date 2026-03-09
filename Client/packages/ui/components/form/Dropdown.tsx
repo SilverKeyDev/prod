@@ -247,7 +247,9 @@ function Dropdown<T = unknown>({
           <BodyText
             as="span"
             ref={triggerLabelRef}
-            className={`relative min-w-0 flex-1 truncate text-left ${selectedOption ? "text-gray-600" : "!text-gray-400"} ${labelWraps ? "text-[13px]" : ""}`}
+            className={`relative min-w-0 flex-1 truncate text-left ${
+              selectedOption ? "text-gray-600" : "!text-gray-400"
+            } ${labelWraps ? "text-xs" : ""}`}
           >
             {displayLabel}
             {/* Hidden measurer: always default size so wrap detection is stable and doesn't glitch */}

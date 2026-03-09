@@ -504,6 +504,17 @@ function customResolveRequestImpl(context, moduleName, platform) {
     if (fs.existsSync(projectPkg)) return { type: "sourceFile", filePath: resolveIn(projectDir) };
     if (fs.existsSync(rootPkg)) return { type: "sourceFile", filePath: resolveIn(rootDir) };
   }
+
+  // 0g) react-native-maps package.json "main" points to src/index.ts; Metro's default resolver
+  //     can fail to resolve it. Explicitly resolve to the source entry so the package loads.
+  if (moduleName === "react-native-maps") {
+    const mapsRoot = fs.existsSync(path.join(rootNodeModules, "react-native-maps", "package.json"))
+      ? path.join(rootNodeModules, "react-native-maps")
+      : path.join(projectNodeModules, "react-native-maps");
+    const entry = path.join(mapsRoot, "src", "index.ts");
+    if (fs.existsSync(entry)) return { type: "sourceFile", filePath: entry };
+  }
+
   // Delegate to Metro's default resolver with a full context so internal code never
   // sees undefined (e.g. glob-related "Cannot read properties of undefined (reading 'hasMagic')").
   const safeContext =

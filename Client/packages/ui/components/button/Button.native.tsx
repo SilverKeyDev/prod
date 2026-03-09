@@ -6,8 +6,7 @@ import { Icon } from "@ui/icons";
 import type { PressableProps } from "react-native";
 import { Pressable } from "react-native";
 
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box, Text } from "packages/ui/components/primitives";
 
 import type { ButtonProps, ButtonVariant } from "./Button";
 

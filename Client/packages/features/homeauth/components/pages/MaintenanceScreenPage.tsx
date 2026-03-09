@@ -1,7 +1,6 @@
 import React from "react";
 
-import { BodyText, Title } from "packages/ui/components/index.web";
-
+import { BodyText, Title } from "@/components/ui";
 import RippleBackground from "@/features/homeauth/components/homepage/RippleBackground.web";
 
 const MaintenanceScreen: React.FC = () => (

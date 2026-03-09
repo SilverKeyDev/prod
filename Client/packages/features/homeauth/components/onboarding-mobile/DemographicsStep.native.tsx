@@ -1,9 +1,10 @@
 import React from "react";
 
+import Input from "@ui/form/Input";
+
 import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Input } from "packages/ui/components/primitives/input";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.native";
 
 import {

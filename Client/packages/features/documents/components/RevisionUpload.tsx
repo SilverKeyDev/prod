@@ -3,14 +3,8 @@ import { useRef, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useUIStore } from "packages/store";
-import {
-  BodyText,
-  Button,
-  CancelButton,
-  Input,
-  Label,
-  Textarea,
-} from "packages/ui/components/index.web";
+
+import { BodyText, Button, CancelButton, Input, Label, Textarea } from "@/components/ui";
 type RevisionUploadProps = {
   agreementId: string;
   onSuccess?: () => void;
@@ -22,7 +16,11 @@ type RevisionUploadProps = {
  * Allows agents to upload new revisions (PDF files) for draft agreements
  * Includes file picker, notes field, and progress indicator
  */
-export default function RevisionUpload({ agreementId, onSuccess, onCancel }: RevisionUploadProps) {
+export default function RevisionUpload({
+  agreementId: _agreementId,
+  onSuccess,
+  onCancel,
+}: RevisionUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [notes, setNotes] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);

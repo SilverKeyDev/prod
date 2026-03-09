@@ -1,30 +1,41 @@
-import { Building, Home, MapPin, MessageSquare, User } from "lucide-react";
+import React from "react";
+
+import { Icon } from "@ui/icons";
 
 import type { NavItem } from "packages/navigation";
+import type { IconName } from "packages/ui/types/icons";
 
 import {
   getOnboardingSteps,
   getPersonalizationSteps,
   type ProfileStep,
 } from "@/features/profile/utils";
+
 type StepWithIcon = ProfileStep & {
-  icon: unknown;
+  icon: React.ComponentType<{ size?: number; className?: string }> | undefined;
 };
-const iconForStepId = (id: string) => {
+
+const iconNameForStepId = (id: string): IconName | undefined => {
   switch (id) {
     case "demographics":
-      return User;
+      return "user";
     case "housing":
-      return Home;
+      return "home";
     case "location":
-      return MapPin;
+      return "map-pin";
     case "communication":
-      return MessageSquare;
+      return "message-square";
     case "financial":
-      return Building;
+      return "building";
     default:
       return undefined;
   }
+};
+
+const iconForStepId = (id: string): StepWithIcon["icon"] => {
+  const name = iconNameForStepId(id);
+  if (!name) return undefined;
+  return (props) => <Icon name={name} {...props} />;
 };
 const withIcons = (steps: ProfileStep[]): StepWithIcon[] =>
   steps.map((step) => ({ ...step, icon: iconForStepId(step.id) }));

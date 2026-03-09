@@ -1,8 +1,7 @@
 import React from "react";
 
-import { Title } from "packages/ui/components/index.web";
-
 import Card from "@/components/layout/Card.web";
+import { Title } from "@/components/ui";
 import { type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
 
 import { HousingBasicRows } from "./HousingBasicRows";

@@ -1,13 +1,13 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
-import { MessageSquare } from "lucide-react";
 
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import type { AgentNote, DecisionLogEntry } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
-import { BodyText, Title } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
+
+import { BodyText, Title } from "@/components/ui";
 type CommunicationLogProps = {
   clientId: string;
   decisions: DecisionLogEntry[];
@@ -44,7 +44,7 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
     })),
   ].sort((a, b) => dateParseISO(b.date).valueOf() - dateParseISO(a.date).valueOf());
   return (
-    <SectionCard title="Communication Log" icon={MessageSquare}>
+    <SectionCard title="Communication Log" iconName="message-square">
       <div className="space-y-6">
         {/* Messages Summary */}
         {conversation && (

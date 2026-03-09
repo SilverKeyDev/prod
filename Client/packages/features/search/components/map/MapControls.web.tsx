@@ -1,7 +1,8 @@
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { Button } from "packages/ui/components/index.web";
+
+import { Button } from "@/components/ui";
 export function MapControls(props: {
   page: number;
   total: number;

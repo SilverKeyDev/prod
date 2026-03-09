@@ -1,7 +1,8 @@
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useSearchViewStore } from "packages/store";
-import { AccessibleLink } from "packages/ui/components/index.web";
+
+import { AccessibleLink } from "@/components/ui";
 
 /** Search tab route - shared constant so packages do not depend on app layout. */
 const SEARCH_HREF = "/search";

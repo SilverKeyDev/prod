@@ -1,4 +1,4 @@
-import { BodyText } from "packages/ui/components/index.web";
+import { BodyText } from "@/components/ui";
 
 interface DividerProps {
   text?: string;

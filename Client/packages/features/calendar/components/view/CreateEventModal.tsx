@@ -4,22 +4,22 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleCalendar, GoogleEvent } from "packages/schemas/calendar";
 import type { UIState } from "packages/store";
 import { useGoogleMapsStore, useUIStore } from "packages/store";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
-import Dropdown from "packages/ui/components/form/Dropdown";
-import { Textarea } from "packages/ui/components/form/FormField";
-import { CloseButton, DateInput, Input, TimeInput } from "packages/ui/components/index.web";
-import { Box } from "packages/ui/components/primitives/box";
 import type {
   AutocompleteRequest,
   AutocompleteSuggestion,
   GoogleMapsWindow,
 } from "packages/types/google-maps";
+import Button from "packages/ui/components/button/Button";
+import CancelButton from "packages/ui/components/button/CancelButton";
+import Dropdown from "packages/ui/components/form/Dropdown";
+import { Textarea } from "packages/ui/components/form/FormField";
+import { Box } from "packages/ui/components/primitives";
 import { asError } from "packages/utils";
 import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
 import { getWindow } from "packages/utils/platform";
 
 import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, CloseButton, DateInput, Input, TimeInput } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents";
 
@@ -132,10 +132,7 @@ export function CreateEventModal({
     }
 
     const win = getWindow();
-    if (
-      googleMapsLoaded &&
-      (win as unknown as GoogleMapsWindow | null)?.google?.maps?.places
-    ) {
+    if (googleMapsLoaded && (win as unknown as GoogleMapsWindow | null)?.google?.maps?.places) {
       setScriptsReady(true);
     }
   }, [googleMapsLoaded, googleMapsError]);
@@ -156,8 +153,7 @@ export function CreateEventModal({
           return;
         }
 
-        const sessionToken =
-          new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
+        const sessionToken = new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
         const request: AutocompleteRequest = {
           input: eventLocation,
           sessionToken,
@@ -185,9 +181,10 @@ export function CreateEventModal({
       }
     };
 
-    const timeoutId = window.setTimeout(fetchSuggestions, 400);
+    const win = getWindow();
+    const timeoutId = win ? win.setTimeout(fetchSuggestions, 400) : 0;
     return () => {
-      window.clearTimeout(timeoutId);
+      if (win && timeoutId) win.clearTimeout(timeoutId);
     };
   }, [eventLocation, hasSelectedLocation, isOpen, scriptsReady]);
 
@@ -391,9 +388,9 @@ export function CreateEventModal({
             autoComplete="off"
           />
           {loadError && (
-            <p className="mt-1 text-xs text-rose">
+            <BodyText as="p" size="xs" className="text-rose mt-1">
               {loadError} You can still type an address manually.
-            </p>
+            </BodyText>
           )}
           {locationSuggestions.length > 0 && (
             <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">

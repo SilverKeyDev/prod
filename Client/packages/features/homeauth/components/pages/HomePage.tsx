@@ -7,10 +7,11 @@ import RippleBackground from "packages/features/homeauth/components/homepage/Rip
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link, ROUTES, useNavigation } from "packages/navigation";
 import type { AutocompleteSuggestion } from "packages/schemas/google-maps";
-import { BodyText, Button, CloseButton, Title } from "packages/ui/components";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 import { asError } from "packages/utils/error";
 import { getWindow } from "packages/utils/platform";
+
+import { BodyText, Button, CloseButton, Title } from "@/components/ui";
 
 import KeyLogo from "/logo.png?url";
 type Suggestion = {

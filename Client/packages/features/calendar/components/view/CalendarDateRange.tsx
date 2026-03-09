@@ -1,5 +1,4 @@
-import { Title } from "packages/ui/components/index.web";
-
+import { Title } from "@/components/ui";
 import { formatDateRange } from "@/features/calendar/utils/date";
 
 type CalendarDateRangeProps = {

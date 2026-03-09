@@ -3,7 +3,8 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
+
+import { BodyText, Button, Title } from "@/components/ui";
 export function NoAgentState({ onSearchClick }: { onSearchClick: () => void }): React.ReactElement {
   return (
     <div className="flex h-full items-center justify-center">

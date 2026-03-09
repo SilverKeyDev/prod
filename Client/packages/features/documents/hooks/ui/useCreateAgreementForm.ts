@@ -13,7 +13,7 @@ export type UseCreateAgreementFormParams = {
 
 export const useCreateAgreementForm = ({
   preselectedBuyerId,
-  onSuccess,
+  onSuccess: _onSuccess,
   onClose,
 }: UseCreateAgreementFormParams) => {
   const { t } = useLocalization();
@@ -38,7 +38,10 @@ export const useCreateAgreementForm = ({
     []
   );
 
-  const resetForm = useCallback(() => {
+  const templates: { id: string; label: string }[] = useMemo(() => [], []);
+  const isCreatingAgreement = false;
+
+  const _resetForm = useCallback(() => {
     setTitle("");
     setAgreementType("buyer_representation");
     setSelectedBuyerId(preselectedBuyerId ?? "");
@@ -88,19 +91,7 @@ export const useCreateAgreementForm = ({
               }),
       });
     }
-  }, [
-    agreementType,
-    createAgreement,
-    description,
-    enqueueToast,
-    onClose,
-    onSuccess,
-    propertyAddress,
-    resetForm,
-    selectedBuyerId,
-    t,
-    title,
-  ]);
+  }, [enqueueToast, selectedBuyerId, t, title]);
 
   const handleClose = useCallback(() => {
     if (!isCreatingAgreement) {

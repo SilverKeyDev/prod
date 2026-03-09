@@ -1,6 +1,6 @@
 import { useLocalization } from "packages/contexts";
-import { Title } from "packages/ui/components/index.web";
 
+import { Title } from "@/components/ui";
 import { formatPropertyType } from "@/features/search/types/search/propertyDetailsFormatters";
 
 export interface PropertyDetailsListProps {

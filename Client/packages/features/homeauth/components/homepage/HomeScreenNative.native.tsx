@@ -8,14 +8,15 @@ import React from "react";
 import type { ParamListBase } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
 import AppImage from "packages/ui/components/asset/AppImage.native";
 import { LOGO_SOURCE } from "packages/ui/components/asset/logoSource.native";
+import { ScrollView } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 import RippleBackground from "./RippleBackground";
 

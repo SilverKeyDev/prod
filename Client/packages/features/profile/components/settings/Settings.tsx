@@ -11,12 +11,12 @@ import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 // Core
 import { useGoogleMapsStore } from "packages/store";
+import { getDocument, getWindow } from "packages/utils/platform";
+
 // Google Maps types
 /// <reference types="google.maps" />
 // Components
-import { Loading } from "packages/ui/components/index.web";
-import { getDocument, getWindow } from "packages/utils/platform";
-
+import { Loading } from "@/components/ui";
 import SettingsSidebar from "@/components/ui/sidebar/SettingsSidebar";
 import {
   convertStepsToNavItems,

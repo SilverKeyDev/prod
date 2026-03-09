@@ -114,6 +114,7 @@ function silverkeyComponentsAndFeatures(silverkey) {
         "packages/ui/**/*.{ts,tsx}",
         "packages/features/**/*.{ts,tsx}",
         "apps/web/**/*.{ts,tsx}",
+        "apps/mobile/**/*.{ts,tsx}",
       ],
       plugins: { silverkey },
       rules: {

@@ -1,14 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable as RNPressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import Loading from "@ui/asset/loading/Loading";
+import Input from "@ui/form/Input";
+import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
@@ -16,12 +10,11 @@ import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { useMessaging } from "packages/hooks/data/chat/useMessaging";
 import { useAuthStore } from "packages/store";
-import { Pressable } from "packages/ui/components/primitives";
-import { Loading } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Input } from "packages/ui/components/primitives/input";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
+import { MessagingAgentListSubview } from "@/features/agent/components/messaging/MessagingAgentListSubview.native";
+import { MessagingAttachmentMenu } from "@/features/agent/components/messaging/MessagingAttachmentMenu.native";
+import { MessagingClientEmptyState } from "@/features/agent/components/messaging/MessagingClientEmptyState.native";
 import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
 import { MessagingMessageRowNative } from "@/features/agent/components/MessagingMessageRow.native";
 import CalendarEventRequestModal from "@/features/agent/components/modals/CalendarEventRequestModal";
@@ -34,6 +27,25 @@ import { useAgentAutoSelectClient } from "@/features/agent/hooks/ui/useAgentAuto
 import { useAgentMessagingHandlers } from "@/features/messaging/components/AgentMessaging/useAgentMessagingHandlers";
 import { useClientMessagingHandlers } from "@/features/messaging/components/ClientMessaging/useClientMessagingHandlers";
 import { resolvePrimaryAgentId } from "@/features/messaging/utils";
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  listContent: { padding: 16, paddingBottom: 8, flexGrow: 1 },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: color("neutral.200"),
+    backgroundColor: color("neutral.50"),
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+});
 
 export function MessagingScreenNative() {
   const authReady = useAuthStore((s) => s.authReady);
@@ -163,167 +175,36 @@ export function MessagingScreenNative() {
   const isAgentWithoutSelection = isAgent && !selectedClientId;
 
   if (isAgentWithoutSelection) {
-    if (isLoadingClients) {
-      return (
-        <View style={styles.centered}>
-          <Loading />
-        </View>
-      );
-    }
-
-    if (!isLoadingClients && clients.length === 0) {
-      return (
-        <View style={styles.centered}>
-          <Text className="text-center text-gray-600">
-            {config.emptyStates.noSelection.message}
-          </Text>
-        </View>
-      );
-    }
-
     return (
-      <View style={styles.container}>
-        <Box className="border-b border-gray-100 bg-gray-50 px-4 py-3">
-          <Box className="mb-2 flex-row items-center justify-between">
-            <Text className="text-base font-semibold text-gray-900">{config.sidebar.title}</Text>
-            <Pressable
-              onPress={refreshChats}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2"
-            >
-              <Text className="text-sm font-medium text-gray-800">Refresh</Text>
-            </Pressable>
-          </Box>
-          <Box className="mt-1 flex-row rounded-lg bg-neutral-100 p-1">
-            <Pressable
-              onPress={() => setInboxMode("conversations")}
-              className={`flex-1 rounded-md px-3 py-1.5 ${
-                inboxMode === "conversations" ? "bg-white" : "bg-transparent"
-              }`}
-            >
-              <Text
-                className={
-                  inboxMode === "conversations"
-                    ? "text-sm font-semibold text-gray-900"
-                    : "text-sm font-medium text-gray-600"
-                }
-              >
-                Conversations
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setInboxMode("requests")}
-              className={`flex-1 rounded-md px-3 py-1.5 ${
-                inboxMode === "requests" ? "bg-white" : "bg-transparent"
-              }`}
-            >
-              <Text
-                className={
-                  inboxMode === "requests"
-                    ? "text-sm font-semibold text-gray-900"
-                    : "text-sm font-medium text-gray-600"
-                }
-              >
-                Requests
-              </Text>
-            </Pressable>
-          </Box>
-        </Box>
-        {inboxMode === "conversations" ? (
-          <FlatList
-            data={clients}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              const conversation = conversationMap.get(item.id);
-              return (
-                <Pressable
-                  onPress={() => {
-                    setSelectedClientId(item.id);
-                  }}
-                  className="border-b border-gray-100 px-4 py-4"
-                >
-                  <Text className="font-medium text-gray-900">
-                    {item.name ?? item.email ?? "Client"}
-                  </Text>
-                  {conversation?.last_message && (
-                    <Text className="mt-1 text-sm text-gray-500" numberOfLines={1}>
-                      {conversation.last_message}
-                    </Text>
-                  )}
-                </Pressable>
-              );
-            }}
-          />
-        ) : isLoadingRequests ? (
-          <View style={styles.centered}>
-            <Loading />
-          </View>
-        ) : requests.length === 0 ? (
-          <View style={styles.centered}>
-            <Text className="text-center text-gray-600">No pending connection requests</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={requests}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            renderItem={({ item }) => (
-              <Box className="mb-3 rounded-lg border border-gray-200 bg-white p-4">
-                <Text className="text-base font-semibold text-gray-900">
-                  {item.other_party_name ?? "Unknown"}
-                </Text>
-                {!!item.other_party_email && (
-                  <Text className="mt-1 text-sm text-gray-600">{item.other_party_email}</Text>
-                )}
-                {!!item.message && (
-                  <Text className="mt-2 text-sm text-gray-800">{item.message}</Text>
-                )}
-                <Text className="mt-1 text-xs text-gray-500">
-                  {item.requested_by_agent
-                    ? "Agent requested to connect"
-                    : "Client requested to connect"}
-                </Text>
-                <Box className="mt-3 flex-row gap-3">
-                  <Pressable
-                    onPress={() => respondToRequest(item.id, true)}
-                    disabled={isResponding}
-                    className="bg-brand-accent flex-1 items-center rounded-lg px-3 py-2"
-                  >
-                    <Text className="text-sm font-semibold text-white">Accept</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => respondToRequest(item.id, false)}
-                    disabled={isResponding}
-                    className="flex-1 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
-                  >
-                    <Text className="text-sm font-semibold text-gray-900">Reject</Text>
-                  </Pressable>
-                </Box>
-              </Box>
-            )}
-          />
-        )}
-      </View>
+      <MessagingAgentListSubview
+        config={config}
+        clients={clients}
+        requests={requests}
+        isLoadingClients={isLoadingClients}
+        isLoadingRequests={isLoadingRequests}
+        isResponding={isResponding}
+        respondToRequest={respondToRequest}
+        refreshChats={refreshChats}
+        setSelectedClientId={setSelectedClientId}
+        inboxMode={inboxMode}
+        setInboxMode={setInboxMode}
+        conversationMap={conversationMap}
+        listContentStyle={styles.listContent}
+        centeredStyle={styles.centered}
+        containerStyle={styles.container}
+      />
     );
   }
 
   if (!isAgent && !canSendMessage) {
     return (
-      <View style={styles.centered}>
-        <Text className="mb-2 text-center text-base font-medium text-gray-900">
-          {config.emptyStates.noAgent.title}
-        </Text>
-        <Text className="mb-4 text-center text-sm text-gray-600">
-          {config.emptyStates.noAgent.message}
-        </Text>
-        <Pressable
-          onPress={() => setShowSearchModal(true)}
-          className="rounded-lg border border-gray-200 bg-white px-4 py-2"
-        >
-          <Text className="text-sm font-medium text-gray-800">
-            {config.emptyStates.noAgent.actionLabel}
-          </Text>
-        </Pressable>
-      </View>
+      <MessagingClientEmptyState
+        title={config.emptyStates.noAgent.title}
+        message={config.emptyStates.noAgent.message}
+        actionLabel={config.emptyStates.noAgent.actionLabel}
+        onAction={() => setShowSearchModal(true)}
+        centeredStyle={styles.centered}
+      />
     );
   }
 
@@ -419,61 +300,15 @@ export function MessagingScreenNative() {
         </Pressable>
       </View>
 
-      <Modal
+      <MessagingAttachmentMenu
         visible={showAttachmentMenu}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowAttachmentMenu(false)}
-      >
-        <RNPressable style={styles.attachmentBackdrop} onPress={() => setShowAttachmentMenu(false)}>
-          <View style={styles.attachmentSheet}>
-            <RNPressable
-              onPress={() => {
-                setShowAttachmentMenu(false);
-                setShowSelectHomeModal(true);
-              }}
-              style={styles.attachmentOption}
-            >
-              <Text className="text-base font-medium text-gray-900">Share home</Text>
-            </RNPressable>
-            <RNPressable
-              onPress={() => {
-                setShowAttachmentMenu(false);
-                setShowSelectDocumentModal(true);
-              }}
-              style={styles.attachmentOption}
-            >
-              <Text className="text-base font-medium text-gray-900">Share document</Text>
-            </RNPressable>
-            <RNPressable
-              onPress={() => {
-                setShowAttachmentMenu(false);
-                setShowCalendarEventModal(true);
-              }}
-              style={styles.attachmentOption}
-            >
-              <Text className="text-base font-medium text-gray-900">Calendar event</Text>
-            </RNPressable>
-            {isAgent && (
-              <RNPressable
-                onPress={() => {
-                  setShowAttachmentMenu(false);
-                  setShowSelectAgreementModal(true);
-                }}
-                style={styles.attachmentOption}
-              >
-                <Text className="text-base font-medium text-gray-900">Share agreement</Text>
-              </RNPressable>
-            )}
-            <RNPressable
-              onPress={() => setShowAttachmentMenu(false)}
-              style={[styles.attachmentOption, styles.attachmentCancel]}
-            >
-              <Text className="text-base font-medium text-gray-600">Cancel</Text>
-            </RNPressable>
-          </View>
-        </RNPressable>
-      </Modal>
+        onClose={() => setShowAttachmentMenu(false)}
+        onShareHome={() => setShowSelectHomeModal(true)}
+        onShareDocument={() => setShowSelectDocumentModal(true)}
+        onCalendarEvent={() => setShowCalendarEventModal(true)}
+        onShareAgreement={isAgent ? () => setShowSelectAgreementModal(true) : undefined}
+        isAgent={isAgent}
+      />
 
       <ClientSearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} />
       <SelectHomeModal
@@ -502,65 +337,3 @@ export function MessagingScreenNative() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  listContent: {
-    padding: 16,
-    paddingBottom: 8,
-    flexGrow: 1,
-  },
-  messageBubble: {
-    maxWidth: "85%",
-    padding: 12,
-    borderRadius: 16,
-    marginVertical: 4,
-  },
-  messageBubbleUser: {
-    alignSelf: "flex-end",
-    backgroundColor: color("brand.accent"),
-  },
-  messageBubbleAgent: {
-    alignSelf: "flex-start",
-    backgroundColor: color("neutral.100"),
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: color("neutral.200"),
-    backgroundColor: color("neutral.50"),
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-  },
-  attachmentBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  attachmentSheet: {
-    backgroundColor: color("neutral.50"),
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingBottom: 24,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  attachmentOption: {
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: color("neutral.200"),
-  },
-  attachmentCancel: {
-    borderBottomWidth: 0,
-    marginTop: 8,
-  },
-});

@@ -1,4 +1,4 @@
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 
 import { FeedPosterPlaceholder } from "./FeedPosterPlaceholder";
 

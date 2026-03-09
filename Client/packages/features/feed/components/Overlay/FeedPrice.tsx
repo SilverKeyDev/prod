@@ -1,5 +1,6 @@
-import { BodyText } from "packages/ui/components/index.web";
 import { formatUSD } from "packages/utils";
+
+import { BodyText } from "@/components/ui";
 
 type FeedPriceProps = {
   /** Listing price in USD. Not rendered when missing. */

@@ -1,9 +1,10 @@
 import React from "react";
 
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import type { IconName } from "packages/ui/types/icons";
 import { dateNow } from "packages/utils/date";
 
 import Button from "./Button";
@@ -77,7 +78,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
     },
   };
   const currentSizeStyles = sizeStyles[size];
-  const ArrowIcon = arrowType === "arrow" ? ArrowRight : ChevronRight;
+  const arrowIconName: IconName = arrowType === "arrow" ? "arrow-right" : "chevron-right";
   const buttonClasses = [
     // Base link-like styling
     "inline-flex items-center justify-center font-medium transition-all duration-200",
@@ -131,7 +132,9 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
       ) : (
         <>
           {children}
-          {showArrow && <ArrowIcon className={`${currentSizeStyles.icon} flex-shrink-0`} />}
+          {showArrow && (
+            <Icon name={arrowIconName} className={`${currentSizeStyles.icon} flex-shrink-0`} />
+          )}
         </>
       )}
     </Button>

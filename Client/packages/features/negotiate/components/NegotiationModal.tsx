@@ -4,9 +4,9 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useNegotiationStore } from "packages/store";
-import { Title } from "packages/ui/components/index.web";
 
 import BaseModal from "@/components/modals/BaseModal";
+import { Title } from "@/components/ui";
 import { ComparablesSection } from "@/features/negotiate/components/ComparablesSection";
 import { DebugSection } from "@/features/negotiate/components/DebugSection";
 import { ErrorSection } from "@/features/negotiate/components/ErrorSection";

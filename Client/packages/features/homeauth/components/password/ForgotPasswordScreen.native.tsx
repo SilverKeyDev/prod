@@ -4,6 +4,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 
+import Input from "@ui/form/Input";
 import { StyleSheet } from "react-native";
 
 import { color } from "packages/design-tokens";
@@ -17,9 +18,8 @@ import { useAuthStore } from "packages/store";
 import { useUserStore } from "packages/store";
 import { usePasswordValidation } from "packages/ui/components/feedback";
 import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Input } from "packages/ui/components/primitives/input";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
 type Step = "request" | "verify" | "reset";
 

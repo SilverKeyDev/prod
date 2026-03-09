@@ -3,10 +3,10 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
-import { Title } from "packages/ui/components/index.web";
+import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 
 import Card from "@/components/layout/Card.web";
-import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
+import { Title } from "@/components/ui";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
 import { renderAgeDistribution, renderNeighborhoodContent } from "./propertyNeighborhoodHelpers";

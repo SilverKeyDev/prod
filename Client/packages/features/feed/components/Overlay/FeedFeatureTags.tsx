@@ -1,4 +1,4 @@
-import { BodyText } from "packages/ui/components/index.web";
+import { BodyText } from "@/components/ui";
 
 type FeedFeatureTagsProps = {
   /** Feature tags (e.g. ["3 bed", "2 bath", "Pool"]). Not rendered when empty. */

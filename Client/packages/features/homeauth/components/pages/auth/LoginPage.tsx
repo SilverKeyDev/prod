@@ -9,8 +9,9 @@ import AuthPageLayout from "packages/features/homeauth/components/core/PageLayou
 import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAuth";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { Button, Input } from "packages/ui/components/index.web";
 import { getSessionStorage } from "packages/utils/storage";
+
+import { Button, Input } from "@/components/ui";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

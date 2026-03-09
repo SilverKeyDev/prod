@@ -3,9 +3,9 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { Button, CancelButton, FavoriteHomesDropdown } from "packages/ui/components/index.web";
 
 import { AlignedRow } from "@/components/layout";
+import { Button, CancelButton, FavoriteHomesDropdown } from "@/components/ui";
 
 import SectionBox from "./SectionBox";
 type FavoriteHome = {

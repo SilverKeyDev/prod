@@ -3,10 +3,10 @@ import { useEffect } from "react";
 import { useDocumentActions, useDocumentsStoreIntegration } from "packages/features/documents";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
-import { BodyText, KeyTurnLoader, Title } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
 
 import { PdfModal } from "@/components/modals";
+import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
 
 type ClientDocumentsProps = {
   userId: string;

@@ -9,10 +9,11 @@ import {
   useResetPassword,
 } from "packages/features/homeauth/hooks/data/useAuthActions";
 import { useNavigation } from "packages/navigation";
-import { Button, Input } from "packages/ui/components";
 import { usePasswordValidation } from "packages/ui/components/feedback";
 import { PasswordValidation } from "packages/ui/components/feedback/PasswordValidation";
 import SuccessDialog from "packages/ui/components/modals/dialogs/SuccessDialog";
+
+import { Button, Input } from "@/components/ui";
 export default function ResetPasswordPage() {
   const { getSearchParams, navigate } = useNavigation();
   const [email, setEmail] = useState(() => getSearchParams().get("email") || "");

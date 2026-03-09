@@ -9,7 +9,7 @@ import type { Report } from "packages/schemas";
 import { dateNow } from "packages/utils/date";
 
 import { Card } from "@/components/layout";
-import { BodyText, Button, StatusBadge, Title } from "@/components/ui/index.web";
+import { BodyText, Button, StatusBadge, Title } from "@/components/ui";
 
 import ActionButton from "./ActionButton";
 import { getInteractiveCardClasses } from "./base/index.web";

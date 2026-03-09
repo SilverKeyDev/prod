@@ -1,13 +1,14 @@
 import React from "react";
 
-import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, KeyboardAvoidingView, StyleSheet, View } from "react-native";
 
 import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useOnboardingForm } from "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm";
+import { ScrollView } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
 import { DemographicsStep } from "./DemographicsStep.native";
 import { FinancialStep } from "./FinancialStep.native";

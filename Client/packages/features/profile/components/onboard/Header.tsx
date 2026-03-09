@@ -1,17 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import { Icon } from "@ui/icons";
-
 import {
   AnimatePresence,
   MotionButton,
   MotionSpan,
   MotionView,
 } from "packages/ui/components/adapters/motion";
-import { Region } from "packages/ui/components/index.web";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import Card from "@/components/layout/Card.web";
+import { Region } from "@/components/ui";
 type Step = {
   id: string;
   title: string;
@@ -201,7 +199,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                 >
                   {/* Row 1: icons + animated connectors */}
                   {steps.map((step, index) => {
-                    const Icon = step.icon;
+                    const StepIcon = step.icon;
                     const isActive = index === currentStep;
                     const isCompleted = index < currentStep;
                     const wasCompleted = index < prevStep;
@@ -274,7 +272,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                                   }
                                   className="flex"
                                 >
-                                  <Icon
+                                  <StepIcon
                                     name="check"
                                     className="xs:h-3 xs:w-3 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 2xl:h-7 2xl:w-7"
                                   />
@@ -288,7 +286,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                                   transition={instant}
                                   className="flex"
                                 >
-                                  <Icon className="xs:h-3 xs:w-3 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 2xl:h-7 2xl:w-7" />
+                                  <StepIcon className="xs:h-3 xs:w-3 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 2xl:h-7 2xl:w-7" />
                                 </MotionSpan>
                               )}
                             </AnimatePresence>

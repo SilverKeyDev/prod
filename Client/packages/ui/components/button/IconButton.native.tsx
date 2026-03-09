@@ -1,5 +1,5 @@
 /// <reference types="nativewind/types" />
- 
+
 import React, { forwardRef } from "react";
 
 import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
@@ -7,11 +7,8 @@ import { Icon } from "@ui/icons";
 import type { PressableProps } from "react-native";
 import { Pressable } from "react-native";
 
-import { Box } from "packages/ui/components/primitives/box";
+import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
-
-/** strokeWidth for toolbar variant icons - 50% thinner than default (2) */
-const TOOLBAR_ICON_STROKE_WIDTH = 1;
 
 type IconButtonVariant =
   | "primary"

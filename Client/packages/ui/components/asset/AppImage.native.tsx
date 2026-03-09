@@ -5,7 +5,8 @@ import type {
   ImageProps as RNImageProps,
   ImageSourcePropType,
 } from "react-native";
-import { Image } from "react-native";
+
+import { Image } from "packages/ui/components/primitives/media";
 
 import type { BaseAppImageProps } from "./AppImage.shared";
 

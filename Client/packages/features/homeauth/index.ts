@@ -4,8 +4,10 @@
  * Native-only screens are in ./native.
  */
 export { GoogleSignInButton } from "./components/auth";
-export { default as RippleBackground } from "./components/homepage/RippleBackground.web";
+export type { HomeFeatureComponent, HomeFeatureProps } from "./components/homepage";
+export { HomeFeature } from "./components/homepage";
 export { runAuthBootstrap } from "./hooks/data/authBootstrap";
 export type { ChecklistType, UseChecklistDataReturn } from "./hooks/data/useChecklistData";
 export { useChecklistData } from "./hooks/data/useChecklistData";
 export { useIsAgent } from "./hooks/store/useIsAgent";
+export { default as RippleBackground } from "packages/ui/components/backgrounds/RippleBackground";

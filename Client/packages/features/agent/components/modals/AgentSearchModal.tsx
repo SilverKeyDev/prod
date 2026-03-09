@@ -7,8 +7,8 @@ import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
 import CloseButton from "packages/ui/components/button/CloseButton";
-import { BodyText, Input, Label, Textarea, Title } from "packages/ui/components/index.web";
 
+import { BodyText, Input, Label, Textarea, Title } from "@/components/ui";
 import { useAgentSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 type AgentSearchModalProps = {

@@ -19,22 +19,18 @@ type UseSavedPageViewReturn = {
  * This keeps the URL stable on refresh and avoids conflicts with other
  * query params like `view` that are used by the PDF viewer.
  */
+function getViewTypeFromSearch(search: string): SavedPageViewType {
+  const params = new URLSearchParams(search);
+  const p = params.get("saved") ?? params.get("view");
+  return p === "homes" || p === "documents" ? p : "homes";
+}
+
 export function useSavedPageView(): UseSavedPageViewReturn {
   const { getCurrentRoute, setSearchParams } = useNavigation();
   const route = getCurrentRoute();
-  const [viewType, setViewType] = useState<SavedPageViewType>("homes");
-
-  // Initialize view type from search params on first render.
-  useEffect(() => {
-    const params = new URLSearchParams(route.search);
-    // Prefer the new `saved` param, but fall back to legacy `view`
-    // so old links/bookmarks keep working.
-    const initialParam = params.get("saved") ?? params.get("view");
-    if (initialParam === "homes" || initialParam === "documents") {
-      setViewType(initialParam);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [viewType, setViewType] = useState<SavedPageViewType>(() =>
+    getViewTypeFromSearch(route.search)
+  );
 
   // Keep the `saved` search param in sync with the current view type.
   // We only update when the value actually changes to avoid router update loops.

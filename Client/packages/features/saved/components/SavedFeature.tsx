@@ -12,18 +12,16 @@ import {
   convertSavedHomeToProperty,
   filterHomesBySearchTerm,
 } from "packages/features/saved/types/savedHomeUtils";
+import { usePropertyDetails, useSavedHomesStoreIntegration } from "packages/features/search";
 import { useIsMobile, useSavedPageEffects, useSavedPageModals } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { useUIStore } from "packages/store";
-import type { SavedHome } from "packages/types";
+import type { Agreement, SavedHome } from "packages/types";
 import { dateNow } from "packages/utils/date";
 
-import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
-import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
-
-import SavedHomesHeader from "./SavedHomesHeader";
-import { SavedPageLayout } from "./SavedPageLayout";
+import SavedHomesHeader from "./header/SavedHomesHeader";
+import { SavedPageLayout } from "./layout/SavedPageLayout";
 
 type SavedFeatureProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
@@ -140,11 +138,17 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     setRefreshing(false);
   }, [viewType, refreshSavedHomes, refetchDocuments, refetchAgreements]);
 
+  const documentsErrorForEffects: string | null =
+    documentsErrorState != null
+      ? String(documentsErrorState)
+      : agreementsError != null
+        ? String(agreementsError)
+        : null;
   useSavedPageEffects({
     viewType,
     refreshSavedHomes,
     error,
-    documentsError: documentsErrorState || agreementsError || null,
+    documentsError: documentsErrorForEffects,
   });
 
   const filteredHomes = filterHomesBySearchTerm(homes, searchTerm);
@@ -234,7 +238,10 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       onToggleHomeSelection={handleToggleHomeSelection}
       onUnlockHome={handleUnlockHome}
       onOpenNegotiation={handleOpenNegotiation}
-      onDocumentDelete={handleDocumentDelete}
+      onDocumentDelete={(docId) => {
+        const doc = documents.find((d) => d.id === docId);
+        if (doc) void handleDocumentDelete(doc);
+      }}
       onAgreementClick={handleAgreementClick}
       onAgreementSend={handleAgreementSend}
       onAgreementVoid={handleAgreementVoid}
@@ -244,7 +251,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       onClearComparison={handleClearComparison}
       clearSelectedProperty={clearSelectedProperty}
       refetchDocuments={refetchDocuments}
-      onCreateAgreementSuccess={handleCreateAgreementSuccess}
+      onCreateAgreementSuccess={() => handleCreateAgreementSuccess("")}
       refresh={refresh}
       refreshing={refreshing}
     />

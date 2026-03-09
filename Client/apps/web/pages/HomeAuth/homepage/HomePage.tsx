@@ -1,4 +1,4 @@
-import { HomeFeature } from "@/features/homeauth/components/homepage/HomeFeature";
+import { HomeFeature } from "@/features/homeauth";
 
 export default function HomePage() {
   return <HomeFeature />;

@@ -5,18 +5,12 @@
 
 import React from "react";
 
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { Link, useNavigation } from "packages/navigation";
-import { Text } from "packages/ui/components/primitives/text";
+import { ScrollView } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
 type AuthPageLayoutNativeProps = {
   title: string;

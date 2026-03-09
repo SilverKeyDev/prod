@@ -6,11 +6,11 @@ import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
-import { BodyText, DateInput, Input, TimeInput, Title } from "packages/ui/components/index.web";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import { Textarea } from "@/components/form/FormField";
 import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, DateInput, Input, TimeInput, Title } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";

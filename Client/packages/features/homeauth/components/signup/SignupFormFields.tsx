@@ -7,10 +7,10 @@ import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
 import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
 import type { FieldKey, SignupFormData } from "packages/hooks/data/auth/useSignupAutofill";
-import { Button, FieldShell, Input, PhoneInput } from "packages/ui/components/index.web";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 
 import { PasswordValidation } from "@/components/feedback";
+import { Button, FieldShell, Input, PhoneInput } from "@/components/ui";
 const BarePhoneTextInput = React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement>

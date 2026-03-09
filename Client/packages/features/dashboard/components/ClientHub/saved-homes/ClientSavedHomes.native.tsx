@@ -1,13 +1,15 @@
 import React, { useCallback, useMemo, useState } from "react";
 
+import Loading from "@ui/asset/loading/Loading";
+import Button from "@ui/button/Button";
 import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
 
 import { useLocalization } from "packages/contexts";
+import { PropertyDetailsModal } from "packages/features/propertyDetails";
 import type { SavedHome } from "packages/types";
 import { BaseModal } from "packages/ui/components/modals";
-import { Box, Button, Loading, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
-import PropertyDetailsModal from "@/features/propertyDetails/components/PropertyDetailsModal/PropertyDetailsModal.native";
 import { convertSavedHomeToProperty } from "@/features/saved/types/savedHomeUtils";
 import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
 import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
@@ -122,7 +124,9 @@ export function ClientSavedHomesNative({ clientId }: ClientSavedHomesNativeProps
               className="flex-1"
             >
               <Text className="text-sm font-medium">
-                {t("saved.view_details_button", { defaultValue: "View details" })}
+                {t("saved.view_details_button", {
+                  defaultValue: "View details",
+                })}
               </Text>
             </Button>
             <Button
@@ -216,7 +220,9 @@ export function ClientSavedHomesNative({ clientId }: ClientSavedHomesNativeProps
                   typeof selectedHomeForNegotiation.price === "string" ||
                   typeof selectedHomeForNegotiation.price === "number"
                     ? String(selectedHomeForNegotiation.price)
-                    : t("saved.price_fallback", { defaultValue: "Price not available" }),
+                    : t("saved.price_fallback", {
+                        defaultValue: "Price not available",
+                      }),
               })}
             </Text>
             <Text className="mt-3 text-sm text-gray-700">

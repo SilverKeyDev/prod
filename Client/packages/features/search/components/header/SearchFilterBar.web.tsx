@@ -1,9 +1,9 @@
 import React, { useCallback, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
-import { Button } from "packages/ui/components/index.web";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
+import { Button } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 
 import SearchFilterControls from "./SearchFilterControls.web";

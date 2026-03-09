@@ -1,9 +1,9 @@
 import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboardingForm";
-import { BodyText, NavigationButtons, Title } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 
 import { ValidationWarning } from "@/components/feedback";
 import Card from "@/components/layout/Card.web";
+import { BodyText, NavigationButtons, Title } from "@/components/ui";
 import OnboardingHeader from "@/features/profile/components/onboard/Header";
 import {
   DemographicsSection,

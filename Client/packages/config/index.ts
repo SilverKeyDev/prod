@@ -14,6 +14,9 @@ export * from "./http";
 // API configuration (existing)
 export * from "./api";
 
+// Platform configuration (platform variants, primitives, and related types)
+export * from "./platform";
+
 // Abort and auth-error utilities (re-exported so features need not import from services/http)
 export { createAbortManager, isAbortError } from "./abort";
 export type { AuthenticationError } from "./authErrors";

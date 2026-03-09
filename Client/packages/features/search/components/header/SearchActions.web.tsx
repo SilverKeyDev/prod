@@ -2,8 +2,9 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-import { Button, CancelButton, IconButton } from "packages/ui/components/index.web";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+
+import { Button, CancelButton, IconButton } from "@/components/ui";
 
 import SearchFiltersDropdown from "./SearchFiltersDropdown.web";
 type SearchActionsProps = {

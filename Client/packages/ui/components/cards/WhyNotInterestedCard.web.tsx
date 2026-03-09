@@ -3,9 +3,9 @@ import { useMemo, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/schemas/property";
-import { BodyText, Button, Input, Label, Textarea, Title } from "packages/ui/components/index.web";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Button, Input, Label, Textarea, Title } from "@/components/ui";
 import type { SearchResult } from "@/features/search/types";
 
 import { StyledImage } from "./base/index.web";

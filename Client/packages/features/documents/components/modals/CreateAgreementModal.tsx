@@ -1,4 +1,6 @@
 import { useLocalization } from "packages/contexts";
+
+import BaseModal from "@/components/modals/BaseModal";
 import {
   BodyText,
   Button,
@@ -9,9 +11,7 @@ import {
   Select,
   Textarea,
   Title,
-} from "packages/ui/components/index.web";
-
-import BaseModal from "@/components/modals/BaseModal";
+} from "@/components/ui";
 import { useCreateAgreementForm } from "@/features/documents/hooks/ui/useCreateAgreementForm";
 
 type CreateAgreementModalProps = {

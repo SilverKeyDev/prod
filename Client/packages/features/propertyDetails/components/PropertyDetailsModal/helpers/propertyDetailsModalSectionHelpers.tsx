@@ -3,7 +3,8 @@
  */
 import React from "react";
 
-import { PropertyAnalysis } from "@/features/propertyDetails/components/PropertyDetailsModal/PropertyAnalysis";
+import { PropertyAnalysis } from "packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyAnalysis";
+
 import { PropertyCommute } from "@/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertyCommute";
 import { PropertyNeighborhood } from "@/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertyNeighborhood";
 import { PropertySchools } from "@/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertySchools";

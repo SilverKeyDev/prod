@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from "react";
 
 import { useNavigation } from "@react-navigation/native";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { useIsAgent } from "packages/features/homeauth";
+import { ScrollView } from "packages/ui/components/primitives";
 import { Box, Loading, Pressable, Text } from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs";
 import { dateParseISO } from "packages/utils/date";
@@ -35,25 +36,6 @@ export function ClientHubScreenNative({ clientId }: ClientHubScreenNativeProps) 
   const navigation = useNavigation();
   const isAgent = useIsAgent();
   const { clients, isLoading } = useAgentClients();
-
-  // Client hub is agent-only; non-agents see a simple "Not available" and back (e.g. from deep link).
-  if (!isAgent) {
-    return (
-      <View style={styles.centered}>
-        <Text className="mb-3 text-sm text-gray-600">Not available.</Text>
-        <Pressable
-          onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            }
-          }}
-          className="border-brand-accent rounded-lg border px-4 py-2"
-        >
-          <Text className="text-brand-accent text-sm font-medium">Back to dashboard</Text>
-        </Pressable>
-      </View>
-    );
-  }
   const {
     enhanceClientWithDealInfo,
     generateMockClientGoals,
@@ -87,6 +69,25 @@ export function ClientHubScreenNative({ clientId }: ClientHubScreenNativeProps) 
     { id: "checklists", label: t("dashboard.tab_checklists") },
     { id: "calendar", label: t("dashboard.tab_calendar") },
   ];
+
+  // Client hub is agent-only; non-agents see a simple "Not available" and back (e.g. from deep link).
+  if (!isAgent) {
+    return (
+      <View style={styles.centered}>
+        <Text className="mb-3 text-sm text-gray-600">Not available.</Text>
+        <Pressable
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            }
+          }}
+          className="border-brand-accent rounded-lg border px-4 py-2"
+        >
+          <Text className="text-brand-accent text-sm font-medium">Back to dashboard</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (isLoading && !client) {
     return (

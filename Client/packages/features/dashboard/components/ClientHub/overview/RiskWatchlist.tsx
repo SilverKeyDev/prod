@@ -1,12 +1,11 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
-import { AlertTriangle } from "lucide-react";
 
 import type { RiskFlag as RiskFlagType } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
-import { BodyText, Title } from "packages/ui/components/index.web";
 
+import { BodyText, Title } from "@/components/ui";
 import RiskFlag from "@/features/dashboard/components/RiskFlag";
 type RiskWatchlistProps = {
   riskFlags: RiskFlagType[];
@@ -47,7 +46,7 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
     other: { label: "Other", icon: <Icon name="alert-triangle" className="h-4 w-4" /> },
   };
   return (
-    <SectionCard title="Risk & Watchlist" icon={AlertTriangle}>
+    <SectionCard title="Risk & Watchlist" iconName="alert-triangle">
       <div className="space-y-6">
         {/* Risk Flags */}
         <div>

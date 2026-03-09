@@ -1,5 +1,6 @@
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
+import { Text } from "packages/ui/components/primitives";
 import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
 
 export function MaintenanceScreenNative() {

@@ -4,7 +4,8 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { formatLotSizeInAcres } from "packages/features/search/types/search/address";
-import { PropertyStat } from "packages/ui/components/index.web";
+
+import { PropertyStat } from "@/components/ui";
 
 import {
   CARD_PROPERTY_SIZE_STYLES,

@@ -5,12 +5,13 @@ import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
+import { PropertyDetailsBody } from "packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsBody.native";
+import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader.native";
+import { ScrollView } from "packages/ui/components/primitives";
+import { setToStorage } from "packages/utils/storage";
 
 import type { Property } from "@/features/search/hooks/data/property/usePropertyDetails";
 import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
-
-import { PropertyDetailsBody } from "../PropertyDetailsModal/PropertyDetailsBody.native";
-import { PropertyHeader } from "../PropertyDetailsModal/PropertyHeader.native";
 
 export type PropertyDetailsScreenParams = {
   address: string;
@@ -58,6 +59,16 @@ export function PropertyDetailsScreenNative() {
     }
   }, [navigation]);
 
+  const handleGenerateReport = useCallback(() => {
+    const generateReportState = {
+      address: typeof property?.address === "string" ? property.address : address,
+      reportType: "detailed",
+      selectedClientId: "",
+    };
+    setToStorage("generateReportState", generateReportState);
+    navigation.navigate("SAVED");
+  }, [address, navigation, property?.address]);
+
   if (!address || address.trim().length === 0) {
     return null;
   }
@@ -70,10 +81,16 @@ export function PropertyDetailsScreenNative() {
         property={property}
         onClose={handleBack}
         onBack={handleBack}
-        onGenerateReport={() => {}}
+        onGenerateReport={handleGenerateReport}
         toolbarButtonSize="medium"
       />
-      <PropertyDetailsBody property={property} isLoading={isLoading} />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <PropertyDetailsBody property={property} isLoading={isLoading} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -82,5 +99,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: color("neutral.50"),
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
   },
 });

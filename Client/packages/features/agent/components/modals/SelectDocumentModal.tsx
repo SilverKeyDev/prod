@@ -7,10 +7,10 @@ import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.we
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import type { DocumentData } from "packages/ui/components/cards/document/DocumentCard";
-import { BodyText, Title } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
 
 import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, Title } from "@/components/ui";
 type SelectDocumentModalProps = {
   isOpen: boolean;
   onClose: () => void;

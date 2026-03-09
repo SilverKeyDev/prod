@@ -1,6 +1,6 @@
-import { BodyText, Button } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 
+import { BodyText, Button } from "@/components/ui";
 import { FeedAffordabilityBadge } from "@/features/feed/components/Modals/FeedAffordabilityBadge";
 import type { FeedListing } from "@/features/feed/types/feed";
 import { DEFAULT_AVATAR_IMAGE } from "@/features/feed/utils";

@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 const PARTICLE_COUNT = 9;
 const SIZE = 80;

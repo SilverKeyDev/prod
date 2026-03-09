@@ -1,4 +1,4 @@
-import { Icon } from "packages/ui/components/icons";
+import { Icon } from "packages/ui/components/primitives";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
 type CalendarConnectionPromptProps = {

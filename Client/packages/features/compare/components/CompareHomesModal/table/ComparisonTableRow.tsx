@@ -3,8 +3,8 @@ import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
 } from "packages/features/compare/utils/types";
-import { BodyText, KeyTurnLoader } from "packages/ui/components/index.web";
 
+import { BodyText, KeyTurnLoader } from "@/components/ui";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
 type ComparisonTableRowProps = {

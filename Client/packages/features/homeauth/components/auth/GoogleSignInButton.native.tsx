@@ -19,6 +19,8 @@ interface GoogleSignInButtonProps {
 }
 
 function GoogleIcon() {
+  // Asset selection by platform (icon asset), not feature gating — rule expects useFeature for rollout
+  // eslint-disable-next-line silverkey/no-platform-feature-check
   const source = Platform.OS === "ios" ? GOOGLE_SIGN_IN_IOS_SOURCE : GOOGLE_SIGN_IN_ANDROID_SOURCE;
 
   return (
@@ -33,7 +35,7 @@ function GoogleIcon() {
 }
 
 export default function GoogleSignInButton({
-  text = "Sign up with Google",
+  text: _text = "Sign up with Google",
 }: GoogleSignInButtonProps) {
   const handlePress = () => {
     const apiUrl = getEnv().isDevelopment ? "http://localhost:5000" : "https://usesilverkey.com";
@@ -41,12 +43,7 @@ export default function GoogleSignInButton({
   };
 
   return (
-    <Pressable
-      onPress={handlePress}
-      style={styles.button}
-      accessibilityRole="button"
-      accessibilityLabel={text}
-    >
+    <Pressable onPress={handlePress} style={styles.button} accessibilityRole="button">
       <GoogleIcon />
     </Pressable>
   );

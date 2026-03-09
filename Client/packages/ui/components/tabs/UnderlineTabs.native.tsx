@@ -3,8 +3,8 @@ import React from "react";
 
 import { Pressable, View } from "react-native";
 
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
 export type UnderlineTabItem = {
   id: string;
@@ -41,9 +41,7 @@ export function UnderlineTabs({
   const textSizeClass = compact ? "text-sm" : "text-sm";
 
   return (
-    <Box
-      className={className ? `${containerClass} ${className}` : containerClass}
-    >
+    <Box className={className ? `${containerClass} ${className}` : containerClass}>
       {items.map((item) => {
         const isActive = activeId === item.id;
         return (

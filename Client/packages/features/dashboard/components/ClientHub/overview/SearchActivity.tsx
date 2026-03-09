@@ -1,10 +1,10 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
-import { Home } from "lucide-react";
 
 import SectionCard from "packages/ui/components/cards/SectionCard";
-import { BodyText } from "packages/ui/components/index.web";
+
+import { BodyText } from "@/components/ui";
 type SearchActivityProps = {
   // This would integrate with saved homes API when available
   viewedHomes?: number;
@@ -17,7 +17,7 @@ const SearchActivity: React.FC<SearchActivityProps> = ({
   rejectedHomes = 0,
 }) => {
   return (
-    <SectionCard title="Search & Activity" icon={Home}>
+    <SectionCard title="Search & Activity" iconName="home">
       <div className="space-y-6">
         {/* Activity Summary */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

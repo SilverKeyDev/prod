@@ -1,6 +1,7 @@
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import { ClientSelector } from "packages/ui/components/index.web";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+
+import { ClientSelector } from "@/components/ui";
 
 import SearchActions from "./SearchActions.web";
 import SearchHeaderLocations from "./SearchHeaderLocations.web";

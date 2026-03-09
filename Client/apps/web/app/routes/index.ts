@@ -2,3 +2,4 @@
 export { DynamicRoutes } from "./DynamicRoutes";
 export { PublicRoutes } from "./PublicRoutes";
 export * from "./RouteConfig";
+export * from "./routeConfigExports";

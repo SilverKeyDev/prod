@@ -2,8 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { BodyText, Title } from "packages/ui/components/index.web";
-
+import { BodyText, Title } from "@/components/ui";
 import type { HomePriceResult } from "@/features/profile/utils";
 type HomePriceEstimateProps = {
   homePriceLoading: boolean;
@@ -47,7 +46,9 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
       </div>
 
       <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"}`}
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-screen opacity-100"
+        }`}
       >
         <div className="pt-2">
           {homePriceLoading ? (

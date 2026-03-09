@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 
+import { spacing } from "packages/design-tokens";
 import RangeInput from "packages/ui/components/form/RangeInput";
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { formatCompactNumber, formatNumber } from "packages/utils";
 
 type BudgetRangeSliderProps = {
@@ -103,7 +104,7 @@ export default function BudgetRangeSlider({
     }
   };
 
-  const trackHeight = 8;
+  const trackHeight = spacing(2);
   const valueBlock = (
     <Box className="flex flex-row items-center justify-center gap-2">
       <Text className="text-sm font-medium text-gray-900">{formattedValue(minValue)}</Text>
@@ -137,8 +138,8 @@ export default function BudgetRangeSlider({
             <Box
               className="absolute"
               style={{
-                left: 0,
-                right: 0,
+                left: spacing(0),
+                right: spacing(0),
                 height: trackHeight,
                 zIndex: minSliderValue > 100 - maxSliderValue ? 5 : 3,
               }}
@@ -159,8 +160,8 @@ export default function BudgetRangeSlider({
             <Box
               className="absolute"
               style={{
-                left: 0,
-                right: 0,
+                left: spacing(0),
+                right: spacing(0),
                 height: trackHeight,
                 zIndex: 4,
               }}

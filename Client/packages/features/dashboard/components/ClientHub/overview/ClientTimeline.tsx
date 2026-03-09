@@ -1,12 +1,12 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
-import { Calendar } from "lucide-react";
 
 import type { ClientTimelineEvent } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
-import { BodyText, Title } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
+
+import { BodyText, Title } from "@/components/ui";
 type ClientTimelineProps = {
   events: ClientTimelineEvent[];
 };
@@ -35,7 +35,7 @@ const ClientTimeline: React.FC<ClientTimelineProps> = ({ events }) => {
     });
   };
   return (
-    <SectionCard title="Client Timeline" icon={Calendar}>
+    <SectionCard title="Client Timeline" iconName="calendar">
       <div className="space-y-4">
         {sortedEvents.length === 0 ? (
           <div className="py-8 text-center">

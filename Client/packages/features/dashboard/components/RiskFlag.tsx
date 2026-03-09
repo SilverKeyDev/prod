@@ -3,7 +3,8 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import type { AlertSeverity } from "packages/schemas/agent";
-import { BodyText } from "packages/ui/components/index.web";
+
+import { BodyText } from "@/components/ui";
 type RiskFlagProps = {
   severity: AlertSeverity;
   message: string;

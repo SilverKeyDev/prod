@@ -3,7 +3,7 @@ import React from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 type Agreement = { title?: string };
 

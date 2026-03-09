@@ -46,9 +46,9 @@ function getHeightStyles(height: string): string {
   const heightStyles: Record<string, string> = {
     auto: "h-auto",
     full: "h-full",
-    standard: "h-auto min-h-[200px]",
-    tall: "h-auto min-h-[300px]",
-    compact: "h-auto min-h-[150px]",
+    standard: "h-auto min-h-52",
+    tall: "h-auto min-h-72",
+    compact: "h-auto min-h-40",
   };
   return heightStyles[height] ?? heightStyles.auto;
 }

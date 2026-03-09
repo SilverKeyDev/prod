@@ -8,8 +8,8 @@ import UnifiedMessageInput from "packages/features/messaging/components/layout/U
 import UnifiedMessagesList from "packages/features/messaging/components/layout/UnifiedMessagesList";
 import { useMessaging } from "packages/hooks/data/chat/useMessaging";
 import { useMessageScroll } from "packages/hooks/ui";
-import { Region } from "packages/ui/components/index.web";
 
+import { Region } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
 

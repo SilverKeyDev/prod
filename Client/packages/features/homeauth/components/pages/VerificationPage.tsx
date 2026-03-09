@@ -6,11 +6,12 @@ import { useAuthVerification } from "packages/hooks/data/auth/useAuthVerificatio
 import { useCountdown } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { BodyText, Button, Input, Label, MiniLogo, Title } from "packages/ui/components";
 import Card from "packages/ui/components/cards/Card";
 import { dateNow } from "packages/utils/date";
 import { getSessionStorage } from "packages/utils/storage";
 import { applyCodeChange, applyPaste, getBackspaceFocusIndex } from "packages/utils/verification";
+
+import { BodyText, Button, Input, Label, MiniLogo, Title } from "@/components/ui";
 type LocationState = {
   email?: string;
   fromLogin?: boolean;

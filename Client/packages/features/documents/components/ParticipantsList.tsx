@@ -1,7 +1,6 @@
 import { Icon } from "@ui/icons";
 
-import { BodyText } from "packages/ui/components/index.web";
-
+import { BodyText } from "@/components/ui";
 import { getAgreementStatusIcon } from "@/features/documents/components/agreementsIcons";
 import type { AgreementParticipant } from "@/features/documents/types/agreements";
 import {

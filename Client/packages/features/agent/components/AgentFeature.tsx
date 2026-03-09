@@ -4,8 +4,9 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
-import { KeyTurnLoader } from "packages/ui/components/index.web";
-import { Box } from "packages/ui/components/primitives/box";
+import { Box } from "packages/ui/components/primitives";
+
+import { KeyTurnLoader } from "@/components/ui";
 
 import AgentDashboard from "./AgentDashboard";
 import ClientMessaging from "./ClientMessaging";

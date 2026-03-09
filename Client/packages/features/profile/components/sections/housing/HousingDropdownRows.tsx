@@ -1,8 +1,7 @@
 import React from "react";
 
-import { Dropdown } from "packages/ui/components/index.web";
-
 import AlignedRow from "@/components/layout/AlignedRow";
+import { Dropdown } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
 import {

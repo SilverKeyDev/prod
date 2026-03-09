@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 export type BodyTextSize = "xs" | "sm" | "md" | "lg";
 

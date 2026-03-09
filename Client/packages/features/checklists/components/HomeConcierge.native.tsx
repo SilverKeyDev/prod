@@ -4,8 +4,8 @@ import { Linking } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
-import { Box } from "packages/ui/components/primitives/box";
-import { Image } from "packages/ui/components/primitives/media";
+import { Box } from "packages/ui/components/primitives";
+import { Image } from "packages/ui/components/primitives";
 import Subtitle from "packages/ui/components/text/Subtitle.native";
 
 const MOVE_CONCIERGE_URL = "https://mc.partners/SilverKey";
@@ -31,7 +31,6 @@ export default function HomeConcierge() {
           <Image
             source={moveConciergeSource}
             className="border-beige/30 h-28 w-28 flex-shrink-0 rounded-lg border"
-            accessibilityLabel={t("close.home_concierge.alt")}
           />
           <Box className="min-w-0 flex-1 flex-col justify-between self-stretch">
             <Subtitle size="sm" muted className="leading-relaxed">

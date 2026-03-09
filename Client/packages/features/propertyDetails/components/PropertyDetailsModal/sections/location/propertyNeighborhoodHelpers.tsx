@@ -3,7 +3,7 @@
  */
 import React from "react";
 
-import { BodyText, Title } from "packages/ui/components/index.web";
+import { BodyText, Title } from "@/components/ui";
 
 export function renderNeighborhoodContent(data: Record<string, unknown>): React.ReactNode {
   const entries = Object.entries(data).filter(

@@ -1,4 +1,4 @@
-import { Button, type ButtonProps } from "packages/ui/components/index.web";
+import { Button, type ButtonProps } from "@/components/ui";
 
 /**
  * Interaction overrides for feed/reels overlay buttons: no hover, no focus ring, no active highlight.

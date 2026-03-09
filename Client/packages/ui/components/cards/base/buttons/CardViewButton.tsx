@@ -1,8 +1,10 @@
 import React from "react";
 
-import { ExternalLink, Eye } from "lucide-react";
+import { Icon } from "@ui/icons";
 
-import { Button, KeyTurnLoader } from "packages/ui/components/index.web";
+import type { IconName } from "packages/ui/types/icons";
+
+import { Button, KeyTurnLoader } from "@/components/ui";
 export type CardViewButtonProps = {
   /** Click handler */
   onClick: () => void;
@@ -67,12 +69,8 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
     .filter(Boolean)
     .join(" ");
   const iconClasses = `${currentSizeStyles.icon} ${text ? "mr-1" : ""}`;
-  const getIcon = () => {
-    if (iconType === "external") return ExternalLink;
-    if (iconType === "eye") return Eye;
-    return null;
-  };
-  const Icon = getIcon();
+  const iconName: IconName | null =
+    iconType === "external" ? "external-link" : iconType === "eye" ? "eye" : null;
   return (
     <Button
       type="button"
@@ -91,7 +89,7 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
         </>
       ) : (
         <>
-          {Icon && <Icon className={iconClasses} />}
+          {iconName && <Icon name={iconName} className={iconClasses} />}
           {text && text}
         </>
       )}

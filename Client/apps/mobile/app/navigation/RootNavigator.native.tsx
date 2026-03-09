@@ -65,7 +65,7 @@ function RootContent() {
     if (!rootNavigationRef.isReady()) return;
     const normalized = postAuthRedirectPath.replace(/\/$/, "") || "/";
     if (normalized === "/search") {
-      rootNavigationRef.navigate("Search" as never);
+      rootNavigationRef.navigate("Main", { screen: "Search" } as never);
     } else if (normalized === "/onboarding") {
       rootNavigationRef.navigate("Onboarding" as never);
     }

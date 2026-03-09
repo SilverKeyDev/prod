@@ -1,12 +1,6 @@
 import { Transition } from "packages/ui/components/adapters/headless";
-import {
-  AccessibleDialog,
-  BodyText,
-  Button,
-  CloseButton,
-  Title,
-} from "packages/ui/components/index.web";
 
+import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";
 import { logTourClick } from "@/features/feed/utils";
 

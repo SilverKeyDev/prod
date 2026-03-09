@@ -1,13 +1,17 @@
 import { CompareFloatingBar, CompareHomesModal } from "packages/features/compare";
 import type { SavedPageViewType } from "packages/features/documents";
 import { NegotiationModal } from "packages/features/negotiate";
-import { PropertyDetailsModal } from "packages/features/propertyDetails";
+import type { PropertyDetailsModalProps } from "packages/features/propertyDetails";
 import { convertToFavoriteHome } from "packages/features/saved/types/savedHomeUtils";
 import type { SavedHome } from "packages/types";
+import PropertyDetailsModal from "packages/ui/components/modals/PropertyDetailsModal";
+
+/** Property type accepted by PropertyDetailsModal (has id, latitude, longitude). */
+type PropertyForDetails = NonNullable<PropertyDetailsModalProps["property"]>;
 
 type SavedPageModalsProps = {
   viewType: SavedPageViewType;
-  selectedProperty: unknown;
+  selectedProperty: PropertyForDetails | null;
   clearSelectedProperty: () => void;
   isLoadingPropertyDetails: boolean;
   isCompareModalOpen: boolean;

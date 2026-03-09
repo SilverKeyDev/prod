@@ -17,6 +17,10 @@ type EnvShape = {
   readonly API_BASE_URL_OVERRIDE: string;
   readonly DEV: boolean;
   readonly PROD: boolean;
+  /** Native-only overrides for Google Maps styling and behavior (Expo / RN) */
+  readonly EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: string;
+  readonly EXPO_PUBLIC_GOOGLE_MAPS_ID: string;
+  readonly EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: string;
 };
 
 function readProcessEnv(): EnvShape {
@@ -37,6 +41,11 @@ function readProcessEnv(): EnvShape {
     ).trim(),
     DEV: !isProd,
     PROD: isProd,
+    EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: (p.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS ?? "").trim(),
+    EXPO_PUBLIC_GOOGLE_MAPS_ID: (p.EXPO_PUBLIC_GOOGLE_MAPS_ID ?? "").trim(),
+    EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: (
+      p.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR ?? ""
+    ).trim(),
   };
 }
 
@@ -134,7 +143,9 @@ class EnvConfig {
     if (override !== "") {
       return override;
     }
-    // React Native has no document origin; relative URLs fail. Default to localhost for simulator.
+    // React Native: no document origin; relative URLs fail. Default localhost often fails on
+    // simulator/device because localhost is the device, not the host. Set EXPO_PUBLIC_API_URL
+    // to your machine's IP (e.g. http://192.168.1.5:5000) in .env when running the backend on the host.
     if (isReactNativeContext()) {
       return "http://localhost:5000";
     }

@@ -1,16 +1,9 @@
 import React, { useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
-import {
-  BodyText,
-  Button,
-  CancelButton,
-  Input,
-  Label,
-  Textarea,
-} from "packages/ui/components/index.web";
 
 import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, Button, CancelButton, Input, Label, Textarea } from "@/components/ui";
 
 export type NotInterestedReason = {
   id: string;

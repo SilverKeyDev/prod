@@ -2,8 +2,9 @@ import React from "react";
 
 import { getEnv } from "packages/config";
 import { color } from "packages/design-tokens";
-import { BodyText, Button } from "packages/ui/components/index.web";
 import { getWindow } from "packages/utils/platform";
+
+import { BodyText, Button } from "@/components/ui";
 
 interface GoogleSignInButtonProps {
   text?: string;

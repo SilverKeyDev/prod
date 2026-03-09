@@ -26,5 +26,7 @@ module.exports = {
     "no-unimported-identifiers": require("./rules/architecture/no-unimported-identifiers"),
     "package-module-allowed-children": require("./rules/architecture/package-module-allowed-children"),
     "no-cross-feature-internals": require("./rules/architecture/no-cross-feature-internals"),
+    "platform-variants-exception-list": require("./rules/architecture/platform-variants-exception-list"),
+    "require-platform-primitives": require("./rules/ui/require-platform-primitives"),
   },
 };

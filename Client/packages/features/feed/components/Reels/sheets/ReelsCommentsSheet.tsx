@@ -3,6 +3,9 @@ import { useCallback, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { Transition } from "packages/ui/components/adapters/headless";
+import { formatCompactCount } from "packages/utils";
+import { dateNow, dateParseISO } from "packages/utils/date";
+
 import {
   AccessibleDialog,
   AccessibleTextInput,
@@ -12,10 +15,7 @@ import {
   IconButton,
   Image,
   Title,
-} from "packages/ui/components/index.web";
-import { formatCompactCount } from "packages/utils";
-import { dateNow, dateParseISO } from "packages/utils/date";
-
+} from "@/components/ui";
 import { FEED_AVATAR_IMAGE_CLASS } from "@/features/feed/components/Overlay/FeedActionButton";
 import type { FeedComment, FeedListing } from "@/features/feed/types/feed";
 import { DEFAULT_AVATAR_IMAGE } from "@/features/feed/utils";

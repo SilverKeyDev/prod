@@ -5,7 +5,7 @@ import { ProfileScreenNative } from "packages/features/profile/native";
 import { SavedScreenNative } from "packages/features/saved/native";
 import { SearchScreenNative } from "packages/features/search/native";
 import { useNotificationStore } from "packages/store";
-import { Icon } from "packages/ui/components/icons";
+import { Icon } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 
 import { DashboardStack } from "./DashboardStack.native";
@@ -51,6 +51,9 @@ export function AppStack() {
         headerShown: false,
         tabBarActiveTintColor: "#A3B18A",
         tabBarInactiveTintColor: "#666",
+        tabBarStyle: {
+          paddingBottom: 6,
+        },
       }}
     >
       <Tab.Screen

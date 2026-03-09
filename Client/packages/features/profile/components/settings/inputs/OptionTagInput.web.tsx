@@ -1,6 +1,6 @@
 import React from "react";
 
-import { BodyText, Button } from "packages/ui/components/index.web";
+import { BodyText, Button } from "@/components/ui";
 
 export type OptionTagOption = { value: string; label: string };
 

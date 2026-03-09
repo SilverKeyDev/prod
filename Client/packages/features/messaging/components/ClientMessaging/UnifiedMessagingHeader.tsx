@@ -2,7 +2,8 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
+
+import { BodyText, Button, Title } from "@/components/ui";
 export type HeaderMode = "inbox" | "connection-requests" | "chat" | "no-agent" | "clients";
 type UnifiedMessagingHeaderProps = {
   mode: HeaderMode;

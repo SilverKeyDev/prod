@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import type { GoogleCalendar } from "packages/config/api";
-import { BodyText, Button, OliveCheckbox } from "packages/ui/components/index.web";
 import { getDocument } from "packages/utils/platform";
+
+import { BodyText, Button, OliveCheckbox } from "@/components/ui";
 type CalendarDropdownProps = {
   calendars: GoogleCalendar[];
   enabledCalendarIds: Set<string>;

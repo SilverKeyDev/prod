@@ -1,7 +1,6 @@
 import React from "react";
 
-import { Dropdown, Input, Label, Title } from "packages/ui/components/index.web";
-
+import { Dropdown, Input, Label, Title } from "@/components/ui";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 import HomePriceEstimate from "@/features/profile/components/settings/inputs/HomePriceEstimate";
 import { OnPerLabel } from "@/features/profile/components/settings/inputs/Label";

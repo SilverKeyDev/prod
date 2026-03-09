@@ -2,8 +2,8 @@ import { Icon } from "@ui/icons";
 
 import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
-import { BodyText, Title } from "packages/ui/components/index.web";
 
+import { BodyText, Title } from "@/components/ui";
 import { ConnectionRequestsInbox } from "@/features/agent/components/modals/ConnectionRequestsInbox";
 import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
 import { getMessagePreview } from "@/features/messaging/utils";

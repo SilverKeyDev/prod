@@ -5,10 +5,11 @@
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
+import { Text } from "packages/ui/components/primitives";
 import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
 import { normalizeError } from "packages/utils/errorHandling";
 

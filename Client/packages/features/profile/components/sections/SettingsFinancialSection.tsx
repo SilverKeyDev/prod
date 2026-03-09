@@ -1,9 +1,8 @@
 import React from "react";
 
-import { Dropdown, Input, Title } from "packages/ui/components/index.web";
-
 import AlignedRow from "@/components/layout/AlignedRow";
 import Card from "@/components/layout/Card.web";
+import { Dropdown, Input, Title } from "@/components/ui";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 import HomePriceEstimate from "@/features/profile/components/settings/inputs/HomePriceEstimate";
 import Label from "@/features/profile/components/settings/inputs/Label";

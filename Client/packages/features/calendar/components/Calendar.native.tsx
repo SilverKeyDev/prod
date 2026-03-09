@@ -6,8 +6,8 @@ import { color } from "packages/design-tokens";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
 import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 
 import { useGoogleCalendarPermissions, useGoogleEvents } from "@/features/calendar/hooks/data";

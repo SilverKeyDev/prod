@@ -4,7 +4,8 @@ import IconButton from "@ui/button/IconButton";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText } from "packages/ui/components/index.web";
+
+import { BodyText } from "@/components/ui";
 type CompareHomesModalHeaderProps = {
   onClose: () => void;
   onManageRows: () => void;

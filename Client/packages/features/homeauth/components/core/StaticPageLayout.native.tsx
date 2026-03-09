@@ -5,11 +5,12 @@
 
 import React from "react";
 
-import { Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { Link, useNavigation } from "packages/navigation";
-import { Text } from "packages/ui/components/primitives/text";
+import { ScrollView } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { SHADOW_OFFSET_SUBTLE } from "packages/ui/styles/shadows.native";
 
 export type SectionProps = {

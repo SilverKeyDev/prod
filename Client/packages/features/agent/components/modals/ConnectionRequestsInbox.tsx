@@ -3,8 +3,8 @@ import { Icon } from "@ui/icons";
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
-import { BodyText, Title } from "packages/ui/components/index.web";
 
+import { BodyText, Title } from "@/components/ui";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 type ConnectionRequestsInboxProps = {
   onRequestAccepted?: () => void;

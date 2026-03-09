@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "packages/hooks/ui";
 import { useEmblaCarousel } from "packages/ui/components/adapters/carousel";
-import { Button, Region, Video } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 import { screenUp } from "packages/ui/types/screens";
 
+import { Button, Region, Video } from "@/components/ui";
 import type { PostData } from "@/features/feed/types/feed";
 import { DEFAULT_PLACEHOLDER_IMAGE } from "@/features/feed/utils";
 

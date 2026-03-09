@@ -1,9 +1,10 @@
 import React from "react";
 
+import Input from "@ui/form/Input";
+
 import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Input } from "packages/ui/components/primitives/input";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.native";
 
 import type { ImportantLocation } from "@/features/profile/utils/importantLocations";
@@ -96,11 +97,7 @@ export function ImportantLocationsInputNative({
     return (
       <Box className="gap-2">
         {safeLocations.map((location, index) => (
-          <Box
-            // eslint-disable-next-line react/no-array-index-key -- locations do not have stable ids yet
-            key={index}
-            className="rounded-lg border border-gray-200 bg-white px-4 py-3"
-          >
+          <Box key={index} className="rounded-lg border border-gray-200 bg-white px-4 py-3">
             <Text className="text-sm font-medium text-gray-900">
               {location.address ?? "Location"}
             </Text>
@@ -120,11 +117,7 @@ export function ImportantLocationsInputNative({
       {displayList.map((loc, index) => {
         const commuteText = loc.commute_tolerance != null ? String(loc.commute_tolerance) : "";
         return (
-          <Box
-            // eslint-disable-next-line react/no-array-index-key -- locations do not have stable ids yet
-            key={index}
-            className="gap-2"
-          >
+          <Box key={index} className="gap-2">
             <Text className="text-sm font-medium text-gray-700">
               Location {displayList.length > 1 ? index + 1 : ""}
             </Text>

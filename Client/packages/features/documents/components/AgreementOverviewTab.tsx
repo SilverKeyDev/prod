@@ -1,4 +1,4 @@
-import { BodyText, Button } from "packages/ui/components/index.web";
+import { BodyText, Button } from "@/components/ui";
 
 import AgreementStatusBadge from "./AgreementStatusBadge";
 import VoidConfirmation from "./VoidConfirmation";

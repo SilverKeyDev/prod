@@ -1,14 +1,23 @@
 import React, { useCallback, useMemo, useState } from "react";
 
-import { ScrollView } from "react-native";
+import Button from "@ui/button/Button";
 
+import { useLocalization } from "packages/contexts";
+import { spacing } from "packages/design-tokens";
 import { BaseModal } from "packages/ui/components/modals";
-import { Box, Button, PrimitiveInput, Text } from "packages/ui/components/primitives";
+import { Box, PrimitiveInput, ScrollView, Text } from "packages/ui/components/primitives";
 
-import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useCreateAgreementForm } from "@/features/documents/hooks/ui/useCreateAgreementForm";
-import type { AgreementType } from "@/features/documents/types/agreements";
 import { getAgreementTypeLabel } from "@/features/documents/utils/agreements";
+
+/** Convert spacing token (e.g. "0.5rem") to RN StyleSheet number. */
+function spacingToNumber(token: string): number {
+  const remMatch = token.match(/^([\d.]+)rem$/);
+  if (remMatch) return parseFloat(remMatch[1]) * 16;
+  const pxMatch = token.match(/^(\d+)px$/);
+  if (pxMatch) return parseInt(pxMatch[1], 10);
+  return 0;
+}
 
 type CreateAgreementModalProps = {
   isOpen: boolean;
@@ -74,7 +83,11 @@ export default function CreateAgreementModalNative({
       showCloseButton
       closeOnBackdropClick={!isCreatingAgreement}
     >
-      <ScrollView style={{ maxHeight: 480 }} contentContainerStyle={{ paddingBottom: 8 }}>
+      <ScrollView
+        // eslint-disable-next-line silverkey/no-raw-spacing -- maxHeight 480 is a layout constant; design-tokens scale has no 30rem
+        style={{ maxHeight: 480 }}
+        contentContainerStyle={{ paddingBottom: spacingToNumber(spacing(2)) }}
+      >
         <Box className="gap-4">
           {/* Title */}
           <Box className="gap-2">

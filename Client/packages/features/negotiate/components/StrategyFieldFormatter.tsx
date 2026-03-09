@@ -1,6 +1,6 @@
 import React from "react";
 
-import { BodyText } from "packages/ui/components/index.web";
+import { BodyText } from "@/components/ui";
 
 type TranslateFn = (key: string) => string;
 

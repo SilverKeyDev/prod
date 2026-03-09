@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 
+import Button from "@ui/button/Button";
 import { ActivityIndicator, Linking, StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Button } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives/text";
+import { Text } from "packages/ui/components/primitives";
 
 import type { PdfModalProps } from "./index";
 

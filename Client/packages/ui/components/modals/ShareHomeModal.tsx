@@ -10,10 +10,10 @@ import { formatAddress } from "packages/features/search/types/search/propertyDet
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { BodyText, Label, Textarea, Title } from "packages/ui/components/index.web";
 import { getShareHomeConversationId, getShareHomePropertyId } from "packages/utils/share";
 
 import BaseModal from "@/components/modals/BaseModal";
+import { BodyText, Label, Textarea, Title } from "@/components/ui";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";
 type ShareHomeModalProps = {

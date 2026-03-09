@@ -1,12 +1,6 @@
 import React from "react";
 
-import {
-  AccessibleCheckboxInput,
-  BodyText,
-  Label,
-  OliveCheckbox,
-} from "packages/ui/components/index.web";
-
+import { AccessibleCheckboxInput, BodyText, Label, OliveCheckbox } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 
 type DemographicsLookingForAgentCellProps = {
@@ -25,7 +19,11 @@ export function DemographicsLookingForAgentCell({
   updateFormData,
 }: DemographicsLookingForAgentCellProps) {
   if (formData.has_buyers_agent !== "no") {
-    return <div className="mobile-input bg-gray-50 opacity-0">&nbsp;</div>;
+    return (
+      <BodyText as="div" size="sm" className="mobile-input bg-gray-50 opacity-0">
+        &nbsp;
+      </BodyText>
+    );
   }
 
   const toggle = () =>
@@ -47,13 +45,22 @@ export function DemographicsLookingForAgentCell({
               label="I am looking for a buyer's agent"
             />
             {/* Stop propagation so clicking the box doesn't also trigger the label's linked input (double-toggle) */}
-            <span
+            <BodyText
+              as="span"
+              role="button"
+              tabIndex={0}
               className="flex-shrink-0"
               onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  toggle();
+                }
+              }}
             >
               <OliveCheckbox checked={!!formData.looking_for_buyers_agent} onToggle={toggle} />
-            </span>
+            </BodyText>
           </>
         ) : (
           <div

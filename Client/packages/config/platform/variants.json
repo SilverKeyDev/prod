@@ -1,0 +1,30 @@
+[
+  {
+    "id": "app-shell",
+    "description": "App root and navigation shells differ per platform.",
+    "webPath": "apps/web/app",
+    "nativePath": "apps/mobile/app",
+    "reason": "Routing and navigation stacks are platform-specific."
+  },
+  {
+    "id": "navigation-link",
+    "description": "Navigation link primitives differ across web and native.",
+    "webPath": "packages/navigation/link/Link.web.tsx",
+    "nativePath": "packages/navigation/link/Link.native.tsx",
+    "reason": "Integrates with react-router on web and react-navigation on native."
+  },
+  {
+    "id": "virtuoso-adapter",
+    "description": "Virtualized list adapter uses different implementations on web and native.",
+    "webPath": "packages/ui/components/adapters/virtuoso/Virtuoso.web.tsx",
+    "nativePath": "packages/ui/components/adapters/virtuoso/Virtuoso.native.tsx",
+    "reason": "Uses react-virtuoso on web and React Native list primitives on native."
+  },
+  {
+    "id": "reels-desktop-view",
+    "description": "Reels desktop view implementation differs between web and native.",
+    "webPath": "packages/features/search/components/reels/DesktopReelsViewImpl.web.tsx",
+    "nativePath": "packages/features/search/components/reels/DesktopReelsViewImpl.native.tsx",
+    "reason": "Desktop vs mobile reels layout and gestures."
+  }
+]

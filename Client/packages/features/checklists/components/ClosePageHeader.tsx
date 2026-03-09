@@ -3,10 +3,10 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklists/types/checklists";
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
 
 import MiniLogo from "@/components/asset/MiniLogo";
 import Card from "@/components/layout/Card.web";
+import { BodyText, Button, Title } from "@/components/ui";
 type ClosePageHeaderProps = {
   title: string;
   subtitle: string;
@@ -115,8 +115,8 @@ export default function ClosePageHeader({
                       onClick={() => onTabChange(tab.id)}
                       className={`relative flex flex-1 items-center justify-center gap-1 whitespace-nowrap py-1 text-center transition-all duration-200 lg:py-1.5 ${
                         activeTab === tab.id
-                          ? "text-navy/70 text-[11px] font-semibold lg:text-base"
-                          : "text-navy/70 rounded-lg text-[10px] font-medium hover:bg-gray-100 lg:text-sm"
+                          ? "text-navy/70 text-xs font-semibold lg:text-base"
+                          : "text-navy/70 rounded-lg text-[0.625rem] font-medium hover:bg-gray-100 lg:text-sm"
                       }`}
                     >
                       <tab.icon className="h-[1em] w-[1em]" />

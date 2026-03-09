@@ -6,7 +6,8 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout";
-import { BodyText, Title } from "packages/ui/components/index.web";
+
+import { BodyText, Title } from "@/components/ui";
 
 import { ContactUsContent } from "./ContactUsContent";
 

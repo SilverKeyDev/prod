@@ -61,8 +61,7 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "saved.price_label_with_value": "Price: {{price}}",
 
   // Client hub empty / error states
-  "saved.error_generic":
-    "We couldn't load saved homes. Pull to refresh to try again.",
+  "saved.error_generic": "We couldn't load saved homes. Pull to refresh to try again.",
   "saved.client_empty": "No liked homes for this client yet.",
 
   "why_not.reason": "Reason",

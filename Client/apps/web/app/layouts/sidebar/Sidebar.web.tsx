@@ -9,9 +9,9 @@ import { Link } from "packages/navigation";
 import { useViewStore, type ViewState } from "packages/store";
 import { useNotificationStore } from "packages/store";
 import WhiteLogo from "packages/ui/components/asset/WhiteLogo";
-import { BodyText, NotificationBadge } from "packages/ui/components/index.web";
 
 import ConfirmationDialog from "@/components/modals/dialogs/ConfirmationDialog.web";
+import { BodyText, NotificationBadge } from "@/components/ui";
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";
 import type { UserProfile } from "@/features/homeauth/types";

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Loading } from "packages/ui/components/index.web";
+import { Loading } from "@/components/ui";
 
 import SectionBox from "./SectionBox";
 

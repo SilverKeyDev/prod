@@ -3,7 +3,8 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { PropertyStat } from "packages/ui/components/index.web";
+
+import { PropertyStat } from "@/components/ui";
 export type CardPropertyDetailsProps = {
   /** Number of bedrooms */
   bedrooms?: number;
@@ -60,7 +61,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   const containerClasses = [
     layoutStyles[variant],
     gapSpacing[optimalSize],
-    "px-[1px]",
+    "px-0.5",
     "w-full min-w-0",
     className,
   ]

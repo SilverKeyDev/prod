@@ -1,10 +1,10 @@
 import { useLocalization } from "packages/contexts";
-import { ConnectedCardHeartSave } from "packages/features/search";
 import type { SavedHome } from "packages/types";
-import { Title } from "packages/ui/components/index.web";
+import { ConnectedCardHeartSave } from "packages/ui/components/primitives";
 
 import { PropertyCard } from "@/components/cards";
 import { CardViewDetailsButton } from "@/components/cards/base/index.web";
+import { Title } from "@/components/ui";
 
 function toCardProperty(home: SavedHome) {
   return {

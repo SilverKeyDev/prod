@@ -1,24 +1,27 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useNavigation } from "@react-navigation/native";
-import { FlatList, Image, ListRenderItem, RefreshControl, StyleSheet, View } from "react-native";
+import Button from "@ui/button/Button";
+import { StyleSheet, View } from "react-native";
 
-import { ConnectedCardHeartSave } from "packages/features/search";
+import { DesktopReelsView } from "packages/features/search";
 import { searchPropertiesInIsochrone } from "packages/features/search/api/propertySearch";
 import { searchApi } from "packages/features/search/api/search";
 import { useSearchPageData } from "packages/features/search/hooks/data/page/useSearchPageData";
 import type { SearchResult } from "packages/features/search/types";
 import { formatAddress } from "packages/features/search/types/search/propertyDetailsFormatters";
+import {
+  formatPriceRange,
+  getBedBathSummary,
+} from "packages/features/search/types/search/searchFilterSummaries";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import { useSearchRefreshIntegration } from "packages/hooks/data/useSearchRefreshIntegration";
 import { useUserPreferences } from "packages/hooks/data/useUserData";
 import { usePreActionSnapshot } from "packages/hooks/ui";
+import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useSearchContextStore, useSearchViewStore } from "packages/store";
-import { Pressable } from "packages/ui/components/primitives";
-import { Loading } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box, Text } from "packages/ui/components/primitives";
+import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { SearchFiltersSheetNative } from "./header/SearchFiltersSheet.native";
 import { SearchHeaderLocationsNative } from "./header/SearchHeaderLocations.native";
@@ -28,12 +31,8 @@ export function SearchScreenNative() {
   const mode = useSearchViewStore((s) => s.mode);
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
 
-  /** Reels is desktop-only (SRCH-2). On native, when viewMode === "reels" we show list instead. */
-  const effectiveViewMode: "map" | "list" = mode === "reels" ? "list" : mode;
-
   const { userPreferences } = useUserPreferences();
 
-  const { invalidateSearchAndFeed } = useSearchRefreshIntegration();
   const data = useSearchPageData();
   const {
     filteredSearchResults,
@@ -64,7 +63,6 @@ export function SearchScreenNative() {
 
   const searchFilterOverrides = useSearchContextStore((s) => s.searchFilterOverrides);
 
-  const [refreshing, setRefreshing] = useState(false);
   const [filtersSheetOpen, setFiltersSheetOpen] = useState(false);
 
   const searchAbortControllerRef = useRef<AbortController | null>(null);
@@ -153,50 +151,11 @@ export function SearchScreenNative() {
     snapshotPreSearch,
   ]);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await invalidateSearchAndFeed();
-    await runSearch();
-    setRefreshing(false);
-  }, [invalidateSearchAndFeed, runSearch]);
-
-  const renderItem: ListRenderItem<SearchResult> = useCallback(
-    ({ item }) => {
-      return (
-        <Pressable
-          className="mb-3 rounded-lg border border-gray-200 bg-white p-3"
-          onPress={() => handleViewPropertyDetails(item)}
-        >
-          {item.imageUrl ? (
-            <Image source={{ uri: item.imageUrl }} style={styles.thumbnail} resizeMode="cover" />
-          ) : (
-            <View style={[styles.thumbnail, styles.thumbnailPlaceholder]}>
-              <Text className="text-xs text-gray-400">No image</Text>
-            </View>
-          )}
-          <Box className="mt-2 flex-row items-center justify-between">
-            <Box className="flex-1">
-              <Text className="text-base font-medium text-gray-900" numberOfLines={2}>
-                {item.address}
-              </Text>
-              <Text className="text-olive mt-1 text-sm">{item.price}</Text>
-              <Text className="mt-0.5 text-xs text-gray-500">
-                {item.bedrooms} bed · {item.bathrooms} bath
-              </Text>
-            </Box>
-            <ConnectedCardHeartSave property={item} size="sm" />
-          </Box>
-        </Pressable>
-      );
-    },
-    [handleViewPropertyDetails]
-  );
-
   const listData = useMemo(() => {
     return activeTab === "results" ? filteredSearchResults : savedHomes;
   }, [activeTab, filteredSearchResults, savedHomes]);
 
-  const filtersSummary = useMemo(() => {
+  const criteriaSummary = useMemo(() => {
     if (!userPreferences) return "";
     const minPrice = (userPreferences as { home_budget_min?: number }).home_budget_min ?? 100000;
     const maxPrice = (userPreferences as { home_budget_max?: number }).home_budget_max ?? 2000000;
@@ -206,11 +165,18 @@ export function SearchScreenNative() {
     const minBaths = (userPreferences as { preferred_bathrooms?: number }).preferred_bathrooms ?? 0;
     const maxBaths =
       (userPreferences as { preferred_bathrooms_max?: number }).preferred_bathrooms_max ?? 8;
-    const priceSummary = `$${minPrice.toLocaleString()} – $${maxPrice.toLocaleString()}`;
-    const bedsLabel = minBeds === 0 && maxBeds === 8 ? "Any beds" : `${minBeds}–${maxBeds} beds`;
-    const bathsLabel =
-      minBaths === 0 && maxBaths === 8 ? "Any baths" : `${minBaths}–${maxBaths} baths`;
-    return `${priceSummary} · ${bedsLabel} · ${bathsLabel}`;
+    const priceSummary = formatPriceRange(minPrice, maxPrice);
+    const bedBathSummary = getBedBathSummary(minBeds, maxBeds, minBaths, maxBaths);
+    const locations = userPreferences?.important_locations as
+      | Array<{ address?: string }>
+      | undefined
+      | null;
+    const locationsList = Array.isArray(locations) ? locations : [];
+    const firstAddress = locationsList[0]?.address?.trim() ?? "";
+    const locationLabel =
+      firstAddress.length > 18 ? `${firstAddress.slice(0, 15)}...` : firstAddress || "";
+    const parts = [priceSummary, locationLabel, bedBathSummary].filter(Boolean);
+    return parts.join(" · ");
   }, [userPreferences]);
 
   const handleTabChange = useCallback(
@@ -259,6 +225,10 @@ export function SearchScreenNative() {
     [navigation]
   );
 
+  const hasLocations =
+    Array.isArray(userPreferences?.important_locations) &&
+    (userPreferences?.important_locations?.length ?? 0) > 0;
+
   useEffect(() => {
     log.info(LOG_CATEGORIES.PAGES, "SearchScreenNative render", {
       mode,
@@ -268,55 +238,89 @@ export function SearchScreenNative() {
     });
   }, [mode, activeTab, isSearching, listData.length]);
 
+  const headerBtnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
+
+  const handleSearchPress = useCallback(() => {
+    if (isSearching) {
+      handleCancelSearch();
+      return;
+    }
+    if (!hasLocations) {
+      showErrorToast(
+        SEARCH_TRANSLATIONS["search.add_location_to_search"] ??
+          "Add at least one location to search"
+      );
+      return;
+    }
+    void runSearch();
+  }, [isSearching, hasLocations, handleCancelSearch, runSearch]);
+
   return (
     <View style={styles.container}>
       <Box className="gap-2 px-4 py-3">
-        <Box className="flex-row items-center gap-2">
-          <Pressable
+        <Box className={`flex-row flex-wrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
+          <Button
+            variant="cancel"
+            size="sm"
+            iconName="sliders-horizontal"
             onPress={() => setFiltersSheetOpen(true)}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-3"
+            className={headerBtnClass}
           >
-            <Text className="text-sm font-medium text-gray-800">
-              {SEARCH_TRANSLATIONS["search.filters"] ?? "Filters"}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={toggleMode}
-            className="flex-1 justify-center rounded-lg border border-gray-200 bg-white px-3 py-3"
+            {SEARCH_TRANSLATIONS["search.filters"] ?? "Filters"}
+          </Button>
+          <Button
+            variant="tertiary"
+            size="sm"
+            iconName={isSearching ? undefined : "search"}
+            loading={isSearching}
+            onPress={handleSearchPress}
+            className={headerBtnClass}
           >
-            <Text className="text-center text-sm font-medium text-gray-800">
-              {effectiveViewMode === "map"
-                ? (SEARCH_TRANSLATIONS["search.map"] ?? "Map")
-                : (SEARCH_TRANSLATIONS["search.list"] ?? "List")}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={isSearching ? handleCancelSearch : runSearch}
-            className="bg-brand-accent justify-center rounded-lg px-4 py-3"
-          >
-            <Text className="font-medium text-white">
-              {isSearching
-                ? (SEARCH_TRANSLATIONS["search.searching"] ?? "Searching...")
-                : (SEARCH_TRANSLATIONS["search.search"] ?? "Search")}
-            </Text>
-          </Pressable>
+            {isSearching
+              ? (SEARCH_TRANSLATIONS["search.searching"] ?? "Searching...")
+              : (SEARCH_TRANSLATIONS["search.search"] ?? "Search")}
+          </Button>
+          {isSearching ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={handleCancelSearch}
+              className={headerBtnClass}
+            >
+              {SEARCH_TRANSLATIONS["common.cancel"] ?? "Cancel"}
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              iconName={mode === "map" ? "video" : "map"}
+              onPress={toggleMode}
+              className={headerBtnClass}
+            >
+              {mode === "map"
+                ? (SEARCH_TRANSLATIONS["search.reels"] ?? "Reels")
+                : (SEARCH_TRANSLATIONS["search.map"] ?? "Map")}
+            </Button>
+          )}
         </Box>
-        <SearchHeaderLocationsNative onPreferencesChanged={runSearch} />
+        <Box
+          className={`min-h-0 flex-row items-center gap-2 overflow-hidden rounded-lg border border-gray-200 bg-white px-3 ${HEADER_ROW_HEIGHT}`}
+        >
+          <Box className="min-h-0 min-w-0 flex-1 justify-center py-2">
+            <Text className="text-sm text-gray-700" numberOfLines={1} ellipsizeMode="tail">
+              {criteriaSummary || " "}
+            </Text>
+          </Box>
+          <SearchHeaderLocationsNative onPreferencesChanged={runSearch} compact />
+        </Box>
       </Box>
-      {filtersSummary ? (
-        <Box className="px-4 pb-2">
-          <Text className="text-xs text-gray-600" numberOfLines={2}>
-            {filtersSummary}
-          </Text>
-        </Box>
-      ) : null}
       <SearchFiltersSheetNative
         open={filtersSheetOpen}
         onClose={() => setFiltersSheetOpen(false)}
         onApply={() => {}}
       />
 
-      {effectiveViewMode === "map" ? (
+      {mode === "map" ? (
         <SearchPageMapView
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -358,33 +362,8 @@ export function SearchScreenNative() {
           isLoadingIsochrone={isLoadingIsochrone}
           isochroneData={isochroneData}
         />
-      ) : isSearching && listData.length === 0 ? (
-        <View style={styles.centered}>
-          <Loading />
-          {searchStage ? <Text className="mt-4 text-sm text-gray-600">{searchStage}</Text> : null}
-        </View>
       ) : (
-        <FlatList
-          data={listData}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.centered}>
-              <Text className="text-gray-600">
-                Tap Search to find homes based on your profile preferences, or switch to the Saved
-                tab to see homes you have already saved.
-              </Text>
-            </View>
-          }
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="rgba(163, 177, 138, 1)"
-            />
-          }
-        />
+        <DesktopReelsView />
       )}
     </View>
   );

@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText, Button } from "packages/ui/components/index.web";
 import { getDocument } from "packages/utils/platform";
+
+import { BodyText, Button } from "@/components/ui";
 
 import { AttachmentMenuItem } from "./AttachmentMenuItem";
 type AttachmentMenuProps = {

@@ -1,6 +1,7 @@
 import { useLocalization } from "packages/contexts";
-import { BodyText } from "packages/ui/components/index.web";
 import { getScoreBasedColor } from "packages/utils";
+
+import { BodyText } from "@/components/ui";
 
 type CardMatchScoreProps = {
   /** Match score (0-100) */

@@ -18,11 +18,18 @@ export class MapInstanceManager {
 
     const win = getWindow() as Window & { google?: typeof google };
     if (!win?.google?.maps?.Map) return null;
+
+    const effectiveMapId = mapId ?? undefined;
+    log.info(LOG_CATEGORIES.MAP_RENDERING, "Applying map ID to Google Map instance", {
+      mapId: effectiveMapId ?? "(none - default styling)",
+      willUseCloudStyling: !!effectiveMapId,
+    });
+
     try {
       const map = new win.google.maps.Map(container, {
         center: { lat: 33.75, lng: -84.39 },
         zoom: 12,
-        mapId: mapId ?? undefined,
+        mapId: effectiveMapId,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -35,10 +42,18 @@ export class MapInstanceManager {
       });
       MapInstanceManager.mapInstanceCount++;
       MapInstanceManager.activeMapInstances.add(map);
+      log.info(LOG_CATEGORIES.MAP_RENDERING, "Google Map created successfully", {
+        mapIdApplied: !!effectiveMapId,
+        mapId: effectiveMapId ?? undefined,
+        activeInstances: MapInstanceManager.activeMapInstances.size,
+      });
       return map;
     } catch (err: unknown) {
       const error = asError(err);
-      log.error(LOG_CATEGORIES.MAP_RENDERING, "Error creating Google Map", error);
+      log.error(LOG_CATEGORIES.MAP_RENDERING, "Error creating Google Map", {
+        error,
+        mapIdAttempted: effectiveMapId ?? "(none)",
+      });
       return null;
     }
   }

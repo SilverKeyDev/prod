@@ -3,10 +3,10 @@ import React, { useMemo } from "react";
 import { Icon } from "@ui/icons";
 
 import type { UrgentAlert } from "packages/types";
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Button, Title } from "@/components/ui";
 type UrgentAlertsProps = {
   alerts: UrgentAlert[];
   onDismiss: (id: string) => void;

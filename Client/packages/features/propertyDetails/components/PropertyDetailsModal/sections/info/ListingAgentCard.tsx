@@ -2,8 +2,9 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { BodyText, Title } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
+
+import { BodyText, Title } from "@/components/ui";
 
 import { formatAgentPhoneNumber } from "./propertyDetailsDisplayHelpers";
 type ListingAgentCardProps = {

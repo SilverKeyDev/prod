@@ -1,6 +1,6 @@
 import React from "react";
 
-import { BodyText, Title } from "packages/ui/components/index.web";
+import { BodyText, Title } from "@/components/ui";
 
 export type CardAddressDisplayProps = {
   /** Primary address line */

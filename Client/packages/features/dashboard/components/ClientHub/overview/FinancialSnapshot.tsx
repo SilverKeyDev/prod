@@ -1,12 +1,11 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
-import { CreditCard } from "lucide-react";
 
 import type { ClientFinancialSnapshot } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
-import { BodyText, Title } from "packages/ui/components/index.web";
 
+import { BodyText, Title } from "@/components/ui";
 import StatusBadge from "@/components/ui/asset/StatusBadge";
 type FinancialSnapshotProps = {
   financial: ClientFinancialSnapshot;
@@ -41,7 +40,7 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
     other: "Other",
   };
   return (
-    <SectionCard title="Financial Snapshot" icon={CreditCard}>
+    <SectionCard title="Financial Snapshot" iconName="credit-card">
       <div className="space-y-6">
         {/* Pre-Approval Status */}
         <div>

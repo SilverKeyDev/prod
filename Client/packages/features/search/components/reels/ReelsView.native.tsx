@@ -30,7 +30,7 @@ export function ReelsView({ scrollControllerRef }: ReelsViewProps) {
     setBaseUrlGetter(getBaseUrl);
     initBeaconFlush();
   }, []);
-  const { items: rawItems, fetchNextPage, hasNextPage } = useFeedData();
+  const { items: rawItems, fetchNextPage, hasNextPage, isFetchingNextPage } = useFeedData();
   const items = useMemo(() => rawItems.map((listing) => listingToReelMedia(listing)), [rawItems]);
 
   return (
@@ -39,6 +39,7 @@ export function ReelsView({ scrollControllerRef }: ReelsViewProps) {
         items={items}
         fetchNextPage={fetchNextPage}
         hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
         scrollControllerRef={scrollControllerRef}
       />
     </View>

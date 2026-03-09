@@ -3,10 +3,10 @@ import { Icon } from "@ui/icons";
 import { useSecureClipboardCopy } from "packages/hooks/ui";
 import { ROUTES } from "packages/navigation";
 import { useFeedStore } from "packages/store";
-import { BodyText } from "packages/ui/components/index.web";
 import { formatCompactNumber } from "packages/utils";
 import { getNavigator, getWindow } from "packages/utils/platform";
 
+import { BodyText } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";
 import { getDisplayStatsForListingId } from "@/features/feed/utils/feedDisplayStats";
 

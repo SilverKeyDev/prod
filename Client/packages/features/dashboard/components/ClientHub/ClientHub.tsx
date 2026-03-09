@@ -1,22 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { Icon } from "@ui/icons";
-import {
-  Activity,
-  AlertTriangle,
-  Clock,
-  DollarSign,
-  MessageSquare,
-  Target,
-  User,
-} from "lucide-react";
 
 import { useLocalization } from "packages/contexts";
 import type { NavItem } from "packages/navigation";
 import { useNavigation } from "packages/navigation";
-import { BodyText, Button, KeyTurnLoader, Title } from "packages/ui/components/index.web";
 import { getWindow } from "packages/utils/platform";
 
+import { BodyText, Button, KeyTurnLoader, Title } from "@/components/ui";
 import ClientInfoSidebar from "@/components/ui/sidebar/ClientInfoSidebar";
 import { UnderlineTabs } from "@/components/ui/tabs/index.web";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
@@ -84,48 +75,48 @@ const ClientHub: React.FC<ClientHubProps> = ({ clientId }) => {
   const decisions = generateMockDecisionLog(clientId);
   const notes = generateMockNotes(clientId);
   const timelineEvents = generateMockTimelineEvents(clientId);
-  // Navigation items for overview sections
+  // Navigation items for overview sections (Icon primitive by name)
   const overviewNavItems: NavItem[] = [
     {
       key: "overview",
       label: t("dashboard.tab_overview"),
-      icon: User,
+      icon: (props) => <Icon name="user" {...props} />,
       to: "#overview",
     },
     {
       key: "goals",
       label: t("dashboard.nav_goals"),
-      icon: Target,
+      icon: (props) => <Icon name="target" {...props} />,
       to: "#goals",
     },
     {
       key: "financial",
       label: t("dashboard.nav_financial"),
-      icon: DollarSign,
+      icon: (props) => <Icon name="credit-card" {...props} />,
       to: "#financial",
     },
     {
       key: "activity",
       label: t("dashboard.nav_activity"),
-      icon: Activity,
+      icon: (props) => <Icon name="activity" {...props} />,
       to: "#activity",
     },
     {
       key: "timeline",
       label: t("dashboard.nav_timeline"),
-      icon: Clock,
+      icon: (props) => <Icon name="clock" {...props} />,
       to: "#timeline",
     },
     {
       key: "communication",
       label: t("dashboard.nav_communication"),
-      icon: MessageSquare,
+      icon: (props) => <Icon name="message-square" {...props} />,
       to: "#communication",
     },
     {
       key: "risks",
       label: t("dashboard.nav_risks"),
-      icon: AlertTriangle,
+      icon: (props) => <Icon name="alert-triangle" {...props} />,
       to: "#risks",
     },
   ];

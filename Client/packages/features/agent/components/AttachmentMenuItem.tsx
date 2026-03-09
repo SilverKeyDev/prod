@@ -1,7 +1,8 @@
 import { Icon } from "@ui/icons";
 
-import { BodyText, Button } from "packages/ui/components/index.web";
 import type { IconName } from "packages/ui/types/icons";
+
+import { BodyText, Button } from "@/components/ui";
 type AttachmentMenuItemProps = {
   iconName: IconName;
   iconClassName?: string;

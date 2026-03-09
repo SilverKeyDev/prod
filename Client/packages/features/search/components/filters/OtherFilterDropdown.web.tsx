@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText, Button } from "packages/ui/components/index.web";
 
+import { BodyText, Button } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 
 import OtherFilterContent from "./OtherFilterContent.web";

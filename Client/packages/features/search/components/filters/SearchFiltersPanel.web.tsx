@@ -4,8 +4,8 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useSearchContextStore } from "packages/store";
-import { BodyText } from "packages/ui/components/index.web";
 
+import { BodyText } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 
 import BedBathFilter from "./BedBathFilter.web";

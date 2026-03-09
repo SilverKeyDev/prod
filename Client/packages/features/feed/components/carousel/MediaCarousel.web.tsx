@@ -5,8 +5,8 @@ import { useHlsVideo } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui";
 import { useFeedStore } from "packages/store";
 import { useEmblaCarousel } from "packages/ui/components/adapters/carousel";
-import { Button, Image, Region, Video } from "packages/ui/components/index.web";
 
+import { Button, Image, Region, Video } from "@/components/ui";
 import {
   DEFAULT_PLACEHOLDER_IMAGE,
   DRAG_THRESHOLD_LARGE,

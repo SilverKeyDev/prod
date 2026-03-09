@@ -2,11 +2,11 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import type { PropertyWithAnalysis } from "packages/types/property-analysis";
-import { BodyText, Title } from "packages/ui/components/index.web";
 
 import Card from "@/components/layout/Card.web";
-import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
+import { BodyText, Title } from "@/components/ui";
 export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
   const propertyWithAnalysis = property as PropertyWithAnalysis;
   const propertyAnalysis = propertyWithAnalysis.property_analysis;

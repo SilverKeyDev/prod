@@ -4,7 +4,7 @@
  */
 import React from "react";
 
-import { BodyText, Title } from "packages/ui/components/index.web";
+import { BodyText, Title } from "@/components/ui";
 
 export function CommuteAnalysisContent({ data }: { data: unknown }): React.ReactNode {
   if (!data || typeof data !== "object") return null;

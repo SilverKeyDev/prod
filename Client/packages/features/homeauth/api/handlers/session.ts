@@ -14,14 +14,15 @@ const apiRequestOptions = {
 export async function verifySessionHandler(): Promise<AuthResponse> {
   const requestId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+  const doc = getDocument();
+  const allCookies = doc
+    ? doc.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean)
+    : [];
+
   try {
-    const doc = getDocument();
-    const allCookies = doc
-      ? doc.cookie
-          .split(";")
-          .map((c) => c.trim().split("=")[0])
-          .filter(Boolean)
-      : [];
     const { apiGet } = await import("../../../../services/http/compatibility");
 
     const response = await apiGet<AuthResponse & { data?: Record<string, unknown> }>(
@@ -74,21 +75,33 @@ export async function verifySessionHandler(): Promise<AuthResponse> {
           .filter(Boolean)
       : [];
     const win = getWindow();
-
-    log.error(LOG_CATEGORIES.AUTH, "🔍 Session verification failed with error", {
+    const hadNoSession = allCookies.length === 0;
+    const logPayload = {
       requestId,
       error: err?.message || "Unknown error",
       errorType: err?.constructor?.name || "Unknown",
       cookiesAfterError,
       cookieCountAfterError: cookiesAfterError.length,
       currentUrl: win?.location.href,
-    });
+    };
+    if (hadNoSession) {
+      log.debug(LOG_CATEGORIES.AUTH, "🔍 Session verification: no session (expected)", logPayload);
+    } else {
+      log.error(LOG_CATEGORIES.AUTH, "🔍 Session verification failed with error", logPayload);
+    }
     return { success: false };
   }
 }
 
 export async function refreshTokenHandler(): Promise<AuthResponse> {
   const requestId = `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const doc = getDocument();
+  const cookieCountBefore = doc
+    ? doc.cookie
+        .split(";")
+        .map((c) => c.trim().split("=")[0])
+        .filter(Boolean).length
+    : 0;
 
   try {
     log.info(LOG_CATEGORIES.AUTH, "Starting token refresh", { requestId });
@@ -129,20 +142,23 @@ export async function refreshTokenHandler(): Promise<AuthResponse> {
     return response;
   } catch (error: unknown) {
     const err = error as Error;
-
-    log.error(LOG_CATEGORIES.AUTH, "Token refresh request failed with exception", {
+    const hadNoSession = cookieCountBefore === 0;
+    const logPayload = {
       requestId,
       error: err?.message || "Unknown error",
       errorType: err?.constructor?.name || "Unknown",
-    });
-
-    reportSecurityEvent({
-      type: "authentication_failure",
-      severity: "high",
-      description: "Token refresh exception",
-      metadata: { error: err?.message, requestId },
-    });
-
+    };
+    if (hadNoSession) {
+      log.debug(LOG_CATEGORIES.AUTH, "Token refresh: no session (expected)", logPayload);
+    } else {
+      log.error(LOG_CATEGORIES.AUTH, "Token refresh request failed with exception", logPayload);
+      reportSecurityEvent({
+        type: "authentication_failure",
+        severity: "high",
+        description: "Token refresh exception",
+        metadata: { error: err?.message, requestId },
+      });
+    }
     return {
       success: false,
       error: "REFRESH_FAILED",

@@ -2,7 +2,8 @@ import { useMemo } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { BodyText, Button, Title } from "packages/ui/components/index.web";
+import { BodyText, Button, Title } from "@/components/ui";
+import { formatAgreementDate, getAgreementTypeLabel } from "@/features/documents/utils/agreements";
 
 import AgreementStatusBadge from "./AgreementStatusBadge";
 type AgreementCardProps = {

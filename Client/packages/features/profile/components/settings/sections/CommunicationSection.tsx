@@ -1,5 +1,7 @@
 import React from "react";
 
+import AlignedRow from "@/components/layout/AlignedRow";
+import Card from "@/components/layout/Card.web";
 import {
   AccessibleCheckboxInput,
   BodyText,
@@ -7,10 +9,7 @@ import {
   Label,
   OliveCheckbox,
   Title,
-} from "packages/ui/components/index.web";
-
-import AlignedRow from "@/components/layout/AlignedRow";
-import Card from "@/components/layout/Card.web";
+} from "@/components/ui";
 import {
   COMMUNICATION_FREQUENCY_OPTIONS,
   FIELD_LABELS,
@@ -58,13 +57,13 @@ export default function CommunicationSection({
             placeholder="Select..."
           />
         ) : (
-          <div className="mobile-input bg-gray-50">
+          <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
             {formData.communication_frequency
               ? (COMMUNICATION_FREQUENCY_OPTIONS.find(
                   (option) => option.value === formData.communication_frequency
                 )?.label ?? "Not specified")
               : "Not specified"}
-          </div>
+          </BodyText>
         )}
       </div>
 
@@ -79,13 +78,13 @@ export default function CommunicationSection({
             placeholder="Select..."
           />
         ) : (
-          <div className="mobile-input bg-gray-50">
+          <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
             {formData.information_detail_level
               ? INFORMATION_DETAIL_LEVEL_OPTIONS.find(
                   (opt) => opt.value === formData.information_detail_level
                 )?.label
               : "Not specified"}
-          </div>
+          </BodyText>
         )}
       </div>
 
@@ -104,12 +103,12 @@ export default function CommunicationSection({
                 placeholder="Select..."
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
                 {formData.has_buyers_agent
                   ? HAS_BUYERS_AGENT_OPTIONS.find((opt) => opt.value === formData.has_buyers_agent)
                       ?.label
                   : "Not specified"}
-              </div>
+              </BodyText>
             ),
           },
           {
@@ -117,7 +116,9 @@ export default function CommunicationSection({
               formData.has_buyers_agent === "no" ? (
                 <Label>Looking for Agent?</Label>
               ) : (
-                <div className="mb-2 block text-sm font-medium text-transparent">&nbsp;</div>
+                <BodyText as="div" size="sm" className="mb-2 block font-medium text-transparent">
+                  &nbsp;
+                </BodyText>
               ),
             content:
               formData.has_buyers_agent === "no" ? (
@@ -141,10 +142,22 @@ export default function CommunicationSection({
                           label="I am looking for a buyer's agent"
                         />
                         {/* Stop propagation so clicking the box doesn't also trigger the label's linked input (double-toggle) */}
-                        <span
+                        <BodyText
+                          as="span"
+                          role="button"
+                          tabIndex={0}
                           className="flex-shrink-0"
                           onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            e.stopPropagation();
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              updateFormData(
+                                "looking_for_buyers_agent",
+                                !formData.looking_for_buyers_agent
+                              );
+                            }
+                          }}
                         >
                           <OliveCheckbox
                             checked={!!formData.looking_for_buyers_agent}
@@ -155,7 +168,7 @@ export default function CommunicationSection({
                               )
                             }
                           />
-                        </span>
+                        </BodyText>
                       </>
                     ) : (
                       <div
@@ -186,7 +199,9 @@ export default function CommunicationSection({
                   </Label>
                 </div>
               ) : (
-                <div className="mobile-input bg-gray-50 opacity-0">&nbsp;</div>
+                <BodyText as="div" size="sm" className="mobile-input bg-gray-50 opacity-0">
+                  &nbsp;
+                </BodyText>
               ),
           },
         ]}

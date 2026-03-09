@@ -1,8 +1,8 @@
 import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
-import { BodyText, Title } from "packages/ui/components/index.web";
 import { dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Title } from "@/components/ui";
 
 import { EventCard } from "./EventCard";
 

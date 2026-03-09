@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import IconButton from "@ui/button/IconButton";
+
 import { useSearchRefresh } from "packages/contexts";
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
 import {
@@ -22,7 +24,6 @@ import { usePreActionSnapshot } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useSearchContextStore, useSearchViewStore } from "packages/store";
 import { MotionView } from "packages/ui/components/adapters/motion";
-import { IconButton } from "packages/ui/components/primitives";
 
 type SearchFeatureProps = {
   setMobileHeaderActions: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
@@ -221,6 +222,7 @@ export function SearchFeature({
     return () => {
       log.info(LOG_CATEGORIES.ROUTING, "[SEARCH] SearchFeature unmounted", {});
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount logging only; adding deps would log on every navigation/result change
   }, []);
 
   // Self-cleanup when leaving /search: abort in-flight search so no state updates after unmount

@@ -1,7 +1,7 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
 import { ImportantLocationsInputNative } from "@/features/profile/components/settings/inputs/ImportantLocationsInput.native";
 import { type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";

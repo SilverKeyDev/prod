@@ -4,6 +4,7 @@
 
 import React, { useEffect, useState } from "react";
 
+import Input from "@ui/form/Input";
 import { StyleSheet } from "react-native";
 
 import { color } from "packages/design-tokens";
@@ -13,9 +14,8 @@ import { useCountdown } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Input } from "packages/ui/components/primitives/input";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { getSessionStorage } from "packages/utils/storage";
 import { performVerify } from "packages/utils/verification";
 

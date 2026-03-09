@@ -16,6 +16,6 @@ export { CardImageContainer, StyledImage } from "./image";
 export { getCardHoverClasses, getInteractiveCardClasses, TrianglePointer } from "./styles";
 export {
   default as CardHeartSave,
-  CardHeartSaveWithProps,
   type CardHeartSavePropertyLike,
+  CardHeartSaveWithProps,
 } from "@ui/button/HeartSave.native";

@@ -2,11 +2,11 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { BodyText, Title } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import { Image } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
-import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
+import { BodyText, Title } from "@/components/ui";
 interface PropertyAgentProps extends PropertyComponentProps {
   noCard?: boolean;
 }

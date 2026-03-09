@@ -9,6 +9,7 @@ export { SearchPageMapView } from "./search/components/layout/SearchPageMapView"
 export { SearchPageModals } from "./search/components/layout/SearchPageModals";
 export { DesktopReelsView } from "./search/components/reels/DesktopReelsView";
 export { SearchFeature } from "./search/components/src/SearchFeature";
+export { usePropertyDetails } from "./search/hooks/data/property/usePropertyDetails";
 export { useSavedHomesData } from "./search/hooks/data/saved/useSavedHomesData";
 export { useSavedHomesStoreIntegration } from "./search/hooks/store/useSavedHomesStoreIntegration";
 export type { AutocompleteSuggestion, GoogleMapsWindow } from "./search/types/google-maps";
@@ -23,9 +24,6 @@ export {
 } from "./search/types/search/address";
 export type { AddressObject } from "./search/types/search/propertyDetailsFormatters";
 export { formatPrice } from "./search/types/search/propertyDetailsFormatters";
-export {
-  formatAddress,
-  getPropertyImages,
-} from "./search/types/search/propertyDetailsFormatters";
+export { formatAddress, getPropertyImages } from "./search/types/search/propertyDetailsFormatters";
 export { formatPropertyType } from "./search/types/search/propertyFormatters";
 export { SEARCH_TRANSLATIONS } from "./search/types/translations";

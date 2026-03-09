@@ -1,7 +1,8 @@
 import React from "react";
 
-import { BodyText, Button, DropdownChevron, Popover } from "packages/ui/components/index.web";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+
+import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
 
 import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,

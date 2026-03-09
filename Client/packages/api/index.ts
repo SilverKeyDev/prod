@@ -1,6 +1,7 @@
 // Central API exports for SilverKey application
 // All API clients use the centralized utilities from ./utils.ts
 
+export { adminApi } from "./admin";
 export { dashboardApi } from "./dashboard";
 export { mapsApi } from "./maps";
 export { offerApi } from "./offer";

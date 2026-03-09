@@ -1,6 +1,5 @@
-import { BodyText, Title } from "packages/ui/components/index.web";
-
 import MiniLogo from "@/components/asset/MiniLogo";
+import { BodyText, Title } from "@/components/ui";
 
 type AuthHeaderProps = {
   title: string;

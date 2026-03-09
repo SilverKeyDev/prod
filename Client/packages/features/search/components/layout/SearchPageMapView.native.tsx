@@ -3,11 +3,12 @@ import React, { useCallback, useEffect, useMemo } from "react";
 import type { ListRenderItem } from "react-native";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
 
-import { ConnectedCardHeartSave } from "packages/features/search";
+import { color } from "packages/design-tokens";
+import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
 import type { SearchResult } from "@/features/search/types";
 
@@ -35,14 +36,15 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
     currentPage,
     setCurrentPage,
     onViewPropertyDetails,
-    isHomeSaved,
-    saveHome,
-    removeSavedHome,
+    isHomeSaved: _isHomeSaved,
+    saveHome: _saveHome,
+    removeSavedHome: _removeSavedHome,
     isSearching,
     hasSearched,
     searchStage,
     mapZoomIn,
     mapZoomOut,
+    isochroneData,
   } = props;
 
   const properties = useMemo<MapProperty[]>(() => {
@@ -122,6 +124,7 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
           properties={properties}
           focusedIndex={focusedIndex}
           onMarkerSelect={handleMarkerSelect}
+          isochroneData={isochroneData}
         />
       </View>
 
@@ -184,7 +187,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mapContainer: {
-    flex: 1.1,
+    flex: 1,
+    minHeight: 200,
+    overflow: "hidden",
   },
   listContent: {
     paddingHorizontal: 16,
@@ -200,7 +205,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "rgba(229, 231, 235, 1)",
-    backgroundColor: "#fff",
+    backgroundColor: color("neutral.50"),
     padding: 12,
   },
   propertyCardRow: {
@@ -227,8 +232,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   tabActive: {
-    backgroundColor: "#fff",
-    shadowColor: "#000",
+    backgroundColor: color("neutral.50"),
+    shadowColor: color("neutral.900"),
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,

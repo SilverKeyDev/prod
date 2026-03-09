@@ -1,9 +1,9 @@
 import React from "react";
 
-import { Title } from "packages/ui/components/index.web";
+import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 
 import Card from "@/components/layout/Card.web";
-import type { PropertyComponentProps } from "@/components/modals/PropertyDetailsModal/types";
+import { Title } from "@/components/ui";
 
 import { ListingAgentCard } from "./ListingAgentCard";
 import { getAgentFromProperty } from "./propertyDetailsDisplayHelpers";

@@ -7,11 +7,12 @@
  * Not allowed in features/hooks: direct imports from react-router-dom
  */
 
-export { Link } from "./Link";
-export { LinkPrimitiveContext } from "./linkPrimitiveContext";
-export { getDocumentTitle, getPageTitle } from "./pageTitles";
-export { pathFor, ROUTES } from "./paths";
-export { useInRouterContext } from "./routerContext";
+export { useNavigation } from "./hooks/useNavigation";
+export { Link } from "./link/Link";
+export { LinkPrimitiveContext } from "./link/linkPrimitiveContext";
+export { getDocumentTitle, getPageTitle } from "./router/pageTitles";
+export { pathFor, ROUTES } from "./router/paths";
+export { useInRouterContext } from "./router/routerContext";
 export type {
   CurrentRoute,
   LinkProps,
@@ -26,4 +27,3 @@ export type {
 export type { AppRouteConfig, RouteCategory } from "./types/routeConfig";
 export { ROUTE_CONFIGS } from "./types/routeConfig";
 export type { NavItem } from "./types/routes";
-export { useNavigation } from "./useNavigation";

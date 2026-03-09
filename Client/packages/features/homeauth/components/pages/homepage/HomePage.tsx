@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import type { AutocompleteSuggestion } from "packages/features/search";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import type { AutocompleteSuggestion } from "packages/types/google-maps";
 import { asError } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
 

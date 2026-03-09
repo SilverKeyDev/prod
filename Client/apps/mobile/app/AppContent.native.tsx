@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 import * as SplashScreen from "expo-splash-screen";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { useHealthCheck, useSessionTimeout } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
+import { Text } from "packages/ui/components/primitives";
 
 import { RootNavigator } from "./navigation/RootNavigator.native";
 import { MaintenanceScreenNative } from "./screens/MaintenanceScreen.native";

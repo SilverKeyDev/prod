@@ -1,9 +1,9 @@
 import { useLocalization } from "packages/contexts";
-import { NavigationButton, Subtitle } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
 import Card from "@/components/layout/Card.web";
+import { NavigationButton, Subtitle } from "@/components/ui";
 
 export default function HomeConcierge() {
   const { t } = useLocalization();

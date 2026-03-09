@@ -1,18 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { Handshake } from "lucide-react";
-
 import { useDocumentActions } from "packages/features/documents";
 import { NegotiationModal } from "packages/features/negotiate";
 import { PropertyDetailsModal } from "packages/features/propertyDetails";
-import { ConnectedCardHeartSave } from "packages/features/search";
 import { useUIStore } from "packages/store";
 import type { SavedHome } from "packages/types";
-import { BodyText, Input, KeyTurnLoader } from "packages/ui/components/index.web";
 import { PdfModal } from "packages/ui/components/modals";
 
 import { PropertyCard } from "@/components/cards";
 import { CardViewDetailsButton } from "@/components/cards/base/index.web";
+import { ConnectedCardHeartSave } from "@/components/ui";
+import { BodyText, Input, KeyTurnLoader } from "@/components/ui";
 import {
   type Property,
   usePropertyDetails,
@@ -56,17 +54,19 @@ export default function ClientSavedHomes({ userId }: ClientSavedHomesProps) {
         return;
       }
       // Convert SavedHome to Property format
+      const priceVal = home.price;
+      const formattedPrice =
+        typeof priceVal === "string"
+          ? priceVal.startsWith("$")
+            ? priceVal
+            : `$${priceVal}`
+          : typeof priceVal === "number"
+            ? `$${(priceVal as number).toLocaleString()}`
+            : "$0";
       const property: Property = {
         id: home.home_id,
         address: address,
-        price:
-          typeof home.price === "string"
-            ? home.price.startsWith("$")
-              ? home.price
-              : `$${home.price}`
-            : typeof home.price === "number"
-              ? `$${home.price.toLocaleString()}`
-              : "$0",
+        price: formattedPrice,
         bedrooms: home.bedrooms ?? 0,
         bathrooms: home.bathrooms ?? 0,
         sqft: home.sqft ?? 0,
@@ -105,7 +105,7 @@ export default function ClientSavedHomes({ userId }: ClientSavedHomesProps) {
             ? home.price
             : `$${home.price}`
           : typeof home.price === "number"
-            ? `$${home.price.toLocaleString()}`
+            ? `$${(home.price as number).toLocaleString()}`
             : "",
       image_url: home.image_url || "",
       created_at: "",
@@ -219,7 +219,7 @@ export default function ClientSavedHomes({ userId }: ClientSavedHomesProps) {
                           variant="negotiate"
                           fullWidth
                           text="Negotiate"
-                          icon={Handshake}
+                          iconName="handshake"
                         />
                       </div>
                     }

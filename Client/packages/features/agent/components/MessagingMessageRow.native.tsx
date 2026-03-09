@@ -12,8 +12,8 @@ import { parseEventRequestPayload } from "packages/features/messaging/utils/even
 import { getDateDividerText } from "packages/features/messaging/utils/messageDateUtils"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Shared message row; utils live in messaging. */
 import { useSavedHomesData } from "packages/features/search";
 import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 type MessagingMessageRowNativeProps = {

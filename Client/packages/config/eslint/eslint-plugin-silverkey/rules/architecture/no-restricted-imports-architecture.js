@@ -75,8 +75,8 @@ module.exports = {
 
     const inUiOrFeatures =
       filename.includes("packages/ui/") || filename.includes("packages/features/");
-    const inAppWeb = filename.includes("apps/web/");
-    if (!inUiOrFeatures && !inAppWeb) return {};
+    const inAppLayer = filename.includes("apps/web/") || filename.includes("apps/mobile/");
+    if (!inUiOrFeatures && !inAppLayer) return {};
     if (filename.includes("packages/ui/components/ui/")) return {};
 
     /** In packages/features, only api/ and services/ may import config/api or services. */
@@ -103,14 +103,14 @@ module.exports = {
           const servicePath = importPath.replace(/^.*packages\/services\//, "");
           context.report({
             node: node.source,
-            messageId: inAppWeb ? "appForbiddenService" : "forbiddenService",
+            messageId: inAppLayer ? "appForbiddenService" : "forbiddenService",
             data: { servicePath },
           });
         } else if (importPath.includes("packages/config/api/")) {
           const apiPath = importPath.replace(/^.*packages\/config\/api\//, "");
           context.report({
             node: node.source,
-            messageId: inAppWeb ? "appForbiddenApi" : "forbiddenApi",
+            messageId: inAppLayer ? "appForbiddenApi" : "forbiddenApi",
             data: { apiPath },
           });
         } else {

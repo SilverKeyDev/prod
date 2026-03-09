@@ -2,8 +2,9 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { formatAgentName, formatLotSize, formatPrice } from "packages/features/search";
-import { BodyText, PropertyStat, Title } from "packages/ui/components/index.web";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
+
+import { BodyText, PropertyStat, Title } from "@/components/ui";
 export type CompData = {
   address: {
     city: string;

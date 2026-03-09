@@ -3,8 +3,7 @@
  */
 import React from "react";
 
-import { BodyText, Title } from "packages/ui/components/index.web";
-
+import { BodyText, Title } from "@/components/ui";
 import { renderSectionIcon } from "@/features/compare/components/CompareHomesModal/sectionIcons";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 

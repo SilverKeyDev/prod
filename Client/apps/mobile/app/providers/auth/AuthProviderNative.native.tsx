@@ -5,11 +5,12 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-import { ActivityIndicator, Linking, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Linking, StyleSheet, View } from "react-native";
 
 import { runAuthBootstrap } from "packages/features/homeauth";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
+import { Text } from "packages/ui/components/primitives";
 import { getSessionStorage } from "packages/utils/storage/platformStorage";
 
 type AuthProviderNativeProps = {

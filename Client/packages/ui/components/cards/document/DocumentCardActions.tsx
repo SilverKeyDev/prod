@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
-import { Button, IconButton } from "packages/ui/components/index.web";
 import { Portal } from "packages/ui/components/portal";
 
 import { PdfModal } from "@/components/modals/PdfModal";
 import { DeleteModal } from "@/components/modals/standalone/DeleteModal";
+import { Button, IconButton } from "@/components/ui";
 
 import type { DocumentData } from "./types";
 interface DocumentCardActionsProps {

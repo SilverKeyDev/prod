@@ -1,4 +1,4 @@
-import type { TodoItem as ApiTodoItem } from "../api/agent";
+import type { TodoItem as ApiTodoItem } from "packages/features/agent/api/agent";
 
 // Agent type (app-level)
 

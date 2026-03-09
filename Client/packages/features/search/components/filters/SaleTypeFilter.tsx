@@ -1,7 +1,8 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText, Button } from "packages/ui/components/index.web";
+
+import { BodyText, Button } from "@/components/ui";
 
 const SALE_TYPE_OPTIONS = [
   { value: "", labelKey: "search.sale_type_all" as const },

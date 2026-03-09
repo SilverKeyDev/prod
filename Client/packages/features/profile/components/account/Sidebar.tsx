@@ -4,10 +4,10 @@ import { spacing } from "packages/design-tokens";
 import { getPersonalizationNavItems } from "packages/features/profile/components/profilePicture/profileStepsUi";
 import { useResponsive } from "packages/hooks/ui";
 import type { NavItem } from "packages/navigation";
-import { BodyText, Button, CancelButton } from "packages/ui/components/index.web";
 import type { IconName } from "packages/ui/types/icons";
 
 import Card from "@/components/layout/Card.web";
+import { BodyText, Button, CancelButton } from "@/components/ui";
 const STEPS: NavItem[] = getPersonalizationNavItems();
 type PersonalizationSidebarProps = {
   activeSection: string;

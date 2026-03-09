@@ -1,8 +1,8 @@
 import { Icon } from "@ui/icons";
 
 import Button from "packages/ui/components/button/Button";
-import { Textarea } from "packages/ui/components/index.web";
 
+import { Textarea } from "@/components/ui";
 import AttachmentMenu from "@/features/agent/components/AttachmentMenu";
 import {
   getMessagingConfig,

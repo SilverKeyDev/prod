@@ -6,10 +6,11 @@ import { getEnv } from "packages/config";
 import { useLocalization } from "packages/contexts";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { BodyText, Button } from "packages/ui/components/index.web";
-import { Box } from "packages/ui/components/primitives/box";
+import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 import { dateNow } from "packages/utils/date";
+
+import { BodyText, Button } from "@/components/ui";
 export type CardViewDetailsButtonProps = {
   /** Click handler - can be async */
   onClick: () => void | Promise<void>;

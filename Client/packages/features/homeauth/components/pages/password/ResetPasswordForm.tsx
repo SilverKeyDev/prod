@@ -3,9 +3,9 @@ import React, { type RefObject } from "react";
 import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { Button, Input, VerificationCodeInput } from "packages/ui/components/index.web";
 
 import { PasswordValidation } from "@/components/feedback/PasswordValidation";
+import { Button, Input, VerificationCodeInput } from "@/components/ui";
 export type ResetPasswordStep = "request" | "verify" | "reset";
 type ResetPasswordFormProps = {
   step: ResetPasswordStep;

@@ -1,4 +1,4 @@
-export { default as UnifiedMessageInput } from "../../messaging/components/layout/UnifiedMessageInput";
-export { default as UnifiedMessagesList } from "../../messaging/components/layout/UnifiedMessagesList";
-export { default as UnifiedMessagingSidebar } from "../../messaging/components/layout/UnifiedMessagingSidebar";
 export { default as AgentFeature } from "./AgentFeature";
+export { default as UnifiedMessageInput } from "packages/features/messaging/components/layout/UnifiedMessageInput";
+export { default as UnifiedMessagesList } from "packages/features/messaging/components/layout/UnifiedMessagesList";
+export { default as UnifiedMessagingSidebar } from "packages/features/messaging/components/layout/UnifiedMessagingSidebar";

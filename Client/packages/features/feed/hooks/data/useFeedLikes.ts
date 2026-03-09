@@ -28,7 +28,7 @@ export function useFeedLikes(homeIds: string[]) {
     mutationFn: async (homeId: string) => {
       await feedReelApi.postFeedLike(homeId);
     },
-    onSuccess: (_, homeId) => {
+    onSuccess: (_, _homeId) => {
       void queryClient.invalidateQueries({ queryKey });
     },
   });

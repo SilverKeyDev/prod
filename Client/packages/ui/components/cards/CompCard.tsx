@@ -5,7 +5,7 @@ import {
   formatLotSize,
   formatPrice,
 } from "packages/features/search/types/search/address";
-import { Image } from "packages/ui/components/primitives/media";
+import { Image } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 export type CompData = {

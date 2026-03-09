@@ -5,9 +5,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
 
-import { BodyText, Title } from "packages/ui/components/index.web";
-
 import Card from "@/components/layout/Card.web";
+import { BodyText, Title } from "@/components/ui";
 
 export function renderCommuteAnalysisContent(data: unknown): React.ReactNode {
   if (!data || typeof data !== "object") return null;

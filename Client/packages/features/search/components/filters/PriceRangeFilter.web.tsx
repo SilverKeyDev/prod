@@ -1,9 +1,9 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import { BodyText } from "packages/ui/components/index.web";
 import { formatCompactNumber } from "packages/utils";
 
+import { BodyText } from "@/components/ui";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 
 const DEFAULT_MIN = 100_000;

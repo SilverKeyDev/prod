@@ -9,9 +9,22 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   NSString *googleMapsApiKey = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"GMSApiKey"];
-  if (googleMapsApiKey != nil && [googleMapsApiKey length] > 0) {
+  BOOL keySet = googleMapsApiKey != nil && [googleMapsApiKey length] > 0;
+  BOOL isPlaceholder = [googleMapsApiKey isEqualToString:@"YOUR_GOOGLE_MAPS_IOS_API_KEY"];
+  // Valid API keys are long and typically start with "AIza"; Map IDs are short hex (e.g. 24 chars) and must not be used here.
+  BOOL looksLikeApiKey = keySet && [googleMapsApiKey length] >= 20 && [googleMapsApiKey hasPrefix:@"AIza"];
+  if (keySet && !isPlaceholder) {
     [GMSServices provideAPIKey:googleMapsApiKey];
   }
+#if DEBUG
+  if (!keySet || isPlaceholder) {
+    NSLog(@"[SilverKey] GMSApiKey missing or placeholder. Set GOOGLE_MAPS_IOS_API_KEY in Client/.env or ios/.xcode.env.local (Maps SDK for iOS key from Google Cloud Console). See ios/.xcode.env.example.");
+  } else if (!looksLikeApiKey) {
+    NSLog(@"[SilverKey] GMSApiKey set but may be invalid (expected API key starting with AIza, length >= 20). If you see GeoServices/default.csv errors, use a real Maps SDK for iOS key, not the Cloud Map ID.");
+  } else {
+    NSLog(@"[SilverKey] GMSApiKey valid format (length %lu).", (unsigned long)[googleMapsApiKey length]);
+  }
+#endif
 
   self.moduleName = @"main";
 

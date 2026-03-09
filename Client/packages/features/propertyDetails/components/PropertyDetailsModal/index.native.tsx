@@ -1,1 +1,1 @@
-export { default } from "./PropertyDetailsModal.native";
+export { default } from "./body/PropertyDetailsModal.native";

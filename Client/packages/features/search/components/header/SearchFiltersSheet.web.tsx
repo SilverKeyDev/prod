@@ -2,8 +2,8 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import { Transition } from "packages/ui/components/adapters/headless";
-import { AccessibleDialog, Button, CloseButton, Title } from "packages/ui/components/index.web";
 
+import { AccessibleDialog, Button, CloseButton, Title } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 import SearchFiltersPanel from "@/features/search/components/filters/SearchFiltersPanel.web";
 

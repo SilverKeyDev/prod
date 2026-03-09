@@ -1,4 +1,4 @@
-import { BodyText, Button, CancelButton, Textarea } from "packages/ui/components/index.web";
+import { BodyText, Button, CancelButton, Textarea } from "@/components/ui";
 
 type VoidConfirmationProps = {
   voidReason: string;

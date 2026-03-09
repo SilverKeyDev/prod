@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
   const location = useLocation();
 
   // Wait for bootstrap to complete - prevents early redirects and flicker
-  if (!authReady || status === "booting") {
+  if (!authReady || status === "checking") {
     return null; // Could render a full-page skeleton here
   }
 

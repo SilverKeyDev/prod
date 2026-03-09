@@ -4,8 +4,8 @@ import { FlatList, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
-import { Box } from "packages/ui/components/primitives/box";
-import { Text } from "packages/ui/components/primitives/text";
+import { Box } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import { EventCard } from "./EventCard";
