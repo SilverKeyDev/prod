@@ -15,6 +15,8 @@ Canonical docs live here. One place for project documentation; no scattered long
 | How we do documentation | [HOW_WE_DOCUMENT.md](./HOW_WE_DOCUMENT.md) |
 | Client docs index | [client/README.md](./client/README.md) |
 | Server docs index | [server/README.md](./server/README.md) |
+| To implement soon: Notifications | [to-implement-soon/notifications/](./to-implement-soon/notifications/) |
+| Reels for Homes | [reels/](./reels/) |
 
 ## In-repo references
 

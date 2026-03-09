@@ -51,6 +51,12 @@ def get_user_profile(user: User) -> Response | tuple[Response, int]:
         },
     )
     user_data = user.to_dict()
+    # Include roles from user_roles for admin/permission checks (e.g. AdminGuard).
+    # To grant admin access: add a row to user_roles, e.g. in Flask shell:
+    #   from app.models import User, UserRole
+    #   u = User.query.filter_by(email="your@email.com").first()
+    #   if u and not any(r.role == "admin" for r in u.user_roles): db.session.add(UserRole(user_id=u.id, role="admin")); db.session.commit()
+    user_data["roles"] = [ur.role for ur in user.user_roles]
     profile_picture_url = _get_profile_picture_url(user)
     if profile_picture_url is not None:
         user_data["profile_picture_url"] = profile_picture_url

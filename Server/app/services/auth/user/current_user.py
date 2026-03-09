@@ -98,6 +98,7 @@ def _verify_minimal_token(token: str, start_time: float | None = None) -> User:
     current_app.logger.debug(
         "🔍 BACKEND_SESSION_VERIFICATION_SUCCESS",
         extra={
+            "endpoint": endpoint,
             "request_id": request_id,
             "user_id": str(getattr(user, "id", None)),
             "email": (user.email[:3] + "***" + user.email[-3:])

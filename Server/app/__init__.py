@@ -140,6 +140,7 @@ def create_app(config=None):
         logger.warn(LOG_CATEGORIES["SECURITY"], f"Environment validation warning: {str(e)}")
 
     # Register blueprints
+    from .routes.admin import admin_bp
     from .routes.agent.agent import agent_bp
     from .routes.auth.auth import auth_bp
     from .routes.auth.preferences import preferences_bp
@@ -154,6 +155,7 @@ def create_app(config=None):
     from .routes.search.home_matching import home_matching_bp
     from .routes.search.research import research_bp
     from .routes.search.search import search_bp
+    from .routes.skyslope import skyslope_bp
     from .routes.tasks import tasks_bp
 
     app.register_blueprint(auth_bp)
@@ -171,6 +173,8 @@ def create_app(config=None):
     app.register_blueprint(client_errors_bp)
     app.register_blueprint(feed_bp)
     app.register_blueprint(tasks_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(skyslope_bp)
 
     # ---------- Static asset routes (Vite build) ----------
     # Serve /assets/* out of the Vite dist directory with correct MIME types.

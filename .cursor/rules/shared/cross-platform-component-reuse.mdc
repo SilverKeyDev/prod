@@ -1,0 +1,169 @@
+---
+description: Cross-platform component reuse strategy - web and mobile must look and function identically with maximum sharing
+alwaysApply: true
+---
+
+# Cross-Platform Component Reuse Strategy
+
+## Fundamental Principle
+
+**Web and mobile MUST look and function identically with maximum component reuse unless explicitly told otherwise.**
+
+This is an essential architectural principle that must be considered in every implementation decision. The goal is visual and functional parity between platforms with shared components as the default.
+
+## Default Strategy: Shared Components
+
+### File Extension Priority
+
+1. **Default (.tsx/.ts)**: Always create shared components first
+   - Use `.tsx` for React components that work on both platforms
+   - Use `.ts` for business logic, hooks, and utilities
+   - This should be 90%+ of all components
+
+2. **Platform-specific only when necessary**:
+   - `.web.tsx` - Only when using web-only APIs (DOM, react-router-dom, etc.)
+   - `.native.tsx` - Only when using React Native-specific APIs
+   - Must be justified and documented
+
+### Component Design Principles
+
+```typescript
+// ✅ CORRECT: Shared component (default approach)
+// packages/features/dashboard/components/ClientCard.tsx
+export function ClientCard({ client }: ClientCardProps) {
+  return (
+    <Box padding="md" borderRadius="md" backgroundColor="white">
+      <Title size="sm">{client.name}</Title>
+      <BodyText size="xs" muted>{client.email}</BodyText>
+      <Button variant="primary" onPress={handleContact}>
+        Contact
+      </Button>
+    </Box>
+  );
+}
+
+// ❌ WRONG: Creating separate implementations without justification
+// packages/features/dashboard/components/ClientCard.web.tsx
+// packages/features/dashboard/components/ClientCard.native.tsx
+```
+
+### When Platform-Specific Implementation is Required
+
+Only create platform-specific versions when:
+
+1. **Web-only dependencies**: Uses `react-dom`, `window`, `document`, `HTMLElement`
+2. **Native-only dependencies**: Uses React Native-specific APIs, native modules
+3. **Fundamentally different UX**: Desktop vs mobile interaction patterns
+4. **Performance requirements**: Platform-specific optimizations explicitly requested
+
+## Implementation Guidelines
+
+### Use Shared Primitives
+
+Always use shared layout and UI primitives that work across platforms:
+
+```typescript
+// ✅ CORRECT: Shared primitives
+import { Box, Text, Button, Input } from "../../ui/primitives";
+
+// ❌ WRONG: Platform-specific elements
+import { div, button } from "react"; // Web-only
+import { View, TouchableOpacity } from "react-native"; // Native-only
+```
+
+### Navigation and Routing
+
+Use navigation adapters that work across platforms:
+
+```typescript
+// ✅ CORRECT: Platform-agnostic navigation
+import { useNavigation } from "@/packages/navigation";
+
+const navigation = useNavigation();
+navigation.navigate("ClientDetails", { clientId });
+
+// ❌ WRONG: Platform-specific navigation
+import { useNavigate } from "react-router-dom"; // Web-only
+```
+
+### Styling Strategy
+
+Use design tokens and theme system that translates across platforms:
+
+```typescript
+// ✅ CORRECT: Shared styling approach
+<Box
+  padding="md"
+  backgroundColor="background.primary"
+  borderRadius="md"
+  shadow="sm"
+>
+  {children}
+</Box>
+
+// ❌ WRONG: Platform-specific styling
+<div className="px-4 py-2 bg-white rounded-md shadow-sm"> {/* Web-only */}
+```
+
+## Verification Checklist
+
+Before creating any component, ask:
+
+- [ ] Can this component work identically on both web and mobile?
+- [ ] Does it use only shared primitives and design tokens?
+- [ ] Does it avoid platform-specific APIs?
+- [ ] Is the user experience identical across platforms?
+- [ ] Have I justified any platform-specific implementation?
+
+## Code Review Standards
+
+When reviewing code:
+
+- **Reject** platform-specific implementations without clear justification
+- **Require** shared components by default
+- **Verify** visual and functional parity claims with actual testing
+- **Document** any necessary platform differences
+
+## Examples of Correct Shared Components
+
+```typescript
+// ✅ Modal that works on both platforms
+export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message }: ConfirmDialogProps) {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <Box padding="lg" backgroundColor="white" borderRadius="lg">
+        <Title size="md" marginBottom="md">{title}</Title>
+        <BodyText size="sm" marginBottom="lg">{message}</BodyText>
+        <Box flexDirection="row" gap="md" justifyContent="flex-end">
+          <Button variant="secondary" onPress={onClose}>Cancel</Button>
+          <Button variant="primary" onPress={onConfirm}>Confirm</Button>
+        </Box>
+      </Box>
+    </Modal>
+  );
+}
+
+// ✅ List component that works on both platforms
+export function ClientList({ clients, onClientSelect }: ClientListProps) {
+  return (
+    <ScrollView>
+      {clients.map(client => (
+        <TouchableBox key={client.id} onPress={() => onClientSelect(client)}>
+          <ClientCard client={client} />
+        </TouchableBox>
+      ))}
+    </ScrollView>
+  );
+}
+```
+
+## Exceptions (Document When Used)
+
+Acceptable platform-specific implementations:
+
+- Desktop sidebar navigation (`.web.tsx`) vs mobile tab navigation (`.native.tsx`)
+- Desktop drag-and-drop vs mobile touch gestures
+- Desktop context menus vs mobile long-press actions
+- Large screen layouts vs responsive mobile layouts
+
+**Requirement**: Document why shared implementation wasn't possible and ensure functional parity.

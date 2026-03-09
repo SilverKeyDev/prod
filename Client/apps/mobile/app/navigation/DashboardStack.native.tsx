@@ -2,7 +2,7 @@ import React from "react";
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { ClientHubScreenNative, DashboardScreen } from "packages/features/dashboard/native";
+import { ClientHubScreen, DashboardScreen } from "packages/features/dashboard/native";
 
 export type DashboardStackParamList = {
   DashboardMain: undefined;
@@ -21,7 +21,7 @@ export function DashboardStack() {
       }}
     >
       <Stack.Screen name="DashboardMain" component={DashboardScreen} />
-      <Stack.Screen name="ClientHub" component={ClientHubScreenNative} />
+      <Stack.Screen name="ClientHub" component={ClientHubScreen} />
     </Stack.Navigator>
   );
 }

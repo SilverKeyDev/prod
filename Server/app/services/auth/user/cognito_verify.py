@@ -114,6 +114,7 @@ def verify_cognito_token_and_get_user(token: str, start_time: float | None = Non
     current_app.logger.debug(
         "🔍 BACKEND_SESSION_VERIFICATION_SUCCESS",
         extra={
+            "endpoint": endpoint,
             "request_id": request_id,
             "user_id": str(getattr(user, "id", None)),
             "email": (user.email[:3] + "***" + user.email[-3:])

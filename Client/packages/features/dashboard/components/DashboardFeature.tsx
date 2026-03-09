@@ -5,7 +5,7 @@ import { useIsAgent } from "packages/features/homeauth";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 
-import ClientHub from "./ClientHub/ClientHub";
+import ClientHubScreen from "./ClientHub/ClientHubScreen";
 import ClientList from "./ClientList/ClientList";
 import DashboardChecklists from "./DashboardChecklists";
 
@@ -38,7 +38,7 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
 
   // Show Client Hub if client ID is in path
   if (clientIdFromPath) {
-    return <ClientHub clientId={clientIdFromPath} />;
+    return <ClientHubScreen clientId={clientIdFromPath} />;
   }
 
   return (

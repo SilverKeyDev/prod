@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Protocol, Sequence
+from typing import Protocol
 
 
 @dataclass(frozen=True)
@@ -20,13 +21,17 @@ class SignatureRequest:
 class SignatureProvider(Protocol):
     """Interface for provider-agnostic agreement signature operations."""
 
-    def create_signature_request(self, request: SignatureRequest) -> None:  # pragma: no cover - interface
+    def create_signature_request(
+        self, request: SignatureRequest
+    ) -> None:  # pragma: no cover - interface
         ...
 
     def get_signature_status(self, agreement_id: str) -> str:  # pragma: no cover - interface
         ...
 
-    def get_signing_url(self, agreement_id: str, participant_id: str) -> str | None:  # pragma: no cover - interface
+    def get_signing_url(
+        self, agreement_id: str, participant_id: str
+    ) -> str | None:  # pragma: no cover - interface
         ...
 
     def cancel_signature(self, agreement_id: str) -> None:  # pragma: no cover - interface
@@ -53,4 +58,3 @@ class NoOpSignatureProvider(SignatureProvider):
 
 
 signature_provider: SignatureProvider = NoOpSignatureProvider()
-

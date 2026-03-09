@@ -130,7 +130,11 @@ def get_feed_comments(home_id):
         return jsonify({"comments": []})
 
     try:
-        comments = HomeComment.query.filter_by(home_id=home_id).order_by(HomeComment.created_at.asc()).all()
+        comments = (
+            HomeComment.query.filter_by(home_id=home_id)
+            .order_by(HomeComment.created_at.asc())
+            .all()
+        )
         return jsonify({"comments": [_comment_to_client(c) for c in comments]})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500

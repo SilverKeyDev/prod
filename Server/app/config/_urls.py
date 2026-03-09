@@ -11,6 +11,17 @@ def get_google_redirect_uri():
     return "http://localhost:5173/api/v1/google/oauth/callback"
 
 
+def get_skyslope_redirect_uri():
+    """Get SkySlope OAuth redirect URI based on environment."""
+    explicit = os.getenv("SKYSLOPE_REDIRECT_URI", "").strip()
+    if explicit:
+        return explicit
+    flask_env = os.getenv("FLASK_ENV", "development")
+    if flask_env == "production":
+        return "https://usesilverkey.com/api/v1/skyslope/callback"
+    return "http://localhost:5173/api/v1/skyslope/callback"
+
+
 def get_frontend_url():
     """Get frontend URL based on environment."""
     flask_env = os.getenv("FLASK_ENV", "development")
