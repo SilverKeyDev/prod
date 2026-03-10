@@ -1,4 +1,4 @@
-import { dashboardApi, secureUploadApi } from "packages/config/api";
+import { dashboardApi, secureUploadApi } from "packages/config/http/api";
 import type { Document, DocumentCategory } from "packages/features/documents/types/documents";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { createAbortManager, HttpError, isAbortError } from "packages/services/http";

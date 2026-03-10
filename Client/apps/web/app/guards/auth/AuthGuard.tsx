@@ -7,10 +7,8 @@ import { type ReactNode } from "react";
 
 import { Icon } from "@ui/icons";
 
-import Button from "packages/ui/components/button/Button";
-
 import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
+import { BodyText, Button, Title } from "@/components/ui";
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 type AuthGuardProps = {
   children: ReactNode;

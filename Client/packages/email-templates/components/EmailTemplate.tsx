@@ -3,7 +3,8 @@ import React from "react";
 import { Body, Container, Head, Html, Section, Text } from "@react-email/components";
 import { Tailwind } from "@react-email/tailwind";
 
-import { dateNow } from "../../utils/date";
+import { dateNow } from "packages/utils/date";
+
 import { tailwindConfig } from "./colors";
 
 type EmailTemplateProps = {

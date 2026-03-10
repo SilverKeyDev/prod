@@ -1,18 +1,12 @@
-import { useLocalization } from "packages/contexts";
+import React, { useCallback, useMemo, useState } from "react";
 
-import BaseModal from "@/components/modals/BaseModal";
-import {
-  BodyText,
-  Button,
-  CancelButton,
-  CloseButton,
-  Input,
-  Label,
-  Select,
-  Textarea,
-  Title,
-} from "@/components/ui";
-import { useCreateAgreementForm } from "@/features/documents/hooks/ui/useCreateAgreementForm";
+import Button from "@ui/button/Button";
+
+import { useLocalization } from "packages/contexts";
+import { useCreateAgreementForm } from "packages/features/documents/hooks/ui/useCreateAgreementForm";
+import { getAgreementTypeLabel } from "packages/features/documents/utils/agreements";
+import { BaseModal } from "packages/ui/components/modals";
+import { Box, PrimitiveInput, ScrollView, Text } from "packages/ui/components/primitives";
 
 type CreateAgreementModalProps = {
   isOpen: boolean;
@@ -22,10 +16,10 @@ type CreateAgreementModalProps = {
 };
 
 /**
- * CreateAgreementModal Component
+ * CreateAgreementModal
  *
- * Modal for configuring new agreements (agent-only).
- * Includes form for title, type, buyer selection, property address.
+ * Modal for configuring new agreements (agent-only). Shared web + native.
+ * Form: title, type, buyer selection, property address, description.
  */
 export default function CreateAgreementModal({
   isOpen,
@@ -57,161 +51,222 @@ export default function CreateAgreementModal({
   });
 
   const { t } = useLocalization();
+  const [showBuyerList, setShowBuyerList] = useState(false);
+
+  const selectedBuyerLabel = useMemo(() => {
+    if (!selectedBuyerId) return "";
+    const buyer = clients.find((c) => c.id === selectedBuyerId);
+    if (!buyer) return "";
+    return `${buyer.name} - ${buyer.email}`;
+  }, [clients, selectedBuyerId]);
+
+  const handleSubmit = useCallback(async () => {
+    await submit();
+    setShowBuyerList(false);
+  }, [submit]);
+
+  if (!isOpen) return null;
 
   return (
-    <BaseModal isOpen={isOpen} onClose={handleClose}>
-      <div className="p-6">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <Title size="lg">
-            {t("documents_create.title", { defaultValue: "Create Agreement" })}
-          </Title>
-          <CloseButton
-            onClick={handleClose}
-            size="sm"
-            className="text-gray-400 hover:text-gray-600"
-            disabled={isCreatingAgreement}
-          />
-        </div>
-
-        {/* Form */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void submit();
-          }}
-          className="space-y-4"
-        >
+    <BaseModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={t("documents_create.title", { defaultValue: "Create Agreement" })}
+      showCloseButton
+      closeOnBackdropClick={!isCreatingAgreement}
+    >
+      {/* maxHeight and paddingBottom: layout constants; RN ScrollView needs numeric px */}
+      <ScrollView
+        // eslint-disable-next-line silverkey/no-raw-spacing -- RN ScrollView needs numeric px for style and contentContainerStyle
+        style={{ maxHeight: 480 }}
+        contentContainerStyle={{ paddingBottom: 16 }}
+      >
+        <Box className="gap-4">
           {/* Title */}
-          <div>
-            <Label htmlFor="agreement-title" className="mb-2 block font-medium text-gray-700">
-              {t("documents_create.field_title", { defaultValue: "Agreement Title *" })}
-            </Label>
-            <Input
-              id="agreement-title"
-              type="text"
+          <Box className="gap-2">
+            <Text className="text-sm font-medium text-gray-900">
+              {t("documents_create.field_title", { defaultValue: "Agreement Title" })}
+              <Text className="text-rose-500"> *</Text>
+            </Text>
+            <PrimitiveInput
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onValueChange={setTitle}
               placeholder={t("documents_create.field_title_placeholder", {
                 defaultValue: "e.g., Buyer Representation Agreement - John Doe",
               })}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-              disabled={isCreatingAgreement}
-              required
+              editable={!isCreatingAgreement}
             />
-          </div>
+          </Box>
 
           {/* Agreement Type */}
-          <div>
-            <Select
-              id="agreement-type"
-              label={t("documents_create.field_type", { defaultValue: "Agreement Type *" })}
-              options={agreementTypes.map((type) => ({
-                value: type,
-                label: type,
-              }))}
-              value={agreementType}
-              onChange={(v) => setAgreementType(v)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-              disabled={isCreatingAgreement}
-              required
-            />
-          </div>
+          <Box className="gap-2">
+            <Text className="text-sm font-medium text-gray-900">
+              {t("documents_create.field_type", { defaultValue: "Agreement Type" })}
+              <Text className="text-rose-500"> *</Text>
+            </Text>
+            <Box className="flex flex-row flex-wrap gap-2">
+              {agreementTypes.map((type) => {
+                const isSelected = type === agreementType;
+                return (
+                  <Button
+                    key={type}
+                    variant={isSelected ? "primary" : "secondary"}
+                    size="sm"
+                    disabled={isCreatingAgreement}
+                    onPress={() => setAgreementType(type)}
+                    className="rounded-full px-3 py-2"
+                  >
+                    <Text
+                      className={`text-xs font-medium ${
+                        isSelected ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      {getAgreementTypeLabel(type)}
+                    </Text>
+                  </Button>
+                );
+              })}
+            </Box>
+          </Box>
 
           {/* Buyer Selection */}
-          <div>
-            <Select
-              id="agreement-buyer"
-              label={t("documents_create.field_buyer", { defaultValue: "Buyer *" })}
-              placeholder={t("documents_create.field_buyer_placeholder", {
-                defaultValue: "Select a buyer...",
-              })}
-              options={clients.map((client) => ({
-                value: client.id,
-                label: `${client.name} - ${client.email}`,
-              }))}
-              value={selectedBuyerId}
-              onChange={setSelectedBuyerId}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-              disabled={isCreatingAgreement || !!preselectedBuyerId}
-              required
+          <Box className="gap-2">
+            <Text className="text-sm font-medium text-gray-900">
+              {t("documents_create.field_buyer", { defaultValue: "Buyer" })}
+              <Text className="text-rose-500"> *</Text>
+            </Text>
+            <PrimitiveInput
+              value={
+                selectedBuyerLabel ||
+                t("documents_create.field_buyer_placeholder", {
+                  defaultValue: "Select a buyer...",
+                })
+              }
+              editable={false}
             />
-          </div>
+            {!preselectedBuyerId && (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={isCreatingAgreement}
+                onPress={() => setShowBuyerList((prev) => !prev)}
+                className="self-start"
+              >
+                <Text className="text-xs font-medium text-gray-900">
+                  {showBuyerList
+                    ? t("documents_create.hide_buyers", { defaultValue: "Hide buyers" })
+                    : t("documents_create.show_buyers", { defaultValue: "Choose buyer" })}
+                </Text>
+              </Button>
+            )}
+            {showBuyerList && !preselectedBuyerId && (
+              <Box className="mt-2 max-h-40 gap-1 rounded-lg border border-gray-200 bg-gray-50 p-2">
+                {clients.length === 0 ? (
+                  <Text className="text-xs text-gray-600">
+                    {t("documents_create.no_buyers", { defaultValue: "No buyers available." })}
+                  </Text>
+                ) : (
+                  clients.map((client) => (
+                    <Button
+                      key={client.id}
+                      variant={client.id === selectedBuyerId ? "primary" : "secondary"}
+                      size="sm"
+                      onPress={() => {
+                        setSelectedBuyerId(client.id);
+                        setShowBuyerList(false);
+                      }}
+                      className="mb-1 justify-start"
+                    >
+                      <Text
+                        className={`text-xs ${
+                          client.id === selectedBuyerId ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {client.name} — {client.email}
+                      </Text>
+                    </Button>
+                  ))
+                )}
+              </Box>
+            )}
+          </Box>
 
           {/* Property Address */}
-          <div>
-            <Label
-              htmlFor="agreement-property-address"
-              className="mb-2 block font-medium text-gray-700"
-            >
+          <Box className="gap-2">
+            <Text className="text-sm font-medium text-gray-900">
               {t("documents_create.field_address", {
                 defaultValue: "Property Address (Optional)",
               })}
-            </Label>
-            <Input
-              id="agreement-property-address"
-              type="text"
+            </Text>
+            <PrimitiveInput
               value={propertyAddress}
-              onChange={(e) => setPropertyAddress(e.target.value)}
+              onValueChange={setPropertyAddress}
               placeholder={t("documents_create.field_address_placeholder", {
                 defaultValue: "e.g., 123 Main St, San Francisco, CA 94102",
               })}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-              disabled={isCreatingAgreement}
+              editable={!isCreatingAgreement}
             />
-          </div>
+          </Box>
 
           {/* Description */}
-          <div>
-            <Label htmlFor="agreement-description" className="mb-2 block font-medium text-gray-700">
+          <Box className="gap-2">
+            <Text className="text-sm font-medium text-gray-900">
               {t("documents_create.field_description", {
                 defaultValue: "Description (Optional)",
               })}
-            </Label>
-            <Textarea
-              id="agreement-description"
+            </Text>
+            <PrimitiveInput
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onValueChange={setDescription}
               placeholder={t("documents_create.field_description_placeholder", {
                 defaultValue: "Add any additional details...",
               })}
-              rows={3}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-              disabled={isCreatingAgreement}
+              editable={!isCreatingAgreement}
+              multiline
+              numberOfLines={3}
+              style={{ textAlignVertical: "top" }}
             />
-          </div>
+          </Box>
 
-          {/* Template Selection (if available) */}
+          {/* Templates tip */}
           {templates && templates.length > 0 && (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-              <BodyText size="sm" className="text-blue-900">
-                💡{" "}
+            <Box className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+              <Text className="text-xs text-blue-900">
                 {t("documents_create.templates_tip", {
                   defaultValue:
                     "Tip: After creating the agreement, you can upload the document PDF as a revision.",
                 })}
-              </BodyText>
-            </div>
+              </Text>
+            </Box>
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 border-t border-gray-200 pt-4">
-            <CancelButton
-              type="button"
+          <Box className="mt-2 flex flex-row justify-end gap-3">
+            <Button
+              variant="secondary"
               size="md"
-              onClick={handleClose}
               disabled={isCreatingAgreement}
+              onPress={handleClose}
             >
-              {t("common.cancel", { defaultValue: "Cancel" })}
-            </CancelButton>
-            <Button type="submit" variant="primary" size="md" disabled={isCreatingAgreement}>
-              {isCreatingAgreement
-                ? t("documents_create.submitting", { defaultValue: "Creating..." })
-                : t("documents_create.submit", { defaultValue: "Create Agreement" })}
+              <Text className="text-sm font-medium text-gray-900">
+                {t("common.cancel", { defaultValue: "Cancel" })}
+              </Text>
             </Button>
-          </div>
-        </form>
-      </div>
+            <Button
+              variant="primary"
+              size="md"
+              disabled={isCreatingAgreement}
+              onPress={handleSubmit}
+            >
+              <Text className="text-sm font-medium text-white">
+                {isCreatingAgreement
+                  ? t("documents_create.submitting", { defaultValue: "Creating..." })
+                  : t("documents_create.submit", { defaultValue: "Create Agreement" })}
+              </Text>
+            </Button>
+          </Box>
+        </Box>
+      </ScrollView>
     </BaseModal>
   );
 }

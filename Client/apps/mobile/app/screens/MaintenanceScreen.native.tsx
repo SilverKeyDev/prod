@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     padding: 32,
     backgroundColor: "#f5f5f0",
     borderRadius: 12,
+
     ...(Platform.OS === "web"
       ? { boxShadow: "0px 2px 8px rgba(0,0,0,0.08)" }
       : {

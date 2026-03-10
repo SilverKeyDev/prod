@@ -1,4 +1,4 @@
-import { colors } from "../../design-tokens";
+import { colors } from "packages/design-tokens";
 
 /** Email palette: subset of design-tokens colors for email templates. */
 export const emailColors = {

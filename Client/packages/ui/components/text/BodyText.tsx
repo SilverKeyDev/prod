@@ -1,69 +1,64 @@
 import React, { forwardRef } from "react";
 
+import { Text } from "packages/ui/components/primitives";
+
 export type BodyTextSize = "xs" | "sm" | "md" | "lg";
 
 export type BodyTextProps = {
   children: React.ReactNode;
   size?: BodyTextSize;
   className?: string;
-  /**
-   * Muted variant for less prominent text
-   */
   muted?: boolean;
-  /**
-   * HTML element to render. Defaults to "p" for paragraph.
-   */
   as?: "p" | "span" | "div";
-  /**
-   * Native title (e.g. for tooltip when as="span")
-   */
   title?: string;
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | Record<string, unknown>;
+  numberOfLines?: number;
+};
+
+const sizeClasses: Record<BodyTextSize, string> = {
+  xs: "text-xs sm:text-sm",
+  sm: "text-sm sm:text-base",
+  md: "text-base sm:text-lg",
+  lg: "text-lg sm:text-xl",
 };
 
 /**
- * Standardized Body Text component.
- *
- * Responsive body text with consistent sizing, line-height, and spacing.
- * Mobile-optimized with responsive text sizing.
- *
- * @example
- * ```tsx
- * <BodyText size="md">This is body text</BodyText>
- * <BodyText size="sm" muted>This is muted text</BodyText>
- * ```
+ * Shared BodyText — uses Text primitive. Web keeps semantic `as`; native uses Text.
  */
-const BodyText = forwardRef<HTMLParagraphElement | HTMLSpanElement | HTMLDivElement, BodyTextProps>(
-  (
-    { children, size = "md", className = "", muted = false, as: Component = "p", title, style },
-    ref
-  ) => {
-    // Base styles
-    const baseClasses = "font-normal leading-relaxed";
+const BodyText = forwardRef<React.ComponentRef<typeof Text>, BodyTextProps>(function BodyText(
+  {
+    children,
+    size = "md",
+    className = "",
+    muted = false,
+    as: asProp = "p",
+    title,
+    style,
+    numberOfLines,
+    ...textProps
+  },
+  ref
+) {
+  const baseClasses = "font-normal leading-relaxed";
+  const colorClass = muted ? "text-gray-600" : "text-gray-900";
+  const combinedClasses = [baseClasses, sizeClasses[size], colorClass, className]
+    .filter(Boolean)
+    .join(" ");
 
-    // Size classes - responsive
-    const sizeClasses: Record<BodyTextSize, string> = {
-      xs: "text-xs sm:text-sm",
-      sm: "text-sm sm:text-base",
-      md: "text-base sm:text-lg",
-      lg: "text-lg sm:text-xl",
-    };
-
-    // Color classes
-    const colorClass = muted ? "text-gray-600" : "text-gray-900";
-
-    // Combine all classes
-    const combinedClasses = [baseClasses, sizeClasses[size], colorClass, className]
-      .filter(Boolean)
-      .join(" ");
-
-    return (
-      <Component ref={ref} className={combinedClasses} title={title} style={style}>
-        {children}
-      </Component>
-    );
-  }
-);
+  return (
+    <Text
+      ref={ref}
+      as={asProp}
+      className={combinedClasses}
+      style={style}
+      title={title}
+      numberOfLines={numberOfLines}
+      {...textProps}
+    >
+      {children}
+    </Text>
+  );
+});
 
 BodyText.displayName = "BodyText";
 

@@ -4,7 +4,7 @@ import {
   preferencesApi,
   searchApi,
   userApi,
-} from "packages/config/api";
+} from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { getTaskChecklist } from "packages/features/checklists";
 import type { UserProfile } from "packages/types";

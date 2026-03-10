@@ -1,5 +1,5 @@
-// Native entry: force ConnectedCardHeartSave.native so RN never loads web <button> / IconButton
-export { ConnectedCardHeartSave } from "./components/ConnectedCardHeartSave.native";
+// Native entry: now uses platform-resolved ConnectedCardHeartSave (consolidated)
+export { ConnectedCardHeartSave } from "./components/ConnectedCardHeartSave";
 export { SearchNavLink } from "./components/header/SearchNavLink";
 export { SearchPageMapView } from "./components/layout/SearchPageMapView";
 export { SearchPageModals } from "./components/layout/SearchPageModals";

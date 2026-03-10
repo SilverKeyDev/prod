@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { FlatList, Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
+import { useSingleSelectionModal } from "packages/features/agent/hooks/ui/useSingleSelectionModal";
 import { useSavedHomesData } from "packages/features/search";
 import type { SavedHome } from "packages/types";
 import { Loading } from "packages/ui/components/primitives";
@@ -21,18 +22,16 @@ export default function SelectHomeModalNative({
   onSelect,
 }: SelectHomeModalNativeProps) {
   const { savedHomes, savedHomesLoading } = useSavedHomesData();
-  const [selectedHomeId, setSelectedHomeId] = useState<string | null>(null);
+  const {
+    selectedId: selectedHomeId,
+    setSelectedId,
+    handleConfirm,
+    isLoading: savedHomesLoadingFromHook,
+  } = useSingleSelectionModal<SavedHome>(savedHomes, (h) => h.home_id ?? "", {
+    isLoading: savedHomesLoading,
+  });
 
-  const handleConfirm = () => {
-    if (selectedHomeId) {
-      const home = savedHomes.find((h) => h.home_id === selectedHomeId);
-      if (home) {
-        onSelect(home);
-        setSelectedHomeId(null);
-        onClose();
-      }
-    }
-  };
+  const onConfirm = () => handleConfirm(onSelect, { onClose, closeOnConfirm: true });
 
   if (!isOpen) return null;
 
@@ -46,7 +45,7 @@ export default function SelectHomeModalNative({
               <Text className="text-base font-medium text-gray-600">Cancel</Text>
             </Pressable>
           </View>
-          {savedHomesLoading ? (
+          {savedHomesLoadingFromHook ? (
             <View style={styles.centered}>
               <Loading />
             </View>
@@ -65,7 +64,7 @@ export default function SelectHomeModalNative({
                 const isSelected = selectedHomeId === item.home_id;
                 return (
                   <Pressable
-                    onPress={() => setSelectedHomeId(item.home_id ?? null)}
+                    onPress={() => setSelectedId(item.home_id ?? null)}
                     style={[styles.homeRow, isSelected && styles.homeRowSelected]}
                   >
                     <Box className="flex-1">
@@ -89,7 +88,7 @@ export default function SelectHomeModalNative({
           {!savedHomesLoading && savedHomes.length > 0 && (
             <View style={styles.footer}>
               <Pressable
-                onPress={handleConfirm}
+                onPress={onConfirm}
                 disabled={!selectedHomeId}
                 style={[styles.shareButton, !selectedHomeId && styles.shareButtonDisabled]}
               >

@@ -1,8 +1,9 @@
-import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
-import { dateParseISO } from "packages/utils/date";
+import React, { useMemo } from "react";
 
-import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
+import { color } from "packages/design-tokens";
+import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
+import { Box, ScrollView, Text } from "packages/ui/components/primitives";
+import { dateParseISO } from "packages/utils/date";
 
 import { EventCard } from "./EventCard";
 
@@ -11,8 +12,42 @@ type EventListProps = {
   title?: string;
   emptyMessage?: string;
   onEventClick?: (event: ExtendedGoogleEvent) => void;
-  /** Native only: render without FlatList when inside another VirtualizedList. Ignored on web. */
+  /** When true, render list only (no ScrollView) for embedding in another scroll/list. */
   embedInListHeader?: boolean;
+};
+
+const cardStyle = {
+  width: "100%" as const,
+  borderRadius: 12,
+  backgroundColor: color("neutral.50"),
+  borderWidth: 1,
+  borderColor: color("neutral.200"),
+  padding: 16,
+};
+
+const titleStyle = {
+  fontSize: 18,
+  fontWeight: "800" as const,
+  color: color("neutral.900"),
+  marginBottom: 12,
+};
+
+const emptyStyle = {
+  paddingVertical: 12,
+  alignItems: "center" as const,
+};
+
+const emptyTextStyle = {
+  fontSize: 14,
+  color: color("neutral.500"),
+};
+
+const listStyle = {
+  paddingBottom: 8,
+};
+
+const sepStyle = {
+  height: 10,
 };
 
 export function EventList({
@@ -20,38 +55,49 @@ export function EventList({
   title = "Upcoming Events",
   emptyMessage = "No upcoming events",
   onEventClick,
+  embedInListHeader = false,
 }: EventListProps) {
-  // Sort events by start time
-  const sortedEvents = [...events].sort((a, b) => {
-    try {
-      const dateA = dateParseISO(a.start.dateTime).valueOf();
-      const dateB = dateParseISO(b.start.dateTime).valueOf();
-      return dateA - dateB;
-    } catch {
-      return 0;
-    }
-  });
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => {
+      try {
+        const dateA = dateParseISO(a.start.dateTime).valueOf();
+        const dateB = dateParseISO(b.start.dateTime).valueOf();
+        return dateA - dateB;
+      } catch {
+        return 0;
+      }
+    });
+  }, [events]);
+
+  const listContent =
+    sortedEvents.length === 0 ? (
+      <Box style={emptyStyle}>
+        <Text style={emptyTextStyle}>{emptyMessage}</Text>
+      </Box>
+    ) : embedInListHeader ? (
+      <Box style={listStyle}>
+        {sortedEvents.map((event, index) => (
+          <React.Fragment key={String(event.id ?? `event-${index}`)}>
+            {index > 0 ? <Box style={sepStyle} /> : null}
+            <EventCard event={event} onClick={() => onEventClick?.(event)} />
+          </React.Fragment>
+        ))}
+      </Box>
+    ) : (
+      <ScrollView style={listStyle}>
+        {sortedEvents.map((event, index) => (
+          <React.Fragment key={String(event.id ?? `event-${index}`)}>
+            {index > 0 ? <Box style={sepStyle} /> : null}
+            <EventCard event={event} onClick={() => onEventClick?.(event)} />
+          </React.Fragment>
+        ))}
+      </ScrollView>
+    );
 
   return (
-    <Card padding="md" className="w-full">
-      <Title as="h3" size="lg" className="mb-4 font-semibold text-gray-900">
-        {title}
-      </Title>
-      {sortedEvents.length === 0 ? (
-        <BodyText as="p" size="sm" className="py-4 text-center text-gray-500">
-          {emptyMessage}
-        </BodyText>
-      ) : (
-        <div className="space-y-2">
-          {sortedEvents.map((event, index) => (
-            <EventCard
-              key={event.id || `event-${index}`}
-              event={event}
-              onClick={() => onEventClick?.(event)}
-            />
-          ))}
-        </div>
-      )}
-    </Card>
+    <Box style={cardStyle}>
+      <Text style={titleStyle}>{title}</Text>
+      {listContent}
+    </Box>
   );
 }

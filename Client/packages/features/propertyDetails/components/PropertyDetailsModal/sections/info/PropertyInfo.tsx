@@ -1,9 +1,37 @@
 import React from "react";
 
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import { Box, Text } from "packages/ui/components/primitives";
 
 import { formatStructuredAddress } from "@/features/search/types/search/address";
 import { formatPrice } from "@/features/search/types/search/propertyDetailsFormatters";
+
+function getDisplayAddress(addr: unknown): string {
+  if (!addr) return "Address not available";
+  if (typeof addr === "string") return addr;
+  if (
+    typeof addr === "object" &&
+    addr !== null &&
+    "streetAddress" in addr &&
+    "city" in addr &&
+    "state" in addr &&
+    "zipcode" in addr
+  ) {
+    return formatStructuredAddress(
+      addr as {
+        streetAddress: string;
+        city: string;
+        state: string;
+        zipcode: string;
+      }
+    );
+  }
+  try {
+    return JSON.stringify(addr);
+  } catch {
+    return "Address not available";
+  }
+}
 
 export const PropertyInfo: React.FC<PropertyComponentProps> = ({ property }) => {
   // Type-safe property access with proper type guards + explicit typing
@@ -18,77 +46,43 @@ export const PropertyInfo: React.FC<PropertyComponentProps> = ({ property }) => 
 
   const propertyBathrooms =
     "bathrooms" in property ? (property.bathrooms as number | string | undefined) : undefined;
+  const addr = (property as unknown as { address?: unknown }).address;
+  const displayAddress = getDisplayAddress(addr);
 
   return (
-    <div className="p-6">
-      {/* Main Property Info Section */}
-      <div className="mb-6 flex items-start justify-between">
-        {/* Left Side - Price and Address */}
-        <div className="flex-1">
-          <div className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
+    <Box className="p-6">
+      <Box className="mb-6 flex-row items-start justify-between">
+        <Box className="min-w-0 flex-1">
+          <Text className="mb-2 text-2xl font-bold text-gray-900">
             {formatPrice(propertyPrice)}
-          </div>
-          <div className="text-sm text-gray-700 sm:text-base md:text-lg">
-            {(() => {
-              const addr = (property as unknown as { address?: unknown }).address;
-              if (!addr) return "Address not available";
-              if (typeof addr === "string") return addr;
-              if (
-                typeof addr === "object" &&
-                addr !== null &&
-                "streetAddress" in addr &&
-                "city" in addr &&
-                "state" in addr &&
-                "zipcode" in addr
-              ) {
-                return formatStructuredAddress(
-                  addr as {
-                    streetAddress: string;
-                    city: string;
-                    state: string;
-                    zipcode: string;
-                  }
-                );
-              }
-              try {
-                return JSON.stringify(addr);
-              } catch {
-                return "Address not available";
-              }
-            })()}
-          </div>
-        </div>
-
-        {/* Right Side - Property Specs */}
-        <div className="flex items-center gap-2 sm:gap-4">
+          </Text>
+          <Text className="text-sm text-gray-700">{displayAddress}</Text>
+        </Box>
+        <Box className="flex-row items-center gap-2">
           {propertyBedrooms && Number(propertyBedrooms) > 0 && (
-            <div className="text-center">
-              <div className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">
-                {propertyBedrooms}
-              </div>
-              <div className="text-xs text-gray-600 sm:text-sm">beds</div>
-            </div>
+            <Box className="items-center">
+              <Text className="text-xl font-bold text-gray-900">{String(propertyBedrooms)}</Text>
+              <Text className="text-xs text-gray-600">beds</Text>
+            </Box>
           )}
           {propertyBathrooms && Number(propertyBathrooms) > 0 && (
-            <div className="text-center">
-              <div className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">
-                {propertyBathrooms}
-              </div>
-              <div className="border-b border-dashed border-gray-400 text-xs text-gray-600 sm:text-sm">
+            <Box className="items-center">
+              <Text className="text-xl font-bold text-gray-900">{String(propertyBathrooms)}</Text>
+              <Text className="border-b border-dashed border-gray-400 text-xs text-gray-600">
                 baths
-              </div>
-            </div>
+              </Text>
+            </Box>
           )}
           {propertySqft && Number(propertySqft) > 0 && (
-            <div className="text-center">
-              <div className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">
+            <Box className="items-center">
+              <Text className="text-xl font-bold text-gray-900">
                 {Math.round(Number(propertySqft)).toLocaleString()}
-              </div>
-              <div className="text-xs text-gray-600 sm:text-sm">sqft</div>
-            </div>
+              </Text>
+              <Text className="text-xs text-gray-600">sqft</Text>
+            </Box>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };

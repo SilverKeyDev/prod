@@ -1,6 +1,6 @@
 import React, { createContext, type ReactNode, useContext } from "react";
 
-import { preferencesApi, userApi } from "packages/config/api";
+import { preferencesApi, userApi } from "packages/config/http/api";
 
 import { negotiationService } from "@/features/negotiate/utils";
 import { googleMapsService } from "@/features/search/utils/googleMaps";

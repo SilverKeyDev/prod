@@ -3,7 +3,6 @@
    ========================= */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { getLocalStorage, getSessionStorage } from "packages/utils/storage/platformStorage";
 
 /**
  * Authentication configuration that matches existing patterns
@@ -154,7 +153,6 @@ export const AUTH_CONFIG = {
     "/offer-draft",
     "/negotiation",
     "/client-intel",
-    "/admin",
   ],
 
   // Default redirect routes
@@ -295,21 +293,21 @@ export const authUtils = {
      * @deprecated Use Zustand stores for state management instead
      */
     setSensitive: (key: string, value: string): void => {
-      getSessionStorage().setItem(key, value);
+      sessionStorage.setItem(key, value);
     },
 
     /**
      * @deprecated Use Zustand stores for state management instead
      */
     getSensitive: (key: string): string | null => {
-      return getSessionStorage().getItem(key);
+      return sessionStorage.getItem(key);
     },
 
     /**
      * @deprecated Use Zustand stores for state management instead
      */
     removeSensitive: (key: string): void => {
-      getSessionStorage().removeItem(key);
+      sessionStorage.removeItem(key);
     },
 
     /**
@@ -320,27 +318,27 @@ export const authUtils = {
         (AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS as readonly string[]).includes(key)
       ) {
         log.warn(
-          LOG_CATEGORIES.AUTH,
-          "[AUTH_CONFIG] Attempted to store forbidden key in localStorage. Use sessionStorage instead.",
+          LOG_CATEGORIES.SECURITY,
+          `[AUTH_CONFIG] Attempted to store forbidden key "${key}" in localStorage. Use sessionStorage instead.`,
           { key }
         );
         return;
       }
-      getLocalStorage().setItem(key, value);
+      localStorage.setItem(key, value);
     },
 
     /**
      * Get non-sensitive data from localStorage
      */
     getNonSensitive: (key: string): string | null => {
-      return getLocalStorage().getItem(key);
+      return localStorage.getItem(key);
     },
 
     /**
      * Remove non-sensitive data from localStorage
      */
     removeNonSensitive: (key: string): void => {
-      getLocalStorage().removeItem(key);
+      localStorage.removeItem(key);
     },
 
     /**
@@ -348,18 +346,21 @@ export const authUtils = {
      * Note: This does NOT clear HTTP-only cookies - use authApi.logout() for that
      */
     clearAll: (): void => {
-      const session = getSessionStorage();
-      const local = getLocalStorage();
+      // Clear sessionStorage (auth state)
       Object.values(AUTH_CONFIG.STORAGE_KEYS).forEach((key) => {
-        session.removeItem(key);
+        sessionStorage.removeItem(key);
       });
+
+      // Clear localStorage (non-sensitive data only)
       Object.values(AUTH_CONFIG.STORAGE_KEYS).forEach((key) => {
         if (!AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(key)) {
-          local.removeItem(key);
+          localStorage.removeItem(key);
         }
       });
+
+      // Clear forbidden keys from localStorage if they exist
       AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.forEach((key) => {
-        local.removeItem(key);
+        localStorage.removeItem(key);
       });
     },
   },

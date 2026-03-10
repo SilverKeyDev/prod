@@ -1,15 +1,15 @@
+import { spacing } from "packages/design-tokens";
 import { Calendar } from "packages/features/calendar";
+import { Box } from "packages/ui/components/primitives";
 
 type ClientCalendarProps = {
   userId: string;
 };
 
 export default function ClientCalendar({ userId: _userId }: ClientCalendarProps) {
-  // Note: Calendar component currently works with the authenticated user's data.
-  // Backend API needs to support userId parameter to fetch calendar events for a specific user
   return (
-    <div className="mt-4">
+    <Box style={{ marginTop: spacing(4) }}>
       <Calendar />
-    </div>
+    </Box>
   );
 }

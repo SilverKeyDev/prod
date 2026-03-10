@@ -12,7 +12,7 @@ export {
   PERMISSIONS,
   ROLE_PERMISSIONS,
   UserRole,
-} from "packages/config/auth";
+} from "packages/config/auth/auth";
 
 // Legacy auth utilities (deprecated - use AuthService instead)
 export { clearAuthTokens, getAuthToken, hasValidAuthToken } from "packages/utils";

@@ -6,7 +6,7 @@ import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/con
 
 import Card from "@/components/layout/Card.web";
 import { IconButton, Input } from "@/components/ui";
-import { UnderlineTabs } from "@/components/ui/tabs/index.web";
+import { UnderlineTabs } from "@/components/ui";
 type SavedPageTabsAndSearchProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;

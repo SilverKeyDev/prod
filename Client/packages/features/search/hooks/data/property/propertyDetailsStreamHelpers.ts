@@ -43,6 +43,10 @@ export function applyStreamUpdate(
   setSelectedProperty: SetPropertyState,
   setIsLoading: (loading: boolean) => void
 ): void {
+  if (!update || !update.type) {
+    return;
+  }
+
   if (update.type === "basic") {
     const basicData = update.data as { data?: unknown };
     setSelectedProperty((prev) => {

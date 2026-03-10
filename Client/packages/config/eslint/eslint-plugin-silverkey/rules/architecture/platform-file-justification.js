@@ -83,7 +83,7 @@ function loadPlatformConfigs() {
     configCache = configs;
     lastCacheCheck = now;
     return configs;
-  } catch (error) {
+  } catch {
     // If we can't load any configs, return empty sets to effectively disable the rule
     const emptyConfigs = {
       primitives: new Set(),

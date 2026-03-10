@@ -1,6 +1,6 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 
-import type { GoogleCalendar, GoogleEvent } from "packages/config/api";
+import type { GoogleCalendar, GoogleEvent } from "packages/config/http/api";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
 

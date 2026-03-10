@@ -1,12 +1,11 @@
 import { Icon } from "@ui/icons";
 
 import { Link, ROUTES } from "packages/navigation";
+import { LOGO } from "packages/ui/components/asset";
 import { Image } from "packages/ui/components/primitives";
 
 import { BodyText, Button, CloseButton, Title } from "@/components/ui";
 import RippleBackground from "@/features/homeauth/components/homepage/RippleBackground.web";
-
-import KeyLogo from "/logo.png?url";
 const FEATURE_CARDS = [
   {
     title: "Find Properties",
@@ -35,7 +34,7 @@ const FEATURE_CARDS = [
 export function HomePageHeader() {
   return (
     <header className="px-responsive-sm fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between border-b border-gray-200 bg-white py-2 shadow-lg sm:py-3">
-      <Image src={KeyLogo} alt="SilverKey Logo" className="h-8 w-auto" />
+      <Image src={LOGO} alt="SilverKey Logo" className="h-8 w-auto" />
       <div className="text-responsive-sm flex gap-1.5 font-medium sm:gap-2">
         <Link
           to={ROUTES.LOGIN}

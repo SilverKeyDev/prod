@@ -5,7 +5,7 @@
 
 import { getEnv } from "packages/config/env";
 import { dateNow } from "packages/utils/date";
-import { asError } from "packages/utils/errorHandling";
+import { asError } from "packages/utils/errorHandling/error";
 import { getWindow } from "packages/utils/platform";
 
 import { createSafeLogObject, maskSensitiveData, scrubPII } from "./piiSecurity";

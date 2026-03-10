@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { Icon } from "@ui/icons";
 
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
@@ -8,26 +6,29 @@ import CancelButton from "packages/ui/components/button/CancelButton";
 
 import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, Title } from "@/components/ui";
+import { useSingleSelectionModal } from "@/features/agent/hooks/ui/useSingleSelectionModal";
 import { useSavedHomesData } from "@/features/search/hooks/data/saved/useSavedHomesData";
 import type { SavedHome } from "@/features/search/types/property";
+
 type SelectHomeModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (home: SavedHome) => void;
 };
+
 export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHomeModalProps) {
   const { savedHomes, savedHomesLoading } = useSavedHomesData();
-  const [selectedHomeId, setSelectedHomeId] = useState<string | null>(null);
-  const handleConfirm = () => {
-    if (selectedHomeId) {
-      const home = savedHomes.find((h) => h.home_id === selectedHomeId);
-      if (home) {
-        onSelect(home);
-        setSelectedHomeId(null);
-      }
-    }
-  };
-  const selectedHome = selectedHomeId ? savedHomes.find((h) => h.home_id === selectedHomeId) : null;
+  const {
+    selectedId: selectedHomeId,
+    setSelectedId: setSelectedHomeId,
+    selectedItem: selectedHome,
+    handleConfirm,
+    isLoading: savedHomesLoadingFromHook,
+  } = useSingleSelectionModal<SavedHome>(savedHomes, (h) => h.home_id ?? "", {
+    isLoading: savedHomesLoading,
+  });
+
+  const onConfirm = () => handleConfirm(onSelect, { closeOnConfirm: false });
   return (
     <BaseModal
       isOpen={isOpen}
@@ -43,7 +44,7 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
       size="md"
     >
       <div className="space-y-4">
-        {savedHomesLoading ? (
+        {savedHomesLoadingFromHook ? (
           <div className="flex items-center justify-center py-8">
             <KeyTurnLoader message="Loading homes..." />
           </div>
@@ -105,7 +106,7 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
           </CancelButton>
           <Button
             variant="primary"
-            onClick={handleConfirm}
+            onClick={onConfirm}
             disabled={!selectedHome}
             className="flex-1"
             iconName="share"

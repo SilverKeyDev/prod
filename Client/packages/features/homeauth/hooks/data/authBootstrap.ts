@@ -4,7 +4,7 @@
  * Uses platformStorage abstraction for storage operations.
  */
 
-import { authUtils } from "packages/config/auth";
+import { authUtils } from "packages/config/auth/auth";
 import { secureLogger } from "packages/services/security/secureLogger";
 import { dateNow } from "packages/utils/date";
 import { getSessionStorage } from "packages/utils/storage/platformStorage";
@@ -28,7 +28,7 @@ export type AuthBootstrapStorage = {
 };
 
 type SessionResult = Awaited<
-  ReturnType<Awaited<typeof import("packages/config/api")>["authApi"]["verifySession"]>
+  ReturnType<Awaited<typeof import("packages/config/http/api")>["authApi"]["verifySession"]>
 >;
 
 function applySessionResult(
@@ -96,7 +96,7 @@ async function verifyAndApplySession(
   setters: AuthBootstrapSetters,
   storage: AuthBootstrapStorage
 ): Promise<void> {
-  const { authApi } = await import("packages/config/api");
+  const { authApi } = await import("packages/config/http/api");
   secureLogger.info(
     "🔍 FRONTEND_AUTH_BOOTSTRAP_VERIFYING",
     "Verifying session with server (all routes)",

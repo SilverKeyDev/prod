@@ -25,7 +25,7 @@ This folder documents **package-level adaptations**: every dependency used on **
 
 - **Web:** Code using these packages lives in `apps/web/` (and in `packages/*` only where a `.web.tsx` / `.web.ts` implementation exists). Vite resolves `.web.*` when building web.
 - **React Native:** Implementations live in `apps/mobile/` or in shared packages as `.native.tsx` / `.native.ts`. Metro resolves `.native.*` when building mobile. Dependencies for RN are declared in `Client/apps/mobile/package.json` (or added there when implementing the variant).
-- **Config source of truth:** The list of file-level platform variants that are explicitly allowed to diverge lives in `Client/packages/config/platform/variants.json`, and the shared primitive modules (buttons, text, layout, etc.) live in `Client/packages/config/platform/primitives.json`. ESLint rules read these files to keep divergence contained.
+- **Config source of truth:** The list of file-level platform variants that are explicitly allowed to diverge lives in `Client/packages/config/platform/variants.json`, the shared primitive modules (buttons, text, layout, etc.) live in `Client/packages/config/platform/primitives.json`, and layout-specific implementations are documented in `Client/packages/config/platform/layouts.json`. ESLint rules read these files to keep divergence contained.
 
 ## Related
 

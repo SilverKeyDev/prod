@@ -1,7 +1,7 @@
 import { BodyText, Button, Title } from "@ui";
 import { Icon } from "@ui/icons";
 
-import type { GoogleCalendar } from "packages/config/api/googleCalendar";
+import type { GoogleCalendar } from "packages/config/http/api/googleCalendar";
 type CalendarHeaderProps = {
   currentDate: Date;
   onPreviousMonth: () => void;

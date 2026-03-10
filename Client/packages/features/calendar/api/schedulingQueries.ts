@@ -2,7 +2,7 @@
  * Scheduling queries for Google Calendar scheduling MVP
  */
 
-import { googleCalendarApi, type GoogleEvent } from "packages/config/api";
+import { googleCalendarApi, type GoogleEvent } from "packages/config/http/api";
 
 import type {
   FreebusyRequest,

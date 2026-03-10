@@ -1,7 +1,7 @@
 import { useLocalization } from "packages/contexts";
 
 import { BodyText } from "@/components/ui";
-import { UnderlineTabs } from "@/components/ui/tabs/index.web";
+import { UnderlineTabs } from "@/components/ui";
 
 export function Tabs(props: {
   active: "results" | "saved";

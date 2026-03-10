@@ -3,14 +3,14 @@ import React, { useState } from "react";
 import { StyleSheet } from "react-native";
 
 import { PropertyImageGallery } from "packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery.native";
-import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader.native";
+import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
 import type { PropertyDetailsModalProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { BaseModal } from "packages/ui/components/modals";
 import { ScrollView } from "packages/ui/components/primitives";
 
 import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
 
-import { PropertyDetailsBody } from "./PropertyDetailsBody.native";
+import { PropertyDetailsBody } from "./PropertyDetailsBody";
 
 export const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   property,

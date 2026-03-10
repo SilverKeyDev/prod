@@ -3,10 +3,12 @@ import { useEffect } from "react";
 import { useDocumentActions, useDocumentsStoreIntegration } from "packages/features/documents";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
+import Loading from "packages/ui/components/asset/loading/Loading";
+import { PdfModal } from "packages/ui/components/modals";
+import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
-import { PdfModal } from "@/components/modals";
-import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
+import { BodyText, Title } from "@/components/ui";
 
 type ClientDocumentsProps = {
   userId: string;
@@ -14,88 +16,77 @@ type ClientDocumentsProps = {
 
 export default function ClientDocuments({ userId: _userId }: ClientDocumentsProps) {
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const { currentPdf, currentDocumentId, currentDocumentName, closePdfModal, handleViewDocument } =
-    useDocumentActions();
-
-  // Use documents store integration
-  // Note: This currently fetches for the authenticated user. Backend API needs to support userId parameter
   const {
     documents,
     documentsLoading: loading,
     documentsError: error,
-    refreshDocuments: _refreshDocuments,
   } = useDocumentsStoreIntegration();
+  const { currentPdf, currentDocumentId, currentDocumentName, closePdfModal, handleViewDocument } =
+    useDocumentActions();
 
-  // overlay toast component
   useEffect(() => {
-    if (error) enqueueToast({ type: "error", message: error });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error]);
+    if (error) {
+      enqueueToast({ type: "error", message: error });
+    }
+  }, [error, enqueueToast]);
+
+  const onDocumentPress = (doc: { id: string; name: string }) => {
+    log.debug(LOG_CATEGORIES.DASHBOARD, "Open document from client hub", {
+      documentId: doc.id,
+    });
+    handleViewDocument(doc.id, doc.name);
+  };
+
+  if (loading) {
+    return (
+      <Box className="items-center justify-center py-8">
+        <Loading message="Loading documents..." />
+      </Box>
+    );
+  }
+
+  if (documents.length === 0) {
+    return (
+      <Box className="items-center justify-center py-8">
+        <BodyText size="sm" className="text-gray-600">
+          No documents found for this client.
+        </BodyText>
+      </Box>
+    );
+  }
 
   return (
-    <div>
+    <>
       <PdfModal
         currentPdf={currentPdf}
         currentReportAddress={currentDocumentName}
         reportId={currentDocumentId}
         onClose={closePdfModal}
       />
-      <div className="space-y-responsive-lg mb-responsive-lg mt-4 lg:mt-0">
-        {loading ? (
-          <div className="py-responsive-lg flex justify-center">
-            <KeyTurnLoader message="Loading documents..." />
-          </div>
-        ) : documents.length === 0 ? (
-          <div className="py-responsive-lg text-center">
-            <BodyText as="p" size="sm" className="text-gray-600">
-              No documents found.
-            </BodyText>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                role="button"
-                tabIndex={0}
-                className="cursor-pointer rounded-md border border-gray-200 p-4 hover:bg-gray-50"
-                onClick={() => {
-                  log.debug(LOG_CATEGORIES.DASHBOARD, "Open document from client hub", {
-                    documentId: doc.id,
-                  });
-                  handleViewDocument(doc.id, doc.name);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    log.debug(LOG_CATEGORIES.DASHBOARD, "Open document from client hub", {
-                      documentId: doc.id,
-                    });
-                    handleViewDocument(doc.id, doc.name);
-                  }
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Title as="h3" size="sm" className="font-medium text-gray-900">
-                      {doc.name}
-                    </Title>
-                    <BodyText as="p" size="sm" className="text-gray-500">
-                      {doc.category} •{" "}
-                      {doc.uploaded_at
-                        ? dateParseISO(doc.uploaded_at).toDate().toLocaleDateString()
-                        : "Unknown date"}
-                    </BodyText>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {doc.status === "approved" ? "✓ Approved" : "Pending"}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+      <ScrollView className="flex-1">
+        <Box className="gap-3 py-1">
+          {documents.map((doc) => (
+            <Pressable
+              key={doc.id}
+              className="rounded-lg border border-gray-200 bg-white px-4 py-3"
+              onPress={() => onDocumentPress(doc)}
+            >
+              <Title as="h3" size="sm" className="font-medium text-gray-900">
+                {doc.name}
+              </Title>
+              <BodyText size="sm" className="mt-1 text-gray-500">
+                {doc.category}
+                {doc.uploaded_at
+                  ? ` • ${dateParseISO(doc.uploaded_at).toDate().toLocaleDateString()}`
+                  : ""}
+              </BodyText>
+              <Text className="mt-1 text-xs text-gray-500">
+                {doc.status === "approved" ? "Approved" : "Pending"}
+              </Text>
+            </Pressable>
+          ))}
+        </Box>
+      </ScrollView>
+    </>
   );
 }

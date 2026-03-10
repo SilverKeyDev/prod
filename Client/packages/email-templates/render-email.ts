@@ -13,7 +13,7 @@ import React from "react";
 
 import { render } from "@react-email/render";
 
-import { log, LOG_CATEGORIES } from "../logger/index.ts";
+import { log, LOG_CATEGORIES } from "packages/logger";
 
 // Dynamically import email templates
 const templateMap: Record<

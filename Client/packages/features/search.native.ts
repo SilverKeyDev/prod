@@ -1,9 +1,9 @@
 /**
  * Native barrel for the search feature. Used by Metro when resolving
- * "packages/features/search" on ios/android so ConnectedCardHeartSave
- * resolves to the RN implementation (Pressable) instead of the web one (button/div).
+ * "packages/features/search" on ios/android. ConnectedCardHeartSave is now
+ * consolidated and uses platform-resolved HeartSave components.
  */
-export { ConnectedCardHeartSave } from "./search/components/ConnectedCardHeartSave.native";
+export { ConnectedCardHeartSave } from "./search/components/ConnectedCardHeartSave";
 export { SearchNavLink } from "./search/components/header/SearchNavLink";
 export { SearchPageMapView } from "./search/components/layout/SearchPageMapView";
 export { SearchPageModals } from "./search/components/layout/SearchPageModals";

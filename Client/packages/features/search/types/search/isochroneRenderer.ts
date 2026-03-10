@@ -65,6 +65,8 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
         if (!geometry?.geometry) return;
 
         const geo = geometry.geometry as Record<string, unknown>;
+        if (!geo || typeof geo.type !== "string") return;
+
         let coordinates: number[][][] = [];
 
         if (geo.type === "Polygon") {
@@ -103,6 +105,11 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
     // Now render the main union isochrone
     const isochrone = isochroneDataTyped.isochrone as Record<string, unknown>;
     const geometry = isochrone.geometry as Record<string, unknown>;
+    if (!geometry || typeof geometry.type !== "string") {
+      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Invalid geometry object", { geometry });
+      return;
+    }
+
     let coordinates: number[][][] = [];
 
     if (geometry.type === "Polygon") {

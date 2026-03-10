@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import type { AgentClient } from "packages/config/api";
+import type { AgentClient } from "packages/config/http/api";
 import { useLocalization } from "packages/contexts";
 import { ClientSearchModal } from "packages/features/agent/components/modals";
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";

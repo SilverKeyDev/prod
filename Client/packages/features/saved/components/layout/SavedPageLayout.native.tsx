@@ -21,7 +21,7 @@ import DocumentUploadModal from "packages/features/saved/components/upload/Docum
 import type { SavedHome } from "packages/types";
 import { BaseModal, PdfModal } from "packages/ui/components/modals";
 import { Box, ScrollView, Text } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText.native";
+import BodyText from "packages/ui/components/text/BodyText";
 import { dateParseISO } from "packages/utils/date";
 
 type _EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";

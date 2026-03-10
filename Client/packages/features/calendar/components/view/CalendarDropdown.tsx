@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import type { GoogleCalendar } from "packages/config/api";
+import type { GoogleCalendar } from "packages/config/http/api";
 import { getDocument } from "packages/utils/platform";
 
 import { BodyText, Button, OliveCheckbox } from "@/components/ui";

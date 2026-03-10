@@ -14,7 +14,10 @@ import {
   Text,
 } from "packages/ui/components/primitives";
 
-import { convertSavedHomeToProperty } from "@/features/saved/types/savedHomeUtils";
+import {
+  convertSavedHomeToProperty,
+  convertToFavoriteHome,
+} from "@/features/saved/types/savedHomeUtils";
 import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
 import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
 type ClientSavedHomesProps = {
@@ -82,7 +85,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
           : (home.description ?? "");
       return (
         address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        home.id?.toLowerCase().includes(searchTerm.toLowerCase())
+        home.home_id?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
   }, [homes, searchTerm]);
@@ -157,7 +160,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
                   : t("saved.price_fallback", { defaultValue: "Price not available" });
 
               return (
-                <Box key={home.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                <Box key={home.home_id} className="rounded-lg border border-gray-200 bg-white p-3">
                   <Pressable
                     onPress={() => {
                       void handleOpenDetails(home);
@@ -170,14 +173,14 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
 
                       {/* Property details */}
                       <Box className="flex-row items-center gap-4">
-                        {home.beds && (
+                        {home.bedrooms != null && (
                           <Text className="text-xs text-gray-600">
-                            {home.beds} {home.beds === 1 ? "bed" : "beds"}
+                            {home.bedrooms} {home.bedrooms === 1 ? "bed" : "beds"}
                           </Text>
                         )}
-                        {home.baths && (
+                        {home.bathrooms != null && (
                           <Text className="text-xs text-gray-600">
-                            {home.baths} {home.baths === 1 ? "bath" : "baths"}
+                            {home.bathrooms} {home.bathrooms === 1 ? "bath" : "baths"}
                           </Text>
                         )}
                         {home.sqft && (
@@ -215,7 +218,6 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
 
       {/* Modals */}
       <PropertyDetailsModal
-        isOpen={!!selectedProperty}
         property={selectedProperty}
         onClose={clearSelectedProperty}
         isLoading={isLoadingPropertyDetails}
@@ -224,18 +226,17 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
       <NegotiationModal
         isOpen={isNegotiationModalOpen}
         onClose={handleCloseNegotiation}
-        home={selectedHomeForNegotiation}
+        initialHome={
+          selectedHomeForNegotiation ? convertToFavoriteHome(selectedHomeForNegotiation) : null
+        }
       />
 
-      {currentPdf && (
-        <PdfModal
-          isOpen={!!currentPdf}
-          pdfUrl={currentPdf}
-          documentId={currentDocumentId}
-          documentName={currentDocumentName}
-          onClose={closePdfModal}
-        />
-      )}
+      <PdfModal
+        currentPdf={currentPdf}
+        currentReportAddress={currentDocumentName}
+        reportId={currentDocumentId}
+        onClose={closePdfModal}
+      />
     </Box>
   );
 }

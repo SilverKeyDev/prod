@@ -2,10 +2,9 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedHome } from "packages/types";
-import { ConnectedCardHeartSave } from "packages/ui/components/primitives";
 
 import { PropertyCard } from "@/components/cards";
-import { Button, Title } from "@/components/ui";
+import { Button, ConnectedCardHeartSave, Title } from "@/components/ui";
 function toCardProperty(home: SavedHome) {
   return {
     id: home.home_id,

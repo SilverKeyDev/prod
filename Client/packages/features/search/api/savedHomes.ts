@@ -1,4 +1,4 @@
-import { authApi, userApi } from "packages/config/api";
+import { authApi, userApi } from "packages/config/http/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { AuthenticationError } from "packages/services/http";
 import { handleAuthenticationError, isAuthenticationError } from "packages/services/http";

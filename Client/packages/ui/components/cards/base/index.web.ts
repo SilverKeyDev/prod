@@ -7,6 +7,6 @@ export { default as CardCarousel } from "./CardCarousel.web";
 export { CardCompareCheckbox } from "./checkbox";
 export { CardAddressDisplay, CardMatchScore, CardPropertyDetails } from "./display";
 export { CardImageContainer, StyledImage } from "./image";
-export { TrianglePointer } from "./styles";
+export { getCardHoverClasses, getInteractiveCardClasses, TrianglePointer } from "./styles";
 export { default as CardHeartSave, CardHeartSaveWithProps } from "@ui/button/HeartSave";
 export { default as CardNotInterested } from "@ui/button/NotInterested";

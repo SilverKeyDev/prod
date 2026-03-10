@@ -7,13 +7,12 @@ import RippleBackground from "packages/features/homeauth/components/homepage/Rip
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link, ROUTES, useNavigation } from "packages/navigation";
 import type { AutocompleteSuggestion } from "packages/schemas/google-maps";
+import { LOGO } from "packages/ui/components/asset";
 import { Image } from "packages/ui/components/primitives";
 import { asError } from "packages/utils/error";
 import { getWindow } from "packages/utils/platform";
 
 import { BodyText, Button, CloseButton, Title } from "@/components/ui";
-
-import KeyLogo from "/logo.png?url";
 type Suggestion = {
   description: string;
   placePrediction: unknown;
@@ -118,7 +117,7 @@ export default function HomePage() {
     <div className="hide-scrollbar flex min-h-screen flex-col bg-white">
       {/* Header */}
       <header className="px-responsive-sm fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between border-b border-gray-200 bg-white py-2 shadow-lg sm:py-3">
-        <Image src={KeyLogo} alt="SilverKey Logo" className="h-8 w-auto" />
+        <Image src={LOGO} alt="SilverKey Logo" className="h-8 w-auto" />
         <div className="text-responsive-sm flex gap-1.5 font-medium sm:gap-2">
           <Link
             to={ROUTES.LOGIN}

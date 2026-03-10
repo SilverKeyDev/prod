@@ -5,11 +5,16 @@ import { Icon } from "@ui/icons";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
-import CloseButton from "packages/ui/components/button/CloseButton";
 
-import { BodyText, Input, Textarea, Title } from "@/components/ui";
+import {
+  BodyText,
+  Button,
+  CancelButton,
+  CloseButton,
+  Input,
+  Textarea,
+  Title,
+} from "@/components/ui";
 import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 type ClientSearchModalProps = {

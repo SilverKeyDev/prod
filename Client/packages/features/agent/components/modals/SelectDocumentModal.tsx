@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { Icon } from "@ui/icons";
 
 import { useDocumentsStore } from "packages/store";
@@ -8,14 +6,18 @@ import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import type { DocumentData } from "packages/ui/components/cards/document/DocumentCard";
 import { dateParseISO } from "packages/utils/date";
+import { mapStoreDocumentsToDocumentData } from "packages/utils/documents";
 
 import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, Title } from "@/components/ui";
+import { useSingleSelectionModal } from "@/features/agent/hooks/ui/useSingleSelectionModal";
+
 type SelectDocumentModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (document: DocumentData) => void;
 };
+
 export default function SelectDocumentModal({
   isOpen,
   onClose,
@@ -23,30 +25,18 @@ export default function SelectDocumentModal({
 }: SelectDocumentModalProps) {
   const documents = useDocumentsStore((s) => s.documents);
   const documentsLoading = useDocumentsStore((s) => s.documentsLoading);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
-  const mappedDocuments: DocumentData[] = documents.map((d) => ({
-    id: d.id,
-    filename: d.name,
-    file_path: d.file_path,
-    status: d.status,
-    created_at: d.uploaded_at ? d.uploaded_at.toISOString() : null,
-    updated_at: null,
-    user_id: d.uploaded_by,
-    document_type: d.document_type ?? null,
-    address: d.address ?? null,
-  }));
-  const handleConfirm = () => {
-    if (selectedDocumentId) {
-      const document = mappedDocuments.find((d) => d.id === selectedDocumentId);
-      if (document) {
-        onSelect(document);
-        setSelectedDocumentId(null);
-      }
-    }
-  };
-  const selectedDocument = selectedDocumentId
-    ? mappedDocuments.find((d) => d.id === selectedDocumentId)
-    : null;
+  const mappedDocuments = mapStoreDocumentsToDocumentData(documents);
+  const {
+    selectedId: selectedDocumentId,
+    setSelectedId: setSelectedDocumentId,
+    selectedItem: selectedDocument,
+    handleConfirm,
+    isLoading: documentsLoadingFromHook,
+  } = useSingleSelectionModal<DocumentData>(mappedDocuments, (d) => d.id, {
+    isLoading: documentsLoading,
+  });
+
+  const onConfirm = () => handleConfirm(onSelect, { closeOnConfirm: false });
   return (
     <BaseModal
       isOpen={isOpen}
@@ -62,7 +52,7 @@ export default function SelectDocumentModal({
       size="md"
     >
       <div className="space-y-4">
-        {documentsLoading ? (
+        {documentsLoadingFromHook ? (
           <div className="flex items-center justify-center py-8">
             <KeyTurnLoader message="Loading documents..." />
           </div>
@@ -121,7 +111,7 @@ export default function SelectDocumentModal({
           </CancelButton>
           <Button
             variant="primary"
-            onClick={handleConfirm}
+            onClick={onConfirm}
             disabled={!selectedDocument}
             className="flex-1"
             iconName="share"

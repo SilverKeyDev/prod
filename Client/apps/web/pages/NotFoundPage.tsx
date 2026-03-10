@@ -1,6 +1,8 @@
+import Button from "@ui/button/Button";
+
 import { Link, ROUTES } from "packages/navigation";
 
-import { BodyText, Button, Title } from "@/components/ui";
+import { BodyText, Title } from "@/components/ui";
 
 export default function NotFoundPage() {
   return (

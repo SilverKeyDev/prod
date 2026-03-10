@@ -3,7 +3,7 @@
  * Only feature api/ may import packages/config/api.
  */
 
-import { offerApi, searchApi } from "packages/config/api";
+import { offerApi, searchApi } from "packages/config/http/api";
 import { log } from "packages/services/security/secureLogger";
 import { hasProperty, isObject } from "packages/utils";
 

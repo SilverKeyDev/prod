@@ -8,11 +8,10 @@ import { Icon } from "@ui/icons";
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router-dom";
 
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
-import Button from "packages/ui/components/button/Button";
 import { getUserFriendlyMessage, normalizeError } from "packages/utils/errorHandling";
 
 import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
+import { BodyText, Button, Title } from "@/components/ui";
 type RouteErrorResponseViewProps = {
   status: number;
   statusText: string;

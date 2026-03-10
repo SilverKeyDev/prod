@@ -1,6 +1,6 @@
 import { Icon } from "@ui/icons";
 
-import type { GoogleCalendar } from "packages/config/api";
+import type { GoogleCalendar } from "packages/config/http/api";
 
 import { BodyText, Button } from "@/components/ui";
 import { getVisibleDateRange } from "@/features/calendar/utils/date";

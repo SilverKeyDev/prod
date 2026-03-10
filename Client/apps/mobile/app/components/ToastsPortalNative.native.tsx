@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     minHeight: 44,
     maxWidth: "100%",
+
     ...(Platform.OS === "web"
       ? { boxShadow: "0px 2px 4px rgba(0,0,0,0.15)" }
       : {

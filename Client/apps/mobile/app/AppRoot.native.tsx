@@ -55,6 +55,7 @@ function KeyboardProviderRefSafe({
       {children}
     </View>
   );
+
   if (Platform.OS !== "web") return content;
   if (!keyboardProvider || typeof keyboardProvider !== "function") return content;
   const KeyboardProvider = keyboardProvider;

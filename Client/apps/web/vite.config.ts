@@ -10,7 +10,34 @@ export default defineConfig(({ mode }) => {
   return {
     root: __dirname,
     base: "/",
-    plugins: [react()] as PluginOption[],
+    plugins: [
+      react(),
+      {
+        name: "exclude-native-files",
+        resolveId(id, importer) {
+          // Exclude React Native and .native.* files from web build processing
+          if (
+            id === "react-native" ||
+            id.startsWith("react-native/") ||
+            id.startsWith("@react-native/") ||
+            id.includes("/react-native/") ||
+            id.includes(".native.") ||
+            (importer && importer.includes(".native.")) ||
+            (importer && importer.includes("react-native"))
+          ) {
+            return { id, external: true };
+          }
+          return null;
+        },
+        load(id) {
+          // Prevent loading of React Native files entirely
+          if (id.includes("react-native") || id.includes(".native.")) {
+            return "export {};";
+          }
+          return null;
+        },
+      },
+    ] as PluginOption[],
     envDir: root, // Look for .env in Client directory
     // Inject process.env so packages/config/env.ts (process.env-only) sees values when built with Vite
     define: {
@@ -89,7 +116,24 @@ export default defineConfig(({ mode }) => {
         "embla-carousel-react",
         "react-virtuoso",
       ],
-      exclude: ["@types/*", "zustand"],
+      exclude: [
+        "@types/*",
+        "zustand",
+        "react-native",
+        "@react-native/virtualized-lists",
+        "@react-native-community/slider",
+        "@react-native-masked-view/masked-view",
+        "react-native-svg",
+        "react-native-web",
+        "react-native-gesture-handler",
+        "react-native-keyboard-controller",
+        "react-native-maps",
+        "react-native-phone-number-input",
+        "react-native-reanimated",
+        "react-native-safe-area-context",
+        "react-native-screens",
+        "react-native-webview",
+      ],
     },
     build: {
       target: "es2020",
@@ -100,6 +144,7 @@ export default defineConfig(({ mode }) => {
       outDir: path.join(root, "dist"),
       // Configure code splitting for consistent behavior
       rollupOptions: {
+        external: ["react-native", /react-native\/.*/, /.*\.native\..*/],
         output: {
           // Ensure consistent chunk naming and splitting
           manualChunks: (id) => {

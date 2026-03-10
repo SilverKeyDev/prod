@@ -6,18 +6,15 @@ import { StyleSheet } from "react-native";
 
 import { OnboardingScreenNative } from "packages/features/homeauth/native";
 import { PropertyDetailsScreenNative } from "packages/features/propertyDetails/native";
+import type { PropertyDetailsScreenParams } from "packages/navigation/types";
 import { useAuthStore } from "packages/store";
+import { getPostAuthRedirectTarget } from "packages/utils/navigation";
 
 import { AppStackIntegrations } from "../providers/AppStackIntegrations.native";
 import { AppStack } from "./AppStack.native";
 import { AuthStack } from "./AuthStack.native";
 import { rootNavigationRef } from "./rootNavigationRef.native";
 import { useDeepLink } from "./useDeepLink.native";
-
-type PropertyDetailsScreenParams = {
-  address: string;
-  propertyId?: string;
-};
 
 type AuthenticatedStackParamList = {
   Onboarding: undefined;
@@ -63,10 +60,10 @@ function RootContent() {
     if (!isAuthenticated) return;
     if (!postAuthRedirectPath) return;
     if (!rootNavigationRef.isReady()) return;
-    const normalized = postAuthRedirectPath.replace(/\/$/, "") || "/";
-    if (normalized === "/search") {
-      rootNavigationRef.navigate("Main", { screen: "Search" } as never);
-    } else if (normalized === "/onboarding") {
+    const target = getPostAuthRedirectTarget(postAuthRedirectPath);
+    if (target?.type === "main") {
+      rootNavigationRef.navigate("Main", { screen: target.screen } as never);
+    } else if (target?.type === "onboarding") {
       rootNavigationRef.navigate("Onboarding" as never);
     }
     setPostAuthRedirectPath(null);

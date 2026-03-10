@@ -146,7 +146,14 @@ function resettableToastAndStubSetters(set: SetState): Partial<ResettableSlice> 
     enqueueToast: (toast) =>
       set((state) => {
         const id = toast.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        const nextQueue = [...state.toastQueue, { id, message: toast.message, type: toast.type }];
+        const nextQueue = [
+          ...state.toastQueue,
+          {
+            id,
+            message: toast?.message ?? "Unknown message",
+            type: toast?.type ?? "info",
+          },
+        ];
         return {
           toastQueue: nextQueue,
           activeToastId: state.activeToastId ?? id,

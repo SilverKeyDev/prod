@@ -1,6 +1,6 @@
 import React from "react";
 
-import BodyText from "./BodyText";
+import { Text } from "packages/ui/components/primitives";
 
 export type SubtitleSize = "xs" | "sm" | "md" | "lg";
 
@@ -18,6 +18,9 @@ const sizeClasses: Record<SubtitleSize, string> = {
   lg: "text-lg sm:text-xl",
 };
 
+/**
+ * Shared Subtitle — uses Text primitive. Same API on web and native.
+ */
 export default function Subtitle({
   children,
   size = "sm",
@@ -27,10 +30,11 @@ export default function Subtitle({
   const baseClasses = "font-normal";
   const colorClass = muted ? "text-gray-600" : "text-black";
   const sizeClass = sizeClasses[size];
+  const combinedClasses = [baseClasses, colorClass, sizeClass, className].filter(Boolean).join(" ");
 
   return (
-    <BodyText as="p" className={`${baseClasses} ${colorClass} ${sizeClass} ${className}`}>
+    <Text as="p" className={combinedClasses}>
       {children}
-    </BodyText>
+    </Text>
   );
 }

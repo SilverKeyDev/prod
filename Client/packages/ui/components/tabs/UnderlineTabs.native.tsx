@@ -23,7 +23,7 @@ export type UnderlineTabsProps = {
 
 /**
  * Native UnderlineTabs — matches web: horizontal row, border-b gray-200,
- * ghost-style tab buttons, olive underline under active. Same API as UnderlineTabs.web.
+ * ghost-style tab buttons, olive underline under active. Same API as UnderlineTabs.
  */
 export function UnderlineTabs({
   items,

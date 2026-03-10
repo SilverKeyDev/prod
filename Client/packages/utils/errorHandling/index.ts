@@ -7,6 +7,7 @@
  */
 
 export { asError } from "./error";
+export { type ErrorBoundaryInfo, reportErrorBoundary } from "./errorBoundaryReport";
 export {
   createAuthenticationError,
   createAuthorizationError,

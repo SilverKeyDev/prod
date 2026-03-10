@@ -11,7 +11,7 @@ import { dateNow } from "packages/utils/date";
 import { Card } from "@/components/layout";
 import { BodyText, Button, StatusBadge, Title } from "@/components/ui";
 
-import ActionButton from "./ActionButton";
+import ActionButton from "./base/buttons/ActionButton";
 import { getInteractiveCardClasses } from "./base/index.web";
 export type ReportCardProps = {
   report: Report;

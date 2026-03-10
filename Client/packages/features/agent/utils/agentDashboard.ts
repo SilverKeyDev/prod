@@ -1,6 +1,6 @@
 // Mock data service for agent dashboard
 // This will be replaced with real API calls when backend is ready
-import type { AgentClient } from "packages/config/api";
+import type { AgentClient } from "packages/config/http/api";
 import { dateNow } from "packages/utils/date";
 
 import type {

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 
 import type { ListRenderItem } from "react-native";
-import { FlatList, Pressable, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, StyleSheet } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
@@ -64,8 +64,8 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
     ({ item }) => {
       return (
         <Pressable style={styles.propertyCard} onPress={() => onViewPropertyDetails(item)}>
-          <View style={styles.propertyCardRow}>
-            <View style={styles.propertyCardContent}>
+          <Box style={styles.propertyCardRow}>
+            <Box style={styles.propertyCardContent}>
               <Text className="text-base font-medium text-gray-900" numberOfLines={2}>
                 {item.address}
               </Text>
@@ -73,9 +73,9 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
               <Text className="mt-0.5 text-xs text-gray-500">
                 {item.bedrooms} bed · {item.bathrooms} bath
               </Text>
-            </View>
+            </Box>
             <ConnectedCardHeartSave property={item} size="sm" />
-          </View>
+          </Box>
         </Pressable>
       );
     },
@@ -103,8 +103,8 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.mapContainer}>
+    <Box style={styles.container}>
+      <Box style={styles.mapContainer}>
         <SearchPageMapContainerNative
           isLoading={isLoading}
           loadingMessage={
@@ -126,10 +126,10 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
           onMarkerSelect={handleMarkerSelect}
           isochroneData={isochroneData}
         />
-      </View>
+      </Box>
 
       <Box className="bg-white">
-        <View style={styles.tabContainer}>
+        <Box style={styles.tabContainer}>
           <Pressable
             onPress={() => handleTabPress("results")}
             style={[styles.tab, activeTab === "results" && styles.tabActive]}
@@ -158,7 +158,7 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
               {SEARCH_TRANSLATIONS["search.saved_tab"] ?? "Saved"}
             </Text>
           </Pressable>
-        </View>
+        </Box>
 
         <FlatList
           data={properties}
@@ -166,7 +166,7 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
           renderItem={renderPropertyItem}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
+            <Box style={styles.emptyContainer}>
               <Text className="text-center text-sm text-gray-600">
                 {hasSearched
                   ? (SEARCH_TRANSLATIONS["search.no_results_try_adjusting"] ??
@@ -174,11 +174,11 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
                   : (SEARCH_TRANSLATIONS["search.run_search_to_see_homes"] ??
                     "Run a search to see homes that match your profile.")}
               </Text>
-            </View>
+            </Box>
           }
         />
       </Box>
-    </View>
+    </Box>
   );
 }
 

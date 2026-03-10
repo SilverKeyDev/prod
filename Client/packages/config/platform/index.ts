@@ -1,3 +1,7 @@
+/**
+ * Platform config and analysis. See CONSOLIDATION_SUMMARY.md in this folder for native consolidation
+ * summary; see *.json in this folder (ui-components-analysis, feature-components-analysis, etc.) for analysis data.
+ */
 export interface PlatformVariant {
   id: string;
   description: string;

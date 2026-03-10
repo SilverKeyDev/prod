@@ -1,4 +1,5 @@
 import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboardingForm";
+import { LOGO } from "packages/ui/components/asset";
 import { Image } from "packages/ui/components/primitives";
 
 import { ValidationWarning } from "@/components/feedback";
@@ -11,8 +12,6 @@ import {
   LocationSection,
   OnboardingFinancialSection,
 } from "@/features/profile/components/sections/index.web";
-
-import KeyLogo from "/logo.png?url";
 
 export default function OnboardingPage() {
   const {
@@ -110,7 +109,7 @@ export default function OnboardingPage() {
         {/* Header */}
         <div className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
           <div className="flex items-center">
-            <Image src={KeyLogo} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
+            <Image src={LOGO} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
           </div>
           <div className="flex items-center gap-4" />
         </div>

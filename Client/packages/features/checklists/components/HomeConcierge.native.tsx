@@ -6,7 +6,7 @@ import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import { Image } from "packages/ui/components/primitives";
-import Subtitle from "packages/ui/components/text/Subtitle.native";
+import Subtitle from "packages/ui/components/text/Subtitle";
 
 const MOVE_CONCIERGE_URL = "https://mc.partners/SilverKey";
 

@@ -8,11 +8,10 @@ import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
-import Button from "packages/ui/components/button/Button";
 import { normalizeError } from "packages/utils/errorHandling";
 
 import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
+import { BodyText, Button, Title } from "@/components/ui";
 type Props = {
   children: ReactNode;
   fallback?: ReactNode;

@@ -4,8 +4,8 @@ import type {
   AgentConversation,
   GoogleCalendar,
   GoogleEvent as _GoogleEvent,
-} from "packages/config/api";
-import { agentApi } from "packages/config/api";
+} from "packages/config/http/api";
+import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UserProfile } from "packages/types";

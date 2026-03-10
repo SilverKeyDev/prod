@@ -125,7 +125,7 @@ export default function MapHomeCard({
   // Handle card click to focus on property
   const handleCardClick = () => {
     if (onFocus) {
-      onFocus(convertToProperty(home));
+      onFocus(home);
     }
   };
 

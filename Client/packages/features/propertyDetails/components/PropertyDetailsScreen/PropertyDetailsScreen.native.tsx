@@ -5,8 +5,8 @@ import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
-import { PropertyDetailsBody } from "packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsBody.native";
-import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader.native";
+import { PropertyDetailsBody } from "packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsBody";
+import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
 import { ScrollView } from "packages/ui/components/primitives";
 import { setToStorage } from "packages/utils/storage";
 

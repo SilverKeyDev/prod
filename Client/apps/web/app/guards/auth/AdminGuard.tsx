@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { authUtils, PERMISSIONS, UserRole } from "packages/config/auth";
+import { authUtils, PERMISSIONS, UserRole } from "packages/config/auth/auth";
 import { useUserData } from "packages/hooks/data/useUserData";
 import { log, LOG_CATEGORIES } from "packages/logger";
 

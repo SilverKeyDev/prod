@@ -2,7 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 
-import type { GoogleCalendar, GoogleEvent, GoogleEventCreateResponse } from "packages/config/api";
+import type {
+  GoogleCalendar,
+  GoogleEvent,
+  GoogleEventCreateResponse,
+} from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import { showErrorToast } from "packages/hooks/ui";

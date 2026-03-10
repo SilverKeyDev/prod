@@ -14,6 +14,7 @@ export type RouteParamsMap = {
   PROFILE?: { splat?: string };
   SAVED?: { splat?: string };
   DASHBOARD?: { splat?: string };
+  PROPERTY_DETAILS?: { address?: string; propertyId?: string };
 };
 
 /** Params for a given route (undefined when route has no params). */

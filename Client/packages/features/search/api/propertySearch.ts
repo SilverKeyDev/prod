@@ -1,4 +1,4 @@
-import { searchApi } from "packages/config/api";
+import { searchApi } from "packages/config/http/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchFilterOverrides } from "packages/store";
 import type {

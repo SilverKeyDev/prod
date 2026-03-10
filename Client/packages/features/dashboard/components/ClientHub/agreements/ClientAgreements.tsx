@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { useLocalization } from "packages/contexts";
+import { useFeature, useLocalization } from "packages/contexts";
 import {
   AgreementDetailModal,
   AgreementListItem,
@@ -10,33 +10,49 @@ import {
 } from "packages/features/documents";
 import { useUIStore } from "packages/store";
 import type { Agreement } from "packages/types";
+import Loading from "packages/ui/components/asset/loading/Loading";
+import Button from "packages/ui/components/button/Button";
+import { Box, Text } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
-import { BodyText, Button, Title } from "@/components/ui";
-import { KeyTurnLoader } from "@/components/ui";
+// Feature flags for agreements functionality
+const AGREEMENTS_WEB_CLICK_EVENTS = "agreements_web_click_events";
+const AGREEMENTS_FULL_INTERFACE = "agreements_full_interface";
+
+function useButtonPress(fn: () => void) {
+  const webClickEvents = useFeature(AGREEMENTS_WEB_CLICK_EVENTS);
+  return webClickEvents ? { onClick: fn } : { onPress: fn };
+}
+
 type ClientAgreementsProps = {
   clientId: string;
 };
+
 /**
  * ClientAgreements Component
  *
  * Shows agreement-related information for a specific client in ClientHub.
- * The actual signing provider integration is temporarily disabled.
- * Grouped by status: Active, Completed, Voided
+ * With full interface flag: complete list + modals. Without flag: placeholder message until signing is available.
  */
 export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
   const { t } = useLocalization();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
+
+  // Hook calls must be at the top level, before any conditional returns
+  const createButtonProps = useButtonPress(() => setIsCreateModalOpen(true));
+  const hasFullInterface = useFeature(AGREEMENTS_FULL_INTERFACE);
   const agreements = useMemo(() => [] as Agreement[], []);
   const isLoading = false;
   const error: unknown = null;
   const refetchAgreements = async () => {};
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  // Filter agreements for this client
+
   const clientAgreements = useMemo(() => {
     return agreements.filter((a) => a.buyer_id === clientId);
   }, [agreements, clientId]);
-  // Group by status
+
   const groupedAgreements = useMemo(() => {
     const active = clientAgreements.filter(
       (a) =>
@@ -49,6 +65,7 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
     const voided = clientAgreements.filter((a) => a.status === "voided" || a.status === "declined");
     return { active, completed, voided };
   }, [clientAgreements]);
+
   const handleAgreementClick = (agreementId: string) => {
     setSelectedAgreementId(agreementId);
   };
@@ -68,60 +85,88 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
     void refetchAgreements();
     setIsCreateModalOpen(false);
   };
+
+  if (!hasFullInterface) {
+    return (
+      <>
+        <Box className="mb-3 flex-row items-center justify-between">
+          <Text className="text-base font-semibold text-gray-900">
+            {t("dashboard.agreements_title")}
+          </Text>
+        </Box>
+        <Box className="items-center justify-center py-4">
+          <Text className="mb-2 text-center text-sm text-gray-700">
+            {t("dashboard.agreements_not_available", {
+              defaultValue: "Agreements are not available yet.",
+            })}
+          </Text>
+          <Text className="mb-4 text-center text-xs text-gray-600">
+            {t("dashboard.agreements_not_available_body", {
+              defaultValue:
+                "We are migrating to a new signing provider. You can review agreements from the Documents section when available.",
+            })}
+          </Text>
+        </Box>
+        <CreateAgreementModal isOpen={false} onClose={() => {}} preselectedBuyerId={undefined} />
+        <AgreementDetailModal agreementId={null} isOpen={false} onClose={() => {}} />
+      </>
+    );
+  }
+
   if (isLoading) {
     return (
-      <div className="flex justify-center py-8">
-        <KeyTurnLoader message="Loading agreements..." />
-      </div>
+      <Box className="items-center justify-center py-8">
+        <Loading message="Loading agreements..." />
+      </Box>
     );
   }
   if (error) {
     return (
-      <div className="py-8 text-center">
+      <Box className="items-center justify-center py-8">
         <BodyText size="sm" className="text-red-600">
           {t("dashboard.agreements_failed_load", { error })}
         </BodyText>
-      </div>
+      </Box>
     );
   }
+
   return (
     <>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <Box className="gap-6">
+        <Box className="flex-row items-center justify-between">
+          <Box className="flex-row items-center gap-2">
             <Icon name="file-text" className="h-5 w-5 text-gray-600" />
             <Title size="md">{t("dashboard.agreements_title")}</Title>
-          </div>
-          <Button variant="primary" size="sm" onClick={() => setIsCreateModalOpen(true)}>
+          </Box>
+          <Button variant="primary" size="sm" {...createButtonProps}>
             <Icon name="plus" className="mr-1 h-4 w-4" />
             {t("dashboard.agreements_create")}
           </Button>
-        </div>
+        </Box>
 
-        {/* Empty State */}
         {clientAgreements.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center">
-            <Icon name="file-text" className="mx-auto mb-3 h-12 w-12 text-gray-400" />
-            <BodyText size="md" className="mb-2 text-gray-700">
-              {t("dashboard.agreements_no_yet")}
-            </BodyText>
-            <BodyText size="sm" muted className="mb-4">
-              {t("dashboard.agreements_get_started")}
-            </BodyText>
-            <Button variant="primary" size="md" onClick={() => setIsCreateModalOpen(true)}>
-              {t("dashboard.agreements_create")}
-            </Button>
-          </div>
+          <Box className="rounded-lg border border-dashed border-gray-300 py-12">
+            <Box className="items-center">
+              <Icon name="file-text" className="mb-3 h-12 w-12 text-gray-400" />
+              <BodyText size="md" className="mb-2 text-gray-700">
+                {t("dashboard.agreements_no_yet")}
+              </BodyText>
+              <BodyText size="sm" muted className="mb-4">
+                {t("dashboard.agreements_get_started")}
+              </BodyText>
+              <Button variant="primary" size="md" {...createButtonProps}>
+                {t("dashboard.agreements_create")}
+              </Button>
+            </Box>
+          </Box>
         ) : (
-          <>
-            {/* Active Agreements */}
+          <Box className="gap-6">
             {groupedAgreements.active.length > 0 && (
-              <div>
+              <Box>
                 <Title as="h3" size="sm" className="mb-3 font-medium text-gray-700">
                   {t("dashboard.agreements_active")} ({groupedAgreements.active.length})
                 </Title>
-                <div className="space-y-3">
+                <Box className="gap-3">
                   {groupedAgreements.active.map((agreement) => (
                     <AgreementListItem
                       key={agreement.id}
@@ -131,17 +176,15 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
                       onVoid={handleAgreementVoid}
                     />
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
-
-            {/* Completed Agreements */}
             {groupedAgreements.completed.length > 0 && (
-              <div>
+              <Box>
                 <Title as="h3" size="sm" className="mb-3 font-medium text-gray-700">
                   {t("dashboard.agreements_completed")} ({groupedAgreements.completed.length})
                 </Title>
-                <div className="space-y-3">
+                <Box className="gap-3">
                   {groupedAgreements.completed.map((agreement) => (
                     <AgreementListItem
                       key={agreement.id}
@@ -149,17 +192,15 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
                       onClick={() => handleAgreementClick(agreement.id)}
                     />
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
-
-            {/* Voided Agreements */}
             {groupedAgreements.voided.length > 0 && (
-              <div>
+              <Box>
                 <Title as="h3" size="sm" className="mb-3 font-medium text-gray-700">
                   {t("dashboard.agreements_voided")} ({groupedAgreements.voided.length})
                 </Title>
-                <div className="space-y-3">
+                <Box className="gap-3">
                   {groupedAgreements.voided.map((agreement) => (
                     <AgreementListItem
                       key={agreement.id}
@@ -167,14 +208,13 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
                       onClick={() => handleAgreementClick(agreement.id)}
                     />
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
-          </>
+          </Box>
         )}
-      </div>
+      </Box>
 
-      {/* Modals */}
       <CreateAgreementModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}

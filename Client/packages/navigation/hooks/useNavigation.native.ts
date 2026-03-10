@@ -7,6 +7,11 @@ import { useCallback } from "react";
 
 import { useNavigation as useRNNavigation, useRoute } from "@react-navigation/native";
 
+import {
+  pathnameFromScreen,
+  ROUTE_TO_SCREEN,
+  unwrapRouteState,
+} from "packages/navigation/constants";
 import { pathFor } from "packages/navigation/router/paths";
 import type {
   CurrentRoute,
@@ -18,38 +23,6 @@ import type {
   SetSearchParamsInput,
   SetSearchParamsOptions,
 } from "packages/navigation/types";
-
-/** Map route name to React Navigation screen name (tabs + auth). */
-const ROUTE_TO_SCREEN: Record<RouteName, string> = {
-  HOME: "Home",
-  SIGNUP: "Signup",
-  LOGIN: "Login",
-  FORGOT_PASSWORD: "ForgotPassword",
-  ONBOARDING: "Onboarding",
-  VERIFICATION: "Verification",
-  PRIVACY: "Privacy",
-  TERMS: "Terms",
-  CONTACT: "Contact",
-  PROFILE: "Profile",
-  SAVED: "Saved",
-  DASHBOARD: "Dashboard",
-  MESSAGING: "Messaging",
-  SEARCH: "Search",
-  APP: "Dashboard",
-};
-
-/** Build pathname from screen name and params (reverse of pathFor). */
-function pathnameFromScreen(screenName: string, params?: Record<string, unknown>): string {
-  const routeName = (Object.entries(ROUTE_TO_SCREEN).find(([, s]) => s === screenName)?.[0] ??
-    "HOME") as RouteName;
-  return pathFor(routeName, params as ParamsForRoute<RouteName>);
-}
-
-function unwrapRouteState(params: unknown): unknown {
-  if (!params || typeof params !== "object") return params;
-  const record = params as Record<string, unknown>;
-  return "state" in record ? record.state : params;
-}
 
 export function useNavigation(): NavigationApi {
   const rnNav = useRNNavigation();

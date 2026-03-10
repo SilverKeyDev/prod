@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Constants from "expo-constants";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import MapView, {
   type MapView as MapViewType,
   Marker,
@@ -15,7 +15,8 @@ import { color } from "packages/design-tokens";
 import { MapControlsNative } from "packages/features/search/components/map/MapControls.native";
 import type { SearchResult } from "packages/features/search/types";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { Loading } from "packages/ui/components/primitives";
+import { Loading } from "packages/ui/components/asset/loading/Loading";
+import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
 const PROPERTIES_PER_PAGE = 1;
@@ -55,7 +56,7 @@ function parseIsochroneForNativeMap(isochroneData: unknown): {
   if (raw.individual_isochrones && Array.isArray(raw.individual_isochrones)) {
     for (const item of raw.individual_isochrones) {
       const geom = item.isochrone?.geometry;
-      if (!geom?.coordinates) continue;
+      if (!geom?.coordinates || !geom?.type) continue;
       let coords: number[][][];
       if (geom.type === "Polygon") {
         coords = geom.coordinates as number[][][];
@@ -73,6 +74,9 @@ function parseIsochroneForNativeMap(isochroneData: unknown): {
   let main: LatLng[] | null = null;
   if (raw.isochrone?.geometry?.coordinates) {
     const geom = raw.isochrone.geometry;
+    if (!geom?.type) {
+      return { main: null, individuals };
+    }
     let coords: number[][][];
     if (geom.type === "Polygon") {
       coords = geom.coordinates as number[][][];
@@ -320,15 +324,15 @@ export function SearchPageMapContainerNative({
   );
 
   return (
-    <View style={styles.container}>
+    <Box style={styles.container}>
       {isLoading && (
-        <View style={styles.loadingOverlay}>
+        <Box style={styles.loadingOverlay}>
           <Loading />
           <Text className="mt-3 text-sm text-gray-600">{loadingMessage}</Text>
-        </View>
+        </Box>
       )}
       {/* Measure before rendering MapView to avoid CAMetalLayer setDrawableSize 0x0 (GeoServices / blank map). */}
-      <View style={styles.map} onLayout={onMapContainerLayout}>
+      <Box style={styles.map} onLayout={onMapContainerLayout}>
         {hasValidSize ? (
           <MapView
             ref={mapRef}
@@ -371,7 +375,7 @@ export function SearchPageMapContainerNative({
             ))}
           </MapView>
         ) : null}
-      </View>
+      </Box>
       {!isSearching && (
         <MapControlsNative
           page={page}
@@ -384,7 +388,7 @@ export function SearchPageMapContainerNative({
           disabled={disabled}
         />
       )}
-    </View>
+    </Box>
   );
 }
 

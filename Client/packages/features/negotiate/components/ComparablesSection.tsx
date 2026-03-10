@@ -1,10 +1,10 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import CompCard from "packages/features/negotiate/components/CompCard";
 
 import { CardCarousel } from "@/components/cards/base";
 
+import CompCard from "./CompCard";
 import SectionTitle from "./SectionTitle";
 
 type ComparablesSectionProps = {

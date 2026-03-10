@@ -16,7 +16,7 @@ type CoreProvidersNativeProps = {
 };
 
 /**
- * Native core providers. Order: Error -> Theme -> Auth -> Query -> Localization.
+ * Native core providers. Order: Error -> Theme -> Auth -> Query -> NavLink -> Localization (see packages/config/providerOrder).
  * onGoHome is passed to ErrorProvider for "Go Home" in error fallback (set when nav is ready).
  * We never pass null/undefined as children to avoid "Cannot read property 'children' of null"
  * in libraries or React when require cycles leave values uninitialized.

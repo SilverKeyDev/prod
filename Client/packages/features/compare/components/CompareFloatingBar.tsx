@@ -4,11 +4,9 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedHome } from "packages/types";
-import Button from "packages/ui/components/button/Button";
-import IconButton from "packages/ui/components/button/IconButton";
-import BodyText from "packages/ui/components/text/BodyText";
 
 import { StyledImage } from "@/components/cards/base/image";
+import { BodyText, Button, IconButton } from "@/components/ui";
 /** SavedHome from API/saved list may include home_id; type only guarantees address. */
 function getHomeId(home: SavedHome): string {
   return "home_id" in home &&

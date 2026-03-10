@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { preferencesApi, userApi } from "packages/config/api";
+import { preferencesApi, userApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import type { UserPreferences, UserProfile } from "packages/schemas";
 import { useAuthStore } from "packages/store";

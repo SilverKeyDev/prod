@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import type { GoogleEvent } from "packages/config/api";
+import type { GoogleEvent } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { dateParseISO } from "packages/utils/date";

@@ -4,7 +4,7 @@
  */
 import { useCallback } from "react";
 
-import type { AgentClient } from "packages/config/api";
+import type { AgentClient } from "packages/config/http/api";
 
 import type {
   AgentNote,

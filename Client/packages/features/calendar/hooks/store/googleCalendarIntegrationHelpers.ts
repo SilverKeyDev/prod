@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { GoogleCalendar } from "packages/config/api";
+import type { GoogleCalendar } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { useGoogleCalendarStore } from "packages/store";
 import { getDocument, getWindow } from "packages/utils/platform";

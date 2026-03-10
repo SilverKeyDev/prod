@@ -1,10 +1,16 @@
 /**
  * Helpers for PropertyAnalysis; extracted to satisfy max-lines-per-function.
+ * Section building logic lives in packages/utils/propertyDetails.
  */
 import React from "react";
 
+import { buildPropertyAnalysisSections } from "packages/utils/propertyDetails";
+
 import { BodyText, Title } from "@/components/ui";
-import { renderSectionIcon } from "@/features/compare/components/CompareHomesModal/sectionIcons";
+import {
+  getSectionIconName,
+  renderSectionIcon,
+} from "@/features/compare/components/CompareHomesModal/sectionIcons";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
 export function renderPropertyAnalysisSectionContent(
@@ -103,40 +109,39 @@ type DynamicSectionItem = {
   priority: number;
 };
 
+function getBuildSectionsOptions() {
+  const sectionLabels: Record<string, string> = {};
+  const defaultPriorityMap = new Map<string, number>();
+  DEFAULT_REPORT_SECTIONS.forEach((section: { key: string; label: string }) => {
+    sectionLabels[section.key] = section.label;
+  });
+  DEFAULT_REPORT_SECTIONS.forEach((section, index) => {
+    defaultPriorityMap.set(section.key, index);
+  });
+  return {
+    sectionLabels,
+    defaultPriorityMap,
+    getIconName: (key: string) => getSectionIconName(key) ?? "check-circle",
+  };
+}
+
 export function buildPropertyAnalysisDynamicSections(
   propertyAnalysis: Record<string, unknown>,
   excludeSections: string[],
   userPriorities: string[]
 ): DynamicSectionItem[] {
-  const coreSectionKeys = new Set(["neighborhood_overview"]);
-  const excludedSectionKeys = new Set(["pros", "cons", ...excludeSections]);
-  const sectionLabels: Record<string, string> = {};
-  DEFAULT_REPORT_SECTIONS.forEach((section: { key: string; label: string }) => {
-    sectionLabels[section.key] = section.label;
-  });
-  const defaultPriorityMap = new Map<string, number>();
-  DEFAULT_REPORT_SECTIONS.forEach((section, index) => {
-    defaultPriorityMap.set(section.key, index);
-  });
-
-  const allSectionKeys = Object.keys(propertyAnalysis).filter(
-    (key) => propertyAnalysis[key] !== null && propertyAnalysis[key] !== undefined
+  const options = getBuildSectionsOptions();
+  const sections = buildPropertyAnalysisSections(
+    propertyAnalysis,
+    excludeSections,
+    userPriorities,
+    options
   );
-
-  return allSectionKeys
-    .filter((key) => !coreSectionKeys.has(key) && !excludedSectionKeys.has(key))
-    .map((key) => {
-      const userPriorityIndex = userPriorities.indexOf(key);
-      const priority =
-        userPriorityIndex >= 0 ? userPriorityIndex : 1000 + (defaultPriorityMap.get(key) ?? 9999);
-      return {
-        key,
-        label:
-          sectionLabels[key] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
-        data: propertyAnalysis[key],
-        icon: renderSectionIcon(key, "h-5 w-5 text-brown"),
-        priority,
-      };
-    })
-    .sort((a, b) => a.priority - b.priority);
+  return sections.map((s) => ({
+    key: s.key,
+    label: s.label,
+    data: s.data,
+    icon: renderSectionIcon(s.key, "h-5 w-5 text-brown"),
+    priority: s.priority,
+  }));
 }

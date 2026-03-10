@@ -1,11 +1,11 @@
 import React from "react";
 
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import { Icon } from "packages/ui/components/primitives";
+import { Box, Icon } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
@@ -47,8 +47,8 @@ export function MapControlsNative({
     .replace("{{total}}", String(total));
 
   return (
-    <View style={[styles.wrapper, { bottom }]} pointerEvents="box-none">
-      <View style={styles.zoomRow}>
+    <Box style={[styles.wrapper, { bottom }]} pointerEvents="box-none">
+      <Box style={styles.zoomRow}>
         <Pressable
           onPress={onZoomOut}
           disabled={disabled}
@@ -67,9 +67,9 @@ export function MapControlsNative({
             {SEARCH_TRANSLATIONS["search.zoom_in_symbol"] ?? "+"}
           </Text>
         </Pressable>
-      </View>
+      </Box>
       {showNavigation && (
-        <View style={styles.navRow}>
+        <Box style={styles.navRow}>
           <Pressable
             onPress={onPrev}
             disabled={isPrevDisabled || disabled}
@@ -80,9 +80,9 @@ export function MapControlsNative({
           >
             <Icon name="chevron-left" size={18} color={color("neutral.700")} />
           </Pressable>
-          <View style={styles.pageLabel}>
+          <Box style={styles.pageLabel}>
             <Text className="text-xs font-medium text-gray-700">{pageLabel}</Text>
-          </View>
+          </Box>
           <Pressable
             onPress={onNext}
             disabled={isNextDisabled || disabled}
@@ -93,9 +93,9 @@ export function MapControlsNative({
           >
             <Icon name="chevron-right" size={18} color={color("neutral.700")} />
           </Pressable>
-        </View>
+        </Box>
       )}
-    </View>
+    </Box>
   );
 }
 

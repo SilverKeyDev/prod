@@ -2,11 +2,9 @@ import { useEffect, useState } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useGoogleCalendarStore } from "packages/store";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
 import { dateNow } from "packages/utils/date";
 
-import { BodyText, Title } from "@/components/ui";
+import { BodyText, Button, CancelButton, Title } from "@/components/ui";
 import { useGoogleCalendarOAuth } from "@/features/calendar/hooks/data/useGoogleCalendarOAuth";
 import { useScheduling } from "@/features/calendar/hooks/data/useScheduling";
 import type { ScheduleEventRequest } from "@/packages/schemas/scheduling";

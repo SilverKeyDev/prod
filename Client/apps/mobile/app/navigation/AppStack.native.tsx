@@ -4,29 +4,16 @@ import { MessagingScreenNative } from "packages/features/agent/native";
 import { ProfileScreenNative } from "packages/features/profile/native";
 import { SavedScreenNative } from "packages/features/saved/native";
 import { SearchScreenNative } from "packages/features/search/native";
+import { type AppTabName, getTabBarBadge, TAB_ICONS } from "packages/navigation/constants";
 import { useNotificationStore } from "packages/store";
 import { Icon } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 
 import { DashboardStack } from "./DashboardStack.native";
 
-export type AppTabParamList = {
-  Dashboard: { title?: string };
-  Search: { title?: string };
-  Saved: { title?: string };
-  Messaging: { title?: string };
-  Profile: { title?: string };
-};
+export type AppTabParamList = Record<AppTabName, { title?: string }>;
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
-
-const TAB_ICONS: Record<keyof AppTabParamList, IconName> = {
-  Dashboard: "home",
-  Search: "search",
-  Saved: "bookmark",
-  Messaging: "send",
-  Profile: "user",
-};
 
 function TabBarIcon({
   name,
@@ -44,6 +31,7 @@ function TabBarIcon({
 
 export function AppStack() {
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const messagingBadge = getTabBarBadge(unreadCount);
 
   return (
     <Tab.Navigator
@@ -95,7 +83,7 @@ export function AppStack() {
         options={{
           title: "Messaging",
           tabBarLabel: "Messaging",
-          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+          tabBarBadge: messagingBadge,
           tabBarIcon: ({ focused, color, size }) => (
             <TabBarIcon name={TAB_ICONS.Messaging} focused={focused} color={color} size={size} />
           ),

@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { FlatList, Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
+import { useSingleSelectionModal } from "packages/features/agent/hooks/ui/useSingleSelectionModal";
 import { useDocumentsStore } from "packages/store";
 import type { DocumentData } from "packages/ui/components/cards/document/DocumentCard";
 import { Loading } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
+import { mapStoreDocumentsToDocumentData } from "packages/utils/documents";
 
 type SelectDocumentModalNativeProps = {
   isOpen: boolean;
@@ -21,30 +23,17 @@ export default function SelectDocumentModalNative({
 }: SelectDocumentModalNativeProps) {
   const documents = useDocumentsStore((s) => s.documents);
   const documentsLoading = useDocumentsStore((s) => s.documentsLoading);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const mappedDocuments = mapStoreDocumentsToDocumentData(documents);
+  const {
+    selectedId,
+    setSelectedId,
+    handleConfirm,
+    isLoading: documentsLoadingFromHook,
+  } = useSingleSelectionModal<DocumentData>(mappedDocuments, (d) => d.id, {
+    isLoading: documentsLoading,
+  });
 
-  const mappedDocuments: DocumentData[] = documents.map((d) => ({
-    id: d.id,
-    filename: d.name,
-    file_path: d.file_path,
-    status: d.status,
-    created_at: d.uploaded_at ? d.uploaded_at.toISOString() : null,
-    updated_at: null,
-    user_id: d.uploaded_by,
-    document_type: d.document_type ?? null,
-    address: d.address ?? null,
-  }));
-
-  const handleConfirm = () => {
-    if (selectedId) {
-      const doc = mappedDocuments.find((d) => d.id === selectedId);
-      if (doc) {
-        onSelect(doc);
-        setSelectedId(null);
-        onClose();
-      }
-    }
-  };
+  const onConfirm = () => handleConfirm(onSelect, { onClose, closeOnConfirm: true });
 
   if (!isOpen) return null;
 
@@ -58,7 +47,7 @@ export default function SelectDocumentModalNative({
               <Text className="text-base font-medium text-gray-600">Cancel</Text>
             </Pressable>
           </View>
-          {documentsLoading ? (
+          {documentsLoadingFromHook ? (
             <View style={styles.centered}>
               <Loading />
             </View>
@@ -92,7 +81,7 @@ export default function SelectDocumentModalNative({
           {!documentsLoading && mappedDocuments.length > 0 && (
             <View style={styles.footer}>
               <Pressable
-                onPress={handleConfirm}
+                onPress={onConfirm}
                 disabled={!selectedId}
                 style={[styles.shareButton, !selectedId && styles.shareButtonDisabled]}
               >

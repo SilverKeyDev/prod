@@ -231,7 +231,7 @@ async function performRefreshToken(setters: RefreshSetters): Promise<boolean> {
   }
   log.info(LOG_CATEGORIES.AUTH, "Attempting token refresh");
   try {
-    const { authApi: api } = await import("packages/config/api");
+    const { authApi: api } = await import("packages/config/http/api");
     const response = await api.refreshToken();
     if (response.success) {
       setters.setAccessToken("authenticated");

@@ -1,5 +1,6 @@
-import BaseModal from "@/components/modals/BaseModal";
-import { BodyText, CloseButton, Title } from "@/components/ui";
+import { useLocalization } from "packages/contexts";
+import { BaseModal } from "packages/ui/components/modals";
+import { Box, Text } from "packages/ui/components/primitives";
 
 type AgreementDetailModalProps = {
   agreementId: string | null;
@@ -8,37 +9,36 @@ type AgreementDetailModalProps = {
 };
 
 /**
- * AgreementDetailModal Component
+ * AgreementDetailModal
  *
- * Full agreement management modal with tabs:
- * - Overview: metadata and status
- * - Revisions: version history
- * - Participants: signing status
- * - Sign: embedded signing (if applicable)
+ * Full agreement management modal (stub). Informs the user that agreement
+ * details and signing are temporarily unavailable while migrating to a new
+ * signing provider. Shared web + native.
  */
 export default function AgreementDetailModal({
   agreementId: _agreementId,
   isOpen,
   onClose,
 }: AgreementDetailModalProps) {
+  const { t } = useLocalization();
+
   if (!isOpen) return null;
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} size="xl">
-      <div className="flex h-[60vh] flex-col">
-        <div className="flex items-center justify-between border-b border-gray-200 p-6">
-          <Title size="lg" className="truncate">
-            Agreement Details
-          </Title>
-          <CloseButton onClick={onClose} className="ml-4" />
-        </div>
-        <div className="flex flex-1 items-center justify-center p-6 text-center">
-          <BodyText size="sm" muted>
-            Agreement details and signing are temporarily unavailable while we migrate to a new
-            signing provider. Your existing documents remain safe.
-          </BodyText>
-        </div>
-      </div>
+    <BaseModal isOpen={isOpen} onClose={onClose} title="Agreement Details" showCloseButton>
+      <Box className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <Text className="mb-1 text-sm font-semibold text-gray-900">
+          {t("documents.agreement_not_available", {
+            defaultValue: "Agreement details are not available yet.",
+          })}
+        </Text>
+        <Text className="text-xs text-gray-700">
+          {t("documents.agreement_not_available_body", {
+            defaultValue:
+              "We are migrating to a new signing provider. You can still access your documents from the Documents section on web.",
+          })}
+        </Text>
+      </Box>
     </BaseModal>
   );
 }

@@ -1,5 +1,8 @@
 // Base primitives (platform-resolved .web / .native; use for shared web/native code)
 // These are true primitives that don't import from this barrel, preventing circular dependencies
+export { Loading } from "../asset/loading/Loading";
+export { default as NotificationBadge } from "../badge/NotificationBadge";
+export { ConnectedCardHeartSave } from "../button/ConnectedCardHeartSave";
 export { Box } from "./box";
 export { Button as Pressable } from "./button";
 export { Input as PrimitiveInput } from "./input";

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import type { AgentConversation } from "packages/config/api";
+import type { AgentConversation } from "packages/config/http/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useInRouterContext, useNavigation } from "packages/navigation";
 import { useNotificationStore } from "packages/store";

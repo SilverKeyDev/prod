@@ -28,6 +28,7 @@ export const ROUTES = {
   DASHBOARD: "/dashboard/*",
   MESSAGING: "/messaging",
   SEARCH: "/search",
+  PROPERTY_DETAILS: "/property-details",
 
   // Legacy redirects
   APP: "/app/*",

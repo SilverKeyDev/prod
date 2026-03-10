@@ -1,7 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import type { AgentConversation } from "packages/config/api";
-import { agentApi } from "packages/config/api";
+import type { AgentConversation } from "packages/config/http/api";
+import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { dateParseISO } from "packages/utils/date";

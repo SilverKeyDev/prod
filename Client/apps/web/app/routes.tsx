@@ -3,7 +3,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import type { Location } from "react-router-dom";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
-import { authUtils } from "packages/config/auth";
+import { authUtils } from "packages/config/auth/auth";
 import { useDataInitialization } from "packages/hooks/data/useDataInitialization";
 import { useDataPolling } from "packages/hooks/data/useDataPolling";
 import { useGoogleMapsStoreIntegration } from "packages/hooks/store/map/useGoogleMapsStoreIntegration";
