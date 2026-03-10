@@ -26,5 +26,26 @@
     "webPath": "packages/features/search/components/reels/DesktopReelsViewImpl.web.tsx",
     "nativePath": "packages/features/search/components/reels/DesktopReelsViewImpl.native.tsx",
     "reason": "Desktop vs mobile reels layout and gestures."
+  },
+  {
+    "id": "animate-presence",
+    "description": "Animation wrapper with platform-specific implementations.",
+    "webPath": "packages/ui/components/adapters/motion/AnimatePresence.web.tsx", 
+    "nativePath": "packages/ui/components/adapters/motion/AnimatePresence.native.tsx",
+    "reason": "Web uses framer-motion library, native provides custom fallback that renders children without animations."
+  },
+  {
+    "id": "onboarding-form-hook",
+    "description": "Onboarding form hook with platform-specific features.",
+    "webPath": "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm.web.ts",
+    "nativePath": "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm.native.ts", 
+    "reason": "Web version includes Google Maps integration, responsive design logic, and script loading. Native version uses mobile-specific validation and callback-based navigation."
+  },
+  {
+    "id": "media-carousel",
+    "description": "Media carousel component with platform-specific carousel implementations.",
+    "webPath": "packages/features/feed/components/carousel/MediaCarousel.web.tsx",
+    "nativePath": "packages/features/feed/components/carousel/MediaCarousel.native.tsx",
+    "reason": "Web uses Embla carousel with complex DOM event handling, HLS video, and responsive design. Native uses FlatList with simple touch gestures and expo-av Video component."
   }
 ]
