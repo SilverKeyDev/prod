@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ImportantLocationsInputNative } from "packages/features/profile/components/settings/inputs/ImportantLocationsInput.native";
+import { ImportantLocationsInput } from "packages/features/profile/components/settings/inputs/ImportantLocationsInput";
 import {
   FIELD_LABELS,
   LOCATION_SUBTITLE,
@@ -43,7 +43,7 @@ export function ProfileLocationSection({
             Add work, school, or frequently visited places to guide commute-friendly search results.
           </BodyText>
         ) : null}
-        <ImportantLocationsInputNative
+        <ImportantLocationsInput
           locations={locations}
           onChange={(next) => updateField("important_locations", next)}
           isEditMode={isEditMode}

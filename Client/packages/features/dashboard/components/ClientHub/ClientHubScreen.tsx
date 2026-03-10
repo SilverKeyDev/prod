@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import { useIsAgent } from "packages/features/homeauth";
 import { useNavigation } from "packages/navigation";
-import { Box, Pressable,ScrollView, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs";
 import { dateParseISO } from "packages/utils/date";
 
@@ -148,7 +148,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   const isLikedHomesTab = activeTab === "liked-homes";
 
   return (
-    <Box className="flex-1 bg-off-white">
+    <Box className="bg-off-white flex-1">
       {/* Header */}
       <Box className="mb-4 flex-row items-center justify-between px-4 pt-6">
         <Pressable
@@ -159,7 +159,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
         >
           <Text className="text-brand-accent text-sm font-medium">← Back</Text>
         </Pressable>
-        
+
         <Box className="flex-1 flex-row items-center gap-3">
           <Box className="bg-olive/10 flex h-10 w-10 items-center justify-center rounded-full">
             <Text className="text-olive text-lg font-semibold">
@@ -197,7 +197,10 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
           <ClientSavedHomes userId={clientId} />
         </Box>
       ) : (
-        <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        >
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <Box className="gap-6">
@@ -208,10 +211,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
               <FinancialSnapshot financial={financial} />
 
               {/* Risk flags */}
-              <RiskWatchlist
-                riskFlags={enhancedClient.risk_flags}
-                emotionalVolatility="medium"
-              />
+              <RiskWatchlist riskFlags={enhancedClient.risk_flags} emotionalVolatility="medium" />
 
               {/* Search Activity */}
               <SearchActivity viewedHomes={12} favoritedHomes={5} rejectedHomes={7} />

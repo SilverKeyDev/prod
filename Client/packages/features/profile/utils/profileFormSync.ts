@@ -1,7 +1,7 @@
 /**
  * Single source of truth for syncing API user preferences into profile form (OnboardingData).
  * Ensures every field in every section is normalized so autofill works consistently
- * across ProfileFeature, Settings, ProfileScreen.native, and PreferencesFormContent.
+ * across ProfileFeature, Settings, ProfileScreen, and PreferencesFormContent.
  */
 
 import { parseUserPreferencesArray } from "./preferencesUtils";

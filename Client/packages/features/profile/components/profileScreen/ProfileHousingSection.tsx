@@ -1,7 +1,5 @@
 import React from "react";
 
-import Input from "@ui/form/Input";
-
 import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/BudgetRangeSlider";
 import PriceRangeSlider from "packages/features/profile/components/settings/inputs/PriceRangeSlider";
 import {
@@ -14,14 +12,14 @@ import {
   SECTION_TITLES,
   SQFT_TICK_VALUES,
 } from "packages/features/profile/utils";
+import { PrimitiveInput } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
-import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.native";
 
-import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue.native";
+import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue";
 
 type ProfileHousingSectionProps = {
   formData: OnboardingData;
@@ -107,14 +105,14 @@ export function ProfileHousingSection({
           {FIELD_LABELS.PREFERRED_BEDROOMS}
         </BodyText>
         {isEditMode ? (
-          <Input
+          <PrimitiveInput
             value={formData.preferred_bedrooms?.toString() ?? ""}
             onValueChange={(v) =>
               updateField("preferred_bedrooms", v ? parseInt(v, 10) || undefined : undefined)
             }
             placeholder="Number of bedrooms"
             keyboardType="number-pad"
-            className={MOBILE_TEXT_INPUT_CLASS}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.preferred_bedrooms} />
@@ -186,14 +184,14 @@ export function ProfileHousingSection({
           {FIELD_LABELS.PREFERRED_BATHROOMS}
         </BodyText>
         {isEditMode ? (
-          <Input
+          <PrimitiveInput
             value={formData.preferred_bathrooms?.toString() ?? ""}
             onValueChange={(v) =>
               updateField("preferred_bathrooms", v ? parseInt(v, 10) || undefined : undefined)
             }
             placeholder="Number of bathrooms"
             keyboardType="number-pad"
-            className={MOBILE_TEXT_INPUT_CLASS}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.preferred_bathrooms} />

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 
 import type { ClientDealInfo, DealStage } from "packages/schemas/agent";
-import { Box, Pressable,ScrollView, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useAgentDashboardMockData } from "@/features/agent/hooks/data/useAgentDashboardMockData";
@@ -166,7 +166,7 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
       {/* Client List */}
       <ScrollView refreshing={refreshing} onRefresh={handleRefresh}>
         {filteredClients.length === 0 ? (
-          <Box className="py-8 items-center">
+          <Box className="items-center py-8">
             <Text className="text-sm text-gray-600">
               {filterStage !== "all" || hasRiskFlags !== "all"
                 ? "No clients match your filters."
@@ -176,10 +176,10 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
         ) : (
           <Box className="gap-3">
             {filteredClients.map((client) => (
-              <ClientRow 
-                key={client.id} 
-                client={client} 
-                onClick={() => onClientClick?.(client.id)} 
+              <ClientRow
+                key={client.id}
+                client={client}
+                onClick={() => onClientClick?.(client.id)}
               />
             ))}
           </Box>

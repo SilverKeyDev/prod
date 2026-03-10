@@ -10,15 +10,12 @@
     "phases_completed": [
       "format (prettier)",
       "lint:fix (eslint --fix)",
-      "typecheck (tsc)", 
+      "typecheck (tsc)",
       "lint (eslint)",
       "format:check (prettier --check)",
       "lint:cycles (madge)"
     ],
-    "phases_not_run": [
-      "audit (pnpm audit --audit-level=critical)",
-      "build:web (vite build)"
-    ],
+    "phases_not_run": ["audit (pnpm audit --audit-level=critical)", "build:web (vite build)"],
     "format_status": "passed - all files use Prettier code style",
     "typecheck_status": "passed",
     "eslint_status": "passed",
@@ -27,11 +24,11 @@
       "count": 1,
       "dependency_chain": [
         "packages/features/search/index.ts",
-        "packages/features/search/components/layout/SearchPageMapView.tsx", 
+        "packages/features/search/components/layout/SearchPageMapView.tsx",
         "packages/features/search/components/layout/SearchPageDesktopLayout.web.tsx",
         "packages/features/search/components/layout/SearchPageMapContainer.web.tsx",
         "packages/features/homeauth/index.ts",
-        "packages/features/homeauth/components/homepage/index.ts", 
+        "packages/features/homeauth/components/homepage/index.ts",
         "packages/features/homeauth/components/homepage/HomeFeature.web.tsx"
       ],
       "issue": "Search feature imports homeauth feature creating circular dependency",
@@ -73,7 +70,7 @@
     },
     {
       "file": "Client/packages/ui/components/asset/loading/Loading.native.tsx",
-      "category": "ui_component", 
+      "category": "ui_component",
       "reason": "UI components analysis not comprehensive in existing reports",
       "consolidation_potential": "consolidate_medium",
       "justification": "Loading spinner - likely similar logic, different animation implementation"
@@ -82,13 +79,13 @@
       "file": "Client/packages/ui/components/adapters/motion/MotionView.native.tsx",
       "category": "adapter",
       "reason": "Adapter components not fully analyzed",
-      "consolidation_potential": "keep_native", 
+      "consolidation_potential": "keep_native",
       "justification": "Motion adapter for React Native Reanimated vs web CSS animations"
     },
     {
       "file": "Client/packages/ui/components/adapters/carousel/useEmblaCarousel.native.ts",
       "category": "adapter_hook",
-      "reason": "Adapter hooks not covered in feature analysis", 
+      "reason": "Adapter hooks not covered in feature analysis",
       "consolidation_potential": "keep_native",
       "justification": "Platform-specific carousel implementation adapter"
     },
@@ -100,7 +97,7 @@
       "justification": "React Native-specific form styling using StyleSheet"
     },
     {
-      "file": "Client/packages/ui/styles/shadows.native.ts", 
+      "file": "Client/packages/ui/styles/shadows.native.ts",
       "category": "styling",
       "reason": "Style files not included in analyses",
       "consolidation_potential": "keep_native",
@@ -137,7 +134,7 @@
         "pattern": "Modal/sheet state and logic patterns",
         "examples": [
           "Client/packages/features/agent/components/modals/SelectHomeModal.native.tsx",
-          "Client/packages/features/agent/components/modals/SelectDocumentModal.native.tsx", 
+          "Client/packages/features/agent/components/modals/SelectDocumentModal.native.tsx",
           "Client/packages/features/agent/components/modals/SelectAgreementModal.native.tsx"
         ],
         "issue": "Selection logic, filtering, and state management nearly identical",
@@ -170,7 +167,7 @@
     },
     {
       "file": "Client/packages/features/search/utils/propertyScoring.native.ts",
-      "error_type": "misclassified_consolidation", 
+      "error_type": "misclassified_consolidation",
       "current_classification": "extract_logic",
       "correct_classification": "consolidate_high",
       "justification": "File contains 98% pure calculation logic, should be fully consolidated, not just logic extraction",
@@ -179,7 +176,7 @@
     {
       "file": "Client/packages/features/homeauth/hooks/data/onboarding/useOnboardingFormCore.native.ts",
       "error_type": "misclassified_consolidation",
-      "current_classification": "extract_logic", 
+      "current_classification": "extract_logic",
       "correct_classification": "consolidate_high",
       "justification": "90% business logic with no platform APIs - full consolidation possible",
       "estimated_lines_saved": 150
@@ -191,7 +188,7 @@
       "candidates": [
         {
           "native_file": "Client/packages/ui/components/text/Title.native.tsx",
-          "web_equivalent": "Client/packages/ui/components/text/Title.tsx", 
+          "web_equivalent": "Client/packages/ui/components/text/Title.tsx",
           "consolidation_potential": "medium",
           "estimated_lines_saved": 40,
           "strategy": "Extract text processing and accessibility logic to shared component"
@@ -227,7 +224,7 @@
           "estimated_lines_saved": 180
         },
         {
-          "file": "Client/packages/features/profile/utils/profileValidation.native.ts", 
+          "file": "Client/packages/features/profile/utils/profileValidation.native.ts",
           "action": "Remove .native extension - contains pure validation logic",
           "estimated_lines_saved": 180
         }
@@ -243,15 +240,19 @@
         "effort": "Low - rename files and extract navigation to wrapper"
       },
       {
-        "action": "Consolidate utility functions", 
-        "files": ["mortgageCalculations.native.ts", "profileValidation.native.ts", "propertyScoring.native.ts"],
+        "action": "Consolidate utility functions",
+        "files": [
+          "mortgageCalculations.native.ts",
+          "profileValidation.native.ts",
+          "propertyScoring.native.ts"
+        ],
         "impact": "Remove 560 lines of duplicate calculations",
         "effort": "Low - remove .native extensions and update imports"
       },
       {
         "action": "Extract modal selection patterns",
         "files": ["SelectHomeModal", "SelectDocumentModal", "SelectAgreementModal"],
-        "impact": "Remove 350 lines of duplicate selection logic", 
+        "impact": "Remove 350 lines of duplicate selection logic",
         "effort": "Medium - create generic useSelection hook"
       }
     ],
@@ -278,7 +279,7 @@
     },
     "revised_estimate": {
       "navigation_app_shell": 487,
-      "feature_components": 8420, 
+      "feature_components": 8420,
       "ui_primitives": 300,
       "misclassified_files": 470,
       "additional_patterns": 800,

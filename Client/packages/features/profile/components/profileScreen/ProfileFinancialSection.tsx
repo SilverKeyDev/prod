@@ -1,7 +1,5 @@
 import React from "react";
 
-import Input from "@ui/form/Input";
-
 import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/BudgetRangeSlider";
 import PriceRangeSlider from "packages/features/profile/components/settings/inputs/PriceRangeSlider";
 import type { HomePriceResult, OnboardingData } from "packages/features/profile/utils";
@@ -10,13 +8,14 @@ import {
   FIELD_LABELS,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
+import { PrimitiveInput } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 
-import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue.native";
+import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue";
 
 function getOptionLabel(
   options: readonly { value: string; label: string }[],
@@ -128,7 +127,7 @@ export function ProfileFinancialSection({
           {FIELD_LABELS.IDEAL_ZIP_CODE}
         </BodyText>
         {isEditMode ? (
-          <Input
+          <PrimitiveInput
             value={formData.ideal_zip_code ?? ""}
             onValueChange={(v) => updateField("ideal_zip_code", v || undefined)}
             placeholder="e.g. 90210"

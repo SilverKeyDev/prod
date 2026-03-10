@@ -1,25 +1,23 @@
 import React from "react";
 
-import Input from "@ui/form/Input";
-
+import { PrimitiveInput } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
-import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.native";
 
 import type { ImportantLocation } from "@/features/profile/utils/importantLocations";
 
-type ImportantLocationsInputNativeProps = {
+type ImportantLocationsInputProps = {
   locations: ImportantLocation[];
   onChange: (locations: ImportantLocation[]) => void;
   isEditMode?: boolean;
 };
 
-export function ImportantLocationsInputNative({
+export function ImportantLocationsInput({
   locations,
   onChange,
   isEditMode = true,
-}: ImportantLocationsInputNativeProps) {
+}: ImportantLocationsInputProps) {
   const safeLocations = Array.isArray(locations) ? locations : [];
   const displayList =
     safeLocations.length > 0
@@ -122,18 +120,18 @@ export function ImportantLocationsInputNative({
               Location {displayList.length > 1 ? index + 1 : ""}
             </Text>
             <Box className="gap-2">
-              <Input
+              <PrimitiveInput
                 value={loc.address ?? ""}
                 onValueChange={(v) => handleAddressChange(index, v ?? "")}
                 placeholder="Address or city"
-                className={MOBILE_TEXT_INPUT_CLASS}
+                className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
               />
-              <Input
+              <PrimitiveInput
                 value={commuteText}
                 onValueChange={(v) => handleCommuteChange(index, v ?? "")}
                 placeholder="Commute max (minutes, optional)"
                 keyboardType="number-pad"
-                className={MOBILE_TEXT_INPUT_CLASS}
+                className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
               />
             </Box>
             {displayList.length > 1 && (

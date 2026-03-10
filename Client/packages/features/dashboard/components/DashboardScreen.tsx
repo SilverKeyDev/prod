@@ -4,7 +4,13 @@ import { Calendar, UpcomingEvents } from "packages/features/calendar";
 import { useIsAgent } from "packages/features/homeauth";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { Box, Pressable, PrimitiveInput,ScrollView, Text } from "packages/ui/components/primitives";
+import {
+  Box,
+  Pressable,
+  PrimitiveInput,
+  ScrollView,
+  Text,
+} from "packages/ui/components/primitives";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
@@ -207,7 +213,6 @@ export function DashboardScreen() {
     [allAlerts, dismissedAlertIds]
   );
 
-
   const handleClientClick = (clientId: string) => {
     navigateToPath(`/dashboard/client/${clientId}`);
   };
@@ -219,11 +224,7 @@ export function DashboardScreen() {
   }, []);
 
   return (
-    <ScrollView 
-      className="flex-1" 
-      refreshing={refreshing}
-      onRefresh={handleRefresh}
-    >
+    <ScrollView className="flex-1" refreshing={refreshing} onRefresh={handleRefresh}>
       <Box className="gap-6 px-4 pb-8 pt-4">
         {isAgent ? (
           <Box className="gap-3">

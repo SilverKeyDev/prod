@@ -1,21 +1,19 @@
 import React from "react";
 
-import Input from "@ui/form/Input";
-
 import {
   FIELD_LABELS,
   IS_AGENT_OPTIONS,
   type OnboardingData,
 } from "packages/features/profile/utils";
+import { PrimitiveInput } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Image } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
-import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.native";
 
-import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue.native";
+import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue";
 
 function getOptionLabel(
   options: readonly { value: string; label: string }[],
@@ -100,12 +98,12 @@ export function ProfileDemographicsSection({
           {FIELD_LABELS.NAME}
         </BodyText>
         {isEditMode ? (
-          <Input
+          <PrimitiveInput
             value={formData.name ?? ""}
             onValueChange={(v) => updateField("name", v || undefined)}
             placeholder="Your name"
             keyboardType="default"
-            className={MOBILE_TEXT_INPUT_CLASS}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.name} />
@@ -147,7 +145,7 @@ export function ProfileDemographicsSection({
           {FIELD_LABELS.AGE}
         </BodyText>
         {isEditMode ? (
-          <Input
+          <PrimitiveInput
             value={formData.age?.toString() ?? ""}
             onValueChange={(v) => updateField("age", v ? parseInt(v, 10) || undefined : undefined)}
             placeholder="Age"

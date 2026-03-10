@@ -6,7 +6,13 @@ import { NegotiationModal } from "packages/features/negotiate";
 import { PropertyDetailsModal } from "packages/features/propertyDetails";
 import type { SavedHome } from "packages/types";
 import { PdfModal } from "packages/ui/components/modals";
-import { Box, Pressable, PrimitiveInput,ScrollView, Text } from "packages/ui/components/primitives";
+import {
+  Box,
+  Pressable,
+  PrimitiveInput,
+  ScrollView,
+  Text,
+} from "packages/ui/components/primitives";
 
 import { convertSavedHomeToProperty } from "@/features/saved/types/savedHomeUtils";
 import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
@@ -25,10 +31,9 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
     null
   );
 
-  
   // Use either userId or clientId for the hook
   const targetId = userId || clientId || "";
-  
+
   const { savedHomes, savedHomesLoading, savedHomesError, refreshSavedHomes } =
     useSavedHomesStoreIntegration(targetId);
 
@@ -75,15 +80,17 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
         typeof home.address === "string" || typeof home.address === "number"
           ? String(home.address)
           : (home.description ?? "");
-      return address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        home.id?.toLowerCase().includes(searchTerm.toLowerCase());
+      return (
+        address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        home.id?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     });
   }, [homes, searchTerm]);
 
   // Loading state
   if (savedHomesLoading && !homes.length) {
     return (
-      <Box className="py-12 items-center justify-center">
+      <Box className="items-center justify-center py-12">
         <Text className="text-sm text-gray-600">Loading saved homes...</Text>
       </Box>
     );
@@ -92,12 +99,9 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
   // Error state
   if (savedHomesError) {
     return (
-      <Box className="py-12 items-center justify-center">
+      <Box className="items-center justify-center py-12">
         <Text className="text-sm text-red-600">{savedHomesError}</Text>
-        <Pressable
-          onPress={handleRefresh}
-          className="bg-brand-accent mt-4 rounded-lg px-4 py-2"
-        >
+        <Pressable onPress={handleRefresh} className="bg-brand-accent mt-4 rounded-lg px-4 py-2">
           <Text className="text-sm font-medium text-white">Retry</Text>
         </Pressable>
       </Box>
@@ -107,7 +111,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
   // Empty state
   if (!homes.length) {
     return (
-      <Box className="py-12 items-center justify-center">
+      <Box className="items-center justify-center py-12">
         <Text className="text-sm text-gray-600">No saved homes yet.</Text>
       </Box>
     );
@@ -126,14 +130,14 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
       </Box>
 
       {/* Properties List */}
-      <ScrollView 
-        className="flex-1" 
-        refreshing={refreshing} 
+      <ScrollView
+        className="flex-1"
+        refreshing={refreshing}
         onRefresh={handleRefresh}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
       >
         {filteredHomes.length === 0 ? (
-          <Box className="py-8 items-center">
+          <Box className="items-center py-8">
             <Text className="text-sm text-gray-600">
               {searchTerm ? "No homes match your search." : "No saved homes yet."}
             </Text>
@@ -144,7 +148,8 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
               const address =
                 typeof home.address === "string" || typeof home.address === "number"
                   ? String(home.address)
-                  : (home.description ?? t("saved.address_fallback", { defaultValue: "Unknown address" }));
+                  : (home.description ??
+                    t("saved.address_fallback", { defaultValue: "Unknown address" }));
 
               const price =
                 typeof home.price === "string" || typeof home.price === "number"
@@ -162,7 +167,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
                     <Box className="gap-2">
                       <Text className="text-sm font-semibold text-gray-900">{address}</Text>
                       <Text className="text-sm text-gray-700">{price}</Text>
-                      
+
                       {/* Property details */}
                       <Box className="flex-row items-center gap-4">
                         {home.beds && (
@@ -215,13 +220,13 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
         onClose={clearSelectedProperty}
         isLoading={isLoadingPropertyDetails}
       />
-      
+
       <NegotiationModal
         isOpen={isNegotiationModalOpen}
         onClose={handleCloseNegotiation}
         home={selectedHomeForNegotiation}
       />
-      
+
       {currentPdf && (
         <PdfModal
           isOpen={!!currentPdf}

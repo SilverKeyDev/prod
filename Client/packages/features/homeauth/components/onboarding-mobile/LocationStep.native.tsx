@@ -3,7 +3,7 @@ import React from "react";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
-import { ImportantLocationsInputNative } from "@/features/profile/components/settings/inputs/ImportantLocationsInput.native";
+import { ImportantLocationsInput } from "@/features/profile/components/settings/inputs/ImportantLocationsInput";
 import { type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
 
 type LocationStepProps = {
@@ -24,7 +24,7 @@ export function LocationStep({ formData, updateFormData }: LocationStepProps) {
         your life.
       </Text>
 
-      <ImportantLocationsInputNative
+      <ImportantLocationsInput
         locations={locations}
         onChange={(next) => updateFormData("important_locations", next)}
         isEditMode

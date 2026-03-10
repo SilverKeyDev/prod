@@ -13,7 +13,7 @@ import { Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 
-import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue.native";
+import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue";
 
 function getOptionLabel(
   options: readonly { value: string; label: string }[],

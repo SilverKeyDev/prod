@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import RippleBackground from "packages/features/homeauth/components/homepage/RippleBackground";
+import RippleBackground from "packages/features/homeauth/components/homepage/RippleBackground.web";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link, ROUTES, useNavigation } from "packages/navigation";
 import type { AutocompleteSuggestion } from "packages/schemas/google-maps";
