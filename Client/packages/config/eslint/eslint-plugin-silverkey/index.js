@@ -28,5 +28,6 @@ module.exports = {
     "no-cross-feature-internals": require("./rules/architecture/no-cross-feature-internals"),
     "platform-variants-exception-list": require("./rules/architecture/platform-variants-exception-list"),
     "require-platform-primitives": require("./rules/ui/require-platform-primitives"),
+    "platform-file-justification": require("./rules/architecture/platform-file-justification"),
   },
 };
