@@ -1,37 +1,37 @@
 {
   "metadata": {
-    "timestamp": "2026-03-10T15:05:29.901Z",
+    "timestamp": "2026-03-10T15:22:38.209Z",
     "clientRoot": "/Users/jaycewalzer/Desktop/SilverKey/Client",
-    "totalFilesAnalyzed": 497
+    "totalFilesAnalyzed": 493
   },
   "summaryStats": {
-    "totalFiles": 497,
+    "totalFiles": 493,
     "webFiles": 292,
-    "nativeFiles": 205,
+    "nativeFiles": 201,
     "categoryCounts": {
       "form": 20,
       "other": 164,
-      "ui-primitive": 22,
-      "modal": 22,
+      "ui-primitive": 21,
+      "modal": 21,
       "layout": 123,
       "media": 13,
       "adapter": 21,
       "navigation": 29,
-      "feature": 49,
+      "feature": 47,
       "animation": 31,
       "utility": 1,
       "config": 2
     },
     "complexityCounts": {
-      "low": 286,
-      "medium": 129,
+      "low": 284,
+      "medium": 127,
       "high": 57,
       "very-high": 25
     },
     "consolidationCandidates": 42,
     "highPotentialConsolidations": 3,
-    "platformSpecificFiles": 411,
-    "componentFiles": 227
+    "platformSpecificFiles": 409,
+    "componentFiles": 223
   },
   "files": [
     {
@@ -8060,30 +8060,6 @@
       }
     },
     {
-      "absolutePath": "/Users/jaycewalzer/Desktop/SilverKey/Client/packages/ui/components/button/ConnectedCardHeartSave.native.tsx",
-      "relativePath": "packages/ui/components/button/ConnectedCardHeartSave.native.tsx",
-      "platform": "native",
-      "extension": ".tsx",
-      "directory": "packages/ui/components/button",
-      "filename": "ConnectedCardHeartSave.native.tsx",
-      "analysis": {
-        "imports": [
-          "react",
-          "@ui/button/HeartSave.native",
-          "@ui/button/HeartSave.native",
-          "packages/hooks/data/useSavedHomesData"
-        ],
-        "webDependencies": [],
-        "nativeDependencies": [],
-        "category": "ui-primitive",
-        "isComponent": true,
-        "lineCount": 52,
-        "complexity": "medium",
-        "hasJSX": true,
-        "hasPlatformSpecificLogic": false
-      }
-    },
-    {
       "absolutePath": "/Users/jaycewalzer/Desktop/SilverKey/Client/packages/ui/components/button/ClientSelector.native.tsx",
       "relativePath": "packages/ui/components/button/ClientSelector.native.tsx",
       "platform": "native",
@@ -8714,30 +8690,11 @@
           "Modal"
         ],
         "category": "feature",
-        "isComponent": true,
+        "isComponent": false,
         "lineCount": 26,
         "complexity": "low",
-        "hasJSX": true,
+        "hasJSX": false,
         "hasPlatformSpecificLogic": true
-      }
-    },
-    {
-      "absolutePath": "/Users/jaycewalzer/Desktop/SilverKey/Client/packages/features/search/components/ConnectedCardHeartSave.native.tsx",
-      "relativePath": "packages/features/search/components/ConnectedCardHeartSave.native.tsx",
-      "platform": "native",
-      "extension": ".tsx",
-      "directory": "packages/features/search/components",
-      "filename": "ConnectedCardHeartSave.native.tsx",
-      "analysis": {
-        "imports": [],
-        "webDependencies": [],
-        "nativeDependencies": [],
-        "category": "feature",
-        "isComponent": false,
-        "lineCount": 4,
-        "complexity": "low",
-        "hasJSX": true,
-        "hasPlatformSpecificLogic": false
       }
     },
     {
@@ -9184,34 +9141,6 @@
         "complexity": "low",
         "hasJSX": true,
         "hasPlatformSpecificLogic": false
-      }
-    },
-    {
-      "absolutePath": "/Users/jaycewalzer/Desktop/SilverKey/Client/packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyInfo.native.tsx",
-      "relativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyInfo.native.tsx",
-      "platform": "native",
-      "extension": ".tsx",
-      "directory": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info",
-      "filename": "PropertyInfo.native.tsx",
-      "analysis": {
-        "imports": [
-          "react",
-          "packages/features/propertyDetails/components/PropertyDetailsModal/types",
-          "packages/ui/components/primitives",
-          "@/features/search/types/search/address",
-          "@/features/search/types/search/propertyDetailsFormatters"
-        ],
-        "webDependencies": [],
-        "nativeDependencies": [
-          "Text",
-          "Modal"
-        ],
-        "category": "modal",
-        "isComponent": true,
-        "lineCount": 85,
-        "complexity": "medium",
-        "hasJSX": true,
-        "hasPlatformSpecificLogic": true
       }
     },
     {
@@ -9921,35 +9850,6 @@
         "isComponent": true,
         "lineCount": 208,
         "complexity": "high",
-        "hasJSX": true,
-        "hasPlatformSpecificLogic": true
-      }
-    },
-    {
-      "absolutePath": "/Users/jaycewalzer/Desktop/SilverKey/Client/packages/features/homeauth/components/core/Divider.native.tsx",
-      "relativePath": "packages/features/homeauth/components/core/Divider.native.tsx",
-      "platform": "native",
-      "extension": ".tsx",
-      "directory": "packages/features/homeauth/components/core",
-      "filename": "Divider.native.tsx",
-      "analysis": {
-        "imports": [
-          "react",
-          "react-native",
-          "packages/design-tokens",
-          "packages/ui/components/primitives"
-        ],
-        "webDependencies": [],
-        "nativeDependencies": [
-          "react-native",
-          "StyleSheet",
-          "View",
-          "Text"
-        ],
-        "category": "feature",
-        "isComponent": true,
-        "lineCount": 38,
-        "complexity": "low",
         "hasJSX": true,
         "hasPlatformSpecificLogic": true
       }

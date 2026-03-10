@@ -129,12 +129,10 @@ export default tseslint.config(
       // Features: do not import another feature's components, hooks, utils, store, types, api, services
       "silverkey/no-cross-feature-internals": "error",
       // Platform files: ensure .web/.native files in packages/ are documented in platform config
-      "silverkey/platform-file-justification": [
-        "error",
-        {
-          requireDocumentation: true,
-        },
-      ],
+      // Specific linters for each category provide targeted guidance
+      "silverkey/primitives-justification": "error",
+      "silverkey/variants-justification": "error", 
+      "silverkey/layouts-justification": "error",
     },
   },
 

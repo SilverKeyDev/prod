@@ -29,5 +29,8 @@ module.exports = {
     "platform-variants-exception-list": require("./rules/architecture/platform-variants-exception-list"),
     "require-platform-primitives": require("./rules/ui/require-platform-primitives"),
     "platform-file-justification": require("./rules/architecture/platform-file-justification"),
+    "primitives-justification": require("./rules/platform/primitives-justification"),
+    "variants-justification": require("./rules/platform/variants-justification"),
+    "layouts-justification": require("./rules/platform/layouts-justification"),
   },
 };
