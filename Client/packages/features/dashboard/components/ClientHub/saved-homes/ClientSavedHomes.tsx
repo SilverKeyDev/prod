@@ -1,253 +1,236 @@
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
+import { useLocalization } from "packages/contexts";
 import { useDocumentActions } from "packages/features/documents";
 import { NegotiationModal } from "packages/features/negotiate";
 import { PropertyDetailsModal } from "packages/features/propertyDetails";
-import { useUIStore } from "packages/store";
 import type { SavedHome } from "packages/types";
 import { PdfModal } from "packages/ui/components/modals";
+import { Box, Pressable, PrimitiveInput,ScrollView, Text } from "packages/ui/components/primitives";
 
-import { PropertyCard } from "@/components/cards";
-import { CardViewDetailsButton } from "@/components/cards/base/index.web";
-import { ConnectedCardHeartSave } from "@/components/ui";
-import { BodyText, Input, KeyTurnLoader } from "@/components/ui";
-import {
-  type Property,
-  usePropertyDetails,
-} from "@/features/search/hooks/data/property/usePropertyDetails";
+import { convertSavedHomeToProperty } from "@/features/saved/types/savedHomeUtils";
+import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
 import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
 type ClientSavedHomesProps = {
-  userId: string;
+  userId?: string;
+  clientId?: string;
 };
-export default function ClientSavedHomes({ userId }: ClientSavedHomesProps) {
+
+export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesProps) {
+  const { t } = useLocalization();
   const [searchTerm, setSearchTerm] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const [isNegotiationModalOpen, setIsNegotiationModalOpen] = useState(false);
   const [selectedHomeForNegotiation, setSelectedHomeForNegotiation] = useState<SavedHome | null>(
     null
   );
-  const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const {
-    savedHomes: homes,
-    savedHomesLoading: loading,
-    savedHomesError: error,
-    refreshSavedHomes: _refreshSavedHomes,
-  } = useSavedHomesStoreIntegration(userId);
-  // Use centralized document actions for reports
+
+  
+  // Use either userId or clientId for the hook
+  const targetId = userId || clientId || "";
+  
+  const { savedHomes, savedHomesLoading, savedHomesError, refreshSavedHomes } =
+    useSavedHomesStoreIntegration(targetId);
+
   const { currentPdf, currentDocumentId, currentDocumentName, closePdfModal } =
     useDocumentActions();
-  // Use property details hook for unlock functionality
+
   const {
     selectedProperty,
     fetchPropertyDetails,
     clearSelectedProperty,
     isLoading: isLoadingPropertyDetails,
   } = usePropertyDetails();
-  // Handle unlocking a home
-  const handleUnlockHome = useCallback(
+
+  const homes: SavedHome[] = useMemo(() => savedHomes ?? [], [savedHomes]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refreshSavedHomes();
+    setRefreshing(false);
+  }, [refreshSavedHomes]);
+
+  const handleOpenDetails = useCallback(
     async (home: SavedHome) => {
-      const address = typeof home.address === "string" ? home.address : (home.description ?? "");
-      if (!address) {
-        enqueueToast({
-          type: "error",
-          message: "Invalid home address",
-        });
-        return;
-      }
-      // Convert SavedHome to Property format
-      const priceVal = home.price;
-      const formattedPrice =
-        typeof priceVal === "string"
-          ? priceVal.startsWith("$")
-            ? priceVal
-            : `$${priceVal}`
-          : typeof priceVal === "number"
-            ? `$${(priceVal as number).toLocaleString()}`
-            : "$0";
-      const property: Property = {
-        id: home.home_id,
-        address: address,
-        price: formattedPrice,
-        bedrooms: home.bedrooms ?? 0,
-        bathrooms: home.bathrooms ?? 0,
-        sqft: home.sqft ?? 0,
-        lat: home.lat ?? 0,
-        lng: home.lng ?? 0,
-        latitude: home.lat ?? 0,
-        longitude: home.lng ?? 0,
-        images: home.image_url ? [home.image_url] : [],
-      };
-      await fetchPropertyDetails(property);
+      await fetchPropertyDetails(convertSavedHomeToProperty(home));
     },
-    [fetchPropertyDetails, enqueueToast]
+    [fetchPropertyDetails]
   );
-  // Handle opening negotiation modal
+
   const handleOpenNegotiation = useCallback((home: SavedHome) => {
     setSelectedHomeForNegotiation(home);
     setIsNegotiationModalOpen(true);
   }, []);
-  // Handle closing negotiation modal
+
   const handleCloseNegotiation = useCallback(() => {
     setIsNegotiationModalOpen(false);
     setSelectedHomeForNegotiation(null);
   }, []);
-  // Convert SavedHome to FavoriteHome format for negotiation
-  const convertToFavoriteHome = useCallback((home: SavedHome) => {
-    return {
-      user_id: "",
-      address: String(home.address || home.description || ""),
-      beds: String(home.bedrooms ?? ""),
-      baths: String(home.bathrooms ?? ""),
-      sqft: String(home.sqft ?? ""),
-      lot_size: typeof home.lot_size === "string" ? home.lot_size : "",
-      price:
-        typeof home.price === "string"
-          ? home.price.startsWith("$")
-            ? home.price
-            : `$${home.price}`
-          : typeof home.price === "number"
-            ? `$${(home.price as number).toLocaleString()}`
-            : "",
-      image_url: home.image_url || "",
-      created_at: "",
-      updated_at: "",
-    };
-  }, []);
-  const filteredHomes = homes.filter((h: SavedHome) => {
-    return (
-      h.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      h.home_id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-  // overlay toast component
-  useEffect(() => {
-    if (error) enqueueToast({ type: "error", message: error });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error]);
-  return (
-    <div>
-      <PdfModal
-        currentPdf={currentPdf}
-        currentReportAddress={currentDocumentName}
-        reportId={currentDocumentId}
-        onClose={closePdfModal}
-      />
-      <div className="space-y-responsive-lg mb-responsive-lg">
-        {/* Search bar */}
-        <div>
-          <Input
-            type="text"
-            placeholder="Search saved homes..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="focus:ring-olive w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2"
-          />
-        </div>
 
-        {/* Content */}
+  // Filter homes based on search term
+  const filteredHomes = useMemo(() => {
+    if (!searchTerm) return homes;
+    return homes.filter((home) => {
+      const address =
+        typeof home.address === "string" || typeof home.address === "number"
+          ? String(home.address)
+          : (home.description ?? "");
+      return address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        home.id?.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  }, [homes, searchTerm]);
+
+  // Loading state
+  if (savedHomesLoading && !homes.length) {
+    return (
+      <Box className="py-12 items-center justify-center">
+        <Text className="text-sm text-gray-600">Loading saved homes...</Text>
+      </Box>
+    );
+  }
+
+  // Error state
+  if (savedHomesError) {
+    return (
+      <Box className="py-12 items-center justify-center">
+        <Text className="text-sm text-red-600">{savedHomesError}</Text>
+        <Pressable
+          onPress={handleRefresh}
+          className="bg-brand-accent mt-4 rounded-lg px-4 py-2"
+        >
+          <Text className="text-sm font-medium text-white">Retry</Text>
+        </Pressable>
+      </Box>
+    );
+  }
+
+  // Empty state
+  if (!homes.length) {
+    return (
+      <Box className="py-12 items-center justify-center">
+        <Text className="text-sm text-gray-600">No saved homes yet.</Text>
+      </Box>
+    );
+  }
+
+  return (
+    <Box className="flex-1">
+      {/* Search */}
+      <Box className="mb-4 px-4">
+        <PrimitiveInput
+          placeholder="Search saved homes..."
+          value={searchTerm}
+          onValueChange={setSearchTerm}
+          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-base text-gray-900"
+        />
+      </Box>
+
+      {/* Properties List */}
+      <ScrollView 
+        className="flex-1" 
+        refreshing={refreshing} 
+        onRefresh={handleRefresh}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+      >
         {filteredHomes.length === 0 ? (
-          loading ? (
-            <div className="py-responsive-lg flex justify-center">
-              <KeyTurnLoader message="Loading saved homes..." />
-            </div>
-          ) : (
-            <div className="py-responsive-lg text-center">
-              <BodyText as="p" size="sm" className="text-gray-600">
-                No saved homes found.
-              </BodyText>
-            </div>
-          )
+          <Box className="py-8 items-center">
+            <Text className="text-sm text-gray-600">
+              {searchTerm ? "No homes match your search." : "No saved homes yet."}
+            </Text>
+          </Box>
         ) : (
-          <div className="gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredHomes.map((home: SavedHome) => {
+          <Box className="gap-3">
+            {filteredHomes.map((home) => {
+              const address =
+                typeof home.address === "string" || typeof home.address === "number"
+                  ? String(home.address)
+                  : (home.description ?? t("saved.address_fallback", { defaultValue: "Unknown address" }));
+
+              const price =
+                typeof home.price === "string" || typeof home.price === "number"
+                  ? String(home.price)
+                  : t("saved.price_fallback", { defaultValue: "Price not available" });
+
               return (
-                <div key={home.home_id} className="group relative">
-                  <PropertyCard
-                    id={home.home_id}
-                    imageUrl={home.image_url}
-                    address={
-                      typeof home.address === "string" || typeof home.address === "number"
-                        ? home.address.toString()
-                        : (home.description ?? "[Invalid address]")
-                    }
-                    price={
-                      typeof home.price === "string" || typeof home.price === "number"
-                        ? home.price.toString()
-                        : "[Invalid price]"
-                    }
-                    bedrooms={home.bedrooms}
-                    bathrooms={home.bathrooms}
-                    sqft={home.sqft && home.sqft > 0 ? home.sqft : undefined}
-                    lotSize={typeof home.lot_size === "string" ? home.lot_size : undefined}
-                    pricePosition="below-address"
-                    cardType="searchpage"
-                    showScore={false}
-                    topContent={
-                      <>
-                        {/* Heart save - top-right on image */}
-                        <ConnectedCardHeartSave
-                          property={{
-                            id: home.home_id,
-                            address: home.address ?? home.description ?? "",
-                            price:
-                              typeof home.price === "string" || typeof home.price === "number"
-                                ? String(home.price)
-                                : "",
-                            bedrooms: home.bedrooms ?? 0,
-                            bathrooms: home.bathrooms ?? 0,
-                            sqft: home.sqft ?? 0,
-                            lat: home.lat ?? 0,
-                            lng: home.lng ?? 0,
-                            images: home.image_url ? [home.image_url] : [],
-                          }}
-                          position="top-right"
-                          size="sm"
-                        />
-                      </>
-                    }
-                    bottomContent={
-                      <div className="flex flex-col gap-2">
-                        <CardViewDetailsButton
-                          onClick={() => handleUnlockHome(home)}
-                          size="sm"
-                          variant="unlock"
-                          fullWidth
-                          text="Unlock"
-                        />
-                        <CardViewDetailsButton
-                          onClick={() => handleOpenNegotiation(home)}
-                          size="sm"
-                          variant="negotiate"
-                          fullWidth
-                          text="Negotiate"
-                          iconName="handshake"
-                        />
-                      </div>
-                    }
-                  />
-                </div>
+                <Box key={home.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                  <Pressable
+                    onPress={() => {
+                      void handleOpenDetails(home);
+                    }}
+                    className="active:opacity-90"
+                  >
+                    <Box className="gap-2">
+                      <Text className="text-sm font-semibold text-gray-900">{address}</Text>
+                      <Text className="text-sm text-gray-700">{price}</Text>
+                      
+                      {/* Property details */}
+                      <Box className="flex-row items-center gap-4">
+                        {home.beds && (
+                          <Text className="text-xs text-gray-600">
+                            {home.beds} {home.beds === 1 ? "bed" : "beds"}
+                          </Text>
+                        )}
+                        {home.baths && (
+                          <Text className="text-xs text-gray-600">
+                            {home.baths} {home.baths === 1 ? "bath" : "baths"}
+                          </Text>
+                        )}
+                        {home.sqft && (
+                          <Text className="text-xs text-gray-600">{home.sqft} sqft</Text>
+                        )}
+                      </Box>
+                    </Box>
+                  </Pressable>
+
+                  {/* Action buttons */}
+                  <Box className="mt-3 flex-row gap-2">
+                    <Pressable
+                      onPress={() => handleOpenDetails(home)}
+                      className="bg-brand-accent flex-1 rounded-lg px-3 py-2"
+                    >
+                      <Text className="text-center text-sm font-medium text-white">
+                        View Details
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => handleOpenNegotiation(home)}
+                      className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2"
+                    >
+                      <Text className="text-center text-sm font-medium text-gray-800">
+                        Negotiate
+                      </Text>
+                    </Pressable>
+                  </Box>
+                </Box>
               );
             })}
-          </div>
+          </Box>
         )}
+      </ScrollView>
 
-        {/* Property Details Modal */}
-        {selectedProperty && (
-          <PropertyDetailsModal
-            property={selectedProperty}
-            onClose={clearSelectedProperty}
-            isLoading={isLoadingPropertyDetails}
-          />
-        )}
-
-        {/* Negotiation Modal */}
-        <NegotiationModal
-          isOpen={isNegotiationModalOpen}
-          onClose={handleCloseNegotiation}
-          initialHome={
-            selectedHomeForNegotiation ? convertToFavoriteHome(selectedHomeForNegotiation) : null
-          }
+      {/* Modals */}
+      <PropertyDetailsModal
+        isOpen={!!selectedProperty}
+        property={selectedProperty}
+        onClose={clearSelectedProperty}
+        isLoading={isLoadingPropertyDetails}
+      />
+      
+      <NegotiationModal
+        isOpen={isNegotiationModalOpen}
+        onClose={handleCloseNegotiation}
+        home={selectedHomeForNegotiation}
+      />
+      
+      {currentPdf && (
+        <PdfModal
+          isOpen={!!currentPdf}
+          pdfUrl={currentPdf}
+          documentId={currentDocumentId}
+          documentName={currentDocumentName}
+          onClose={closePdfModal}
         />
-      </div>
-    </div>
+      )}
+    </Box>
   );
 }
