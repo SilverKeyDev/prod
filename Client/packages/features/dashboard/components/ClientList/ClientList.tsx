@@ -1,18 +1,91 @@
 import React, { useMemo, useState } from "react";
 
 import type { ClientDealInfo, DealStage } from "packages/schemas/agent";
-import type { DropdownOption } from "packages/ui/components/form/Dropdown";
-import Dropdown from "packages/ui/components/form/Dropdown";
+import { Box, Pressable,ScrollView, Text } from "packages/ui/components/primitives";
 
-import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useAgentDashboardMockData } from "@/features/agent/hooks/data/useAgentDashboardMockData";
 
 import ClientRow from "./ClientRow";
 
+export type ClientListFilterUIProps = {
+  filterStage: DealStage | "all";
+  setFilterStage: (s: DealStage | "all") => void;
+  hasRiskFlags: "all" | "has" | "none";
+  setHasRiskFlags: (v: "all" | "has" | "none") => void;
+};
+
+export function ClientListFilterUI({
+  filterStage,
+  setFilterStage,
+  hasRiskFlags,
+  setHasRiskFlags,
+}: ClientListFilterUIProps) {
+  return (
+    <Box className="mb-3 gap-2 rounded-lg bg-gray-50 p-2">
+      <Text className="mb-1 text-xs font-semibold text-gray-700">Filter by stage</Text>
+      <Box className="flex-row flex-wrap gap-2">
+        {(["all", "search", "touring", "offer", "under_contract", "closing"] as const).map(
+          (stage) => {
+            const isActive = filterStage === stage;
+            const label =
+              stage === "all"
+                ? "All"
+                : (stage.replace(/_/g, " ") as string).replace(/\b\w/g, (char) =>
+                    char.toUpperCase()
+                  );
+
+            return (
+              <Pressable
+                key={stage}
+                onPress={() => setFilterStage(stage)}
+                className={`rounded-full px-3 py-1.5 ${
+                  isActive ? "bg-brand-accent" : "border border-gray-200 bg-white"
+                }`}
+              >
+                <Text
+                  className={`text-xs font-medium ${isActive ? "text-white" : "text-gray-800"}`}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          }
+        )}
+      </Box>
+
+      <Text className="mb-1 mt-3 text-xs font-semibold text-gray-700">Risk flags</Text>
+      <Box className="flex-row flex-wrap gap-2">
+        {(["all", "has", "none"] as const).map((option) => {
+          const isActive = hasRiskFlags === option;
+          const labelMap: Record<typeof option | "all", string> = {
+            all: "All",
+            has: "With risk flags",
+            none: "No risk flags",
+          };
+          const label = labelMap[option];
+
+          return (
+            <Pressable
+              key={option}
+              onPress={() => setHasRiskFlags(option)}
+              className={`rounded-full px-3 py-1.5 ${
+                isActive ? "bg-brand-accent" : "border border-gray-200 bg-white"
+              }`}
+            >
+              <Text className={`text-xs font-medium ${isActive ? "text-white" : "text-gray-800"}`}>
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
 type ClientListProps = {
-  onClientClick: (clientId: string) => void;
+  onClientClick?: (clientId: string) => void;
 };
 
 const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
@@ -20,6 +93,7 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
   const { enhanceClientWithDealInfo } = useAgentDashboardMockData();
   const [filterStage, setFilterStage] = useState<DealStage | "all">("all");
   const [hasRiskFlags, setHasRiskFlags] = useState<"all" | "has" | "none">("all");
+  const [refreshing, setRefreshing] = useState(false);
 
   // Enhance clients with deal info (mock for now)
   const enhancedClients = useMemo<ClientDealInfo[]>(() => {
@@ -52,87 +126,66 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
     });
   }, [enhancedClients, filterStage, hasRiskFlags]);
 
-  // Dropdown options
-  const stageOptions: DropdownOption<DealStage | "all">[] = [
-    { value: "all", label: "All Stages" },
-    { value: "search", label: "Search" },
-    { value: "touring", label: "Touring" },
-    { value: "offer", label: "Offer" },
-    { value: "under_contract", label: "Under Contract" },
-    { value: "closing", label: "Closing" },
-  ];
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    // Add refresh logic here
+    setRefreshing(false);
+  };
 
-  const riskFlagOptions: DropdownOption<"all" | "has" | "none">[] = [
-    { value: "all", label: "All Clients" },
-    { value: "has", label: "With Risk Flags" },
-    { value: "none", label: "No Risk Flags" },
-  ];
-
-  if (isLoading) {
+  if (isLoading && !refreshing && !enhancedClients.length) {
     return (
-      <Card>
-        <div className="py-12 text-center">
-          <BodyText as="p" className="text-black/60">
-            Loading clients...
-          </BodyText>
-        </div>
-      </Card>
+      <Box className="py-12 text-center">
+        <Text className="text-sm text-gray-600">Loading clients...</Text>
+      </Box>
+    );
+  }
+
+  if (!enhancedClients.length) {
+    return (
+      <Box className="py-12 text-center">
+        <Text className="text-sm text-gray-600">
+          No clients yet. New clients will appear here as you start working with them.
+        </Text>
+      </Box>
     );
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <Box className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <Title as="h2" size="lg" className="text-navy">
-          Client List
-        </Title>
-      </div>
+      <Text className="text-lg font-medium text-gray-800">Clients</Text>
 
       {/* Filters */}
-      <Card>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* Stage Filter */}
-          <Dropdown
-            options={stageOptions}
-            value={filterStage}
-            onChange={(value) => setFilterStage(value)}
-            placeholder="All Stages"
-            size="md"
-            variant="default"
-          />
-
-          {/* Risk Flags Filter */}
-          <Dropdown
-            options={riskFlagOptions}
-            value={hasRiskFlags}
-            onChange={(value) => setHasRiskFlags(value)}
-            placeholder="All Clients"
-            size="md"
-            variant="default"
-          />
-        </div>
-      </Card>
+      <ClientListFilterUI
+        filterStage={filterStage}
+        setFilterStage={setFilterStage}
+        hasRiskFlags={hasRiskFlags}
+        setHasRiskFlags={setHasRiskFlags}
+      />
 
       {/* Client List */}
-      {filteredClients.length === 0 ? (
-        <Card>
-          <div className="py-12 text-center">
-            <BodyText as="p" className="text-black/60">
+      <ScrollView refreshing={refreshing} onRefresh={handleRefresh}>
+        {filteredClients.length === 0 ? (
+          <Box className="py-8 items-center">
+            <Text className="text-sm text-gray-600">
               {filterStage !== "all" || hasRiskFlags !== "all"
-                ? "No clients match your filters"
-                : "No clients yet"}
-            </BodyText>
-          </div>
-        </Card>
-      ) : (
-        <div className="space-y-4 sm:space-y-6">
-          {filteredClients.map((client) => (
-            <ClientRow key={client.id} client={client} onClick={() => onClientClick(client.id)} />
-          ))}
-        </div>
-      )}
-    </div>
+                ? "No clients match your filters."
+                : "No clients yet. New clients will appear here as you start working with them."}
+            </Text>
+          </Box>
+        ) : (
+          <Box className="gap-3">
+            {filteredClients.map((client) => (
+              <ClientRow 
+                key={client.id} 
+                client={client} 
+                onClick={() => onClientClick?.(client.id)} 
+              />
+            ))}
+          </Box>
+        )}
+      </ScrollView>
+    </Box>
   );
 };
 
