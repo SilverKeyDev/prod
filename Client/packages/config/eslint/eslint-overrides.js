@@ -205,6 +205,7 @@ function silverkeyComponentsAndFeatures(silverkey) {
           "error",
           {
             primitives: [
+              "div",
               "button",
               "a",
               "span",

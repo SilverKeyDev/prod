@@ -83,41 +83,26 @@ export default function DashboardChecklistsHeader({
       </Box>
 
       {activeTab != null && onTabChange != null && (
-        <Box className="mt-3 flex-row items-center justify-center">
-          {tabs.map((tab, index) => {
-            const isFirst = index === 0;
-            const isLast = index === tabs.length - 1;
+        <Box className="mt-4 flex flex-row items-center justify-center gap-1">
+          {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
-              <Box key={tab.id} className="min-w-0 flex-1 flex-row items-center">
+              <Box key={tab.id} className="flex-1">
                 <Button
                   variant="ghost"
                   {...getTabPressProps(tab)}
-                  className={`relative flex-1 items-center justify-center py-1.5 ${
-                    isActive ? "font-semibold" : "rounded-lg font-medium"
+                  className={`relative flex w-full items-center justify-center gap-2 px-responsive-sm py-responsive-sm ${
+                    isActive ? "font-semibold text-navy" : "font-medium text-navy/70 hover:text-navy/90"
                   }`}
                 >
-                  <Box className="flex-row items-center justify-center gap-1.5">
-                    <tab.icon className="h-[1em] w-[1em] shrink-0" />
-                    <BodyText as="span" size="sm" className="text-navy/70" numberOfLines={1}>
-                      {tab.label}
-                    </BodyText>
-                  </Box>
+                  <tab.icon className="h-4 w-4 shrink-0" />
+                  <BodyText as="span" size="sm" numberOfLines={1}>
+                    {tab.label}
+                  </BodyText>
                   {isActive && (
-                    <Box
-                      className={`bg-gold absolute bottom-0 h-0.5 ${
-                        isFirst
-                          ? "left-2 right-2 rounded-l-full"
-                          : isLast
-                            ? "left-2 right-2 rounded-r-full"
-                            : "left-2 right-2 rounded-full"
-                      }`}
-                    />
+                    <Box className="bg-gold absolute bottom-0 left-3 right-3 h-0.5 rounded-full" />
                   )}
                 </Button>
-                {index < tabs.length - 1 ? (
-                  <Box className="h-4 w-px flex-shrink-0 bg-gray-300" />
-                ) : null}
               </Box>
             );
           })}

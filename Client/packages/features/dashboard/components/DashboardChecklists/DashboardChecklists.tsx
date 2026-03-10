@@ -62,7 +62,7 @@ export default function DashboardChecklists() {
   }, [refreshChecklist]);
 
   return (
-    <Box className="w-full gap-3">
+    <Box className="flex w-full flex-col gap-3">
       <Box className="mb-2">
         <ClientSelector selectedClientId={selectedClientId} onClientChange={setSelectedClientId} />
       </Box>
@@ -77,27 +77,27 @@ export default function DashboardChecklists() {
         onTabChange={handleTabChange}
       />
 
-      <Box className="rounded-xl bg-gray-50 p-3">
+      <Box className="rounded-xl bg-gray-50 p-4">
         {isLoading ? (
-          <Box className="items-center justify-center py-8">
+          <Box className="flex items-center justify-center py-12">
             <Loading />
           </Box>
         ) : error ? (
-          <Box className="gap-2">
+          <Box className="flex flex-col gap-3">
             <Text className="text-sm text-red-500">{error}</Text>
             <Pressable
               onPress={handleRefresh}
-              className="bg-brand-accent self-start rounded-lg px-3 py-1.5"
+              className="bg-brand-accent self-start rounded-lg px-4 py-2"
             >
-              <Text className="text-xs font-medium text-white">Retry</Text>
+              <Text className="text-sm font-medium text-white">Retry</Text>
             </Pressable>
           </Box>
         ) : items.length === 0 ? (
-          <Box className="items-center justify-center py-8">
-            <Text className="text-sm text-gray-600">No checklist items yet.</Text>
+          <Box className="flex items-center justify-center py-12">
+            <Text className="text-base text-gray-600">No checklist items yet.</Text>
           </Box>
         ) : (
-          <Box className="gap-2">
+          <Box className="flex flex-col gap-3">
             {items.map((item) => {
               const checked = checkedIds.includes(item.id);
               return (
@@ -106,34 +106,34 @@ export default function DashboardChecklists() {
                   onPress={() => {
                     void handleToggleItem(item.id);
                   }}
-                  className="flex-row items-start gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2"
+                  className="flex flex-row items-start gap-4 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md"
                 >
                   <Box
-                    className={`mt-1 h-5 w-5 items-center justify-center rounded border ${
-                      checked ? "border-brand-accent bg-brand-accent" : "border-gray-300 bg-white"
+                    className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-md border-2 transition-colors ${
+                      checked ? "border-brand-accent bg-brand-accent" : "border-gray-300 bg-white hover:border-gray-400"
                     }`}
                   >
-                    {checked ? <Text className="text-xs font-semibold text-white">✓</Text> : null}
+                    {checked ? <Text className="text-sm font-bold text-white">✓</Text> : null}
                   </Box>
-                  <Box className="flex-1">
-                    <Text className="text-sm font-medium text-gray-900">{item.label}</Text>
+                  <Box className="flex-1 min-w-0">
+                    <Text className="text-base font-semibold text-gray-900 leading-relaxed">{item.label}</Text>
                     {!checked && (
                       <>
                         {item.explanation ? (
-                          <Text className="mt-1 text-xs text-gray-600">{item.explanation}</Text>
+                          <Text className="mt-2 text-sm leading-relaxed text-gray-600">{item.explanation}</Text>
                         ) : null}
                         {item.bullets && item.bullets.length > 0 ? (
-                          <Box className="mt-1 gap-1">
+                          <Box className="mt-2 flex flex-col gap-1.5">
                             {item.bullets.map((bullet) => (
-                              <Box key={bullet} className="flex-row gap-1">
-                                <Text className="mt-px text-xs text-gray-500">•</Text>
-                                <Text className="flex-1 text-xs text-gray-500">{bullet}</Text>
+                              <Box key={bullet} className="flex flex-row gap-2 items-start">
+                                <Text className="mt-0.5 text-sm text-gray-400 leading-none">•</Text>
+                                <Text className="flex-1 text-sm text-gray-600 leading-relaxed">{bullet}</Text>
                               </Box>
                             ))}
                           </Box>
                         ) : null}
                         {item.tip ? (
-                          <Text className="text-olive-700 mt-1 text-xs">{item.tip}</Text>
+                          <Text className="text-olive-700 mt-3 text-sm font-medium leading-relaxed">{item.tip}</Text>
                         ) : null}
                       </>
                     )}

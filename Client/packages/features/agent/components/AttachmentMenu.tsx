@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Icon } from "@ui/icons";
-
 import { useLocalization } from "packages/contexts";
 import { getDocument } from "packages/utils/platform";
 
@@ -55,16 +53,22 @@ export default function AttachmentMenu({
         size="sm"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-600 transition-all duration-200 hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-200"
+        className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 shadow-sm transition-all duration-200 ease-out hover:bg-gray-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:hover:shadow-sm"
         label={t("agent.add_attachment")}
       >
-        {isOpen ? (
-          <Icon name="x" className="h-4 w-4" />
-        ) : (
-          <BodyText as="span" size="md" className="text-lg font-light leading-none">
-            +
-          </BodyText>
-        )}
+        <div
+          className={`transition-transform duration-200 ease-out ${isOpen ? "rotate-45" : "rotate-0"}`}
+        >
+          {isOpen ? (
+            <BodyText as="span" size="md" className="text-lg font-light leading-none">
+              +
+            </BodyText>
+          ) : (
+            <BodyText as="span" size="md" className="text-lg font-light leading-none">
+              +
+            </BodyText>
+          )}
+        </div>
       </Button>
 
       {isOpen && (

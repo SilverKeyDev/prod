@@ -1,0 +1,20 @@
+{
+  "category": "text-content",
+  "description": "Text content blocks - all text must be wrapped in Text component",
+  "elements": ["p", "hr", "ul", "ol", "li", "dl", "dt", "dd", "pre", "blockquote", "figure", "figcaption"],
+  "reason": "React Native requires all text to be wrapped in Text component - block elements not supported",
+  "alternatives": {
+    "p": "BodyText component or Text with paragraph styling",
+    "hr": "View with border styling for horizontal rule",
+    "ul": "FlatList or ScrollView with bullet styling",
+    "ol": "FlatList or ScrollView with numbered items",
+    "li": "View with list item styling and Text content",
+    "dl": "View containing description list structure",
+    "dt": "Text with description term styling",
+    "dd": "Text with description detail styling", 
+    "pre": "Text with monospace font and preserved whitespace",
+    "blockquote": "View with quote styling containing Text",
+    "figure": "View containing image and caption",
+    "figcaption": "Text with caption styling"
+  }
+}

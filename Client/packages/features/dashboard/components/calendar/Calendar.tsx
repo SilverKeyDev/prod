@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarConnectionPrompt } from "packages/features/calendar";
 import { useGoogleCalendarStoreIntegration } from "packages/hooks/store/useGoogleCalendarStoreIntegration";
 import { type UIState, useUIStore } from "packages/store";
+import { Box, Text } from "packages/ui/components/primitives";
 import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
 import { getDocument, getWindow } from "packages/utils/platform";
 
@@ -130,14 +131,14 @@ export function Calendar() {
   // Show connection prompt if not connected
   if (!isConnected && !calendarsLoading) {
     return (
-      <div className="w-full">
+      <Box className="w-full">
         <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="w-full">
+    <Box className="w-full">
       {/* Calendar Header */}
       <CalendarHeader
         currentDate={currentDate}
@@ -150,13 +151,15 @@ export function Calendar() {
 
       {/* Loading State */}
       {(calendarsLoading || eventsLoading) && (
-        <div className="mb-4 text-center text-sm text-gray-500">Loading calendar...</div>
+        <Box className="mb-4 text-center text-sm text-gray-500">
+          <Text>Loading calendar...</Text>
+        </Box>
       )}
 
       {/* Calendar Grid */}
-      <div className="mb-8">
+      <Box className="mb-8">
         <CalendarView currentDate={currentDate} events={currentMonthEvents} />
-      </div>
+      </Box>
 
       {/* Upcoming Events List */}
       {upcomingEvents.length > 0 && (
@@ -166,6 +169,6 @@ export function Calendar() {
           emptyMessage="No upcoming events"
         />
       )}
-    </div>
+    </Box>
   );
 }

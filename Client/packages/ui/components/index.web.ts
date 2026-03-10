@@ -23,6 +23,7 @@ export * from "./accessibility";
 
 // Form components
 export { default as AccessibleTextInput } from "./form/AccessibleTextInput";
+export { AutoExpandingTextarea } from "./form/AutoExpandingTextarea";
 export { default as AccessibleCheckboxInput } from "./form/checkbox/AccessibleCheckboxInput";
 export { default as ChecklistCheckbox } from "./form/ChecklistCheckbox";
 export { default as DateInput } from "./form/DateInput";

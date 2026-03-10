@@ -1,5 +1,5 @@
 /** Native-only exports for mobile app. Do not import from this barrel in the web app. */
-export { HomeScreenNative } from "./components/homepage";
+export { HomeScreenNative } from "./components/homepage/HomeScreenNative.native";
 export { ContactUsScreenNative } from "./components/legal/ContactUsScreen.native";
 export { PrivacyPolicyScreenNative } from "./components/legal/PrivacyPolicyScreen.native";
 export { TermsOfServiceScreenNative } from "./components/legal/TermsOfServiceScreen.native";

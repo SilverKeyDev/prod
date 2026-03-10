@@ -150,7 +150,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   return (
     <Box className="bg-off-white flex-1">
       {/* Header */}
-      <Box className="mb-4 flex-row items-center justify-between px-4 pt-6">
+      <Box className="mb-4 flex flex-row items-center justify-between px-4 pt-6">
         <Pressable
           onPress={() => {
             navigateToPath("/dashboard");
@@ -160,7 +160,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
           <Text className="text-brand-accent text-sm font-medium">← Back</Text>
         </Pressable>
 
-        <Box className="flex-1 flex-row items-center gap-3">
+        <Box className="flex-1 flex flex-row items-center gap-3">
           <Box className="bg-olive/10 flex h-10 w-10 items-center justify-center rounded-full">
             <Text className="text-olive text-lg font-semibold">
               {client.name.charAt(0).toUpperCase()}

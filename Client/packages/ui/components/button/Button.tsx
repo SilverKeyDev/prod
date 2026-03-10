@@ -125,6 +125,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       hideTextBelow,
       label,
       type,
+      onClick,
+      onPress,
       ...props
     },
     ref
@@ -136,6 +138,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const innerTextColorClass = isFilledWithWhiteText ? "text-inherit" : "";
 
     const resolvedIcon = icon ?? (iconName ? <Icon name={iconName} /> : null);
+
+    // Create unified click handler for cross-platform compatibility
+    const handleClick = onClick ?? onPress;
 
     const textVisibilityClass = useMemo(() => {
       if (!children || !hideTextBelow) return "";
@@ -238,6 +243,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled: disabled ?? loading,
         "aria-label": label,
         title: label ?? undefined,
+        onClick: handleClick,
         ...props,
       },
       content

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { color } from "packages/design-tokens";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 
@@ -16,6 +15,7 @@ import {
 import { filterEventsByCalendars } from "@/features/calendar/utils/eventFiltering";
 import { getEventStartDate } from "@/features/calendar/utils/eventParsing";
 
+import type { ExtendedGoogleEvent } from "../types/calendar";
 import { CalendarConnectionPrompt } from "./view/CalendarConnectionPrompt";
 import { EventList } from "./view/EventList";
 
@@ -271,13 +271,18 @@ export function Calendar() {
             <Pressable
               key={d.key}
               onPress={() => setSelectedDayKey(d.key)}
-              style={[
-                styles.cell,
-                !d.isCurrentMonth && styles.cellMuted,
-                isSelected && styles.cellSelected,
-              ]}
+              style={{
+                ...styles.cell,
+                ...(!d.isCurrentMonth && styles.cellMuted),
+                ...(isSelected && styles.cellSelected),
+              }}
             >
-              <Text style={[styles.dayNumber, isSelected && styles.dayNumberSelected]}>
+              <Text
+                style={{
+                  ...styles.dayNumber,
+                  ...(isSelected && styles.dayNumberSelected),
+                }}
+              >
                 {d.date.getDate()}
               </Text>
               {d.count > 0 ? <Box style={styles.dot} /> : null}

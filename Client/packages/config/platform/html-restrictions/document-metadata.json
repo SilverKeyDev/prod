@@ -1,0 +1,17 @@
+{
+  "category": "document-metadata",
+  "description": "Document structure and metadata elements illegal in React Native",
+  "elements": ["html", "head", "body", "title", "base", "link", "meta", "style", "script", "noscript"],
+  "reason": "React Native has no DOM concept - these are web document structure elements",
+  "alternatives": {
+    "html": "App root component with React Native navigation",
+    "head": "No equivalent - metadata handled by platform",
+    "body": "App root component or main container",
+    "title": "StatusBar component or navigation title",
+    "link": "No equivalent - stylesheets not used in React Native",
+    "meta": "No equivalent - handled by app manifest",
+    "style": "StyleSheet.create() or styled-components",
+    "script": "JavaScript modules imported normally",
+    "noscript": "No equivalent - JavaScript always available"
+  }
+}

@@ -1,7 +1,7 @@
 import { BodyText, Title } from "@ui";
-import { Card } from "@ui/layout";
 
 import type { GoogleEvent } from "packages/features/calendar";
+import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import { EventCard } from "./EventCard";
@@ -31,7 +31,7 @@ export function EventList({
   });
 
   return (
-    <Card padding="md" className="w-full">
+    <Box className="w-full rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
       <Title as="h3" size="md" className="mb-4 text-gray-900">
         {title}
       </Title>
@@ -40,7 +40,7 @@ export function EventList({
           {emptyMessage}
         </BodyText>
       ) : (
-        <div className="space-y-2">
+        <Box className="space-y-2">
           {sortedEvents.map((event, index) => (
             <EventCard
               key={event.id || `event-${index}`}
@@ -48,8 +48,8 @@ export function EventList({
               onClick={() => onEventClick?.(event)}
             />
           ))}
-        </div>
+        </Box>
       )}
-    </Card>
+    </Box>
   );
 }

@@ -1,9 +1,7 @@
 import { useMemo } from "react";
 
-import { Button } from "@ui";
-import { Card } from "@ui/layout";
-
 import type { GoogleEvent } from "packages/features/calendar";
+import { Box, Pressable, Text } from "packages/ui/components/primitives";
 import { dateFormat, dateNow, dateParseISO, dayjs } from "packages/utils/date";
 
 type CalendarViewProps = {
@@ -102,63 +100,70 @@ export function CalendarView({ currentDate, events, onDateClick }: CalendarViewP
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <Card padding="md" className="w-full overflow-hidden">
+    <Box className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white p-4">
       {/* Week day headers */}
-      <div className="mb-2 grid grid-cols-7 gap-1">
+      <Box className="mb-3 grid grid-cols-7 gap-3">
         {weekDays.map((day) => (
-          <div
+          <Box
             key={day}
-            className="py-2 text-center text-xs font-semibold text-gray-600 sm:text-sm"
+            className="py-3 text-center text-sm font-bold text-gray-700 sm:text-base"
           >
-            {day}
-          </div>
+            <Text>
+              {day}
+            </Text>
+          </Box>
         ))}
-      </div>
+      </Box>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <Box className="grid grid-cols-7 gap-2">
         {calendarGrid.map((day, index) => {
           const dateKey = day.date.toISOString().split("T")[0];
           const dayNumber = day.date.getDate();
 
           return (
-            <Button
+            <Pressable
               key={`${dateKey}-${index}`}
-              variant="ghost"
-              onClick={() => onDateClick?.(day.date)}
-              className={`relative min-h-16 w-full rounded border p-1 text-left transition-colors sm:min-h-20 ${day.isCurrentMonth ? "border-beige/30 bg-white" : "border-gray-100 bg-gray-50/50"} ${day.isToday ? "border-brown bg-brown/5" : ""} hover:border-brown/50 hover:bg-brown/5 ${onDateClick ? "cursor-pointer" : "cursor-default"} `}
+              onPress={() => onDateClick?.(day.date)}
+              className={`relative min-h-16 w-full rounded border p-1 text-left transition-colors sm:min-h-20 ${day.isCurrentMonth ? "border-beige/30 bg-white" : "border-gray-100 bg-gray-50/50"} ${day.isToday ? "border-brown bg-brown/5" : ""} hover:border-brown/50 hover:bg-brown/5 `}
             >
               {/* Day number */}
-              <div
+              <Text
                 className={`absolute left-1 top-1 text-xs font-medium sm:text-sm ${day.isCurrentMonth ? "text-gray-900" : "text-gray-400"} ${day.isToday ? "text-brown font-semibold" : ""} `}
               >
                 {dayNumber}
-              </div>
+              </Text>
 
               {/* Events */}
-              <div className="space-y-0.5 pt-5">
+              <Box className="space-y-0.5 pt-5">
                 {day.events.slice(0, 3).map((event, eventIndex) => (
-                  <div
+                  <Box
                     key={event.id || `event-${eventIndex}`}
                     className="bg-olive/10 text-olive border-olive w-[80%] truncate rounded border-l-2 px-1 py-0.5 text-xs font-medium sm:text-xs"
-                    title={event.summary}
                   >
-                    {event.start.dateTime && (
-                      <>{dateFormat(dateParseISO(event.start.dateTime), "h:mm A")} </>
-                    )}
-                    {event.summary || "Untitled"}
-                  </div>
+                    <Text
+                      className="text-olive text-xs font-medium sm:text-xs"
+                      numberOfLines={1}
+                    >
+                      {event.start.dateTime && (
+                        <>{dateFormat(dateParseISO(event.start.dateTime), "h:mm A")} </>
+                      )}
+                      {event.summary || "Untitled"}
+                    </Text>
+                  </Box>
                 ))}
                 {day.events.length > 3 && (
-                  <div className="w-[80%] px-1 text-xs text-gray-500">
-                    +{day.events.length - 3} more
-                  </div>
+                  <Box className="w-[80%] px-1">
+                    <Text className="text-xs text-gray-500">
+                      +{day.events.length - 3} more
+                    </Text>
+                  </Box>
                 )}
-              </div>
-            </Button>
+              </Box>
+            </Pressable>
           );
         })}
-      </div>
-    </Card>
+      </Box>
+    </Box>
   );
 }

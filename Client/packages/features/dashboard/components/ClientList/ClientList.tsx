@@ -22,9 +22,9 @@ export function ClientListFilterUI({
   setHasRiskFlags,
 }: ClientListFilterUIProps) {
   return (
-    <Box className="mb-3 gap-2 rounded-lg bg-gray-50 p-2">
+    <Box className="mb-3 flex flex-col gap-2 rounded-lg bg-gray-50 p-2">
       <Text className="mb-1 text-xs font-semibold text-gray-700">Filter by stage</Text>
-      <Box className="flex-row flex-wrap gap-2">
+      <Box className="flex flex-row flex-wrap gap-2">
         {(["all", "search", "touring", "offer", "under_contract", "closing"] as const).map(
           (stage) => {
             const isActive = filterStage === stage;
@@ -55,7 +55,7 @@ export function ClientListFilterUI({
       </Box>
 
       <Text className="mb-1 mt-3 text-xs font-semibold text-gray-700">Risk flags</Text>
-      <Box className="flex-row flex-wrap gap-2">
+      <Box className="flex flex-row flex-wrap gap-2">
         {(["all", "has", "none"] as const).map((option) => {
           const isActive = hasRiskFlags === option;
           const labelMap: Record<typeof option | "all", string> = {

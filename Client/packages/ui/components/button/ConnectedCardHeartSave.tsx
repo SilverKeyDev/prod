@@ -16,7 +16,7 @@ export type ConnectedCardHeartSaveProps = {
   ariaLabel?: string;
 };
 
-/** 
+/**
  * Connected heart save button that uses useSavedHomesData.
  * Cross-platform component - uses platform-resolved HeartSave.
  * Use this instead of CardHeartSave when you need save/favorite behavior.

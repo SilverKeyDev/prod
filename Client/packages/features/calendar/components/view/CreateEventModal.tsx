@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { GoogleCalendar, GoogleEvent } from "packages/schemas/calendar";
 import type { UIState } from "packages/store";
 import { useGoogleMapsStore, useUIStore } from "packages/store";
 import type {
@@ -23,11 +22,14 @@ import { BodyText, CloseButton, DateInput, Input, TimeInput } from "@/components
 import Label from "@/components/ui/text/Label.web";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents";
 
+import type { Calendar } from "../../types/calendar";
+import type { GoogleEvent } from "../../types/googleEvent";
+
 type CreateEventModalProps = {
   isOpen: boolean;
   onClose: () => void;
   initialDate?: Date;
-  calendars: GoogleCalendar[];
+  calendars: Calendar[];
   defaultCalendarId?: string | null;
   onEventCreated?: () => void;
 };

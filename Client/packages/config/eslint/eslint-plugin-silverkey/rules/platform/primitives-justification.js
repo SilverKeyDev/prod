@@ -5,7 +5,7 @@ const path = require("path");
 
 /**
  * ESLint rule to ensure platform-specific UI primitive files are documented in primitives.json
- * 
+ *
  * This rule specifically targets UI primitive components that have platform-specific implementations
  * (e.g., Button.web.tsx, Input.native.tsx) and ensures they are properly documented.
  */
@@ -16,15 +16,15 @@ const CACHE_TTL = 5000; // 5 seconds
 
 function loadPrimitivesConfig() {
   const now = Date.now();
-  
-  if (configCache && (now - lastCacheCheck) < CACHE_TTL) {
+
+  if (configCache && now - lastCacheCheck < CACHE_TTL) {
     return configCache;
   }
 
   try {
     const platformDir = path.join(__dirname, "../../../platform");
     const primitivesPath = path.join(platformDir, "primitives.json");
-    
+
     if (!fs.existsSync(primitivesPath)) {
       configCache = new Set();
       lastCacheCheck = now;
@@ -33,7 +33,7 @@ function loadPrimitivesConfig() {
 
     const primitivesData = JSON.parse(fs.readFileSync(primitivesPath, "utf8"));
     const primitives = new Set();
-    
+
     if (Array.isArray(primitivesData)) {
       for (const item of primitivesData) {
         if (item && typeof item.module === "string") {
@@ -41,7 +41,7 @@ function loadPrimitivesConfig() {
         }
       }
     }
-    
+
     configCache = primitives;
     lastCacheCheck = now;
     return configCache;
@@ -57,10 +57,10 @@ function isPrimitiveFile(filename) {
     /\/ui\/components\/primitives\//,
     /\/primitives\//,
     /\/(button|input|text|image|video|modal|dialog|scroll|box|view)\/.*\.(web|native)\.(ts|tsx)$/i,
-    /\/(Button|Input|Text|Image|Video|Modal|Dialog|ScrollView|Box|View)\.(web|native)\.(ts|tsx)$/
+    /\/(Button|Input|Text|Image|Video|Modal|Dialog|ScrollView|Box|View)\.(web|native)\.(ts|tsx)$/,
   ];
-  
-  return primitivePatterns.some(pattern => pattern.test(filename));
+
+  return primitivePatterns.some((pattern) => pattern.test(filename));
 }
 
 module.exports = {
@@ -73,28 +73,26 @@ module.exports = {
     },
     schema: [],
     messages: {
-      undocumentedPrimitive: "UI primitive '{{filename}}' should be documented in packages/config/platform/primitives.json. This appears to be a platform-specific UI component that needs justification. Use the 'resolve-primitives-violation' skill for guidance on proper documentation.",
+      undocumentedPrimitive:
+        "UI primitive '{{filename}}' should be documented in packages/config/platform/primitives.json. This appears to be a platform-specific UI component that needs justification. Use the 'resolve-primitives-violation' skill for guidance on proper documentation.",
     },
   },
 
   create(context) {
     const filename = context.getFilename();
-    
+
     // Only check platform-specific files in packages directory
-    if (!filename.includes("/packages/") || 
-        !filename.match(/\.(web|native)\.(ts|tsx)$/)) {
+    if (!filename.includes("/packages/") || !filename.match(/\.(web|native)\.(ts|tsx)$/)) {
       return {};
     }
-    
+
     // Only check files that appear to be UI primitives
     if (!isPrimitiveFile(filename)) {
       return {};
     }
 
     const primitives = loadPrimitivesConfig();
-    const isDocumented = Array.from(primitives).some(primitive => 
-      filename.includes(primitive)
-    );
+    const isDocumented = Array.from(primitives).some((primitive) => filename.includes(primitive));
 
     return {
       Program(node) {
@@ -103,11 +101,11 @@ module.exports = {
             node,
             messageId: "undocumentedPrimitive",
             data: {
-              filename: path.basename(filename)
-            }
+              filename: path.basename(filename),
+            },
           });
         }
-      }
+      },
     };
-  }
+  },
 };

@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 
-import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
 import { dateParseISO } from "packages/utils/date";
 
 import { BodyText, Button } from "@/components/ui";
 
+import type { ExtendedGoogleEvent } from "../../../types/calendar";
 import type { GridDay } from "./types";
 
 type DayCellProps = {

@@ -30,6 +30,8 @@ module.exports = {
       },
     ],
     messages: {
+      useBox:
+        "Use <Box> from packages/ui/components/primitives instead of <div> for cross-platform compatibility. Import: import { Box } from 'packages/ui/components/primitives'",
       useButton:
         "Use <Button> from components/ui instead of <button>. Import: import { Button } from '../ui'",
       useLink:
@@ -59,6 +61,7 @@ module.exports = {
     const filename = context.getFilename();
     const opt = context.options[0] || {};
     const primitives = opt.primitives || [
+      "div",
       "button",
       "a",
       "span",
@@ -121,6 +124,7 @@ module.exports = {
     };
 
     const messageIdByElement = {
+      div: "useBox",
       button: "useButton",
       a: "useLink",
       span: "useBodyText",

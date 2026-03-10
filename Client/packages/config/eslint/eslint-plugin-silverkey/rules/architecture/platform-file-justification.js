@@ -15,9 +15,9 @@ const CACHE_TTL = 5000; // 5 seconds
  */
 function loadPlatformConfigs() {
   const now = Date.now();
-  
+
   // Return cached config if still valid
-  if (configCache && (now - lastCacheCheck) < CACHE_TTL) {
+  if (configCache && now - lastCacheCheck < CACHE_TTL) {
     return configCache;
   }
 
@@ -102,11 +102,13 @@ function loadPlatformConfigs() {
 function isDocumentedPlatformFile(filePath, configs) {
   // Normalize the file path (remove leading ./ and convert to forward slashes)
   const normalizedPath = filePath.replace(/^\.\//, "").replace(/\\/g, "/");
-  
+
   // Check if the file is documented in any config
-  return configs.primitives.has(normalizedPath) || 
-         configs.variants.has(normalizedPath) || 
-         configs.layouts.has(normalizedPath);
+  return (
+    configs.primitives.has(normalizedPath) ||
+    configs.variants.has(normalizedPath) ||
+    configs.layouts.has(normalizedPath)
+  );
 }
 
 /**
@@ -118,7 +120,7 @@ function getRelativePathFromPackages(filename) {
   if (packagesIndex === -1) {
     return null;
   }
-  
+
   // Return the path from packages/ onwards
   return filename.substring(packagesIndex + 1); // +1 to remove the leading slash
 }
@@ -164,7 +166,7 @@ module.exports = {
     return {
       Program(node) {
         const filename = context.filename || context.getFilename();
-        
+
         // Only check files in packages/ directory
         if (!filename.includes("/packages/")) {
           return;
@@ -188,7 +190,7 @@ module.exports = {
         // Check if the file is documented
         if (!isDocumentedPlatformFile(relativePath, configs)) {
           let messageId = "undocumentedPlatformFile";
-          
+
           // Provide more specific messages based on file type
           if (filename.includes(".web.")) {
             messageId = "undocumentedWebFile";
@@ -199,9 +201,9 @@ module.exports = {
           context.report({
             node,
             messageId,
-            data: { 
+            data: {
               filename: path.basename(filename),
-              relativePath 
+              relativePath,
             },
           });
         }

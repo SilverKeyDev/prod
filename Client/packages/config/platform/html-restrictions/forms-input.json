@@ -1,0 +1,22 @@
+{
+  "category": "forms-input",
+  "description": "Form and input elements - use React Native input components",
+  "elements": ["form", "fieldset", "legend", "input", "textarea", "button", "label", "select", "option", "optgroup", "datalist", "output", "progress", "meter"],
+  "reason": "React Native has its own input components with different APIs and behavior",
+  "alternatives": {
+    "form": "View container with form state management",
+    "fieldset": "View with grouped form fields",
+    "legend": "Text component for fieldset title",
+    "input": "TextInput component",
+    "textarea": "TextInput with multiline={true}",
+    "button": "Button component or Pressable",
+    "label": "Text component positioned near input",
+    "select": "Picker component or custom dropdown",
+    "option": "Picker.Item or custom option component",
+    "optgroup": "Picker sections or custom grouping",
+    "datalist": "Custom autocomplete component",
+    "output": "Text component for computed values",
+    "progress": "Progress component or custom progress bar",
+    "meter": "Custom meter component with styling"
+  }
+}

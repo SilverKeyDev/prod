@@ -167,12 +167,12 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
                     }}
                     className="active:opacity-90"
                   >
-                    <Box className="gap-2">
+                    <Box className="flex flex-col gap-2">
                       <Text className="text-sm font-semibold text-gray-900">{address}</Text>
                       <Text className="text-sm text-gray-700">{price}</Text>
 
                       {/* Property details */}
-                      <Box className="flex-row items-center gap-4">
+                      <Box className="flex flex-row items-center gap-4">
                         {home.bedrooms != null && (
                           <Text className="text-xs text-gray-600">
                             {home.bedrooms} {home.bedrooms === 1 ? "bed" : "beds"}
@@ -191,7 +191,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
                   </Pressable>
 
                   {/* Action buttons */}
-                  <Box className="mt-3 flex-row gap-2">
+                  <Box className="mt-3 flex flex-row gap-2">
                     <Pressable
                       onPress={() => handleOpenDetails(home)}
                       className="bg-brand-accent flex-1 rounded-lg px-3 py-2"

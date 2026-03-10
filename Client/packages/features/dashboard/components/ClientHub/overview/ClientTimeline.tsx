@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import type { ClientTimelineEvent } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
+import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import { BodyText, Title } from "@/components/ui";
@@ -36,49 +37,49 @@ const ClientTimeline: React.FC<ClientTimelineProps> = ({ events }) => {
   };
   return (
     <SectionCard title="Client Timeline" iconName="calendar">
-      <div className="space-y-4">
+      <Box className="flex flex-col space-y-4">
         {sortedEvents.length === 0 ? (
-          <div className="py-8 text-center">
+          <Box className="flex py-8 text-center">
             <BodyText as="p" size="sm" className="text-black/60">
               No timeline events
             </BodyText>
-          </div>
+          </Box>
         ) : (
-          <div className="relative">
+          <Box className="relative">
             {/* Timeline line */}
-            <div className="bg-beige/30 absolute bottom-0 left-6 top-0 w-0.5"></div>
+            <Box className="bg-beige/30 absolute bottom-0 left-6 top-0 w-0.5"></Box>
 
             {/* Timeline events */}
-            <div className="space-y-6">
+            <Box className="flex flex-col space-y-6">
               {sortedEvents.map((event) => (
-                <div key={event.id} className="relative flex items-start gap-4">
+                <Box key={event.id} className="relative flex items-start gap-4">
                   {/* Icon */}
-                  <div className="border-beige/50 z-10 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 bg-white">
+                  <Box className="border-beige/50 z-10 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 bg-white">
                     {getEventIcon(event.type)}
-                  </div>
+                  </Box>
 
                   {/* Content */}
-                  <div className="min-w-0 flex-1 pt-1">
-                    <div className="mb-1 flex items-center justify-between gap-2">
+                  <Box className="min-w-0 flex-1 pt-1">
+                    <Box className="mb-1 flex items-center justify-between gap-2">
                       <Title as="h4" size="md" className="text-navy font-semibold">
                         {event.title}
                       </Title>
                       <BodyText as="span" size="sm" className="whitespace-nowrap text-black/60">
                         {formatDate(event.date)}
                       </BodyText>
-                    </div>
+                    </Box>
                     {event.description && (
                       <BodyText as="p" size="sm" className="text-black/60">
                         {event.description}
                       </BodyText>
                     )}
-                  </div>
-                </div>
+                  </Box>
+                </Box>
               ))}
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
-      </div>
+      </Box>
     </SectionCard>
   );
 };

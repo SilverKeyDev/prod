@@ -26,12 +26,39 @@ export type ClientErrorPayload = {
   routeError?: boolean;
 };
 
+// Rate limiting to prevent error cascade
+const errorReportQueue = new Map<string, number>();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_REPORTS_PER_WINDOW = 10;
+
 /**
  * Report a client error to the backend. Fire-and-forget; does not throw.
  * Caller should not rely on this for control flow.
+ * Rate limited to prevent error cascades.
  */
 export async function reportClientError(payload: ClientErrorPayload): Promise<void> {
   if (!payload.message && !payload.name) return;
+
+  // Rate limiting check
+  const now = Date.now();
+  const errorKey = `${payload.name || "unknown"}:${payload.message?.substring(0, 50) || "unknown"}`;
+  const lastReported = errorReportQueue.get(errorKey);
+
+  if (lastReported && now - lastReported < RATE_LIMIT_WINDOW) {
+    return; // Skip this report to prevent spam
+  }
+
+  // Clean old entries
+  if (errorReportQueue.size > MAX_REPORTS_PER_WINDOW) {
+    const cutoff = now - RATE_LIMIT_WINDOW;
+    for (const [key, timestamp] of errorReportQueue.entries()) {
+      if (timestamp < cutoff) {
+        errorReportQueue.delete(key);
+      }
+    }
+  }
+
+  errorReportQueue.set(errorKey, now);
 
   const fetchFn = getFetchIfAvailable();
   if (!fetchFn) return;

@@ -36,9 +36,9 @@ export function UnderlineTabs({
     ? "flex flex-row items-center justify-center rounded-none border-b border-gray-200"
     : "flex flex-row flex-shrink-0 rounded-none border-b border-gray-200";
   const tabLayoutClass = compact
-    ? "relative flex items-center justify-center px-3 py-2"
-    : "relative flex flex-1 items-center justify-center px-4 py-2";
-  const textSizeClass = compact ? "text-sm" : "text-sm";
+    ? "relative flex items-center justify-center px-responsive-sm py-responsive-xs"
+    : "relative flex flex-1 items-center justify-center px-responsive-md py-responsive-sm";
+  const textSizeClass = compact ? "text-responsive-sm" : "text-responsive-sm";
 
   return (
     <Box className={className ? `${containerClass} ${className}` : containerClass}>

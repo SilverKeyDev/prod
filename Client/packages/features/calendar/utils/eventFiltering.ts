@@ -1,6 +1,6 @@
-import type { Calendar, ExtendedGoogleEvent } from "packages/schemas/calendar";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
+import type { Calendar, ExtendedGoogleEvent } from "../types/calendar";
 import { calculateCalendarDateRange } from "./date";
 import { getEventStartDate } from "./eventParsing";
 

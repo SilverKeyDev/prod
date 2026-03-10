@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 
-import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
 import { getEventEndDate, getEventStartDate } from "@/features/calendar/utils/eventParsing";
+
+import type { ExtendedGoogleEvent } from "../../types/calendar";
 
 type EventCardProps = {
   event: ExtendedGoogleEvent;

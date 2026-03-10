@@ -1,0 +1,18 @@
+{
+  "category": "tables",
+  "description": "Table elements - React Native has no native table support",
+  "elements": ["table", "caption", "thead", "tbody", "tfoot", "tr", "td", "th", "colgroup", "col"],
+  "reason": "React Native does not have table elements - use FlatList or custom grid layouts",
+  "alternatives": {
+    "table": "FlatList with custom row rendering or View with flexbox grid",
+    "caption": "Text component above the data list",
+    "thead": "Header component or sticky header in FlatList",
+    "tbody": "FlatList data prop or View containing rows",
+    "tfoot": "Footer component or ListFooterComponent in FlatList",
+    "tr": "View with flexDirection: 'row' for table row",
+    "td": "View with flex: 1 containing Text for table cell",
+    "th": "View with header styling containing Text",
+    "colgroup": "No direct equivalent - handle column styling per cell",
+    "col": "No direct equivalent - handle column styling per cell"
+  }
+}

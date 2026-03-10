@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
 
 import { color } from "packages/design-tokens";
-import type { ExtendedGoogleEvent } from "packages/schemas/calendar";
 import { Box, ScrollView, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
+import type { ExtendedGoogleEvent } from "../../types/calendar";
 import { EventCard } from "./EventCard";
 
 type EventListProps = {

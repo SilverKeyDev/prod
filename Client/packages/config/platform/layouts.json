@@ -19,7 +19,7 @@
     "id": "home-screen-layout",
     "description": "Home/landing screen with platform-specific layout patterns",
     "webPath": "packages/features/homeauth/components/homepage/HomeScreenWeb.web.tsx",
-    "nativePath": "packages/features/homeauth/components/homepage/HomeScreenNative.native.tsx", 
+    "nativePath": "packages/features/homeauth/components/homepage/HomeScreenNative.native.tsx",
     "reason": "Desktop layout uses multi-column sidebar approach, mobile uses full-screen vertical stack. Fundamentally different responsive design patterns.",
     "category": "layout"
   },

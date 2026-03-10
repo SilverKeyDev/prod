@@ -1,7 +1,7 @@
 import { BodyText, Title } from "@ui";
-import { Card } from "@ui/layout";
 
 import type { GoogleEvent } from "packages/features/calendar";
+import { Box, Pressable } from "packages/ui/components/primitives";
 import { dateFormat, dateParseISO } from "packages/utils/date";
 
 type EventCardProps = {
@@ -36,13 +36,11 @@ export function EventCard({ event, onClick }: EventCardProps) {
   };
 
   return (
-    <Card
-      padding="sm"
-      hover={!!onClick}
-      onClick={onClick}
-      className="border-l-olive mb-2 w-full cursor-pointer border-l-4 transition-all hover:shadow-md"
+    <Pressable
+      onPress={onClick}
+      className="border-l-olive mb-2 w-full rounded-lg border border-gray-200 border-l-4 bg-white p-3 shadow-sm transition-all hover:shadow-md"
     >
-      <div className="flex flex-col gap-1">
+      <Box className="flex flex-col gap-1">
         <Title as="h4" size="sm" className="font-medium text-gray-900">
           {event.summary || "Untitled Event"}
         </Title>
@@ -61,7 +59,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
             {event.description}
           </BodyText>
         )}
-      </div>
-    </Card>
+      </Box>
+    </Pressable>
   );
 }

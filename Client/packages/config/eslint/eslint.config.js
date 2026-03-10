@@ -131,7 +131,7 @@ export default tseslint.config(
       // Platform files: ensure .web/.native files in packages/ are documented in platform config
       // Specific linters for each category provide targeted guidance
       "silverkey/primitives-justification": "error",
-      "silverkey/variants-justification": "error", 
+      "silverkey/variants-justification": "error",
       "silverkey/layouts-justification": "error",
     },
   },

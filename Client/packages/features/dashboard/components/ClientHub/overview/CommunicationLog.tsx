@@ -5,6 +5,7 @@ import { Icon } from "@ui/icons";
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import type { AgentNote, DecisionLogEntry } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
+import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import { BodyText, Title } from "@/components/ui";
@@ -45,11 +46,11 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
   ].sort((a, b) => dateParseISO(b.date).valueOf() - dateParseISO(a.date).valueOf());
   return (
     <SectionCard title="Communication Log" iconName="message-square">
-      <div className="space-y-6">
+      <Box className="flex flex-col space-y-6">
         {/* Messages Summary */}
         {conversation && (
-          <div className="border-beige/30 rounded-lg border bg-white p-4">
-            <div className="mb-2 flex items-center justify-between">
+          <Box className="border-beige/30 rounded-lg border bg-white p-4">
+            <Box className="mb-2 flex items-center justify-between">
               <Title as="h3" size="md" className="text-navy font-semibold">
                 Messages
               </Title>
@@ -58,13 +59,13 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
                   ? formatDate(conversation.last_message_at)
                   : "No messages"}
               </BodyText>
-            </div>
+            </Box>
             {conversation.last_message && (
               <BodyText as="p" size="sm" className="line-clamp-2 text-black/60">
                 {conversation.last_message}
               </BodyText>
             )}
-          </div>
+          </Box>
         )}
 
         {/* Decisions and Notes */}
@@ -115,7 +116,7 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
             </div>
           )}
         </div>
-      </div>
+      </Box>
     </SectionCard>
   );
 };

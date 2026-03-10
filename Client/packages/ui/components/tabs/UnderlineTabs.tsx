@@ -34,9 +34,9 @@ export function UnderlineTabs({
     ? "flex items-center justify-center rounded-none border-b border-gray-200"
     : "flex flex-shrink-0 rounded-none border-b border-gray-200";
   const buttonLayoutClass = compact
-    ? "relative flex items-center justify-center px-responsive-sm py-responsive-sm"
-    : "relative flex flex-1 items-center justify-center px-4 py-2";
-  const textSizeClass = compact ? "text-responsive-sm" : "text-sm";
+    ? "relative flex items-center justify-center px-responsive-sm py-responsive-xs"
+    : "relative flex flex-1 items-center justify-center px-responsive-md py-responsive-sm";
+  const textSizeClass = compact ? "text-responsive-sm" : "text-responsive-sm";
 
   return (
     <div className={className ? `${containerClass} ${className}` : containerClass}>

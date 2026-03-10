@@ -119,7 +119,7 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
                 >
                   {todo.title}
                 </Text>
-                <Box className="flex-row items-center gap-3">
+                <Box className="flex flex-row items-center gap-3">
                   <Text className="text-xs font-medium text-gray-700">
                     {priorityLabels[todo.priority]}
                   </Text>
@@ -137,7 +137,7 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
 
       {isAgent ? (
         showAddForm ? (
-          <Box className="mt-2 gap-2">
+          <Box className="mt-2 flex flex-col gap-2">
             <PrimitiveInput
               value={newTodoTitle}
               onValueChange={setNewTodoTitle}
@@ -145,7 +145,7 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-base text-gray-900"
             />
 
-            <Box className="flex-row flex-wrap gap-2">
+            <Box className="flex flex-row flex-wrap gap-2">
               {(Object.keys(priorityOrder) as TodoPriority[]).map((priority) => {
                 const selected = selectedPriority === priority;
                 return (
@@ -166,7 +166,7 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
               })}
             </Box>
 
-            <Box className="flex-row gap-2">
+            <Box className="flex flex-row gap-2">
               <Pressable
                 onPress={handleAddTodo}
                 className="bg-brand-accent flex-1 rounded-lg px-4 py-2 active:opacity-90"
