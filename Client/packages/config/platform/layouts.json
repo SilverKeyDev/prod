@@ -1,0 +1,42 @@
+[
+  {
+    "id": "home-screen-root",
+    "description": "Main application entry point and home screen structure",
+    "webPath": "apps/web/app/AppRoot.web.tsx",
+    "nativePath": "apps/mobile/app/AppRoot.native.tsx",
+    "reason": "Fundamentally different app initialization, routing setup, and root navigation structure between web and native platforms.",
+    "category": "app-shell"
+  },
+  {
+    "id": "navigation-shell",
+    "description": "Primary navigation container and routing structure",
+    "webPath": "apps/web/app/layouts/sidebar/",
+    "nativePath": "apps/mobile/app/navigation/",
+    "reason": "Web uses sidebar navigation with react-router, native uses stack/tab navigation with react-navigation. Different navigation paradigms require separate implementations.",
+    "category": "navigation"
+  },
+  {
+    "id": "home-screen-layout",
+    "description": "Home/landing screen with platform-specific layout patterns",
+    "webPath": "packages/features/homeauth/components/homepage/HomeScreenWeb.web.tsx",
+    "nativePath": "packages/features/homeauth/components/homepage/HomeScreenNative.native.tsx", 
+    "reason": "Desktop layout uses multi-column sidebar approach, mobile uses full-screen vertical stack. Fundamentally different responsive design patterns.",
+    "category": "layout"
+  },
+  {
+    "id": "reels-view-implementation",
+    "description": "Video reels viewing experience with platform-specific gestures",
+    "webPath": "packages/features/feed/components/Reels/DesktopReelsViewImpl.web.tsx",
+    "nativePath": "packages/features/feed/components/Reels/MobileReelsViewImpl.native.tsx",
+    "reason": "Desktop uses mouse/keyboard navigation with hover states, mobile uses swipe gestures and touch interactions. Different media playback and interaction models.",
+    "category": "media-interaction"
+  },
+  {
+    "id": "search-page-container",
+    "description": "Search results page layout with map/list toggle",
+    "webPath": "packages/features/search/components/layout/SearchPageMapContainer.web.tsx",
+    "nativePath": "packages/features/search/components/layout/SearchPageMapContainer.native.tsx",
+    "reason": "Web supports side-by-side map and list view, native uses full-screen toggle between map and list. Different viewport handling and layout constraints.",
+    "category": "responsive-layout"
+  }
+]
