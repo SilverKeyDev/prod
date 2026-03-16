@@ -1,3 +1,5 @@
+import { Box } from "packages/ui/components/primitives";
+
 import { BodyText, Button, CancelButton, Textarea } from "@/components/ui";
 
 type VoidConfirmationProps = {
@@ -22,7 +24,7 @@ export default function VoidConfirmation({
   onCancel,
 }: VoidConfirmationProps) {
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+    <Box className="rounded-lg border border-red-200 bg-red-50 p-4">
       <BodyText size="sm" className="mb-3 text-red-900">
         Are you sure you want to void this agreement? This action cannot be undone.
       </BodyText>
@@ -33,14 +35,14 @@ export default function VoidConfirmation({
         rows={2}
         className="mb-3 w-full rounded-lg border border-red-300 px-3 py-2 text-sm"
       />
-      <div className="flex items-center gap-2">
+      <Box className="flex flex-row items-center gap-2">
         <Button variant="danger" size="sm" onClick={onConfirm} disabled={isVoiding}>
           {isVoiding ? "Voiding..." : "Confirm Void"}
         </Button>
         <CancelButton size="sm" onClick={onCancel}>
           Cancel
         </CancelButton>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

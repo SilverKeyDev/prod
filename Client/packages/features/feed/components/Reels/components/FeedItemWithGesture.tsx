@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useFeedReelsContext } from "packages/features/feed/hooks/feedReels/useFeedReelsContext";
 import { useFeedAxisLock, useFeedGestureTrap } from "packages/hooks/ui";
+import { Box } from "packages/ui/components/primitives";
 
 import { Button, Region } from "@/components/ui";
 import type { MediaCarouselRef } from "@/features/feed/components/carousel/MediaCarousel";
@@ -84,9 +85,9 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
   const isReelActive = index === activeIndex;
   const isVisible = Math.abs(index - activeIndex) <= 1;
   return (
-    <div
+    <Box
       ref={containerRef}
-      className="relative box-border flex w-full shrink-0 items-center justify-center"
+      className="relative box-border flex w-full shrink-0 flex-row items-center justify-center"
       style={{
         height: "var(--reel-viewport-height, 100%)",
       }}
@@ -95,11 +96,11 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
       onTouchEnd={() => handleTouchEnd(containerRef)}
       onTouchCancel={() => handleTouchEnd(containerRef)}
     >
-      <div className="relative flex h-full w-full max-w-md items-center justify-center md:max-w-[56.25dvh]">
-        <div className="pointer-events-none absolute inset-0 z-10" aria-hidden />
+      <Box className="relative flex h-full w-full max-w-md flex-row items-center justify-center md:max-w-[450px]">
+        <Box className="pointer-events-none absolute inset-0 z-10" aria-hidden />
         {showHeartBurst && (
-          <div
-            className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+          <Box
+            className="pointer-events-none absolute inset-0 z-10 flex flex-row items-center justify-center"
             aria-hidden
           >
             <Icon
@@ -107,9 +108,9 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
               className="animate-heart-burst h-24 w-24 shrink-0 fill-red-500 text-red-500"
               strokeWidth={1.5}
             />
-          </div>
+          </Box>
         )}
-        <div className="relative flex h-full w-full flex-col">
+        <Box className="relative flex h-full w-full flex-row flex-col">
           <MediaCarousel
             ref={mediaCarouselRef}
             media={item.media}
@@ -122,15 +123,15 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
             onSlideChange={(slideIndex) => onReportSlideChange?.(index, slideIndex)}
             onVideoPlayingChange={(playing) => onReportVideoPlaying?.(index, playing)}
           />
-        </div>
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex min-h-28 items-end justify-between gap-2 px-2 pb-3 max-md:[bottom:var(--mobile-bottom-reserved)] md:pb-4">
-          <div className="pointer-events-auto min-w-0 flex-1 overflow-hidden">
+        </Box>
+        <Box className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex min-h-28 flex-row items-end justify-between gap-2 px-2 pb-3 max-md:[bottom:var(--mobile-bottom-reserved)] md:pb-4">
+          <Box className="pointer-events-auto min-w-0 flex-1 overflow-hidden">
             <BottomInfo item={item} embedded />
-          </div>
+          </Box>
           {totalSlides > 1 && (
             <Region
               label={`Slide ${currentSlideIndex + 1} of ${totalSlides}`}
-              className="pointer-events-auto absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end justify-center gap-1.5 pb-7 md:pb-8"
+              className="pointer-events-auto absolute bottom-0 left-1/2 flex -translate-x-1/2 flex-row items-end justify-center gap-1.5 pb-7 md:pb-8"
             >
               {Array.from({ length: totalSlides }, (_, i) => (
                 <Button
@@ -140,7 +141,7 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
                   variant="ghost"
                   size="xs"
                   rounded="full"
-                  className="!h-1.5 !max-h-1.5 !min-h-1.5 !w-1.5 !min-w-1.5 !max-w-1.5 shrink-0 !p-0 hover:bg-transparent focus:ring-white focus:ring-offset-transparent"
+                  className="!h-1.5 !max-h-1.5 !min-h-1.5 !w-1.5 !min-w-1.5 !max-w-1.5 shrink-0 !p-0 hover:bg-transparent focus:ring-white focus:ring-offset-transparent active:bg-transparent"
                   style={{
                     backgroundColor:
                       i === currentSlideIndex ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.4)",
@@ -151,7 +152,7 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
               ))}
             </Region>
           )}
-          <div className="pointer-events-auto flex shrink-0 items-end">
+          <Box className="pointer-events-auto flex shrink-0 flex-row items-end">
             <FeedActionStack
               item={item}
               isLiked={isLiked}
@@ -159,9 +160,9 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
               onComment={onComment}
               onMore={onMore}
             />
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }

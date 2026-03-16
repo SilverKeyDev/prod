@@ -2,7 +2,7 @@
 
 ### Problem / goal
 
-SkySlope holds the **authoritative forms library** for many agents (especially at eXp).  
+Transaction forms are pulled from **FMLS**, **eXp API**, and/or **SkySlope**. SkySlope holds the **authoritative forms library** for many agents (especially at eXp).  
 We must decide how to:
 - Discover available forms/templates.
 - Keep metadata reasonably fresh.

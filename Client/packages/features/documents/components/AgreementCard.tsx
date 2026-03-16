@@ -2,6 +2,8 @@ import { useMemo } from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { BodyText, Button, Title } from "@/components/ui";
 import { formatAgreementDate, getAgreementTypeLabel } from "@/features/documents/utils/agreements";
 
@@ -59,10 +61,11 @@ export default function AgreementCard({
     }
   };
   return (
-    <div
+    <Box
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={`rounded-lg border border-gray-200 bg-white transition-colors hover:border-gray-300 ${onClick ? "cursor-pointer" : ""} ${className}`}
+      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+      className={`rounded-lg border border-gray-200 bg-white hover:border-gray-300 active:border-gray-400 active:opacity-90 ${onClick ? "cursor-pointer" : ""} ${className}`}
       onClick={handleCardClick}
       onKeyDown={
         onClick
@@ -75,24 +78,25 @@ export default function AgreementCard({
           : undefined
       }
     >
-      <div className={`${compact ? "p-3" : "p-4"}`}>
+      {/* eslint-disable-next-line silverkey/no-dynamic-class-names -- conditional compact; refactor complex */}
+      <Box className={`${compact ? "p-3" : "p-4"}`}>
         {/* Header */}
-        <div className="mb-2 flex items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-1 items-start gap-2">
-            <div className="mt-1 flex-shrink-0">
+        <Box className="mb-2 flex flex-row items-start justify-between gap-3">
+          <Box className="flex min-w-0 flex-1 flex-row items-start gap-2">
+            <Box className="mt-1 flex-shrink-0">
               <Icon name="file-text" className="h-5 w-5 text-gray-600" />
-            </div>
-            <div className="min-w-0 flex-1">
+            </Box>
+            <Box className="min-w-0 flex-1">
               <Title size="sm" className="truncate">
                 {agreement.title}
               </Title>
               <BodyText size="xs" muted className="mt-0.5">
                 {getAgreementTypeLabel(agreement.agreement_type)}
               </BodyText>
-            </div>
-          </div>
+            </Box>
+          </Box>
           <AgreementStatusBadge status={agreement.status} size="sm" />
-        </div>
+        </Box>
 
         {/* Property Address */}
         {agreement.property_address && (
@@ -102,7 +106,7 @@ export default function AgreementCard({
         )}
 
         {/* Metadata */}
-        <div className="mb-2 flex items-center justify-between text-xs text-gray-500">
+        <Box className="mb-2 flex flex-row items-center justify-between text-xs text-gray-500">
           <BodyText as="span" size="xs" className="text-gray-500">
             Created {formatAgreementDate(agreement.created_at)}
           </BodyText>
@@ -111,34 +115,34 @@ export default function AgreementCard({
               Sent {formatAgreementDate(agreement.sent_at)}
             </BodyText>
           )}
-        </div>
+        </Box>
 
         {/* Progress Bar (if sent) */}
         {agreement.participants && agreement.participants.length > 0 && (
-          <div className="mt-3">
-            <div className="mb-1 flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+          <Box className="mt-3">
+            <Box className="mb-1 flex flex-row items-center justify-between">
+              <Box className="flex flex-row items-center gap-1.5 text-xs text-gray-600">
                 <Icon name="users" className="h-3.5 w-3.5" />
                 <BodyText as="span" size="xs" className="text-gray-600">
                   {signingProgress.signed}/{signingProgress.total} signed
                 </BodyText>
-              </div>
+              </Box>
               <BodyText as="span" size="xs" className="text-gray-500">
                 {signingProgress.percentage}%
               </BodyText>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-              <div
-                className="h-full bg-green-500 transition-all duration-300"
+            </Box>
+            <Box className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+              <Box
+                className="h-full bg-green-500"
                 style={{ width: `${signingProgress.percentage}%` }}
               />
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
 
         {/* Actions */}
         {showActions && (
-          <div className="mt-3 flex items-center gap-2 border-t border-gray-100 pt-3">
+          <Box className="mt-3 flex flex-row items-center gap-2 border-t border-gray-100 pt-3">
             {agreement.status === "draft" && (
               <Button variant="primary" size="sm" onClick={(e) => handleActionClick("send", e)}>
                 Send
@@ -152,9 +156,9 @@ export default function AgreementCard({
             <Button variant="outline" size="sm" onClick={(e) => handleActionClick("view", e)}>
               View Details
             </Button>
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

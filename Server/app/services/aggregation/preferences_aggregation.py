@@ -1,16 +1,18 @@
 """
 Aggregate user preferences from User + UserFinancials, UserDemographics, UserSearchIntent,
-UserImportantLocation, UserIntentAttribute into a single dict for consumers.
+UserImportantLocation, UserIntentAttribute, UserAgentProfile into a single dict for consumers.
 """
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from typing import Any
 
 from app import db
 from app.models import (
     User,
+    UserAgentProfile,
     UserDemographics,
     UserFinancials,
     UserImportantLocation,
@@ -26,6 +28,9 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         return None
 
     out: dict[str, Any] = {}
+
+    # User-level: is_agent
+    out["is_agent"] = "yes" if getattr(user, "is_agent", False) else "no"
 
     # Financials
     fin = (
@@ -128,7 +133,61 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         out["preferred_home_features"] = []
         out["deal_breakers"] = []
 
+    # Agent profile (only when user.is_agent is True)
+    if getattr(user, "is_agent", False):
+        agent = (
+            getattr(user, "user_agent_profile", None)
+            or UserAgentProfile.query.filter_by(user_id=user_id).first()
+        )
+        if agent:
+            out["agent_physical_mailing_address"] = agent.physical_mailing_address
+            out["agent_licensed_states"] = _parse_json_array(agent.licensed_states)
+            out["agent_license_types"] = _parse_json_array(agent.license_types)
+            out["agent_license_numbers"] = _parse_json_array(agent.license_numbers)
+            out["agent_license_expiration_dates"] = _parse_json_array(
+                agent.license_expiration_dates
+            )
+            out["agent_mls_affiliations"] = _parse_json_list_of_dicts(agent.mls_affiliations)
+            out["agent_brokerage_name"] = agent.brokerage_name
+            out["agent_brokerage_bic_name"] = agent.brokerage_bic_name
+            out["agent_brokerage_address"] = agent.brokerage_address
+            out["agent_brokerage_email"] = agent.brokerage_email
+            out["agent_brokerage_phone"] = agent.brokerage_phone
+            out["agent_professional_headshot_url"] = agent.professional_headshot_url
+            out["agent_bio"] = agent.agent_bio
+            out["agent_primary_service_zips"] = _parse_json_array(agent.primary_service_zips)
+            out["agent_specialties"] = _parse_json_array(agent.specialties)
+            out["agent_social_links"] = _parse_json_object(agent.social_links)
+
     return out if out else None
+
+
+def _parse_json_array(value: str | None) -> list:
+    """Parse JSON array from text column; return empty list on failure."""
+    if not value:
+        return []
+    try:
+        parsed = json.loads(value)
+        return list(parsed) if isinstance(parsed, list) else []
+    except (json.JSONDecodeError, TypeError):
+        return []
+
+
+def _parse_json_list_of_dicts(value: str | None) -> list[dict[str, Any]]:
+    """Parse JSON array of dicts from text column."""
+    arr = _parse_json_array(value)
+    return [x for x in arr if isinstance(x, dict)]
+
+
+def _parse_json_object(value: str | None) -> dict[str, Any]:
+    """Parse JSON object from text column; return empty dict on failure."""
+    if not value:
+        return {}
+    try:
+        parsed = json.loads(value)
+        return dict(parsed) if isinstance(parsed, dict) else {}
+    except (json.JSONDecodeError, TypeError):
+        return {}
 
 
 def get_preferences_dict_optional(user_id: str) -> dict[str, Any] | None:
@@ -158,6 +217,9 @@ def get_preferences_updated_at(user_id: str) -> datetime | None:
     intent = UserSearchIntent.query.filter_by(user_id=user_id).first()
     if intent and getattr(intent, "updated_at", None):
         candidates.append(intent.updated_at)
+    agent_prof = UserAgentProfile.query.filter_by(user_id=user_id).first()
+    if agent_prof and getattr(agent_prof, "updated_at", None):
+        candidates.append(agent_prof.updated_at)
     if not candidates:
         return None
     return max(candidates)
@@ -187,6 +249,90 @@ def get_preferences_dict_for_user(
     return prefs, None
 
 
+def _write_agent_profile_from_payload(agent: UserAgentProfile, data: dict[str, Any]) -> None:
+    """Update UserAgentProfile from preferences payload."""
+    if "agent_physical_mailing_address" in data:
+        agent.physical_mailing_address = (
+            str(data["agent_physical_mailing_address"]).strip()
+            if data["agent_physical_mailing_address"] is not None
+            else None
+        )
+    if "agent_licensed_states" in data:
+        agent.licensed_states = (
+            json.dumps(list(data["agent_licensed_states"]))
+            if isinstance(data["agent_licensed_states"], list)
+            else None
+        )
+    if "agent_license_types" in data:
+        agent.license_types = (
+            json.dumps(list(data["agent_license_types"]))
+            if isinstance(data["agent_license_types"], list)
+            else None
+        )
+    if "agent_license_numbers" in data:
+        agent.license_numbers = (
+            json.dumps(list(data["agent_license_numbers"]))
+            if isinstance(data["agent_license_numbers"], list)
+            else None
+        )
+    if "agent_license_expiration_dates" in data:
+        agent.license_expiration_dates = (
+            json.dumps(list(data["agent_license_expiration_dates"]))
+            if isinstance(data["agent_license_expiration_dates"], list)
+            else None
+        )
+    if "agent_mls_affiliations" in data:
+        val = data["agent_mls_affiliations"]
+        agent.mls_affiliations = json.dumps(list(val)) if isinstance(val, list) else None
+    if "agent_brokerage_name" in data:
+        agent.brokerage_name = (
+            str(data["agent_brokerage_name"]).strip()
+            if data["agent_brokerage_name"] is not None
+            else None
+        )
+    if "agent_brokerage_bic_name" in data:
+        agent.brokerage_bic_name = (
+            str(data["agent_brokerage_bic_name"]).strip()
+            if data["agent_brokerage_bic_name"] is not None
+            else None
+        )
+    if "agent_brokerage_address" in data:
+        agent.brokerage_address = (
+            str(data["agent_brokerage_address"]).strip()
+            if data["agent_brokerage_address"] is not None
+            else None
+        )
+    if "agent_brokerage_email" in data:
+        agent.brokerage_email = (
+            str(data["agent_brokerage_email"]).strip()
+            if data["agent_brokerage_email"] is not None
+            else None
+        )
+    if "agent_brokerage_phone" in data:
+        agent.brokerage_phone = (
+            str(data["agent_brokerage_phone"]).strip()
+            if data["agent_brokerage_phone"] is not None
+            else None
+        )
+    if "agent_professional_headshot_url" in data:
+        agent.professional_headshot_url = (
+            str(data["agent_professional_headshot_url"]).strip()
+            if data["agent_professional_headshot_url"] is not None
+            else None
+        )
+    if "agent_bio" in data:
+        agent.agent_bio = str(data["agent_bio"]).strip() if data["agent_bio"] is not None else None
+    if "agent_primary_service_zips" in data:
+        val = data["agent_primary_service_zips"]
+        agent.primary_service_zips = json.dumps(list(val)) if isinstance(val, list) else None
+    if "agent_specialties" in data:
+        val = data["agent_specialties"]
+        agent.specialties = json.dumps(list(val)) if isinstance(val, list) else None
+    if "agent_social_links" in data:
+        val = data["agent_social_links"]
+        agent.social_links = json.dumps(dict(val)) if isinstance(val, dict) else None
+
+
 def user_has_preferences(user_id: str) -> bool:
     """Return True if the user exists and has preferences (has_preferences flag or aggregated data)."""
     if not user_id:
@@ -214,6 +360,11 @@ def write_preferences_from_payload(
     u = user or User.query.get(user_id)
     if not u:
         raise ValueError(f"User not found: {user_id}")
+
+    # User.is_agent from payload
+    if "is_agent" in data:
+        val = data["is_agent"]
+        u.is_agent = bool(val and str(val).lower() in ("yes", "true", "1", "am_agent"))
 
     # Financials
     fin = UserFinancials.query.filter_by(user_id=user_id).first()
@@ -328,6 +479,17 @@ def write_preferences_from_payload(
                         user_id=user_id, attribute_type="deal_breaker", attribute_key=key
                     )
                 )
+
+    # Agent profile (when user.is_agent is True and agent fields present)
+    if getattr(u, "is_agent", False):
+        agent = UserAgentProfile.query.filter_by(user_id=user_id).first()
+        if agent is None:
+            agent = UserAgentProfile(user_id=user_id)
+            db.session.add(agent)
+        _write_agent_profile_from_payload(agent, data)
+    else:
+        # Remove agent profile when user is no longer an agent
+        UserAgentProfile.query.filter_by(user_id=user_id).delete()
 
     u.has_preferences = True
     db.session.commit()

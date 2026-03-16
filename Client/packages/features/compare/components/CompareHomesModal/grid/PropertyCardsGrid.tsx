@@ -2,6 +2,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedHome } from "packages/types";
+import { Box } from "packages/ui/components/primitives";
 
 import { PropertyCard } from "@/components/cards";
 import { Button, ConnectedCardHeartSave, Title } from "@/components/ui";
@@ -28,7 +29,7 @@ function SelectedCompareCard({
 }) {
   const { t } = useLocalization();
   return (
-    <div className="scale-75 sm:scale-90 md:scale-100">
+    <Box className="scale-75 sm:scale-90 md:scale-100">
       <PropertyCard
         id={home.home_id}
         imageUrl={home.image_url}
@@ -50,7 +51,7 @@ function SelectedCompareCard({
         cardType="searchpage"
         showScore={false}
         topContent={
-          <div className="flex items-center justify-between">
+          <Box className="flex flex-row items-center justify-between">
             <ConnectedCardHeartSave property={toCardProperty(home)} size="sm" />
             <Button
               type="button"
@@ -59,15 +60,15 @@ function SelectedCompareCard({
                 e.stopPropagation();
                 onRemove(home.home_id);
               }}
-              className="group relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-400 shadow-md ring-1 ring-black/5 transition-all duration-300 hover:scale-110 hover:text-gray-600 active:scale-95"
+              className="group relative inline-flex h-9 w-9 flex-row items-center justify-center rounded-full bg-white text-gray-400 shadow-md ring-1 ring-neutral-200 hover:text-gray-600 active:text-gray-600 active:text-gray-700"
               label={t("compare.remove_aria")}
             >
-              <Icon name="x" className="h-4 w-4 transition-transform duration-200" />
+              <Icon name="x" className="h-4 w-4" />
             </Button>
-          </div>
+          </Box>
         }
       />
-    </div>
+    </Box>
   );
 }
 type PropertyCardsGridProps = {
@@ -79,15 +80,15 @@ export function PropertyCardsGrid({ selectedHomes, onRemove }: PropertyCardsGrid
   const { t } = useLocalization();
   if (selectedHomes.length === 0) return null;
   return (
-    <div className="mb-responsive-md">
+    <Box className="mb-responsive-md">
       <Title size="sm" className="mb-responsive-md font-medium">
         {t("compare.property_details")}
       </Title>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      <Box className="grid-responsive-2-gap-2">
         {selectedHomes.map((home) => (
           <SelectedCompareCard key={home.home_id} home={home} onRemove={onRemove} />
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

@@ -1,13 +1,25 @@
 import React, { forwardRef, useMemo } from "react";
 
-import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader.web";
+import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import { Icon } from "@ui/icons";
-import BodyText from "@ui/text/BodyText";
 
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { BUTTON_VARIANT_STYLES, type ButtonStyleVariant } from "packages/ui/types/button";
+import { Box, Pressable, Row, Text } from "packages/ui/components/primitives";
+import { BUTTON_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
+import { buttonNativeSizes } from "packages/ui/styles/variants/buttonSizes";
+import {
+  BUTTON_BASE_CLASSES,
+  BUTTON_ICON_SIZE_CLASS,
+  BUTTON_ROUNDED_CLASSES,
+  BUTTON_SIZE_CLASSES,
+  BUTTON_TEXT_COLOR_CLASSES,
+  BUTTON_TEXT_SIZE_CLASSES,
+  BUTTON_VARIANT_STYLES,
+  type ButtonStyleVariant,
+} from "packages/ui/styles/variants/buttonVariants";
 import type { IconName } from "packages/ui/types/icons";
+import { isNative } from "packages/utils/platform";
 
 /**
  * Variants: primary (CTA), secondary (neutral), tertiary (gold), outline, ghost, danger, success.
@@ -22,6 +34,26 @@ export type ButtonVariant =
   | "danger"
   | "success"
   | "cancel";
+
+/** RN-safe props to forward to Pressable */
+const PRESSABLE_FORWARD_KEYS = [
+  "testID",
+  "accessibilityRole",
+  "accessibilityState",
+  "accessibilityHint",
+  "accessibilityLevel",
+  "nativeID",
+] as const;
+
+function pickPressableProps(props: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const key of PRESSABLE_FORWARD_KEYS) {
+    if (key in props && props[key] !== undefined) {
+      result[key] = props[key];
+    }
+  }
+  return result;
+}
 
 export type ButtonProps = {
   variant?: ButtonVariant;
@@ -49,49 +81,42 @@ export type ButtonProps = {
    * Unified accessibility label. Maps to aria-label (web) and accessibilityLabel (RN).
    */
   label?: string;
-  /** Press handler for React Native. Web uses onClick. */
-  onPress?: () => void;
-} & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
-    children?: React.ReactNode;
-  };
+  /** Cross-platform press handler. Web maps to onClick. */
+  onPress?: (e?: unknown) => void;
+  /** Web legacy; receives click event. Prefer onPress for cross-platform. */
+  onClick?: (e?: unknown) => void;
+  type?: "button" | "submit" | "reset";
+  className?: string;
+  children?: React.ReactNode;
+  disabled?: boolean;
+  title?: string;
+  /** Inline styles (forwarded to Pressable). */
+  style?: React.CSSProperties;
+  id?: string;
+  role?: string;
+  "aria-current"?: string;
+  /** Exclude from tab order when -1. Forwarded to underlying element. */
+  tabIndex?: number;
+  /** Accessibility label (alias for label; forwarded when label not set). */
+  "aria-label"?: string;
+};
 
 // ----- Design decisions (locked) -----
 // - cancel variant: alias to ghost (recommended for cancel actions).
-// - outline/ghost hover: tint only (bg-brand-accent/10), never full fill.
+// - outline/ghost hover: tint only (bg-neutral-100), never full fill.
 // - primary + tertiary: always white text; filled buttons use subtle darken on hover (/90).
 // - Disabled: pointer-events-none in base; no disabled:hover:* in variants (they never trigger).
 // ----- Button group guidance -----
 // Confirmations: primary + ghost (cancel). Yes = primary, Cancel = ghost.
 // "Back / Next": outline + primary, or secondary + primary, depending on vibe.
 
-/** Single base string all variants share. Ensures spacing and icon alignment. */
-const BASE_CLASSES =
-  "inline-flex items-center gap-2 font-medium leading-none select-none transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:translate-y-[0.5px]";
-
-const SIZE_CLASSES: Record<"sm" | "md" | "lg", string> = {
-  sm: "btn-responsive-sm",
-  md: "btn-responsive-md",
-  lg: "btn-responsive-lg",
-};
-
-const ROUNDED_CLASSES: Record<NonNullable<ButtonProps["rounded"]>, string> = {
-  none: "rounded-none",
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-lg",
-  xl: "rounded-xl",
-  full: "rounded-full",
-};
-
-const ICON_SIZE_CLASS: Record<"sm" | "md" | "lg", string> = {
-  sm: "h-4 w-4 shrink-0",
-  md: "h-4 w-4 shrink-0",
-  lg: "h-5 w-5 shrink-0",
-};
-
 /** Clone valid elements and append size class; wrap non-elements so icon never baseline-shifts. */
-function renderIcon(icon: React.ReactNode, size: "sm" | "md" | "lg"): React.ReactNode {
-  const iconClass = ICON_SIZE_CLASS[size];
+function renderIcon(
+  icon: React.ReactNode,
+  size: "sm" | "md" | "lg",
+  textColorClass: string
+): React.ReactNode {
+  const iconClass = `${BUTTON_ICON_SIZE_CLASS[size]} ${textColorClass}`.trim();
   if (!icon) return null;
   if (React.isValidElement(icon)) {
     const existingClassName = (icon.props as { className?: string })?.className ?? "";
@@ -101,13 +126,12 @@ function renderIcon(icon: React.ReactNode, size: "sm" | "md" | "lg"): React.Reac
     }) as React.ReactNode;
   }
   return (
-    <BodyText as="span" className={`inline-flex items-center ${iconClass}`}>
-      {icon}
-    </BodyText>
+    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+    <Box className={`inline-flex flex-row items-center ${iconClass}`}>{icon}</Box>
   ) as React.ReactNode;
 }
 
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
   (
     {
       variant = "primary",
@@ -124,32 +148,39 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       hideTextBelow,
       label,
-      type,
+      type = "button",
       onClick,
       onPress,
+      title,
+      style,
+      id,
+      role,
+      "aria-current": ariaCurrent,
+      tabIndex,
+      "aria-label": ariaLabel,
       ...props
     },
     ref
   ) => {
     const effectiveVariant: ButtonStyleVariant = variant === "cancel" ? "ghost" : variant;
-    const isFilledWithWhiteText = ["primary", "tertiary", "danger", "success"].includes(
-      effectiveVariant
-    );
-    const innerTextColorClass = isFilledWithWhiteText ? "text-inherit" : "";
+    const textColorClass = BUTTON_TEXT_COLOR_CLASSES[effectiveVariant];
+    const textSizeClass = BUTTON_TEXT_SIZE_CLASSES[size];
+    const iconClassName = `${BUTTON_ICON_SIZE_CLASS[size]} ${textColorClass}`.trim();
 
-    const resolvedIcon = icon ?? (iconName ? <Icon name={iconName} /> : null);
+    const resolvedIcon =
+      icon ?? (iconName ? <Icon name={iconName} className={iconClassName} /> : null);
 
-    // Create unified click handler for cross-platform compatibility
-    const handleClick = onClick ?? onPress;
+    // Unified press handler: prefer onPress (cross-platform), fallback to onClick (web legacy)
+    const handlePress = onPress ?? onClick;
 
     const textVisibilityClass = useMemo(() => {
       if (!children || !hideTextBelow) return "";
       const map: Record<NonNullable<typeof hideTextBelow>, string> = {
-        sm: "hidden sm:inline-flex",
-        md: "hidden md:inline-flex",
-        lg: "hidden lg:inline-flex",
-        xl: "hidden xl:inline-flex",
-        "2xl": "hidden 2xl:inline-flex",
+        sm: "hidden sm:inline-flex flex-row",
+        md: "hidden md:inline-flex flex-row",
+        lg: "hidden lg:inline-flex flex-row",
+        xl: "hidden xl:inline-flex flex-row",
+        "2xl": "hidden 2xl:inline-flex flex-row",
       };
       return map[hideTextBelow];
     }, [children, hideTextBelow]);
@@ -159,43 +190,68 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const layoutClass = isEdgeRight ? "justify-between" : "";
 
     const buttonClasses = [
-      BASE_CLASSES,
-      SIZE_CLASSES[size],
-      ROUNDED_CLASSES[rounded],
+      BUTTON_BASE_CLASSES,
+      BUTTON_TRANSITION_CLASSES,
+      BUTTON_SIZE_CLASSES[size],
+      BUTTON_ROUNDED_CLASSES[rounded],
       BUTTON_VARIANT_STYLES[effectiveVariant],
       fullWidth ? "w-full" : "",
       layoutClass,
       "touch-friendly",
+      (disabled ?? loading) ? "opacity-50" : "",
       className,
     ]
       .filter(Boolean)
       .join(" ");
 
-    // When loading, never show icon; loader uses the same slot (left or right) for stable layout.
+    if (typeof __DEV__ !== "undefined" && __DEV__ && isNative) {
+      log.debug(LOG_CATEGORIES.STYLING, "[Button] buttonClasses", {
+        truncated: buttonClasses.slice(0, 80) + (buttonClasses.length > 80 ? "..." : ""),
+      });
+      log.debug(LOG_CATEGORIES.STYLING, "[Button] full classes", buttonClasses);
+    }
+
     const iconLeft = !loading && resolvedIcon && iconPosition === "left";
     const iconRight = !loading && resolvedIcon && iconPosition === "right";
-    const textSpan = (
-      <BodyText
-        as="span"
-        className={[
-          "inline-flex w-full items-center justify-center gap-2",
-          textVisibilityClass,
-          innerTextColorClass,
-        ]
-          .filter(Boolean)
-          .join(" ")}
+
+    const loaderBox = (
+      <Box
+        className={`items-center justify-center ${BUTTON_ICON_SIZE_CLASS[size]} ${textColorClass}`.trim()}
       >
-        {children}
-      </BodyText>
+        <KeyTurnLoader message="" />
+      </Box>
     );
 
-    const loaderWrapperClass =
-      `inline-flex items-center justify-center ${ICON_SIZE_CLASS[size]} ${innerTextColorClass}`.trim();
-    const loaderSpan = (
-      <BodyText as="span" className={loaderWrapperClass}>
-        <KeyTurnLoader message="" />
-      </BodyText>
-    );
+    const textContent =
+      children != null ? (
+        typeof children === "string" ? (
+          <Text
+            className={[
+              "inline-flex w-full flex-row items-center justify-center gap-2 text-center font-medium leading-none",
+              textVisibilityClass,
+              textColorClass,
+              textSizeClass,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {children}
+          </Text>
+        ) : (
+          <Box
+            className={[
+              "inline-flex w-full flex-row items-center justify-center gap-2 text-center font-medium leading-none",
+              textVisibilityClass,
+              textColorClass,
+              textSizeClass,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {children}
+          </Box>
+        )
+      ) : null;
 
     if (getEnv().isDevelopment && hideTextBelow && !label) {
       log.warn(
@@ -204,49 +260,67 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       );
     }
 
-    const content = (
-      isEdgeRight ? (
-        <>
-          <BodyText
-            as="span"
-            className={`inline-flex min-w-0 flex-1 items-center justify-start gap-2 ${innerTextColorClass}`.trim()}
-          >
-            {iconLeft && renderIcon(resolvedIcon, size)}
-            {children ? textSpan : null}
-          </BodyText>
-          {iconRight || loading ? (
-            <BodyText
-              as="span"
-              className={`inline-flex shrink-0 items-center ${innerTextColorClass}`.trim()}
-            >
-              {loading ? loaderSpan : iconRight ? renderIcon(resolvedIcon, size) : null}
-            </BodyText>
-          ) : null}
-        </>
-      ) : (
-        <>
-          {loading && iconPosition === "left" && loaderSpan}
-          {iconLeft && renderIcon(resolvedIcon, size)}
-          {children ? textSpan : null}
-          {loading && iconPosition === "right" && loaderSpan}
-          {iconRight && renderIcon(resolvedIcon, size)}
-        </>
-      )
-    ) as React.ReactNode;
+    const content = isEdgeRight ? (
+      <>
+        <Box className={`min-w-0 flex-1 items-center justify-start gap-2 ${textColorClass}`.trim()}>
+          {iconLeft && renderIcon(resolvedIcon, size, textColorClass)}
+          {textContent}
+        </Box>
+        {(iconRight || loading) && (
+          <Box className={`shrink-0 items-center ${textColorClass}`.trim()}>
+            {loading
+              ? loaderBox
+              : iconRight
+                ? renderIcon(resolvedIcon, size, textColorClass)
+                : null}
+          </Box>
+        )}
+      </>
+    ) : (
+      <Row className="items-center justify-center gap-2">
+        {loading && iconPosition === "left" && loaderBox}
+        {iconLeft && (
+          <Box className="items-center justify-center">
+            {renderIcon(resolvedIcon, size, textColorClass)}
+          </Box>
+        )}
+        {textContent}
+        {loading && iconPosition === "right" && loaderBox}
+        {iconRight && (
+          <Box className="items-center justify-center">
+            {renderIcon(resolvedIcon, size, textColorClass)}
+          </Box>
+        )}
+      </Row>
+    );
 
-    return React.createElement(
-      "button",
-      {
-        ref,
-        type: type ?? "button",
-        className: buttonClasses,
-        disabled: disabled ?? loading,
-        "aria-label": label,
-        title: label ?? undefined,
-        onClick: handleClick,
-        ...props,
-      },
-      content
+    const pressableProps = pickPressableProps(props);
+
+    /** Native: merge buttonNativeSizes (CVA native: doesn't apply at Babel time). No inline theme overrides. */
+    const nativeSizeStyle = isNative ? buttonNativeSizes[size ?? "md"] : undefined;
+    const mergedStyle = isNative
+      ? [nativeSizeStyle, style].filter(Boolean)
+      : style;
+
+    return (
+      <Pressable
+        ref={ref}
+        type={type}
+        className={buttonClasses}
+        disabled={disabled ?? loading}
+        onPress={handlePress}
+        aria-label={ariaLabel ?? label}
+        accessibilityLabel={ariaLabel ?? label}
+        title={title ?? label}
+        style={mergedStyle}
+        id={id}
+        role={role}
+        aria-current={ariaCurrent}
+        tabIndex={tabIndex}
+        {...pressableProps}
+      >
+        {content}
+      </Pressable>
     );
   }
 );

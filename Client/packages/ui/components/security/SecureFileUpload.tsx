@@ -4,16 +4,21 @@
  */
 import React, { useCallback, useRef, useState } from "react";
 
+import Button from "@ui/button/Button";
+import Input from "@ui/form/Input";
 import { Icon } from "@ui/icons";
+import Card from "@ui/layout/Card.web";
+import BodyText from "@ui/text/BodyText";
+import Label from "@ui/text/Label.web";
+import Title from "@ui/text/Title";
 
 import { useLocalization } from "packages/contexts";
 import { formatFileSize, processImage } from "packages/services/security/imageProcessor";
 import { log } from "packages/services/security/secureLogger";
-import { Image } from "packages/ui/components/primitives";
-
-import Card from "@/components/layout/Card.web";
-import { BodyText, Button, Input, Label, Title } from "@/components/ui";
-type SecureFileUploadProps = {
+import { DROP_ZONE_BORDER_BASE } from "packages/ui/components/form/fileUploadStyles";
+import { Box, Image } from "packages/ui/components/primitives";
+import { CARD_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
+export type SecureFileUploadProps = {
   onFilesProcessed: (files: ProcessedImage[]) => void;
   maxFiles?: number;
   maxSize?: number;
@@ -185,9 +190,10 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
     };
   }, [files]);
   return (
+    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <Card className={`w-full ${className}`} padding="md">
       {label && (
-        <Label className="mb-4 block">
+        <Label className="mb-4 flex flex-col">
           {label}
           {required && (
             <BodyText as="span" className="text-red-500">
@@ -197,14 +203,11 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         </Label>
       )}
 
-      <div
+      <Box
         role="button"
         tabIndex={disabled ? -1 : 0}
-        className={`relative rounded-lg border-2 border-dashed p-6 text-center transition-all duration-200 ${
-          isDragOver
-            ? "border-brand-accent bg-brand-accent/5"
-            : "hover:border-brand-accent/50 border-gray-300"
-        } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-gray-50"} `}
+        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+        className={`relative ${DROP_ZONE_BORDER_BASE} p-6 text-center ${CARD_TRANSITION_CLASSES} ${isDragOver ? "border-brand-accent bg-neutral-100" : "hover:border-brand-accent active:border-brand-accent border-gray-300"} ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-gray-50 active:bg-gray-100 active:opacity-90"} active:bg-gray-50`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -226,9 +229,9 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
           ref={fileInputRef}
         />
 
-        <div className="space-y-3">
-          <Icon name="upload" className="mx-auto h-10 w-10 text-gray-400" />
-          <div>
+        <Box className="flex flex-col gap-3">
+          <Icon name="upload" className="h-10 w-10 self-center text-gray-400" />
+          <Box>
             <BodyText as="p" size="sm" className="text-gray-600">
               {t("secure_upload.click_or_drag")}
             </BodyText>
@@ -238,31 +241,35 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                 size: formatFileSize(maxSize),
               })}
             </BodyText>
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {processing && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
-            <div className="border-brand-accent h-8 w-8 animate-spin rounded-full border-b-2"></div>
-          </div>
+          <Box className="absolute inset-0 flex flex-row items-center justify-center bg-white bg-opacity-75">
+            <Box className="border-brand-accent h-8 w-8 animate-spin rounded-full border-b-2"></Box>
+          </Box>
         )}
-      </div>
+      </Box>
 
       {error && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
-          <div className="flex items-center space-x-2">
+        <Box className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
+          <Box className="flex flex-row items-center gap-2">
             <Icon name="alert-triangle" className="h-4 w-4 flex-shrink-0 text-red-600" />
             <BodyText as="p" size="sm" className="text-red-800">
               {error}
             </BodyText>
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
 
       {files.length > 0 && (
-        <div className="mt-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <Title as="h4" size="sm" className="flex items-center font-medium text-gray-700">
+        <Box className="mt-6 flex flex-col gap-4">
+          <Box className="flex flex-row items-center justify-between">
+            <Title
+              as="h4"
+              size="sm"
+              className="flex flex-row items-center font-medium text-gray-700"
+            >
               <Icon name="file-image" className="mr-2 h-4 w-4" />
               {t("secure_upload.uploaded_files", { count: files.length })}
             </Title>
@@ -276,19 +283,19 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                 setFiles([]);
                 setError(null);
               }}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 active:text-gray-700 active:text-gray-800"
             >
               {t("secure_upload.clear_all")}
             </Button>
-          </div>
-          <div className="space-y-3">
+          </Box>
+          <Box className="flex flex-col gap-3">
             {files.map((file) => (
-              <div
+              <Box
                 key={file.id}
-                className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4"
+                className="flex flex-row items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4"
               >
-                <div className="flex items-center space-x-4">
-                  <div className="flex-shrink-0">
+                <Box className="flex flex-row items-center gap-4">
+                  <Box className="flex-shrink-0">
                     {file.preview ? (
                       <Image
                         src={file.preview}
@@ -296,55 +303,58 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                         className="h-12 w-12 rounded-lg border border-gray-200 object-cover"
                       />
                     ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-200">
+                      <Box className="flex h-12 w-12 flex-row items-center justify-center rounded-lg bg-gray-200">
                         <BodyText as="span" className="text-xs text-gray-600">
                           {`${(file.processedSize / 1024 / 1024).toFixed(2)}${t("common.mb")}`}
                         </BodyText>
-                      </div>
+                      </Box>
                     )}
-                  </div>
-                  <div className="min-w-0 flex-1">
+                  </Box>
+                  <Box className="min-w-0 flex-1">
                     <BodyText as="p" size="sm" className="truncate font-medium text-gray-900">
                       {file.file.name}
                     </BodyText>
-                    <div className="mt-1 flex items-center space-x-3 text-xs text-gray-500">
+                    <Box className="mt-1 flex flex-row items-center gap-3 text-xs text-gray-500">
                       {formatFileSize(file.processedSize)}
                       {file.originalSize !== file.processedSize && (
-                        <BodyText as="span" className="flex items-center">
+                        <BodyText as="span" className="flex flex-row items-center">
                           <Icon name="check-circle" className="mr-1 h-3 w-3" />
                           {t("secure_upload.exif_stripped")}
                         </BodyText>
                       )}
-                    </div>
+                    </Box>
                     {file.warnings.length > 0 && (
-                      <div className="mt-1">
+                      <Box className="mt-1">
                         {file.warnings.map((warning, index) => (
                           <BodyText key={index} as="p" size="xs" className="text-yellow-600">
                             {t("secure_upload.warning_prefix")}
                             {warning}
                           </BodyText>
                         ))}
-                      </div>
+                      </Box>
                     )}
-                  </div>
-                </div>
+                  </Box>
+                </Box>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => removeFile(file.id)}
                   iconName="x"
-                  className="text-red-400 hover:text-red-600"
+                  className="text-red-400 hover:text-red-600 active:text-red-600 active:text-red-700"
                 />
-              </div>
+              </Box>
             ))}
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
 
       {previewFile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <Card className="relative max-h-[90vh] max-w-4xl overflow-hidden" padding="none">
-            <div className="flex items-center justify-between border-b border-gray-200 p-4">
+        <Box className="fixed inset-0 z-50 flex flex-row items-center justify-center bg-neutral-900 p-4">
+          <Card
+            className="relative max-h-full min-h-0 max-w-4xl flex-1 overflow-hidden"
+            padding="none"
+          >
+            <Box className="flex flex-row items-center justify-between border-b border-gray-200 p-4">
               <Title as="h3" size="lg" className="font-medium text-gray-900">
                 {previewFile.file.name}
               </Title>
@@ -353,18 +363,18 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                 size="sm"
                 onClick={() => setPreviewFile(null)}
                 iconName="x"
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 active:text-gray-600 active:text-gray-700"
               />
-            </div>
-            <div className="p-6">
+            </Box>
+            <Box className="p-6">
               <Image
                 src={previewFile.preview}
                 alt={previewFile.file.name}
-                className="mx-auto max-h-[70vh] max-w-full rounded-lg object-contain"
+                className="max-h-96 max-w-full self-center rounded-lg object-contain"
               />
-            </div>
+            </Box>
           </Card>
-        </div>
+        </Box>
       )}
     </Card>
   );

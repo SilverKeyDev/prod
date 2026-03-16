@@ -8,6 +8,7 @@ import {
   type TaskChecklistResponse,
   updateTaskChecklist,
 } from "packages/features/checklists/api/checklists";
+import { getActiveChecklistItemId } from "packages/features/checklists/utils/getActiveChecklistItemId";
 import { useAuthStore } from "packages/store";
 
 export type { ChecklistType };
@@ -15,6 +16,7 @@ export type { ChecklistType };
 export type UseChecklistDataReturn = {
   items: TaskChecklistResponse["items"];
   checkedIds: number[];
+  activeItemId: number | null;
   isLoading: boolean;
   error: string | null;
   toggleItem: (id: number) => Promise<void>;
@@ -90,9 +92,16 @@ export function useChecklistData(type: ChecklistType): UseChecklistDataReturn {
     await refetchChecklist();
   }, [refetchChecklist]);
 
+  const activeItemId = useMemo(() => {
+    const items = checklistData?.items ?? [];
+    const checkedIds = checklistData?.checkedIds ?? [];
+    return getActiveChecklistItemId(items, checkedIds);
+  }, [checklistData?.items, checklistData?.checkedIds]);
+
   return {
     items: checklistData?.items ?? [],
     checkedIds: checklistData?.checkedIds ?? [],
+    activeItemId,
     isLoading,
     error: error?.message ?? null,
     toggleItem,

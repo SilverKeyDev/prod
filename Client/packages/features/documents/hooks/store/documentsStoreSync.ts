@@ -1,32 +1,34 @@
 import { useEffect, useRef } from "react";
 
+import type { Document, DocumentCategory } from "packages/features/documents/types/documents";
+
 /**
  * Syncs documents hook data to store with ref guards.
  * Extracted to satisfy max-lines-per-function in useDocumentsStoreIntegration.
  */
 export function useDocumentsStoreSync(
-  documents: unknown,
-  setDocuments: (v: unknown) => void,
-  documentCategories: unknown,
-  setDocumentCategories: (v: unknown) => void,
-  uploadedFiles: unknown,
-  setUploadedFiles: (v: unknown) => void,
-  documentsLoading: unknown,
-  setDocumentsLoading: (v: unknown) => void,
-  categoriesLoading: unknown,
-  setCategoriesLoading: (v: unknown) => void,
-  documentsError: unknown,
-  setDocumentsError: (v: unknown) => void,
-  categoriesError: unknown,
-  setCategoriesError: (v: unknown) => void
+  documents: Document[],
+  setDocuments: (v: Document[]) => void,
+  documentCategories: DocumentCategory[],
+  setDocumentCategories: (v: DocumentCategory[]) => void,
+  uploadedFiles: unknown[],
+  setUploadedFiles: (v: unknown[]) => void,
+  documentsLoading: boolean,
+  setDocumentsLoading: (v: boolean) => void,
+  categoriesLoading: boolean,
+  setCategoriesLoading: (v: boolean) => void,
+  documentsError: string | null,
+  setDocumentsError: (v: string | null) => void,
+  categoriesError: string | null,
+  setCategoriesError: (v: string | null) => void
 ) {
-  const r1 = useRef<unknown>();
-  const r2 = useRef<unknown>();
-  const r3 = useRef<unknown>();
-  const r4 = useRef<unknown>();
-  const r5 = useRef<unknown>();
-  const r6 = useRef<unknown>();
-  const r7 = useRef<unknown>();
+  const r1 = useRef<Document[]>();
+  const r2 = useRef<DocumentCategory[]>();
+  const r3 = useRef<unknown[]>();
+  const r4 = useRef<boolean>();
+  const r5 = useRef<boolean>();
+  const r6 = useRef<string | null>();
+  const r7 = useRef<string | null>();
 
   useEffect(() => {
     if (r1.current !== documents) {

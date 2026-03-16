@@ -1,6 +1,7 @@
 import { useLocalization } from "packages/contexts";
 import type { SavedHome } from "packages/types";
-import { ConnectedCardHeartSave } from "packages/ui/components/primitives";
+import { ConnectedCardHeartSave } from "packages/ui/components/button/ConnectedCardHeartSave";
+import { Box } from "packages/ui/components/primitives";
 
 import { PropertyCard } from "@/components/cards";
 import { CardViewDetailsButton } from "@/components/cards/base/index.web";
@@ -32,7 +33,7 @@ function RemainingCompareCard({
 }) {
   const { t } = useLocalization();
   return (
-    <div className="scale-75 sm:scale-90 md:scale-100">
+    <Box className="scale-75 sm:scale-90 md:scale-100">
       <PropertyCard
         id={home.home_id}
         imageUrl={home.image_url}
@@ -55,9 +56,9 @@ function RemainingCompareCard({
         showScore={false}
         onClick={() => onAdd(home.home_id)}
         topContent={
-          <div className="flex items-center gap-1">
+          <Box className="flex flex-row items-center gap-1">
             <ConnectedCardHeartSave property={toCardProperty(home)} size="sm" />
-          </div>
+          </Box>
         }
         bottomContent={
           <CardViewDetailsButton
@@ -69,7 +70,7 @@ function RemainingCompareCard({
           />
         }
       />
-    </div>
+    </Box>
   );
 }
 
@@ -91,15 +92,15 @@ export function RemainingLikedHomes({
   const remainingHomes = allLikedHomes.filter((home) => !selectedHomeIds.has(home.home_id));
   if (remainingHomes.length === 0) return null;
   return (
-    <div>
+    <Box>
       <Title size="sm" className="mb-responsive-md font-medium text-black">
         {t("compare.add_more_properties")}
       </Title>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      <Box className="grid-responsive-2-gap-2">
         {remainingHomes.map((home) => (
           <RemainingCompareCard key={home.home_id} home={home} onAdd={onAdd} onUnlock={onUnlock} />
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

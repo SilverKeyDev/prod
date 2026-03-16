@@ -8,11 +8,13 @@ import Dropdown from "@ui/form/Dropdown";
 import Input from "@ui/form/Input.web";
 import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
-import Label from "@ui/text/Label.web";
+import Label from "@ui/text/Label";
 
 import { useLocalization } from "packages/contexts";
 import { useDocuments } from "packages/features/documents";
 import { useUIStore } from "packages/store";
+import { DROP_ZONE_BORDER_BASE } from "packages/ui/components/form/fileUploadStyles";
+import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 type DocumentUploadProps = {
@@ -121,8 +123,8 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
   }, []);
   const canUpload = selectedFile && selectedCategory && !isUploading;
   const content = (
-    <div className="space-y-responsive-md">
-      <div>
+    <Box className="flex flex-col gap-3">
+      <Box>
         <Label size="sm" required>
           {t("documents_upload.category_label")}
         </Label>
@@ -135,9 +137,9 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
           required
           variant="mobile"
         />
-      </div>
+      </Box>
 
-      <div>
+      <Box>
         <Label size="sm">{t("documents_upload.address_optional")}</Label>
         <Input
           type="text"
@@ -147,13 +149,13 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
           disabled={isUploading}
           variant="mobile"
         />
-      </div>
+      </Box>
 
-      <div>
+      <Box>
         <Label size="sm" required>
           {t("documents_upload.document_file")}
         </Label>
-        <div className="relative">
+        <Box className="relative">
           <Input
             ref={fileInputRef}
             type="file"
@@ -165,29 +167,24 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
           />
           <Label
             htmlFor="document-upload-input"
-            className={`touch-friendly gap-responsive-sm p-responsive-md flex cursor-pointer items-center justify-between rounded-lg border-2 border-dashed transition-colors ${
-              isUploading
-                ? "cursor-not-allowed border-gray-300 bg-gray-50"
-                : selectedFile
-                  ? "border-brand-accent bg-brand-accent/5"
-                  : "hover:border-brand-accent/50 border-gray-300 hover:bg-gray-50"
-            }`}
+            // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+            className={`touch-friendly gap-responsive-sm p-responsive-md flex cursor-pointer flex-row items-center justify-between ${DROP_ZONE_BORDER_BASE} ${isUploading ? "cursor-not-allowed border-gray-300 bg-gray-50" : selectedFile ? "border-brand-accent bg-neutral-100" : "hover:border-brand-accent active:border-brand-accent border-gray-300 hover:bg-gray-50 active:bg-gray-100 active:opacity-90"}`}
           >
-            <div className="gap-responsive-sm flex min-w-0 flex-1 items-center">
+            <Box className="gap-responsive-sm flex min-w-0 flex-1 flex-row items-center">
               {selectedFile ? (
                 <>
                   <Icon
                     name="file-text"
                     className="text-brand-accent h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6"
                   />
-                  <div className="min-w-0 flex-1">
+                  <Box className="min-w-0 flex-1">
                     <BodyText size="sm" className="truncate font-medium">
                       {selectedFile.name}
                     </BodyText>
                     <BodyText size="xs" muted>
                       {`${(selectedFile.size / 1024 / 1024).toFixed(2)}${t("common.mb")}`}
                     </BodyText>
-                  </div>
+                  </Box>
                 </>
               ) : (
                 <>
@@ -195,15 +192,15 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
                     name="upload"
                     className="h-5 w-5 flex-shrink-0 text-gray-400 sm:h-6 sm:w-6"
                   />
-                  <div className="min-w-0 flex-1">
+                  <Box className="min-w-0 flex-1">
                     <BodyText size="sm">{t("documents_upload.click_to_select")}</BodyText>
                     <BodyText size="xs" muted>
                       {t("documents_upload.file_types")}
                     </BodyText>
-                  </div>
+                  </Box>
                 </>
               )}
-            </div>
+            </Box>
             {selectedFile && !isUploading && (
               <IconButton
                 variant="ghost"
@@ -219,12 +216,12 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
               />
             )}
           </Label>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {/* Upload Status */}
       {currentUpload && (
-        <div className="gap-responsive-sm flex items-center">
+        <Box className="gap-responsive-sm flex flex-row items-center">
           {isUploadComplete ? (
             <StatusBadge variant="success" size="sm" text={t("documents_upload.upload_success")} />
           ) : isUploadFailed ? (
@@ -232,11 +229,11 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
           ) : (
             <StatusBadge variant="processing" size="sm" text={t("documents_upload.uploading")} />
           )}
-        </div>
+        </Box>
       )}
 
       {/* Upload Button */}
-      <div className="flex justify-end">
+      <Box className="flex flex-row justify-end">
         <Button
           variant="primary"
           size="md"
@@ -248,12 +245,12 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
         >
           {isUploading ? t("documents_upload.uploading") : t("documents_upload.upload_document")}
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
   if (useCard) {
     return (
-      <Card className="mx-auto w-[85%]" padding="md">
+      <Card className="w-[85%] self-center" padding="md">
         {content}
       </Card>
     );

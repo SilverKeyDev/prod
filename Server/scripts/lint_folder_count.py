@@ -21,6 +21,7 @@ EXCLUDED_DIRS = frozenset(
         "dist",
         "build",
         ".pytest_cache",
+        ".cursor",
     }
 )
 

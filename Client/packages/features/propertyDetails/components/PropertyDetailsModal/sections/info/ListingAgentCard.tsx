@@ -2,9 +2,10 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Image } from "packages/ui/components/primitives";
-
-import { BodyText, Title } from "@/components/ui";
+import { Box } from "packages/ui/components/primitives";
+import { Image } from "packages/ui/components/primitives/media";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 import { formatAgentPhoneNumber } from "./propertyDetailsDisplayHelpers";
 type ListingAgentCardProps = {
@@ -22,15 +23,15 @@ export function ListingAgentCard({
   title = "Listing Agent",
 }: ListingAgentCardProps) {
   return (
-    <div className="lg:col-span-1">
-      <div className="mb-4 flex items-center gap-2">
-        <Icon name="user" className="text-brown h-5 w-5" />
-        <Title as="h3" size="lg" className="text-brown font-semibold">
+    <Box className="w-full lg:w-1/3">
+      <Box className="mb-4 flex flex-row items-center gap-2">
+        <Icon name="user" className="text-foreground h-5 w-5" />
+        <Title as="h3" size="lg" className="text-foreground font-semibold">
           {title}
         </Title>
-      </div>
-      <div className="flex items-start space-x-4">
-        <div className="border-brown/20 bg-brown/10 h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
+      </Box>
+      <Box className="flex flex-row items-start gap-4">
+        <Box className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2 border-neutral-200 bg-neutral-100">
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -38,30 +39,30 @@ export function ListingAgentCard({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <Icon name="user" className="text-brown/60 h-8 w-8" />
-            </div>
+            <Box className="flex h-full w-full flex-row items-center justify-center">
+              <Icon name="user" className="h-8 w-8 text-neutral-600" />
+            </Box>
           )}
-        </div>
-        <div className="flex-1">
+        </Box>
+        <Box className="flex-1">
           {displayName && (
-            <Title as="h4" size="lg" className="text-gold font-medium">
+            <Title as="h4" size="lg" className="text-accent-underline font-medium">
               {displayName}
             </Title>
           )}
           {businessName && (
-            <BodyText as="p" className="text-brown/70">
+            <BodyText as="p" className="text-neutral-600">
               {businessName}
             </BodyText>
           )}
           {phone && (
-            <div className="text-brown mt-2 flex items-center">
+            <Box className="text-foreground mt-2 flex flex-row items-center">
               <Icon name="phone" className="mr-1 h-4 w-4" />
               {formatAgentPhoneNumber(phone)}
-            </div>
+            </Box>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

@@ -1,3 +1,5 @@
+import { CARD_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
+
 import { getCardHoverClasses, getInteractiveCardClasses } from "./styles";
 
 export type BaseCardStyleProps = {
@@ -35,8 +37,8 @@ function getWidthStyles(width: string): string {
     auto: "w-auto",
     full: "w-full",
     standard: "card-width-standard",
-    wide: "w-full max-w-2xl mx-auto sm:mx-0",
-    narrow: "w-[60%] max-w-xs mx-auto sm:mx-0",
+    wide: "w-full max-w-2xl self-center sm:self-auto",
+    narrow: "w-[60%] max-w-xs self-center sm:self-auto",
   };
   return widthStyles[width] ?? widthStyles.standard;
 }
@@ -54,7 +56,8 @@ function getHeightStyles(height: string): string {
 }
 
 function getScaleStyles(scale: string | number): string {
-  if (typeof scale === "number") return `scale-[${scale}]`;
+  // Use concatenation so Tailwind doesn't scan literal "scale-[${scale}]" and emit invalid CSS
+  if (typeof scale === "number") return "scale-[" + String(scale) + "]";
   const scaleStyles: Record<string, string> = {
     xs: "scale-75",
     sm: "scale-90",
@@ -81,9 +84,9 @@ export function getBaseCardClasses(props: BaseCardStyleProps): string {
     className,
   } = props;
 
-  const baseStyles = "bg-neutral-50 transition-all duration-200";
+  const baseStyles = `bg-neutral-50 ${CARD_TRANSITION_CLASSES}`;
   const variantStyles: Record<string, string> = {
-    default: "border border-neutral-200/50",
+    default: "border border-neutral-200",
     elevated: "border-0",
     outlined: "border-2 border-neutral-300",
     flat: "border-0 shadow-none",

@@ -33,6 +33,8 @@ INSURANCE_ITEMS = [
         "id": 3,
         "label": "Review all seller disclosures",
         "explanation": "Sellers are legally required to share known issues with the home. Review thoroughly to spot red flags.",
+        "suggested_form_ids": ["seller_disclosure"],
+        "calendar": {"hasDates": False, "days": 7, "eventSchedule": [3, 7]},
         "bullets": [
             "Look for signs of past water damage, structural issues, or prior repairs.",
             "Disclosures vary by state — ask your agent or attorney for guidance.",
@@ -59,6 +61,7 @@ INSURANCE_ITEMS = [
         "id": 5,
         "label": "Request credits, repairs, or price reductions if necessary",
         "explanation": "You can negotiate with the seller to address issues discovered during inspections.",
+        "suggested_form_ids": ["repair_request"],
         "bullets": [
             "Ask for repairs to be completed before closing.",
             "Negotiate a closing credit or price reduction.",
@@ -73,6 +76,8 @@ INSURANCE_ITEMS = [
         "id": 6,
         "label": "Decide whether to proceed or cancel under contingency",
         "explanation": "You can cancel the contract penalty-free during the inspection contingency period if issues are too severe.",
+        "suggested_form_ids": ["inspection_contingency", "financing_contingency"],
+        "calendar": {"hasDates": False, "days": 7, "eventSchedule": [7]},
         "bullets": [
             "Consult your agent or attorney before backing out.",
             "Make your decision before the deadline.",

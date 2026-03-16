@@ -129,9 +129,9 @@ export function injectPdfErrorUI(iframe: HTMLIFrameElement, currentPdf: string |
   const downloadLink = doc.createElement("a");
   downloadLink.href = currentPdf;
   downloadLink.download = "";
-  const downloadBg = color("brown.DEFAULT");
-  const downloadBgHover = color("brown.muted");
-  downloadLink.style.cssText = `display: inline-block; background: ${downloadBg}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s;`;
+  const downloadBg = color("foreground");
+  const downloadBgHover = color("foreground-muted");
+  downloadLink.style.cssText = `display: inline-flex; flex-direction: row; align-items: center; background: ${downloadBg}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background 0.2s;`;
   downloadLink.textContent = "Download PDF";
   downloadLink.onmouseover = () => (downloadLink.style.background = downloadBgHover);
   downloadLink.onmouseout = () => (downloadLink.style.background = downloadBg);

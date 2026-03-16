@@ -1,3 +1,5 @@
+import { Box } from "packages/ui/components/primitives";
+
 import { BodyText, Button } from "@/components/ui";
 
 import AgreementStatusBadge from "./AgreementStatusBadge";
@@ -50,10 +52,10 @@ export default function AgreementOverviewTab({
   onVoidReasonChange,
 }: AgreementOverviewTabProps) {
   return (
-    <div className="space-y-6">
+    <Box className="flex flex-col gap-6">
       {/* Metadata */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+      <Box className="flex-two-cols-gap-4">
+        <Box>
           <BodyText size="xs" muted className="mb-1">
             Agreement Type
           </BodyText>
@@ -61,45 +63,45 @@ export default function AgreementOverviewTab({
             {agreement.agreement_type.charAt(0).toUpperCase() +
               agreement.agreement_type.slice(1).replace(/_/g, " ")}
           </BodyText>
-        </div>
-        <div>
+        </Box>
+        <Box>
           <BodyText size="xs" muted className="mb-1">
             Status
           </BodyText>
           <AgreementStatusBadge status={agreement.status} size="sm" />
-        </div>
+        </Box>
         {agreement.property_address && (
-          <div className="col-span-2">
+          <Box className="w-full">
             <BodyText size="xs" muted className="mb-1">
               Property Address
             </BodyText>
             <BodyText size="sm">{agreement.property_address}</BodyText>
-          </div>
+          </Box>
         )}
-        <div>
+        <Box>
           <BodyText size="xs" muted className="mb-1">
             Created
           </BodyText>
           <BodyText size="sm">{agreement.created_at}</BodyText>
-        </div>
+        </Box>
         {agreement.sent_at && (
-          <div>
+          <Box>
             <BodyText size="xs" muted className="mb-1">
               Sent
             </BodyText>
             <BodyText size="sm">{agreement.sent_at}</BodyText>
-          </div>
+          </Box>
         )}
         {agreement.completed_at && (
-          <div>
+          <Box>
             <BodyText size="xs" muted className="mb-1">
               Completed
             </BodyText>
             <BodyText size="sm">{agreement.completed_at}</BodyText>
-          </div>
+          </Box>
         )}
         {agreement.voided_at && (
-          <div className="col-span-2">
+          <Box className="w-full">
             <BodyText size="xs" muted className="mb-1">
               Voided
             </BodyText>
@@ -109,22 +111,22 @@ export default function AgreementOverviewTab({
                 Reason: {agreement.void_reason}
               </BodyText>
             )}
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
 
       {/* Description */}
       {agreement.description && (
-        <div>
+        <Box>
           <BodyText size="xs" muted className="mb-1">
             Description
           </BodyText>
           <BodyText size="sm">{agreement.description}</BodyText>
-        </div>
+        </Box>
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-2 border-t border-gray-200 pt-4">
+      <Box className="flex flex-row items-center gap-2 border-t border-gray-200 pt-4">
         {userCanSend && (
           <Button variant="primary" size="md" onClick={onSend} disabled={isSendingAgreement}>
             {isSendingAgreement ? "Sending..." : "Send for Signature"}
@@ -135,7 +137,7 @@ export default function AgreementOverviewTab({
             Void Agreement
           </Button>
         )}
-      </div>
+      </Box>
 
       {/* Void Confirmation */}
       {showVoidConfirm && (
@@ -147,6 +149,6 @@ export default function AgreementOverviewTab({
           onCancel={onVoidCancel}
         />
       )}
-    </div>
+    </Box>
   );
 }

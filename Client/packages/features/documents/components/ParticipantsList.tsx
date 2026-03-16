@@ -1,5 +1,7 @@
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { BodyText } from "@/components/ui";
 import { getAgreementStatusIcon } from "@/features/documents/components/agreementsIcons";
 import type { AgreementParticipant } from "@/features/documents/types/agreements";
@@ -26,37 +28,40 @@ export default function ParticipantsList({
 }: ParticipantsListProps) {
   if (!participants || participants.length === 0) {
     return (
-      <div className="py-4 text-center">
-        <BodyText size="sm" muted>
+      <Box className="py-4 text-center">
+        <BodyText className="text-center" size="sm" muted>
           No participants added yet
         </BodyText>
-      </div>
+      </Box>
     );
   }
   // Sort by signing order
   const sortedParticipants = [...participants].sort((a, b) => a.signing_order - b.signing_order);
   return (
-    <div className={`space-y-${compact ? "2" : "3"}`}>
+    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+    <Box className={`flex flex-col ${compact ? "gap-2" : "gap-3"}`}>
       {sortedParticipants.map((participant) => {
         const StatusIcon = getAgreementStatusIcon(participant.status);
         const statusColor = getParticipantStatusColor(participant.status);
         return (
-          <div
+          <Box
             key={participant.id}
-            className={`flex items-start gap-3 ${compact ? "p-2" : "p-3"} rounded-lg border border-gray-200 hover:bg-gray-50`}
+            // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+            className={`flex flex-row items-start gap-3 ${compact ? "p-2" : "p-3"} rounded-lg border border-gray-200 hover:bg-gray-50 active:bg-gray-100 active:bg-gray-50`}
           >
             {/* Avatar */}
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
+            <Box className="flex h-10 w-10 flex-shrink-0 flex-row items-center justify-center rounded-full bg-gray-200">
               <Icon name="user" className="h-5 w-5 text-gray-600" />
-            </div>
+            </Box>
 
             {/* Participant Info */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
+            <Box className="min-w-0 flex-1">
+              <Box className="flex flex-row items-start justify-between gap-2">
+                <Box className="min-w-0 flex-1">
+                  <Box className="flex flex-row items-center gap-2">
                     <BodyText
                       as="p"
+                      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                       className={`font-medium ${compact ? "text-sm" : "text-base"} truncate text-gray-900`}
                     >
                       {participant.name}
@@ -70,27 +75,29 @@ export default function ParticipantsList({
                         #{participant.signing_order}
                       </BodyText>
                     )}
-                  </div>
+                  </Box>
                   <BodyText as="p" size="xs" className="truncate text-gray-500">
                     {participant.email}
                   </BodyText>
                   <BodyText as="p" size="xs" className="mt-0.5 text-gray-600">
                     {formatParticipantRole(participant.role)}
                   </BodyText>
-                </div>
+                </Box>
 
                 {/* Status */}
-                <div className="flex flex-shrink-0 items-center gap-1.5">
+                <Box className="flex flex-shrink-0 flex-row items-center gap-1.5">
+                  {/* eslint-disable-next-line silverkey/no-dynamic-class-names -- statusColor from participant status; refactor complex */}
                   <StatusIcon className={`h-4 w-4 ${statusColor}`} />
+                  {/* eslint-disable-next-line silverkey/no-dynamic-class-names -- statusColor from participant status; refactor complex */}
                   <BodyText as="span" size="sm" className={`font-medium ${statusColor}`}>
                     {participant.status.charAt(0).toUpperCase() + participant.status.slice(1)}
                   </BodyText>
-                </div>
-              </div>
+                </Box>
+              </Box>
 
               {/* Additional Info */}
               {!compact && (
-                <div className="mt-2 space-y-1">
+                <Box className="mt-2 flex flex-col gap-1">
                   {participant.signed_at && (
                     <BodyText as="p" size="xs" className="text-gray-500">
                       Signed: {formatAgreementDateTime(participant.signed_at)}
@@ -101,12 +108,12 @@ export default function ParticipantsList({
                       Declined: {participant.declined_reason}
                     </BodyText>
                   )}
-                </div>
+                </Box>
               )}
-            </div>
-          </div>
+            </Box>
+          </Box>
         );
       })}
-    </div>
+    </Box>
   );
 }

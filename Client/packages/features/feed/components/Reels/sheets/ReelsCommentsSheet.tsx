@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { Transition } from "packages/ui/components/adapters/headless";
+import { Box } from "packages/ui/components/primitives";
 import { formatCompactCount } from "packages/utils";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
@@ -65,8 +66,9 @@ export function ReelsCommentsSheet({
     setDraft("");
   }, [draft, onAddComment]);
   return (
-    <Transition show={isOpen} as="div">
+    <Transition show={isOpen} as={Box}>
       <AccessibleDialog onClose={onClose} className="relative z-50" label="Comments">
+        {}
         <Transition.Child
           enter="ease-out duration-200"
           enterFrom="opacity-0"
@@ -75,9 +77,11 @@ export function ReelsCommentsSheet({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/50" aria-hidden onClick={onClose} />
+          <Box className="fixed inset-0 bg-neutral-900" aria-hidden onClick={onClose} />
         </Transition.Child>
-        <div className="pointer-events-none fixed inset-0 flex items-end justify-center p-0">
+        {}
+        <Box className="pointer-events-none fixed inset-0 flex flex-row items-end justify-center p-0">
+          {}
           <Transition.Child
             enter="ease-out duration-200"
             enterFrom="translate-y-full"
@@ -87,46 +91,47 @@ export function ReelsCommentsSheet({
             leaveTo="translate-y-full"
           >
             <AccessibleDialog.Panel
-              className="pointer-events-auto flex h-[75dvh] max-h-[75dvh] w-full flex-col rounded-t-2xl bg-white"
+              className="pointer-events-auto flex min-h-0 w-full flex-[0.75] flex-row flex-col rounded-t-2xl bg-white"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header — Instagram: "Comments" with top drag handle */}
-              <div className="flex shrink-0 flex-col items-center border-b border-neutral-200 pt-2">
-                <div className="mb-2 h-1 w-10 rounded-full bg-neutral-300" aria-hidden />
-                <div className="flex w-full items-center justify-between gap-2 px-4 pb-3">
-                  <div className="w-9 shrink-0" aria-hidden />
+              <Box className="flex shrink-0 flex-row flex-col items-center border-b border-neutral-200 pt-2">
+                <Box className="mb-2 h-1 w-10 rounded-full bg-neutral-300" aria-hidden />
+                <Box className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-3">
+                  <Box className="w-9 shrink-0" aria-hidden />
                   <Title size="sm" as="h2" className="flex-1 text-center">
                     Comments
                   </Title>
-                  <div className="flex w-9 shrink-0 justify-end">
+                  <Box className="flex w-9 shrink-0 flex-row justify-end">
                     <CloseButton onClick={onClose} size="sm" label="Close comments" />
-                  </div>
-                </div>
-              </div>
+                  </Box>
+                </Box>
+              </Box>
 
               {/* Scrollable comment list */}
-              <div className="min-h-0 flex-1 overflow-y-auto">
+              <Box className="min-h-0 flex-1 overflow-y-auto">
                 {comments.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center px-4 py-12">
+                  <Box className="flex flex-row flex-col items-center justify-center px-4 py-12">
                     <BodyText size="sm" muted className="text-center">
                       No comments yet.
                     </BodyText>
                     <BodyText size="sm" muted className="mt-1 text-center">
                       Be the first to comment.
                     </BodyText>
-                  </div>
+                  </Box>
                 ) : (
                   <ul className="divide-y divide-neutral-100">
                     {comments.map((comment) => (
-                      <li key={comment.id} className="flex gap-3 px-4 py-3">
-                        <div className="shrink-0">
+                      <li key={comment.id} className="flex flex-row gap-3 px-4 py-3">
+                        <Box className="shrink-0">
                           <Image
                             src={comment.user.avatarUrl ?? DEFAULT_AVATAR_IMAGE}
                             alt=""
+                            // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                             className={`h-8 w-8 ${FEED_AVATAR_IMAGE_CLASS}`}
                           />
-                        </div>
-                        <div className="min-w-0 flex-1">
+                        </Box>
+                        <Box className="min-w-0 flex-1">
                           <BodyText as="p" size="sm" className="text-neutral-900">
                             <BodyText as="span" size="sm" className="font-semibold">
                               {comment.user.name}
@@ -135,14 +140,14 @@ export function ReelsCommentsSheet({
                               {comment.text}
                             </BodyText>
                           </BodyText>
-                          <div className="mt-1 flex items-center gap-4">
+                          <Box className="mt-1 flex flex-row items-center gap-4">
                             <BodyText as="span" size="xs" className="text-neutral-500">
                               {formatCommentTime(comment.createdAt)}
                             </BodyText>
                             <Button
                               variant="ghost"
                               size="xs"
-                              className="text-neutral-500 hover:text-neutral-700"
+                              className="text-neutral-500 hover:text-neutral-700 active:text-neutral-700 active:text-neutral-800"
                             >
                               <BodyText as="span" size="xs">
                                 Reply
@@ -161,7 +166,7 @@ export function ReelsCommentsSheet({
                                 <Button
                                   variant="ghost"
                                   size="xs"
-                                  className="flex items-center gap-1 text-neutral-500 hover:text-neutral-700"
+                                  className="flex flex-row items-center gap-1 text-neutral-500 hover:text-neutral-700 active:text-neutral-700 active:text-neutral-800"
                                   label="Like comment"
                                 >
                                   <Icon name="heart" className="h-3.5 w-3.5" />
@@ -171,12 +176,12 @@ export function ReelsCommentsSheet({
                                 </Button>
                               </>
                             )}
-                          </div>
-                        </div>
+                          </Box>
+                        </Box>
                         <IconButton
                           variant="ghost"
                           size="sm"
-                          className="shrink-0 text-neutral-400 hover:text-neutral-600"
+                          className="shrink-0 text-neutral-400 hover:text-neutral-600 active:text-neutral-600 active:text-neutral-700"
                           icon={<Icon name="heart" className="h-4 w-4" />}
                           label="Like comment"
                         />
@@ -184,14 +189,15 @@ export function ReelsCommentsSheet({
                     ))}
                   </ul>
                 )}
-              </div>
+              </Box>
 
               {/* Bottom input bar — Instagram: avatar + input + Post */}
               {item && (
-                <div className="flex shrink-0 items-center gap-2 border-t border-neutral-200 px-4 py-3">
+                <Box className="flex shrink-0 flex-row items-center gap-2 border-t border-neutral-200 px-4 py-3">
                   <Image
                     src={currentUser?.avatarUrl ?? DEFAULT_AVATAR_IMAGE}
                     alt=""
+                    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                     className={`h-8 w-8 shrink-0 ${FEED_AVATAR_IMAGE_CLASS}`}
                   />
                   <AccessibleTextInput
@@ -208,17 +214,18 @@ export function ReelsCommentsSheet({
                     onClick={handlePost}
                     className={
                       canPost
-                        ? "text-brand-accent hover:text-brand-accent/80 font-semibold hover:bg-transparent"
+                        ? "text-brand-accent hover:text-brand-accent active:text-brand-accent font-semibold hover:bg-transparent active:bg-transparent"
                         : "font-semibold text-neutral-400"
                     }
                   >
                     Post
                   </Button>
-                </div>
+                </Box>
               )}
             </AccessibleDialog.Panel>
           </Transition.Child>
-        </div>
+          {}
+        </Box>
       </AccessibleDialog>
     </Transition>
   );

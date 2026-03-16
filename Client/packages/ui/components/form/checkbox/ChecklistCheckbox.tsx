@@ -4,6 +4,9 @@ import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
 
+import { Box } from "packages/ui/components/primitives";
+import { HOVER_BG_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
+
 import AccessibleCheckboxInput from "./AccessibleCheckboxInput";
 type ResourceLink = {
   label: string;
@@ -25,6 +28,8 @@ type ChecklistCheckboxProps = {
   itemExplanationClass: string;
   checkboxContainerClass: string;
   number?: number;
+  /** When true, checkbox is disabled and shows locked state. */
+  disabled?: boolean;
 };
 /**
  * Reusable styled checkbox row for checklist pages.
@@ -38,25 +43,32 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
   itemExplanationClass,
   checkboxContainerClass,
   number,
+  disabled = false,
 }) => {
   const ariaLabel = number != null ? `${number}. ${item.label}` : item.label;
+  const handleToggle = () => {
+    if (!disabled) onToggle();
+  };
   return (
-    <div className={checkboxContainerClass}>
+    <Box className={checkboxContainerClass}>
       <AccessibleCheckboxInput
         id={`item-${item.id}`}
-        type="checkbox"
         className="peer sr-only"
         checked={checked}
-        onChange={onToggle}
+        onChange={handleToggle}
         label={ariaLabel}
+        disabled={disabled}
       />
       {/* visible square checkbox */}
-      <div
+      <Box
         role="button"
-        tabIndex={0}
-        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded border transition-colors lg:h-6 lg:w-6 ${checked ? "border-olive bg-olive" : "border-beige"}`}
-        onClick={onToggle}
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled}
+        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 flex-row items-center justify-center rounded border ${HOVER_BG_CLASSES} lg:h-6 lg:w-6 ${disabled ? "cursor-not-allowed border-gray-200 bg-gray-100" : checked ? "border-olive bg-olive cursor-pointer" : "border-border-input cursor-pointer"}`}
+        onClick={handleToggle}
         onKeyDown={(e) => {
+          if (disabled) return;
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onToggle();
@@ -66,33 +78,34 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
         {checked && (
           <Icon name="check" className="h-3.5 w-3.5 text-white lg:h-4 lg:w-4" strokeWidth={4} />
         )}
-      </div>
-      <div className="flex-1">
+        {!checked && disabled && <Icon name="lock" className="h-3 w-3 text-gray-400" />}
+      </Box>
+      <Box className="flex-1 text-left">
         <Label htmlFor={`item-${item.id}`} className={itemLabelClass}>
           {number != null ? `${number}. ` : ""}
           {item.label}
         </Label>
         {!checked && (
-          <div>
+          <Box className="flex flex-col gap-1.5">
             <BodyText size="xs" className={itemExplanationClass}>
               {item.explanation}
             </BodyText>
             {item.bullets && (
-              <ul className="text-navy/70 ml-4 mt-2 list-inside list-disc space-y-1 text-xs">
+              <ul className="ml-4 flex list-inside list-disc flex-col gap-1.5 text-left text-xs text-neutral-600">
                 {item.bullets.map((b, idx) => (
                   <li key={idx}>{b}</li>
                 ))}
               </ul>
             )}
             {item.resource && (
-              <BodyText size="xs" className="text-responsive-xs text-olive mt-2">
+              <BodyText size="xs" className="text-responsive-xs text-olive">
                 {item.resource.href ? (
                   /* eslint-disable-next-line silverkey/no-primitive-components -- external link; href from resource */
                   <a
                     href={item.resource.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-olive hover:text-olive-light underline"
+                    className="text-olive hover:text-olive-light active:text-olive active:text-olive-light underline"
                   >
                     {item.resource.label}
                   </a>
@@ -101,10 +114,10 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
                 )}
               </BodyText>
             )}
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 export default ChecklistCheckbox;

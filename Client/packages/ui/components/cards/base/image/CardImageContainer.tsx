@@ -1,8 +1,9 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { StyledImage } from "./CardImageStyles";
 import { type ImageStyleVariant } from "./CardImageStyleUtils";
-
 type CardImageContainerProps = {
   /** Image URL */
   imageUrl?: string;
@@ -17,7 +18,6 @@ type CardImageContainerProps = {
   /** Children to overlay on the image */
   children?: React.ReactNode;
 };
-
 /**
  * Reusable card image container with consistent styling and responsive heights
  */
@@ -30,7 +30,6 @@ export default function CardImageContainer({
   children,
 }: CardImageContainerProps) {
   const placeholder = "/api/placeholder/400/300";
-
   const getHeightClass = () => {
     switch (height) {
       case "sm":
@@ -45,9 +44,9 @@ export default function CardImageContainer({
         return "h-32 sm:h-40 md:h-48";
     }
   };
-
   return (
-    <div className={`relative w-full overflow-hidden bg-gray-100 ${getHeightClass()} ${className}`}>
+    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+    <Box className={`relative w-full overflow-hidden bg-gray-100 ${getHeightClass()} ${className}`}>
       <StyledImage
         src={imageUrl ?? undefined}
         alt={alt}
@@ -55,7 +54,7 @@ export default function CardImageContainer({
         placeholder={placeholder}
         className="h-full w-full"
       />
-      {children && <div className="absolute inset-0">{children}</div>}
-    </div>
+      {children && <Box className="absolute inset-0">{children}</Box>}
+    </Box>
   );
 }

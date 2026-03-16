@@ -2,7 +2,8 @@ import React from "react";
 
 import { CardCompareCheckbox } from "packages/features/compare";
 import type { SavedHome } from "packages/types";
-import { ConnectedCardHeartSave } from "packages/ui/components/primitives";
+import { ConnectedCardHeartSave } from "packages/ui/components/button/ConnectedCardHeartSave";
+import { Box } from "packages/ui/components/primitives";
 
 import { PropertyCard } from "@/components/cards";
 import { CardViewDetailsButton } from "@/components/cards/base/index.web";
@@ -53,7 +54,7 @@ export function SavedHomeCard({
   const property = toCardProperty(home);
 
   return (
-    <div className="group relative w-full">
+    <Box className="group relative w-full">
       <PropertyCard
         id={home.home_id}
         imageUrl={home.image_url}
@@ -79,7 +80,7 @@ export function SavedHomeCard({
           </>
         }
         bottomContent={
-          <div className="flex flex-col gap-2">
+          <Box className="flex flex-row flex-col gap-2">
             <CardViewDetailsButton
               onClick={() => onUnlock(home)}
               size="sm"
@@ -95,9 +96,9 @@ export function SavedHomeCard({
               text="Negotiate"
               iconName="handshake"
             />
-          </div>
+          </Box>
         }
       />
-    </div>
+    </Box>
   );
 }

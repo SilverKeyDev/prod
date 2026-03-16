@@ -2,6 +2,7 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { CompareHomesComparisonField } from "packages/features/compare/utils/types";
+import { Box } from "packages/ui/components/primitives";
 
 import { Button, CloseButton, Subtitle, Title } from "@/components/ui";
 
@@ -22,17 +23,17 @@ interface ManageRowsModalProps {
 function ManageRowsModalHeader({ onClose }: { onClose: () => void }) {
   const { t } = useLocalization();
   return (
-    <div className="flex items-center justify-between border-b border-gray-200 p-6">
-      <div>
+    <Box className="flex flex-row items-center justify-between border-b border-gray-200 p-6">
+      <Box>
         <Title size="md" className="font-semibold">
           {t("compare.manage_fields_title")}
         </Title>
         <Subtitle size="xs" muted className="mt-1">
           {t("compare.manage_fields_subtitle")}
         </Subtitle>
-      </div>
+      </Box>
       <CloseButton onClick={onClose} size="sm" className="rounded-lg p-2" />
-    </div>
+    </Box>
   );
 }
 
@@ -51,7 +52,7 @@ function ManageRowsModalActions({
 }: ManageRowsModalActionsProps) {
   const { t } = useLocalization();
   return (
-    <div className="mb-6 flex flex-wrap gap-2">
+    <Box className="mb-6 flex flex-row flex-wrap gap-2">
       <Button
         variant="primary"
         size="sm"
@@ -82,13 +83,13 @@ function ManageRowsModalActions({
       >
         {t("compare.auto_hide_empty")}
       </Button>
-      <div className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-black/60">
+      <Box className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-neutral-600">
         {t("compare.showing_fields", {
           visible: visibleCount,
           total: allFieldKeys.length,
         })}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 
@@ -128,18 +129,18 @@ export function ManageRowsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="flex max-h-[80vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-xl">
+    <Box className="fixed inset-0 z-50 flex flex-row items-center justify-center bg-neutral-900 p-4">
+      <Box className="flex min-h-0 w-full max-w-2xl flex-1 flex-row flex-col rounded-lg bg-white shadow-xl">
         <ManageRowsModalHeader onClose={() => setShowRowModal(false)} />
-        <div className="flex-1 overflow-hidden p-6">
+        <Box className="flex-1 overflow-hidden p-6">
           <ManageRowsModalActions
             allFieldKeys={allFieldKeys}
             visibleCount={visibleFields.length}
             setOmittedRows={setOmittedRows}
             setManuallyEnabledRows={setManuallyEnabledRows}
           />
-          <div className="overflow-hidden rounded-lg border border-gray-200">
-            <div className="custom-scrollbar max-h-96 overflow-y-auto">
+          <Box className="overflow-hidden rounded-lg border border-gray-200">
+            <Box className="custom-scrollbar max-h-96 overflow-y-auto">
               {allFields.map((field, index) => (
                 <ManageRowsModalFieldRow
                   key={field.key}
@@ -155,10 +156,10 @@ export function ManageRowsModal({
                   onToggle={handleFieldToggle(field.key, hasDataForAnyProperty(field.key))}
                 />
               ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }

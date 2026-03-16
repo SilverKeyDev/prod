@@ -70,15 +70,19 @@ export const secureUploadApi = {
       const win = getWindow();
       const doc = getDocument();
       if (!win || !doc) return;
+      const urlCreator = (
+        typeof URL !== "undefined" ? URL : (win as Window & { URL?: typeof URL }).URL
+      ) as typeof URL | undefined;
+      if (!urlCreator) return;
       const blob = createBlob([responseData.data as BlobPart]);
-      const url = win.URL.createObjectURL(blob);
+      const url = urlCreator.createObjectURL(blob);
       const a = doc.createElement("a");
       a.href = url;
       a.download = responseData.filename ?? "document";
       doc.body.appendChild(a);
       a.click();
       doc.body.removeChild(a);
-      win.URL.revokeObjectURL(url);
+      urlCreator.revokeObjectURL(url);
     }
   },
 

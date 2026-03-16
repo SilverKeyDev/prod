@@ -48,7 +48,7 @@ export default function ClientDocuments({ userId: _userId }: ClientDocumentsProp
   if (documents.length === 0) {
     return (
       <Box className="items-center justify-center py-8">
-        <BodyText size="sm" className="text-gray-600">
+        <BodyText size="sm" className="text-warm-stone">
           No documents found for this client.
         </BodyText>
       </Box>
@@ -74,13 +74,13 @@ export default function ClientDocuments({ userId: _userId }: ClientDocumentsProp
               <Title as="h3" size="sm" className="font-medium text-gray-900">
                 {doc.name}
               </Title>
-              <BodyText size="sm" className="mt-1 text-gray-500">
+              <BodyText size="sm" className="text-warm-stone mt-1">
                 {doc.category}
                 {doc.uploaded_at
                   ? ` • ${dateParseISO(doc.uploaded_at).toDate().toLocaleDateString()}`
                   : ""}
               </BodyText>
-              <Text className="mt-1 text-xs text-gray-500">
+              <Text className="text-warm-stone mt-1 text-xs">
                 {doc.status === "approved" ? "Approved" : "Pending"}
               </Text>
             </Pressable>

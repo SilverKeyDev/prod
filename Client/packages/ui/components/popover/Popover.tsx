@@ -1,34 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Portal } from "packages/ui/components/portal";
+import { Box } from "packages/ui/components/primitives";
 import { getDocument, getWindow } from "packages/utils/platform";
 
-export type PopoverSide = "left" | "bottom";
-
-export type PopoverProps = {
-  /** Trigger element (e.g. button); receives open state and toggle */
-  trigger: (props: { open: boolean; onToggle: () => void }) => React.ReactNode;
-  /** Panel content; receives close callback */
-  children: (props: { onClose: () => void }) => React.ReactNode;
-  /** Whether the popover is open (controlled) */
-  open?: boolean;
-  /** Called when open state changes (for controlled usage) */
-  onOpenChange?: (open: boolean) => void;
-  /** Render panel in a portal (default true) to avoid overflow clipping */
-  usePortal?: boolean;
-  /** Where the panel opens relative to the trigger: "left" = panel opens to the left (right-aligned to trigger), "bottom" = below (default) */
-  side?: PopoverSide;
-  /** Optional class for the panel container */
-  panelClassName?: string;
-  /** Optional max height for scrollable panel (e.g. "85vh") */
-  panelMaxHeight?: string;
-  /** Optional min width for panel (e.g. "320px") */
-  panelMinWidth?: string;
-  /** Optional class for the root wrapper (e.g. "w-full min-w-0") */
-  className?: string;
-  /** Optional class for the trigger wrapper (e.g. "w-full flex" so trigger can stretch) */
-  triggerWrapperClassName?: string;
-};
+import type { PopoverProps, PopoverSide } from "./Popover.types";
+import { usePopoverState } from "./usePopoverState";
 
 /**
  * Minimal popover: trigger + panel that closes on outside click and Escape.
@@ -47,27 +24,9 @@ export default function Popover({
   className = "",
   triggerWrapperClassName = "",
 }: PopoverProps): React.ReactElement {
-  const [internalOpen, setInternalOpen] = useState(false);
-  const isControlled = controlledOpen !== undefined;
-  const open = isControlled ? controlledOpen : internalOpen;
+  const { open, onToggle, onClose } = usePopoverState(controlledOpen, onOpenChange);
   const triggerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-
-  const setOpen = useCallback(
-    (value: boolean) => {
-      if (!isControlled) setInternalOpen(value);
-      onOpenChange?.(value);
-    },
-    [isControlled, onOpenChange]
-  );
-
-  const onToggle = useCallback(() => {
-    setOpen(!open);
-  }, [open, setOpen]);
-
-  const onClose = useCallback(() => {
-    setOpen(false);
-  }, [setOpen]);
 
   // Escape key (guarded for RN)
   useEffect(() => {
@@ -109,20 +68,21 @@ export default function Popover({
   if (panelMinWidth) panelStyle.minWidth = panelMinWidth;
 
   const panelContent = open ? (
-    <div
+    <Box
       ref={panelRef}
+      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
       className={`z-50 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg ${panelClassName}`}
       style={panelStyle}
     >
       {children({ onClose })}
-    </div>
+    </Box>
   ) : null;
 
   return (
-    <div className={`relative inline-block ${className}`.trim()}>
-      <div ref={triggerRef} className={triggerWrapperClassName || undefined}>
+    <Box className={`relative flex flex-row ${className}`.trim()}>
+      <Box ref={triggerRef} className={triggerWrapperClassName || undefined}>
         {trigger({ open, onToggle })}
-      </div>
+      </Box>
       {usePortal && open ? (
         <Portal>
           <PanelPortal triggerRef={triggerRef} open={open} side={side}>
@@ -130,9 +90,9 @@ export default function Popover({
           </PanelPortal>
         </Portal>
       ) : (
-        open && <div className="absolute left-0 top-full z-50 mt-1">{panelContent}</div>
+        open && <Box className="absolute left-0 top-full z-50 mt-1">{panelContent}</Box>
       )}
-    </div>
+    </Box>
   );
 }
 
@@ -188,8 +148,8 @@ function PanelPortal({
     : `translate(${position.left}px, ${position.top}px)`;
 
   return (
-    <div className="fixed left-0 top-0 z-50" style={{ transform }}>
+    <Box className="fixed left-0 top-0 z-50" style={{ transform }}>
       {children}
-    </div>
+    </Box>
   );
 }

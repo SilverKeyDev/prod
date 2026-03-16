@@ -1,17 +1,23 @@
 """Unified task checklist API: GET/PUT return items (definitions) + checkedIds (user progress)."""
 
+from datetime import datetime, timezone
+
 from flask import Blueprint, current_app, jsonify, request
 
 from .. import db
 from ..models import TransactionTask
-from ..services.transactions import get_checklist_definition, get_series_metadata
+from ..services.transactions import (
+    calendar_from_checklist,
+    get_checklist_definition,
+    get_series_metadata,
+)
 from ..utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from ..utils.security.security import rate_limit
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/api/v1/tasks")
 
-# Categories supported by the unified route (close checklists only; timeline can be added later)
-TASK_CATEGORIES = frozenset({"escrow", "financing", "closing", "insurance"})
+# Categories supported by the unified route (search, offer, close checklists)
+TASK_CATEGORIES = frozenset({"search", "offer", "escrow", "financing", "closing", "insurance"})
 
 
 def _get_checked_ids(user_id, category):
@@ -103,7 +109,35 @@ def put_task_checklist(user):
         ids = data.get("checkedIds")
         if not isinstance(ids, list):
             return jsonify({"success": False, "error": "checkedIds must be an array"}), 400
+
+        old_ids = set(_get_checked_ids(user.id, checklist_type))
+        new_ids = {int(x) for x in ids if isinstance(x, int | float)}
+        newly_checked = new_ids - old_ids
+
         _set_checked_ids(user.id, checklist_type, ids)
+
+        checkoff_time = datetime.now(timezone.utc)
+        items = get_checklist_definition(checklist_type)
+        for item_id in newly_checked:
+            item = next((i for i in items if i.get("id") == item_id), None)
+            if not item:
+                continue
+            cal = item.get("calendar")
+            if not cal or cal.get("hasDates") is True or not cal.get("days"):
+                continue
+            try:
+                calendar_from_checklist.create_calendar_events_for_checklist_item(
+                    str(user.id), checklist_type, item_id, checkoff_time
+                )
+            except Exception as e:
+                current_app.logger.warning(
+                    "Checklist calendar event creation failed: user=%s type=%s item_id=%s error=%s",
+                    user.id,
+                    checklist_type,
+                    item_id,
+                    e,
+                )
+
         return jsonify({"success": True, "data": {"checkedIds": ids}})
     except ValueError as e:
         return jsonify({"success": False, "error": str(e)}), 400

@@ -4,9 +4,11 @@ import { Icon } from "@ui/icons";
 
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import Card from "packages/ui/components/cards/Card";
+import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
-import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 type PropertySchoolsProps = PropertyComponentProps & {
   analysisContent?: unknown;
@@ -33,68 +35,68 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
       return null;
     }
     return (
-      <div className="mt-4 space-y-4">
+      <Box className="mt-4 flex flex-col gap-4">
         {entries.map(([key, value]) => {
           const displayKey = key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
           if (Array.isArray(value)) {
             return (
-              <div key={key}>
-                <Title as="h4" size="sm" className="text-brown mb-2 font-medium">
+              <Box key={key}>
+                <Title as="h4" size="sm" className="text-foreground mb-2 font-medium">
                   {displayKey}
                 </Title>
-                <ul className="text-brown/80 ml-4 space-y-1 text-sm">
+                <ul className="ml-4 flex flex-col gap-1 text-sm text-neutral-700">
                   {value.map((item, i) => (
                     <li key={i} className="list-disc">
                       {String(item)}
                     </li>
                   ))}
                 </ul>
-              </div>
+              </Box>
             );
           }
           return (
-            <div key={key} className="flex flex-col space-y-1">
-              <BodyText as="span" className="text-brown text-sm font-medium">
+            <Box key={key} className="flex flex-row flex-col gap-1">
+              <BodyText as="span" className="text-foreground text-sm font-medium">
                 {displayKey}
               </BodyText>
-              <BodyText as="span" className="text-brown/80 text-sm">
+              <BodyText as="span" className="text-sm text-neutral-700">
                 {String(value)}
               </BodyText>
-            </div>
+            </Box>
           );
         })}
-      </div>
+      </Box>
     );
   };
   return (
-    <div className="p-6">
-      <div className="mb-4 flex items-center gap-2">
-        <Icon name="graduation-cap" className="text-brown h-5 w-5" />
-        <Title as="h3" size="lg" className="text-brown font-semibold">
+    <Box className="p-6">
+      <Box className="mb-4 flex flex-row items-center gap-2">
+        <Icon name="graduation-cap" className="text-foreground h-5 w-5" />
+        <Title as="h3" size="lg" className="text-foreground font-semibold">
           {sectionLabel}
         </Title>
-      </div>
+      </Box>
 
       <Card className="mt-2 p-4">
         {hasSchools ? (
-          <div className="space-y-3">
+          <Box className="flex flex-col gap-3">
             {schoolList.slice(0, 6).map((school, idx) => (
-              <div key={idx} className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="text-brown font-medium">{String(school.name ?? "")}</div>
-                  <div className="text-sm text-gray-600">
+              <Box key={idx} className="flex flex-row items-center justify-between">
+                <Box className="flex-1">
+                  <Box className="text-foreground font-medium">{String(school.name ?? "")}</Box>
+                  <Box className="text-sm text-gray-600">
                     {String(school.level ?? "")} • {String(school.grades ?? "")}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-brown text-sm font-medium">
+                  </Box>
+                </Box>
+                <Box className="text-right">
+                  <Box className="text-foreground text-sm font-medium">
                     {String(school.rating ?? 0)}/10
-                  </div>
-                  <div className="text-xs text-gray-500">{String(school.distance ?? 0)} mi</div>
-                </div>
-              </div>
+                  </Box>
+                  <Box className="text-xs text-gray-500">{String(school.distance ?? 0)} mi</Box>
+                </Box>
+              </Box>
             ))}
-          </div>
+          </Box>
         ) : null}
         {analysisContent !== undefined && analysisContent !== null && (
           <SectionTintWrapper className="mt-4">
@@ -102,6 +104,6 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
           </SectionTintWrapper>
         )}
       </Card>
-    </div>
+    </Box>
   );
 };

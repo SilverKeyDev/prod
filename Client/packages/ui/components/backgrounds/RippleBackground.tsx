@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { color } from "packages/design-tokens";
+import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
 const CONNECT_DISTANCE = 95;
@@ -14,7 +15,7 @@ type Particle = {
 };
 
 export default function RippleBackground() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
   const mouse = useRef({ x: -9999, y: -9999 });
@@ -158,12 +159,8 @@ export default function RippleBackground() {
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className="pointer-events-none absolute inset-0 z-0"
-      style={{ background: color("neutral.50") }}
-    >
+    <Box ref={containerRef} className="pointer-events-none absolute inset-0 z-0 bg-neutral-50">
       <canvas ref={canvasRef} />
-    </div>
+    </Box>
   );
 }

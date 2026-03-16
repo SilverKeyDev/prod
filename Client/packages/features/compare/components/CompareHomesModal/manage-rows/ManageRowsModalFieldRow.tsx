@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { CompareHomesComparisonField } from "packages/features/compare/utils/types";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Input, Label } from "@/components/ui";
 type ManageRowsModalFieldRowProps = {
@@ -28,29 +29,28 @@ export function ManageRowsModalFieldRow({
   const isAutoOmitted = !hasData && !isManuallyEnabled;
   return (
     <Label
-      className={`hover:bg-beige/20 flex cursor-pointer items-center space-x-3 p-4 transition-colors ${index !== totalCount - 1 ? "border-b border-gray-100" : ""}`}
+      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+      className={`hover:bg-bg-card-subtle active:bg-bg-card-muted flex cursor-pointer flex-row items-center gap-3 p-4 active:opacity-90 ${index !== totalCount - 1 ? "border-b border-gray-100" : ""}`}
     >
-      <div className="relative">
+      <Box className="relative">
         <Input
           type="checkbox"
           checked={!isOmitted}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onToggle(e.target.checked)}
           className="sr-only"
         />
-        <div
-          className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all duration-200 ${
-            !isOmitted
-              ? "border-beige bg-beige text-white shadow-sm"
-              : "border-beige hover:border-beige/50 bg-white"
-          }`}
+        <Box
+          // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+          className={`flex h-5 w-5 flex-row items-center justify-center rounded border-2 ${!isOmitted ? "border-border-input bg-border-input text-white shadow-sm" : "border-border-input hover:border-border-card-muted active:border-border-card-subtle bg-white active:opacity-90"}`}
         >
           {!isOmitted && <Icon name="check" className="h-3 w-3 fill-current" />}
-        </div>
-      </div>
-      <div className="flex-1">
+        </Box>
+      </Box>
+      <Box className="flex-1">
         <BodyText
           as="span"
-          className={`text-sm font-medium transition-colors ${isOmitted ? "text-black/40 line-through" : "text-black"}`}
+          // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+          className={`text-sm font-medium ${isOmitted ? "text-neutral-500 line-through" : "text-black"}`}
         >
           {field.label}
         </BodyText>
@@ -64,7 +64,7 @@ export function ManageRowsModalFieldRow({
             {t("compare.manually_enabled")}
           </BodyText>
         )}
-      </div>
+      </Box>
     </Label>
   );
 }

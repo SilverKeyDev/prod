@@ -2,13 +2,12 @@ import React from "react";
 
 import AppImage from "packages/ui/components/asset/AppImage";
 import { MINI_LOGO_URI } from "packages/ui/components/asset/logoSource";
-
+import { Box } from "packages/ui/components/primitives";
 type MiniLogoProps = {
   size?: "xs" | "sm" | "md" | "lg" | "header";
   className?: string;
   logoClassName?: string;
 };
-
 const MiniLogo: React.FC<MiniLogoProps> = ({ size = "sm", className = "", logoClassName = "" }) => {
   const sizeClasses = {
     xs: {
@@ -27,20 +26,19 @@ const MiniLogo: React.FC<MiniLogoProps> = ({ size = "sm", className = "", logoCl
       logo: "h-13 w-auto",
     },
   };
-
   const currentSize = sizeClasses[size];
-
   return (
-    <div className={`flex items-center ${className}`}>
+    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+    <Box className={`flex flex-row items-center ${className}`}>
       <AppImage
         uri={MINI_LOGO_URI}
         alt="SilverKey Mini Logo"
+        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`${currentSize.logo} object-contain ${logoClassName}`}
       />
-    </div>
+    </Box>
   );
 };
-
 // Export both named and default for compatibility
 export { MiniLogo };
 export default MiniLogo;

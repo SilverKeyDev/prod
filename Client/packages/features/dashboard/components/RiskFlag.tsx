@@ -3,6 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import type { AlertSeverity } from "packages/schemas/agent";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
 type RiskFlagProps = {
@@ -26,13 +27,13 @@ const RiskFlag: React.FC<RiskFlagProps> = ({ severity, message, className = "" }
     },
     medium: {
       icon: <Icon name="alert-circle" className="h-3 w-3 sm:h-4 sm:w-4" />,
-      color: "text-gold",
-      bgColor: "bg-gold/10",
+      color: "text-warning-text",
+      bgColor: "bg-warning-bg",
     },
     high: {
       icon: <Icon name="alert-triangle" className="h-3 w-3 sm:h-4 sm:w-4" />,
       color: "text-olive",
-      bgColor: "bg-olive/10",
+      bgColor: "bg-neutral-100",
     },
     critical: {
       icon: <Icon name="alert-triangle" className="h-3 w-3 sm:h-4 sm:w-4" />,
@@ -42,15 +43,16 @@ const RiskFlag: React.FC<RiskFlagProps> = ({ severity, message, className = "" }
   };
   const config = severityConfig[severity];
   return (
-    <div
-      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5 ${config.bgColor} ${config.color} ${className}`}
+    <Box
+      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+      className={`inline-flex flex-row items-center gap-1.5 rounded-full px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5 ${config.bgColor} ${config.color} ${className}`}
       title={message}
     >
       {config.icon}
       <BodyText as="span" size="sm" className="font-medium">
         {message}
       </BodyText>
-    </div>
+    </Box>
   );
 };
 export default RiskFlag;

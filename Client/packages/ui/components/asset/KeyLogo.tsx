@@ -2,7 +2,7 @@ import React from "react";
 
 import AppImage from "packages/ui/components/asset/AppImage";
 import { LOGO_URI } from "packages/ui/components/asset/logoSource";
-
+import { Box } from "packages/ui/components/primitives";
 type KeyLogoProps = {
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
   showText?: boolean;
@@ -10,7 +10,6 @@ type KeyLogoProps = {
   textClassName?: string;
   logoClassName?: string;
 };
-
 const KeyLogo: React.FC<KeyLogoProps> = ({ size = "md", className = "", logoClassName = "" }) => {
   const sizeClasses = {
     xs: {
@@ -46,18 +45,17 @@ const KeyLogo: React.FC<KeyLogoProps> = ({ size = "md", className = "", logoClas
       container: "gap-8",
     },
   };
-
   const currentSize = sizeClasses[size];
-
   return (
-    <div className={`flex items-center ${currentSize.container} ${className}`}>
+    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+    <Box className={`flex flex-row items-center ${currentSize.container} ${className}`}>
       <AppImage
         uri={LOGO_URI}
         alt="SilverKey Logo"
+        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`${currentSize.logo} object-contain ${logoClassName}`}
       />
-    </div>
+    </Box>
   );
 };
-
 export default KeyLogo;

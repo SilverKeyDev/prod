@@ -37,7 +37,7 @@ export const useDocuments = () => {
     refetch: refetchDocuments,
   } = useQuery({
     queryKey: queryKeys.documents.list(filters),
-    queryFn: async () => {
+    queryFn: async (): Promise<Document[]> => {
       // getDocuments should not be called - return empty array
       return [];
     },

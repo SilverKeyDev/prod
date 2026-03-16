@@ -3,7 +3,7 @@ import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
 } from "packages/features/compare/utils/types";
-import { Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/primitives";
 
 import { ComparisonTableRow } from "./ComparisonTableRow";
 
@@ -28,10 +28,10 @@ function TableHeader({
       ? "min-w-20 sm:min-w-24 md:min-w-30"
       : "min-w-24 sm:min-w-30 md:min-w-36";
   return (
-    <thead className="bg-beige/30">
+    <thead className="bg-card-muted-30">
       <tr>
         <th
-          className="bg-beige/30 sticky left-0 z-10 px-1 py-1 text-left font-semibold text-black sm:px-2 sm:py-2 md:px-4 md:py-3"
+          className="bg-card-muted-30 sticky left-0 z-10 px-1 py-1 text-left font-semibold text-black sm:px-2 sm:py-2 md:px-4 md:py-3"
           style={{ width: "25%" }}
         >
           {comparisonLabel}
@@ -39,9 +39,10 @@ function TableHeader({
         {comparisonData.map((home) => (
           <th
             key={home.id}
+            // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
             className={`px-1 py-1 text-center font-semibold text-black sm:px-2 sm:py-2 md:px-4 md:py-3 ${thClass}`}
           >
-            <div className="flex flex-col items-center gap-1">
+            <Box className="flex flex-row flex-col items-center gap-1">
               {home.imageUrl && (
                 <Image
                   src={home.imageUrl}
@@ -49,13 +50,13 @@ function TableHeader({
                   className="h-8 w-8 rounded object-cover sm:h-10 sm:w-10 md:h-12 md:w-12"
                 />
               )}
-              <div
+              <Box
                 className="max-w-full truncate text-xs sm:text-xs md:text-xs"
                 title={home.address}
               >
                 {home.address}
-              </div>
-            </div>
+              </Box>
+            </Box>
           </th>
         ))}
       </tr>
@@ -72,7 +73,7 @@ export function ComparisonTable({
   const { t } = useLocalization();
   if (comparisonData.length === 0) return null;
   return (
-    <div className="mb-responsive-md scrollbar-hide overflow-x-auto rounded-lg border">
+    <Box className="mb-responsive-md scrollbar-hide overflow-x-auto rounded-lg border">
       <table
         className="w-full border-collapse text-xs sm:text-xs md:text-sm"
         style={{ tableLayout: "fixed" }}
@@ -95,6 +96,6 @@ export function ComparisonTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </Box>
   );
 }

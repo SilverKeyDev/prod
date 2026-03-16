@@ -45,9 +45,7 @@ export function useHomeComparison(homes: SavedHome[]): UseHomeComparisonReturn {
   // Migrate from old localStorage key on first load (one-time migration). Web-only; RN-safe via getWindow.
   useEffect(() => {
     const win = getWindow();
-    const loc = win
-      ? (win as unknown as Record<string, Storage | undefined>)["localStorage"]
-      : undefined;
+    const loc = win?.localStorage;
     if (persistedSelectedIds.length === 0 && homes.length > 0 && loc) {
       try {
         const oldData = loc.getItem("compareHomesState");

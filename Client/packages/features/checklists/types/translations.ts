@@ -1,6 +1,8 @@
 /** Checklists (close) feature translation strings. */
 export const CHECKLISTS_TRANSLATIONS: Record<string, string> = {
   "close.loading_checklist": "Loading checklist...",
+  "close.show_details": "Show details",
+  "close.hide_details": "Hide details",
   "close.checklist_legend": "Checklist",
   "close.home_concierge.alt": "Moving Concierge",
   "close.home_concierge.subtitle":

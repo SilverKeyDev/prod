@@ -1,6 +1,7 @@
 import React from "react";
 
 import { Link } from "packages/navigation";
+import { Box, Text } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 
@@ -23,16 +24,16 @@ type StaticPageLayoutProps = {
 
 export function Section({ title, children, isLast = false }: SectionProps) {
   return (
-    <section className={isLast ? "" : "mb-8"}>
+    <Box className={isLast ? "" : "mb-8"}>
       <Title
         as="h2"
         size="lg"
-        className="text-responsive-lg space-y-responsive-sm font-semibold text-black"
+        className="text-responsive-lg flex flex-col gap-2 font-semibold text-black"
       >
         {title}
       </Title>
       {children}
-    </section>
+    </Box>
   );
 }
 
@@ -44,22 +45,23 @@ export function Paragraph({
   className?: string;
 }) {
   return (
-    <BodyText as="p" className={`space-y-responsive-sm ${className}`}>
+    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+    <BodyText as="p" className={`flex flex-col gap-2 ${className}`}>
       {children}
     </BodyText>
   );
 }
 
 export function List({ children }: { children: React.ReactNode }) {
-  return <ul className="space-y-responsive-sm space-y-responsive-xs list-disc pl-6">{children}</ul>;
+  return <Box className="flex list-disc flex-col gap-1 gap-2 pl-6">{children}</Box>;
 }
 
 export function ListItem({ children }: { children: React.ReactNode }) {
-  return <li className="space-y-responsive-xs">{children}</li>;
+  return <Text className="flex flex-col gap-1">{children}</Text>;
 }
 
 export function Bold({ children }: { children: React.ReactNode }) {
-  return <strong>{children}</strong>;
+  return <Text style={{ fontWeight: "bold" }}>{children}</Text>;
 }
 
 export function EmailLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -68,7 +70,7 @@ export function EmailLink({ href, children }: { href: string; children: React.Re
       // eslint-disable-next-line silverkey/no-primitive-components -- intentional external link; <a> required for target="_blank"
       <a
         href={href}
-        className="text-brown hover:text-brown/80 underline"
+        className="text-foreground underline hover:text-neutral-700 active:text-neutral-600 active:text-neutral-700"
         rel="noopener noreferrer"
         target="_blank"
       >
@@ -77,7 +79,10 @@ export function EmailLink({ href, children }: { href: string; children: React.Re
     );
   }
   return (
-    <Link to={href} className="text-brown hover:text-brown/80 underline">
+    <Link
+      to={href}
+      className="text-foreground underline hover:text-neutral-700 active:text-neutral-600 active:text-neutral-700"
+    >
       {children}
     </Link>
   );
@@ -92,19 +97,19 @@ export default function StaticPageLayout({
   centered = false,
 }: StaticPageLayoutProps) {
   return (
-    <div className="bg-off-white min-h-screen">
-      <div className="px-responsive-sm py-responsive-lg mx-auto w-[85%] max-w-4xl">
-        <div className="mb-4">
+    <Box className="bg-off-white min-h-0 flex-1">
+      <Box className="px-responsive-sm py-responsive-lg w-[85%] max-w-4xl self-center">
+        <Box className="mb-4">
           {centered ? (
-            <div className="relative">
-              <div className="absolute left-0 top-0">
+            <Box className="relative">
+              <Box className="absolute left-0 top-0">
                 <BackButton to={backButtonTo}>{backButtonText}</BackButton>
-              </div>
-              <div className="py-responsive-md text-center sm:pt-0">
+              </Box>
+              <Box className="py-responsive-md text-center sm:pt-0">
                 <Title
                   as="h1"
                   size="xl"
-                  className="text-responsive-xl space-y-responsive-xs mt-8 font-bold text-black sm:mt-0"
+                  className="text-responsive-xl mt-8 flex flex-col gap-1 text-center font-bold text-black sm:mt-0"
                 >
                   {title}
                 </Title>
@@ -113,18 +118,18 @@ export default function StaticPageLayout({
                     {subtitle}
                   </BodyText>
                 )}
-              </div>
-            </div>
+              </Box>
+            </Box>
           ) : (
-            <div className="relative">
-              <div className="absolute left-0 top-0">
+            <Box className="relative">
+              <Box className="absolute left-0 top-0">
                 <BackButton to={backButtonTo}>{backButtonText}</BackButton>
-              </div>
-              <div className="py-responsive-md text-center sm:pt-0">
+              </Box>
+              <Box className="py-responsive-md text-center sm:pt-0">
                 <Title
                   as="h1"
                   size="xl"
-                  className="text-responsive-xl space-y-responsive-xs mt-8 font-bold text-black sm:mt-0"
+                  className="text-responsive-xl mt-8 flex flex-col gap-1 text-center font-bold text-black sm:mt-0"
                 >
                   {title}
                 </Title>
@@ -133,15 +138,15 @@ export default function StaticPageLayout({
                     {subtitle}
                   </BodyText>
                 )}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
-        </div>
+        </Box>
 
-        <div className="space-responsive-md rounded-xl bg-white shadow-sm">
-          <div className="prose text-responsive-sm max-w-none text-gray-700">{children}</div>
-        </div>
-      </div>
-    </div>
+        <Box className="space-responsive-md rounded-xl bg-white shadow-sm">
+          <Box className="prose text-responsive-sm max-w-none text-gray-700">{children}</Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }

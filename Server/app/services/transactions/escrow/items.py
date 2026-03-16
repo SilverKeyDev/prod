@@ -19,6 +19,8 @@ ESCROW_ITEMS = [
         "id": 2,
         "label": "Deposit earnest money into escrow",
         "explanation": "Shows good faith and is credited toward your closing. Follow the contract timeline.",
+        "suggested_form_ids": ["earnest_money", "wire_instructions"],
+        "calendar": {"hasDates": False, "days": 3, "eventSchedule": [3]},
         "bullets": [
             "Commonly 1–3% of purchase price (varies by market).",
             "Due within 1–3 business days after acceptance (check contract).",
@@ -33,6 +35,8 @@ ESCROW_ITEMS = [
         "id": 3,
         "label": "Send purchase agreement to lender",
         "explanation": "Your lender needs the signed contract (and addenda) to start underwriting and order the appraisal.",
+        "suggested_form_ids": ["purchase_agreement"],
+        "calendar": {"hasDates": False, "days": 5, "eventSchedule": [5]},
         "bullets": [
             "Include counters/addenda and contact info for title/escrow.",
             "Confirm if title/escrow also needs a copy.",
@@ -46,6 +50,7 @@ ESCROW_ITEMS = [
         "id": 4,
         "label": "Review escrow instructions",
         "explanation": "Spell out what the escrow holder must do and what conditions must be met before closing.",
+        "suggested_form_ids": ["escrow_instructions"],
         "bullets": [
             "Verify names, property address, price, and timelines.",
             "Confirm contingencies and payoffs are listed correctly.",
@@ -72,6 +77,7 @@ ESCROW_ITEMS = [
         "id": 6,
         "label": "Order title search & review report",
         "explanation": "Confirms the seller's ownership and flags claims or defects before you close.",
+        "suggested_form_ids": ["title_commitment"],
         "bullets": [
             "Title company typically performs the search and issues the commitment.",
             "Read the preliminary report/commitment for exceptions and red flags.",
@@ -85,6 +91,7 @@ ESCROW_ITEMS = [
         "id": 7,
         "label": "Check for liens, easements, and legal encumbrances",
         "explanation": "These can affect ownership, access, or how you use the property.",
+        "suggested_form_ids": ["title_commitment"],
         "bullets": [
             "Liens: unpaid taxes, judgments, HOA/contractor liens.",
             "Easements: utility access, shared driveways, ingress/egress.",
@@ -98,6 +105,7 @@ ESCROW_ITEMS = [
         "id": 8,
         "label": "Review zoning and hazard disclosures",
         "explanation": "Local zoning controls use/renovations; hazard zones can affect insurance and lender requirements.",
+        "suggested_form_ids": ["seller_disclosure"],
         "bullets": [
             "Check flood, wildfire, or earthquake risk as applicable.",
             "Confirm zoning allows your intended use or projects.",
@@ -111,6 +119,7 @@ ESCROW_ITEMS = [
         "id": 9,
         "label": "Review HOA rules and financials (if applicable)",
         "explanation": "Understand restrictions, fees, and the HOA's financial health before you proceed.",
+        "suggested_form_ids": ["seller_disclosure"],
         "bullets": [
             "Look for rules on rentals, pets, parking, exterior changes.",
             "Review budgets, reserves, assessments, and meeting minutes.",

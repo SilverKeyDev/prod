@@ -22,14 +22,16 @@ Each step includes:
      - Reuse address normalization patterns used in search/calendar where possible.
      - Check for any existing “client hub” or buyer record that should be associated.
 
-2. **Strict address entry UX**
-   - On web and mobile, add a **“+ New transaction”** flow in the close/checklists header:
+2. **In-flow address entry (no header "+ New transaction")**
+   - The **"Choose a house"** step in the Search section (or Offer's "Finding a home") contains a component that accepts an address input. That component:
      - Uses Google Places-style autocomplete.
-     - Forces the user to pick a canonical result (no arbitrary text).
-     - On confirmation, calls `POST /transactions`.
+     - Forces the user to pick a canonical result (placeId + normalized address + coordinates); no arbitrary text.
+     - On save, creates `Transaction` + `PropertyAddress` and calls `POST /transactions` (or equivalent).
+   - **Coordinates are stored** and drive downstream behavior: earthquake insurance requirement, flood zone disclosures, jurisdiction-specific deadlines.
    - **Existing infra to check/extend:**
+     - `Client/packages/features/checklists/components/FindingHome.tsx` – extend to use canonical address + coordinates.
      - `CreateEventModal` location autocomplete patterns.
-     - Close / checklists headers (`ClosePageHeader`, `DashboardChecklistsHeader`).
+     - Close / checklists headers – no "+ New transaction" button.
 
 ---
 
@@ -105,13 +107,14 @@ Each step includes:
 
 ---
 
-### Phase 5 – Documents, SkySlope forms, and signature-driven completion
+### Phase 5 – Documents, forms (FMLS / eXp / SkySlope), and signature-driven completion
 
-11. **SkySlope forms integration (agent side)**
+11. **Forms integration (agent side)** – FMLS, eXp API, and/or SkySlope
    - Implement server-side endpoints to:
-     - Authenticate the agent with SkySlope.
-     - List available forms/templates for that agent/brokerage.
+     - Authenticate the agent with FMLS, eXp, and/or SkySlope as configured.
+     - List available forms/templates from the configured source(s) for that agent/brokerage.
    - Add an **“Attach form from SkySlope”** flow in the transaction documents UI.
+   - **Checklist-step file mapping:** Per `integrations/11-skyslope-checklist-step-file-mapping.md`, add optional `suggested_form_ids` to checklist item templates (see `integrations/12-skyslope-full-stack-implementation.md`) and implement step-contextual "Add from SkySlope" so agents/buyers find the right files for each step automatically.
    - **Existing infra to check/extend:**
      - Agreement models and document service in `Server/app/services/documents/`.
      - Client documents UI (`Client/packages/features/documents/*`).

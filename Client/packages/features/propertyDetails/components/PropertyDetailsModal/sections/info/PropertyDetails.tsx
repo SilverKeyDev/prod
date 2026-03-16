@@ -1,9 +1,9 @@
 import React from "react";
 
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-
-import Card from "@/components/layout/Card.web";
-import { Title } from "@/components/ui";
+import Card from "packages/ui/components/cards/Card";
+import { Box } from "packages/ui/components/primitives";
+import Title from "packages/ui/components/text/Title";
 
 import { ListingAgentCard } from "./ListingAgentCard";
 import { getAgentFromProperty } from "./propertyDetailsDisplayHelpers";
@@ -79,11 +79,11 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
   if (!hasDetails && !agent.hasAgent) return null;
 
   return (
-    <div className="p-6">
+    <Box className="p-6">
       <Card className="p-4">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <Title as="h3" size="lg" className="text-brown mb-4 font-semibold">
+        <Box className="grid-responsive-1-lg-3">
+          <Box className="w-full lg:w-2/3">
+            <Title as="h3" size="lg" className="text-foreground mb-4 font-semibold">
               Property Details
             </Title>
             <PropertyDetailsFields
@@ -97,7 +97,7 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
               propertyZestimate={propertyZestimate}
               propertyRentZestimate={propertyRentZestimate}
             />
-          </div>
+          </Box>
           {agent.hasAgent && (
             <ListingAgentCard
               imageUrl={agent.imageUrl}
@@ -106,8 +106,8 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
               phone={agent.phone}
             />
           )}
-        </div>
+        </Box>
       </Card>
-    </div>
+    </Box>
   );
 };

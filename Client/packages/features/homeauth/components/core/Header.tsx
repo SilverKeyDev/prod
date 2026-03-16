@@ -1,6 +1,7 @@
+import { Box } from "packages/ui/components/primitives";
+
 import MiniLogo from "@/components/asset/MiniLogo";
 import { BodyText, Title } from "@/components/ui";
-
 type AuthHeaderProps = {
   title: string;
   subtitle?: string;
@@ -9,17 +10,16 @@ type AuthHeaderProps = {
   subtitleClassName?: string;
   containerClassName?: string;
 };
-
 export default function AuthHeader({
   title,
   subtitle,
   logoSize = "lg",
-  titleClassName = "text-responsive-2xl font-serif text-black mb-2 flex items-center justify-center",
-  subtitleClassName = "text-black/60 font-light text-responsive-xs mb-8",
-  containerClassName = "text-center space-y-2",
+  titleClassName = "text-responsive-2xl font-serif text-black mb-2 flex flex-row items-center justify-center",
+  subtitleClassName = "text-neutral-600 font-light text-responsive-xs mb-8",
+  containerClassName = "text-center gap-2",
 }: AuthHeaderProps) {
   return (
-    <div className={containerClassName}>
+    <Box className={containerClassName}>
       <Title as="h2" className={titleClassName}>
         <MiniLogo size={logoSize} />
         {title}
@@ -29,6 +29,6 @@ export default function AuthHeader({
           {subtitle}
         </BodyText>
       )}
-    </div>
+    </Box>
   );
 }

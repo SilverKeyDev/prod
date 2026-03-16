@@ -2,6 +2,11 @@
 
 ### Problem / goal
 
+Transaction forms are pulled from one or more of the following sources:
+- **FMLS** (First Multiple Listing Service) – forms available via the FMLS API.
+- **eXp** – forms available via the eXp Realty API.
+- **SkySlope** – brokerage-specific forms and templates (especially for eXp agents).
+
 Agents (especially at eXp) already have their brokerage-specific forms and templates managed in **SkySlope**.  
 We want to:
 - Treat SkySlope as the **system of record for agent forms**.
@@ -29,7 +34,8 @@ We want to:
   - Connects agreements to checklist items/milestones for completion logic.
 
 Invariants:
-- SkySlope remains the **primary catalog** of broker forms.
+- Forms for transactions may be pulled from **FMLS**, **eXp API**, and/or **SkySlope** depending on agent/brokerage configuration.
+- SkySlope remains a **primary catalog** of broker forms for many agents.
 - Our system stores:
   - References and instances (agreements tied to a transaction).
   - Status and metadata needed to coordinate UX and completion logic.
@@ -87,27 +93,33 @@ Invariants:
 
 ### Gaps that require new work
 
-- **SkySlope API integration**
-  - Backend module(s) to:
-    - Authenticate as an agent against SkySlope.
-    - List available forms/templates with sufficient metadata.
-    - Create/send signing requests for selected forms.
-    - Receive status updates via webhooks or polling.
+- **Form source API integrations** (FMLS, eXp, SkySlope)
+  - Backend module(s) to integrate with each configured form source:
+    - **FMLS API** – list and fetch forms for the agent’s market.
+    - **eXp API** – list and fetch forms for eXp agents/brokerages.
+    - **SkySlope API** – authenticate as an agent, list forms/templates, create/send signing requests, receive status updates via webhooks or polling.
 
 - **Template mapping and caching**
   - A mapping layer that:
-    - Translates SkySlope template IDs into our own `AgreementTemplateReference` concepts when needed.
+    - Translates form source template IDs (FMLS, eXp, SkySlope) into our own `AgreementTemplateReference` concepts when needed.
     - Avoids over-fetching by caching template lists per agent/brokerage/market.
 
 - **Transaction-focused UI flows**
   - New UI flows inside the transaction document area to:
-    - Browse and search SkySlope forms.
+    - Browse and search forms (from FMLS, eXp, or SkySlope).
     - Attach forms to a transaction.
     - Initiate signing and monitor status.
 
 - **Error handling and fallbacks**
   - Clear behavior for:
-    - Missing or revoked SkySlope access.
+    - Missing or revoked access to FMLS, eXp, or SkySlope.
     - Templates no longer available or renamed.
     - Partially configured agents or markets.
+
+### Related: Checklist-step file mapping
+
+For **automated file finding** – agents and buyers finding the right SkySlope forms for each checklist step – see `integrations/11-skyslope-checklist-step-file-mapping.md`. That doc defines:
+- `suggested_form_ids` (optional) on checklist item templates.
+- Semantic form-type keys and SkySlope attribute matching.
+- Step-contextual "Add from SkySlope" with pre-filtered suggested forms.
 

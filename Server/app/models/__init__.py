@@ -4,6 +4,7 @@ from .calendar import CalendarEvent, CalendarShare
 from .documents import (
     Agreement,
     AgreementEvent,
+    AgreementLink,
     AgreementParticipant,
     AgreementRevision,
     Document,
@@ -18,18 +19,20 @@ from .property import (
     Search,
     UserScoreWeights,
 )
-from .transactions import TransactionTask
+from .transactions import Transaction, TransactionAddress, TransactionTask
 
 # Import from organized subfolders for backward compatibility
 from .user import (
     GoogleOAuthToken,
     OAuthState,
     User,
+    UserAgentProfile,
     UserCalendarConnection,
     UserCommunicationPrefs,
     UserDemographics,
     UserFinancials,
     UserImportantLocation,
+    UserIntegration,
     UserIntentAttribute,
     UserRole,
     UserSearchIntent,
@@ -43,9 +46,12 @@ def init_db():
 
 __all__ = [
     "User",
+    "Transaction",
+    "TransactionAddress",
     "TransactionTask",
     "Document",
     "Agreement",
+    "AgreementLink",
     "AgreementRevision",
     "AgreementParticipant",
     "AgreementEvent",
@@ -57,6 +63,7 @@ __all__ = [
     "UserImportantLocation",
     "UserCommunicationPrefs",
     "UserCalendarConnection",
+    "UserAgentProfile",
     "HomeComment",
     "HomeUniversal",
     "HomeLikes",
@@ -73,5 +80,6 @@ __all__ = [
     "CalendarShare",
     "GoogleOAuthToken",
     "OAuthState",
+    "UserIntegration",
     "db",
 ]

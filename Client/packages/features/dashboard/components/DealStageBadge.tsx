@@ -3,6 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import type { DealStage } from "packages/schemas/agent";
+import { Box } from "packages/ui/components/primitives";
 
 import StatusBadge from "@/components/ui/asset/StatusBadge";
 type DealStageBadgeProps = {
@@ -46,10 +47,11 @@ const DealStageBadge: React.FC<DealStageBadgeProps> = ({ stage, className = "" }
   };
   const config = stageConfig[stage];
   return (
-    <div className={`inline-flex items-center gap-1.5 sm:gap-2 ${className}`}>
+    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+    <Box className={`inline-flex flex-row items-center gap-1.5 sm:gap-2 ${className}`}>
       {config.icon}
       <StatusBadge text={config.label} variant={config.variant} size="sm" />
-    </div>
+    </Box>
   );
 };
 export default DealStageBadge;

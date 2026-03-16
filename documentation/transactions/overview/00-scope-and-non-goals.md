@@ -10,7 +10,7 @@ Enable buyers and agents to **fully manage a real estate transaction through che
   - Checklist items and progress.
   - Milestones and deadlines (inspection window, financing contingency, closing, etc.).
   - Calendar events.
-  - Documents and agreements (especially from SkySlope).
+  - Documents and agreements (forms pulled from FMLS, eXp API, and/or SkySlope).
   - Completion rules (signed, reviewed, integration-completed).
 - **Shared visibility** between buyer, agent, and other participants (TC, loan officer, etc.).
 
@@ -40,6 +40,7 @@ Enable buyers and agents to **fully manage a real estate transaction through che
   - Agent-only flows for **SkySlope forms browsing/selection**; buyers see attached forms, not the entire library.
 
 - **Integrations (v1 and future)**:
+  - **Form sources**: Transaction forms are pulled from **FMLS** and/or **eXp API** and/or **SkySlope**, depending on agent/brokerage configuration.
   - **SkySlope** as:
     - System-of-record for agent forms/templates (especially for eXp brokerages).
     - Signing provider (via the `SignatureProvider` abstraction).
@@ -60,8 +61,7 @@ Enable buyers and agents to **fully manage a real estate transaction through che
   - Instead, we provide **structured hooks** (jurisdiction rule sets, compliance data doc) and rely on curated rules and/or vendor feeds.
 
 - **Brokerage-agnostic forms library**:
-  - v1 assumes SkySlope + eXp as the primary source for agent forms and templates.
-  - Supporting every brokerage and every forms provider is out of scope; we design an **extensible integration model** instead.
+  - v1 assumes forms are pulled from **FMLS** and/or **eXp API** and/or **SkySlope**; supporting every brokerage and every forms provider is out of scope. We design an **extensible integration model** instead.
 
 - **Non-residential transactions**:
   - v1 focuses on **residential purchase** workflows; rentals, commercial, and highly bespoke transactions are out of scope.

@@ -20,6 +20,9 @@ CLOSING_ITEMS = [
         "id": 2,
         "label": "Review & sign closing documents",
         "explanation": "Carefully review each document; ask your escrow officer or attorney for digital copies in advance.",
+        "suggested_form_ids": ["closing_disclosure", "deed", "loan_documents"],
+        "completion_type": "signature_based",
+        "calendar": {"hasDates": False, "days": 3, "eventSchedule": [3]},
         "bullets": [
             "Closing Disclosure – details loan terms, closing costs, and cash-to-close.",
             "ALTA Settlement Statement – line-by-line breakdown of buyer/seller debits and credits.",
@@ -35,6 +38,8 @@ CLOSING_ITEMS = [
         "id": 3,
         "label": "Send closing funds",
         "explanation": "Usually includes down payment and closing costs. Use a bank-certified wire; beware of fraud.",
+        "suggested_form_ids": ["wire_instructions"],
+        "calendar": {"hasDates": False, "days": 2, "eventSchedule": [2]},
         "bullets": [
             "Title company will provide final numbers and wiring instructions.",
             "If check is allowed, bring a certified/cashier's check (no personal checks).",
@@ -53,6 +58,14 @@ CLOSING_ITEMS = [
             "label": "The Escrow Timeline (Linear Title and Escrow)",
             "href": "https://lineartitleandescrow.com/2023/12/06/the-escrow-timeline-a-step-by-step-guide-to-closing/",
         },
+    },
+    {
+        "id": 13,
+        "label": "Schedule move-in concierge",
+        "explanation": "Book a move-in concierge to help with setup, utilities, and settling into your new home.",
+        "bullets": [],
+        "component_key": "home_concierge",
+        "integration_key": "home_concierge",
     },
     {
         "id": 5,
@@ -132,7 +145,8 @@ CLOSING_ITEMS = [
     },
     {
         "id": 12,
-        "label": "Join neighborhood or HOA group (optional)",
+        "label": "Join neighborhood or HOA group",
+        "optional": True,
         "explanation": "Benefits include staying informed, meeting neighbors, understanding HOA rules.",
         "bullets": [
             "Find Facebook groups or Nextdoor.",

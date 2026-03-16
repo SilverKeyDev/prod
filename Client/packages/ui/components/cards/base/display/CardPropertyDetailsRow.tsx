@@ -1,11 +1,11 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
+import PropertyStat from "@ui/text/PropertyStat";
 
 import { useLocalization } from "packages/contexts";
 import { formatLotSizeInAcres } from "packages/features/search/types/search/address";
-
-import { PropertyStat } from "@/components/ui";
+import { Box } from "packages/ui/components/primitives";
 
 import {
   CARD_PROPERTY_SIZE_STYLES,
@@ -46,7 +46,7 @@ export function CardPropertyDetailsFirstRow({
   const { t } = useLocalization();
   const statSize = sizeStyles === CARD_PROPERTY_SIZE_STYLES.sm ? "sm" : "md";
   return (
-    <div className="flex flex-nowrap items-center justify-center gap-1 sm:gap-1.5">
+    <Box className="flex flex-row flex-nowrap items-center justify-center gap-1 sm:gap-1.5">
       {bedrooms !== undefined && Number(bedrooms) > 0 && (
         <PropertyStat icon={showIcons ? <Icon name="bed" /> : undefined} size={statSize}>
           {variant === "modal"
@@ -73,7 +73,7 @@ export function CardPropertyDetailsFirstRow({
           )}
         </>
       )}
-    </div>
+    </Box>
   );
 }
 export function CardPropertyDetailsSecondRow({
@@ -92,7 +92,7 @@ export function CardPropertyDetailsSecondRow({
   const { t } = useLocalization();
   const statSize = sizeStyles === CARD_PROPERTY_SIZE_STYLES.sm ? "sm" : "md";
   return (
-    <div className="flex flex-shrink-0 flex-nowrap items-center justify-center gap-1 sm:gap-1.5">
+    <Box className="flex flex-shrink-0 flex-row flex-nowrap items-center justify-center gap-1 sm:gap-1.5">
       <PropertyStat icon={showIcons ? <Icon name="home" /> : undefined} size={statSize}>
         {formatSqftDisplay(sqft, t)}
       </PropertyStat>
@@ -101,7 +101,7 @@ export function CardPropertyDetailsSecondRow({
           {formatLotDisplay(lotSize, t)}
         </PropertyStat>
       )}
-    </div>
+    </Box>
   );
 }
 export function CardPropertyDetailsModalSqft({

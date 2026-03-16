@@ -1,6 +1,7 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import {
   CardPropertyDetailsFirstRow,
@@ -8,7 +9,6 @@ import {
   CardPropertyDetailsSecondRow,
 } from "./CardPropertyDetailsRow";
 import { CARD_PROPERTY_SIZE_STYLES } from "./CardPropertyDetailsStyles";
-
 export type CardPropertyDetailsProps = {
   bedrooms?: number;
   bathrooms?: number;
@@ -20,24 +20,20 @@ export type CardPropertyDetailsProps = {
   hideSquareFootage?: boolean;
   className?: string;
 };
-
 const LAYOUT_STYLES: Record<string, string> = {
-  horizontal: "flex flex-col items-center justify-center",
-  vertical: "flex flex-col items-center justify-center",
-  grid: "flex flex-col items-center justify-center",
-  modal: "flex flex-col items-center justify-center",
+  horizontal: "items-center justify-center",
+  vertical: "items-center justify-center",
+  grid: "items-center justify-center",
+  modal: "items-center justify-center",
 };
-
 function getOptimalSize(contentCount: number): "sm" | "md" {
   return contentCount >= 2 ? "sm" : "md";
 }
-
 function getIsApartmentOrCondo(propertyType?: string): boolean {
   if (!propertyType) return false;
   const lower = propertyType.toLowerCase();
   return lower.includes("condo") || lower.includes("apartment");
 }
-
 const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   bedrooms,
   bathrooms,
@@ -59,7 +55,6 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   const isApartmentOrCondo = getIsApartmentOrCondo(propertyType);
   const sizeStyles = CARD_PROPERTY_SIZE_STYLES[optimalSize] ?? CARD_PROPERTY_SIZE_STYLES.md;
   const layoutStyles = LAYOUT_STYLES[variant] ?? LAYOUT_STYLES.horizontal;
-
   const containerClasses = [
     layoutStyles,
     sizeStyles.gap,
@@ -69,13 +64,11 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   ]
     .filter(Boolean)
     .join(" ");
-
   if (bedrooms === undefined && bathrooms === undefined && sqft === undefined && !lotSize) {
     return null;
   }
-
   return (
-    <div className={containerClasses}>
+    <Box className={containerClasses}>
       <CardPropertyDetailsFirstRow
         bedrooms={bedrooms}
         bathrooms={bathrooms}
@@ -98,8 +91,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
         />
       )}
       {variant === "modal" && hasSqft && <CardPropertyDetailsModalSqft sqft={sqft} t={t} />}
-    </div>
+    </Box>
   );
 };
-
 export default CardPropertyDetails;

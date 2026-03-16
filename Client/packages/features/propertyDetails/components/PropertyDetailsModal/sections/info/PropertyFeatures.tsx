@@ -3,9 +3,11 @@ import React, { useState } from "react";
 import { Icon } from "@ui/icons";
 
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-
-import Card from "@/components/layout/Card.web";
-import { BodyText, Button, Title } from "@/components/ui";
+import Button from "packages/ui/components/button/Button";
+import Card from "packages/ui/components/cards/Card";
+import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 type ImageFeatures = {
   clean: string[];
   error?: unknown;
@@ -93,62 +95,62 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
     });
   };
   return (
-    <div className="px-6 py-6">
-      <div className="mb-4 flex items-center gap-2">
-        <Title as="h3" size="lg" className="text-brown font-semibold">
+    <Box className="px-6 py-6">
+      <Box className="mb-4 flex flex-row items-center gap-2">
+        <Title as="h3" size="lg" className="text-foreground font-semibold">
           Property Features
         </Title>
-      </div>
+      </Box>
 
       <Card className="mt-2 border-r-0 p-6">
         {img && img.clean.length > 0 && (
-          <div className="mb-4 text-left">
-            <Title as="h4" size="sm" className="text-brown mb-2 text-left font-semibold">
+          <Box className="mb-4 text-left">
+            <Title as="h4" size="sm" className="text-foreground mb-2 text-left font-semibold">
               AI-Detected Features
             </Title>
-            <div className="text-brown/70 text-left text-xs leading-relaxed">
+            <Box className="text-left text-xs leading-relaxed text-neutral-600">
               {img.clean.map((feature, i) => (
-                <BodyText key={i} as="span" className="inline-block text-left">
+                <BodyText key={i} as="span" className="flex flex-row text-left">
                   {feature.trim()}
                   {i < img.clean.length - 1 && (
-                    <BodyText as="span" className="text-brown/40 mx-2">
+                    <BodyText as="span" className="mx-2 text-neutral-500">
                       •
                     </BodyText>
                   )}
                 </BodyText>
               ))}
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
 
         {feats && (
-          <div className="space-y-4 text-left">
+          <Box className="flex flex-col gap-4 text-left">
             {Object.entries(feats).map(([category, list]) => {
               const isExpanded = expandedCategories.has(category);
               const displayName = category.replace(/_/g, " ");
               return (
-                <div key={category} className="text-left">
+                <Box key={category} className="text-left">
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={() => toggleCategory(category)}
-                    className="hover:text-brown/80 mb-2 flex w-full items-center justify-between text-left transition-colors"
+                    className="mb-2 flex w-full flex-row items-center justify-between text-left hover:text-neutral-700 active:text-neutral-600 active:text-neutral-700"
                   >
                     <Title
                       as="h4"
                       size="sm"
-                      className="text-brown text-left font-semibold capitalize"
+                      className="text-foreground text-left font-semibold capitalize"
                     >
                       {displayName} ({list.length})
                     </Title>
                     {isExpanded ? (
-                      <Icon name="chevron-up" className="text-brown h-4 w-4" />
+                      <Icon name="chevron-up" className="text-foreground h-4 w-4" />
                     ) : (
-                      <Icon name="chevron-down" className="text-brown h-4 w-4" />
+                      <Icon name="chevron-down" className="text-foreground h-4 w-4" />
                     )}
                   </Button>
                   {isExpanded && (
-                    <div className="flex flex-wrap gap-2 text-left">
+                    <Box className="flex flex-row flex-wrap gap-2 text-left">
                       {list.map((feature, idx) => (
                         <BodyText
                           key={idx}
@@ -158,14 +160,14 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                           {feature}
                         </BodyText>
                       ))}
-                    </div>
+                    </Box>
                   )}
-                </div>
+                </Box>
               );
             })}
-          </div>
+          </Box>
         )}
       </Card>
-    </div>
+    </Box>
   );
 };

@@ -11,6 +11,7 @@ import DocumentUploadModal from "packages/features/saved/components/upload/Docum
 import type { Property } from "packages/features/search";
 import type { SavedHome, SearchResult } from "packages/types";
 import { PdfModal } from "packages/ui/components/modals";
+import { Box } from "packages/ui/components/primitives";
 
 import { Button, ClientSelector } from "@/components/ui";
 
@@ -137,30 +138,27 @@ export function SavedPageLayout({
   // refreshing,
 }: SavedPageLayoutProps) {
   return (
-    <div>
+    <Box>
       <PdfModal
         currentPdf={currentPdf}
         currentReportAddress={currentDocumentName}
         reportId={currentDocumentId}
         onClose={closePdfModal}
       />
-      <div
-        className={`${isMobile ? "mt-0" : "mt-0 lg:mt-0"} space-y-responsive-lg ${
-          viewType === "homes" && selectedHomesData.length >= 1
-            ? "mb-36 sm:mb-40"
-            : "mb-responsive-lg"
-        }`}
+      <Box
+        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+        className={`flex flex-col ${isMobile ? "mt-0" : "mt-0 lg:mt-0"} gap-4 ${viewType === "homes" && selectedHomesData.length >= 1 ? "mb-36 sm:mb-40" : "mb-responsive-lg"}`}
       >
-        <div className="px-responsive-lg w-full">
+        <Box className="w-full">
           {!isMobile && (
             <>
-              <div className="mb-4 w-full">
+              <Box className="mb-4 w-full">
                 <ClientSelector
                   selectedClientId={selectedClientId}
                   onClientChange={setSelectedClientId}
                 />
-              </div>
-              <div className="w-full">
+              </Box>
+              <Box className="w-full">
                 <SavedPageTabsAndSearch
                   searchTerm={searchTerm}
                   onSearchChange={setSearchTerm}
@@ -184,11 +182,11 @@ export function SavedPageLayout({
                   }
                   onUploadClick={() => setIsDocumentUploadModalOpen(true)}
                 />
-              </div>
+              </Box>
             </>
           )}
           {viewType === "documents" && isAgent && (
-            <div className="mb-4 w-full">
+            <Box className="mb-4 w-full">
               <Button
                 variant="primary"
                 size="md"
@@ -196,7 +194,7 @@ export function SavedPageLayout({
               >
                 Create Agreement
               </Button>
-            </div>
+            </Box>
           )}
           <SavedHomesContent
             viewType={viewType}
@@ -217,7 +215,7 @@ export function SavedPageLayout({
             selectedHomesDataLength={selectedHomesData.length}
             noPadding
           />
-        </div>
+        </Box>
         <SavedPageModals
           viewType={viewType}
           selectedProperty={selectedProperty}
@@ -253,7 +251,7 @@ export function SavedPageLayout({
           isOpen={!!selectedAgreementId}
           onClose={() => setSelectedAgreementId(null)}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

@@ -1,5 +1,7 @@
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { BodyText, Button } from "@/components/ui";
 import type { AgreementRevision } from "@/features/documents/types/agreements";
 import { formatAgreementDateTime } from "@/features/documents/utils/agreements";
@@ -31,36 +33,36 @@ export default function AgreementRevisionsTab({
   onDownloadClick,
 }: AgreementRevisionsTabProps) {
   return (
-    <div className="space-y-4">
+    <Box className="flex flex-col gap-4">
       {userCanCreateRevision && (
-        <div className="mb-4">
+        <Box className="mb-4">
           {!showRevisionUpload ? (
             <Button variant="primary" size="md" onClick={onUploadClick}>
               Upload Revision
             </Button>
           ) : (
-            <div className="rounded-lg border border-gray-200 p-4">
+            <Box className="rounded-lg border border-gray-200 p-4">
               <RevisionUpload
                 agreementId={agreementId}
                 onSuccess={onUploadSuccess}
                 onCancel={onUploadCancel}
               />
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
       )}
 
       {revisions.length > 0 ? (
-        <div className="space-y-3">
+        <Box className="flex flex-col gap-3">
           {revisions.map((revision) => (
-            <div
+            <Box
               key={revision.id}
-              className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50 active:bg-gray-100 active:bg-gray-50"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
+              <Box className="flex flex-row items-start justify-between">
+                <Box className="flex flex-row items-start gap-3">
                   <Icon name="file-text" className="mt-0.5 h-5 w-5 text-gray-600" />
-                  <div>
+                  <Box>
                     <BodyText as="p" className="font-medium text-gray-900">
                       {revision.file_name}
                     </BodyText>
@@ -79,22 +81,22 @@ export default function AgreementRevisionsTab({
                         By {revision.created_by_name}
                       </BodyText>
                     )}
-                  </div>
-                </div>
+                  </Box>
+                </Box>
                 <Button variant="ghost" size="sm" onClick={() => onDownloadClick(revision.id)}>
                   <Icon name="download" className="h-4 w-4" />
                 </Button>
-              </div>
-            </div>
+              </Box>
+            </Box>
           ))}
-        </div>
+        </Box>
       ) : (
-        <div className="py-8 text-center">
-          <BodyText size="sm" muted>
+        <Box className="py-8 text-center">
+          <BodyText className="text-center" size="sm" muted>
             No revisions uploaded yet
           </BodyText>
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

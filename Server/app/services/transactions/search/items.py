@@ -1,0 +1,49 @@
+"""Search checklist task definitions."""
+
+SEARCH_ITEMS = [
+    {
+        "id": 1,
+        "order": 0,
+        "label": "Get pre-approved for a mortgage",
+        "explanation": "Secure a pre-approval letter from a lender to know your exact budget and prove you are a serious buyer.",
+        "bullets": [
+            "Gather your financial documents like W-2s, pay stubs, and bank statements.",
+            "Compare rates from multiple lenders to find the best terms.",
+        ],
+        "resource": None,
+    },
+    {
+        "id": 4,
+        "order": 1,
+        "label": "Choose area(s)",
+        "explanation": "Add work, family, or other important locations and set your commute range. The map shows your search area (isochrones) based on these locations.",
+        "bullets": [
+            "Add addresses for work, school, or family.",
+            "Set how many minutes you're willing to commute from each location.",
+        ],
+        "resource": None,
+        "component_key": "choose_areas",
+    },
+    {
+        "id": 2,
+        "order": 2,
+        "label": "Define your criteria and prioritize needs vs. wants",
+        "explanation": "Create a clear list of what you must have in a home versus what would be nice to have.",
+        "bullets": [
+            "Identify dealbreakers like the number of bedrooms or maximum commute time.",
+            "List nice-to-haves such as a pool, specific architectural style, or hardwood floors.",
+        ],
+        "resource": None,
+    },
+    {
+        "id": 3,
+        "order": 3,
+        "label": "Partner with a real estate agent",
+        "explanation": "Hire a buyer's agent to guide you through the search, provide market insights, and give you access to the MLS.",
+        "bullets": [
+            "Ask for referrals and interview a few agents to find a good fit.",
+            "Let them set up automated alerts for properties matching your criteria.",
+        ],
+        "resource": None,
+    },
+]

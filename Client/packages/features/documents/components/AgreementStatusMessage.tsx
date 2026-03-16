@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { BodyText } from "@/components/ui";
 import { AgreementDetailModal } from "@/features/documents/components/modals";
 import type { AgreementStatus } from "@/features/documents/types/agreements";
@@ -58,11 +60,11 @@ export default function AgreementStatusMessage({
   };
   return (
     <>
-      <div className="my-3 flex justify-center">
-        <div
+      <Box className="my-3 flex flex-row justify-center">
+        <Box
           role="button"
           tabIndex={0}
-          className="max-w-md cursor-pointer rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 transition-colors hover:bg-blue-100"
+          className="max-w-md cursor-pointer rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 hover:bg-blue-100 active:bg-blue-100 active:bg-blue-200"
           onClick={() => setIsModalOpen(true)}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -71,13 +73,13 @@ export default function AgreementStatusMessage({
             }
           }}
         >
-          <div className="mb-1 flex items-center gap-2">
+          <Box className="mb-1 flex flex-row items-center gap-2">
             {getIcon()}
             <BodyText size="sm" className="text-gray-900">
               {getMessage()}
             </BodyText>
-          </div>
-          <div className="flex items-center justify-between gap-3">
+          </Box>
+          <Box className="flex flex-row items-center justify-between gap-3">
             <AgreementStatusBadge status={status} size="sm" />
             <BodyText size="xs" muted>
               {timestamp.toLocaleTimeString("en-US", {
@@ -85,9 +87,9 @@ export default function AgreementStatusMessage({
                 minute: "2-digit",
               })}
             </BodyText>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
       <AgreementDetailModal
         agreementId={agreementId}
         isOpen={isModalOpen}

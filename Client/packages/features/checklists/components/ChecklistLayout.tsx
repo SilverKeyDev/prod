@@ -6,17 +6,20 @@ import {
   type ChecklistType,
   useChecklistData,
 } from "packages/features/checklists/hooks/data/useChecklistData";
+import Card from "packages/ui/components/cards/Card";
 import ChecklistCheckbox from "packages/ui/components/form/ChecklistCheckbox";
-import Card from "packages/ui/components/layout/Card.web";
+import { Box, Text } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
+
+import ChecklistIntegrationSlot from "./ChecklistIntegrationSlot";
+
 // Shared CSS classes - now using Card component instead with mobile-first responsive design
 const sectionTitle =
-  "text-responsive-sm font-semibold text-navy flex items-center gap-responsive-xs mb-responsive-md";
-const checkboxContainer = "flex items-start gap-responsive-xs mt-responsive-sm mb-responsive-md";
-const itemLabel = "font-medium text-navy text-responsive-sm";
-const itemExplanation =
-  "text-navy/80 text-responsive-xs mt-1 transition-opacity duration-300 ease-in-out";
+  "text-responsive-sm font-semibold text-navy flex flex-row items-center gap-responsive-xs";
+const checkboxContainer = "flex flex-row w-full items-start gap-responsive-xs";
+const itemLabel = "text-left font-medium text-navy text-responsive-sm";
+const itemExplanation = "text-left text-neutral-700 text-responsive-xs mt-1";
 // Shared interfaces
 type ResourceLink = {
   label: string;
@@ -29,6 +32,7 @@ type ChecklistItem = {
   bullets?: string[];
   tip?: string;
   resource?: ResourceLink;
+  optional?: boolean;
 };
 type ClosePageHeaderData = {
   title: string;
@@ -74,7 +78,12 @@ export default function CloseLayout({
     return "escrow";
   }, [apiEndpoint]);
   // Use React Query hook for checklist data (uses prefetched data when available)
-  const { checkedIds, isLoading: loading, toggleItem } = useChecklistData(checklistType);
+  const {
+    checkedIds,
+    activeItemId,
+    isLoading: loading,
+    toggleItem,
+  } = useChecklistData(checklistType);
   // Convert checkedIds array to checked state object
   const checked = React.useMemo(() => {
     const mapping: {
@@ -115,54 +124,73 @@ export default function CloseLayout({
   // Only show if no data exists AND is loading
   if (showLoadingScreen && loading && checkedIds.length === 0) {
     return (
-      <div className="bg-off-white text-navy flex items-center justify-center">
+      <Box className="bg-off-white text-navy flex flex-row items-center justify-center">
         <BodyText as="p" size="sm">
           Loading checklist…
         </BodyText>
-      </div>
+      </Box>
     );
   }
   return (
-    <div className="bg-off-white">
+    <Box className="bg-off-white">
       {/* Custom content before checklist */}
-      {children && <div className="mb-responsive-sm">{children}</div>}
+      {children && <Box className="mb-responsive-sm">{children}</Box>}
 
       {/* Main checklist section */}
-      <div className={containerClassName}>
+      <Box className={containerClassName}>
         {loading && showMinLoadingText && (
           <BodyText size="sm" className="mb-responsive-sm">
             Loading checklist…
           </BodyText>
         )}
 
-        <div className="px-responsive-sm mx-auto w-full max-w-none">
+        <Box className="w-full max-w-none self-center">
           <Card className="mb-responsive-md" padding="sm">
-            <div className={`${sectionTitle} mb-3`}>
-              <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center lg:h-5 lg:w-5">
-                <Icon name="check-square" className="text-brown h-4 w-4 lg:h-5 lg:w-5" />
-              </div>
+            <Box className={sectionTitle}>
+              <Box className="flex h-4 w-4 flex-shrink-0 flex-row items-center justify-center lg:h-5 lg:w-5">
+                <Icon name="check-square" className="text-foreground h-4 w-4 lg:h-5 lg:w-5" />
+              </Box>
               {sectionTitleText}
-            </div>
+            </Box>
 
-            <fieldset className="mt-responsive-xs">
-              <legend className="sr-only">Checklist</legend>
-              <div className="space-y-responsive-md">
-                {items.map((item) => (
-                  <ChecklistCheckbox
-                    key={item.id}
-                    item={item}
-                    checked={!!checked[item.id]}
-                    onToggle={() => toggle(item.id)}
-                    itemLabelClass={itemLabel}
-                    itemExplanationClass={itemExplanation}
-                    checkboxContainerClass={checkboxContainer}
-                  />
-                ))}
-              </div>
-            </fieldset>
+            <Box className="mt-responsive-xs text-left">
+              <Text className="sr-only">Checklist</Text>
+              <Box className="divide-y divide-gray-200 overflow-visible">
+                {items.map((item, index) => {
+                  const isActive = activeItemId != null && item.id === activeItemId;
+                  const shouldShowIntegration =
+                    (item as { component_key?: string }).component_key != null;
+                  return (
+                    <Box
+                      key={item.id}
+                      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+                      className={`w-full py-2.5 first:pt-0 last:pb-0 ${isActive ? "relative z-10 overflow-visible" : ""}`}
+                    >
+                      <ChecklistCheckbox
+                        item={item}
+                        checked={!!checked[item.id]}
+                        onToggle={() => toggle(item.id)}
+                        itemLabelClass={itemLabel}
+                        itemExplanationClass={itemExplanation}
+                        checkboxContainerClass={checkboxContainer}
+                        number={index + 1}
+                        isActive={isActive}
+                      />
+                      {isActive && shouldShowIntegration && (
+                        <ChecklistIntegrationSlot
+                          componentKey={(item as { component_key?: string }).component_key}
+                          isCurrent={true}
+                          onComplete={() => void toggleItem(item.id)}
+                        />
+                      )}
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Box>
           </Card>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

@@ -1,6 +1,7 @@
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 
 import { BodyText, Subtitle } from "@/components/ui";
@@ -64,31 +65,31 @@ export default function DocumentCardHeader({
   return (
     <>
       {/* Header with icon and title */}
-      <div className="mb-2 flex items-start gap-3">
-        <div className="text-brown flex-shrink-0">
+      <Box className="mb-2 flex flex-row items-start gap-3">
+        <Box className="text-foreground flex-shrink-0">
           <Icon name={documentIconName} size={24} />
-        </div>
-        <div className="h-[2.75rem] min-w-0 flex-1 overflow-hidden">
+        </Box>
+        <Box className="h-[2.75rem] min-w-0 flex-1 overflow-hidden">
           <Subtitle size="sm" className="line-clamp-2">
             {title}
           </Subtitle>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {/* Document type */}
-      <div className="mb-2">
+      <Box className="mb-2">
         <BodyText size="xs" className="font-medium text-gray-600">
           {displayType}
         </BodyText>
-      </div>
+      </Box>
 
       {/* Upload date */}
-      <div className="mb-4 flex items-center gap-2">
+      <Box className="mb-4 flex flex-row items-center gap-2">
         <Icon name="calendar" size={14} className="flex-shrink-0 text-gray-400" />
         <BodyText size="xs" muted>
           {t("documents.uploaded", { date: uploadedDate })}
         </BodyText>
-      </div>
+      </Box>
     </>
   );
 }

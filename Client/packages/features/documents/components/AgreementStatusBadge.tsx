@@ -57,7 +57,8 @@ export default function AgreementStatusBadge({
     <BodyText
       as="span"
       size={size === "lg" ? "md" : size === "md" ? "sm" : "xs"}
-      className={`inline-flex items-center gap-1.5 rounded-full border font-medium ${colorClass} ${sizeClasses} ${className}`}
+      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
+      className={`inline-flex flex-row items-center gap-1.5 rounded-full border font-medium ${colorClass} ${sizeClasses} ${className}`}
       title={label}
     >
       {showIcon && <StatusIcon className={iconSizes} />}

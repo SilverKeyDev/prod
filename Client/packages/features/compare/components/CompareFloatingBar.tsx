@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedHome } from "packages/types";
+import { Box } from "packages/ui/components/primitives";
 
 import { StyledImage } from "@/components/cards/base/image";
 import { BodyText, Button, IconButton } from "@/components/ui";
@@ -44,25 +45,25 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
       ? t("compare_floating.home_selected")
       : t("compare_floating.homes_selected", { count: selectedHomes.length });
   return (
-    <div className="safe-bottom bottom-reserved fixed left-0 right-0 z-50 border-t border-gray-200 bg-white shadow-lg transition-all duration-300 ease-in-out md:bottom-0">
-      <div className="px-responsive-md py-responsive-sm mx-auto max-w-7xl sm:px-6 sm:py-4">
-        <div className="gap-responsive-sm flex items-center sm:gap-4">
+    <Box className="safe-bottom bottom-reserved fixed left-0 right-0 z-50 border-t border-gray-200 bg-white shadow-lg md:bottom-0">
+      <Box className="px-responsive-md py-responsive-sm max-w-7xl self-center sm:px-6 sm:py-4">
+        <Box className="gap-responsive-sm flex flex-row items-center sm:gap-4">
           {/* Count and thumbnails */}
-          <div className="gap-responsive-sm flex flex-1 items-center">
-            <div className="flex-shrink-0">
-              <div className="bg-olive/10 flex h-8 w-8 items-center justify-center rounded-full sm:h-10 sm:w-10">
+          <Box className="gap-responsive-sm flex flex-1 flex-row items-center">
+            <Box className="flex-shrink-0">
+              <Box className="flex h-8 w-8 flex-row items-center justify-center rounded-full bg-neutral-100 sm:h-10 sm:w-10">
                 <Icon name="bar-chart-2" className="text-olive h-4 w-4 sm:h-5 sm:w-5" />
-              </div>
-            </div>
-            <div className="min-w-0 flex-1">
+              </Box>
+            </Box>
+            <Box className="min-w-0 flex-1">
               <BodyText size="sm" className="font-medium">
                 {countLabel}
               </BodyText>
-            </div>
+            </Box>
             {/* Thumbnails */}
-            <div className="gap-responsive-sm hidden flex-shrink-0 items-center sm:flex">
+            <Box className="gap-responsive-sm hidden flex-shrink-0 flex-row items-center sm:flex">
               {selectedHomes.slice(0, 4).map((home) => (
-                <div
+                <Box
                   key={getHomeId(home)}
                   className="group relative h-12 w-12 overflow-hidden rounded-lg border-2 border-gray-200"
                 >
@@ -78,9 +79,9 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gray-100">
+                    <Box className="flex h-full w-full flex-row items-center justify-center bg-gray-100">
                       <Icon name="bar-chart-2" className="h-5 w-5 text-gray-400" />
-                    </div>
+                    </Box>
                   )}
                   <IconButton
                     onClick={(e) => {
@@ -91,30 +92,31 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
                     size="xs"
                     rounded="full"
                     icon={<Icon name="x" className="h-3 w-3" />}
-                    className="absolute -right-1 -top-1 bg-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+                    className="absolute -right-1 -top-1 bg-white opacity-0 shadow-sm group-hover:opacity-100 group-active:opacity-75"
                     label={t("compare_floating.remove_aria")}
                   />
-                </div>
+                </Box>
               ))}
               {selectedHomes.length > 4 && (
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-gray-200 bg-gray-50 text-xs font-medium text-gray-600">
+                <Box className="flex h-12 w-12 flex-row items-center justify-center rounded-lg border-2 border-gray-200 bg-gray-50 text-xs font-medium text-gray-600">
                   {t("compare_floating.more_count", {
                     count: selectedHomes.length - 4,
                   })}
-                </div>
+                </Box>
               )}
-            </div>
-          </div>
+            </Box>
+          </Box>
 
           {/* Actions */}
-          <div className="gap-responsive-sm flex flex-shrink-0 items-center">
+          <Box className="gap-responsive-sm flex flex-shrink-0 flex-row items-center">
             <Button
               onClick={onClear}
               variant="outline"
               size="sm"
               iconName="x"
-              className="hidden border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50 hover:text-gray-700 focus:ring-gray-300/20 disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 sm:inline-flex"
+              className="hidden flex-row border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50 hover:text-gray-700 focus:ring-neutral-400 active:border-gray-400 active:border-gray-500 active:bg-gray-100 active:bg-gray-50 active:text-gray-700 active:text-gray-800 disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 sm:inline-flex"
               hideTextBelow="sm"
+              label={t("compare_floating.clear_aria")}
             >
               {t("compare_floating.clear")}
             </Button>
@@ -128,10 +130,10 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
             >
               {t("compare_floating.compare")}
             </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 export default CompareFloatingBar;

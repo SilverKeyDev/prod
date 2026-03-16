@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
 const MAX_VISIBLE = 3;
@@ -20,15 +21,15 @@ export default function ImportantLocationsSummary(): React.ReactElement | null {
   const visible = locations.slice(0, MAX_VISIBLE);
   const remaining = locations.length - MAX_VISIBLE;
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
+    <Box className="flex min-w-0 flex-1 flex-row items-center gap-1.5 overflow-x-auto">
       <Icon name="map-pin" className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <Box className="flex flex-row flex-wrap items-center gap-x-2 gap-y-1">
         {visible.map((loc, i) => (
           <BodyText
             key={i}
             as="span"
             size="xs"
-            className="inline-flex shrink-0 items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5"
+            className="inline-flex shrink-0 flex-row items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5"
           >
             <BodyText as="span" size="xs" className="truncate text-gray-700">
               {truncateAddress(loc.address)}
@@ -47,7 +48,7 @@ export default function ImportantLocationsSummary(): React.ReactElement | null {
             {t("search.locations_more", { count: remaining })}
           </BodyText>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
