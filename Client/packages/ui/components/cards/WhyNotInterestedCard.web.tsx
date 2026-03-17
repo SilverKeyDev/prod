@@ -92,7 +92,7 @@ function WhyNotInterestedImageSection({
             disabled={isDisabled}
             iconName="arrow-left"
             iconPosition="left"
-            className="absolute left-2 top-2 z-10 bg-white/20 text-white backdrop-blur-sm hover:bg-white/30 focus:ring-white/50 focus:ring-offset-transparent"
+            className="bg-primary-muted hover:bg-primary-muted focus:ring-accent-muted absolute left-2 top-2 z-10 text-white backdrop-blur-sm focus:ring-offset-transparent"
             aria-label="Go back"
             title={t("why_not.back")}
           >
@@ -125,8 +125,8 @@ function WhyNotInterestedReasonList({
           htmlFor={`not-interested-reason-${reason.id}`}
           className={`flex cursor-pointer items-center rounded-md border p-3 transition-colors ${
             selectedReason === reason.id
-              ? "border-gray-900 bg-gray-50"
-              : "border-gray-200 hover:border-gray-300"
+              ? "border-primary bg-primary-muted"
+              : "border-border hover:border-border"
           } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
         >
           <Input
@@ -137,7 +137,7 @@ function WhyNotInterestedReasonList({
             checked={selectedReason === reason.id}
             onChange={(e) => setSelectedReason(e.target.value)}
             disabled={disabled}
-            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-500 disabled:opacity-50"
+            className="border-border text-text-primary disabled:bg-disabled disabled:text-text-disabled h-4 w-4 focus:ring-neutral-400"
           />
           <BodyText as="span" className="ml-3 text-sm text-gray-900">
             {t(REASON_LABEL_KEYS[reason.id] ?? "why_not.other")}
@@ -171,7 +171,7 @@ function WhyNotInterestedCustomReason({
         onChange={(e) => setCustomReason(e.target.value)}
         disabled={disabled}
         placeholder={t("why_not.reason_placeholder")}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500 disabled:cursor-not-allowed disabled:opacity-50"
+        className="border-border focus:border-primary disabled:bg-disabled disabled:text-text-disabled w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-neutral-400 disabled:cursor-not-allowed"
       />
     </div>
   );

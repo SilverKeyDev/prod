@@ -95,7 +95,7 @@ export default function RevisionUpload({
       <Box>
         <Label
           htmlFor="revision-upload-file"
-          className="mb-2 flex flex-col font-medium text-gray-700"
+          className="text-text-secondary mb-2 flex flex-col font-medium"
         >
           Upload Document (PDF)
         </Label>
@@ -114,7 +114,7 @@ export default function RevisionUpload({
               }
             }}
           >
-            <Icon name="upload" className="mb-2 h-8 w-8 self-center text-gray-400" />
+            <Icon name="upload" className="text-text-disabled mb-2 h-8 w-8 self-center" />
             <BodyText className="text-center" size="sm" muted>
               Click to upload or drag and drop
             </BodyText>
@@ -123,14 +123,14 @@ export default function RevisionUpload({
             </BodyText>
           </Box>
         ) : (
-          <Box className="flex flex-row items-center justify-between rounded-lg border border-gray-300 p-4">
+          <Box className="border-border flex flex-row items-center justify-between rounded-lg border p-4">
             <Box className="flex flex-row items-center gap-3">
-              <Icon name="file" className="h-5 w-5 text-gray-600" />
+              <Icon name="file" className="text-text-secondary h-5 w-5" />
               <Box>
-                <BodyText as="p" size="sm" className="font-medium text-gray-900">
+                <BodyText as="p" size="sm" className="text-text-primary font-medium">
                   {selectedFile.name}
                 </BodyText>
-                <BodyText as="p" size="xs" className="text-gray-500">
+                <BodyText as="p" size="xs" className="text-text-secondary">
                   {(selectedFile.size / 1024).toFixed(1)} KB
                 </BodyText>
               </Box>
@@ -139,7 +139,7 @@ export default function RevisionUpload({
               variant="ghost"
               size="sm"
               onClick={handleRemoveFile}
-              className="h-auto min-w-0 p-0 text-gray-400 hover:text-gray-600 active:text-gray-600 active:text-gray-700"
+              className="text-text-disabled hover:text-text-secondary active:text-text-secondary active:text-text-secondary h-auto min-w-0 p-0"
               disabled={false}
             >
               <Icon name="x" className="h-5 w-5" />
@@ -161,7 +161,7 @@ export default function RevisionUpload({
       <Box>
         <Label
           htmlFor="revision-upload-notes"
-          className="mb-2 flex flex-col font-medium text-gray-700"
+          className="text-text-secondary mb-2 flex flex-col font-medium"
         >
           Notes (Optional)
         </Label>
@@ -171,7 +171,7 @@ export default function RevisionUpload({
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Add any notes about this revision..."
           rows={3}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+          className="border-border w-full rounded-lg border px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           disabled={false}
         />
       </Box>

@@ -1,10 +1,6 @@
 import React from "react";
 
-import {
-  FIELD_LABELS,
-  IS_AGENT_OPTIONS,
-  type OnboardingData,
-} from "packages/features/profile/utils";
+import { FIELD_LABELS, type OnboardingData } from "packages/features/profile/utils";
 import { PrimitiveInput } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
@@ -15,13 +11,7 @@ import Title from "packages/ui/components/text/Title";
 
 import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue";
 
-function getOptionLabel(
-  options: readonly { value: string; label: string }[],
-  value?: string
-): string {
-  if (!value) return "Not specified";
-  return options.find((opt) => opt.value === value)?.label ?? "Not specified";
-}
+/** Agent/buyer choice is immutable and only shown during onboarding; omitted from profile. */
 
 function getInitials(name?: string | null): string | null {
   if (!name) return null;
@@ -62,15 +52,15 @@ export function ProfileDemographicsSection({
 
       {onUploadPhoto != null && (
         <Box className="gap-3">
-          <BodyText size="sm" className="font-medium text-gray-700">
+          <BodyText size="sm" className="text-text-secondary font-medium">
             Profile picture
           </BodyText>
           <Box className="flex-row flex-wrap items-center gap-4">
-            <Box className="h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-gray-100">
+            <Box className="bg-primary-muted h-20 w-20 items-center justify-center overflow-hidden rounded-full">
               {profilePictureUrl ? (
                 <Image source={{ uri: profilePictureUrl }} className="h-20 w-20 rounded-full" />
               ) : (
-                <Text className="text-xl font-semibold text-gray-700">
+                <Text className="text-text-secondary text-xl font-semibold">
                   {getInitials(userDisplayName) ?? "?"}
                 </Text>
               )}
@@ -79,9 +69,9 @@ export function ProfileDemographicsSection({
               <Pressable
                 onPress={onUploadPhoto}
                 disabled={isUploadingProfilePicture}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2"
+                className="border-border bg-background-surface rounded-lg border px-4 py-2"
               >
-                <Text className="text-sm font-medium text-gray-900">
+                <Text className="text-text-primary text-sm font-medium">
                   {profilePictureUrl ? "Change photo" : "Upload photo"}
                 </Text>
               </Pressable>
@@ -94,7 +84,7 @@ export function ProfileDemographicsSection({
       )}
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.NAME}
         </BodyText>
         {isEditMode ? (
@@ -103,7 +93,7 @@ export function ProfileDemographicsSection({
             onValueChange={(v) => updateField("name", v || undefined)}
             placeholder="Your name"
             keyboardType="default"
-            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+            className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.name} />
@@ -111,37 +101,7 @@ export function ProfileDemographicsSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
-          {FIELD_LABELS.IS_AGENT}
-        </BodyText>
-        {isEditMode ? (
-          <Box className="flex-row flex-wrap gap-2">
-            {IS_AGENT_OPTIONS.map((option) => {
-              const selected = formData.is_agent === option.value;
-              return (
-                <Pressable
-                  key={option.value}
-                  onPress={() => updateField("is_agent", option.value)}
-                  className={`rounded-full px-4 py-2 ${
-                    selected ? "bg-brand-accent" : "border border-gray-200 bg-white"
-                  }`}
-                >
-                  <Text
-                    className={`text-sm font-medium ${selected ? "text-white" : "text-gray-800"}`}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </Box>
-        ) : (
-          <ProfileReadOnlyValue value={getOptionLabel(IS_AGENT_OPTIONS, formData.is_agent)} />
-        )}
-      </Box>
-
-      <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.AGE}
         </BodyText>
         {isEditMode ? (
@@ -150,7 +110,7 @@ export function ProfileDemographicsSection({
             onValueChange={(v) => updateField("age", v ? parseInt(v, 10) || undefined : undefined)}
             placeholder="Age"
             keyboardType="number-pad"
-            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+            className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.age} />

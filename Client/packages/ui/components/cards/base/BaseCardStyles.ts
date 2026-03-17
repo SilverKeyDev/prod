@@ -84,11 +84,11 @@ export function getBaseCardClasses(props: BaseCardStyleProps): string {
     className,
   } = props;
 
-  const baseStyles = `bg-neutral-50 ${CARD_TRANSITION_CLASSES}`;
+  const baseStyles = `bg-background-base ${CARD_TRANSITION_CLASSES}`;
   const variantStyles: Record<string, string> = {
-    default: "border border-neutral-200",
+    default: "border border-border-card-subtle",
     elevated: "border-0",
-    outlined: "border-2 border-neutral-300",
+    outlined: "border-2 border-border-card-subtle",
     flat: "border-0 shadow-none",
   };
   const paddingStyles: Record<string, string> = {

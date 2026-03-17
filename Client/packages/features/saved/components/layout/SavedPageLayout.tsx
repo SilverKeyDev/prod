@@ -63,7 +63,6 @@ export type SavedPageLayoutProps = {
   ) => Promise<{ success: boolean; message: string }>;
   onToggleHomeSelection: (homeId: string) => void;
   onUnlockHome: (home: SavedHome) => Promise<void>;
-  onOpenNegotiation: (home: SavedHome) => void;
   onDocumentDelete: (docId: string) => void;
   onAgreementClick: (agreementId: string) => void;
   onAgreementSend: (agreementId: string) => void;
@@ -122,7 +121,6 @@ export function SavedPageLayout({
   // onShareDocument,
   onToggleHomeSelection,
   onUnlockHome,
-  onOpenNegotiation,
   onDocumentDelete,
   onAgreementClick,
   onAgreementSend,
@@ -207,7 +205,6 @@ export function SavedPageLayout({
             selectedHomesForComparison={selectedHomesForComparison}
             onToggleHomeSelection={onToggleHomeSelection}
             onUnlockHome={onUnlockHome}
-            onOpenNegotiation={onOpenNegotiation}
             onDocumentDelete={onDocumentDelete}
             onAgreementClick={onAgreementClick}
             onAgreementSend={onAgreementSend}

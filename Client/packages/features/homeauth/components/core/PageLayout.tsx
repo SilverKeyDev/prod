@@ -38,8 +38,8 @@ export default function AuthPageLayout({
   logoSize = "lg",
   showHeader = true,
   variant = "default",
-  titleClassName = "text-responsive-2xl font-serif text-black mb-2 flex items-center justify-center",
-  subtitleClassName = "text-black/60 font-light text-responsive-xs mb-8",
+  titleClassName = "text-responsive-2xl font-serif text-text-primary mb-2 flex items-center justify-center",
+  subtitleClassName = "text-text-secondary font-light text-responsive-xs mb-8",
   headerContainerClassName = "text-center space-y-2",
   children,
   error,
@@ -52,7 +52,7 @@ export default function AuthPageLayout({
       ? "w-full max-w-[90vw] sm:max-w-lg md:max-w-xl"
       : "w-full max-w-[85vw] sm:max-w-md";
   return (
-    <div className="px-responsive-sm py-responsive-md bg-off-white flex min-h-screen items-center justify-center">
+    <div className="px-responsive-sm py-responsive-md bg-background-base flex min-h-screen items-center justify-center">
       <div className={containerWidth}>
         {/* Header */}
         {showHeader && (

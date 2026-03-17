@@ -49,8 +49,8 @@ export default function ClientSelectorNative({
         onPress={() => setIsOpen(true)}
         className="flex-row items-center gap-2"
       >
-        <Text className="text-sm font-medium text-gray-700">{displayLabel}</Text>
-        <Text className="text-sm text-gray-500">▼</Text>
+        <Text className="text-text-primary text-sm font-medium">{displayLabel}</Text>
+        <Text className="text-text-secondary text-sm">▼</Text>
       </Button>
 
       <BaseModal
@@ -63,13 +63,13 @@ export default function ClientSelectorNative({
             onPress={() => handleSelect(null)}
             className={`rounded-lg border px-4 py-3 ${
               selectedClientId === null
-                ? "border-brand-accent bg-brand-accent/10"
-                : "border-gray-200 bg-white"
+                ? "border-primary bg-primary-muted"
+                : "border-border bg-background-surface"
             }`}
           >
             <Text
               className={`text-sm font-medium ${
-                selectedClientId === null ? "text-brand-accent" : "text-gray-700"
+                selectedClientId === null ? "text-primary" : "text-text-primary"
               }`}
             >
               {t("client_selector.me")}
@@ -77,11 +77,11 @@ export default function ClientSelectorNative({
           </Pressable>
 
           {isLoading ? (
-            <Text className="px-4 py-2 text-sm text-gray-500">
+            <Text className="text-text-secondary px-4 py-2 text-sm">
               {t("client_selector.loading_clients")}
             </Text>
           ) : clients.length === 0 ? (
-            <Text className="px-4 py-2 text-sm text-gray-500">
+            <Text className="text-text-secondary px-4 py-2 text-sm">
               {t("client_selector.no_clients_found")}
             </Text>
           ) : (
@@ -91,19 +91,19 @@ export default function ClientSelectorNative({
                 onPress={() => handleSelect(client.id)}
                 className={`rounded-lg border px-4 py-3 ${
                   selectedClientId === client.id
-                    ? "border-brand-accent bg-brand-accent/10"
-                    : "border-gray-200 bg-white"
+                    ? "border-primary bg-primary-muted"
+                    : "border-border bg-background-surface"
                 }`}
               >
                 <Text
                   className={`text-sm font-medium ${
-                    selectedClientId === client.id ? "text-brand-accent" : "text-gray-700"
+                    selectedClientId === client.id ? "text-primary" : "text-text-primary"
                   }`}
                 >
                   {client.name}
                 </Text>
                 {client.email ? (
-                  <Text className="mt-0.5 text-xs text-gray-500">{client.email}</Text>
+                  <Text className="text-text-secondary mt-0.5 text-xs">{client.email}</Text>
                 ) : null}
               </Pressable>
             ))

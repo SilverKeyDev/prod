@@ -1,6 +1,7 @@
 // @ts-expect-error - React is needed at runtime for React Email rendering
 import React from "react";
 
+import { emailColors } from "./colors";
 import { ListingCardBody } from "./ListingCardBody";
 import { ListingCardImageSection } from "./ListingCardImageSection";
 import type { Listing } from "./listingCardTypes";
@@ -21,10 +22,10 @@ export function ListingCard({ listing, isLast = false }: ListingCardProps) {
     >
       <div
         style={{
-          border: "1px solid #e5e7eb",
+          border: `1px solid ${emailColors["border-light"]}`,
           borderRadius: "12px",
           overflow: "hidden",
-          backgroundColor: "#ffffff",
+          backgroundColor: emailColors["background-surface"],
           boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
         }}
       >

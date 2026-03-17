@@ -27,18 +27,18 @@ function RouteErrorResponseView({
   onGoBack,
 }: RouteErrorResponseViewProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-lg border-l-4 border-l-red-500" padding="lg">
+    <div className="flex min-h-screen items-center justify-center bg-background-base p-4">
+      <Card className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
         <div className="text-center">
           <div className="mb-4 flex justify-center">
-            <div className="rounded-full bg-red-100 p-3">
-              <Icon name="alert-triangle" className="h-8 w-8 text-red-600" />
+            <div className="rounded-full border-2 border-destructive bg-background-surface p-3">
+              <Icon name="alert-triangle" className="h-8 w-8 text-destructive" />
             </div>
           </div>
-          <Title size="xl" as="h1" className="mb-2 text-gray-900">
+          <Title size="xl" as="h1" className="mb-2 text-text-primary">
             {status}
           </Title>
-          <Title size="lg" as="h2" className="mb-4 text-gray-700">
+          <Title size="lg" as="h2" className="mb-4 text-text-secondary">
             {status === 404 ? "Page Not Found" : statusText}
           </Title>
           <BodyText size="sm" muted className="mb-6">
@@ -80,15 +80,15 @@ function GenericRouteErrorView({
   onGoBack,
 }: GenericRouteErrorViewProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-lg border-l-4 border-l-red-500" padding="lg">
+    <div className="flex min-h-screen items-center justify-center bg-background-base p-4">
+      <Card className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
         <div className="text-center">
           <div className="mb-4 flex justify-center">
-            <div className="rounded-full bg-red-100 p-3">
-              <Icon name="alert-triangle" className="h-8 w-8 text-red-600" />
+            <div className="rounded-full border-2 border-destructive bg-background-surface p-3">
+              <Icon name="alert-triangle" className="h-8 w-8 text-destructive" />
             </div>
           </div>
-          <Title size="lg" as="h1" className="mb-2 text-gray-900">
+          <Title size="lg" as="h1" className="mb-2 text-text-primary">
             Route Error
           </Title>
           <BodyText size="sm" muted className="mb-6">

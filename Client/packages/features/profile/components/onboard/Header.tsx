@@ -167,7 +167,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
     // EXTRA WRAPPER to add top spacing and bottom margin
     <div className="mb-6 mt-6">
       {/* WHITE BOX WRAPPER (never exceed 85% of the viewport width) - removed border */}
-      <div className="mx-auto max-w-[85vw] overflow-hidden rounded-2xl bg-white shadow-sm">
+      <div className="bg-background-surface mx-auto max-w-[85vw] overflow-hidden rounded-2xl shadow-sm">
         {/* Scale wrapper to ensure content fits; origin at top-center */}
         <div
           ref={outerRef}
@@ -237,10 +237,10 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                             aria-current={isActive ? "step" : undefined}
                             className={`xs:h-6 xs:w-6 relative z-10 flex h-5 w-5 items-center justify-center rounded-full sm:h-7 sm:w-7 md:h-8 md:w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12 2xl:h-14 2xl:w-14 ${
                               isCompleted
-                                ? "bg-olive text-white"
+                                ? "bg-primary text-white"
                                 : isActive
-                                  ? "bg-olive text-white"
-                                  : "bg-beige text-black/60"
+                                  ? "bg-primary text-white"
+                                  : "bg-accent-muted text-text-secondary"
                             }`}
                             whileHover={direction === "backward" ? undefined : { scale: 1.04 }} // slightly reduced scale
                             whileTap={direction === "backward" ? undefined : { scale: 0.98 }}
@@ -317,14 +317,17 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                           >
                             {/* Centered connector line with consistent margins */}
                             <div
-                              className="bg-beige h-full overflow-hidden rounded-full"
+                              className="bg-accent-muted h-full overflow-hidden rounded-full"
                               style={{
                                 width: connectorWidth,
                                 marginLeft: connectorMargin,
                                 marginRight: connectorMargin,
                               }}
                             >
-                              <MotionView className="bg-olive h-full" {...connectorMotion(index)} />
+                              <MotionView
+                                className="bg-primary h-full"
+                                {...connectorMotion(index)}
+                              />
                             </div>
                           </div>
                         )}
@@ -341,7 +344,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                           <AnimatePresence initial={false} mode="wait">
                             <MotionSpan
                               key={`${step.id}-label-text-${isActive ? "active" : "idle"}`}
-                              className={`sm:max-w-18 hidden max-w-16 text-center text-xs leading-tight tracking-tight text-black/60 sm:block sm:text-xs md:max-w-24 md:text-xs lg:max-w-28 lg:text-xs xl:max-w-32 xl:text-xs 2xl:text-xs ${isActive ? "font-medium" : "font-normal"} mt-1.5 sm:mt-2`}
+                              className={`sm:max-w-18 text-text-secondary hidden max-w-16 text-center text-xs leading-tight tracking-tight sm:block sm:text-xs md:max-w-24 md:text-xs lg:max-w-28 lg:text-xs xl:max-w-32 xl:text-xs 2xl:text-xs ${isActive ? "font-medium" : "font-normal"} mt-1.5 sm:mt-2`}
                               initial={{
                                 opacity: direction === "backward" ? 1 : 0,
                                 y: direction === "backward" ? 0 : 2,

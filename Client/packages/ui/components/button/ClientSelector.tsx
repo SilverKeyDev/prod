@@ -38,7 +38,7 @@ export default function ClientSelector({
         type="button"
         variant="outline"
         onClick={() => setIsOpen(!isOpen)}
-        className={`focus:ring-olive focus:border-olive flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 ${HEADER_ROW_HEIGHT}`}
+        className={`focus:ring-accent-muted focus:border-primary border-border bg-background-surface text-text-primary hover:bg-accent-muted flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 ${HEADER_ROW_HEIGHT}`}
         icon={<Icon name="user" className="h-4 w-4" />}
       >
         <>
@@ -72,29 +72,29 @@ export default function ClientSelector({
           />
 
           {/* Dropdown */}
-          <div className="absolute z-20 mt-1 w-56 rounded-md border border-gray-200 bg-white shadow-lg">
+          <div className="border-border bg-background-surface absolute z-20 mt-1 w-56 rounded-md border shadow-lg">
             <div className="py-1">
               {/* "Me" option */}
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => handleSelect(null)}
-                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${selectedClientId === null ? "bg-olive/10 text-olive font-medium" : "text-gray-700"}`}
+                className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 ${selectedClientId === null ? "bg-primary-muted text-primary font-medium" : "text-text-primary"}`}
                 icon={<Icon name="user" className="h-4 w-4" />}
               >
                 <BodyText as="span">{t("client_selector.me")}</BodyText>
               </Button>
 
               {/* Divider */}
-              {clients.length > 0 && <div className="my-1 border-t border-gray-200" />}
+              {clients.length > 0 && <div className="border-border my-1 border-t" />}
 
               {/* Client options */}
               {isLoading ? (
-                <div className="px-4 py-2 text-sm text-gray-500">
+                <div className="text-text-secondary px-4 py-2 text-sm">
                   {t("client_selector.loading_clients")}
                 </div>
               ) : clients.length === 0 ? (
-                <div className="px-4 py-2 text-sm text-gray-500">
+                <div className="text-text-secondary px-4 py-2 text-sm">
                   {t("client_selector.no_clients_found")}
                 </div>
               ) : (
@@ -104,17 +104,17 @@ export default function ClientSelector({
                     type="button"
                     variant="ghost"
                     onClick={() => handleSelect(client.id)}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 ${
                       selectedClientId === client.id
-                        ? "bg-olive/10 text-olive font-medium"
-                        : "text-gray-700"
+                        ? "bg-primary-muted text-primary font-medium"
+                        : "text-text-primary"
                     }`}
                     icon={<Icon name="user" className="h-4 w-4" />}
                   >
                     <div className="flex flex-col">
                       <BodyText as="span">{client.name}</BodyText>
                       {client.email && (
-                        <BodyText as="span" className="text-xs text-gray-500">
+                        <BodyText as="span" className="text-text-secondary text-xs">
                           {client.email}
                         </BodyText>
                       )}

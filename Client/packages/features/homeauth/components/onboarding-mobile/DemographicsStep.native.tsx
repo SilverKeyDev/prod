@@ -24,6 +24,7 @@ const HAS_BUYERS_AGENT_OPTIONS = [
   { value: "no", label: "No" },
 ];
 
+/** Mobile onboarding demographics. Agent/buyer choice appears only here; immutable after onboarding. */
 export function DemographicsStep({ formData, updateFormData }: DemographicsStepProps) {
   const toggleWhyJoining = (value: string) => {
     const current = Array.isArray(formData.why_joining_silverkey)
@@ -40,10 +41,12 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
 
   return (
     <Box className="gap-5">
-      <Text className="text-lg font-semibold text-gray-900">About You</Text>
+      <Text className="text-text-primary text-lg font-semibold">About You</Text>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">{FIELD_LABELS.IS_AGENT}</Text>
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
+          {FIELD_LABELS.IS_AGENT}
+        </Text>
         <Box className="flex flex-row gap-3">
           {IS_AGENT_OPTIONS.map((opt) => (
             <Pressable
@@ -51,13 +54,13 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
               onPress={() => updateFormData("is_agent", opt.value)}
               className={`flex-1 rounded-lg border-2 px-4 py-3 ${
                 formData.is_agent === opt.value
-                  ? "border-brand-accent bg-brand-accent/10"
-                  : "border-gray-200 bg-white"
+                  ? "border-primary bg-primary"
+                  : "border-border bg-background-surface"
               }`}
             >
               <Text
                 className={`text-center text-base font-medium ${
-                  formData.is_agent === opt.value ? "text-brand-accent" : "text-gray-700"
+                  formData.is_agent === opt.value ? "text-primary" : "text-text-secondary"
                 }`}
               >
                 {opt.label}
@@ -68,7 +71,7 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">{FIELD_LABELS.AGE}</Text>
+        <Text className="text-text-secondary mb-2 text-sm font-medium">{FIELD_LABELS.AGE}</Text>
         <Input
           value={formData.age?.toString() ?? ""}
           onValueChange={(v) => updateFormData("age", v ? parseInt(v, 10) : undefined)}
@@ -79,7 +82,7 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.CHILDREN_COUNT}
         </Text>
         <Input
@@ -92,10 +95,10 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.WHY_JOINING_SILVERKEY}
         </Text>
-        <Text className="mb-3 text-xs text-gray-500">
+        <Text className="text-text-secondary mb-3 text-xs">
           Choose all that apply. This helps us personalize your experience.
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
@@ -108,12 +111,12 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
                 key={option.value}
                 onPress={() => toggleWhyJoining(option.value)}
                 className={`rounded-full border px-4 py-2 ${
-                  selected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
                   className={`text-xs font-medium ${
-                    selected ? "text-brand-accent" : "text-gray-700"
+                    selected ? "text-primary" : "text-text-secondary"
                   }`}
                 >
                   {option.label}
@@ -126,7 +129,7 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
 
       <Box className="gap-3">
         <Box>
-          <Text className="mb-2 text-sm font-medium text-gray-700">
+          <Text className="text-text-secondary mb-2 text-sm font-medium">
             {FIELD_LABELS.HAS_BUYERS_AGENT}
           </Text>
           <Box className="flex flex-row gap-3">
@@ -137,12 +140,12 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
                   key={opt.value}
                   onPress={() => updateFormData("has_buyers_agent", opt.value)}
                   className={`flex-1 rounded-lg border-2 px-4 py-3 ${
-                    selected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                    selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                   }`}
                 >
                   <Text
                     className={`text-center text-base font-medium ${
-                      selected ? "text-brand-accent" : "text-gray-700"
+                      selected ? "text-primary" : "text-text-secondary"
                     }`}
                   >
                     {opt.label}
@@ -156,16 +159,16 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
         {formData.has_buyers_agent === "no" && (
           <Pressable
             onPress={toggleLookingForAgent}
-            className="flex flex-row items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3"
+            className="border-border bg-background-surface flex flex-row items-center gap-3 rounded-lg border px-4 py-3"
           >
             <Box
               className={`h-5 w-5 items-center justify-center rounded border ${
                 formData.looking_for_buyers_agent
-                  ? "border-brand-accent bg-brand-accent"
-                  : "border-gray-300 bg-gray-50"
+                  ? "border-primary bg-primary"
+                  : "border-border bg-background-base"
               }`}
             />
-            <Text className="text-sm font-medium text-gray-800">
+            <Text className="text-text-primary text-sm font-medium">
               I am looking for a buyer&apos;s agent
             </Text>
           </Pressable>

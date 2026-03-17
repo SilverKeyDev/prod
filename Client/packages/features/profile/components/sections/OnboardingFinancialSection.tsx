@@ -39,7 +39,7 @@ export default function OnboardingFinancialSection({
         {SECTION_TITLES.FINANCIAL_PROFILE}
       </Title>
       <div className="col-span-1 flex flex-col items-center md:col-span-2">
-        <Label className="text-responsive-xl space-y-responsive-xs block w-full text-center font-bold text-gray-700">
+        <Label className="text-responsive-xl space-y-responsive-xs text-text-secondary block w-full text-center font-bold">
           {FIELD_LABELS.HOME_BUDGET} *
         </Label>
         <BudgetRangeSlider
@@ -60,7 +60,7 @@ export default function OnboardingFinancialSection({
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="mx-auto w-4/5">
-          <Label className="mb-1 block w-full text-center text-xs font-normal text-gray-700 sm:text-sm md:text-base">
+          <Label className="text-text-secondary mb-1 block w-full text-center text-xs font-normal sm:text-sm md:text-base">
             {FIELD_LABELS.GROSS_INCOME} (after debts)
           </Label>
           <PriceRangeSlider
@@ -76,7 +76,7 @@ export default function OnboardingFinancialSection({
         </div>
 
         <div className="mx-auto w-4/5">
-          <Label className="mb-1 block w-full text-center text-xs font-normal text-gray-700 sm:text-sm md:text-base">
+          <Label className="text-text-secondary mb-1 block w-full text-center text-xs font-normal sm:text-sm md:text-base">
             {FIELD_LABELS.DOWN_PAYMENT}
           </Label>
           <PriceRangeSlider

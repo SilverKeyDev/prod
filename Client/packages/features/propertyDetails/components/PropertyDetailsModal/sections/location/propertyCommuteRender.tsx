@@ -20,10 +20,10 @@ export function CommuteAnalysisContent({ data }: { data: unknown }): React.React
         if (Array.isArray(value)) {
           return (
             <div key={key}>
-              <Title as="h4" size="sm" className="text-brown mb-1 font-medium">
+              <Title as="h4" size="sm" className="text-text-secondary mb-1 font-medium">
                 {displayKey}
               </Title>
-              <ul className="text-brown/80 space-y-1 text-sm">
+              <ul className="text-text-secondary space-y-1 text-sm">
                 {value.map((item, i) => (
                   <li key={i}>• {String(item)}</li>
                 ))}
@@ -33,10 +33,10 @@ export function CommuteAnalysisContent({ data }: { data: unknown }): React.React
         }
         return (
           <div key={key} className="flex justify-between text-sm">
-            <BodyText as="span" className="text-brown/70">
+            <BodyText as="span" className="text-text-secondary">
               {displayKey}:
             </BodyText>
-            <BodyText as="span" className="text-brown font-medium">
+            <BodyText as="span" className="text-text-secondary font-medium">
               {String(value)}
             </BodyText>
           </div>

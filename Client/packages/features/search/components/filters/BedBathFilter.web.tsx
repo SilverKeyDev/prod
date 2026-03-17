@@ -58,7 +58,11 @@ export default function BedBathFilter({
     <div className={`${compact ? "space-y-2" : "space-y-4"} ${className}`}>
       <div className={`grid grid-cols-1 sm:grid-cols-2 ${compact ? "gap-2" : "gap-4"}`}>
         <div className="touch-friendly">
-          <BodyText as="div" size="xs" className={`${compact ? "mb-0.5" : "mb-1"} text-gray-500`}>
+          <BodyText
+            as="div"
+            size="xs"
+            className={`${compact ? "mb-0.5" : "mb-1"} text-text-secondary`}
+          >
             {t("search.beds")}
           </BodyText>
           <BudgetRangeSlider
@@ -73,7 +77,7 @@ export default function BedBathFilter({
           />
         </div>
         <div className="touch-friendly">
-          <BodyText as="div" size="xs" className="mb-1 text-gray-500">
+          <BodyText as="div" size="xs" className="text-text-secondary mb-1">
             {t("search.baths")}
           </BodyText>
           <BudgetRangeSlider

@@ -7,8 +7,8 @@ def get_google_redirect_uri():
 
     if flask_env == "production":
         return "https://usesilverkey.com/api/v1/google/oauth/callback"
-    # Development: use localhost with port 5173 (Vite dev server)
-    return "http://localhost:5173/api/v1/google/oauth/callback"
+    # Development: use localhost with port 5000 (Flask backend) — OAuth callback is an API route
+    return "http://localhost:5000/api/v1/google/oauth/callback"
 
 
 def get_skyslope_redirect_uri():
@@ -19,7 +19,8 @@ def get_skyslope_redirect_uri():
     flask_env = os.getenv("FLASK_ENV", "development")
     if flask_env == "production":
         return "https://usesilverkey.com/api/v1/skyslope/callback"
-    return "http://localhost:5173/api/v1/skyslope/callback"
+    # Development: use localhost with port 5000 (Flask backend) — OAuth callback is an API route
+    return "http://localhost:5000/api/v1/skyslope/callback"
 
 
 def get_frontend_url():

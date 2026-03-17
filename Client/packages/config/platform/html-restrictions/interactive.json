@@ -5,7 +5,7 @@
   "reason": "React Native handles interactions differently with touch-based components",
   "alternatives": {
     "details": "Collapsible component with state management",
-    "summary": "Pressable component with expand/collapse functionality", 
+    "summary": "Pressable component with expand/collapse functionality",
     "dialog": "Modal component or custom dialog overlay"
   }
 }

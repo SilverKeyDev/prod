@@ -60,12 +60,12 @@ const ROUNDED_CLASSES: Record<NonNullable<IconButtonProps["rounded"]>, string> =
 };
 
 const VARIANT_CLASSES: Record<IconButtonVariant, string> = {
-  primary: "bg-brand-accent",
-  secondary: "border border-neutral-300 bg-neutral-200",
-  tertiary: "bg-gold-muted",
-  outline: "border border-brand-accent bg-transparent",
+  primary: "bg-primary",
+  secondary: "border border-border bg-neutral-200",
+  tertiary: "border-2 border-black bg-accent disabled:border-neutral-400",
+  outline: "border border-primary bg-transparent",
   ghost: "bg-transparent",
-  danger: "bg-rose",
+  danger: "bg-destructive",
   toolbar: "bg-transparent",
 };
 
@@ -131,7 +131,7 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
         disabled={disabled ?? loading}
         accessibilityRole="button"
         accessibilityLabel={label}
-        className={`items-center justify-center ${variantClass} ${sizeClass} ${roundedClass} ${(disabled ?? loading) ? "opacity-50" : ""} ${className}`}
+        className={`items-center justify-center ${variantClass} ${sizeClass} ${roundedClass} ${""} ${className}`}
         {...pressableProps}
       >
         {content}

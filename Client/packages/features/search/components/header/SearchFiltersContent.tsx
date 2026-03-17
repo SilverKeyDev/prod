@@ -55,7 +55,7 @@ export function SearchFiltersContent({ formData, update }: SearchFiltersContentP
               update("home_budget_min", parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined)
             }
             keyboardType="numeric"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+            className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
           />
         </Box>
         <Box className="flex-1">
@@ -66,12 +66,12 @@ export function SearchFiltersContent({ formData, update }: SearchFiltersContentP
               update("home_budget_max", parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined)
             }
             keyboardType="numeric"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+            className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
           />
         </Box>
       </Box>
 
-      <Text className="mb-1 text-xs font-medium text-gray-500">
+      <Text className="text-text-secondary mb-1 text-xs font-medium">
         {SEARCH_TRANSLATIONS["search.filters_beds_baths_range"] ?? "Beds and baths"}
       </Text>
       <Box className="mb-4 flex-row gap-2">
@@ -83,7 +83,7 @@ export function SearchFiltersContent({ formData, update }: SearchFiltersContentP
               update("preferred_bedrooms", parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined)
             }
             keyboardType="numeric"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+            className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
           />
         </Box>
         <Box className="flex-1">
@@ -97,7 +97,7 @@ export function SearchFiltersContent({ formData, update }: SearchFiltersContentP
               update("preferred_bedrooms_max", Number.isFinite(n) ? n : undefined);
             }}
             keyboardType="numeric"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+            className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
           />
         </Box>
       </Box>
@@ -110,7 +110,7 @@ export function SearchFiltersContent({ formData, update }: SearchFiltersContentP
               update("preferred_bathrooms", parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined)
             }
             keyboardType="numeric"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+            className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
           />
         </Box>
         <Box className="flex-1">
@@ -126,17 +126,17 @@ export function SearchFiltersContent({ formData, update }: SearchFiltersContentP
               update("preferred_bathrooms_max", Number.isFinite(n) ? n : undefined);
             }}
             keyboardType="numeric"
-            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+            className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
           />
         </Box>
       </Box>
 
       <Box className="mt-2">
-        <Text className="mb-1 text-xs font-medium text-gray-500">
+        <Text className="text-text-secondary mb-1 text-xs font-medium">
           Housing type and other preferences
         </Text>
         <Box className="mb-3">
-          <Text className="mb-1 text-xs text-gray-600">Home type</Text>
+          <Text className="text-text-secondary mb-1 text-xs">Home type</Text>
           <Box className="flex-row flex-wrap gap-2">
             {["single_family", "townhouse", "condo", "multi_family"].map((value) => {
               const current = (formData.preferred_housing_type as string) ?? "";
@@ -152,13 +152,13 @@ export function SearchFiltersContent({ formData, update }: SearchFiltersContentP
                   }
                   className={`rounded-full border px-3 py-1.5 ${
                     isSelected
-                      ? "border-brand-accent bg-brand-accent/10"
-                      : "border-gray-300 bg-white"
+                      ? "border-primary bg-primary-muted"
+                      : "border-border bg-background-surface"
                   }`}
                 >
                   <Text
                     className={`text-xs font-medium ${
-                      isSelected ? "text-brand-accent" : "text-gray-700"
+                      isSelected ? "text-primary" : "text-text-secondary"
                     }`}
                   >
                     {label}
@@ -206,7 +206,7 @@ export function SearchFiltersContent({ formData, update }: SearchFiltersContentP
           onChange={(v) => update("walkability_importance", v)}
           className="mb-4"
         />
-        <Text className="text-xs text-gray-500">
+        <Text className="text-text-secondary text-xs">
           Important locations are managed in Profile. Search uses your saved locations to find
           homes.
         </Text>

@@ -68,10 +68,10 @@ export default function ClientDocuments({ userId: _userId }: ClientDocumentsProp
           {documents.map((doc) => (
             <Pressable
               key={doc.id}
-              className="rounded-lg border border-gray-200 bg-white px-4 py-3"
+              className="border-border bg-background-surface rounded-lg border px-4 py-3"
               onPress={() => onDocumentPress(doc)}
             >
-              <Title as="h3" size="sm" className="font-medium text-gray-900">
+              <Title as="h3" size="sm" className="text-text-primary font-medium">
                 {doc.name}
               </Title>
               <BodyText size="sm" className="text-warm-stone mt-1">

@@ -57,7 +57,7 @@ export default function CommunicationSection({
             placeholder="Select..."
           />
         ) : (
-          <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
+          <BodyText as="div" size="sm" className="mobile-input bg-background-base">
             {formData.communication_frequency
               ? (COMMUNICATION_FREQUENCY_OPTIONS.find(
                   (option) => option.value === formData.communication_frequency
@@ -78,7 +78,7 @@ export default function CommunicationSection({
             placeholder="Select..."
           />
         ) : (
-          <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
+          <BodyText as="div" size="sm" className="mobile-input bg-background-base">
             {formData.information_detail_level
               ? INFORMATION_DETAIL_LEVEL_OPTIONS.find(
                   (opt) => opt.value === formData.information_detail_level
@@ -103,7 +103,7 @@ export default function CommunicationSection({
                 placeholder="Select..."
               />
             ) : (
-              <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
+              <BodyText as="div" size="sm" className="mobile-input bg-background-base">
                 {formData.has_buyers_agent
                   ? HAS_BUYERS_AGENT_OPTIONS.find((opt) => opt.value === formData.has_buyers_agent)
                       ?.label
@@ -125,7 +125,7 @@ export default function CommunicationSection({
                 <div className="flex h-full items-center">
                   <Label
                     htmlFor="looking-buyers-agent"
-                    className="flex cursor-pointer items-center gap-3 font-medium text-black"
+                    className="text-text-primary flex cursor-pointer items-center gap-3 font-medium"
                   >
                     {isEditMode ? (
                       <>
@@ -174,13 +174,13 @@ export default function CommunicationSection({
                       <div
                         className={`flex h-5 w-5 items-center justify-center rounded border ${
                           formData.looking_for_buyers_agent
-                            ? "border-olive bg-olive"
-                            : "border-gray-300 bg-gray-50"
+                            ? "border-primary bg-primary"
+                            : "border-border bg-background-base"
                         }`}
                       >
                         {formData.looking_for_buyers_agent && (
                           <svg
-                            className="h-4 w-4 text-gray-600"
+                            className="text-text-secondary h-4 w-4"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -199,7 +199,7 @@ export default function CommunicationSection({
                   </Label>
                 </div>
               ) : (
-                <BodyText as="div" size="sm" className="mobile-input bg-gray-50 opacity-0">
+                <BodyText as="div" size="sm" className="mobile-input bg-background-base opacity-0">
                   &nbsp;
                 </BodyText>
               ),

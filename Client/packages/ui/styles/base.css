@@ -33,7 +33,7 @@
   }
 
   body {
-    @apply bg-off-white text-navy;
+    @apply bg-background-base text-text-primary;
     font-weight: 300;
     /* Improve mobile scrolling */
     -webkit-overflow-scrolling: touch;

@@ -3,12 +3,13 @@ import React, { useState } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import { color } from "packages/design-tokens";
+import { useIsAgent } from "packages/features/homeauth";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
-import { useAuthStore } from "packages/store";
 import { useUIStore } from "packages/store";
 import { Loading } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
+import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
 import { useAgentSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
@@ -19,7 +20,8 @@ type ClientSearchModalNativeProps = {
 };
 
 export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearchModalNativeProps) {
-  const isAgent = useAuthStore((s) => !!s.user?.is_agent);
+  const isAgent = useIsAgent();
+  const config = getMessagingConfig(isAgent ? "agent" : "client");
   const [searchQuery, setSearchQuery] = useState("");
   const [message, setMessage] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -33,23 +35,18 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
     searchQuery,
     isOpen && !isAgent
   );
-  const { createRequest, isCreatingRequest } = useConnectionRequests();
+  const { createRequestAsInitiator, isCreatingRequest } = useConnectionRequests();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
 
   const isLoading = isAgent ? clientsLoading : agentsLoading;
   const list: Array<{ id: string; name?: string; email?: string }> = isAgent
     ? clientResults
     : agentResults;
-  const title = isAgent ? "Search for a Client" : "Search for an Agent";
 
   const handleSendRequest = async (otherId: string) => {
     if (!userProfile?.id) return;
     try {
-      if (isAgent) {
-        await createRequest(userProfile.id, otherId, message.trim() || undefined);
-      } else {
-        await createRequest(otherId, userProfile.id, message.trim() || undefined);
-      }
+      await createRequestAsInitiator(userProfile.id, otherId, isAgent, message.trim() || undefined);
       enqueueToast({ type: "success", message: "Connection request sent" });
       setMessage("");
       setSelectedId(null);
@@ -66,23 +63,27 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text className="text-lg font-semibold text-gray-900">{title}</Text>
+            <Text className="text-text-primary text-lg font-semibold">
+              {config.searchModal.title}
+            </Text>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Text className="text-base font-medium text-gray-600">Close</Text>
+              <Text className="text-text-secondary text-base font-medium">Close</Text>
             </Pressable>
           </View>
           <View style={styles.inputRow}>
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search by name or email..."
+              placeholder={config.searchModal.searchPlaceholder}
               placeholderTextColor={color("neutral.400")}
               style={styles.input}
             />
           </View>
           {searchQuery.length < 2 ? (
             <View style={styles.centered}>
-              <Text className="text-sm text-gray-500">Type at least 2 characters to search</Text>
+              <Text className="text-text-secondary text-sm">
+                Type at least 2 characters to search
+              </Text>
             </View>
           ) : isLoading ? (
             <View style={styles.centered}>
@@ -90,7 +91,9 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
             </View>
           ) : list.length === 0 ? (
             <View style={styles.centered}>
-              <Text className="text-sm text-gray-500">No results found</Text>
+              <Text className="text-text-secondary text-sm">
+                {config.searchModal.noResultsMessage} "{searchQuery}"
+              </Text>
             </View>
           ) : (
             <FlatList
@@ -103,8 +106,8 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
                     onPress={() => setSelectedId(selectedId === item.id ? null : item.id)}
                     style={styles.itemPressable}
                   >
-                    <Text className="font-medium text-gray-900">{item.name ?? "Unknown"}</Text>
-                    <Text className="text-sm text-gray-600">{item.email ?? ""}</Text>
+                    <Text className="text-text-primary font-medium">{item.name ?? "Unknown"}</Text>
+                    <Text className="text-text-secondary text-sm">{item.email ?? ""}</Text>
                   </Pressable>
                   {selectedId === item.id && (
                     <View style={styles.actions}>
@@ -122,7 +125,9 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
                           disabled={isCreatingRequest}
                           style={styles.sendButton}
                         >
-                          <Text className="font-semibold text-white">Send Request</Text>
+                          <Text className="font-semibold text-white">
+                            {config.searchModal.sendButtonLabel}
+                          </Text>
                         </Pressable>
                         <Pressable
                           onPress={() => {
@@ -130,7 +135,7 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
                             setMessage("");
                           }}
                         >
-                          <Text className="font-medium text-gray-600">Cancel</Text>
+                          <Text className="text-text-secondary font-medium">Cancel</Text>
                         </Pressable>
                       </View>
                     </View>

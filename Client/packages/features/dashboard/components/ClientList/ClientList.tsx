@@ -22,8 +22,8 @@ export function ClientListFilterUI({
   setHasRiskFlags,
 }: ClientListFilterUIProps) {
   return (
-    <Box className="mb-3 flex flex-col gap-2 rounded-lg bg-gray-50 p-2">
-      <Text className="mb-1 text-xs font-semibold text-gray-700">Filter by stage</Text>
+    <Box className="bg-background-base mb-3 flex flex-col gap-2 rounded-lg p-2">
+      <Text className="text-text-secondary mb-1 text-xs font-semibold">Filter by stage</Text>
       <Box className="flex flex-row flex-wrap gap-2">
         {(["all", "search", "touring", "offer", "under_contract", "closing"] as const).map(
           (stage) => {
@@ -40,11 +40,11 @@ export function ClientListFilterUI({
                 key={stage}
                 onPress={() => setFilterStage(stage)}
                 className={`rounded-full px-3 py-1.5 ${
-                  isActive ? "bg-brand-accent" : "border border-gray-200 bg-white"
+                  isActive ? "bg-primary" : "border-border bg-background-surface border"
                 }`}
               >
                 <Text
-                  className={`text-xs font-medium ${isActive ? "text-white" : "text-gray-800"}`}
+                  className={`text-xs font-medium ${isActive ? "text-white" : "text-text-primary"}`}
                 >
                   {label}
                 </Text>
@@ -54,7 +54,7 @@ export function ClientListFilterUI({
         )}
       </Box>
 
-      <Text className="mb-1 mt-3 text-xs font-semibold text-gray-700">Risk flags</Text>
+      <Text className="text-text-secondary mb-1 mt-3 text-xs font-semibold">Risk flags</Text>
       <Box className="flex flex-row flex-wrap gap-2">
         {(["all", "has", "none"] as const).map((option) => {
           const isActive = hasRiskFlags === option;
@@ -70,10 +70,12 @@ export function ClientListFilterUI({
               key={option}
               onPress={() => setHasRiskFlags(option)}
               className={`rounded-full px-3 py-1.5 ${
-                isActive ? "bg-brand-accent" : "border border-gray-200 bg-white"
+                isActive ? "bg-primary" : "border-border bg-background-surface border"
               }`}
             >
-              <Text className={`text-xs font-medium ${isActive ? "text-white" : "text-gray-800"}`}>
+              <Text
+                className={`text-xs font-medium ${isActive ? "text-white" : "text-text-primary"}`}
+              >
                 {label}
               </Text>
             </Pressable>
@@ -135,7 +137,7 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
   if (isLoading && !refreshing && !enhancedClients.length) {
     return (
       <Box className="py-12 text-center">
-        <Text className="text-sm text-gray-600">Loading clients...</Text>
+        <Text className="text-text-secondary text-sm">Loading clients...</Text>
       </Box>
     );
   }
@@ -143,7 +145,7 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
   if (!enhancedClients.length) {
     return (
       <Box className="py-12 text-center">
-        <Text className="text-sm text-gray-600">
+        <Text className="text-text-secondary text-sm">
           No clients yet. New clients will appear here as you start working with them.
         </Text>
       </Box>
@@ -153,7 +155,7 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
   return (
     <Box className="space-y-4">
       {/* Header */}
-      <Text className="text-lg font-medium text-gray-800">Clients</Text>
+      <Text className="text-text-primary text-lg font-medium">Clients</Text>
 
       {/* Filters */}
       <ClientListFilterUI
@@ -167,7 +169,7 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
       <ScrollView refreshing={refreshing} onRefresh={handleRefresh}>
         {filteredClients.length === 0 ? (
           <Box className="items-center py-8">
-            <Text className="text-sm text-gray-600">
+            <Text className="text-text-secondary text-sm">
               {filterStage !== "all" || hasRiskFlags !== "all"
                 ? "No clients match your filters."
                 : "No clients yet. New clients will appear here as you start working with them."}

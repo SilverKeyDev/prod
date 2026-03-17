@@ -70,11 +70,11 @@ function CardViewDetailsButton({
   };
   // Variant styles
   const variantStyles = {
-    primary: "bg-olive text-white hover:bg-olive/90 border-olive",
-    secondary: "bg-white text-olive border-olive hover:bg-olive/5",
+    primary: "bg-primary text-white hover:bg-primary-hover border-primary",
+    secondary: "bg-background-surface text-primary border-primary hover:bg-primary-muted",
     muted: "muted-button-primary",
-    unlock: "bg-olive text-white hover:bg-olive/90 border-olive",
-    negotiate: "bg-gold text-white hover:bg-gold/90 border-gold",
+    unlock: "bg-primary text-white hover:bg-primary-hover border-primary",
+    negotiate: "border-2 border-black bg-accent text-white hover:bg-accent-hover",
   };
   // Ensure size and variant are valid to avoid undefined style access
   const validSize = sizeStyles[size] ? size : "md";
@@ -89,7 +89,7 @@ function CardViewDetailsButton({
   const textColorClass = filledVariants.includes(validVariant) ? "!text-inherit" : "";
   const buttonClasses = [
     "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200",
-    "border touch-friendly disabled:opacity-50 disabled:cursor-not-allowed",
+    "border touch-friendly disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
     currentSizeStyles.padding,
     currentSizeStyles.text,
     currentVariantStyles,

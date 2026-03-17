@@ -23,16 +23,16 @@ export default function ConfirmationDialog({
   return (
     <Modal transparent visible={isOpen} animationType="fade" onRequestClose={onCancel}>
       <View className="flex-1 items-center justify-center px-6">
-        <Pressable className="absolute inset-0 bg-black/50" onPress={onCancel} />
+        <Pressable className="bg-overlay-backdrop absolute inset-0" onPress={onCancel} />
 
         <Box className="w-full max-w-sm rounded-2xl bg-white p-6">
-          <Text className="text-center text-lg font-semibold text-gray-900">{title}</Text>
-          <Text className="mt-2 text-center text-sm text-gray-600">{message}</Text>
+          <Text className="text-text-primary text-center text-lg font-semibold">{title}</Text>
+          <Text className="text-text-secondary mt-2 text-center text-sm">{message}</Text>
 
           <Box className="mt-6 flex-row gap-3">
             <Pressable
               onPress={onConfirm}
-              className="bg-brand-accent flex-1 flex-row items-center justify-center gap-2 rounded-xl px-4 py-3"
+              className="bg-primary flex-1 flex-row items-center justify-center gap-2 rounded-xl px-4 py-3"
             >
               {confirmIcon ? <Box>{confirmIcon}</Box> : null}
               <Text className="font-semibold text-white">{confirmText}</Text>
@@ -40,9 +40,9 @@ export default function ConfirmationDialog({
 
             <Pressable
               onPress={onCancel}
-              className="flex-1 items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-3"
+              className="border-border bg-background-surface flex-1 items-center justify-center rounded-xl border px-4 py-3"
             >
-              <Text className="font-semibold text-gray-900">{cancelText}</Text>
+              <Text className="text-text-primary font-semibold">{cancelText}</Text>
             </Pressable>
           </Box>
         </Box>

@@ -53,32 +53,36 @@ export const PropertyInfo: React.FC<PropertyComponentProps> = ({ property }) => 
     <Box className="p-6">
       <Box className="mb-6 flex-row items-start justify-between">
         <Box className="min-w-0 flex-1">
-          <Text className="mb-2 text-2xl font-bold text-gray-900">
+          <Text className="text-text-primary mb-2 text-2xl font-bold">
             {formatPrice(propertyPrice)}
           </Text>
-          <Text className="text-sm text-gray-700">{displayAddress}</Text>
+          <Text className="text-text-secondary text-sm">{displayAddress}</Text>
         </Box>
         <Box className="flex-row items-center gap-2">
           {propertyBedrooms && Number(propertyBedrooms) > 0 && (
             <Box className="items-center">
-              <Text className="text-xl font-bold text-gray-900">{String(propertyBedrooms)}</Text>
-              <Text className="text-xs text-gray-600">beds</Text>
+              <Text className="text-text-primary text-xl font-bold">
+                {String(propertyBedrooms)}
+              </Text>
+              <Text className="text-text-secondary text-xs">beds</Text>
             </Box>
           )}
           {propertyBathrooms && Number(propertyBathrooms) > 0 && (
             <Box className="items-center">
-              <Text className="text-xl font-bold text-gray-900">{String(propertyBathrooms)}</Text>
-              <Text className="border-b border-dashed border-gray-400 text-xs text-gray-600">
+              <Text className="text-text-primary text-xl font-bold">
+                {String(propertyBathrooms)}
+              </Text>
+              <Text className="border-border text-text-secondary border-b border-dashed text-xs">
                 baths
               </Text>
             </Box>
           )}
           {propertySqft && Number(propertySqft) > 0 && (
             <Box className="items-center">
-              <Text className="text-xl font-bold text-gray-900">
+              <Text className="text-text-primary text-xl font-bold">
                 {Math.round(Number(propertySqft)).toLocaleString()}
               </Text>
-              <Text className="text-xs text-gray-600">sqft</Text>
+              <Text className="text-text-secondary text-xs">sqft</Text>
             </Box>
           )}
         </Box>

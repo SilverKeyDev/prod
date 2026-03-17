@@ -51,7 +51,7 @@ export function ProfileFinancialSection({
       <Title size="md">{SECTION_TITLES.FINANCIAL_PROFILE}</Title>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.HOME_BUDGET}
         </BodyText>
         {isEditMode ? (
@@ -71,8 +71,8 @@ export function ProfileFinancialSection({
             className="mt-2"
           />
         ) : (
-          <Box className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-            <Text className="text-center text-base text-gray-900">
+          <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
+            <Text className="text-text-primary text-center text-base">
               ${(formData.home_budget_min ?? 0).toLocaleString()} – $
               {(formData.home_budget_max ?? 0).toLocaleString()}
             </Text>
@@ -81,7 +81,7 @@ export function ProfileFinancialSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.GROSS_INCOME}
         </BodyText>
         {isEditMode ? (
@@ -102,7 +102,7 @@ export function ProfileFinancialSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.DOWN_PAYMENT}
         </BodyText>
         {isEditMode ? (
@@ -123,7 +123,7 @@ export function ProfileFinancialSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.IDEAL_ZIP_CODE}
         </BodyText>
         {isEditMode ? (
@@ -132,7 +132,7 @@ export function ProfileFinancialSection({
             onValueChange={(v) => updateField("ideal_zip_code", v || undefined)}
             placeholder="e.g. 90210"
             keyboardType="default"
-            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+            className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.ideal_zip_code} />
@@ -140,7 +140,7 @@ export function ProfileFinancialSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.CREDIT_SCORE_RANGE}
         </BodyText>
         {isEditMode ? (
@@ -152,11 +152,11 @@ export function ProfileFinancialSection({
                   key={option.value}
                   onPress={() => updateField("credit_score_range", option.value)}
                   className={`rounded-full px-4 py-2 ${
-                    selected ? "bg-brand-accent" : "border border-gray-200 bg-white"
+                    selected ? "bg-primary" : "border-border bg-background-surface border"
                   }`}
                 >
                   <Text
-                    className={`text-sm font-medium ${selected ? "text-white" : "text-gray-800"}`}
+                    className={`text-sm font-medium ${selected ? "text-white" : "text-text-primary"}`}
                   >
                     {option.label}
                   </Text>
@@ -171,14 +171,14 @@ export function ProfileFinancialSection({
         )}
       </Box>
 
-      <Box className="mt-2 rounded-lg border border-gray-200 bg-white px-4 py-3">
+      <Box className="border-border bg-background-surface mt-2 rounded-lg border px-4 py-3">
         <Box className="flex-row items-center justify-between">
-          <Text className="text-base font-semibold text-gray-900">Affordability estimate</Text>
+          <Text className="text-text-primary text-base font-semibold">Affordability estimate</Text>
           <Pressable
             onPress={() => setIsAffordabilityCollapsed((prev) => !prev)}
             className="px-2 py-1"
           >
-            <Text className="text-brand-accent text-xs font-medium">
+            <Text className="text-primary text-xs font-medium">
               {isAffordabilityCollapsed ? "Show details" : "Hide details"}
             </Text>
           </Pressable>
@@ -186,7 +186,7 @@ export function ProfileFinancialSection({
 
         {homePriceLoading ? (
           <Box className="mt-2">
-            <Text className="text-sm text-gray-600">Calculating estimate…</Text>
+            <Text className="text-text-secondary text-sm">Calculating estimate…</Text>
           </Box>
         ) : homePriceError ? (
           <Box className="mt-2">
@@ -194,7 +194,7 @@ export function ProfileFinancialSection({
           </Box>
         ) : homePriceResult ? (
           <Box className="mt-3 gap-1">
-            <Text className="text-sm text-gray-800">
+            <Text className="text-text-primary text-sm">
               Estimated max home price:{" "}
               <Text className="font-semibold">
                 ${homePriceResult.maxHomePrice.toLocaleString()}
@@ -202,13 +202,13 @@ export function ProfileFinancialSection({
             </Text>
             {!isAffordabilityCollapsed && (
               <>
-                <Text className="text-sm text-gray-800">
+                <Text className="text-text-primary text-sm">
                   Estimated monthly housing cost:{" "}
                   <Text className="font-semibold">
                     ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
                   </Text>
                 </Text>
-                <Text className="mt-1 text-xs text-gray-600">
+                <Text className="text-text-secondary mt-1 text-xs">
                   This estimate uses your income, down payment, and credit band to give a realistic
                   upper bound on what you can comfortably afford.
                 </Text>
@@ -217,7 +217,7 @@ export function ProfileFinancialSection({
           </Box>
         ) : (
           <Box className="mt-2">
-            <Text className="text-sm text-gray-600">
+            <Text className="text-text-secondary text-sm">
               Enter your income and ideal zip code to see an affordability estimate.
             </Text>
           </Box>

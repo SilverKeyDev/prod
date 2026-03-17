@@ -37,7 +37,7 @@ export function FeedBookTourModal({ isOpen, onClose, item }: FeedBookTourModalPr
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <AccessibleDialog.Panel className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <AccessibleDialog.Panel className="bg-background-surface w-full max-w-sm rounded-2xl p-6 shadow-xl">
               <div className="flex items-start justify-between gap-4">
                 <Title size="md" as="h2">
                   Book a Tour

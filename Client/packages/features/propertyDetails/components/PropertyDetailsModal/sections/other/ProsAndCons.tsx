@@ -40,12 +40,12 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
           <Title
             as="h4"
             size="sm"
-            className="mb-3 flex flex-row items-center gap-2 font-medium text-gray-600"
+            className="text-text-secondary mb-3 flex flex-row items-center gap-2 font-medium"
           >
-            <Icon name="check-circle" className="h-4 w-4 flex-shrink-0 text-green-600" />
+            <Icon name="check-circle" className="text-accent h-4 w-4 flex-shrink-0" />
             Pros
             {pros && (
-              <BodyText as="span" className="ml-1 text-xs text-gray-500">
+              <BodyText as="span" className="text-text-secondary ml-1 text-xs">
                 ({pros.length})
               </BodyText>
             )}
@@ -55,19 +55,16 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
               pros.map((pro: string, i: number) => (
                 <Box
                   key={i}
-                  className="flex flex-row items-start gap-2 text-left text-sm text-gray-700"
+                  className="text-text-secondary flex flex-row items-start gap-2 text-left text-sm"
                 >
-                  <Icon
-                    name="check-circle"
-                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600"
-                  />
+                  <Icon name="check-circle" className="text-accent mt-0.5 h-4 w-4 flex-shrink-0" />
                   <BodyText as="span" className="text-left">
                     {pro}
                   </BodyText>
                 </Box>
               ))
             ) : (
-              <Box className="flex flex-row items-center gap-2 text-left text-sm text-gray-500">
+              <Box className="text-text-secondary flex flex-row items-center gap-2 text-left text-sm">
                 <Icon name="check-circle" className="h-4 w-4 flex-shrink-0" />
                 No pros identified
               </Box>
@@ -77,17 +74,17 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
 
         <Card
           // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-          className={`p-3 sm:p-4 ${pros && cons && cons.length > pros.length + 2 ? "bg-rose-50 ring-1 ring-rose-100" : ""}`}
+          className={`p-3 sm:p-4 ${pros && cons && cons.length > pros.length + 2 ? "bg-primary-muted ring-accent-muted ring-1" : ""}`}
         >
           <Title
             as="h4"
             size="sm"
-            className="mb-3 flex flex-row items-center gap-2 font-medium text-gray-600"
+            className="text-text-secondary mb-3 flex flex-row items-center gap-2 font-medium"
           >
-            <Icon name="alert-triangle" className="h-4 w-4 flex-shrink-0 text-red-600" />
+            <Icon name="alert-triangle" className="text-destructive h-4 w-4 flex-shrink-0" />
             Cons
             {cons && (
-              <BodyText as="span" className="ml-1 text-xs text-gray-500">
+              <BodyText as="span" className="text-text-secondary ml-1 text-xs">
                 ({cons.length})
               </BodyText>
             )}
@@ -97,11 +94,11 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
               cons.map((con: string, i: number) => (
                 <Box
                   key={i}
-                  className="flex flex-row items-start gap-2 text-left text-sm text-gray-700"
+                  className="text-text-secondary flex flex-row items-start gap-2 text-left text-sm"
                 >
                   <Icon
                     name="alert-triangle"
-                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600"
+                    className="text-destructive mt-0.5 h-4 w-4 flex-shrink-0"
                   />
                   <BodyText as="span" className="text-left">
                     {con}
@@ -109,7 +106,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
                 </Box>
               ))
             ) : (
-              <Box className="flex flex-row items-center gap-2 text-left text-sm text-gray-500">
+              <Box className="text-text-secondary flex flex-row items-center gap-2 text-left text-sm">
                 <Icon name="alert-triangle" className="h-4 w-4 flex-shrink-0" />
                 No cons identified
               </Box>

@@ -27,12 +27,12 @@ export default function SelectAgreementModalNative({
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text className="text-lg font-semibold text-gray-900">Select Agreement</Text>
+            <Text className="text-text-primary text-lg font-semibold">Select Agreement</Text>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Text className="text-base font-medium text-gray-600">Close</Text>
+              <Text className="text-text-secondary text-base font-medium">Close</Text>
             </Pressable>
           </View>
-          <Text className="px-4 py-2 text-sm text-gray-600">
+          <Text className="text-text-secondary px-4 py-2 text-sm">
             Agreement selection is currently managed in the Documents experience.
           </Text>
           <View style={styles.footer}>

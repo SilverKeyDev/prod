@@ -229,7 +229,7 @@ export default function MapHomeCard({
             size="sm"
             variant="unlock"
             fullWidth
-            text="Unlock"
+            text="View"
           />
         }
       />

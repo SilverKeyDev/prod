@@ -45,7 +45,7 @@ export default function AgreementListItem({
     <Box
       role="button"
       tabIndex={0}
-      className="group cursor-pointer rounded-lg border border-gray-200 p-4 hover:border-gray-300 hover:bg-gray-50 active:border-gray-300 active:border-gray-400 active:bg-gray-100 active:bg-gray-50"
+      className="border-border hover:border-border hover:bg-background-base active:border-border active:border-border active:bg-primary-muted active:bg-background-base group cursor-pointer rounded-lg border p-4"
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -67,7 +67,7 @@ export default function AgreementListItem({
           {/* Header */}
           <Box className="mb-1 flex flex-row items-start justify-between gap-3">
             <Box className="min-w-0 flex-1">
-              <Title as="h3" size="md" className="truncate font-medium text-gray-900">
+              <Title as="h3" size="md" className="text-text-primary truncate font-medium">
                 {agreement.title}
               </Title>
               <BodyText size="sm" muted>
@@ -79,23 +79,23 @@ export default function AgreementListItem({
 
           {/* Property Address */}
           {agreement.property_address && (
-            <BodyText size="sm" className="mb-2 text-gray-700">
+            <BodyText size="sm" className="text-text-secondary mb-2">
               📍 {agreement.property_address}
             </BodyText>
           )}
 
           {/* Metadata Row */}
-          <Box className="mb-2 flex flex-row flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
-            <BodyText as="span" size="xs" className="text-gray-500">
+          <Box className="text-text-secondary mb-2 flex flex-row flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+            <BodyText as="span" size="xs" className="text-text-secondary">
               Created {formatAgreementDate(agreement.created_at)}
             </BodyText>
             {agreement.sent_at && (
-              <BodyText as="span" size="xs" className="text-gray-500">
+              <BodyText as="span" size="xs" className="text-text-secondary">
                 Sent {formatAgreementDate(agreement.sent_at)}
               </BodyText>
             )}
             {agreement.completed_at && (
-              <BodyText as="span" size="xs" className="text-gray-500">
+              <BodyText as="span" size="xs" className="text-text-secondary">
                 Completed {formatAgreementDate(agreement.completed_at)}
               </BodyText>
             )}
@@ -104,13 +104,13 @@ export default function AgreementListItem({
           {/* Progress (if applicable) */}
           {agreement.participants && agreement.participants.length > 0 && (
             <Box className="flex flex-row items-center gap-2">
-              <Box className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200">
+              <Box className="bg-primary-muted h-1.5 flex-1 overflow-hidden rounded-full">
                 <Box
                   className="h-full bg-green-500"
                   style={{ width: `${signingProgress.percentage}%` }}
                 />
               </Box>
-              <BodyText as="span" size="xs" className="whitespace-nowrap text-gray-600">
+              <BodyText as="span" size="xs" className="text-text-secondary whitespace-nowrap">
                 {signingProgress.signed}/{signingProgress.total} signed
               </BodyText>
             </Box>

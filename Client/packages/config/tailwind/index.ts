@@ -1,12 +1,14 @@
 // Relative path required: PostCSS/jiti loads this file in Node where "packages/design-tokens" alias is not resolved.
 /* eslint-disable silverkey/no-relative-parent-imports -- Node context, no Vite alias */
-import {
-  breakpoints,
-  colors,
-  fontFamily,
-  fontSize,
-  spacing as spacingMap,
-} from "../../design-tokens";
+import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { breakpoints, fontFamily, fontSize, spacing as spacingMap } from "../../design-tokens";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const colors = require(path.resolve(__dirname, "../../design-tokens/tokens/colors.json"));
 
 /**
  * Shared Tailwind preset for apps/web and apps/mobile.

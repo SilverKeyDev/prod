@@ -1,6 +1,7 @@
 /// <reference types="nativewind/types" />
 import React from "react";
 
+import { Icon } from "@ui/icons";
 import { Pressable, View } from "react-native";
 
 import { Box } from "packages/ui/components/primitives";
@@ -9,6 +10,10 @@ import { Text } from "packages/ui/components/primitives";
 export type UnderlineTabItem = {
   id: string;
   label: React.ReactNode;
+  /** Optional icon shown before the label. */
+  icon?: React.ReactNode;
+  /** When true, tab shows lock icon and muted styling (view-only, still clickable). */
+  locked?: boolean;
 };
 
 export type UnderlineTabsProps = {
@@ -19,11 +24,13 @@ export type UnderlineTabsProps = {
   compact?: boolean;
   /** Optional class for the container. */
   className?: string;
+  /** Underline color class (default: bg-gold, matching search Results/Saved). */
+  underlineColor?: string;
 };
 
 /**
- * Native UnderlineTabs — matches web: horizontal row, border-b gray-200,
- * ghost-style tab buttons, olive underline under active. Same API as UnderlineTabs.
+ * Native UnderlineTabs — matches web: horizontal row, border-b, ghost-style tab buttons,
+ * gold underline under active. Same API and look as web UnderlineTabs (search Results/Saved).
  */
 export function UnderlineTabs({
   items,
@@ -31,19 +38,23 @@ export function UnderlineTabs({
   onChange,
   compact = false,
   className = "",
+  underlineColor = "bg-gold",
 }: UnderlineTabsProps): JSX.Element {
   const containerClass = compact
-    ? "flex flex-row items-center justify-center rounded-none border-b border-gray-200"
-    : "flex flex-row flex-shrink-0 rounded-none border-b border-gray-200";
+    ? "flex flex-row items-center justify-center rounded-none border-b border-border"
+    : "flex flex-row flex-shrink-0 rounded-none border-b border-border";
   const tabLayoutClass = compact
-    ? "relative flex items-center justify-center px-responsive-sm py-responsive-xs"
-    : "relative flex flex-1 items-center justify-center px-responsive-md py-responsive-sm";
-  const textSizeClass = compact ? "text-responsive-sm" : "text-responsive-sm";
+    ? "relative flex flex-row items-center justify-center gap-2 px-responsive-sm py-responsive-xs"
+    : "relative flex flex-1 flex-row items-center justify-center gap-2 px-responsive-md py-responsive-sm";
 
   return (
     <Box className={className ? `${containerClass} ${className}` : containerClass}>
       {items.map((item) => {
         const isActive = activeId === item.id;
+        const isLocked = item.locked === true;
+        const textSizeClass = isActive ? "text-responsive-md" : "text-responsive-sm";
+        const iconSizeClass = isActive ? "h-5 w-5" : "h-4 w-4";
+        const fontWeightClass = isActive ? "font-bold" : "font-medium";
         return (
           <Pressable
             key={item.id}
@@ -52,9 +63,14 @@ export function UnderlineTabs({
             accessibilityRole="tab"
             accessibilityState={{ selected: isActive }}
           >
+            {isLocked ? (
+              <Icon name="lock" className={`${iconSizeClass} shrink-0`} />
+            ) : (
+              item.icon != null && <Box className={`${iconSizeClass} shrink-0`}>{item.icon}</Box>
+            )}
             {typeof item.label === "string" ? (
               <Text
-                className={`${textSizeClass} font-medium text-neutral-600 ${isActive ? "font-semibold" : ""}`}
+                className={`${textSizeClass} ${fontWeightClass} ${isLocked ? "text-neutral-400 opacity-75" : "text-neutral-600"}`}
               >
                 {item.label}
               </Text>
@@ -63,7 +79,7 @@ export function UnderlineTabs({
             )}
             {isActive && (
               <View
-                className="bg-olive absolute bottom-0 left-0 right-0 h-0.5 rounded-none"
+                className={`${underlineColor} absolute bottom-0 left-2 right-2 h-0.5 rounded-none`}
                 pointerEvents="none"
               />
             )}

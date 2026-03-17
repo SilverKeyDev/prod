@@ -1,0 +1,31 @@
+import {
+  CHECKLIST_SUBTITLES,
+  CHECKLIST_TITLES,
+} from "packages/features/checklists/types/checklists";
+
+import CloseLayout from "@/features/checklists/components/CloseLayout";
+
+type ClosePageHeaderData = {
+  title: string;
+  subtitle: string;
+  completedCount: number;
+  totalCount: number;
+  loading: boolean;
+};
+
+type OfferSectionProps = {
+  setClosePageHeaderData?: React.Dispatch<React.SetStateAction<ClosePageHeaderData | null>>;
+};
+
+export default function OfferSection({ setClosePageHeaderData }: OfferSectionProps) {
+  return (
+    <CloseLayout
+      title={CHECKLIST_TITLES.offer}
+      subtitle={CHECKLIST_SUBTITLES.offer}
+      sectionTitle="Offer Tasks"
+      apiEndpoint="/api/v1/tasks?type=offer"
+      showLoadingScreen={true}
+      setClosePageHeaderData={setClosePageHeaderData}
+    />
+  );
+}

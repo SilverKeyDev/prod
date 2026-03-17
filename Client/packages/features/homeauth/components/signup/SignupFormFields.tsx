@@ -204,7 +204,7 @@ export default function SignupFormFields({
         Already have an account?
         <AuthLink
           to="/login"
-          className="text-brown hover:text-brown/80 underline-offset-4 transition-colors hover:underline"
+          className="text-text-secondary hover:text-text-secondary underline-offset-4 transition-colors hover:underline"
         >
           Sign in
         </AuthLink>

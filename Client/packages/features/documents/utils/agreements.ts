@@ -92,6 +92,6 @@ export function getParticipantStatusColor(status?: string | null): string {
     case "sent":
       return "text-blue-700";
     default:
-      return "text-gray-700";
+      return "text-text-secondary";
   }
 }

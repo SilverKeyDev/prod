@@ -91,7 +91,7 @@
   }
 
   .mobile-modal-backdrop {
-    @apply absolute inset-0 bg-black bg-opacity-50;
+    @apply bg-overlay-backdrop absolute inset-0;
   }
 
   .mobile-modal-content {
@@ -99,7 +99,7 @@
   }
 
   .mobile-modal-header {
-    @apply flex items-center justify-between border-b border-gray-200 p-4;
+    @apply border-border flex items-center justify-between border-b p-4;
   }
 
   .mobile-modal-body {
@@ -116,15 +116,15 @@
   }
 
   .mobile-form-label {
-    @apply block text-sm font-medium text-gray-700;
+    @apply text-text-primary block text-sm font-medium;
   }
 
   .mobile-form-input {
-    @apply focus:border-olive focus:ring-olive/20 w-full rounded-lg border border-gray-300 px-3 py-3 text-base focus:ring-2;
+    @apply focus:border-primary focus:ring-accent-muted border-border w-full rounded-lg border px-3 py-3 text-base focus:ring-2;
   }
 
   .mobile-form-button {
-    @apply touch-friendly bg-olive w-full rounded-lg px-4 py-3 text-base font-medium text-white;
+    @apply touch-friendly bg-primary w-full rounded-lg px-4 py-3 text-base font-medium text-white;
   }
 
   /* Mobile card patterns - using components.css definition */
@@ -134,16 +134,16 @@
   }
 
   .mobile-card-title {
-    @apply text-lg font-semibold text-gray-900;
+    @apply text-text-primary text-lg font-semibold;
   }
 
   .mobile-card-content {
-    @apply text-base leading-relaxed text-gray-600;
+    @apply text-text-secondary text-base leading-relaxed;
   }
 
   /* Mobile list patterns */
   .mobile-list {
-    @apply divide-y divide-gray-200;
+    @apply divide-border divide-y;
   }
 
   .mobile-list-item {
@@ -155,11 +155,11 @@
   }
 
   .mobile-list-item-title {
-    @apply truncate text-base font-medium text-gray-900;
+    @apply text-text-primary truncate text-base font-medium;
   }
 
   .mobile-list-item-subtitle {
-    @apply truncate text-sm text-gray-500;
+    @apply text-text-secondary truncate text-sm;
   }
 
   /* Mobile spacing utilities */
@@ -222,11 +222,11 @@
 
   /* Mobile positioning */
   .mobile-sticky {
-    @apply sticky top-0 z-10 border-b border-gray-200 bg-white;
+    @apply border-border bg-background-surface sticky top-0 z-10 border-b;
   }
 
   .mobile-fixed-bottom {
-    @apply safe-bottom fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white;
+    @apply safe-bottom border-border bg-background-surface fixed bottom-0 left-0 right-0 border-t;
   }
 
   /* Mobile scrolling */
@@ -255,15 +255,15 @@
 
   /* Mobile button patterns - standardized with btn-* naming */
   .btn-mobile-primary {
-    @apply mobile-form-button bg-olive hover:bg-olive/90 active:bg-olive/80;
+    @apply mobile-form-button bg-primary hover:bg-primary-hover active:bg-primary-hover;
   }
 
   .btn-mobile-secondary {
-    @apply mobile-form-button bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300;
+    @apply mobile-form-button text-text-primary bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300;
   }
 
   .btn-mobile-outline {
-    @apply mobile-form-button border-olive text-olive hover:bg-olive border-2 bg-transparent hover:text-white;
+    @apply mobile-form-button border-primary text-primary hover:bg-primary border-2 bg-transparent hover:text-white;
   }
 
   /* Legacy aliases - deprecated, use btn-mobile-* instead */
@@ -296,7 +296,7 @@
 
   /* Mobile accessibility */
   .mobile-focus {
-    @apply focus:border-olive focus:ring-olive/20 focus:outline-none focus:ring-2;
+    @apply focus:border-primary focus:ring-accent-muted focus:outline-none focus:ring-2;
   }
 
   .mobile-sr-only {

@@ -31,10 +31,10 @@ export default function SaleTypeFilter({
 
   return (
     <div className={className}>
-      <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+      <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
         {t("search.sale_type")}
       </BodyText>
-      <div className="flex flex-wrap gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+      <div className="border-border bg-background-base flex flex-wrap gap-1 rounded-lg border p-1">
         {SALE_TYPE_OPTIONS.map((opt) => (
           <Button
             key={opt.value || "all"}

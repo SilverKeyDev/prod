@@ -54,7 +54,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
         variant={viewMode === "grid" ? "primary" : "secondary"}
         size="sm"
         onClick={() => onViewModeChange("grid")}
-        className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "grid" ? "bg-olive text-white" : "bg-beige hover:bg-olive/80 text-white"}`}
+        className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "grid" ? "bg-primary text-white" : "bg-accent-muted hover:bg-primary text-white"}`}
       >
         <div className="mobile-icon-xs grid grid-cols-2 gap-1">
           <div className="rounded-sm bg-current" />
@@ -67,7 +67,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
         variant={viewMode === "list" ? "primary" : "secondary"}
         size="sm"
         onClick={() => onViewModeChange("list")}
-        className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "list" ? "bg-olive text-white" : "bg-beige hover:bg-olive/80 text-white"}`}
+        className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "list" ? "bg-primary text-white" : "bg-accent-muted hover:bg-primary text-white"}`}
       >
         <div className="mobile-icon-xs space-y-1">
           <div className="h-0.5 rounded-sm bg-current" />
@@ -79,15 +79,15 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   );
   // Tab navigation for homes/documents
   const TabNavigation = viewType && onViewTypeChange && (
-    <div className="mb-3 flex items-center gap-2 border-b border-gray-200">
+    <div className="border-border mb-3 flex items-center gap-2 border-b">
       <Button
         variant="ghost"
         size="sm"
         onClick={() => onViewTypeChange("homes")}
         className={`-mb-px rounded-none border-b-2 ${
           viewType === "homes"
-            ? "border-gold text-base font-semibold text-gray-500"
-            : "border-transparent text-sm font-medium text-gray-500 hover:text-gray-700"
+            ? "border-accent text-text-secondary text-base font-semibold"
+            : "text-text-secondary hover:text-text-secondary border-transparent text-sm font-medium"
         }`}
       >
         {t("saved.tab_homes")}
@@ -98,8 +98,8 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
         onClick={() => onViewTypeChange("documents")}
         className={`-mb-px rounded-none border-b-2 ${
           viewType === "documents"
-            ? "border-gold text-base font-semibold text-gray-500"
-            : "border-transparent text-sm font-medium text-gray-500 hover:text-gray-700"
+            ? "border-accent text-text-secondary text-base font-semibold"
+            : "text-text-secondary hover:text-text-secondary border-transparent text-sm font-medium"
         }`}
       >
         {t("saved.tab_documents")}
@@ -134,7 +134,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
                 <div className="relative min-w-48 flex-1">
                   <Icon
                     name="search"
-                    className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 text-black/40"
+                    className="mobile-icon-xs text-text-disabled absolute left-3 top-1/2 -translate-y-1/2"
                   />
                   <Input
                     type="text"
@@ -147,7 +147,9 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
               ) : null}
 
               {rightText && (
-                <div className="mr-2 whitespace-nowrap text-sm text-gray-600">{rightText}</div>
+                <div className="text-text-secondary mr-2 whitespace-nowrap text-sm">
+                  {rightText}
+                </div>
               )}
             </div>
 

@@ -99,16 +99,16 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
   return (
     <Box className="px-6 py-6">
       <Box className="mb-4 flex-row items-center gap-2">
-        <Text className="text-brown text-lg font-semibold">Property Features</Text>
+        <Text className="text-text-secondary text-lg font-semibold">Property Features</Text>
       </Box>
 
-      <Box className="border-beige/30 mt-2 rounded-lg border border-r-0 bg-white p-6">
+      <Box className="border-border bg-background-surface mt-2 rounded-lg border border-r-0 p-6">
         {img && img.clean.length > 0 && (
           <Box className="mb-4">
-            <Text className="text-brown mb-2 text-left text-sm font-semibold">
+            <Text className="text-text-secondary mb-2 text-left text-sm font-semibold">
               AI-Detected Features
             </Text>
-            <Text className="text-brown/70 text-left text-xs leading-relaxed">
+            <Text className="text-text-secondary text-left text-xs leading-relaxed">
               {img.clean.map((feature, i) => (
                 <React.Fragment key={i}>
                   {feature.trim()}
@@ -130,7 +130,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                     onPress={() => toggleCategory(category)}
                     className="mb-2 w-full flex-row items-center justify-between"
                   >
-                    <Text className="text-brown flex-1 text-left text-sm font-semibold capitalize">
+                    <Text className="text-text-secondary flex-1 text-left text-sm font-semibold capitalize">
                       {displayName} ({list.length})
                     </Text>
                     <Icon
@@ -142,8 +142,8 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                   {isExpanded && (
                     <Box className="flex-row flex-wrap gap-2">
                       {list.map((feature, idx) => (
-                        <Box key={idx} className="rounded-full bg-gray-100 px-3 py-1">
-                          <Text className="text-left text-xs text-gray-700">{feature}</Text>
+                        <Box key={idx} className="bg-primary-muted rounded-full px-3 py-1">
+                          <Text className="text-text-secondary text-left text-xs">{feature}</Text>
                         </Box>
                       ))}
                     </Box>

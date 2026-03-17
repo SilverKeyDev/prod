@@ -13,8 +13,8 @@ type ErrorSectionProps = {
 export function ErrorSection({ errorMessage }: ErrorSectionProps): React.JSX.Element {
   const { t } = useLocalization();
   return (
-    <SectionBox className="border-rose-100 bg-rose-50">
-      <div className="text-responsive-sm text-center text-red-600">
+    <SectionBox className="border-destructive bg-primary-muted">
+      <div className="text-responsive-sm text-destructive text-center">
         <BodyText as="p" className="mb-2 font-semibold">
           {t("negotiate.error_generating_strategy")}
         </BodyText>

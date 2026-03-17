@@ -7,6 +7,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { ActivityIndicator, Linking, StyleSheet, View } from "react-native";
 
+import { color } from "packages/design-tokens";
 import { runAuthBootstrap } from "packages/features/homeauth";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
@@ -76,7 +77,7 @@ export function AuthProviderNative({ children }: AuthProviderNativeProps) {
   if (!authReady || storeAuthStatus === "checking") {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#A3B18A" />
+        <ActivityIndicator size="large" color={color("primary")} />
         <Text style={styles.loadingLabel}>Checking auth…</Text>
       </View>
     );
@@ -90,11 +91,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f0",
+    backgroundColor: color("background-base"),
   },
   loadingLabel: {
     marginTop: 12,
     fontSize: 14,
-    color: "#666",
+    color: color("text-secondary"),
   },
 });

@@ -23,7 +23,7 @@ interface ManageRowsModalProps {
 function ManageRowsModalHeader({ onClose }: { onClose: () => void }) {
   const { t } = useLocalization();
   return (
-    <Box className="flex flex-row items-center justify-between border-b border-gray-200 p-6">
+    <Box className="border-border flex flex-row items-center justify-between border-b p-6">
       <Box>
         <Title size="md" className="font-semibold">
           {t("compare.manage_fields_title")}
@@ -83,7 +83,7 @@ function ManageRowsModalActions({
       >
         {t("compare.auto_hide_empty")}
       </Button>
-      <Box className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-neutral-600">
+      <Box className="bg-primary-muted text-text-secondary rounded-lg px-4 py-2 text-sm">
         {t("compare.showing_fields", {
           visible: visibleCount,
           total: allFieldKeys.length,
@@ -129,8 +129,8 @@ export function ManageRowsModal({
   };
 
   return (
-    <Box className="fixed inset-0 z-50 flex flex-row items-center justify-center bg-neutral-900 p-4">
-      <Box className="flex min-h-0 w-full max-w-2xl flex-1 flex-row flex-col rounded-lg bg-white shadow-xl">
+    <Box className="bg-overlay-backdrop fixed inset-0 z-50 flex flex-row items-center justify-center p-4">
+      <Box className="bg-background-surface flex min-h-0 w-full max-w-2xl flex-1 flex-row flex-col rounded-lg shadow-xl">
         <ManageRowsModalHeader onClose={() => setShowRowModal(false)} />
         <Box className="flex-1 overflow-hidden p-6">
           <ManageRowsModalActions
@@ -139,7 +139,7 @@ export function ManageRowsModal({
             setOmittedRows={setOmittedRows}
             setManuallyEnabledRows={setManuallyEnabledRows}
           />
-          <Box className="overflow-hidden rounded-lg border border-gray-200">
+          <Box className="border-border overflow-hidden rounded-lg border">
             <Box className="custom-scrollbar max-h-96 overflow-y-auto">
               {allFields.map((field, index) => (
                 <ManageRowsModalFieldRow

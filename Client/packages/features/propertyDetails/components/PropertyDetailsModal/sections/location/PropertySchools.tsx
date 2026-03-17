@@ -44,7 +44,7 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
                 <Title as="h4" size="sm" className="text-foreground mb-2 font-medium">
                   {displayKey}
                 </Title>
-                <ul className="ml-4 flex flex-col gap-1 text-sm text-neutral-700">
+                <ul className="text-text-secondary ml-4 flex flex-col gap-1 text-sm">
                   {value.map((item, i) => (
                     <li key={i} className="list-disc">
                       {String(item)}
@@ -59,7 +59,7 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
               <BodyText as="span" className="text-foreground text-sm font-medium">
                 {displayKey}
               </BodyText>
-              <BodyText as="span" className="text-sm text-neutral-700">
+              <BodyText as="span" className="text-text-secondary text-sm">
                 {String(value)}
               </BodyText>
             </Box>
@@ -84,7 +84,7 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
               <Box key={idx} className="flex flex-row items-center justify-between">
                 <Box className="flex-1">
                   <Box className="text-foreground font-medium">{String(school.name ?? "")}</Box>
-                  <Box className="text-sm text-gray-600">
+                  <Box className="text-text-secondary text-sm">
                     {String(school.level ?? "")} • {String(school.grades ?? "")}
                   </Box>
                 </Box>
@@ -92,7 +92,9 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
                   <Box className="text-foreground text-sm font-medium">
                     {String(school.rating ?? 0)}/10
                   </Box>
-                  <Box className="text-xs text-gray-500">{String(school.distance ?? 0)} mi</Box>
+                  <Box className="text-text-secondary text-xs">
+                    {String(school.distance ?? 0)} mi
+                  </Box>
                 </Box>
               </Box>
             ))}

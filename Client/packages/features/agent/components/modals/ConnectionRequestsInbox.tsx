@@ -48,8 +48,8 @@ export default function ConnectionRequestsInbox({
     return (
       <div className="flex h-full items-center justify-center p-4">
         <div className="text-center">
-          <Icon name="message-square" className="mx-auto mb-3 h-12 w-12 text-black/30" />
-          <BodyText as="p" size="sm" className="text-black/60">
+          <Icon name="message-square" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
+          <BodyText as="p" size="sm" className="text-neutral-600">
             No pending connection requests
           </BodyText>
         </div>
@@ -60,24 +60,24 @@ export default function ConnectionRequestsInbox({
     <div className="flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
         {requests.map((request) => (
-          <div key={request.id} className="border-beige rounded-lg border bg-white p-4">
+          <div key={request.id} className="border-border rounded-lg border bg-white p-4 shadow-sm">
             <div className="flex items-start gap-3">
-              <div className="bg-beige flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                <Icon name="user" className="h-5 w-5 text-black" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
+                <Icon name="user" className="h-5 w-5 text-neutral-600" />
               </div>
               <div className="flex-1">
-                <Title as="h3" size="sm" className="font-medium text-black">
+                <Title as="h3" size="sm" className="font-medium text-neutral-800">
                   {request.other_party_name ?? "Unknown"}
                 </Title>
-                <BodyText as="p" size="sm" className="text-black/60">
+                <BodyText as="p" size="sm" className="text-neutral-600">
                   {request.other_party_email ?? ""}
                 </BodyText>
                 {request.message && (
-                  <BodyText as="p" size="sm" className="mt-2 text-black/80">
+                  <BodyText as="p" size="sm" className="mt-2 text-neutral-700">
                     {request.message}
                   </BodyText>
                 )}
-                <BodyText as="p" size="xs" className="mt-1 text-black/40">
+                <BodyText as="p" size="xs" className="mt-1 text-neutral-500">
                   {request.requested_by_agent
                     ? "Agent requested to connect"
                     : "Client requested to connect"}
@@ -89,7 +89,7 @@ export default function ConnectionRequestsInbox({
                 variant="primary"
                 onClick={() => handleRespond(request.id, true)}
                 disabled={isResponding}
-                className="hover:bg-olive/90 flex-1"
+                className="hover:bg-primary-hover flex-1"
                 icon={<Icon name="check" />}
                 iconPosition="left"
               >
@@ -98,9 +98,9 @@ export default function ConnectionRequestsInbox({
               <Button
                 variant="ghost"
                 onClick={() => handleRespond(request.id, false)}
-                className="flex-1 border border-neutral-200 bg-neutral-100 text-black hover:bg-neutral-200"
                 disabled={isResponding}
-                icon={<Icon name="x" />}
+                className="border-border flex-1 border bg-white text-neutral-700 hover:bg-neutral-50"
+                icon={<Icon name="x" className="text-neutral-600" />}
                 iconPosition="left"
               >
                 Reject

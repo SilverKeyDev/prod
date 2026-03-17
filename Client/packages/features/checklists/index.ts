@@ -12,6 +12,7 @@ export {
   type TransactionAddressData,
   updateTaskChecklist,
 } from "./api/checklists";
+export { default as AddDocumentToStepModal } from "./components/AddDocumentToStepModal";
 export { default as AddFromSkySlopeModal } from "./components/AddFromSkySlopeModal";
 export { default as ChecklistIntegrationSlot } from "./components/ChecklistIntegrationSlot";
 export { default as ChecklistItemDocuments } from "./components/ChecklistItemDocuments";

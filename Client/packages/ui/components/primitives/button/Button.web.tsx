@@ -4,6 +4,25 @@ import { spacing } from "packages/design-tokens";
 
 import type { ButtonPropsBase } from "./Button.types";
 
+/** RN-specific props to strip on web; map to aria-* / role instead. */
+const RN_ACCESSIBILITY_KEYS = [
+  "accessibilityLabel",
+  "accessibilityRole",
+  "accessibilityState",
+  "accessibilityHint",
+  "accessibilityLevel",
+] as const;
+
+function omitRnAccessibilityProps<T extends Record<string, unknown>>(
+  props: T
+): Omit<T, (typeof RN_ACCESSIBILITY_KEYS)[number]> {
+  const { ...rest } = props;
+  for (const key of RN_ACCESSIBILITY_KEYS) {
+    delete (rest as Record<string, unknown>)[key];
+  }
+  return rest as Omit<T, (typeof RN_ACCESSIBILITY_KEYS)[number]>;
+}
+
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   ButtonPropsBase & {
     /** RN-style; web maps to onClick. */
@@ -13,26 +32,44 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
 /**
  * Base Button primitive — one <button> for React (web).
  * Native uses Pressable (Button.native.tsx). Accepts onPress (mapped to onClick) for cross-platform API.
+ * Strips RN accessibility props and maps them to web equivalents (aria-label, role).
  */
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { type = "button", className = "", children, onClick, onPress, style, ...props },
+  {
+    type = "button",
+    className = "",
+    children,
+    onClick,
+    onPress,
+    style,
+    "aria-label": ariaLabel,
+    accessibilityLabel,
+    role,
+    accessibilityRole,
+    ...props
+  },
   ref
 ) {
   const handleClick = onClick ?? onPress;
+  const domProps = omitRnAccessibilityProps(props);
+  const resolvedAriaLabel = ariaLabel ?? accessibilityLabel;
+  const resolvedRole = role ?? accessibilityRole;
+
   return (
     <button
       ref={ref}
       type={type}
       className={className}
       onClick={handleClick}
+      role={resolvedRole}
+      aria-label={resolvedAriaLabel}
       style={{
-        background: "none",
         border: "none",
         padding: spacing(0),
         cursor: "pointer",
-        ...style,
+        ...(style as React.CSSProperties),
       }}
-      {...props}
+      {...domProps}
     >
       {children}
     </button>

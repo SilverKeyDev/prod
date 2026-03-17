@@ -94,8 +94,8 @@ export default function ShareHomeModal({
       size="md"
       headerContent={
         <div className="flex items-center gap-2">
-          <Icon name="share" className="h-5 w-5 text-gray-600" />
-          <Title as="h3" size="lg" className="font-medium text-gray-900">
+          <Icon name="share" className="text-text-secondary h-5 w-5" />
+          <Title as="h3" size="lg" className="text-text-primary font-medium">
             {t("modals.share_home.title")}
           </Title>
         </div>
@@ -104,12 +104,12 @@ export default function ShareHomeModal({
       <div className="space-y-4">
         {/* Property Info */}
         {property && (
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-            <BodyText as="p" size="sm" className="font-medium text-gray-900">
+          <div className="border-border bg-primary-muted rounded-lg border p-3">
+            <BodyText as="p" size="sm" className="text-text-primary font-medium">
               {propertyAddress}
             </BodyText>
             {property.price != null && property.price !== "" && (
-              <BodyText as="p" size="sm" className="text-gray-600">
+              <BodyText as="p" size="sm" className="text-text-secondary">
                 {(() => {
                   const price = property.price as string | number;
                   return typeof price === "number" ? `$${price.toLocaleString()}` : price;
@@ -130,7 +130,7 @@ export default function ShareHomeModal({
                 <KeyTurnLoader message={t("client_selector.loading_clients")} />
               </div>
             ) : clients.length === 0 ? (
-              <BodyText as="p" size="sm" className="text-gray-500">
+              <BodyText as="p" size="sm" className="text-text-secondary">
                 {t("modals.share_home.no_clients")}
               </BodyText>
             ) : (
@@ -144,24 +144,24 @@ export default function ShareHomeModal({
                     onClick={() => setSelectedClientId(client.id)}
                     className={`w-full rounded-lg border p-3 text-left transition-colors ${
                       selectedClientId === client.id
-                        ? "border-olive bg-olive/10"
-                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        ? "border-primary bg-primary-muted"
+                        : "border-border hover:border-border hover:bg-accent-muted"
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <div className="bg-beige flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+                      <div className="bg-accent-muted flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
                         <Icon name="user" className="h-4 w-4 text-black" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <BodyText as="p" size="sm" className="font-medium text-gray-900">
+                        <BodyText as="p" size="sm" className="text-text-primary font-medium">
                           {client.name}
                         </BodyText>
-                        <BodyText as="p" size="xs" className="text-gray-500">
+                        <BodyText as="p" size="xs" className="text-text-secondary">
                           {client.email}
                         </BodyText>
                       </div>
                       {selectedClientId === client.id && (
-                        <div className="bg-olive h-2 w-2 rounded-full" />
+                        <div className="bg-primary h-2 w-2 rounded-full" />
                       )}
                     </div>
                   </Button>
@@ -174,7 +174,7 @@ export default function ShareHomeModal({
         {/* Agent Info (for clients) */}
         {!isAgent && (
           <fieldset className="m-0 border-0 p-0">
-            <legend className="mb-2 block text-sm font-medium text-gray-700">
+            <legend className="text-text-primary mb-2 block text-sm font-medium">
               {t("modals.share_home.share_with_agent")}
             </legend>
             {isLoadingConversations ? (
@@ -182,23 +182,23 @@ export default function ShareHomeModal({
                 <KeyTurnLoader message={t("common.loading")} />
               </div>
             ) : clientConversation ? (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <div className="border-border bg-primary-muted rounded-lg border p-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-gold flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+                  <div className="bg-accent flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
                     <Icon name="message-circle" className="h-4 w-4 text-black" />
                   </div>
                   <div>
-                    <BodyText as="p" size="sm" className="font-medium text-gray-900">
+                    <BodyText as="p" size="sm" className="text-text-primary font-medium">
                       {t("modals.share_home.your_agent")}
                     </BodyText>
-                    <BodyText as="p" size="xs" className="text-gray-500">
+                    <BodyText as="p" size="xs" className="text-text-secondary">
                       {clientConversation.client_name || t("house.agent")}
                     </BodyText>
                   </div>
                 </div>
               </div>
             ) : (
-              <BodyText as="p" size="sm" className="text-gray-500">
+              <BodyText as="p" size="sm" className="text-text-secondary">
                 {t("modals.share_home.no_agent")}
               </BodyText>
             )}
@@ -215,7 +215,7 @@ export default function ShareHomeModal({
             value={shareMessage}
             onChange={(e) => setShareMessage(e.target.value)}
             placeholder={`Check out ${propertyAddress}!`}
-            className="focus:border-olive focus:ring-olive/20 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2"
+            className="focus:border-primary focus:ring-accent-muted border-border w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2"
             rows={3}
           />
         </div>

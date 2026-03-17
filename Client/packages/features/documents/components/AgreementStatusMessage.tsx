@@ -43,7 +43,7 @@ export default function AgreementStatusMessage({
       case "agreement_signed":
         return <Icon name="file-signature" className="h-4 w-4 text-purple-600" />;
       case "agreement_completed":
-        return <Icon name="check-circle-2" className="h-4 w-4 text-green-600" />;
+        return <Icon name="check-circle-2" className="text-accent h-4 w-4" />;
     }
   };
   const getMessage = () => {
@@ -75,7 +75,7 @@ export default function AgreementStatusMessage({
         >
           <Box className="mb-1 flex flex-row items-center gap-2">
             {getIcon()}
-            <BodyText size="sm" className="text-gray-900">
+            <BodyText size="sm" className="text-text-primary">
               {getMessage()}
             </BodyText>
           </Box>

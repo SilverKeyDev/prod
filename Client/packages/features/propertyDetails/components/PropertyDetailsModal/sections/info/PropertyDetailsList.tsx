@@ -29,7 +29,7 @@ export const PropertyDetailsList = ({
   const { t } = useLocalization();
   return (
     <div>
-      <Title as="h3" size="lg" className="text-brown mb-4 font-semibold">
+      <Title as="h3" size="lg" className="text-text-secondary mb-4 font-semibold">
         {t("property_details_list.heading")}
       </Title>
       <div className="space-y-3">

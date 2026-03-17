@@ -41,7 +41,7 @@ export default function AgreementRevisionsTab({
               Upload Revision
             </Button>
           ) : (
-            <Box className="rounded-lg border border-gray-200 p-4">
+            <Box className="border-border rounded-lg border p-4">
               <RevisionUpload
                 agreementId={agreementId}
                 onSuccess={onUploadSuccess}
@@ -57,27 +57,27 @@ export default function AgreementRevisionsTab({
           {revisions.map((revision) => (
             <Box
               key={revision.id}
-              className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50 active:bg-gray-100 active:bg-gray-50"
+              className="border-border hover:bg-background-base active:bg-primary-muted active:bg-background-base rounded-lg border p-4"
             >
               <Box className="flex flex-row items-start justify-between">
                 <Box className="flex flex-row items-start gap-3">
-                  <Icon name="file-text" className="mt-0.5 h-5 w-5 text-gray-600" />
+                  <Icon name="file-text" className="text-text-secondary mt-0.5 h-5 w-5" />
                   <Box>
-                    <BodyText as="p" className="font-medium text-gray-900">
+                    <BodyText as="p" className="text-text-primary font-medium">
                       {revision.file_name}
                     </BodyText>
-                    <BodyText as="p" size="xs" className="mt-0.5 text-gray-500">
+                    <BodyText as="p" size="xs" className="text-text-secondary mt-0.5">
                       Revision #{revision.revision_number} •{" "}
                       {(revision.file_size / 1024).toFixed(1)} KB •{" "}
                       {formatAgreementDateTime(revision.created_at)}
                     </BodyText>
                     {revision.notes && (
-                      <BodyText as="p" size="sm" className="mt-1 text-gray-600">
+                      <BodyText as="p" size="sm" className="text-text-secondary mt-1">
                         {revision.notes}
                       </BodyText>
                     )}
                     {revision.created_by_name && (
-                      <BodyText as="p" size="xs" className="mt-1 text-gray-500">
+                      <BodyText as="p" size="xs" className="text-text-secondary mt-1">
                         By {revision.created_by_name}
                       </BodyText>
                     )}

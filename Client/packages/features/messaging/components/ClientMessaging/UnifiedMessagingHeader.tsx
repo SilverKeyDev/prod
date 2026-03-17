@@ -40,20 +40,20 @@ function HeaderLeftContent({
               variant="ghost"
               size="sm"
               onClick={onBackClick}
-              className="hover:bg-beige/10 flex items-center justify-center rounded-lg p-1.5 transition"
+              className="flex items-center justify-center rounded-lg p-1.5 text-neutral-700 transition hover:bg-neutral-100"
               label={t("agent.back_to_inbox")}
             >
-              <Icon name="arrow-left" className="h-4 w-4 text-black" />
+              <Icon name="arrow-left" className="h-4 w-4 text-neutral-700" />
             </Button>
           )}
-          <Title as="h2" size="sm" className="font-medium text-black">
+          <Title as="h2" size="sm" className="font-medium text-neutral-800">
             {t("agent.connection_requests")}
           </Title>
         </div>
       );
     case "inbox":
       return (
-        <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-black">
+        <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
           <MiniLogo size="sm" />
           {t("agent.inbox")}
         </Title>
@@ -61,7 +61,7 @@ function HeaderLeftContent({
     case "clients":
       return (
         <div className="flex items-center gap-2">
-          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-black">
+          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
             <MiniLogo size="sm" />
             {t("agent.clients")}
           </Title>
@@ -76,19 +76,19 @@ function HeaderLeftContent({
               variant="ghost"
               size="sm"
               onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-              className="inline-flex items-center justify-center rounded-lg p-2 focus:outline-none xl:hidden"
+              className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 hover:bg-neutral-100 focus:outline-none xl:hidden"
               label={isSidebarExpanded ? t("agent.close_sidebar") : t("agent.open_sidebar")}
               aria-expanded={isSidebarExpanded}
             >
               {isSidebarExpanded ? (
-                <Icon name="arrow-left" className="h-5 w-5 text-black" />
+                <Icon name="arrow-left" className="h-5 w-5 text-neutral-700" />
               ) : (
-                <Icon name="menu" className="h-5 w-5 text-black" />
+                <Icon name="menu" className="h-5 w-5 text-neutral-700" />
               )}
             </Button>
           )}
           {mode === "chat" && agentName && (
-            <Title as="h2" size="lg" className="font-medium text-black">
+            <Title as="h2" size="lg" className="font-medium text-neutral-800">
               {agentName}
             </Title>
           )}
@@ -118,11 +118,11 @@ function HeaderRightContent({
         variant="ghost"
         size="sm"
         onClick={() => setIsSidebarExpanded(false)}
-        className="hover:bg-beige/10 inline-flex items-center justify-center rounded-lg bg-white px-3 py-2 transition xl:hidden"
+        className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-3 py-2 text-neutral-700 transition hover:bg-neutral-200 xl:hidden"
         label={t("agent.collapse_sidebar")}
         aria-expanded={isSidebarExpanded}
       >
-        <Icon name="chevron-left" className="h-4 w-4 text-black" />
+        <Icon name="chevron-left" className="h-4 w-4 text-neutral-700" />
       </Button>
     ) : null;
   switch (mode) {
@@ -136,10 +136,10 @@ function HeaderRightContent({
               variant="ghost"
               size="sm"
               onClick={onInboxClick}
-              className="hover:bg-beige/10 flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition"
+              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
             >
-              <Icon name="inbox" className="h-4 w-4 text-black" />
-              <BodyText as="span" size="sm" className="text-black/70">
+              <Icon name="inbox" className="h-4 w-4 text-neutral-600" />
+              <BodyText as="span" size="sm" className="text-neutral-600">
                 {t("agent.requests")}
               </BodyText>
             </Button>
@@ -155,11 +155,11 @@ function HeaderRightContent({
               variant="ghost"
               size="sm"
               onClick={onSearchClick}
-              className="hover:bg-beige/10 flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition"
-              label="Search for clients"
-              title="Add client"
+              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
+              label={t("agent.search_for_clients")}
+              title={t("agent.search_for_clients")}
             >
-              <Icon name="plus" className="h-4 w-4 text-black" />
+              <Icon name="plus" className="h-4 w-4 text-neutral-600" />
             </Button>
           )}
           {collapseBtn}
@@ -172,7 +172,7 @@ function HeaderRightContent({
             <Title
               as="h3"
               size="sm"
-              className={`font-medium text-black transition-opacity duration-300 ease-in-out ${isSidebarExpanded ? "opacity-0" : "opacity-100"}`}
+              className={`font-medium text-neutral-800 transition-opacity duration-300 ease-in-out ${isSidebarExpanded ? "opacity-0" : "opacity-100"}`}
             >
               {selectedClientName}
             </Title>
@@ -196,7 +196,7 @@ export default function UnifiedMessagingHeader({
   agentName,
 }: UnifiedMessagingHeaderProps) {
   const baseClasses =
-    "flex w-full items-center justify-between border-b border-beige bg-white p-3 h-14";
+    "flex w-full items-center justify-between border-b border-border bg-background-surface p-3 h-14";
   return (
     <div className={`${baseClasses} ${className}`}>
       <HeaderLeftContent

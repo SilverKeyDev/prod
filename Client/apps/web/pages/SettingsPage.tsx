@@ -316,7 +316,7 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-off-white">
+      <div className="flex min-h-screen items-center justify-center bg-background-base">
         <Loading message="Loading your preferences..." />
       </div>
     );
@@ -326,11 +326,13 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
     // Render content for each section based on sectionId
     switch (sectionId) {
       case "demographics":
+        // Agent status is immutable; choice only shown during onboarding
         return (
           <DemographicsSection
             formData={formData}
             isEditMode={isEditMode}
             updateFormData={updateFormData}
+            showAgentChoice={false}
           />
         );
       case "financial":
@@ -383,7 +385,7 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
   };
 
   return (
-    <div className="min-h-screen bg-off-white">
+    <div className="min-h-screen bg-background-base">
       <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
         <div className="flex flex-row gap-6 lg:gap-8">
           {/* Sidebar - Always visible */}

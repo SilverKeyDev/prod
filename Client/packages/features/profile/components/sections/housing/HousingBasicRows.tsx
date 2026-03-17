@@ -39,7 +39,7 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 placeholder="Number of bedrooms"
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {formData.preferred_bedrooms ?? "Not specified"}
               </div>
             ),
@@ -56,7 +56,7 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 placeholder="Number of bathrooms"
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {formData.preferred_bathrooms ?? "Not specified"}
               </div>
             ),
@@ -81,7 +81,7 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 isEditMode={true}
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {(() => {
                   const selected = parseHousingTypes(formData.preferred_housing_type);
                   if (selected.length === 0) return "Not specified";
@@ -103,7 +103,7 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 isEditMode={true}
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {((formData.must_have as string[]) ?? []).length === 0
                   ? "Not specified"
                   : ((formData.must_have as string[]) ?? [])

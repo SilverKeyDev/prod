@@ -30,7 +30,7 @@ export function MapControls(props: {
           disabled={disabled}
           variant="secondary"
           size="xs"
-          className="hover:border-olive hover:text-olive focus:ring-olive/20 h-8 w-8 border border-gray-300 bg-white p-0 text-gray-700 shadow-md transition-all duration-200 hover:bg-white hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
+          className="hover:border-primary hover:text-primary focus:ring-accent-muted border-border bg-background-surface text-text-secondary hover:bg-background-surface h-8 w-8 border p-0 shadow-md transition-all duration-200 hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
           title={t("search.zoom_out")}
         >
           {t("search.zoom_out_symbol")}
@@ -41,7 +41,7 @@ export function MapControls(props: {
           disabled={disabled}
           variant="secondary"
           size="xs"
-          className="hover:border-olive hover:text-olive focus:ring-olive/20 h-8 w-8 border border-gray-300 bg-white p-0 text-gray-700 shadow-md transition-all duration-200 hover:bg-white hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
+          className="hover:border-primary hover:text-primary focus:ring-accent-muted border-border bg-background-surface text-text-secondary hover:bg-background-surface h-8 w-8 border p-0 shadow-md transition-all duration-200 hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
           title={t("search.zoom_in")}
         >
           {t("search.zoom_in_symbol")}
@@ -57,12 +57,12 @@ export function MapControls(props: {
             disabled={isPrevDisabled || disabled}
             variant="secondary"
             size="xs"
-            className="hover:border-olive hover:text-olive focus:ring-olive/20 h-8 w-8 border border-gray-300 bg-white p-0 text-gray-700 shadow-md transition-all duration-200 hover:bg-white hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-300 disabled:hover:bg-white disabled:hover:text-gray-700 lg:h-10 lg:w-10"
+            className="hover:border-primary hover:text-primary focus:ring-accent-muted border-border bg-background-surface text-text-secondary hover:bg-background-surface disabled:hover:border-border disabled:hover:bg-background-surface disabled:hover:text-text-secondary h-8 w-8 border p-0 shadow-md transition-all duration-200 hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
             title={t("search.previous_properties")}
           >
             <Icon name="chevron-left" className="h-3 w-3 lg:h-3 lg:w-3" />
           </Button>
-          <div className="flex h-8 w-auto items-center justify-center rounded-lg border border-gray-300 bg-white px-2 text-xs font-medium text-gray-700 shadow-md lg:h-10 lg:px-2 lg:text-xs">
+          <div className="border-border bg-background-surface text-text-secondary flex h-8 w-auto items-center justify-center rounded-lg border px-2 text-xs font-medium shadow-md lg:h-10 lg:px-2 lg:text-xs">
             {t("search.page_of", { current: currentItem, total })}
           </div>
           <Button
@@ -71,7 +71,7 @@ export function MapControls(props: {
             disabled={isNextDisabled || disabled}
             variant="secondary"
             size="xs"
-            className="hover:border-olive hover:text-olive focus:ring-olive/20 h-8 w-8 border border-gray-300 bg-white p-0 text-gray-700 shadow-md transition-all duration-200 hover:bg-white hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-gray-300 disabled:hover:bg-white disabled:hover:text-gray-700 lg:h-10 lg:w-10"
+            className="hover:border-primary hover:text-primary focus:ring-accent-muted border-border bg-background-surface text-text-secondary hover:bg-background-surface disabled:hover:border-border disabled:hover:bg-background-surface disabled:hover:text-text-secondary h-8 w-8 border p-0 shadow-md transition-all duration-200 hover:shadow-lg focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 lg:h-10 lg:w-10"
             title={t("search.next_properties")}
           >
             <Icon name="chevron-right" className="h-3 w-3 lg:h-3 lg:w-3" />

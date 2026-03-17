@@ -44,6 +44,14 @@ export type MessagingConfig = {
     placeholder: string;
     buttonVariant: "primary" | "olive";
   };
+  // Search modal (connection request)
+  searchModal: {
+    title: string;
+    searchPlaceholder: string;
+    noResultsMessage: string;
+    sendButtonLabel: string;
+    searchingMessage: string;
+  };
   // Empty states
   emptyStates: {
     noSelection: {
@@ -65,22 +73,22 @@ export const CLIENT_MESSAGING_CONFIG: MessagingConfig = {
   mode: "client",
   messageStyles: {
     user: {
-      bgColor: "bg-olive text-white",
+      bgColor: "bg-primary text-white",
       textColor: "text-white",
-      iconBg: "bg-beige",
+      iconBg: "bg-accent-muted",
       iconName: "user",
       justify: "end",
     },
     agent: {
-      bgColor: "bg-neutral-100 text-black",
+      bgColor: "bg-primary-muted text-text-primary",
       textColor: "text-black",
-      iconBg: "bg-gold",
+      iconBg: "bg-accent",
       iconName: "user",
       justify: "start",
     },
   },
   typingIndicator: {
-    iconBg: "bg-gold",
+    iconBg: "bg-accent",
     iconName: "bot",
   },
   sidebar: {
@@ -96,6 +104,13 @@ export const CLIENT_MESSAGING_CONFIG: MessagingConfig = {
   input: {
     placeholder: "Type a message...",
     buttonVariant: "olive",
+  },
+  searchModal: {
+    title: "Search for an Agent",
+    searchPlaceholder: "Search by name or email...",
+    noResultsMessage: "No agents found matching",
+    sendButtonLabel: "Send Request",
+    searchingMessage: "Searching agents...",
   },
   emptyStates: {
     noSelection: {
@@ -117,22 +132,22 @@ export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
   mode: "agent",
   messageStyles: {
     user: {
-      bgColor: "bg-neutral-100 text-black",
+      bgColor: "bg-primary-muted text-text-primary",
       textColor: "text-black",
-      iconBg: "bg-beige",
+      iconBg: "bg-accent-muted",
       iconName: "user",
       justify: "start",
     },
     agent: {
-      bgColor: "bg-olive text-white",
+      bgColor: "bg-primary text-white",
       textColor: "text-white",
-      iconBg: "bg-gold",
+      iconBg: "bg-accent",
       iconName: "bot",
       justify: "end",
     },
   },
   typingIndicator: {
-    iconBg: "bg-gold",
+    iconBg: "bg-accent",
     iconName: "bot",
   },
   sidebar: {
@@ -148,6 +163,13 @@ export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
   input: {
     placeholder: "Message client...",
     buttonVariant: "olive",
+  },
+  searchModal: {
+    title: "Search for a Client",
+    searchPlaceholder: "Search by name or email...",
+    noResultsMessage: "No clients found matching",
+    sendButtonLabel: "Send Request",
+    searchingMessage: "Searching clients...",
   },
   emptyStates: {
     noSelection: {

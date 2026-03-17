@@ -53,16 +53,16 @@ function ErrorFallbackContent({
   onGoHome,
 }: ErrorFallbackContentProps) {
   return (
-    <div className="px-responsive-lg py-responsive-lg flex min-h-screen items-center justify-center bg-off-white">
-      <Card className="w-full max-w-2xl border-l-4 border-l-brown shadow-lg" padding="lg">
+    <div className="px-responsive-lg py-responsive-lg flex min-h-screen items-center justify-center bg-background-base">
+      <Card className="w-full max-w-2xl border-l-4 border-l-destructive shadow-lg" padding="lg">
         <div className="text-center">
           <div className="mb-responsive-md flex justify-center">
-            <div className="p-responsive-sm rounded-full bg-brown/10">
-              <Icon name="alert-triangle" className="mobile-icon-lg text-brown" />
+            <div className="p-responsive-sm rounded-full border-2 border-destructive bg-background-surface">
+              <Icon name="alert-triangle" className="mobile-icon-lg text-destructive" />
             </div>
           </div>
 
-          <Title size="xl" as="h1" className="mb-responsive-xs text-navy">
+          <Title size="xl" as="h1" className="mb-responsive-xs text-text-primary">
             Something went wrong
           </Title>
 
@@ -128,28 +128,28 @@ function ErrorDetailsSection({
         variant="ghost"
         size="sm"
         onClick={onToggleDetails}
-        className="mb-responsive-xs text-brown hover:text-brown/80"
+        className="mb-responsive-xs text-destructive hover:text-destructive-hover"
       >
         {showDetails ? "Hide" : "Show"} Error Details
       </Button>
       {showDetails && (
-        <Card className="mb-responsive-sm border-neutral-200 bg-neutral-50" padding="sm">
-          <div className="text-responsive-xs font-mono text-neutral-700">
+        <Card className="mb-responsive-sm border-border bg-background-surface" padding="sm">
+          <div className="text-responsive-xs font-mono text-text-secondary">
             <div className="mb-responsive-xs">
-              <strong className="text-navy">Error:</strong> {normalizedError.message}
+              <strong className="text-text-primary">Error:</strong> {normalizedError.message}
             </div>
             {normalizedError.stack && (
               <div className="mb-responsive-xs">
-                <strong className="text-navy">Stack:</strong>
-                <pre className="p-responsive-xs mt-1 overflow-x-auto whitespace-pre-wrap rounded border bg-white text-xs">
+                <strong className="text-text-primary">Stack:</strong>
+                <pre className="p-responsive-xs mt-1 overflow-x-auto whitespace-pre-wrap rounded border bg-background-surface text-xs">
                   {normalizedError.stack}
                 </pre>
               </div>
             )}
             {errorInfo?.componentStack && (
               <div>
-                <strong className="text-navy">Component Stack:</strong>
-                <pre className="p-responsive-xs mt-1 overflow-x-auto whitespace-pre-wrap rounded border bg-white text-xs">
+                <strong className="text-text-primary">Component Stack:</strong>
+                <pre className="p-responsive-xs mt-1 overflow-x-auto whitespace-pre-wrap rounded border bg-background-surface text-xs">
                   {errorInfo.componentStack}
                 </pre>
               </div>
@@ -172,11 +172,11 @@ function ErrorFeedbackSection({
   onFeedbackSubmit: () => void;
 }) {
   return (
-    <Card className="border-olive/20 bg-olive/10" padding="md">
+    <Card className="border-border bg-primary-muted" padding="md">
       <div className="space-responsive-xs flex items-start">
-        <Icon name="message-square" className="mobile-icon-sm mt-0.5 flex-shrink-0 text-olive" />
+        <Icon name="message-square" className="mobile-icon-sm mt-0.5 flex-shrink-0 text-primary" />
         <div className="flex-1">
-          <Title size="sm" as="h3" className="mb-responsive-xs text-navy">
+          <Title size="sm" as="h3" className="mb-responsive-xs text-text-primary">
             Help us improve
           </Title>
           {!feedbackSubmitted ? (
@@ -185,7 +185,7 @@ function ErrorFeedbackSection({
                 value={feedbackMessage}
                 onChange={(e) => onFeedbackMessageChange(e.target.value)}
                 placeholder="What were you trying to do when this error occurred?"
-                className="p-responsive-xs text-responsive-xs w-full resize-none rounded-lg border border-olive/30 bg-white font-sans focus:border-olive focus:ring-2 focus:ring-olive/20"
+                className="p-responsive-xs text-responsive-xs w-full resize-none rounded-lg border border-border bg-background-surface font-sans focus:border-primary focus:ring-2 focus:ring-primary-muted"
                 rows={3}
               />
               <Button
@@ -199,7 +199,7 @@ function ErrorFeedbackSection({
               </Button>
             </div>
           ) : (
-            <BodyText size="xs" className="text-olive">
+            <BodyText size="xs" className="text-primary">
               Thank you for your feedback! This helps us fix the issue.
             </BodyText>
           )}

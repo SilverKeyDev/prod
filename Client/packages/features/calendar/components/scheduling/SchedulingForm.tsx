@@ -51,7 +51,7 @@ export function SchedulingForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Event title"
-          className="mt-1 w-full rounded border border-neutral-300 px-3 py-2 text-sm"
+          className="border-border mt-1 w-full rounded border px-3 py-2 text-sm"
         />
       </div>
       <div>
@@ -61,7 +61,7 @@ export function SchedulingForm({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add details..."
           rows={2}
-          className="mt-1 w-full rounded border border-neutral-300 px-3 py-2 text-sm"
+          className="border-border mt-1 w-full rounded border px-3 py-2 text-sm"
         />
       </div>
       <div className="flex gap-2">

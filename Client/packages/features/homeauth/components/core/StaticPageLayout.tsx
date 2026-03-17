@@ -28,7 +28,7 @@ export function Section({ title, children, isLast = false }: SectionProps) {
       <Title
         as="h2"
         size="lg"
-        className="text-responsive-lg flex flex-col gap-2 font-semibold text-black"
+        className="text-responsive-lg text-text-primary flex flex-col gap-2 font-semibold"
       >
         {title}
       </Title>
@@ -70,7 +70,7 @@ export function EmailLink({ href, children }: { href: string; children: React.Re
       // eslint-disable-next-line silverkey/no-primitive-components -- intentional external link; <a> required for target="_blank"
       <a
         href={href}
-        className="text-foreground underline hover:text-neutral-700 active:text-neutral-600 active:text-neutral-700"
+        className="text-foreground hover:text-text-secondary active:text-text-secondary underline"
         rel="noopener noreferrer"
         target="_blank"
       >
@@ -81,7 +81,7 @@ export function EmailLink({ href, children }: { href: string; children: React.Re
   return (
     <Link
       to={href}
-      className="text-foreground underline hover:text-neutral-700 active:text-neutral-600 active:text-neutral-700"
+      className="text-foreground hover:text-text-secondary active:text-text-secondary underline"
     >
       {children}
     </Link>
@@ -97,7 +97,7 @@ export default function StaticPageLayout({
   centered = false,
 }: StaticPageLayoutProps) {
   return (
-    <Box className="bg-off-white min-h-0 flex-1">
+    <Box className="bg-background-base min-h-0 flex-1">
       <Box className="px-responsive-sm py-responsive-lg w-[85%] max-w-4xl self-center">
         <Box className="mb-4">
           {centered ? (
@@ -109,12 +109,12 @@ export default function StaticPageLayout({
                 <Title
                   as="h1"
                   size="xl"
-                  className="text-responsive-xl mt-8 flex flex-col gap-1 text-center font-bold text-black sm:mt-0"
+                  className="text-responsive-xl text-text-primary mt-8 flex flex-col gap-1 text-center font-bold sm:mt-0"
                 >
                   {title}
                 </Title>
                 {subtitle && (
-                  <BodyText as="p" size="sm" className="text-gray-600">
+                  <BodyText as="p" size="sm" className="text-text-secondary">
                     {subtitle}
                   </BodyText>
                 )}
@@ -129,12 +129,12 @@ export default function StaticPageLayout({
                 <Title
                   as="h1"
                   size="xl"
-                  className="text-responsive-xl mt-8 flex flex-col gap-1 text-center font-bold text-black sm:mt-0"
+                  className="text-responsive-xl text-text-primary mt-8 flex flex-col gap-1 text-center font-bold sm:mt-0"
                 >
                   {title}
                 </Title>
                 {subtitle && (
-                  <BodyText as="p" size="sm" className="text-gray-600">
+                  <BodyText as="p" size="sm" className="text-text-secondary">
                     {subtitle}
                   </BodyText>
                 )}
@@ -143,8 +143,8 @@ export default function StaticPageLayout({
           )}
         </Box>
 
-        <Box className="space-responsive-md rounded-xl bg-white shadow-sm">
-          <Box className="prose text-responsive-sm max-w-none text-gray-700">{children}</Box>
+        <Box className="space-responsive-md bg-background-surface rounded-xl shadow-sm">
+          <Box className="prose text-responsive-sm text-text-secondary max-w-none">{children}</Box>
         </Box>
       </Box>
     </Box>

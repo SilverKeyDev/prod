@@ -47,11 +47,11 @@ export default function ParticipantsList({
           <Box
             key={participant.id}
             // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-            className={`flex flex-row items-start gap-3 ${compact ? "p-2" : "p-3"} rounded-lg border border-gray-200 hover:bg-gray-50 active:bg-gray-100 active:bg-gray-50`}
+            className={`flex flex-row items-start gap-3 ${compact ? "p-2" : "p-3"} border-border hover:bg-background-base active:bg-primary-muted active:bg-background-base rounded-lg border`}
           >
             {/* Avatar */}
-            <Box className="flex h-10 w-10 flex-shrink-0 flex-row items-center justify-center rounded-full bg-gray-200">
-              <Icon name="user" className="h-5 w-5 text-gray-600" />
+            <Box className="bg-primary-muted flex h-10 w-10 flex-shrink-0 flex-row items-center justify-center rounded-full">
+              <Icon name="user" className="text-text-secondary h-5 w-5" />
             </Box>
 
             {/* Participant Info */}
@@ -62,7 +62,7 @@ export default function ParticipantsList({
                     <BodyText
                       as="p"
                       // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-                      className={`font-medium ${compact ? "text-sm" : "text-base"} truncate text-gray-900`}
+                      className={`font-medium ${compact ? "text-sm" : "text-base"} text-text-primary truncate`}
                     >
                       {participant.name}
                     </BodyText>
@@ -70,16 +70,16 @@ export default function ParticipantsList({
                       <BodyText
                         as="span"
                         size="xs"
-                        className="flex-shrink-0 rounded bg-gray-100 px-1.5 py-0.5 font-medium text-gray-600"
+                        className="bg-primary-muted text-text-secondary flex-shrink-0 rounded px-1.5 py-0.5 font-medium"
                       >
                         #{participant.signing_order}
                       </BodyText>
                     )}
                   </Box>
-                  <BodyText as="p" size="xs" className="truncate text-gray-500">
+                  <BodyText as="p" size="xs" className="text-text-secondary truncate">
                     {participant.email}
                   </BodyText>
-                  <BodyText as="p" size="xs" className="mt-0.5 text-gray-600">
+                  <BodyText as="p" size="xs" className="text-text-secondary mt-0.5">
                     {formatParticipantRole(participant.role)}
                   </BodyText>
                 </Box>
@@ -99,7 +99,7 @@ export default function ParticipantsList({
               {!compact && (
                 <Box className="mt-2 flex flex-col gap-1">
                   {participant.signed_at && (
-                    <BodyText as="p" size="xs" className="text-gray-500">
+                    <BodyText as="p" size="xs" className="text-text-secondary">
                       Signed: {formatAgreementDateTime(participant.signed_at)}
                     </BodyText>
                   )}

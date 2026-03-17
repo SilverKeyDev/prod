@@ -35,8 +35,8 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
       onClose={onClose}
       headerContent={
         <div className="flex items-center gap-2">
-          <Icon name="home" className="h-5 w-5 flex-shrink-0 text-gray-900" />
-          <Title as="h3" size="lg" className="truncate font-medium text-gray-900 sm:text-lg">
+          <Icon name="home" className="text-text-primary h-5 w-5 flex-shrink-0" />
+          <Title as="h3" size="lg" className="text-text-primary truncate font-medium sm:text-lg">
             Select Home to Share
           </Title>
         </div>
@@ -50,7 +50,7 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
           </div>
         ) : savedHomes.length === 0 ? (
           <div className="py-8 text-center">
-            <BodyText as="p" size="sm" className="text-gray-500">
+            <BodyText as="p" size="sm" className="text-text-secondary">
               No saved homes found. Save homes to share them in messages.
             </BodyText>
           </div>
@@ -65,34 +65,34 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
                 onClick={() => setSelectedHomeId(home.home_id)}
                 className={`h-auto min-h-0 w-full justify-start rounded-lg border p-3 text-left ${
                   selectedHomeId === home.home_id
-                    ? "border-olive bg-olive/10"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    ? "border-primary bg-primary-muted"
+                    : "border-border hover:border-border hover:bg-primary-muted"
                 }`}
               >
                 <div className="flex w-full items-start gap-3">
-                  <div className="bg-beige/20 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
-                    <Icon name="home" className="text-olive h-5 w-5" />
+                  <div className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+                    <Icon name="home" className="text-primary h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <BodyText as="p" size="sm" className="font-medium text-gray-900">
+                    <BodyText as="p" size="sm" className="text-text-primary font-medium">
                       {home.address || `Property ${home.home_id}`}
                     </BodyText>
                     {home.price && (
-                      <BodyText as="p" size="xs" className="mt-1 text-gray-500">
+                      <BodyText as="p" size="xs" className="text-text-secondary mt-1">
                         {typeof home.price === "number"
                           ? `$${home.price.toLocaleString()}`
                           : home.price}
                       </BodyText>
                     )}
                     {home.bedrooms && home.bathrooms && (
-                      <BodyText as="p" size="xs" className="mt-1 text-gray-500">
+                      <BodyText as="p" size="xs" className="text-text-secondary mt-1">
                         {home.bedrooms} bed • {home.bathrooms} bath
                         {home.sqft ? ` • ${home.sqft.toLocaleString()} sqft` : ""}
                       </BodyText>
                     )}
                   </div>
                   {selectedHomeId === home.home_id && (
-                    <div className="bg-olive h-2 w-2 flex-shrink-0 self-center rounded-full" />
+                    <div className="bg-primary h-2 w-2 flex-shrink-0 self-center rounded-full" />
                   )}
                 </div>
               </Button>

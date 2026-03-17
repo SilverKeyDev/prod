@@ -325,7 +325,7 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
 
   if (isLoading) {
     return (
-      <div className="bg-off-white flex min-h-screen items-center justify-center">
+      <div className="bg-background-base flex min-h-screen items-center justify-center">
         <Loading message="Loading your preferences..." />
       </div>
     );
@@ -335,11 +335,13 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
     // Render content for each section based on sectionId
     switch (sectionId) {
       case "demographics":
+        // Agent status is immutable; choice only shown during onboarding
         return (
           <DemographicsSection
             formData={formData}
             isEditMode={isEditMode}
             updateFormData={updateFormData}
+            showAgentChoice={false}
           />
         );
       case "financial":
@@ -392,7 +394,7 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
   };
 
   return (
-    <div className="bg-off-white min-h-screen">
+    <div className="bg-background-base min-h-screen">
       <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
         <div className="flex flex-row gap-6 lg:gap-8">
           {/* Sidebar - Always visible */}

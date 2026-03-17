@@ -6,7 +6,7 @@ export const SHARED_TRANSLATIONS: Record<string, string> = {
   "common.error": "An error occurred",
   "common.delete": "Delete",
   "common.view": "View",
-  "common.unlock": "Unlock",
+  "common.unlock": "View",
   "common.skip": "Skip",
   "common.edit": "Edit",
   "common.saving": "Saving...",

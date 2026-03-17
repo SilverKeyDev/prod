@@ -148,7 +148,9 @@ export default function VerificationCodeInput({
 
   return (
     <div className="w-full">
-      {label && <Label className="mb-2 block text-sm font-medium text-gray-700">{label}</Label>}
+      {label && (
+        <Label className="text-text-secondary mb-2 block text-sm font-medium">{label}</Label>
+      )}
 
       <div className="gap-responsive-sm sm:gap-responsive-md flex justify-between">
         {Array.from({ length }).map((_, index) => (
@@ -168,11 +170,11 @@ export default function VerificationCodeInput({
             disabled={disabled}
             className={[
               "h-14 w-10 border-0 border-b-2 bg-transparent text-center tracking-widest sm:h-16 sm:w-12 md:h-20 md:w-14",
-              "focus:border-olive border-gray-400 focus:outline-none focus:ring-0",
+              "focus:border-primary border-border focus:outline-none focus:ring-0",
               "pb-0 text-[1.40625rem] font-bold leading-none sm:text-[1.6875rem] md:text-[2.25rem]",
               "rounded-none", // keep the underline look
               sharedInputTextStyles,
-              disabled ? "cursor-not-allowed border-gray-300 text-gray-400" : "text-black",
+              disabled ? "border-border text-text-disabled cursor-not-allowed" : "text-black",
             ]
               .filter(Boolean)
               .join(" ")}

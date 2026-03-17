@@ -20,7 +20,7 @@ export function DemographicsLookingForAgentCell({
 }: DemographicsLookingForAgentCellProps) {
   if (formData.has_buyers_agent !== "no") {
     return (
-      <BodyText as="div" size="sm" className="mobile-input bg-gray-50 opacity-0">
+      <BodyText as="div" size="sm" className="mobile-input bg-background-base opacity-0">
         &nbsp;
       </BodyText>
     );
@@ -33,7 +33,7 @@ export function DemographicsLookingForAgentCell({
     <div className="flex h-full items-center">
       <Label
         htmlFor="looking-buyers-agent"
-        className="flex cursor-pointer items-center gap-3 text-sm font-medium text-black"
+        className="text-text-primary flex cursor-pointer items-center gap-3 text-sm font-medium"
       >
         {isEditMode ? (
           <>
@@ -66,12 +66,12 @@ export function DemographicsLookingForAgentCell({
           <div
             className={`flex h-5 w-5 items-center justify-center rounded border ${
               formData.looking_for_buyers_agent
-                ? "border-olive bg-olive"
-                : "border-gray-300 bg-gray-50"
+                ? "border-primary bg-primary"
+                : "border-border bg-background-base"
             }`}
           >
             {formData.looking_for_buyers_agent && (
-              <svg className="h-4 w-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="text-text-secondary h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

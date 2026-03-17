@@ -45,17 +45,17 @@ export function CalendarDropdown({
         className="h-8 w-8 p-0"
         label="Calendar settings"
       >
-        <Icon name="chevron-down" className="h-4 w-4 text-gray-500" />
+        <Icon name="chevron-down" className="text-text-secondary h-4 w-4" />
       </Button>
       {isDropdownOpen && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border border-gray-300 bg-white shadow-lg">
+        <div className="border-border bg-background-surface absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border shadow-lg">
           <div className="p-2">
-            <div className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <div className="text-text-secondary mb-2 px-2 text-xs font-semibold uppercase tracking-wide">
               Calendars
             </div>
             <div className="space-y-1">
               {calendars.length === 0 ? (
-                <div className="px-2 py-4 text-center text-sm text-gray-500">
+                <div className="text-text-secondary px-2 py-4 text-center text-sm">
                   No calendars available
                 </div>
               ) : (
@@ -75,12 +75,12 @@ export function CalendarDropdown({
                     return (
                       <div
                         key={calendar.id}
-                        className={`flex items-center justify-between gap-2 rounded px-2 py-2 ${isDisabled ? "cursor-not-allowed opacity-60" : "hover:bg-gray-50"}`}
+                        className={`flex items-center justify-between gap-2 rounded px-2 py-2 ${isDisabled ? "cursor-not-allowed opacity-60" : "hover:bg-primary-muted"}`}
                       >
                         <BodyText
                           as="span"
                           size="sm"
-                          className={`flex-1 truncate ${isSilverKey ? "font-medium text-amber-600" : "text-gray-700"}`}
+                          className={`flex-1 truncate ${isSilverKey ? "font-medium text-amber-600" : "text-text-primary"}`}
                         >
                           {calendar.summary}
                           {isSilverKey && (

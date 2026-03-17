@@ -6,7 +6,6 @@ import {
 } from "packages/features/checklists/types/checklists";
 
 import CloseLayout from "@/features/checklists/components/CloseLayout";
-import HomeConcierge from "@/features/checklists/components/HomeConcierge";
 
 type ClosePageHeaderData = {
   title: string;
@@ -29,8 +28,6 @@ export default function ClosingMovingIn({ setClosePageHeaderData }: ClosingMovin
       apiEndpoint="/api/v1/tasks?type=closing"
       showLoadingScreen={true}
       setClosePageHeaderData={setClosePageHeaderData}
-    >
-      <HomeConcierge />
-    </CloseLayout>
+    />
   );
 }

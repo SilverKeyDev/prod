@@ -87,7 +87,7 @@ export function MessagingMessageRowNative({
       {dateDividerText ? (
         <View style={styles.dateDividerWrap}>
           <View style={styles.dateDivider}>
-            <Text className="text-xs font-medium text-gray-500">{dateDividerText}</Text>
+            <Text className="text-text-secondary text-xs font-medium">{dateDividerText}</Text>
           </View>
         </View>
       ) : null}
@@ -97,13 +97,13 @@ export function MessagingMessageRowNative({
         >
           {showEventRequestCard && eventRequestPayload && (
             <Box className="mb-2">
-              <Box className="rounded-lg border border-gray-200 bg-white p-3">
-                <Text className="font-medium text-gray-900">{eventRequestPayload.title}</Text>
-                <Text className="mt-1 text-sm text-gray-600">
+              <Box className="border-border bg-background-surface rounded-lg border p-3">
+                <Text className="text-text-primary font-medium">{eventRequestPayload.title}</Text>
+                <Text className="text-text-secondary mt-1 text-sm">
                   {formatEventDateTime(eventRequestPayload.start, eventRequestPayload.end)}
                 </Text>
                 {eventRequestPayload.description ? (
-                  <Text className="mt-1 text-sm text-gray-700" numberOfLines={2}>
+                  <Text className="text-text-secondary mt-1 text-sm" numberOfLines={2}>
                     {eventRequestPayload.description}
                   </Text>
                 ) : null}
@@ -112,24 +112,24 @@ export function MessagingMessageRowNative({
                     <Pressable
                       onPress={() => onAcceptEventRequest?.(message.id, eventRequestPayload)}
                       disabled={isAccepting}
-                      className="bg-brand-accent flex-1 items-center rounded-lg py-2"
+                      className="bg-primary flex-1 items-center rounded-lg py-2"
                     >
                       <Text className="text-sm font-semibold text-white">Accept</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => onCancelEventRequest?.(message.id)}
                       disabled={isAccepting}
-                      className="flex-1 items-center rounded-lg border border-gray-200 bg-gray-50 py-2"
+                      className="border-border bg-background-base flex-1 items-center rounded-lg border py-2"
                     >
-                      <Text className="text-sm font-semibold text-gray-900">Decline</Text>
+                      <Text className="text-text-primary text-sm font-semibold">Decline</Text>
                     </Pressable>
                   </Box>
                 )}
                 {eventRequestStatus === "accepted" && (
-                  <Text className="mt-2 text-xs font-medium text-green-600">Accepted</Text>
+                  <Text className="text-accent mt-2 text-xs font-medium">Accepted</Text>
                 )}
                 {eventRequestStatus === "cancelled" && (
-                  <Text className="mt-2 text-xs font-medium text-gray-500">Cancelled</Text>
+                  <Text className="text-text-secondary mt-2 text-xs font-medium">Cancelled</Text>
                 )}
               </Box>
             </Box>
@@ -143,9 +143,9 @@ export function MessagingMessageRowNative({
                 message.content?.trim() ??
                 message.shared_home_id;
               return (
-                <Box className="mb-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                  <Text className="text-xs font-medium text-gray-500">Shared home</Text>
-                  <Text className="mt-1 text-sm text-gray-900" numberOfLines={2}>
+                <Box className="border-border bg-background-base mb-2 rounded-lg border p-3">
+                  <Text className="text-text-secondary text-xs font-medium">Shared home</Text>
+                  <Text className="text-text-primary mt-1 text-sm" numberOfLines={2}>
                     {address}
                   </Text>
                 </Box>
@@ -156,18 +156,18 @@ export function MessagingMessageRowNative({
               const document = documents.find((d) => d.id === message.shared_document_id);
               if (!document) {
                 return (
-                  <Box className="mb-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                    <Text className="text-xs font-medium text-gray-500">Shared document</Text>
-                    <Text className="mt-1 text-sm text-gray-500" numberOfLines={1}>
+                  <Box className="border-border bg-background-base mb-2 rounded-lg border p-3">
+                    <Text className="text-text-secondary text-xs font-medium">Shared document</Text>
+                    <Text className="text-text-secondary mt-1 text-sm" numberOfLines={1}>
                       Document not found or has been deleted.
                     </Text>
                   </Box>
                 );
               }
               return (
-                <Box className="mb-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                  <Text className="text-xs font-medium text-gray-500">Shared document</Text>
-                  <Text className="mt-1 text-sm text-gray-900" numberOfLines={2}>
+                <Box className="border-border bg-background-base mb-2 rounded-lg border p-3">
+                  <Text className="text-text-secondary text-xs font-medium">Shared document</Text>
+                  <Text className="text-text-primary mt-1 text-sm" numberOfLines={2}>
                     {document.address || document.filename || "Document"}
                   </Text>
                 </Box>
@@ -177,13 +177,15 @@ export function MessagingMessageRowNative({
           !message.shared_document_id &&
           !showEventRequestCard &&
           message.content.trim() ? (
-            <Text className={isCurrentUserMessage ? "text-white" : "text-gray-900"} selectable>
+            <Text className={isCurrentUserMessage ? "text-white" : "text-text-primary"} selectable>
               {message.content}
             </Text>
           ) : null}
           <Text
             className={
-              isCurrentUserMessage ? "mt-1 text-xs text-white/80" : "mt-1 text-xs text-gray-500"
+              isCurrentUserMessage
+                ? "mt-1 text-xs text-white/80"
+                : "text-text-secondary mt-1 text-xs"
             }
           >
             {formatTime(message.timestamp)}
@@ -199,7 +201,7 @@ export function MessagingMessageRowNative({
           )}
           <Text
             className={`text-xs font-medium ${
-              message.status === "failed" ? "text-red-500" : "text-gray-500"
+              message.status === "failed" ? "text-red-500" : "text-text-secondary"
             }`}
           >
             {message.status === "sending"

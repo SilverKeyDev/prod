@@ -23,6 +23,12 @@ type DemographicsSectionProps = {
   wrapInCard?: boolean;
   /** When true, hide the profile picture upload block (e.g. on onboarding page). Default false. */
   hideProfilePictureWhenOnboarding?: boolean;
+  /**
+   * When false, hide the agent/buyer choice. Agent status is immutable once set during onboarding;
+   * the choice is only shown during onboarding, not in settings or profile.
+   * Default true for onboarding flows.
+   */
+  showAgentChoice?: boolean;
 };
 
 const HAS_BUYERS_AGENT_OPTIONS = [
@@ -44,6 +50,7 @@ export default function DemographicsSection({
   updateFormData,
   wrapInCard = true,
   hideProfilePictureWhenOnboarding = false,
+  showAgentChoice = true,
 }: DemographicsSectionProps) {
   const content = (
     <>
@@ -71,31 +78,37 @@ export default function DemographicsSection({
             className="mt-2"
           />
         ) : (
-          <div className="mobile-input mt-2 bg-gray-50">{formData.name ?? "Not specified"}</div>
+          <div className="mobile-input bg-background-base mt-2">
+            {formData.name ?? "Not specified"}
+          </div>
         )}
       </div>
 
-      {/* Are you a real estate agent? + Age */}
+      {/* Are you a real estate agent? + Age - agent choice only shown during onboarding */}
       <AlignedRow
         breakIntoRows="md"
         gap="lg"
         justify="start"
         items={[
-          {
-            title: <Label>{FIELD_LABELS.IS_AGENT}</Label>,
-            content: isEditMode ? (
-              <Dropdown
-                value={formData.is_agent ?? ""}
-                onChange={(value) => updateFormData("is_agent", value)}
-                options={IS_AGENT_OPTIONS}
-                placeholder="Select..."
-              />
-            ) : (
-              <div className="mobile-input bg-gray-50">
-                {getOptionLabel(IS_AGENT_OPTIONS, formData.is_agent)}
-              </div>
-            ),
-          },
+          ...(showAgentChoice
+            ? [
+                {
+                  title: <Label>{FIELD_LABELS.IS_AGENT}</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.is_agent ?? ""}
+                      onChange={(value) => updateFormData("is_agent", value)}
+                      options={IS_AGENT_OPTIONS}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <div className="mobile-input bg-background-base">
+                      {getOptionLabel(IS_AGENT_OPTIONS, formData.is_agent)}
+                    </div>
+                  ),
+                },
+              ]
+            : []),
           {
             title: <Label>{FIELD_LABELS.AGE}</Label>,
             content: isEditMode ? (
@@ -110,7 +123,9 @@ export default function DemographicsSection({
                 max={100}
               />
             ) : (
-              <div className="mobile-input bg-gray-50">{formData.age ?? "Not specified"}</div>
+              <div className="mobile-input bg-background-base">
+                {formData.age ?? "Not specified"}
+              </div>
             ),
           },
         ]}
@@ -146,7 +161,7 @@ export default function DemographicsSection({
                   placeholder="Select..."
                 />
               ) : (
-                <div className="mobile-input bg-gray-50">
+                <div className="mobile-input bg-background-base">
                   {getOptionLabel(HAS_BUYERS_AGENT_OPTIONS, formData.has_buyers_agent)}
                 </div>
               ),

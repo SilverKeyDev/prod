@@ -95,7 +95,6 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     onShareDocument,
     onToggleHomeSelection,
     onUnlockHome: _onUnlockHome,
-    onOpenNegotiation,
     onDocumentDelete,
     onAgreementClick,
     onAgreementSend,
@@ -221,12 +220,12 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         return (
           <Box
             key={`doc-${doc.id}`}
-            className="mb-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+            className="border-border bg-background-surface mb-3 rounded-lg border p-3 shadow-sm"
           >
-            <Text className="text-sm font-semibold text-gray-900" numberOfLines={2}>
+            <Text className="text-text-primary text-sm font-semibold" numberOfLines={2}>
               {doc.address || doc.filename}
             </Text>
-            <Text className="mt-1 text-xs text-gray-600">
+            <Text className="text-text-secondary mt-1 text-xs">
               {formatDate(doc.created_at)} · {doc.document_type ?? "Document"}
             </Text>
             <Box className="mt-3 flex flex-row flex-wrap gap-2">
@@ -285,17 +284,17 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
       return (
         <Box
           key={`agreement-${agreement.id}`}
-          className="mb-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+          className="border-border bg-background-surface mb-3 rounded-lg border p-3 shadow-sm"
         >
-          <Text className="text-sm font-semibold text-gray-900" numberOfLines={2}>
+          <Text className="text-text-primary text-sm font-semibold" numberOfLines={2}>
             {agreement.title}
           </Text>
           {agreement.property_address && (
-            <Text className="mt-1 text-xs text-gray-600" numberOfLines={1}>
+            <Text className="text-text-secondary mt-1 text-xs" numberOfLines={1}>
               {agreement.property_address}
             </Text>
           )}
-          <Text className="mt-1 text-xs font-medium text-gray-700">
+          <Text className="text-text-secondary mt-1 text-xs font-medium">
             {t("saved.agreement_status", {
               defaultValue: "Status: {{status}}",
               status: agreement.status,
@@ -385,7 +384,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
       />
 
       <ScrollView
-        className="flex-1 bg-gray-50"
+        className="bg-background-base flex-1"
         refreshControl={
           refresh ? (
             <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
@@ -394,10 +393,10 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       >
         {/* Toolbar: checklists-style tabs + client + event filter */}
-        <Box className="border-beige/40 mb-3 rounded-lg border border-b bg-white">
+        <Box className="border-border bg-background-surface mb-3 rounded-lg border border-b">
           <Box className="px-2 pt-2">
             <Box className="items-center">
-              <BodyText size="sm" className="text-navy/55" as="p">
+              <BodyText size="sm" className="text-text-primary" as="p">
                 {summaryCountText}
               </BodyText>
             </Box>
@@ -440,13 +439,13 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
                   >
                     <Box className="flex-row items-center justify-center gap-1.5">
                       <tab.icon size={14} color={color("navy")} />
-                      <BodyText as="span" size="sm" className="text-navy/70" numberOfLines={1}>
+                      <BodyText as="span" size="sm" className="text-text-primary" numberOfLines={1}>
                         {tab.label}
                       </BodyText>
                     </Box>
                     {isActive && (
                       <Box
-                        className={`bg-gold absolute bottom-0 h-0.5 ${
+                        className={`bg-accent absolute bottom-0 h-0.5 ${
                           isFirst
                             ? "left-2 right-2 rounded-l-full"
                             : isLast
@@ -456,7 +455,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
                       />
                     )}
                   </Button>
-                  {index < 1 ? <Box className="h-4 w-px flex-shrink-0 bg-gray-300" /> : null}
+                  {index < 1 ? <Box className="bg-border h-4 w-px flex-shrink-0" /> : null}
                 </Box>
               );
             })}
@@ -532,7 +531,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
           <>
             {loading && filteredHomes.length === 0 ? (
               <Box className="py-8">
-                <Text className="text-center text-sm text-gray-600">
+                <Text className="text-text-secondary text-center text-sm">
                   {t("saved.loading_homes", {
                     defaultValue: "Loading saved homes…",
                   })}
@@ -542,7 +541,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
 
             {showEmptyHomes ? (
               <Box className="py-8">
-                <Text className="text-center text-sm text-gray-600">
+                <Text className="text-text-secondary text-center text-sm">
                   {t("saved.no_homes_yet", {
                     defaultValue: "No saved homes yet. Save homes from Search to see them here.",
                   })}
@@ -557,7 +556,6 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
                 isSelected={selectedHomesForComparison.has(home.home_id)}
                 onToggleCompare={onToggleHomeSelection}
                 onUnlock={handleUnlockHome}
-                onNegotiate={onOpenNegotiation}
               />
             ))}
           </>
@@ -568,7 +566,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
           <>
             {documentsLoadingCombined || agreementsLoadingCombined ? (
               <Box className="py-8">
-                <Text className="text-center text-sm text-gray-600">
+                <Text className="text-text-secondary text-center text-sm">
                   {t("saved.loading_documents", {
                     defaultValue: "Loading documents…",
                   })}
@@ -578,7 +576,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
 
             {showEmptyDocuments ? (
               <Box className="py-8">
-                <Text className="text-center text-sm text-gray-600">
+                <Text className="text-text-secondary text-center text-sm">
                   {t("saved.no_documents_yet", {
                     defaultValue:
                       "No documents or agreements yet. Upload documents or create agreements to see them here.",
@@ -593,13 +591,13 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
 
         {/* Compare selection bar */}
         {isHomesView && selectedHomesData.length >= 1 && (
-          <Box className="mt-4 rounded-lg border border-gray-200 bg-white p-3">
-            <Text className="text-sm font-medium text-gray-900">
+          <Box className="border-border bg-background-surface mt-4 rounded-lg border p-3">
+            <Text className="text-text-primary text-sm font-medium">
               {t("saved.compare_bar_title", {
                 defaultValue: "Compare selected homes",
               })}
             </Text>
-            <Text className="mt-1 text-xs text-gray-600">
+            <Text className="text-text-secondary mt-1 text-xs">
               {t("saved.compare_bar_subtitle", {
                 defaultValue: "{{count}} selected",
                 count: selectedHomesData.length,
@@ -630,7 +628,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         })}
       >
         {selectedHomesData.length === 0 ? (
-          <Text className="text-sm text-gray-600">
+          <Text className="text-text-secondary text-sm">
             {t("saved.compare_modal_empty", {
               defaultValue: "Select at least two homes to compare.",
             })}
@@ -640,12 +638,12 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
             {selectedHomesData.map((home) => (
               <Box
                 key={home.home_id}
-                className="mb-3 rounded-md border border-gray-200 bg-white p-3"
+                className="border-border bg-background-surface mb-3 rounded-md border p-3"
               >
-                <Text className="text-sm font-semibold text-gray-900" numberOfLines={2}>
+                <Text className="text-text-primary text-sm font-semibold" numberOfLines={2}>
                   {home.address ?? home.description ?? ""}
                 </Text>
-                <Text className="mt-1 text-xs text-gray-600">
+                <Text className="text-text-secondary mt-1 text-xs">
                   {formatPrice(home.price as string | number | null | undefined)}
                 </Text>
                 <Button
@@ -672,13 +670,13 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
       >
         {selectedHomeForNegotiation ? (
           <>
-            <Text className="text-sm font-semibold text-gray-900" numberOfLines={2}>
+            <Text className="text-text-primary text-sm font-semibold" numberOfLines={2}>
               {selectedHomeForNegotiation.address ?? selectedHomeForNegotiation.description ?? ""}
             </Text>
-            <Text className="mt-1 text-xs text-gray-600">
+            <Text className="text-text-secondary mt-1 text-xs">
               {formatPrice(selectedHomeForNegotiation.price as string | number | null | undefined)}
             </Text>
-            <Text className="mt-3 text-sm text-gray-700">
+            <Text className="text-text-secondary mt-3 text-sm">
               {t("saved.negotiate_modal_body", {
                 defaultValue:
                   "Start the conversation with your agent from Messaging to discuss this home.",
@@ -686,7 +684,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
             </Text>
           </>
         ) : (
-          <Text className="text-sm text-gray-600">
+          <Text className="text-text-secondary text-sm">
             {t("saved.negotiate_modal_empty", {
               defaultValue: "Select a home to start negotiation.",
             })}
@@ -710,13 +708,13 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
           })}
         >
           {isLoadingClients ? (
-            <Text className="text-sm text-gray-600">
+            <Text className="text-text-secondary text-sm">
               {t("client_selector.loading_clients", {
                 defaultValue: "Loading clients…",
               })}
             </Text>
           ) : clients.length === 0 ? (
-            <Text className="text-sm text-gray-600">
+            <Text className="text-text-secondary text-sm">
               {t("client_selector.no_clients_found", {
                 defaultValue: "No clients found.",
               })}

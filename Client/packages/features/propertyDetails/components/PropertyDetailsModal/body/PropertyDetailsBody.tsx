@@ -110,7 +110,7 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
       {isLoading && (
         <Box className="mt-4 items-center px-4">
           <Loading />
-          <Text className="mt-2 text-xs text-gray-600">
+          <Text className="text-text-secondary mt-2 text-xs">
             {t("property_details.loading", {
               defaultValue: "Fetching additional details…",
             })}

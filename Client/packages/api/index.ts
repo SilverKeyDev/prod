@@ -5,6 +5,13 @@ export { adminApi } from "./admin";
 export { dashboardApi } from "./dashboard";
 export { mapsApi } from "./maps";
 export { offerApi } from "./offer";
+export {
+  attachSkyslopeForms,
+  getChecklistItemDocuments,
+  getSkyslopeFormsForStep,
+  linkDocumentToChecklistItem,
+  type SkyslopeForm,
+} from "./skyslope";
 export { agentApi } from "packages/features/agent/api/agent";
 export { googleCalendarApi } from "packages/features/calendar/api";
 export { reportApi } from "packages/features/documents/api/report";

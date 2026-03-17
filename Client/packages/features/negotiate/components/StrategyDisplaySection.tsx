@@ -71,7 +71,7 @@ export function StrategyDisplaySection({
           <SectionBox key={key}>
             {/* Add share button to the first card */}
             {index === 0 && (
-              <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-4">
+              <div className="border-border mb-4 flex items-center justify-between border-b pb-4">
                 <div className="flex items-center gap-3">
                   <MiniLogo size="sm" />
                 </div>
@@ -88,7 +88,7 @@ export function StrategyDisplaySection({
                 </div>
               </div>
             )}
-            <div className="text-navy/80">
+            <div className="text-text-secondary">
               {typeof formattedValue === "string" ? (
                 <BodyText as="p" size="sm" className="leading-relaxed">
                   {formattedValue}

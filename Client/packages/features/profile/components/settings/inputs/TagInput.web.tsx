@@ -81,7 +81,7 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
           {value.map((tag, index) => (
             <div
               key={index}
-              className="bg-gold text-off-white inline-flex items-center rounded-full px-3 py-1 text-sm"
+              className="bg-accent text-off-white inline-flex items-center rounded-full px-3 py-1 text-sm"
             >
               {tag}
               {isEditMode && (

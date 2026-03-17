@@ -9,11 +9,9 @@ type WhiteLogoProps = {
 
 const WhiteLogo: React.FC<WhiteLogoProps> = ({ size, className }) => {
   return (
-    <MiniLogo
-      size={size}
-      className={className}
-      logoClassName="text-white fill-white stroke-white"
-    />
+    <div className={className} style={{ filter: "brightness(0) invert(1)" }}>
+      <MiniLogo size={size} />
+    </div>
   );
 };
 

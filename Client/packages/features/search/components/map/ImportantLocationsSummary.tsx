@@ -22,16 +22,16 @@ export default function ImportantLocationsSummary(): React.ReactElement | null {
   const remaining = locations.length - MAX_VISIBLE;
   return (
     <Box className="flex min-w-0 flex-1 flex-row items-center gap-1.5 overflow-x-auto">
-      <Icon name="map-pin" className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+      <Icon name="map-pin" className="text-text-secondary h-4 w-4 shrink-0" aria-hidden />
       <Box className="flex flex-row flex-wrap items-center gap-x-2 gap-y-1">
         {visible.map((loc, i) => (
           <BodyText
             key={i}
             as="span"
             size="xs"
-            className="inline-flex shrink-0 flex-row items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5"
+            className="bg-primary-muted inline-flex shrink-0 flex-row items-center gap-1 rounded-md px-2 py-0.5"
           >
-            <BodyText as="span" size="xs" className="truncate text-gray-700">
+            <BodyText as="span" size="xs" className="text-text-secondary truncate">
               {truncateAddress(loc.address)}
             </BodyText>
             {loc.commute_tolerance != null && (

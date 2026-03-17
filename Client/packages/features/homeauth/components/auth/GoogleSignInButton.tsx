@@ -82,7 +82,7 @@ export default function GoogleSignInButton({
       onPress={handlePress}
       fullWidth
       // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-      className={`border-gray-300 bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100 active:opacity-90 ${className}`}
+      className={`border-border bg-background-surface text-text-secondary hover:bg-primary-muted active:bg-primary-muted active:opacity-90 ${className}`}
     >
       <BodyText as="span" className="whitespace-nowrap">
         {text}

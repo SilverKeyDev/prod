@@ -1,4 +1,5 @@
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
 import { UnderlineTabs } from "@/components/ui";
@@ -17,12 +18,12 @@ export function Tabs(props: {
     {
       id: "saved" as const,
       label: (
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           {t("search.saved_tab")}
           <BodyText as="span" size="xs" className="bg-olive ml-1 rounded-full px-2 py-1 text-white">
             {counts.saved}
           </BodyText>
-        </div>
+        </Box>
       ),
     },
   ];

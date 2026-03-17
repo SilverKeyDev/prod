@@ -160,7 +160,7 @@ function HomeCardView({
             size="sm"
             variant="unlock"
             fullWidth
-            text="Unlock"
+            text="View"
           />
         }
       />

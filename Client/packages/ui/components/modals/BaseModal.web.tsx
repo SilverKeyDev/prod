@@ -33,12 +33,12 @@ function BaseModalPanel({
 }: BaseModalPanelProps) {
   return (
     <div
-      className={`relative flex min-h-0 w-full max-w-full transform flex-col overflow-hidden rounded-lg text-left shadow-xl transition-all sm:rounded-xl ${contentBackground === "off-white" ? "bg-off-white" : "bg-neutral-50"} ${SIZE_STYLES[size ?? "md"]} ${className ?? ""}`}
+      className={`relative flex min-h-0 w-full max-w-full transform flex-col overflow-hidden rounded-lg text-left shadow-xl transition-all sm:rounded-xl ${contentBackground === "off-white" ? "bg-background-base" : "bg-background-base"} ${SIZE_STYLES[size ?? "md"]} ${className ?? ""}`}
       style={{ maxHeight: "min(90vh, 90dvh)" }}
     >
       {(title ?? headerContent ?? showCloseButton) && (
         <div
-          className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden p-3 sm:p-4 md:p-6 ${showHeaderBorder ? "border-b border-gray-200" : ""}`}
+          className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden p-3 sm:p-4 md:p-6 ${showHeaderBorder ? "border-border border-b" : ""}`}
         >
           <div
             className="scrollbar-hide min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden"
@@ -46,7 +46,11 @@ function BaseModalPanel({
           >
             {headerContent ??
               (title && (
-                <Title as="h3" size="sm" className="truncate font-medium text-gray-900 sm:text-lg">
+                <Title
+                  as="h3"
+                  size="sm"
+                  className="text-text-primary truncate font-medium sm:text-lg"
+                >
                   {title}
                 </Title>
               ))}
@@ -56,7 +60,7 @@ function BaseModalPanel({
               variant="ghost"
               size="overlay"
               onClick={onClose}
-              className="ml-2 flex-shrink-0 touch-manipulation text-gray-400 hover:text-gray-500"
+              className="text-text-secondary hover:text-text-primary ml-2 flex-shrink-0 touch-manipulation"
               label="Close modal"
             />
           )}
@@ -64,7 +68,7 @@ function BaseModalPanel({
       )}
       <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">{children}</div>
       {footerContent && (
-        <div className="flex-shrink-0 border-t border-gray-200 p-3 sm:p-4 md:p-6">
+        <div className="border-border flex-shrink-0 border-t p-3 sm:p-4 md:p-6">
           {footerContent}
         </div>
       )}
@@ -96,7 +100,7 @@ function BaseModalContent(p: BaseModalContentProps) {
         onKeyDown={handleKeyDown}
       >
         <div
-          className={`fixed inset-0 bg-black/50 transition-opacity ${backdropClassName}`}
+          className={`bg-overlay-backdrop fixed inset-0 transition-opacity ${backdropClassName}`}
           aria-hidden="true"
         />
         <BaseModalPanel {...rest} onClose={onClose} />

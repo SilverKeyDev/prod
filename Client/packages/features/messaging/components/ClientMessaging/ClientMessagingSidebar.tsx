@@ -63,7 +63,7 @@ export default function ClientMessagingSidebar({
 
         {/* Scrollable Agent List */}
         <div
-          className={`flex-1 overflow-y-auto border-r border-neutral-200 bg-white ${isSidebarExpanded ? "rounded-b-xl" : ""} xl:rounded-bl-xl xl:rounded-br-none`}
+          className={`border-border bg-background-surface flex-1 overflow-y-auto border-r ${isSidebarExpanded ? "rounded-b-xl" : ""} xl:rounded-bl-xl xl:rounded-br-none`}
         >
           {showInbox ? (
             <ConnectionRequestsInbox
@@ -74,8 +74,8 @@ export default function ClientMessagingSidebar({
           ) : !agentId ? (
             <div className="flex h-full items-center justify-center p-3">
               <div className="text-center">
-                <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-black/30" />
-                <BodyText as="p" size="sm" className="mb-4 text-black/60">
+                <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
+                <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
                   {t("agent.search_agent_to_start_messaging")}
                 </BodyText>
               </div>
@@ -99,15 +99,15 @@ export default function ClientMessagingSidebar({
                   setIsSidebarExpanded(false);
                 }
               }}
-              className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${activeConversationId === activeConversation?.id ? "bg-beige/20" : ""}`}
+              className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${activeConversationId === activeConversation?.id ? "bg-olive/10 border-l-olive border-l-4" : ""}`}
             >
               <div className="flex items-start justify-between">
                 <div className="min-w-0 flex-1">
-                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-black">
+                  <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                     {t("agent.your_agent")}
                   </Title>
                   {localMessages.length > 0 && (
-                    <BodyText as="p" className="truncate text-xs text-black/50">
+                    <BodyText as="p" className="truncate text-xs text-neutral-600">
                       {getMessagePreview(
                         localMessages[localMessages.length - 1] ?? {
                           content: "",

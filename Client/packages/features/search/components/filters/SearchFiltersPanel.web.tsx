@@ -33,7 +33,7 @@ export default function SearchFiltersPanel({
             </BodyText>
           )}
           {saveStatus === "saved" && (
-            <BodyText as="span" size="sm" className="flex items-center gap-1 text-green-600">
+            <BodyText as="span" size="sm" className="text-accent flex items-center gap-1">
               <Icon name="check" className="h-4 w-4" />
               {t("search.saved")}
             </BodyText>

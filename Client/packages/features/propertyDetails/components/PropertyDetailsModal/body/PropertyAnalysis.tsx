@@ -47,7 +47,7 @@ function renderSectionContent(sectionData: unknown, noDataLabel: string): React.
     return (
       <Box className="gap-2">
         {data.map((item, i) => (
-          <Text key={i} className="text-brown/80 text-sm">
+          <Text key={i} className="text-text-secondary text-sm">
             {String(item)}
           </Text>
         ))}
@@ -59,7 +59,7 @@ function renderSectionContent(sectionData: unknown, noDataLabel: string): React.
     ([, value]) => value !== null && value !== undefined && value !== ""
   );
   if (entries.length === 0) {
-    return <Text className="text-brown/60 text-sm">{noDataLabel}</Text>;
+    return <Text className="text-text-secondary text-sm">{noDataLabel}</Text>;
   }
 
   return (
@@ -69,10 +69,10 @@ function renderSectionContent(sectionData: unknown, noDataLabel: string): React.
         if (Array.isArray(value)) {
           return (
             <Box key={key}>
-              <Text className="text-brown mb-2 text-sm font-medium">{displayKey}</Text>
+              <Text className="text-text-secondary mb-2 text-sm font-medium">{displayKey}</Text>
               <Box className="ml-4 gap-1">
                 {value.map((item, i) => (
-                  <Text key={i} className="text-brown/80 text-sm">
+                  <Text key={i} className="text-text-secondary text-sm">
                     • {String(item)}
                   </Text>
                 ))}
@@ -82,15 +82,15 @@ function renderSectionContent(sectionData: unknown, noDataLabel: string): React.
         }
         if (typeof value === "object" && value !== null) {
           return (
-            <Box key={key} className="border-beige/40 bg-beige/10 rounded-lg border p-3">
-              <Text className="text-brown mb-2 text-sm font-medium">{displayKey}</Text>
+            <Box key={key} className="border-border bg-accent-muted rounded-lg border p-3">
+              <Text className="text-text-secondary mb-2 text-sm font-medium">{displayKey}</Text>
               <Box className="gap-2">
                 {Object.entries(value as Record<string, unknown>).map(([subKey, subValue]) => (
                   <Box key={subKey}>
-                    <Text className="text-brown text-sm font-medium">
+                    <Text className="text-text-secondary text-sm font-medium">
                       {subKey.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
                     </Text>
-                    <Text className="text-brown/80 text-sm">{String(subValue)}</Text>
+                    <Text className="text-text-secondary text-sm">{String(subValue)}</Text>
                   </Box>
                 ))}
               </Box>
@@ -99,8 +99,8 @@ function renderSectionContent(sectionData: unknown, noDataLabel: string): React.
         }
         return (
           <Box key={key} className="gap-1">
-            <Text className="text-brown text-sm font-medium">{displayKey}</Text>
-            <Text className="text-brown/80 text-sm">{String(value)}</Text>
+            <Text className="text-text-secondary text-sm font-medium">{displayKey}</Text>
+            <Text className="text-text-secondary text-sm">{String(value)}</Text>
           </Box>
         );
       })}
@@ -141,9 +141,9 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
           <Box key={section.key}>
             <Box className="mb-4 flex-row items-center gap-2">
               <Icon name={section.iconName as IconName} size={20} color={color("brown.DEFAULT")} />
-              <Text className="text-brown text-lg font-semibold">{section.label}</Text>
+              <Text className="text-text-secondary text-lg font-semibold">{section.label}</Text>
             </Box>
-            <Box className="border-beige/30 mt-2 rounded-lg border bg-white p-4">
+            <Box className="border-border bg-background-surface mt-2 rounded-lg border p-4">
               {renderSectionContent(section.data, noDataLabel)}
             </Box>
           </Box>

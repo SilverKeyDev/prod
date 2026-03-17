@@ -150,7 +150,7 @@ function DocumentUploadModalNativeBody({
   return (
     <Box className="gap-4">
       <Box className="gap-2">
-        <Text className="text-sm font-medium text-gray-900">
+        <Text className="text-text-primary text-sm font-medium">
           {t("documents_upload.category_label", { defaultValue: "Category" })}
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
@@ -167,7 +167,7 @@ function DocumentUploadModalNativeBody({
               >
                 <Text
                   // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-                  className={`text-sm font-medium ${isSelected ? "text-white" : "text-gray-800"}`}
+                  className={`text-sm font-medium ${isSelected ? "text-white" : "text-text-primary"}`}
                 >
                   {cat.label}
                 </Text>
@@ -175,7 +175,7 @@ function DocumentUploadModalNativeBody({
             );
           })}
           {!categoriesLoading && categoryOptions.length === 0 && (
-            <Text className="text-xs text-gray-600">
+            <Text className="text-text-secondary text-xs">
               {t("documents_upload.no_categories", {
                 defaultValue: "No categories available.",
               })}
@@ -183,7 +183,7 @@ function DocumentUploadModalNativeBody({
           )}
         </Box>
         {categoriesLoading && (
-          <Text className="text-xs text-gray-500">
+          <Text className="text-text-secondary text-xs">
             {t("documents_upload.loading_categories", {
               defaultValue: "Loading categories…",
             })}
@@ -207,7 +207,7 @@ function DocumentUploadModalNativeBody({
       </Box>
 
       <Box className="gap-2">
-        <Text className="text-sm font-medium text-gray-900">
+        <Text className="text-text-primary text-sm font-medium">
           {t("documents_upload.address_optional", {
             defaultValue: "Property address (optional)",
           })}
@@ -223,13 +223,13 @@ function DocumentUploadModalNativeBody({
       </Box>
 
       <Box className="gap-3">
-        <Text className="text-sm font-medium text-gray-900">
+        <Text className="text-text-primary text-sm font-medium">
           {t("documents_upload.document_file", {
             defaultValue: "Document file",
           })}
         </Text>
         <Button variant="secondary" size="md" onPress={handlePickFile} disabled={isUploading}>
-          <Text className="text-sm font-medium text-gray-900">
+          <Text className="text-text-primary text-sm font-medium">
             {selectedFile
               ? (selectedFile.name ??
                 t("documents_upload.change_file", { defaultValue: "Change file" }))
@@ -237,7 +237,7 @@ function DocumentUploadModalNativeBody({
           </Text>
         </Button>
         {selectedFile && (
-          <Text className="text-xs text-gray-600">
+          <Text className="text-text-secondary text-xs">
             {selectedFile.name}{" "}
             {selectedFile.size != null
               ? `(${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`
@@ -248,7 +248,7 @@ function DocumentUploadModalNativeBody({
 
       <Box className="mt-2 flex flex-row justify-end gap-3">
         <Button variant="secondary" size="md" onPress={onClose} disabled={isUploading}>
-          <Text className="text-sm font-medium text-gray-900">
+          <Text className="text-text-primary text-sm font-medium">
             {t("common.cancel", { defaultValue: "Cancel" })}
           </Text>
         </Button>

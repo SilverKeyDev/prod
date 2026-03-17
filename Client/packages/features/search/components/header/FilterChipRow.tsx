@@ -25,7 +25,7 @@ export function FilterChipRow({
   return (
     <Box className={`flex-row gap-2 ${className}`}>
       <Box className="flex-1">
-        <Text className="mb-1 text-xs text-gray-600">{label}</Text>
+        <Text className="text-text-secondary mb-1 text-xs">{label}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -38,10 +38,12 @@ export function FilterChipRow({
                 key={opt.value}
                 onPress={() => onChange(isSelected ? undefined : (opt.value as string))}
                 className={`mr-2 rounded-full border px-3 py-1.5 ${
-                  isSelected ? "border-brand-accent bg-brand-accent/10" : "border-gray-300 bg-white"
+                  isSelected
+                    ? "border-primary bg-primary-muted"
+                    : "border-border bg-background-surface"
                 }`}
               >
-                <Text className={`text-xs ${isSelected ? "text-brand-accent" : "text-gray-700"}`}>
+                <Text className={`text-xs ${isSelected ? "text-primary" : "text-text-primary"}`}>
                   {opt.label}
                 </Text>
               </Pressable>

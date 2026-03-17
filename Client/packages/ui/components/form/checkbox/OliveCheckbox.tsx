@@ -12,7 +12,7 @@ type OliveCheckboxProps = {
 const OliveCheckbox: React.FC<OliveCheckboxProps> = ({ checked, onToggle }) => {
   return (
     <div
-      className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${onToggle ? "cursor-pointer" : ""} ${checked ? "border-olive bg-olive" : "border-beige"}`}
+      className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${onToggle ? "cursor-pointer" : ""} ${checked ? "border-primary bg-primary" : "border-border"}`}
       {...(onToggle ? { onClick: onToggle } : {})}
     >
       {checked && <Icon name="check" className="h-3.5 w-3.5 text-white" strokeWidth={4} />}

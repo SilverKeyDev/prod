@@ -109,7 +109,6 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     setIsCompareModalOpen,
     isNegotiationModalOpen,
     selectedHomeForNegotiation,
-    handleOpenNegotiation,
     handleCloseNegotiation,
   } = useSavedPageModals();
   const { handleDocumentDelete } = useSavedPageDocumentHandlers({
@@ -237,7 +236,6 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       onShareDocument={handleShareDocument}
       onToggleHomeSelection={handleToggleHomeSelection}
       onUnlockHome={handleUnlockHome}
-      onOpenNegotiation={handleOpenNegotiation}
       onDocumentDelete={(docId) => {
         const doc = documents.find((d) => d.id === docId);
         if (doc) void handleDocumentDelete(doc);

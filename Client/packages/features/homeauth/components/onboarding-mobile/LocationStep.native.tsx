@@ -16,10 +16,10 @@ export function LocationStep({ formData, updateFormData }: LocationStepProps) {
 
   return (
     <Box className="gap-5">
-      <Text className="text-lg font-semibold text-gray-900">
+      <Text className="text-text-primary text-lg font-semibold">
         {SECTION_TITLES.LOCATION_PREFERENCES}
       </Text>
-      <Text className="text-sm text-gray-600">
+      <Text className="text-text-secondary text-sm">
         Add work, family, or other places you care about. We'll use these to find homes that fit
         your life.
       </Text>

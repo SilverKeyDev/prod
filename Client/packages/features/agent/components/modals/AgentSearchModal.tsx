@@ -9,6 +9,7 @@ import Button from "packages/ui/components/button/Button";
 import CloseButton from "packages/ui/components/button/CloseButton";
 
 import { BodyText, Input, Label, Textarea, Title } from "@/components/ui";
+import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
 import { useAgentSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 type AgentSearchModalProps = {
@@ -16,11 +17,12 @@ type AgentSearchModalProps = {
   onClose: () => void;
 };
 export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalProps) {
+  const config = getMessagingConfig("client");
   const [searchQuery, setSearchQuery] = useState("");
   const [message, setMessage] = useState("");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const { agents, isLoading } = useAgentSearch(searchQuery, isOpen);
-  const { createRequest, isCreatingRequest } = useConnectionRequests();
+  const { createRequestAsInitiator, isCreatingRequest } = useConnectionRequests();
   const { userProfile } = useUserData();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -32,7 +34,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
   const handleSendRequest = async (agentId: string) => {
     if (!userProfile?.id) return;
     try {
-      await createRequest(agentId, userProfile.id, message.trim() || undefined);
+      await createRequestAsInitiator(userProfile.id, agentId, false, message.trim() || undefined);
       enqueueToast({
         type: "success",
         message: "Connection request sent",
@@ -50,29 +52,29 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-lg">
+      <div className="bg-background-surface relative w-full max-w-2xl rounded-xl shadow-lg">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-200 p-4">
-          <Title as="h2" size="lg" className="font-semibold text-neutral-900">
-            Search for an Agent
+        <div className="border-border flex items-center justify-between border-b p-4">
+          <Title as="h2" size="lg" className="text-text-primary font-semibold">
+            {config.searchModal.title}
           </Title>
           <CloseButton onClick={onClose} size="sm" label="Close" />
         </div>
 
         {/* Search Input */}
-        <div className="border-b border-neutral-200 p-4">
+        <div className="border-border border-b p-4">
           <div className="relative">
             <Icon
               name="search"
-              className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-black/40"
+              className="text-text-disabled absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2"
             />
             <Input
               ref={inputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name or email..."
-              className="w-full rounded-lg border border-neutral-300 bg-white px-10 py-2.5 text-sm text-neutral-900 transition-colors placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200"
+              placeholder={config.searchModal.searchPlaceholder}
+              className="border-border bg-background-surface text-text-primary placeholder:text-text-secondary focus:border-primary focus:ring-accent-muted w-full rounded-lg border px-10 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2"
             />
           </div>
         </div>
@@ -81,11 +83,11 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
         <div className="max-h-96 overflow-y-auto p-4">
           {searchQuery.length < 2 ? null : isLoading ? (
             <div className="py-8 text-center">
-              <KeyTurnLoader message="Searching agents..." />
+              <KeyTurnLoader message={config.searchModal.searchingMessage} />
             </div>
           ) : agents.length === 0 ? (
-            <div className="py-8 text-center text-sm text-black/60">
-              No agents found matching "{searchQuery}"
+            <div className="text-text-secondary py-8 text-center text-sm">
+              {config.searchModal.noResultsMessage} "{searchQuery}"
             </div>
           ) : (
             <div className="space-y-2">
@@ -94,25 +96,25 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                   key={agent.id}
                   className={`rounded-lg border p-4 transition-all ${
                     selectedAgentId === agent.id
-                      ? "border-neutral-300 bg-neutral-50/50 shadow-sm"
-                      : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50/30"
+                      ? "border-border bg-background-base shadow-sm"
+                      : "border-border hover:border-border hover:bg-background-base"
                   }`}
                 >
                   {selectedAgentId === agent.id ? (
                     <div className="space-y-4">
-                      <div className="flex items-start gap-3 border-b border-neutral-200 pb-3">
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
-                          <Icon name="user" className="h-6 w-6 text-neutral-600" />
+                      <div className="border-border flex items-start gap-3 border-b pb-3">
+                        <div className="bg-primary-muted flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full">
+                          <Icon name="user" className="text-text-secondary h-6 w-6" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <Title
                             as="h3"
                             size="md"
-                            className="mb-0.5 font-semibold text-neutral-900"
+                            className="text-text-primary mb-0.5 font-semibold"
                           >
                             {agent.name}
                           </Title>
-                          <BodyText as="p" size="sm" className="truncate text-neutral-500">
+                          <BodyText as="p" size="sm" className="text-text-secondary truncate">
                             {agent.email}
                           </BodyText>
                         </div>
@@ -120,7 +122,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                       <div>
                         <Label
                           htmlFor="agent-search-message"
-                          className="mb-2 block font-medium text-neutral-700"
+                          className="text-text-secondary mb-2 block font-medium"
                         >
                           Message (optional)
                         </Label>
@@ -129,7 +131,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                           value={message}
                           onChange={(e) => setMessage(e.target.value)}
                           placeholder="Add a message..."
-                          className="w-full resize-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 transition-colors placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200"
+                          className="border-border bg-background-surface text-text-primary placeholder:text-text-secondary focus:border-primary focus:ring-accent-muted w-full resize-none rounded-lg border px-4 py-3 text-sm transition-colors focus:outline-none focus:ring-2"
                           rows={4}
                         />
                       </div>
@@ -141,9 +143,9 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                           size="md"
                           icon={<Icon name="send" />}
                           iconPosition="left"
-                          className="bg-gold-lighter hover:bg-gold border-gold-lighter min-w-0 flex-1 text-white hover:text-white"
+                          className="bg-accent-lighter hover:bg-accent border-accent-lighter min-w-0 flex-1 text-white hover:text-white"
                         >
-                          Send Request
+                          {config.searchModal.sendButtonLabel}
                         </Button>
                         <Button
                           onClick={() => {
@@ -154,7 +156,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                           size="md"
                           icon={<Icon name="x" />}
                           iconPosition="left"
-                          className="border-neutral-200 bg-neutral-200 px-6 text-neutral-700 hover:bg-neutral-200/80"
+                          className="border-border bg-border text-text-secondary hover:bg-primary-muted px-6"
                         >
                           Cancel
                         </Button>
@@ -168,18 +170,18 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                       onClick={() => setSelectedAgentId(agent.id)}
                       className="flex h-auto min-h-0 w-full items-start justify-start gap-3 py-0 text-left"
                     >
-                      <div className="bg-beige flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+                      <div className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
                         <Icon name="user" className="h-5 w-5 text-black" />
                       </div>
                       <div className="flex-1">
                         <Title as="h3" size="sm" className="font-medium text-black">
                           {agent.name}
                         </Title>
-                        <BodyText as="p" size="sm" className="text-black/60">
+                        <BodyText as="p" size="sm" className="text-text-secondary">
                           {agent.email}
                         </BodyText>
                         {agent.phone && (
-                          <BodyText as="p" size="xs" className="text-black/40">
+                          <BodyText as="p" size="xs" className="text-text-disabled">
                             {agent.phone}
                           </BodyText>
                         )}

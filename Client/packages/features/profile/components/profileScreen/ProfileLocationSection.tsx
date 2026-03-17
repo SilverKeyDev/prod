@@ -34,7 +34,7 @@ export function ProfileLocationSection({
       </Subtitle>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.IMPORTANT_LOCATIONS} (e.g. work)
         </BodyText>
         {Array.isArray(formData.important_locations) &&

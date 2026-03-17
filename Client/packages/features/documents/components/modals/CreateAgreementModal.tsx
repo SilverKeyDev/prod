@@ -80,9 +80,9 @@ export default function CreateAgreementModal({
         <Box className="gap-4">
           {/* Title */}
           <Box className="gap-2">
-            <Text className="text-sm font-medium text-gray-900">
+            <Text className="text-text-primary text-sm font-medium">
               {t("documents_create.field_title", { defaultValue: "Agreement Title" })}
-              <Text className="text-rose-500"> *</Text>
+              <Text className="text-destructive"> *</Text>
             </Text>
             <PrimitiveInput
               value={title}
@@ -96,9 +96,9 @@ export default function CreateAgreementModal({
 
           {/* Agreement Type */}
           <Box className="gap-2">
-            <Text className="text-sm font-medium text-gray-900">
+            <Text className="text-text-primary text-sm font-medium">
               {t("documents_create.field_type", { defaultValue: "Agreement Type" })}
-              <Text className="text-rose-500"> *</Text>
+              <Text className="text-destructive"> *</Text>
             </Text>
             <Box className="flex flex-row flex-wrap gap-2">
               {agreementTypes.map((type) => {
@@ -114,7 +114,7 @@ export default function CreateAgreementModal({
                   >
                     <Text
                       // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-                      className={`text-xs font-medium ${isSelected ? "text-white" : "text-gray-800"}`}
+                      className={`text-xs font-medium ${isSelected ? "text-white" : "text-text-primary"}`}
                     >
                       {getAgreementTypeLabel(type)}
                     </Text>
@@ -126,9 +126,9 @@ export default function CreateAgreementModal({
 
           {/* Buyer Selection */}
           <Box className="gap-2">
-            <Text className="text-sm font-medium text-gray-900">
+            <Text className="text-text-primary text-sm font-medium">
               {t("documents_create.field_buyer", { defaultValue: "Buyer" })}
-              <Text className="text-rose-500"> *</Text>
+              <Text className="text-destructive"> *</Text>
             </Text>
             <PrimitiveInput
               value={
@@ -147,7 +147,7 @@ export default function CreateAgreementModal({
                 onPress={() => setShowBuyerList((prev) => !prev)}
                 className="self-start"
               >
-                <Text className="text-xs font-medium text-gray-900">
+                <Text className="text-text-primary text-xs font-medium">
                   {showBuyerList
                     ? t("documents_create.hide_buyers", { defaultValue: "Hide buyers" })
                     : t("documents_create.show_buyers", { defaultValue: "Choose buyer" })}
@@ -155,9 +155,9 @@ export default function CreateAgreementModal({
               </Button>
             )}
             {showBuyerList && !preselectedBuyerId && (
-              <Box className="mt-2 max-h-40 gap-1 rounded-lg border border-gray-200 bg-gray-50 p-2">
+              <Box className="border-border bg-background-base mt-2 max-h-40 gap-1 rounded-lg border p-2">
                 {clients.length === 0 ? (
-                  <Text className="text-xs text-gray-600">
+                  <Text className="text-text-secondary text-xs">
                     {t("documents_create.no_buyers", { defaultValue: "No buyers available." })}
                   </Text>
                 ) : (
@@ -174,7 +174,7 @@ export default function CreateAgreementModal({
                     >
                       <Text
                         // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-                        className={`text-xs ${client.id === selectedBuyerId ? "text-white" : "text-gray-900"}`}
+                        className={`text-xs ${client.id === selectedBuyerId ? "text-white" : "text-text-primary"}`}
                       >
                         {client.name} — {client.email}
                       </Text>
@@ -187,7 +187,7 @@ export default function CreateAgreementModal({
 
           {/* Property Address */}
           <Box className="gap-2">
-            <Text className="text-sm font-medium text-gray-900">
+            <Text className="text-text-primary text-sm font-medium">
               {t("documents_create.field_address", {
                 defaultValue: "Property Address (Optional)",
               })}
@@ -204,7 +204,7 @@ export default function CreateAgreementModal({
 
           {/* Description */}
           <Box className="gap-2">
-            <Text className="text-sm font-medium text-gray-900">
+            <Text className="text-text-primary text-sm font-medium">
               {t("documents_create.field_description", {
                 defaultValue: "Description (Optional)",
               })}
@@ -242,7 +242,7 @@ export default function CreateAgreementModal({
               disabled={isCreatingAgreement}
               onPress={handleClose}
             >
-              <Text className="text-sm font-medium text-gray-900">
+              <Text className="text-text-primary text-sm font-medium">
                 {t("common.cancel", { defaultValue: "Cancel" })}
               </Text>
             </Button>

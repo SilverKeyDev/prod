@@ -87,10 +87,10 @@ export function initializeEnabledCalendars(
  */
 function getCalendarColorPalette(): string[] {
   return [
-    color("olive.DEFAULT"),
+    color("primary"),
     color("blue.DEFAULT"),
-    color("gold.DEFAULT"),
-    color("rose.DEFAULT"),
+    color("accent"),
+    color("destructive"),
     color("green.DEFAULT"),
     color("yellow.DEFAULT"),
     color("brown.DEFAULT"),

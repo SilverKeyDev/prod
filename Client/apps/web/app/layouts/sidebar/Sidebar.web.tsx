@@ -20,18 +20,20 @@ import { useUserData } from "@/features/profile/hooks/data/useUserData";
 import { getNavigation, type NavCategory, type SidebarNavItem } from "./sidebarNav.web";
 function getButtonStyles(isActive: boolean): string {
   const baseStyles =
-    "w-full flex items-center py-3 transition-all duration-200 font-medium text-white touch-friendly rounded-lg";
-  const activeStyles = "bg-brown-light/70 text-white font-semibold hover:bg-brown-light/80";
+    "w-full flex items-center py-3 transition-all duration-200 font-medium touch-friendly rounded-lg";
+  const hoverActiveStyles = "bg-white/10 hover:bg-white/10";
+  const activeStyles = `${hoverActiveStyles} text-white font-semibold`;
   const inactiveStyles =
-    "text-white/70 hover:bg-brown-light/30 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/20 active:text-beige";
+    "text-white/80 hover:bg-white/10 hover:text-white hover:-translate-y-0.5 active:bg-white/10 active:text-white";
   return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
 }
 function getSubItemStyles(isActive: boolean): string {
   const baseStyles =
-    "flex items-center transition-all duration-200 font-medium text-white touch-friendly rounded-lg";
-  const activeStyles = "bg-brown-light text-white font-semibold hover:bg-brown-light/80";
+    "flex items-center transition-all duration-200 font-medium touch-friendly rounded-lg";
+  const hoverActiveStyles = "bg-white/10 hover:bg-white/10";
+  const activeStyles = `${hoverActiveStyles} text-white font-semibold`;
   const inactiveStyles =
-    "text-white/50 hover:bg-brown-light/50 hover:text-beige hover:-translate-y-0.5 active:bg-brown-light/30 active:text-beige";
+    "text-white/80 hover:bg-white/10 hover:text-white hover:-translate-y-0.5 active:bg-white/10 active:text-white";
   return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
 }
 const SINGLE_LINK_KEYS = new Set(["dashboard", "search", "decide", "profile", "agent"]);
@@ -177,17 +179,17 @@ function SidebarNavCategory({
       >
         <div className="flex items-center">
           <div
-            className={`${!expanded && openCategories[categoryKey] ? "flex h-8 w-8 items-center justify-center rounded-full bg-gold/20" : ""}`}
+            className={`${!expanded && openCategories[categoryKey] ? "flex h-8 w-8 items-center justify-center rounded-full bg-white/20" : ""}`}
           >
             <Icon
               name={category.icon}
-              className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""} ${!expanded && openCategories[categoryKey] ? "text-gold" : ""}`}
+              className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""} ${!expanded && openCategories[categoryKey] ? "text-white" : ""}`}
             />
           </div>
           {expanded && <span className="text-sm font-medium">{category.name}</span>}
         </div>
         {!expanded && openCategories[categoryKey] && (
-          <div className="absolute right-1 top-1 h-2 w-2 rounded-full bg-gold"></div>
+          <div className="absolute right-1 top-1 h-2 w-2 rounded-full bg-white"></div>
         )}
         {expanded &&
           (openCategories[categoryKey] ? (
@@ -235,16 +237,16 @@ function SidebarHeader({
 }) {
   return (
     <div className="flex flex-shrink-0 items-center justify-between py-2">
-      <div className="flex items-center text-white" style={{ filter: "brightness(0) invert(1)" }}>
+      <div className="flex items-center text-white">
         {expanded && (
           <div className="flex flex-shrink-0 py-4">
             {isLoading ? (
               <div className="animate-pulse space-y-3">
                 <div className="flex items-center space-x-4">
-                  <div className="h-6 w-6 rounded-full bg-brown-light"></div>
+                  <div className="h-6 w-6 rounded-full bg-white/40"></div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded bg-brown-light"></div>
-                    <div className="h-3 w-1/2 rounded bg-brown-light"></div>
+                    <div className="h-4 w-3/4 rounded bg-white/40"></div>
+                    <div className="h-3 w-1/2 rounded bg-white/40"></div>
                   </div>
                 </div>
               </div>
@@ -282,10 +284,10 @@ function SidebarFooter({
   onCancelLogout: () => void;
 }) {
   return (
-    <div className="flex-shrink-0 border-t border-brown-light py-4">
+    <div className="flex-shrink-0 border-t border-white/30 py-4">
       <button
         onClick={onLogoutClick}
-        className={`${getButtonStyles(false).replace("text-white/70", "text-white")} ${!expanded ? "justify-center py-3" : "py-3"} cursor-pointer`}
+        className={`${getButtonStyles(false).replace("text-white/80", "text-white")} cursor-pointer justify-center py-3`}
       >
         <Icon name="log-out" className={`h-6 w-6 ${expanded ? "mr-3" : ""}`} />
         {expanded && <span>Logout</span>}
@@ -398,7 +400,7 @@ export default function Sidebar({
   const navigation = getNavigation(_isAgent, hasAgent, isMobile);
   return (
     <div
-      className={`safe-top fixed left-0 top-0 z-sidebar h-full bg-brown text-white transition-all duration-300 ease-in-out ${expanded ? "w-52 px-4" : "w-16 px-2"} `}
+      className={`safe-top fixed left-0 top-0 z-sidebar h-full bg-background-sidebar text-white transition-all duration-300 ease-in-out ${expanded ? "w-52 px-4" : "w-16 px-2"} `}
     >
       <div
         className="line-clamp-1 flex h-full flex-col overflow-hidden"

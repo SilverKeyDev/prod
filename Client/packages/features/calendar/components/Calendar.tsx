@@ -1,23 +1,44 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { color } from "packages/design-tokens";
+import { color, spacing } from "packages/design-tokens";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useMediaQuery } from "packages/hooks/ui";
+import { useUIStore } from "packages/store";
+import type { UIState } from "packages/store/ui.slice";
+import Card from "packages/ui/components/cards/Card";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
-import { dateNow } from "packages/utils/date";
+import { screenUp } from "packages/ui/types/screens";
+import { dateNow, dateParseISO } from "packages/utils/date";
 
-import { useGoogleCalendarPermissions, useGoogleEvents } from "@/features/calendar/hooks/data";
+import {
+  useCalendarErrorToasts,
+  useCalendarOAuthCallback,
+  useGoogleCalendarPermissions,
+  useGoogleEvents,
+} from "@/features/calendar/hooks/data";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
+import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import {
   findSilverKeyCalendar,
   getCalendarsKey,
   initializeEnabledCalendars,
 } from "@/features/calendar/utils/calendar";
+import {
+  calculateCalendarDateRange,
+  formatDateRange,
+  getVisibleDateRange,
+} from "@/features/calendar/utils/date";
 import { filterEventsByCalendars } from "@/features/calendar/utils/eventFiltering";
 import { getEventStartDate } from "@/features/calendar/utils/eventParsing";
 
-import type { ExtendedGoogleEvent } from "../types/calendar";
 import { CalendarConnectionPrompt } from "./view/CalendarConnectionPrompt";
+import { CalendarMonthViewHeader } from "./view/CalendarMonthViewHeader";
 import { EventList } from "./view/EventList";
+
+type CalendarProps = {
+  /** Optional section title (e.g. "Calendar") rendered in the header row with month/year and nav */
+  sectionTitle?: string;
+};
 
 function toDateKey(d: Date) {
   try {
@@ -30,9 +51,22 @@ function toDateKey(d: Date) {
   }
 }
 
-export function Calendar() {
-  const { isConnected, calendars, calendarsLoading, connectGoogleCalendar } =
-    useGoogleCalendarStoreIntegration();
+export function Calendar({ sectionTitle }: CalendarProps) {
+  const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
+  const {
+    isConnected,
+    calendars,
+    calendarsLoading,
+    calendarsError,
+    eventsError,
+    refreshCalendars,
+    refreshEvents,
+    connectGoogleCalendar,
+  } = useGoogleCalendarStoreIntegration();
+
+  useCalendarOAuthCallback({ enqueueToast, refreshCalendars, refreshEvents });
+  useCalendarErrorToasts({ calendarsError, eventsError, enqueueToast });
+
   const { userPreferences } = useUserPreferences();
   const { permissionsLoading, hasRequiredPermissions, isPartiallyEnabled, permissions } =
     useGoogleCalendarPermissions();
@@ -43,8 +77,12 @@ export function Calendar() {
   const lastCalendarsRef = useRef<string>("");
   const hadDisabledCalendarsRef = useRef(false);
 
-  const [monthAnchor, setMonthAnchor] = useState(() => dateNow().startOf("month"));
+  const [monthAnchor, setMonthAnchor] = useState(() =>
+    dateNow().subtract(dateNow().day(), "day").startOf("day")
+  );
   const [selectedDayKey, setSelectedDayKey] = useState(() => toDateKey(dateNow().toDate()));
+
+  const isLargeScreen = useMediaQuery(screenUp("md"));
 
   useEffect(() => {
     if (!calendars || calendars.length === 0) return;
@@ -73,9 +111,8 @@ export function Calendar() {
   }, [calendars, userPreferences]);
 
   const range = useMemo(() => {
-    const start = monthAnchor.startOf("month").startOf("week");
-    const end = monthAnchor.endOf("month").endOf("week");
-    return { timeMin: start.toISOString(), timeMax: end.toISOString() };
+    const { timeMin, timeMax } = calculateCalendarDateRange(monthAnchor.toDate());
+    return { timeMin, timeMax };
   }, [monthAnchor]);
 
   const enabledCalendarIdsArray = useMemo(
@@ -83,7 +120,12 @@ export function Calendar() {
     [enabledCalendarIds]
   );
 
-  const { events: rawEvents } = useGoogleEvents({
+  const {
+    events: rawEvents,
+    refreshEvents: refetchEvents,
+    updateEvent,
+    deleteEvent,
+  } = useGoogleEvents({
     calendarIds: enabledCalendarIdsArray,
     timeMin: range.timeMin,
     timeMax: range.timeMax,
@@ -109,36 +151,45 @@ export function Calendar() {
   }, [visibleEvents]);
 
   const days = useMemo(() => {
-    const start = monthAnchor.startOf("month").startOf("week");
-    const end = monthAnchor.endOf("month").endOf("week");
-    const out: {
-      key: string;
-      date: Date;
-      isCurrentMonth: boolean;
-      count: number;
-    }[] = [];
-    let cursor = start;
-    while (cursor.isBefore(end) || cursor.isSame(end, "day")) {
-      const date = cursor.toDate();
-      const key = toDateKey(date);
-      const isCurrentMonth = cursor.month() === monthAnchor.month();
+    const { gridDays } = getVisibleDateRange(monthAnchor.toDate(), "month");
+    if (!gridDays) return [];
+    return gridDays.map((day) => {
+      const key = toDateKey(day.date);
       const count = key ? (eventsByDay.get(key)?.length ?? 0) : 0;
-      out.push({ key, date, isCurrentMonth, count });
-      cursor = cursor.add(1, "day");
-    }
-    return out;
+      return {
+        key,
+        date: day.date,
+        isCurrentMonth: day.isCurrentMonth,
+        isPast: day.isPast,
+        count,
+      };
+    });
   }, [monthAnchor, eventsByDay]);
 
   const selectedEvents = useMemo(() => {
     return selectedDayKey ? (eventsByDay.get(selectedDayKey) ?? []) : [];
   }, [eventsByDay, selectedDayKey]);
 
+  const visibleRangeLabel = useMemo(() => {
+    const { start, end } = getVisibleDateRange(monthAnchor.toDate());
+    return formatDateRange(start, end);
+  }, [monthAnchor]);
+
+  const thisWeekSunday = useMemo(
+    () => dateNow().subtract(dateNow().day(), "day").startOf("day"),
+    []
+  );
+  const canGoPrev = monthAnchor.isAfter(thisWeekSunday);
+
   const handlePrev = useCallback(() => {
-    setMonthAnchor((prev) => prev.subtract(1, "month").startOf("month"));
-  }, []);
+    setMonthAnchor((prev) => {
+      const next = prev.subtract(5, "week");
+      return next.isBefore(thisWeekSunday) ? thisWeekSunday : next;
+    });
+  }, [thisWeekSunday]);
 
   const handleNext = useCallback(() => {
-    setMonthAnchor((prev) => prev.add(1, "month").startOf("month"));
+    setMonthAnchor((prev) => prev.add(5, "week"));
   }, []);
 
   const handleConnect = useCallback(() => {
@@ -157,146 +208,225 @@ export function Calendar() {
 
   if (!permissionsReady) {
     return (
-      <Box style={{ width: "100%" }}>
+      <Card className="w-full" padding="md" hover={false}>
         <Text style={{ textAlign: "center", fontSize: 14, color: color("neutral.500") }}>
           Loading calendar permissions…
         </Text>
-      </Box>
+      </Card>
     );
   }
 
   if (shouldShowConnectionPrompt) {
-    return <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />;
+    return (
+      <Card className="w-full" padding="md" hover={false}>
+        <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
+      </Card>
+    );
   }
 
+  const cellWidth = `${100 / 7}%` as const;
+
+  /** Max width/height ratio (1.5 = width at most 150% of height); min ratio enforced via maxHeight */
+  const MAX_ASPECT_RATIO = 1.5;
+
   const styles = {
-    container: { width: "100%" as const, gap: 14 },
-    header: {
-      flexDirection: "row" as const,
-      alignItems: "center" as const,
-      justifyContent: "space-between" as const,
-    },
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: "800" as const,
-      color: color("neutral.900"),
-    },
-    navBtn: {
-      width: 38,
-      height: 38,
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: color("neutral.200"),
-      backgroundColor: color("neutral.50"),
-      alignItems: "center" as const,
-      justifyContent: "center" as const,
-    },
-    navBtnText: {
-      fontSize: 22,
-      fontWeight: "800" as const,
-      color: color("neutral.800"),
-      lineHeight: 22,
+    container: {
+      width: "100%" as const,
+      gap: 0,
+      flexDirection: "column" as const,
     },
     weekHeader: {
+      display: "flex" as const,
       flexDirection: "row" as const,
-      justifyContent: "space-between" as const,
+      width: "100%" as const,
+      flexShrink: 0,
+    },
+    weekHeaderCell: {
+      display: "flex" as const,
+      flex: 1,
+      paddingVertical: 8,
+      paddingHorizontal: 4,
+      alignItems: "center" as const,
+      justifyContent: "center" as const,
+      borderBottomWidth: 1,
+      borderColor: color("neutral.200"),
+      backgroundColor: color("neutral.50"),
     },
     weekHeaderText: {
-      width: `${100 / 7}%` as const,
       textAlign: "center" as const,
       fontSize: 12,
       fontWeight: "700" as const,
       color: color("neutral.500"),
     },
     grid: {
+      display: "flex" as const,
       flexDirection: "row" as const,
       flexWrap: "wrap" as const,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: color("neutral.200"),
-      overflow: "hidden" as const,
-      backgroundColor: color("neutral.50"),
     },
     cell: {
-      width: `${100 / 7}%` as const,
+      width: cellWidth,
       paddingVertical: 10,
-      alignItems: "center" as const,
-      justifyContent: "center" as const,
+      paddingHorizontal: 4,
+      position: "relative" as const,
       borderRightWidth: 1,
       borderBottomWidth: 1,
       borderColor: color("neutral.200"),
       minHeight: 44,
+      maxHeight: 200,
+      aspectRatio: MAX_ASPECT_RATIO,
+      display: "flex" as const,
+      flexDirection: "column" as const,
+      alignItems: "center" as const,
     },
     cellMuted: { opacity: 0.45 },
     cellSelected: { backgroundColor: "rgba(163, 177, 138, 0.18)" },
     dayNumber: {
+      position: "absolute" as const,
+      top: spacing(1.5),
+      left: spacing(1.5),
       fontSize: 14,
       fontWeight: "700" as const,
       color: color("neutral.800"),
     },
     dayNumberSelected: { color: color("brand.accent") },
+    cellContent: {
+      marginTop: 26,
+      width: "100%" as const,
+      minWidth: 0,
+      flex: 1,
+      alignSelf: "stretch" as const,
+      display: "flex" as const,
+      flexDirection: "column" as const,
+      alignItems: "flex-start" as const,
+      justifyContent: "flex-start" as const,
+    },
     dot: {
       width: 6,
       height: 6,
       borderRadius: 3,
-      marginTop: 4,
       backgroundColor: color("brand.accent"),
+    },
+    eventChip: {
+      width: "90%" as const,
+      maxWidth: "90%" as const,
+      minWidth: 0,
+      marginTop: 4,
+      marginLeft: 4,
+      paddingVertical: 2,
+      paddingHorizontal: 4,
+      borderRadius: 4,
+      borderLeftWidth: 3,
+      borderLeftColor: color("brand.accent"),
+      backgroundColor: "rgba(163, 177, 138, 0.12)",
+      alignSelf: "flex-start" as const,
+    },
+    eventChipText: {
+      fontSize: 10,
+      fontWeight: "600" as const,
+      color: color("neutral.800"),
+      textAlign: "left" as const,
     },
   };
 
   return (
-    <Box style={styles.container}>
-      <Box style={styles.header}>
-        <Pressable onPress={handlePrev} style={styles.navBtn}>
-          <Text style={styles.navBtnText}>‹</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>{monthAnchor.format("MMMM YYYY")}</Text>
-        <Pressable onPress={handleNext} style={styles.navBtn}>
-          <Text style={styles.navBtnText}>›</Text>
-        </Pressable>
-      </Box>
+    <Card className="w-full" padding="none" hover={false}>
+      <Box style={styles.container}>
+        <CalendarMonthViewHeader
+          sectionTitle={sectionTitle}
+          monthLabel={visibleRangeLabel}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          disabledPrev={!canGoPrev}
+        >
+          <Box style={styles.weekHeader}>
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              <Box key={d} style={styles.weekHeaderCell}>
+                <Text style={styles.weekHeaderText}>{d}</Text>
+              </Box>
+            ))}
+          </Box>
 
-      <Box style={styles.weekHeader}>
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <Text key={d} style={styles.weekHeaderText}>
-            {d}
-          </Text>
-        ))}
-      </Box>
+          <Box style={styles.grid}>
+            {days.map((d) => {
+              const isSelected = d.key === selectedDayKey;
+              const dayEvents = eventsByDay.get(d.key) ?? [];
+              const sortedEvents = [...dayEvents].sort((a, b) => {
+                const aStart = a.start?.dateTime;
+                const bStart = b.start?.dateTime;
+                if (!aStart || !bStart) return 0;
+                return dateParseISO(aStart).valueOf() - dateParseISO(bStart).valueOf();
+              });
+              const visibleEventsInCell = isLargeScreen ? sortedEvents.slice(0, 3) : [];
 
-      <Box style={styles.grid}>
-        {days.map((d) => {
-          const isSelected = d.key === selectedDayKey;
-          return (
-            <Pressable
-              key={d.key}
-              onPress={() => setSelectedDayKey(d.key)}
-              style={{
-                ...styles.cell,
-                ...(!d.isCurrentMonth && styles.cellMuted),
-                ...(isSelected && styles.cellSelected),
-              }}
-            >
-              <Text
-                style={{
-                  ...styles.dayNumber,
-                  ...(isSelected && styles.dayNumberSelected),
-                }}
-              >
-                {d.date.getDate()}
-              </Text>
-              {d.count > 0 ? <Box style={styles.dot} /> : null}
-            </Pressable>
-          );
-        })}
-      </Box>
+              return (
+                <Pressable
+                  key={d.key}
+                  onPress={() => setSelectedDayKey(d.key)}
+                  style={{
+                    ...styles.cell,
+                    ...(isLargeScreen && { minHeight: 80 }),
+                    ...((!d.isCurrentMonth || d.isPast) && styles.cellMuted),
+                    ...(isSelected && styles.cellSelected),
+                  }}
+                >
+                  <Text
+                    style={{
+                      ...styles.dayNumber,
+                      ...(isSelected && styles.dayNumberSelected),
+                    }}
+                  >
+                    {d.date.getDate()}
+                  </Text>
+                  {isLargeScreen ? (
+                    <Box style={styles.cellContent}>
+                      {visibleEventsInCell.map((ev) => {
+                        const startTime = ev.start?.dateTime
+                          ? dateParseISO(ev.start.dateTime).toDate().toLocaleTimeString("en-US", {
+                              hour: "numeric",
+                              minute: "2-digit",
+                              hour12: true,
+                            })
+                          : "";
+                        const label = [startTime, ev.summary || "Untitled"]
+                          .filter(Boolean)
+                          .join(" · ");
+                        return (
+                          <Box key={ev.id ?? String(ev)} style={styles.eventChip}>
+                            <Text style={styles.eventChipText} numberOfLines={1}>
+                              {label}
+                            </Text>
+                          </Box>
+                        );
+                      })}
+                      {sortedEvents.length > 3 ? (
+                        <Box style={{ marginTop: spacing(2), alignSelf: "flex-start" }}>
+                          <Text style={{ fontSize: 10, color: color("neutral.500") }}>
+                            +{sortedEvents.length - 3} more
+                          </Text>
+                        </Box>
+                      ) : null}
+                    </Box>
+                  ) : d.count > 0 ? (
+                    <Box style={styles.cellContent}>
+                      <Box style={styles.dot} />
+                    </Box>
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </Box>
+        </CalendarMonthViewHeader>
 
-      <EventList
-        events={selectedEvents}
-        title="Events"
-        emptyMessage="No events for this day"
-        onEventClick={undefined}
-      />
-    </Box>
+        <EventList
+          events={selectedEvents}
+          emptyMessage="No events for this day"
+          silverKeyCalendarId={silverKeyCalendarIdRef.current}
+          refreshEvents={refetchEvents}
+          updateEvent={updateEvent}
+          deleteEvent={deleteEvent}
+          calendars={calendars ?? []}
+        />
+      </Box>
+    </Card>
   );
 }

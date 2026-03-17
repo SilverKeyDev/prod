@@ -1,10 +1,14 @@
 import React, { useMemo } from "react";
 
 import { color } from "packages/design-tokens";
+import Card from "packages/ui/components/cards/Card";
 import { Box, ScrollView, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
-import type { ExtendedGoogleEvent } from "../../types/calendar";
+import type { Calendar } from "@/features/calendar/types/calendar";
+import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
+
 import { EventCard } from "./EventCard";
 
 type EventListProps = {
@@ -14,15 +18,11 @@ type EventListProps = {
   onEventClick?: (event: ExtendedGoogleEvent) => void;
   /** When true, render list only (no ScrollView) for embedding in another scroll/list. */
   embedInListHeader?: boolean;
-};
-
-const cardStyle = {
-  width: "100%" as const,
-  borderRadius: 12,
-  backgroundColor: color("neutral.50"),
-  borderWidth: 1,
-  borderColor: color("neutral.200"),
-  padding: 16,
+  silverKeyCalendarId?: string | null;
+  refreshEvents?: () => Promise<void>;
+  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
+  deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
+  calendars?: Calendar[];
 };
 
 const titleStyle = {
@@ -34,16 +34,19 @@ const titleStyle = {
 
 const emptyStyle = {
   paddingVertical: 12,
-  alignItems: "center" as const,
+  alignItems: "flex-start" as const,
 };
 
 const emptyTextStyle = {
   fontSize: 14,
   color: color("neutral.500"),
+  textAlign: "left" as const,
 };
 
 const listStyle = {
   paddingBottom: 8,
+  alignSelf: "stretch" as const,
+  alignItems: "flex-start" as const,
 };
 
 const sepStyle = {
@@ -56,13 +59,19 @@ export function EventList({
   emptyMessage = "No upcoming events",
   onEventClick,
   embedInListHeader = false,
+  silverKeyCalendarId = null,
+  refreshEvents,
+  updateEvent,
+  deleteEvent,
+  calendars = [],
 }: EventListProps) {
   const sortedEvents = useMemo(() => {
     return [...events].sort((a, b) => {
       try {
-        const dateA = dateParseISO(a.start.dateTime).valueOf();
-        const dateB = dateParseISO(b.start.dateTime).valueOf();
-        return dateA - dateB;
+        const aStart = a.start?.dateTime ?? a.start?.date;
+        const bStart = b.start?.dateTime ?? b.start?.date;
+        if (!aStart || !bStart) return 0;
+        return dateParseISO(aStart).valueOf() - dateParseISO(bStart).valueOf();
       } catch {
         return 0;
       }
@@ -79,7 +88,15 @@ export function EventList({
         {sortedEvents.map((event, index) => (
           <React.Fragment key={String(event.id ?? `event-${index}`)}>
             {index > 0 ? <Box style={sepStyle} /> : null}
-            <EventCard event={event} onClick={() => onEventClick?.(event)} />
+            <EventCard
+              event={event}
+              silverKeyCalendarId={silverKeyCalendarId}
+              refreshEvents={refreshEvents}
+              updateEvent={updateEvent}
+              deleteEvent={deleteEvent}
+              calendars={calendars}
+              onClick={() => onEventClick?.(event)}
+            />
           </React.Fragment>
         ))}
       </Box>
@@ -88,16 +105,24 @@ export function EventList({
         {sortedEvents.map((event, index) => (
           <React.Fragment key={String(event.id ?? `event-${index}`)}>
             {index > 0 ? <Box style={sepStyle} /> : null}
-            <EventCard event={event} onClick={() => onEventClick?.(event)} />
+            <EventCard
+              event={event}
+              silverKeyCalendarId={silverKeyCalendarId}
+              refreshEvents={refreshEvents}
+              updateEvent={updateEvent}
+              deleteEvent={deleteEvent}
+              calendars={calendars}
+              onClick={() => onEventClick?.(event)}
+            />
           </React.Fragment>
         ))}
       </ScrollView>
     );
 
   return (
-    <Box style={cardStyle}>
-      <Text style={titleStyle}>{title}</Text>
+    <Card className="w-full" padding="md" hover={false}>
+      {title ? <Text style={titleStyle}>{title}</Text> : null}
       {listContent}
-    </Box>
+    </Card>
   );
 }

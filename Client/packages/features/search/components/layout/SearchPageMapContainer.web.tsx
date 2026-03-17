@@ -56,7 +56,7 @@ export function SearchPageMapContainer({
           </div>
           <div className="relative z-10 flex flex-col items-center gap-4">
             {showLoadingWrapper ? (
-              <div className="rounded-full bg-white px-6 py-3 shadow-md">
+              <div className="bg-background-surface rounded-full px-6 py-3 shadow-md">
                 <KeyTurnLoader message={loadingMessage} variant={loadingVariant} />
               </div>
             ) : (

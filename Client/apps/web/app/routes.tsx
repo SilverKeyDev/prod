@@ -31,7 +31,7 @@ function SkipToMainLink() {
   return (
     <a
       href={`#${MAIN_CONTENT_ID}`}
-      className="sr-only z-[9999] rounded bg-white p-4 font-medium text-brown shadow-lg focus:fixed focus:left-4 focus:top-4 focus:block focus:h-auto focus:w-auto focus:overflow-visible focus:outline-none focus:ring-2 focus:ring-olive"
+      className="sr-only z-[9999] rounded bg-background-surface p-4 font-medium text-text-primary shadow-lg focus:fixed focus:left-4 focus:top-4 focus:block focus:h-auto focus:w-auto focus:overflow-visible focus:outline-none focus:ring-2 focus:ring-primary"
     >
       Skip to main content
     </a>
@@ -180,7 +180,7 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
   // Provide effectiveLocation in context so useDashboardRoute/AppLayout see the real URL.
   return (
     <>
-      <Suspense fallback={<div className="p-6 text-sm text-gray-600">Loading…</div>}>
+      <Suspense fallback={<div className="p-6 text-sm text-text-secondary">Loading…</div>}>
         <LocationOverrideContext.Provider value={locationOverride ? effectiveLocation : null}>
           <Routes location={effectiveLocation}>
             {/* Layout route that wraps all routes to ensure Router context is available */}

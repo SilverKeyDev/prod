@@ -9,7 +9,7 @@ export default function NotFoundPage() {
     <main
       id="main-content"
       tabIndex={-1}
-      className="flex min-h-screen flex-col items-center justify-center bg-off-white px-4"
+      className="flex min-h-screen flex-col items-center justify-center bg-background-base px-4"
     >
       <Title size="xl" as="h1" className="mb-2 text-center">
         Page not found

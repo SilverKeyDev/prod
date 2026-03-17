@@ -22,8 +22,8 @@ const RiskFlag: React.FC<RiskFlagProps> = ({ severity, message, className = "" }
   > = {
     low: {
       icon: <Icon name="info" className="h-3 w-3 sm:h-4 sm:w-4" />,
-      color: "text-navy",
-      bgColor: "bg-neutral-100",
+      color: "text-text-primary",
+      bgColor: "bg-primary-muted",
     },
     medium: {
       icon: <Icon name="alert-circle" className="h-3 w-3 sm:h-4 sm:w-4" />,
@@ -32,13 +32,13 @@ const RiskFlag: React.FC<RiskFlagProps> = ({ severity, message, className = "" }
     },
     high: {
       icon: <Icon name="alert-triangle" className="h-3 w-3 sm:h-4 sm:w-4" />,
-      color: "text-olive",
-      bgColor: "bg-neutral-100",
+      color: "text-primary",
+      bgColor: "bg-primary-muted",
     },
     critical: {
       icon: <Icon name="alert-triangle" className="h-3 w-3 sm:h-4 sm:w-4" />,
-      color: "text-rose-600",
-      bgColor: "bg-rose-50",
+      color: "text-destructive",
+      bgColor: "bg-primary-muted",
     },
   };
   const config = severityConfig[severity];

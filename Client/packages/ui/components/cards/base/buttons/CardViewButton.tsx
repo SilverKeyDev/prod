@@ -41,10 +41,10 @@ const SIZE_STYLES = {
   },
 } as const;
 const VARIANT_STYLES = {
-  primary: "bg-olive text-white hover:bg-olive/90 border-olive",
-  secondary: "bg-white text-olive border-olive hover:bg-olive/5",
-  muted: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200",
-  ghost: "text-olive hover:bg-olive/10 border-transparent",
+  primary: "bg-primary text-white hover:bg-primary-hover border-primary",
+  secondary: "bg-background-surface text-primary border-primary hover:bg-primary-muted",
+  muted: "bg-neutral-100 text-text-primary hover:bg-neutral-200 border-border",
+  ghost: "text-primary hover:bg-primary-muted border-transparent",
 } as const;
 const CardViewButton: React.FC<CardViewButtonProps> = ({
   onClick,
@@ -60,7 +60,7 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
   const currentVariantStyles = VARIANT_STYLES[variant];
   const buttonClasses = [
     "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200",
-    "border touch-friendly disabled:opacity-50 disabled:cursor-not-allowed",
+    "border touch-friendly disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
     currentSizeStyles.padding,
     currentSizeStyles.text,
     currentVariantStyles,

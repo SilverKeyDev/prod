@@ -36,10 +36,10 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
       <div className="mb-6 flex items-start justify-between">
         {/* Left Side - Price and Address */}
         <div className="flex-1">
-          <div className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
+          <div className="text-text-primary mb-2 text-2xl font-bold sm:text-3xl md:text-4xl">
             {formatPrice(propertyPrice)}
           </div>
-          <div className="text-sm text-gray-700 sm:text-base md:text-lg">
+          <div className="text-text-secondary text-sm sm:text-base md:text-lg">
             {(() => {
               const addr = (property as unknown as { address?: unknown }).address;
               if (!addr) return t("property_details.address_not_available");
@@ -74,35 +74,39 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
         <div className="flex items-center gap-2 sm:gap-4">
           {propertyBedrooms && Number(propertyBedrooms) > 0 && (
             <div className="text-center">
-              <div className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">
+              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {propertyBedrooms}
               </div>
-              <div className="text-xs text-gray-600 sm:text-sm">{t("property_details.beds")}</div>
+              <div className="text-text-secondary text-xs sm:text-sm">
+                {t("property_details.beds")}
+              </div>
             </div>
           )}
           {propertyBathrooms && Number(propertyBathrooms) > 0 && (
             <div className="text-center">
-              <div className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">
+              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {propertyBathrooms}
               </div>
-              <div className="border-b border-dashed border-gray-400 text-xs text-gray-600 sm:text-sm">
+              <div className="border-border text-text-secondary border-b border-dashed text-xs sm:text-sm">
                 {t("property_details.baths")}
               </div>
             </div>
           )}
           {propertySqft && Number(propertySqft) > 0 && (
             <div className="text-center">
-              <div className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">
+              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {Math.round(Number(propertySqft)).toLocaleString()}
               </div>
-              <div className="text-xs text-gray-600 sm:text-sm">{t("property_details.sqft")}</div>
+              <div className="text-text-secondary text-xs sm:text-sm">
+                {t("property_details.sqft")}
+              </div>
             </div>
           )}
         </div>
       </div>
 
       <Card className="p-4">
-        <Title as="h3" size="lg" className="text-brown mb-4 font-semibold">
+        <Title as="h3" size="lg" className="text-text-secondary mb-4 font-semibold">
           {t("property_details.heading")}
         </Title>
         <div className="space-y-3">

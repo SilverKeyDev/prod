@@ -89,8 +89,8 @@ export function SearchPageMobileLayout({
 
   return (
     <div className="flex h-full flex-col md:hidden">
-      <div className="flex-shrink-0 border-b border-gray-200 bg-white">
-        <div className="flex items-center justify-center border-b border-gray-200">
+      <div className="border-border bg-background-surface flex-shrink-0 border-b">
+        <div className="border-border flex items-center justify-center border-b">
           <Tabs
             active={activeTab}
             onChange={handleTabChangeWithSideEffects}

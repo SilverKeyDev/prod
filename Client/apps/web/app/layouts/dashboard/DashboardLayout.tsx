@@ -83,7 +83,7 @@ export default function DashboardLayout({
               ? "h-[calc(100dvh-var(--mobile-bottom-nav-offset,5rem))] min-h-screen"
               : "h-dvh min-h-0"
             : "min-h-screen"
-        } bg-off-white`}
+        } bg-background-base`}
         style={
           isMobile
             ? ({

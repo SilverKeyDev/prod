@@ -37,7 +37,7 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
         <div
           role="button"
           tabIndex={0}
-          className="fixed inset-0 bg-black/50 transition-opacity"
+          className="bg-overlay-backdrop fixed inset-0 transition-opacity"
           onClick={onClose}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {

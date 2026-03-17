@@ -14,6 +14,13 @@ export type UseConnectionRequestsReturn = {
   error: string | null;
   refreshRequests: () => Promise<void>;
   createRequest: (agentId: string, clientId: string, message?: string) => Promise<void>;
+  /** Create a connection request. Pass initiator (current user) and other party. Handles agentId/clientId order. */
+  createRequestAsInitiator: (
+    initiatorId: string,
+    otherPartyId: string,
+    isAgent: boolean,
+    message?: string
+  ) => Promise<void>;
   respondToRequest: (requestId: string, accept: boolean) => Promise<void>;
   isCreatingRequest: boolean;
   isResponding: boolean;
@@ -105,6 +112,17 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     [createRequestMutation]
   );
 
+  const createRequestAsInitiator = useCallback(
+    async (initiatorId: string, otherPartyId: string, isAgent: boolean, message?: string) => {
+      if (isAgent) {
+        await createRequest(initiatorId, otherPartyId, message);
+      } else {
+        await createRequest(otherPartyId, initiatorId, message);
+      }
+    },
+    [createRequest]
+  );
+
   const respondToRequest = useCallback(
     async (requestId: string, accept: boolean) => {
       await respondMutation.mutateAsync({ requestId, accept });
@@ -118,6 +136,7 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     error: error?.message ?? null,
     refreshRequests,
     createRequest,
+    createRequestAsInitiator,
     respondToRequest,
     isCreatingRequest: createRequestMutation.isPending,
     isResponding: respondMutation.isPending,

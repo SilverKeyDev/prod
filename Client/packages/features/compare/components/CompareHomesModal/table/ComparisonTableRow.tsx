@@ -16,11 +16,19 @@ type ComparisonTableRowProps = {
 };
 
 function getRowClasses(isSectionHeader: boolean, isEven: boolean, isSectionField: boolean) {
-  const bgClass = isSectionHeader ? "bg-beige/20" : isEven ? "bg-white" : "bg-beige/5";
-  const stickyBgClass = isSectionHeader ? "bg-beige/20" : isEven ? "bg-white/80" : "bg-beige/5";
+  const bgClass = isSectionHeader
+    ? "bg-accent-muted"
+    : isEven
+      ? "bg-background-surface"
+      : "bg-accent-muted";
+  const stickyBgClass = isSectionHeader
+    ? "bg-accent-muted"
+    : isEven
+      ? "bg-background-surface"
+      : "bg-accent-muted";
   const labelCellClass = isSectionHeader
-    ? "px-2 py-2.5 font-semibold text-xs sm:text-sm md:text-base sm:px-3 sm:py-3 md:px-4 md:py-3.5 border-t-2 border-b border-gray-200"
-    : `px-1 py-1 font-medium text-black sm:px-2 sm:py-2 md:px-4 md:py-3 ${
+    ? "px-2 py-2.5 font-semibold text-xs sm:text-sm md:text-base sm:px-3 sm:py-3 md:px-4 md:py-3.5 border-t-2 border-b border-border"
+    : `px-1 py-1 font-medium text-text-primary sm:px-2 sm:py-2 md:px-4 md:py-3 ${
         isSectionField ? "pl-4 sm:pl-6 md:pl-8 text-xs sm:text-sm" : ""
       }`;
   return { bgClass, stickyBgClass, labelCellClass };
@@ -59,7 +67,7 @@ export function ComparisonTableRow({
     <tr
       key={`${isSectionHeader ? "section-header" : "field"}-${field.key}-${index}`}
       className={`relative ${
-        isSectionHeader ? "bg-beige/20" : `${bgClass} border-t border-gray-200`
+        isSectionHeader ? "bg-accent-muted" : `${bgClass} border-border border-t`
       }`}
     >
       <td
@@ -69,8 +77,8 @@ export function ComparisonTableRow({
         {isSectionHeader ? (
           <div className="flex items-center gap-2">
             {field.sectionKey &&
-              renderSectionIcon(field.sectionKey, "h-4 w-4 sm:h-5 sm:w-5 text-beige")}
-            <BodyText as="span" className="text-beige">
+              renderSectionIcon(field.sectionKey, "h-4 w-4 sm:h-5 sm:w-5 text-text-secondary")}
+            <BodyText as="span" className="text-text-secondary">
               {sectionTitle}
             </BodyText>
           </div>
@@ -86,8 +94,8 @@ export function ComparisonTableRow({
             key={`${field.key}-${home.id}`}
             className={`relative px-1 py-1 sm:px-2 sm:py-2 md:px-4 md:py-3 ${cellMinWidth} ${
               isSectionHeader
-                ? "bg-beige/20 border-b border-t-2 border-neutral-200"
-                : `${isPrice ? "text-beige font-medium" : "text-black/90"} text-center`
+                ? "bg-accent-muted border-border border-b border-t-2"
+                : `${isPrice ? "text-accent font-medium" : "text-text-primary"} text-center`
             }`}
           >
             {isSectionHeader ? (

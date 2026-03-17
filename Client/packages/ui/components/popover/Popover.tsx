@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
@@ -27,6 +27,7 @@ export default function Popover({
   const { open, onToggle, onClose } = usePopoverState(controlledOpen, onOpenChange);
   const triggerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const panelId = useId();
 
   // Escape key (guarded for RN)
   useEffect(() => {
@@ -34,7 +35,15 @@ export default function Popover({
     const doc = getDocument();
     if (!doc) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        const triggerEl = triggerRef.current;
+        const first =
+          triggerEl?.querySelector<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          ) ?? (triggerEl as HTMLElement);
+        first?.focus();
+        onClose();
+      }
     };
     doc.addEventListener("keydown", handleKeyDown);
     return () => doc.removeEventListener("keydown", handleKeyDown);
@@ -51,6 +60,12 @@ export default function Popover({
       if (triggerRef.current?.contains(node) || panelRef.current?.contains(node)) {
         return;
       }
+      const triggerEl = triggerRef.current;
+      const first =
+        triggerEl?.querySelector<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? (triggerEl as HTMLElement);
+      first?.focus();
       onClose();
     };
     const handler = (e: MouseEvent) => handleClickOutside(e);
@@ -63,6 +78,22 @@ export default function Popover({
     };
   }, [open, onClose]);
 
+  // Focus first focusable in panel when opening (web only)
+  useEffect(() => {
+    if (!open) return;
+    const win = getWindow();
+    if (!win || typeof win.requestAnimationFrame !== "function") return;
+    const id = win.requestAnimationFrame(() => {
+      const first = panelRef.current?.querySelector<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      first?.focus();
+    });
+    return () => {
+      if (win.cancelAnimationFrame) win.cancelAnimationFrame(id);
+    };
+  }, [open]);
+
   const panelStyle: React.CSSProperties = {};
   if (panelMaxHeight) panelStyle.maxHeight = panelMaxHeight;
   if (panelMinWidth) panelStyle.minWidth = panelMinWidth;
@@ -70,18 +101,22 @@ export default function Popover({
   const panelContent = open ? (
     <Box
       ref={panelRef}
+      id={panelId}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={`${panelId}-title`}
       // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-      className={`z-50 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg ${panelClassName}`}
+      className={`border-border bg-background-surface z-50 overflow-y-auto rounded-lg border shadow-lg ${panelClassName}`}
       style={panelStyle}
     >
-      {children({ onClose })}
+      {children({ onClose, panelId })}
     </Box>
   ) : null;
 
   return (
     <Box className={`relative flex flex-row ${className}`.trim()}>
-      <Box ref={triggerRef} className={triggerWrapperClassName || undefined}>
-        {trigger({ open, onToggle })}
+      <Box ref={triggerRef} className={triggerWrapperClassName || undefined} tabIndex={-1}>
+        {trigger({ open, onToggle, panelId })}
       </Box>
       {usePortal && open ? (
         <Portal>

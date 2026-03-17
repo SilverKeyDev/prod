@@ -11,6 +11,7 @@ export type TitleProps = {
   as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   style?: React.CSSProperties | Record<string, unknown>;
   title?: string;
+  id?: string;
 };
 
 const sizeClasses: Record<TitleSize, string> = {
@@ -30,13 +31,14 @@ export default function Title({
   as,
   style,
   title,
+  id,
 }: TitleProps) {
   const baseClasses = "font-serif text-black";
   const sizeClass = sizeClasses[size];
   const combinedClasses = [baseClasses, sizeClass, className].filter(Boolean).join(" ");
 
   return (
-    <Text as={as ?? "h2"} className={combinedClasses} style={style} title={title}>
+    <Text as={as ?? "h2"} className={combinedClasses} style={style} title={title} id={id}>
       {children}
     </Text>
   );

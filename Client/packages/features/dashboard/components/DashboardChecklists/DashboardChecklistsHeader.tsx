@@ -74,17 +74,13 @@ export default function DashboardChecklistsHeader({
   }));
 
   return (
-    <Card
-      className="border-border-card-subtle rounded-lg border-b bg-white"
-      padding="none"
-      hover={false}
-    >
+    <Card className="bg-background-surface" padding="none" hover={false}>
       <Box className="px-2 pl-4 pt-2">
         <Box className="items-center">
-          <Title size="lg" as="h2" className="text-navy font-semibold">
+          <Title size="lg" as="h2" className="text-text-primary font-semibold">
             {title}
           </Title>
-          <BodyText size="sm" className="mt-1 text-neutral-600" as="p">
+          <BodyText size="sm" className="text-text-secondary mt-1" as="p">
             {subtitle}
           </BodyText>
         </Box>
@@ -93,7 +89,7 @@ export default function DashboardChecklistsHeader({
           <Box className="mt-2">
             <Box className="bg-card-muted-30 h-1 w-full overflow-hidden rounded">
               <Box
-                className="bg-olive h-full rounded"
+                className="bg-primary h-full rounded"
                 style={{
                   width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
                 }}
@@ -109,7 +105,6 @@ export default function DashboardChecklistsHeader({
             items={tabs}
             activeId={activeTab}
             onChange={(id) => onTabChange(id as ChecklistTab)}
-            underlineColor="bg-accent-underline"
           />
         </Box>
       )}

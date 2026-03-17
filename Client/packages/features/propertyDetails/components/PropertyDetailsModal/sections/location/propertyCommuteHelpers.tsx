@@ -22,10 +22,10 @@ export function renderCommuteAnalysisContent(data: unknown): React.ReactNode {
         if (Array.isArray(value)) {
           return (
             <div key={key}>
-              <Title as="h4" size="sm" className="text-brown mb-1 font-medium">
+              <Title as="h4" size="sm" className="text-text-secondary mb-1 font-medium">
                 {displayKey}
               </Title>
-              <ul className="text-brown/80 space-y-1 text-sm">
+              <ul className="text-text-secondary space-y-1 text-sm">
                 {value.map((item, i) => (
                   <li key={i}>• {String(item)}</li>
                 ))}
@@ -35,10 +35,10 @@ export function renderCommuteAnalysisContent(data: unknown): React.ReactNode {
         }
         return (
           <div key={key} className="flex justify-between text-sm">
-            <BodyText as="span" className="text-brown/70">
+            <BodyText as="span" className="text-text-secondary">
               {displayKey}:
             </BodyText>
-            <BodyText as="span" className="text-brown font-medium">
+            <BodyText as="span" className="text-text-secondary font-medium">
               {String(value)}
             </BodyText>
           </div>
@@ -65,12 +65,12 @@ export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTim
           ? parseInt(String(c.travel_time).replace(/\D/g, ""))
           : null;
         const tolerance = c.commute_tolerance;
-        let colorClass = "text-olive bg-olive/10";
+        let colorClass = "text-primary bg-primary";
         if (typeof travelTimeMinutes === "number" && typeof tolerance === "number") {
           if (travelTimeMinutes > tolerance * 1.2) {
-            colorClass = "text-rose bg-rose-50";
+            colorClass = "text-destructive bg-primary-muted";
           } else if (travelTimeMinutes > tolerance) {
-            colorClass = "text-yellow bg-yellow-50";
+            colorClass = "text-accent bg-accent-muted";
           }
         }
         return (
@@ -78,7 +78,10 @@ export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTim
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <BodyText as="span" className="text-brown flex-1 truncate text-sm font-medium">
+                  <BodyText
+                    as="span"
+                    className="text-text-secondary flex-1 truncate text-sm font-medium"
+                  >
                     {c.location_name || c.name || c.location_address || c.address}
                   </BodyText>
                   <BodyText
@@ -89,11 +92,11 @@ export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTim
                   </BodyText>
                 </div>
                 <div className="mt-1 flex items-center justify-between">
-                  <BodyText as="p" className="text-brown/60 flex-1 truncate text-xs">
+                  <BodyText as="p" className="text-text-secondary flex-1 truncate text-xs">
                     {c.location_address || c.address}
                   </BodyText>
                   {tolerance && (
-                    <BodyText as="p" className="text-brown/60 ml-2 flex-shrink-0 text-xs">
+                    <BodyText as="p" className="text-text-secondary ml-2 flex-shrink-0 text-xs">
                       Target: {tolerance} min
                     </BodyText>
                   )}

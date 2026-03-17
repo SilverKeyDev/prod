@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
+import { color } from "packages/design-tokens";
 import { MessagingScreenNative } from "packages/features/agent/native";
 import { ProfileScreenNative } from "packages/features/profile/native";
 import { SavedScreenNative } from "packages/features/saved/native";
@@ -37,7 +38,7 @@ export function AppStack() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#A3B18A",
+        tabBarActiveTintColor: color("primary"),
         tabBarInactiveTintColor: "#666",
         tabBarStyle: {
           paddingBottom: 6,

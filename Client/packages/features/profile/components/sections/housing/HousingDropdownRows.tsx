@@ -43,7 +43,7 @@ export function HousingDropdownRows({
               placeholder="Select..."
             />
           ) : (
-            <div className="mobile-input bg-gray-50">
+            <div className="mobile-input bg-background-base">
               {formData.preferred_architectural_style
                 ? ARCHITECTURAL_STYLE_OPTIONS.find(
                     (opt) => opt.value === formData.preferred_architectural_style
@@ -62,7 +62,7 @@ export function HousingDropdownRows({
               placeholder="Select..."
             />
           ) : (
-            <div className="mobile-input bg-gray-50">
+            <div className="mobile-input bg-background-base">
               {formData.walkability_importance
                 ? WALKABILITY_OPTIONS.find((opt) => opt.value === formData.walkability_importance)
                     ?.label
@@ -80,7 +80,7 @@ export function HousingDropdownRows({
               placeholder="Select..."
             />
           ) : (
-            <div className="mobile-input bg-gray-50">
+            <div className="mobile-input bg-background-base">
               {formData.intended_property_use
                 ? INTENDED_USE_OPTIONS.find((opt) => opt.value === formData.intended_property_use)
                     ?.label
@@ -98,7 +98,7 @@ export function HousingDropdownRows({
               placeholder="Select..."
             />
           ) : (
-            <div className="mobile-input bg-gray-50">
+            <div className="mobile-input bg-background-base">
               {formData.renovation_preference
                 ? RENOVATION_OPTIONS.find((opt) => opt.value === formData.renovation_preference)
                     ?.label
@@ -116,7 +116,7 @@ export function HousingDropdownRows({
               isEditMode={true}
             />
           ) : (
-            <div className="mobile-input bg-gray-50">
+            <div className="mobile-input bg-background-base">
               {((formData.listing_type as string[]) ?? []).length === 0
                 ? "Not specified"
                 : ((formData.listing_type as string[]) ?? [])
@@ -131,7 +131,7 @@ export function HousingDropdownRows({
                 title: (
                   <div className="mb-2 block text-sm font-medium text-transparent">&nbsp;</div>
                 ),
-                content: <div className="mobile-input bg-gray-50 opacity-0">&nbsp;</div>,
+                content: <div className="mobile-input bg-background-base opacity-0">&nbsp;</div>,
               },
             ]
           : []),

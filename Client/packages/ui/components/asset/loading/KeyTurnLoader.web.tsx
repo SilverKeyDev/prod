@@ -7,10 +7,20 @@ export default function KeyTurnLoader({
   variant = "default",
 }: {
   message?: string;
-  variant?: "default" | "gray";
+  variant?: "default" | "gray" | "sidebar";
 }) {
-  const keyColor = variant === "gray" ? color("neutral.500") : color("off-white");
-  const fillColor = variant === "gray" ? color("neutral.100") : color("off-white");
+  const keyColor =
+    variant === "gray"
+      ? color("neutral.500")
+      : variant === "sidebar"
+        ? "#ffffff"
+        : color("background-base");
+  const fillColor =
+    variant === "gray"
+      ? color("neutral.100")
+      : variant === "sidebar"
+        ? "#ffffff"
+        : color("background-base");
   const keyframeStyles = `
     @keyframes turnKey {
       0% { transform: rotate(0deg); }
@@ -116,7 +126,12 @@ export default function KeyTurnLoader({
         <BodyText
           as="span"
           style={{
-            color: variant === "gray" ? color("neutral.500") : undefined,
+            color:
+              variant === "gray"
+                ? color("neutral.500")
+                : variant === "sidebar"
+                  ? "#ffffff"
+                  : undefined,
           }}
         >
           {message}

@@ -32,10 +32,10 @@ function ContactInfoBlock({ label, value }: { label: string; value: React.ReactN
         />
       )}
       <Box>
-        <Title as="h3" size="sm" className="flex flex-col gap-1 font-semibold text-black">
+        <Title as="h3" size="sm" className="text-text-primary flex flex-col gap-1 font-semibold">
           {label}
         </Title>
-        <BodyText as="p" size="sm" className="text-responsive-sm text-gray-600">
+        <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
           {value}
         </BodyText>
       </Box>
@@ -45,10 +45,14 @@ function ContactInfoBlock({ label, value }: { label: string; value: React.ReactN
 function FAQItem({ question, children }: { question: string; children: React.ReactNode }) {
   return (
     <Box>
-      <Title as="h3" size="sm" className="flex flex-col gap-1 font-semibold text-black">
+      <Title as="h3" size="sm" className="text-text-primary flex flex-col gap-1 font-semibold">
         {question}
       </Title>
-      <BodyText as="p" size="sm" className="text-responsive-sm flex flex-col gap-2 text-gray-600">
+      <BodyText
+        as="p"
+        size="sm"
+        className="text-responsive-sm text-text-secondary flex flex-col gap-2"
+      >
         {children}
       </BodyText>
     </Box>

@@ -198,7 +198,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       fullWidth ? "w-full" : "",
       layoutClass,
       "touch-friendly",
-      (disabled ?? loading) ? "opacity-50" : "",
+      "",
       className,
     ]
       .filter(Boolean)
@@ -298,9 +298,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
     /** Native: merge buttonNativeSizes (CVA native: doesn't apply at Babel time). No inline theme overrides. */
     const nativeSizeStyle = isNative ? buttonNativeSizes[size ?? "md"] : undefined;
-    const mergedStyle = isNative
-      ? [nativeSizeStyle, style].filter(Boolean)
-      : style;
+    const mergedStyle = isNative ? [nativeSizeStyle, style].filter(Boolean) : style;
 
     return (
       <Pressable

@@ -5,7 +5,8 @@ import { useResponsive } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 
-import { getOnboardingSteps, validateOnboardingData } from "@/features/profile/utils";
+import { getOnboardingStepsUi } from "@/features/profile/components/profilePicture/profileStepsUi";
+import { validateOnboardingData } from "@/features/profile/utils";
 
 import { useOnboardingAffordability } from "./useOnboardingAffordability";
 import { getScriptsReady } from "./useOnboardingForm.helpers";
@@ -18,7 +19,7 @@ export function useOnboardingForm() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const core = useOnboardingFormCore({
-    getSteps: getOnboardingSteps,
+    getSteps: getOnboardingStepsUi,
     validate: validateOnboardingData,
     navigate: (path: string) => navigateToPath(path),
   });

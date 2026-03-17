@@ -26,10 +26,10 @@ function renderAnalysisContent(data: unknown): React.ReactNode {
         if (Array.isArray(value)) {
           return (
             <Box key={key}>
-              <Text className="text-brown mb-2 text-sm font-medium">{displayKey}</Text>
+              <Text className="text-text-secondary mb-2 text-sm font-medium">{displayKey}</Text>
               <Box className="ml-4 gap-1">
                 {value.map((item, i) => (
-                  <Text key={i} className="text-brown/80 text-sm">
+                  <Text key={i} className="text-text-secondary text-sm">
                     • {String(item)}
                   </Text>
                 ))}
@@ -39,8 +39,8 @@ function renderAnalysisContent(data: unknown): React.ReactNode {
         }
         return (
           <Box key={key} className="gap-1">
-            <Text className="text-brown text-sm font-medium">{displayKey}</Text>
-            <Text className="text-brown/80 text-sm">{String(value)}</Text>
+            <Text className="text-text-secondary text-sm font-medium">{displayKey}</Text>
+            <Text className="text-text-secondary text-sm">{String(value)}</Text>
           </Box>
         );
       })}
@@ -62,27 +62,29 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
     <Box className="p-6">
       <Box className="mb-4 flex-row items-center gap-2">
         <Icon name="graduation-cap" size={20} color={color("brown.DEFAULT")} />
-        <Text className="text-brown text-lg font-semibold">{sectionLabel}</Text>
+        <Text className="text-text-secondary text-lg font-semibold">{sectionLabel}</Text>
       </Box>
 
-      <Box className="border-beige/30 mt-2 rounded-lg border bg-white p-4">
+      <Box className="border-border bg-background-surface mt-2 rounded-lg border p-4">
         {hasSchools ? (
           <Box className="gap-3">
             {schoolList.slice(0, 6).map((school, idx) => (
               <Box key={idx} className="flex-row items-center justify-between">
                 <Box className="min-w-0 flex-1">
-                  <Text className="text-brown font-medium" numberOfLines={1}>
+                  <Text className="text-text-secondary font-medium" numberOfLines={1}>
                     {String(school.name ?? "")}
                   </Text>
-                  <Text className="text-sm text-gray-600">
+                  <Text className="text-text-secondary text-sm">
                     {String(school.level ?? "")} • {String(school.grades ?? "")}
                   </Text>
                 </Box>
                 <Box className="items-end">
-                  <Text className="text-brown text-sm font-medium">
+                  <Text className="text-text-secondary text-sm font-medium">
                     {String(school.rating ?? 0)}/10
                   </Text>
-                  <Text className="text-xs text-gray-500">{String(school.distance ?? 0)} mi</Text>
+                  <Text className="text-text-secondary text-xs">
+                    {String(school.distance ?? 0)} mi
+                  </Text>
                 </Box>
               </Box>
             ))}

@@ -104,14 +104,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   errorBlock: {
-    backgroundColor: color("rose.50"),
+    backgroundColor: color("primary-muted"),
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
   errorText: {
     fontSize: 14,
-    color: color("rose.800"),
+    color: color("destructive"),
   },
   form: {
     marginBottom: 24,

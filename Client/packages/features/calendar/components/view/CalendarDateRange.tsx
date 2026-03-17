@@ -14,7 +14,7 @@ export function CalendarDateRange({ firstDate, lastDate }: CalendarDateRangeProp
   const dateRange = formatDateRange(firstDate, lastDate);
 
   return (
-    <Title size="md" as="h2" className="font-semibold text-gray-900">
+    <Title size="md" as="h2" className="text-text-primary font-semibold">
       {dateRange}
     </Title>
   );

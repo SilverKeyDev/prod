@@ -13,23 +13,23 @@ export type ButtonStyleVariant =
   | "success";
 
 const FILLED_PRIMARY =
-  "bg-brand-accent text-white shadow-sm hover:bg-brand-accent/90 hover:shadow active:bg-brand-accent/85 focus:ring-brand-accent/25 disabled:bg-brand-accent/50 disabled:text-white/70 disabled:shadow-none";
+  "bg-primary text-white shadow-sm hover:bg-primary-hover hover:shadow active:bg-primary-hover focus:ring-neutral-400 disabled:bg-disabled disabled:text-text-disabled disabled:shadow-none";
 const FILLED_TERTIARY =
-  "bg-gold-muted text-white shadow-sm hover:bg-gold-muted/90 hover:shadow active:bg-gold-muted/85 focus:ring-gold-muted/25 disabled:bg-gold-muted/50 disabled:text-white/70 disabled:shadow-none";
+  "bg-accent text-white shadow-sm hover:bg-accent-hover hover:shadow active:bg-accent-hover focus:ring-neutral-400 disabled:bg-disabled disabled:text-text-disabled disabled:shadow-none";
 const FILLED_DANGER =
-  "bg-rose text-white shadow-sm hover:bg-rose/90 hover:shadow active:bg-rose/85 focus:ring-rose/25 disabled:bg-rose/50 disabled:text-white/70 disabled:shadow-none";
+  "bg-destructive text-white shadow-sm hover:bg-destructive-hover hover:shadow active:bg-destructive-hover focus:ring-neutral-400 disabled:bg-disabled disabled:text-text-disabled disabled:shadow-none";
 const FILLED_SUCCESS =
-  "bg-brand-secondary text-white shadow-sm hover:bg-brand-secondary/90 hover:shadow active:bg-brand-secondary/85 focus:ring-brand-secondary/25 disabled:bg-brand-secondary/50 disabled:text-white/70 disabled:shadow-none";
+  "bg-accent text-white shadow-sm hover:bg-accent-hover hover:shadow active:bg-accent-hover focus:ring-neutral-400 disabled:bg-disabled disabled:text-text-disabled disabled:shadow-none";
 
 const VARIANT_SECONDARY =
-  "bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300 focus:ring-neutral-400/25 disabled:bg-neutral-100/70 disabled:text-neutral-500";
+  "bg-neutral-100 text-text-primary hover:bg-neutral-200 active:bg-neutral-300 focus:ring-neutral-400 disabled:bg-neutral-100 disabled:text-text-disabled";
 
 /** Outline/ghost on light backgrounds: neutral text (never olive-on-white). Filled variants (primary, danger, etc.) keep white text. */
 const VARIANT_OUTLINE =
-  "border border-neutral-300 bg-transparent text-neutral-900 hover:bg-neutral-100 active:bg-neutral-200 focus:ring-neutral-400/25 disabled:border-neutral-300/70 disabled:text-neutral-500";
+  "border border-border bg-transparent text-text-primary hover:bg-neutral-100 active:bg-neutral-200 focus:ring-neutral-400 disabled:border-border disabled:text-text-disabled";
 
 const VARIANT_GHOST =
-  "bg-transparent text-neutral-900 hover:bg-neutral-100 active:bg-neutral-200 focus:ring-neutral-400/25 disabled:text-neutral-500";
+  "bg-transparent text-text-primary hover:bg-neutral-100 active:bg-neutral-200 focus:ring-neutral-400 disabled:text-text-disabled";
 
 export const BUTTON_VARIANT_STYLES: Record<ButtonStyleVariant, string> = {
   primary: FILLED_PRIMARY,

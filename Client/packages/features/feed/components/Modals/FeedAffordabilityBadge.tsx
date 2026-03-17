@@ -47,7 +47,7 @@ export function FeedAffordabilityBadge({ item }: FeedAffordabilityBadgeProps) {
         variant="ghost"
         size="sm"
         onClick={() => setSheetOpen(true)}
-        className="rounded-lg bg-white/20 px-3 py-1.5 text-left backdrop-blur-sm transition-colors hover:bg-white/30"
+        className="bg-background-surface/20 hover:bg-background-surface/30 rounded-lg px-3 py-1.5 text-left backdrop-blur-sm transition-colors"
         label="View monthly payment estimate"
       >
         <BodyText as="span" size="sm" className="font-medium text-white">
@@ -74,7 +74,7 @@ export function FeedAffordabilityBadge({ item }: FeedAffordabilityBadgeProps) {
             leaveTo="opacity-0"
           >
             <div
-              className="fixed inset-0 bg-black/50"
+              className="bg-overlay-backdrop fixed inset-0"
               aria-hidden
               onClick={() => setSheetOpen(false)}
             />
@@ -88,8 +88,8 @@ export function FeedAffordabilityBadge({ item }: FeedAffordabilityBadgeProps) {
               leaveFrom="translate-y-0"
               leaveTo="translate-y-full"
             >
-              <AccessibleDialog.Panel className="flex max-h-[70dvh] w-full flex-col rounded-t-2xl bg-white">
-                <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+              <AccessibleDialog.Panel className="bg-background-surface flex max-h-[70dvh] w-full flex-col rounded-t-2xl">
+                <div className="border-border flex items-center justify-between border-b px-4 py-3">
                   <Title size="md" as="h2">
                     Monthly Payment Estimate
                   </Title>
@@ -98,7 +98,7 @@ export function FeedAffordabilityBadge({ item }: FeedAffordabilityBadgeProps) {
                 <div className="flex-1 overflow-y-auto p-4">
                   {monthlyPayment && item.price ? (
                     <div className="space-y-4">
-                      <div className="bg-brand-accent/10 rounded-lg p-4">
+                      <div className="bg-primary-muted rounded-lg p-4">
                         <BodyText size="xs" muted className="mb-1">
                           Listing price
                         </BodyText>
@@ -106,11 +106,11 @@ export function FeedAffordabilityBadge({ item }: FeedAffordabilityBadgeProps) {
                           ${item.price.toLocaleString()}
                         </BodyText>
                       </div>
-                      <div className="bg-brand-accent/10 rounded-lg p-4">
+                      <div className="bg-primary-muted rounded-lg p-4">
                         <BodyText size="xs" muted className="mb-1">
                           Est. monthly payment
                         </BodyText>
-                        <BodyText size="lg" className="text-brand-accent font-semibold">
+                        <BodyText size="lg" className="text-primary font-semibold">
                           ${monthlyPayment.toLocaleString()}/mo
                         </BodyText>
                       </div>

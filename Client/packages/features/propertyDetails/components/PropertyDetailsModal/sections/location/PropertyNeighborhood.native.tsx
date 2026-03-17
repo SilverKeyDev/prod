@@ -20,10 +20,10 @@ function renderNeighborhoodContent(data: Record<string, unknown>): React.ReactNo
         if (Array.isArray(value)) {
           return (
             <Box key={key}>
-              <Text className="text-brown mb-2 text-sm font-medium">{displayKey}</Text>
+              <Text className="text-text-primary mb-2 text-sm font-medium">{displayKey}</Text>
               <Box className="ml-4 gap-1">
                 {value.map((item, i) => (
-                  <Text key={i} className="text-brown/80 text-sm">
+                  <Text key={i} className="text-text-secondary text-sm">
                     • {String(item)}
                   </Text>
                 ))}
@@ -33,15 +33,15 @@ function renderNeighborhoodContent(data: Record<string, unknown>): React.ReactNo
         }
         if (typeof value === "object" && value !== null) {
           return (
-            <Box key={key} className="border-beige/40 bg-beige/10 rounded-lg border p-3">
-              <Text className="text-brown mb-2 text-sm font-medium">{displayKey}</Text>
+            <Box key={key} className="border-border bg-accent-muted rounded-lg border p-3">
+              <Text className="text-text-primary mb-2 text-sm font-medium">{displayKey}</Text>
               <Box className="gap-2">
                 {Object.entries(value as Record<string, unknown>).map(([subKey, subValue]) => (
                   <Box key={subKey}>
-                    <Text className="text-brown text-sm font-medium">
+                    <Text className="text-text-primary text-sm font-medium">
                       {subKey.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
                     </Text>
-                    <Text className="text-brown/80 text-sm">{String(subValue)}</Text>
+                    <Text className="text-text-secondary text-sm">{String(subValue)}</Text>
                   </Box>
                 ))}
               </Box>
@@ -50,8 +50,8 @@ function renderNeighborhoodContent(data: Record<string, unknown>): React.ReactNo
         }
         return (
           <Box key={key} className="gap-1">
-            <Text className="text-brown text-sm font-medium">{displayKey}</Text>
-            <Text className="text-brown/80 text-sm">{String(value)}</Text>
+            <Text className="text-text-primary text-sm font-medium">{displayKey}</Text>
+            <Text className="text-text-secondary text-sm">{String(value)}</Text>
           </Box>
         );
       })}
@@ -72,17 +72,17 @@ function renderAgeDistribution(data: Record<string, string>): React.ReactNode {
   const maxValue = Math.max(...entries.map((e) => e.numValue), 100);
   return (
     <Box className="gap-3">
-      <Text className="text-brown text-sm font-medium">Age Distribution</Text>
+      <Text className="text-text-primary text-sm font-medium">Age Distribution</Text>
       <Box className="gap-2">
         {entries.map(({ key, value, numValue }) => (
           <Box key={key} className="gap-1">
             <Box className="flex-row justify-between">
-              <Text className="text-brown/70 text-sm">{key} years</Text>
-              <Text className="text-brown text-sm font-medium">{value}</Text>
+              <Text className="text-text-secondary text-sm">{key} years</Text>
+              <Text className="text-text-primary text-sm font-medium">{value}</Text>
             </Box>
-            <Box className="bg-beige/30 h-2 w-full overflow-hidden rounded-full">
+            <Box className="bg-accent-muted h-2 w-full overflow-hidden rounded-full">
               <Box
-                className="bg-olive h-full rounded-full"
+                className="bg-primary h-full rounded-full"
                 style={{ width: `${(numValue / maxValue) * 100}%` }}
               />
             </Box>
@@ -121,17 +121,17 @@ export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
     <Box className="p-6">
       <Box className="mb-4 flex-row items-center gap-2">
         <Icon name="shield" size={20} color={color("brown.DEFAULT")} />
-        <Text className="text-brown text-lg font-semibold">{sectionLabel}</Text>
+        <Text className="text-text-primary text-lg font-semibold">{sectionLabel}</Text>
       </Box>
       <SectionTintWrapper className="mt-2">
         <Box className="gap-6">
           {hasNeighborhoodContent && (
-            <Box className="border-beige/30 rounded-lg border bg-white p-4">
+            <Box className="border-border bg-background-surface rounded-lg border p-4">
               {renderNeighborhoodContent(neighborhoodContent!)}
             </Box>
           )}
           {hasAgeDistribution && (
-            <Box className="border-beige/30 rounded-lg border bg-white p-4">
+            <Box className="border-border bg-background-surface rounded-lg border p-4">
               {renderAgeDistribution(ageDistribution!)}
             </Box>
           )}

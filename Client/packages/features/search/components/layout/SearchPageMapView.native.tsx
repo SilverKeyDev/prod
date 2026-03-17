@@ -66,11 +66,11 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
         <Pressable style={styles.propertyCard} onPress={() => onViewPropertyDetails(item)}>
           <Box style={styles.propertyCardRow}>
             <Box style={styles.propertyCardContent}>
-              <Text className="text-base font-medium text-gray-900" numberOfLines={2}>
+              <Text className="text-text-primary text-base font-medium" numberOfLines={2}>
                 {item.address}
               </Text>
-              <Text className="text-olive mt-1 text-sm">{item.price}</Text>
-              <Text className="mt-0.5 text-xs text-gray-500">
+              <Text className="text-primary mt-1 text-sm">{item.price}</Text>
+              <Text className="text-text-secondary mt-0.5 text-xs">
                 {item.bedrooms} bed · {item.bathrooms} bath
               </Text>
             </Box>
@@ -128,7 +128,7 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
         />
       </Box>
 
-      <Box className="bg-white">
+      <Box className="bg-background-surface">
         <Box style={styles.tabContainer}>
           <Pressable
             onPress={() => handleTabPress("results")}
@@ -137,8 +137,8 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
             <Text
               className={
                 activeTab === "results"
-                  ? "text-center text-xs font-medium text-gray-900"
-                  : "text-center text-xs font-medium text-gray-500"
+                  ? "text-text-primary text-center text-xs font-medium"
+                  : "text-text-secondary text-center text-xs font-medium"
               }
             >
               {SEARCH_TRANSLATIONS["search.search_tab"] ?? "Results"}
@@ -151,8 +151,8 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
             <Text
               className={
                 activeTab === "saved"
-                  ? "text-center text-xs font-medium text-gray-900"
-                  : "text-center text-xs font-medium text-gray-500"
+                  ? "text-text-primary text-center text-xs font-medium"
+                  : "text-text-secondary text-center text-xs font-medium"
               }
             >
               {SEARCH_TRANSLATIONS["search.saved_tab"] ?? "Saved"}
@@ -167,7 +167,7 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <Box style={styles.emptyContainer}>
-              <Text className="text-center text-sm text-gray-600">
+              <Text className="text-text-secondary text-center text-sm">
                 {hasSearched
                   ? (SEARCH_TRANSLATIONS["search.no_results_try_adjusting"] ??
                     "No homes match your search yet. Try adjusting your preferences.")

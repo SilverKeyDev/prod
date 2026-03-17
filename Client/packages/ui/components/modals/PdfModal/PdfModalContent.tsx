@@ -34,7 +34,7 @@ export const PdfModalContent: React.FC<PdfModalContentProps> = ({
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 p-6 text-center sm:hidden">
           <div className="mb-4">
             <svg
-              className="text-olive mx-auto h-16 w-16"
+              className="text-primary mx-auto h-16 w-16"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -56,7 +56,7 @@ export const PdfModalContent: React.FC<PdfModalContentProps> = ({
           <Button
             variant="primary"
             onClick={onOpenInNewTab}
-            className="from-gold to-gold/90 hover:from-gold/90 hover:to-gold/80 group flex items-center gap-2 bg-gradient-to-r font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95"
+            className="from-accent to-accent-hover hover:from-accent-hover hover:to-accent group flex items-center gap-2 bg-gradient-to-r font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95"
           >
             <BodyText as="span">{t("pdf.open_in_new_tab")}</BodyText>
             <Icon

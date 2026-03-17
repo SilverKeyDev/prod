@@ -6,11 +6,13 @@ import {
   CHECKLIST_SUBTITLES,
   CHECKLIST_TITLES,
   ChecklistIntegrationSlot,
+  ChecklistItemDocuments,
   type ChecklistTab,
   type ChecklistType,
   useChecklistData,
   useChecklistProgress,
 } from "packages/features/checklists";
+import { useIsAgent } from "packages/features/homeauth";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
@@ -31,10 +33,11 @@ type ClientChecklistsProps = {
 };
 
 export default function ClientChecklists({
-  userId: _userId,
+  userId,
   activeTab,
   onTabChange,
 }: ClientChecklistsProps) {
+  const isAgent = useIsAgent();
   const [internalTab, setInternalTab] = useState<ChecklistTab>(activeTab);
   const currentTab = onTabChange != null ? activeTab : internalTab;
   const setTab = useCallback(
@@ -82,7 +85,7 @@ export default function ClientChecklists({
   return (
     <Box className="gap-3">
       <Box className="flex-row items-center justify-between">
-        <Text className="text-sm font-semibold text-gray-900">Client checklists</Text>
+        <Text className="text-text-primary text-sm font-semibold">Client checklists</Text>
         {totalCount > 0 ? (
           <Text className="text-warm-stone text-xs">
             {completedCount} of {totalCount} items complete
@@ -95,7 +98,7 @@ export default function ClientChecklists({
       </Text>
 
       {onTabChange == null ? (
-        <Box className="mt-2 flex-row rounded-lg bg-gray-100 p-1">
+        <Box className="bg-primary-muted mt-2 flex-row rounded-lg p-1">
           {(["search", "offer", "escrow", "inspections", "financing", "closing"] as const).map(
             (tab) => {
               const isActive = tab === currentTab;
@@ -105,11 +108,11 @@ export default function ClientChecklists({
                   key={tab}
                   onPress={() => setTab(tab)}
                   // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-                  className={`flex-1 rounded-md px-2 py-1.5 ${isActive ? "bg-white shadow-sm" : ""} ${locked ? "opacity-60" : ""}`}
+                  className={`flex-1 rounded-md px-2 py-1.5 ${isActive ? "bg-background-surface shadow-sm" : ""} ${locked ? "opacity-60" : ""}`}
                 >
                   <Text
                     // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-                    className={`text-center text-xs font-medium ${isActive ? "text-gray-900" : "text-gray-600"}`}
+                    className={`text-center text-xs font-medium ${isActive ? "text-text-primary" : "text-text-secondary"}`}
                     numberOfLines={1}
                   >
                     {CHECKLIST_TITLES[tab]}
@@ -121,7 +124,7 @@ export default function ClientChecklists({
         </Box>
       ) : null}
 
-      <Card className="bg-gray-50" padding="sm" hover={false}>
+      <Card className="bg-background-base" padding="sm" hover={false}>
         {isLoading ? (
           <Box className="items-center justify-center py-8">
             <Loading />
@@ -131,7 +134,7 @@ export default function ClientChecklists({
             <Text className="text-sm text-red-500">{error}</Text>
             <Pressable
               onPress={handleRefresh}
-              className="bg-brand-accent self-start rounded-lg px-3 py-1.5"
+              className="bg-primary self-start rounded-lg px-3 py-1.5"
             >
               <Text className="text-xs font-medium text-white">Retry</Text>
             </Pressable>
@@ -143,8 +146,9 @@ export default function ClientChecklists({
         ) : (
           <Box className="flex flex-row flex-col gap-4">
             {isSectionLocked && (
-              <Box className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                <Text className="text-xs text-amber-800">
+              <Box className="border-border bg-background-base flex flex-row items-center gap-2 rounded-lg border px-4 py-3">
+                <Icon name="lock" className="text-text-muted h-3.5 w-3.5 shrink-0" />
+                <Text className="text-text-muted text-xs">
                   Complete all items in the previous section to unlock this section.
                 </Text>
               </Box>
@@ -162,21 +166,21 @@ export default function ClientChecklists({
                     }}
                     disabled={!checkable}
                     // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-                    className={`flex w-full flex-row items-stretch rounded-lg border border-gray-200 ${activeItemId != null && item.id === activeItemId ? "ring-accent-underline shadow-md ring-2" : ""} ${checkable ? "bg-white" : "cursor-not-allowed bg-gray-50 opacity-75"}`}
+                    className={`border-border flex w-full flex-row items-stretch rounded-lg border ${activeItemId != null && item.id === activeItemId ? "ring-accent-underline shadow-md ring-2" : ""} ${checkable ? "bg-background-surface" : "bg-background-base cursor-not-allowed opacity-75"}`}
                   >
                     <Box className="flex min-w-0 flex-1 flex-row items-start gap-3 px-3 py-2">
                       <Box
                         // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-                        className={`mt-1 h-5 w-5 items-center justify-center rounded border ${checked ? "border-brand-accent bg-brand-accent" : checkable ? "border-gray-300 bg-white" : "border-gray-200 bg-gray-100"}`}
+                        className={`mt-1 h-5 w-5 items-center justify-center rounded border ${checked ? "border-primary bg-primary" : checkable ? "border-border bg-background-surface" : "border-border bg-primary-muted"}`}
                       >
                         {checked ? (
                           <Text className="text-xs font-semibold text-white">✓</Text>
                         ) : !checkable ? (
-                          <Icon name="lock" className="h-3 w-3 text-gray-400" />
+                          <Icon name="lock" className="text-text-disabled h-3 w-3" />
                         ) : null}
                       </Box>
                       <Box className="flex-1 text-left">
-                        <Text className="text-sm font-medium text-gray-900">
+                        <Text className="text-text-primary text-sm font-medium">
                           {item.label}
                           {item.optional ? (
                             <Text className="text-warm-stone font-normal"> (optional)</Text>
@@ -200,7 +204,7 @@ export default function ClientChecklists({
                               </Box>
                             ) : null}
                             {item.tip ? (
-                              <Text className="text-olive-700 mt-1.5 text-xs">{item.tip}</Text>
+                              <Text className="text-primary-700 mt-1.5 text-xs">{item.tip}</Text>
                             ) : null}
                           </>
                         )}
@@ -208,13 +212,24 @@ export default function ClientChecklists({
                     </Box>
                   </Pressable>
                   {activeItemId != null && item.id === activeItemId && (
-                    <ChecklistIntegrationSlot
-                      componentKey={item.component_key}
-                      isCurrent={!!shouldShowIntegration}
-                      onComplete={() => {
-                        if (checkable) void toggleItem(item.id);
-                      }}
-                    />
+                    <>
+                      <ChecklistIntegrationSlot
+                        componentKey={item.component_key}
+                        isCurrent={!!shouldShowIntegration}
+                        onComplete={() => {
+                          if (checkable) void toggleItem(item.id);
+                        }}
+                      />
+                      <Box className="mt-3">
+                        <ChecklistItemDocuments
+                          transactionId={userId}
+                          section={currentTab}
+                          itemId={item.id}
+                          suggestedFormIds={item.suggestedFormIds}
+                          isAgent={isAgent}
+                        />
+                      </Box>
+                    </>
                   )}
                 </Box>
               );

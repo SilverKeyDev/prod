@@ -18,7 +18,7 @@ export function FeedFeatureTags({ features }: FeedFeatureTagsProps) {
           key={`${label}-${i}`}
           as="span"
           size="xs"
-          className="rounded-full bg-neutral-100 px-2 py-0.5 text-neutral-700"
+          className="bg-primary-muted text-text-secondary rounded-full px-2 py-0.5"
         >
           {label}
         </BodyText>

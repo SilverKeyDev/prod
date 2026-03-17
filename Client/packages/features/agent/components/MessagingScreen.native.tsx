@@ -4,11 +4,14 @@ import Loading from "@ui/asset/loading/Loading";
 import Input from "@ui/form/Input";
 import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
 
+import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
+import { useIsAgent } from "packages/features/homeauth";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { useMessaging } from "packages/hooks/data/chat/useMessaging";
+import { useMessagingHandlers } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
@@ -24,8 +27,6 @@ import SelectDocumentModal from "@/features/agent/components/modals/SelectDocume
 import SelectHomeModal from "@/features/agent/components/modals/SelectHomeModal";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import { useAgentAutoSelectClient } from "@/features/agent/hooks/ui/useAgentAutoSelectClient";
-import { useAgentMessagingHandlers } from "@/features/messaging/components/AgentMessaging/useAgentMessagingHandlers";
-import { useClientMessagingHandlers } from "@/features/messaging/components/ClientMessaging/useClientMessagingHandlers";
 import { resolvePrimaryAgentId } from "@/features/messaging/utils";
 
 const styles = StyleSheet.create({
@@ -36,8 +37,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 12,
     borderTopWidth: 1,
-    borderTopColor: color("neutral.200"),
-    backgroundColor: color("neutral.50"),
+    borderTopColor: color("border"),
+    backgroundColor: color("background-base"),
   },
   centered: {
     flex: 1,
@@ -48,8 +49,9 @@ const styles = StyleSheet.create({
 });
 
 export function MessagingScreenNative() {
+  const { t } = useLocalization();
   const authReady = useAuthStore((s) => s.authReady);
-  const isAgent = useAuthStore((s) => !!s.user?.is_agent);
+  const isAgent = useIsAgent();
   const { userProfile } = useUserData();
   const { clients, isLoading: isLoadingClients } = useAgentClients();
   const { conversations: agentConversations } = useAgentChats();
@@ -112,9 +114,11 @@ export function MessagingScreenNative() {
     isResponding,
   } = useConnectionRequests();
 
-  const clientHandlers = useClientMessagingHandlers({
+  const clientHandlers = useMessagingHandlers({
+    mode: "client",
     activeConversationId: activeConversationId ?? null,
     agentId,
+    clientUserId: userProfile?.id ?? null,
     activeConversation,
     setShowSelectHomeModal,
     setShowSelectDocumentModal,
@@ -124,7 +128,8 @@ export function MessagingScreenNative() {
     refreshChats,
   });
 
-  const agentHandlers = useAgentMessagingHandlers({
+  const agentHandlers = useMessagingHandlers({
+    mode: "agent",
     selectedClientId,
     activeConversationId: activeConversationId ?? null,
     activeConversation,
@@ -135,7 +140,6 @@ export function MessagingScreenNative() {
     setAcceptingEventRequestId,
     refreshActiveConversationHistory,
     refreshChats,
-    sendMessageApi: sendMessage,
   });
 
   const handlers = isAgent ? agentHandlers : clientHandlers;
@@ -215,8 +219,8 @@ export function MessagingScreenNative() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={80}
     >
-      <Box className="flex-row items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3">
-        <Text className="text-base font-semibold text-gray-900">
+      <Box className="border-border bg-background-base flex-row items-center justify-between border-b px-4 py-3">
+        <Text className="text-text-primary text-base font-semibold">
           {isAgent && selectedClient
             ? `Chat with ${selectedClient.name ?? selectedClient.email ?? "Client"}`
             : !isAgent && activeConversation?.agent_name
@@ -225,17 +229,17 @@ export function MessagingScreenNative() {
         </Text>
         <Pressable
           onPress={refreshChats}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2"
+          className="border-border bg-background-surface rounded-lg border px-3 py-2"
         >
-          <Text className="text-sm font-medium text-gray-800">Refresh</Text>
+          <Text className="text-text-primary text-sm font-medium">{t("agent.refresh")}</Text>
         </Pressable>
       </Box>
       {isAgent && selectedClientId && (
         <Pressable
           onPress={() => setSelectedClientId(null)}
-          className="border-b border-gray-100 bg-gray-50 px-4 py-2"
+          className="border-border bg-background-base border-b px-4 py-2"
         >
-          <Text className="text-brand-accent">← Back to conversations</Text>
+          <Text className="text-primary">{t("agent.back_to_conversations")}</Text>
         </Pressable>
       )}
 
@@ -251,10 +255,10 @@ export function MessagingScreenNative() {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.centered}>
-              <Text className="text-base font-medium text-gray-900">
+              <Text className="text-text-primary text-base font-medium">
                 {config.emptyStates.noMessages.title}
               </Text>
-              <Text className="mt-1 text-center text-sm text-gray-500">
+              <Text className="text-text-secondary mt-1 text-center text-sm">
                 {config.emptyStates.noMessages.message}
               </Text>
             </View>
@@ -280,23 +284,23 @@ export function MessagingScreenNative() {
         <Pressable
           onPress={() => setShowAttachmentMenu(true)}
           disabled={!canSendMessage}
-          className="mr-2 rounded-lg border border-gray-200 bg-white p-3"
+          className="border-border bg-background-surface mr-2 rounded-lg border p-3"
         >
-          <Text className="text-sm font-medium text-gray-700">+</Text>
+          <Text className="text-text-secondary text-sm font-medium">+</Text>
         </Pressable>
         <Input
           value={inputText}
           onValueChange={setInputText}
           placeholder={config.input.placeholder}
-          className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-3"
+          className="border-border bg-background-surface flex-1 rounded-lg border px-4 py-3"
           editable={canSendMessage}
         />
         <Pressable
           onPress={handleSend}
           disabled={!inputText.trim() || !canSendMessage}
-          className="bg-brand-accent ml-2 rounded-lg px-4 py-3"
+          className="bg-primary ml-2 rounded-lg px-4 py-3"
         >
-          <Text className="font-medium text-white">Send</Text>
+          <Text className="font-medium text-white">{t("agent.send")}</Text>
         </Pressable>
       </View>
 
@@ -330,7 +334,7 @@ export function MessagingScreenNative() {
         <SelectAgreementModal
           isOpen={showSelectAgreementModal}
           onClose={() => setShowSelectAgreementModal(false)}
-          onSelect={handlers.handleSelectAgreement}
+          onSelect={handlers.handleSelectAgreement!}
           clientId={selectedClientId ?? undefined}
         />
       )}

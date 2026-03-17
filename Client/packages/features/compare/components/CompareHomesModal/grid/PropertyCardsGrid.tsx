@@ -60,7 +60,7 @@ function SelectedCompareCard({
                 e.stopPropagation();
                 onRemove(home.home_id);
               }}
-              className="group relative inline-flex h-9 w-9 flex-row items-center justify-center rounded-full bg-white text-gray-400 shadow-md ring-1 ring-neutral-200 hover:text-gray-600 active:text-gray-600 active:text-gray-700"
+              className="bg-background-surface text-text-disabled ring-border hover:text-text-secondary active:text-text-secondary active:text-text-secondary group relative inline-flex h-9 w-9 flex-row items-center justify-center rounded-full shadow-md ring-1"
               label={t("compare.remove_aria")}
             >
               <Icon name="x" className="h-4 w-4" />

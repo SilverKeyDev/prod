@@ -17,6 +17,6 @@ export const SEARCH_HEADER_PANEL_CLASS_DEFAULT =
 /** Narrow panel (e.g. home type) – width 280px. */
 export const SEARCH_HEADER_PANEL_CLASS_HOME_TYPE = "scrollbar-styled p-4 w-[min(90vw,280px)]";
 
-/** Locations panel class – width 480px, bordered. */
+/** Locations panel class – width 480px, matches filter panel styling. */
 export const SEARCH_HEADER_PANEL_CLASS_LOCATIONS =
-  "p-4 w-[min(90vw,480px)] max-h-[85vh] overflow-y-auto bg-white/95 border-2 border-dashed border-gray-200";
+  "scrollbar-styled p-4 w-[min(90vw,480px)] max-h-[85vh] overflow-y-auto";

@@ -34,9 +34,9 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   const variantStyles = {
     success: "bg-green-100 text-green-800",
     warning: "bg-yellow-100 text-yellow-800",
-    error: "bg-rose-100 text-rose-800",
+    error: "bg-destructive text-white",
     info: "bg-blue-100 text-blue-800",
-    processing: "bg-gold text-white",
+    processing: "bg-accent text-white",
     default: "bg-neutral-100 text-neutral-800",
   };
 

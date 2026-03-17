@@ -33,24 +33,24 @@ function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTimeItem[]
           ? parseInt(String(c.travel_time).replace(/\D/g, ""), 10)
           : null;
         const tolerance = c.commute_tolerance;
-        let bgClass = "bg-olive/10";
-        let textClass = "text-olive";
+        let bgClass = "bg-primary";
+        let textClass = "text-primary";
         if (typeof travelTimeMinutes === "number" && typeof tolerance === "number") {
           if (travelTimeMinutes > tolerance * 1.2) {
-            bgClass = "bg-rose-50";
-            textClass = "text-rose";
+            bgClass = "bg-primary-muted";
+            textClass = "text-destructive";
           } else if (travelTimeMinutes > tolerance) {
-            bgClass = "bg-yellow-50";
-            textClass = "text-yellow-700";
+            bgClass = "bg-accent-muted";
+            textClass = "text-accent";
           }
         }
         return (
-          <Box key={i} className="border-beige/30 rounded-lg border bg-white p-4">
+          <Box key={i} className="border-border bg-background-surface rounded-lg border p-4">
             <Box className="flex-row items-center justify-between">
               <Box className="min-w-0 flex-1">
                 <Box className="flex-row items-center justify-between">
                   <Text
-                    className={`text-brown flex-1 text-sm font-medium ${textClass}`}
+                    className={`text-text-secondary flex-1 text-sm font-medium ${textClass}`}
                     numberOfLines={1}
                   >
                     {c.location_name || c.name || c.location_address || c.address}
@@ -62,11 +62,11 @@ function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTimeItem[]
                   </Text>
                 </Box>
                 <Box className="mt-1 flex-row items-center justify-between">
-                  <Text className="text-brown/60 flex-1 text-xs" numberOfLines={1}>
+                  <Text className="text-text-secondary flex-1 text-xs" numberOfLines={1}>
                     {c.location_address || c.address}
                   </Text>
                   {tolerance != null && (
-                    <Text className="text-brown/60 ml-2 flex-shrink-0 text-xs">
+                    <Text className="text-text-secondary ml-2 flex-shrink-0 text-xs">
                       Target: {tolerance} min
                     </Text>
                   )}
@@ -94,10 +94,10 @@ function CommuteAnalysisContent({ data }: { data: unknown }) {
         if (Array.isArray(value)) {
           return (
             <Box key={key}>
-              <Text className="text-brown mb-1 text-sm font-medium">{displayKey}</Text>
+              <Text className="text-text-secondary mb-1 text-sm font-medium">{displayKey}</Text>
               <Box className="gap-1">
                 {value.map((item, i) => (
-                  <Text key={i} className="text-brown/80 text-sm">
+                  <Text key={i} className="text-text-secondary text-sm">
                     • {String(item)}
                   </Text>
                 ))}
@@ -107,8 +107,8 @@ function CommuteAnalysisContent({ data }: { data: unknown }) {
         }
         return (
           <Box key={key} className="flex-row justify-between">
-            <Text className="text-brown/70 text-sm">{displayKey}:</Text>
-            <Text className="text-brown text-sm font-medium">{String(value)}</Text>
+            <Text className="text-text-secondary text-sm">{displayKey}:</Text>
+            <Text className="text-text-secondary text-sm font-medium">{String(value)}</Text>
           </Box>
         );
       })}
@@ -143,13 +143,13 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
     <Box className="p-6">
       <Box className="mb-4 flex-row items-center gap-2">
         <Icon name="map-pin" size={20} color={color("brown.DEFAULT")} />
-        <Text className="text-brown text-lg font-semibold">{sectionLabel}</Text>
+        <Text className="text-text-secondary text-lg font-semibold">{sectionLabel}</Text>
       </Box>
       <SectionTintWrapper className="mt-2">
         {hasTravelTimes ? (
           <Box className="gap-4">
             {commute.map_url ? (
-              <Box className="border-beige/40 rounded-lg border bg-white p-4">
+              <Box className="border-border bg-background-surface rounded-lg border p-4">
                 <Image
                   source={{ uri: commute.map_url }}
                   style={{
@@ -161,10 +161,12 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
                 />
               </Box>
             ) : (
-              <Box className="border-beige/40 items-center justify-center rounded-lg border bg-white p-4">
+              <Box className="border-border bg-background-surface items-center justify-center rounded-lg border p-4">
                 <Icon name="map-pin" size={48} color="rgba(140, 111, 90, 0.4)" />
-                <Text className="text-brown mt-3 font-medium">Commute Map</Text>
-                <Text className="text-brown/60 mt-1 text-sm">Map generation in progress...</Text>
+                <Text className="text-text-secondary mt-3 font-medium">Commute Map</Text>
+                <Text className="text-text-secondary mt-1 text-sm">
+                  Map generation in progress...
+                </Text>
               </Box>
             )}
             <CommuteTravelTimeCards travelTimes={commute.travel_times ?? []} />
@@ -172,21 +174,21 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
         ) : (
           <Box className="gap-2">
             {commute.commute_time != null && (
-              <Text className="text-brown/70 text-sm">
-                <Text className="text-brown font-semibold">Commute Time:</Text>{" "}
+              <Text className="text-text-secondary text-sm">
+                <Text className="text-text-secondary font-semibold">Commute Time:</Text>{" "}
                 {String(commute.commute_time)} minutes
               </Text>
             )}
             {commute.commute_distance != null && (
-              <Text className="text-brown/70 text-sm">
-                <Text className="text-brown font-semibold">Commute Distance:</Text>{" "}
+              <Text className="text-text-secondary text-sm">
+                <Text className="text-text-secondary font-semibold">Commute Distance:</Text>{" "}
                 {String(commute.commute_distance)} miles
               </Text>
             )}
           </Box>
         )}
         {analysisContent != null && (
-          <Box className="border-beige/30 mt-4 rounded-lg border bg-white p-4">
+          <Box className="border-border bg-background-surface mt-4 rounded-lg border p-4">
             <CommuteAnalysisContent data={analysisContent} />
           </Box>
         )}

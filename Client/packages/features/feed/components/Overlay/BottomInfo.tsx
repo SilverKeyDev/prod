@@ -85,7 +85,7 @@ export function BottomInfo({
               <BodyText
                 as="span"
                 size="xs"
-                className="rounded bg-neutral-600/80 px-1.5 py-0.5 text-white"
+                className="bg-text-secondary rounded px-1.5 py-0.5 text-white"
               >
                 Sponsored
               </BodyText>
@@ -101,7 +101,7 @@ export function BottomInfo({
               variant="outline"
               size="sm"
               onClick={onFollow}
-              className="border-white/50 text-white hover:bg-white/20"
+              className="hover:bg-background-surface/20 border-white/50 text-white"
             >
               Follow
             </Button>

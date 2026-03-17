@@ -26,13 +26,13 @@ export default function AgreementDetailModal({
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title="Agreement Details" showCloseButton>
-      <Box className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <Text className="mb-1 text-sm font-semibold text-gray-900">
+      <Box className="border-border bg-background-base rounded-lg border p-4">
+        <Text className="text-text-primary mb-1 text-sm font-semibold">
           {t("documents.agreement_not_available", {
             defaultValue: "Agreement details are not available yet.",
           })}
         </Text>
-        <Text className="text-xs text-gray-700">
+        <Text className="text-text-secondary text-xs">
           {t("documents.agreement_not_available_body", {
             defaultValue:
               "We are migrating to a new signing provider. You can still access your documents from the Documents section on web.",

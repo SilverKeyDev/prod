@@ -90,17 +90,17 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
     return (
       <>
         <Box className="mb-3 flex-row items-center justify-between">
-          <Text className="text-base font-semibold text-gray-900">
+          <Text className="text-text-primary text-base font-semibold">
             {t("dashboard.agreements_title")}
           </Text>
         </Box>
         <Box className="items-center justify-center py-4">
-          <Text className="mb-2 text-center text-sm text-gray-700">
+          <Text className="text-text-secondary mb-2 text-center text-sm">
             {t("dashboard.agreements_not_available", {
               defaultValue: "Agreements are not available yet.",
             })}
           </Text>
-          <Text className="mb-4 text-center text-xs text-gray-600">
+          <Text className="text-text-secondary mb-4 text-center text-xs">
             {t("dashboard.agreements_not_available_body", {
               defaultValue:
                 "We are migrating to a new signing provider. You can review agreements from the Documents section when available.",
@@ -135,7 +135,7 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
       <Box className="gap-6">
         <Box className="flex-row items-center justify-between">
           <Box className="flex-row items-center gap-2">
-            <Icon name="file-text" className="h-5 w-5 text-gray-600" />
+            <Icon name="file-text" className="text-text-secondary h-5 w-5" />
             <Title size="md">{t("dashboard.agreements_title")}</Title>
           </Box>
           <Button variant="primary" size="sm" {...createButtonProps}>
@@ -145,10 +145,10 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
         </Box>
 
         {clientAgreements.length === 0 ? (
-          <Box className="rounded-lg border border-dashed border-gray-300 py-12">
+          <Box className="border-border rounded-lg border border-dashed py-12">
             <Box className="items-center">
-              <Icon name="file-text" className="mb-3 h-12 w-12 text-gray-400" />
-              <BodyText size="md" className="mb-2 text-gray-700">
+              <Icon name="file-text" className="text-text-disabled mb-3 h-12 w-12" />
+              <BodyText size="md" className="text-text-secondary mb-2">
                 {t("dashboard.agreements_no_yet")}
               </BodyText>
               <BodyText size="sm" muted className="mb-4">
@@ -163,7 +163,7 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
           <Box className="gap-6">
             {groupedAgreements.active.length > 0 && (
               <Box>
-                <Title as="h3" size="sm" className="mb-3 font-medium text-gray-700">
+                <Title as="h3" size="sm" className="text-text-secondary mb-3 font-medium">
                   {t("dashboard.agreements_active")} ({groupedAgreements.active.length})
                 </Title>
                 <Box className="gap-3">
@@ -181,7 +181,7 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
             )}
             {groupedAgreements.completed.length > 0 && (
               <Box>
-                <Title as="h3" size="sm" className="mb-3 font-medium text-gray-700">
+                <Title as="h3" size="sm" className="text-text-secondary mb-3 font-medium">
                   {t("dashboard.agreements_completed")} ({groupedAgreements.completed.length})
                 </Title>
                 <Box className="gap-3">
@@ -197,7 +197,7 @@ export default function ClientAgreements({ clientId }: ClientAgreementsProps) {
             )}
             {groupedAgreements.voided.length > 0 && (
               <Box>
-                <Title as="h3" size="sm" className="mb-3 font-medium text-gray-700">
+                <Title as="h3" size="sm" className="text-text-secondary mb-3 font-medium">
                   {t("dashboard.agreements_voided")} ({groupedAgreements.voided.length})
                 </Title>
                 <Box className="gap-3">

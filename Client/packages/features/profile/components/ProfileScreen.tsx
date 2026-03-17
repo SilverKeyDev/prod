@@ -22,21 +22,11 @@ import { showErrorToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
-import { Icon } from "packages/ui/components/primitives";
 import { ScrollView } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
 import { Loading } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
-import type { IconName } from "packages/ui/types/icons";
-
-const STEP_ICON_NAMES: Record<string, IconName> = {
-  demographics: "user",
-  housing: "home",
-  location: "map-pin",
-  communication: "message-square",
-  financial: "building",
-};
+import { UnderlineTabs } from "packages/ui/components/tabs";
 
 export function ProfileScreen() {
   const { t } = useLocalization();
@@ -213,7 +203,7 @@ export function ProfileScreen() {
   if (preferencesError) {
     return (
       <Box className="flex-1 items-center justify-center p-6">
-        <Text className="text-gray-600">{preferencesError}</Text>
+        <Text className="text-text-secondary">{preferencesError}</Text>
       </Box>
     );
   }
@@ -263,52 +253,27 @@ export function ProfileScreen() {
             )}
           </Box>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingVertical: 8, paddingHorizontal: 2 }}
-          >
-            {STEPS.map((step) => {
-              const isActive = activeSection === step.id;
+          <UnderlineTabs
+            items={STEPS.map((step) => {
               const status =
                 sectionCompletion[step.id as keyof typeof sectionCompletion] ?? "empty";
               const isComplete = status === "complete";
               const needsAttention = status === "needs_attention";
-              const iconName = STEP_ICON_NAMES[step.id];
-              return (
-                <Pressable
-                  key={step.id}
-                  onPress={() => setActiveSection(step.id)}
-                  className={`mr-2 rounded-full px-4 py-2 ${isActive ? "bg-gold" : "bg-gray-100"}`}
-                >
-                  <Box className="flex-row items-center gap-2">
-                    {iconName != null ? (
-                      <Icon
-                        name={iconName}
-                        size={16}
-                        className={isActive ? "text-white" : "text-gray-600"}
-                      />
-                    ) : null}
-                    {isComplete ? (
-                      <Text
-                        className={`text-xs ${isActive ? "text-off-white" : "text-brand-accent"}`}
-                      >
-                        ✓
-                      </Text>
-                    ) : null}
-                    {!isComplete && needsAttention ? (
-                      <Text className="text-gold text-xs">•</Text>
-                    ) : null}
-                    <Text
-                      className={`text-sm font-medium ${isActive ? "text-off-white" : "text-gray-800"}`}
-                    >
-                      {step.title}
-                    </Text>
-                  </Box>
-                </Pressable>
-              );
+              const icon = step.icon
+                ? React.createElement(step.icon, { className: "h-4 w-4" })
+                : undefined;
+              const suffix = isComplete ? " ✓" : !isComplete && needsAttention ? " •" : "";
+              return {
+                id: step.id,
+                label: `${step.title}${suffix}`,
+                icon,
+              };
             })}
-          </ScrollView>
+            activeId={activeSection}
+            onChange={(id) => setActiveSection(id)}
+            compact
+            className="mb-4"
+          />
 
           {activeSection === "demographics" && (
             <ProfileDemographicsSection

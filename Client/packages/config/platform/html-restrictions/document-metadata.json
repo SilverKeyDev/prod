@@ -1,7 +1,18 @@
 {
   "category": "document-metadata",
   "description": "Document structure and metadata elements illegal in React Native",
-  "elements": ["html", "head", "body", "title", "base", "link", "meta", "style", "script", "noscript"],
+  "elements": [
+    "html",
+    "head",
+    "body",
+    "title",
+    "base",
+    "link",
+    "meta",
+    "style",
+    "script",
+    "noscript"
+  ],
   "reason": "React Native has no DOM concept - these are web document structure elements",
   "alternatives": {
     "html": "App root component with React Native navigation",

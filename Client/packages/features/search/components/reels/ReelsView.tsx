@@ -32,7 +32,7 @@ export function ReelsView({ scrollControllerRef }: ReelsViewProps) {
   const items = useMemo(() => rawItems.map((listing) => listingToReelMedia(listing)), [rawItems]);
 
   return (
-    <Box className="w-full flex-1 bg-neutral-900">
+    <Box className="bg-text-primary w-full flex-1">
       <FeedScrollContainer
         items={items}
         fetchNextPage={fetchNextPage}

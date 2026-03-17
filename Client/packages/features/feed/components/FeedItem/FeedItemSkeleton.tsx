@@ -13,7 +13,7 @@ type FeedItemSkeletonProps = {
  */
 export function FeedItemSkeleton({ thumbnailUrl }: FeedItemSkeletonProps = {}) {
   return (
-    <div className="relative h-full min-h-0 w-full overflow-hidden bg-neutral-800">
+    <div className="bg-text-primary relative h-full min-h-0 w-full overflow-hidden">
       {thumbnailUrl ? (
         <>
           <Image
@@ -30,7 +30,7 @@ export function FeedItemSkeleton({ thumbnailUrl }: FeedItemSkeletonProps = {}) {
           </div>
         </>
       ) : (
-        <div className="absolute inset-0 animate-pulse bg-neutral-700/50 blur-sm" />
+        <div className="bg-text-secondary absolute inset-0 animate-pulse blur-sm" />
       )}
     </div>
   );

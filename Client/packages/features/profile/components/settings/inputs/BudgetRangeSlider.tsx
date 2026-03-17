@@ -107,9 +107,9 @@ export default function BudgetRangeSlider({
   const trackHeight = spacing(2);
   const valueBlock = (
     <Box className="flex flex-row items-center justify-center gap-2">
-      <Text className="text-sm font-medium text-gray-900">{formattedValue(minValue)}</Text>
-      <Text className="text-sm text-gray-400">—</Text>
-      <Text className="text-sm font-medium text-gray-900">
+      <Text className="text-text-primary text-sm font-medium">{formattedValue(minValue)}</Text>
+      <Text className="text-text-disabled text-sm">—</Text>
+      <Text className="text-text-primary text-sm font-medium">
         {maxValue >= tickValues[tickValues.length - 1]
           ? `${formattedValue(maxValue)}+`
           : formattedValue(maxValue)}
@@ -123,11 +123,11 @@ export default function BudgetRangeSlider({
         <Box className="flex flex-col items-center gap-2">
           <Box className="relative w-full justify-center" style={{ height: trackHeight }}>
             <Box
-              className="absolute h-2 w-full rounded-lg bg-gray-300"
+              className="bg-border absolute h-2 w-full rounded-lg"
               style={{ height: trackHeight }}
             />
             <Box
-              className="bg-gold absolute rounded-lg"
+              className="bg-accent absolute rounded-lg"
               style={{
                 left: `${minSliderValue}%`,
                 width: `${maxSliderValue - minSliderValue}%`,

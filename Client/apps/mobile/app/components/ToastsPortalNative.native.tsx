@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 
+import { color } from "packages/design-tokens";
 import { useUIStore } from "packages/store";
 import { Text } from "packages/ui/components/primitives";
 import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
@@ -80,20 +81,20 @@ const styles = StyleSheet.create({
         }),
   },
   toastSuccess: {
-    backgroundColor: "#A3B18A",
+    backgroundColor: color("primary"),
   },
   toastError: {
-    backgroundColor: "#F43F5E",
+    backgroundColor: color("destructive"),
   },
   message: {
     flex: 1,
     fontSize: 14,
   },
   messageSuccess: {
-    color: "#fff",
+    color: color("background-surface"),
   },
   messageError: {
-    color: "#fff",
+    color: color("background-surface"),
   },
   close: {
     marginLeft: 8,
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
   },
   closeText: {
     fontSize: 20,
-    color: "#fff",
+    color: color("background-surface"),
     fontWeight: "300",
   },
 });

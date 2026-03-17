@@ -91,10 +91,10 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       default:
         return (
           <Box className="py-6">
-            <Text className="mb-2 text-center text-lg font-semibold text-gray-900">
+            <Text className="text-text-primary mb-2 text-center text-lg font-semibold">
               Complete your profile
             </Text>
-            <Text className="text-center text-sm text-gray-600">
+            <Text className="text-text-secondary text-center text-sm">
               Use the buttons below to continue or go back to another step.
             </Text>
           </Box>
@@ -109,7 +109,7 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       keyboardVerticalOffset={useIOSKeyboardAvoiding ? 64 : 0}
     >
       <View style={styles.progressRow}>
-        <Text className="text-sm text-gray-600">
+        <Text className="text-text-secondary text-sm">
           Step {currentStep + 1} of {steps.length}
         </Text>
         <Box className="mt-2 flex flex-row items-center justify-center gap-2">
@@ -143,7 +143,7 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       <View style={styles.footer}>
         {currentStep > 0 ? (
           <Pressable onPress={prevStep} style={styles.backButton}>
-            <Text className="text-base font-medium text-gray-700">Back</Text>
+            <Text className="text-text-secondary text-base font-medium">Back</Text>
           </Pressable>
         ) : (
           <View style={styles.backPlaceholder} />

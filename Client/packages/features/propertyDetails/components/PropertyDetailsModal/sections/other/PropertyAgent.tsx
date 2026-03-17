@@ -26,7 +26,7 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
   const phone = agent.phone as Record<string, unknown> | undefined;
   const agentContent = (
     <div className="flex items-start space-x-4">
-      <div className="border-brown/20 bg-brown/10 h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
+      <div className="border-brown/20 bg-primary-muted h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -37,22 +37,22 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
           <div
             className={`h-full w-full items-center justify-center ${imageUrl ? "hidden" : "flex"}`}
           >
-            <Icon name="user" className="text-brown/60 h-8 w-8" />
+            <Icon name="user" className="text-text-secondary h-8 w-8" />
           </div>
         )}
       </div>
 
       <div className="flex-1">
-        <Title as="h4" size="lg" className="text-gold font-medium">
+        <Title as="h4" size="lg" className="text-accent font-medium">
           {displayName}
         </Title>
         {businessName && (
-          <BodyText as="p" className="text-brown/70">
+          <BodyText as="p" className="text-text-secondary">
             {businessName}
           </BodyText>
         )}
         {phone && (
-          <div className="text-brown mt-2 flex items-center">
+          <div className="text-text-secondary mt-2 flex items-center">
             <Icon name="phone" className="mr-1 h-4 w-4" />
 
             {(() => {
@@ -99,8 +99,8 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
     return (
       <div>
         <div className="mb-4 flex items-center gap-2">
-          <Icon name="user" className="text-brown h-5 w-5" />
-          <Title as="h3" size="lg" className="text-brown font-semibold">
+          <Icon name="user" className="text-text-secondary h-5 w-5" />
+          <Title as="h3" size="lg" className="text-text-secondary font-semibold">
             Listing Agent
           </Title>
         </div>
@@ -111,8 +111,8 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
   return (
     <div>
       <div className="mb-4 flex items-center gap-2">
-        <Icon name="user" className="text-brown h-5 w-5" />
-        <Title as="h3" size="lg" className="text-brown font-semibold">
+        <Icon name="user" className="text-text-secondary h-5 w-5" />
+        <Title as="h3" size="lg" className="text-text-secondary font-semibold">
           Listing Agent
         </Title>
       </div>

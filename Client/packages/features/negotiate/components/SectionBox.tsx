@@ -6,7 +6,7 @@ type SectionBoxProps = {
 };
 
 const SectionBox: React.FC<SectionBoxProps> = ({ children, className = "" }) => {
-  const baseClasses = "bg-white rounded-xl shadow-sm p-6 mb-6 border border-beige/40";
+  const baseClasses = "bg-background-surface rounded-xl shadow-sm p-6 mb-6 border border-border";
   const combinedClasses = `${baseClasses} ${className}`.trim();
 
   return <div className={combinedClasses}>{children}</div>;

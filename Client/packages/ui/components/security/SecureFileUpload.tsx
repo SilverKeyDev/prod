@@ -207,7 +207,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
         role="button"
         tabIndex={disabled ? -1 : 0}
         // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-        className={`relative ${DROP_ZONE_BORDER_BASE} p-6 text-center ${CARD_TRANSITION_CLASSES} ${isDragOver ? "border-brand-accent bg-neutral-100" : "hover:border-brand-accent active:border-brand-accent border-gray-300"} ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-gray-50 active:bg-gray-100 active:opacity-90"} active:bg-gray-50`}
+        className={`relative ${DROP_ZONE_BORDER_BASE} p-6 text-center ${CARD_TRANSITION_CLASSES} ${isDragOver ? "border-primary bg-primary-muted" : "hover:border-primary active:border-primary border-border"} ${disabled ? "bg-disabled text-text-disabled cursor-not-allowed" : "hover:bg-accent-muted cursor-pointer active:bg-neutral-100"} active:bg-accent-muted`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -292,7 +292,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
             {files.map((file) => (
               <Box
                 key={file.id}
-                className="flex flex-row items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4"
+                className="border-border bg-primary-muted flex flex-row items-center justify-between rounded-lg border p-4"
               >
                 <Box className="flex flex-row items-center gap-4">
                   <Box className="flex-shrink-0">
@@ -300,7 +300,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                       <Image
                         src={file.preview}
                         alt={file.file.name}
-                        className="h-12 w-12 rounded-lg border border-gray-200 object-cover"
+                        className="border-border h-12 w-12 rounded-lg border object-cover"
                       />
                     ) : (
                       <Box className="flex h-12 w-12 flex-row items-center justify-center rounded-lg bg-gray-200">
@@ -354,7 +354,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
             className="relative max-h-full min-h-0 max-w-4xl flex-1 overflow-hidden"
             padding="none"
           >
-            <Box className="flex flex-row items-center justify-between border-b border-gray-200 p-4">
+            <Box className="border-border flex flex-row items-center justify-between border-b p-4">
               <Title as="h3" size="lg" className="font-medium text-gray-900">
                 {previewFile.file.name}
               </Title>

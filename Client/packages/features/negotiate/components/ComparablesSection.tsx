@@ -38,7 +38,9 @@ export function ComparablesSection({
 
   return (
     <div className="my-responsive-lg">
-      <SectionTitle className="!text-brown">{t("negotiate.comparables_title")}</SectionTitle>
+      <SectionTitle className="!text-text-secondary">
+        {t("negotiate.comparables_title")}
+      </SectionTitle>
       <CardCarousel
         items={compsArray}
         loading={false}

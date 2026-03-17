@@ -26,12 +26,12 @@ const Label: React.FC<LabelProps> = ({ children, htmlFor, required = false, clas
 export const RequiredLabel: React.FC<LabelProps> = ({ children, className = "", htmlFor }) => (
   <Label
     htmlFor={htmlFor}
-    className={`block text-xs font-medium text-black sm:text-sm md:text-base ${className}`}
+    className={`text-text-primary block text-xs font-medium sm:text-sm md:text-base ${className}`}
   >
     {children}
     <Icon
       name="asterisk"
-      className="ml-1 inline-block h-3.5 w-3.5 align-[0.04em] text-rose-400/60"
+      className="text-destructive/60 ml-1 inline-block h-3.5 w-3.5 align-[0.04em]"
       strokeWidth={3}
       aria-hidden="true"
     />
@@ -40,7 +40,7 @@ export const RequiredLabel: React.FC<LabelProps> = ({ children, className = "", 
 export const OptionalLabel: React.FC<LabelProps> = ({ children, className = "", htmlFor }) => (
   <Label
     htmlFor={htmlFor}
-    className={`block text-xs font-medium text-black sm:text-sm md:text-base ${className}`}
+    className={`text-text-primary block text-xs font-medium sm:text-sm md:text-base ${className}`}
   >
     {children}
   </Label>

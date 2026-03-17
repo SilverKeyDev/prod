@@ -1,116 +1,56 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 
 import Input from "@ui/form/Input";
 
 import { spacing } from "packages/design-tokens";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import { useUserPreferences } from "packages/hooks/data/useUserData";
-import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { BaseModal } from "packages/ui/components/modals";
-import { ScrollView } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
 import { Pressable } from "packages/ui/components/primitives";
-import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
+import { ScrollView } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/primitives";
 
-/** Same schema as user preferences important_locations (web source of truth). */
-type SearchImportantLocation = {
-  address: string;
-  commute_tolerance?: number;
-};
-
-const MAX_VISIBLE = 3;
-const ADDRESS_MAX_LENGTH = 28;
-const LOCATION_SAVE_DEBOUNCE_MS = 400;
+import { SearchHeaderLocationsTrigger } from "./SearchHeaderLocations/SearchHeaderLocationsTrigger";
+import type { SearchImportantLocation } from "./SearchHeaderLocations/types";
+import { useSearchHeaderLocations } from "./SearchHeaderLocations/useSearchHeaderLocations";
 
 function spacingToNum(token: string): number {
   const m = token.match(/^([\d.]+)rem$/);
   return m ? parseFloat(m[1]) * 16 : 0;
 }
 
-function truncateAddress(address: string): string {
-  if (address.length <= ADDRESS_MAX_LENGTH) return address;
-  return `${address.slice(0, ADDRESS_MAX_LENGTH - 3)}...`;
-}
-
-export type SearchHeaderLocationsProps = {
-  /** Called after locations are saved (e.g. refresh isochrone) */
-  onPreferencesChanged?: () => void | Promise<void>;
-  /** When true, trigger does not use flex-1 (for use as right side of criteria bar). */
-  compact?: boolean;
-};
+export type { SearchHeaderLocationsProps } from "./SearchHeaderLocations/types";
 
 export function SearchHeaderLocations({
   onPreferencesChanged,
   compact = false,
-}: SearchHeaderLocationsProps): React.ReactElement {
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [localLocations, setLocalLocations] = useState<SearchImportantLocation[]>([]);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { userPreferences, updatePreferences } = useUserPreferences();
-
-  const locations = userPreferences?.important_locations as
-    | SearchImportantLocation[]
-    | undefined
-    | null;
-  const locationsList = Array.isArray(locations) ? locations : [];
-  const hasLocations = locationsList.length > 0;
+}: {
+  onPreferencesChanged?: () => void | Promise<void>;
+  compact?: boolean;
+}): React.ReactElement {
+  const [sheetOpen, setSheetOpen] = React.useState(false);
+  const {
+    locations,
+    locationsList,
+    hasLocations,
+    localLocations,
+    updateFormData,
+    syncLocalFromPreferences,
+    saveAndClose,
+  } = useSearchHeaderLocations(onPreferencesChanged);
 
   useEffect(() => {
     if (sheetOpen) {
-      setLocalLocations(Array.isArray(locations) ? [...locations] : []);
+      syncLocalFromPreferences(Array.isArray(locations) ? locations : []);
     }
-  }, [sheetOpen, locations]);
-
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, []);
-
-  const updateFormData = useCallback(
-    (_field: string | number | symbol, value: unknown) => {
-      const next = Array.isArray(value) ? (value as SearchImportantLocation[]) : [];
-      setLocalLocations(next);
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => {
-        saveTimeoutRef.current = null;
-        void updatePreferences({ important_locations: next })
-          .then(() => onPreferencesChanged?.())
-          .catch(() => {
-            showErrorToast("Could not save locations. Please try again.");
-          });
-      }, LOCATION_SAVE_DEBOUNCE_MS);
-    },
-    [updatePreferences, onPreferencesChanged]
-  );
+  }, [sheetOpen, locations, syncLocalFromPreferences]);
 
   const handleOpenSheet = useCallback(() => setSheetOpen(true), []);
 
   const handleCloseSheet = useCallback(() => {
     setSheetOpen(false);
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-    const toSave = localLocations ?? [];
-    void updatePreferences({ important_locations: toSave })
-      .then(() => onPreferencesChanged?.())
-      .catch(() => {
-        showErrorToast("Could not save locations. Please try again.");
-      });
-  }, [localLocations, updatePreferences, onPreferencesChanged]);
-
-  const commuteLabel = (minutes: number): string =>
-    (SEARCH_TRANSLATIONS["search.commute_min"] ?? "{{min}} min").replace(
-      "{{min}}",
-      String(minutes)
-    );
-  const moreLabel = (count: number): string =>
-    (SEARCH_TRANSLATIONS["search.locations_more"] ?? "+{{count}} more").replace(
-      "{{count}}",
-      String(count)
-    );
+    saveAndClose();
+  }, [saveAndClose]);
 
   const safeLocations = useMemo(
     () => (Array.isArray(localLocations) ? localLocations : []),
@@ -174,48 +114,13 @@ export function SearchHeaderLocations({
 
   if (!sheetOpen) {
     return (
-      <Pressable
+      <SearchHeaderLocationsTrigger
+        locationsList={locationsList}
+        hasLocations={hasLocations}
         onPress={handleOpenSheet}
-        className={`flex-row items-center justify-between gap-2 overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-white/70 px-3 ${HEADER_ROW_HEIGHT} ${compact ? "shrink-0" : "min-w-0 flex-1"}`}
-      >
-        {hasLocations ? (
-          <>
-            {!compact && (
-              <Box className="min-h-0 min-w-0 flex-1 flex-row flex-nowrap items-center gap-x-2 overflow-hidden">
-                {locationsList.slice(0, MAX_VISIBLE).map((loc, i) => (
-                  <Box
-                    key={`${loc.address}-${loc.commute_tolerance ?? ""}-${i}`}
-                    className="shrink-0 flex-row items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5"
-                  >
-                    <Text className="max-w-28 truncate text-xs text-gray-700" numberOfLines={1}>
-                      {truncateAddress(loc.address)}
-                    </Text>
-                    {loc.commute_tolerance != null ? (
-                      <Text className="shrink-0 text-xs text-gray-500" numberOfLines={1}>
-                        {commuteLabel(loc.commute_tolerance)}
-                      </Text>
-                    ) : null}
-                  </Box>
-                ))}
-                {locationsList.length > MAX_VISIBLE ? (
-                  <Text className="shrink-0 text-xs text-gray-500">
-                    {moreLabel(locationsList.length - MAX_VISIBLE)}
-                  </Text>
-                ) : null}
-              </Box>
-            )}
-            <Text className="shrink-0 text-sm text-gray-400">
-              {SEARCH_TRANSLATIONS["search.edit_locations"] ?? "Edit locations"}
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text className="text-sm text-gray-600">
-              {SEARCH_TRANSLATIONS["search.add_location"] ?? "Add location"}
-            </Text>
-          </>
-        )}
-      </Pressable>
+        compact={compact}
+        expanded={sheetOpen}
+      />
     );
   }
 
@@ -234,7 +139,7 @@ export function SearchHeaderLocations({
           paddingBottom: spacingToNum(spacing(6)),
         }}
       >
-        <Text className="mb-3 text-sm text-gray-600">
+        <Text className="text-text-secondary mb-3 text-sm">
           {SEARCH_TRANSLATIONS["search.location_preferences_description"] ??
             "Add work, family, or other places. We'll use these to find homes that fit your life."}
         </Text>
@@ -243,7 +148,7 @@ export function SearchHeaderLocations({
             const commuteText = loc.commute_tolerance != null ? String(loc.commute_tolerance) : "";
             return (
               <Box key={`loc-${index}`} className="gap-2">
-                <Text className="text-sm font-medium text-gray-700">
+                <Text className="text-text-secondary text-sm font-medium">
                   Location {displayList.length > 1 ? index + 1 : ""}
                 </Text>
                 <Box className="gap-2">
@@ -251,20 +156,20 @@ export function SearchHeaderLocations({
                     value={loc.address ?? ""}
                     onValueChange={(v) => handleAddressChange(index, v ?? "")}
                     placeholder="Address or city"
-                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                    className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
                   />
                   <Input
                     value={commuteText}
                     onValueChange={(v) => handleCommuteChange(index, v ?? "")}
                     placeholder="Commute max (minutes, optional)"
                     keyboardType="number-pad"
-                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                    className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
                   />
                 </Box>
                 {displayList.length > 1 && (
                   <Pressable
                     onPress={() => handleRemoveLocation(index)}
-                    className="self-start rounded-lg border border-gray-200 bg-white px-3 py-2"
+                    className="border-border bg-background-surface self-start rounded-lg border px-3 py-2"
                   >
                     <Text className="text-sm font-medium text-red-600">Remove</Text>
                   </Pressable>
@@ -274,9 +179,9 @@ export function SearchHeaderLocations({
           })}
           <Pressable
             onPress={handleAddLocation}
-            className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-3"
+            className="border-border bg-background-base rounded-lg border-2 border-dashed py-3"
           >
-            <Text className="text-center text-sm font-medium text-gray-600">
+            <Text className="text-text-secondary text-center text-sm font-medium">
               Add another location
             </Text>
           </Pressable>

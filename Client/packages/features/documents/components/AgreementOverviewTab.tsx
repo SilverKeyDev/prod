@@ -126,7 +126,7 @@ export default function AgreementOverviewTab({
       )}
 
       {/* Actions */}
-      <Box className="flex flex-row items-center gap-2 border-t border-gray-200 pt-4">
+      <Box className="border-border flex flex-row items-center gap-2 border-t pt-4">
         {userCanSend && (
           <Button variant="primary" size="md" onClick={onSend} disabled={isSendingAgreement}>
             {isSendingAgreement ? "Sending..." : "Send for Signature"}

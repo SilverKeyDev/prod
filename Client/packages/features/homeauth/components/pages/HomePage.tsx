@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import RippleBackground from "packages/features/homeauth/components/homepage/RippleBackground.web";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link, ROUTES, useNavigation } from "packages/navigation";
 import type { AutocompleteSuggestion } from "packages/schemas/google-maps";
 import { LOGO } from "packages/ui/components/asset";
+import { RippleBackground } from "packages/ui/components/backgrounds";
 import { Image } from "packages/ui/components/primitives";
 import { asError } from "packages/utils/error";
 import { getWindow } from "packages/utils/platform";
@@ -114,9 +114,9 @@ export default function HomePage() {
     return () => clearTimeout(debounce);
   }, [address, scriptsReady, hasSelected]);
   return (
-    <div className="hide-scrollbar flex min-h-screen flex-col bg-white">
+    <div className="hide-scrollbar bg-background-surface flex min-h-screen flex-col">
       {/* Header */}
-      <header className="px-responsive-sm fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between border-b border-gray-200 bg-white py-2 shadow-lg sm:py-3">
+      <header className="px-responsive-sm border-border bg-background-surface fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between border-b py-2 shadow-lg sm:py-3">
         <Image src={LOGO} alt="SilverKey Logo" className="h-8 w-auto" />
         <div className="text-responsive-sm flex gap-1.5 font-medium sm:gap-2">
           <Link
@@ -127,7 +127,7 @@ export default function HomePage() {
           </Link>
           <Link
             to={ROUTES.SIGNUP}
-            className="bg-gold hover:bg-gold/90 rounded-md px-3 py-2 text-white transition-colors sm:px-4 sm:py-2.5"
+            className="bg-accent hover:bg-accent-hover rounded-md px-3 py-2 text-white transition-colors sm:px-4 sm:py-2.5"
           >
             Sign Up
           </Link>
@@ -146,7 +146,7 @@ export default function HomePage() {
         {/* Centered Content Wrapper */}
         <div className="relative z-10 mx-auto flex w-full max-w-[85%] flex-col items-center">
           <div className="mx-auto w-full max-w-3xl text-center">
-            <div className="rounded-lg bg-white p-6 shadow-lg sm:p-8">
+            <div className="bg-background-surface rounded-lg p-6 shadow-lg sm:p-8">
               <Title size="xl" as="h1" className="mb-4">
                 Discover a New Way to Buy
               </Title>
@@ -156,7 +156,7 @@ export default function HomePage() {
               <div className="mt-4 sm:mt-8">
                 <Button
                   onClick={() => setShowAuthModal(true)}
-                  variant="olive"
+                  variant="primary"
                   size="md"
                   className="w-1/2"
                 >
@@ -172,30 +172,30 @@ export default function HomePage() {
               {
                 title: "Find Properties",
                 description: "Select your preferences and let our AI find the best homes for you",
-                icon: <Icon name="building-2" className="mobile-icon-lg text-gray-500" />,
+                icon: <Icon name="building-2" className="mobile-icon-lg text-text-secondary" />,
               },
               {
                 title: "Decide on a Home",
                 description:
                   "Input the facts of homes into spreadsheets or reports and get detailed analysis of the neighborhood.",
-                icon: <Icon name="bar-chart-2" className="mobile-icon-lg text-gray-500" />,
+                icon: <Icon name="bar-chart-2" className="mobile-icon-lg text-text-secondary" />,
               },
               {
                 title: "Negotiate",
                 description:
                   "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
-                icon: <Icon name="lightbulb" className="mobile-icon-lg text-gray-500" />,
+                icon: <Icon name="lightbulb" className="mobile-icon-lg text-text-secondary" />,
               },
               {
                 title: "Purchase",
                 description:
                   "Use our timelines and paperwork to find and submit the appropriate paperwork, disclosures, etc, without paying legal fees.",
-                icon: <Icon name="folder-lock" className="mobile-icon-lg text-gray-500" />,
+                icon: <Icon name="folder-lock" className="mobile-icon-lg text-text-secondary" />,
               },
             ].map((f, i) => (
               <div
                 key={i}
-                className="touch-friendly flex cursor-pointer flex-col items-center rounded-xl bg-white p-4 text-center shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-5"
+                className="touch-friendly bg-background-surface flex cursor-pointer flex-col items-center rounded-xl p-4 text-center shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-5"
               >
                 <div className="mb-2">{f.icon}</div>
                 <Title size="md" as="h3" className="mb-3 w-[87%]">
@@ -212,19 +212,19 @@ export default function HomePage() {
           <div className="gap-responsive-sm text-responsive-xs relative mt-10 flex flex-wrap items-center justify-center text-center">
             <Link
               to={ROUTES.PRIVACY}
-              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
+              className="px-responsive-xl py-responsive-xs touch-friendly bg-background-surface text-text-secondary hover:text-text-primary flex items-center justify-center rounded-lg shadow transition-all duration-200 hover:shadow-md"
             >
               Privacy Policy
             </Link>
             <Link
               to={ROUTES.TERMS}
-              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
+              className="px-responsive-xl py-responsive-xs touch-friendly bg-background-surface text-text-secondary hover:text-text-primary flex items-center justify-center rounded-lg shadow transition-all duration-200 hover:shadow-md"
             >
               Terms of Service
             </Link>
             <Link
               to={ROUTES.CONTACT}
-              className="px-responsive-xl py-responsive-xs touch-friendly flex items-center justify-center rounded-lg bg-white text-gray-600 shadow transition-all duration-200 hover:text-gray-800 hover:shadow-md"
+              className="px-responsive-xl py-responsive-xs touch-friendly bg-background-surface text-text-secondary hover:text-text-primary flex items-center justify-center rounded-lg shadow transition-all duration-200 hover:shadow-md"
             >
               Contact Us
             </Link>
@@ -235,10 +235,10 @@ export default function HomePage() {
       {/* Auth Modal */}
       {showAuthModal && (
         <div className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="space-responsive-lg w-full max-w-md rounded-2xl bg-white shadow">
+          <div className="space-responsive-lg bg-background-surface w-full max-w-md rounded-2xl shadow">
             <div className="mb-4 flex justify-between">
               <div className="gap-responsive-xs flex items-center">
-                <Icon name="lock" className="mobile-icon-sm text-gray-600" />
+                <Icon name="lock" className="mobile-icon-sm text-text-secondary" />
                 Account Required
               </div>
               <CloseButton onClick={() => setShowAuthModal(false)} />

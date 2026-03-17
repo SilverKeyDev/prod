@@ -21,7 +21,7 @@ const BOTTOM_NAV_KEYS: SidebarTabKey[] = ["dashboard", "search", "decide", "agen
 const navItems = BOTTOM_NAV_KEYS.map((k) => SIDEBAR_TABS[k]);
 
 const BAR_CLASS =
-  "fixed inset-x-0 bottom-0 z-[9999] flex w-full min-h-[4rem] flex-col border-t border-brown-light/20 bg-brown shadow-lg md:hidden";
+  "fixed inset-x-0 bottom-0 z-[9999] flex w-full min-h-[4rem] flex-col border-t border-border bg-background-sidebar shadow-lg md:hidden";
 function linkClass(active: boolean): string {
   return `flex flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-all duration-200 ${active ? "text-white" : "text-white/80 active:text-white/95"}`;
 }

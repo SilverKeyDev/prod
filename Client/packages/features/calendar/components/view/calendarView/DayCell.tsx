@@ -81,11 +81,11 @@ function EventChip({
     "flex h-6 min-h-6 w-full min-w-0 items-center overflow-hidden rounded border-l-4 px-1 font-medium";
   const variantClasses = isSilverKeyEvent
     ? isPast
-      ? "bg-gold/10 border-gold/70 text-gray-600"
-      : "bg-gold/10 border-gold text-gray-800"
+      ? "bg-accent-muted border-accent text-text-secondary"
+      : "bg-accent-muted border-accent text-text-primary"
     : isPast
-      ? "border-gray-300 bg-gray-100 text-gray-500"
-      : "border-gray-400 bg-gray-100 text-gray-700";
+      ? "border-border bg-primary-muted text-text-secondary"
+      : "border-border bg-primary-muted text-text-secondary";
 
   return (
     <div className={`${baseClasses} ${variantClasses}`} title={tooltipText}>
@@ -131,8 +131,8 @@ function AvailabilityChip({ block, isPast }: { block: FreebusyTimeBlock; isPast:
     <div
       className={`flex h-6 min-h-6 w-full min-w-0 items-center overflow-hidden rounded border-l-4 px-1 font-medium ${
         isPast
-          ? "border-gray-300 bg-gray-100 text-gray-500"
-          : "border-gray-400 bg-gray-100 text-gray-700"
+          ? "border-border bg-primary-muted text-text-secondary"
+          : "border-border bg-primary-muted text-text-secondary"
       }`}
       title={`Client Busy: ${timeStr}`}
     >
@@ -159,10 +159,10 @@ export function DayCell({
   const showMoreIndicator = totalItems > 3;
 
   const borderClass = day.isFirstOfMonth
-    ? "border-gold border-2 bg-white"
+    ? "border-accent border-2 bg-background-surface"
     : day.isToday
-      ? "border-olive bg-olive/10 border"
-      : "border-beige/30 border bg-white";
+      ? "border-primary bg-primary-muted border"
+      : "border-border border bg-background-surface";
 
   const chipSlotHeight = "h-6 min-h-6";
 
@@ -171,12 +171,12 @@ export function DayCell({
       type="button"
       variant="ghost"
       onClick={() => onDateClick?.(day.date)}
-      className={`relative flex min-h-16 w-full min-w-0 flex-col items-start overflow-hidden rounded border p-1 text-left transition-colors sm:min-h-20 ${borderClass} ${day.isPast ? "opacity-50" : ""} hover:border-brown/50 hover:bg-brown/5 ${onDateClick ? "cursor-pointer" : "cursor-default"} bg-transparent`}
+      className={`relative flex min-h-16 w-full min-w-0 flex-col items-start overflow-hidden rounded border p-1 text-left transition-colors sm:min-h-20 ${borderClass} ${day.isPast ? "opacity-50" : ""} hover:border-accent hover:bg-accent-muted ${onDateClick ? "cursor-pointer" : "cursor-default"} bg-transparent`}
     >
       <BodyText
         as="span"
         size="xs"
-        className={`absolute left-1 top-1 font-medium sm:text-sm ${day.isPast ? "text-gray-400" : "text-gray-900"} ${day.isToday ? "text-olive font-semibold" : ""} pointer-events-none`}
+        className={`absolute left-1 top-1 font-medium sm:text-sm ${day.isPast ? "text-text-disabled" : "text-text-primary"} ${day.isToday ? "text-primary font-semibold" : ""} pointer-events-none`}
       >
         {dayNumber}
       </BodyText>
@@ -212,7 +212,7 @@ export function DayCell({
           );
         })}
         <div
-          className={`flex ${chipSlotHeight} w-full min-w-0 shrink-0 items-center overflow-hidden px-1 text-xs ${day.isPast ? "text-gray-400" : "text-gray-500"}`}
+          className={`flex ${chipSlotHeight} w-full min-w-0 shrink-0 items-center overflow-hidden px-1 text-xs ${day.isPast ? "text-text-disabled" : "text-text-secondary"}`}
         >
           {showMoreIndicator ? (
             <BodyText as="span" size="xs" muted>

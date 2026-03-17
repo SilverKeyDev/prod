@@ -35,7 +35,7 @@ export default function SharedAgreementCard({
         <div
           role="button"
           tabIndex={0}
-          className="cursor-pointer rounded-lg border border-gray-200 bg-gray-50 p-3"
+          className="border-border bg-background-base cursor-pointer rounded-lg border p-3"
           onClick={handleClick}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -45,8 +45,8 @@ export default function SharedAgreementCard({
           }}
         >
           <div className="flex items-center gap-2">
-            <Icon name="file-signature" className="h-5 w-5 text-gray-600" />
-            <BodyText size="sm" className="text-gray-900">
+            <Icon name="file-signature" className="text-text-secondary h-5 w-5" />
+            <BodyText size="sm" className="text-text-primary">
               {t("documents.agreement_not_available", {
                 defaultValue: "Agreement details are not available yet.",
               })}

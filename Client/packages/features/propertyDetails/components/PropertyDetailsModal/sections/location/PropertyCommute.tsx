@@ -57,7 +57,7 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
           <Box className="grid-responsive-1-md-2 gap-4 sm:gap-6">
             <Box>
               {commute.map_url ? (
-                <Box className="border-border-card-subtle rounded-lg border bg-white p-4">
+                <Box className="border-border-card-subtle bg-background-surface rounded-lg border p-4">
                   <Box className="aspect-square w-full">
                     <Image
                       src={commute.map_url}
@@ -67,17 +67,17 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
                   </Box>
                 </Box>
               ) : (
-                <Box className="border-border-card-subtle rounded-lg border bg-white p-4">
+                <Box className="border-border-card-subtle bg-background-surface rounded-lg border p-4">
                   <Box className="flex aspect-square w-full flex-row items-center justify-center">
-                    <Box className="text-center text-neutral-600">
+                    <Box className="text-text-secondary text-center">
                       <Icon
                         name="map-pin"
-                        className="mb-3 h-12 w-12 self-center text-neutral-500"
+                        className="text-text-secondary mb-3 h-12 w-12 self-center"
                       />
                       <BodyText as="p" className="text-foreground text-center font-medium">
                         Commute Map
                       </BodyText>
-                      <BodyText as="p" size="sm" className="mt-1 text-center text-neutral-600">
+                      <BodyText as="p" size="sm" className="text-text-secondary mt-1 text-center">
                         Map generation in progress...
                       </BodyText>
                     </Box>
@@ -90,7 +90,7 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
             </Box>
           </Box>
         ) : (
-          <Box className="text-sm text-neutral-600">
+          <Box className="text-text-secondary text-sm">
             {commute.commute_time != null && (
               <BodyText as="p">
                 <strong className="text-foreground">Commute Time:</strong>{" "}

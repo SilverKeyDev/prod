@@ -4,17 +4,16 @@ import type { ReactNode } from "react";
 
 import type { AgentClient } from "packages/api";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
+import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
 import UnifiedMessageInput from "packages/features/messaging/components/layout/UnifiedMessageInput";
 import UnifiedMessagesList from "packages/features/messaging/components/layout/UnifiedMessagesList";
 import { useMessaging } from "packages/hooks/data/chat/useMessaging";
 import { useMessageScroll } from "packages/hooks/ui";
+import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
 
 import { Region } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
-
-import { AgentMessagingModals } from "./AgentMessagingModals";
-import { useAgentMessagingHandlers } from "./useAgentMessagingHandlers";
 
 type AgentMessagingProps = {
   clients?: AgentClient[];
@@ -53,16 +52,28 @@ export default function AgentMessaging({
 
   const [message, setMessage] = useState("");
   const [isTyping] = useState(false);
-  const [showInbox, setShowInbox] = useState(false);
-  const [showSearchModal, setShowSearchModal] = useState(false);
-  const [showSelectHomeModal, setShowSelectHomeModal] = useState(false);
-  const [showSelectDocumentModal, setShowSelectDocumentModal] = useState(false);
-  const [showSelectAgreementModal, setShowSelectAgreementModal] = useState(false);
-  const [showCalendarEventModal, setShowCalendarEventModal] = useState(false);
-  const [acceptingEventRequestId, setAcceptingEventRequestId] = useState<string | null>(null);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
-  const handlers = useAgentMessagingHandlers({
+  const {
+    showInbox,
+    setShowInbox,
+    showSearchModal,
+    setShowSearchModal,
+    showSelectHomeModal,
+    setShowSelectHomeModal,
+    showSelectDocumentModal,
+    setShowSelectDocumentModal,
+    showSelectAgreementModal,
+    setShowSelectAgreementModal,
+    showCalendarEventModal,
+    setShowCalendarEventModal,
+    acceptingEventRequestId,
+    setAcceptingEventRequestId,
+    isSidebarExpanded,
+    setIsSidebarExpanded,
+  } = useMessagingModals("agent");
+
+  const handlers = useMessagingHandlers({
+    mode: "agent",
     selectedClientId,
     activeConversationId,
     activeConversation,
@@ -73,7 +84,6 @@ export default function AgentMessaging({
     setAcceptingEventRequestId,
     refreshActiveConversationHistory,
     refreshChats,
-    sendMessageApi,
   });
 
   const { messagesEndRef } = useMessageScroll(
@@ -201,7 +211,8 @@ export default function AgentMessaging({
           </div>
         </section>
       </div>
-      <AgentMessagingModals
+      <MessagingModals
+        mode="agent"
         showSearchModal={showSearchModal}
         setShowSearchModal={setShowSearchModal}
         showSelectHomeModal={showSelectHomeModal}
@@ -215,7 +226,7 @@ export default function AgentMessaging({
         selectedClientId={selectedClientId}
         onSelectHome={handlers.handleSelectHome}
         onSelectDocument={handlers.handleSelectDocument}
-        onSelectAgreement={handlers.handleSelectAgreement}
+        onSelectAgreement={handlers.handleSelectAgreement!}
         onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
       />
     </div>

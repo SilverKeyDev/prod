@@ -46,7 +46,7 @@ const Label: React.FC<LabelProps> = ({
   const colorStyles = {
     default: "text-gray-700",
     black: "text-black",
-    gray: "text-gray-600",
+    gray: "text-warm-stone",
     brown: "text-brown",
     error: "text-red-600",
   };

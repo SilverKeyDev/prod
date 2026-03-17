@@ -1,5 +1,9 @@
 import React from "react";
 
+/**
+ * Card container with built-in border (border-border-card-subtle), padding, and shadow.
+ * Callers should not add border classes; the border is canonical.
+ */
 type CardProps = {
   children: React.ReactNode;
   className?: string;
@@ -35,7 +39,7 @@ const Card: React.FC<CardProps> = ({
   const baseClasses = [
     "bg-white",
     "rounded-lg sm:rounded-xl md:rounded-2xl",
-    "border border-beige/30",
+    "border border-border-card-subtle",
     shadowClasses[shadow],
     paddingClasses[padding],
     "transition-all duration-200",

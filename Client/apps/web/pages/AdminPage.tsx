@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { adminApi } from "packages/api/admin";
 import { useStepUpAuth } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES, type LoggerConfig } from "packages/logger";
+import { Box } from "packages/ui/components/primitives";
 
 import { AuthGuard } from "@/app/guards";
 import { AdminGuard } from "@/app/guards/auth";
@@ -30,6 +32,7 @@ export default function AdminPage() {
 
   const [frontendConfig, setFrontendConfig] = useState<FrontendLoggerConfigState | null>(null);
   const [frontendSaving, setFrontendSaving] = useState(false);
+  const [skyslopeConnected, setSkyslopeConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -67,6 +70,24 @@ export default function AdminPage() {
     } catch (error) {
       log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] Failed to read frontend logger config", error);
     }
+  }, [stepUpSatisfied]);
+
+  useEffect(() => {
+    if (!stepUpSatisfied) return;
+
+    let mounted = true;
+    const fetchStatus = async () => {
+      try {
+        const status = await adminApi.getSkyslopeStatus();
+        if (mounted) setSkyslopeConnected(status.connected);
+      } catch {
+        if (mounted) setSkyslopeConnected(false);
+      }
+    };
+    void fetchStatus();
+    return () => {
+      mounted = false;
+    };
   }, [stepUpSatisfied]);
 
   const apiConfig =
@@ -161,7 +182,7 @@ export default function AdminPage() {
     if (!stepUpModalProps.isOpen) return null;
 
     return (
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4">
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-overlay-backdrop p-4">
         <Card className="w-full max-w-md" padding="lg">
           <Title size="lg" as="h2" className="mb-2">
             Confirm your identity
@@ -291,15 +312,36 @@ export default function AdminPage() {
             Connect your SkySlope account to verify the integration. This will redirect you to
             SkySlope to authorize, then show your profile on success.
           </BodyText>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => {
-              window.location.href = "/api/v1/skyslope/connect";
-            }}
-          >
-            Connect SkySlope
-          </Button>
+          {skyslopeConnected === null ? (
+            <BodyText size="sm" muted>
+              Checking connection status…
+            </BodyText>
+          ) : skyslopeConnected ? (
+            <Box className="flex flex-col gap-3">
+              <BodyText size="sm" className="text-green-600">
+                SkySlope connected
+              </BodyText>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  window.location.href = "/api/v1/skyslope/connect";
+                }}
+              >
+                Reconnect SkySlope
+              </Button>
+            </Box>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                window.location.href = "/api/v1/skyslope/connect";
+              }}
+            >
+              Connect SkySlope
+            </Button>
+          )}
         </Card>
       </div>
     );

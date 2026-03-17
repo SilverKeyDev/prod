@@ -9,6 +9,9 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.reels": "Reels",
   "search.map": "Map",
   "search.add_location": "Add location",
+  "search.add_important_locations": "Add important locations",
+  "search.add_work_school_location": "Add work, school, or other location",
+  "search.editing_location": "Editing location",
   "search.edit_locations": "Edit locations",
   "search.location_preferences": "Location preferences",
   "search.location_preferences_description":

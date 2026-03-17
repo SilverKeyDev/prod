@@ -210,14 +210,14 @@ export default function VerificationPage() {
           }
           onPaste={(e) => handlePaste(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
-          className="border-olive focus:ring-olive h-12 w-12 rounded-lg border-2 text-center text-lg font-bold text-gray-500 focus:border-transparent focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="border-primary focus:ring-primary text-text-secondary h-12 w-12 rounded-lg border-2 text-center text-lg font-bold focus:border-transparent focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={loading}
         />
       ))}
     </div>
   );
   return (
-    <div className="px-responsive-sm py-responsive-md bg-off-white flex min-h-screen items-center justify-center">
+    <div className="px-responsive-sm py-responsive-md bg-background-base flex min-h-screen items-center justify-center">
       <div className="w-full max-w-md">
         <Card className="space-y-responsive-md">
           {/* Back Button - Hidden when coming from signup */}
@@ -269,7 +269,7 @@ export default function VerificationPage() {
                 <Label
                   id="verification-email-label"
                   htmlFor="verification-email"
-                  className="text-responsive-sm space-y-responsive-xs block font-medium text-black"
+                  className="text-responsive-sm space-y-responsive-xs text-text-primary block font-medium"
                 >
                   Email address
                 </Label>
@@ -291,7 +291,7 @@ export default function VerificationPage() {
 
               <Button
                 type="submit"
-                variant="olive"
+                variant="primary"
                 size="md"
                 fullWidth
                 loading={loading}
@@ -310,7 +310,7 @@ export default function VerificationPage() {
             >
               {renderCodeInputs()}
 
-              <div className="text-responsive-sm text-center text-black/60">
+              <div className="text-responsive-sm text-text-secondary text-center">
                 Didn't receive a code?{" "}
                 <Button
                   type="button"
@@ -319,7 +319,7 @@ export default function VerificationPage() {
                   size="sm"
                   disabled={!canResend || loading}
                   loading={loading}
-                  className={canResend ? "text-gold hover:text-gold/80" : "text-black/40"}
+                  className={canResend ? "text-accent hover:text-accent" : "text-text-disabled"}
                 >
                   {loading ? "Sending..." : canResend ? "Resend code" : `Resend in ${countdown}s`}
                 </Button>
@@ -329,7 +329,7 @@ export default function VerificationPage() {
                 <Button
                   type="button"
                   onClick={handleVerify}
-                  variant="olive"
+                  variant="primary"
                   size="md"
                   loading={loading}
                   disabled={loading || code.join("").length !== 6}

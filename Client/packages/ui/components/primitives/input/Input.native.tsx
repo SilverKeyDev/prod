@@ -24,7 +24,8 @@ const Input = forwardRef<RNTextInput, InputProps>(function Input(
     onValueChange?.(text);
   };
 
-  const baseClassName = "w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900";
+  const baseClassName =
+    "w-full rounded-lg border border-border bg-background-surface px-4 py-3 text-text-primary";
   const combinedClassName = className ? `${baseClassName} ${className}` : baseClassName;
 
   return (

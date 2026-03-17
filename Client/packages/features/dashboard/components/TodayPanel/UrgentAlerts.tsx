@@ -33,24 +33,24 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
     }
   > = {
     critical: {
-      bg: "bg-rose-50",
-      border: "border-rose-300",
-      text: "text-rose-800",
+      bg: "bg-primary-muted",
+      border: "border-destructive",
+      text: "text-destructive",
     },
     high: {
-      bg: "bg-olive/10",
-      border: "border-olive/30",
-      text: "text-olive",
+      bg: "bg-primary-muted",
+      border: "border-primary",
+      text: "text-primary",
     },
     medium: {
-      bg: "bg-gold/10",
-      border: "border-gold/30",
-      text: "text-gold",
+      bg: "bg-accent-muted",
+      border: "border-accent",
+      text: "text-accent",
     },
     low: {
-      bg: "bg-neutral-100",
-      border: "border-neutral-300",
-      text: "text-navy",
+      bg: "bg-primary-muted",
+      border: "border-border",
+      text: "text-text-primary",
     },
   };
   const formatTimeRemaining = (deadline?: string) => {
@@ -71,8 +71,8 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
   return (
     <Card className="h-full">
       <div className="mb-4 flex items-center gap-2">
-        <Icon name="alert-triangle" className="h-5 w-5 text-rose-600 sm:h-6 sm:w-6" />
-        <Title as="h2" size="sm" className="text-navy">
+        <Icon name="alert-triangle" className="text-destructive h-5 w-5 sm:h-6 sm:w-6" />
+        <Title as="h2" size="sm" className="text-text-primary">
           Urgent Alerts
         </Title>
       </div>
@@ -80,7 +80,7 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
       <div className="max-h-96 space-y-3 overflow-y-auto">
         {sortedAlerts.length === 0 ? (
           <div className="py-8 text-center">
-            <BodyText as="p" size="sm" className="text-black/60">
+            <BodyText as="p" size="sm" className="text-text-secondary">
               No urgent alerts
             </BodyText>
           </div>

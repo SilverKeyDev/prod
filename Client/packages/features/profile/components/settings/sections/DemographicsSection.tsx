@@ -11,7 +11,7 @@ import {
   OliveCheckbox,
   Title,
 } from "@/components/ui";
-import { FIELD_LABELS, IS_AGENT_OPTIONS, type OnboardingData } from "@/features/profile/utils";
+import { FIELD_LABELS, type OnboardingData } from "@/features/profile/utils";
 
 type DemographicsSectionProps = {
   formData: OnboardingData;
@@ -35,29 +35,12 @@ export default function DemographicsSection({
         About You
       </Title>
 
+      {/* Agent/buyer choice is immutable and only shown during onboarding; hidden in settings. */}
       <AlignedRow
         breakIntoRows="md"
         gap="lg"
         justify="start"
         items={[
-          {
-            title: <Label>{FIELD_LABELS.IS_AGENT}</Label>,
-            content: isEditMode ? (
-              <Dropdown
-                value={formData.is_agent ?? ""}
-                onChange={(value) => updateFormData("is_agent", value)}
-                options={IS_AGENT_OPTIONS}
-                placeholder="Select..."
-              />
-            ) : (
-              <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
-                {formData.is_agent
-                  ? (IS_AGENT_OPTIONS.find((option) => option.value === formData.is_agent)?.label ??
-                    "Not specified")
-                  : "Not specified"}
-              </BodyText>
-            ),
-          },
           {
             title: <Label>{FIELD_LABELS.AGE}</Label>,
             content: isEditMode ? (
@@ -72,7 +55,7 @@ export default function DemographicsSection({
                 max={100}
               />
             ) : (
-              <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
+              <BodyText as="div" size="sm" className="mobile-input bg-background-base">
                 {formData.age ?? "Not specified"}
               </BodyText>
             ),
@@ -97,7 +80,7 @@ export default function DemographicsSection({
                   placeholder="Select..."
                 />
               ) : (
-                <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
+                <BodyText as="div" size="sm" className="mobile-input bg-background-base">
                   {formData.has_buyers_agent
                     ? (HAS_BUYERS_AGENT_OPTIONS.find(
                         (option) => option.value === formData.has_buyers_agent
@@ -120,7 +103,7 @@ export default function DemographicsSection({
                   <div className="flex h-full items-center">
                     <Label
                       htmlFor="looking-buyers-agent"
-                      className="flex cursor-pointer items-center gap-3 font-medium text-black"
+                      className="text-text-primary flex cursor-pointer items-center gap-3 font-medium"
                     >
                       {isEditMode ? (
                         <>
@@ -169,13 +152,13 @@ export default function DemographicsSection({
                         <div
                           className={`flex h-5 w-5 items-center justify-center rounded border ${
                             formData.looking_for_buyers_agent
-                              ? "border-olive bg-olive"
-                              : "border-gray-300 bg-gray-50"
+                              ? "border-primary bg-primary"
+                              : "border-border bg-background-base"
                           }`}
                         >
                           {formData.looking_for_buyers_agent && (
                             <svg
-                              className="h-4 w-4 text-gray-600"
+                              className="text-text-secondary h-4 w-4"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -194,7 +177,11 @@ export default function DemographicsSection({
                     </Label>
                   </div>
                 ) : (
-                  <BodyText as="div" size="sm" className="mobile-input bg-gray-50 opacity-0">
+                  <BodyText
+                    as="div"
+                    size="sm"
+                    className="mobile-input bg-background-base opacity-0"
+                  >
                     &nbsp;
                   </BodyText>
                 ),

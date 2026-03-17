@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
+import { useIsAgent } from "packages/features/homeauth";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
@@ -17,7 +18,7 @@ type AgentFeatureProps = {
 
 export default function AgentFeature({ setMobileHeaderActions }: AgentFeatureProps = {}) {
   const authReady = useAuthStore((s) => s.authReady);
-  const isAgent = useAuthStore((s) => !!s.user?.is_agent);
+  const isAgent = useIsAgent();
   const { navigateToPath, getCurrentRoute } = useNavigation();
   const pathname = getCurrentRoute().pathname;
   const isOnMessagingPath = pathname === "/messaging";

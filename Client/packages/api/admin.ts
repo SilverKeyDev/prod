@@ -44,4 +44,9 @@ export const adminApi = {
     }
     return response.config;
   },
+
+  getSkyslopeStatus: async (): Promise<{ connected: boolean }> => {
+    const response = await apiGet<{ connected: boolean }>("/api/v1/skyslope/status");
+    return { connected: response.connected ?? false };
+  },
 };

@@ -17,6 +17,10 @@ type LocationSectionProps = {
   cardClassName?: string;
   /** When false, render content in a div instead of Card (e.g. when embedded in onboarding page Card). Default true. */
   wrapInCard?: boolean;
+  /** Optional label for the add location button */
+  addButtonLabel?: string;
+  /** Optional id for the section title (e.g. for aria-labelledby on dialog) */
+  titleId?: string;
 };
 
 export default function LocationSection({
@@ -27,10 +31,14 @@ export default function LocationSection({
   loadError,
   cardClassName,
   wrapInCard = true,
+  addButtonLabel,
+  titleId,
 }: LocationSectionProps) {
   const content = (
     <>
-      <Title size="md">{SECTION_TITLES.LOCATION_PREFERENCES}</Title>
+      <Title size="md" as="h2" id={titleId}>
+        {SECTION_TITLES.LOCATION_PREFERENCES}
+      </Title>
 
       {/* Important Locations for Commute */}
       <div className="flex w-full flex-col">
@@ -44,6 +52,7 @@ export default function LocationSection({
           onChange={(locations) => updateFormData("important_locations", locations)}
           scriptsReady={scriptsReady}
           isEditMode={isEditMode}
+          addButtonLabel={addButtonLabel}
         />
         {loadError && (
           <BodyText as="p" size="xs" className="mt-2 text-red-500">

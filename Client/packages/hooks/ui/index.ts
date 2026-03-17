@@ -38,9 +38,11 @@ export {
 
 // Scroll
 export { useMessageScroll } from "../../features/messaging/hooks/ui";
+export { useMessagingHandlers } from "../../features/messaging/hooks/ui";
 
 // Client messaging modals
 export { useClientMessagingModals } from "../../features/messaging/hooks/ui/useClientMessagingModals";
+export { useMessagingModals } from "../../features/messaging/hooks/ui/useMessagingModals";
 
 // Container width
 export { useContainerWidth, type UseContainerWidthOptions } from "./useContainerWidth";

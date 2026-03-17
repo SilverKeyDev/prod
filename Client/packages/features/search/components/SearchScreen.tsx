@@ -300,10 +300,10 @@ export function SearchScreen() {
           )}
         </Box>
         <Box
-          className={`min-h-0 flex-row items-center gap-2 overflow-hidden rounded-lg border border-gray-200 bg-white px-3 ${HEADER_ROW_HEIGHT}`}
+          className={`border-border bg-background-surface min-h-0 flex-row items-center gap-2 overflow-hidden rounded-lg border px-3 ${HEADER_ROW_HEIGHT}`}
         >
           <Box className="min-h-0 min-w-0 flex-1 justify-center py-2">
-            <Text className="text-sm text-gray-700" numberOfLines={1} ellipsizeMode="tail">
+            <Text className="text-text-secondary text-sm" numberOfLines={1} ellipsizeMode="tail">
               {criteriaSummary || " "}
             </Text>
           </Box>

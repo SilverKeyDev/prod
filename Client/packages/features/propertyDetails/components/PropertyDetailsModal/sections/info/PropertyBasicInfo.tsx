@@ -51,36 +51,38 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
     <div className="p-6">
       <div className="mb-6 flex items-start justify-between">
         <div className="flex-1">
-          <div className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
+          <div className="text-text-primary mb-2 text-2xl font-bold sm:text-3xl md:text-4xl">
             {asReactNode(formatPrice(fields.price))}
           </div>
-          <div className="text-sm text-gray-700 sm:text-base md:text-lg">{addressDisplay}</div>
+          <div className="text-text-secondary text-sm sm:text-base md:text-lg">
+            {addressDisplay}
+          </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           {fields.bedrooms != null && Number(fields.bedrooms) > 0 && (
             <div className="text-center">
-              <div className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">
+              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {fields.bedrooms}
               </div>
-              <div className="text-xs text-gray-600 sm:text-sm">beds</div>
+              <div className="text-text-secondary text-xs sm:text-sm">beds</div>
             </div>
           )}
           {fields.bathrooms != null && Number(fields.bathrooms) > 0 && (
             <div className="text-center">
-              <div className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">
+              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {fields.bathrooms}
               </div>
-              <div className="border-b border-dashed border-gray-400 text-xs text-gray-600 sm:text-sm">
+              <div className="border-border text-text-secondary border-b border-dashed text-xs sm:text-sm">
                 baths
               </div>
             </div>
           )}
           {fields.sqft != null && Number(fields.sqft) > 0 && (
             <div className="text-center">
-              <div className="text-xl font-bold text-gray-900 sm:text-2xl md:text-3xl">
+              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {Math.round(Number(fields.sqft)).toLocaleString()}
               </div>
-              <div className="text-xs text-gray-600 sm:text-sm">sqft</div>
+              <div className="text-text-secondary text-xs sm:text-sm">sqft</div>
             </div>
           )}
         </div>

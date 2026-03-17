@@ -26,7 +26,7 @@ const ExternalLinkIcon = () => (
   </svg>
 );
 const headerButtonClass =
-  "text-white hover:bg-white/10 rounded-lg p-2 transition-colors duration-200";
+  "text-white hover:bg-primary-muted rounded-lg p-2 transition-colors duration-200";
 export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
   title,
   onDownload,
@@ -35,7 +35,7 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
   onClose,
 }) => (
   <div
-    className="from-olive to-olive/90 flex items-center justify-between bg-gradient-to-r px-4 py-3"
+    className="from-primary to-primary-hover flex items-center justify-between bg-gradient-to-r px-4 py-3"
     style={{ borderRadius: "24px 24px 0 0" }}
   >
     <div className="gap-responsive-sm flex min-w-0 flex-1 items-center">

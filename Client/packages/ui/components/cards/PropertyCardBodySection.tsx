@@ -31,7 +31,7 @@ export function PropertyCardHideImageHeader({
 }) {
   return (
     <div className="relative flex w-full items-center justify-center">
-      <div className="text-olive text-lg font-bold sm:text-xl">{formatPriceDisplay(price)}</div>
+      <div className="text-primary text-lg font-bold sm:text-xl">{formatPriceDisplay(price)}</div>
       {(topContent || (showNotInterested && property)) && (
         <div className="absolute right-0 flex-shrink-0">
           {showNotInterested && property && (
@@ -82,7 +82,7 @@ export function PropertyCardPriceRow({
         <div className="flex w-full items-center gap-2">
           {showScore && score !== undefined ? (
             <div className="flex flex-1 items-center gap-2">
-              <div className="text-olive text-lg font-bold sm:text-xl">
+              <div className="text-primary text-lg font-bold sm:text-xl">
                 {formatPriceDisplay(price)}
               </div>
               <div className="mr-3 sm:mr-4">
@@ -91,7 +91,7 @@ export function PropertyCardPriceRow({
             </div>
           ) : (
             <div className="flex flex-1 justify-center">
-              <div className="text-olive text-lg font-bold sm:text-xl">
+              <div className="text-primary text-lg font-bold sm:text-xl">
                 {formatPriceDisplay(price)}
               </div>
             </div>

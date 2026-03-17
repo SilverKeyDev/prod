@@ -100,7 +100,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
   const iconSize = toolbarButtonSize === "large" ? 22 : toolbarButtonSize === "small" ? 18 : 20;
 
   return (
-    <Box className="flex-row items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+    <Box className="border-border bg-background-surface flex-row items-center justify-between border-b px-4 py-3">
       {/* Left: Back + Title */}
       <Box className="min-w-0 flex-1 flex-row items-center gap-2">
         <Pressable
@@ -111,7 +111,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
           <Icon name="chevron-left" size={iconSize} color={color("neutral.700")} />
         </Pressable>
         {displayAddress ? (
-          <Text className="flex-1 text-base font-semibold text-gray-900" numberOfLines={1}>
+          <Text className="text-text-primary flex-1 text-base font-semibold" numberOfLines={1}>
             {displayAddress}
           </Text>
         ) : null}

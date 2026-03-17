@@ -45,7 +45,7 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
                 minGap={250}
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {formData.preferred_sqft_min != null || formData.preferred_sqft_max != null
                   ? `${(formData.preferred_sqft_min ?? SQFT_TICK_VALUES[0]).toLocaleString()} – ${(formData.preferred_sqft_max ?? SQFT_TICK_VALUES[SQFT_TICK_VALUES.length - 1]).toLocaleString()} sq ft`
                   : "Not specified"}
@@ -71,7 +71,7 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
                 minGap={7}
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {formData.days_on_market_min != null || formData.days_on_market_max != null
                   ? `${formData.days_on_market_min ?? DAYS_ON_MARKET_TICK_VALUES[0]} – ${formData.days_on_market_max ?? DAYS_ON_MARKET_TICK_VALUES[DAYS_ON_MARKET_TICK_VALUES.length - 1]} days`
                   : "Not specified"}
@@ -105,7 +105,7 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
                 minGap={0.1}
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {formData.preferred_lot_size_min != null || formData.preferred_lot_size_max != null
                   ? `${formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]} – ${formData.preferred_lot_size_max ?? LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]} acres`
                   : "Not specified"}
@@ -126,7 +126,7 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
                 formatPrefix=""
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {formData.preferred_home_age_max != null
                   ? `Up to ${formData.preferred_home_age_max} years`
                   : "Not specified"}

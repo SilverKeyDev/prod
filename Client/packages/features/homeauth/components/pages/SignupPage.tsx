@@ -418,7 +418,7 @@ export default function SignupPage(_props: SignupPageProps) {
 
         <Button
           type="submit"
-          variant="olive"
+          variant="primary"
           size="md"
           fullWidth
           loading={isSignupLoading}
@@ -435,7 +435,7 @@ export default function SignupPage(_props: SignupPageProps) {
           Already have an account?
           <AuthLink
             to="/login"
-            className="text-brown hover:text-brown/80 underline-offset-4 transition-colors hover:underline"
+            className="text-text-secondary hover:text-text-secondary underline-offset-4 transition-colors hover:underline"
           >
             Sign in
           </AuthLink>

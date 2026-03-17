@@ -42,18 +42,18 @@ export default function FieldShell({
   const { t } = useLocalization();
   // Base styles - enhanced for nested component support
   const baseStyles =
-    "w-full border rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 transition-colors duration-150 touch-friendly mobile-input group";
+    "w-full border rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input group";
 
   // Variant styles - enhanced for nested component hover support
   const variantStyles = {
     default:
-      "border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown",
+      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-accent-muted focus-within:border-primary",
     mobile:
-      "mobile-input border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown touch-friendly autofill-parent",
+      "mobile-input border-border bg-background-surface hover:bg-accent-muted focus-within:ring-accent-muted focus-within:border-primary touch-friendly autofill-parent",
     compact:
-      "border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown",
+      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-accent-muted focus-within:border-primary",
     search:
-      "border-beige bg-white hover:bg-brown/5 focus-within:ring-brown/20 focus-within:border-brown",
+      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-accent-muted focus-within:border-primary",
   };
 
   // Size styles - copied exactly from Input.tsx
@@ -65,7 +65,7 @@ export default function FieldShell({
 
   // Error styles - copied exactly from Input.tsx
   const errorStyles = error
-    ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20"
+    ? "border-destructive focus-within:border-destructive focus-within:ring-destructive"
     : "";
 
   // Container classes - copied exactly from Input.tsx
@@ -73,9 +73,9 @@ export default function FieldShell({
 
   // Icon positioning classes - always visible, matches Input.tsx behavior with proper z-index
   const iconClasses = {
-    left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-1 pointer-events-none",
+    left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary z-1 pointer-events-none",
     right:
-      "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-1 pointer-events-none",
+      "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary z-1 pointer-events-none",
   };
 
   // Combine all styles exactly like Input.tsx
@@ -94,10 +94,10 @@ export default function FieldShell({
   return (
     <div className={cx("w-full space-y-1.5", className)}>
       {label && (
-        <Label htmlFor={id} className="mb-1 block text-sm font-medium text-gray-700">
+        <Label htmlFor={id} className="text-text-primary mb-1 block text-sm font-medium">
           {label}
           {required && (
-            <BodyText as="span" className="text-red-500">
+            <BodyText as="span" className="text-destructive">
               {t("form.required_indicator")}
             </BodyText>
           )}
@@ -226,7 +226,7 @@ export default function FieldShell({
 
       {/* Error Message - copied exactly from Input.tsx */}
       {error && (
-        <BodyText size="xs" className="mt-1 text-red-600">
+        <BodyText size="xs" className="text-destructive mt-1">
           {error}
         </BodyText>
       )}

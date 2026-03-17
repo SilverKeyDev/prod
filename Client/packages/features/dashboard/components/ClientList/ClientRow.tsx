@@ -35,14 +35,14 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         {/* Avatar and Name */}
         <div className="flex flex-shrink-0 items-center gap-3">
-          <div className="bg-olive/10 flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12">
-            <Icon name="user" className="text-olive h-5 w-5 sm:h-6 sm:w-6" />
+          <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12">
+            <Icon name="user" className="text-primary h-5 w-5 sm:h-6 sm:w-6" />
           </div>
           <div>
-            <Title as="h3" size="md" className="text-navy font-semibold">
+            <Title as="h3" size="md" className="text-text-primary font-semibold">
               {client.name}
             </Title>
-            <BodyText as="p" size="sm" className="text-black/60">
+            <BodyText as="p" size="sm" className="text-text-secondary">
               {client.email}
             </BodyText>
           </div>
@@ -69,9 +69,9 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
         )}
 
         {/* Time Since Last Action */}
-        <div className="text-responsive-sm flex items-center gap-2 text-black/60">
+        <div className="text-responsive-sm text-text-secondary flex items-center gap-2">
           <Icon name="clock" className="h-4 w-4 sm:h-5 sm:w-5" />
-          <BodyText as="span" size="sm" className="text-black/60">
+          <BodyText as="span" size="sm" className="text-text-secondary">
             {formatTimeSince(client.last_agent_action)}
           </BodyText>
         </div>
@@ -83,7 +83,7 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
               <RiskFlag key={index} severity={flag.severity} message={flag.type} />
             ))}
             {client.risk_flags.length > 2 && (
-              <BodyText as="span" size="sm" className="text-xs text-black/60 sm:text-sm">
+              <BodyText as="span" size="sm" className="text-text-secondary text-xs sm:text-sm">
                 +{client.risk_flags.length - 2} more
               </BodyText>
             )}

@@ -8,18 +8,13 @@ import { dateParseISO } from "packages/utils/date";
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, CancelButton, Input, Title } from "@/components/ui";
 import type { TodoItem, TodoPriority, TodoType } from "@/features/agent/types/agent";
+import { sortTodosByPriority } from "@/features/agent/utils/todoUtils";
 type TodoListProps = {
   todos: TodoItem[];
   onToggleComplete: (id: string) => void;
   onAddTodo: (title: string, priority: TodoPriority, type: TodoType) => void;
   onUpdatePriority?: (id: string, priority: TodoPriority) => void;
   canEdit?: boolean;
-};
-const priorityOrder: Record<TodoPriority, number> = {
-  urgent: 4,
-  high: 3,
-  medium: 2,
-  low: 1,
 };
 const TodoList: React.FC<TodoListProps> = ({
   todos,
@@ -31,12 +26,7 @@ const TodoList: React.FC<TodoListProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [selectedPriority, setSelectedPriority] = useState<TodoPriority>("medium");
-  const sortedTodos = useMemo(() => {
-    const incomplete = todos.filter((todo) => !todo.completed);
-    return [...incomplete].sort((a, b) => {
-      return priorityOrder[b.priority] - priorityOrder[a.priority];
-    });
-  }, [todos]);
+  const sortedTodos = useMemo(() => sortTodosByPriority(todos), [todos]);
   const handleAddTodo = () => {
     if (newTodoTitle.trim()) {
       onAddTodo(newTodoTitle.trim(), selectedPriority, "manual");
@@ -46,15 +36,15 @@ const TodoList: React.FC<TodoListProps> = ({
     }
   };
   const priorityColors: Record<TodoPriority, string> = {
-    low: "text-neutral-600",
-    medium: "text-gold",
-    high: "text-olive",
-    urgent: "text-rose-600",
+    low: "text-text-secondary",
+    medium: "text-accent",
+    high: "text-primary",
+    urgent: "text-destructive",
   };
   return (
     <Card className="h-full">
       <div className="mb-4 flex items-center justify-between">
-        <Title as="h2" size="sm" className="text-navy">
+        <Title as="h2" size="sm" className="text-text-primary">
           Today's To-Do
         </Title>
       </div>
@@ -63,7 +53,7 @@ const TodoList: React.FC<TodoListProps> = ({
       <div className="max-h-96 space-y-2 overflow-y-auto">
         {sortedTodos.length === 0 ? (
           <div className="py-8 text-center">
-            <BodyText as="p" size="sm" className="text-black/60">
+            <BodyText as="p" size="sm" className="text-text-secondary">
               No todos for today
             </BodyText>
           </div>
@@ -71,7 +61,7 @@ const TodoList: React.FC<TodoListProps> = ({
           sortedTodos.map((todo) => (
             <div
               key={todo.id}
-              className="border-beige/30 hover:bg-beige/5 flex items-start gap-3 rounded-lg border bg-white p-3 transition-colors"
+              className="border-border hover:bg-accent-muted bg-background-surface flex items-start gap-3 rounded-lg border p-3 transition-colors"
             >
               <Button
                 variant="ghost"
@@ -80,10 +70,10 @@ const TodoList: React.FC<TodoListProps> = ({
                 disabled={!canEdit}
                 className={`mt-0.5 flex h-5 w-5 min-w-0 flex-shrink-0 items-center justify-center rounded border-2 p-0 transition-colors sm:h-6 sm:w-6 ${
                   todo.completed
-                    ? "bg-olive border-olive text-white"
+                    ? "bg-primary border-primary text-white"
                     : canEdit
-                      ? "border-beige/50 hover:border-gold"
-                      : "border-beige/50"
+                      ? "border-border hover:border-accent"
+                      : "border-border"
                 }`}
               >
                 {todo.completed && <Icon name="check" className="h-3 w-3 sm:h-4 sm:w-4" />}
@@ -92,7 +82,7 @@ const TodoList: React.FC<TodoListProps> = ({
                 <BodyText
                   as="p"
                   size="sm"
-                  className={`${todo.completed ? "text-black/40 line-through" : "text-black"}`}
+                  className={`${todo.completed ? "text-text-disabled line-through" : "text-text-primary"}`}
                 >
                   {todo.title}
                 </BodyText>
@@ -122,7 +112,7 @@ const TodoList: React.FC<TodoListProps> = ({
                       {todo.priority}
                     </BodyText>
                   )}
-                  <BodyText as="span" size="xs" className="text-black/40">
+                  <BodyText as="span" size="xs" className="text-text-disabled">
                     {dateParseISO(todo.due_date).toDate().toLocaleDateString()}
                   </BodyText>
                 </div>
@@ -134,13 +124,13 @@ const TodoList: React.FC<TodoListProps> = ({
 
       {/* Add Todo Form */}
       {!canEdit ? null : showAddForm ? (
-        <div className="border-beige/30 bg-beige/5 mt-4 rounded-lg border p-3">
+        <div className="border-border bg-accent-muted mt-4 rounded-lg border p-3">
           <Input
             type="text"
             value={newTodoTitle}
             onChange={(e) => setNewTodoTitle(e.target.value)}
             placeholder="Enter todo..."
-            className="text-responsive-sm border-beige/30 focus:ring-olive/20 mb-2 w-full rounded-lg border bg-white px-3 py-2 focus:outline-none focus:ring-2"
+            className="text-responsive-sm border-border focus:ring-accent-muted bg-background-surface mb-2 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 handleAddTodo();

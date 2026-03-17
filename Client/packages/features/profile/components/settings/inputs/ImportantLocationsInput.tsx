@@ -86,8 +86,8 @@ export function ImportantLocationsInput({
   if (!isEditMode) {
     if (!safeLocations.length) {
       return (
-        <Box className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-          <Text className="text-sm text-gray-500">No locations set yet.</Text>
+        <Box className="border-border bg-background-base rounded-lg border px-4 py-3">
+          <Text className="text-text-secondary text-sm">No locations set yet.</Text>
         </Box>
       );
     }
@@ -95,12 +95,15 @@ export function ImportantLocationsInput({
     return (
       <Box className="gap-2">
         {safeLocations.map((location, index) => (
-          <Box key={index} className="rounded-lg border border-gray-200 bg-white px-4 py-3">
-            <Text className="text-sm font-medium text-gray-900">
+          <Box
+            key={index}
+            className="border-border bg-background-surface rounded-lg border px-4 py-3"
+          >
+            <Text className="text-text-primary text-sm font-medium">
               {location.address ?? "Location"}
             </Text>
             {location.commute_tolerance != null ? (
-              <Text className="mt-1 text-xs text-gray-600">
+              <Text className="text-text-secondary mt-1 text-xs">
                 Commute tolerance: {location.commute_tolerance} min
               </Text>
             ) : null}
@@ -116,7 +119,7 @@ export function ImportantLocationsInput({
         const commuteText = loc.commute_tolerance != null ? String(loc.commute_tolerance) : "";
         return (
           <Box key={index} className="gap-2">
-            <Text className="text-sm font-medium text-gray-700">
+            <Text className="text-text-secondary text-sm font-medium">
               Location {displayList.length > 1 ? index + 1 : ""}
             </Text>
             <Box className="gap-2">
@@ -124,20 +127,20 @@ export function ImportantLocationsInput({
                 value={loc.address ?? ""}
                 onValueChange={(v) => handleAddressChange(index, v ?? "")}
                 placeholder="Address or city"
-                className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+                className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
               />
               <PrimitiveInput
                 value={commuteText}
                 onValueChange={(v) => handleCommuteChange(index, v ?? "")}
                 placeholder="Commute max (minutes, optional)"
                 keyboardType="number-pad"
-                className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+                className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
               />
             </Box>
             {displayList.length > 1 && (
               <Pressable
                 onPress={() => handleRemoveLocation(index)}
-                className="self-start rounded-lg border border-gray-200 bg-white px-3 py-2"
+                className="border-border bg-background-surface self-start rounded-lg border px-3 py-2"
               >
                 <Text className="text-sm font-medium text-red-600">Remove</Text>
               </Pressable>
@@ -148,9 +151,11 @@ export function ImportantLocationsInput({
 
       <Pressable
         onPress={handleAddLocation}
-        className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 py-3"
+        className="border-border bg-background-base rounded-lg border-2 border-dashed py-3"
       >
-        <Text className="text-center text-sm font-medium text-gray-600">Add another location</Text>
+        <Text className="text-text-secondary text-center text-sm font-medium">
+          Add another location
+        </Text>
       </Pressable>
     </Box>
   );

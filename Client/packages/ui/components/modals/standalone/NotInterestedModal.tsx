@@ -118,8 +118,8 @@ export default function NotInterestedModal({
               htmlFor={`not-interested-reason-${reason.id}`}
               className={`flex cursor-pointer items-center rounded-md border p-3 transition-colors ${
                 selectedReason === reason.id
-                  ? "border-gray-900 bg-gray-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-primary bg-primary-muted"
+                  : "border-border hover:border-border"
               }`}
             >
               <Input
@@ -129,7 +129,7 @@ export default function NotInterestedModal({
                 value={reason.id}
                 checked={selectedReason === reason.id}
                 onChange={(e) => setSelectedReason(e.target.value)}
-                className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-500"
+                className="border-border text-text-primary h-4 w-4 focus:ring-neutral-400"
               />
               <BodyText as="span" className="ml-3 text-sm text-gray-900">
                 {reason.id === "other"
@@ -151,7 +151,7 @@ export default function NotInterestedModal({
               value={customReason}
               onChange={(e) => setCustomReason(e.target.value)}
               placeholder={t("why_not.reason_placeholder")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none focus:ring-gray-500"
+              className="border-border focus:border-primary w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-neutral-400"
             />
           </div>
         )}

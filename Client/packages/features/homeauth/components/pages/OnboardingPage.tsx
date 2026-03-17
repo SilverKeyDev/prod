@@ -92,7 +92,7 @@ export default function OnboardingPage() {
       default:
         return (
           <div className="py-8 text-center">
-            <Title as="h2" size="md" className="mb-2 text-gray-900">
+            <Title as="h2" size="md" className="text-text-primary mb-2">
               Complete your profile
             </Title>
             <BodyText size="sm" muted className="mx-auto max-w-md">
@@ -104,7 +104,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="bg-off-white min-h-screen">
+    <div className="bg-background-base min-h-screen">
       <div className="mx-auto w-full max-w-3xl px-4 pb-20 sm:px-6 sm:pb-8 lg:px-8">
         {/* Header */}
         <div className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
@@ -118,12 +118,12 @@ export default function OnboardingPage() {
         <OnboardingHeader steps={steps} currentStep={currentStep} onStepClick={goToStep} />
 
         {/* Step Content */}
-        <div className="mt-4 rounded-2xl bg-white shadow-sm">
+        <div className="bg-background-surface mt-4 rounded-2xl shadow-sm">
           <Card className="pb-8 sm:pb-12">
             {renderStepContent()}
 
             {/* Navigation Buttons */}
-            <div className="border-beige/30 mt-10 border-t px-4 pb-1 pt-8 sm:px-6 sm:pb-2">
+            <div className="border-border mt-10 border-t px-4 pb-1 pt-8 sm:px-6 sm:pb-2">
               <NavigationButtons
                 currentStep={currentStep}
                 totalSteps={steps.length}

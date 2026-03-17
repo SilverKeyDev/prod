@@ -54,7 +54,7 @@ export function MapControlsNative({
           disabled={disabled}
           style={[styles.controlButton, disabled && styles.controlButtonDisabled]}
         >
-          <Text className="text-base font-medium text-gray-700">
+          <Text className="text-text-secondary text-base font-medium">
             {SEARCH_TRANSLATIONS["search.zoom_out_symbol"] ?? "−"}
           </Text>
         </Pressable>
@@ -63,7 +63,7 @@ export function MapControlsNative({
           disabled={disabled}
           style={[styles.controlButton, disabled && styles.controlButtonDisabled]}
         >
-          <Text className="text-base font-medium text-gray-700">
+          <Text className="text-text-secondary text-base font-medium">
             {SEARCH_TRANSLATIONS["search.zoom_in_symbol"] ?? "+"}
           </Text>
         </Pressable>
@@ -81,7 +81,7 @@ export function MapControlsNative({
             <Icon name="chevron-left" size={18} color={color("neutral.700")} />
           </Pressable>
           <Box style={styles.pageLabel}>
-            <Text className="text-xs font-medium text-gray-700">{pageLabel}</Text>
+            <Text className="text-text-secondary text-xs font-medium">{pageLabel}</Text>
           </Box>
           <Pressable
             onPress={onNext}

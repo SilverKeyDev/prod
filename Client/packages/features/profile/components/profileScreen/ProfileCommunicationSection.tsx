@@ -39,7 +39,7 @@ export function ProfileCommunicationSection({
       <Title size="md">{SECTION_TITLES.COMMUNICATION_PREFERENCES}</Title>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.COMMUNICATION_FREQUENCY}
         </BodyText>
         {isEditMode ? (
@@ -51,11 +51,11 @@ export function ProfileCommunicationSection({
                   key={option.value}
                   onPress={() => updateField("communication_frequency", option.value)}
                   className={`rounded-full px-4 py-2 ${
-                    selected ? "bg-brand-accent" : "border border-gray-200 bg-white"
+                    selected ? "bg-primary" : "border-border bg-background-surface border"
                   }`}
                 >
                   <Text
-                    className={`text-sm font-medium ${selected ? "text-white" : "text-gray-800"}`}
+                    className={`text-sm font-medium ${selected ? "text-white" : "text-text-primary"}`}
                   >
                     {option.label}
                   </Text>
@@ -74,7 +74,7 @@ export function ProfileCommunicationSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.INFORMATION_DETAIL_LEVEL}
         </BodyText>
         {isEditMode ? (
@@ -86,11 +86,11 @@ export function ProfileCommunicationSection({
                   key={option.value}
                   onPress={() => updateField("information_detail_level", option.value)}
                   className={`rounded-full px-4 py-2 ${
-                    selected ? "bg-brand-accent" : "border border-gray-200 bg-white"
+                    selected ? "bg-primary" : "border-border bg-background-surface border"
                   }`}
                 >
                   <Text
-                    className={`text-sm font-medium ${selected ? "text-white" : "text-gray-800"}`}
+                    className={`text-sm font-medium ${selected ? "text-white" : "text-text-primary"}`}
                   >
                     {option.label}
                   </Text>

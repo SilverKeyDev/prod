@@ -19,9 +19,9 @@ export default function AuthLink({
 
   const variantClasses = {
     footer:
-      "text-black/60 hover:text-black text-xs sm:text-sm px-responsive-sm transition-all duration-200",
-    inline: "text-gray-600 hover:text-gray-800 text-xs sm:text-sm",
-    back: "inline-flex items-center text-black/60 hover:text-black mb-4",
+      "text-text-secondary hover:text-black text-xs sm:text-sm px-responsive-sm transition-all duration-200",
+    inline: "text-text-secondary hover:text-text-primary text-xs sm:text-sm",
+    back: "inline-flex items-center text-text-secondary hover:text-black mb-4",
   };
 
   return (

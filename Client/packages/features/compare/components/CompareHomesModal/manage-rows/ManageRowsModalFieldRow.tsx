@@ -30,7 +30,7 @@ export function ManageRowsModalFieldRow({
   return (
     <Label
       // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-      className={`hover:bg-bg-card-subtle active:bg-bg-card-muted flex cursor-pointer flex-row items-center gap-3 p-4 active:opacity-90 ${index !== totalCount - 1 ? "border-b border-gray-100" : ""}`}
+      className={`hover:bg-bg-card-subtle active:bg-bg-card-muted flex cursor-pointer flex-row items-center gap-3 p-4 active:opacity-90 ${index !== totalCount - 1 ? "border-border border-b" : ""}`}
     >
       <Box className="relative">
         <Input
@@ -41,7 +41,7 @@ export function ManageRowsModalFieldRow({
         />
         <Box
           // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-          className={`flex h-5 w-5 flex-row items-center justify-center rounded border-2 ${!isOmitted ? "border-border-input bg-border-input text-white shadow-sm" : "border-border-input hover:border-border-card-muted active:border-border-card-subtle bg-white active:opacity-90"}`}
+          className={`flex h-5 w-5 flex-row items-center justify-center rounded border-2 ${!isOmitted ? "border-border-input bg-border-input text-white shadow-sm" : "border-border-input hover:border-border-card-muted active:border-border-card-subtle bg-background-surface active:opacity-90"}`}
         >
           {!isOmitted && <Icon name="check" className="h-3 w-3 fill-current" />}
         </Box>
@@ -50,17 +50,17 @@ export function ManageRowsModalFieldRow({
         <BodyText
           as="span"
           // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-          className={`text-sm font-medium ${isOmitted ? "text-neutral-500 line-through" : "text-black"}`}
+          className={`text-sm font-medium ${isOmitted ? "text-text-secondary line-through" : "text-text-primary"}`}
         >
           {field.label}
         </BodyText>
         {isAutoOmitted && (
-          <BodyText as="span" className="ml-2 text-xs text-gray-500">
+          <BodyText as="span" className="text-text-secondary ml-2 text-xs">
             {t("compare.auto_hidden_no_data")}
           </BodyText>
         )}
         {!hasData && isManuallyEnabled && (
-          <BodyText as="span" className="ml-2 text-xs text-gray-500">
+          <BodyText as="span" className="text-text-secondary ml-2 text-xs">
             {t("compare.manually_enabled")}
           </BodyText>
         )}

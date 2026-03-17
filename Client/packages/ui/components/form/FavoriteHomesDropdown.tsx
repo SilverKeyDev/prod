@@ -62,24 +62,24 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         type="button"
         variant="ghost"
         onClick={toggleDropdown}
-        className={`border-beige hover:border-brown focus:border-brown focus:ring-brown/20 flex h-full w-full items-center gap-2 rounded-lg border bg-white px-2 py-2 transition-colors duration-200 focus:ring-2 lg:px-3 lg:py-3 ${className}`}
+        className={`border-border hover:border-primary focus:border-primary focus:ring-accent-muted bg-background-surface flex h-full w-full items-center gap-2 rounded-lg border px-2 py-2 transition-colors duration-200 focus:ring-2 lg:px-3 lg:py-3 ${className}`}
         disabled={disabled ?? loadingHomes}
-        icon={<Icon name="home" className="text-brown h-4 w-4" />}
+        icon={<Icon name="home" className="text-primary h-4 w-4" />}
       >
-        <Icon name="home" className="text-brown h-4 w-4" />
+        <Icon name="home" className="text-primary h-4 w-4" />
         <div className="flex-1 text-left">
           {loadingHomes ? (
             <KeyTurnLoader message={t("favorite_homes.loading_homes")} />
           ) : selectedHome ? (
             <div>
-              <div className="text-responsive-xs text-navy font-medium">
+              <div className="text-responsive-xs text-text-primary font-medium">
                 {(() => {
                   const { address } = selectedHome;
                   const lastCommaIndex = address.lastIndexOf(",");
                   return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
                 })()}
               </div>
-              <div className="text-responsive-xs hidden text-gray-500 sm:block">
+              <div className="text-responsive-xs text-text-secondary hidden sm:block">
                 {selectedHome.beds && selectedHome.baths
                   ? t("favorite_homes.bed_bath", {
                       beds: String(selectedHome.beds),
@@ -92,8 +92,8 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
             </div>
           ) : (
             <div>
-              <div className="text-responsive-xs text-gray-500">{displayPlaceholder}</div>
-              <div className="text-responsive-xs hidden text-gray-400 sm:block">
+              <div className="text-responsive-xs text-text-secondary">{displayPlaceholder}</div>
+              <div className="text-responsive-xs text-text-secondary hidden sm:block">
                 {t("favorite_homes.choose_saved_properties")}
               </div>
             </div>
@@ -101,14 +101,14 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         </div>
         <Icon
           name="chevron-down"
-          className={`text-brown h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+          className={`text-primary h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
         />
       </Button>
 
       {isDropdownOpen && !loadingHomes && !disabled && (
-        <div className="border-beige absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border bg-white shadow-lg">
+        <div className="border-border bg-background-surface absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border shadow-lg">
           {favoriteHomes.length === 0 ? (
-            <div className="px-3 py-2 text-center text-sm text-gray-500">
+            <div className="text-text-secondary px-3 py-2 text-center text-sm">
               {t("favorite_homes.no_favorite_homes_found")}
             </div>
           ) : (
@@ -121,8 +121,8 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                   onClick={() => handleHomeSelection(home)}
                   className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${index === 0 ? "first:rounded-t-lg" : ""} ${index === favoriteHomes.length - 1 ? "last:rounded-b-lg" : ""} ${
                     selectedHome?.address === home.address
-                      ? "bg-brown/10 text-brown"
-                      : "hover:bg-brown/5 text-black"
+                      ? "bg-primary-muted text-primary"
+                      : "hover:bg-accent-muted text-text-primary"
                   }`}
                 >
                   <div className="text-responsive-xs">
@@ -132,7 +132,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
                     })()}
                   </div>
-                  <div className="text-responsive-xs mt-1 hidden text-gray-500 sm:block">
+                  <div className="text-responsive-xs text-text-secondary mt-1 hidden sm:block">
                     {home.beds && home.baths
                       ? t("favorite_homes.bed_bath", {
                           beds: String(home.beds),

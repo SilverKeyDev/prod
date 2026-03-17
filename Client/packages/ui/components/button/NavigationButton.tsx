@@ -82,9 +82,9 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
   const buttonClasses = [
     // Base link-like styling
     "inline-flex items-center justify-center font-medium transition-all duration-200",
-    "text-gray-600 hover:text-gray-800 hover:underline",
+    "text-text-secondary hover:text-text-primary hover:underline",
     "cursor-pointer touch-friendly",
-    "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:no-underline",
+    "disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed disabled:hover:no-underline",
     // Size styles
     currentSizeStyles.text,
     currentSizeStyles.spacing,

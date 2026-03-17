@@ -25,7 +25,7 @@ export function renderPropertyAnalysisSectionContent(
     return (
       <ul className="space-y-2">
         {data.map((item, i) => (
-          <li key={i} className="text-brown/80 text-sm">
+          <li key={i} className="text-text-secondary text-sm">
             {String(item)}
           </li>
         ))}
@@ -38,7 +38,7 @@ export function renderPropertyAnalysisSectionContent(
   );
   if (entries.length === 0) {
     return (
-      <BodyText as="p" size="sm" className="text-brown/60">
+      <BodyText as="p" size="sm" className="text-text-secondary">
         {noDataLabel}
       </BodyText>
     );
@@ -52,12 +52,12 @@ export function renderPropertyAnalysisSectionContent(
         if (Array.isArray(value)) {
           return (
             <div key={key}>
-              <Title as="h4" size="sm" className="text-brown mb-2 font-medium">
+              <Title as="h4" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </Title>
               <ul className="ml-4 space-y-1">
                 {value.map((item, i) => (
-                  <li key={i} className="text-brown/80 list-disc text-sm">
+                  <li key={i} className="text-text-secondary list-disc text-sm">
                     {String(item)}
                   </li>
                 ))}
@@ -67,17 +67,17 @@ export function renderPropertyAnalysisSectionContent(
         }
         if (typeof value === "object" && value !== null) {
           return (
-            <div key={key} className="border-beige/40 bg-beige/10 rounded-lg border p-3">
-              <Title as="h4" size="sm" className="text-brown mb-2 font-medium">
+            <div key={key} className="border-border bg-accent-muted rounded-lg border p-3">
+              <Title as="h4" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </Title>
-              <div className="text-brown/70 space-y-2 text-sm">
+              <div className="text-text-secondary space-y-2 text-sm">
                 {Object.entries(value as Record<string, unknown>).map(([subKey, subValue]) => (
                   <div key={subKey} className="flex flex-col">
-                    <BodyText as="span" className="text-brown font-medium">
+                    <BodyText as="span" className="text-text-secondary font-medium">
                       {subKey.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
                     </BodyText>
-                    <BodyText as="span" className="text-brown/80">
+                    <BodyText as="span" className="text-text-secondary">
                       {String(subValue)}
                     </BodyText>
                   </div>
@@ -88,10 +88,10 @@ export function renderPropertyAnalysisSectionContent(
         }
         return (
           <div key={key} className="flex flex-col space-y-1">
-            <BodyText as="span" className="text-brown text-sm font-medium">
+            <BodyText as="span" className="text-text-secondary text-sm font-medium">
               {displayKey}
             </BodyText>
-            <BodyText as="span" className="text-brown/80 text-sm">
+            <BodyText as="span" className="text-text-secondary text-sm">
               {String(value)}
             </BodyText>
           </div>
@@ -141,7 +141,7 @@ export function buildPropertyAnalysisDynamicSections(
     key: s.key,
     label: s.label,
     data: s.data,
-    icon: renderSectionIcon(s.key, "h-5 w-5 text-brown"),
+    icon: renderSectionIcon(s.key, "h-5 w-5 text-text-secondary"),
     priority: s.priority,
   }));
 }

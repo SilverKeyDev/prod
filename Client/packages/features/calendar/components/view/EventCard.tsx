@@ -1,13 +1,23 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
+import Button from "packages/ui/components/button/Button";
+import CancelButton from "packages/ui/components/button/CancelButton";
+import { DeleteModal } from "packages/ui/components/modals";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
 
+import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 import { getEventEndDate, getEventStartDate } from "@/features/calendar/utils/eventParsing";
 
-import type { ExtendedGoogleEvent } from "../../types/calendar";
+import { CreateEventModal } from "./CreateEventModal";
 
 type EventCardProps = {
   event: ExtendedGoogleEvent;
+  silverKeyCalendarId?: string | null;
+  refreshEvents?: () => Promise<void>;
+  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
+  deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
+  calendars?: Calendar[];
   onClick?: () => void;
 };
 
@@ -35,7 +45,49 @@ function formatTime(date: Date) {
   }
 }
 
-export function EventCard({ event, onClick }: EventCardProps) {
+export function EventCard({
+  event,
+  silverKeyCalendarId = null,
+  refreshEvents,
+  updateEvent,
+  deleteEvent,
+  calendars = [],
+  onClick,
+}: EventCardProps) {
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+
+  const isSilverKeyEvent =
+    !!silverKeyCalendarId && !!event.calendarId && event.calendarId === silverKeyCalendarId;
+
+  const handleEdit = useCallback(() => {
+    setEditModalOpen(true);
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    setCancelConfirmOpen(true);
+  }, []);
+
+  const handleEditClose = useCallback(() => {
+    setEditModalOpen(false);
+  }, []);
+
+  const handleCancelConfirmClose = useCallback(() => {
+    setCancelConfirmOpen(false);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!event.id || !deleteEvent) return;
+    await deleteEvent(event.id, event.calendarId);
+    setCancelConfirmOpen(false);
+    await refreshEvents?.();
+  }, [event.id, event.calendarId, deleteEvent, refreshEvents]);
+
+  const handleEventUpdated = useCallback(() => {
+    setEditModalOpen(false);
+    void refreshEvents?.();
+  }, [refreshEvents]);
+
   const dateRange = useMemo(() => {
     try {
       const start = getEventStartDate(event);
@@ -55,29 +107,68 @@ export function EventCard({ event, onClick }: EventCardProps) {
     }
   }, [event]);
 
+  const showEditActions = isSilverKeyEvent && updateEvent && deleteEvent;
+
   return (
-    <Pressable
-      onPress={onClick}
-      disabled={!onClick}
-      className="mb-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md disabled:cursor-default disabled:opacity-100"
-    >
-      <Box className="flex flex-row items-stretch">
-        <Box className="bg-gold w-1" />
-        <Box className="flex-1 space-y-1 p-3">
-          <Text className="text-sm font-semibold text-gray-900">
-            {event.summary || "Untitled Event"}
-          </Text>
-          {dateRange ? <Text className="text-xs text-gray-600 sm:text-sm">{dateRange}</Text> : null}
-          {event.location ? (
-            <Text className="text-xs text-gray-500 sm:text-sm">{event.location}</Text>
-          ) : null}
-          {event.description ? (
-            <Text className="line-clamp-2 text-xs text-gray-500 sm:text-sm">
-              {event.description}
+    <>
+      <Pressable
+        onPress={onClick}
+        disabled={!onClick}
+        className="border-border bg-background-surface mb-2 w-full overflow-hidden rounded-xl border transition-shadow hover:shadow-md disabled:cursor-default disabled:opacity-100"
+      >
+        <Box className="flex flex-row items-stretch">
+          <Box className="bg-accent w-1" />
+          <Box className="flex-1 space-y-1 p-3">
+            <Text className="text-text-primary text-sm font-semibold">
+              {event.summary || "Untitled Event"}
             </Text>
-          ) : null}
+            {dateRange ? (
+              <Text className="text-text-secondary text-xs sm:text-sm">{dateRange}</Text>
+            ) : null}
+            {event.location ? (
+              <Text className="text-text-secondary text-xs sm:text-sm">{event.location}</Text>
+            ) : null}
+            {event.description ? (
+              <Text className="text-text-secondary line-clamp-2 text-xs sm:text-sm">
+                {event.description}
+              </Text>
+            ) : null}
+            {showEditActions ? (
+              <Box className="mt-2 flex flex-row gap-2">
+                <Button variant="outline" size="sm" onPress={handleEdit}>
+                  Edit
+                </Button>
+                <CancelButton size="sm" onPress={handleCancel}>
+                  Cancel
+                </CancelButton>
+              </Box>
+            ) : null}
+          </Box>
         </Box>
-      </Box>
-    </Pressable>
+      </Pressable>
+
+      {showEditActions && (
+        <>
+          <CreateEventModal
+            isOpen={editModalOpen}
+            onClose={handleEditClose}
+            mode="edit"
+            existingEvent={event}
+            calendars={calendars}
+            defaultCalendarId={event.calendarId}
+            onEventCreated={handleEventUpdated}
+            updateEvent={updateEvent}
+          />
+          <DeleteModal
+            isOpen={cancelConfirmOpen}
+            onClose={handleCancelConfirmClose}
+            onConfirm={handleDeleteConfirm}
+            title="Cancel Event"
+            message="Are you sure you want to cancel this event? This action cannot be undone."
+            confirmText="Cancel Event"
+          />
+        </>
+      )}
+    </>
   );
 }

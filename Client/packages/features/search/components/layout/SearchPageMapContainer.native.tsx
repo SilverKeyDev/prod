@@ -328,7 +328,7 @@ export function SearchPageMapContainerNative({
       {isLoading && (
         <Box style={styles.loadingOverlay}>
           <Loading />
-          <Text className="mt-3 text-sm text-gray-600">{loadingMessage}</Text>
+          <Text className="text-text-secondary mt-3 text-sm">{loadingMessage}</Text>
         </Box>
       )}
       {/* Measure before rendering MapView to avoid CAMetalLayer setDrawableSize 0x0 (GeoServices / blank map). */}

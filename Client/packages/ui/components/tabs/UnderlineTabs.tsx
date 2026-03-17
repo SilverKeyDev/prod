@@ -25,8 +25,10 @@ export type UnderlineTabsProps = {
   compact?: boolean;
   /** Optional class for the container. */
   className?: string;
-  /** Underline color class (default: bg-accent-underline). */
+  /** Underline color class (default: bg-gold, matching search Results/Saved). */
   underlineColor?: string;
+  /** When "sidebar", uses white text and white underline for sidebar-gray backgrounds. */
+  variant?: "default" | "sidebar";
 };
 
 /**
@@ -39,22 +41,25 @@ export function UnderlineTabs({
   onChange,
   compact = false,
   className = "",
-  underlineColor = "bg-accent-underline",
+  underlineColor = "bg-gold",
+  variant = "default",
 }: UnderlineTabsProps): JSX.Element {
+  const isSidebar = variant === "sidebar";
   const containerClass = compact
-    ? "flex flex-row items-center justify-center rounded-none border-b border-gray-200"
-    : "flex flex-row flex-shrink-0 rounded-none border-b border-gray-200";
+    ? `flex flex-row items-center justify-center rounded-none border-b ${isSidebar ? "border-white/20" : "border-border"}`
+    : `flex flex-row flex-shrink-0 rounded-none border-b ${isSidebar ? "border-white/20" : "border-border"}`;
   const buttonLayoutClass = compact
     ? "relative flex flex-row items-center justify-center px-responsive-sm py-responsive-xs"
     : "relative flex flex-row flex-1 items-center justify-center px-responsive-md py-responsive-sm";
-  const textSizeClass = compact ? "text-responsive-sm" : "text-responsive-sm";
 
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- conditional containerClass/className; refactor complex
     <Row className={className ? `${containerClass} ${className}` : containerClass}>
       {items.map((item) => {
         const isActive = activeId === item.id;
         const isLocked = item.locked === true;
+        const textSizeClass = isActive ? "text-responsive-md" : "text-responsive-sm";
+        const iconSizeClass = isActive ? "h-5 w-5" : "h-4 w-4";
+        const fontWeightClass = isActive ? "font-bold" : "font-medium";
         return (
           <Button
             key={item.id}
@@ -63,22 +68,32 @@ export function UnderlineTabs({
             size="sm"
             rounded="none"
             onClick={() => onChange(item.id)}
-            // eslint-disable-next-line silverkey/no-dynamic-class-names -- conditional buttonLayoutClass/isLocked/isActive; refactor complex
-            className={`${buttonLayoutClass} ${textSizeClass} font-medium ${HOVER_BG_CLASSES} focus:outline-none focus:ring-0 ${isLocked ? "text-neutral-400 opacity-75 hover:text-neutral-500 active:text-neutral-600 active:opacity-90" : isActive ? "font-semibold text-neutral-600" : "text-neutral-600 hover:text-neutral-800 active:text-neutral-900 active:opacity-90"} active:text-neutral-500 active:text-neutral-800`}
+            className={`${buttonLayoutClass} ${textSizeClass} ${fontWeightClass} ${HOVER_BG_CLASSES} focus:outline-none focus:ring-0 ${
+              isSidebar
+                ? isLocked
+                  ? "text-white/50 opacity-75 hover:text-white/70 active:opacity-90"
+                  : isActive
+                    ? "text-white"
+                    : "text-white/80 hover:text-white active:text-white"
+                : isLocked
+                  ? "text-neutral-400 opacity-75 hover:text-neutral-500 active:text-neutral-600 active:opacity-90"
+                  : isActive
+                    ? "text-neutral-600"
+                    : "text-neutral-600 hover:text-neutral-800 active:text-neutral-900 active:opacity-90"
+            } ${isSidebar ? "" : "active:text-neutral-500 active:text-neutral-800"}`}
           >
             <Box className="flex flex-row items-center justify-center gap-2">
               {isLocked ? (
-                <Icon name="lock" className="h-4 w-4 shrink-0" aria-hidden />
+                <Icon name="lock" className={`${iconSizeClass} shrink-0`} aria-hidden />
               ) : (
-                item.icon != null && <Box className="shrink-0">{item.icon}</Box>
+                item.icon != null && <Box className={`${iconSizeClass} shrink-0`}>{item.icon}</Box>
               )}
               {item.label}
             </Box>
             {isActive && (
               <BodyText
                 as="span"
-                // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-                className={`${underlineColor} absolute bottom-0 left-0 right-0 h-0.5 rounded-none`}
+                className={`${isSidebar ? "bg-white" : underlineColor} absolute bottom-0 left-2 right-2 h-0.5 rounded-none`}
                 aria-hidden
               />
             )}

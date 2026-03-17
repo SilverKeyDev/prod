@@ -168,14 +168,14 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
           <Label
             htmlFor="document-upload-input"
             // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-            className={`touch-friendly gap-responsive-sm p-responsive-md flex cursor-pointer flex-row items-center justify-between ${DROP_ZONE_BORDER_BASE} ${isUploading ? "cursor-not-allowed border-gray-300 bg-gray-50" : selectedFile ? "border-brand-accent bg-neutral-100" : "hover:border-brand-accent active:border-brand-accent border-gray-300 hover:bg-gray-50 active:bg-gray-100 active:opacity-90"}`}
+            className={`touch-friendly gap-responsive-sm p-responsive-md flex cursor-pointer flex-row items-center justify-between ${DROP_ZONE_BORDER_BASE} ${isUploading ? "border-border bg-background-base cursor-not-allowed" : selectedFile ? "border-primary bg-primary-muted" : "hover:border-primary active:border-primary border-border hover:bg-background-base active:bg-primary-muted active:opacity-90"}`}
           >
             <Box className="gap-responsive-sm flex min-w-0 flex-1 flex-row items-center">
               {selectedFile ? (
                 <>
                   <Icon
                     name="file-text"
-                    className="text-brand-accent h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6"
+                    className="text-primary h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6"
                   />
                   <Box className="min-w-0 flex-1">
                     <BodyText size="sm" className="truncate font-medium">
@@ -190,7 +190,7 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
                 <>
                   <Icon
                     name="upload"
-                    className="h-5 w-5 flex-shrink-0 text-gray-400 sm:h-6 sm:w-6"
+                    className="text-text-disabled h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6"
                   />
                   <Box className="min-w-0 flex-1">
                     <BodyText size="sm">{t("documents_upload.click_to_select")}</BodyText>

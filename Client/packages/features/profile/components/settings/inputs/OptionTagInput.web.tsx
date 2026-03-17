@@ -49,7 +49,7 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
                 size="sm"
                 type="button"
                 onClick={() => handleToggle(v)}
-                className="ring-olive/20 inline-flex rounded-full px-3 py-1.5 text-sm font-medium shadow-sm ring-1"
+                className="ring-accent-muted inline-flex rounded-full px-3 py-1.5 text-sm font-medium shadow-sm ring-1"
                 label={`Remove ${label}`}
               >
                 {label}
@@ -59,7 +59,7 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
                 key={v}
                 as="span"
                 size="sm"
-                className="bg-olive ring-olive/20 inline-flex items-center rounded-full px-3 py-1.5 font-medium text-white shadow-sm ring-1"
+                className="bg-primary ring-accent-muted inline-flex items-center rounded-full px-3 py-1.5 font-medium text-white shadow-sm ring-1"
               >
                 {label}
               </BodyText>
@@ -79,7 +79,7 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
               key={opt.value}
               onClick={() => handleToggle(opt.value)}
               disabled={disabled}
-              className="touch-friendly inline-flex rounded-full px-3 py-1 text-sm text-gray-600"
+              className="touch-friendly text-text-secondary inline-flex rounded-full px-3 py-1 text-sm"
             >
               {opt.label}
             </Button>
@@ -89,7 +89,9 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
 
       {/* Read-only: show nothing extra when no selection */}
       {!isEditMode && selectedValues.length === 0 && (
-        <div className="mobile-input bg-gray-50 text-sm text-black/60">Not specified</div>
+        <div className="mobile-input bg-background-base text-text-secondary text-sm">
+          Not specified
+        </div>
       )}
     </div>
   );

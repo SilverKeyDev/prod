@@ -134,10 +134,12 @@ function Dropdown<T = unknown>({
   }, [isOpen, checkOptionWraps, filteredOptions]);
   // Variant styles - using exact onboarding styling
   const variantStyles = {
-    default: "border-beige bg-white hover:border-brown/50 focus:ring-brown/20 focus:border-brown",
+    default:
+      "border-border bg-background-surface hover:border-border focus:ring-accent-muted focus:border-primary",
     mobile:
-      "mobile-input border-beige bg-white hover:border-brown/50 focus:ring-brown/20 focus:border-brown touch-friendly",
-    compact: "border-beige bg-white hover:border-brown/50 focus:ring-brown/20 focus:border-brown",
+      "mobile-input border-border bg-background-surface hover:border-border focus:ring-accent-muted focus:border-primary touch-friendly",
+    compact:
+      "border-border bg-background-surface hover:border-border focus:ring-accent-muted focus:border-primary",
   };
   // Size styles - using exact onboarding sizing
   const sizeStyles = {
@@ -146,16 +148,18 @@ function Dropdown<T = unknown>({
     lg: "h-14 px-5",
   };
   // Error styles
-  const errorStyles = error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "";
+  const errorStyles = error
+    ? "border-destructive focus:border-destructive focus:ring-destructive"
+    : "";
   // Disabled styles
   const disabledStyles = disabled
-    ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+    ? "bg-disabled text-text-disabled cursor-not-allowed"
     : "cursor-pointer";
   // Button classes - using exact onboarding styling with InputStyles
   const buttonClasses = [
     "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2",
     "flex items-center !justify-between cursor-pointer touch-friendly mobile-input",
-    "disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed",
+    "disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
     (getSharedInputTextStyles as () => string)(),
     variantStyles[variant],
     sizeStyles[size],
@@ -167,7 +171,7 @@ function Dropdown<T = unknown>({
     .join(" ");
   // Dropdown classes - using exact onboarding styling
   const dropdownClasses = [
-    "absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300",
+    "absolute top-full left-0 right-0 mt-1 bg-background-surface border border-border",
     "rounded-lg shadow-lg z-[9999]",
     dropdownClassName,
   ]
@@ -291,11 +295,11 @@ function Dropdown<T = unknown>({
           <div className={dropdownClasses}>
             {/* Search Input */}
             {searchable && (
-              <div className="border-b border-gray-100 p-2">
+              <div className="border-border border-b p-2">
                 <div className="relative">
                   <Icon
                     name="search"
-                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400"
+                    className="text-text-secondary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
                   />
                   {/* eslint-disable-next-line silverkey/no-primitive-components -- search filter input */}
                   <input
@@ -304,7 +308,7 @@ function Dropdown<T = unknown>({
                     value={searchTerm}
                     onChange={handleSearchChange}
                     placeholder={t("form.search_options")}
-                    className={`border-beige hover:border-brown/50 focus:border-brown focus:ring-brown/20 w-full rounded border py-2 pl-9 pr-3 transition-all duration-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 ${(getSharedInputTextStyles as () => string)()}`}
+                    className={`border-border hover:border-border focus:border-primary focus:ring-accent-muted placeholder:text-text-secondary w-full rounded border py-2 pl-9 pr-3 transition-all duration-200 focus:outline-none focus:ring-2 ${(getSharedInputTextStyles as () => string)()}`}
                   />
                 </div>
               </div>
@@ -313,7 +317,7 @@ function Dropdown<T = unknown>({
             {/* Options List */}
             <div>
               {filteredOptions.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-gray-500">
+                <div className="text-text-secondary px-3 py-2 text-sm">
                   {searchable ? "No options found" : "No options available"}
                 </div>
               ) : (
@@ -326,9 +330,9 @@ function Dropdown<T = unknown>({
                     disabled={option.disabled}
                     className={`touch-friendly flex w-full items-center justify-between gap-2 px-4 py-4 text-left outline-none transition-colors duration-150 ${(getSharedInputTextStyles as () => string)()} ${
                       option.disabled
-                        ? "cursor-not-allowed text-gray-400"
-                        : "cursor-pointer text-gray-600 hover:bg-gray-50 hover:text-gray-700"
-                    } ${option.value === value ? "bg-gray-100 font-medium text-gray-900" : ""} ${index > 0 ? "border-t border-gray-200" : ""} hover:font-normal focus:bg-gray-50 active:bg-gray-100`}
+                        ? "text-text-disabled cursor-not-allowed"
+                        : "text-text-secondary hover:text-text-primary cursor-pointer hover:bg-neutral-50"
+                    } ${option.value === value ? "bg-primary-muted text-text-primary font-medium" : ""} ${index > 0 ? "border-border border-t" : ""} hover:font-normal focus:bg-neutral-50 active:bg-neutral-100`}
                   >
                     <div className="relative flex min-w-0 flex-1 items-center gap-2">
                       <BodyText
@@ -349,7 +353,9 @@ function Dropdown<T = unknown>({
                         {option.label}
                       </BodyText>
                     </div>
-                    {option.value === value && <Icon name="check" className="text-brown h-4 w-4" />}
+                    {option.value === value && (
+                      <Icon name="check" className="text-primary h-4 w-4" />
+                    )}
                   </Button>
                 ))
               )}

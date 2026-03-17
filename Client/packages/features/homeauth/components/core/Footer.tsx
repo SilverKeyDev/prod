@@ -8,9 +8,9 @@ import AuthLink from "./Link";
 export default function AuthFooter() {
   const { t } = useLocalization();
   return (
-    <div className="animate-fade-in mt-4 border-t border-gray-100 pt-4">
+    <div className="animate-fade-in border-border mt-4 border-t pt-4">
       <div className="flex flex-col items-center justify-center gap-2 text-center text-sm">
-        <div className="flex items-center justify-center gap-1 whitespace-nowrap text-black/60 sm:gap-2 md:gap-3">
+        <div className="text-text-secondary flex items-center justify-center gap-1 whitespace-nowrap sm:gap-2 md:gap-3">
           <AuthLink to="/privacy" variant="footer">
             {t("auth.footer.privacy_policy")}
           </AuthLink>
@@ -21,7 +21,7 @@ export default function AuthFooter() {
             {t("auth.footer.contact_us")}
           </AuthLink>
         </div>
-        <BodyText as="p" size="xs" className="text-black/40">
+        <BodyText as="p" size="xs" className="text-text-disabled">
           © {dateNow().year()} SilverKey. {t("auth.footer.copyright")}
         </BodyText>
       </div>

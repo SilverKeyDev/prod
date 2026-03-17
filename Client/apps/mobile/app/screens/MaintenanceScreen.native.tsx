@@ -1,5 +1,6 @@
 import { Platform, StyleSheet, View } from "react-native";
 
+import { color } from "packages/design-tokens";
 import { Text } from "packages/ui/components/primitives";
 import { SHADOW_OFFSET_ELEVATED } from "packages/ui/styles/shadows.native";
 
@@ -22,12 +23,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
-    backgroundColor: "#fff",
+    backgroundColor: color("background-surface"),
   },
   card: {
     maxWidth: 400,
     padding: 32,
-    backgroundColor: "#f5f5f0",
+    backgroundColor: color("background-base"),
     borderRadius: 12,
 
     ...(Platform.OS === "web"
@@ -43,13 +44,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "600",
-    color: "#A3B18A",
+    color: color("primary"),
     marginBottom: 12,
     textAlign: "center",
   },
   message: {
     fontSize: 14,
-    color: "#666",
+    color: color("text-secondary"),
     textAlign: "center",
     lineHeight: 20,
   },

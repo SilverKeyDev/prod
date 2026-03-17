@@ -42,8 +42,8 @@ export default function PersonalizationSidebar({
       <Card
         className={
           isLargeScreen
-            ? "space-y-2"
-            : "border-beige/30 space-y-2 rounded-lg border bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md"
+            ? "!bg-background-surface space-y-2"
+            : "!bg-background-surface space-y-2 p-3 transition-all duration-200"
         }
         padding={isLargeScreen ? "md" : "none"}
       >
@@ -56,7 +56,7 @@ export default function PersonalizationSidebar({
               onClick={onEdit}
               variant="primary"
               size="sm"
-              className={`items-center justify-center rounded-lg p-2 text-sm font-medium ${isLargeScreen ? "w-full" : ""}`}
+              className={`min-h-9 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
               icon={<Icon name="edit" />}
             >
               {isLargeScreen ? "Edit" : ""}
@@ -70,7 +70,7 @@ export default function PersonalizationSidebar({
                 disabled={isSaving}
                 variant="primary"
                 size="sm"
-                className={`items-center justify-center rounded-lg p-2 text-sm font-medium ${isLargeScreen ? "w-full" : ""}`}
+                className={`min-h-9 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
                 icon={<Icon name="save" />}
               >
                 {isLargeScreen ? (isSaving ? "Saving..." : "Save") : ""}
@@ -78,7 +78,7 @@ export default function PersonalizationSidebar({
               <CancelButton
                 onClick={onCancel}
                 size="sm"
-                className={`items-center justify-center rounded-lg p-2 text-sm font-medium ${isLargeScreen ? "w-full" : ""}`}
+                className={`min-h-9 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
               >
                 {isLargeScreen ? "Cancel" : ""}
               </CancelButton>
@@ -97,8 +97,8 @@ export default function PersonalizationSidebar({
               onClick={() => onScrollToSection(step.key)}
               className={`group flex w-full items-center rounded-lg px-3 py-2 transition-colors ${isLargeScreen ? "gap-3" : "justify-center"} ${
                 currentActiveSection === step.key
-                  ? "bg-gold text-off-white"
-                  : "hover:bg-gold-lighter hover:text-off-white"
+                  ? "bg-neutral-100 text-neutral-800"
+                  : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-800"
               }`}
               title={!isLargeScreen ? step.label : undefined}
             >
@@ -108,8 +108,8 @@ export default function PersonalizationSidebar({
                   size={20}
                   className={`flex-shrink-0 transition-colors ${
                     currentActiveSection === step.key
-                      ? "text-off-white"
-                      : "group-hover:text-off-white text-gray-500"
+                      ? "text-neutral-800"
+                      : "text-neutral-600 group-hover:text-neutral-800"
                   }`}
                 />
               )}
@@ -119,8 +119,8 @@ export default function PersonalizationSidebar({
                   size="sm"
                   className={`text-left font-medium transition-colors ${
                     currentActiveSection === step.key
-                      ? "text-off-white"
-                      : "group-hover:text-off-white text-gray-500"
+                      ? "text-neutral-800"
+                      : "text-neutral-600 group-hover:text-neutral-800"
                   }`}
                 >
                   {step.label}

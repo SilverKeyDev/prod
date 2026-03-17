@@ -71,13 +71,13 @@ export default function UnifiedMessagesList({
       return (
         <div className="flex h-full items-center justify-center">
           <div className="text-center">
-            <div className="bg-beige/30 mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full">
-              <Icon name="message-circle" className="h-8 w-8 text-black/40" />
+            <div className="bg-accent-muted mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full">
+              <Icon name="message-circle" className="text-text-secondary h-8 w-8" />
             </div>
-            <Title as="h3" size="lg" className="mb-2 font-medium text-black">
+            <Title as="h3" size="lg" className="text-text-primary mb-2 font-medium">
               {config.emptyStates.noMessages.title}
             </Title>
-            <BodyText as="p" size="sm" className="mx-auto max-w-md text-black/60">
+            <BodyText as="p" size="sm" className="text-text-secondary mx-auto max-w-md">
               {config.emptyStates.noMessages.message}
             </BodyText>
           </div>
@@ -88,11 +88,11 @@ export default function UnifiedMessagesList({
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <Icon name="message-circle" className="mx-auto mb-3 h-16 w-16 text-black/40" />
-          <Title as="h3" size="lg" className="mb-2 font-medium text-black">
+          <Icon name="message-circle" className="text-text-secondary mx-auto mb-3 h-16 w-16" />
+          <Title as="h3" size="lg" className="text-text-primary mb-2 font-medium">
             {config.emptyStates.noAgent.title}
           </Title>
-          <BodyText as="p" size="sm" className="mb-4 text-black/60">
+          <BodyText as="p" size="sm" className="text-text-secondary mb-4">
             {config.emptyStates.noAgent.message}
           </BodyText>
           {onSearchClick && (
@@ -102,7 +102,7 @@ export default function UnifiedMessagesList({
               icon={<Icon name="search" className="h-4 w-4" />}
               iconPosition="left"
               onClick={onSearchClick}
-              className="border-beige/50 hover:border-beige hover:bg-beige/5 mx-auto flex items-center justify-center gap-2 bg-white text-black/70 hover:text-black"
+              className="border-border hover:border-accent hover:bg-accent-muted bg-background-surface text-text-secondary hover:text-text-primary mx-auto flex items-center justify-center gap-2"
             >
               {config.emptyStates.noAgent.actionLabel}
             </Button>
@@ -122,13 +122,13 @@ export default function UnifiedMessagesList({
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <div className="bg-beige/30 mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full">
-            <Icon name="message-circle" className="h-8 w-8 text-black/40" />
+          <div className="bg-accent-muted mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full">
+            <Icon name="message-circle" className="text-text-secondary h-8 w-8" />
           </div>
-          <Title as="h3" size="lg" className="mb-2 font-medium text-black">
+          <Title as="h3" size="lg" className="text-text-primary mb-2 font-medium">
             {config.emptyStates.noMessages.title}
           </Title>
-          <BodyText as="p" size="sm" className="mx-auto max-w-md text-black/60">
+          <BodyText as="p" size="sm" className="text-text-secondary mx-auto max-w-md">
             {mode === "agent" && selectedClientName
               ? config.emptyStates.noMessages.message.replace("your client", selectedClientName)
               : config.emptyStates.noMessages.message}
@@ -168,7 +168,7 @@ export default function UnifiedMessagesList({
             {dateDividerText && (
               <div className="flex items-center justify-center py-2">
                 <div className="rounded-full bg-black/5 px-3 py-1">
-                  <BodyText as="span" size="xs" className="font-medium text-black/60">
+                  <BodyText as="span" size="xs" className="text-text-secondary font-medium">
                     {dateDividerText}
                   </BodyText>
                 </div>
@@ -218,8 +218,8 @@ export default function UnifiedMessagesList({
                     const document = documents.find((d) => d.id === msg.shared_document_id);
                     if (!document) {
                       return (
-                        <div className="mb-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                          <BodyText as="p" size="sm" className="text-gray-500">
+                        <div className="border-border bg-primary-muted mb-2 rounded-lg border p-4">
+                          <BodyText as="p" size="sm" className="text-text-secondary">
                             {t("agent.document_not_found")}
                           </BodyText>
                         </div>
@@ -252,7 +252,7 @@ export default function UnifiedMessagesList({
                       variant="ghost"
                       size="sm"
                       onClick={() => onRetryMessage(msg.id)}
-                      className="text-xs font-medium text-red-500 underline hover:text-red-600"
+                      className="text-destructive hover:text-destructive-hover text-xs font-medium underline"
                       label={t("agent.retry_sending_message")}
                     >
                       {t("agent.retry")}
@@ -261,15 +261,15 @@ export default function UnifiedMessagesList({
                   <BodyText
                     as="span"
                     size="xs"
-                    className={`font-medium ${msg.status === "failed" ? "text-red-500" : "text-black/60"}`}
+                    className={`font-medium ${msg.status === "failed" ? "text-destructive" : "text-text-secondary"}`}
                   >
                     {msg.status === "sending"
-                      ? "Sending..."
+                      ? t("agent.sending")
                       : shouldShowDelivered
-                        ? "Delivered"
+                        ? t("agent.delivered")
                         : msg.status === "delivered"
                           ? ""
-                          : "Failed to send"}
+                          : t("agent.failed_to_send")}
                   </BodyText>
                 </div>
               )}
@@ -285,17 +285,17 @@ export default function UnifiedMessagesList({
               <div
                 className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${config.typingIndicator.iconBg}`}
               >
-                <MessageIcon className="h-4 w-4 text-black" />
+                <MessageIcon className="h-4 w-4 text-text-primary" />
               </div>
-              <div className="rounded-xl border border-beige bg-white px-3 py-2">
+              <div className="rounded-xl border border-border bg-background-surface px-3 py-2">
                 <div className="flex gap-1">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-navy/40"></div>
+                  <div className="h-2 w-2 animate-bounce rounded-full bg-text-primary"></div>
                   <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
+                    className="h-2 w-2 animate-bounce rounded-full bg-text-primary"
                     style={{ animationDelay: "0.1s" }}
                   ></div>
                   <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-navy/40"
+                    className="h-2 w-2 animate-bounce rounded-full bg-text-primary"
                     style={{ animationDelay: "0.2s" }}
                   ></div>
                 </div>

@@ -1,10 +1,20 @@
 """Load checklist definitions by category. Returns items (id, label, explanation, bullets, resource) and optional series metadata."""
 
-VALID_CATEGORIES = frozenset({"escrow", "financing", "closing", "insurance", "timeline"})
+VALID_CATEGORIES = frozenset(
+    {"search", "offer", "escrow", "financing", "closing", "insurance", "timeline"}
+)
 
 
 def get_checklist_definition(category):
     """Return list of task definitions for the category. Each item has id, label, explanation, bullets, resource (optional tip)."""
+    if category == "search":
+        from app.services.transactions.search.items import SEARCH_ITEMS
+
+        return list(SEARCH_ITEMS)
+    if category == "offer":
+        from app.services.transactions.offer.items import OFFER_ITEMS
+
+        return list(OFFER_ITEMS)
     if category == "escrow":
         from app.services.transactions.escrow import ESCROW_ITEMS
 

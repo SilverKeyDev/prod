@@ -42,7 +42,7 @@ export default function SearchFiltersSheet({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/50" aria-hidden onClick={onClose} />
+          <div className="bg-overlay-backdrop fixed inset-0" aria-hidden onClick={onClose} />
         </Transition.Child>
         <div className="pointer-events-none fixed inset-0 flex items-end justify-center p-0">
           <Transition.Child
@@ -54,11 +54,11 @@ export default function SearchFiltersSheet({
             leaveTo="translate-y-full"
           >
             <AccessibleDialog.Panel
-              className="pointer-events-auto flex h-[75dvh] max-h-[75dvh] w-full flex-col rounded-t-2xl bg-white"
+              className="bg-background-surface pointer-events-auto flex h-[75dvh] max-h-[75dvh] w-full flex-col rounded-t-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex shrink-0 flex-col items-center border-b border-neutral-200 pt-2">
-                <div className="mb-2 h-1 w-10 rounded-full bg-neutral-300" aria-hidden />
+              <div className="border-border flex shrink-0 flex-col items-center border-b pt-2">
+                <div className="bg-border mb-2 h-1 w-10 rounded-full" aria-hidden />
                 <div className="flex w-full items-center justify-between gap-2 px-4 pb-3">
                   <div className="w-9 shrink-0" aria-hidden />
                   <Title size="sm" as="h2" className="flex-1 text-center">
@@ -78,7 +78,7 @@ export default function SearchFiltersSheet({
                 />
               </div>
 
-              <div className="flex shrink-0 items-center gap-2 border-t border-neutral-200 px-4 py-3">
+              <div className="border-border flex shrink-0 items-center gap-2 border-t px-4 py-3">
                 <Button
                   variant="primary"
                   size="md"

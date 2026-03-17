@@ -27,15 +27,9 @@ function formatPrice(value: string | number | null | undefined): string {
 
 /**
  * Native saved home card — same layout as web: image with overlay (compare + heart),
- * address, price, beds/baths, then Unlock and Negotiate buttons.
+ * address, price, beds/baths, then Unlock button.
  */
-export function SavedHomeCard({
-  home,
-  isSelected,
-  onToggleCompare,
-  onUnlock,
-  onNegotiate,
-}: SavedHomeCardProps) {
+export function SavedHomeCard({ home, isSelected, onToggleCompare, onUnlock }: SavedHomeCardProps) {
   const { t } = useLocalization();
 
   const address =
@@ -57,7 +51,7 @@ export function SavedHomeCard({
   };
 
   return (
-    <Box className="mb-3 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+    <Box className="border-border bg-background-surface mb-3 overflow-hidden rounded-lg border shadow-sm">
       {/* Image section with overlay — same as web PropertyCard */}
       <View style={styles.imageWrap}>
         <Image
@@ -88,23 +82,18 @@ export function SavedHomeCard({
 
       {/* Body: address, price, details — same order as web PropertyCard below-address */}
       <Box className="px-3 pb-2 pt-2">
-        <Text className="text-sm font-medium text-gray-900" numberOfLines={2}>
+        <Text className="text-text-primary text-sm font-medium" numberOfLines={2}>
           {address}
         </Text>
-        <Text className="text-olive mt-0.5 text-lg font-bold">{priceStr}</Text>
-        {details ? <Text className="mt-0.5 text-xs text-gray-600">{details}</Text> : null}
+        <Text className="text-primary mt-0.5 text-lg font-bold">{priceStr}</Text>
+        {details ? <Text className="text-text-secondary mt-0.5 text-xs">{details}</Text> : null}
       </Box>
 
-      {/* Bottom: Unlock and Negotiate — same as web CardViewDetailsButton pair */}
-      <Box className="flex-row gap-2 px-3 pb-3">
-        <Button variant="secondary" size="sm" onPress={() => onUnlock(home)} className="flex-1">
+      {/* Bottom: Unlock button */}
+      <Box className="px-3 pb-3">
+        <Button variant="secondary" size="sm" onPress={() => onUnlock(home)} className="w-full">
           <Text className="text-sm font-medium">
-            {t("saved.unlock_home", { defaultValue: "Unlock" })}
-          </Text>
-        </Button>
-        <Button variant="primary" size="sm" onPress={() => onNegotiate(home)} className="flex-1">
-          <Text className="text-sm font-medium">
-            {t("saved.negotiate", { defaultValue: "Negotiate" })}
+            {t("saved.unlock_home", { defaultValue: "View" })}
           </Text>
         </Button>
       </Box>

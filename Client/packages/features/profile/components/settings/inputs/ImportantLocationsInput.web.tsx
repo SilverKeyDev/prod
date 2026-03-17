@@ -5,6 +5,7 @@ import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/google-maps";
+import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/fileUploadStyles";
 import { asError } from "packages/utils";
 import { hasProperty, isFunction, isObject } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
@@ -30,12 +31,15 @@ type ImportantLocationsInputProps = {
   onChange: (locations: ImportantLocation[]) => void;
   scriptsReady: boolean;
   isEditMode?: boolean;
+  /** Optional label for the add button (e.g. "Add work, school, or other location") */
+  addButtonLabel?: string;
 };
 const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   locations,
   onChange,
   scriptsReady,
   isEditMode = true,
+  addButtonLabel = "Add Important Location",
 }) => {
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -43,14 +47,19 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   const [commuteTime, setCommuteTime] = useState<string>("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [autocompleteError, setAutocompleteError] = useState<string | null>(null);
   const addressInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsListId = "important-locations-suggestions";
   const isFormVisible = isAddingLocation || editingIndex !== null;
   // Fetch autocomplete suggestions as the user types
   useEffect(() => {
     if (!scriptsReady || locationAddress.trim().length < 3 || hasSelected) {
       setSuggestions([]);
+      setAutocompleteError(null);
       return;
     }
+    setAutocompleteError(null);
     const fetchSuggestions = async () => {
       try {
         const win = getWindow();
@@ -88,14 +97,41 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
         const error = asError(err);
         log.error(LOG_CATEGORIES.ERRORS, "Autocomplete fetch error", error);
         setSuggestions([]);
+        setAutocompleteError("Address search unavailable. You can type an address manually.");
       }
     };
     const t = setTimeout(fetchSuggestions, 500);
     return () => clearTimeout(t);
   }, [locationAddress, scriptsReady, hasSelected]);
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [suggestions]);
   const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHasSelected(false);
+    setHighlightedIndex(-1);
     setLocationAddress(e.target.value);
+  };
+
+  const handleAddressKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (suggestions.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+    } else if (
+      e.key === "Enter" &&
+      highlightedIndex >= 0 &&
+      highlightedIndex < suggestions.length
+    ) {
+      e.preventDefault();
+      void handleSelect(suggestions[highlightedIndex]);
+    } else if (e.key === "Escape") {
+      setSuggestions([]);
+      setHighlightedIndex(-1);
+    }
   };
   const handleSelect = async (suggestion: Suggestion) => {
     setHasSelected(true);
@@ -129,6 +165,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       }
     }
     setSuggestions([]);
+    setHighlightedIndex(-1);
   };
   const parseCommuteTolerance = (): number | undefined => {
     const parsed = commuteTime.trim() === "" ? undefined : parseInt(commuteTime.trim(), 10);
@@ -179,6 +216,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
     setEditingIndex(null);
     setHasSelected(false);
     setSuggestions([]);
+    setHighlightedIndex(-1);
   };
   const handleFormSubmit = () => {
     if (editingIndex !== null) {
@@ -187,22 +225,26 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
       handleAddLocation();
     }
   };
+  const editingLocation = editingIndex !== null ? locations[editingIndex] : null;
+
   return (
     <div className="space-y-4">
-      {/* Existing Locations */}
+      {/* Existing Locations - always visible when present */}
       {locations.length > 0 && (
         <div className="space-y-3">
           {locations.map((location, index) => (
             <div
               key={index}
-              className="border-beige bg-beige/20 flex items-center justify-between rounded-lg border p-3"
+              className={`border-border bg-accent-muted flex items-center justify-between rounded-lg border p-3 ${
+                editingIndex === index ? "ring-brand-accent ring-2 ring-offset-2" : ""
+              }`}
             >
               <div className="min-w-0 flex-1 space-y-1">
-                <BodyText as="span" size="sm" className="block break-words text-black">
+                <BodyText as="span" size="sm" className="text-text-primary block break-words">
                   {location.address}
                 </BodyText>
                 {location.commute_tolerance != null && (
-                  <BodyText as="span" size="xs" className="text-brown block">
+                  <BodyText as="span" size="xs" className="text-text-secondary block">
                     {location.commute_tolerance} min max
                   </BodyText>
                 )}
@@ -215,7 +257,8 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                     icon={<Icon name="pencil" className="h-4 w-4" />}
                     onClick={() => handleEditLocation(index)}
                     title="Edit location"
-                    className="text-brown/70 hover:text-brown"
+                    label="Edit location"
+                    className="text-text-secondary hover:text-text-secondary"
                   />
                   <IconButton
                     variant="ghost"
@@ -223,7 +266,8 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                     icon={<Icon name="x" className="h-4 w-4" />}
                     onClick={() => handleRemoveLocation(index)}
                     title="Remove location"
-                    className="text-rose hover:text-rose-light"
+                    label="Remove location"
+                    className="text-destructive hover:text-destructive-hover"
                   />
                 </div>
               )}
@@ -240,37 +284,70 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
               variant="secondary"
               size="md"
               onClick={() => setIsAddingLocation(true)}
-              className="w-full border-2 border-dashed border-gray-300 text-gray-600"
+              className="bg-background-surface border-border text-text-secondary hover:bg-accent-muted w-full rounded-lg border-2 border-dotted py-3"
               iconName="plus"
               iconPosition="left"
             >
-              Add Important Location
+              {addButtonLabel}
             </Button>
           ) : (
-            <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div className={`space-y-3 ${LOCATION_INPUT_CONTAINER}`}>
+              {editingIndex !== null && editingLocation && (
+                <BodyText as="p" size="sm" className="text-text-secondary font-medium">
+                  Editing: {editingLocation.address}
+                </BodyText>
+              )}
               <Input
                 ref={addressInputRef}
                 label="Address"
                 type="text"
                 value={locationAddress}
                 onChange={handleAddressInputChange}
-                placeholder={scriptsReady ? "Search for address..." : "Loading..."}
+                onKeyDown={handleAddressKeyDown}
+                placeholder={
+                  scriptsReady ? "Search for address..." : "Setting up address search..."
+                }
                 disabled={!scriptsReady}
                 leftIcon={<Icon name="map-pin" className="h-4 w-4" />}
                 autoComplete="off"
                 size="md"
+                aria-autocomplete="list"
+                aria-controls={suggestionsListId}
+                aria-expanded={suggestions.length > 0}
+                aria-activedescendant={
+                  suggestions.length > 0 && highlightedIndex >= 0
+                    ? `${suggestionsListId}-option-${highlightedIndex}`
+                    : undefined
+                }
               />
+
+              {autocompleteError && (
+                <BodyText as="p" size="xs" className="mt-1 text-amber-600">
+                  {autocompleteError}
+                </BodyText>
+              )}
 
               {/* Address Suggestions */}
               {suggestions.length > 0 && (
-                <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
+                <ul
+                  id={suggestionsListId}
+                  role="listbox"
+                  className="bg-background-surface relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border shadow-sm"
+                >
                   {suggestions.map((s, idx) => (
-                    <li key={idx}>
+                    <li
+                      key={idx}
+                      id={`${suggestionsListId}-option-${idx}`}
+                      role="option"
+                      aria-selected={highlightedIndex === idx}
+                    >
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={handleSelect.bind(null, s)}
-                        className="w-full cursor-pointer justify-start px-3 py-2 text-left text-sm hover:bg-gray-100"
+                        onClick={() => void handleSelect(s)}
+                        className={`w-full cursor-pointer justify-start px-3 py-2 text-left text-sm ${
+                          highlightedIndex === idx ? "bg-primary-muted" : "hover:bg-primary-muted"
+                        }`}
                       >
                         {s.description}
                       </Button>
@@ -289,13 +366,13 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                     setCommuteTime(value);
                   }
                 }}
-                placeholder="30"
+                placeholder="30 (optional)"
                 min="0"
                 max="180"
                 leftIcon={<Icon name="clock" className="h-4 w-4" />}
                 autoComplete="off"
                 size="md"
-                helperText="Maximum acceptable commute time to this location"
+                helperText="Max drive time to this location (minutes). Optional."
               />
 
               <div className="flex space-x-3">
@@ -304,6 +381,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                   size="md"
                   onClick={handleFormSubmit}
                   disabled={!locationAddress.trim()}
+                  title={!locationAddress.trim() ? "Enter an address to save" : undefined}
                 >
                   {editingIndex !== null ? "Save" : "Add Location"}
                 </Button>

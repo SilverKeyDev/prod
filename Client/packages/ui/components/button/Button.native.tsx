@@ -31,12 +31,12 @@ function pickPressableProps(props: Record<string, unknown>): Partial<PressablePr
 }
 
 const VARIANT_CLASSES: Record<Exclude<ButtonVariant, "cancel">, string> = {
-  primary: "bg-brand-accent",
+  primary: "bg-primary",
   secondary: "bg-neutral-100",
-  tertiary: "bg-gold-muted",
-  outline: "border border-neutral-300 bg-transparent",
+  tertiary: "border-2 border-black bg-accent disabled:bg-gold-locked disabled:border-neutral-400",
+  outline: "border border-border bg-transparent",
   ghost: "bg-transparent",
-  danger: "bg-rose",
+  danger: "bg-destructive",
   success: "bg-brand-secondary",
 };
 
@@ -48,10 +48,10 @@ const SIZE_CLASSES: Record<"sm" | "md" | "lg", string> = {
 
 const TEXT_COLOR_CLASSES: Record<Exclude<ButtonVariant, "cancel">, string> = {
   primary: "text-white",
-  secondary: "text-neutral-900",
+  secondary: "text-text-primary",
   tertiary: "text-white",
-  outline: "text-neutral-900",
-  ghost: "text-neutral-900",
+  outline: "text-text-primary",
+  ghost: "text-text-primary",
   danger: "text-white",
   success: "text-white",
 };
@@ -129,7 +129,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         onPress={handlePress}
         disabled={disabled ?? loading}
         accessibilityLabel={label}
-        className={`flex-row items-center justify-center rounded-lg ${variantClass} ${sizeClass} ${(disabled ?? loading) ? "opacity-50" : ""} ${className}`}
+        className={`flex-row items-center justify-center rounded-lg ${variantClass} ${sizeClass} ${""} ${className}`}
         {...pressableProps}
       >
         {content}

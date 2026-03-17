@@ -103,8 +103,8 @@ export default function CalendarEventRequestModal({
       onClose={onClose}
       headerContent={
         <div className="flex items-center gap-2">
-          <Icon name="calendar" className="h-5 w-5 flex-shrink-0 text-gray-900" />
-          <Title as="h3" size="lg" className="truncate font-medium text-gray-900 sm:text-lg">
+          <Icon name="calendar" className="text-text-primary h-5 w-5 flex-shrink-0" />
+          <Title as="h3" size="lg" className="text-text-primary truncate font-medium sm:text-lg">
             Request Calendar Event
           </Title>
         </div>
@@ -117,11 +117,11 @@ export default function CalendarEventRequestModal({
           <div>
             <Label>Send to client</Label>
             {isLoadingClients ? (
-              <BodyText as="p" size="sm" className="text-gray-500">
+              <BodyText as="p" size="sm" className="text-text-secondary">
                 Loading clients...
               </BodyText>
             ) : clients.length === 0 ? (
-              <BodyText as="p" size="sm" className="text-gray-500">
+              <BodyText as="p" size="sm" className="text-text-secondary">
                 No clients available.
               </BodyText>
             ) : (
@@ -135,24 +135,24 @@ export default function CalendarEventRequestModal({
                     onClick={() => setSelectedClientId(client.id)}
                     className={`h-auto min-h-0 w-full justify-start rounded-lg border p-3 text-left ${
                       selectedClientId === client.id
-                        ? "border-olive bg-olive/10"
-                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        ? "border-primary bg-primary-muted"
+                        : "border-border hover:border-border hover:bg-primary-muted"
                     }`}
                   >
                     <div className="flex w-full items-center gap-2">
-                      <div className="bg-beige flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
-                        <Icon name="calendar" className="h-4 w-4 text-black" />
+                      <div className="bg-accent-muted flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+                        <Icon name="calendar" className="text-text-primary h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <BodyText as="p" size="sm" className="font-medium text-gray-900">
+                        <BodyText as="p" size="sm" className="text-text-primary font-medium">
                           {client.name}
                         </BodyText>
-                        <BodyText as="p" size="xs" className="text-gray-500">
+                        <BodyText as="p" size="xs" className="text-text-secondary">
                           {client.email}
                         </BodyText>
                       </div>
                       {selectedClientId === client.id && (
-                        <div className="bg-olive h-2 w-2 rounded-full" />
+                        <div className="bg-primary h-2 w-2 rounded-full" />
                       )}
                     </div>
                   </Button>

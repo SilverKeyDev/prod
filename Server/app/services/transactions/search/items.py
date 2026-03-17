@@ -13,8 +13,20 @@ SEARCH_ITEMS = [
         "resource": None,
     },
     {
-        "id": 4,
+        "id": 5,
         "order": 1,
+        "label": "Set a budget",
+        "explanation": "Set your budget range, income, and down payment so search results match what you can afford.",
+        "bullets": [
+            "Set your min and max home price range.",
+            "Enter your gross income and down payment for an affordability estimate.",
+        ],
+        "resource": None,
+        "component_key": "set_budget",
+    },
+    {
+        "id": 4,
+        "order": 2,
         "label": "Choose area(s)",
         "explanation": "Add work, family, or other important locations and set your commute range. The map shows your search area (isochrones) based on these locations.",
         "bullets": [
@@ -26,7 +38,7 @@ SEARCH_ITEMS = [
     },
     {
         "id": 2,
-        "order": 2,
+        "order": 3,
         "label": "Define your criteria and prioritize needs vs. wants",
         "explanation": "Create a clear list of what you must have in a home versus what would be nice to have.",
         "bullets": [
@@ -34,10 +46,11 @@ SEARCH_ITEMS = [
             "List nice-to-haves such as a pool, specific architectural style, or hardwood floors.",
         ],
         "resource": None,
+        "component_key": "define_criteria",
     },
     {
         "id": 3,
-        "order": 3,
+        "order": 4,
         "label": "Partner with a real estate agent",
         "explanation": "Hire a buyer's agent to guide you through the search, provide market insights, and give you access to the MLS.",
         "bullets": [

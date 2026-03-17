@@ -73,7 +73,7 @@ function ReportCardDate({ report }: { report: Report }) {
       <BodyText
         as="p"
         size="xs"
-        className="flex items-center rounded-md bg-white/90 px-2 py-1 text-black/60 shadow-sm sm:text-sm"
+        className="bg-background-surface text-text-secondary flex items-center rounded-md px-2 py-1 shadow-sm sm:text-sm"
       >
         <Icon name="clock" className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
         {formatReportDate(report)}
@@ -156,7 +156,7 @@ function ReportCardCompletedActions({
           disabled={disabled}
           icon={<Icon name="eye" />}
           text={viewLabel}
-          colorClasses="bg-olive-muted hover:bg-olive-light text-white"
+          colorClasses="bg-primary-muted hover:bg-primary-hover text-white"
           className="w-full"
         />
         <div className="flex min-w-0 gap-2">
@@ -165,7 +165,7 @@ function ReportCardCompletedActions({
             disabled={disabled}
             icon={<Icon name="download" />}
             text=""
-            colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
+            colorClasses="border-2 border-black bg-accent-muted hover:bg-accent-hover text-white"
             className="min-w-0 flex-1"
             hideTextOnMobile
           />
@@ -174,7 +174,7 @@ function ReportCardCompletedActions({
             disabled={disabled}
             icon={<Icon name="share" />}
             text=""
-            colorClasses="bg-gold hover:bg-gold/90 text-white"
+            colorClasses="border-2 border-black bg-accent hover:bg-accent-hover text-white"
             className="min-w-0 flex-1"
             hideTextOnMobile
           />
@@ -182,7 +182,7 @@ function ReportCardCompletedActions({
             onClick={() => report.s3Key && onDelete(report.id, report.s3Key)}
             disabled={disabled || !canDelete}
             icon={<Icon name="trash-2" />}
-            colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
+            colorClasses="bg-transparent hover:bg-primary-muted text-destructive border border-destructive"
             title={deleteTitle}
             className="min-w-0 flex-1 sm:w-auto sm:flex-initial"
             hideTextOnMobile
@@ -198,7 +198,7 @@ function ReportCardCompletedActions({
         disabled={disabled}
         icon={<Icon name="download" />}
         text=""
-        colorClasses="bg-brown-muted hover:bg-brown/90 text-white"
+        colorClasses="border-2 border-black bg-accent-muted hover:bg-accent-hover text-white"
         className="min-w-0 flex-1"
         hideTextOnMobile
       />
@@ -207,7 +207,7 @@ function ReportCardCompletedActions({
         disabled={disabled}
         icon={<Icon name="eye" />}
         text={viewLabel}
-        colorClasses="bg-olive-muted hover:bg-olive-light text-white"
+        colorClasses="bg-primary-muted hover:bg-primary-hover text-white"
         className="min-w-0 flex-1"
       />
       <ActionButton
@@ -215,7 +215,7 @@ function ReportCardCompletedActions({
         disabled={disabled}
         icon={<Icon name="share" />}
         text=""
-        colorClasses="bg-gold hover:bg-gold/90 text-white"
+        colorClasses="border-2 border-black bg-accent hover:bg-accent-hover text-white"
         className="min-w-0 flex-1"
         hideTextOnMobile
       />
@@ -223,7 +223,7 @@ function ReportCardCompletedActions({
         onClick={() => report.s3Key && onDelete(report.id, report.s3Key)}
         disabled={disabled || !canDelete}
         icon={<Icon name="trash-2" />}
-        colorClasses="bg-transparent hover:bg-danger/10 text-danger border border-danger"
+        colorClasses="bg-transparent hover:bg-primary-muted text-destructive border border-destructive"
         title={deleteTitle}
         className="min-w-0 sm:w-auto sm:flex-initial"
         hideTextOnMobile

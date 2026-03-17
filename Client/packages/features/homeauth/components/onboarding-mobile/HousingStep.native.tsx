@@ -42,12 +42,12 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
 
   return (
     <Box className="gap-6">
-      <Text className="text-lg font-semibold text-gray-900">
+      <Text className="text-text-primary text-lg font-semibold">
         {SECTION_TITLES.HOUSING_PREFERENCES}
       </Text>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.PREFERRED_BEDROOMS}
         </Text>
         <Input
@@ -57,12 +57,12 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
           }
           placeholder="e.g. 3"
           keyboardType="number-pad"
-          className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+          className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
         />
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.PREFERRED_BATHROOMS}
         </Text>
         <Input
@@ -72,15 +72,15 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
           }
           placeholder="e.g. 2"
           keyboardType="number-pad"
-          className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+          className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
         />
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.PREFERRED_HOUSING_TYPE}
         </Text>
-        <Text className="mb-3 text-xs text-gray-500">
+        <Text className="text-text-secondary mb-3 text-xs">
           Pick one or more home types you&apos;re open to.
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
@@ -91,12 +91,12 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
                 key={option.value}
                 onPress={() => toggleHousingType(option.value)}
                 className={`rounded-full border px-4 py-2 ${
-                  selected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
                   className={`text-xs font-medium ${
-                    selected ? "text-brand-accent" : "text-gray-700"
+                    selected ? "text-primary" : "text-text-secondary"
                   }`}
                 >
                   {option.label}
@@ -108,13 +108,15 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">{FIELD_LABELS.SQUARE_FEET}</Text>
-        <Text className="mb-3 text-xs text-gray-500">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
+          {FIELD_LABELS.SQUARE_FEET}
+        </Text>
+        <Text className="text-text-secondary mb-3 text-xs">
           Roughly how big do you want your home to be?
         </Text>
         <Box className="flex flex-row gap-3">
           <Box className="flex-1">
-            <Text className="mb-1 text-xs font-medium text-gray-600">Min</Text>
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Min</Text>
             <Input
               value={formData.preferred_sqft_min?.toString() ?? ""}
               onValueChange={(v) =>
@@ -122,11 +124,11 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
               }
               placeholder="e.g. 1200"
               keyboardType="number-pad"
-              className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
             />
           </Box>
           <Box className="flex-1">
-            <Text className="mb-1 text-xs font-medium text-gray-600">Max</Text>
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Max</Text>
             <Input
               value={formData.preferred_sqft_max?.toString() ?? ""}
               onValueChange={(v) =>
@@ -134,22 +136,22 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
               }
               placeholder="e.g. 2500"
               keyboardType="number-pad"
-              className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
             />
           </Box>
         </Box>
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.PREFERRED_LOT_SIZE}
         </Text>
-        <Text className="mb-3 text-xs text-gray-500">
+        <Text className="text-text-secondary mb-3 text-xs">
           If yard size matters, set a rough range in acres.
         </Text>
         <Box className="flex flex-row gap-3">
           <Box className="flex-1">
-            <Text className="mb-1 text-xs font-medium text-gray-600">Min (acres)</Text>
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Min (acres)</Text>
             <Input
               value={formData.preferred_lot_size_min?.toString() ?? ""}
               onValueChange={(v) =>
@@ -160,11 +162,11 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
               }
               placeholder="e.g. 0.25"
               keyboardType="decimal-pad"
-              className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
             />
           </Box>
           <Box className="flex-1">
-            <Text className="mb-1 text-xs font-medium text-gray-600">Max (acres)</Text>
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Max (acres)</Text>
             <Input
               value={formData.preferred_lot_size_max?.toString() ?? ""}
               onValueChange={(v) =>
@@ -175,17 +177,17 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
               }
               placeholder="e.g. 1"
               keyboardType="decimal-pad"
-              className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
             />
           </Box>
         </Box>
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.PREFERRED_HOME_AGE}
         </Text>
-        <Text className="mb-3 text-xs text-gray-500">
+        <Text className="text-text-secondary mb-3 text-xs">
           How old is too old? We&apos;ll prioritize homes newer than this.
         </Text>
         <Input
@@ -198,13 +200,15 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
           }
           placeholder="e.g. 30"
           keyboardType="number-pad"
-          className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+          className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
         />
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">{FIELD_LABELS.MUST_HAVE}</Text>
-        <Text className="mb-3 text-xs text-gray-500">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
+          {FIELD_LABELS.MUST_HAVE}
+        </Text>
+        <Text className="text-text-secondary mb-3 text-xs">
           Mark a few must-have features. We&apos;ll prioritize homes that match.
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
@@ -215,12 +219,12 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
                 key={option.value}
                 onPress={() => toggleMustHave(option.value)}
                 className={`rounded-full border px-4 py-2 ${
-                  selected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
                   className={`text-xs font-medium ${
-                    selected ? "text-brand-accent" : "text-gray-700"
+                    selected ? "text-primary" : "text-text-secondary"
                   }`}
                 >
                   {option.label}
@@ -232,12 +236,12 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.DAYS_ON_MARKET}
         </Text>
         <Box className="flex flex-row gap-3">
           <Box className="flex-1">
-            <Text className="mb-1 text-xs font-medium text-gray-600">Min (days)</Text>
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Min (days)</Text>
             <Input
               value={formData.days_on_market_min?.toString() ?? ""}
               onValueChange={(v) =>
@@ -248,11 +252,11 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
               }
               placeholder="e.g. 7"
               keyboardType="number-pad"
-              className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
             />
           </Box>
           <Box className="flex-1">
-            <Text className="mb-1 text-xs font-medium text-gray-600">Max (days)</Text>
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Max (days)</Text>
             <Input
               value={formData.days_on_market_max?.toString() ?? ""}
               onValueChange={(v) =>
@@ -263,14 +267,14 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
               }
               placeholder="e.g. 90"
               keyboardType="number-pad"
-              className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
             />
           </Box>
         </Box>
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.RENOVATION_PREFERENCE}
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
@@ -286,12 +290,12 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
                   )
                 }
                 className={`rounded-full border px-4 py-2 ${
-                  selected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
                   className={`text-xs font-medium ${
-                    selected ? "text-brand-accent" : "text-gray-700"
+                    selected ? "text-primary" : "text-text-secondary"
                   }`}
                 >
                   {option.label}
@@ -303,7 +307,7 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.INTENDED_PROPERTY_USE}
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
@@ -319,12 +323,12 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
                   )
                 }
                 className={`rounded-full border px-4 py-2 ${
-                  selected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
                   className={`text-xs font-medium ${
-                    selected ? "text-brand-accent" : "text-gray-700"
+                    selected ? "text-primary" : "text-text-secondary"
                   }`}
                 >
                   {option.label}
@@ -336,7 +340,7 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.WALKABILITY_IMPORTANCE}
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
@@ -352,12 +356,12 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
                   )
                 }
                 className={`rounded-full border px-4 py-2 ${
-                  selected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                  selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
                   className={`text-xs font-medium ${
-                    selected ? "text-brand-accent" : "text-gray-700"
+                    selected ? "text-primary" : "text-text-secondary"
                   }`}
                 >
                   {option.label}
@@ -369,10 +373,10 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.PREFERRED_HOME_FEATURES}
         </Text>
-        <Text className="mb-3 text-xs text-gray-500">
+        <Text className="text-text-secondary mb-3 text-xs">
           Separate features with commas (e.g., garage, pool, fireplace).
         </Text>
         <Input
@@ -392,13 +396,15 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
             updateFormData("preferred_home_features", next.length > 0 ? next : undefined);
           }}
           placeholder="e.g., garage, pool, fireplace"
-          className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+          className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
         />
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">{FIELD_LABELS.DEAL_BREAKERS}</Text>
-        <Text className="mb-3 text-xs text-gray-500">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
+          {FIELD_LABELS.DEAL_BREAKERS}
+        </Text>
+        <Text className="text-text-secondary mb-3 text-xs">
           Separate deal breakers with commas (e.g., No parking, Busy road).
         </Text>
         <Input
@@ -414,7 +420,7 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
             updateFormData("deal_breakers", next.length > 0 ? next : undefined);
           }}
           placeholder="e.g., No parking, Busy road, Old plumbing"
-          className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+          className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
         />
       </Box>
     </Box>

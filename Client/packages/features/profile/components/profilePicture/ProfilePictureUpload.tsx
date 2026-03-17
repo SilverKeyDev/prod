@@ -59,7 +59,7 @@ export default function ProfilePictureUpload() {
     <div className="space-y-3">
       <Label>Profile picture</Label>
       <div className="flex flex-wrap items-center gap-4">
-        <div className="flex h-20 w-20 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
+        <div className="bg-primary-muted flex h-20 w-20 flex-shrink-0 overflow-hidden rounded-full">
           <Image
             src={profilePictureUrl ?? DEFAULT_AVATAR_IMAGE}
             alt="Profile"

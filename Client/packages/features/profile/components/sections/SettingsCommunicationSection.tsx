@@ -44,7 +44,7 @@ export function SettingsCommunicationSection({
             placeholder="Select..."
           />
         ) : (
-          <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
+          <BodyText as="div" size="sm" className="mobile-input bg-background-base">
             {formData.communication_frequency
               ? (COMMUNICATION_FREQUENCY_OPTIONS.find(
                   (option) => option.value === formData.communication_frequency
@@ -69,7 +69,7 @@ export function SettingsCommunicationSection({
             placeholder="Select..."
           />
         ) : (
-          <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
+          <BodyText as="div" size="sm" className="mobile-input bg-background-base">
             {formData.information_detail_level
               ? [
                   { value: "brief", label: "Brief" },
@@ -100,7 +100,7 @@ export function SettingsCommunicationSection({
                 placeholder="Select..."
               />
             ) : (
-              <BodyText as="div" size="sm" className="mobile-input bg-gray-50">
+              <BodyText as="div" size="sm" className="mobile-input bg-background-base">
                 {formData.has_buyers_agent
                   ? [
                       { value: "yes", label: "Yes" },
@@ -124,7 +124,7 @@ export function SettingsCommunicationSection({
                 <div className="flex h-full items-center">
                   <Label
                     htmlFor="looking-buyers-agent"
-                    className="flex cursor-pointer items-center gap-3 text-sm font-medium text-black"
+                    className="text-text-primary flex cursor-pointer items-center gap-3 text-sm font-medium"
                   >
                     {isEditMode ? (
                       <>
@@ -173,13 +173,13 @@ export function SettingsCommunicationSection({
                       <div
                         className={`flex h-5 w-5 items-center justify-center rounded border ${
                           formData.looking_for_buyers_agent
-                            ? "border-olive bg-olive"
-                            : "border-gray-300 bg-gray-50"
+                            ? "border-primary bg-primary"
+                            : "border-border bg-background-base"
                         }`}
                       >
                         {formData.looking_for_buyers_agent && (
                           <svg
-                            className="h-4 w-4 text-gray-600"
+                            className="text-text-secondary h-4 w-4"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -198,7 +198,7 @@ export function SettingsCommunicationSection({
                   </Label>
                 </div>
               ) : (
-                <BodyText as="div" size="sm" className="mobile-input bg-gray-50 opacity-0">
+                <BodyText as="div" size="sm" className="mobile-input bg-background-base opacity-0">
                   &nbsp;
                 </BodyText>
               ),

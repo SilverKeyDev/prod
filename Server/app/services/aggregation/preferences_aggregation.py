@@ -361,10 +361,12 @@ def write_preferences_from_payload(
     if not u:
         raise ValueError(f"User not found: {user_id}")
 
-    # User.is_agent from payload
+    # User.is_agent: immutable once set. Users choose agent vs buyer only during onboarding;
+    # after that, the choice cannot be changed (prevents agents from switching to buyer or vice versa).
     if "is_agent" in data:
-        val = data["is_agent"]
-        u.is_agent = bool(val and str(val).lower() in ("yes", "true", "1", "am_agent"))
+        if not getattr(u, "is_agent", False):
+            val = data["is_agent"]
+            u.is_agent = bool(val and str(val).lower() in ("yes", "true", "1", "am_agent"))
 
     # Financials
     fin = UserFinancials.query.filter_by(user_id=user_id).first()

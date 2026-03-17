@@ -16,9 +16,9 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
   emotionalVolatility = "low",
 }) => {
   const volatilityColors = {
-    low: "text-olive bg-olive/10",
-    medium: "text-gold bg-gold/10",
-    high: "text-rose-600 bg-rose-50",
+    low: "text-primary bg-primary-muted",
+    medium: "text-accent bg-accent-muted",
+    high: "text-destructive bg-primary-muted",
   };
   const riskCategories: Record<
     RiskFlagType["type"],
@@ -50,12 +50,12 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
       <div className="space-y-6">
         {/* Risk Flags */}
         <div>
-          <Title as="h3" size="md" className="text-navy mb-4 font-semibold">
+          <Title as="h3" size="md" className="text-text-primary mb-4 font-semibold">
             Risk Flags
           </Title>
           {riskFlags.length === 0 ? (
             <div className="py-8 text-center">
-              <BodyText as="p" size="sm" className="text-black/60">
+              <BodyText as="p" size="sm" className="text-text-secondary">
                 No risk flags identified
               </BodyText>
             </div>
@@ -66,17 +66,17 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
                 return (
                   <div
                     key={index}
-                    className="border-beige/30 flex items-start gap-3 rounded-lg border bg-white p-4"
+                    className="border-border bg-background-surface flex items-start gap-3 rounded-lg border p-4"
                   >
                     <div className="mt-1 flex-shrink-0">{category.icon}</div>
                     <div className="min-w-0 flex-1">
                       <div className="mb-2 flex items-center justify-between gap-2">
-                        <BodyText as="span" size="sm" className="text-navy font-medium">
+                        <BodyText as="span" size="sm" className="text-text-primary font-medium">
                           {category.label}
                         </BodyText>
                         <RiskFlag severity={flag.severity} message={flag.message} />
                       </div>
-                      <BodyText as="p" size="sm" className="text-black/60">
+                      <BodyText as="p" size="sm" className="text-text-secondary">
                         {flag.message}
                       </BodyText>
                     </div>
@@ -89,8 +89,12 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
 
         {/* Emotional Volatility Indicator */}
         <div>
-          <Title as="h3" size="md" className="text-navy mb-3 flex items-center gap-2 font-semibold">
-            <Icon name="heart" className="h-5 w-5 text-rose-600" />
+          <Title
+            as="h3"
+            size="md"
+            className="text-text-primary mb-3 flex items-center gap-2 font-semibold"
+          >
+            <Icon name="heart" className="text-destructive h-5 w-5" />
             Emotional Volatility
           </Title>
           <div
@@ -100,7 +104,7 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
               {emotionalVolatility}
             </BodyText>
           </div>
-          <BodyText as="p" size="xs" className="mt-2 text-black/60">
+          <BodyText as="p" size="xs" className="text-text-secondary mt-2">
             Client's emotional state and decision-making stability
           </BodyText>
         </div>

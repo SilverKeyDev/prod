@@ -3,6 +3,7 @@ import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
+import { useIsAgent } from "packages/features/homeauth";
 import { HttpError } from "packages/services/http/compatibility";
 import { useAuthStore } from "packages/store";
 
@@ -24,7 +25,7 @@ export function useAgentClients(): UseAgentClientsReturn {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
-  const isAgent = useAuthStore((s) => s.user?.is_agent ?? false);
+  const isAgent = useIsAgent();
 
   // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(

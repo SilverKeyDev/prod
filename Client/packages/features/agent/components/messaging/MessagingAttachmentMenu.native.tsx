@@ -35,7 +35,7 @@ export function MessagingAttachmentMenu({
             }}
             style={styles.option}
           >
-            <Text className="text-base font-medium text-gray-900">Share home</Text>
+            <Text className="text-text-primary text-base font-medium">Share home</Text>
           </RNPressable>
           <RNPressable
             onPress={() => {
@@ -44,7 +44,7 @@ export function MessagingAttachmentMenu({
             }}
             style={styles.option}
           >
-            <Text className="text-base font-medium text-gray-900">Share document</Text>
+            <Text className="text-text-primary text-base font-medium">Share document</Text>
           </RNPressable>
           <RNPressable
             onPress={() => {
@@ -53,7 +53,7 @@ export function MessagingAttachmentMenu({
             }}
             style={styles.option}
           >
-            <Text className="text-base font-medium text-gray-900">Calendar event</Text>
+            <Text className="text-text-primary text-base font-medium">Calendar event</Text>
           </RNPressable>
           {isAgent && onShareAgreement && (
             <RNPressable
@@ -63,11 +63,11 @@ export function MessagingAttachmentMenu({
               }}
               style={styles.option}
             >
-              <Text className="text-base font-medium text-gray-900">Share agreement</Text>
+              <Text className="text-text-primary text-base font-medium">Share agreement</Text>
             </RNPressable>
           )}
           <RNPressable onPress={onClose} style={[styles.option, styles.cancel]}>
-            <Text className="text-base font-medium text-gray-600">Cancel</Text>
+            <Text className="text-text-secondary text-base font-medium">Cancel</Text>
           </RNPressable>
         </View>
       </RNPressable>

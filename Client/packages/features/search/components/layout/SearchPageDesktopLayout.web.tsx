@@ -100,7 +100,7 @@ export function SearchPageDesktopLayout({
   return (
     <div className="gap-responsive-md hidden h-full md:flex">
       <div className="flex w-64 flex-shrink-0 flex-col">
-        <div className="flex h-full flex-col rounded-tr-lg border border-gray-200 bg-white p-4">
+        <div className="border-border bg-background-surface flex h-full flex-col rounded-tr-lg border p-4">
           <Tabs
             active={activeTab}
             onChange={handleTabChangeWithSideEffects}
@@ -126,7 +126,7 @@ export function SearchPageDesktopLayout({
       </div>
 
       <div className="flex flex-1 flex-col">
-        <div className="hidden w-full flex-shrink-0 lg:block">
+        <div className="hidden w-full flex-shrink-0 md:block">
           <div className="mb-4 flex w-full items-center justify-between">
             <SearchHeader
               onPreferencesChanged={onPreferencesChanged}
@@ -143,7 +143,7 @@ export function SearchPageDesktopLayout({
           </div>
         </div>
 
-        <div className="relative flex-1 overflow-hidden rounded-tl-lg border border-gray-200 bg-white">
+        <div className="border-border bg-background-surface relative flex-1 overflow-hidden rounded-tl-lg border">
           <SearchPageMapContainer
             mapRef={desktopMapRef}
             isLoading={isLoading}

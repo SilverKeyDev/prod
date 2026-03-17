@@ -68,7 +68,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
   })();
   return (
     <div
-      className={`flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}
+      className={`border-border bg-background-surface flex flex-col overflow-hidden rounded-lg border shadow-sm ${className}`}
     >
       {/* Image Section */}
       <div className="relative h-28 overflow-hidden sm:h-32 md:h-36">
@@ -81,7 +81,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         {/* Price and Status Row */}
         <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
           {/* Price Badge - reduced padding */}
-          <div className="text-olive rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 text-xs font-medium backdrop-blur-sm sm:text-sm">
+          <div className="text-primary border-border bg-primary-muted rounded-full border px-2 py-1 text-xs font-medium backdrop-blur-sm sm:text-sm">
             {formatPrice(comp.price, comp.currency)}
           </div>
         </div>

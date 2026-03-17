@@ -30,6 +30,8 @@ type ChecklistCheckboxProps = {
   number?: number;
   /** When true, checkbox is disabled and shows locked state. */
   disabled?: boolean;
+  /** When false, hides explanation, bullets, and resource. Default true for backward compatibility. */
+  showDetails?: boolean;
 };
 /**
  * Reusable styled checkbox row for checklist pages.
@@ -44,6 +46,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
   checkboxContainerClass,
   number,
   disabled = false,
+  showDetails = true,
 }) => {
   const ariaLabel = number != null ? `${number}. ${item.label}` : item.label;
   const handleToggle = () => {
@@ -65,7 +68,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
         // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 flex-row items-center justify-center rounded border ${HOVER_BG_CLASSES} lg:h-6 lg:w-6 ${disabled ? "cursor-not-allowed border-gray-200 bg-gray-100" : checked ? "border-olive bg-olive cursor-pointer" : "border-border-input cursor-pointer"}`}
+        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 flex-row items-center justify-center rounded border ${HOVER_BG_CLASSES} lg:h-6 lg:w-6 ${disabled ? "border-border bg-disabled cursor-not-allowed" : checked ? "border-primary bg-primary cursor-pointer" : "border-border-input cursor-pointer"}`}
         onClick={handleToggle}
         onKeyDown={(e) => {
           if (disabled) return;
@@ -78,34 +81,34 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
         {checked && (
           <Icon name="check" className="h-3.5 w-3.5 text-white lg:h-4 lg:w-4" strokeWidth={4} />
         )}
-        {!checked && disabled && <Icon name="lock" className="h-3 w-3 text-gray-400" />}
+        {!checked && disabled && <Icon name="lock" className="text-text-secondary h-3 w-3" />}
       </Box>
       <Box className="flex-1 text-left">
         <Label htmlFor={`item-${item.id}`} className={itemLabelClass}>
           {number != null ? `${number}. ` : ""}
           {item.label}
         </Label>
-        {!checked && (
+        {showDetails && (
           <Box className="flex flex-col gap-1.5">
             <BodyText size="xs" className={itemExplanationClass}>
               {item.explanation}
             </BodyText>
             {item.bullets && (
-              <ul className="ml-4 flex list-inside list-disc flex-col gap-1.5 text-left text-xs text-neutral-600">
+              <ul className="text-text-secondary ml-4 flex list-inside list-disc flex-col gap-1.5 text-left text-xs">
                 {item.bullets.map((b, idx) => (
                   <li key={idx}>{b}</li>
                 ))}
               </ul>
             )}
             {item.resource && (
-              <BodyText size="xs" className="text-responsive-xs text-olive">
+              <BodyText size="xs" className="text-responsive-xs text-primary">
                 {item.resource.href ? (
                   /* eslint-disable-next-line silverkey/no-primitive-components -- external link; href from resource */
                   <a
                     href={item.resource.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-olive hover:text-olive-light active:text-olive active:text-olive-light underline"
+                    className="text-primary hover:text-primary-hover active:text-primary underline"
                   >
                     {item.resource.label}
                   </a>

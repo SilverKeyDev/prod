@@ -18,7 +18,7 @@ const SIZES = ["sm", "md", "lg"] as const;
  */
 export default function ButtonShowcasePage() {
   return (
-    <div className="min-h-screen bg-neutral-50 p-6">
+    <div className="min-h-screen bg-background-base p-6">
       <Title size="lg" as="h1" className="mb-2">
         Button showcase
       </Title>

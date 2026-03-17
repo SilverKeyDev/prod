@@ -1,12 +1,19 @@
 // Base primitives (platform-resolved .web / .native; use for shared web/native code)
 // These are true primitives that don't import from this barrel, preventing circular dependencies
+// NOTE: Loading and ConnectedCardHeartSave removed - they import from this barrel causing cycles.
+// Import from: packages/ui/components/asset/loading/Loading, packages/ui/components/button/ConnectedCardHeartSave
+export { BlurView } from "./blur";
 export { Box } from "./box";
 export { Button as Pressable } from "./button";
+export { DashedDivider } from "./divider";
+export { UniversalGradient } from "./gradient";
 export { Input as PrimitiveInput } from "./input";
 export { List } from "./list";
 export { Image, Video } from "./media";
+export { Row } from "./row";
 export { ScrollView } from "./scroll";
 export { Text } from "./text";
+export { TouchableBox } from "./touchable";
 export type { IconName } from "@ui/icons";
 export type { IconProps } from "@ui/icons";
 export { Icon } from "@ui/icons";

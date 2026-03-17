@@ -28,13 +28,10 @@ export function AuthGuard({
   if (authStatus === "checking") {
     return (
       fallback ?? (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="flex min-h-screen items-center justify-center bg-background-base">
           <Card className="w-full max-w-sm" padding="lg">
             <div className="text-center">
-              <Icon
-                name="loader-2"
-                className="mx-auto mb-4 h-8 w-8 animate-spin text-brand-accent"
-              />
+              <Icon name="loader-2" className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
               <BodyText size="sm" muted>
                 Checking authentication...
               </BodyText>
@@ -49,12 +46,12 @@ export function AuthGuard({
   if (requireAuth && authStatus === "unauthenticated") {
     return (
       fallback ?? (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-          <Card className="w-full max-w-md border-l-4 border-l-brand-accent" padding="lg">
+        <div className="flex min-h-screen items-center justify-center bg-background-base p-4">
+          <Card className="w-full max-w-md border-l-4 border-l-primary" padding="lg">
             <div className="text-center">
               <div className="mb-4 flex justify-center">
-                <div className="rounded-full bg-brand-accent/10 p-3">
-                  <Icon name="lock" className="h-8 w-8 text-brand-accent" />
+                <div className="rounded-full bg-primary-muted p-3">
+                  <Icon name="lock" className="h-8 w-8 text-primary" />
                 </div>
               </div>
 

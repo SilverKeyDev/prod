@@ -98,27 +98,27 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
 
   return (
     <Box className="p-6">
-      <Box className="border-beige/30 rounded-lg border bg-white p-4">
+      <Box className="border-border bg-background-surface rounded-lg border p-4">
         <Box className="flex-row flex-wrap gap-6">
           <Box className="min-w-0 flex-1">
-            <Text className="text-brown mb-4 text-lg font-semibold">Property Details</Text>
+            <Text className="text-text-secondary mb-4 text-lg font-semibold">Property Details</Text>
             <Box className="mt-2 gap-3">
               {propertyYearBuilt && Number(propertyYearBuilt) > 0 && (
                 <Box className="flex-row justify-between">
-                  <Text className="text-gray-700">Year Built:</Text>
-                  <Text className="text-gray-900">{String(propertyYearBuilt)}</Text>
+                  <Text className="text-text-secondary">Year Built:</Text>
+                  <Text className="text-text-primary">{String(propertyYearBuilt)}</Text>
                 </Box>
               )}
               {hasLotSize && (
                 <Box className="flex-row justify-between">
-                  <Text className="text-gray-700">Lot Size:</Text>
-                  <Text className="text-gray-900">{String(propertyLotSize)}</Text>
+                  <Text className="text-text-secondary">Lot Size:</Text>
+                  <Text className="text-text-primary">{String(propertyLotSize)}</Text>
                 </Box>
               )}
               {hasPropertyType && (
                 <Box className="flex-row justify-between">
-                  <Text className="text-gray-700">Property Type:</Text>
-                  <Text className="text-gray-900">
+                  <Text className="text-text-secondary">Property Type:</Text>
+                  <Text className="text-text-primary">
                     {formatPropertyType(
                       (propertyHomeType as string) ?? (propertyPropertyType as string) ?? ""
                     )}
@@ -127,8 +127,8 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
               )}
               {hasPricePerSqft && (
                 <Box className="flex-row justify-between">
-                  <Text className="text-gray-700">Price per Sq Ft: $</Text>
-                  <Text className="text-gray-900">
+                  <Text className="text-text-secondary">Price per Sq Ft: $</Text>
+                  <Text className="text-text-primary">
                     {typeof propertyPricePerSquareFoot === "string"
                       ? propertyPricePerSquareFoot
                       : typeof propertyPricePerSquareFoot === "number"
@@ -139,8 +139,8 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
               )}
               {hasParking && (
                 <Box className="flex-row justify-between">
-                  <Text className="text-gray-700">Parking:</Text>
-                  <Text className="text-gray-900">
+                  <Text className="text-text-secondary">Parking:</Text>
+                  <Text className="text-text-primary">
                     {typeof propertyGarageSpaces === "number" && propertyGarageSpaces > 0
                       ? `${propertyGarageSpaces}-car garage`
                       : typeof propertyParking === "number" && propertyParking > 0
@@ -151,14 +151,14 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
               )}
               {typeof propertyZestimate === "number" && propertyZestimate > 0 && (
                 <Box className="flex-row justify-between">
-                  <Text className="text-gray-700">Estimate:</Text>
-                  <Text className="text-gray-900">${propertyZestimate.toLocaleString()}</Text>
+                  <Text className="text-text-secondary">Estimate:</Text>
+                  <Text className="text-text-primary">${propertyZestimate.toLocaleString()}</Text>
                 </Box>
               )}
               {typeof propertyRentZestimate === "number" && propertyRentZestimate > 0 && (
                 <Box className="flex-row justify-between">
-                  <Text className="text-gray-700">Rent Estimate:</Text>
-                  <Text className="text-gray-900">
+                  <Text className="text-text-secondary">Rent Estimate:</Text>
+                  <Text className="text-text-primary">
                     ${propertyRentZestimate.toLocaleString()}/month
                   </Text>
                 </Box>

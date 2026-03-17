@@ -307,11 +307,11 @@
 
   /* Control button patterns */
   .control-button-sm {
-    @apply hover:border-olive hover:text-olive focus:ring-olive/20 flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14;
+    @apply hover:border-primary hover:text-primary focus:ring-accent-muted border-border text-text-primary flex h-8 w-8 items-center justify-center rounded-lg border bg-white shadow-md transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14;
   }
 
   .control-button-md {
-    @apply touch-friendly hover:border-olive hover:text-olive focus:ring-olive/20 flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-md transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16;
+    @apply touch-friendly hover:border-primary hover:text-primary focus:ring-accent-muted border-border text-text-primary flex h-10 w-10 items-center justify-center rounded-lg border bg-white shadow-md transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16;
   }
 
   /* Mobile-friendly spacing utilities */
@@ -466,7 +466,7 @@
   }
 
   .form-button-responsive {
-    @apply flex w-full touch-manipulation items-center justify-center gap-2 rounded px-3 py-2 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:py-2.5 sm:text-sm md:px-6 md:py-3 md:text-base lg:px-8 lg:py-3.5 lg:text-lg;
+    @apply disabled:bg-disabled disabled:text-text-disabled flex w-full touch-manipulation items-center justify-center gap-2 rounded px-3 py-2 text-xs font-medium transition-colors disabled:cursor-not-allowed sm:px-4 sm:py-2.5 sm:text-sm md:px-6 md:py-3 md:text-base lg:px-8 lg:py-3.5 lg:text-lg;
   }
 
   /* Icon with text pattern */
@@ -489,7 +489,7 @@
   }
 
   .mobile-backdrop {
-    @apply z-overlay fixed inset-0 touch-none bg-black bg-opacity-50;
+    @apply z-overlay bg-overlay-backdrop fixed inset-0 touch-none;
   }
 
   /* Mobile form utilities */
@@ -598,7 +598,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    @apply bg-neutral-100/20;
+    @apply bg-neutral-100;
     mix-blend-mode: soft-light;
     pointer-events: none;
     border-radius: inherit;
@@ -606,33 +606,32 @@
 
   /* Muted Card System */
   .muted-card {
-    @apply border border-neutral-200/50 bg-neutral-50 shadow-sm;
+    @apply border-border border bg-neutral-50 shadow-sm;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
   .muted-card:hover {
-    @apply border-neutral-300/50 shadow-md;
+    @apply border-border shadow-md;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   }
 
   /* Muted Button System */
   .muted-button {
-    @apply border border-neutral-200/50 bg-neutral-100 text-neutral-700;
+    @apply border-border border bg-neutral-100 text-neutral-700;
     transition: all 0.2s ease;
   }
 
   .muted-button:hover {
-    @apply border-neutral-300/50 bg-neutral-200 text-neutral-800;
+    @apply border-border bg-neutral-200 text-neutral-800;
   }
 
   .muted-button-primary {
-    @apply border-brand-accent/50 bg-brand-accent border text-white;
+    @apply border-primary bg-primary border text-white;
     transition: all 0.2s ease;
   }
 
   .muted-button-primary:hover {
-    background: #97a77b;
-    border-color: #8a9a6e;
+    @apply bg-primary-hover border-primary-hover;
   }
 
   /* Autofill Styling - Light Brown/Gold Theme */

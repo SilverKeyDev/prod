@@ -69,7 +69,7 @@ function CompCardImage({
     <div className="relative h-28 overflow-hidden sm:h-32 md:h-36">
       <Image src={imageUrl} alt={address} className="h-full w-full object-cover" />
       <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
-        <div className="text-olive rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 text-xs font-medium backdrop-blur-sm sm:text-sm">
+        <div className="text-primary border-border bg-background-base rounded-full border px-2 py-1 text-xs font-medium backdrop-blur-sm sm:text-sm">
           {formatPrice(price, currency)}
         </div>
       </div>
@@ -80,12 +80,12 @@ function CompCardAddress({ comp, t }: { comp: CompData; t: (key: string) => stri
   return (
     <div className="mb-3 text-left">
       <div className="mb-1 flex items-center gap-1">
-        <Icon name="map-pin" className="h-3 w-3 flex-shrink-0 text-gray-400" />
-        <Title as="h3" size="sm" className="truncate font-medium text-black">
+        <Icon name="map-pin" className="text-text-disabled h-3 w-3 flex-shrink-0" />
+        <Title as="h3" size="sm" className="text-text-primary truncate font-medium">
           {comp.address.streetAddress}
         </Title>
       </div>
-      <BodyText as="p" size="xs" className="ml-4 truncate text-black/60 sm:text-sm">
+      <BodyText as="p" size="xs" className="text-text-secondary ml-4 truncate sm:text-sm">
         {`${comp.address.city}${t("house.address_separator")}${comp.address.state}${t("house.space")}${comp.address.zipcode}`}
       </BodyText>
     </div>
@@ -149,8 +149,8 @@ function CompCardAgent({ comp, t }: { comp: CompData; t: (key: string) => string
   return (
     <div className="mt-auto space-y-2 text-left">
       <div className="flex items-center gap-1">
-        <Icon name="user" className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3" />
-        <BodyText as="span" className="text-xs text-gray-500 sm:text-sm">
+        <Icon name="user" className="text-text-disabled h-2.5 w-2.5 flex-shrink-0 sm:h-3 sm:w-3" />
+        <BodyText as="span" className="text-text-secondary text-xs sm:text-sm">
           {`${t("house.agent")}: ${
             comp.attributionInfo?.agentName
               ? formatAgentName(comp.attributionInfo.agentName)
@@ -167,7 +167,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
   const lotSizeDisplay = getCompLotSizeDisplay(comp);
   return (
     <div
-      className={`flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}
+      className={`border-border bg-background-surface flex flex-col overflow-hidden rounded-lg border shadow-sm ${className}`}
     >
       <CompCardImage
         imageUrl={imageUrl}

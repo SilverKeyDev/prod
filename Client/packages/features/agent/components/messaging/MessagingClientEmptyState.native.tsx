@@ -27,13 +27,13 @@ export function MessagingClientEmptyState({
 }: MessagingClientEmptyStateProps) {
   return (
     <View style={centeredStyle}>
-      <Text className="mb-2 text-center text-base font-medium text-gray-900">{title}</Text>
-      <Text className="mb-4 text-center text-sm text-gray-600">{message}</Text>
+      <Text className="text-text-primary mb-2 text-center text-base font-medium">{title}</Text>
+      <Text className="text-text-secondary mb-4 text-center text-sm">{message}</Text>
       <Pressable
         onPress={onAction}
-        className="rounded-lg border border-gray-200 bg-white px-4 py-2"
+        className="border-border bg-background-surface rounded-lg border px-4 py-2"
       >
-        <Text className="text-sm font-medium text-gray-800">{actionLabel}</Text>
+        <Text className="text-text-primary text-sm font-medium">{actionLabel}</Text>
       </Pressable>
     </View>
   );

@@ -124,8 +124,8 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
       showCloseButton={true}
       headerContent={
         <div className="flex min-w-0 items-center gap-2">
-          <Icon name="handshake" className="h-5 w-5 flex-shrink-0 text-gray-600" />
-          <Title as="h3" size="sm" className="truncate font-sans font-medium text-gray-900">
+          <Icon name="handshake" className="text-text-secondary h-5 w-5 flex-shrink-0" />
+          <Title as="h3" size="sm" className="text-text-primary truncate font-sans font-medium">
             {t("negotiation.title")}
           </Title>
         </div>

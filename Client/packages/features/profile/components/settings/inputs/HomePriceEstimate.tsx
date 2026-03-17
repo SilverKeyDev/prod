@@ -22,12 +22,12 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
 }) => {
   return (
     <div
-      className={`border-olive col-span-1 mt-4 rounded-lg border bg-white px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2`}
+      className={`border-primary bg-background-surface col-span-1 mt-4 rounded-lg border px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2`}
     >
       <div
         role="button"
         tabIndex={0}
-        className={`touch-friendly hover:bg-olive/5 -m-2 flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors duration-150`}
+        className={`touch-friendly -m-2 flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors duration-150 hover:bg-neutral-100`}
         onClick={() => setIsAffordabilityCollapsed(!isAffordabilityCollapsed)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -36,12 +36,12 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
           }
         }}
       >
-        <Title as="h3" size="md" className="text-olive font-medium sm:text-lg">
+        <Title as="h3" size="md" className="text-primary font-medium sm:text-lg">
           Estimated Home Affordability
         </Title>
         <Icon
           name="chevron-down"
-          className={`mobile-icon-sm text-olive transition-transform duration-300 ease-in-out ${isAffordabilityCollapsed ? "rotate-180" : ""}`}
+          className={`mobile-icon-sm text-primary transition-transform duration-300 ease-in-out ${isAffordabilityCollapsed ? "rotate-180" : ""}`}
         />
       </div>
 
@@ -53,7 +53,7 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
         <div className="pt-2">
           {homePriceLoading ? (
             <div className="flex items-center justify-center py-3 sm:py-4">
-              <div className="border-olive h-5 w-5 animate-spin rounded-full border-b-2 sm:h-6 sm:w-6"></div>
+              <div className="border-primary h-5 w-5 animate-spin rounded-full border-b-2 sm:h-6 sm:w-6"></div>
               Calculating affordability...
             </div>
           ) : homePriceError ? (
@@ -71,27 +71,27 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
               <div className="gap-responsive-sm grid grid-cols-1 lg:grid-cols-2">
                 <div>
                   <div className="px-2 py-3 text-center sm:p-4 lg:p-6">
-                    <div className="text-olive mb-0 text-xl font-bold sm:mb-1 sm:text-2xl lg:text-3xl xl:text-4xl">
+                    <div className="text-primary mb-0 text-xl font-bold sm:mb-1 sm:text-2xl lg:text-3xl xl:text-4xl">
                       ${homePriceResult.maxHomePrice.toLocaleString()}
                     </div>
-                    <div className="text-responsive-xs mb-2 text-gray-400 sm:mb-3">
+                    <div className="text-responsive-xs text-text-disabled mb-2 sm:mb-3">
                       Maximum recommended home price
                     </div>
                   </div>
                 </div>
                 <div className="px-2 py-3 text-center sm:p-4 sm:px-0 lg:p-6 lg:text-left">
-                  <div className="text-olive mb-0 text-xl font-bold sm:mb-1 sm:text-2xl lg:text-3xl xl:text-4xl">
+                  <div className="text-primary mb-0 text-xl font-bold sm:mb-1 sm:text-2xl lg:text-3xl xl:text-4xl">
                     ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
                     /mo
                   </div>
-                  <div className="text-responsive-xs mb-2 text-gray-400 sm:mb-3">
+                  <div className="text-responsive-xs text-text-disabled mb-2 sm:mb-3">
                     Monthly Payment
                   </div>
                 </div>
               </div>
 
-              <div className="text-responsive-xs border-olive/30 rounded border bg-white px-2 py-3 text-black sm:p-3">
-                <div className="bg-beige/20 space-y-1 overflow-x-auto rounded bg-opacity-20 px-2 py-2 font-mono text-black sm:space-y-2 sm:p-3 sm:text-xs">
+              <div className="text-responsive-xs border-primary bg-background-surface rounded border px-2 py-3 text-black sm:p-3">
+                <div className="bg-accent-muted space-y-1 overflow-x-auto rounded bg-opacity-20 px-2 py-2 font-mono text-black sm:space-y-2 sm:p-3 sm:text-xs">
                   <BodyText as="p" size="xs" className="text-tiny sm:text-xs">
                     1. <strong>Monthly Income</strong> = Gross Annual Income ÷
                   </BodyText>

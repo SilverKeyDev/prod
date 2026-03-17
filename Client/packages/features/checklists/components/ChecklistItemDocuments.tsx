@@ -8,6 +8,7 @@ import type { Agreement } from "packages/types";
 import Button from "packages/ui/components/button/Button";
 import { Box, Text } from "packages/ui/components/primitives";
 
+import AddDocumentToStepModal from "./AddDocumentToStepModal";
 import AddFromSkySlopeModal from "./AddFromSkySlopeModal";
 
 type ChecklistItemDocumentsProps = {
@@ -27,6 +28,7 @@ export default function ChecklistItemDocuments({
 }: ChecklistItemDocumentsProps) {
   const { t } = useLocalization();
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   const {
     data: agreements = [],
@@ -41,29 +43,41 @@ export default function ChecklistItemDocuments({
   const showAddButton = isAgent && suggestedFormIds && suggestedFormIds.length > 0;
 
   return (
-    <Box className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-      <Box className="mb-2 flex flex-row items-center justify-between">
-        <Text className="text-sm font-semibold text-gray-900">
+    <Box className="border-border bg-background-base rounded-lg border p-3">
+      <Box className="mb-2 flex flex-row items-center justify-between gap-2">
+        <Text className="text-text-primary text-sm font-semibold">
           {t("checklists.documents_for_step", { defaultValue: "Documents for this step" })}
         </Text>
-        {showAddButton && (
-          <Button
-            variant="outline"
-            size="sm"
-            onPress={() => setAddModalOpen(true)}
-            label="Add from SkySlope"
-          >
-            {t("checklists.add_from_skyslope", { defaultValue: "Add from SkySlope" })}
-          </Button>
+        {isAgent && (
+          <Box className="flex flex-row gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onPress={() => setUploadModalOpen(true)}
+              label="Upload document"
+            >
+              {t("checklists.upload_document.button", { defaultValue: "Upload document" })}
+            </Button>
+            {showAddButton && (
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => setAddModalOpen(true)}
+                label="Add from SkySlope"
+              >
+                {t("checklists.add_from_skyslope", { defaultValue: "Add from SkySlope" })}
+              </Button>
+            )}
+          </Box>
         )}
       </Box>
 
       {isLoading ? (
-        <Text className="text-xs text-gray-600">
+        <Text className="text-text-secondary text-xs">
           {t("checklists.loading", { defaultValue: "Loading..." })}
         </Text>
       ) : agreements.length === 0 ? (
-        <Text className="text-xs text-gray-600">
+        <Text className="text-text-secondary text-xs">
           {t("checklists.no_documents", { defaultValue: "No documents linked yet." })}
         </Text>
       ) : (
@@ -71,15 +85,21 @@ export default function ChecklistItemDocuments({
           {agreements.map((agreement: Agreement) => (
             <Box
               key={agreement.id}
-              className="flex flex-row items-center justify-between rounded border border-gray-200 bg-white p-2"
+              className="border-border bg-background-surface flex flex-row items-center justify-between rounded border p-2"
             >
-              <Text className="text-sm text-gray-800">{agreement.title}</Text>
-              <Text className="text-xs text-gray-500">{agreement.status}</Text>
+              <Text className="text-text-primary text-sm">{agreement.title}</Text>
+              <Text className="text-text-secondary text-xs">{agreement.status}</Text>
             </Box>
           ))}
         </Box>
       )}
 
+      <AddDocumentToStepModal
+        isOpen={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        transactionId={transactionId}
+        onSuccess={() => void refetch()}
+      />
       <AddFromSkySlopeModal
         isOpen={addModalOpen}
         onClose={() => setAddModalOpen(false)}

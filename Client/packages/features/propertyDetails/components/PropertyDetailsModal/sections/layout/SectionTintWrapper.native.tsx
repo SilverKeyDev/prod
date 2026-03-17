@@ -12,7 +12,7 @@ export const SectionTintWrapper: React.FC<SectionTintWrapperProps> = ({
   className = "",
 }) => {
   return (
-    <Box className={`border-beige bg-beige/20 rounded-lg border p-6 ${className}`.trim()}>
+    <Box className={`border-border bg-accent-muted rounded-lg border p-6 ${className}`.trim()}>
       {children}
     </Box>
   );

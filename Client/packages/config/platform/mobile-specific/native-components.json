@@ -1,9 +1,9 @@
 {
   "category": "native-components",
-  "description": "React Native specific components not available on web", 
+  "description": "React Native specific components not available on web",
   "imports": [
     "react-native/KeyboardAvoidingView",
-    "react-native/SafeAreaView", 
+    "react-native/SafeAreaView",
     "react-native/StatusBar",
     "react-native/TouchableOpacity",
     "react-native/TouchableHighlight",

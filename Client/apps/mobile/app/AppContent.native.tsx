@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
+import { color } from "packages/design-tokens";
 import { useHealthCheck, useSessionTimeout } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
 import { Text } from "packages/ui/components/primitives";
@@ -58,7 +59,7 @@ export function AppContent() {
   if (loading) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#A3B18A" />
+        <ActivityIndicator size="large" color={color("primary")} />
         <Text style={styles.loadingLabel}>Loading…</Text>
       </View>
     );
@@ -76,11 +77,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f0",
+    backgroundColor: color("background-base"),
   },
   loadingLabel: {
     marginTop: 12,
     fontSize: 14,
-    color: "#666",
+    color: color("text-secondary"),
   },
 });

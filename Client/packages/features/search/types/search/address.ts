@@ -224,9 +224,9 @@ export function getStatusColor(status: string): string {
     case "for_sale":
       return "bg-blue-100 text-blue-800";
     case "off_market":
-      return "bg-gray-100 text-gray-800";
+      return "bg-primary-muted text-text-primary";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "bg-primary-muted text-text-primary";
   }
 }
 

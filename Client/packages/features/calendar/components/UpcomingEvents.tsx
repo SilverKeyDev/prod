@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import Card from "packages/ui/components/cards/Card";
 import { Box, Text } from "packages/ui/components/primitives";
 import { dateNow, dayjs } from "packages/utils/date";
 
@@ -146,22 +147,24 @@ export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProp
 
   if (!permissionsReady) {
     return (
-      <Box className="w-full">
-        <Text className="text-center text-sm text-gray-500">Loading calendar permissions...</Text>
-      </Box>
+      <Card className="mt-4 w-full" padding="sm" hover={false}>
+        <Text className="text-text-secondary text-center text-sm">
+          Loading calendar permissions...
+        </Text>
+      </Card>
     );
   }
 
   if (shouldShowConnectionPrompt) {
     return (
-      <Box className="w-full">
+      <Card className="mt-4 w-full" padding="sm" hover={false}>
         <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
-      </Box>
+      </Card>
     );
   }
 
   return (
-    <Box className="w-full">
+    <Box className="mt-4 w-full">
       <EventList
         events={upcomingEvents}
         title="Upcoming Events (Next 7 Days)"

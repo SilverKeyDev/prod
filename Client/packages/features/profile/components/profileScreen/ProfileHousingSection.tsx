@@ -37,7 +37,7 @@ export function ProfileHousingSection({
       <Title size="md">{SECTION_TITLES.HOUSING_PREFERENCES}</Title>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.SQUARE_FEET}
         </BodyText>
         {isEditMode ? (
@@ -55,8 +55,8 @@ export function ProfileHousingSection({
             className="mt-2"
           />
         ) : (
-          <Box className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-            <Text className="text-center text-base text-gray-900">
+          <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
+            <Text className="text-text-primary text-center text-base">
               {(formData.preferred_sqft_min ?? SQFT_TICK_VALUES[0]).toLocaleString()} –{" "}
               {(
                 formData.preferred_sqft_max ?? SQFT_TICK_VALUES[SQFT_TICK_VALUES.length - 1]
@@ -68,7 +68,7 @@ export function ProfileHousingSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.DAYS_ON_MARKET}
         </BodyText>
         {isEditMode ? (
@@ -89,8 +89,8 @@ export function ProfileHousingSection({
             className="mt-2"
           />
         ) : (
-          <Box className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-            <Text className="text-center text-base text-gray-900">
+          <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
+            <Text className="text-text-primary text-center text-base">
               {formData.days_on_market_min ?? DAYS_ON_MARKET_TICK_VALUES[0]} –{" "}
               {formData.days_on_market_max ??
                 DAYS_ON_MARKET_TICK_VALUES[DAYS_ON_MARKET_TICK_VALUES.length - 1]}{" "}
@@ -101,7 +101,7 @@ export function ProfileHousingSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.PREFERRED_BEDROOMS}
         </BodyText>
         {isEditMode ? (
@@ -112,7 +112,7 @@ export function ProfileHousingSection({
             }
             placeholder="Number of bedrooms"
             keyboardType="number-pad"
-            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+            className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.preferred_bedrooms} />
@@ -120,7 +120,7 @@ export function ProfileHousingSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.PREFERRED_LOT_SIZE}
         </BodyText>
         {isEditMode ? (
@@ -141,8 +141,8 @@ export function ProfileHousingSection({
             className="mt-2"
           />
         ) : (
-          <Box className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-            <Text className="text-center text-base text-gray-900">
+          <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
+            <Text className="text-text-primary text-center text-base">
               {formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]} –{" "}
               {formData.preferred_lot_size_max ??
                 LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]}{" "}
@@ -153,7 +153,7 @@ export function ProfileHousingSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.PREFERRED_HOME_AGE}
         </BodyText>
         {isEditMode ? (
@@ -169,8 +169,8 @@ export function ProfileHousingSection({
             className="mt-2"
           />
         ) : (
-          <Box className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-            <Text className="text-center text-base text-gray-900">
+          <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
+            <Text className="text-text-primary text-center text-base">
               {formData.preferred_home_age_max != null
                 ? `Up to ${formData.preferred_home_age_max} years`
                 : "Not specified"}
@@ -180,7 +180,7 @@ export function ProfileHousingSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.PREFERRED_BATHROOMS}
         </BodyText>
         {isEditMode ? (
@@ -191,7 +191,7 @@ export function ProfileHousingSection({
             }
             placeholder="Number of bathrooms"
             keyboardType="number-pad"
-            className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-base text-gray-900"
+            className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.preferred_bathrooms} />
@@ -199,7 +199,7 @@ export function ProfileHousingSection({
       </Box>
 
       <Box>
-        <BodyText size="sm" className="mb-2 font-medium text-gray-700">
+        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
           {FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}
         </BodyText>
         {isEditMode ? (
@@ -211,11 +211,11 @@ export function ProfileHousingSection({
                   key={option.value}
                   onPress={() => updateField("preferred_architectural_style", option.value)}
                   className={`rounded-full px-4 py-2 ${
-                    selected ? "bg-brand-accent" : "border border-gray-200 bg-white"
+                    selected ? "bg-primary" : "border-border bg-background-surface border"
                   }`}
                 >
                   <Text
-                    className={`text-sm font-medium ${selected ? "text-white" : "text-gray-800"}`}
+                    className={`text-sm font-medium ${selected ? "text-white" : "text-text-primary"}`}
                   >
                     {option.label}
                   </Text>

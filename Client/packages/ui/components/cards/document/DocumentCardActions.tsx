@@ -47,7 +47,7 @@ function DocumentCardActionButtons({
           size="sm"
           onClick={() => onDownloadDocument(doc.id, doc.filename)}
           icon={<Icon name="download" size={16} />}
-          className="flex-1 border-gray-400 bg-transparent text-gray-600 hover:border-gray-500 hover:bg-gray-50 focus:ring-neutral-400 active:border-gray-500 active:bg-gray-100 active:bg-gray-50 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-transparent"
+          className="border-border text-text-secondary hover:border-primary hover:bg-accent-muted active:border-primary disabled:border-border disabled:text-text-disabled flex-1 bg-transparent focus:ring-neutral-400 active:bg-neutral-100 disabled:hover:bg-transparent"
         />
         <IconButton
           variant="tertiary"
@@ -62,7 +62,7 @@ function DocumentCardActionButtons({
             size="sm"
             onClick={onDeleteClick}
             icon={<Icon name="trash-2" size={16} />}
-            className="border-rose text-rose focus:ring-rose flex-1 border bg-transparent hover:bg-neutral-100 active:bg-neutral-100 active:bg-neutral-200 disabled:border-neutral-300 disabled:text-neutral-500 disabled:hover:bg-transparent"
+            className="border-destructive text-destructive focus:ring-destructive disabled:border-border disabled:text-text-disabled flex-1 border bg-transparent hover:bg-neutral-100 active:bg-neutral-100 active:bg-neutral-200 disabled:hover:bg-transparent"
           />
         )}
       </Box>

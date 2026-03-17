@@ -5,8 +5,14 @@ import {
   formatPriceRange,
   getBedBathSummary,
 } from "packages/features/search/types/search/searchFilterSummaries";
+import {
+  SEARCH_HEADER_FILTER_GAP_PX,
+  SEARCH_HEADER_FILTER_PROMOTION_ORDER,
+  type SearchHeaderFilterId,
+} from "packages/features/search/utils/searchHeaderFilterOrder";
 import { useContainerWidth } from "packages/hooks/ui/useContainerWidth";
 import { useSearchContextStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
@@ -23,8 +29,6 @@ import {
   SEARCH_HEADER_PANEL_CLASS_HOME_TYPE,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "./searchHeaderConstants";
-
-const GAP_PX = 8;
 const panelClass = SEARCH_HEADER_PANEL_CLASS_DEFAULT;
 const homeTypePanelClass = SEARCH_HEADER_PANEL_CLASS_HOME_TYPE;
 const buttonBase = `inline-flex items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 justify-between ${HEADER_ROW_HEIGHT}`;
@@ -60,12 +64,12 @@ function MoreButtonPlaceholder({ t }: { t: (key: string) => string }) {
       rounded="lg"
       className={`${buttonBase} justify-between`}
     >
-      <div className="flex w-full items-center justify-between gap-2">
+      <Box className="flex w-full items-center justify-between gap-2">
         <BodyText as="span" size="sm" className="text-inherit">
           {t("search.more")}
         </BodyText>
         <DropdownChevron open={false} className="h-4 w-4" />
-      </div>
+      </Box>
     </Button>
   );
 }
@@ -82,9 +86,9 @@ export default function SearchFilterControls({
   const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const measureRef0 = useRef<HTMLDivElement>(null);
-  const measureRef1 = useRef<HTMLDivElement>(null);
-  const measureRef2 = useRef<HTMLDivElement>(null);
+  const measureRefs = useRef<(HTMLDivElement | null)[]>(
+    Array.from({ length: SEARCH_HEADER_FILTER_PROMOTION_ORDER.length }, () => null)
+  );
   const measureRefMore = useRef<HTMLDivElement>(null);
 
   const containerWidth = useContainerWidth(containerRef, { minDelta: 5 });
@@ -104,150 +108,195 @@ export default function SearchFilterControls({
 
   useLayoutEffect(() => {
     if (containerWidth <= 0) return;
-    const refs = [measureRef0, measureRef1, measureRef2, measureRefMore];
-    const widths = refs.map((r) => r.current?.getBoundingClientRect().width ?? 0);
-    const moreWidth = widths[3];
+    const chipWidths = measureRefs.current.map((el) => el?.getBoundingClientRect().width ?? 0);
+    const moreWidth = measureRefMore.current?.getBoundingClientRect().width ?? 0;
     if (moreWidth <= 0) return;
-    const need = moreWidth + GAP_PX;
-    let n = 0;
-    for (let i = 0; i <= 3; i++) {
-      const total =
-        (i === 0 ? 0 : widths.slice(0, i).reduce((a, b) => a + b, 0)) + i * GAP_PX + need;
-      if (total <= containerWidth) n = i;
+    const need = moreWidth + SEARCH_HEADER_FILTER_GAP_PX;
+    let numVisibleInHeader = 0;
+    for (let i = 0; i <= SEARCH_HEADER_FILTER_PROMOTION_ORDER.length; i++) {
+      const chipSum = i === 0 ? 0 : chipWidths.slice(0, i).reduce((a, b) => a + b, 0);
+      const total = chipSum + i * SEARCH_HEADER_FILTER_GAP_PX + need;
+      if (total <= containerWidth) numVisibleInHeader = i;
       else break;
     }
-    setOverflowFromIndex(n);
+    setOverflowFromIndex(numVisibleInHeader);
   }, [containerWidth]);
 
-  const renderPriceChip = () => (
-    <SearchFilterChip
-      label="Price"
-      summary={formatPriceRange(priceMin, priceMax)}
-      panelClassName={panelClass}
-      panelMinWidth="320px"
-      side="bottom"
-    >
-      {() => (
-        <PriceRangeFilter
-          minValue={priceMin}
-          maxValue={priceMax}
-          onChange={(minVal, maxVal) => {
-            updateFormData("home_budget_min", minVal);
-            updateFormData("home_budget_max", maxVal);
-          }}
-        />
-      )}
-    </SearchFilterChip>
+  const renderChip = useCallback(
+    (id: SearchHeaderFilterId): React.ReactNode => {
+      switch (id) {
+        case "price":
+          return (
+            <SearchFilterChip
+              label="Price"
+              summary={formatPriceRange(priceMin, priceMax)}
+              panelClassName={panelClass}
+              panelMinWidth="320px"
+              side="bottom"
+            >
+              {() => (
+                <PriceRangeFilter
+                  minValue={priceMin}
+                  maxValue={priceMax}
+                  onChange={(minVal, maxVal) => {
+                    updateFormData("home_budget_min", minVal);
+                    updateFormData("home_budget_max", maxVal);
+                  }}
+                />
+              )}
+            </SearchFilterChip>
+          );
+        case "bedsBaths":
+          return (
+            <SearchFilterChip
+              label="Beds & baths"
+              summary={getBedBathSummary(minBeds, maxBeds, minBaths, maxBaths)}
+              panelClassName={panelClass}
+              panelMinWidth="320px"
+              side="bottom"
+            >
+              {() => (
+                <BedBathFilter
+                  minBeds={minBeds}
+                  maxBeds={maxBeds}
+                  minBaths={minBaths}
+                  maxBaths={maxBaths}
+                  onMinBedsChange={(v) => updateFormData("preferred_bedrooms", v)}
+                  onMaxBedsChange={(v) => {
+                    updateFormData("preferred_bedrooms_max", v);
+                    setSearchFilterOverrides((prev) => ({
+                      ...prev,
+                      preferred_bedrooms_max: v,
+                    }));
+                  }}
+                  onMinBathsChange={(v) => updateFormData("preferred_bathrooms", v)}
+                  onMaxBathsChange={(v) => {
+                    updateFormData("preferred_bathrooms_max", v);
+                    setSearchFilterOverrides((prev) => ({
+                      ...prev,
+                      preferred_bathrooms_max: v,
+                    }));
+                  }}
+                />
+              )}
+            </SearchFilterChip>
+          );
+        case "homeType":
+          return (
+            <SearchFilterChip
+              label="Home type"
+              summary={getHomeTypeLabel(housingType)}
+              panelClassName={homeTypePanelClass}
+              panelMinWidth="260px"
+              side="bottom"
+            >
+              {() => (
+                <HomeTypeFilter
+                  value={housingType}
+                  onChange={(v) => updateFormData("preferred_housing_type", v)}
+                />
+              )}
+            </SearchFilterChip>
+          );
+      }
+    },
+    [
+      priceMin,
+      priceMax,
+      minBeds,
+      maxBeds,
+      minBaths,
+      maxBaths,
+      housingType,
+      updateFormData,
+      setSearchFilterOverrides,
+    ]
   );
 
-  const renderBedBathChip = () => (
-    <SearchFilterChip
-      label="Beds & baths"
-      summary={getBedBathSummary(minBeds, maxBeds, minBaths, maxBaths)}
-      panelClassName={panelClass}
-      panelMinWidth="320px"
-      side="bottom"
-    >
-      {() => (
-        <BedBathFilter
-          minBeds={minBeds}
-          maxBeds={maxBeds}
-          minBaths={minBaths}
-          maxBaths={maxBaths}
-          onMinBedsChange={(v) => updateFormData("preferred_bedrooms", v)}
-          onMaxBedsChange={(v) => {
-            updateFormData("preferred_bedrooms_max", v);
-            setSearchFilterOverrides((prev) => ({
-              ...prev,
-              preferred_bedrooms_max: v,
-            }));
-          }}
-          onMinBathsChange={(v) => updateFormData("preferred_bathrooms", v)}
-          onMaxBathsChange={(v) => {
-            updateFormData("preferred_bathrooms_max", v);
-            setSearchFilterOverrides((prev) => ({
-              ...prev,
-              preferred_bathrooms_max: v,
-            }));
-          }}
-        />
-      )}
-    </SearchFilterChip>
-  );
-
-  const renderHomeTypeChip = () => (
-    <SearchFilterChip
-      label="Home type"
-      summary={getHomeTypeLabel(housingType)}
-      panelClassName={homeTypePanelClass}
-      panelMinWidth="260px"
-      side="bottom"
-    >
-      {() => (
-        <HomeTypeFilter
-          value={housingType}
-          onChange={(v) => updateFormData("preferred_housing_type", v)}
-        />
-      )}
-    </SearchFilterChip>
+  const renderOverflowSection = useCallback(
+    (id: SearchHeaderFilterId): React.ReactNode => {
+      const sectionClass = "border-border border-b pb-4";
+      switch (id) {
+        case "price":
+          return (
+            <section className={sectionClass}>
+              <BodyText as="h3" size="sm" className="mb-2 font-medium">
+                Price
+              </BodyText>
+              <PriceRangeFilter
+                minValue={priceMin}
+                maxValue={priceMax}
+                onChange={(minVal, maxVal) => {
+                  updateFormData("home_budget_min", minVal);
+                  updateFormData("home_budget_max", maxVal);
+                }}
+              />
+            </section>
+          );
+        case "bedsBaths":
+          return (
+            <section className={sectionClass}>
+              <BodyText as="h3" size="sm" className="mb-2 font-medium">
+                Beds & baths
+              </BodyText>
+              <BedBathFilter
+                minBeds={minBeds}
+                maxBeds={maxBeds}
+                minBaths={minBaths}
+                maxBaths={maxBaths}
+                onMinBedsChange={(v) => updateFormData("preferred_bedrooms", v)}
+                onMaxBedsChange={(v) => {
+                  updateFormData("preferred_bedrooms_max", v);
+                  setSearchFilterOverrides((prev) => ({
+                    ...prev,
+                    preferred_bedrooms_max: v,
+                  }));
+                }}
+                onMinBathsChange={(v) => updateFormData("preferred_bathrooms", v)}
+                onMaxBathsChange={(v) => {
+                  updateFormData("preferred_bathrooms_max", v);
+                  setSearchFilterOverrides((prev) => ({
+                    ...prev,
+                    preferred_bathrooms_max: v,
+                  }));
+                }}
+              />
+            </section>
+          );
+        case "homeType":
+          return (
+            <section className={sectionClass}>
+              <BodyText as="h3" size="sm" className="mb-2 font-medium">
+                Home type
+              </BodyText>
+              <HomeTypeFilter
+                value={housingType}
+                onChange={(v) => updateFormData("preferred_housing_type", v)}
+              />
+            </section>
+          );
+      }
+    },
+    [
+      priceMin,
+      priceMax,
+      minBeds,
+      maxBeds,
+      minBaths,
+      maxBaths,
+      housingType,
+      updateFormData,
+      setSearchFilterOverrides,
+    ]
   );
 
   const overflowPanelContent = (
     <>
-      {overflowFromIndex <= 0 && (
-        <section className="border-b border-gray-200 pb-4">
-          <BodyText as="h3" size="sm" className="mb-2 font-medium">
-            Price
-          </BodyText>
-          <PriceRangeFilter
-            minValue={priceMin}
-            maxValue={priceMax}
-            onChange={(minVal, maxVal) => {
-              updateFormData("home_budget_min", minVal);
-              updateFormData("home_budget_max", maxVal);
-            }}
-          />
-        </section>
-      )}
-      {overflowFromIndex <= 1 && (
-        <section className="border-b border-gray-200 pb-4">
-          <BodyText as="h3" size="sm" className="mb-2 font-medium">
-            Beds & baths
-          </BodyText>
-          <BedBathFilter
-            minBeds={minBeds}
-            maxBeds={maxBeds}
-            minBaths={minBaths}
-            maxBaths={maxBaths}
-            onMinBedsChange={(v) => updateFormData("preferred_bedrooms", v)}
-            onMaxBedsChange={(v) => {
-              updateFormData("preferred_bedrooms_max", v);
-              setSearchFilterOverrides((prev) => ({
-                ...prev,
-                preferred_bedrooms_max: v,
-              }));
-            }}
-            onMinBathsChange={(v) => updateFormData("preferred_bathrooms", v)}
-            onMaxBathsChange={(v) => {
-              updateFormData("preferred_bathrooms_max", v);
-              setSearchFilterOverrides((prev) => ({
-                ...prev,
-                preferred_bathrooms_max: v,
-              }));
-            }}
-          />
-        </section>
-      )}
-      {overflowFromIndex <= 2 && (
-        <section className="border-b border-gray-200 pb-4">
-          <BodyText as="h3" size="sm" className="mb-2 font-medium">
-            Home type
-          </BodyText>
-          <HomeTypeFilter
-            value={housingType}
-            onChange={(v) => updateFormData("preferred_housing_type", v)}
-          />
-        </section>
+      {SEARCH_HEADER_FILTER_PROMOTION_ORDER.map(
+        (id, index) =>
+          index >= overflowFromIndex && (
+            <React.Fragment key={id}>{renderOverflowSection(id)}</React.Fragment>
+          )
       )}
       <OtherFilterContent
         formData={formData}
@@ -260,26 +309,35 @@ export default function SearchFilterControls({
   return (
     <>
       {/* Hidden row used only to measure chip and More button widths */}
-      <div
+      <Box
         aria-hidden="true"
         className="pointer-events-none absolute -left-full top-0 flex items-center gap-2"
         style={{ visibility: "hidden" }}
       >
-        <div ref={measureRef0}>{renderPriceChip()}</div>
-        <div ref={measureRef1}>{renderBedBathChip()}</div>
-        <div ref={measureRef2}>{renderHomeTypeChip()}</div>
-        <div ref={measureRefMore}>
+        {SEARCH_HEADER_FILTER_PROMOTION_ORDER.map((id, index) => (
+          <Box
+            key={id}
+            ref={(el) => {
+              measureRefs.current[index] = el;
+            }}
+          >
+            {renderChip(id)}
+          </Box>
+        ))}
+        <Box ref={measureRefMore}>
           <MoreButtonPlaceholder t={t} />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <div
+      <Box
         ref={containerRef}
         className={`flex min-w-0 flex-nowrap items-center gap-2 ${HEADER_ROW_HEIGHT}`}
       >
-        {overflowFromIndex >= 1 && <div className="shrink-0">{renderPriceChip()}</div>}
-        {overflowFromIndex >= 2 && <div className="shrink-0">{renderBedBathChip()}</div>}
-        {overflowFromIndex >= 3 && <div className="shrink-0">{renderHomeTypeChip()}</div>}
+        {SEARCH_HEADER_FILTER_PROMOTION_ORDER.slice(0, overflowFromIndex).map((id) => (
+          <Box key={id} className="shrink-0">
+            {renderChip(id)}
+          </Box>
+        ))}
 
         <Popover
           open={moreOpen}
@@ -303,18 +361,18 @@ export default function SearchFilterControls({
               aria-expanded={isActive}
               aria-haspopup="true"
             >
-              <div className="flex w-full items-center justify-between gap-2">
+              <Box className="flex w-full items-center justify-between gap-2">
                 <BodyText as="span" size="sm" className="text-inherit">
                   {t("search.more")}
                 </BodyText>
                 <DropdownChevron open={isActive} className="h-4 w-4" />
-              </div>
+              </Box>
             </Button>
           )}
         >
           {() => overflowPanelContent}
         </Popover>
-      </div>
+      </Box>
     </>
   );
 }

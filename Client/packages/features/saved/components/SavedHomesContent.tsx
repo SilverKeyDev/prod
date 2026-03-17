@@ -21,7 +21,6 @@ type SavedHomesContentProps = {
   selectedHomesForComparison: Set<string>;
   onToggleHomeSelection: (homeId: string) => void;
   onUnlockHome: (home: SavedHome) => void;
-  onOpenNegotiation: (home: SavedHome) => void;
   onDocumentDelete: (document: DocumentData) => void;
   onAgreementClick?: (agreementId: string) => void;
   onAgreementSend?: (agreementId: string) => void;
@@ -42,7 +41,6 @@ export default function SavedHomesContent({
   selectedHomesForComparison,
   onToggleHomeSelection,
   onUnlockHome,
-  onOpenNegotiation,
   onDocumentDelete,
   onAgreementClick,
   onAgreementSend,
@@ -99,7 +97,7 @@ export default function SavedHomesContent({
     if (sortedItems.length === 0) {
       return (
         <div className={`${containerClass} py-responsive-lg text-center`}>
-          <BodyText as="p" size="sm" className="text-responsive-sm text-gray-600">
+          <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
             {t("saved.no_documents_yet")}
           </BodyText>
         </div>
@@ -139,7 +137,7 @@ export default function SavedHomesContent({
       }
       return (
         <div className={`${containerClass} py-responsive-lg text-center`}>
-          <BodyText as="p" size="sm" className="text-responsive-sm text-gray-600">
+          <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
             {t("saved.no_homes_yet")}
           </BodyText>
         </div>
@@ -158,7 +156,6 @@ export default function SavedHomesContent({
               isSelected={selectedHomesForComparison.has(home.home_id)}
               onToggleCompare={onToggleHomeSelection}
               onUnlock={onUnlockHome}
-              onNegotiate={onOpenNegotiation}
             />
           </div>
         ))}

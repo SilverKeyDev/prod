@@ -117,7 +117,7 @@ export function ResetPasswordForm({
       </Button>
 
       {step === "verify" && (
-        <div className="text-responsive-sm text-center text-black/60">
+        <div className="text-responsive-sm text-text-secondary text-center">
           Didn't receive a code?{" "}
           <Button
             type="button"
@@ -126,7 +126,7 @@ export function ResetPasswordForm({
             size="sm"
             disabled={!canResend || loading}
             loading={loading && !canResend}
-            className={canResend ? "text-gold hover:text-gold/80" : "text-black/40"}
+            className={canResend ? "text-accent hover:text-accent" : "text-text-disabled"}
           >
             {loading && !canResend
               ? "Sending..."

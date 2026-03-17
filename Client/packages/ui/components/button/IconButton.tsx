@@ -112,7 +112,7 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
       ICON_BUTTON_VARIANT_STYLES[variant],
       toolbarOverrides,
       ICON_BUTTON_TOUCH_CLASS,
-      (disabled ?? loading) ? "opacity-50" : "",
+      "",
       className,
     ]
       .filter(Boolean)

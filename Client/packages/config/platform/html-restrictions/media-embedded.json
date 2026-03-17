@@ -1,7 +1,21 @@
 {
   "category": "media-embedded",
   "description": "Media and embedded content elements - use React Native media components",
-  "elements": ["img", "picture", "source", "audio", "video", "track", "iframe", "embed", "object", "param", "canvas", "svg", "math"],
+  "elements": [
+    "img",
+    "picture",
+    "source",
+    "audio",
+    "video",
+    "track",
+    "iframe",
+    "embed",
+    "object",
+    "param",
+    "canvas",
+    "svg",
+    "math"
+  ],
   "reason": "React Native has different media handling and no support for embedded web content",
   "alternatives": {
     "img": "Image component",

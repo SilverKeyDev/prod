@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   keyDefault: {
-    color: color("off-white"),
+    color: color("background-base"),
   },
   keyGray: {
     color: color("neutral.500"),

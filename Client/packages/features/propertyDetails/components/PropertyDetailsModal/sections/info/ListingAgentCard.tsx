@@ -31,7 +31,7 @@ export function ListingAgentCard({
         </Title>
       </Box>
       <Box className="flex flex-row items-start gap-4">
-        <Box className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2 border-neutral-200 bg-neutral-100">
+        <Box className="border-border bg-primary-muted h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -40,7 +40,7 @@ export function ListingAgentCard({
             />
           ) : (
             <Box className="flex h-full w-full flex-row items-center justify-center">
-              <Icon name="user" className="h-8 w-8 text-neutral-600" />
+              <Icon name="user" className="text-text-secondary h-8 w-8" />
             </Box>
           )}
         </Box>
@@ -51,7 +51,7 @@ export function ListingAgentCard({
             </Title>
           )}
           {businessName && (
-            <BodyText as="p" className="text-neutral-600">
+            <BodyText as="p" className="text-text-secondary">
               {businessName}
             </BodyText>
           )}

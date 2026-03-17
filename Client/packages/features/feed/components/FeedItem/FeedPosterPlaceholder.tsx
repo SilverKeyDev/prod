@@ -4,10 +4,10 @@
  */
 export function FeedPosterPlaceholder() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-neutral-900" aria-hidden>
-      <div className="bg-brand-accent/15 flex h-20 w-20 items-center justify-center rounded-xl">
+    <div className="bg-text-primary absolute inset-0 flex items-center justify-center" aria-hidden>
+      <div className="bg-primary flex h-20 w-20 items-center justify-center rounded-xl">
         <svg
-          className="text-brand-accent/70 h-10 w-10"
+          className="text-primary h-10 w-10"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

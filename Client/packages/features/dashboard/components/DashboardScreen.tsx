@@ -16,7 +16,12 @@ import { dateNow, dateParseISO } from "packages/utils/date";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useAgentDashboardMockData } from "@/features/agent/hooks/data/useAgentDashboardMockData";
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
-import type { TodoItem, TodoPriority } from "@/features/agent/types/agent";
+import type { TodoPriority } from "@/features/agent/types/agent";
+import {
+  sortTodosByPriority,
+  TODO_PRIORITY_LABELS,
+  TODO_PRIORITY_ORDER,
+} from "@/features/agent/utils/todoUtils";
 
 import ClientList from "./ClientList/ClientList";
 import DashboardChecklists from "./DashboardChecklists/DashboardChecklists";
@@ -24,25 +29,6 @@ import DashboardChecklists from "./DashboardChecklists/DashboardChecklists";
 type DashboardTodosSectionProps = {
   isAgent: boolean;
 };
-
-const priorityOrder: Record<TodoPriority, number> = {
-  urgent: 4,
-  high: 3,
-  medium: 2,
-  low: 1,
-};
-
-const priorityLabels: Record<TodoPriority, string> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  urgent: "Urgent",
-};
-
-function sortTodosByPriority(todos: TodoItem[]): TodoItem[] {
-  const incomplete = todos.filter((todo) => !todo.completed);
-  return [...incomplete].sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
-}
 
 function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
   const { todos, createTodo, updateTodo } = useAgentTodos(false);
@@ -89,21 +75,21 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
   };
 
   return (
-    <Box className="gap-3 rounded-lg bg-white p-3 shadow-sm">
+    <Box className="bg-background-surface gap-3 rounded-lg p-3 shadow-sm">
       {sortedTodos.length === 0 ? (
-        <Text className="text-sm text-gray-600">No todos for today.</Text>
+        <Text className="text-text-secondary text-sm">No todos for today.</Text>
       ) : (
         <Box className="gap-2">
           {sortedTodos.map((todo) => (
             <Box
               key={todo.id}
-              className="flex-row items-start justify-between rounded-md border border-gray-200 bg-white px-3 py-2"
+              className="border-border bg-background-surface flex-row items-start justify-between rounded-md border px-3 py-2"
             >
               <Pressable
                 onPress={() => handleToggleTodo(todo.id)}
                 disabled={!isAgent}
                 className={`mr-3 mt-1 h-5 w-5 items-center justify-center rounded-full border ${
-                  todo.completed ? "border-brand-accent bg-brand-accent" : "border-gray-300"
+                  todo.completed ? "border-primary bg-primary" : "border-border"
                 }`}
               >
                 {todo.completed ? (
@@ -114,17 +100,17 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
               <Box className="flex-1 gap-1">
                 <Text
                   className={`text-sm ${
-                    todo.completed ? "text-gray-400 line-through" : "text-gray-900"
+                    todo.completed ? "text-text-disabled line-through" : "text-text-primary"
                   }`}
                 >
                   {todo.title}
                 </Text>
                 <Box className="flex flex-row items-center gap-3">
-                  <Text className="text-xs font-medium text-gray-700">
-                    {priorityLabels[todo.priority]}
+                  <Text className="text-text-secondary text-xs font-medium">
+                    {TODO_PRIORITY_LABELS[todo.priority]}
                   </Text>
                   {todo.due_date ? (
-                    <Text className="text-xs text-gray-500">
+                    <Text className="text-text-secondary text-xs">
                       {dateParseISO(todo.due_date).toDate().toLocaleDateString()}
                     </Text>
                   ) : null}
@@ -142,24 +128,24 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
               value={newTodoTitle}
               onValueChange={setNewTodoTitle}
               placeholder="Add a todo for today"
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-base text-gray-900"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-3 py-2 text-base"
             />
 
             <Box className="flex flex-row flex-wrap gap-2">
-              {(Object.keys(priorityOrder) as TodoPriority[]).map((priority) => {
+              {(Object.keys(TODO_PRIORITY_ORDER) as TodoPriority[]).map((priority) => {
                 const selected = selectedPriority === priority;
                 return (
                   <Pressable
                     key={priority}
                     onPress={() => setSelectedPriority(priority)}
                     className={`rounded-full px-3 py-1 ${
-                      selected ? "bg-brand-accent" : "border border-gray-200 bg-gray-50"
+                      selected ? "bg-primary" : "border-border bg-background-base border"
                     }`}
                   >
                     <Text
-                      className={`text-xs font-medium ${selected ? "text-white" : "text-gray-800"}`}
+                      className={`text-xs font-medium ${selected ? "text-white" : "text-text-primary"}`}
                     >
-                      {priorityLabels[priority]}
+                      {TODO_PRIORITY_LABELS[priority]}
                     </Text>
                   </Pressable>
                 );
@@ -169,7 +155,7 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
             <Box className="flex flex-row gap-2">
               <Pressable
                 onPress={handleAddTodo}
-                className="bg-brand-accent flex-1 rounded-lg px-4 py-2 active:opacity-90"
+                className="bg-primary flex-1 rounded-lg px-4 py-2 active:opacity-90"
               >
                 <Text className="text-center text-sm font-semibold text-white">Add todo</Text>
               </Pressable>
@@ -179,18 +165,18 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
                   setNewTodoTitle("");
                   setSelectedPriority("medium");
                 }}
-                className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2"
+                className="border-border bg-background-surface flex-1 rounded-lg border px-4 py-2"
               >
-                <Text className="text-center text-sm font-semibold text-gray-800">Cancel</Text>
+                <Text className="text-text-primary text-center text-sm font-semibold">Cancel</Text>
               </Pressable>
             </Box>
           </Box>
         ) : (
           <Pressable
             onPress={() => setShowAddForm(true)}
-            className="mt-1 rounded-lg border border-dashed border-gray-300 px-3 py-2"
+            className="border-border mt-1 rounded-lg border border-dashed px-3 py-2"
           >
-            <Text className="text-brand-accent text-center text-sm font-medium">Add todo</Text>
+            <Text className="text-primary text-center text-sm font-medium">Add todo</Text>
           </Pressable>
         )
       ) : null}
@@ -228,22 +214,26 @@ export function DashboardScreen() {
       <Box className="gap-6 px-4 pb-8 pt-4">
         {isAgent ? (
           <Box className="gap-3">
-            <Text className="text-lg font-medium text-gray-800">Today</Text>
+            <Text className="text-text-primary text-lg font-medium">Today</Text>
             <DashboardTodosSection isAgent={isAgent} />
 
-            <Box className="mt-2 gap-2 rounded-lg bg-white p-3 shadow-sm">
-              <Text className="text-sm font-semibold text-gray-900">Urgent alerts</Text>
+            <Box className="bg-background-surface mt-2 gap-2 rounded-lg p-3 shadow-sm">
+              <Text className="text-text-primary text-sm font-semibold">Urgent alerts</Text>
               {visibleAlerts.length === 0 ? (
-                <Text className="mt-1 text-xs text-gray-600">No urgent alerts right now.</Text>
+                <Text className="text-text-secondary mt-1 text-xs">
+                  No urgent alerts right now.
+                </Text>
               ) : (
                 <Box className="gap-2">
                   {visibleAlerts.map((alert) => (
                     <Box
                       key={alert.id}
-                      className="flex-row items-start justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2"
+                      className="border-destructive bg-primary-muted flex-row items-start justify-between gap-3 rounded-lg border px-3 py-2"
                     >
                       <Box className="flex-1">
-                        <Text className="text-xs font-semibold text-rose-700">{alert.message}</Text>
+                        <Text className="text-destructive text-xs font-semibold">
+                          {alert.message}
+                        </Text>
                         {alert.client_id ? (
                           <Pressable
                             onPress={() => {
@@ -251,9 +241,7 @@ export function DashboardScreen() {
                             }}
                             className="mt-1"
                           >
-                            <Text className="text-brand-accent text-xs font-medium">
-                              View client →
-                            </Text>
+                            <Text className="text-primary text-xs font-medium">View client →</Text>
                           </Pressable>
                         ) : null}
                       </Box>
@@ -265,7 +253,7 @@ export function DashboardScreen() {
                         }
                         className="mt-0.5 rounded-full px-2 py-1"
                       >
-                        <Text className="text-xs font-medium text-gray-500">Dismiss</Text>
+                        <Text className="text-text-secondary text-xs font-medium">Dismiss</Text>
                       </Pressable>
                     </Box>
                   ))}
@@ -276,14 +264,14 @@ export function DashboardScreen() {
         ) : null}
 
         <Box className="gap-3">
-          <Text className="text-lg font-medium text-gray-800">Upcoming Events</Text>
+          <Text className="text-text-primary text-lg font-medium">Upcoming Events</Text>
           <UpcomingEvents embedInListHeader />
         </Box>
 
         <DashboardChecklists />
 
         <Box className="gap-3">
-          <Text className="text-lg font-medium text-gray-800">Calendar</Text>
+          <Text className="text-text-primary text-lg font-medium">Calendar</Text>
           <Calendar />
         </Box>
 

@@ -50,7 +50,7 @@ export function CalendarHeader({
             className="h-8 w-8 p-0"
             label="Previous week"
           >
-            <Icon name="chevron-left" className="h-4 w-4 text-gray-500" />
+            <Icon name="chevron-left" className="text-text-secondary h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
@@ -59,7 +59,7 @@ export function CalendarHeader({
             className="h-8 w-8 p-0"
             label="Next week"
           >
-            <Icon name="chevron-right" className="h-4 w-4 text-gray-500" />
+            <Icon name="chevron-right" className="text-text-secondary h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -68,13 +68,13 @@ export function CalendarHeader({
       <div className="flex items-center gap-2">
         {isConnected ? (
           <>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="text-text-secondary flex items-center gap-2 text-sm">
               <div className="h-2 w-2 rounded-full bg-green-500" />
-              <BodyText as="span" size="sm" className="hidden text-gray-600 sm:inline">
+              <BodyText as="span" size="sm" className="text-text-secondary hidden sm:inline">
                 Connected
               </BodyText>
               {calendars.length > 0 && (
-                <BodyText as="span" size="sm" className="text-gray-400">
+                <BodyText as="span" size="sm" className="text-text-disabled">
                   ({calendars.length} {calendars.length === 1 ? "calendar" : "calendars"})
                 </BodyText>
               )}
@@ -98,9 +98,9 @@ export function CalendarHeader({
             )}
           </>
         ) : (
-          <div className="flex items-center gap-2 text-sm text-gray-400">
+          <div className="text-text-disabled flex items-center gap-2 text-sm">
             <Icon name="calendar" className="h-4 w-4" />
-            <BodyText as="span" size="sm" className="text-gray-400">
+            <BodyText as="span" size="sm" className="text-text-disabled">
               Not connected
             </BodyText>
           </div>

@@ -58,7 +58,7 @@ export default function FinancialSection({
             className="mt-2"
           />
         ) : (
-          <div className="mobile-input mt-2 bg-gray-50 text-center">
+          <div className="mobile-input bg-background-base mt-2 text-center">
             <div className="text-lg font-normal">
               ${(formData.home_budget_min ?? 0).toLocaleString()} - $
               {(formData.home_budget_max ?? 0).toLocaleString()}
@@ -87,7 +87,7 @@ export default function FinancialSection({
                 className="mt-2"
               />
             ) : (
-              <div className="mobile-input bg-gray-50 text-left">
+              <div className="mobile-input bg-background-base text-left">
                 {formData.gross_income
                   ? `$${formData.gross_income.toLocaleString()}`
                   : "Not specified"}
@@ -109,7 +109,7 @@ export default function FinancialSection({
                 className="mt-2"
               />
             ) : (
-              <div className="mobile-input bg-gray-50 text-left">
+              <div className="mobile-input bg-background-base text-left">
                 {formData.down_payment
                   ? `$${formData.down_payment.toLocaleString()}`
                   : "Not specified"}
@@ -136,7 +136,7 @@ export default function FinancialSection({
                 placeholder="Enter zip code"
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {formData.ideal_zip_code ?? "Not specified"}
               </div>
             ),
@@ -151,7 +151,7 @@ export default function FinancialSection({
                 placeholder="Select..."
               />
             ) : (
-              <div className="mobile-input bg-gray-50">
+              <div className="mobile-input bg-background-base">
                 {formData.credit_score_range
                   ? (CREDIT_SCORE_OPTIONS.find(
                       (option) => option.value === formData.credit_score_range

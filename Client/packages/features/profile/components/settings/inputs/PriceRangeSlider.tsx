@@ -69,7 +69,7 @@ export default function PriceRangeSlider({
   const trackHeight = spacing(2);
   const valueBlock = (
     <Box className="flex flex-row items-center justify-center">
-      <Text className="text-sm font-medium text-gray-900">{formattedValue(value)}</Text>
+      <Text className="text-text-primary text-sm font-medium">{formattedValue(value)}</Text>
     </Box>
   );
 
@@ -79,11 +79,11 @@ export default function PriceRangeSlider({
         <Box className="flex flex-col items-center gap-2">
           <Box className="relative w-full justify-center" style={{ height: trackHeight }}>
             <Box
-              className="absolute h-2 w-full rounded-lg bg-gray-300"
+              className="bg-border absolute h-2 w-full rounded-lg"
               style={{ height: trackHeight }}
             />
             <Box
-              className="bg-gold absolute rounded-lg"
+              className="bg-accent absolute rounded-lg"
               style={{
                 left: spacing(0),
                 width: `${sliderValue}%`,

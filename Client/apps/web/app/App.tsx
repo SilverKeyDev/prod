@@ -46,13 +46,13 @@ function App() {
   return (
     <>
       {isLoading ? (
-        <div className="flex min-h-screen items-center justify-center bg-off-white">
+        <div className="flex min-h-screen items-center justify-center bg-background-base">
           <div className="shimmer h-8 w-32 rounded-lg"></div>
         </div>
       ) : maintenance ? (
         <MaintenanceScreen />
       ) : (
-        <div className="min-h-screen bg-off-white">
+        <div className="min-h-screen bg-background-base">
           <AppRoutes user={authUser} handleLogout={authLogout} />
 
           {/* Global toasts */}

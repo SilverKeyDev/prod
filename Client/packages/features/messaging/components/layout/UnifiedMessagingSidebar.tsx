@@ -1,6 +1,7 @@
 import { Icon } from "@ui/icons";
 
 import type { AgentClient, AgentConversation } from "packages/api";
+import { useLocalization } from "packages/contexts";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
 import { getMessagePreview } from "packages/features/messaging/utils";
@@ -51,6 +52,7 @@ export default function UnifiedMessagingSidebar({
   conversations = [],
   onSearchClick,
 }: UnifiedMessagingSidebarProps) {
+  const { t } = useLocalization();
   const config = getMessagingConfig(mode);
   // Create a map of client_id -> conversation for quick lookup (agent mode)
   const conversationMap = new Map(conversations.map((conv) => [conv.client_id, conv]));
@@ -69,10 +71,10 @@ export default function UnifiedMessagingSidebar({
         return (
           <div className="flex h-full items-center justify-center p-3">
             <div className="text-center">
-              <div className="bg-beige/30 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                <Icon name="message-circle" className="h-6 w-6 text-black/40" />
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
+                <Icon name="message-circle" className="h-6 w-6 text-neutral-400" />
               </div>
-              <BodyText as="p" size="sm" className="mb-4 text-black/60">
+              <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
                 {config.sidebar.emptyMessage}
               </BodyText>
             </div>
@@ -96,19 +98,19 @@ export default function UnifiedMessagingSidebar({
               handleYourAgentClick();
             }
           }}
-          className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${
+          className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${
             activeConversationId === activeConversation?.id
-              ? "bg-beige/30 border-l-beige border-l-4"
+              ? "border-l-olive bg-olive/10 border-l-4"
               : ""
           }`}
         >
           <div className="flex items-start justify-between">
             <div className="min-w-0 flex-1">
-              <Title as="h3" size="sm" className="mb-1 truncate font-medium text-black">
-                Your Agent
+              <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
+                {t("agent.your_agent")}
               </Title>
               {localMessages.length > 0 && (
-                <BodyText as="p" className="truncate text-xs text-black/50">
+                <BodyText as="p" className="truncate text-xs text-neutral-600">
                   {getMessagePreview(
                     localMessages[localMessages.length - 1] ?? {
                       content: "",
@@ -126,7 +128,7 @@ export default function UnifiedMessagingSidebar({
         return (
           <div className="flex h-full items-center justify-center p-3">
             <div className="text-center">
-              <KeyTurnLoader message="Loading clients..." />
+              <KeyTurnLoader message={t("agent.loading_clients")} />
             </div>
           </div>
         );
@@ -135,10 +137,10 @@ export default function UnifiedMessagingSidebar({
         return (
           <div className="flex h-full items-center justify-center p-3">
             <div className="text-center">
-              <div className="bg-beige/30 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                <Icon name="message-circle" className="h-6 w-6 text-black/40" />
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
+                <Icon name="message-circle" className="h-6 w-6 text-neutral-400" />
               </div>
-              <BodyText as="p" size="sm" className="mb-4 text-black/60">
+              <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
                 {config.sidebar.emptyMessage}
               </BodyText>
             </div>
@@ -167,24 +169,24 @@ export default function UnifiedMessagingSidebar({
                     handleClientClick();
                   }
                 }}
-                className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${selectedClientId === client.id ? "bg-beige/30 border-l-beige border-l-4" : ""}`}
+                className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${selectedClientId === client.id ? "border-l-olive bg-olive/10 border-l-4" : ""}`}
               >
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
-                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-black">
+                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                       {client.name}
                     </Title>
                     {conversation?.last_message ? (
-                      <BodyText as="p" className="truncate text-xs text-black/50">
+                      <BodyText as="p" className="truncate text-xs text-neutral-600">
                         {conversation.last_message}
                       </BodyText>
                     ) : (
-                      <BodyText as="p" className="truncate text-xs text-black/50">
+                      <BodyText as="p" className="truncate text-xs text-neutral-600">
                         {client.email}
                       </BodyText>
                     )}
                     {client.phone && !conversation?.last_message && (
-                      <BodyText as="p" className="truncate text-xs text-black/40">
+                      <BodyText as="p" className="truncate text-xs text-neutral-500">
                         {client.phone}
                       </BodyText>
                     )}
@@ -207,7 +209,7 @@ export default function UnifiedMessagingSidebar({
       {/* Backdrop for mobile - only show when sidebar is expanded on mobile, positioned relative to messaging container */}
       {isSidebarExpanded && (
         <div
-          className="absolute inset-0 z-40 bg-black/50 transition-opacity duration-300 ease-in-out xl:hidden"
+          className="bg-overlay-backdrop absolute inset-0 z-40 transition-opacity duration-300 ease-in-out xl:hidden"
           onClick={() => setIsSidebarExpanded(false)}
           aria-hidden="true"
         />
@@ -234,7 +236,7 @@ export default function UnifiedMessagingSidebar({
 
         {/* Scrollable Content */}
         <div
-          className={`flex-1 overflow-y-auto border-r border-neutral-200 bg-white ${isSidebarExpanded ? "rounded-b-xl" : ""} xl:rounded-bl-xl xl:rounded-br-none`}
+          className={`border-border bg-background-surface flex-1 overflow-y-auto border-r ${isSidebarExpanded ? "rounded-b-xl" : ""} xl:rounded-bl-xl xl:rounded-br-none`}
         >
           {renderSidebarContent()}
         </div>

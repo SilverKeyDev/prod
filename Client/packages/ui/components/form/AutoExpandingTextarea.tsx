@@ -77,8 +77,8 @@ export const AutoExpandingTextarea = React.forwardRef<
     ].join(" ");
 
     const stateClasses = error
-      ? "border-red-500 focus:ring-red-200 focus:border-red-500"
-      : "border-gray-200 focus:ring-brand-accent/20 focus:border-brand-accent";
+      ? "border-destructive focus:ring-destructive focus:border-destructive"
+      : "border-border focus:ring-accent-muted focus:border-primary";
 
     const combinedStyle = {
       minHeight: `${minHeight}px`,

@@ -48,12 +48,14 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ref
   ) => {
     const baseStyles =
-      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 transition-colors duration-150 touch-friendly mobile-input appearance-none bg-white";
+      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input appearance-none bg-background-surface";
 
     const borderStyles =
-      "border-beige hover:border-brown/50 focus:ring-brown/20 focus:border-brown";
+      "border-border hover:border-border focus:ring-accent-muted focus:border-primary";
 
-    const errorStyles = error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "";
+    const errorStyles = error
+      ? "border-destructive focus:border-destructive focus:ring-destructive"
+      : "";
 
     const selectClasses = [
       baseStyles,
@@ -95,7 +97,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
         {error != null && error !== "" && (
-          <BodyText size="xs" className="mt-1 text-red-600">
+          <BodyText size="xs" className="text-destructive mt-1">
             {error}
           </BodyText>
         )}

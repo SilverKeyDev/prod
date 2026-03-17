@@ -33,9 +33,9 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
         return {
           icon: <Icon name="key" className="h-4 w-4" />,
           labelKey: "auth.method.email_password",
-          color: "text-green-600",
-          bgColor: "bg-green-50",
-          borderColor: "border-green-200",
+          color: "text-accent",
+          bgColor: "bg-accent-muted",
+          borderColor: "border-border",
           descriptionKey: "auth.description.cognito",
           suggestionKey: "auth.suggestion.cognito",
         };
@@ -43,9 +43,9 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
         return {
           icon: <Icon name="link-2" className="h-4 w-4" />,
           labelKey: "auth.method.linked",
-          color: "text-purple-600",
-          bgColor: "bg-purple-50",
-          borderColor: "border-purple-200",
+          color: "text-accent",
+          bgColor: "bg-accent-muted",
+          borderColor: "border-border",
           descriptionKey: "auth.description.both",
           benefitKey: "auth.benefit.both",
         };
@@ -53,9 +53,9 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
         return {
           icon: <Icon name="shield" className="h-4 w-4" />,
           labelKey: "auth.method.unknown",
-          color: "text-gray-600",
-          bgColor: "bg-gray-50",
-          borderColor: "border-gray-200",
+          color: "text-text-secondary",
+          bgColor: "bg-background-base",
+          borderColor: "border-border",
           descriptionKey: "auth.description.unknown",
           suggestionKey: "auth.suggestion.unknown",
         };
@@ -84,18 +84,18 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
           <Title as="h3" size="sm" className={`font-semibold ${authInfo.color}`}>
             {t(authInfo.labelKey)}
           </Title>
-          <BodyText as="p" size="sm" className="mt-1 text-gray-700">
+          <BodyText as="p" size="sm" className="text-text-secondary mt-1">
             {t(authInfo.descriptionKey)}
           </BodyText>
 
           {"limitationKey" in authInfo && authInfo.limitationKey && (
-            <BodyText as="p" size="xs" className="mt-2 text-gray-600">
+            <BodyText as="p" size="xs" className="text-text-secondary mt-2">
               {t("auth.limitation.google_display")}
             </BodyText>
           )}
 
           {"suggestionKey" in authInfo && authInfo.suggestionKey && (
-            <BodyText as="p" size="xs" className="mt-2 text-gray-600">
+            <BodyText as="p" size="xs" className="text-text-secondary mt-2">
               {authInfo.suggestionKey === "auth.suggestion.cognito"
                 ? t("auth.suggestion.cognito_display")
                 : t("auth.suggestion.unknown_display")}
@@ -103,7 +103,7 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
           )}
 
           {"benefitKey" in authInfo && authInfo.benefitKey && (
-            <BodyText as="p" size="xs" className="mt-2 text-gray-600">
+            <BodyText as="p" size="xs" className="text-text-secondary mt-2">
               {t("auth.benefit.both_display")}
             </BodyText>
           )}

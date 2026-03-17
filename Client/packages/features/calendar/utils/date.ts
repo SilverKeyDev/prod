@@ -1,6 +1,6 @@
 import { dateNow, dayjs } from "packages/utils/date";
 
-import type { CalendarGridDay, CalendarViewType } from "./types";
+import type { CalendarGridDay, CalendarViewType } from "@/features/calendar/types/calendar";
 
 /**
  * Get the start of the week (Sunday) for a given date
@@ -10,9 +10,16 @@ export function getWeekStart(date: Date): Date {
 }
 
 /**
- * Calculate 5-week date range aligned to week boundaries
- * Returns the start of the week containing the specified date (or today if not provided) (Sunday) to 5 weeks later
- * This is the standard date range used throughout the calendar feature
+ * Earliest week start (Sunday) allowed - the week containing today.
+ * Calendar range is clamped to this week and the 4 weeks after (5 weeks total).
+ */
+function getThisWeekSunday(): ReturnType<typeof dayjs> {
+  return dateNow().subtract(dateNow().day(), "day").startOf("day");
+}
+
+/**
+ * Calculate 5-week date range: this week and the 4 weeks after, aligned to week boundaries.
+ * Range is clamped so past weeks are never shown. Extended by 1 week on each end for fetch buffer.
  *
  * All calendar components use this single method for date range calculation.
  * For filtering to specific ranges (e.g., today, next 7 days), filter the events
@@ -25,12 +32,24 @@ export function calculateCalendarDateRange(date?: Date): {
   timeMax: string;
 } {
   const baseDate = date ? dayjs(date).startOf("day") : dateNow().startOf("day");
-  const weekStart = baseDate.subtract(baseDate.day(), "day").startOf("day");
+  const thisWeekSunday = getThisWeekSunday();
+  let weekStart = baseDate.subtract(baseDate.day(), "day").startOf("day");
+
+  // Clamp to this week and the 4 weeks after - never show past weeks
+  if (weekStart.isBefore(thisWeekSunday)) {
+    weekStart = thisWeekSunday;
+  }
+
   const weekEnd = weekStart.add(35, "day").endOf("day"); // 5 weeks = 35 days
 
+  // Extend range by 1 week on each end for fetch buffer; clamp timeMin to not fetch past weeks
+  const bufferMin = weekStart.subtract(7, "day").startOf("day");
+  const timeMin = bufferMin.isBefore(thisWeekSunday) ? thisWeekSunday : bufferMin;
+  const timeMax = weekEnd.add(7, "day").endOf("day");
+
   return {
-    timeMin: weekStart.toISOString(),
-    timeMax: weekEnd.toISOString(),
+    timeMin: timeMin.toISOString(),
+    timeMax: timeMax.toISOString(),
   };
 }
 
@@ -46,7 +65,7 @@ export function navigateDate(date: Date, weeks: number): Date {
 /**
  * Calculate the visible date range for the calendar grid
  * Returns the first and last day currently being displayed (5 weeks = 35 days by default)
- * This matches exactly what CalendarView displays - uses the same logic as the grid
+ * Range is clamped to this week and the 4 weeks after - never shows past weeks.
  *
  * The grid shows 35 days starting from the Sunday of the week containing currentDate by default.
  * Can also generate 1 day or 1 week views.
@@ -61,7 +80,13 @@ export function getVisibleDateRange(
 ): { start: Date; end: Date; gridDays?: CalendarGridDay[] } {
   const date = dayjs(currentDate).startOf("day");
   const dayOfWeek = date.day(); // 0 = Sunday, 1 = Monday, etc.
-  const weekStart = date.subtract(dayOfWeek, "day").startOf("day");
+  let weekStart = date.subtract(dayOfWeek, "day").startOf("day");
+
+  // Clamp to this week and the 4 weeks after - never show past weeks
+  const thisWeekSunday = getThisWeekSunday();
+  if (weekStart.isBefore(thisWeekSunday)) {
+    weekStart = thisWeekSunday;
+  }
 
   const today = dateNow().startOf("day");
   const currentMonth = today.month();

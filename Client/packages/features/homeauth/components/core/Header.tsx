@@ -14,8 +14,8 @@ export default function AuthHeader({
   title,
   subtitle,
   logoSize = "lg",
-  titleClassName = "text-responsive-2xl font-serif text-black mb-2 flex flex-row items-center justify-center",
-  subtitleClassName = "text-neutral-600 font-light text-responsive-xs mb-8",
+  titleClassName = "text-responsive-2xl font-serif text-text-primary mb-2 flex flex-row items-center justify-center",
+  subtitleClassName = "text-text-secondary font-light text-responsive-xs mb-8",
   containerClassName = "text-center gap-2",
 }: AuthHeaderProps) {
   return (

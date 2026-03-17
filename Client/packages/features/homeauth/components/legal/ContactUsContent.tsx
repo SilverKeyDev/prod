@@ -52,7 +52,7 @@ export function ContactUsContent({
           <EmailLink href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</EmailLink> and we'll get back
           to you within 24 hours during business days.
         </Paragraph>
-        <Paragraph className="text-responsive-sm text-gray-600">
+        <Paragraph className="text-responsive-sm text-text-secondary">
           Please include as much detail as possible about your question or issue so we can provide
           you with the most helpful response.
         </Paragraph>

@@ -7,6 +7,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 
 import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 
+import { color } from "packages/design-tokens";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
 import { Text } from "packages/ui/components/primitives";
@@ -117,16 +118,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
-    backgroundColor: "#f5f5f0",
+    backgroundColor: color("background-base"),
   },
   card: {
     width: "100%",
     maxWidth: 400,
     padding: 24,
-    backgroundColor: "#fff",
+    backgroundColor: color("background-surface"),
     borderRadius: 8,
     borderLeftWidth: 4,
-    borderLeftColor: "#8C6F5A",
+    borderLeftColor: color("primary"),
     ...(Platform.OS === "web"
       ? { boxShadow: "0px 2px 4px rgba(0,0,0,0.1)" }
       : {
@@ -140,19 +141,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: color("text-primary"),
     marginBottom: 8,
     textAlign: "center",
   },
   message: {
     fontSize: 14,
-    color: "#666",
+    color: color("text-secondary"),
     marginBottom: 12,
     textAlign: "center",
   },
   detail: {
     fontSize: 12,
-    color: "#888",
+    color: color("text-secondary"),
     marginBottom: 20,
     fontFamily: "monospace",
   },
@@ -169,20 +170,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   primaryButton: {
-    backgroundColor: "#A3B18A",
+    backgroundColor: color("primary"),
   },
   primaryButtonText: {
-    color: "#fff",
+    color: color("background-surface"),
     fontSize: 14,
     fontWeight: "600",
   },
   outlineButton: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#A3B18A",
+    borderColor: color("primary"),
   },
   outlineButtonText: {
-    color: "#A3B18A",
+    color: color("primary"),
     fontSize: 14,
     fontWeight: "600",
   },

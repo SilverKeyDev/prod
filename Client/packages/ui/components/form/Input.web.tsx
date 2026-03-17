@@ -61,14 +61,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     }, [showPassword, showPasswordToggle, type]);
     // Base styles - using exact onboarding styling via InputStyles (placeholder matches dropdown empty state)
     const baseStyles =
-      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 transition-colors duration-150 touch-friendly mobile-input placeholder:text-gray-400";
+      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input placeholder:text-text-secondary";
     // Variant styles - using exact onboarding styling
     const variantStyles = {
-      default: "border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown",
+      default:
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
       mobile:
-        "mobile-input border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown touch-friendly autofill-gold",
-      compact: "border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown",
-      search: "border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown",
+        "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary touch-friendly autofill-gold",
+      compact:
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
+      search:
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
     };
     // Size styles - using exact onboarding sizing
     const sizeStyles = {
@@ -77,7 +80,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       lg: "h-14 px-5",
     };
     // Error styles
-    const errorStyles = error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "";
+    const errorStyles = error
+      ? "border-destructive focus:border-destructive focus:ring-destructive"
+      : "";
     // Disabled styles - already included in base styles
     const disabledStyles = "";
     // Combine all styles with shared text styles
@@ -98,17 +103,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const containerClasses = "relative";
     // Icon positioning classes
     const iconClasses = {
-      left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400",
-      right: "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400",
+      left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
+      right: "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
     };
     return (
       <div className="w-full">
         {/* Label */}
         {label && (
-          <Label htmlFor={props.id} className="mb-2 block text-sm font-medium text-gray-700">
+          <Label htmlFor={props.id} className="text-text-primary mb-2 block text-sm font-medium">
             {label}
             {required && (
-              <BodyText as="span" className="text-red-500">
+              <BodyText as="span" className="text-destructive">
                 {t("form.required_indicator")}
               </BodyText>
             )}
@@ -151,7 +156,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                   icon={<Icon name="x" className="h-4 w-4" />}
                   label={t("form.clear_aria")}
                   onClick={onClear}
-                  className="rounded p-1 transition-colors hover:bg-gray-100"
+                  className="rounded p-1 transition-colors hover:bg-neutral-100"
                   tabIndex={-1}
                 />
               )}
@@ -170,7 +175,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                   }
                   label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="rounded p-1 transition-colors hover:bg-gray-100"
+                  className="rounded p-1 transition-colors hover:bg-neutral-100"
                   tabIndex={-1}
                 />
               )}
@@ -190,7 +195,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
         {/* Error Message */}
         {error && (
-          <BodyText size="xs" className="mt-1 text-red-600">
+          <BodyText size="xs" className="text-destructive mt-1">
             {error}
           </BodyText>
         )}

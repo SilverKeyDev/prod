@@ -47,8 +47,10 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
     onToggle();
   };
   const baseButtonClasses =
-    "touch-friendly group relative inline-flex items-center justify-center rounded-lg backdrop-blur-sm bg-white/90 shadow-md ring-1 ring-black/5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:ring-black/10 focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 active:scale-95";
-  const stateClasses = isSelected ? "text-olive" : "text-gray-600 hover:text-gray-700";
+    "touch-friendly group relative inline-flex items-center justify-center rounded-lg backdrop-blur-sm bg-background-surface shadow-md ring-1 ring-black/5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:ring-black/10 focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 active:scale-95";
+  const stateClasses = isSelected
+    ? "text-primary"
+    : "text-text-secondary hover:text-text-secondary";
   // Check if this is being used as an inline button (no position specified or position is not absolute)
   const isInlineButton =
     !position || className.includes("border") || className.includes("rounded-md");

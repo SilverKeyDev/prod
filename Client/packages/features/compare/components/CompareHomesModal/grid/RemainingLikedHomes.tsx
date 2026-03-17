@@ -93,7 +93,7 @@ export function RemainingLikedHomes({
   if (remainingHomes.length === 0) return null;
   return (
     <Box>
-      <Title size="sm" className="mb-responsive-md font-medium text-black">
+      <Title size="sm" className="mb-responsive-md text-text-primary font-medium">
         {t("compare.add_more_properties")}
       </Title>
       <Box className="grid-responsive-2-gap-2">

@@ -27,7 +27,7 @@ export default function SuccessDialog({
         style={{ width: "100vw", height: "100vh" }}
       >
         {/* Backdrop */}
-        <div className="fixed inset-0 bg-black/50 transition-opacity" />
+        <div className="bg-overlay-backdrop fixed inset-0 transition-opacity" />
 
         {/* Dialog */}
         <div

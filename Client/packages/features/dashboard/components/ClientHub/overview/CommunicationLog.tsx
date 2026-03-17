@@ -49,19 +49,19 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
       <Box className="flex flex-col space-y-6">
         {/* Messages Summary */}
         {conversation && (
-          <Box className="border-beige/30 rounded-lg border bg-white p-4">
+          <Box className="border-border bg-background-surface rounded-lg border p-4">
             <Box className="mb-2 flex items-center justify-between">
-              <Title as="h3" size="md" className="text-navy font-semibold">
+              <Title as="h3" size="md" className="text-text-primary font-semibold">
                 Messages
               </Title>
-              <BodyText as="span" size="sm" className="text-black/60">
+              <BodyText as="span" size="sm" className="text-text-secondary">
                 {conversation.last_message_at
                   ? formatDate(conversation.last_message_at)
                   : "No messages"}
               </BodyText>
             </Box>
             {conversation.last_message && (
-              <BodyText as="p" size="sm" className="line-clamp-2 text-black/60">
+              <BodyText as="p" size="sm" className="text-text-secondary line-clamp-2">
                 {conversation.last_message}
               </BodyText>
             )}
@@ -70,12 +70,12 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
 
         {/* Decisions and Notes */}
         <div>
-          <Title as="h3" size="md" className="text-navy mb-4 font-semibold">
+          <Title as="h3" size="md" className="text-text-primary mb-4 font-semibold">
             Decisions & Notes
           </Title>
           {allItems.length === 0 ? (
             <div className="py-8 text-center">
-              <BodyText as="p" size="sm" className="text-black/60">
+              <BodyText as="p" size="sm" className="text-text-secondary">
                 No decisions or notes yet
               </BodyText>
             </div>
@@ -84,29 +84,33 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
               {allItems.map((item) => (
                 <div
                   key={item.id}
-                  className="border-beige/30 flex items-start gap-3 rounded-lg border bg-white p-4"
+                  className="border-border bg-background-surface flex items-start gap-3 rounded-lg border p-4"
                 >
                   <div className="mt-1 flex-shrink-0">
                     {item.type === "decision" ? (
-                      <Icon name="check-circle" className="text-olive h-5 w-5" />
+                      <Icon name="check-circle" className="text-primary h-5 w-5" />
                     ) : (
-                      <Icon name="file-text" className="text-gold h-5 w-5" />
+                      <Icon name="file-text" className="text-accent h-5 w-5" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <BodyText as="span" size="xs" className="font-medium uppercase text-black/60">
+                      <BodyText
+                        as="span"
+                        size="xs"
+                        className="text-text-secondary font-medium uppercase"
+                      >
                         {item.type === "decision" ? "Decision" : "Note"}
                       </BodyText>
-                      <BodyText as="span" size="xs" className="text-black/40">
+                      <BodyText as="span" size="xs" className="text-text-disabled">
                         {formatDate(item.date)}
                       </BodyText>
                     </div>
-                    <BodyText as="p" size="sm" className="mb-1 text-black">
+                    <BodyText as="p" size="sm" className="text-text-primary mb-1">
                       {item.content}
                     </BodyText>
                     {item.context && (
-                      <BodyText as="p" size="xs" className="italic text-black/60">
+                      <BodyText as="p" size="xs" className="text-text-secondary italic">
                         {item.context}
                       </BodyText>
                     )}

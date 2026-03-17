@@ -31,6 +31,14 @@ export type UseGoogleEventsReturn = {
   refreshEvents: () => Promise<void>;
   createEvent: (event: GoogleEvent) => Promise<GoogleEventCreateResponse>;
   isCreatingEvent: boolean;
+  updateEvent: (
+    eventId: string,
+    event: GoogleEvent,
+    calendarId?: string
+  ) => Promise<GoogleEventCreateResponse>;
+  deleteEvent: (eventId: string, calendarId?: string) => Promise<void>;
+  isUpdatingEvent: boolean;
+  isDeletingEvent: boolean;
 };
 
 /** Merges cached + fetched events and drives loading/error state. */
@@ -229,6 +237,15 @@ export function useGoogleEvents(params?: {
 
   const core = useGoogleEventsCore(params, queryClient, shouldLoadData);
 
+  const invalidateEvents = useCallback(() => {
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.googleCalendar.events(),
+    });
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.googleCalendar.eventsList(),
+    });
+  }, [queryClient]);
+
   const createEventMutation = useMutation({
     mutationFn: async (event: GoogleEvent) => {
       const response = await googleCalendarApi.createEvent(event);
@@ -237,17 +254,46 @@ export function useGoogleEvents(params?: {
       }
       return response.data as GoogleEventCreateResponse;
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.googleCalendar.events(),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.googleCalendar.eventsList(),
-      });
-    },
+    onSuccess: invalidateEvents,
     onError: (error) => {
       log.error(LOG_CATEGORIES.ERRORS, "Create calendar event failed", error);
       showErrorToast("Failed to create event. Please try again.");
+    },
+  });
+
+  const updateEventMutation = useMutation({
+    mutationFn: async ({
+      eventId,
+      event,
+    }: {
+      eventId: string;
+      event: GoogleEvent;
+      calendarId?: string;
+    }) => {
+      const response = await googleCalendarApi.updateEvent(eventId, event);
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to update event");
+      }
+      return response.data as GoogleEventCreateResponse;
+    },
+    onSuccess: invalidateEvents,
+    onError: (error) => {
+      log.error(LOG_CATEGORIES.ERRORS, "Update calendar event failed", error);
+      showErrorToast("Failed to update event. Please try again.");
+    },
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: async ({ eventId, calendarId }: { eventId: string; calendarId?: string }) => {
+      const response = await googleCalendarApi.deleteEvent(eventId, calendarId);
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to delete event");
+      }
+    },
+    onSuccess: invalidateEvents,
+    onError: (error) => {
+      log.error(LOG_CATEGORIES.ERRORS, "Delete calendar event failed", error);
+      showErrorToast("Failed to delete event. Please try again.");
     },
   });
 
@@ -257,9 +303,33 @@ export function useGoogleEvents(params?: {
     [createEventMutation]
   );
 
+  const updateEvent = useCallback(
+    async (
+      eventId: string,
+      event: GoogleEvent,
+      calendarId?: string
+    ): Promise<GoogleEventCreateResponse> =>
+      updateEventMutation.mutateAsync({
+        eventId,
+        event,
+        calendarId,
+      }) as Promise<GoogleEventCreateResponse>,
+    [updateEventMutation]
+  );
+
+  const deleteEvent = useCallback(
+    async (eventId: string, calendarId?: string): Promise<void> =>
+      deleteEventMutation.mutateAsync({ eventId, calendarId }),
+    [deleteEventMutation]
+  );
+
   return {
     ...core,
     createEvent,
     isCreatingEvent: createEventMutation.isPending,
+    updateEvent,
+    deleteEvent,
+    isUpdatingEvent: updateEventMutation.isPending,
+    isDeletingEvent: deleteEventMutation.isPending,
   };
 }

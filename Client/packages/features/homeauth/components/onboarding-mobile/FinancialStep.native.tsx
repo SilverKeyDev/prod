@@ -43,15 +43,17 @@ export function FinancialStep({
 
   return (
     <Box className="gap-5">
-      <Text className="text-lg font-semibold text-gray-900">
+      <Text className="text-text-primary text-lg font-semibold">
         {SECTION_TITLES.FINANCIAL_PROFILE}
       </Text>
 
       <Box className="gap-3">
-        <Text className="mb-1 text-sm font-medium text-gray-700">{FIELD_LABELS.HOME_BUDGET}</Text>
+        <Text className="text-text-secondary mb-1 text-sm font-medium">
+          {FIELD_LABELS.HOME_BUDGET}
+        </Text>
         <Box className="flex flex-row gap-3">
           <Box className="flex-1">
-            <Text className="mb-1 text-xs font-medium text-gray-600">Min</Text>
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Min</Text>
             <Input
               value={formData.home_budget_min?.toString() ?? ""}
               onValueChange={(v) => updateFormData("home_budget_min", parseCurrency(v ?? ""))}
@@ -61,7 +63,7 @@ export function FinancialStep({
             />
           </Box>
           <Box className="flex-1">
-            <Text className="mb-1 text-xs font-medium text-gray-600">Max</Text>
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Max</Text>
             <Input
               value={formData.home_budget_max?.toString() ?? ""}
               onValueChange={(v) => updateFormData("home_budget_max", parseCurrency(v ?? ""))}
@@ -74,7 +76,7 @@ export function FinancialStep({
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.GROSS_INCOME} (after debts)
         </Text>
         <Input
@@ -87,7 +89,9 @@ export function FinancialStep({
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">{FIELD_LABELS.DOWN_PAYMENT}</Text>
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
+          {FIELD_LABELS.DOWN_PAYMENT}
+        </Text>
         <Input
           value={formData.down_payment?.toString() ?? ""}
           onValueChange={(v) => updateFormData("down_payment", parseCurrency(v ?? ""))}
@@ -98,7 +102,7 @@ export function FinancialStep({
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.IDEAL_ZIP_CODE}
         </Text>
         <Input
@@ -111,7 +115,7 @@ export function FinancialStep({
       </Box>
 
       <Box>
-        <Text className="mb-2 text-sm font-medium text-gray-700">
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.CREDIT_SCORE_RANGE}
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
@@ -122,12 +126,12 @@ export function FinancialStep({
                 key={option.value}
                 onPress={() => updateFormData("credit_score_range", option.value)}
                 className={`rounded-lg border px-3 py-2 ${
-                  isSelected ? "border-brand-accent bg-brand-accent/10" : "border-gray-200 bg-white"
+                  isSelected ? "border-primary bg-primary" : "border-border bg-background-surface"
                 }`}
               >
                 <Text
                   className={`text-xs font-medium ${
-                    isSelected ? "text-brand-accent" : "text-gray-700"
+                    isSelected ? "text-primary" : "text-text-secondary"
                   }`}
                 >
                   {option.label}
@@ -138,15 +142,15 @@ export function FinancialStep({
         </Box>
       </Box>
 
-      <Box className="mt-4 rounded-2xl border border-gray-200 bg-white px-4 py-3">
+      <Box className="border-border bg-background-surface mt-4 rounded-2xl border px-4 py-3">
         <Pressable
           onPress={() => setIsAffordabilityCollapsed(!isAffordabilityCollapsed)}
           className="flex flex-row items-center justify-between"
         >
-          <Text className="text-sm font-semibold text-gray-900">
+          <Text className="text-text-primary text-sm font-semibold">
             See what you can likely afford
           </Text>
-          <Text className="text-brand-accent text-xs font-medium">
+          <Text className="text-primary text-xs font-medium">
             {isAffordabilityCollapsed ? "Show" : "Hide"}
           </Text>
         </Pressable>
@@ -154,28 +158,28 @@ export function FinancialStep({
         {!isAffordabilityCollapsed && (
           <Box className="mt-3 gap-2">
             {homePriceLoading && (
-              <Text className="text-xs text-gray-600">Calculating your estimate…</Text>
+              <Text className="text-text-secondary text-xs">Calculating your estimate…</Text>
             )}
             {!homePriceLoading && homePriceError && (
               <Text className="text-xs text-red-600">{homePriceError}</Text>
             )}
             {!homePriceLoading && !homePriceError && homePriceResult && (
               <>
-                <Text className="text-xs text-gray-600">
+                <Text className="text-text-secondary text-xs">
                   Based on your income, down payment, credit, and ZIP, you could likely afford a
                   home up to:
                 </Text>
-                <Text className="text-xl font-semibold text-gray-900">
+                <Text className="text-text-primary text-xl font-semibold">
                   ${homePriceResult.maxHomePrice.toLocaleString()}
                 </Text>
-                <Text className="mt-1 text-xs text-gray-600">
+                <Text className="text-text-secondary mt-1 text-xs">
                   Estimated total monthly housing cost around $
                   {homePriceResult.totalMonthlyHousingCost.toLocaleString()}.
                 </Text>
               </>
             )}
             {!homePriceLoading && !homePriceError && !homePriceResult && (
-              <Text className="text-xs text-gray-500">
+              <Text className="text-text-secondary text-xs">
                 Fill in income, down payment, credit score, and ZIP to see an affordability
                 estimate.
               </Text>

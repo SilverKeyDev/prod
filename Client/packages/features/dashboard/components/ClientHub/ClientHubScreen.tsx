@@ -1,6 +1,13 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+
+import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import {
+  CHECKLIST_TITLES,
+  type ChecklistTab,
+  useChecklistProgress,
+} from "packages/features/checklists";
 import { useIsAgent } from "packages/features/homeauth";
 import { useNavigation } from "packages/navigation";
 import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
@@ -72,9 +79,17 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   } = useAgentDashboardMockData();
 
   const [activeTab, setActiveTab] = useState<ClientHubTab>("overview");
-  const [checklistTab, setChecklistTab] = useState<
-    "escrow" | "inspections" | "financing" | "closing"
-  >("escrow");
+  const { currentSection, isSectionUnlocked } = useChecklistProgress();
+  const [checklistTab, setChecklistTab] = useState<ChecklistTab>(currentSection);
+  const prevActiveTabRef = useRef<ClientHubTab>("overview");
+
+  // When opening the checklists tab, select the first category with unselected items
+  useEffect(() => {
+    if (activeTab === "checklists" && prevActiveTabRef.current !== "checklists") {
+      setChecklistTab(currentSection);
+    }
+    prevActiveTabRef.current = activeTab;
+  }, [activeTab, currentSection]);
 
   const client = useMemo(() => clients.find((c) => c.id === clientId), [clients, clientId]);
 
@@ -108,14 +123,14 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   if (!isAgent) {
     return (
       <Box className="flex-1 items-center justify-center p-6">
-        <Text className="mb-3 text-sm text-gray-600">Not available.</Text>
+        <Text className="text-text-secondary mb-3 text-sm">Not available.</Text>
         <Pressable
           onPress={() => {
             goBack();
           }}
-          className="border-brand-accent rounded-lg border px-4 py-2"
+          className="border-primary rounded-lg border px-4 py-2"
         >
-          <Text className="text-brand-accent text-sm font-medium">Back to dashboard</Text>
+          <Text className="text-primary text-sm font-medium">Back to dashboard</Text>
         </Pressable>
       </Box>
     );
@@ -124,7 +139,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   if (isLoading && !client) {
     return (
       <Box className="flex-1 items-center justify-center">
-        <Text className="text-sm text-gray-600">Loading client...</Text>
+        <Text className="text-text-secondary text-sm">Loading client...</Text>
       </Box>
     );
   }
@@ -132,14 +147,14 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   if (!client || !enhancedClient) {
     return (
       <Box className="flex-1 items-center justify-center p-6">
-        <Text className="mb-3 text-sm text-gray-600">Client not found.</Text>
+        <Text className="text-text-secondary mb-3 text-sm">Client not found.</Text>
         <Pressable
           onPress={() => {
             goBack();
           }}
-          className="border-brand-accent rounded-lg border px-4 py-2"
+          className="border-primary rounded-lg border px-4 py-2"
         >
-          <Text className="text-brand-accent text-sm font-medium">Back to dashboard</Text>
+          <Text className="text-primary text-sm font-medium">Back to dashboard</Text>
         </Pressable>
       </Box>
     );
@@ -148,7 +163,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   const isLikedHomesTab = activeTab === "liked-homes";
 
   return (
-    <Box className="bg-off-white flex-1">
+    <Box className="bg-background-base flex-1">
       {/* Header */}
       <Box className="mb-4 flex flex-row items-center justify-between px-4 pt-6">
         <Pressable
@@ -157,23 +172,23 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
           }}
           className="mr-3"
         >
-          <Text className="text-brand-accent text-sm font-medium">← Back</Text>
+          <Text className="text-primary text-sm font-medium">← Back</Text>
         </Pressable>
 
-        <Box className="flex-1 flex flex-row items-center gap-3">
-          <Box className="bg-olive/10 flex h-10 w-10 items-center justify-center rounded-full">
-            <Text className="text-olive text-lg font-semibold">
+        <Box className="flex flex-1 flex-row items-center gap-3">
+          <Box className="bg-primary-muted flex h-10 w-10 items-center justify-center rounded-full">
+            <Text className="text-primary text-lg font-semibold">
               {client.name.charAt(0).toUpperCase()}
             </Text>
           </Box>
           <Box className="flex-1">
-            <Text className="text-lg font-semibold text-gray-900">{enhancedClient.name}</Text>
-            <Text className="text-sm text-gray-600">{enhancedClient.email}</Text>
-            <Text className="text-xs text-gray-500">
+            <Text className="text-text-primary text-lg font-semibold">{enhancedClient.name}</Text>
+            <Text className="text-text-secondary text-sm">{enhancedClient.email}</Text>
+            <Text className="text-text-secondary text-xs">
               Stage: {enhancedClient.deal_stage.replace(/_/g, " ")}
             </Text>
             {enhancedClient.last_agent_action ? (
-              <Text className="text-xs text-gray-500">
+              <Text className="text-text-secondary text-xs">
                 Last action: {formatRelativeDate(enhancedClient.last_agent_action)}
               </Text>
             ) : null}
@@ -181,7 +196,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
         </Box>
       </Box>
 
-      {/* Tabs */}
+      {/* Tabs - unified with search Results/Saved styling */}
       <Box className="px-4">
         <UnderlineTabs
           items={tabs}
@@ -243,16 +258,33 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
             <Box className="mt-4">
               {/* Checklist sub-tabs */}
               <UnderlineTabs
-                items={[
-                  { id: "escrow", label: "Escrow" },
-                  { id: "inspections", label: "Inspections" },
-                  { id: "financing", label: "Financing" },
-                  { id: "closing", label: "Closing" },
-                ]}
+                items={(
+                  ["search", "offer", "escrow", "inspections", "financing", "closing"] as const
+                ).map((id) => ({
+                  id,
+                  label: CHECKLIST_TITLES[id],
+                  icon: (
+                    <Icon
+                      name={
+                        id === "search"
+                          ? "search"
+                          : id === "offer"
+                            ? "file-signature"
+                            : id === "escrow"
+                              ? "file-text"
+                              : id === "inspections"
+                                ? "clipboard-check"
+                                : id === "financing"
+                                  ? "dollar-sign"
+                                  : "home"
+                      }
+                      className="h-4 w-4"
+                    />
+                  ),
+                  locked: !isSectionUnlocked(id),
+                }))}
                 activeId={checklistTab}
-                onChange={(id) =>
-                  setChecklistTab(id as "escrow" | "inspections" | "financing" | "closing")
-                }
+                onChange={(id) => setChecklistTab(id as ChecklistTab)}
                 className="mb-4"
               />
               <ClientChecklists

@@ -108,12 +108,12 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
             <Title as="h4" size="sm" className="text-foreground mb-2 text-left font-semibold">
               AI-Detected Features
             </Title>
-            <Box className="text-left text-xs leading-relaxed text-neutral-600">
+            <Box className="text-text-secondary text-left text-xs leading-relaxed">
               {img.clean.map((feature, i) => (
                 <BodyText key={i} as="span" className="flex flex-row text-left">
                   {feature.trim()}
                   {i < img.clean.length - 1 && (
-                    <BodyText as="span" className="mx-2 text-neutral-500">
+                    <BodyText as="span" className="text-text-secondary mx-2">
                       •
                     </BodyText>
                   )}
@@ -134,7 +134,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                     type="button"
                     variant="ghost"
                     onClick={() => toggleCategory(category)}
-                    className="mb-2 flex w-full flex-row items-center justify-between text-left hover:text-neutral-700 active:text-neutral-600 active:text-neutral-700"
+                    className="hover:text-text-secondary active:text-text-secondary mb-2 flex w-full flex-row items-center justify-between text-left"
                   >
                     <Title
                       as="h4"
@@ -155,7 +155,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                         <BodyText
                           key={idx}
                           as="span"
-                          className="rounded-full bg-gray-100 px-3 py-1 text-left text-xs text-gray-700"
+                          className="bg-primary-muted text-text-secondary rounded-full px-3 py-1 text-left text-xs"
                         >
                           {feature}
                         </BodyText>

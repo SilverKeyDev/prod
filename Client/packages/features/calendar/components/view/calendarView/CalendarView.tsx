@@ -15,7 +15,7 @@ import {
 import { calculateCalendarDateRange, getVisibleDateRange } from "@/features/calendar/utils/date";
 import { filterCurrentPeriodEvents } from "@/features/calendar/utils/eventFiltering";
 
-import type { DateRange,ExtendedGoogleEvent } from "../../../types/calendar";
+import type { DateRange, ExtendedGoogleEvent } from "../../../types/calendar";
 import { CalendarGrid } from "./CalendarGrid";
 import type { CalendarViewProps } from "./types";
 import { WeekDayHeaders } from "./WeekDayHeaders";

@@ -149,9 +149,6 @@ pytest.ini
 .env.test
 .env.production
 
-# SkySlope redirect URI (copy config/skyslope.example.json to config/skyslope.json)
-config/skyslope.json
-
 venv/
 
 .cursor/

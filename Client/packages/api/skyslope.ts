@@ -6,5 +6,6 @@ export {
   attachSkyslopeForms,
   getChecklistItemDocuments,
   getSkyslopeFormsForStep,
+  linkDocumentToChecklistItem,
   type SkyslopeForm,
 } from "packages/features/documents/api/skyslope";

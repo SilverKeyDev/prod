@@ -3,9 +3,9 @@ import React, { useState } from "react";
 import { Modal, Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import { color } from "packages/design-tokens";
+import { useIsAgent } from "packages/features/homeauth";
 import { buildEventRequestMessage } from "packages/features/messaging/utils/eventRequestPayload"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Shared event request builder; utils live in messaging. */
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
-import { useAuthStore } from "packages/store";
 import { Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
@@ -22,7 +22,7 @@ export default function CalendarEventRequestModalNative({
   onClose,
   onSuccess,
 }: CalendarEventRequestModalNativeProps) {
-  const isAgent = useAuthStore((s) => !!s.user?.is_agent);
+  const isAgent = useIsAgent();
   const { clients } = useAgentClients();
   const { conversations, sendMessage } = useAgentChats();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
@@ -87,13 +87,13 @@ export default function CalendarEventRequestModalNative({
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text className="text-lg font-semibold text-gray-900">Request Calendar Event</Text>
+            <Text className="text-text-primary text-lg font-semibold">Request Calendar Event</Text>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Text className="text-base font-medium text-gray-600">Cancel</Text>
+              <Text className="text-text-secondary text-base font-medium">Cancel</Text>
             </Pressable>
           </View>
           <View style={styles.form}>
-            <Text className="mb-1 text-sm font-medium text-gray-700">Title</Text>
+            <Text className="text-text-secondary mb-1 text-sm font-medium">Title</Text>
             <TextInput
               value={eventTitle}
               onChangeText={setEventTitle}
@@ -101,7 +101,9 @@ export default function CalendarEventRequestModalNative({
               placeholderTextColor={color("neutral.400")}
               style={styles.input}
             />
-            <Text className="mb-1 mt-3 text-sm font-medium text-gray-700">Date (YYYY-MM-DD)</Text>
+            <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">
+              Date (YYYY-MM-DD)
+            </Text>
             <TextInput
               value={eventDate}
               onChangeText={setEventDate}
@@ -109,7 +111,7 @@ export default function CalendarEventRequestModalNative({
               placeholderTextColor={color("neutral.400")}
               style={styles.input}
             />
-            <Text className="mb-1 mt-3 text-sm font-medium text-gray-700">Time</Text>
+            <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">Time</Text>
             <TextInput
               value={eventTime}
               onChangeText={setEventTime}
@@ -117,7 +119,7 @@ export default function CalendarEventRequestModalNative({
               placeholderTextColor={color("neutral.400")}
               style={styles.input}
             />
-            <Text className="mb-1 mt-3 text-sm font-medium text-gray-700">
+            <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">
               Description (optional)
             </Text>
             <TextInput
@@ -130,7 +132,7 @@ export default function CalendarEventRequestModalNative({
             />
             {isAgent && clients.length > 0 && (
               <>
-                <Text className="mb-1 mt-3 text-sm font-medium text-gray-700">Client</Text>
+                <Text className="text-text-secondary mb-1 mt-3 text-sm font-medium">Client</Text>
                 <View style={styles.clientList}>
                   {clients.map((c) => (
                     <Pressable
@@ -143,7 +145,9 @@ export default function CalendarEventRequestModalNative({
                     >
                       <Text
                         className={
-                          selectedClientId === c.id ? "font-medium text-white" : "text-gray-700"
+                          selectedClientId === c.id
+                            ? "font-medium text-white"
+                            : "text-text-secondary"
                         }
                       >
                         {c.name ?? c.email ?? c.id}

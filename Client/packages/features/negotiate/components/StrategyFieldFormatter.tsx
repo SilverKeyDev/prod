@@ -14,13 +14,13 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
       return (
         <ul className="ml-2 space-y-2">
           {val.map((item, idx) => (
-            <li key={idx} className="text-responsive-sm text-navy/80 flex items-start gap-2">
+            <li key={idx} className="text-responsive-sm text-text-primary flex items-start gap-2">
               <BodyText
                 as="span"
                 size="sm"
-                className="text-brown flex h-5 flex-shrink-0 items-center"
+                className="text-text-secondary flex h-5 flex-shrink-0 items-center"
               >
-                <BodyText as="span" size="sm" className="bg-brown h-px w-2" />
+                <BodyText as="span" size="sm" className="bg-primary-muted h-px w-2" />
               </BodyText>
               <BodyText as="span" size="sm">
                 {typeof item === "object" && item !== null
@@ -57,11 +57,14 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
               .join(" ");
 
             return (
-              <div key={subKey} className="border-brown/30 rounded-lg border-l-4 bg-gray-50/50 p-3">
-                <div className="text-responsive-sm text-brown mb-2 font-semibold">
+              <div
+                key={subKey}
+                className="border-brown/30 bg-background-base/50 rounded-lg border-l-4 p-3"
+              >
+                <div className="text-responsive-sm text-text-secondary mb-2 font-semibold">
                   {formattedKey}
                 </div>
-                <div className="text-responsive-sm text-navy/80">
+                <div className="text-responsive-sm text-text-primary">
                   {typeof subValue === "object" && subValue !== null ? (
                     Array.isArray(subValue) ? (
                       <ul className="ml-2 space-y-2">
@@ -70,9 +73,9 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                             <BodyText
                               as="span"
                               size="sm"
-                              className="text-brown flex h-5 flex-shrink-0 items-center"
+                              className="text-text-secondary flex h-5 flex-shrink-0 items-center"
                             >
-                              <BodyText as="span" size="sm" className="bg-brown h-px w-2" />
+                              <BodyText as="span" size="sm" className="bg-primary-muted h-px w-2" />
                             </BodyText>
                             <BodyText as="span" size="sm">
                               {typeof item === "object"
@@ -98,12 +101,20 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                               <BodyText
                                 as="span"
                                 size="xs"
-                                className="text-brown flex h-5 flex-shrink-0 items-center"
+                                className="text-text-secondary flex h-5 flex-shrink-0 items-center"
                               >
-                                <BodyText as="span" size="xs" className="bg-brown h-px w-2" />
+                                <BodyText
+                                  as="span"
+                                  size="xs"
+                                  className="bg-primary-muted h-px w-2"
+                                />
                               </BodyText>
                               <div className="flex-1">
-                                <BodyText as="span" size="xs" className="text-brown/80 font-medium">
+                                <BodyText
+                                  as="span"
+                                  size="xs"
+                                  className="text-text-secondary font-medium"
+                                >
                                   {nestedKey
                                     .replace(/_/g, " ")
                                     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -112,7 +123,7 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                                     .join(" ")}
                                   :
                                 </BodyText>{" "}
-                                <BodyText as="span" size="xs" className="text-navy/70">
+                                <BodyText as="span" size="xs" className="text-text-primary">
                                   {typeof nestedValue === "boolean"
                                     ? nestedValue
                                       ? yesLabel
@@ -138,13 +149,15 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                       as="span"
                       size="xs"
                       className={`rounded px-2 py-1 text-xs font-medium ${
-                        subValue ? "bg-green-100 text-green-800" : "bg-rose-100 text-rose-800"
+                        subValue
+                          ? "bg-accent-muted text-accent"
+                          : "bg-primary-muted text-destructive"
                       }`}
                     >
                       {subValue ? yesLabel : noLabel}
                     </BodyText>
                   ) : typeof subValue === "number" ? (
-                    <BodyText as="span" size="sm" className="text-brown font-mono">
+                    <BodyText as="span" size="sm" className="text-text-secondary font-mono">
                       {subValue.toLocaleString()}
                     </BodyText>
                   ) : // Special formatting for price rationale
@@ -158,14 +171,14 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                             <BodyText
                               as="span"
                               size="sm"
-                              className="text-brown mt-1 flex h-5 flex-shrink-0 items-center"
+                              className="text-text-secondary mt-1 flex h-5 flex-shrink-0 items-center"
                             >
-                              <BodyText as="span" size="sm" className="bg-brown h-px w-2" />
+                              <BodyText as="span" size="sm" className="bg-primary-muted h-px w-2" />
                             </BodyText>
                             <BodyText
                               as="span"
                               size="sm"
-                              className="text-responsive-sm text-navy/80 leading-relaxed"
+                              className="text-responsive-sm text-text-primary leading-relaxed"
                             >
                               {sentence.trim()}
                               {!sentence.endsWith(".") && "."}
@@ -198,7 +211,7 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
         as="span"
         size="sm"
         className={`rounded-full px-3 py-1 text-sm font-medium ${
-          val ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+          val ? "bg-accent-muted text-accent" : "bg-primary-muted text-destructive"
         }`}
       >
         {val ? "Yes" : "No"}
@@ -206,13 +219,13 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
     );
   } else if (typeof val === "number") {
     return (
-      <BodyText as="span" size="md" className="text-brown font-mono text-lg font-semibold">
+      <BodyText as="span" size="md" className="text-text-secondary font-mono text-lg font-semibold">
         {val.toLocaleString()}
       </BodyText>
     );
   } else {
     return (
-      <BodyText as="p" className="text-navy/80 leading-relaxed">
+      <BodyText as="p" className="text-text-primary leading-relaxed">
         {String(val)
           .replace(/_/g, " ")
           .replace(/([a-z])([A-Z])/g, "$1 $2")}

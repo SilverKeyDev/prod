@@ -62,7 +62,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   };
   if (propertyImages.length === 0) return null;
   return (
-    <Box className="relative bg-gray-100">
+    <Box className="bg-primary-muted relative">
       <Box className="flex h-96 flex-row">
         <Box className="relative flex-1 overflow-hidden">
           <StyledImage
@@ -76,7 +76,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                 type="button"
                 variant="ghost"
                 onClick={prevImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-neutral-900 p-2 text-white hover:bg-neutral-800 active:bg-neutral-800"
+                className="bg-text-primary hover:bg-primary-hover active:bg-primary-hover absolute left-4 top-1/2 -translate-y-1/2 rounded-full p-2 text-white"
               >
                 <Icon name="chevron-left" className="h-6 w-6" />
               </Button>
@@ -84,20 +84,20 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                 type="button"
                 variant="ghost"
                 onClick={nextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-neutral-900 p-2 text-white hover:bg-neutral-800 active:bg-neutral-800"
+                className="bg-text-primary hover:bg-primary-hover active:bg-primary-hover absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-2 text-white"
               >
                 <Icon name="chevron-right" className="h-6 w-6" />
               </Button>
             </>
           )}
-          <Box className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-neutral-900 px-3 py-1 text-sm text-white">
+          <Box className="bg-text-primary absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-sm text-white">
             {currentImageIndex + 1}
             {t("property_details_gallery.counter_sep")}
             {propertyImages.length}
           </Box>
         </Box>
         {propertyImages.length > 1 && (
-          <Box className="hidden w-1/3 bg-white p-2 md:flex md:flex-col">
+          <Box className="bg-background-surface hidden w-1/3 p-2 md:flex md:flex-col">
             <Box className="flex-two-cols-gap-1">
               {propertyImages.slice(0, 4).map((image, index) => (
                 <Button
@@ -116,7 +116,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                   {index === 3 && propertyImages.length > 4 && (
                     <Box
                       onClick={handleSeeAllClick}
-                      className="absolute inset-0 flex cursor-pointer flex-row items-center justify-center bg-neutral-900 hover:bg-neutral-800 active:bg-neutral-800"
+                      className="bg-text-primary hover:bg-primary-hover active:bg-primary-hover absolute inset-0 flex cursor-pointer flex-row items-center justify-center"
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
@@ -128,7 +128,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                         }
                       }}
                     >
-                      <Box className="flex flex-row items-center gap-1 rounded bg-white px-2 py-1 text-xs font-medium text-gray-700">
+                      <Box className="bg-background-surface text-text-secondary flex flex-row items-center gap-1 rounded px-2 py-1 text-xs font-medium">
                         <Icon name="grid-3x3" className="h-3 w-3" />
                         {t("property_details_gallery.see_all_photos", {
                           count: propertyImages.length,

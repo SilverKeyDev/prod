@@ -54,5 +54,12 @@
     "webPath": "packages/features/messaging/components/layout/UnifiedMessageInput.web.tsx",
     "nativePath": "packages/features/messaging/components/layout/UnifiedMessageInput.native.tsx",
     "reason": "Web uses AutoExpandingTextarea with DOM-based height calculation and CSS animations. Native uses React Native TextInput with KeyboardAvoidingView and platform-specific styling for optimal mobile UX."
+  },
+  {
+    "id": "underline-tabs",
+    "description": "Unified underline tabs component matching search Results/Saved styling.",
+    "webPath": "packages/ui/components/tabs/UnderlineTabs.tsx",
+    "nativePath": "packages/ui/components/tabs/UnderlineTabs.native.tsx",
+    "reason": "Web uses DOM Button and HTML elements. Native uses React Native Pressable and View for touch targets and layout."
   }
 ]

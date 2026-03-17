@@ -32,7 +32,7 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "saved.selected_for_comparison": "Selected for comparison",
   "saved.add_to_compare": "Add to compare",
   "saved.remove_from_compare": "Remove from compare",
-  "saved.unlock_home": "Unlock",
+  "saved.unlock_home": "View",
   "saved.negotiate": "Negotiate",
   "saved.compare_bar_title": "Compare selected homes",
   "saved.compare_bar_subtitle": "{{count}} selected",

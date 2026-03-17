@@ -43,7 +43,10 @@ export default function PriceRangeFilter({
 
   return (
     <div className={className}>
-      <BodyText size="sm" className={`font-medium text-gray-700 ${compact ? "mb-1" : "mb-2"}`}>
+      <BodyText
+        size="sm"
+        className={`text-text-secondary font-medium ${compact ? "mb-1" : "mb-2"}`}
+      >
         {t("search.price_range")}
       </BodyText>
       <BudgetRangeSlider

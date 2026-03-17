@@ -47,10 +47,10 @@ export function DebugSection({
   }
   return (
     <SectionBox>
-      <SectionTitle icon={<Icon name="home" className="mobile-icon-sm text-brown" />}>
+      <SectionTitle icon={<Icon name="home" className="mobile-icon-sm text-text-secondary" />}>
         {t("negotiate.debug.section_title")}
       </SectionTitle>
-      <div className="space-responsive-sm text-responsive-sm max-h-96 overflow-auto rounded-lg bg-gray-900 font-mono text-green-400">
+      <div className="space-responsive-sm text-responsive-sm bg-text-primary text-accent max-h-96 overflow-auto rounded-lg font-mono">
         <pre className="whitespace-pre-wrap break-words">{JSON.stringify(compsData, null, 2)}</pre>
       </div>
     </SectionBox>

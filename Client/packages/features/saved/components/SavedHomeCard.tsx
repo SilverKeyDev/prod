@@ -13,7 +13,6 @@ export type SavedHomeCardProps = {
   isSelected: boolean;
   onToggleCompare: (homeId: string) => void;
   onUnlock: (home: SavedHome) => void;
-  onNegotiate: (home: SavedHome) => void;
 };
 
 function toCardProperty(home: SavedHome) {
@@ -34,15 +33,9 @@ function toCardProperty(home: SavedHome) {
 /**
  * Saved home card for web: matches the exact implementation used on the Saved page —
  * PropertyCard with image, compare checkbox (top-left), heart save (top-right),
- * Unlock and Negotiate buttons below.
+ * Unlock button below.
  */
-export function SavedHomeCard({
-  home,
-  isSelected,
-  onToggleCompare,
-  onUnlock,
-  onNegotiate,
-}: SavedHomeCardProps) {
+export function SavedHomeCard({ home, isSelected, onToggleCompare, onUnlock }: SavedHomeCardProps) {
   const address =
     typeof home.address === "string" || typeof home.address === "number"
       ? home.address.toString()
@@ -80,23 +73,13 @@ export function SavedHomeCard({
           </>
         }
         bottomContent={
-          <Box className="flex flex-row flex-col gap-2">
-            <CardViewDetailsButton
-              onClick={() => onUnlock(home)}
-              size="sm"
-              variant="unlock"
-              fullWidth
-              text="Unlock"
-            />
-            <CardViewDetailsButton
-              onClick={() => onNegotiate(home)}
-              size="sm"
-              variant="negotiate"
-              fullWidth
-              text="Negotiate"
-              iconName="handshake"
-            />
-          </Box>
+          <CardViewDetailsButton
+            onClick={() => onUnlock(home)}
+            size="sm"
+            variant="unlock"
+            fullWidth
+            text="View"
+          />
         }
       />
     </Box>

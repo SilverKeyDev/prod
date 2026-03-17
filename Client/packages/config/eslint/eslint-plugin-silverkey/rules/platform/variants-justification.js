@@ -50,7 +50,7 @@ function loadVariantsConfig() {
   }
 
   try {
-    const platformDir = path.join(__dirname, "../../../platform");
+    const platformDir = path.join(__dirname, "../../../../platform");
     const variantsPath = path.join(platformDir, "variants.json");
 
     if (!fs.existsSync(variantsPath)) {

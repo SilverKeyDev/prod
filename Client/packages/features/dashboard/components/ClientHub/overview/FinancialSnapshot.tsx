@@ -44,13 +44,13 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
       <div className="space-y-6">
         {/* Pre-Approval Status */}
         <div>
-          <Title as="h3" size="md" className="text-navy mb-3 font-semibold">
+          <Title as="h3" size="md" className="text-text-primary mb-3 font-semibold">
             Pre-Approval Status
           </Title>
           <div className="flex items-center gap-3">
             {getPreApprovalBadge()}
             {financial.pre_approval_amount && (
-              <BodyText as="span" size="sm" className="text-black/60">
+              <BodyText as="span" size="sm" className="text-text-secondary">
                 up to {formatCurrency(financial.pre_approval_amount)}
               </BodyText>
             )}
@@ -60,12 +60,12 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
         {/* Loan Type */}
         {financial.loan_type && (
           <div>
-            <Title as="h3" size="md" className="text-navy mb-3 font-semibold">
+            <Title as="h3" size="md" className="text-text-primary mb-3 font-semibold">
               Loan Type
             </Title>
             <div className="flex items-center gap-2">
-              <Icon name="credit-card" className="text-olive h-5 w-5" />
-              <BodyText as="span" size="sm" className="text-black">
+              <Icon name="credit-card" className="text-primary h-5 w-5" />
+              <BodyText as="span" size="sm" className="text-text-primary">
                 {loanTypeLabels[financial.loan_type] || financial.loan_type}
               </BodyText>
             </div>
@@ -76,12 +76,12 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
         {financial.cash_to_close && (
           <div>
             <div className="mb-3 flex items-center gap-2">
-              <Icon name="dollar-sign" className="text-gold h-5 w-5" />
-              <Title as="h3" size="md" className="text-navy font-semibold">
+              <Icon name="dollar-sign" className="text-accent h-5 w-5" />
+              <Title as="h3" size="md" className="text-text-primary font-semibold">
                 Cash to Close
               </Title>
             </div>
-            <BodyText as="p" size="lg" className="font-semibold text-black">
+            <BodyText as="p" size="lg" className="text-text-primary font-semibold">
               {formatCurrency(financial.cash_to_close)}
             </BodyText>
           </div>

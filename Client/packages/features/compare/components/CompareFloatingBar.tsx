@@ -45,14 +45,14 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
       ? t("compare_floating.home_selected")
       : t("compare_floating.homes_selected", { count: selectedHomes.length });
   return (
-    <Box className="safe-bottom bottom-reserved fixed left-0 right-0 z-50 border-t border-gray-200 bg-white shadow-lg md:bottom-0">
+    <Box className="safe-bottom bottom-reserved border-border bg-background-surface fixed left-0 right-0 z-50 border-t shadow-lg md:bottom-0">
       <Box className="px-responsive-md py-responsive-sm max-w-7xl self-center sm:px-6 sm:py-4">
         <Box className="gap-responsive-sm flex flex-row items-center sm:gap-4">
           {/* Count and thumbnails */}
           <Box className="gap-responsive-sm flex flex-1 flex-row items-center">
             <Box className="flex-shrink-0">
-              <Box className="flex h-8 w-8 flex-row items-center justify-center rounded-full bg-neutral-100 sm:h-10 sm:w-10">
-                <Icon name="bar-chart-2" className="text-olive h-4 w-4 sm:h-5 sm:w-5" />
+              <Box className="bg-primary-muted flex h-8 w-8 flex-row items-center justify-center rounded-full sm:h-10 sm:w-10">
+                <Icon name="bar-chart-2" className="text-primary h-4 w-4 sm:h-5 sm:w-5" />
               </Box>
             </Box>
             <Box className="min-w-0 flex-1">
@@ -65,7 +65,7 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
               {selectedHomes.slice(0, 4).map((home) => (
                 <Box
                   key={getHomeId(home)}
-                  className="group relative h-12 w-12 overflow-hidden rounded-lg border-2 border-gray-200"
+                  className="border-border group relative h-12 w-12 overflow-hidden rounded-lg border-2"
                 >
                   {home.image_url ? (
                     <StyledImage
@@ -79,8 +79,8 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <Box className="flex h-full w-full flex-row items-center justify-center bg-gray-100">
-                      <Icon name="bar-chart-2" className="h-5 w-5 text-gray-400" />
+                    <Box className="bg-primary-muted flex h-full w-full flex-row items-center justify-center">
+                      <Icon name="bar-chart-2" className="text-text-disabled h-5 w-5" />
                     </Box>
                   )}
                   <IconButton
@@ -92,13 +92,13 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
                     size="xs"
                     rounded="full"
                     icon={<Icon name="x" className="h-3 w-3" />}
-                    className="absolute -right-1 -top-1 bg-white opacity-0 shadow-sm group-hover:opacity-100 group-active:opacity-75"
+                    className="bg-background-surface absolute -right-1 -top-1 opacity-0 shadow-sm group-hover:opacity-100 group-active:opacity-75"
                     label={t("compare_floating.remove_aria")}
                   />
                 </Box>
               ))}
               {selectedHomes.length > 4 && (
-                <Box className="flex h-12 w-12 flex-row items-center justify-center rounded-lg border-2 border-gray-200 bg-gray-50 text-xs font-medium text-gray-600">
+                <Box className="border-border bg-background-base text-text-secondary flex h-12 w-12 flex-row items-center justify-center rounded-lg border-2 text-xs font-medium">
                   {t("compare_floating.more_count", {
                     count: selectedHomes.length - 4,
                   })}
@@ -114,7 +114,7 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
               variant="outline"
               size="sm"
               iconName="x"
-              className="hidden flex-row border-gray-300 bg-white text-gray-600 hover:border-gray-400 hover:bg-gray-50 hover:text-gray-700 focus:ring-neutral-400 active:border-gray-400 active:border-gray-500 active:bg-gray-100 active:bg-gray-50 active:text-gray-700 active:text-gray-800 disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400 sm:inline-flex"
+              className="border-border bg-background-surface text-text-secondary hover:border-border hover:bg-background-base hover:text-text-secondary focus:ring-accent-muted active:border-border active:border-border active:bg-primary-muted active:bg-background-base active:text-text-secondary active:text-text-primary disabled:border-border disabled:text-text-disabled disabled:hover:bg-background-surface disabled:hover:text-text-disabled hidden flex-row sm:inline-flex"
               hideTextBelow="sm"
               label={t("compare_floating.clear_aria")}
             >

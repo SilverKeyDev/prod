@@ -42,9 +42,11 @@ export default function SelectDocumentModalNative({
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text className="text-lg font-semibold text-gray-900">Select Document to Share</Text>
+            <Text className="text-text-primary text-lg font-semibold">
+              Select Document to Share
+            </Text>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Text className="text-base font-medium text-gray-600">Cancel</Text>
+              <Text className="text-text-secondary text-base font-medium">Cancel</Text>
             </Pressable>
           </View>
           {documentsLoadingFromHook ? (
@@ -53,7 +55,7 @@ export default function SelectDocumentModalNative({
             </View>
           ) : mappedDocuments.length === 0 ? (
             <View style={styles.centered}>
-              <Text className="text-center text-sm text-gray-500">
+              <Text className="text-text-secondary text-center text-sm">
                 No documents found. Upload documents to share them in messages.
               </Text>
             </View>
@@ -69,10 +71,10 @@ export default function SelectDocumentModalNative({
                     onPress={() => setSelectedId(isSelected ? null : item.id)}
                     style={[styles.docRow, isSelected && styles.docRowSelected]}
                   >
-                    <Text className="font-medium text-gray-900" numberOfLines={1}>
+                    <Text className="text-text-primary font-medium" numberOfLines={1}>
                       {item.filename}
                     </Text>
-                    <Text className="text-sm text-gray-500">{item.status}</Text>
+                    <Text className="text-text-secondary text-sm">{item.status}</Text>
                   </Pressable>
                 );
               }}

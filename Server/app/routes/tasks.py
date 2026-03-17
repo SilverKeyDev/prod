@@ -6,11 +6,7 @@ from flask import Blueprint, current_app, jsonify, request
 
 from .. import db
 from ..models import TransactionTask
-from ..services.transactions import (
-    calendar_from_checklist,
-    get_checklist_definition,
-    get_series_metadata,
-)
+from ..services.transactions.retrieval import get_checklist_definition, get_series_metadata
 from ..utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from ..utils.security.security import rate_limit
 
@@ -118,6 +114,9 @@ def put_task_checklist(user):
 
         checkoff_time = datetime.now(timezone.utc)
         items = get_checklist_definition(checklist_type)
+
+        from ..services.transactions import calendar_from_checklist  # Lazy: breaks circular import
+
         for item_id in newly_checked:
             item = next((i for i in items if i.get("id") == item_id), None)
             if not item:

@@ -77,7 +77,7 @@ export function ReelsCommentsSheet({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Box className="fixed inset-0 bg-neutral-900" aria-hidden onClick={onClose} />
+          <Box className="bg-overlay-backdrop fixed inset-0" aria-hidden onClick={onClose} />
         </Transition.Child>
         {}
         <Box className="pointer-events-none fixed inset-0 flex flex-row items-end justify-center p-0">
@@ -91,12 +91,12 @@ export function ReelsCommentsSheet({
             leaveTo="translate-y-full"
           >
             <AccessibleDialog.Panel
-              className="pointer-events-auto flex min-h-0 w-full flex-[0.75] flex-row flex-col rounded-t-2xl bg-white"
+              className="bg-background-surface pointer-events-auto flex min-h-0 w-full flex-[0.75] flex-row flex-col rounded-t-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header — Instagram: "Comments" with top drag handle */}
-              <Box className="flex shrink-0 flex-row flex-col items-center border-b border-neutral-200 pt-2">
-                <Box className="mb-2 h-1 w-10 rounded-full bg-neutral-300" aria-hidden />
+              <Box className="border-border flex shrink-0 flex-row flex-col items-center border-b pt-2">
+                <Box className="bg-border mb-2 h-1 w-10 rounded-full" aria-hidden />
                 <Box className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-3">
                   <Box className="w-9 shrink-0" aria-hidden />
                   <Title size="sm" as="h2" className="flex-1 text-center">
@@ -120,7 +120,7 @@ export function ReelsCommentsSheet({
                     </BodyText>
                   </Box>
                 ) : (
-                  <ul className="divide-y divide-neutral-100">
+                  <ul className="divide-border divide-y">
                     {comments.map((comment) => (
                       <li key={comment.id} className="flex flex-row gap-3 px-4 py-3">
                         <Box className="shrink-0">
@@ -132,7 +132,7 @@ export function ReelsCommentsSheet({
                           />
                         </Box>
                         <Box className="min-w-0 flex-1">
-                          <BodyText as="p" size="sm" className="text-neutral-900">
+                          <BodyText as="p" size="sm" className="text-text-primary">
                             <BodyText as="span" size="sm" className="font-semibold">
                               {comment.user.name}
                             </BodyText>{" "}
@@ -141,13 +141,13 @@ export function ReelsCommentsSheet({
                             </BodyText>
                           </BodyText>
                           <Box className="mt-1 flex flex-row items-center gap-4">
-                            <BodyText as="span" size="xs" className="text-neutral-500">
+                            <BodyText as="span" size="xs" className="text-text-secondary">
                               {formatCommentTime(comment.createdAt)}
                             </BodyText>
                             <Button
                               variant="ghost"
                               size="xs"
-                              className="text-neutral-500 hover:text-neutral-700 active:text-neutral-700 active:text-neutral-800"
+                              className="text-text-secondary hover:text-text-primary active:text-text-primary"
                             >
                               <BodyText as="span" size="xs">
                                 Reply
@@ -158,7 +158,7 @@ export function ReelsCommentsSheet({
                                 <BodyText
                                   as="span"
                                   size="xs"
-                                  className="text-neutral-400"
+                                  className="text-text-disabled"
                                   aria-hidden
                                 >
                                   ·
@@ -166,7 +166,7 @@ export function ReelsCommentsSheet({
                                 <Button
                                   variant="ghost"
                                   size="xs"
-                                  className="flex flex-row items-center gap-1 text-neutral-500 hover:text-neutral-700 active:text-neutral-700 active:text-neutral-800"
+                                  className="text-text-secondary hover:text-text-primary active:text-text-primary flex flex-row items-center gap-1"
                                   label="Like comment"
                                 >
                                   <Icon name="heart" className="h-3.5 w-3.5" />
@@ -181,7 +181,7 @@ export function ReelsCommentsSheet({
                         <IconButton
                           variant="ghost"
                           size="sm"
-                          className="shrink-0 text-neutral-400 hover:text-neutral-600 active:text-neutral-600 active:text-neutral-700"
+                          className="text-text-disabled hover:text-text-secondary active:text-text-secondary active:text-text-primary shrink-0"
                           icon={<Icon name="heart" className="h-4 w-4" />}
                           label="Like comment"
                         />
@@ -193,7 +193,7 @@ export function ReelsCommentsSheet({
 
               {/* Bottom input bar — Instagram: avatar + input + Post */}
               {item && (
-                <Box className="flex shrink-0 flex-row items-center gap-2 border-t border-neutral-200 px-4 py-3">
+                <Box className="border-border flex shrink-0 flex-row items-center gap-2 border-t px-4 py-3">
                   <Image
                     src={currentUser?.avatarUrl ?? DEFAULT_AVATAR_IMAGE}
                     alt=""
@@ -204,7 +204,7 @@ export function ReelsCommentsSheet({
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     placeholder="Add a comment..."
-                    className="min-w-0 flex-1 border-0 bg-transparent text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-0"
+                    className="text-text-primary placeholder:text-text-secondary min-w-0 flex-1 border-0 bg-transparent text-sm focus:outline-none focus:ring-0"
                     label="Add a comment"
                   />
                   <Button
@@ -214,8 +214,8 @@ export function ReelsCommentsSheet({
                     onClick={handlePost}
                     className={
                       canPost
-                        ? "text-brand-accent hover:text-brand-accent active:text-brand-accent font-semibold hover:bg-transparent active:bg-transparent"
-                        : "font-semibold text-neutral-400"
+                        ? "text-primary hover:text-primary active:text-primary font-semibold hover:bg-transparent active:bg-transparent"
+                        : "text-text-disabled font-semibold"
                     }
                   >
                     Post

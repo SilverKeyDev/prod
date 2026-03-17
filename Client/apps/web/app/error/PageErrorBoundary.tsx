@@ -38,8 +38,8 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
     if (this.state.hasError) {
       const label = this.props.pageLabel ?? "This page";
       return (
-        <div className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50/50 p-6 text-center">
-          <Title size="md" as="h2" className="mb-2 text-gray-900">
+        <div className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-border bg-background-surface p-6 text-center">
+          <Title size="md" as="h2" className="mb-2 text-text-primary">
             Something went wrong
           </Title>
           <BodyText size="sm" muted className="mb-6">

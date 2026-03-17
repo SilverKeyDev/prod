@@ -8,10 +8,10 @@ export default function AuthDivider({ text = "Or continue with" }: DividerProps)
   return (
     <Box className="relative">
       <Box className="absolute inset-0 flex items-center">
-        <Box className="w-full border-t border-gray-300" />
+        <Box className="border-border w-full border-t" />
       </Box>
       <Box className="relative flex justify-center">
-        <Text className="bg-white px-2 text-sm text-gray-500">{text}</Text>
+        <Text className="bg-background-surface text-text-secondary px-2 text-sm">{text}</Text>
       </Box>
     </Box>
   );

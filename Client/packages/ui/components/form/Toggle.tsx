@@ -35,9 +35,9 @@ const Toggle: React.FC<ToggleProps> = ({
       aria-checked={checked}
       disabled={disabled}
       onClick={() => !disabled && onChange(!checked)}
-      className={`touch-friendly inline-flex items-center ${sizes.track} focus:ring-brown/30 rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 ${
-        checked ? "border-olive bg-olive" : "border-gray-300 bg-gray-200"
-      } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${className}`}
+      className={`touch-friendly inline-flex items-center ${sizes.track} focus:ring-accent-muted rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 ${
+        checked ? "border-primary bg-primary" : "border-border bg-neutral-200"
+      } ${disabled ? "bg-disabled text-text-disabled cursor-not-allowed" : "cursor-pointer"} ${className}`}
     >
       {/* eslint-disable-next-line silverkey/no-primitive-components -- toggle thumb */}
       <span
@@ -46,7 +46,7 @@ const Toggle: React.FC<ToggleProps> = ({
         }`}
       />
       {label && (
-        <BodyText as="span" className="ml-2 select-none text-sm font-medium text-black/80">
+        <BodyText as="span" className="text-text-primary ml-2 select-none text-sm font-medium">
           {label}
         </BodyText>
       )}

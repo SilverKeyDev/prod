@@ -25,12 +25,12 @@ export default function AgreementStatusBadge({
 }: AgreementStatusBadgeProps) {
   const colorClass =
     status === "completed"
-      ? "border-green-200 bg-green-50 text-green-700"
+      ? "border-border bg-accent-muted text-accent"
       : status === "voided"
         ? "border-red-200 bg-red-50 text-red-700"
         : status === "sent" || status === "delivered"
           ? "border-blue-200 bg-blue-50 text-blue-700"
-          : "border-gray-200 bg-gray-50 text-gray-700";
+          : "border-border bg-primary-muted text-text-secondary";
   const label = status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, " ");
 
   const sizeClasses = useMemo(() => {

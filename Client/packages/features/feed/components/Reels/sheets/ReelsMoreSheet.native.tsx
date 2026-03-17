@@ -57,7 +57,7 @@ export function ReelsMoreSheet({
             <View style={styles.handle} />
             <View style={styles.headerRow}>
               <View style={styles.headerSpacer} />
-              <Text className="text-base font-semibold text-neutral-900">More</Text>
+              <Text className="text-text-primary text-base font-semibold">More</Text>
               <View style={styles.headerSpacerRight}>
                 <IconButton
                   variant="ghost"
@@ -80,7 +80,7 @@ export function ReelsMoreSheet({
             >
               <View style={styles.row}>
                 <Icon name="x-circle" size={20} color={color("neutral.700")} />
-                <Text className="text-sm text-neutral-900">Not interested</Text>
+                <Text className="text-text-primary text-sm">Not interested</Text>
               </View>
             </Button>
             <Button
@@ -91,7 +91,7 @@ export function ReelsMoreSheet({
             >
               <View style={styles.row}>
                 <Icon name="flag" size={20} color={color("neutral.700")} />
-                <Text className="text-sm text-neutral-900">Report</Text>
+                <Text className="text-text-primary text-sm">Report</Text>
               </View>
             </Button>
             <Button
@@ -102,7 +102,7 @@ export function ReelsMoreSheet({
             >
               <View style={styles.row}>
                 <Icon name="copy" size={20} color={color("neutral.700")} />
-                <Text className="text-sm text-neutral-900">Copy link</Text>
+                <Text className="text-text-primary text-sm">Copy link</Text>
               </View>
             </Button>
             <Button
@@ -117,7 +117,7 @@ export function ReelsMoreSheet({
                   size={20}
                   color={isSaved ? color("neutral.900") : color("neutral.700")}
                 />
-                <Text className="text-sm text-neutral-900">{isSaved ? "Unsave" : "Save"}</Text>
+                <Text className="text-text-primary text-sm">{isSaved ? "Unsave" : "Save"}</Text>
               </View>
             </Button>
           </View>

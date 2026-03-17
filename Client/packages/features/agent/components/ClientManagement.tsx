@@ -32,9 +32,9 @@ export default function ClientManagement({
       className={`${isSidebarExpanded ? "flex translate-x-0" : "hidden -translate-x-full"} flex-col transition-transform duration-300 ease-in-out xl:flex xl:w-80 xl:translate-x-0`}
     >
       {/* Fixed Header */}
-      <div className="border-beige flex-shrink-0 rounded-t-xl border-b bg-white p-3">
+      <div className="border-border bg-background-surface flex-shrink-0 rounded-t-xl border-b p-3">
         <div className="mb-2 flex items-center justify-between">
-          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-black">
+          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
             <MiniLogo size="sm" />
             {t("agent.clients")}
           </Title>
@@ -44,11 +44,11 @@ export default function ClientManagement({
               type="button"
               variant="ghost"
               onClick={() => setShowSearchModal(true)}
-              className="hover:bg-beige/10 inline-flex items-center justify-center rounded-lg bg-white px-2 py-1.5 transition"
+              className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-2 py-1.5 text-neutral-700 transition hover:bg-neutral-200"
               label="Search for clients"
               title="Add client"
             >
-              <Icon name="plus" className="h-4 w-4 text-black" />
+              <Icon name="plus" className="h-4 w-4 text-neutral-600" />
             </Button>
             {/* TABLET/MOBILE side arrow button to collapse when extended */}
             {isSidebarExpanded && (
@@ -56,11 +56,11 @@ export default function ClientManagement({
                 type="button"
                 variant="ghost"
                 onClick={() => setIsSidebarExpanded(false)}
-                className="hover:bg-beige/10 inline-flex items-center justify-center rounded-lg bg-white px-3 py-2 transition xl:hidden"
+                className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-3 py-2 text-neutral-700 transition hover:bg-neutral-200 xl:hidden"
                 label={t("agent.collapse_client_list")}
                 aria-expanded={isSidebarExpanded}
               >
-                <Icon name="chevron-left" className="h-4 w-4 text-black" />
+                <Icon name="chevron-left" className="h-4 w-4 text-neutral-700" />
               </Button>
             )}
           </div>
@@ -68,7 +68,7 @@ export default function ClientManagement({
       </div>
 
       {/* Scrollable Client List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="bg-background-surface flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="p-3 text-center">
             <div className="mb-2">
@@ -77,11 +77,11 @@ export default function ClientManagement({
           </div>
         ) : clients.length === 0 ? (
           <div className="p-3 text-center">
-            <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-black/30" />
-            <BodyText as="p" size="sm" className="text-black/60">
+            <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
+            <BodyText as="p" size="sm" className="text-neutral-600">
               {t("agent.no_clients_yet")}
             </BodyText>
-            <BodyText as="p" size="xs" className="mt-1 text-black/40">
+            <BodyText as="p" size="xs" className="mt-1 text-neutral-500">
               {t("agent.clients_appear_once_assigned")}
             </BodyText>
           </div>
@@ -104,27 +104,27 @@ export default function ClientManagement({
                     setIsSidebarExpanded(false);
                   }
                 }}
-                className={`border-beige/50 hover:bg-beige/10 group cursor-pointer border-b p-3 transition-colors ${selectedClientId === client.id ? "bg-beige/20" : ""}`}
+                className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${selectedClientId === client.id ? "bg-olive/10 border-l-olive border-l-4" : ""}`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="bg-beige flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                    <Icon name="user" className="h-5 w-5 text-black" />
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
+                    <Icon name="user" className="h-5 w-5 text-neutral-600" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-black">
+                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                       {client.name}
                     </Title>
                     {conversation?.last_message ? (
-                      <BodyText as="p" className="truncate text-xs text-black/50">
+                      <BodyText as="p" className="truncate text-xs text-neutral-600">
                         {conversation.last_message}
                       </BodyText>
                     ) : (
-                      <BodyText as="p" className="truncate text-xs text-black/50">
+                      <BodyText as="p" className="truncate text-xs text-neutral-600">
                         {client.email}
                       </BodyText>
                     )}
                     {client.phone && !conversation?.last_message && (
-                      <BodyText as="p" className="truncate text-xs text-black/40">
+                      <BodyText as="p" className="truncate text-xs text-neutral-500">
                         {client.phone}
                       </BodyText>
                     )}

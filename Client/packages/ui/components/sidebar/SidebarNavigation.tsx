@@ -40,7 +40,7 @@ export default function SidebarNavigation({
       }}
     >
       <Card
-        className={isLargeScreen ? "space-y-4" : "flex flex-col items-center space-y-2"}
+        className={`!bg-background-surface ${isLargeScreen ? "space-y-4" : "flex flex-col items-center space-y-2"}`}
         padding={isLargeScreen ? "md" : "none"}
         hover={false}
       >
@@ -50,9 +50,7 @@ export default function SidebarNavigation({
             padding={isLargeScreen ? "sm" : "none"}
             hover={false}
             className={
-              isLargeScreen
-                ? "w-full"
-                : "border-beige/30 w-full rounded-lg border bg-white shadow-sm"
+              isLargeScreen ? "!bg-background-surface w-full" : "!bg-background-surface w-full"
             }
           >
             <div
@@ -70,13 +68,13 @@ export default function SidebarNavigation({
           padding={isLargeScreen ? "sm" : "none"}
           hover={false}
           className={
-            isLargeScreen ? "w-full" : "border-beige/30 w-full rounded-lg border bg-white shadow-sm"
+            isLargeScreen ? "!bg-background-surface w-full" : "!bg-background-surface w-full"
           }
         >
           <div className={isLargeScreen ? "" : "p-3"}>
             {sectionTitle && (
               <div className={isLargeScreen ? "mb-3" : "mb-2"}>
-                <Subtitle size="xs" muted className="uppercase tracking-wide">
+                <Subtitle size="xs" className="text-text-secondary uppercase tracking-wide">
                   {sectionTitle}
                 </Subtitle>
               </div>
@@ -101,9 +99,9 @@ export default function SidebarNavigation({
                         : "h-9 min-h-9 w-9 min-w-9 justify-center p-0"
                     } ${
                       isActive
-                        ? "!bg-gold !text-off-white hover:!bg-gold active:!bg-gold hover:font-semibold hover:!text-neutral-800 active:font-semibold active:!text-neutral-800"
-                        : "hover:!bg-neutral-200 hover:text-neutral-900 active:!bg-neutral-300 active:text-neutral-900"
-                    } ${item.disabled ? "cursor-not-allowed opacity-50" : ""}`}
+                        ? "!bg-neutral-100 !text-neutral-800 hover:!bg-neutral-100 hover:font-semibold hover:!text-neutral-800 active:!bg-neutral-100 active:font-semibold active:!text-neutral-800"
+                        : "text-neutral-700 hover:!bg-neutral-100 hover:text-neutral-800 active:!bg-neutral-100 active:text-neutral-800"
+                    } ${item.disabled ? "bg-disabled text-text-disabled cursor-not-allowed" : ""}`}
                     title={!isLargeScreen ? item.label : undefined}
                     icon={
                       IconComponent ? (
@@ -111,8 +109,8 @@ export default function SidebarNavigation({
                           size={20}
                           className={`size-5 flex-shrink-0 transition-colors ${
                             isActive
-                              ? "!text-off-white group-hover:!text-neutral-800"
-                              : "text-neutral-500 group-hover:text-neutral-900"
+                              ? "!text-neutral-800 group-hover:!text-neutral-800"
+                              : "text-neutral-600 group-hover:text-neutral-800"
                           }`}
                         />
                       ) : undefined
@@ -123,8 +121,8 @@ export default function SidebarNavigation({
                         as="span"
                         className={`text-left text-sm font-medium transition-colors ${
                           isActive
-                            ? "!text-off-white group-hover:!font-semibold group-hover:!text-neutral-800"
-                            : "text-neutral-500 group-hover:text-neutral-900"
+                            ? "!text-neutral-800 group-hover:!font-semibold group-hover:!text-neutral-800"
+                            : "text-neutral-600 group-hover:text-neutral-800"
                         }`}
                       >
                         {item.label}

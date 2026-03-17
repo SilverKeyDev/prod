@@ -13,7 +13,7 @@ type ListingCardBodyProps = {
 
 const DETAIL_STYLE = {
   fontSize: "14px",
-  color: "#6b7280",
+  color: emailColors["text-secondary"],
   margin: 0,
   fontWeight: "500" as const,
 };
@@ -23,15 +23,15 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
   const hasHighlight = listing.isNewListing || listing.priceCut;
 
   const buttonBg = listing.priceCut
-    ? "rgba(220, 38, 38, 1)"
+    ? emailColors.destructive
     : listing.isNewListing
-      ? emailColors.gold.DEFAULT
-      : emailColors.olive.DEFAULT;
+      ? emailColors.accent
+      : emailColors.primary;
   const buttonShadow = listing.priceCut
-    ? "0 2px 4px rgba(220, 38, 38, 0.3)"
+    ? `0 2px 4px ${emailColors.destructive}4D`
     : listing.isNewListing
-      ? "0 2px 4px rgba(212, 175, 55, 0.3)"
-      : "0 2px 4px rgba(163, 177, 138, 0.3)";
+      ? `0 2px 4px ${emailColors.accent}4D`
+      : `0 2px 4px ${emailColors.primary}4D`;
 
   return (
     <div style={{ padding: "24px" }}>
@@ -39,7 +39,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
         style={{
           fontSize: "20px",
           fontWeight: "700",
-          color: "#1f2937",
+          color: emailColors["text-primary"],
           margin: "0 0 12px 0",
           lineHeight: "1.4",
           letterSpacing: "-0.2px",
@@ -63,7 +63,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
                 style={{
                   fontSize: "18px",
                   fontWeight: "700",
-                  color: "rgba(220, 38, 38, 1)",
+                  color: emailColors.destructive,
                   margin: 0,
                   lineHeight: "1.3",
                 }}
@@ -74,7 +74,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
                 style={{
                   fontSize: "14px",
                   fontWeight: "500",
-                  color: "#6b7280",
+                  color: emailColors["text-secondary"],
                   margin: 0,
                   textDecoration: "line-through",
                 }}
@@ -83,8 +83,8 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
               </Text>
               <div
                 style={{
-                  backgroundColor: "rgba(220, 38, 38, 0.1)",
-                  color: "rgba(220, 38, 38, 1)",
+                  backgroundColor: `${emailColors.destructive}1A`,
+                  color: emailColors.destructive,
                   padding: "2px 8px",
                   borderRadius: "12px",
                   fontSize: "11px",
@@ -100,7 +100,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
               style={{
                 fontSize: "22px",
                 fontWeight: "700",
-                color: emailColors.brown.DEFAULT,
+                color: emailColors["text-primary"],
                 margin: "0 0 16px 0",
                 lineHeight: "1.3",
               }}
@@ -118,16 +118,16 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
             padding: "12px",
             borderRadius: "8px",
             backgroundColor: listing.priceCut
-              ? "rgba(220, 38, 38, 0.05)"
-              : "rgba(212, 175, 55, 0.05)",
-            border: `1px solid ${listing.priceCut ? "rgba(220, 38, 38, 0.2)" : "rgba(212, 175, 55, 0.2)"}`,
+              ? `${emailColors.destructive}0D`
+              : `${emailColors.accent}0D`,
+            border: `1px solid ${listing.priceCut ? `${emailColors.destructive}33` : `${emailColors.accent}33`}`,
           }}
         >
           <Text
             style={{
               fontSize: "13px",
               fontWeight: "600",
-              color: listing.priceCut ? "rgba(220, 38, 38, 1)" : emailColors.gold.DEFAULT,
+              color: listing.priceCut ? emailColors.destructive : emailColors.accent,
               margin: 0,
               lineHeight: "1.4",
             }}
@@ -144,7 +144,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
           gap: "20px",
           marginBottom: "20px",
           paddingBottom: "20px",
-          borderBottom: "1px solid #f3f4f6",
+          borderBottom: `1px solid ${emailColors["border-light"]}`,
           flexWrap: "wrap",
         }}
       >
@@ -162,7 +162,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
                 width: "4px",
                 height: "4px",
                 borderRadius: "50%",
-                backgroundColor: "#d1d5db",
+                backgroundColor: emailColors.border,
               }}
             />
             <Text style={DETAIL_STYLE}>
@@ -177,7 +177,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
                 width: "4px",
                 height: "4px",
                 borderRadius: "50%",
-                backgroundColor: "#d1d5db",
+                backgroundColor: emailColors.border,
               }}
             />
             <Text style={DETAIL_STYLE}>{formatSqft(listing.sqft)}</Text>
@@ -190,7 +190,7 @@ export function ListingCardBody({ listing }: ListingCardBodyProps) {
           href={listing.propertyUrl}
           style={{
             backgroundColor: buttonBg,
-            color: "#ffffff",
+            color: emailColors["background-surface"],
             textDecoration: "none",
             padding: "12px 24px",
             borderRadius: "8px",

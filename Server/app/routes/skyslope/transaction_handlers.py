@@ -3,7 +3,7 @@
 from flask import jsonify, request
 
 from app import db
-from app.models import Agreement, AgreementLink, Transaction
+from app.models import Agreement, AgreementLink, Document, Transaction
 from app.services.skyslope.api_client import SkySlopeApiClient, SkySlopeApiError
 from app.services.skyslope.form_ranker import rank_forms_for_step
 from app.services.skyslope.token_store import refresh_if_needed
@@ -241,7 +241,11 @@ def get_checklist_item_documents(user, transaction_id: str, section: str, item_i
 @handle_exceptions_with_logging
 @require_authenticated_user
 def link_agreement_to_checklist_item(user, transaction_id: str, section: str, item_id: str):
-    """POST /api/v1/transactions/<tid>/checklist-items/<section>/<item_id>/documents"""
+    """POST /api/v1/transactions/<tid>/checklist-items/<section>/<item_id>/documents
+
+    Accepts either agreement_id (link existing agreement) or document_id (create agreement
+    from uploaded document and link).
+    """
     try:
         item_id_int = int(item_id)
     except (TypeError, ValueError):
@@ -252,12 +256,35 @@ def link_agreement_to_checklist_item(user, transaction_id: str, section: str, it
         return jsonify({"success": False, "error": "Expected JSON object"}), 400
 
     agreement_id = data.get("agreement_id")
-    if not agreement_id:
-        return jsonify({"success": False, "error": "agreement_id required"}), 400
+    document_id = data.get("document_id")
 
-    agreement = Agreement.query.get(agreement_id)
-    if not agreement:
-        return jsonify({"success": False, "error": "Agreement not found"}), 404
+    if document_id:
+        # Create Agreement from uploaded Document and link to checklist item
+        document = Document.query.get(document_id)
+        if not document:
+            return jsonify({"success": False, "error": "Document not found"}), 404
+
+        transaction = _get_or_create_transaction(transaction_id, str(user.id))
+        agent_id = _get_agent_id_for_transaction(transaction, str(user.id))
+        buyer_id = str(transaction.buyer_id) if transaction and transaction.buyer_id else str(user.id)
+
+        agreement = Agreement(
+            title=document.filename,
+            agent_id=agent_id,
+            buyer_id=buyer_id,
+            agreement_type="uploaded_document",
+            signed_document_path=document.file_path,
+        )
+        db.session.add(agreement)
+        db.session.flush()
+        agreement_id = agreement.id
+    elif agreement_id:
+        # Link existing agreement
+        agreement = Agreement.query.get(agreement_id)
+        if not agreement:
+            return jsonify({"success": False, "error": "Agreement not found"}), 404
+    else:
+        return jsonify({"success": False, "error": "agreement_id or document_id required"}), 400
 
     linked_item_id = f"{section}.{item_id_int}"
     existing = AgreementLink.query.filter_by(

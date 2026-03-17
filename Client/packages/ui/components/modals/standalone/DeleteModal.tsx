@@ -22,12 +22,12 @@ function DeleteModal({
   if (!isOpen) return null;
 
   return (
-    <div className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="space-responsive-sm mx-4 w-full max-w-md rounded-xl bg-white">
+    <div className="space-responsive-sm bg-overlay-backdrop fixed inset-0 z-50 flex items-center justify-center">
+      <div className="space-responsive-sm bg-background-surface mx-4 w-full max-w-md rounded-xl">
         <div className="text-center">
-          <div className="mobile-icon-lg space-y-responsive-sm mx-auto flex items-center justify-center rounded-full bg-red-100">
+          <div className="mobile-icon-lg space-y-responsive-sm bg-destructive mx-auto flex items-center justify-center rounded-full">
             <svg
-              className="mobile-icon-sm text-red-600"
+              className="mobile-icon-sm text-white"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

@@ -65,7 +65,7 @@ export default function AgreementCard({
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
-      className={`rounded-lg border border-gray-200 bg-white hover:border-gray-300 active:border-gray-400 active:opacity-90 ${onClick ? "cursor-pointer" : ""} ${className}`}
+      className={`border-border bg-background-surface hover:border-border active:border-border rounded-lg border active:opacity-90 ${onClick ? "cursor-pointer" : ""} ${className}`}
       onClick={handleCardClick}
       onKeyDown={
         onClick
@@ -84,7 +84,7 @@ export default function AgreementCard({
         <Box className="mb-2 flex flex-row items-start justify-between gap-3">
           <Box className="flex min-w-0 flex-1 flex-row items-start gap-2">
             <Box className="mt-1 flex-shrink-0">
-              <Icon name="file-text" className="h-5 w-5 text-gray-600" />
+              <Icon name="file-text" className="text-text-secondary h-5 w-5" />
             </Box>
             <Box className="min-w-0 flex-1">
               <Title size="sm" className="truncate">
@@ -100,18 +100,18 @@ export default function AgreementCard({
 
         {/* Property Address */}
         {agreement.property_address && (
-          <BodyText size="sm" className="mb-2 text-gray-700">
+          <BodyText size="sm" className="text-text-primary mb-2">
             {agreement.property_address}
           </BodyText>
         )}
 
         {/* Metadata */}
-        <Box className="mb-2 flex flex-row items-center justify-between text-xs text-gray-500">
-          <BodyText as="span" size="xs" className="text-gray-500">
+        <Box className="text-text-secondary mb-2 flex flex-row items-center justify-between text-xs">
+          <BodyText as="span" size="xs" className="text-text-secondary">
             Created {formatAgreementDate(agreement.created_at)}
           </BodyText>
           {agreement.sent_at && (
-            <BodyText as="span" size="xs" className="text-gray-500">
+            <BodyText as="span" size="xs" className="text-text-secondary">
               Sent {formatAgreementDate(agreement.sent_at)}
             </BodyText>
           )}
@@ -121,17 +121,17 @@ export default function AgreementCard({
         {agreement.participants && agreement.participants.length > 0 && (
           <Box className="mt-3">
             <Box className="mb-1 flex flex-row items-center justify-between">
-              <Box className="flex flex-row items-center gap-1.5 text-xs text-gray-600">
+              <Box className="text-text-secondary flex flex-row items-center gap-1.5 text-xs">
                 <Icon name="users" className="h-3.5 w-3.5" />
-                <BodyText as="span" size="xs" className="text-gray-600">
+                <BodyText as="span" size="xs" className="text-text-secondary">
                   {signingProgress.signed}/{signingProgress.total} signed
                 </BodyText>
               </Box>
-              <BodyText as="span" size="xs" className="text-gray-500">
+              <BodyText as="span" size="xs" className="text-text-secondary">
                 {signingProgress.percentage}%
               </BodyText>
             </Box>
-            <Box className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+            <Box className="bg-accent-muted h-1.5 w-full overflow-hidden rounded-full">
               <Box
                 className="h-full bg-green-500"
                 style={{ width: `${signingProgress.percentage}%` }}
@@ -142,7 +142,7 @@ export default function AgreementCard({
 
         {/* Actions */}
         {showActions && (
-          <Box className="mt-3 flex flex-row items-center gap-2 border-t border-gray-100 pt-3">
+          <Box className="border-border mt-3 flex flex-row items-center gap-2 border-t pt-3">
             {agreement.status === "draft" && (
               <Button variant="primary" size="sm" onClick={(e) => handleActionClick("send", e)}>
                 Send

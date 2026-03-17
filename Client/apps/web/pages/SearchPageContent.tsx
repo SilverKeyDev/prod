@@ -99,7 +99,7 @@ export function SearchPageContent({
             iconName="search"
             onClick={handleToggleMode}
             label="Back to search"
-            className={`bg-black/40 text-white backdrop-blur-sm ${FEED_ACTION_INTERACTION_CLASS}`}
+            className={`bg-overlay-backdrop text-white backdrop-blur-sm ${FEED_ACTION_INTERACTION_CLASS}`}
           />
         </div>
       )}

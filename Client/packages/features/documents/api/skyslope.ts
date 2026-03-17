@@ -77,3 +77,25 @@ export async function getChecklistItemDocuments(
   }
   return response.data.agreements ?? [];
 }
+
+export type LinkDocumentResponse = {
+  success: boolean;
+  data?: { agreement: Agreement };
+  error?: string;
+};
+
+export async function linkDocumentToChecklistItem(
+  transactionId: string,
+  section: string,
+  itemId: number,
+  documentId: string
+): Promise<Agreement> {
+  const response = await apiPost<LinkDocumentResponse>(
+    `/api/v1/transactions/${transactionId}/checklist-items/${section}/${itemId}/documents`,
+    { document_id: documentId }
+  );
+  if (!response.success || !response.data?.agreement) {
+    throw new Error(response.error ?? "Failed to link document to checklist item");
+  }
+  return response.data.agreement;
+}

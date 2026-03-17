@@ -40,9 +40,9 @@ export default function SelectHomeModalNative({
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text className="text-lg font-semibold text-gray-900">Select Home to Share</Text>
+            <Text className="text-text-primary text-lg font-semibold">Select Home to Share</Text>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Text className="text-base font-medium text-gray-600">Cancel</Text>
+              <Text className="text-text-secondary text-base font-medium">Cancel</Text>
             </Pressable>
           </View>
           {savedHomesLoadingFromHook ? (
@@ -51,7 +51,7 @@ export default function SelectHomeModalNative({
             </View>
           ) : savedHomes.length === 0 ? (
             <View style={styles.centered}>
-              <Text className="text-center text-sm text-gray-500">
+              <Text className="text-text-secondary text-center text-sm">
                 No saved homes found. Save homes to share them in messages.
               </Text>
             </View>
@@ -68,11 +68,11 @@ export default function SelectHomeModalNative({
                     style={[styles.homeRow, isSelected && styles.homeRowSelected]}
                   >
                     <Box className="flex-1">
-                      <Text className="font-medium text-gray-900" numberOfLines={1}>
+                      <Text className="text-text-primary font-medium" numberOfLines={1}>
                         {item.address || `Property ${item.home_id}`}
                       </Text>
                       {item.price != null && (
-                        <Text className="mt-1 text-sm text-gray-500">
+                        <Text className="text-text-secondary mt-1 text-sm">
                           {typeof item.price === "number"
                             ? `$${item.price.toLocaleString()}`
                             : String(item.price)}

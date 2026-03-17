@@ -109,10 +109,10 @@ export function SidebarList(props: {
   };
   if (items.length === 0) {
     return (
-      <div className="py-8 text-center text-gray-500">
+      <div className="py-8 text-center text-neutral-600">
         {activeTab === "results" ? (
           <>
-            <Icon name="map-pin" className="mobile-icon-lg mx-auto mb-2 text-gray-300" />
+            <Icon name="map-pin" className="mobile-icon-lg mx-auto mb-2 text-neutral-400" />
             <BodyText as="p" size="sm">
               {t("search.click_map_to_search")}
             </BodyText>
@@ -121,7 +121,7 @@ export function SidebarList(props: {
           <>
             <Icon
               name="bookmark"
-              className="mx-auto mb-2 h-6 w-6 text-gray-300 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12"
+              className="mx-auto mb-2 h-6 w-6 text-neutral-400 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12"
             />
             <BodyText as="p" size="sm">
               {t("search.no_saved_homes_yet")}
@@ -169,7 +169,7 @@ export function SidebarList(props: {
             className={`relative overflow-hidden rounded-lg border transition-all ${showReasonCard ? "" : "cursor-pointer"} ${
               selectedId === property.id
                 ? "border-olive bg-olive/5"
-                : "hover:border-olive/50 border-gray-200 hover:bg-gray-50"
+                : "border-border hover:border-olive/50 hover:bg-neutral-50"
             }`}
             onClick={showReasonCard ? undefined : () => onNavigateToProperty(property)}
             onKeyDown={
@@ -185,7 +185,7 @@ export function SidebarList(props: {
           >
             {/* Loading overlay */}
             {isLoading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/80 backdrop-blur-sm">
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/90 backdrop-blur-sm">
                 <KeyTurnLoader message="Loading details..." />
               </div>
             )}
@@ -294,7 +294,7 @@ export function SidebarList(props: {
                       <div className="mb-1 flex items-center gap-2">
                         {typeof property.propertyType === "string" &&
                           property.propertyType.toLowerCase() !== "single_family" && (
-                            <BodyText as="span" size="xs" className="text-gray-500">
+                            <BodyText as="span" size="xs" className="text-neutral-600">
                               {formatPropertyType(property.propertyType)}
                             </BodyText>
                           )}
@@ -302,7 +302,11 @@ export function SidebarList(props: {
                     )}
 
                     {/* Address */}
-                    <Title as="h3" size="sm" className="mb-1 line-clamp-2 font-medium text-black">
+                    <Title
+                      as="h3"
+                      size="sm"
+                      className="mb-1 line-clamp-2 font-medium text-neutral-800"
+                    >
                       {typeof property.address === "string" || typeof property.address === "number"
                         ? property.address
                         : "[Invalid address]"}
@@ -313,7 +317,7 @@ export function SidebarList(props: {
                       <BodyText
                         as="p"
                         size="sm"
-                        className={`text-olive flex-1 font-semibold ${activeTab === "saved" ? "text-responsive-lg mb-2" : ""}`}
+                        className={`flex-1 font-semibold text-neutral-800 ${activeTab === "saved" ? "text-responsive-lg mb-2" : ""}`}
                       >
                         {typeof property.price === "string"
                           ? property.price.startsWith("$")
@@ -340,7 +344,7 @@ export function SidebarList(props: {
                       sqft={property.sqft}
                       lotSize={property.lotSize}
                       variant="horizontal"
-                      className="mb-2 sm:mb-3"
+                      className="mb-2 sm:mb-3 [&_*]:!text-neutral-600"
                     />
                   </div>
                 </div>

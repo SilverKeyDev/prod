@@ -50,11 +50,11 @@ export function OpeningOfferSection({
 
   return (
     <div ref={priceElementRef} className="my-responsive-lg">
-      <div className="bg-olive/10 rounded-lg p-6">
+      <div className="bg-primary rounded-lg p-6">
         <div className="flex items-center gap-3">
           <BodyText
             as="span"
-            className="bg-olive flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
+            className="bg-primary flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
           >
             $
           </BodyText>
@@ -62,14 +62,14 @@ export function OpeningOfferSection({
             <BodyText
               as="span"
               size="sm"
-              className="text-olive font-medium uppercase tracking-wide"
+              className="text-primary font-medium uppercase tracking-wide"
             >
               {t("negotiate.opening_offer.recommended")}
             </BodyText>
             <BodyText
               as="span"
               size="lg"
-              className="text-olive mt-1 text-3xl font-bold sm:text-4xl lg:text-5xl"
+              className="text-primary mt-1 text-3xl font-bold sm:text-4xl lg:text-5xl"
             >
               ${offerValue.toLocaleString()}
             </BodyText>

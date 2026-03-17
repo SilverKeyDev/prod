@@ -68,10 +68,10 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
     return (
       <div className="space-y-responsive-md mobile-padding">
         <div className="text-center">
-          <Title as="h2" size="sm" className="text-neutral-900">
+          <Title as="h2" size="sm" className="text-text-primary">
             Connect Google Calendar
           </Title>
-          <BodyText as="p" size="sm" className="mt-2 text-neutral-500">
+          <BodyText as="p" size="sm" className="text-text-secondary mt-2">
             Connect your Google Calendar to check availability and schedule events. We'll only see
             when you're busy, not your event details.
           </BodyText>
@@ -93,22 +93,22 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
     return (
       <div className="space-y-responsive-md mobile-padding">
         <div>
-          <Title as="h2" size="sm" className="text-neutral-900">
+          <Title as="h2" size="sm" className="text-text-primary">
             Select a Time Slot
           </Title>
-          <BodyText as="p" size="sm" className="mt-1 text-neutral-500">
+          <BodyText as="p" size="sm" className="text-text-secondary mt-1">
             Choose an available time slot for your event.
           </BodyText>
         </div>
 
         {scheduling.isLoadingAvailability && (
-          <div className="py-responsive-md text-responsive-sm text-center text-neutral-500">
+          <div className="py-responsive-md text-responsive-sm text-text-secondary text-center">
             Loading availability...
           </div>
         )}
 
         {scheduling.availabilityError && (
-          <div className="p-responsive-sm text-responsive-sm rounded-md bg-rose-50 text-rose-800">
+          <div className="p-responsive-sm text-responsive-sm bg-primary-muted text-destructive rounded-md">
             {scheduling.availabilityError instanceof Error
               ? scheduling.availabilityError.message
               : "Failed to load availability"}
@@ -137,11 +137,11 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
     return (
       <div className="space-y-responsive-md mobile-padding">
         <div>
-          <Title as="h2" size="sm" className="text-neutral-900">
+          <Title as="h2" size="sm" className="text-text-primary">
             Schedule Event
           </Title>
           {scheduling.selectedSlot && (
-            <BodyText as="p" size="sm" className="mt-1 text-neutral-500">
+            <BodyText as="p" size="sm" className="text-text-secondary mt-1">
               {scheduling.selectedSlot.start.toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
@@ -165,7 +165,7 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
         />
 
         {scheduling.schedulingError && (
-          <div className="p-responsive-sm text-responsive-sm rounded-md bg-rose-50 text-rose-800">
+          <div className="p-responsive-sm text-responsive-sm bg-primary-muted text-destructive rounded-md">
             {scheduling.schedulingError instanceof Error
               ? scheduling.schedulingError.message
               : "Failed to schedule event"}

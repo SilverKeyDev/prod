@@ -1,7 +1,22 @@
 {
   "category": "forms-input",
   "description": "Form and input elements - use React Native input components",
-  "elements": ["form", "fieldset", "legend", "input", "textarea", "button", "label", "select", "option", "optgroup", "datalist", "output", "progress", "meter"],
+  "elements": [
+    "form",
+    "fieldset",
+    "legend",
+    "input",
+    "textarea",
+    "button",
+    "label",
+    "select",
+    "option",
+    "optgroup",
+    "datalist",
+    "output",
+    "progress",
+    "meter"
+  ],
   "reason": "React Native has its own input components with different APIs and behavior",
   "alternatives": {
     "form": "View container with form state management",

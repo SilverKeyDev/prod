@@ -20,7 +20,7 @@ export default function ContactUs() {
       <Section title="Contact Information">
         <div className="gap-responsive-md grid grid-cols-1 md:grid-cols-2">
           <div className="gap-responsive-sm flex items-start">
-            <Icon name="mail" className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
+            <Icon name="mail" className="mobile-icon-sm text-text-secondary mt-1 flex-shrink-0" />
             <div>
               <Title size="md" as="h3" className="space-y-responsive-xs">
                 Email
@@ -32,7 +32,7 @@ export default function ContactUs() {
           </div>
 
           <div className="gap-responsive-sm flex items-start">
-            <Icon name="phone" className="mobile-icon-sm text-brown mt-1 flex-shrink-0" />
+            <Icon name="phone" className="mobile-icon-sm text-text-secondary mt-1 flex-shrink-0" />
             <div>
               <Title size="md" as="h3" className="space-y-responsive-xs">
                 Phone
@@ -86,7 +86,7 @@ export default function ContactUs() {
           <EmailLink href="mailto:walzerjayce@gmail.com">walzerjayce@gmail.com</EmailLink> and we'll
           get back to you within 24 hours during business days.
         </Paragraph>
-        <Paragraph className="text-responsive-sm text-gray-600">
+        <Paragraph className="text-responsive-sm text-text-secondary">
           Please include as much detail as possible about your question or issue so we can provide
           you with the most helpful response.
         </Paragraph>

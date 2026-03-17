@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   required: {
-    color: color("rose.500"),
+    color: color("destructive"),
   },
   description: {
     fontSize: 13,

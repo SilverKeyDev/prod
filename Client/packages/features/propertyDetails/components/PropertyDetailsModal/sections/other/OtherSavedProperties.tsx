@@ -48,12 +48,12 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ propert
     return null;
   }
   return (
-    <div className="border-t border-gray-200 bg-white px-4 py-6 sm:px-6 lg:px-8">
+    <div className="border-border bg-background-surface border-t px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-4">
-        <Title as="h3" size="lg" className="font-semibold text-gray-900">
+        <Title as="h3" size="lg" className="text-text-primary font-semibold">
           Other Saved Properties
         </Title>
-        <BodyText as="p" size="sm" className="mt-1 text-gray-600">
+        <BodyText as="p" size="sm" className="text-text-secondary mt-1">
           View images from your other saved properties
         </BodyText>
       </div>
@@ -72,7 +72,7 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ propert
               type="button"
               variant="ghost"
               onClick={() => handleViewProperty(home)}
-              className="hover:border-gold group relative aspect-square overflow-hidden rounded-lg border-2 border-gray-200 transition-all duration-200 hover:shadow-lg"
+              className="hover:border-accent border-border group relative aspect-square overflow-hidden rounded-lg border-2 transition-all duration-200 hover:shadow-lg"
               label={`View ${home.address || "property"}`}
             >
               <StyledImage
@@ -87,7 +87,7 @@ export const OtherSavedProperties: React.FC<PropertyComponentProps> = ({ propert
                 </BodyText>
               </div>
               <div className="absolute right-2 top-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                <div className="bg-gold rounded-full p-1.5 shadow-lg">
+                <div className="bg-accent rounded-full p-1.5 shadow-lg">
                   <Icon name="plus" className="h-3 w-3 text-white" />
                 </div>
               </div>

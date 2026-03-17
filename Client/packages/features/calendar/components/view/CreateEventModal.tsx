@@ -22,7 +22,7 @@ import { BodyText, CloseButton, DateInput, Input, TimeInput } from "@/components
 import Label from "@/components/ui/text/Label.web";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents";
 
-import type { Calendar } from "../../types/calendar";
+import type { Calendar, ExtendedGoogleEvent } from "../../types/calendar";
 import type { GoogleEvent } from "../../types/googleEvent";
 
 type CreateEventModalProps = {
@@ -32,6 +32,9 @@ type CreateEventModalProps = {
   calendars: Calendar[];
   defaultCalendarId?: string | null;
   onEventCreated?: () => void;
+  mode?: "create" | "edit";
+  existingEvent?: ExtendedGoogleEvent;
+  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
 };
 
 // Helper function to detect event type from title
@@ -71,9 +74,19 @@ export function CreateEventModal({
   calendars,
   defaultCalendarId,
   onEventCreated,
+  mode = "create",
+  existingEvent,
+  updateEvent: updateEventProp,
 }: CreateEventModalProps) {
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
-  const { createEvent, isCreatingEvent } = useGoogleEvents();
+  const {
+    createEvent,
+    updateEvent: updateEventFromHook,
+    isCreatingEvent,
+    isUpdatingEvent,
+  } = useGoogleEvents();
+  const updateEvent = updateEventProp ?? updateEventFromHook;
+  const isSubmitting = isCreatingEvent || isUpdatingEvent;
   const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMapsStore();
 
   const [eventTitle, setEventTitle] = useState("");
@@ -94,8 +107,32 @@ export function CreateEventModal({
   // Initialize form with initial date if provided (use initialDate timestamp to avoid Date ref churn)
   const initialDateMs = initialDate?.getTime();
 
+  // Populate form when editing existing event
   useEffect(() => {
-    if (initialDateMs != null && isOpen) {
+    if (isOpen && mode === "edit" && existingEvent) {
+      setEventTitle(existingEvent.summary || "");
+      setEventDescription(existingEvent.description || "");
+      setEventLocation(existingEvent.location || "");
+      const start = existingEvent.start?.dateTime ?? existingEvent.start?.date;
+      const end = existingEvent.end?.dateTime ?? existingEvent.end?.date;
+      if (start) {
+        const startD = dateParseISO(start);
+        setStartDate(startD.format("YYYY-MM-DD"));
+        setStartTime(startD.format("HH:mm"));
+      }
+      if (end) {
+        const endD = dateParseISO(end);
+        setEndDate(endD.format("YYYY-MM-DD"));
+        setEndTime(endD.format("HH:mm"));
+      }
+      if (existingEvent.calendarId) {
+        setSelectedCalendarId(existingEvent.calendarId);
+      }
+    }
+  }, [isOpen, mode, existingEvent]);
+
+  useEffect(() => {
+    if (initialDateMs != null && isOpen && mode !== "edit") {
       const d = dayjs(initialDateMs);
       const dateStr = d.format("YYYY-MM-DD");
       const hasTime = d.hour() !== 0 || d.minute() !== 0;
@@ -111,7 +148,7 @@ export function CreateEventModal({
       const endDateTime = startDateTime.add(1, "hour");
       setEndDate(endDateTime.format("YYYY-MM-DD"));
       setEndTime(endDateTime.format("HH:mm"));
-    } else if (isOpen && initialDateMs == null) {
+    } else if (isOpen && initialDateMs == null && mode !== "edit") {
       const now = dateNow();
       const dateStr = now.format("YYYY-MM-DD");
       const timeStr = now.format("HH:mm");
@@ -123,7 +160,7 @@ export function CreateEventModal({
       setEndDate(endDateTime.format("YYYY-MM-DD"));
       setEndTime(endDateTime.format("HH:mm"));
     }
-  }, [initialDateMs, isOpen]);
+  }, [initialDateMs, isOpen, mode]);
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
@@ -219,7 +256,7 @@ export function CreateEventModal({
     }
   }, [isOpen]);
 
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     if (!eventTitle.trim() || !startDate || !startTime || !endDate || !endTime) {
       enqueueToast({
         type: "error",
@@ -265,12 +302,19 @@ export function CreateEventModal({
         eventType: detectEventType(eventTitle.trim()),
       };
 
-      await createEvent(eventData);
-
-      enqueueToast({
-        type: "success",
-        message: "Event created successfully",
-      });
+      if (mode === "edit" && existingEvent?.id && updateEvent) {
+        await updateEvent(existingEvent.id, eventData, existingEvent.calendarId);
+        enqueueToast({
+          type: "success",
+          message: "Event updated successfully",
+        });
+      } else {
+        await createEvent(eventData);
+        enqueueToast({
+          type: "success",
+          message: "Event created successfully",
+        });
+      }
 
       // Call callback to refresh events
       if (onEventCreated) {
@@ -287,7 +331,7 @@ export function CreateEventModal({
     }
   };
 
-  const canCreate = eventTitle.trim() && startDate && startTime && endDate && endTime;
+  const canSubmit = eventTitle.trim() && startDate && startTime && endDate && endTime;
 
   const handleEventLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHasSelectedLocation(false);
@@ -306,9 +350,9 @@ export function CreateEventModal({
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} size="md">
       <Box className="space-y-4">
-        <Box className="flex items-center justify-between border-b border-gray-200 pb-3">
-          <Label as="h3" htmlFor="event-title" className="text-base font-medium text-gray-900">
-            Create New Event
+        <Box className="border-border flex items-center justify-between border-b pb-3">
+          <Label as="h3" htmlFor="event-title" className="text-text-primary text-base font-medium">
+            {mode === "edit" ? "Edit Event" : "Create New Event"}
           </Label>
           <CloseButton onClick={onClose} size="overlay" className="ml-2" />
         </Box>
@@ -390,19 +434,19 @@ export function CreateEventModal({
             autoComplete="off"
           />
           {loadError && (
-            <BodyText as="p" size="xs" className="text-rose mt-1">
+            <BodyText as="p" size="xs" className="text-destructive mt-1">
               {loadError} You can still type an address manually.
             </BodyText>
           )}
           {locationSuggestions.length > 0 && (
-            <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
+            <ul className="bg-background-surface relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border shadow-sm">
               {locationSuggestions.map((s, idx) => (
                 <li key={s.placePrediction.text.text + idx}>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleLocationSelect(s)}
-                    className="w-full cursor-pointer justify-start px-3 py-2 text-left text-sm hover:bg-gray-100"
+                    className="hover:bg-primary-muted w-full cursor-pointer justify-start px-3 py-2 text-left text-sm"
                   >
                     {s.description}
                   </Button>
@@ -427,17 +471,23 @@ export function CreateEventModal({
 
         {/* Actions */}
         <Box className="flex gap-3 pt-2">
-          <CancelButton onClick={onClose} className="flex-1" disabled={isCreatingEvent}>
+          <CancelButton onClick={onClose} className="flex-1" disabled={isSubmitting}>
             Cancel
           </CancelButton>
           <Button
             variant="primary"
-            onClick={handleCreate}
-            disabled={!canCreate || isCreatingEvent}
-            loading={isCreatingEvent}
+            onClick={handleSubmit}
+            disabled={!canSubmit || isSubmitting}
+            loading={isSubmitting}
             className="flex-1"
           >
-            {isCreatingEvent ? "Creating..." : "Create Event"}
+            {mode === "edit"
+              ? isUpdatingEvent
+                ? "Updating..."
+                : "Update Event"
+              : isCreatingEvent
+                ? "Creating..."
+                : "Create Event"}
           </Button>
         </Box>
       </Box>

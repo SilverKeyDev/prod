@@ -27,10 +27,10 @@ const FormField = ({
   return (
     <div className={`mb-4 ${className}`}>
       {label && (
-        <Label className={`text-navy mb-2 block font-medium ${labelClassName}`}>
+        <Label className={`text-text-primary mb-2 block font-medium ${labelClassName}`}>
           {label}
           {required && (
-            <BodyText as="span" className="ml-1 text-red-500" aria-hidden="true">
+            <BodyText as="span" className="text-destructive ml-1" aria-hidden="true">
               {t("form.required_indicator")}
             </BodyText>
           )}
@@ -38,7 +38,7 @@ const FormField = ({
       )}
       {children}
       {error && (
-        <BodyText size="xs" className="mt-1 text-red-500">
+        <BodyText size="xs" className="text-destructive mt-1">
           {error}
         </BodyText>
       )}
@@ -54,8 +54,8 @@ type InputProps = {
 
 export function Input({ error, className = "", ...props }: InputProps) {
   const baseClasses =
-    "w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-olive focus:border-olive transition-colors";
-  const errorClasses = error ? "border-red-500" : "border-beige";
+    "w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-muted focus:border-primary transition-colors";
+  const errorClasses = error ? "border-destructive" : "border-border";
 
   return <input className={`${baseClasses} ${errorClasses} ${className}`} {...props} />;
 }
@@ -66,8 +66,8 @@ type TextareaProps = {
 
 export function Textarea({ error, className = "", ...props }: TextareaProps) {
   const baseClasses =
-    "w-full border rounded-lg px-3 py-2 min-h-20 focus:outline-none focus:ring-2 focus:ring-olive focus:border-olive transition-colors resize-vertical";
-  const errorClasses = error ? "border-red-500" : "border-beige";
+    "w-full border rounded-lg px-3 py-2 min-h-20 focus:outline-none focus:ring-2 focus:ring-accent-muted focus:border-primary transition-colors resize-vertical";
+  const errorClasses = error ? "border-destructive" : "border-border";
 
   return <textarea className={`${baseClasses} ${errorClasses} ${className}`} {...props} />;
 }

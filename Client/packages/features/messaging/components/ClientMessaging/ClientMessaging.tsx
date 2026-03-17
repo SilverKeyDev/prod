@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ReactNode } from "react";
 
+import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useMessaging } from "packages/hooks/data/chat/useMessaging";
 import { useClientMessagingModals, useMessageScroll } from "packages/hooks/ui";
+import { useMessagingHandlers } from "packages/hooks/ui";
 
 import { Region } from "@/components/ui";
 import UnifiedMessageInput from "@/features/messaging/components/layout/UnifiedMessageInput";
@@ -12,9 +14,7 @@ import UnifiedMessagesList from "@/features/messaging/components/layout/UnifiedM
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
 import { resolvePrimaryAgentId } from "@/features/messaging/utils";
 
-import { ClientMessagingModals } from "./ClientMessagingModals";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
-import { useClientMessagingHandlers } from "./useClientMessagingHandlers";
 
 type ClientMessagingProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
@@ -65,9 +65,11 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     setIsSidebarExpanded,
   } = useClientMessagingModals();
 
-  const handlers = useClientMessagingHandlers({
+  const handlers = useMessagingHandlers({
+    mode: "client",
     activeConversationId,
     agentId,
+    clientUserId: userProfile?.id ?? null,
     activeConversation,
     setShowSelectHomeModal,
     setShowSelectDocumentModal,
@@ -196,7 +198,8 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
           </div>
         </section>
       </div>
-      <ClientMessagingModals
+      <MessagingModals
+        mode="client"
         showSearchModal={showSearchModal}
         setShowSearchModal={setShowSearchModal}
         showSelectHomeModal={showSelectHomeModal}

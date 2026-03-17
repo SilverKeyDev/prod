@@ -41,7 +41,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
   return (
     <div className="px-6 py-6">
       <div className="mb-4 flex items-center gap-2">
-        <Title as="h3" size="lg" className="text-brown font-semibold">
+        <Title as="h3" size="lg" className="text-text-secondary font-semibold">
           {t("property_details.property_features")}
         </Title>
       </div>
@@ -49,15 +49,15 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
       <Card className="border-r-0 p-6">
         {img && img.clean.length > 0 && (
           <div className="mb-4">
-            <Title as="h4" size="sm" className="text-gold mb-2 font-semibold">
+            <Title as="h4" size="sm" className="text-accent mb-2 font-semibold">
               {t("property_details.ai_detected_features")}
             </Title>
-            <div className="text-brown/70 text-xs leading-relaxed">
+            <div className="text-text-secondary text-xs leading-relaxed">
               {img.clean.map((feature, i) => (
                 <BodyText key={i} as="span" className="inline-block">
                   {feature.trim()}
                   {i < img.clean.length - 1 && (
-                    <BodyText as="span" className="text-brown/40 mx-2">
+                    <BodyText as="span" className="text-text-secondary mx-2">
                       {t("property_details.bullet_separator").trim()}
                     </BodyText>
                   )}
@@ -71,7 +71,11 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
           <div className="space-y-4">
             {Object.entries(feats).map(([category, list]) => (
               <div key={category}>
-                <Title as="h4" size="sm" className="text-brown mb-2 font-semibold capitalize">
+                <Title
+                  as="h4"
+                  size="sm"
+                  className="text-text-secondary mb-2 font-semibold capitalize"
+                >
                   {category.replace(/_/g, " ")}
                 </Title>
                 <div className="flex flex-wrap gap-2">
@@ -79,7 +83,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                     <BodyText
                       key={idx}
                       as="span"
-                      className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700"
+                      className="bg-primary-muted text-text-secondary rounded-full px-3 py-1 text-xs"
                     >
                       {feature}
                     </BodyText>

@@ -34,13 +34,15 @@ const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
     ref
   ) => {
     const baseStyles =
-      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400 transition-colors duration-150 touch-friendly mobile-input";
+      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input";
 
     const variantStyles = {
-      default: "border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown",
+      default:
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
       mobile:
-        "mobile-input border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown touch-friendly autofill-gold",
-      compact: "border-beige bg-white hover:bg-brown/5 focus:ring-brown/20 focus:border-brown",
+        "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary touch-friendly autofill-gold",
+      compact:
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
     };
 
     const sizeStyles = {
@@ -49,7 +51,9 @@ const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       lg: "h-14 px-5",
     };
 
-    const errorStyles = error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "";
+    const errorStyles = error
+      ? "border-destructive focus:border-destructive focus:ring-destructive"
+      : "";
 
     const inputClasses = [
       baseStyles,
@@ -83,7 +87,7 @@ const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
           {...props}
         />
         {error != null && error !== "" && (
-          <BodyText size="xs" className="mt-1 text-red-600">
+          <BodyText size="xs" className="text-destructive mt-1">
             {error}
           </BodyText>
         )}

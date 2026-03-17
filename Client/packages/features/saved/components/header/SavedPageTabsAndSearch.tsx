@@ -61,7 +61,7 @@ export default function SavedPageTabsAndSearch({
             <div className="relative min-w-48 flex-1">
               <Icon
                 name="search"
-                className="mobile-icon-xs absolute left-3 top-1/2 -translate-y-1/2 text-black/40"
+                className="mobile-icon-xs text-text-disabled absolute left-3 top-1/2 -translate-y-1/2"
               />
               <Input
                 type="text"
@@ -88,7 +88,7 @@ export default function SavedPageTabsAndSearch({
     )} */}
 
             {rightText && (
-              <div className="mr-2 whitespace-nowrap text-sm text-gray-600">{rightText}</div>
+              <div className="text-text-secondary mr-2 whitespace-nowrap text-sm">{rightText}</div>
             )}
           </div>
 
@@ -100,7 +100,7 @@ export default function SavedPageTabsAndSearch({
               onClick={onUploadClick}
               label="Upload"
               icon={<Icon name="plus" className="h-4 w-4" />}
-              className="text-black/40 hover:bg-transparent focus:ring-black/10 active:bg-transparent"
+              className="text-text-disabled hover:bg-transparent focus:ring-black/10 active:bg-transparent"
             />
           )}
         </div>

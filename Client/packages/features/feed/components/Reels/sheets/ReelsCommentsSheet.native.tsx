@@ -64,7 +64,7 @@ export function ReelsCommentsSheet({
             <View style={styles.handle} />
             <View style={styles.headerRow}>
               <View style={styles.headerSpacer} />
-              <Text className="text-base font-semibold text-neutral-900">Comments</Text>
+              <Text className="text-text-primary text-base font-semibold">Comments</Text>
               <View style={styles.headerSpacerRight}>
                 <IconButton
                   variant="ghost"
@@ -81,8 +81,8 @@ export function ReelsCommentsSheet({
           <View style={styles.body}>
             {data.length === 0 ? (
               <View style={styles.empty}>
-                <Text className="text-sm text-neutral-600">No comments yet.</Text>
-                <Text className="text-sm text-neutral-500">Be the first to comment.</Text>
+                <Text className="text-text-secondary text-sm">No comments yet.</Text>
+                <Text className="text-text-secondary text-sm">Be the first to comment.</Text>
               </View>
             ) : (
               <FlatList
@@ -91,11 +91,11 @@ export function ReelsCommentsSheet({
                 renderItem={({ item: c }) => (
                   <View style={styles.commentRow}>
                     <View style={styles.commentBody}>
-                      <Text className="text-sm text-neutral-900">
-                        <Text className="text-sm font-semibold text-neutral-900">
+                      <Text className="text-text-primary text-sm">
+                        <Text className="text-text-primary text-sm font-semibold">
                           {c.user.name}
                         </Text>{" "}
-                        <Text className="text-sm text-neutral-900">{c.text}</Text>
+                        <Text className="text-text-primary text-sm">{c.text}</Text>
                       </Text>
                     </View>
                   </View>

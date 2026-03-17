@@ -52,7 +52,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   const mainImageUri = propertyImages[currentImageIndex];
 
   return (
-    <Box className="bg-gray-100">
+    <Box className="bg-primary-muted">
       {/* Main image */}
       <Box className="relative" style={styles.mainImageWrap}>
         <Image source={{ uri: mainImageUri }} style={styles.mainImage} resizeMode="cover" />
@@ -108,7 +108,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
           {propertyImages.length > 8 && (
             <Pressable onPress={() => setShowFullGallery(true)} style={styles.seeAllThumb}>
               <Icon name="grid-3x3" size={20} color={color("neutral.700")} />
-              <Text className="mt-1 text-xs font-medium text-gray-700" numberOfLines={1}>
+              <Text className="text-text-secondary mt-1 text-xs font-medium" numberOfLines={1}>
                 {t("property_details_gallery.see_all_photos", {
                   count: propertyImages.length,
                   defaultValue: `See all ${propertyImages.length} photos`,

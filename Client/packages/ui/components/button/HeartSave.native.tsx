@@ -82,7 +82,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         <Icon
           name="heart"
           size={ICON_SIZE}
-          color={isSaved ? color("rose.DEFAULT") : color("neutral.400")}
+          color={isSaved ? color("destructive") : color("neutral.400")}
           strokeWidth={isSaved ? 0 : 2}
         />
       </View>

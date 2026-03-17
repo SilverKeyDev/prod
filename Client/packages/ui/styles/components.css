@@ -20,19 +20,19 @@
 
   /* Variants */
   .btn-primary {
-    @apply btn-responsive-md bg-olive hover:bg-olive-light text-white shadow-sm hover:shadow-md active:scale-95;
+    @apply btn-responsive-md bg-primary hover:bg-primary-hover text-white shadow-sm hover:shadow-md active:scale-95;
   }
   .btn-secondary {
-    @apply btn-responsive-md border-olive text-olive hover:bg-olive border bg-transparent hover:text-white active:scale-95;
+    @apply btn-responsive-md border-primary text-primary hover:bg-primary border bg-transparent hover:text-white active:scale-95;
   }
   .btn-danger {
-    @apply btn-responsive-md border-rose text-rose hover:bg-rose-light border bg-white shadow-sm hover:text-white hover:shadow-md active:scale-95;
+    @apply btn-responsive-md border-destructive text-destructive hover:bg-destructive-hover border bg-white shadow-sm hover:text-white hover:shadow-md active:scale-95;
   }
   .btn-success {
-    @apply btn-responsive-md bg-olive hover:bg-olive/90 text-white shadow-sm hover:shadow-md active:scale-95;
+    @apply btn-responsive-md bg-primary hover:bg-primary-hover text-white shadow-sm hover:shadow-md active:scale-95;
   }
   .btn-warning {
-    @apply btn-responsive-md bg-gold hover:bg-gold/90 text-white shadow-sm hover:shadow-md active:scale-95;
+    @apply btn-responsive-md bg-accent hover:bg-accent-hover border-2 border-black text-white shadow-sm hover:shadow-md active:scale-95;
   }
   .btn-info {
     @apply btn-responsive-md bg-neutral-600 text-white shadow-sm hover:bg-neutral-700 hover:shadow-md active:scale-95;
@@ -40,7 +40,7 @@
 
   /* Card */
   .card {
-    @apply border-beige/30 rounded-lg border bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md sm:rounded-xl sm:p-4 md:rounded-2xl md:p-6;
+    @apply border-border-card-subtle bg-background-surface rounded-lg border p-3 shadow-sm transition-all duration-200 hover:shadow-md sm:rounded-xl sm:p-4 md:rounded-2xl md:p-6;
   }
   .mobile-card {
     @apply card shadow-md hover:shadow-lg;
@@ -49,7 +49,7 @@
   /* Inputs */
   .input-field,
   .mobile-input {
-    @apply border-beige focus:border-gold focus:ring-gold/20 w-full rounded-lg border bg-white px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3.5 lg:px-6 lg:py-4;
+    @apply border-border focus:border-accent focus:ring-accent-muted w-full rounded-lg border bg-white px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3.5 lg:px-6 lg:py-4;
     font-size: 1rem; /* prevents iOS zoom */
   }
 
@@ -95,7 +95,7 @@
 
   /* Glassmorphic */
   .glassmorphic {
-    @apply border border-white/20 bg-white/80 shadow-2xl backdrop-blur-xl;
+    @apply border-border bg-background-surface border shadow-2xl backdrop-blur-xl;
   }
   @supports not (backdrop-filter: blur(1px)) {
     .glassmorphic {

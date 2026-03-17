@@ -16,7 +16,7 @@ const BADGE_BASE = {
   letterSpacing: "0.3px",
   boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
   textTransform: "uppercase" as const,
-  color: "#ffffff",
+  color: emailColors["background-surface"],
 };
 
 type ListingCardImageSectionProps = {
@@ -32,7 +32,7 @@ export function ListingCardImageSection({ listing }: ListingCardImageSectionProp
         position: "relative",
         width: "100%",
         height: "240px",
-        backgroundColor: "#f3f4f6",
+        backgroundColor: emailColors["border-light"],
         overflow: "hidden",
       }}
     >
@@ -54,7 +54,7 @@ export function ListingCardImageSection({ listing }: ListingCardImageSectionProp
             ...BADGE_BASE,
             top: "16px",
             left: "16px",
-            backgroundColor: "rgba(212, 175, 55, 0.95)",
+            backgroundColor: `${emailColors.accent}F2`,
           }}
         >
           ✨ New Listing
@@ -66,7 +66,7 @@ export function ListingCardImageSection({ listing }: ListingCardImageSectionProp
             ...BADGE_BASE,
             top: priceCutTop,
             left: "16px",
-            backgroundColor: "rgba(220, 38, 38, 0.95)",
+            backgroundColor: `${emailColors.destructive}F2`,
           }}
         >
           🔻 Price Cut: {listing.priceCut.amount}
@@ -79,7 +79,7 @@ export function ListingCardImageSection({ listing }: ListingCardImageSectionProp
             ...BADGE_BASE,
             top: "16px",
             left: "16px",
-            backgroundColor: "rgba(139, 111, 90, 0.95)",
+            backgroundColor: `${emailColors.brown.DEFAULT}F2`,
           }}
         >
           {Math.round(listing.score)}% Match
@@ -90,15 +90,15 @@ export function ListingCardImageSection({ listing }: ListingCardImageSectionProp
           position: "absolute",
           top: "16px",
           right: "16px",
-          backgroundColor: "rgba(255, 255, 255, 0.98)",
+          backgroundColor: emailColors["background-surface"],
           border: listing.priceCut
-            ? "2px solid rgba(220, 38, 38, 0.8)"
-            : "1px solid rgba(229, 231, 235, 0.8)",
+            ? `2px solid ${emailColors.destructive}`
+            : `1px solid ${emailColors["border-light"]}`,
           padding: "8px 16px",
           borderRadius: "24px",
           fontSize: "16px",
           fontWeight: "700",
-          color: listing.priceCut ? "rgba(220, 38, 38, 1)" : emailColors.brown.DEFAULT,
+          color: listing.priceCut ? emailColors.destructive : emailColors["text-primary"],
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
           letterSpacing: "-0.3px",
         }}
@@ -111,13 +111,13 @@ export function ListingCardImageSection({ listing }: ListingCardImageSectionProp
             position: "absolute",
             top: "56px",
             right: "16px",
-            backgroundColor: "rgba(255, 255, 255, 0.98)",
-            border: "1px solid rgba(229, 231, 235, 0.8)",
+            backgroundColor: emailColors["background-surface"],
+            border: `1px solid ${emailColors["border-light"]}`,
             padding: "4px 12px",
             borderRadius: "16px",
             fontSize: "12px",
             fontWeight: "500",
-            color: "#6b7280",
+            color: emailColors["text-secondary"],
             textDecoration: "line-through",
             boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
           }}

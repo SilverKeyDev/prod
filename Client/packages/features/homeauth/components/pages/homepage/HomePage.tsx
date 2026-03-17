@@ -116,7 +116,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="hide-scrollbar flex min-h-screen flex-col bg-white">
+    <div className="hide-scrollbar bg-background-surface flex min-h-screen flex-col">
       <HomePageHeader />
       <div className="h-16 flex-shrink-0 sm:h-20" />
       <HomePageHero onStartNow={handleOpenAuth} />

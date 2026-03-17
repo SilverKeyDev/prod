@@ -94,7 +94,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
   if (savedHomesLoading && !homes.length) {
     return (
       <Box className="items-center justify-center py-12">
-        <Text className="text-sm text-gray-600">Loading saved homes...</Text>
+        <Text className="text-text-secondary text-sm">Loading saved homes...</Text>
       </Box>
     );
   }
@@ -104,7 +104,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
     return (
       <Box className="items-center justify-center py-12">
         <Text className="text-sm text-red-600">{savedHomesError}</Text>
-        <Pressable onPress={handleRefresh} className="bg-brand-accent mt-4 rounded-lg px-4 py-2">
+        <Pressable onPress={handleRefresh} className="bg-primary mt-4 rounded-lg px-4 py-2">
           <Text className="text-sm font-medium text-white">Retry</Text>
         </Pressable>
       </Box>
@@ -115,7 +115,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
   if (!homes.length) {
     return (
       <Box className="items-center justify-center py-12">
-        <Text className="text-sm text-gray-600">No saved homes yet.</Text>
+        <Text className="text-text-secondary text-sm">No saved homes yet.</Text>
       </Box>
     );
   }
@@ -128,7 +128,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
           placeholder="Search saved homes..."
           value={searchTerm}
           onValueChange={setSearchTerm}
-          className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-base text-gray-900"
+          className="border-border bg-background-surface text-text-primary rounded-lg border px-3 py-2 text-base"
         />
       </Box>
 
@@ -141,7 +141,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
       >
         {filteredHomes.length === 0 ? (
           <Box className="items-center py-8">
-            <Text className="text-sm text-gray-600">
+            <Text className="text-text-secondary text-sm">
               {searchTerm ? "No homes match your search." : "No saved homes yet."}
             </Text>
           </Box>
@@ -160,7 +160,10 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
                   : t("saved.price_fallback", { defaultValue: "Price not available" });
 
               return (
-                <Box key={home.home_id} className="rounded-lg border border-gray-200 bg-white p-3">
+                <Box
+                  key={home.home_id}
+                  className="border-border bg-background-surface rounded-lg border p-3"
+                >
                   <Pressable
                     onPress={() => {
                       void handleOpenDetails(home);
@@ -168,23 +171,23 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
                     className="active:opacity-90"
                   >
                     <Box className="flex flex-col gap-2">
-                      <Text className="text-sm font-semibold text-gray-900">{address}</Text>
-                      <Text className="text-sm text-gray-700">{price}</Text>
+                      <Text className="text-text-primary text-sm font-semibold">{address}</Text>
+                      <Text className="text-text-secondary text-sm">{price}</Text>
 
                       {/* Property details */}
                       <Box className="flex flex-row items-center gap-4">
                         {home.bedrooms != null && (
-                          <Text className="text-xs text-gray-600">
+                          <Text className="text-text-secondary text-xs">
                             {home.bedrooms} {home.bedrooms === 1 ? "bed" : "beds"}
                           </Text>
                         )}
                         {home.bathrooms != null && (
-                          <Text className="text-xs text-gray-600">
+                          <Text className="text-text-secondary text-xs">
                             {home.bathrooms} {home.bathrooms === 1 ? "bath" : "baths"}
                           </Text>
                         )}
                         {home.sqft && (
-                          <Text className="text-xs text-gray-600">{home.sqft} sqft</Text>
+                          <Text className="text-text-secondary text-xs">{home.sqft} sqft</Text>
                         )}
                       </Box>
                     </Box>
@@ -194,7 +197,7 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
                   <Box className="mt-3 flex flex-row gap-2">
                     <Pressable
                       onPress={() => handleOpenDetails(home)}
-                      className="bg-brand-accent flex-1 rounded-lg px-3 py-2"
+                      className="bg-primary flex-1 rounded-lg px-3 py-2"
                     >
                       <Text className="text-center text-sm font-medium text-white">
                         View Details
@@ -202,9 +205,9 @@ export default function ClientSavedHomes({ userId, clientId }: ClientSavedHomesP
                     </Pressable>
                     <Pressable
                       onPress={() => handleOpenNegotiation(home)}
-                      className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2"
+                      className="border-border bg-background-surface flex-1 rounded-lg border px-3 py-2"
                     >
-                      <Text className="text-center text-sm font-medium text-gray-800">
+                      <Text className="text-text-primary text-center text-sm font-medium">
                         Negotiate
                       </Text>
                     </Pressable>

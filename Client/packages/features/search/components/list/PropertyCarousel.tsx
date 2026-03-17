@@ -38,7 +38,7 @@ export function PropertyCarousel(props: {
 
   if (items.length === 0) {
     return (
-      <div className="py-responsive-md sm:py-responsive-lg px-responsive-sm text-center text-gray-500">
+      <div className="py-responsive-md sm:py-responsive-lg px-responsive-sm text-text-secondary text-center">
         <BodyText as="p" size="sm" className="sm:text-responsive-md">
           {t("search.no_properties_yet")}
         </BodyText>

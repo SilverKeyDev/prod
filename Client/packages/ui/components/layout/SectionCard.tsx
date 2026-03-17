@@ -22,10 +22,12 @@ export default function SectionCard({
   const resolvedIcon =
     icon ?? (iconName ? <Icon name={iconName} className="mobile-icon-sm text-brown" /> : null);
   return (
-    <div className={`border-beige/40 mb-6 rounded-xl border bg-white p-6 shadow-sm ${className}`}>
+    <div
+      className={`border-border-card-subtle mb-6 rounded-xl border bg-white p-6 shadow-sm ${className}`}
+    >
       {title && (
         <div
-          className={`text-navy mb-4 flex items-center gap-3 text-lg font-semibold ${titleClassName}`}
+          className={`text-text-primary mb-4 flex items-center gap-3 text-lg font-semibold ${titleClassName}`}
         >
           {resolvedIcon}
           {title}

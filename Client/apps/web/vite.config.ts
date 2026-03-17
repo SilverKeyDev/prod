@@ -233,6 +233,14 @@ export default defineConfig(({ mode }) => {
           find: "packages/utils/domain/compare/types",
           replacement: path.join(packages, "features/compare/utils/types"),
         },
+        {
+          find: "packages/utils/profile",
+          replacement: path.join(packages, "features/profile/utils"),
+        },
+        {
+          find: "packages/utils/profile/",
+          replacement: path.join(packages, "features/profile/utils/"),
+        },
         // packages/* catch-all (after specific package redirects)
         { find: /^packages\/(.*)$/, replacement: `${packages}/$1` },
         // @/ overrides where import path doesn't match folder layout

@@ -129,9 +129,9 @@ function PropertyCardImageSection({
         <div
           className={`absolute top-3 sm:top-4 ${
             pricePosition === "top-left" ? "left-3 sm:left-4" : "right-3 sm:right-4"
-          } rounded-full border border-neutral-200/50 bg-neutral-50/95 px-2 py-1 backdrop-blur-sm sm:px-3 sm:py-1.5`}
+          } border-border bg-primary-muted rounded-full border px-2 py-1 backdrop-blur-sm sm:px-3 sm:py-1.5`}
         >
-          <BodyText as="span" className="text-olive text-xs font-medium sm:text-sm">
+          <BodyText as="span" className="text-primary text-xs font-medium sm:text-sm">
             {formatPrice(price)}
           </BodyText>
         </div>
