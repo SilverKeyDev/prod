@@ -13,7 +13,7 @@ export default function ReviewComparablesSection({
   onComplete: _onComplete,
 }: ReviewComparablesSectionProps) {
   return (
-    <Card padding="md" className="mb-2">
+    <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-3">
         <BodyText size="sm" className="text-text-primary font-medium">
           Review comparable sales and get a data-backed offer strategy for the property you

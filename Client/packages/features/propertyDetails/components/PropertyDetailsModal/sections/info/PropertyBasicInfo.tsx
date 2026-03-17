@@ -87,7 +87,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
           )}
         </Box>
       </Box>
-      <Card className="p-4">
+      <Card border="light" className="p-4">
         <Box className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Box className="lg:col-span-2">
             <PropertyDetailsList

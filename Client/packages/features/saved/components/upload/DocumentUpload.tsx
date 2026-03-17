@@ -249,7 +249,7 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
   );
   if (useCard) {
     return (
-      <Card className="w-[85%] self-center" padding="md">
+      <Card border="light" className="w-[85%] self-center" padding="md">
         {content}
       </Card>
     );

@@ -9,7 +9,7 @@ import type {
 } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { googleCalendarApi } from "packages/features/calendar/api";
-import { showErrorToast } from "packages/hooks/ui";
+import { showErrorToast } from "packages/hooks/ui/toast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 

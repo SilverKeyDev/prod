@@ -34,6 +34,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
       </Box>
       <Box className="grid-responsive-1-lg-2 mt-2">
         <Card
+          border="light"
           className={`p-3 sm:p-4 ${pros && cons && pros.length > cons.length + 2 ? "bg-green-50 ring-1 ring-green-200" : ""}`}
         >
           <Title
@@ -72,6 +73,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
         </Card>
 
         <Card
+          border="light"
           className={`p-3 sm:p-4 ${pros && cons && cons.length > pros.length + 2 ? "bg-primary-muted ring-accent-muted ring-1" : ""}`}
         >
           <Title

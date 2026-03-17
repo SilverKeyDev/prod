@@ -31,7 +31,7 @@ export function AuthGuard({
     return (
       fallback ?? (
         <Box className="flex min-h-screen items-center justify-center bg-background-base">
-          <Card className="w-full max-w-sm" padding="lg">
+          <Card border="light" className="w-full max-w-sm" padding="lg">
             <Box className="text-center">
               <Icon name="loader-2" className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
               <BodyText size="sm" muted>
@@ -49,7 +49,7 @@ export function AuthGuard({
     return (
       fallback ?? (
         <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
-          <Card className="w-full max-w-md border-l-4 border-l-primary" padding="lg">
+          <Card border="none" className="w-full max-w-md border-l-4 border-l-primary" padding="lg">
             <Box className="text-center">
               <Box className="mb-4 flex justify-center">
                 <Box className="rounded-full bg-primary-muted p-3">

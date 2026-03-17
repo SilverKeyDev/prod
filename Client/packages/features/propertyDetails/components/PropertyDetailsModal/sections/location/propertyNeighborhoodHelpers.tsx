@@ -4,8 +4,8 @@
 import React from "react";
 
 import { Box } from "packages/ui/components/primitives";
-
-import { BodyText, Title } from "@/components/ui";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 export function renderNeighborhoodContent(data: Record<string, unknown>): React.ReactNode {
   const entries = Object.entries(data).filter(

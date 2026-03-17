@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { DateRange, ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
+import type { FreebusyTimeBlock } from "../../../../../schemas/scheduling";
 import { dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
@@ -143,7 +143,7 @@ export function CalendarView({
   }, [visibleDateRange, onVisibleDatesChange]);
 
   return (
-    <Card padding="md" className="w-full overflow-hidden">
+    <Card border="charcoal" padding="md" className="w-full overflow-hidden">
       <WeekDayHeaders />
       <CalendarGrid
         calendarGrid={calendarGrid}

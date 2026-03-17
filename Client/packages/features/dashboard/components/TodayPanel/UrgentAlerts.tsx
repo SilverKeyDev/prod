@@ -70,7 +70,7 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
     return "Due now";
   };
   return (
-    <Card className="h-full">
+    <Card border="charcoal" className="h-full">
       <Box className="mb-4 flex items-center gap-2">
         <Icon name="alert-triangle" className="text-destructive h-5 w-5 sm:h-6 sm:w-6" />
         <Title as="h2" size="sm" className="text-text-primary">

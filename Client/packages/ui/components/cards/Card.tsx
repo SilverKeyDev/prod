@@ -2,12 +2,16 @@ import React from "react";
 
 import { Box } from "packages/ui/components/primitives";
 
+export type CardBorderVariant = "charcoal" | "light" | "dotted" | "none";
+
 /**
- * Card container with built-in border (border-border-card-subtle), padding, and shadow.
- * Callers should not add border classes; the border is canonical.
+ * Card container with optional border variant, padding, and shadow.
+ * Callers should not add border classes; use the border prop instead.
  */
 type CardProps = {
   children: React.ReactNode;
+  /** Border style: charcoal (neutral-700), light (neutral-200), dotted (light gray dashed), or none. Default charcoal. */
+  border?: CardBorderVariant;
   className?: string;
   hover?: boolean;
   padding?: "none" | "sm" | "md" | "lg";
@@ -16,8 +20,16 @@ type CardProps = {
   style?: React.CSSProperties;
 };
 
+const BORDER_CLASSES: Record<CardBorderVariant, string> = {
+  charcoal: "border border-neutral-700",
+  light: "border border-neutral-200",
+  dotted: "border border-neutral-200 border-dashed",
+  none: "",
+};
+
 const Card: React.FC<CardProps> = ({
   children,
+  border = "charcoal",
   className = "",
   hover = true,
   padding = "md",
@@ -38,10 +50,12 @@ const Card: React.FC<CardProps> = ({
     lg: "shadow-lg",
   };
 
+  const borderClass = BORDER_CLASSES[border];
+
   const baseClasses = [
     "bg-white",
     "rounded-lg sm:rounded-xl md:rounded-2xl",
-    "border border-border-card-subtle",
+    borderClass,
     shadowClasses[shadow],
     paddingClasses[padding],
     "transition-all duration-200",

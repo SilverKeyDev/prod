@@ -6,9 +6,10 @@
 import React from "react";
 
 import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
 
 export function renderCommuteAnalysisContent(data: unknown): React.ReactNode {
   if (!data || typeof data !== "object") return null;
@@ -76,7 +77,7 @@ export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTim
           }
         }
         return (
-          <Card key={i}>
+          <Card border="light" key={i}>
             <Box className="flex items-center justify-between">
               <Box className="min-w-0 flex-1">
                 <Box className="flex items-center justify-between">

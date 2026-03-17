@@ -147,7 +147,7 @@ export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProp
 
   if (!permissionsReady) {
     return (
-      <Card className="mt-4 w-full" padding="sm" hover={false}>
+      <Card border="charcoal" className="mt-4 w-full" padding="sm" hover={false}>
         <Text className="text-text-secondary text-center text-sm">
           Loading calendar permissions...
         </Text>
@@ -157,7 +157,7 @@ export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProp
 
   if (shouldShowConnectionPrompt) {
     return (
-      <Card className="mt-4 w-full" padding="sm" hover={false}>
+      <Card border="charcoal" className="mt-4 w-full" padding="sm" hover={false}>
         <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
       </Card>
     );

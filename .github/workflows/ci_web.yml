@@ -18,7 +18,7 @@ jobs:
     needs: [lint]
     if: always()
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     concurrency:
       group: prod-deploy
       cancel-in-progress: true
@@ -137,9 +137,6 @@ jobs:
           IMAGE_REF="$BASE_REF:$IMAGE_TAG"
           CACHE_REF="$BASE_REF:buildcache"
           WEB_PROD_REF="$BASE_REF:web-prod"
-
-          # Optional: only prune build cache, not images
-          docker buildx prune -af >/dev/null 2>&1 || true
 
           export DOCKER_BUILDKIT=1
           export BUILDKIT_PROGRESS=plain

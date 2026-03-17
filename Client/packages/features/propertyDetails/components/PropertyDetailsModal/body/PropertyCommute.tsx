@@ -88,7 +88,7 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
                   }
                 }
                 return (
-                  <Card key={i}>
+                  <Card border="light" key={i}>
                     <Box className="flex items-center justify-between">
                       <Box className="min-w-0 flex-1">
                         <Box className="flex items-center justify-between">

@@ -41,6 +41,7 @@ export default function SidebarNavigation({
       }}
     >
       <Card
+        border="light"
         className={`!bg-background-surface ${isLargeScreen ? "space-y-4" : "flex flex-col items-center space-y-2"}`}
         padding={isLargeScreen ? "md" : "none"}
         hover={false}
@@ -48,6 +49,7 @@ export default function SidebarNavigation({
         {/* Header section */}
         {headerContent && (
           <Card
+            border="light"
             padding={isLargeScreen ? "sm" : "none"}
             hover={false}
             className={
@@ -66,6 +68,7 @@ export default function SidebarNavigation({
 
         {/* Nav section */}
         <Card
+          border="light"
           padding={isLargeScreen ? "sm" : "none"}
           hover={false}
           className={

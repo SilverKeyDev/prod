@@ -3,10 +3,9 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import Button from "packages/ui/components/button/Button";
+import { StyledImage } from "packages/ui/components/cards/base/image";
 import { Box } from "packages/ui/components/primitives";
-
-import { StyledImage } from "@/components/cards/base/image";
-import { Button } from "@/components/ui";
 
 type PropertyImageGalleryFullScreenProps = {
   images: string[];

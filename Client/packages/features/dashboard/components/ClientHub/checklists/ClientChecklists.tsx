@@ -122,7 +122,7 @@ export default function ClientChecklists({
         </Box>
       ) : null}
 
-      <Card className="bg-background-base" padding="sm" hover={false}>
+      <Card border="light" className="bg-background-base" padding="sm" hover={false}>
         {isLoading ? (
           <Box className="items-center justify-center py-8">
             <Loading />

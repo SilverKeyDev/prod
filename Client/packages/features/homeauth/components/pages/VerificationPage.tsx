@@ -220,7 +220,7 @@ export default function VerificationPage() {
   return (
     <Box className="px-responsive-sm py-responsive-md bg-background-base flex min-h-screen items-center justify-center">
       <Box className="w-full max-w-md">
-        <Card className="space-y-responsive-md">
+        <Card border="light" className="space-y-responsive-md">
           {/* Back Button - Hidden when coming from signup */}
           {!isFromSignup && (
             <Button

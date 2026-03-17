@@ -169,7 +169,7 @@ export default function CloseLayout({
         )}
 
         <Box className="w-full max-w-none self-center">
-          <Card className="mb-responsive-md" padding="sm">
+          <Card border="charcoal" className="mb-responsive-md" padding="sm">
             <Box className={sectionTitle}>
               <Box className="flex h-4 w-4 flex-shrink-0 flex-row items-center justify-center lg:h-5 lg:w-5">
                 <Icon name="check-square" className="text-foreground h-4 w-4 lg:h-5 lg:w-5" />

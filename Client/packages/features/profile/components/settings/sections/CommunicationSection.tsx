@@ -43,7 +43,7 @@ export default function CommunicationSection({
   updateFormData,
 }: CommunicationSectionProps) {
   return (
-    <Card className="space-y-6">
+    <Card border="charcoal" className="space-y-6">
       <Title size="md" className="mb-6">
         {SECTION_TITLES.COMMUNICATION_PREFERENCES}
       </Title>

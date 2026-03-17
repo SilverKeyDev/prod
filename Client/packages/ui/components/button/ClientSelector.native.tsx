@@ -5,7 +5,7 @@ import { Pressable } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
-import { useIsAgent } from "packages/features/homeauth/hooks/store/useIsAgent";
+import { useIsAgent } from "packages/hooks/store";
 import BaseModal from "packages/ui/components/modals/BaseModal";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";

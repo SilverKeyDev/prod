@@ -2,10 +2,10 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
-
-import { Button, KeyTurnLoader } from "@/components/ui";
 export type CardViewButtonProps = {
   /** Click handler */
   onClick: () => void;

@@ -183,7 +183,7 @@ export default function AdminPage() {
 
     return (
       <Box className="fixed inset-0 z-[10000] flex items-center justify-center bg-overlay-backdrop p-4">
-        <Card className="w-full max-w-md" padding="lg">
+        <Card border="light" className="w-full max-w-md" padding="lg">
           <Title size="lg" as="h2" className="mb-2">
             Confirm your identity
           </Title>
@@ -223,7 +223,7 @@ export default function AdminPage() {
       </Box>
     ) : (
       <Box className="flex flex-col gap-6">
-        <Card padding="lg" className="w-full">
+        <Card border="light" padding="lg" className="w-full">
           <Title size="lg" as="h1" className="mb-2">
             Admin Logger Console
           </Title>
@@ -304,7 +304,7 @@ export default function AdminPage() {
           </Box>
         </Card>
 
-        <Card padding="lg" className="w-full">
+        <Card border="light" padding="lg" className="w-full">
           <Title size="lg" as="h2" className="mb-2">
             Skyslope Integration
           </Title>

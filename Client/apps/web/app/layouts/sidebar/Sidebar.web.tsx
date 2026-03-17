@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { SearchNavLink } from "packages/features/search";
+import { useIsAgent } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link } from "packages/navigation";
 import { useViewStore, type ViewState } from "packages/store";
@@ -14,7 +15,6 @@ import { Box } from "packages/ui/components/primitives";
 import ConfirmationDialog from "@/components/modals/dialogs/ConfirmationDialog.web";
 import { BodyText, NotificationBadge } from "@/components/ui";
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
-import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";
 import type { UserProfile } from "@/features/homeauth/types";
 import { useUserData } from "@/features/profile/hooks/data/useUserData";
 
@@ -23,7 +23,7 @@ function getButtonStyles(isActive: boolean): string {
   const baseStyles =
     "w-full flex items-center py-3 transition-all duration-200 font-medium touch-friendly rounded-lg";
   const hoverActiveStyles = "bg-white/10 hover:bg-white/10";
-  const activeStyles = `${hoverActiveStyles} text-white font-semibold`;
+  const activeStyles = `${hoverActiveStyles} text-white font-bold`;
   const inactiveStyles =
     "text-white/80 hover:bg-white/10 hover:text-white hover:-translate-y-0.5 active:bg-white/10 active:text-white";
   return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
@@ -32,7 +32,7 @@ function getSubItemStyles(isActive: boolean): string {
   const baseStyles =
     "flex items-center transition-all duration-200 font-medium touch-friendly rounded-lg";
   const hoverActiveStyles = "bg-white/10 hover:bg-white/10";
-  const activeStyles = `${hoverActiveStyles} text-white font-semibold`;
+  const activeStyles = `${hoverActiveStyles} text-white font-bold`;
   const inactiveStyles =
     "text-white/80 hover:bg-white/10 hover:text-white hover:-translate-y-0.5 active:bg-white/10 active:text-white";
   return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
@@ -83,7 +83,11 @@ function SidebarNavSingleLink({
         aria-current={isActive ? "page" : undefined}
       >
         {iconEl}
-        {expanded && <span className="text-sm font-medium">{firstItem?.name}</span>}
+        {expanded && (
+          <span className={isActive ? "text-base font-bold" : "text-sm font-medium"}>
+            {firstItem?.name}
+          </span>
+        )}
       </SearchNavLink>
     );
   }
@@ -108,7 +112,11 @@ function SidebarNavSingleLink({
       aria-current={isActive ? "page" : undefined}
     >
       {iconEl}
-      {expanded && <span className="text-sm font-medium">{firstItem?.name}</span>}
+      {expanded && (
+        <span className={isActive ? "text-base font-bold" : "text-sm font-medium"}>
+          {firstItem?.name}
+        </span>
+      )}
     </Link>
   );
 }
@@ -187,7 +195,15 @@ function SidebarNavCategory({
               className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""} ${!expanded && openCategories[categoryKey] ? "text-white" : ""}`}
             />
           </Box>
-          {expanded && <span className="text-sm font-medium">{category.name}</span>}
+          {expanded && (
+            <span
+              className={
+                isCategoryActive(category.items) ? "text-base font-bold" : "text-sm font-medium"
+              }
+            >
+              {category.name}
+            </span>
+          )}
         </Box>
         {!expanded && openCategories[categoryKey] && (
           <Box className="absolute right-1 top-1 h-2 w-2 rounded-full bg-white"></Box>
@@ -219,7 +235,13 @@ function SidebarNavCategory({
                 name={item.icon}
                 className={`${isActive(item.href) ? "h-6 w-6" : "h-5 w-5"} transition-all duration-200 ${expanded ? "mr-3" : ""}`}
               />
-              {expanded && <span className="text-sm">{item.name}</span>}
+              {expanded && (
+                <span
+                  className={isActive(item.href) ? "text-base font-bold" : "text-sm"}
+                >
+                  {item.name}
+                </span>
+              )}
             </Link>
           ))}
         </Box>

@@ -13,7 +13,7 @@ type ChooseAreasSectionProps = {
  */
 export default function ChooseAreasSection({ onComplete }: ChooseAreasSectionProps) {
   return (
-    <Card padding="md" className="mb-2">
+    <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-2">
         <BodyText size="sm" className="text-text-secondary">
           Configure your search areas on the web app to add important locations and set commute

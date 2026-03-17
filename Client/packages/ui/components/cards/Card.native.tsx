@@ -4,12 +4,16 @@ import { Pressable } from "react-native";
 
 import { Box } from "packages/ui/components/primitives";
 
+import type { CardBorderVariant } from "./Card";
+
 /**
- * Card container for React Native. Uses Box (View) with built-in border
- * (border-border-card-subtle), padding, and shadow. Callers should not add border classes.
+ * Card container for React Native. Uses Box (View) with built-in border variant,
+ * padding, and shadow. Callers should not add border classes; use the border prop instead.
  */
 type CardProps = {
   children: React.ReactNode;
+  /** Border style: charcoal, light, dotted, or none. Default charcoal. */
+  border?: CardBorderVariant;
   className?: string;
   hover?: boolean;
   padding?: "none" | "sm" | "md" | "lg";
@@ -31,8 +35,16 @@ const shadowClasses: Record<string, string> = {
   lg: "shadow-lg",
 };
 
+const BORDER_CLASSES: Record<CardBorderVariant, string> = {
+  charcoal: "border border-neutral-700",
+  light: "border border-neutral-200",
+  dotted: "border border-neutral-200 border-dashed",
+  none: "",
+};
+
 const CardNative: React.FC<CardProps> = ({
   children,
+  border = "charcoal",
   className = "",
   hover = false,
   padding = "md",
@@ -40,11 +52,11 @@ const CardNative: React.FC<CardProps> = ({
   onClick,
   style,
 }) => {
+  const borderClass = BORDER_CLASSES[border];
   const baseClasses = [
     "bg-white",
     "rounded-lg",
-    "border",
-    "border-border-card-subtle",
+    ...(borderClass ? [borderClass] : []),
     shadowClasses[shadow],
     paddingClasses[padding],
   ];

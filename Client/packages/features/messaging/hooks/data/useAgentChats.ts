@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AgentChatMessage, AgentConversation } from "packages/api";
 import { agentApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
-import { showErrorToast } from "packages/hooks/ui";
+import { showErrorToast } from "packages/hooks/ui/toast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { useNotificationStore } from "packages/store";

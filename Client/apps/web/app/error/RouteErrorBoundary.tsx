@@ -29,7 +29,7 @@ function RouteErrorResponseView({
 }: RouteErrorResponseViewProps) {
   return (
     <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
-      <Card className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
+      <Card border="none" className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
         <Box className="text-center">
           <Box className="mb-4 flex justify-center">
             <Box className="rounded-full border-2 border-destructive bg-background-surface p-3">
@@ -82,7 +82,7 @@ function GenericRouteErrorView({
 }: GenericRouteErrorViewProps) {
   return (
     <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
-      <Card className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
+      <Card border="none" className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
         <Box className="text-center">
           <Box className="mb-4 flex justify-center">
             <Box className="rounded-full border-2 border-destructive bg-background-surface p-3">

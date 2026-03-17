@@ -188,7 +188,7 @@ export default function DemographicsSection({
     </>
   );
   return wrapInCard ? (
-    <Card className="space-y-6">{content}</Card>
+    <Card border="charcoal" className="space-y-6">{content}</Card>
   ) : (
     <Box className="space-y-6">{content}</Box>
   );

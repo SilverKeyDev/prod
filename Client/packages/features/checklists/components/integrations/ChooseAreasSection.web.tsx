@@ -52,7 +52,7 @@ export default function ChooseAreasSection({ onComplete: _onComplete }: ChooseAr
 
   if (!googleMapsLoaded) {
     return (
-      <Card padding="md" className="mb-2">
+      <Card border="dotted" padding="md" className="mb-2">
         <BodyText size="sm" className="text-text-secondary">
           Loading map...
         </BodyText>
@@ -61,7 +61,7 @@ export default function ChooseAreasSection({ onComplete: _onComplete }: ChooseAr
   }
 
   return (
-    <Card padding="md" className="mb-2">
+    <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
         <BodyText size="sm" className="text-text-secondary">
           Add work, family, or other important places. Set how far you&apos;re willing to commute

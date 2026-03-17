@@ -10,7 +10,7 @@ export default function HomeConcierge() {
   const { t } = useLocalization();
   return (
     <Box className="px-responsive-sm w-full max-w-none self-center">
-      <Card padding="md" className="mb-2">
+      <Card border="dotted" padding="md" className="mb-2">
         <Box className="gap-responsive-md flex flex-row items-start text-left">
           <Image
             src="/MoveConcierge.jpg"

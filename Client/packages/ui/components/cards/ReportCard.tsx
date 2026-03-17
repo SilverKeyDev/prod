@@ -6,11 +6,14 @@ import { useLocalization } from "packages/contexts";
 import { formatDate, formatFilenameToAddress } from "packages/features/search/types/search/address";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Report } from "packages/schemas";
+import StatusBadge from "packages/ui/components/asset/StatusBadge";
+import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 import { dateNow } from "packages/utils/date";
 
 import { Card } from "@/components/layout";
-import { BodyText, Button, StatusBadge, Title } from "@/components/ui";
 
 import ActionButton from "./base/buttons/ActionButton";
 import { getInteractiveCardClasses } from "./base/index.web";
@@ -289,6 +292,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
   })();
   return (
     <Card
+      border="charcoal"
       className={
         viewMode === "grid"
           ? `${getInteractiveCardClasses()} relative flex h-full flex-col`

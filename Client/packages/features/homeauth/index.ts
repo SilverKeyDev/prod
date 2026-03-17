@@ -9,5 +9,5 @@ export { HomeFeature } from "./components/homepage";
 export { runAuthBootstrap } from "./hooks/data/authBootstrap";
 export type { ChecklistType, UseChecklistDataReturn } from "./hooks/data/useChecklistData";
 export { useChecklistData } from "./hooks/data/useChecklistData";
-export { useIsAgent } from "./hooks/store/useIsAgent";
+export { useIsAgent } from "packages/hooks/store";
 export { default as RippleBackground } from "packages/ui/components/backgrounds/RippleBackground";

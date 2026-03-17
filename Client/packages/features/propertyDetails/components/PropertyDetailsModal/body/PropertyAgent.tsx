@@ -34,7 +34,7 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) =>
         </Title>
       </Box>
 
-      <Card className="p-4">
+      <Card border="light" className="p-4">
         <Box className="flex items-start space-x-4">
           <Box className="border-brown/20 bg-primary-muted h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
             {imageUrl ? (

@@ -120,7 +120,7 @@ export function OnboardingFeature() {
 
         {/* Step Content */}
         <Box className="bg-background-surface mt-4 rounded-2xl shadow-sm">
-          <Card className="pb-8 sm:pb-12">
+          <Card border="light" className="pb-8 sm:pb-12">
             {renderStepContent()}
 
             {/* Navigation Buttons */}

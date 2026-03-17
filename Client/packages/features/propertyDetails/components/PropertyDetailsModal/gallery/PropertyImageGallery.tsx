@@ -5,7 +5,7 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import type { PropertyImageGalleryProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import Button from "packages/ui/components/button/Button";
-import { StyledImage } from "packages/ui/components/cards/base";
+import { StyledImage } from "packages/ui/components/cards/base/image";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 import { getPropertyImages } from "packages/utils/propertyDetails";

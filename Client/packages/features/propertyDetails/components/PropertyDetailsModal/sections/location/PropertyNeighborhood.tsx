@@ -44,12 +44,12 @@ export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
         <Box className="grid-responsive-1-md-2 gap-6">
           {hasNeighborhoodContent && (
             <Box>
-              <Card className="p-4">{renderNeighborhoodContent(neighborhoodContent!)}</Card>
+              <Card border="light" className="p-4">{renderNeighborhoodContent(neighborhoodContent!)}</Card>
             </Box>
           )}
           {hasAgeDistribution && (
             <Box>
-              <Card className="p-4">{renderAgeDistribution(ageDistribution!)}</Card>
+              <Card border="light" className="p-4">{renderAgeDistribution(ageDistribution!)}</Card>
             </Box>
           )}
         </Box>

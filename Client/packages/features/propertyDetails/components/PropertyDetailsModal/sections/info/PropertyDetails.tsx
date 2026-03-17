@@ -80,7 +80,7 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
 
   return (
     <Box className="p-6">
-      <Card className="p-4">
+      <Card border="light" className="p-4">
         <Box className="grid-responsive-1-lg-3">
           <Box className="w-full lg:w-2/3">
             <Title as="h3" size="lg" className="text-foreground mb-4 font-semibold">

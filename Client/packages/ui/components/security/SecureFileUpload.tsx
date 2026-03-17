@@ -190,7 +190,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
     };
   }, [files]);
   return (
-    <Card className={`w-full ${className}`} padding="md">
+    <Card border="light" className={`w-full ${className}`} padding="md">
       {label && (
         <Label className="mb-4 flex flex-col">
           {label}
@@ -349,6 +349,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       {previewFile && (
         <Box className="fixed inset-0 z-50 flex flex-row items-center justify-center bg-neutral-900 p-4">
           <Card
+            border="light"
             className="relative max-h-full min-h-0 max-w-4xl flex-1 overflow-hidden"
             padding="none"
           >

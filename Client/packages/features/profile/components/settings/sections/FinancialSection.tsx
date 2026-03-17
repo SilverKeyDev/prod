@@ -33,7 +33,7 @@ export default function FinancialSection({
   setIsAffordabilityCollapsed,
 }: FinancialSectionProps) {
   return (
-    <Card className="mb-64 space-y-6">
+    <Card border="charcoal" className="mb-64 space-y-6">
       <Title size="md" className="mb-6">
         Financial Information
       </Title>

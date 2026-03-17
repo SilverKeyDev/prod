@@ -1,6 +1,8 @@
+import Button from "packages/ui/components/button/Button";
+import CancelButton from "packages/ui/components/button/CancelButton";
 import { Box } from "packages/ui/components/primitives";
-
-import { BodyText, Button, CancelButton, Title } from "@/components/ui";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 type DeleteModalProps = {
   isOpen: boolean;

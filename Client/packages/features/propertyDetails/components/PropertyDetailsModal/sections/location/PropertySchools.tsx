@@ -77,7 +77,7 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, anal
         </Title>
       </Box>
 
-      <Card className="mt-2 p-4">
+      <Card border="light" className="mt-2 p-4">
         {hasSchools ? (
           <Box className="flex flex-col gap-3">
             {schoolList.slice(0, 6).map((school, idx) => (

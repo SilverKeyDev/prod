@@ -120,7 +120,7 @@ export function EventList({
     );
 
   return (
-    <Card className="w-full" padding="md" hover={false}>
+    <Card border="charcoal" className="w-full" padding="md" hover={false}>
       {title ? <Text style={titleStyle}>{title}</Text> : null}
       {listContent}
     </Card>

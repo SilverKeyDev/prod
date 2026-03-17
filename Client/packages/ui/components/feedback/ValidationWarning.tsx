@@ -4,9 +4,12 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { spacing } from "packages/design-tokens";
+import CancelButton from "packages/ui/components/button/CancelButton";
+import CloseButton from "packages/ui/components/button/CloseButton";
+import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
-
-import { BodyText, CancelButton, CloseButton, Portal, Title } from "@/components/ui";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 type ValidationWarningProps = {
   isVisible: boolean;
   onClose: () => void;

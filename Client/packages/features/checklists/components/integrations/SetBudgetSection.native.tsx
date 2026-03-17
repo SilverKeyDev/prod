@@ -13,7 +13,7 @@ type SetBudgetSectionProps = {
  */
 export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) {
   return (
-    <Card padding="md" className="mb-2">
+    <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-2">
         <BodyText size="sm" className="text-text-secondary">
           Set your budget range, income, and down payment on the web app. Search results will filter

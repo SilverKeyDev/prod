@@ -50,6 +50,7 @@ export default function AttachmentMenu({
   return (
     <Box className="relative">
       <Card
+        border="charcoal"
         padding="none"
         hover={false}
         className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full"
@@ -81,7 +82,7 @@ export default function AttachmentMenu({
 
       {isOpen && (
         <Box ref={menuRef} className="absolute bottom-full left-0 z-50 mb-2 w-56">
-          <Card padding="none" hover={false} className="overflow-hidden">
+          <Card border="light" padding="none" hover={false} className="overflow-hidden">
             <Box className="px-3 py-2">
               <AttachmentMenuItem
                 iconName="home"

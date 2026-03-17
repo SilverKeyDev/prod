@@ -27,7 +27,7 @@ export const PropertySchools: React.FC<PropertyComponentProps> = ({ property }) 
         </Title>
       </Box>
 
-      <Card className="p-4">
+      <Card border="light" className="p-4">
         <Box className="space-y-3">
           {schoolList.slice(0, 6).map((school, idx) => (
             <Box key={idx} className="flex items-center justify-between">

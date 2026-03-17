@@ -3,10 +3,15 @@ import { useMemo, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/schemas/property";
+import Button from "packages/ui/components/button/Button";
+import { Textarea } from "packages/ui/components/form/FormField";
 import { Box } from "packages/ui/components/primitives";
+import Input from "packages/ui/components/primitives/input/Input";
+import BodyText from "packages/ui/components/text/BodyText";
+import Label from "packages/ui/components/text/Label.web";
+import Title from "packages/ui/components/text/Title";
 
 import Card from "@/components/layout/Card.web";
-import { BodyText, Button, Input, Label, Textarea, Title } from "@/components/ui";
 import type { SearchResult } from "@/features/search/types";
 
 import { StyledImage } from "./base/index.web";
@@ -299,7 +304,7 @@ export default function WhyNotInterestedCard({
   };
 
   return (
-    <Card className="relative w-full overflow-hidden transition-none" padding="none" hover={false}>
+    <Card border="charcoal" className="relative w-full overflow-hidden transition-none" padding="none" hover={false}>
       {propertyImage && (
         <WhyNotInterestedImageSection
           propertyImage={propertyImage}

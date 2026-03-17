@@ -43,6 +43,7 @@ export default function PersonalizationSidebar({
       }}
     >
       <Card
+        border="charcoal"
         className={
           isLargeScreen
             ? "!bg-background-surface space-y-2"
@@ -98,7 +99,7 @@ export default function PersonalizationSidebar({
               variant="ghost"
               size="sm"
               onClick={() => onScrollToSection(step.key)}
-              className={`group flex w-full items-center rounded-lg px-3 py-2 transition-colors ${isLargeScreen ? "gap-3" : "justify-center"} ${
+              className={`group flex min-h-9 w-full items-center justify-center rounded-lg px-3 py-2 transition-colors ${isLargeScreen ? "justify-start gap-3" : "justify-center"} ${
                 currentActiveSection === step.key
                   ? "bg-neutral-100 text-neutral-800"
                   : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-800"

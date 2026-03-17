@@ -8,15 +8,18 @@ import { useLocalization } from "packages/contexts";
 import type { Property, SearchResult } from "packages/features/search/types";
 import { formatAddress } from "packages/features/search/types/search/propertyDetailsFormatters";
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
+import { useIsAgent } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { Textarea } from "packages/ui/components/form/FormField";
 import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Label from "packages/ui/components/text/Label.web";
+import Title from "packages/ui/components/text/Title";
 import { getShareHomeConversationId, getShareHomePropertyId } from "packages/utils/share";
 
 import BaseModal from "@/components/modals/BaseModal";
-import { BodyText, Label, Textarea, Title } from "@/components/ui";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
-import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";
 type ShareHomeModalProps = {
   isOpen: boolean;
   onClose: () => void;

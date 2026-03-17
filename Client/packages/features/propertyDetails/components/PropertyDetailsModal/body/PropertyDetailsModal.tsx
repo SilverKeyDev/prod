@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { PropertyImageGallery } from "packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery";
 import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
 import type { PropertyDetailsModalProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import { BaseModal } from "packages/ui/components/modals";
+import BaseModal from "packages/ui/components/modals/BaseModal";
 import { ScrollView } from "packages/ui/components/primitives";
 
 import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";

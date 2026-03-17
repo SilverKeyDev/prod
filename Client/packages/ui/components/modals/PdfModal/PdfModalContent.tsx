@@ -3,9 +3,11 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
-import { BodyText, Button, Title } from "@/components/ui";
 import {
   getPdfIframeAllow,
   getPdfIframeSandbox,

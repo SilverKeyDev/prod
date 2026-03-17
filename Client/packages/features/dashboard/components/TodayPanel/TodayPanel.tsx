@@ -1,12 +1,12 @@
 import React from "react";
 
+import { useIsAgent } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
 import type { TodoPriority, TodoType } from "@/features/agent/types/agent";
-import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";
 
 import TodoList from "./TodoList";
 

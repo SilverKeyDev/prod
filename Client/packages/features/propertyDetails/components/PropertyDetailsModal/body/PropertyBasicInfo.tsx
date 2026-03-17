@@ -106,7 +106,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
         </Box>
       </Box>
 
-      <Card className="p-4">
+      <Card border="light" className="p-4">
         <Title as="h3" size="lg" className="text-text-secondary mb-4 font-semibold">
           {t("property_details.heading")}
         </Title>

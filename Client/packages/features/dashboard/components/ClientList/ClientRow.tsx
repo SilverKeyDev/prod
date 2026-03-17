@@ -32,7 +32,7 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
     return "Just now";
   };
   return (
-    <Card onClick={onClick} hover={true} className="cursor-pointer transition-all">
+    <Card border="light" onClick={onClick} hover={true} className="cursor-pointer transition-all">
       <Box className="flex flex-col gap-4 sm:flex-row sm:items-center">
         {/* Avatar and Name */}
         <Box className="flex flex-shrink-0 items-center gap-3">

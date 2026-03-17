@@ -119,7 +119,7 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
         </Title>
       </Box>
 
-      <Card className="mt-2 p-4">{agentContent}</Card>
+      <Card border="light" className="mt-2 p-4">{agentContent}</Card>
     </Box>
   );
 };

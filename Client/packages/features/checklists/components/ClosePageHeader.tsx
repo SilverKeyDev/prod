@@ -64,7 +64,7 @@ export default function ClosePageHeader({
   }));
   return (
     <Box className="m-4 w-full max-w-[90%] self-center xl:px-6 2xl:px-8">
-      <Card className="relative z-30 pt-3" padding="none">
+      <Card border="charcoal" className="relative z-30 pt-3" padding="none">
         <Box className="px-4">
           <Box className="flex flex-row flex-col items-center justify-center text-center">
             {/* Title row with logo */}

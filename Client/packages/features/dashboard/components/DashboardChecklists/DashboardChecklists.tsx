@@ -131,7 +131,7 @@ export default function DashboardChecklists() {
         isSectionUnlocked={isSectionUnlocked}
       />
 
-      <Card className="bg-background-base" padding="md" hover={false}>
+      <Card border="charcoal" className="bg-background-base" padding="md" hover={false}>
         {isLoading ? (
           <Box className="flex flex-row items-center justify-center py-12">
             <Loading />
@@ -166,8 +166,10 @@ export default function DashboardChecklists() {
               const isActive = activeItemId != null && item.id === activeItemId;
               const shouldShowIntegration = item.component_key != null && !isSectionLocked;
               const isExpanded = expandedIds.has(item.id);
+              const itemBorder = isActive ? "none" : checked ? "dotted" : "light";
               return (
                 <Card
+                  border={itemBorder}
                   key={item.id}
                   padding="none"
                   hover={false}

@@ -106,7 +106,7 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
           </Box>
         )}
         {analysisContent != null && (
-          <Card className="mt-4">
+          <Card border="light" className="mt-4">
             <CommuteAnalysisContent data={analysisContent} />
           </Card>
         )}

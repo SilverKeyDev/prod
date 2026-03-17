@@ -6,6 +6,7 @@ import { useLocalization } from "packages/contexts";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { formatPropertyType } from "packages/features/search/types/search/propertyFormatters";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import CardNotInterested from "packages/ui/components/button/NotInterested";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
@@ -13,7 +14,6 @@ import {
   CardHeartSaveWithProps,
   CardImageContainer,
   CardMatchScore,
-  CardNotInterested,
   CardPropertyDetails,
 } from "@/components/cards/base/index.web";
 import WhyNotInterestedCard from "@/components/cards/WhyNotInterestedCard.web";

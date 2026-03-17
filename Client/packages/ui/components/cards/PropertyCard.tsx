@@ -4,12 +4,13 @@ import { getEnv } from "packages/config";
 import { useWhyRender } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/schemas/property";
+import CardNotInterested from "packages/ui/components/button/NotInterested";
 import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
 
-import { BodyText } from "@/components/ui";
 import type { SearchResult } from "@/features/search/types";
 
-import { CardNotInterested, StyledImage } from "./base/index.web";
+import { StyledImage } from "./base/index.web";
 import BaseCard from "./BaseCard";
 import {
   PropertyCardDetailsRow,

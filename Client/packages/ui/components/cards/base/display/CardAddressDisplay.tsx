@@ -1,8 +1,8 @@
 import React from "react";
 
 import { Box } from "packages/ui/components/primitives";
-
-import { BodyText, Title } from "@/components/ui";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 export type CardAddressDisplayProps = {
   /** Primary address line */

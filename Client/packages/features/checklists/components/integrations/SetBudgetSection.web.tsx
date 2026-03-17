@@ -107,7 +107,7 @@ export default function SetBudgetSection({ onComplete: _onComplete }: SetBudgetS
   );
 
   return (
-    <Card padding="md" className="mb-2">
+    <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
         <BodyText size="sm" className="text-text-secondary">
           Set your budget range, income, and down payment so search results match what you can

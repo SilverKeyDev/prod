@@ -2,16 +2,12 @@ import React from "react";
 
 import { spacing } from "packages/design-tokens";
 import type { Property } from "packages/schemas/property";
+import CardNotInterested from "packages/ui/components/button/NotInterested";
 import { Box } from "packages/ui/components/primitives";
 
 import type { SearchResult } from "@/features/search/types";
 
-import {
-  CardAddressDisplay,
-  CardMatchScore,
-  CardNotInterested,
-  CardPropertyDetails,
-} from "./base/index.web";
+import { CardAddressDisplay, CardMatchScore, CardPropertyDetails } from "./base/index.web";
 
 function formatPriceDisplay(price: string): string {
   return price.startsWith("$") ? price : `$${price}`;

@@ -1,8 +1,9 @@
 import { spacing } from "packages/design-tokens";
+import Button from "packages/ui/components/button/Button";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
-
-import { BodyText, Button, Title } from "@/components/ui";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 type SuccessDialogProps = {
   isOpen: boolean;

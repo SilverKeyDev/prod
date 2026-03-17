@@ -1,11 +1,10 @@
 import React, { useEffect } from "react";
 
+import CloseButton from "packages/ui/components/button/CloseButton";
+import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
+import Title from "packages/ui/components/text/Title";
 import { getDocument } from "packages/utils/platform";
-
-import CloseButton from "../button/CloseButton";
-import { Portal } from "../portal";
-import Title from "../text/Title";
 
 import type { BaseModalProps } from "./BaseModalTypes";
 

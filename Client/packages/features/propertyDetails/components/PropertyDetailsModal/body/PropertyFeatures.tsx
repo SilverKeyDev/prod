@@ -47,7 +47,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
         </Title>
       </Box>
 
-      <Card className="border-r-0 p-6">
+      <Card border="light" className="border-r-0 p-6">
         {img && img.clean.length > 0 && (
           <Box className="mb-4">
             <Title as="h4" size="sm" className="text-accent mb-2 font-semibold">

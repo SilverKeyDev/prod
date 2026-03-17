@@ -3,7 +3,16 @@ Logger Category Definitions
 Type-safe category constants and helpers
 """
 
-from enum import StrEnum
+from enum import Enum
+
+try:
+    from enum import StrEnum
+except ImportError:
+    # StrEnum added in Python 3.11; provide fallback for 3.10
+    class StrEnum(str, Enum):
+        """StrEnum fallback for Python < 3.11"""
+
+        pass
 
 
 class LogCategory(StrEnum):

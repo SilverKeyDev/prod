@@ -9,7 +9,7 @@ export * from "./performance";
 
 // Store integrations
 export { useFiltersStoreIntegration } from "./useFiltersStoreIntegration";
-export { useGoogleCalendarStoreIntegration } from "./useGoogleCalendarStoreIntegration";
+export { useIsAgent } from "./useIsAgent";
 export { useSavedHomesStoreIntegration } from "./useSavedHomesStoreIntegration";
 export { useSessionStoreIntegration } from "./useSessionStoreIntegration";
 export { useUIStoreIntegration } from "./useUIStoreIntegration";

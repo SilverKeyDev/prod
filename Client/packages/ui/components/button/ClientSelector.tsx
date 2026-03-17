@@ -4,11 +4,11 @@ import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 
 import { useLocalization } from "packages/contexts";
+import { useIsAgent } from "packages/hooks/store";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
-import { useIsAgent } from "@/features/homeauth/hooks/store/useIsAgent";
 
 import Button from "./Button";
 type ClientSelectorProps = {

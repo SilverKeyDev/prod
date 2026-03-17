@@ -67,7 +67,7 @@ export default function FindingHome({ onSave, onComplete }: FindingHomeProps) {
 
   return (
     <>
-      <Card padding="md" className="mb-2">
+      <Card border="dotted" padding="md" className="mb-2">
         <Box className="gap-3">
           <Text className="text-text-primary text-sm font-medium">
             Enter the address of the home you want to make an offer on

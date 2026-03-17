@@ -1,10 +1,13 @@
 import { Icon } from "@ui/icons";
 
 import { spacing } from "packages/design-tokens";
+import Button from "packages/ui/components/button/Button";
+import CancelButton from "packages/ui/components/button/CancelButton";
+import CloseButton from "packages/ui/components/button/CloseButton";
 import { Portal } from "packages/ui/components/portal";
 import { Box } from "packages/ui/components/primitives";
-
-import { BodyText, Button, CancelButton, CloseButton, Title } from "@/components/ui";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 import type { ConfirmationDialogProps } from "./ConfirmationDialog.types";
 type ConfirmationDialogContentProps = Omit<ConfirmationDialogProps, "isOpen"> & {

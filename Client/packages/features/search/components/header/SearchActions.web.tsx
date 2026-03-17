@@ -63,7 +63,7 @@ export default function SearchActions({
             disabled={isSearching || !hasLocations}
             title={!hasLocations ? t("search.add_location_to_search") : undefined}
             iconName={!isSearching ? "search" : undefined}
-            className={`touch-friendly min-w-0 flex-1 px-4 ${btnClass}`}
+            className={`touch-friendly min-w-min flex-1 px-4 ${HEADER_ROW_HEIGHT}`}
           >
             {isSearching ? t("search.searching") : t("search.search")}
           </Button>
@@ -115,7 +115,7 @@ export default function SearchActions({
         disabled={isSearching || !hasLocations}
         title={!hasLocations ? t("search.add_location_to_search") : undefined}
         iconName={!isSearching ? "search" : undefined}
-        className={`px-4 ${btnClass}`}
+        className={`min-w-min shrink-0 px-4 ${btnClass}`}
       >
         {isSearching ? t("search.searching") : t("search.search")}
       </Button>

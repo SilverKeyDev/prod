@@ -50,7 +50,7 @@ export default function DefineCriteriaSection({ onComplete }: DefineCriteriaSect
   }, [onComplete]);
 
   return (
-    <Card padding="md" className="mb-2">
+    <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
         {saveStatus !== "idle" && (
           <Box className="flex flex-row items-center gap-2">

@@ -183,7 +183,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
             }}
           >
             {/* Keep interior layout centered; no extra bottom margin */}
-            <Card className="flex items-center justify-center overflow-visible py-1 sm:py-3">
+            <Card border="light" className="flex items-center justify-center overflow-visible py-1 sm:py-3">
               <Box className="w-full max-w-5xl px-0 sm:px-1 xl:max-w-6xl 2xl:max-w-7xl">
                 <Region
                   ref={gridRef}
