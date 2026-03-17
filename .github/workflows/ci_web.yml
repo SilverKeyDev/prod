@@ -122,7 +122,7 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & push to ECR (reduced logs)
+      - name: Build & push to ECR
         env:
           VITE_GOOGLE_MAPS_ID: ${{ secrets.VITE_GOOGLE_MAPS_ID }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
@@ -151,7 +151,7 @@ jobs:
             --cache-from type=registry,ref="$CACHE_REF" \
             --cache-to type=registry,ref="$CACHE_REF",mode=max \
             --push \
-            . 2>&1 | grep -Ev 'sha256:[0-9a-f]{64}|writing layer|Verifying Checksum|Download complete|Extracting|Pulling fs layer|Waiting' || true
+            .
 
       - name: Prune Buildx cache (safe)
         run: |
