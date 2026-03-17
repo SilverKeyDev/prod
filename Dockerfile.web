@@ -21,20 +21,14 @@
   ENV VITE_PLAID_CLIENT_ID=${VITE_PLAID_CLIENT_ID}
   ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
   
-  # Workspace files
-  COPY Client/package.json ./
-  COPY Client/pnpm-workspace.yaml ./
-  COPY Client/pnpm-lock.yaml ./
-  
-  # Prefetch deps using lockfile only (silent)
-  RUN pnpm fetch --reporter=silent >/dev/null 2>&1
-  
-  # Copy rest of client source (exclude mobile app)
+  # Copy client source (package files first for better layer cache when only app code changes)
+  COPY Client/package.json Client/pnpm-workspace.yaml Client/pnpm-lock.yaml ./
   COPY Client/ .
   RUN rm -rf apps/mobile
   
-  # Install deps from store (silent)
-  RUN pnpm install --frozen-lockfile --prod=false --reporter=silent >/dev/null 2>&1 \
+  # Single install (avoids pnpm fetch which can hang for hours in Docker/CI).
+  # 20min timeout so the build fails instead of hanging indefinitely.
+  RUN timeout 1200 pnpm install --frozen-lockfile --prod=false --reporter=default \
    && rm -rf /tmp/* || true
   
   # Headroom for Rollup
