@@ -64,6 +64,7 @@ jobs:
           plaid_json="$(fetch_json plaid)"
           serp_json="$(fetch_json serp)"
           rapidapi_json="$(fetch_json rapidapi)"
+          skyslope_json="$(fetch_json skyslope)"
 
           export_if_present () {
             local json="$1"
@@ -102,6 +103,9 @@ jobs:
 
           export_if_present "$serp_json" "SERP_API" "SERP_API"
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
+          export_if_present "$skyslope_json" "SKYSLOPE_ACCESS_KEY" "SKYSLOPE_ACCESS_KEY"
+          export_if_present "$skyslope_json" "SKYSLOPE_SECRET" "SKYSLOPE_SECRET"
+          export_if_present "$skyslope_json" "SKYSLOPE_REDIRECT_URI" "SKYSLOPE_REDIRECT_URI"
 
       - name: Set up Docker Buildx (container driver)
         uses: docker/setup-buildx-action@v3
@@ -182,6 +186,9 @@ jobs:
           VITE_PLAID_CLIENT_ID: ${{ env.VITE_PLAID_CLIENT_ID }}
           SERP_API: ${{ env.SERP_API }}
           RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY }}
+          SKYSLOPE_ACCESS_KEY: ${{ env.SKYSLOPE_ACCESS_KEY }}
+          SKYSLOPE_SECRET: ${{ env.SKYSLOPE_SECRET }}
+          SKYSLOPE_REDIRECT_URI: ${{ env.SKYSLOPE_REDIRECT_URI }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
@@ -193,7 +200,8 @@ jobs:
             GOOGLE_MAPS_API_KEY,GOOGLE_CALENDAR_SECRET,GOOGLE_CLIENT_ID,
             CENSUS_API_KEY,MAPBOX_API_KEY,OPENAI_KEY,PERPLEXITY_API_KEY,
             PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,
-            SERP_API,RAPIDAPI_KEY
+            SERP_API,RAPIDAPI_KEY,
+            SKYSLOPE_ACCESS_KEY,SKYSLOPE_SECRET,SKYSLOPE_REDIRECT_URI
           script: |
             set -euo pipefail
 
@@ -329,6 +337,9 @@ jobs:
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
+              -e SKYSLOPE_ACCESS_KEY="${SKYSLOPE_ACCESS_KEY}" \
+              -e SKYSLOPE_SECRET="${SKYSLOPE_SECRET}" \
+              -e SKYSLOPE_REDIRECT_URI="${SKYSLOPE_REDIRECT_URI}" \
               "$IMAGE" >/dev/null
 
             echo "⏳ Waiting for App to start..."
@@ -387,6 +398,9 @@ jobs:
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
+              -e SKYSLOPE_ACCESS_KEY="${SKYSLOPE_ACCESS_KEY}" \
+              -e SKYSLOPE_SECRET="${SKYSLOPE_SECRET}" \
+              -e SKYSLOPE_REDIRECT_URI="${SKYSLOPE_REDIRECT_URI}" \
               "$IMAGE" \
               celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1
 
