@@ -5,6 +5,8 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
+import { Box } from "packages/ui/components/primitives";
+
 type PersonalizationMobileHeaderProps = {
   isEditMode: boolean;
   isSaving: boolean;
@@ -22,7 +24,7 @@ const PersonalizationMobileHeader: React.FC<PersonalizationMobileHeaderProps> = 
   const { t } = useLocalization();
   if (!isEditMode) {
     return (
-      <div className="flex w-full justify-center px-4">
+      <Box className="flex w-full justify-center px-4">
         <Button
           onClick={onEdit}
           variant="primary"
@@ -33,11 +35,11 @@ const PersonalizationMobileHeader: React.FC<PersonalizationMobileHeaderProps> = 
         >
           {t("profile.account.edit")}
         </Button>
-      </div>
+      </Box>
     );
   }
   return (
-    <div className="mx-auto flex w-full max-w-sm gap-2">
+    <Box className="mx-auto flex w-full max-w-sm gap-2">
       <CancelButton onClick={onCancel} size="sm" className="flex-1">
         {t("profile.account.cancel")}
       </CancelButton>
@@ -51,7 +53,7 @@ const PersonalizationMobileHeader: React.FC<PersonalizationMobileHeaderProps> = 
       >
         {isSaving ? t("profile.account.saving_save") : t("profile.account.save")}
       </Button>
-    </div>
+    </Box>
   );
 };
 export default PersonalizationMobileHeader;

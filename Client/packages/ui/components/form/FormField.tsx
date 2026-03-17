@@ -5,6 +5,7 @@ import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 type FormFieldProps = {
   label?: string;
@@ -25,7 +26,7 @@ const FormField = ({
 }: FormFieldProps) => {
   const { t } = useLocalization();
   return (
-    <div className={`mb-4 ${className}`}>
+    <Box className={`mb-4 ${className}`}>
       {label && (
         <Label className={`text-text-primary mb-2 block font-medium ${labelClassName}`}>
           {label}
@@ -42,7 +43,7 @@ const FormField = ({
           {error}
         </BodyText>
       )}
-    </div>
+    </Box>
   );
 };
 

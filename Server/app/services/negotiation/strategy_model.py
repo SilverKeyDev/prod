@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 # ---------- Enums ----------
 
 
-class SellerReason(str, Enum):
+class SellerReason(StrEnum):
     RELOCATION = "relocation"
     UPSIZING = "upsizing"
     DOWNSIZING = "downsizing"
@@ -21,14 +21,14 @@ class SellerReason(str, Enum):
     UNKNOWN = "unknown"
 
 
-class MarketCondition(str, Enum):
+class MarketCondition(StrEnum):
     HOT_SELLERS = "hot_sellers_market"
     BALANCED = "balanced"
     BUYERS = "buyers_market"
     STALE_LISTING = "stale_listing"
 
 
-class FinancingType(str, Enum):
+class FinancingType(StrEnum):
     CASH = "cash"
     CONVENTIONAL = "conventional"
     FHA = "fha"
@@ -36,7 +36,7 @@ class FinancingType(str, Enum):
     OTHER = "other"
 
 
-class Contingency(str, Enum):
+class Contingency(StrEnum):
     INSPECTION = "inspection"
     FINANCING = "financing"
     APPRAISAL = "appraisal"

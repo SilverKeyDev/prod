@@ -5,6 +5,7 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 export default function ContactUs() {
@@ -18,36 +19,36 @@ export default function ContactUs() {
       </Section>
 
       <Section title="Contact Information">
-        <div className="gap-responsive-md grid grid-cols-1 md:grid-cols-2">
-          <div className="gap-responsive-sm flex items-start">
+        <Box className="gap-responsive-md grid grid-cols-1 md:grid-cols-2">
+          <Box className="gap-responsive-sm flex items-start">
             <Icon name="mail" className="mobile-icon-sm text-text-secondary mt-1 flex-shrink-0" />
-            <div>
+            <Box>
               <Title size="md" as="h3" className="space-y-responsive-xs">
                 Email
               </Title>
               <BodyText size="sm" muted>
                 <EmailLink href="mailto:walzerjayce@gmail.com">walzerjayce@gmail.com</EmailLink>
               </BodyText>
-            </div>
-          </div>
+            </Box>
+          </Box>
 
-          <div className="gap-responsive-sm flex items-start">
+          <Box className="gap-responsive-sm flex items-start">
             <Icon name="phone" className="mobile-icon-sm text-text-secondary mt-1 flex-shrink-0" />
-            <div>
+            <Box>
               <Title size="md" as="h3" className="space-y-responsive-xs">
                 Phone
               </Title>
               <BodyText size="sm" muted>
                 +1 (858) 265-9936
               </BodyText>
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
       </Section>
 
       <Section title="Frequently Asked Questions">
-        <div className="space-y-responsive-sm">
-          <div>
+        <Box className="space-y-responsive-sm">
+          <Box>
             <Title size="md" as="h3" className="space-y-responsive-xs">
               How quickly will I receive my property report?
             </Title>
@@ -55,9 +56,9 @@ export default function ContactUs() {
               Most reports are generated within 2-5 minutes. Complex properties or high-demand
               periods may take up to 15 minutes.
             </BodyText>
-          </div>
+          </Box>
 
-          <div>
+          <Box>
             <Title size="md" as="h3" className="space-y-responsive-xs">
               What areas do you cover?
             </Title>
@@ -66,9 +67,9 @@ export default function ContactUs() {
               commercial, and investment properties, with solid but slightly less accurate coverage
               globally.
             </BodyText>
-          </div>
+          </Box>
 
-          <div>
+          <Box>
             <Title size="md" as="h3" className="space-y-responsive-xs">
               Can I get a refund if I'm not satisfied?
             </Title>
@@ -76,8 +77,8 @@ export default function ContactUs() {
               Yes! We offer a 30-day money-back guarantee. If you're not completely satisfied with
               your report, contact us for a full refund.
             </BodyText>
-          </div>
-        </div>
+          </Box>
+        </Box>
       </Section>
 
       <Section title="Send Us a Message" isLast={true}>

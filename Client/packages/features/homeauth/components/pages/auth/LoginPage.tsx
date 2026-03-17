@@ -9,6 +9,7 @@ import AuthPageLayout from "packages/features/homeauth/components/core/PageLayou
 import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAuth";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 import { getSessionStorage } from "packages/utils/storage";
 
 import { Button, Input } from "@/components/ui";
@@ -106,14 +107,14 @@ export default function LoginPage() {
 
         <GoogleSignInButton text="Sign in with Google" />
 
-        <div className="gap-responsive-md text-responsive-sm flex items-center justify-center">
+        <Box className="gap-responsive-md text-responsive-sm flex items-center justify-center">
           <AuthLink to="/signup" variant="inline">
             Create an account
           </AuthLink>
           <AuthLink to="/forgot-password" variant="inline">
             Forgot password?
           </AuthLink>
-        </div>
+        </Box>
       </form>
     </AuthPageLayout>
   );

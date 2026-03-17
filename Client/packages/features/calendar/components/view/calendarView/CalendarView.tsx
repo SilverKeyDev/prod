@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import type { DateRange, ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
 import { dateParseISO } from "packages/utils/date";
@@ -15,7 +16,6 @@ import {
 import { calculateCalendarDateRange, getVisibleDateRange } from "@/features/calendar/utils/date";
 import { filterCurrentPeriodEvents } from "@/features/calendar/utils/eventFiltering";
 
-import type { DateRange, ExtendedGoogleEvent } from "../../../types/calendar";
 import { CalendarGrid } from "./CalendarGrid";
 import type { CalendarViewProps } from "./types";
 import { WeekDayHeaders } from "./WeekDayHeaders";

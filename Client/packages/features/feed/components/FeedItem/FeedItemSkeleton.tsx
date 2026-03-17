@@ -1,4 +1,4 @@
-import { Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/primitives";
 
 import { FeedPosterPlaceholder } from "./FeedPosterPlaceholder";
 
@@ -13,7 +13,7 @@ type FeedItemSkeletonProps = {
  */
 export function FeedItemSkeleton({ thumbnailUrl }: FeedItemSkeletonProps = {}) {
   return (
-    <div className="bg-text-primary relative h-full min-h-0 w-full overflow-hidden">
+    <Box className="bg-text-primary relative h-full min-h-0 w-full overflow-hidden">
       {thumbnailUrl ? (
         <>
           <Image
@@ -25,13 +25,13 @@ export function FeedItemSkeleton({ thumbnailUrl }: FeedItemSkeletonProps = {}) {
               e.currentTarget.nextElementSibling?.classList.remove("hidden");
             }}
           />
-          <div className="absolute inset-0 hidden">
+          <Box className="absolute inset-0 hidden">
             <FeedPosterPlaceholder />
-          </div>
+          </Box>
         </>
       ) : (
-        <div className="bg-text-secondary absolute inset-0 animate-pulse blur-sm" />
+        <Box className="bg-text-secondary absolute inset-0 animate-pulse blur-sm" />
       )}
-    </div>
+    </Box>
   );
 }

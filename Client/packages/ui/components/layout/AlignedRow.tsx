@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 
+import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
 export type AlignedRowItem = {
@@ -173,22 +174,22 @@ function AlignedRowItemsContent({
         const respClass = getResponsiveWidthClasses(width, breakIntoRows);
         const widthStyle = breakIntoRows === "never" ? { width: `${width}%` } : {};
         return (
-          <div
+          <Box
             key={index}
             className={`aligned-row-item flex h-full min-h-0 flex-col ${respClass} ${item.className ?? ""}`}
             style={widthStyle}
           >
             {item.title && (
-              <div className={`aligned-row-title flex-shrink-0 ${titleClassName}`}>
+              <Box className={`aligned-row-title flex-shrink-0 ${titleClassName}`}>
                 {item.title}
-              </div>
+              </Box>
             )}
-            <div
+            <Box
               className={`aligned-row-content flex min-h-0 flex-1 flex-col justify-start ${contentClassName}`}
             >
               {item.content}
-            </div>
-          </div>
+            </Box>
+          </Box>
         );
       })}
     </>
@@ -212,9 +213,9 @@ function AlignedRowChildrenContent({
         const width = elementWidths[index] ?? 0;
         const respClass = getResponsiveWidthClasses(width, breakIntoRows);
         const widthStyle = breakIntoRows === "never" ? { width: `${width}%` } : {};
-        const node = React.isValidElement(child) ? child : <div>{child}</div>;
+        const node = React.isValidElement(child) ? child : <Box>{child}</Box>;
         return (
-          <div
+          <Box
             key={index}
             className={`aligned-row-item flex h-full min-h-0 flex-col ${respClass}`}
             style={widthStyle}
@@ -223,7 +224,7 @@ function AlignedRowChildrenContent({
               className:
                 `${(node as React.ReactElement<{ className?: string }>).props?.className ?? ""} h-full w-full flex-1`.trim(),
             })}
-          </div>
+          </Box>
         );
       })}
     </>
@@ -282,9 +283,9 @@ const AlignedRow: React.FC<AlignedRowProps> = ({
     ) : null;
 
   return (
-    <div ref={containerRef} className={combinedClasses} style={style}>
+    <Box ref={containerRef} className={combinedClasses} style={style}>
       {content}
-    </div>
+    </Box>
   );
 };
 

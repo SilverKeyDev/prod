@@ -4,8 +4,6 @@
  * Used by metro.config.cjs via transformer.babelTransformerPath.
  */
 /* eslint-disable @typescript-eslint/no-require-imports -- Metro runs in Node CJS */
-/* eslint-env node */
-
 /* eslint-disable silverkey/no-process-env-outside-config -- Metro transformer is a build-time file */
 
 const path = require("node:path");

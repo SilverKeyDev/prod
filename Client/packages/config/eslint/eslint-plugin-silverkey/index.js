@@ -4,6 +4,7 @@ module.exports = {
     "folder-extension-policy": require("./rules/architecture/folder-extension-policy"),
     "folder-max-items": require("./rules/architecture/folder-max-items"),
     "no-empty-folders": require("./rules/architecture/no-empty-folders"),
+    "no-dynamic-class-names": require("./rules/ui/no-dynamic-class-names"),
     "no-hardcoded-breakpoints": require("./rules/ui/no-hardcoded-breakpoints"),
     "no-restricted-imports-architecture": require("./rules/architecture/no-restricted-imports-architecture"),
     "no-primitive-components": require("./rules/ui/no-primitive-components"),

@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import BodyText from "@ui/text/BodyText";
 
 import { color } from "packages/design-tokens";
+import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
 const PARTICLE_COUNT = 9;
@@ -179,8 +180,8 @@ function OrbRippleLoader({ message = "Thinking..." }: { message?: string }) {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-2 py-4">
-      <div
+    <Box className="flex flex-col items-center justify-center space-y-2 py-4">
+      <Box
         className="rounded-full"
         style={{
           width: SIZE,
@@ -199,11 +200,11 @@ function OrbRippleLoader({ message = "Thinking..." }: { message?: string }) {
             backgroundColor: "transparent",
           }}
         />
-      </div>
+      </Box>
       <BodyText size="xs" muted className="animate-pulse text-gray-500">
         {message}
       </BodyText>
-    </div>
+    </Box>
   );
 }
 

@@ -4,8 +4,9 @@
  */
 import React from "react";
 
-import { BodyText, Title } from "@/components/ui";
+import { Box } from "packages/ui/components/primitives";
 
+import { BodyText, Title } from "@/components/ui";
 export function CommuteAnalysisContent({ data }: { data: unknown }): React.ReactNode {
   if (!data || typeof data !== "object") return null;
   const dataObj = data as Record<string, unknown>;
@@ -14,12 +15,12 @@ export function CommuteAnalysisContent({ data }: { data: unknown }): React.React
   );
   if (entries.length === 0) return null;
   return (
-    <div className="mt-4 space-y-2 text-left">
+    <Box className="mt-4 space-y-2 text-left">
       {entries.map(([key, value]) => {
         const displayKey = key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
         if (Array.isArray(value)) {
           return (
-            <div key={key}>
+            <Box key={key}>
               <Title as="h4" size="sm" className="text-text-secondary mb-1 font-medium">
                 {displayKey}
               </Title>
@@ -28,20 +29,20 @@ export function CommuteAnalysisContent({ data }: { data: unknown }): React.React
                   <li key={i}>• {String(item)}</li>
                 ))}
               </ul>
-            </div>
+            </Box>
           );
         }
         return (
-          <div key={key} className="flex justify-between text-sm">
+          <Box key={key} className="flex justify-between text-sm">
             <BodyText as="span" className="text-text-secondary">
               {displayKey}:
             </BodyText>
             <BodyText as="span" className="text-text-secondary font-medium">
               {String(value)}
             </BodyText>
-          </div>
+          </Box>
         );
       })}
-    </div>
+    </Box>
   );
 }

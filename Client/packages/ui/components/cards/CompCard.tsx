@@ -6,6 +6,7 @@ import {
   formatPrice,
 } from "packages/features/search/types/search/address";
 import { Image } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 export type CompData = {
@@ -67,11 +68,11 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
     return formatLotSize(lotSizeValue);
   })();
   return (
-    <div
+    <Box
       className={`border-border bg-background-surface flex flex-col overflow-hidden rounded-lg border shadow-sm ${className}`}
     >
       {/* Image Section */}
-      <div className="relative h-28 overflow-hidden sm:h-32 md:h-36">
+      <Box className="relative h-28 overflow-hidden sm:h-32 md:h-36">
         <Image
           src={imageUrl}
           alt={comp.address.streetAddress}
@@ -79,34 +80,34 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         />
 
         {/* Price and Status Row */}
-        <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
+        <Box className="absolute left-2 right-2 top-2 flex items-center justify-between">
           {/* Price Badge - reduced padding */}
-          <div className="text-primary border-border bg-primary-muted rounded-full border px-2 py-1 text-xs font-medium backdrop-blur-sm sm:text-sm">
+          <Box className="text-primary border-border bg-primary-muted rounded-full border px-2 py-1 text-xs font-medium backdrop-blur-sm sm:text-sm">
             {formatPrice(comp.price, comp.currency)}
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Content Section */}
-      <div className="flex flex-1 flex-col p-3">
+      <Box className="flex flex-1 flex-col p-3">
         {/* Address */}
-        <div className="mb-3 text-left">
-          <div className="mb-1 flex items-center gap-1">
+        <Box className="mb-3 text-left">
+          <Box className="mb-1 flex items-center gap-1">
             <Icon name="map-pin" className="h-3 w-3 flex-shrink-0 text-gray-400" />
             <Title as="h3" size="sm" className="truncate font-medium text-black sm:text-base">
               {comp.address.streetAddress}
             </Title>
-          </div>
+          </Box>
           <BodyText as="p" size="xs" className="ml-4 truncate text-black/60 sm:text-sm">
             {comp.address.city}, {comp.address.state} {comp.address.zipcode}
           </BodyText>
-        </div>
+        </Box>
 
         {/* Property Details - Try to fit on same line, wrap if needed */}
-        <div className="mb-3 text-left">
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
+        <Box className="mb-3 text-left">
+          <Box className="flex flex-wrap gap-x-4 gap-y-2">
             {comp.bedrooms > 0 && (
-              <div className="flex items-center gap-1">
+              <Box className="flex items-center gap-1">
                 <Icon
                   name="bed"
                   className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3"
@@ -114,10 +115,10 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
                 <BodyText as="span" size="xs" className="text-gray-500 sm:text-sm">
                   {comp.bedrooms} bed{comp.bedrooms !== 1 ? "s" : ""}
                 </BodyText>
-              </div>
+              </Box>
             )}
             {comp.bathrooms > 0 && (
-              <div className="flex items-center gap-1">
+              <Box className="flex items-center gap-1">
                 <Icon
                   name="bath"
                   className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3"
@@ -125,10 +126,10 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
                 <BodyText as="span" size="xs" className="text-gray-500 sm:text-sm">
                   {comp.bathrooms} bath{comp.bathrooms !== 1 ? "s" : ""}
                 </BodyText>
-              </div>
+              </Box>
             )}
             {comp.livingArea > 0 ? (
-              <div className="flex items-center gap-1">
+              <Box className="flex items-center gap-1">
                 <Icon
                   name="square"
                   className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3"
@@ -136,9 +137,9 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
                 <BodyText as="span" size="xs" className="text-gray-500 sm:text-sm">
                   {Math.round(comp.livingArea).toLocaleString()} sqft
                 </BodyText>
-              </div>
+              </Box>
             ) : (
-              <div className="flex items-center gap-1">
+              <Box className="flex items-center gap-1">
                 <Icon
                   name="square"
                   className="h-2.5 w-2.5 flex-shrink-0 text-transparent sm:h-3 sm:w-3"
@@ -146,13 +147,13 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
                 <BodyText as="span" size="xs" className="text-transparent sm:text-sm">
                   {" ".repeat(8)}sqft
                 </BodyText>
-              </div>
+              </Box>
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {/* Lot Size - underneath bed/bath/sqft */}
-        <div className="mb-3 flex items-center gap-1 text-left">
+        <Box className="mb-3 flex items-center gap-1 text-left">
           {lotSizeDisplay ? (
             <>
               <Icon
@@ -174,11 +175,11 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
               </BodyText>
             </>
           )}
-        </div>
+        </Box>
 
         {/* Agent and Brokerage Info */}
-        <div className="mt-auto space-y-2 text-left">
-          <div className="flex items-center gap-1">
+        <Box className="mt-auto space-y-2 text-left">
+          <Box className="flex items-center gap-1">
             <Icon name="user" className="h-2.5 w-2.5 flex-shrink-0 text-gray-400 sm:h-3 sm:w-3" />
             <BodyText as="span" size="xs" className="text-gray-500 sm:text-sm">
               Agent:{" "}
@@ -186,9 +187,9 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
                 ? formatAgentName(comp.attributionInfo.agentName)
                 : "N/A"}
             </BodyText>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }

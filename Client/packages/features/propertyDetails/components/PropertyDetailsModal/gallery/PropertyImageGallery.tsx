@@ -105,7 +105,6 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
                   type="button"
                   variant="ghost"
                   onClick={() => goToImage(index)}
-                  // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                   className={`relative overflow-hidden rounded border-2 ${index === currentImageIndex ? "border-stone-300" : "border-stone-100 hover:border-stone-200 active:border-stone-300 active:opacity-90"} active:border-stone-200`}
                 >
                   <StyledImage

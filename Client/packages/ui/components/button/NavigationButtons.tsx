@@ -2,6 +2,8 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import Button from "./Button";
 export type NavigationButtonsProps = {
   /** Current step index (0-based) */
@@ -67,7 +69,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   };
   const positionStyles = getCenteredPositionStyles();
   const renderPreviousButton = () => (
-    <div className={layout === "centered" ? positionStyles.previous : ""}>
+    <Box className={layout === "centered" ? positionStyles.previous : ""}>
       <Button
         variant="secondary"
         size={size}
@@ -83,10 +85,10 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
       >
         {previousText}
       </Button>
-    </div>
+    </Box>
   );
   const renderNextButton = () => (
-    <div className={layout === "centered" ? positionStyles.next : ""}>
+    <Box className={layout === "centered" ? positionStyles.next : ""}>
       {isLastStep && onSubmit ? (
         <Button
           variant="primary"
@@ -113,14 +115,14 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           {nextText}
         </Button>
       )}
-    </div>
+    </Box>
   );
   return (
-    <div className={`${layoutStyles[layout]} ${className ?? ""}`}>
+    <Box className={`${layoutStyles[layout]} ${className ?? ""}`}>
       {renderPreviousButton()}
       {layout === "inline" && renderNextButton()}
       {layout !== "inline" && renderNextButton()}
-    </div>
+    </Box>
   );
 };
 // Export the skip button as a separate component for external use

@@ -127,7 +127,6 @@ export function ReelsCommentsSheet({
                           <Image
                             src={comment.user.avatarUrl ?? DEFAULT_AVATAR_IMAGE}
                             alt=""
-                            // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                             className={`h-8 w-8 ${FEED_AVATAR_IMAGE_CLASS}`}
                           />
                         </Box>
@@ -197,7 +196,6 @@ export function ReelsCommentsSheet({
                   <Image
                     src={currentUser?.avatarUrl ?? DEFAULT_AVATAR_IMAGE}
                     alt=""
-                    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                     className={`h-8 w-8 shrink-0 ${FEED_AVATAR_IMAGE_CLASS}`}
                   />
                   <AccessibleTextInput

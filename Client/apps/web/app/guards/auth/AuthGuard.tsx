@@ -7,6 +7,8 @@ import { type ReactNode } from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Title } from "@/components/ui";
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
@@ -28,16 +30,16 @@ export function AuthGuard({
   if (authStatus === "checking") {
     return (
       fallback ?? (
-        <div className="flex min-h-screen items-center justify-center bg-background-base">
+        <Box className="flex min-h-screen items-center justify-center bg-background-base">
           <Card className="w-full max-w-sm" padding="lg">
-            <div className="text-center">
+            <Box className="text-center">
               <Icon name="loader-2" className="mx-auto mb-4 h-8 w-8 animate-spin text-primary" />
               <BodyText size="sm" muted>
                 Checking authentication...
               </BodyText>
-            </div>
+            </Box>
           </Card>
-        </div>
+        </Box>
       )
     );
   }
@@ -46,14 +48,14 @@ export function AuthGuard({
   if (requireAuth && authStatus === "unauthenticated") {
     return (
       fallback ?? (
-        <div className="flex min-h-screen items-center justify-center bg-background-base p-4">
+        <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
           <Card className="w-full max-w-md border-l-4 border-l-primary" padding="lg">
-            <div className="text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="rounded-full bg-primary-muted p-3">
+            <Box className="text-center">
+              <Box className="mb-4 flex justify-center">
+                <Box className="rounded-full bg-primary-muted p-3">
                   <Icon name="lock" className="h-8 w-8 text-primary" />
-                </div>
-              </div>
+                </Box>
+              </Box>
 
               <Title size="lg" as="h2" className="mb-2">
                 Authentication Required
@@ -71,9 +73,9 @@ export function AuthGuard({
               >
                 Sign In
               </Button>
-            </div>
+            </Box>
           </Card>
-        </div>
+        </Box>
       )
     );
   }

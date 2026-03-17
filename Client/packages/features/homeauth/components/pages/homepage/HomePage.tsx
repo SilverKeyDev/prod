@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import type { AutocompleteSuggestion } from "packages/types/google-maps";
+import { Box } from "packages/ui/components/primitives";
 import { asError } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
 
@@ -116,9 +117,9 @@ export default function HomePage() {
   };
 
   return (
-    <div className="hide-scrollbar bg-background-surface flex min-h-screen flex-col">
+    <Box className="hide-scrollbar bg-background-surface flex min-h-screen flex-col">
       <HomePageHeader />
-      <div className="h-16 flex-shrink-0 sm:h-20" />
+      <Box className="h-16 flex-shrink-0 sm:h-20" />
       <HomePageHero onStartNow={handleOpenAuth} />
       {showAuthModal && (
         <HomePageAuthModal
@@ -127,6 +128,6 @@ export default function HomePage() {
           onSignUp={handleSignUp}
         />
       )}
-    </div>
+    </Box>
   );
 }

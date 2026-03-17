@@ -6,6 +6,7 @@ import {
   truncateText,
 } from "packages/features/search/types/search/address";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 
 import {
@@ -14,7 +15,6 @@ import {
   TrianglePointer,
 } from "@/components/cards/base/index.web";
 import PropertyCard from "@/components/cards/PropertyCard";
-
 export type HomeDescription = {
   home_id: string;
   description?: string;
@@ -130,7 +130,7 @@ export default function MapHomeCard({
   };
 
   return (
-    <div
+    <Box
       role="button"
       tabIndex={0}
       className={`relative cursor-pointer ${isOnMap ? "scale-90 transform" : ""}`}
@@ -233,6 +233,6 @@ export default function MapHomeCard({
           />
         }
       />
-    </div>
+    </Box>
   );
 }

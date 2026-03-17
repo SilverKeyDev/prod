@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import type { ClientGoals } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 type GoalsConstraintsProps = {
@@ -26,48 +27,48 @@ const GoalsConstraints: React.FC<GoalsConstraintsProps> = ({ goals }) => {
   };
   return (
     <SectionCard title="Goals & Constraints" iconName="target">
-      <div className="space-y-6">
+      <Box className="space-y-6">
         {/* Budget */}
-        <div>
-          <div className="mb-3 flex items-center gap-2">
+        <Box>
+          <Box className="mb-3 flex items-center gap-2">
             <Icon name="dollar-sign" className="text-primary h-5 w-5" />
             <Title as="h3" size="md" className="text-text-primary font-semibold">
               Budget
             </Title>
-          </div>
-          <div className="space-y-2 pl-7">
-            <div className="flex items-center justify-between">
+          </Box>
+          <Box className="space-y-2 pl-7">
+            <Box className="flex items-center justify-between">
               <BodyText as="span" size="sm" className="text-text-secondary">
                 Hard Max:
               </BodyText>
               <BodyText as="span" size="sm" className="text-text-primary font-medium">
                 {formatCurrency(goals.budget_max)}
               </BodyText>
-            </div>
+            </Box>
             {goals.budget_stretch && (
-              <div className="flex items-center justify-between">
+              <Box className="flex items-center justify-between">
                 <BodyText as="span" size="sm" className="text-text-secondary">
                   Stretch Budget:
                 </BodyText>
                 <BodyText as="span" size="sm" className="text-text-primary font-medium">
                   {formatCurrency(goals.budget_stretch)}
                 </BodyText>
-              </div>
+              </Box>
             )}
-            <div className="flex items-center justify-between">
+            <Box className="flex items-center justify-between">
               <BodyText as="span" size="sm" className="text-text-secondary">
                 Minimum:
               </BodyText>
               <BodyText as="span" size="sm" className="text-text-primary font-medium">
                 {formatCurrency(goals.budget_min)}
               </BodyText>
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
 
         {/* Must-Haves */}
         {goals.must_haves.length > 0 && (
-          <div>
+          <Box>
             <Title as="h3" size="md" className="text-text-primary mb-3 font-semibold">
               Must-Haves
             </Title>
@@ -84,12 +85,12 @@ const GoalsConstraints: React.FC<GoalsConstraintsProps> = ({ goals }) => {
                 </li>
               ))}
             </ul>
-          </div>
+          </Box>
         )}
 
         {/* Deal Breakers */}
         {goals.deal_breakers.length > 0 && (
-          <div>
+          <Box>
             <Title
               as="h3"
               size="md"
@@ -111,26 +112,26 @@ const GoalsConstraints: React.FC<GoalsConstraintsProps> = ({ goals }) => {
                 </li>
               ))}
             </ul>
-          </div>
+          </Box>
         )}
 
         {/* Timeline Urgency */}
-        <div>
-          <div className="mb-3 flex items-center gap-2">
+        <Box>
+          <Box className="mb-3 flex items-center gap-2">
             <Icon name="clock" className="text-accent h-5 w-5" />
             <Title as="h3" size="md" className="text-text-primary font-semibold">
               Timeline Urgency
             </Title>
-          </div>
-          <div
+          </Box>
+          <Box
             className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 ${urgencyColors[goals.timeline_urgency]}`}
           >
             <BodyText as="span" size="sm" className="font-medium capitalize">
               {goals.timeline_urgency}
             </BodyText>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
     </SectionCard>
   );
 };

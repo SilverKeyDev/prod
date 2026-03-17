@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { useSearchViewStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 
 import MobileTopBar from "@/app/layouts/mobile/MobileTopBar";
 
@@ -72,17 +73,17 @@ export function DashboardHeader({
   return (
     <>
       {showMobileTopBar && (
-        <div className={`md:hidden ${fullWidthLayout ? "w-full" : "mx-auto max-w-[95vw]"}`}>
+        <Box className={`md:hidden ${fullWidthLayout ? "w-full" : "mx-auto max-w-[95vw]"}`}>
           <MobileTopBar fullWidth={route.isMessaging} noPadding={noPadding}>
             {route.isMessaging ? (
               mobileHeaderContent
             ) : (
-              <div className="flex w-full items-center justify-center">
+              <Box className="flex w-full items-center justify-center">
                 {mobileHeaderContent ?? null}
-              </div>
+              </Box>
             )}
           </MobileTopBar>
-        </div>
+        </Box>
       )}
     </>
   );

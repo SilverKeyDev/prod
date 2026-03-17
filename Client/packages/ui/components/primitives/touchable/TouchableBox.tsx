@@ -132,7 +132,6 @@ const TouchableBox = forwardRef<HTMLDivElement, TouchableBoxProps>(function Touc
   return (
     <Box
       ref={ref}
-      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
       className={`${disabled ? TOUCHABLE_DISABLED_CLASSES : ""} ${interactionClasses} ${className}`}
       {...interactiveProps}
       {...props}

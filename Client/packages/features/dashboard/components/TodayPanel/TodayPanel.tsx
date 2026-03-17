@@ -1,6 +1,7 @@
 import React from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
@@ -56,10 +57,10 @@ const TodayPanel: React.FC = () => {
   };
 
   return (
-    <div className="mb-6 space-y-6 sm:mb-8">
+    <Box className="mb-6 space-y-6 sm:mb-8">
       {/* Top Row - Todos */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
-        <div className="md:col-span-2">
+      <Box className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
+        <Box className="md:col-span-2">
           <TodoList
             todos={todos}
             onToggleComplete={handleToggleTodo}
@@ -67,11 +68,11 @@ const TodayPanel: React.FC = () => {
             onUpdatePriority={handleUpdatePriority}
             canEdit={isAgent}
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {/* Agreement widgets have been disabled while the signing provider is migrated. */}
-    </div>
+    </Box>
   );
 };
 

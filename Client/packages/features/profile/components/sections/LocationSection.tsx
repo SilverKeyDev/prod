@@ -1,12 +1,13 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 // Components
 import Card from "@/components/layout/Card.web";
 import { BodyText, Subtitle, Title } from "@/components/ui";
 import ImportantLocationsInput from "@/features/profile/components/settings/inputs/ImportantLocationsInput.web";
 // Constants
 import { LOCATION_SUBTITLE, type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
-
 type LocationSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
@@ -41,7 +42,7 @@ export default function LocationSection({
       </Title>
 
       {/* Important Locations for Commute */}
-      <div className="flex w-full flex-col">
+      <Box className="flex w-full flex-col">
         <Subtitle size="xs" muted className="mb-4">
           {LOCATION_SUBTITLE}
         </Subtitle>
@@ -59,13 +60,13 @@ export default function LocationSection({
             {loadError}
           </BodyText>
         )}
-      </div>
+      </Box>
     </>
   );
   const className = cardClassName ? `${cardClassName} space-y-2` : "space-y-2";
   return wrapInCard ? (
     <Card className={className}>{content}</Card>
   ) : (
-    <div className={className}>{content}</div>
+    <Box className={className}>{content}</Box>
   );
 }

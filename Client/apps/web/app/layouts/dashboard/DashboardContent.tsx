@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { useIsMobile } from "packages/hooks/ui";
+import { Box } from "packages/ui/components/primitives";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
 import AgentPage from "@/pages/AgentPage";
@@ -74,19 +75,19 @@ export function DashboardContent({
 
   // When activeKey is null (e.g. brief match lag), show placeholder so main area is never blank.
   const displayContent = content ?? (
-    <div className="flex min-h-[200px] items-center justify-center text-sm text-text-secondary">
+    <Box className="flex min-h-[200px] items-center justify-center text-sm text-text-secondary">
       Loading…
-    </div>
+    </Box>
   );
 
   // Key by pathname so content remounts when navigating (e.g. from search to saved), avoiding stale UI.
   return (
-    <div
+    <Box
       key={route.pathname}
       className={`dashboard-content max-md:pb-mobile-nav w-full ${wrapperClass}`}
       style={style}
     >
       {displayContent}
-    </div>
+    </Box>
   );
 }

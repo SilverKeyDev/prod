@@ -14,6 +14,7 @@ import { showErrorToast } from "packages/hooks/ui/toast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 // Core
 import { useGoogleMapsStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 import SettingsSidebar from "packages/ui/components/sidebar/SettingsSidebar";
 
 // Google Maps types
@@ -316,9 +317,9 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background-base">
+      <Box className="flex min-h-screen items-center justify-center bg-background-base">
         <Loading message="Loading your preferences..." />
-      </div>
+      </Box>
     );
   }
 
@@ -385,9 +386,9 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
   };
 
   return (
-    <div className="min-h-screen bg-background-base">
-      <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
-        <div className="flex flex-row gap-6 lg:gap-8">
+    <Box className="min-h-screen bg-background-base">
+      <Box className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
+        <Box className="flex flex-row gap-6 lg:gap-8">
           {/* Sidebar - Always visible */}
           <SettingsSidebar
             items={convertStepsToNavItems(STEPS)}
@@ -400,8 +401,8 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
             onScrollToSection={scrollToSection}
           />
 
-          {/* Content area: use div with region role to avoid duplicate main landmark (top-level main is in DashboardLayout). */}
-          <div
+          {/* Content area: use Box with region role to avoid duplicate main landmark (top-level main is in DashboardLayout). */}
+          <Box
             role="region"
             className={`w-full flex-1 space-y-8 ${!isUltraSmallScreen ? "lg:ml-0" : ""}`}
           >
@@ -410,9 +411,9 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
                 {renderSectionContent(step.id)}
               </section>
             ))}
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }

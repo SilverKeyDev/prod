@@ -5,6 +5,7 @@ import { Icon } from "@ui/icons";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/schemas/property";
 import { useUIStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 
 import { getCardBubbleSizeClasses } from "@/components/cards/base/styles";
@@ -160,7 +161,7 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
       ) : (
         // Original card overlay styling
         <>
-          <div className={`absolute ${POSITION_MAP[position]} z-10`}>
+          <Box className={`absolute ${POSITION_MAP[position]} z-10`}>
             <IconButton
               variant="ghost"
               icon={
@@ -184,7 +185,7 @@ const CardNotInterested: React.FC<CardNotInterestedProps> = ({
               className={`group relative inline-flex items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-transparent active:scale-95 ${isNotInterested ? "text-white hover:text-white" : "text-white hover:text-white"} ${circleClass} ${className}`}
               title={isNotInterested ? "Undo not interested" : "Mark as not interested"}
             />
-          </div>
+          </Box>
           <NotInterestedModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}

@@ -6,10 +6,12 @@ import {
   MotionSpan,
   MotionView,
 } from "packages/ui/components/adapters/motion";
+import { Box } from "packages/ui/components/primitives";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 import Card from "@/components/layout/Card.web";
 import { Region } from "@/components/ui";
+
 type Step = {
   id: string;
   title: string;
@@ -165,16 +167,16 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
     calculateConnectorLayout();
   return (
     // EXTRA WRAPPER to add top spacing and bottom margin
-    <div className="mb-6 mt-6">
+    <Box className="mb-6 mt-6">
       {/* WHITE BOX WRAPPER (never exceed 85% of the viewport width) - removed border */}
-      <div className="bg-background-surface mx-auto max-w-[85vw] overflow-hidden rounded-2xl shadow-sm">
+      <Box className="bg-background-surface mx-auto max-w-[85vw] overflow-hidden rounded-2xl shadow-sm">
         {/* Scale wrapper to ensure content fits; origin at top-center */}
-        <div
+        <Box
           ref={outerRef}
           className="w-full overflow-visible"
           style={{ transformOrigin: "top center" }}
         >
-          <div
+          <Box
             style={{
               transform: `scale(${scale})`,
               transformOrigin: "top center",
@@ -182,7 +184,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
           >
             {/* Keep interior layout centered; no extra bottom margin */}
             <Card className="flex items-center justify-center overflow-visible py-1 sm:py-3">
-              <div className="w-full max-w-5xl px-0 sm:px-1 xl:max-w-6xl 2xl:max-w-7xl">
+              <Box className="w-full max-w-5xl px-0 sm:px-1 xl:max-w-6xl 2xl:max-w-7xl">
                 <Region
                   ref={gridRef}
                   role="group"
@@ -207,7 +209,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                     return (
                       <React.Fragment key={step.id}>
                         {/* Icon cell */}
-                        <div className="relative flex h-full items-center justify-center">
+                        <Box className="relative flex h-full items-center justify-center">
                           {/* Subtle active glow (no animation on backward) */}
                           <AnimatePresence initial={false}>
                             {isActive && (
@@ -307,16 +309,16 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                               transition={t}
                             />
                           </MotionButton>
-                        </div>
+                        </Box>
 
                         {/* Connector cell (only between steps) */}
                         {index < steps.length - 1 && showConnectors && (
-                          <div
+                          <Box
                             className="flex h-1 w-full items-center justify-center"
                             aria-hidden="true"
                           >
                             {/* Centered connector line with consistent margins */}
-                            <div
+                            <Box
                               className="bg-accent-muted h-full overflow-hidden rounded-full"
                               style={{
                                 width: connectorWidth,
@@ -328,8 +330,8 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                                 className="bg-primary h-full"
                                 {...connectorMotion(index)}
                               />
-                            </div>
-                          </div>
+                            </Box>
+                          </Box>
                         )}
                       </React.Fragment>
                     );
@@ -340,7 +342,7 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                     const isActive = index === currentStep;
                     return (
                       <React.Fragment key={`${step.id}-label`}>
-                        <div className="relative flex justify-center overflow-visible">
+                        <Box className="relative flex justify-center overflow-visible">
                           <AnimatePresence initial={false} mode="wait">
                             <MotionSpan
                               key={`${step.id}-label-text-${isActive ? "active" : "idle"}`}
@@ -359,19 +361,19 @@ const OnboardingHeader: React.FC<OnboardingHeaderProps> = ({ steps, currentStep,
                               {step.title}
                             </MotionSpan>
                           </AnimatePresence>
-                        </div>
+                        </Box>
                         {/* Empty cell under each connector to preserve grid structure */}
-                        {index < steps.length - 1 && showConnectors && <div aria-hidden="true" />}
+                        {index < steps.length - 1 && showConnectors && <Box aria-hidden="true" />}
                       </React.Fragment>
                     );
                   })}
                 </Region>
-              </div>
+              </Box>
             </Card>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 export default OnboardingHeader;

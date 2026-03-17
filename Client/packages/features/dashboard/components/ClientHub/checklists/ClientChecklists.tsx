@@ -107,11 +107,9 @@ export default function ClientChecklists({
                 <Pressable
                   key={tab}
                   onPress={() => setTab(tab)}
-                  // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                   className={`flex-1 rounded-md px-2 py-1.5 ${isActive ? "bg-background-surface shadow-sm" : ""} ${locked ? "opacity-60" : ""}`}
                 >
                   <Text
-                    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                     className={`text-center text-xs font-medium ${isActive ? "text-text-primary" : "text-text-secondary"}`}
                     numberOfLines={1}
                   >
@@ -165,12 +163,10 @@ export default function ClientChecklists({
                       void handleToggleItem(item.id);
                     }}
                     disabled={!checkable}
-                    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                     className={`border-border flex w-full flex-row items-stretch rounded-lg border ${activeItemId != null && item.id === activeItemId ? "ring-accent-underline shadow-md ring-2" : ""} ${checkable ? "bg-background-surface" : "bg-background-base cursor-not-allowed opacity-75"}`}
                   >
                     <Box className="flex min-w-0 flex-1 flex-row items-start gap-3 px-3 py-2">
                       <Box
-                        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                         className={`mt-1 h-5 w-5 items-center justify-center rounded border ${checked ? "border-primary bg-primary" : checkable ? "border-border bg-background-surface" : "border-border bg-primary-muted"}`}
                       >
                         {checked ? (

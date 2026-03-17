@@ -7,6 +7,7 @@ import { useLocalization } from "packages/contexts";
 import { ClientSearchModal } from "packages/features/agent/components/modals";
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, KeyTurnLoader, Title } from "@/components/ui";
 type ClientManagementProps = {
@@ -32,14 +33,14 @@ export default function ClientManagement({
       className={`${isSidebarExpanded ? "flex translate-x-0" : "hidden -translate-x-full"} flex-col transition-transform duration-300 ease-in-out xl:flex xl:w-80 xl:translate-x-0`}
     >
       {/* Fixed Header */}
-      <div className="border-border bg-background-surface flex-shrink-0 rounded-t-xl border-b p-3">
-        <div className="mb-2 flex items-center justify-between">
+      <Box className="border-border bg-background-surface flex-shrink-0 rounded-t-xl border-b p-3">
+        <Box className="mb-2 flex items-center justify-between">
           <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
             <MiniLogo size="sm" />
             {t("agent.clients")}
           </Title>
 
-          <div className="flex items-center gap-2">
+          <Box className="flex items-center gap-2">
             <Button
               type="button"
               variant="ghost"
@@ -63,20 +64,20 @@ export default function ClientManagement({
                 <Icon name="chevron-left" className="h-4 w-4 text-neutral-700" />
               </Button>
             )}
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Scrollable Client List */}
-      <div className="bg-background-surface flex-1 overflow-y-auto">
+      <Box className="bg-background-surface flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="p-3 text-center">
-            <div className="mb-2">
+          <Box className="p-3 text-center">
+            <Box className="mb-2">
               <KeyTurnLoader message={t("agent.loading_clients")} />
-            </div>
-          </div>
+            </Box>
+          </Box>
         ) : clients.length === 0 ? (
-          <div className="p-3 text-center">
+          <Box className="p-3 text-center">
             <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
             <BodyText as="p" size="sm" className="text-neutral-600">
               {t("agent.no_clients_yet")}
@@ -84,12 +85,12 @@ export default function ClientManagement({
             <BodyText as="p" size="xs" className="mt-1 text-neutral-500">
               {t("agent.clients_appear_once_assigned")}
             </BodyText>
-          </div>
+          </Box>
         ) : (
           clients.map((client) => {
             const conversation = conversationMap.get(client.id);
             return (
-              <div
+              <Box
                 key={client.id}
                 role="button"
                 tabIndex={0}
@@ -106,11 +107,11 @@ export default function ClientManagement({
                 }}
                 className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${selectedClientId === client.id ? "bg-olive/10 border-l-olive border-l-4" : ""}`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
+                <Box className="flex items-start gap-3">
+                  <Box className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
                     <Icon name="user" className="h-5 w-5 text-neutral-600" />
-                  </div>
-                  <div className="min-w-0 flex-1">
+                  </Box>
+                  <Box className="min-w-0 flex-1">
                     <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                       {client.name}
                     </Title>
@@ -128,13 +129,13 @@ export default function ClientManagement({
                         {client.phone}
                       </BodyText>
                     )}
-                  </div>
-                </div>
-              </div>
+                  </Box>
+                </Box>
+              </Box>
             );
           })
         )}
-      </div>
+      </Box>
 
       {/* Search Modal */}
       <ClientSearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} />

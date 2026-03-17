@@ -1,11 +1,11 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { ClientSelector } from "@/components/ui";
 
 import SearchActions from "./SearchActions.web";
-
 export type SearchMobileHeaderProps = {
   /** Called when filters are changed (e.g. trigger search) */
   onPreferencesChanged?: () => void | Promise<void>;
@@ -31,7 +31,7 @@ const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
   onBeforeSwitchToReels,
 }) => {
   return (
-    <div className={`flex w-full max-w-full items-center gap-2 sm:max-w-lg ${HEADER_ROW_HEIGHT}`}>
+    <Box className={`flex w-full max-w-full items-center gap-2 sm:max-w-lg ${HEADER_ROW_HEIGHT}`}>
       {selectedClientId !== undefined && onClientChange ? (
         <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
       ) : null}
@@ -47,7 +47,7 @@ const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
         onToggleMode={onToggleMode}
         onBeforeSwitchToReels={onBeforeSwitchToReels}
       />
-    </div>
+    </Box>
   );
 };
 

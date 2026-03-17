@@ -1,7 +1,8 @@
 import React from "react";
 
-import { BodyText } from "@/components/ui";
+import { Box } from "packages/ui/components/primitives";
 
+import { BodyText } from "@/components/ui";
 type TranslateFn = (key: string) => string;
 
 export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.Element | string {
@@ -46,7 +47,7 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
     } else {
       // For objects, create clean structured display without JSON
       return (
-        <div className="space-y-2">
+        <Box className="space-y-2">
           {Object.entries(val).map(([subKey, subValue]) => {
             // Format the sub-key nicely
             const formattedKey = subKey
@@ -57,14 +58,14 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
               .join(" ");
 
             return (
-              <div
+              <Box
                 key={subKey}
                 className="border-brown/30 bg-background-base/50 rounded-lg border-l-4 p-3"
               >
-                <div className="text-responsive-sm text-text-secondary mb-2 font-semibold">
+                <Box className="text-responsive-sm text-text-secondary mb-2 font-semibold">
                   {formattedKey}
-                </div>
-                <div className="text-responsive-sm text-text-primary">
+                </Box>
+                <Box className="text-responsive-sm text-text-primary">
                   {typeof subValue === "object" && subValue !== null ? (
                     Array.isArray(subValue) ? (
                       <ul className="ml-2 space-y-2">
@@ -91,10 +92,10 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                       </ul>
                     ) : (
                       // Nested objects - display as key-value pairs with bullets
-                      <div className="space-y-2">
+                      <Box className="space-y-2">
                         {Object.entries(subValue as Record<string, unknown>).map(
                           ([nestedKey, nestedValue]) => (
-                            <div
+                            <Box
                               key={nestedKey}
                               className="text-responsive-xs flex items-start gap-2"
                             >
@@ -109,7 +110,7 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                                   className="bg-primary-muted h-px w-2"
                                 />
                               </BodyText>
-                              <div className="flex-1">
+                              <Box className="flex-1">
                                 <BodyText
                                   as="span"
                                   size="xs"
@@ -138,11 +139,11 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                                             .replace(/([a-z])([A-Z])/g, "$1 $2") ??
                                           notSpecifiedLabel)}
                                 </BodyText>
-                              </div>
-                            </div>
+                              </Box>
+                            </Box>
                           )
                         )}
-                      </div>
+                      </Box>
                     )
                   ) : typeof subValue === "boolean" ? (
                     <BodyText
@@ -162,12 +163,12 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                     </BodyText>
                   ) : // Special formatting for price rationale
                   subKey === "price_rationale" && typeof subValue === "string" ? (
-                    <div className="space-y-2">
+                    <Box className="space-y-2">
                       {subValue
                         .split(". ")
                         .filter((sentence) => sentence.trim().length > 0)
                         .map((sentence, idx) => (
-                          <div key={idx} className="flex items-start gap-2">
+                          <Box key={idx} className="flex items-start gap-2">
                             <BodyText
                               as="span"
                               size="sm"
@@ -183,9 +184,9 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                               {sentence.trim()}
                               {!sentence.endsWith(".") && "."}
                             </BodyText>
-                          </div>
+                          </Box>
                         ))}
-                    </div>
+                    </Box>
                   ) : (
                     <BodyText as="p" className="leading-relaxed">
                       {subValue && typeof subValue === "string"
@@ -198,11 +199,11 @@ export function formatStrategyValue(val: unknown, t?: TranslateFn): React.JSX.El
                           : notSpecifiedLabel}
                     </BodyText>
                   )}
-                </div>
-              </div>
+                </Box>
+              </Box>
             );
           })}
-        </div>
+        </Box>
       );
     }
   } else if (typeof val === "boolean") {

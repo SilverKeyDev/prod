@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useRef } from "react";
 
 import { spacing } from "packages/design-tokens";
+import { Box } from "packages/ui/components/primitives";
 
 export type ReelsScrollerProps = React.HTMLAttributes<HTMLDivElement> & {
   isHorizontalGestureActive?: boolean;
@@ -41,7 +42,7 @@ const ReelsScroller = forwardRef<HTMLDivElement, ReelsScrollerProps>(
       };
     }, [isHorizontalGestureActive]);
     return (
-      <div
+      <Box
         ref={setRef}
         {...props}
         className={`scrollbar-hide ${props.className ?? ""}`.trim()}
@@ -75,7 +76,7 @@ const zeroMargin = {
 
 const ReelsList = forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
   (props, ref) => (
-    <div
+    <Box
       ref={ref}
       {...props}
       style={{
@@ -94,7 +95,7 @@ ReelsList.displayName = "ReelsList";
 
 const ReelsItem = forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
   (props, ref) => (
-    <div
+    <Box
       ref={ref}
       {...props}
       style={{

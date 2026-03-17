@@ -10,6 +10,7 @@ import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAu
 import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginResult";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 
 import { Button, Input } from "@/components/ui";
 export function LoginFeature() {
@@ -107,14 +108,14 @@ export function LoginFeature() {
 
         <GoogleSignInButton text="Sign in with Google" />
 
-        <div className="gap-responsive-md text-responsive-sm flex items-center justify-center">
+        <Box className="gap-responsive-md text-responsive-sm flex items-center justify-center">
           <AuthLink to="/signup" variant="inline">
             Create an account
           </AuthLink>
           <AuthLink to="/forgot-password" variant="inline">
             Forgot password?
           </AuthLink>
-        </div>
+        </Box>
       </form>
     </AuthPageLayout>
   );

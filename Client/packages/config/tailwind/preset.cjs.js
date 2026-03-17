@@ -3,6 +3,7 @@
  * Colors from single source: packages/design-tokens/tokens/colors.json.
  * Web uses index.ts (ESM); mobile uses this file via require().
  */
+
 const path = require("node:path");
 
 const colors = require(path.resolve(__dirname, "../../design-tokens/tokens/colors.json"));

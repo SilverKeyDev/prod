@@ -1,4 +1,3 @@
-
 """Offer checklist task definitions."""
 
 OFFER_ITEMS = [

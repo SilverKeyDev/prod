@@ -6,6 +6,7 @@ import Subtitle from "@ui/text/Subtitle";
 import { spacing } from "packages/design-tokens";
 import { useResponsive } from "packages/hooks/ui";
 import type { NavItem } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 
 type SidebarNavigationProps = {
   items: NavItem[];
@@ -53,13 +54,13 @@ export default function SidebarNavigation({
               isLargeScreen ? "!bg-background-surface w-full" : "!bg-background-surface w-full"
             }
           >
-            <div
+            <Box
               className={`${isLargeScreen ? "" : "flex flex-col items-center p-3"} ${
                 isLargeScreen ? "w-full" : "flex w-full flex-col items-center"
               }`}
             >
               {headerContent}
-            </div>
+            </Box>
           </Card>
         )}
 
@@ -71,13 +72,13 @@ export default function SidebarNavigation({
             isLargeScreen ? "!bg-background-surface w-full" : "!bg-background-surface w-full"
           }
         >
-          <div className={isLargeScreen ? "" : "p-3"}>
+          <Box className={isLargeScreen ? "" : "p-3"}>
             {sectionTitle && (
-              <div className={isLargeScreen ? "mb-3" : "mb-2"}>
+              <Box className={isLargeScreen ? "mb-3" : "mb-2"}>
                 <Subtitle size="xs" className="text-text-secondary uppercase tracking-wide">
                   {sectionTitle}
                 </Subtitle>
-              </div>
+              </Box>
             )}
 
             {/* Navigation Links - Left aligned on desktop, icon only on mobile; uniform styling for all items */}
@@ -132,7 +133,7 @@ export default function SidebarNavigation({
                 );
               })}
             </nav>
-          </div>
+          </Box>
         </Card>
       </Card>
     </aside>

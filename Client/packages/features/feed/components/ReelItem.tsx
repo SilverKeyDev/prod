@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useMediaQuery } from "packages/hooks/ui";
 import { useEmblaCarousel } from "packages/ui/components/adapters/carousel";
-import { Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/primitives";
 import { screenUp } from "packages/ui/types/screens";
 
 import { Button, Region, Video } from "@/components/ui";
@@ -86,14 +86,14 @@ export function ReelItem({ post, isActive, index, activeIndex }: ReelItemProps) 
   );
 
   return (
-    <div
+    <Box
       className="relative w-full shrink-0 snap-start snap-always"
       style={{
         scrollSnapAlign: "start",
         height: "var(--reel-viewport-height, 100%)",
       }}
     >
-      <div
+      <Box
         ref={emblaRef}
         className="embla__viewport h-full overflow-hidden"
         style={{
@@ -103,9 +103,9 @@ export function ReelItem({ post, isActive, index, activeIndex }: ReelItemProps) 
         }}
         aria-roledescription="carousel"
       >
-        <div className="embla__container flex h-full">
+        <Box className="embla__container flex h-full">
           {hasVideo && (
-            <div className="embla__slide relative h-full min-w-0 flex-[0_0_100%]">
+            <Box className="embla__slide relative h-full min-w-0 flex-[0_0_100%]">
               {shouldMountVideo && post.videoUrl ? (
                 <Video
                   ref={videoRef}
@@ -125,10 +125,10 @@ export function ReelItem({ post, isActive, index, activeIndex }: ReelItemProps) 
                   loading="eager"
                 />
               )}
-            </div>
+            </Box>
           )}
           {imageUrls.map((src, i) => (
-            <div
+            <Box
               key={`${post.id}-img-${i}`}
               className="embla__slide relative h-full min-w-0 flex-[0_0_100%]"
             >
@@ -138,20 +138,20 @@ export function ReelItem({ post, isActive, index, activeIndex }: ReelItemProps) 
                 className="absolute inset-0 h-full w-full object-cover"
                 loading={i === 0 ? "eager" : "lazy"}
               />
-            </div>
+            </Box>
           ))}
           {!hasVideo && imageUrls.length === 0 && (
-            <div className="embla__slide relative h-full min-w-0 flex-[0_0_100%]">
+            <Box className="embla__slide relative h-full min-w-0 flex-[0_0_100%]">
               <Image
                 src={DEFAULT_PLACEHOLDER_IMAGE}
                 alt=""
                 className="absolute inset-0 h-full w-full object-cover"
                 loading="eager"
               />
-            </div>
+            </Box>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {totalSlides > 1 && (
         <Region
@@ -175,6 +175,6 @@ export function ReelItem({ post, isActive, index, activeIndex }: ReelItemProps) 
           ))}
         </Region>
       )}
-    </div>
+    </Box>
   );
 }

@@ -2,11 +2,13 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
+import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { Button, CancelButton, IconButton } from "@/components/ui";
 
 import SearchFiltersDropdown from "./SearchFiltersDropdown.web";
+
 type SearchActionsProps = {
   /** Called when filters dropdown is closed and preferences were changed (e.g. trigger search) */
   onPreferencesChanged?: () => void | Promise<void>;
@@ -50,8 +52,8 @@ export default function SearchActions({
   const btnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
   if (variant === "mobile") {
     return (
-      <div className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+      <Box className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
+        <Box className="flex min-w-0 flex-1 items-center gap-2">
           <SearchFiltersDropdown onPreferencesChanged={onPreferencesChanged} variant="mobile" />
           <Button
             variant="tertiary"
@@ -74,7 +76,7 @@ export default function SearchActions({
               {t("common.cancel")}
             </CancelButton>
           )}
-        </div>
+        </Box>
         {showReels && (
           <IconButton
             variant="toolbar"
@@ -99,11 +101,11 @@ export default function SearchActions({
             {t("search.map")}
           </Button>
         )}
-      </div>
+      </Box>
     );
   }
   return (
-    <div className={`flex flex-shrink-0 flex-nowrap items-center gap-3 ${HEADER_ROW_HEIGHT}`}>
+    <Box className={`flex flex-shrink-0 flex-nowrap items-center gap-3 ${HEADER_ROW_HEIGHT}`}>
       <SearchFiltersDropdown onPreferencesChanged={onPreferencesChanged} variant="desktop" />
       <Button
         variant="tertiary"
@@ -135,6 +137,6 @@ export default function SearchActions({
           label={t("search.reels")}
         />
       )}
-    </div>
+    </Box>
   );
 }

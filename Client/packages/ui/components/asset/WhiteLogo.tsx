@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import MiniLogo from "./MiniLogo";
 
 type WhiteLogoProps = {
@@ -9,9 +11,9 @@ type WhiteLogoProps = {
 
 const WhiteLogo: React.FC<WhiteLogoProps> = ({ size, className }) => {
   return (
-    <div className={className} style={{ filter: "brightness(0) invert(1)" }}>
+    <Box className={className} style={{ filter: "brightness(0) invert(1)" }}>
       <MiniLogo size={size} />
-    </div>
+    </Box>
   );
 };
 

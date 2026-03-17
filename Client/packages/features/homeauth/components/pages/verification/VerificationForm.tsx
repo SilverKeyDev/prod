@@ -2,6 +2,7 @@ import React, { type RefObject } from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
 import { applyCodeChange, applyPaste, getBackspaceFocusIndex } from "packages/utils/verification";
 
 import Card from "@/components/layout/Card.web";
@@ -41,7 +42,7 @@ export function VerificationCodeInputs({
     }
   };
   return (
-    <div className="flex justify-center gap-3">
+    <Box className="flex justify-center gap-3">
       {code.map((digit, index) => (
         <Input
           key={index}
@@ -62,7 +63,7 @@ export function VerificationCodeInputs({
           disabled={loading}
         />
       ))}
-    </div>
+    </Box>
   );
 }
 type VerificationFormProps = {
@@ -104,8 +105,8 @@ export function VerificationForm({
   onResendCode,
 }: VerificationFormProps) {
   return (
-    <div className="px-responsive-sm py-responsive-md bg-background-base flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md">
+    <Box className="px-responsive-sm py-responsive-md bg-background-base flex min-h-screen items-center justify-center">
+      <Box className="w-full max-w-md">
         <Card className="space-y-responsive-md">
           {!isFromSignup && (
             <Button
@@ -117,31 +118,31 @@ export function VerificationForm({
               Back
             </Button>
           )}
-          <div className="text-center">
+          <Box className="text-center">
             <Title size="lg" as="h2" className="mb-4 flex items-center justify-center gap-2">
               <MiniLogo size="md" />
               {activeStep === "email" ? "Verify your email" : "Enter verification code"}
             </Title>
-          </div>
+          </Box>
           <BodyText size="sm" muted className="mb-4 text-center">
             {activeStep === "email"
               ? "We'll send you a code to verify your email"
               : `Enter the 6-digit code sent to ${email}`}
           </BodyText>
           {isFromLogin && !error && (
-            <div className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-yellow-50 p-3 text-yellow-800">
+            <Box className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-yellow-50 p-3 text-yellow-800">
               Please verify your email address to continue. A verification code has been sent to
               your email.
-            </div>
+            </Box>
           )}
           {error && (
-            <div className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-red-50 text-red-600">
+            <Box className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-red-50 text-red-600">
               {error}
-            </div>
+            </Box>
           )}
           {activeStep === "email" && (
             <form onSubmit={onEmailSubmit} className="space-y-responsive-md">
-              <div>
+              <Box>
                 <Label
                   id="verification-email-label"
                   htmlFor="verification-email"
@@ -163,7 +164,7 @@ export function VerificationForm({
                   variant="mobile"
                   size="md"
                 />
-              </div>
+              </Box>
               <Button
                 type="submit"
                 variant="primary"
@@ -188,7 +189,7 @@ export function VerificationForm({
                 loading={loading}
                 onVerify={onVerify}
               />
-              <div className="text-responsive-sm text-text-secondary text-center">
+              <Box className="text-responsive-sm text-text-secondary text-center">
                 Didn't receive a code?{" "}
                 <Button
                   type="button"
@@ -201,8 +202,8 @@ export function VerificationForm({
                 >
                   {loading ? "Sending..." : canResend ? "Resend code" : `Resend in ${countdown}s`}
                 </Button>
-              </div>
-              <div className="mt-6 flex justify-center">
+              </Box>
+              <Box className="mt-6 flex justify-center">
                 <Button
                   type="button"
                   onClick={onVerify}
@@ -214,11 +215,11 @@ export function VerificationForm({
                 >
                   Verify
                 </Button>
-              </div>
+              </Box>
             </form>
           )}
         </Card>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

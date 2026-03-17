@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useHlsVideo } from "packages/hooks/ui";
 import { SEARCH_VIEW_MODE_CHANGED_EVENT } from "packages/store";
 import { useFeedStore } from "packages/store";
-import { Image, Video } from "packages/ui/components/primitives";
+import { Box, Image, Video } from "packages/ui/components/primitives";
 import { getDocument, getNavigator, getWindow } from "packages/utils";
 
 import type { FeedListing } from "@/features/feed/types/feed";
@@ -220,7 +220,7 @@ export function VideoItem({
 
   if (hasError) {
     return (
-      <div
+      <Box
         className="relative h-full min-h-0 w-full snap-start overflow-hidden"
         style={{ scrollSnapAlign: "start" }}
       >
@@ -233,16 +233,16 @@ export function VideoItem({
             e.currentTarget.nextElementSibling?.classList.remove("hidden");
           }}
         />
-        <div className="absolute inset-0 hidden">
+        <Box className="absolute inset-0 hidden">
           <FeedPosterPlaceholder />
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
 
   if (isLowDataMode()) {
     return (
-      <div
+      <Box
         className="relative h-full min-h-0 w-full snap-start overflow-hidden"
         style={{ scrollSnapAlign: "start" }}
       >
@@ -255,16 +255,16 @@ export function VideoItem({
             e.currentTarget.nextElementSibling?.classList.remove("hidden");
           }}
         />
-        <div className="absolute inset-0 hidden">
+        <Box className="absolute inset-0 hidden">
           <FeedPosterPlaceholder />
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
 
   if (!shouldLoadVideo && isVisible && hasVideo) {
     return (
-      <div
+      <Box
         className="relative h-full min-h-0 w-full snap-start overflow-hidden"
         style={{ scrollSnapAlign: "start" }}
       >
@@ -277,17 +277,17 @@ export function VideoItem({
             e.currentTarget.nextElementSibling?.classList.remove("hidden");
           }}
         />
-        <div className="absolute inset-0 hidden">
+        <Box className="absolute inset-0 hidden">
           <FeedPosterPlaceholder />
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
 
   if (!hasVideo) {
     const firstImage = item.images?.[0] ?? item.thumbnailUrl;
     return (
-      <div
+      <Box
         className="relative h-full min-h-0 w-full snap-start overflow-hidden"
         style={{ scrollSnapAlign: "start" }}
       >
@@ -300,9 +300,9 @@ export function VideoItem({
             e.currentTarget.nextElementSibling?.classList.remove("hidden");
           }}
         />
-        <div className="absolute inset-0 hidden">
+        <Box className="absolute inset-0 hidden">
           <FeedPosterPlaceholder />
-        </div>
+        </Box>
         {hasSongAudio && item.audioSongUrl && (
           <audio
             ref={audioRef}
@@ -315,19 +315,19 @@ export function VideoItem({
             <track kind="captions" />
           </audio>
         )}
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div
+    <Box
       className="relative h-full min-h-0 w-full snap-start overflow-hidden"
       style={{ scrollSnapAlign: "start" }}
     >
       {isLoading && (
-        <div className="absolute inset-0 z-10">
+        <Box className="absolute inset-0 z-10">
           <FeedItemSkeleton thumbnailUrl={item.thumbnailUrl} />
-        </div>
+        </Box>
       )}
       <Video
         ref={videoRef}
@@ -340,6 +340,6 @@ export function VideoItem({
       >
         <track kind="captions" />
       </Video>
-    </div>
+    </Box>
   );
 }

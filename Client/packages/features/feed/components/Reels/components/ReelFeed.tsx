@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
 import { spacing } from "packages/design-tokens";
 import { Virtuoso, type VirtuosoHandle } from "packages/ui/components/adapters/virtuoso";
+import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
 import type { PostData } from "@/features/feed/types/feed";
@@ -11,7 +12,7 @@ import { ReelItem } from "./ReelItem";
 /** Custom Scroller with scroll-snap for vertical Reels feed. */
 const ReelsScroller = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   (props, ref) => (
-    <div
+    <Box
       ref={ref}
       {...props}
       className={`scrollbar-hide ${props.className ?? ""}`.trim()}
@@ -31,7 +32,7 @@ ReelsScroller.displayName = "ReelsScroller";
 /** List wrapper: no gap between reels (scroll-snap). */
 const ReelsList = forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
   (props, ref) => (
-    <div
+    <Box
       ref={ref}
       {...props}
       style={{
@@ -51,7 +52,7 @@ ReelsList.displayName = "ReelsList";
 /** Item wrapper: no margin/padding so reels sit flush. */
 const ReelsItem = forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
   (props, ref) => (
-    <div
+    <Box
       ref={ref}
       {...props}
       style={{ ...props.style, margin: spacing(0), padding: spacing(0) }}
@@ -69,7 +70,7 @@ export type ReelFeedProps = {
 };
 
 const ReelFeedFooter = () => (
-  <div className="h-0 shrink-0 max-md:min-h-[var(--mobile-bottom-reserved)]" aria-hidden />
+  <Box className="h-0 shrink-0 max-md:min-h-[var(--mobile-bottom-reserved)]" aria-hidden />
 );
 
 /**
@@ -111,7 +112,7 @@ export function ReelFeed({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <div
+    <Box
       className="h-[100dvh] w-full overflow-hidden bg-black"
       data-reel-feed-container
       style={
@@ -147,6 +148,6 @@ export function ReelFeed({
         }}
         followOutput="smooth"
       />
-    </div>
+    </Box>
   );
 }

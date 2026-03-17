@@ -31,7 +31,7 @@ export default function HomeConcierge() {
           <Image
             source={moveConciergeSource}
             className="border-border h-28 w-28 flex-shrink-0 rounded-lg border"
-            accessibilityLabel={t("close.home_concierge.alt")}
+            label={t("close.home_concierge.alt")}
           />
           <Box className="min-w-0 flex-1 flex-col justify-between self-stretch">
             <Subtitle size="sm" muted className="leading-relaxed">

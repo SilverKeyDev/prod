@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { formatFilenameToAddress } from "packages/features/search/types/search/address";
 import { useResponsive } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 import { getDocument, getWindow } from "packages/utils/platform";
 
@@ -105,8 +106,8 @@ const PdfModal: React.FC<PdfModalProps> = ({
   if (!currentPdf) return null;
 
   return (
-    <div className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-      <div
+    <Box className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+      <Box
         ref={modalRef}
         className="viewer-container flex h-[95vh] w-full max-w-5xl flex-col sm:h-[90vh]"
         role="dialog"
@@ -135,8 +136,8 @@ const PdfModal: React.FC<PdfModalProps> = ({
           onError={onError}
           onOpenInNewTab={handleOpenInNewTab}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

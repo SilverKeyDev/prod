@@ -1,6 +1,7 @@
 import BodyText from "@ui/text/BodyText";
 
 import { color, spacing } from "packages/design-tokens";
+import { Box } from "packages/ui/components/primitives";
 
 export default function KeyTurnLoader({
   message = "Unlocking...",
@@ -13,13 +14,13 @@ export default function KeyTurnLoader({
     variant === "gray"
       ? color("neutral.500")
       : variant === "sidebar"
-        ? "#ffffff"
+        ? color("background-surface")
         : color("background-base");
   const fillColor =
     variant === "gray"
       ? color("neutral.100")
       : variant === "sidebar"
-        ? "#ffffff"
+        ? color("background-surface")
         : color("background-base");
   const keyframeStyles = `
     @keyframes turnKey {
@@ -106,7 +107,7 @@ export default function KeyTurnLoader({
   return (
     <>
       <style>{keyframeStyles}</style>
-      <div style={containerStyle}>
+      <Box style={containerStyle}>
         <svg
           style={keyStyle}
           width="32"
@@ -130,13 +131,13 @@ export default function KeyTurnLoader({
               variant === "gray"
                 ? color("neutral.500")
                 : variant === "sidebar"
-                  ? "#ffffff"
+                  ? color("background-surface")
                   : undefined,
           }}
         >
           {message}
         </BodyText>
-      </div>
+      </Box>
     </>
   );
 }

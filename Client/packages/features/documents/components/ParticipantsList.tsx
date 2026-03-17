@@ -38,7 +38,6 @@ export default function ParticipantsList({
   // Sort by signing order
   const sortedParticipants = [...participants].sort((a, b) => a.signing_order - b.signing_order);
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <Box className={`flex flex-col ${compact ? "gap-2" : "gap-3"}`}>
       {sortedParticipants.map((participant) => {
         const StatusIcon = getAgreementStatusIcon(participant.status);
@@ -46,7 +45,6 @@ export default function ParticipantsList({
         return (
           <Box
             key={participant.id}
-            // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
             className={`flex flex-row items-start gap-3 ${compact ? "p-2" : "p-3"} border-border hover:bg-background-base active:bg-primary-muted active:bg-background-base rounded-lg border`}
           >
             {/* Avatar */}
@@ -61,7 +59,6 @@ export default function ParticipantsList({
                   <Box className="flex flex-row items-center gap-2">
                     <BodyText
                       as="p"
-                      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                       className={`font-medium ${compact ? "text-sm" : "text-base"} text-text-primary truncate`}
                     >
                       {participant.name}
@@ -86,9 +83,7 @@ export default function ParticipantsList({
 
                 {/* Status */}
                 <Box className="flex flex-shrink-0 flex-row items-center gap-1.5">
-                  {/* eslint-disable-next-line silverkey/no-dynamic-class-names -- statusColor from participant status; refactor complex */}
                   <StatusIcon className={`h-4 w-4 ${statusColor}`} />
-                  {/* eslint-disable-next-line silverkey/no-dynamic-class-names -- statusColor from participant status; refactor complex */}
                   <BodyText as="span" size="sm" className={`font-medium ${statusColor}`}>
                     {participant.status.charAt(0).toUpperCase() + participant.status.slice(1)}
                   </BodyText>

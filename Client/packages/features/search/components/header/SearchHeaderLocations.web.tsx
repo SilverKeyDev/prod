@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect } from "react";
 
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
 import { getWindow } from "packages/utils/platform";
 

@@ -167,7 +167,6 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
           />
           <Label
             htmlFor="document-upload-input"
-            // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
             className={`touch-friendly gap-responsive-sm p-responsive-md flex cursor-pointer flex-row items-center justify-between ${DROP_ZONE_BORDER_BASE} ${isUploading ? "border-border bg-background-base cursor-not-allowed" : selectedFile ? "border-primary bg-primary-muted" : "hover:border-primary active:border-primary border-border hover:bg-background-base active:bg-primary-muted active:opacity-90"}`}
           >
             <Box className="gap-responsive-sm flex min-w-0 flex-1 flex-row items-center">

@@ -1,6 +1,7 @@
 import React from "react";
 
 import { spacing } from "packages/design-tokens";
+import { Box } from "packages/ui/components/primitives";
 
 export type TrianglePointerProps = {
   /** Whether to show the triangle pointer */
@@ -30,9 +31,9 @@ export const TrianglePointer: React.FC<TrianglePointerProps> = ({
   if (!show) return null;
 
   return (
-    <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 transform ${className}`}>
+    <Box className={`absolute bottom-0 left-1/2 -translate-x-1/2 transform ${className}`}>
       {/* Inner triangle (fill) */}
-      <div
+      <Box
         style={{
           position: "absolute",
           bottom: `-${size}px`,
@@ -46,7 +47,7 @@ export const TrianglePointer: React.FC<TrianglePointerProps> = ({
         }}
       />
       {/* Outer triangle (border) */}
-      <div
+      <Box
         style={{
           position: "absolute",
           bottom: `-${size + 1}px`,
@@ -59,7 +60,7 @@ export const TrianglePointer: React.FC<TrianglePointerProps> = ({
           borderTop: `${size + 1}px solid ${borderColor}`,
         }}
       />
-    </div>
+    </Box>
   );
 };
 

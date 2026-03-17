@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useHealthCheck, useSessionTimeout } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 
 // Note: StrictMode is disabled for cleaner development logs
 // Re-enable by wrapping App with <StrictMode> in main.tsx when debugging React issues
@@ -46,18 +47,18 @@ function App() {
   return (
     <>
       {isLoading ? (
-        <div className="flex min-h-screen items-center justify-center bg-background-base">
-          <div className="shimmer h-8 w-32 rounded-lg"></div>
-        </div>
+        <Box className="flex min-h-screen items-center justify-center bg-background-base">
+          <Box className="shimmer h-8 w-32 rounded-lg"></Box>
+        </Box>
       ) : maintenance ? (
         <MaintenanceScreen />
       ) : (
-        <div className="min-h-screen bg-background-base">
+        <Box className="min-h-screen bg-background-base">
           <AppRoutes user={authUser} handleLogout={authLogout} />
 
           {/* Global toasts */}
           <ToastsPortal />
-        </div>
+        </Box>
       )}
     </>
   );

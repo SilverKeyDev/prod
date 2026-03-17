@@ -28,12 +28,10 @@ const MiniLogo: React.FC<MiniLogoProps> = ({ size = "sm", className = "", logoCl
   };
   const currentSize = sizeClasses[size];
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <Box className={`flex flex-row items-center ${className}`}>
       <AppImage
         uri={MINI_LOGO_URI}
         alt="SilverKey Mini Logo"
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`${currentSize.logo} object-contain ${logoClassName}`}
       />
     </Box>

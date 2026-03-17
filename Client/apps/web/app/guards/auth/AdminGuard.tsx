@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { authUtils, PERMISSIONS, UserRole } from "packages/config/auth/auth";
 import { useUserData } from "packages/hooks/data/useUserData";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
@@ -46,9 +47,9 @@ export function AdminGuard({ children }: AdminGuardProps) {
     }
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background-base p-4">
+      <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
         <Card className="w-full max-w-md border-l-4 border-l-primary" padding="lg">
-          <div className="text-center">
+          <Box className="text-center">
             <Title size="lg" as="h2" className="mb-2">
               Admin Access Required
             </Title>
@@ -56,9 +57,9 @@ export function AdminGuard({ children }: AdminGuardProps) {
               You do not have permission to access this admin page. If you believe this is an error,
               please contact your SilverKey administrator.
             </BodyText>
-          </div>
+          </Box>
         </Card>
-      </div>
+      </Box>
     );
   }
 

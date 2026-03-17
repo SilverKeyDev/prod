@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 import { dateNow } from "packages/utils/date";
 
@@ -120,15 +121,15 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
       className={buttonClasses}
     >
       {loading ? (
-        <div className="flex items-center gap-2">
-          <div
+        <Box className="flex items-center gap-2">
+          <Box
             style={{
               transform: size === "sm" ? "scale(0.75)" : size === "lg" ? "scale(1.25)" : "scale(1)",
             }}
           >
             <KeyTurnLoader message="Loading..." />
-          </div>
-        </div>
+          </Box>
+        </Box>
       ) : (
         <>
           {children}

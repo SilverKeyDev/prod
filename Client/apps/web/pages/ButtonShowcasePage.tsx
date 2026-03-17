@@ -1,3 +1,5 @@
+import { Box } from "packages/ui/components/primitives";
+
 import { BodyText, Button, CancelButton, Title } from "@/components/ui";
 
 const VARIANTS = [
@@ -18,7 +20,7 @@ const SIZES = ["sm", "md", "lg"] as const;
  */
 export default function ButtonShowcasePage() {
   return (
-    <div className="min-h-screen bg-background-base p-6">
+    <Box className="min-h-screen bg-background-base p-6">
       <Title size="lg" as="h1" className="mb-2">
         Button showcase
       </Title>
@@ -30,7 +32,7 @@ export default function ButtonShowcasePage() {
         <Title size="md" as="h2" className="mb-4">
           Variants × sizes
         </Title>
-        <div className="flex flex-wrap gap-4">
+        <Box className="flex flex-wrap gap-4">
           {VARIANTS.map((v) =>
             SIZES.map((s) => (
               <Button key={`${v}-${s}`} variant={v} size={s}>
@@ -38,14 +40,14 @@ export default function ButtonShowcasePage() {
               </Button>
             ))
           )}
-        </div>
+        </Box>
       </section>
 
       <section className="mb-10">
         <Title size="md" as="h2" className="mb-4">
           With icon (left / right / edge)
         </Title>
-        <div className="flex flex-wrap items-center gap-4">
+        <Box className="flex flex-wrap items-center gap-4">
           <Button variant="primary" size="md" iconName="search">
             Icon left
           </Button>
@@ -61,14 +63,14 @@ export default function ButtonShowcasePage() {
           >
             Icon edge
           </Button>
-        </div>
+        </Box>
       </section>
 
       <section className="mb-10">
         <Title size="md" as="h2" className="mb-4">
           Disabled
         </Title>
-        <div className="flex flex-wrap gap-4">
+        <Box className="flex flex-wrap gap-4">
           <Button variant="primary" size="md" disabled>
             Primary disabled
           </Button>
@@ -78,30 +80,30 @@ export default function ButtonShowcasePage() {
           <Button variant="ghost" size="md" disabled>
             Ghost disabled
           </Button>
-        </div>
+        </Box>
       </section>
 
       <section className="mb-10">
         <Title size="md" as="h2" className="mb-4">
           Two-button rows (Primary + Ghost, Primary + Outline)
         </Title>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-2">
+        <Box className="flex flex-col gap-4">
+          <Box className="flex flex-wrap gap-2">
             <Button variant="primary" size="md">
               Yes
             </Button>
             <CancelButton size="md">Cancel</CancelButton>
-          </div>
-          <div className="flex flex-wrap gap-2">
+          </Box>
+          <Box className="flex flex-wrap gap-2">
             <Button variant="primary" size="md">
               Next
             </Button>
             <Button variant="outline" size="md">
               Back
             </Button>
-          </div>
-        </div>
+          </Box>
+        </Box>
       </section>
-    </div>
+    </Box>
   );
 }

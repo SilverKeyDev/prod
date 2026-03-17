@@ -3,6 +3,7 @@ import { Icon } from "@ui/icons";
 import { useSecureClipboardCopy } from "packages/hooks/ui";
 import { ROUTES } from "packages/navigation";
 import { useFeedStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 import { formatCompactNumber } from "packages/utils";
 import { getNavigator, getWindow } from "packages/utils/platform";
 
@@ -64,9 +65,9 @@ export function FeedActionStack({
   const displayStats = getDisplayStatsForListingId(item.id);
   const displayLikes = Math.max(0, displayStats.likes + (isLiked ? 1 : 0));
   return (
-    <div className="flex flex-col items-center gap-4">
+    <Box className="flex flex-col items-center gap-4">
       <FeedActionButton onClick={onLike} label="Like">
-        <div className="flex flex-col items-center gap-1">
+        <Box className="flex flex-col items-center gap-1">
           <Icon
             name="heart"
             className={`h-8 w-8 shrink-0 ${isLiked ? "fill-red-500 text-red-500" : "text-white"}`}
@@ -74,23 +75,23 @@ export function FeedActionStack({
           <BodyText as="span" size="xs" className="text-white">
             {formatCompactNumber(displayLikes)}
           </BodyText>
-        </div>
+        </Box>
       </FeedActionButton>
       <FeedActionButton onClick={onComment} label="Comment">
-        <div className="flex flex-col items-center gap-1">
+        <Box className="flex flex-col items-center gap-1">
           <Icon name="message-circle" className="h-8 w-8 shrink-0 text-white" />
           <BodyText as="span" size="xs" className="text-white">
             {formatCompactNumber(displayStats.comments)}
           </BodyText>
-        </div>
+        </Box>
       </FeedActionButton>
       <FeedActionButton onClick={handleShare} label="Share">
-        <div className="flex flex-col items-center gap-1">
+        <Box className="flex flex-col items-center gap-1">
           <Icon name="share" className="h-8 w-8 shrink-0 text-white" />
           <BodyText as="span" size="xs" className="text-white">
             {formatCompactNumber(displayStats.shares)}
           </BodyText>
-        </div>
+        </Box>
       </FeedActionButton>
       <FeedActionButton onClick={handleToggleMute} label={userHasUnmuted ? "Mute" : "Unmute"}>
         {userHasUnmuted ? (
@@ -105,6 +106,6 @@ export function FeedActionStack({
       <FeedActionButton onClick={onMore} label="More">
         <Icon name="more-horizontal" className="h-8 w-8 shrink-0 text-white" />
       </FeedActionButton>
-    </div>
+    </Box>
   );
 }

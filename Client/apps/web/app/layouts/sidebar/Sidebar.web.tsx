@@ -9,6 +9,7 @@ import { Link } from "packages/navigation";
 import { useViewStore, type ViewState } from "packages/store";
 import { useNotificationStore } from "packages/store";
 import WhiteLogo from "packages/ui/components/asset/WhiteLogo";
+import { Box } from "packages/ui/components/primitives";
 
 import ConfirmationDialog from "@/components/modals/dialogs/ConfirmationDialog.web";
 import { BodyText, NotificationBadge } from "@/components/ui";
@@ -60,7 +61,7 @@ function SidebarNavSingleLink({
   const buttonClass = `${getButtonStyles(isActive)} ${!expanded ? "justify-center" : ""}`;
   const titleAttr = !expanded ? firstItem?.name : "";
   const iconEl = (
-    <div className="relative inline-flex items-center">
+    <Box className="relative inline-flex items-center">
       <Icon
         name={itemIconName}
         className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""}`}
@@ -71,7 +72,7 @@ function SidebarNavSingleLink({
           className="absolute -right-1 -top-1 sm:-right-0.5 sm:-top-0.5"
         />
       )}
-    </div>
+    </Box>
   );
   if (categoryKey === "search") {
     return (
@@ -177,19 +178,19 @@ function SidebarNavCategory({
         aria-expanded={openCategories[categoryKey]}
         aria-controls={categoryPanelId}
       >
-        <div className="flex items-center">
-          <div
+        <Box className="flex items-center">
+          <Box
             className={`${!expanded && openCategories[categoryKey] ? "flex h-8 w-8 items-center justify-center rounded-full bg-white/20" : ""}`}
           >
             <Icon
               name={category.icon}
               className={`h-6 w-6 transition-all duration-200 ${expanded ? "mr-3" : ""} ${!expanded && openCategories[categoryKey] ? "text-white" : ""}`}
             />
-          </div>
+          </Box>
           {expanded && <span className="text-sm font-medium">{category.name}</span>}
-        </div>
+        </Box>
         {!expanded && openCategories[categoryKey] && (
-          <div className="absolute right-1 top-1 h-2 w-2 rounded-full bg-white"></div>
+          <Box className="absolute right-1 top-1 h-2 w-2 rounded-full bg-white"></Box>
         )}
         {expanded &&
           (openCategories[categoryKey] ? (
@@ -199,7 +200,7 @@ function SidebarNavCategory({
           ))}
       </button>
       {openCategories[categoryKey] && (
-        <div
+        <Box
           id={categoryPanelId}
           className={expanded ? "ml-3 mt-2 space-y-1" : ""}
           role="region"
@@ -221,7 +222,7 @@ function SidebarNavCategory({
               {expanded && <span className="text-sm">{item.name}</span>}
             </Link>
           ))}
-        </div>
+        </Box>
       )}
     </>
   );
@@ -236,24 +237,24 @@ function SidebarHeader({
   displayUser: UserProfile | null | undefined;
 }) {
   return (
-    <div className="flex flex-shrink-0 items-center justify-between py-2">
-      <div className="flex items-center text-white">
+    <Box className="flex flex-shrink-0 items-center justify-between py-2">
+      <Box className="flex items-center text-white">
         {expanded && (
-          <div className="flex flex-shrink-0 py-4">
+          <Box className="flex flex-shrink-0 py-4">
             {isLoading ? (
-              <div className="animate-pulse space-y-3">
-                <div className="flex items-center space-x-4">
-                  <div className="h-6 w-6 rounded-full bg-white/40"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded bg-white/40"></div>
-                    <div className="h-3 w-1/2 rounded bg-white/40"></div>
-                  </div>
-                </div>
-              </div>
+              <Box className="animate-pulse space-y-3">
+                <Box className="flex items-center space-x-4">
+                  <Box className="h-6 w-6 rounded-full bg-white/40"></Box>
+                  <Box className="flex-1 space-y-2">
+                    <Box className="h-4 w-3/4 rounded bg-white/40"></Box>
+                    <Box className="h-3 w-1/2 rounded bg-white/40"></Box>
+                  </Box>
+                </Box>
+              </Box>
             ) : (
-              <div className="flex items-center">
+              <Box className="flex items-center">
                 <WhiteLogo size="sm" className="ml-1" />
-                <div className="ml-3">
+                <Box className="ml-3">
                   <BodyText
                     size="xs"
                     as="span"
@@ -261,13 +262,13 @@ function SidebarHeader({
                   >
                     {displayUser?.email ?? "No email"}
                   </BodyText>
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 function SidebarFooter({
@@ -284,7 +285,7 @@ function SidebarFooter({
   onCancelLogout: () => void;
 }) {
   return (
-    <div className="flex-shrink-0 border-t border-white/30 py-4">
+    <Box className="flex-shrink-0 border-t border-white/30 py-4">
       <button
         onClick={onLogoutClick}
         className={`${getButtonStyles(false).replace("text-white/80", "text-white")} cursor-pointer justify-center py-3`}
@@ -300,7 +301,7 @@ function SidebarFooter({
         onConfirm={onConfirmLogout}
         onCancel={onCancelLogout}
       />
-    </div>
+    </Box>
   );
 }
 type SidebarNavProps = {
@@ -328,7 +329,7 @@ function SidebarNav({
   return (
     <nav className="mt-4 pb-4" aria-label="Primary navigation">
       {Object.entries(navigation).map(([categoryKey, category]) => (
-        <div key={categoryKey}>
+        <Box key={categoryKey}>
           <SidebarNavCategory
             categoryKey={categoryKey}
             category={category}
@@ -341,7 +342,7 @@ function SidebarNav({
             unreadCount={unreadCount}
             isLoaded={isLoaded}
           />
-        </div>
+        </Box>
       ))}
     </nav>
   );
@@ -399,15 +400,15 @@ export default function Sidebar({
   const isCategoryActive = (items: SidebarNavItem[]) => items.some((item) => isActive(item.href));
   const navigation = getNavigation(_isAgent, hasAgent, isMobile);
   return (
-    <div
+    <Box
       className={`safe-top fixed left-0 top-0 z-sidebar h-full bg-background-sidebar text-white transition-all duration-300 ease-in-out ${expanded ? "w-52 px-4" : "w-16 px-2"} `}
     >
-      <div
+      <Box
         className="line-clamp-1 flex h-full flex-col overflow-hidden"
         style={{ height: "100%", maxHeight: "100%" }}
       >
         <SidebarHeader expanded={expanded} isLoading={isLoading} displayUser={authUser} />
-        <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
+        <Box className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
           <SidebarNav
             navigation={navigation}
             expanded={expanded}
@@ -419,7 +420,7 @@ export default function Sidebar({
             unreadCount={unreadCount}
             isLoaded={isLoaded}
           />
-        </div>
+        </Box>
         <SidebarFooter
           expanded={expanded}
           showLogoutConfirm={showLogoutConfirm}
@@ -427,7 +428,7 @@ export default function Sidebar({
           onConfirmLogout={handleConfirmLogout}
           onCancelLogout={handleCancelLogout}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

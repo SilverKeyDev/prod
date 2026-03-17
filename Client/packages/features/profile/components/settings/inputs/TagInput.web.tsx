@@ -2,7 +2,10 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { Button, Input } from "@/components/ui";
+
 type OnPerTagInputProps = {
   value: string[];
   onChange: (value: string[]) => void;
@@ -47,10 +50,10 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
     setDraftText(e.target.value);
   };
   return (
-    <div className={`${className}`}>
+    <Box className={`${className}`}>
       {/* Input container with same styling as OnPerDropdown - only show in edit mode */}
       {isEditMode && (
-        <div className="mb-3 flex space-x-2">
+        <Box className="mb-3 flex space-x-2">
           <Input
             type="text"
             value={draftText}
@@ -72,14 +75,14 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
             iconName="plus"
             className="touch-friendly h-12 w-12 min-w-0 p-0"
           />
-        </div>
+        </Box>
       )}
 
       {/* Tags display */}
       {value.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <Box className="flex flex-wrap gap-2">
           {value.map((tag, index) => (
-            <div
+            <Box
               key={index}
               className="bg-accent text-off-white inline-flex items-center rounded-full px-3 py-1 text-sm"
             >
@@ -96,11 +99,11 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
                   <Icon name="x" className="h-3 w-3 text-current" />
                 </Button>
               )}
-            </div>
+            </Box>
           ))}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 export default OnPerTagInput;

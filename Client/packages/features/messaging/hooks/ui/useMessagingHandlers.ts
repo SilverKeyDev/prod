@@ -5,7 +5,7 @@ import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SavedHome } from "packages/schemas/property";
 import { useUIStore } from "packages/store";
-import type { DocumentData } from "packages/ui/components/cards/document/DocumentCard";
+import type { DocumentData } from "packages/ui/components/cards/document/types";
 
 import { useEventRequests } from "@/features/agent/hooks/data/useEventRequests";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents";

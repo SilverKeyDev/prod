@@ -1,6 +1,7 @@
 import React from "react";
 
 import { useNavigation } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 
 import { BaseModal } from "@/components/ui";
 import { BodyText, Button, Title } from "@/components/ui";
@@ -22,8 +23,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       showHeaderBorder={false}
       contentBackground="off-white"
     >
-      <div className="h-full overflow-y-auto">
-        <div className="space-y-4 p-6">
+      <Box className="h-full overflow-y-auto">
+        <Box className="space-y-4 p-6">
           <Title size="lg" as="h2">
             Settings
           </Title>
@@ -39,8 +40,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           >
             Open Profile Settings
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
     </BaseModal>
   );
 }

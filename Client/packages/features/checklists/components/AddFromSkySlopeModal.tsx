@@ -135,7 +135,6 @@ export default function AddFromSkySlopeModal({
                       onPress={() => toggleSelect(form.id)}
                     >
                       <Box
-                        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                         className={`flex h-4 w-4 flex-shrink-0 flex-row items-center justify-center rounded border ${selectedIds.has(form.id) ? "border-primary bg-primary" : "border-border bg-background-surface"}`}
                       >
                         {selectedIds.has(form.id) && (
@@ -166,7 +165,6 @@ export default function AddFromSkySlopeModal({
                       onPress={() => toggleSelect(form.id)}
                     >
                       <Box
-                        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                         className={`flex h-4 w-4 flex-shrink-0 flex-row items-center justify-center rounded border ${selectedIds.has(form.id) ? "border-primary bg-primary" : "border-border bg-background-surface"}`}
                       >
                         {selectedIds.has(form.id) && (

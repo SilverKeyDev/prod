@@ -3,11 +3,13 @@ import React, { useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 
 import OtherFilterContent from "./OtherFilterContent.web";
+
 export type OtherFilterDropdownProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
@@ -21,7 +23,7 @@ export default function OtherFilterDropdown({
   const { t } = useLocalization();
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border-border border-t pt-3">
+    <Box className="border-border border-t pt-3">
       <Button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -44,10 +46,10 @@ export default function OtherFilterDropdown({
         </BodyText>
       </Button>
       {open && (
-        <div className="mt-3 max-h-[60vh] overflow-y-auto pr-1">
+        <Box className="mt-3 max-h-[60vh] overflow-y-auto pr-1">
           <OtherFilterContent formData={formData} updateFormData={updateFormData} />
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

@@ -166,7 +166,6 @@ function DocumentUploadModalNativeBody({
                 className="px-3 py-2"
               >
                 <Text
-                  // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                   className={`text-sm font-medium ${isSelected ? "text-white" : "text-text-primary"}`}
                 >
                   {cat.label}

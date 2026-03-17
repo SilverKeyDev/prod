@@ -1,7 +1,8 @@
 import React from "react";
 
-import { formatPropertyType } from "@/features/search/types/search/propertyDetailsFormatters";
+import { Box } from "packages/ui/components/primitives";
 
+import { formatPropertyType } from "@/features/search/types/search/propertyDetailsFormatters";
 type PropertyDetailsFieldsProps = {
   propertyYearBuilt?: number | string;
   propertyLotSize?: number | string;
@@ -45,56 +46,56 @@ export function PropertyDetailsFields({
     (typeof propertyParking === "number" && propertyParking > 0);
 
   return (
-    <div className="mt-2 space-y-3">
+    <Box className="mt-2 space-y-3">
       {propertyYearBuilt && Number(propertyYearBuilt) > 0 && (
-        <div className="flex justify-between">
+        <Box className="flex justify-between">
           Year Built:
           {String(propertyYearBuilt)}
-        </div>
+        </Box>
       )}
       {hasLotSize && (
-        <div className="flex justify-between">
+        <Box className="flex justify-between">
           Lot Size:
           {String(propertyLotSize)}
-        </div>
+        </Box>
       )}
       {hasPropertyType && (
-        <div className="flex justify-between">
+        <Box className="flex justify-between">
           Property Type:
           {formatPropertyType(
             (propertyHomeType as string) ?? (propertyPropertyType as string) ?? ""
           )}
-        </div>
+        </Box>
       )}
       {hasPricePerSqft && (
-        <div className="flex justify-between">
+        <Box className="flex justify-between">
           Price per Sq Ft: $
           {typeof propertyPricePerSquareFoot === "string"
             ? propertyPricePerSquareFoot
             : typeof propertyPricePerSquareFoot === "number"
               ? String(propertyPricePerSquareFoot)
               : ""}
-        </div>
+        </Box>
       )}
       {hasParking && (
-        <div className="flex justify-between">
+        <Box className="flex justify-between">
           Parking:
           {typeof propertyGarageSpaces === "number" && propertyGarageSpaces > 0
             ? `${propertyGarageSpaces}-car garage`
             : typeof propertyParking === "number" && propertyParking > 0
               ? `${propertyParking} spaces`
               : "N/A"}
-        </div>
+        </Box>
       )}
       {typeof propertyZestimate === "number" && propertyZestimate > 0 && (
-        <div className="flex justify-between">Estimate: ${propertyZestimate.toLocaleString()}</div>
+        <Box className="flex justify-between">Estimate: ${propertyZestimate.toLocaleString()}</Box>
       )}
       {typeof propertyRentZestimate === "number" && propertyRentZestimate > 0 && (
-        <div className="flex justify-between">
+        <Box className="flex justify-between">
           Rent Estimate: ${propertyRentZestimate.toLocaleString()}
           /month
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

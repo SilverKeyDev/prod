@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useSearchContextStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
@@ -11,6 +12,7 @@ import type { OnboardingData } from "@/features/profile/utils";
 import BedBathFilter from "./BedBathFilter.web";
 import OtherFilterDropdown from "./OtherFilterDropdown.web";
 import PriceRangeFilter from "./PriceRangeFilter.web";
+
 export type SearchFiltersPanelProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
@@ -24,9 +26,9 @@ export default function SearchFiltersPanel({
   const { t } = useLocalization();
   const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
   return (
-    <div className="space-y-4 pb-8">
+    <Box className="space-y-4 pb-8">
       {saveStatus !== "idle" && (
-        <div className="flex items-center gap-2 text-sm">
+        <Box className="flex items-center gap-2 text-sm">
           {saveStatus === "saving" && (
             <BodyText as="span" size="sm" muted>
               {t("common.saving")}
@@ -38,7 +40,7 @@ export default function SearchFiltersPanel({
               {t("search.saved")}
             </BodyText>
           )}
-        </div>
+        </Box>
       )}
 
       <PriceRangeFilter
@@ -74,6 +76,6 @@ export default function SearchFiltersPanel({
       />
 
       <OtherFilterDropdown formData={formData} updateFormData={updateFormData} />
-    </div>
+    </Box>
   );
 }

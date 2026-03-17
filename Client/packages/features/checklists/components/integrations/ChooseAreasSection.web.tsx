@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useSearchHeaderLocations } from "packages/features/search/components/header/SearchHeaderLocations/useSearchHeaderLocations"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds search location UI; shared composition. */
-import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds search location UI; shared composition. */
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
 import Card from "packages/ui/components/cards/Card";

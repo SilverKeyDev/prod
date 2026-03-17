@@ -3,9 +3,11 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import SectionBox from "./SectionBox";
 import SectionTitle from "./SectionTitle";
+
 type DebugSectionProps = {
   compsData: unknown;
   isLoading: boolean;
@@ -50,9 +52,9 @@ export function DebugSection({
       <SectionTitle icon={<Icon name="home" className="mobile-icon-sm text-text-secondary" />}>
         {t("negotiate.debug.section_title")}
       </SectionTitle>
-      <div className="space-responsive-sm text-responsive-sm bg-text-primary text-accent max-h-96 overflow-auto rounded-lg font-mono">
+      <Box className="space-responsive-sm text-responsive-sm bg-text-primary text-accent max-h-96 overflow-auto rounded-lg font-mono">
         <pre className="whitespace-pre-wrap break-words">{JSON.stringify(compsData, null, 2)}</pre>
-      </div>
+      </Box>
     </SectionBox>
   );
 }

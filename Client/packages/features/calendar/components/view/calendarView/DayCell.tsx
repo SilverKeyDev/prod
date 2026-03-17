@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 
+import type { ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
+import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import { BodyText, Button } from "@/components/ui";
 
-import type { ExtendedGoogleEvent } from "../../../types/calendar";
 import type { GridDay } from "./types";
 
 type DayCellProps = {
@@ -88,13 +89,13 @@ function EventChip({
       : "border-border bg-primary-muted text-text-secondary";
 
   return (
-    <div className={`${baseClasses} ${variantClasses}`} title={tooltipText}>
+    <Box className={`${baseClasses} ${variantClasses}`} title={tooltipText}>
       {allDay ? (
         <BodyText as="span" size="xs" muted className="block min-w-0 truncate font-medium">
           All day · {displayTitle}
         </BodyText>
       ) : (
-        <div className="flex w-full min-w-0 items-center overflow-hidden">
+        <Box className="flex w-full min-w-0 items-center overflow-hidden">
           {event.start.dateTime && (
             <BodyText as="span" size="xs" muted className="shrink-0 font-medium">
               {dateParseISO(event.start.dateTime).toDate().toLocaleTimeString("en-US", {
@@ -108,9 +109,9 @@ function EventChip({
           <BodyText as="span" size="xs" muted className="min-w-0 truncate font-medium">
             {displayTitle}
           </BodyText>
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
 
@@ -128,7 +129,7 @@ function AvailabilityChip({ block, isPast }: { block: FreebusyTimeBlock; isPast:
   })}`;
 
   return (
-    <div
+    <Box
       className={`flex h-6 min-h-6 w-full min-w-0 items-center overflow-hidden rounded border-l-4 px-1 font-medium ${
         isPast
           ? "border-border bg-primary-muted text-text-secondary"
@@ -139,7 +140,7 @@ function AvailabilityChip({ block, isPast }: { block: FreebusyTimeBlock; isPast:
       <BodyText as="span" size="xs" muted className="block min-w-0 truncate font-medium">
         {timeStr}
       </BodyText>
-    </div>
+    </Box>
   );
 }
 
@@ -181,12 +182,12 @@ export function DayCell({
         {dayNumber}
       </BodyText>
 
-      <div className="flex w-[80%] min-w-0 max-w-[80%] flex-col items-stretch gap-0.5 overflow-hidden pt-5">
+      <Box className="flex w-[80%] min-w-0 max-w-[80%] flex-col items-stretch gap-0.5 overflow-hidden pt-5">
         {[0, 1, 2].map((slotIndex) => {
           const item = visibleItems[slotIndex];
           if (!item) {
             return (
-              <div
+              <Box
                 key={`empty-${slotIndex}`}
                 className={`${chipSlotHeight} w-full min-w-0 shrink-0`}
                 aria-hidden
@@ -211,7 +212,7 @@ export function DayCell({
             />
           );
         })}
-        <div
+        <Box
           className={`flex ${chipSlotHeight} w-full min-w-0 shrink-0 items-center overflow-hidden px-1 text-xs ${day.isPast ? "text-text-disabled" : "text-text-secondary"}`}
         >
           {showMoreIndicator ? (
@@ -219,8 +220,8 @@ export function DayCell({
               +{totalItems - 3} more
             </BodyText>
           ) : null}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </Button>
   );
 }

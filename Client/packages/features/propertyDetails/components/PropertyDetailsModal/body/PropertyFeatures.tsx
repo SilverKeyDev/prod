@@ -2,6 +2,7 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
@@ -39,20 +40,20 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
   if (!img && !feats) return null;
 
   return (
-    <div className="px-6 py-6">
-      <div className="mb-4 flex items-center gap-2">
+    <Box className="px-6 py-6">
+      <Box className="mb-4 flex items-center gap-2">
         <Title as="h3" size="lg" className="text-text-secondary font-semibold">
           {t("property_details.property_features")}
         </Title>
-      </div>
+      </Box>
 
       <Card className="border-r-0 p-6">
         {img && img.clean.length > 0 && (
-          <div className="mb-4">
+          <Box className="mb-4">
             <Title as="h4" size="sm" className="text-accent mb-2 font-semibold">
               {t("property_details.ai_detected_features")}
             </Title>
-            <div className="text-text-secondary text-xs leading-relaxed">
+            <Box className="text-text-secondary text-xs leading-relaxed">
               {img.clean.map((feature, i) => (
                 <BodyText key={i} as="span" className="inline-block">
                   {feature.trim()}
@@ -63,14 +64,14 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                   )}
                 </BodyText>
               ))}
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
 
         {feats && (
-          <div className="space-y-4">
+          <Box className="space-y-4">
             {Object.entries(feats).map(([category, list]) => (
-              <div key={category}>
+              <Box key={category}>
                 <Title
                   as="h4"
                   size="sm"
@@ -78,7 +79,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                 >
                   {category.replace(/_/g, " ")}
                 </Title>
-                <div className="flex flex-wrap gap-2">
+                <Box className="flex flex-wrap gap-2">
                   {list.map((feature, idx) => (
                     <BodyText
                       key={idx}
@@ -88,12 +89,12 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                       {feature}
                     </BodyText>
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Box>
             ))}
-          </div>
+          </Box>
         )}
       </Card>
-    </div>
+    </Box>
   );
 };

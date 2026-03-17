@@ -1,6 +1,8 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
+
+import { Box } from "packages/ui/components/primitives";
 type OliveCheckboxProps = {
   checked: boolean;
   onToggle?: () => void;
@@ -11,12 +13,12 @@ type OliveCheckboxProps = {
  */
 const OliveCheckbox: React.FC<OliveCheckboxProps> = ({ checked, onToggle }) => {
   return (
-    <div
+    <Box
       className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${onToggle ? "cursor-pointer" : ""} ${checked ? "border-primary bg-primary" : "border-border"}`}
       {...(onToggle ? { onClick: onToggle } : {})}
     >
       {checked && <Icon name="check" className="h-3.5 w-3.5 text-white" strokeWidth={4} />}
-    </div>
+    </Box>
   );
 };
 export default OliveCheckbox;

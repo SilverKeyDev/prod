@@ -7,6 +7,7 @@ import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
 import CloseButton from "packages/ui/components/button/CloseButton";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Input, Label, Textarea, Title } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
@@ -51,19 +52,19 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
   };
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-background-surface relative w-full max-w-2xl rounded-xl shadow-lg">
+    <Box className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <Box className="bg-background-surface relative w-full max-w-2xl rounded-xl shadow-lg">
         {/* Header */}
-        <div className="border-border flex items-center justify-between border-b p-4">
+        <Box className="border-border flex items-center justify-between border-b p-4">
           <Title as="h2" size="lg" className="text-text-primary font-semibold">
             {config.searchModal.title}
           </Title>
           <CloseButton onClick={onClose} size="sm" label="Close" />
-        </div>
+        </Box>
 
         {/* Search Input */}
-        <div className="border-border border-b p-4">
-          <div className="relative">
+        <Box className="border-border border-b p-4">
+          <Box className="relative">
             <Icon
               name="search"
               className="text-text-disabled absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2"
@@ -76,23 +77,23 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
               placeholder={config.searchModal.searchPlaceholder}
               className="border-border bg-background-surface text-text-primary placeholder:text-text-secondary focus:border-primary focus:ring-accent-muted w-full rounded-lg border px-10 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2"
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {/* Results */}
-        <div className="max-h-96 overflow-y-auto p-4">
+        <Box className="max-h-96 overflow-y-auto p-4">
           {searchQuery.length < 2 ? null : isLoading ? (
-            <div className="py-8 text-center">
+            <Box className="py-8 text-center">
               <KeyTurnLoader message={config.searchModal.searchingMessage} />
-            </div>
+            </Box>
           ) : agents.length === 0 ? (
-            <div className="text-text-secondary py-8 text-center text-sm">
+            <Box className="text-text-secondary py-8 text-center text-sm">
               {config.searchModal.noResultsMessage} "{searchQuery}"
-            </div>
+            </Box>
           ) : (
-            <div className="space-y-2">
+            <Box className="space-y-2">
               {agents.map((agent) => (
-                <div
+                <Box
                   key={agent.id}
                   className={`rounded-lg border p-4 transition-all ${
                     selectedAgentId === agent.id
@@ -101,12 +102,12 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                   }`}
                 >
                   {selectedAgentId === agent.id ? (
-                    <div className="space-y-4">
-                      <div className="border-border flex items-start gap-3 border-b pb-3">
-                        <div className="bg-primary-muted flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full">
+                    <Box className="space-y-4">
+                      <Box className="border-border flex items-start gap-3 border-b pb-3">
+                        <Box className="bg-primary-muted flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full">
                           <Icon name="user" className="text-text-secondary h-6 w-6" />
-                        </div>
-                        <div className="min-w-0 flex-1">
+                        </Box>
+                        <Box className="min-w-0 flex-1">
                           <Title
                             as="h3"
                             size="md"
@@ -117,9 +118,9 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                           <BodyText as="p" size="sm" className="text-text-secondary truncate">
                             {agent.email}
                           </BodyText>
-                        </div>
-                      </div>
-                      <div>
+                        </Box>
+                      </Box>
+                      <Box>
                         <Label
                           htmlFor="agent-search-message"
                           className="text-text-secondary mb-2 block font-medium"
@@ -134,8 +135,8 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                           className="border-border bg-background-surface text-text-primary placeholder:text-text-secondary focus:border-primary focus:ring-accent-muted w-full resize-none rounded-lg border px-4 py-3 text-sm transition-colors focus:outline-none focus:ring-2"
                           rows={4}
                         />
-                      </div>
-                      <div className="flex gap-3 pt-2">
+                      </Box>
+                      <Box className="flex gap-3 pt-2">
                         <Button
                           onClick={() => handleSendRequest(agent.id)}
                           disabled={isCreatingRequest}
@@ -160,8 +161,8 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                         >
                           Cancel
                         </Button>
-                      </div>
-                    </div>
+                      </Box>
+                    </Box>
                   ) : (
                     <Button
                       type="button"
@@ -170,10 +171,10 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                       onClick={() => setSelectedAgentId(agent.id)}
                       className="flex h-auto min-h-0 w-full items-start justify-start gap-3 py-0 text-left"
                     >
-                      <div className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+                      <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
                         <Icon name="user" className="h-5 w-5 text-black" />
-                      </div>
-                      <div className="flex-1">
+                      </Box>
+                      <Box className="flex-1">
                         <Title as="h3" size="sm" className="font-medium text-black">
                           {agent.name}
                         </Title>
@@ -185,15 +186,15 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
                             {agent.phone}
                           </BodyText>
                         )}
-                      </div>
+                      </Box>
                     </Button>
                   )}
-                </div>
+                </Box>
               ))}
-            </div>
+            </Box>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

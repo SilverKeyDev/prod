@@ -2,6 +2,7 @@ import { Icon } from "@ui/icons";
 
 import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 import { ConnectionRequestsInbox } from "@/features/agent/components/modals/ConnectionRequestsInbox";
@@ -36,7 +37,7 @@ export default function ClientMessagingSidebar({
     <>
       {/* Backdrop for mobile - only show when sidebar is expanded on mobile */}
       {isSidebarExpanded && (
-        <div
+        <Box
           className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ease-in-out xl:hidden"
           onClick={() => setIsSidebarExpanded(false)}
           aria-hidden="true"
@@ -62,7 +63,7 @@ export default function ClientMessagingSidebar({
         />
 
         {/* Scrollable Agent List */}
-        <div
+        <Box
           className={`border-border bg-background-surface flex-1 overflow-y-auto border-r ${isSidebarExpanded ? "rounded-b-xl" : ""} xl:rounded-bl-xl xl:rounded-br-none`}
         >
           {showInbox ? (
@@ -72,16 +73,16 @@ export default function ClientMessagingSidebar({
               }}
             />
           ) : !agentId ? (
-            <div className="flex h-full items-center justify-center p-3">
-              <div className="text-center">
+            <Box className="flex h-full items-center justify-center p-3">
+              <Box className="text-center">
                 <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
                 <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
                   {t("agent.search_agent_to_start_messaging")}
                 </BodyText>
-              </div>
-            </div>
+              </Box>
+            </Box>
           ) : (
-            <div
+            <Box
               role="button"
               tabIndex={0}
               onClick={() => {
@@ -101,8 +102,8 @@ export default function ClientMessagingSidebar({
               }}
               className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${activeConversationId === activeConversation?.id ? "bg-olive/10 border-l-olive border-l-4" : ""}`}
             >
-              <div className="flex items-start justify-between">
-                <div className="min-w-0 flex-1">
+              <Box className="flex items-start justify-between">
+                <Box className="min-w-0 flex-1">
                   <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                     {t("agent.your_agent")}
                   </Title>
@@ -115,11 +116,11 @@ export default function ClientMessagingSidebar({
                       )}
                     </BodyText>
                   )}
-                </div>
-              </div>
-            </div>
+                </Box>
+              </Box>
+            </Box>
           )}
-        </div>
+        </Box>
       </aside>
     </>
   );

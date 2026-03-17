@@ -10,6 +10,7 @@ import UnifiedMessagesList from "packages/features/messaging/components/layout/U
 import { useMessaging } from "packages/hooks/data/chat/useMessaging";
 import { useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
+import { Box } from "packages/ui/components/primitives";
 
 import { Region } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
@@ -133,6 +134,8 @@ export default function AgentMessaging({
     showInbox,
     selectedClientId,
     isSidebarExpanded,
+    setIsSidebarExpanded,
+    setShowSearchModal,
     selectedClient?.name,
     selectedClient,
     config.header.chatTitle,
@@ -140,8 +143,8 @@ export default function AgentMessaging({
   ]);
 
   return (
-    <div className="flex h-full w-full overflow-hidden">
-      <div className="relative flex h-full w-full overflow-hidden">
+    <Box className="flex h-full w-full overflow-hidden">
+      <Box className="relative flex h-full w-full overflow-hidden">
         <UnifiedMessagingSidebar
           mode="agent"
           isSidebarExpanded={isSidebarExpanded}
@@ -157,9 +160,9 @@ export default function AgentMessaging({
           onSearchClick={() => setShowSearchModal(true)}
         />
         <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
-          <div className="flex min-h-0 flex-1 flex-col">
+          <Box className="flex min-h-0 flex-1 flex-col">
             {!showInbox && (
-              <div className="hidden flex-shrink-0 md:block">
+              <Box className="hidden flex-shrink-0 md:block">
                 <UnifiedMessagingHeader
                   mode={getHeaderMode()}
                   isSidebarExpanded={isSidebarExpanded}
@@ -170,9 +173,9 @@ export default function AgentMessaging({
                   selectedClientName={selectedClient?.name}
                   onSearchClick={() => setShowSearchModal(true)}
                 />
-              </div>
+              </Box>
             )}
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <Box className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <Region
                 label="Message list"
                 className="scrollbar-hide max-md:pb-mobile-nav min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
@@ -194,7 +197,7 @@ export default function AgentMessaging({
                   acceptingEventRequestId={acceptingEventRequestId}
                 />
               </Region>
-            </div>
+            </Box>
             <UnifiedMessageInput
               mode="agent"
               message={message}
@@ -208,9 +211,9 @@ export default function AgentMessaging({
               onAttachmentAgreement={() => setShowSelectAgreementModal(true)}
               onAttachmentCalendar={() => setShowCalendarEventModal(true)}
             />
-          </div>
+          </Box>
         </section>
-      </div>
+      </Box>
       <MessagingModals
         mode="agent"
         showSearchModal={showSearchModal}
@@ -229,6 +232,6 @@ export default function AgentMessaging({
         onSelectAgreement={handlers.handleSelectAgreement!}
         onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
       />
-    </div>
+    </Box>
   );
 }

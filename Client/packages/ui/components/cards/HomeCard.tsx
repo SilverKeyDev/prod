@@ -7,6 +7,7 @@ import {
   truncateText,
 } from "packages/features/search/types/search/address";
 import { useNavigation } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 import ModalPortal from "@/components/modals/ModalPortal";
@@ -131,7 +132,7 @@ function HomeCardView({
   ) : null;
 
   return (
-    <div
+    <Box
       role="button"
       tabIndex={0}
       className={`relative cursor-pointer ${isOnMap ? "scale-90 transform" : ""}`}
@@ -174,7 +175,7 @@ function HomeCardView({
           />
         </ModalPortal>
       )}
-    </div>
+    </Box>
   );
 }
 

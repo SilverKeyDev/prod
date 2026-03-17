@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-require-imports -- Metro/Expo use CJS */
-/* eslint-env node */
 /* global require, module, __dirname, process, console */
 const path = require("node:path");
 const fs = require("node:fs");

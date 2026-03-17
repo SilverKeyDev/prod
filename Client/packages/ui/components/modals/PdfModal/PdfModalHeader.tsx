@@ -2,6 +2,8 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { IconButton, MiniLogo, Title } from "@/components/ui";
 export type PdfModalHeaderProps = {
   title: string;
@@ -34,20 +36,20 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
   onShare,
   onClose,
 }) => (
-  <div
+  <Box
     className="from-primary to-primary-hover flex items-center justify-between bg-gradient-to-r px-4 py-3"
     style={{ borderRadius: "24px 24px 0 0" }}
   >
-    <div className="gap-responsive-sm flex min-w-0 flex-1 items-center">
-      <div className="flex-shrink-0 text-white" style={{ filter: "brightness(0) invert(1)" }}>
+    <Box className="gap-responsive-sm flex min-w-0 flex-1 items-center">
+      <Box className="flex-shrink-0 text-white" style={{ filter: "brightness(0) invert(1)" }}>
         <MiniLogo className="mobile-icon-lg" />
-      </div>
+      </Box>
       <Title size="lg" as="h2" className="min-w-0 truncate font-semibold text-white">
         {title}
       </Title>
-    </div>
+    </Box>
 
-    <div className="gap-responsive-sm flex flex-shrink-0 items-center">
+    <Box className="gap-responsive-sm flex flex-shrink-0 items-center">
       <IconButton
         icon={
           <Icon
@@ -97,6 +99,6 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
         className={headerButtonClass}
         variant="ghost"
       />
-    </div>
-  </div>
+    </Box>
+  </Box>
 );

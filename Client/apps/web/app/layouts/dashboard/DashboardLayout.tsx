@@ -7,6 +7,7 @@ import { SearchRefreshProvider } from "packages/contexts";
 // Hooks
 import { useIsMobile } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { Box } from "packages/ui/components/primitives";
 
 // Sidebar
 import MobileBottomNav from "@/app/layouts/mobile/MobileBottomNav";
@@ -76,7 +77,7 @@ export default function DashboardLayout({
 
   return (
     <SearchRefreshProvider>
-      <div
+      <Box
         className={`flex min-w-0 ${
           isFullHeightRoute
             ? isMobile
@@ -97,7 +98,7 @@ export default function DashboardLayout({
         }
       >
         {/* Sidebar wrapper: reserve width on desktop so main does not extend under it; z-sidebar keeps nav above full-height content (e.g. search) */}
-        <div className="relative z-sidebar hidden w-52 shrink-0 md:block">
+        <Box className="relative z-sidebar hidden w-52 shrink-0 md:block">
           <Sidebar
             user={user}
             onLogout={onLogout}
@@ -105,11 +106,11 @@ export default function DashboardLayout({
             isMobile={false}
             onLinkClick={undefined}
           />
-        </div>
+        </Box>
 
-        <div className="block md:hidden">
+        <Box className="block md:hidden">
           <MobileBottomNav user={user} onLogout={onLogout} />
-        </div>
+        </Box>
 
         <main
           id="main-content"
@@ -130,7 +131,7 @@ export default function DashboardLayout({
             maxWidth={maxWidth}
           />
         </main>
-      </div>
+      </Box>
     </SearchRefreshProvider>
   );
 }

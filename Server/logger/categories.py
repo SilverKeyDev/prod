@@ -3,10 +3,10 @@ Logger Category Definitions
 Type-safe category constants and helpers
 """
 
-from enum import Enum
+from enum import StrEnum
 
 
-class LogCategory(str, Enum):
+class LogCategory(StrEnum):
     """Log category enumeration matching frontend categories"""
 
     POLLING = "POLLING"

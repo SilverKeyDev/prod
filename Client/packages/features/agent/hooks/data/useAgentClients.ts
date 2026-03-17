@@ -3,7 +3,7 @@ import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
-import { useIsAgent } from "packages/features/homeauth";
+import { useIsAgent } from "packages/features/homeauth/hooks/store/useIsAgent";
 import { HttpError } from "packages/services/http/compatibility";
 import { useAuthStore } from "packages/store";
 

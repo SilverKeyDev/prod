@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 /**
  * Card container with built-in border (border-border-card-subtle), padding, and shadow.
  * Callers should not add border classes; the border is canonical.
@@ -63,7 +65,7 @@ const Card: React.FC<CardProps> = ({
   };
 
   return (
-    <div
+    <Box
       className={combinedClasses}
       onClick={onClick}
       onKeyDown={handleKeyDown}
@@ -72,7 +74,7 @@ const Card: React.FC<CardProps> = ({
       tabIndex={onClick ? 0 : undefined}
     >
       {children}
-    </div>
+    </Box>
   );
 };
 

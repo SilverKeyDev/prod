@@ -8,6 +8,7 @@ import {
   RENOVATION_OPTIONS,
   WALKABILITY_OPTIONS,
 } from "packages/features/search/types/otherFilterOptions";
+import { Box } from "packages/ui/components/primitives";
 
 import { Dropdown } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
@@ -34,10 +35,10 @@ export default function OtherFilterContent({
   hideHousingType = false,
 }: OtherFilterContentProps): React.ReactElement {
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2">
+    <Box className="space-y-4">
+      <Box className="grid gap-3 sm:grid-cols-2">
         {!hideHousingType && (
-          <div>
+          <Box>
             <Label>{FIELD_LABELS.PREFERRED_HOUSING_TYPE}</Label>
             <OptionTagInput
               options={HOUSING_TYPE_OPTIONS}
@@ -47,9 +48,9 @@ export default function OtherFilterContent({
               }
               isEditMode={true}
             />
-          </div>
+          </Box>
         )}
-        <div>
+        <Box>
           <Label>{FIELD_LABELS.PREFERRED_LOT_SIZE}</Label>
           <Dropdown
             value={formData.preferred_lot_size ?? ""}
@@ -58,8 +59,8 @@ export default function OtherFilterContent({
             placeholder="Select..."
             size="sm"
           />
-        </div>
-        <div>
+        </Box>
+        <Box>
           <Label>{FIELD_LABELS.PREFERRED_HOME_AGE}</Label>
           <Dropdown
             value={formData.preferred_home_age ?? ""}
@@ -68,8 +69,8 @@ export default function OtherFilterContent({
             placeholder="Select..."
             size="sm"
           />
-        </div>
-        <div>
+        </Box>
+        <Box>
           <Label>{FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}</Label>
           <Dropdown
             value={formData.preferred_architectural_style ?? ""}
@@ -78,8 +79,8 @@ export default function OtherFilterContent({
             placeholder="Select..."
             size="sm"
           />
-        </div>
-        <div>
+        </Box>
+        <Box>
           <Label>{FIELD_LABELS.RENOVATION_PREFERENCE}</Label>
           <Dropdown
             value={formData.renovation_preference ?? ""}
@@ -88,8 +89,8 @@ export default function OtherFilterContent({
             placeholder="Select..."
             size="sm"
           />
-        </div>
-        <div>
+        </Box>
+        <Box>
           <Label>{FIELD_LABELS.INTENDED_PROPERTY_USE}</Label>
           <Dropdown
             value={formData.intended_property_use ?? ""}
@@ -98,8 +99,8 @@ export default function OtherFilterContent({
             placeholder="Select..."
             size="sm"
           />
-        </div>
-        <div className="sm:col-span-2">
+        </Box>
+        <Box className="sm:col-span-2">
           <Label>{FIELD_LABELS.WALKABILITY_IMPORTANCE}</Label>
           <Dropdown
             value={formData.walkability_importance ?? ""}
@@ -108,10 +109,10 @@ export default function OtherFilterContent({
             placeholder="Select..."
             size="sm"
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <div>
+      <Box>
         <Label>{FIELD_LABELS.PREFERRED_HOME_FEATURES}</Label>
         <OnPerTagInput
           value={(formData.preferred_home_features as string[]) ?? []}
@@ -119,8 +120,8 @@ export default function OtherFilterContent({
           placeholder="e.g., garage, pool, fireplace"
           isEditMode={true}
         />
-      </div>
-      <div>
+      </Box>
+      <Box>
         <Label>{FIELD_LABELS.DEAL_BREAKERS}</Label>
         <OnPerTagInput
           value={(formData.deal_breakers as string[]) ?? []}
@@ -128,7 +129,7 @@ export default function OtherFilterContent({
           placeholder="e.g., No parking, Busy road"
           isEditMode={true}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

@@ -5,6 +5,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
 
@@ -16,12 +18,12 @@ export function renderCommuteAnalysisContent(data: unknown): React.ReactNode {
   );
   if (entries.length === 0) return null;
   return (
-    <div className="mt-4 space-y-2 text-left">
+    <Box className="mt-4 space-y-2 text-left">
       {entries.map(([key, value]) => {
         const displayKey = key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
         if (Array.isArray(value)) {
           return (
-            <div key={key}>
+            <Box key={key}>
               <Title as="h4" size="sm" className="text-text-secondary mb-1 font-medium">
                 {displayKey}
               </Title>
@@ -30,21 +32,21 @@ export function renderCommuteAnalysisContent(data: unknown): React.ReactNode {
                   <li key={i}>• {String(item)}</li>
                 ))}
               </ul>
-            </div>
+            </Box>
           );
         }
         return (
-          <div key={key} className="flex justify-between text-sm">
+          <Box key={key} className="flex justify-between text-sm">
             <BodyText as="span" className="text-text-secondary">
               {displayKey}:
             </BodyText>
             <BodyText as="span" className="text-text-secondary font-medium">
               {String(value)}
             </BodyText>
-          </div>
+          </Box>
         );
       })}
-    </div>
+    </Box>
   );
 }
 
@@ -75,9 +77,9 @@ export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTim
         }
         return (
           <Card key={i}>
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between">
+            <Box className="flex items-center justify-between">
+              <Box className="min-w-0 flex-1">
+                <Box className="flex items-center justify-between">
                   <BodyText
                     as="span"
                     className="text-text-secondary flex-1 truncate text-sm font-medium"
@@ -90,8 +92,8 @@ export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTim
                   >
                     {c.travel_time || "N/A"}
                   </BodyText>
-                </div>
-                <div className="mt-1 flex items-center justify-between">
+                </Box>
+                <Box className="mt-1 flex items-center justify-between">
                   <BodyText as="p" className="text-text-secondary flex-1 truncate text-xs">
                     {c.location_address || c.address}
                   </BodyText>
@@ -100,9 +102,9 @@ export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTim
                       Target: {tolerance} min
                     </BodyText>
                   )}
-                </div>
-              </div>
-            </div>
+                </Box>
+              </Box>
+            </Box>
           </Card>
         );
       })}

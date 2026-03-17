@@ -3,6 +3,7 @@ import React, { useMemo } from "react";
 import { Icon } from "@ui/icons";
 
 import type { UrgentAlert } from "packages/types";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
@@ -70,40 +71,40 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
   };
   return (
     <Card className="h-full">
-      <div className="mb-4 flex items-center gap-2">
+      <Box className="mb-4 flex items-center gap-2">
         <Icon name="alert-triangle" className="text-destructive h-5 w-5 sm:h-6 sm:w-6" />
         <Title as="h2" size="sm" className="text-text-primary">
           Urgent Alerts
         </Title>
-      </div>
+      </Box>
 
-      <div className="max-h-96 space-y-3 overflow-y-auto">
+      <Box className="max-h-96 space-y-3 overflow-y-auto">
         {sortedAlerts.length === 0 ? (
-          <div className="py-8 text-center">
+          <Box className="py-8 text-center">
             <BodyText as="p" size="sm" className="text-text-secondary">
               No urgent alerts
             </BodyText>
-          </div>
+          </Box>
         ) : (
           sortedAlerts.map((alert) => {
             const colors = severityColors[alert.severity] || severityColors.medium;
             return (
-              <div
+              <Box
                 key={alert.id}
                 className={`rounded-lg border-2 p-3 sm:p-4 ${colors.border} ${colors.bg} ${colors.text} transition-all hover:shadow-md`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
+                <Box className="flex items-start justify-between gap-2">
+                  <Box className="min-w-0 flex-1">
                     <BodyText as="p" size="sm" className="mb-1 font-medium">
                       {alert.message}
                     </BodyText>
                     {alert.deadline && (
-                      <div className="mt-2 flex items-center gap-1.5">
+                      <Box className="mt-2 flex items-center gap-1.5">
                         <Icon name="clock" className="h-3 w-3 sm:h-4 sm:w-4" />
                         <BodyText as="span" size="sm" className="font-medium">
                           {formatTimeRemaining(alert.deadline)}
                         </BodyText>
-                      </div>
+                      </Box>
                     )}
                     {alert.client_id && onNavigateToClient && (
                       <Button
@@ -115,7 +116,7 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
                         View client →
                       </Button>
                     )}
-                  </div>
+                  </Box>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -125,12 +126,12 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ alerts, onDismiss, onNaviga
                   >
                     <Icon name="x" className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
-                </div>
-              </div>
+                </Box>
+              </Box>
             );
           })
         )}
-      </div>
+      </Box>
     </Card>
   );
 };

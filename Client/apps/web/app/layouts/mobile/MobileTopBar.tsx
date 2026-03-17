@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 const MOBILE_TOP_BAR_HEIGHT_PX = 80; // h-20 – single fixed height for all top bar content
 const SPACER_MARGIN_PX = 12;
 
@@ -26,18 +28,18 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
         aria-label="Page header"
       >
         {fullWidth ? (
-          <div className="flex h-full w-full flex-1 items-center">{children}</div>
+          <Box className="flex h-full w-full flex-1 items-center">{children}</Box>
         ) : (
           <>
-            <div className="flex h-full w-10 flex-shrink-0 items-center justify-start" />
-            <div className="flex min-h-full min-w-0 flex-1 items-center justify-center">
+            <Box className="flex h-full w-10 flex-shrink-0 items-center justify-start" />
+            <Box className="flex min-h-full min-w-0 flex-1 items-center justify-center">
               {children}
-            </div>
-            <div className="flex h-full w-10 flex-shrink-0 items-center justify-end" />
+            </Box>
+            <Box className="flex h-full w-10 flex-shrink-0 items-center justify-end" />
           </>
         )}
       </header>
-      <div
+      <Box
         className="md:hidden"
         style={{ height: `${MOBILE_TOP_BAR_HEIGHT_PX + SPACER_MARGIN_PX}px` }}
       />

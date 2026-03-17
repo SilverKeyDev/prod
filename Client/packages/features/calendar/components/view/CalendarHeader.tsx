@@ -1,6 +1,7 @@
 import { Icon } from "@ui/icons";
 
 import type { GoogleCalendar } from "packages/config/http/api";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button } from "@/components/ui";
 import { getVisibleDateRange } from "@/features/calendar/utils/date";
@@ -38,11 +39,11 @@ export function CalendarHeader({
   // the user changes the month (avoiding stale visibleDateRange from child effect)
   const { start: displayFirstDate, end: displayLastDate } = getVisibleDateRange(currentDate);
   return (
-    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <Box className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       {/* Week Range and Navigation */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      <Box className="flex items-center gap-2 sm:gap-4">
         <CalendarDateRange firstDate={displayFirstDate} lastDate={displayLastDate} />
-        <div className="flex items-center gap-1">
+        <Box className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
@@ -61,15 +62,15 @@ export function CalendarHeader({
           >
             <Icon name="chevron-right" className="text-text-secondary h-4 w-4" />
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {/* Connection Status and Actions */}
-      <div className="flex items-center gap-2">
+      <Box className="flex items-center gap-2">
         {isConnected ? (
           <>
-            <div className="text-text-secondary flex items-center gap-2 text-sm">
-              <div className="h-2 w-2 rounded-full bg-green-500" />
+            <Box className="text-text-secondary flex items-center gap-2 text-sm">
+              <Box className="h-2 w-2 rounded-full bg-green-500" />
               <BodyText as="span" size="sm" className="text-text-secondary hidden sm:inline">
                 Connected
               </BodyText>
@@ -84,7 +85,7 @@ export function CalendarHeader({
                 onToggleCalendar={onToggleCalendar || (() => {})}
                 silverKeyCalendarId={silverKeyCalendarId}
               />
-            </div>
+            </Box>
             {onCreateEvent && (
               <Button
                 variant="primary"
@@ -98,14 +99,14 @@ export function CalendarHeader({
             )}
           </>
         ) : (
-          <div className="text-text-disabled flex items-center gap-2 text-sm">
+          <Box className="text-text-disabled flex items-center gap-2 text-sm">
             <Icon name="calendar" className="h-4 w-4" />
             <BodyText as="span" size="sm" className="text-text-disabled">
               Not connected
             </BodyText>
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

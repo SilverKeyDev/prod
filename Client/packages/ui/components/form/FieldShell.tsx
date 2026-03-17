@@ -4,6 +4,7 @@ import Label from "@ui/text/Label.web";
 import type { ReactNode } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 type FieldShellProps = {
   id?: string;
@@ -92,7 +93,7 @@ export default function FieldShell({
     .join(" ");
 
   return (
-    <div className={cx("w-full space-y-1.5", className)}>
+    <Box className={cx("w-full space-y-1.5", className)}>
       {label && (
         <Label htmlFor={id} className="text-text-primary mb-1 block text-sm font-medium">
           {label}
@@ -200,22 +201,22 @@ export default function FieldShell({
       />
 
       {/* Input Container - copied exactly from Input.tsx */}
-      <div className={containerClasses}>
+      <Box className={containerClasses}>
         {/* Field Container with exact Input.tsx styling */}
-        <div className={fieldClasses}>
-          <div className="nested-input flex h-full w-full items-center">{children}</div>
-        </div>
+        <Box className={fieldClasses}>
+          <Box className="nested-input flex h-full w-full items-center">{children}</Box>
+        </Box>
 
         {/* Left Icon - always visible on top of input */}
-        {leftIcon && <div className={iconClasses.left}>{leftIcon}</div>}
+        {leftIcon && <Box className={iconClasses.left}>{leftIcon}</Box>}
 
         {/* Right Icon - always visible on top of input */}
         {rightIcon && (
-          <div className={iconClasses.right}>
-            <div className="flex items-center space-x-1">{rightIcon}</div>
-          </div>
+          <Box className={iconClasses.right}>
+            <Box className="flex items-center space-x-1">{rightIcon}</Box>
+          </Box>
         )}
-      </div>
+      </Box>
 
       {/* Helper Text - copied exactly from Input.tsx */}
       {helperText && !error && (
@@ -230,6 +231,6 @@ export default function FieldShell({
           {error}
         </BodyText>
       )}
-    </div>
+    </Box>
   );
 }

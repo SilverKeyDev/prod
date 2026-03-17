@@ -12,11 +12,13 @@ import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePref
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
 import { useResponsive } from "packages/hooks/ui";
+import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
 import { BodyText } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";
+
 export type PreferencesFormContentRef = {
   formData: Partial<OnboardingData>;
   preventedDeleteWarning: boolean;
@@ -121,19 +123,19 @@ export default function PreferencesFormContent({
   );
   if (renderContent) {
     return (
-      <div>
+      <Box>
         {renderContent({
           formData,
           updateFormData,
           saveStatus,
         })}
-      </div>
+      </Box>
     );
   }
   return (
-    <div>
+    <Box>
       {saveStatus !== "idle" && (
-        <div className="flex items-center gap-2 text-sm">
+        <Box className="flex items-center gap-2 text-sm">
           {saveStatus === "saving" && (
             <BodyText as="span" size="sm" className="text-text-secondary">
               {t("common.saving")}
@@ -145,7 +147,7 @@ export default function PreferencesFormContent({
               {t("common.saved")}
             </BodyText>
           )}
-        </div>
+        </Box>
       )}
       <HousingSection
         formData={formData as OnboardingData}
@@ -159,6 +161,6 @@ export default function PreferencesFormContent({
         updateFormData={updateFormData}
         scriptsReady={scriptsReady}
       />
-    </div>
+    </Box>
   );
 }

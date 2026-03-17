@@ -1,7 +1,6 @@
 import React from "react";
 
 import { Icon } from "@ui/icons";
-import { BodyText } from "@ui/text";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,6 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { color } from "packages/design-tokens";
 
 import AttachmentMenu from "@/features/agent/components/AttachmentMenu";
 import {
@@ -35,8 +36,8 @@ export type UnifiedMessageInputProps = {
 const styles = StyleSheet.create({
   container: {
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    backgroundColor: "#F9FAFB",
+    borderTopColor: color("neutral.200"),
+    backgroundColor: color("neutral.50"),
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
@@ -50,9 +51,9 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: color("neutral.200"),
     borderRadius: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: color("background-surface"),
     paddingHorizontal: 12,
     paddingVertical: 10,
     minHeight: 44,
@@ -62,8 +63,8 @@ const styles = StyleSheet.create({
     textAlignVertical: "top", // Android
   },
   textInputFocused: {
-    borderColor: "#A3B18A",
-    shadowColor: "#A3B18A",
+    borderColor: color("olive.DEFAULT"),
+    shadowColor: color("olive.DEFAULT"),
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -73,17 +74,17 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#A3B18A",
+    backgroundColor: color("olive.DEFAULT"),
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: color("neutral.900"),
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
   },
   sendButtonDisabled: {
-    backgroundColor: "#D1D5DB",
+    backgroundColor: color("neutral.300"),
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -117,6 +118,7 @@ export default function UnifiedMessageInputNative({
 
   const canSend = message.trim() && !isTyping && !disabled;
 
+  /* eslint-disable silverkey/no-platform-feature-check -- KeyboardAvoidingView API requires platform-specific behavior, not feature gating */
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -141,7 +143,7 @@ export default function UnifiedMessageInputNative({
               value={message}
               onChangeText={setMessage}
               placeholder={finalPlaceholder}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={color("neutral.400")}
               multiline
               blurOnSubmit={false}
               editable={!isTyping && !disabled}
@@ -165,7 +167,11 @@ export default function UnifiedMessageInputNative({
             style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
             activeOpacity={0.7}
           >
-            <Icon name="send" size={20} color={canSend ? "#FFFFFF" : "#9CA3AF"} />
+            <Icon
+              name="send"
+              size={20}
+              color={canSend ? color("background-surface") : color("neutral.400")}
+            />
           </TouchableOpacity>
         </View>
       </View>

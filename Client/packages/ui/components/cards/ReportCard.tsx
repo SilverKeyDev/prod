@@ -6,6 +6,7 @@ import { useLocalization } from "packages/contexts";
 import { formatDate, formatFilenameToAddress } from "packages/features/search/types/search/address";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Report } from "packages/schemas";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 
 import { Card } from "@/components/layout";
@@ -69,7 +70,7 @@ const reportTitleStyleList = {
 };
 function ReportCardDate({ report }: { report: Report }) {
   return (
-    <div className="absolute left-3 top-3 z-10">
+    <Box className="absolute left-3 top-3 z-10">
       <BodyText
         as="p"
         size="xs"
@@ -78,16 +79,16 @@ function ReportCardDate({ report }: { report: Report }) {
         <Icon name="clock" className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
         {formatReportDate(report)}
       </BodyText>
-    </div>
+    </Box>
   );
 }
 function ReportCardTitle({ report, viewMode }: { report: Report; viewMode: "grid" | "list" }) {
   const address = formatFilenameToAddress(report.address);
   if (viewMode === "grid") {
     return (
-      <div className="flex-grow pt-4">
-        <div className="flex items-start justify-between">
-          <div className="mb-3 mt-1.5 flex-1">
+      <Box className="flex-grow pt-4">
+        <Box className="flex items-start justify-between">
+          <Box className="mb-3 mt-1.5 flex-1">
             <Title
               as="h3"
               size="sm"
@@ -97,13 +98,13 @@ function ReportCardTitle({ report, viewMode }: { report: Report; viewMode: "grid
             >
               {address}
             </Title>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
     );
   }
   return (
-    <div className="flex-1 pt-6">
+    <Box className="flex-1 pt-6">
       <Title
         as="h3"
         className="mb-3 mt-6 overflow-hidden font-medium leading-5 text-black"
@@ -112,7 +113,7 @@ function ReportCardTitle({ report, viewMode }: { report: Report; viewMode: "grid
       >
         {address}
       </Title>
-    </div>
+    </Box>
   );
 }
 function ReportCardCompletedActions({
@@ -150,7 +151,7 @@ function ReportCardCompletedActions({
   const canDelete = !!report.s3Key;
   if (viewMode === "grid") {
     return (
-      <div className="flex w-full min-w-0 flex-col gap-2">
+      <Box className="flex w-full min-w-0 flex-col gap-2">
         <ActionButton
           onClick={handleView}
           disabled={disabled}
@@ -159,7 +160,7 @@ function ReportCardCompletedActions({
           colorClasses="bg-primary-muted hover:bg-primary-hover text-white"
           className="w-full"
         />
-        <div className="flex min-w-0 gap-2">
+        <Box className="flex min-w-0 gap-2">
           <ActionButton
             onClick={() => onDownload(report.id, report.address)}
             disabled={disabled}
@@ -187,12 +188,12 @@ function ReportCardCompletedActions({
             className="min-w-0 flex-1 sm:w-auto sm:flex-initial"
             hideTextOnMobile
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
   return (
-    <div className="flex min-w-0 items-center gap-2">
+    <Box className="flex min-w-0 items-center gap-2">
       <ActionButton
         onClick={() => onDownload(report.id, report.address)}
         disabled={disabled}
@@ -228,16 +229,16 @@ function ReportCardCompletedActions({
         className="min-w-0 sm:w-auto sm:flex-initial"
         hideTextOnMobile
       />
-    </div>
+    </Box>
   );
 }
 function ReportCardGeneratingProgress({ viewMode }: { viewMode: "grid" | "list" }) {
   return (
-    <div className={viewMode === "grid" ? "w-full py-2" : "w-full space-y-2"}>
-      <div className="h-2.5 w-full rounded-full bg-gray-200">
-        <div className="bg-primary h-2.5 rounded-full" style={{ width: "50%" }} />
-      </div>
-    </div>
+    <Box className={viewMode === "grid" ? "w-full py-2" : "w-full space-y-2"}>
+      <Box className="h-2.5 w-full rounded-full bg-gray-200">
+        <Box className="bg-primary h-2.5 rounded-full" style={{ width: "50%" }} />
+      </Box>
+    </Box>
   );
 }
 function ReportCardErrorAction({
@@ -297,13 +298,13 @@ const ReportCard: React.FC<ReportCardProps> = ({
       padding="md"
     >
       <ReportCardDate report={report} />
-      <div className="absolute right-3 top-3 z-10 hidden sm:block">
+      <Box className="absolute right-3 top-3 z-10 hidden sm:block">
         <StatusBadge text={statusText} variant={getStatusVariant(report.status)} size="sm" />
-      </div>
+      </Box>
 
-      <div className="flex min-w-0 flex-grow flex-col">
+      <Box className="flex min-w-0 flex-grow flex-col">
         <ReportCardTitle report={report} viewMode={viewMode} />
-        <div className="mt-auto w-full min-w-0 pt-4">
+        <Box className="mt-auto w-full min-w-0 pt-4">
           {report.status === "completed" && (
             <ReportCardCompletedActions
               report={report}
@@ -326,8 +327,8 @@ const ReportCard: React.FC<ReportCardProps> = ({
               deleteLabel={t("reports.delete")}
             />
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </Card>
   );
 };

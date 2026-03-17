@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { NavItem } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 
 import SidebarNavigation from "./SidebarNavigation";
 type SettingsSidebarProps = {
@@ -40,7 +41,7 @@ export default function SettingsSidebar({
       {t("common.edit")}
     </Button>
   ) : (
-    <div className="flex w-full flex-col items-center space-y-2">
+    <Box className="flex w-full flex-col items-center space-y-2">
       <Button
         onClick={onSave}
         disabled={isSaving}
@@ -62,7 +63,7 @@ export default function SettingsSidebar({
       >
         {t("common.cancel")}
       </CancelButton>
-    </div>
+    </Box>
   );
   return (
     <SidebarNavigation

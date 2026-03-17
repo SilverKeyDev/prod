@@ -190,7 +190,6 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
     };
   }, [files]);
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <Card className={`w-full ${className}`} padding="md">
       {label && (
         <Label className="mb-4 flex flex-col">
@@ -206,7 +205,6 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       <Box
         role="button"
         tabIndex={disabled ? -1 : 0}
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`relative ${DROP_ZONE_BORDER_BASE} p-6 text-center ${CARD_TRANSITION_CLASSES} ${isDragOver ? "border-primary bg-primary-muted" : "hover:border-primary active:border-primary border-border"} ${disabled ? "bg-disabled text-text-disabled cursor-not-allowed" : "hover:bg-accent-muted cursor-pointer active:bg-neutral-100"} active:bg-accent-muted`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}

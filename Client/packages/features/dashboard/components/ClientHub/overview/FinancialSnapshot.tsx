@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import type { ClientFinancialSnapshot } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 import StatusBadge from "@/components/ui/asset/StatusBadge";
@@ -41,52 +42,52 @@ const FinancialSnapshot: React.FC<FinancialSnapshotProps> = ({ financial }) => {
   };
   return (
     <SectionCard title="Financial Snapshot" iconName="credit-card">
-      <div className="space-y-6">
+      <Box className="space-y-6">
         {/* Pre-Approval Status */}
-        <div>
+        <Box>
           <Title as="h3" size="md" className="text-text-primary mb-3 font-semibold">
             Pre-Approval Status
           </Title>
-          <div className="flex items-center gap-3">
+          <Box className="flex items-center gap-3">
             {getPreApprovalBadge()}
             {financial.pre_approval_amount && (
               <BodyText as="span" size="sm" className="text-text-secondary">
                 up to {formatCurrency(financial.pre_approval_amount)}
               </BodyText>
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {/* Loan Type */}
         {financial.loan_type && (
-          <div>
+          <Box>
             <Title as="h3" size="md" className="text-text-primary mb-3 font-semibold">
               Loan Type
             </Title>
-            <div className="flex items-center gap-2">
+            <Box className="flex items-center gap-2">
               <Icon name="credit-card" className="text-primary h-5 w-5" />
               <BodyText as="span" size="sm" className="text-text-primary">
                 {loanTypeLabels[financial.loan_type] || financial.loan_type}
               </BodyText>
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
 
         {/* Cash to Close */}
         {financial.cash_to_close && (
-          <div>
-            <div className="mb-3 flex items-center gap-2">
+          <Box>
+            <Box className="mb-3 flex items-center gap-2">
               <Icon name="dollar-sign" className="text-accent h-5 w-5" />
               <Title as="h3" size="md" className="text-text-primary font-semibold">
                 Cash to Close
               </Title>
-            </div>
+            </Box>
             <BodyText as="p" size="lg" className="text-text-primary font-semibold">
               {formatCurrency(financial.cash_to_close)}
             </BodyText>
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
     </SectionCard>
   );
 };

@@ -9,6 +9,7 @@ import { useDataPolling } from "packages/hooks/data/useDataPolling";
 import { useGoogleMapsStoreIntegration } from "packages/hooks/store/map/useGoogleMapsStoreIntegration";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { getDocumentTitle, ROUTES } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 
 import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
 import type { UserProfile } from "@/features/homeauth/types";
@@ -180,7 +181,7 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
   // Provide effectiveLocation in context so useDashboardRoute/AppLayout see the real URL.
   return (
     <>
-      <Suspense fallback={<div className="p-6 text-sm text-text-secondary">Loading…</div>}>
+      <Suspense fallback={<Box className="p-6 text-sm text-text-secondary">Loading…</Box>}>
         <LocationOverrideContext.Provider value={locationOverride ? effectiveLocation : null}>
           <Routes location={effectiveLocation}>
             {/* Layout route that wraps all routes to ensure Router context is available */}

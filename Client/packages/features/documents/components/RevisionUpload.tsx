@@ -104,7 +104,6 @@ export default function RevisionUpload({
           <Box
             role="button"
             tabIndex={0}
-            // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
             className={`cursor-pointer ${DROP_ZONE_BORDER_BASE} p-6 text-center ${FILE_UPLOAD_DROP_ZONE_DEFAULT}`}
             onClick={() => fileInputRef.current?.click()}
             onKeyDown={(e) => {

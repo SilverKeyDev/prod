@@ -1,4 +1,4 @@
-import { Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/primitives";
 
 import { BodyText, Button } from "@/components/ui";
 import { FeedAffordabilityBadge } from "@/features/feed/components/Modals/FeedAffordabilityBadge";
@@ -31,21 +31,21 @@ export function BottomInfo({
     : null;
 
   return (
-    <div
+    <Box
       className={
         embedded
           ? "min-w-0 flex-1 overflow-hidden p-4 text-white"
           : "absolute bottom-0 left-0 right-0 p-4 pb-20 text-white md:pb-24"
       }
     >
-      <div className="mb-2 flex flex-wrap items-center gap-2">
+      <Box className="mb-2 flex flex-wrap items-center gap-2">
         <FeedAffordabilityBadge item={item} />
-      </div>
-      <div className="flex items-end justify-between gap-4">
-        <div className="min-w-0 flex-1">
+      </Box>
+      <Box className="flex items-end justify-between gap-4">
+        <Box className="min-w-0 flex-1">
           {musicTitle && (
-            <div className="mb-2 overflow-hidden">
-              <div
+            <Box className="mb-2 overflow-hidden">
+              <Box
                 className={`inline-flex whitespace-nowrap ${
                   musicTitle.length > 30 ? "animate-marquee" : ""
                 }`}
@@ -60,10 +60,10 @@ export function BottomInfo({
                   {musicTitle}
                   {musicTitle.length > 30 && ` • ${musicTitle}`}
                 </BodyText>
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
-          <div className="flex items-center gap-2">
+          <Box className="flex items-center gap-2">
             <Image
               src={item.user.avatarUrl ?? DEFAULT_AVATAR_IMAGE}
               alt=""
@@ -90,12 +90,12 @@ export function BottomInfo({
                 Sponsored
               </BodyText>
             )}
-          </div>
+          </Box>
           <FeedPrice price={item.price} />
           <FeedFeatureTags features={item.features} />
           <FeedLocation city={item.city} state={item.state} />
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
+        </Box>
+        <Box className="flex shrink-0 items-center gap-2">
           {onFollow && (
             <Button
               variant="outline"
@@ -106,8 +106,8 @@ export function BottomInfo({
               Follow
             </Button>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

@@ -25,6 +25,7 @@ import { useGoogleMapsStore } from "packages/store";
 /// <reference types="google.maps" />
 // Components
 import { Loading } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives";
 import SettingsSidebar from "packages/ui/components/sidebar/SettingsSidebar";
 import { getDocument, getWindow } from "packages/utils/platform";
 
@@ -325,9 +326,9 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
 
   if (isLoading) {
     return (
-      <div className="bg-background-base flex min-h-screen items-center justify-center">
+      <Box className="bg-background-base flex min-h-screen items-center justify-center">
         <Loading message="Loading your preferences..." />
-      </div>
+      </Box>
     );
   }
 
@@ -394,9 +395,9 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
   };
 
   return (
-    <div className="bg-background-base min-h-screen">
-      <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
-        <div className="flex flex-row gap-6 lg:gap-8">
+    <Box className="bg-background-base min-h-screen">
+      <Box className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
+        <Box className="flex flex-row gap-6 lg:gap-8">
           {/* Sidebar - Always visible */}
           <SettingsSidebar
             items={convertStepsToNavItems(STEPS)}
@@ -417,8 +418,8 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
               </section>
             ))}
           </main>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

@@ -23,15 +23,6 @@ import { IconButton } from "@/components/ui";
 
 import DashboardChecklistsHeader from "./DashboardChecklistsHeader";
 
-const CHECKLIST_TABS: ChecklistTab[] = [
-  "search",
-  "offer",
-  "escrow",
-  "inspections",
-  "financing",
-  "closing",
-];
-
 const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
   search: "search",
   offer: "offer",
@@ -199,7 +190,6 @@ export default function DashboardChecklists() {
                   >
                     <Box className="flex min-w-0 flex-1 flex-row items-start gap-4 px-4 py-3">
                       <Box
-                        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                         className={`mt-0.5 flex h-6 w-6 flex-row items-center justify-center rounded-md border-2 ${checked ? "border-primary bg-primary" : checkable ? "border-border bg-background-surface hover:border-border active:border-border active:opacity-90" : "border-border bg-primary-muted"}`}
                       >
                         {checked ? (

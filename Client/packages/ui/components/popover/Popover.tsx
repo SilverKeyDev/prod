@@ -105,7 +105,6 @@ export default function Popover({
       role="dialog"
       aria-modal="true"
       aria-labelledby={`${panelId}-title`}
-      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
       className={`border-border bg-background-surface z-50 overflow-y-auto rounded-lg border shadow-lg ${panelClassName}`}
       style={panelStyle}
     >

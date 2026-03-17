@@ -4,11 +4,14 @@ import { spacing } from "packages/design-tokens";
 import { getPersonalizationNavItems } from "packages/features/profile/components/profilePicture/profileStepsUi";
 import { useResponsive } from "packages/hooks/ui";
 import type { NavItem } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, CancelButton } from "@/components/ui";
+
 const STEPS: NavItem[] = getPersonalizationNavItems();
+
 type PersonalizationSidebarProps = {
   activeSection: string;
   isEditMode: boolean;
@@ -48,7 +51,7 @@ export default function PersonalizationSidebar({
         padding={isLargeScreen ? "md" : "none"}
       >
         {/* Edit/Save Buttons - Full width on desktop, centered on mobile */}
-        <div
+        <Box
           className={`${isLargeScreen ? "mb-8" : "mb-4"} ${isLargeScreen ? "w-full" : "flex justify-center"}`}
         >
           {!isEditMode ? (
@@ -62,7 +65,7 @@ export default function PersonalizationSidebar({
               {isLargeScreen ? "Edit" : ""}
             </Button>
           ) : (
-            <div
+            <Box
               className={`flex flex-col space-y-2 ${isLargeScreen ? "w-full" : "w-full items-center"}`}
             >
               <Button
@@ -82,9 +85,9 @@ export default function PersonalizationSidebar({
               >
                 {isLargeScreen ? "Cancel" : ""}
               </CancelButton>
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
 
         {/* Navigation Links - Left aligned on desktop, icon only on mobile */}
         {STEPS.map((step) => {

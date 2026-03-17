@@ -1,9 +1,9 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button } from "@/components/ui";
-
 const SALE_TYPE_OPTIONS = [
   { value: "", labelKey: "search.sale_type_all" as const },
   { value: "FOR_SALE", labelKey: "search.sale_type_for_sale" as const },
@@ -30,11 +30,11 @@ export default function SaleTypeFilter({
   const selected = value ?? "";
 
   return (
-    <div className={className}>
+    <Box className={className}>
       <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
         {t("search.sale_type")}
       </BodyText>
-      <div className="border-border bg-background-base flex flex-wrap gap-1 rounded-lg border p-1">
+      <Box className="border-border bg-background-base flex flex-wrap gap-1 rounded-lg border p-1">
         {SALE_TYPE_OPTIONS.map((opt) => (
           <Button
             key={opt.value || "all"}
@@ -49,7 +49,7 @@ export default function SaleTypeFilter({
             {t(opt.labelKey)}
           </Button>
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

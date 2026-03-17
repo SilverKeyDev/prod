@@ -6,8 +6,6 @@
  * Used by: apps/mobile/metro.config.cjs
  * Same paths are reflected in: apps/web/vite.config.ts (see tsconfig.base.json paths)
  */
-/* eslint-env node */
-/* eslint-disable @typescript-eslint/no-require-imports -- This file is CommonJS for Metro */
 /* global require, module */
 
 const path = require("node:path");

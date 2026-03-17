@@ -1,4 +1,5 @@
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 import { getScoreBasedColor } from "packages/utils";
 
 import { BodyText } from "@/components/ui";
@@ -60,8 +61,8 @@ export default function CardMatchScore({
 
   if (useColorStyling && colors) {
     return (
-      <div className={`gap-responsive-xs flex flex-shrink-0 items-center ${className}`}>
-        <div
+      <Box className={`gap-responsive-xs flex flex-shrink-0 items-center ${className}`}>
+        <Box
           className={`font-medium ${sizeClasses.text} whitespace-nowrap rounded px-2 py-1`}
           style={{
             backgroundColor: colors.fillColor,
@@ -74,19 +75,19 @@ export default function CardMatchScore({
               maxScore: safeMaxScore,
             })}
           </BodyText>
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <div className={`gap-responsive-xs text-brown flex flex-shrink-0 items-center ${className}`}>
+    <Box className={`gap-responsive-xs text-brown flex flex-shrink-0 items-center ${className}`}>
       <BodyText as="span" className={`font-medium ${sizeClasses.text} whitespace-nowrap`}>
         {t("house.match_score_value", {
           score: safeScore,
           maxScore: safeMaxScore,
         })}
       </BodyText>
-    </div>
+    </Box>
   );
 }

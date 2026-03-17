@@ -1,9 +1,9 @@
 import type { SavedPageViewType } from "packages/features/documents";
+import { Box } from "packages/ui/components/primitives";
 
 import { ClientSelector } from "@/components/ui";
 
 import SavedLayout from "./SavedLayout";
-
 export type SavedHomesHeaderProps = {
   isMobile: boolean;
   searchTerm: string;
@@ -57,10 +57,10 @@ export default function SavedHomesHeader({
 
   if (isMobile) {
     return (
-      <div className="flex w-full flex-col justify-center gap-1.5" key={viewType}>
-        <div className="flex-shrink-0">
+      <Box className="flex w-full flex-col justify-center gap-1.5" key={viewType}>
+        <Box className="flex-shrink-0">
           <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
-        </div>
+        </Box>
         <SavedLayout
           key={`saved-layout-${viewType}`}
           searchTerm={searchTerm}
@@ -78,15 +78,15 @@ export default function SavedHomesHeader({
           eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
           onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
         />
-      </div>
+      </Box>
     );
   }
 
   return (
     <>
-      <div className="mb-4">
+      <Box className="mb-4">
         <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
-      </div>
+      </Box>
       <SavedLayout
         searchTerm={searchTerm}
         onSearchChange={onSearchChange}

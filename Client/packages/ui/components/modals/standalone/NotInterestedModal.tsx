@@ -1,9 +1,15 @@
 import React, { useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import BaseModal from "@/components/modals/BaseModal";
-import { BodyText, Button, CancelButton, Input, Label, Textarea } from "@/components/ui";
+import BodyText from "../../text/BodyText";
+import Button from "../../button/Button";
+import CancelButton from "../../button/CancelButton";
+import Input from "../../form/Input";
+import Label from "../../form/FormField";
+import Textarea from "../../form/Input";
 
 export type NotInterestedReason = {
   id: string;
@@ -81,7 +87,7 @@ export default function NotInterestedModal({
       closeOnBackdropClick={true}
       closeOnEscape={true}
       footerContent={
-        <div className="flex justify-end gap-3">
+        <Box className="flex justify-end gap-3">
           <CancelButton
             type="button"
             onClick={() => {
@@ -101,17 +107,17 @@ export default function NotInterestedModal({
           >
             {t("why_not.confirm")}
           </Button>
-        </div>
+        </Box>
       }
     >
-      <div className="space-y-4">
+      <Box className="space-y-4">
         {propertyAddress && (
           <BodyText size="sm" muted>
             {t("why_not.help_understand", { address: propertyAddress })}
           </BodyText>
         )}
 
-        <div className="space-y-2">
+        <Box className="space-y-2">
           {availableReasons.map((reason) => (
             <Label
               key={reason.id}
@@ -138,10 +144,10 @@ export default function NotInterestedModal({
               </BodyText>
             </Label>
           ))}
-        </div>
+        </Box>
 
         {selectedReason === "other" && (
-          <div className="mt-4">
+          <Box className="mt-4">
             <Label htmlFor="custom-reason" className="mb-2 block">
               {t("why_not.tell_more")}
             </Label>
@@ -153,9 +159,9 @@ export default function NotInterestedModal({
               placeholder={t("why_not.reason_placeholder")}
               className="border-border focus:border-primary w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-neutral-400"
             />
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
     </BaseModal>
   );
 }

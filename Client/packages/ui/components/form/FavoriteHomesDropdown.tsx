@@ -5,6 +5,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/primitives";
 import { getDocument } from "packages/utils/platform";
 
 import {
@@ -57,7 +58,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
     };
   }, []);
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
+    <Box className={`relative ${className}`} ref={dropdownRef}>
       <Button
         type="button"
         variant="ghost"
@@ -67,19 +68,19 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         icon={<Icon name="home" className="text-primary h-4 w-4" />}
       >
         <Icon name="home" className="text-primary h-4 w-4" />
-        <div className="flex-1 text-left">
+        <Box className="flex-1 text-left">
           {loadingHomes ? (
             <KeyTurnLoader message={t("favorite_homes.loading_homes")} />
           ) : selectedHome ? (
-            <div>
-              <div className="text-responsive-xs text-text-primary font-medium">
+            <Box>
+              <Box className="text-responsive-xs text-text-primary font-medium">
                 {(() => {
                   const { address } = selectedHome;
                   const lastCommaIndex = address.lastIndexOf(",");
                   return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
                 })()}
-              </div>
-              <div className="text-responsive-xs text-text-secondary hidden sm:block">
+              </Box>
+              <Box className="text-responsive-xs text-text-secondary hidden sm:block">
                 {selectedHome.beds && selectedHome.baths
                   ? t("favorite_homes.bed_bath", {
                       beds: String(selectedHome.beds),
@@ -88,17 +89,17 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                   : t("favorite_homes.selected_property")}
                 {selectedHome.price &&
                   ` • ${selectedHome.price.startsWith("$") ? selectedHome.price : `$${selectedHome.price}`}`}
-              </div>
-            </div>
+              </Box>
+            </Box>
           ) : (
-            <div>
-              <div className="text-responsive-xs text-text-secondary">{displayPlaceholder}</div>
-              <div className="text-responsive-xs text-text-secondary hidden sm:block">
+            <Box>
+              <Box className="text-responsive-xs text-text-secondary">{displayPlaceholder}</Box>
+              <Box className="text-responsive-xs text-text-secondary hidden sm:block">
                 {t("favorite_homes.choose_saved_properties")}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
-        </div>
+        </Box>
         <Icon
           name="chevron-down"
           className={`text-primary h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
@@ -106,11 +107,11 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
       </Button>
 
       {isDropdownOpen && !loadingHomes && !disabled && (
-        <div className="border-border bg-background-surface absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border shadow-lg">
+        <Box className="border-border bg-background-surface absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border shadow-lg">
           {favoriteHomes.length === 0 ? (
-            <div className="text-text-secondary px-3 py-2 text-center text-sm">
+            <Box className="text-text-secondary px-3 py-2 text-center text-sm">
               {t("favorite_homes.no_favorite_homes_found")}
-            </div>
+            </Box>
           ) : (
             favoriteHomes.map((home, index) => {
               return (
@@ -125,14 +126,14 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       : "hover:bg-accent-muted text-text-primary"
                   }`}
                 >
-                  <div className="text-responsive-xs">
+                  <Box className="text-responsive-xs">
                     {(() => {
                       const { address } = home;
                       const lastCommaIndex = address.lastIndexOf(",");
                       return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
                     })()}
-                  </div>
-                  <div className="text-responsive-xs text-text-secondary mt-1 hidden sm:block">
+                  </Box>
+                  <Box className="text-responsive-xs text-text-secondary mt-1 hidden sm:block">
                     {home.beds && home.baths
                       ? t("favorite_homes.bed_bath", {
                           beds: String(home.beds),
@@ -144,14 +145,14 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       ` • ${Math.round(Number(home.sqft)).toLocaleString()} sqft`}
                     {home.price &&
                       ` • ${home.price.startsWith("$") ? home.price : `$${home.price}`}`}
-                  </div>
+                  </Box>
                 </Button>
               );
             })
           )}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 export default FavoriteHomesDropdown;

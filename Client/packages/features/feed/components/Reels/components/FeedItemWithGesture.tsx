@@ -96,7 +96,7 @@ export function FeedItemWithGesture({ item, index }: FeedItemWithGestureProps) {
       onTouchEnd={() => handleTouchEnd(containerRef)}
       onTouchCancel={() => handleTouchEnd(containerRef)}
     >
-      <Box className="relative flex h-full w-full max-w-md flex-row items-center justify-center md:max-w-[450px]">
+      <Box className="relative flex h-full w-full max-w-md flex-row items-center justify-center md:max-w-md">
         <Box className="pointer-events-none absolute inset-0 z-10" aria-hidden />
         {showHeartBurst && (
           <Box

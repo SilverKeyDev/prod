@@ -47,7 +47,6 @@ const DealStageBadge: React.FC<DealStageBadgeProps> = ({ stage, className = "" }
   };
   const config = stageConfig[stage];
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <Box className={`inline-flex flex-row items-center gap-1.5 sm:gap-2 ${className}`}>
       {config.icon}
       <StatusBadge text={config.label} variant={config.variant} size="sm" />

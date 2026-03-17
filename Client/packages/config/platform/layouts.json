@@ -38,5 +38,200 @@
     "nativePath": "packages/features/search/components/layout/SearchPageMapContainer.native.tsx",
     "reason": "Web supports side-by-side map and list view, native uses full-screen toggle between map and list. Different viewport handling and layout constraints.",
     "category": "responsive-layout"
+  },
+  {
+    "id": "messaging-screen",
+    "description": "Full-screen messaging layout with platform-specific navigation",
+    "webPath": "packages/features/agent/components/MessagingScreen.tsx",
+    "nativePath": "packages/features/agent/components/MessagingScreen.native.tsx",
+    "reason": "Full-screen messaging layout with platform-specific navigation. Native uses RN stack navigation and full-screen presentation.",
+    "category": "layout"
+  },
+  {
+    "id": "use-feed-scroll-container",
+    "description": "Feed scroll container hook with platform-specific layout",
+    "webPath": "packages/features/feed/hooks/ui/useFeedScrollContainer.ts",
+    "nativePath": "packages/features/feed/hooks/ui/useFeedScrollContainer.native.ts",
+    "reason": "Different scroll container layout patterns between web and native.",
+    "category": "layout"
+  },
+  {
+    "id": "auth-page-layout",
+    "description": "Auth page layout with platform-specific structure",
+    "webPath": "packages/features/homeauth/components/core/AuthPageLayout.tsx",
+    "nativePath": "packages/features/homeauth/components/core/AuthPageLayout.native.tsx",
+    "reason": "Native uses SafeAreaView; web uses standard layout.",
+    "category": "layout"
+  },
+  {
+    "id": "static-page-layout",
+    "description": "Static page layout with platform-specific primitives",
+    "webPath": "packages/features/homeauth/components/core/StaticPageLayout.tsx",
+    "nativePath": "packages/features/homeauth/components/core/StaticPageLayout.native.tsx",
+    "reason": "Native uses RN layout primitives; web uses DOM layout.",
+    "category": "layout"
+  },
+  {
+    "id": "contact-us-screen",
+    "description": "Contact us screen with platform-specific layout",
+    "webPath": "packages/features/homeauth/components/legal/ContactUsFeature.tsx",
+    "nativePath": "packages/features/homeauth/components/legal/ContactUsScreen.native.tsx",
+    "reason": "Native screen layout differs from web.",
+    "category": "layout"
+  },
+  {
+    "id": "privacy-policy-screen",
+    "description": "Privacy policy screen with platform-specific layout",
+    "nativePath": "packages/features/homeauth/components/legal/PrivacyPolicyScreen.native.tsx",
+    "reason": "Native screen layout for legal content.",
+    "category": "layout"
+  },
+  {
+    "id": "terms-of-service-screen",
+    "description": "Terms of service screen with platform-specific layout",
+    "nativePath": "packages/features/homeauth/components/legal/TermsOfServiceScreen.native.tsx",
+    "reason": "Native screen layout for legal content.",
+    "category": "layout"
+  },
+  {
+    "id": "login-screen",
+    "description": "Login screen with platform-specific layout",
+    "webPath": "packages/features/homeauth/components/login/LoginFeature.tsx",
+    "nativePath": "packages/features/homeauth/components/login/LoginScreen.native.tsx",
+    "reason": "Native login screen layout.",
+    "category": "layout"
+  },
+  {
+    "id": "onboarding-screen",
+    "description": "Onboarding screen with platform-specific layout",
+    "webPath": "packages/features/homeauth/components/onboarding-mobile/OnboardingFeature.tsx",
+    "nativePath": "packages/features/homeauth/components/onboarding-mobile/OnboardingScreen.native.tsx",
+    "reason": "Native onboarding layout.",
+    "category": "layout"
+  },
+  {
+    "id": "forgot-password-screen",
+    "description": "Forgot password screen with platform-specific layout",
+    "nativePath": "packages/features/homeauth/components/password/ForgotPasswordScreen.native.tsx",
+    "reason": "Native forgot password layout.",
+    "category": "layout"
+  },
+  {
+    "id": "signup-screen",
+    "description": "Signup screen with platform-specific layout",
+    "nativePath": "packages/features/homeauth/components/signup/SignupScreen.native.tsx",
+    "reason": "Native signup layout.",
+    "category": "layout"
+  },
+  {
+    "id": "verification-screen",
+    "description": "Verification screen with platform-specific layout",
+    "nativePath": "packages/features/homeauth/components/verification/VerificationScreen.native.tsx",
+    "reason": "Native verification layout.",
+    "category": "layout"
+  },
+  {
+    "id": "unified-message-input",
+    "description": "Unified message input with platform-specific layout",
+    "webPath": "packages/features/messaging/components/layout/UnifiedMessageInput.web.tsx",
+    "nativePath": "packages/features/messaging/components/layout/UnifiedMessageInput.native.tsx",
+    "reason": "Web uses DOM-based input layout; native uses KeyboardAvoidingView and RN layout.",
+    "category": "layout"
+  },
+  {
+    "id": "section-tint-wrapper",
+    "description": "Section tint wrapper with platform-specific layout",
+    "webPath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper.tsx",
+    "nativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper.native.tsx",
+    "reason": "Native uses RN layout for section tint.",
+    "category": "layout"
+  },
+  {
+    "id": "property-details-screen",
+    "description": "Property details screen with platform-specific layout",
+    "webPath": "packages/features/propertyDetails/components/PropertyDetailsScreen/PropertyDetailsScreen.tsx",
+    "nativePath": "packages/features/propertyDetails/components/PropertyDetailsScreen/PropertyDetailsScreen.native.tsx",
+    "reason": "Native property details layout.",
+    "category": "layout"
+  },
+  {
+    "id": "search-page-desktop-layout",
+    "description": "Desktop search layout with map and list",
+    "webPath": "packages/features/search/components/layout/SearchPageDesktopLayout.web.tsx",
+    "nativePath": null,
+    "reason": "Desktop-only layout; mobile uses different structure.",
+    "category": "responsive-layout"
+  },
+  {
+    "id": "search-page-mobile-layout",
+    "description": "Mobile search layout",
+    "webPath": "packages/features/search/components/layout/SearchPageMobileLayout.web.tsx",
+    "nativePath": null,
+    "reason": "Mobile viewport layout for web.",
+    "category": "responsive-layout"
+  },
+  {
+    "id": "search-page-map-view",
+    "description": "Search page map view layout",
+    "webPath": "packages/features/search/components/layout/SearchPageMapView.web.tsx",
+    "nativePath": "packages/features/search/components/layout/SearchPageMapView.native.tsx",
+    "reason": "Different map view layout per platform.",
+    "category": "responsive-layout"
+  },
+  {
+    "id": "saved-page-layout",
+    "description": "Saved page layout",
+    "webPath": "packages/features/saved/components/layout/SavedPageLayout.tsx",
+    "nativePath": "packages/features/saved/components/layout/SavedPageLayout.native.tsx",
+    "reason": "Native uses RN layout; web uses DOM layout.",
+    "category": "layout"
+  },
+  {
+    "id": "saved-screen",
+    "description": "Saved screen layout",
+    "webPath": "packages/features/saved/components/layout/SavedScreen.tsx",
+    "nativePath": "packages/features/saved/components/layout/SavedScreen.native.tsx",
+    "reason": "Native screen layout.",
+    "category": "layout"
+  },
+  {
+    "id": "navigation-link",
+    "description": "Navigation link component",
+    "webPath": "packages/navigation/link/Link.web.tsx",
+    "nativePath": "packages/navigation/link/Link.native.tsx",
+    "reason": "Web uses react-router Link; native uses RN navigation.",
+    "category": "navigation"
+  },
+  {
+    "id": "link-primitive-context",
+    "description": "Link primitive context",
+    "webPath": "packages/navigation/link/linkPrimitiveContext.web.ts",
+    "nativePath": "packages/navigation/link/linkPrimitiveContext.native.ts",
+    "reason": "Platform-specific link context.",
+    "category": "navigation"
+  },
+  {
+    "id": "router-context",
+    "description": "Router context",
+    "webPath": "packages/navigation/router/routerContext.web.ts",
+    "nativePath": "packages/navigation/router/routerContext.native.ts",
+    "reason": "Web uses react-router; native uses react-navigation.",
+    "category": "navigation"
+  },
+  {
+    "id": "use-navigation-hook",
+    "description": "Navigation hook",
+    "webPath": "packages/navigation/hooks/useNavigation.web.ts",
+    "nativePath": "packages/navigation/hooks/useNavigation.native.ts",
+    "reason": "Different navigation APIs per platform.",
+    "category": "navigation"
+  },
+  {
+    "id": "card-layout",
+    "description": "Card component layout",
+    "webPath": "packages/ui/components/layout/Card.web.tsx",
+    "nativePath": null,
+    "reason": "Web-specific card layout.",
+    "category": "layout"
   }
 ]

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import Card from "packages/ui/components/cards/Card";
+import { Box } from "packages/ui/components/primitives";
 import { getDocument } from "packages/utils/platform";
 
 import { BodyText, Button } from "@/components/ui";
@@ -23,7 +24,7 @@ export default function AttachmentMenu({
 }: AttachmentMenuProps) {
   const { t } = useLocalization();
   const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -47,7 +48,7 @@ export default function AttachmentMenu({
     fn();
   };
   return (
-    <div className="relative">
+    <Box className="relative">
       <Card
         padding="none"
         hover={false}
@@ -62,7 +63,7 @@ export default function AttachmentMenu({
           className="text-text-secondary hover:bg-background-base disabled:hover:bg-background-surface flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-out active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm"
           label={t("agent.add_attachment")}
         >
-          <div
+          <Box
             className={`transition-transform duration-200 ease-out ${isOpen ? "rotate-45" : "rotate-0"}`}
           >
             {isOpen ? (
@@ -74,14 +75,14 @@ export default function AttachmentMenu({
                 +
               </BodyText>
             )}
-          </div>
+          </Box>
         </Button>
       </Card>
 
       {isOpen && (
-        <div ref={menuRef} className="absolute bottom-full left-0 z-50 mb-2 w-56">
+        <Box ref={menuRef} className="absolute bottom-full left-0 z-50 mb-2 w-56">
           <Card padding="none" hover={false} className="overflow-hidden">
-            <div className="px-3 py-2">
+            <Box className="px-3 py-2">
               <AttachmentMenuItem
                 iconName="home"
                 title={t("agent.share_home")}
@@ -106,10 +107,10 @@ export default function AttachmentMenu({
                 title={t("agent.event_request")}
                 onClick={closeAnd(onSelectCalendar)}
               />
-            </div>
+            </Box>
           </Card>
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

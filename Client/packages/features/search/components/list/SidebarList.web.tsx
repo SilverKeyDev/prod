@@ -6,6 +6,7 @@ import { useLocalization } from "packages/contexts";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { formatPropertyType } from "packages/features/search/types/search/propertyFormatters";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
 import {
@@ -19,6 +20,7 @@ import WhyNotInterestedCard from "@/components/cards/WhyNotInterestedCard.web";
 import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
 import { getMatchScore, type SearchResult } from "@/features/search/types";
+
 export function SidebarList(props: {
   items: SearchResult[];
   selectedId?: string;
@@ -109,7 +111,7 @@ export function SidebarList(props: {
   };
   if (items.length === 0) {
     return (
-      <div className="py-8 text-center text-neutral-600">
+      <Box className="py-8 text-center text-neutral-600">
         {activeTab === "results" ? (
           <>
             <Icon name="map-pin" className="mobile-icon-lg mx-auto mb-2 text-neutral-400" />
@@ -131,7 +133,7 @@ export function SidebarList(props: {
             </BodyText>
           </>
         )}
-      </div>
+      </Box>
     );
   }
   // Handle reason selection - use markNotInterested (add) since we show the reason card
@@ -158,11 +160,11 @@ export function SidebarList(props: {
   };
   const itemsToRender = useIncrementalLoad ? displayItems.slice(0, visibleCount) : displayItems;
   return (
-    <div className="scrollbar-hide max-md:pb-mobile-nav h-full space-y-3 overflow-y-auto pr-2">
+    <Box className="scrollbar-hide max-md:pb-mobile-nav h-full space-y-3 overflow-y-auto pr-2">
       {itemsToRender.map((property: SearchResult) => {
         const showReasonCard = reasonCardPropertyId === property.id && activeTab === "results";
         return (
-          <div
+          <Box
             key={property.id}
             role={showReasonCard ? undefined : "button"}
             tabIndex={showReasonCard ? undefined : 0}
@@ -185,13 +187,13 @@ export function SidebarList(props: {
           >
             {/* Loading overlay */}
             {isLoading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/90 backdrop-blur-sm">
+              <Box className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/90 backdrop-blur-sm">
                 <KeyTurnLoader message="Loading details..." />
-              </div>
+              </Box>
             )}
 
             {showReasonCard ? (
-              <div
+              <Box
                 role="button"
                 tabIndex={0}
                 onClick={(e) => e.stopPropagation()}
@@ -208,11 +210,11 @@ export function SidebarList(props: {
                   onUndo={() => handleUndo(property)}
                   cardType="searchpage"
                 />
-              </div>
+              </Box>
             ) : (
               <>
                 {/* Property Image */}
-                <div className="relative">
+                <Box className="relative">
                   <CardImageContainer
                     imageUrl={property.imageUrl}
                     alt={property.address ?? "Property image"}
@@ -223,8 +225,8 @@ export function SidebarList(props: {
 
                   {/* Top Content (buttons) - positioned on image overlay like PropertyCard */}
                   {activeTab === "results" && (
-                    <div className="pointer-events-none absolute inset-0">
-                      <div className="pointer-events-auto relative h-full w-full">
+                    <Box className="pointer-events-none absolute inset-0">
+                      <Box className="pointer-events-auto relative h-full w-full">
                         <CardNotInterested
                           property={property}
                           size="sm"
@@ -254,12 +256,12 @@ export function SidebarList(props: {
                             position="top-right"
                           />
                         )}
-                      </div>
-                    </div>
+                      </Box>
+                    </Box>
                   )}
                   {activeTab === "saved" && (
-                    <div className="pointer-events-none absolute inset-0">
-                      <div className="pointer-events-auto relative h-full w-full">
+                    <Box className="pointer-events-none absolute inset-0">
+                      <Box className="pointer-events-auto relative h-full w-full">
                         {isHomeSaved && saveHome && removeSavedHome ? (
                           <CardHeartSaveWithProps
                             property={{
@@ -283,22 +285,22 @@ export function SidebarList(props: {
                             position="top-right"
                           />
                         )}
-                      </div>
-                    </div>
+                      </Box>
+                    </Box>
                   )}
-                </div>
+                </Box>
 
-                <div className={activeTab === "results" ? "p-3" : "space-responsive-xs"}>
-                  <div className="min-w-0 flex-1">
+                <Box className={activeTab === "results" ? "p-3" : "space-responsive-xs"}>
+                  <Box className="min-w-0 flex-1">
                     {activeTab === "saved" && (
-                      <div className="mb-1 flex items-center gap-2">
+                      <Box className="mb-1 flex items-center gap-2">
                         {typeof property.propertyType === "string" &&
                           property.propertyType.toLowerCase() !== "single_family" && (
                             <BodyText as="span" size="xs" className="text-neutral-600">
                               {formatPropertyType(property.propertyType)}
                             </BodyText>
                           )}
-                      </div>
+                      </Box>
                     )}
 
                     {/* Address */}
@@ -313,7 +315,7 @@ export function SidebarList(props: {
                     </Title>
 
                     {/* Price and Match Score */}
-                    <div className="justify-left flex">
+                    <Box className="justify-left flex">
                       <BodyText
                         as="p"
                         size="sm"
@@ -335,7 +337,7 @@ export function SidebarList(props: {
                           className="ml-2"
                         />
                       )}
-                    </div>
+                    </Box>
 
                     {/* Property Details */}
                     <CardPropertyDetails
@@ -346,16 +348,16 @@ export function SidebarList(props: {
                       variant="horizontal"
                       className="mb-2 sm:mb-3 [&_*]:!text-neutral-600"
                     />
-                  </div>
-                </div>
+                  </Box>
+                </Box>
               </>
             )}
-          </div>
+          </Box>
         );
       })}
       {useIncrementalLoad && visibleCount < displayItems.length && (
-        <div ref={sentinelRef} className="h-1 w-full" aria-hidden />
+        <Box ref={sentinelRef} className="h-1 w-full" aria-hidden />
       )}
-    </div>
+    </Box>
   );
 }

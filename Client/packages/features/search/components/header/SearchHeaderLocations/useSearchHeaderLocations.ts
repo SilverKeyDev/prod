@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui/toast/useToast";
@@ -23,7 +23,7 @@ export function useSearchHeaderLocations(onPreferencesChanged?: () => void | Pro
     | SearchImportantLocation[]
     | undefined
     | null;
-  const locationsList = Array.isArray(locations) ? locations : [];
+  const locationsList = useMemo(() => (Array.isArray(locations) ? locations : []), [locations]);
   locationsListRef.current = locationsList;
   const hasLocations = locationsList.length > 0;
 
@@ -57,7 +57,7 @@ export function useSearchHeaderLocations(onPreferencesChanged?: () => void | Pro
     const hasChanged = JSON.stringify(toSave) !== JSON.stringify(locationsList);
     void updatePreferences({ important_locations: toSave })
       .then(() => {
-        onPreferencesChanged?.();
+        void onPreferencesChanged?.();
         if (hasChanged) {
           showSuccessToast("Locations saved");
         }
@@ -75,7 +75,7 @@ export function useSearchHeaderLocations(onPreferencesChanged?: () => void | Pro
         const toSave = localLocationsRef.current ?? [];
         void updatePreferencesRef
           .current({ important_locations: toSave })
-          .then(() => onPreferencesChangedRef.current?.())
+          .then(() => void onPreferencesChangedRef.current?.())
           .catch(() => {
             showErrorToast("Could not save locations. Please try again.");
           });

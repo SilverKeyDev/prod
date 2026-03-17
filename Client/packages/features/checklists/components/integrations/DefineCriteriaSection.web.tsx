@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { HousingSection } from "packages/features/profile/components/sections/index.web";
+import { HousingSection } from "packages/features/profile/components/sections/index.web"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist DefineCriteria reuses HousingSection from profile; shared composition. */
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useResponsive } from "packages/hooks/ui";

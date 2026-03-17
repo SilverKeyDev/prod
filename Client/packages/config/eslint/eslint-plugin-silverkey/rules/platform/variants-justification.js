@@ -76,7 +76,7 @@ function loadVariantsConfig() {
     configCache = variants;
     lastCacheCheck = now;
     return configCache;
-  } catch (error) {
+  } catch {
     configCache = new Set();
     lastCacheCheck = now;
     return configCache;
@@ -99,7 +99,7 @@ function hasPlatformDependencies(filename) {
       );
       return importRegex.test(content) || requireRegex.test(content);
     });
-  } catch (error) {
+  } catch {
     return false;
   }
 }

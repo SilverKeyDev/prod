@@ -1,11 +1,10 @@
 import { useCallback } from "react";
 
+import type { Calendar } from "packages/features/calendar/types/calendar";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import { preferencesApi } from "@/features/calendar/api/preferences";
 import { calculateDisabledCalendarIds } from "@/features/calendar/utils/calendar";
-
-import type { Calendar } from "../../types/calendar";
 
 /**
  * Hook for saving calendar preferences

@@ -1,6 +1,7 @@
 import React from "react";
 
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { formatStructuredAddress } from "@/features/search/types/search/address";
@@ -13,7 +14,6 @@ import {
   getPropertyBasicFields,
 } from "./propertyDetailsDisplayHelpers";
 import { PropertyDetailsList } from "./PropertyDetailsList";
-
 function formatPropertyAddress(property: unknown): string {
   const addr = (property as { address?: unknown }).address;
   if (!addr) return "Address not available";
@@ -48,48 +48,48 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
   const addressDisplay = formatPropertyAddress(property);
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-start justify-between">
-        <div className="flex-1">
-          <div className="text-text-primary mb-2 text-2xl font-bold sm:text-3xl md:text-4xl">
+    <Box className="p-6">
+      <Box className="mb-6 flex items-start justify-between">
+        <Box className="flex-1">
+          <Box className="text-text-primary mb-2 text-2xl font-bold sm:text-3xl md:text-4xl">
             {asReactNode(formatPrice(fields.price))}
-          </div>
-          <div className="text-text-secondary text-sm sm:text-base md:text-lg">
+          </Box>
+          <Box className="text-text-secondary text-sm sm:text-base md:text-lg">
             {addressDisplay}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-4">
+          </Box>
+        </Box>
+        <Box className="flex items-center gap-2 sm:gap-4">
           {fields.bedrooms != null && Number(fields.bedrooms) > 0 && (
-            <div className="text-center">
-              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
+            <Box className="text-center">
+              <Box className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {fields.bedrooms}
-              </div>
-              <div className="text-text-secondary text-xs sm:text-sm">beds</div>
-            </div>
+              </Box>
+              <Box className="text-text-secondary text-xs sm:text-sm">beds</Box>
+            </Box>
           )}
           {fields.bathrooms != null && Number(fields.bathrooms) > 0 && (
-            <div className="text-center">
-              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
+            <Box className="text-center">
+              <Box className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {fields.bathrooms}
-              </div>
-              <div className="border-border text-text-secondary border-b border-dashed text-xs sm:text-sm">
+              </Box>
+              <Box className="border-border text-text-secondary border-b border-dashed text-xs sm:text-sm">
                 baths
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
           {fields.sqft != null && Number(fields.sqft) > 0 && (
-            <div className="text-center">
-              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
+            <Box className="text-center">
+              <Box className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {Math.round(Number(fields.sqft)).toLocaleString()}
-              </div>
-              <div className="text-text-secondary text-xs sm:text-sm">sqft</div>
-            </div>
+              </Box>
+              <Box className="text-text-secondary text-xs sm:text-sm">sqft</Box>
+            </Box>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
       <Card className="p-4">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+        <Box className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Box className="lg:col-span-2">
             <PropertyDetailsList
               propertyYearBuilt={fields.yearBuilt ?? undefined}
               propertyLotSize={fields.lotSize ?? undefined}
@@ -101,7 +101,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
               propertyZestimate={fields.zestimate ?? undefined}
               propertyRentZestimate={fields.rentZestimate ?? undefined}
             />
-          </div>
+          </Box>
           {agent.hasAgent && (
             <ListingAgentCard
               imageUrl={agent.imageUrl}
@@ -110,8 +110,8 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
               phone={agent.phone}
             />
           )}
-        </div>
+        </Box>
       </Card>
-    </div>
+    </Box>
   );
 };

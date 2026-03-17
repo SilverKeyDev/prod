@@ -87,7 +87,11 @@ export default tseslint.config(
       // Allow 15–16 item folders (modals, HomeAuth, hooks/data/auth) to avoid fragmentation; warn at 17+, error at 20+
       "silverkey/folder-max-items": [
         "warn",
-        { warnAt: 17, errorAt: 20, skipDirNames: ["Client", "api", "features"] },
+        {
+          warnAt: 17,
+          errorAt: 20,
+          skipDirNames: ["Client", "api", "features", "config", "packages"],
+        },
       ],
       "silverkey/no-empty-folders": [
         "error",
@@ -166,6 +170,12 @@ export default tseslint.config(
     ],
     plugins: { silverkey },
     rules: { "silverkey/folder-max-items": "off" },
+  },
+
+  // CJS config files (Tailwind preset for Metro/Node) require require()
+  {
+    files: ["packages/config/**/*.cjs.js", "packages/config/**/*.cjs"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
   },
 
   // packages/api: no any on API response types (API clients live in packages/api/)
@@ -312,6 +322,8 @@ export default tseslint.config(
             "^@headlessui/react$", // in apps/web/package.json; packages/ui adapters use it for web
             "^@expo/vector-icons$", // in apps/mobile/package.json; packages/ui iconMapImpl.native uses it
             "^@react-navigation/native$", // in apps/mobile/package.json; navigation adapter uses it
+            "^expo-blur$", // in apps/mobile/package.json; BlurView.native uses it
+            "^expo-linear-gradient$", // in apps/mobile/package.json; UniversalGradient.native uses it
             // Extensionless relative imports resolved by bundler to .web/.native (e.g. ./Button -> Button.web.tsx; primitives/box/index.ts from "./Box" -> Box.web.tsx)
             "^\\.[/]?[^/]+$",
           ],

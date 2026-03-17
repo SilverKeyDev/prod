@@ -1,3 +1,5 @@
+import { Box } from "packages/ui/components/primitives";
+
 import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, Button, CancelButton, CloseButton, Title } from "@/components/ui";
 
@@ -26,23 +28,23 @@ export default function SelectAgreementModal({
 }: SelectAgreementModalProps) {
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} size="md">
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+      <Box className="flex flex-col gap-4">
+        <Box className="flex items-center justify-between">
           <Title size="lg">Select Agreement</Title>
           <CloseButton onClick={onClose} />
-        </div>
+        </Box>
 
         <BodyText size="sm" muted>
           Agreement selection is currently managed in the Documents experience.
         </BodyText>
 
-        <div className="flex justify-end gap-3">
+        <Box className="flex justify-end gap-3">
           <CancelButton onClick={onClose}>Close</CancelButton>
           <Button type="button" variant="primary" onClick={() => onSelect({ title: "Agreement" })}>
             Share placeholder
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
     </BaseModal>
   );
 }

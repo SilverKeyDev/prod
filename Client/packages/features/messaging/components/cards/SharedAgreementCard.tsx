@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { AgreementDetailModal } from "packages/features/documents";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
 type SharedAgreementCardProps = {
@@ -31,8 +32,8 @@ export default function SharedAgreementCard({
   // the detail stub for context.
   return (
     <>
-      <div className={`max-w-${compact ? "sm" : "md"}`}>
-        <div
+      <Box className={`max-w-${compact ? "sm" : "md"}`}>
+        <Box
           role="button"
           tabIndex={0}
           className="border-border bg-background-base cursor-pointer rounded-lg border p-3"
@@ -44,16 +45,16 @@ export default function SharedAgreementCard({
             }
           }}
         >
-          <div className="flex items-center gap-2">
+          <Box className="flex items-center gap-2">
             <Icon name="file-signature" className="text-text-secondary h-5 w-5" />
             <BodyText size="sm" className="text-text-primary">
               {t("documents.agreement_not_available", {
                 defaultValue: "Agreement details are not available yet.",
               })}
             </BodyText>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
       <AgreementDetailModal
         agreementId={agreementId}
         isOpen={isModalOpen}

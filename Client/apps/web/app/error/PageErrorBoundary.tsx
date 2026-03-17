@@ -9,6 +9,7 @@ import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 type PageErrorBoundaryProps = {
@@ -38,14 +39,14 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
     if (this.state.hasError) {
       const label = this.props.pageLabel ?? "This page";
       return (
-        <div className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-border bg-background-surface p-6 text-center">
+        <Box className="flex min-h-[280px] flex-col items-center justify-center rounded-lg border border-border bg-background-surface p-6 text-center">
           <Title size="md" as="h2" className="mb-2 text-text-primary">
             Something went wrong
           </Title>
           <BodyText size="sm" muted className="mb-6">
             {label} couldn’t load. You can try again or go to the dashboard.
           </BodyText>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <Box className="flex flex-wrap items-center justify-center gap-3">
             <Button
               variant="primary"
               onClick={this.handleRetry}
@@ -59,8 +60,8 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
                 Go to Dashboard
               </Button>
             </Link>
-          </div>
-        </div>
+          </Box>
+        </Box>
       );
     }
     return this.props.children;

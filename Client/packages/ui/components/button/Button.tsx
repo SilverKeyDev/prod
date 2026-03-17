@@ -126,7 +126,6 @@ function renderIcon(
     }) as React.ReactNode;
   }
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <Box className={`inline-flex flex-row items-center ${iconClass}`}>{icon}</Box>
   ) as React.ReactNode;
 }

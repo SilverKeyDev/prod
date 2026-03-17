@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import { Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
@@ -34,32 +34,32 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
   const hasSimple = commute.commute_time != null || commute.commute_distance != null;
   if (!hasTravelTimes && !hasSimple) return null;
   return (
-    <div className="p-6">
-      <div className="mb-4 flex items-center gap-2">
+    <Box className="p-6">
+      <Box className="mb-4 flex items-center gap-2">
         <Icon name="map-pin" className="text-text-secondary h-5 w-5" />
         <Title as="h3" size="lg" className="text-text-secondary font-semibold">
           {t("property_details.commute_information")}
         </Title>
-      </div>
+      </Box>
 
-      <div className="border-border bg-accent-muted rounded-lg border p-6">
+      <Box className="border-border bg-accent-muted rounded-lg border p-6">
         {hasTravelTimes ? (
-          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
-            <div>
+          <Box className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
+            <Box>
               {commute.map_url ? (
-                <div className="border-border bg-background-surface rounded-lg border p-4">
-                  <div className="aspect-square w-full">
+                <Box className="border-border bg-background-surface rounded-lg border p-4">
+                  <Box className="aspect-square w-full">
                     <Image
                       src={commute.map_url}
                       alt={t("property_details.commute_map")}
                       className="h-full w-full rounded object-contain"
                     />
-                  </div>
-                </div>
+                  </Box>
+                </Box>
               ) : (
-                <div className="border-border bg-background-surface rounded-lg border p-4">
-                  <div className="flex aspect-square w-full items-center justify-center">
-                    <div className="text-text-secondary text-center">
+                <Box className="border-border bg-background-surface rounded-lg border p-4">
+                  <Box className="flex aspect-square w-full items-center justify-center">
+                    <Box className="text-text-secondary text-center">
                       <Icon name="map-pin" className="text-text-secondary mx-auto mb-3 h-12 w-12" />
                       <BodyText as="p" className="text-text-secondary font-medium">
                         {t("property_details.commute_map")}
@@ -67,13 +67,13 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
                       <BodyText as="p" size="sm" className="text-text-secondary mt-1">
                         {t("property_details.map_generating")}
                       </BodyText>
-                    </div>
-                  </div>
-                </div>
+                    </Box>
+                  </Box>
+                </Box>
               )}
-            </div>
+            </Box>
 
-            <div className="flex h-full flex-col justify-center space-y-4">
+            <Box className="flex h-full flex-col justify-center space-y-4">
               {commute.travel_times!.map((c, i) => {
                 const travelTimeMinutes = c.travel_time
                   ? parseInt(String(c.travel_time).replace(/\D/g, ""))
@@ -89,9 +89,9 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
                 }
                 return (
                   <Card key={i}>
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
+                    <Box className="flex items-center justify-between">
+                      <Box className="min-w-0 flex-1">
+                        <Box className="flex items-center justify-between">
                           <BodyText
                             as="span"
                             className="text-text-secondary flex-1 truncate text-sm font-medium"
@@ -104,8 +104,8 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
                           >
                             {c.travel_time || t("house.na")}
                           </BodyText>
-                        </div>
-                        <div className="mt-1 flex items-center justify-between">
+                        </Box>
+                        <Box className="mt-1 flex items-center justify-between">
                           <BodyText as="p" className="text-text-secondary flex-1 truncate text-xs">
                             {c.location_address || c.address}
                           </BodyText>
@@ -119,16 +119,16 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
                               })}
                             </BodyText>
                           )}
-                        </div>
-                      </div>
-                    </div>
+                        </Box>
+                      </Box>
+                    </Box>
                   </Card>
                 );
               })}
-            </div>
-          </div>
+            </Box>
+          </Box>
         ) : (
-          <div className="text-text-secondary text-sm">
+          <Box className="text-text-secondary text-sm">
             {commute.commute_time != null && (
               <BodyText as="p">
                 <strong className="text-text-secondary">
@@ -147,9 +147,9 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) 
                 {String(commute.commute_distance)} {t("property_details.miles")}
               </BodyText>
             )}
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };

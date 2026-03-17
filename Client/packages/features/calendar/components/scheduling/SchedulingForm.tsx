@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
+import { Box } from "packages/ui/components/primitives";
 
 import { Input, Label, Textarea } from "@/components/ui";
 
@@ -44,7 +45,7 @@ export function SchedulingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
+      <Box>
         <Label size="sm">Title</Label>
         <Input
           type="text"
@@ -53,8 +54,8 @@ export function SchedulingForm({
           placeholder="Event title"
           className="border-border mt-1 w-full rounded border px-3 py-2 text-sm"
         />
-      </div>
-      <div>
+      </Box>
+      <Box>
         <Label size="sm">Description (optional)</Label>
         <Textarea
           value={description}
@@ -63,15 +64,15 @@ export function SchedulingForm({
           rows={2}
           className="border-border mt-1 w-full rounded border px-3 py-2 text-sm"
         />
-      </div>
-      <div className="flex gap-2">
+      </Box>
+      <Box className="flex gap-2">
         <CancelButton type="button" onClick={onCancel}>
           Back
         </CancelButton>
         <Button type="submit" variant="primary" disabled={isLoading}>
           {isLoading ? "Scheduling..." : "Schedule"}
         </Button>
-      </div>
+      </Box>
     </form>
   );
 }

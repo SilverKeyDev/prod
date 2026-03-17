@@ -1,9 +1,9 @@
 import React, { RefObject } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
-
 type OpeningOfferSectionProps = {
   strategyData: unknown;
   priceElementRef: RefObject<HTMLDivElement>;
@@ -49,16 +49,16 @@ export function OpeningOfferSection({
   }
 
   return (
-    <div ref={priceElementRef} className="my-responsive-lg">
-      <div className="bg-primary rounded-lg p-6">
-        <div className="flex items-center gap-3">
+    <Box ref={priceElementRef} className="my-responsive-lg">
+      <Box className="bg-primary rounded-lg p-6">
+        <Box className="flex items-center gap-3">
           <BodyText
             as="span"
             className="bg-primary flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
           >
             $
           </BodyText>
-          <div>
+          <Box>
             <BodyText
               as="span"
               size="sm"
@@ -73,9 +73,9 @@ export function OpeningOfferSection({
             >
               ${offerValue.toLocaleString()}
             </BodyText>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }

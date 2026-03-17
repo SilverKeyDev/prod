@@ -4,9 +4,11 @@ import { Icon } from "@ui/icons";
 
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { Image } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
+
 interface PropertyAgentProps extends PropertyComponentProps {
   noCard?: boolean;
 }
@@ -25,8 +27,8 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
   const businessName = agent.business_name as string | undefined;
   const phone = agent.phone as Record<string, unknown> | undefined;
   const agentContent = (
-    <div className="flex items-start space-x-4">
-      <div className="border-brown/20 bg-primary-muted h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
+    <Box className="flex items-start space-x-4">
+      <Box className="border-brown/20 bg-primary-muted h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -34,15 +36,15 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
             className="h-full w-full object-cover"
           />
         ) : (
-          <div
+          <Box
             className={`h-full w-full items-center justify-center ${imageUrl ? "hidden" : "flex"}`}
           >
             <Icon name="user" className="text-text-secondary h-8 w-8" />
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
 
-      <div className="flex-1">
+      <Box className="flex-1">
         <Title as="h4" size="lg" className="text-accent font-medium">
           {displayName}
         </Title>
@@ -52,7 +54,7 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
           </BodyText>
         )}
         {phone && (
-          <div className="text-text-secondary mt-2 flex items-center">
+          <Box className="text-text-secondary mt-2 flex items-center">
             <Icon name="phone" className="mr-1 h-4 w-4" />
 
             {(() => {
@@ -90,34 +92,34 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
                 "Phone available"
               );
             })()}
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
   if (noCard) {
     return (
-      <div>
-        <div className="mb-4 flex items-center gap-2">
+      <Box>
+        <Box className="mb-4 flex items-center gap-2">
           <Icon name="user" className="text-text-secondary h-5 w-5" />
           <Title as="h3" size="lg" className="text-text-secondary font-semibold">
             Listing Agent
           </Title>
-        </div>
-        <div className="mt-2">{agentContent}</div>
-      </div>
+        </Box>
+        <Box className="mt-2">{agentContent}</Box>
+      </Box>
     );
   }
   return (
-    <div>
-      <div className="mb-4 flex items-center gap-2">
+    <Box>
+      <Box className="mb-4 flex items-center gap-2">
         <Icon name="user" className="text-text-secondary h-5 w-5" />
         <Title as="h3" size="lg" className="text-text-secondary font-semibold">
           Listing Agent
         </Title>
-      </div>
+      </Box>
 
       <Card className="mt-2 p-4">{agentContent}</Card>
-    </div>
+    </Box>
   );
 };

@@ -8,10 +8,7 @@ import type { GoogleMapsWindow } from "packages/types/google-maps";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import IconButton from "packages/ui/components/button/IconButton";
-import {
-  ADD_BUTTON_DASHED_BORDER,
-  LOCATION_INPUT_CONTAINER,
-} from "packages/ui/components/form/fileUploadStyles";
+import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/fileUploadStyles";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { asError } from "packages/utils";

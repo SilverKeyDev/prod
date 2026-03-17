@@ -8,6 +8,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { Link } from "packages/navigation";
 import { useNotificationStore } from "packages/store";
 import { Portal } from "packages/ui/components/portal";
+import { Box } from "packages/ui/components/primitives";
 import { NotificationBadge } from "packages/ui/components/primitives/index.web";
 
 import { SIDEBAR_TABS, type SidebarTabKey } from "@/app/layouts/sidebar/sidebarTabs.web";
@@ -55,7 +56,7 @@ function BottomNavItems({
         const active = isActive(item.href);
         const content = (
           <>
-            <div className="relative">
+            <Box className="relative">
               <Icon name={item.icon} className={iconClass(active)} />
               {item.key === "agent" && isLoaded && (
                 <NotificationBadge
@@ -63,7 +64,7 @@ function BottomNavItems({
                   className="absolute -right-1 -top-1 h-4 w-4 text-[10px]"
                 />
               )}
-            </div>
+            </Box>
             <span className={labelClass(active)}>{item.name}</span>
           </>
         );
@@ -138,8 +139,8 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
       role="navigation"
       aria-label="Primary navigation"
     >
-      <div className="flex min-h-16 flex-1 flex-col items-center justify-center">
-        <div className="flex w-full items-center justify-around px-2">
+      <Box className="flex min-h-16 flex-1 flex-col items-center justify-center">
+        <Box className="flex w-full items-center justify-around px-2">
           <BottomNavItems
             items={navItems}
             isActive={isActive}
@@ -148,8 +149,8 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
             pathname={location.pathname}
             onSearchNavigateClick={handleSearchNavigateClick}
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
     </nav>
   );
 

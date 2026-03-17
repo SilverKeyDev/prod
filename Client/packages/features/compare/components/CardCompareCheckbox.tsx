@@ -2,6 +2,8 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { getCardBubbleSizeClasses } from "@/components/cards/base/styles/CardBubbleStyles";
 import { Button } from "@/components/ui";
 export type CardCompareCheckboxProps = {
@@ -80,7 +82,7 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
     );
   }
   return (
-    <div className={`absolute ${POSITION_MAP[position]} z-10 ${className}`}>
+    <Box className={`absolute ${POSITION_MAP[position]} z-10 ${className}`}>
       <Button
         type="button"
         variant="ghost"
@@ -102,7 +104,7 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
           />
         )}
       </Button>
-    </div>
+    </Box>
   );
 };
 export default CardCompareCheckbox;

@@ -2,6 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 
 import { Button, KeyTurnLoader } from "@/components/ui";
@@ -82,9 +83,9 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
     >
       {loading ? (
         <>
-          <div className={text ? "mr-1" : ""}>
+          <Box className={text ? "mr-1" : ""}>
             <KeyTurnLoader message="" />
-          </div>
+          </Box>
           {text && text}
         </>
       ) : (

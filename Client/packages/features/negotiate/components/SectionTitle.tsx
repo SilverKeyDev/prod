@@ -1,5 +1,6 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
 type SectionTitleProps = {
   children: React.ReactNode;
   icon?: React.ReactNode;
@@ -11,10 +12,10 @@ const SectionTitle: React.FC<SectionTitleProps> = ({ children, icon, className =
   const combinedClasses = `${baseClasses} ${className}`.trim();
 
   return (
-    <div className={combinedClasses}>
+    <Box className={combinedClasses}>
       {icon}
       {children}
-    </div>
+    </Box>
   );
 };
 

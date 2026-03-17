@@ -1,6 +1,6 @@
 import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboardingForm";
 import { LOGO } from "packages/ui/components/asset";
-import { Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/primitives";
 
 import { ValidationWarning } from "@/components/feedback";
 import Card from "@/components/layout/Card.web";
@@ -92,39 +92,39 @@ export function OnboardingFeature() {
 
       default:
         return (
-          <div className="py-8 text-center">
+          <Box className="py-8 text-center">
             <Title as="h2" size="md" className="text-text-primary mb-2">
               Complete your profile
             </Title>
             <BodyText size="sm" muted className="mx-auto max-w-md">
               Use the buttons below to continue or go back to another step.
             </BodyText>
-          </div>
+          </Box>
         );
     }
   };
 
   return (
-    <div className="bg-background-base min-h-screen">
-      <div className="mx-auto w-full max-w-3xl px-4 pb-20 sm:px-6 sm:pb-8 lg:px-8">
+    <Box className="bg-background-base min-h-screen">
+      <Box className="mx-auto w-full max-w-3xl px-4 pb-20 sm:px-6 sm:pb-8 lg:px-8">
         {/* Header */}
-        <div className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
-          <div className="flex items-center">
+        <Box className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
+          <Box className="flex items-center">
             <Image src={LOGO} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
-          </div>
-          <div className="flex items-center gap-4" />
-        </div>
+          </Box>
+          <Box className="flex items-center gap-4" />
+        </Box>
 
         {/* Progress Bar */}
         <OnboardingHeader steps={steps} currentStep={currentStep} onStepClick={goToStep} />
 
         {/* Step Content */}
-        <div className="bg-background-surface mt-4 rounded-2xl shadow-sm">
+        <Box className="bg-background-surface mt-4 rounded-2xl shadow-sm">
           <Card className="pb-8 sm:pb-12">
             {renderStepContent()}
 
             {/* Navigation Buttons */}
-            <div className="border-border mt-10 border-t px-4 pb-1 pt-8 sm:px-6 sm:pb-2">
+            <Box className="border-border mt-10 border-t px-4 pb-1 pt-8 sm:px-6 sm:pb-2">
               <NavigationButtons
                 currentStep={currentStep}
                 totalSteps={steps.length}
@@ -135,9 +135,9 @@ export function OnboardingFeature() {
                 layout="centered"
                 size="md"
               />
-            </div>
+            </Box>
           </Card>
-        </div>
+        </Box>
 
         {/* Validation Warning Modal */}
         <ValidationWarning
@@ -147,7 +147,7 @@ export function OnboardingFeature() {
           missingFields={validationResult.missingFields}
           errors={validationResult.errors}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

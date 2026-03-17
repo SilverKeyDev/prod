@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import AlignedRow from "@/components/layout/AlignedRow";
 import Card from "@/components/layout/Card.web";
 import {
@@ -34,7 +36,7 @@ export function SettingsCommunicationSection({
         {SECTION_TITLES.COMMUNICATION_PREFERENCES}
       </Title>
 
-      <div>
+      <Box>
         <Label>{FIELD_LABELS.COMMUNICATION_FREQUENCY}</Label>
         {isEditMode ? (
           <Dropdown
@@ -52,9 +54,9 @@ export function SettingsCommunicationSection({
               : "Not specified"}
           </BodyText>
         )}
-      </div>
+      </Box>
 
-      <div>
+      <Box>
         <Label>{FIELD_LABELS.INFORMATION_DETAIL_LEVEL}</Label>
         {isEditMode ? (
           <Dropdown
@@ -80,7 +82,7 @@ export function SettingsCommunicationSection({
               : "Not specified"}
           </BodyText>
         )}
-      </div>
+      </Box>
 
       <AlignedRow
         breakIntoRows="md"
@@ -121,7 +123,7 @@ export function SettingsCommunicationSection({
               ),
             content:
               formData.has_buyers_agent === "no" ? (
-                <div className="flex h-full items-center">
+                <Box className="flex h-full items-center">
                   <Label
                     htmlFor="looking-buyers-agent"
                     className="text-text-primary flex cursor-pointer items-center gap-3 text-sm font-medium"
@@ -170,7 +172,7 @@ export function SettingsCommunicationSection({
                         </BodyText>
                       </>
                     ) : (
-                      <div
+                      <Box
                         className={`flex h-5 w-5 items-center justify-center rounded border ${
                           formData.looking_for_buyers_agent
                             ? "border-primary bg-primary"
@@ -190,13 +192,13 @@ export function SettingsCommunicationSection({
                             />
                           </svg>
                         )}
-                      </div>
+                      </Box>
                     )}
                     <BodyText as="span" className="select-none">
                       I am looking for a buyer's agent
                     </BodyText>
                   </Label>
-                </div>
+                </Box>
               ) : (
                 <BodyText as="div" size="sm" className="mobile-input bg-background-base opacity-0">
                   &nbsp;

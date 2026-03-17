@@ -44,7 +44,6 @@ const RiskFlag: React.FC<RiskFlagProps> = ({ severity, message, className = "" }
   const config = severityConfig[severity];
   return (
     <Box
-      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
       className={`inline-flex flex-row items-center gap-1.5 rounded-full px-2 py-1 sm:gap-2 sm:px-3 sm:py-1.5 ${config.bgColor} ${config.color} ${className}`}
       title={message}
     >

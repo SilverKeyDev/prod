@@ -10,6 +10,7 @@ import { formatAddress } from "packages/features/search/types/search/propertyDet
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/primitives";
 import { getShareHomeConversationId, getShareHomePropertyId } from "packages/utils/share";
 
 import BaseModal from "@/components/modals/BaseModal";
@@ -93,18 +94,18 @@ export default function ShareHomeModal({
       title={t("modals.share_home.title")}
       size="md"
       headerContent={
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           <Icon name="share" className="text-text-secondary h-5 w-5" />
           <Title as="h3" size="lg" className="text-text-primary font-medium">
             {t("modals.share_home.title")}
           </Title>
-        </div>
+        </Box>
       }
     >
-      <div className="space-y-4">
+      <Box className="space-y-4">
         {/* Property Info */}
         {property && (
-          <div className="border-border bg-primary-muted rounded-lg border p-3">
+          <Box className="border-border bg-primary-muted rounded-lg border p-3">
             <BodyText as="p" size="sm" className="text-text-primary font-medium">
               {propertyAddress}
             </BodyText>
@@ -116,25 +117,25 @@ export default function ShareHomeModal({
                 })()}
               </BodyText>
             )}
-          </div>
+          </Box>
         )}
 
         {/* Client Selection (for agents) */}
         {isAgent && (
-          <div>
+          <Box>
             <Label htmlFor="share-client-first" className="mb-2 block">
               {t("modals.share_home.share_with_client")}
             </Label>
             {isLoadingClients ? (
-              <div className="flex items-center justify-center py-4">
+              <Box className="flex items-center justify-center py-4">
                 <KeyTurnLoader message={t("client_selector.loading_clients")} />
-              </div>
+              </Box>
             ) : clients.length === 0 ? (
               <BodyText as="p" size="sm" className="text-text-secondary">
                 {t("modals.share_home.no_clients")}
               </BodyText>
             ) : (
-              <div className="max-h-48 space-y-2 overflow-y-auto">
+              <Box className="max-h-48 space-y-2 overflow-y-auto">
                 {clients.map((client, index) => (
                   <Button
                     key={client.id}
@@ -148,27 +149,27 @@ export default function ShareHomeModal({
                         : "border-border hover:border-border hover:bg-accent-muted"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <div className="bg-accent-muted flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+                    <Box className="flex items-center gap-2">
+                      <Box className="bg-accent-muted flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
                         <Icon name="user" className="h-4 w-4 text-black" />
-                      </div>
-                      <div className="min-w-0 flex-1">
+                      </Box>
+                      <Box className="min-w-0 flex-1">
                         <BodyText as="p" size="sm" className="text-text-primary font-medium">
                           {client.name}
                         </BodyText>
                         <BodyText as="p" size="xs" className="text-text-secondary">
                           {client.email}
                         </BodyText>
-                      </div>
+                      </Box>
                       {selectedClientId === client.id && (
-                        <div className="bg-primary h-2 w-2 rounded-full" />
+                        <Box className="bg-primary h-2 w-2 rounded-full" />
                       )}
-                    </div>
+                    </Box>
                   </Button>
                 ))}
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
         )}
 
         {/* Agent Info (for clients) */}
@@ -178,25 +179,25 @@ export default function ShareHomeModal({
               {t("modals.share_home.share_with_agent")}
             </legend>
             {isLoadingConversations ? (
-              <div className="flex items-center justify-center py-4">
+              <Box className="flex items-center justify-center py-4">
                 <KeyTurnLoader message={t("common.loading")} />
-              </div>
+              </Box>
             ) : clientConversation ? (
-              <div className="border-border bg-primary-muted rounded-lg border p-3">
-                <div className="flex items-center gap-2">
-                  <div className="bg-accent flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+              <Box className="border-border bg-primary-muted rounded-lg border p-3">
+                <Box className="flex items-center gap-2">
+                  <Box className="bg-accent flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
                     <Icon name="message-circle" className="h-4 w-4 text-black" />
-                  </div>
-                  <div>
+                  </Box>
+                  <Box>
                     <BodyText as="p" size="sm" className="text-text-primary font-medium">
                       {t("modals.share_home.your_agent")}
                     </BodyText>
                     <BodyText as="p" size="xs" className="text-text-secondary">
                       {clientConversation.client_name || t("house.agent")}
                     </BodyText>
-                  </div>
-                </div>
-              </div>
+                  </Box>
+                </Box>
+              </Box>
             ) : (
               <BodyText as="p" size="sm" className="text-text-secondary">
                 {t("modals.share_home.no_agent")}
@@ -206,7 +207,7 @@ export default function ShareHomeModal({
         )}
 
         {/* Optional Message */}
-        <div>
+        <Box>
           <Label htmlFor="share-message" className="mb-2 block">
             {t("modals.share_home.message_optional")}
           </Label>
@@ -218,10 +219,10 @@ export default function ShareHomeModal({
             className="focus:border-primary focus:ring-accent-muted border-border w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2"
             rows={3}
           />
-        </div>
+        </Box>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-2">
+        <Box className="flex gap-3 pt-2">
           <CancelButton onClick={onClose} className="flex-1" disabled={isSharing}>
             {t("common.cancel")}
           </CancelButton>
@@ -233,8 +234,8 @@ export default function ShareHomeModal({
           >
             {isSharing ? t("modals.share_home.sharing") : t("modals.share_home.share")}
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
     </BaseModal>
   );
 }

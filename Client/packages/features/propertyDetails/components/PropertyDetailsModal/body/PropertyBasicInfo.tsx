@@ -2,6 +2,7 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { Title } from "@/components/ui";
@@ -31,15 +32,15 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
   const propertyRentZestimate = "rentZestimate" in property ? property.rentZestimate : undefined;
 
   return (
-    <div className="p-6">
+    <Box className="p-6">
       {/* Main Property Info Section - Zillow Style Layout */}
-      <div className="mb-6 flex items-start justify-between">
+      <Box className="mb-6 flex items-start justify-between">
         {/* Left Side - Price and Address */}
-        <div className="flex-1">
-          <div className="text-text-primary mb-2 text-2xl font-bold sm:text-3xl md:text-4xl">
+        <Box className="flex-1">
+          <Box className="text-text-primary mb-2 text-2xl font-bold sm:text-3xl md:text-4xl">
             {formatPrice(propertyPrice)}
-          </div>
-          <div className="text-text-secondary text-sm sm:text-base md:text-lg">
+          </Box>
+          <Box className="text-text-secondary text-sm sm:text-base md:text-lg">
             {(() => {
               const addr = (property as unknown as { address?: unknown }).address;
               if (!addr) return t("property_details.address_not_available");
@@ -67,80 +68,80 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
                 return t("property_details.address_not_available");
               }
             })()}
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {/* Right Side - Property Specs */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <Box className="flex items-center gap-2 sm:gap-4">
           {propertyBedrooms && Number(propertyBedrooms) > 0 && (
-            <div className="text-center">
-              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
+            <Box className="text-center">
+              <Box className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {propertyBedrooms}
-              </div>
-              <div className="text-text-secondary text-xs sm:text-sm">
+              </Box>
+              <Box className="text-text-secondary text-xs sm:text-sm">
                 {t("property_details.beds")}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
           {propertyBathrooms && Number(propertyBathrooms) > 0 && (
-            <div className="text-center">
-              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
+            <Box className="text-center">
+              <Box className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {propertyBathrooms}
-              </div>
-              <div className="border-border text-text-secondary border-b border-dashed text-xs sm:text-sm">
+              </Box>
+              <Box className="border-border text-text-secondary border-b border-dashed text-xs sm:text-sm">
                 {t("property_details.baths")}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
           {propertySqft && Number(propertySqft) > 0 && (
-            <div className="text-center">
-              <div className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
+            <Box className="text-center">
+              <Box className="text-text-primary text-xl font-bold sm:text-2xl md:text-3xl">
                 {Math.round(Number(propertySqft)).toLocaleString()}
-              </div>
-              <div className="text-text-secondary text-xs sm:text-sm">
+              </Box>
+              <Box className="text-text-secondary text-xs sm:text-sm">
                 {t("property_details.sqft")}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       <Card className="p-4">
         <Title as="h3" size="lg" className="text-text-secondary mb-4 font-semibold">
           {t("property_details.heading")}
         </Title>
-        <div className="space-y-3">
+        <Box className="space-y-3">
           {propertyYearBuilt && Number(propertyYearBuilt) > 0 ? (
-            <div className="flex justify-between">
+            <Box className="flex justify-between">
               {t("property_details.year_built")}
               {String(propertyYearBuilt)}
-            </div>
+            </Box>
           ) : null}
           {propertyLotSize &&
           ((typeof propertyLotSize === "number" && propertyLotSize > 0) ||
             (typeof propertyLotSize === "string" &&
               propertyLotSize !== "0" &&
               propertyLotSize.trim() !== "")) ? (
-            <div className="flex justify-between">
+            <Box className="flex justify-between">
               {t("property_details.lot_size")}
               {String(propertyLotSize)}
-            </div>
+            </Box>
           ) : null}
           {(propertyHomeType && propertyHomeType !== "" && propertyHomeType !== "0") ||
           (propertyPropertyType && propertyPropertyType !== "" && propertyPropertyType !== "0") ? (
-            <div className="flex justify-between">
+            <Box className="flex justify-between">
               {t("property_details.property_type")}
               {formatPropertyType(
                 (propertyHomeType as string) ?? (propertyPropertyType as string) ?? ""
               )}
-            </div>
+            </Box>
           ) : null}
           {propertyPricePerSquareFoot &&
           ((typeof propertyPricePerSquareFoot === "number" && propertyPricePerSquareFoot > 0) ||
             (typeof propertyPricePerSquareFoot === "string" &&
               propertyPricePerSquareFoot !== "0" &&
               propertyPricePerSquareFoot.trim() !== "")) ? (
-            <div className="flex justify-between">
+            <Box className="flex justify-between">
               {t("property_details.price_per_sqft")}
               {(() => {
                 if (typeof propertyPricePerSquareFoot === "string")
@@ -149,11 +150,11 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
                   return String(propertyPricePerSquareFoot);
                 return "";
               })()}
-            </div>
+            </Box>
           ) : null}
           {((typeof propertyGarageSpaces === "number" && propertyGarageSpaces > 0) ||
             (typeof propertyParking === "number" && propertyParking > 0)) && (
-            <div className="flex justify-between">
+            <Box className="flex justify-between">
               {t("property_details.parking")}
               {typeof propertyGarageSpaces === "number" && propertyGarageSpaces > 0
                 ? t("property_details.car_garage", {
@@ -162,33 +163,33 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
                 : typeof propertyParking === "number" && propertyParking > 0
                   ? t("property_details.spaces", { count: propertyParking })
                   : t("house.na")}
-            </div>
+            </Box>
           )}
           {propertyDaysOnZillow &&
           ((typeof propertyDaysOnZillow === "number" && propertyDaysOnZillow > 0) ||
             (typeof propertyDaysOnZillow === "string" &&
               propertyDaysOnZillow !== "0" &&
               propertyDaysOnZillow.trim() !== "")) ? (
-            <div className="flex justify-between">
+            <Box className="flex justify-between">
               {t("property_details.days_on_market")}
               {String(propertyDaysOnZillow)} {t("property_details.days")}
-            </div>
+            </Box>
           ) : null}
           {typeof propertyZestimate === "number" && propertyZestimate > 0 && (
-            <div className="flex justify-between">
+            <Box className="flex justify-between">
               {t("property_details.estimate")}
               {propertyZestimate.toLocaleString()}
-            </div>
+            </Box>
           )}
           {typeof propertyRentZestimate === "number" && propertyRentZestimate > 0 && (
-            <div className="flex justify-between">
+            <Box className="flex justify-between">
               {t("property_details.rent_estimate")}
               {propertyRentZestimate.toLocaleString()}
               {t("property_details.per_month")}
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
       </Card>
-    </div>
+    </Box>
   );
 };

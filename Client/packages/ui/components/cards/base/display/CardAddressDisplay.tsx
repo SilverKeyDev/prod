@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { BodyText, Title } from "@/components/ui";
 
 export type CardAddressDisplayProps = {
@@ -79,7 +81,7 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
   };
 
   return (
-    <div
+    <Box
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={containerClasses}
@@ -131,7 +133,7 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
           {region}
         </BodyText>
       )}
-    </div>
+    </Box>
   );
 };
 

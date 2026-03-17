@@ -6,6 +6,7 @@ import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 export type InputProps = {
   variant?: "default" | "mobile" | "compact" | "search";
@@ -107,7 +108,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       right: "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
     };
     return (
-      <div className="w-full">
+      <Box className="w-full">
         {/* Label */}
         {label && (
           <Label htmlFor={props.id} className="text-text-primary mb-2 block text-sm font-medium">
@@ -121,9 +122,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
 
         {/* Input Container */}
-        <div className={containerClasses}>
+        <Box className={containerClasses}>
           {/* Left Icon */}
-          {leftIcon && <div className={iconClasses.left}>{leftIcon}</div>}
+          {leftIcon && <Box className={iconClasses.left}>{leftIcon}</Box>}
 
           {/* Input Field */}
           {customInput ? (
@@ -146,8 +147,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
 
           {/* Right Icons */}
-          <div className={iconClasses.right}>
-            <div className="flex items-center space-x-1">
+          <Box className={iconClasses.right}>
+            <Box className="flex items-center space-x-1">
               {/* Clear Button */}
               {clearable && value && !disabled && (
                 <IconButton
@@ -182,9 +183,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
               {/* Custom Right Icon */}
               {rightIcon && !clearable && !showPasswordToggle && rightIcon}
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
 
         {/* Helper Text */}
         {helperText && !error && (
@@ -199,7 +200,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {error}
           </BodyText>
         )}
-      </div>
+      </Box>
     );
   }
 );

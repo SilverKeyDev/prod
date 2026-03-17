@@ -1,6 +1,5 @@
+import type { ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
 import type { FreebusyTimeBlock } from "packages/schemas/scheduling";
-
-import type { ExtendedGoogleEvent } from "../../../types/calendar";
 
 export type CalendarViewProps = {
   currentDate: Date;

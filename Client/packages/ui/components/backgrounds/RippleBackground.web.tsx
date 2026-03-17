@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { color } from "packages/design-tokens";
+import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
 const CONNECT_DISTANCE = 95;
@@ -159,12 +160,12 @@ export default function RippleBackground() {
   }, []);
 
   return (
-    <div
+    <Box
       ref={containerRef}
       className="pointer-events-none absolute inset-0 z-0"
       style={{ background: color("neutral.50") }}
     >
       <canvas ref={canvasRef} />
-    </div>
+    </Box>
   );
 }

@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
+import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import BodyText from "@/components/ui/text/BodyText";
@@ -77,12 +78,12 @@ export default function EventRequestCard({
   const dateTimeStr = formatEventDateTime(payload.start, payload.end);
   if (status === "cancelled") {
     return (
-      <div className="border-border bg-background-surface w-full min-w-0 rounded-lg border p-4 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+      <Box className="border-border bg-background-surface w-full min-w-0 rounded-lg border p-4 shadow-sm">
+        <Box className="flex items-start gap-3">
+          <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
             <Icon name="calendar" className="text-text-secondary h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
+          </Box>
+          <Box className="min-w-0 flex-1">
             <Title size="sm" as="h4" className="mb-1">
               {payload.title}
             </Title>
@@ -94,23 +95,23 @@ export default function EventRequestCard({
                 {payload.description.trim()}
               </BodyText>
             )}
-            <div className="text-text-secondary flex items-center gap-2 text-sm font-medium">
+            <Box className="text-text-secondary flex items-center gap-2 text-sm font-medium">
               <Icon name="x" className="h-4 w-4 flex-shrink-0" />
               Event request cancelled
-            </div>
-          </div>
-        </div>
-      </div>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
     );
   }
   if (status === "accepted") {
     return (
-      <div className="border-border bg-background-surface w-full min-w-0 rounded-lg border p-4 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+      <Box className="border-border bg-background-surface w-full min-w-0 rounded-lg border p-4 shadow-sm">
+        <Box className="flex items-start gap-3">
+          <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
             <Icon name="calendar" className="text-text-secondary h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
+          </Box>
+          <Box className="min-w-0 flex-1">
             <Title size="sm" as="h4" className="mb-1">
               {payload.title}
             </Title>
@@ -122,25 +123,25 @@ export default function EventRequestCard({
                 {payload.description.trim()}
               </BodyText>
             )}
-            <div className="text-primary flex items-center gap-2 text-sm font-medium">
+            <Box className="text-primary flex items-center gap-2 text-sm font-medium">
               <Icon name="check" className="h-4 w-4 flex-shrink-0" />
               {t("agent.added_to_calendar")}
-            </div>
-          </div>
-        </div>
-      </div>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
     );
   }
   // status === "pending"
   const showAccept = !isFromCurrentUser;
   const showCancel = true;
   return (
-    <div className="border-border bg-background-surface w-full min-w-0 rounded-lg border p-4 shadow-sm">
-      <div className="flex items-start gap-3">
-        <div className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+    <Box className="border-border bg-background-surface w-full min-w-0 rounded-lg border p-4 shadow-sm">
+      <Box className="flex items-start gap-3">
+        <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
           <Icon name="calendar" className="text-text-secondary h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
+        </Box>
+        <Box className="min-w-0 flex-1">
           <Title size="sm" as="h4" className="mb-1">
             {payload.title}
           </Title>
@@ -152,7 +153,7 @@ export default function EventRequestCard({
               {payload.description.trim()}
             </BodyText>
           )}
-          <div className="flex flex-wrap items-center gap-2">
+          <Box className="flex flex-wrap items-center gap-2">
             {showAccept && (
               <Button
                 variant="primary"
@@ -177,9 +178,9 @@ export default function EventRequestCard({
                 {t("common.cancel")}
               </Button>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }

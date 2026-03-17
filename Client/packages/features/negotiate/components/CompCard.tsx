@@ -2,9 +2,10 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { formatAgentName, formatLotSize, formatPrice } from "packages/features/search";
-import { Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/primitives";
 
 import { BodyText, PropertyStat, Title } from "@/components/ui";
+
 export type CompData = {
   address: {
     city: string;
@@ -66,35 +67,35 @@ function CompCardImage({
   currency: string;
 }) {
   return (
-    <div className="relative h-28 overflow-hidden sm:h-32 md:h-36">
+    <Box className="relative h-28 overflow-hidden sm:h-32 md:h-36">
       <Image src={imageUrl} alt={address} className="h-full w-full object-cover" />
-      <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
-        <div className="text-primary border-border bg-background-base rounded-full border px-2 py-1 text-xs font-medium backdrop-blur-sm sm:text-sm">
+      <Box className="absolute left-2 right-2 top-2 flex items-center justify-between">
+        <Box className="text-primary border-border bg-background-base rounded-full border px-2 py-1 text-xs font-medium backdrop-blur-sm sm:text-sm">
           {formatPrice(price, currency)}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 function CompCardAddress({ comp, t }: { comp: CompData; t: (key: string) => string }) {
   return (
-    <div className="mb-3 text-left">
-      <div className="mb-1 flex items-center gap-1">
+    <Box className="mb-3 text-left">
+      <Box className="mb-1 flex items-center gap-1">
         <Icon name="map-pin" className="text-text-disabled h-3 w-3 flex-shrink-0" />
         <Title as="h3" size="sm" className="text-text-primary truncate font-medium">
           {comp.address.streetAddress}
         </Title>
-      </div>
+      </Box>
       <BodyText as="p" size="xs" className="text-text-secondary ml-4 truncate sm:text-sm">
         {`${comp.address.city}${t("house.address_separator")}${comp.address.state}${t("house.space")}${comp.address.zipcode}`}
       </BodyText>
-    </div>
+    </Box>
   );
 }
 function CompCardPropertyDetails({ comp, t }: { comp: CompData; t: (key: string) => string }) {
   return (
-    <div className="mb-3 text-left">
-      <div className="flex flex-wrap gap-x-4 gap-y-2">
+    <Box className="mb-3 text-left">
+      <Box className="flex flex-wrap gap-x-4 gap-y-2">
         {comp.bedrooms > 0 && (
           <PropertyStat icon={<Icon name="bed" />} size="sm">
             {comp.bedrooms}
@@ -120,8 +121,8 @@ function CompCardPropertyDetails({ comp, t }: { comp: CompData; t: (key: string)
             {`${" ".repeat(8)}${t("house.sqft")}`}
           </PropertyStat>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 function CompCardLotSize({
@@ -132,7 +133,7 @@ function CompCardLotSize({
   t: (key: string) => string;
 }) {
   return (
-    <div className="mb-3 text-left">
+    <Box className="mb-3 text-left">
       {lotSizeDisplay ? (
         <PropertyStat icon={<Icon name="map-pin" />} size="sm">
           {`${t("house.lot")}: ${lotSizeDisplay}`}
@@ -142,13 +143,13 @@ function CompCardLotSize({
           {`${t("house.lot")}: ${" ".repeat(6)}`}
         </PropertyStat>
       )}
-    </div>
+    </Box>
   );
 }
 function CompCardAgent({ comp, t }: { comp: CompData; t: (key: string) => string }) {
   return (
-    <div className="mt-auto space-y-2 text-left">
-      <div className="flex items-center gap-1">
+    <Box className="mt-auto space-y-2 text-left">
+      <Box className="flex items-center gap-1">
         <Icon name="user" className="text-text-disabled h-2.5 w-2.5 flex-shrink-0 sm:h-3 sm:w-3" />
         <BodyText as="span" className="text-text-secondary text-xs sm:text-sm">
           {`${t("house.agent")}: ${
@@ -157,8 +158,8 @@ function CompCardAgent({ comp, t }: { comp: CompData; t: (key: string) => string
               : t("house.na")
           }`}
         </BodyText>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 export default function CompCard({ comp, className = "" }: CompCardProps) {
@@ -166,7 +167,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
   const imageUrl = comp.miniCardPhotos?.[0]?.url ?? "/defaut-home.jpg";
   const lotSizeDisplay = getCompLotSizeDisplay(comp);
   return (
-    <div
+    <Box
       className={`border-border bg-background-surface flex flex-col overflow-hidden rounded-lg border shadow-sm ${className}`}
     >
       <CompCardImage
@@ -175,12 +176,12 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
         price={comp.price}
         currency={comp.currency}
       />
-      <div className="flex flex-1 flex-col p-3">
+      <Box className="flex flex-1 flex-col p-3">
         <CompCardAddress comp={comp} t={t} />
         <CompCardPropertyDetails comp={comp} t={t} />
         <CompCardLotSize lotSizeDisplay={lotSizeDisplay} t={t} />
         <CompCardAgent comp={comp} t={t} />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

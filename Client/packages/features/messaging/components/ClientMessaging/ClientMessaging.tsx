@@ -7,6 +7,7 @@ import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useMessaging } from "packages/hooks/data/chat/useMessaging";
 import { useClientMessagingModals, useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers } from "packages/hooks/ui";
+import { Box } from "packages/ui/components/primitives";
 
 import { Region } from "@/components/ui";
 import UnifiedMessageInput from "@/features/messaging/components/layout/UnifiedMessageInput";
@@ -135,8 +136,8 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
   ]);
 
   return (
-    <div className="flex h-full w-full overflow-hidden">
-      <div className="relative flex h-full w-full overflow-hidden">
+    <Box className="flex h-full w-full overflow-hidden">
+      <Box className="relative flex h-full w-full overflow-hidden">
         <UnifiedMessagingSidebar
           mode="client"
           isSidebarExpanded={isSidebarExpanded}
@@ -150,9 +151,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
           localMessages={localMessages}
         />
         <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
-          <div className="flex min-h-0 flex-1 flex-col">
+          <Box className="flex min-h-0 flex-1 flex-col">
             {!showInbox && (
-              <div className="hidden flex-shrink-0 md:block">
+              <Box className="hidden flex-shrink-0 md:block">
                 <UnifiedMessagingHeader
                   mode={getHeaderMode()}
                   isSidebarExpanded={isSidebarExpanded}
@@ -160,9 +161,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
                   onSearchClick={() => setShowSearchModal(true)}
                   agentName={activeConversation?.agent_name}
                 />
-              </div>
+              </Box>
             )}
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <Box className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <Region
                 label="Message list"
                 className="scrollbar-hide max-md:pb-mobile-nav min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
@@ -184,7 +185,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
                   acceptingEventRequestId={acceptingEventRequestId}
                 />
               </Region>
-            </div>
+            </Box>
             <UnifiedMessageInput
               mode="client"
               message={message}
@@ -195,9 +196,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
               onAttachmentDocument={() => setShowSelectDocumentModal(true)}
               onAttachmentCalendar={() => setShowCalendarEventModal(true)}
             />
-          </div>
+          </Box>
         </section>
-      </div>
+      </Box>
       <MessagingModals
         mode="client"
         showSearchModal={showSearchModal}
@@ -212,6 +213,6 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
         onSelectDocument={handlers.handleSelectDocument}
         onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
       />
-    </div>
+    </Box>
   );
 }

@@ -24,7 +24,7 @@ import { usePreActionSnapshot } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useSearchContextStore, useSearchViewStore } from "packages/store";
 import { MotionView } from "packages/ui/components/adapters/motion";
-
+import { Box } from "packages/ui/components/primitives";
 type SearchFeatureProps = {
   setMobileHeaderActions: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
   onSearchProperties?: () => Promise<void>;
@@ -259,10 +259,10 @@ export function SearchFeature({
   }, [mobileHeaderNode, setMobileHeaderActions]);
 
   return (
-    <div className="relative h-full">
+    <Box className="relative h-full">
       {/* Reels mode: Search icon to go back to map */}
       {searchViewMode === "reels" && (
-        <div className="absolute right-4 top-4 z-30 flex items-center md:flex">
+        <Box className="absolute right-4 top-4 z-30 flex items-center md:flex">
           <IconButton
             variant="ghost"
             size="md"
@@ -271,12 +271,12 @@ export function SearchFeature({
             label="Back to search"
             className={`bg-black/40 text-white backdrop-blur-sm ${FEED_ACTION_INTERACTION_CLASS}`}
           />
-        </div>
+        </Box>
       )}
 
       {/* Both views stay mounted so the map stays preloaded; visibility toggles for instant switch */}
-      <div className="relative h-full">
-        <div
+      <Box className="relative h-full">
+        <Box
           className={`absolute inset-0 h-full ${searchViewMode === "map" ? "z-10" : "pointer-events-none invisible z-0"}`}
           aria-hidden={searchViewMode !== "map"}
         >
@@ -320,8 +320,8 @@ export function SearchFeature({
             isLoadingIsochrone={isLoadingIsochrone}
             isochroneData={isochroneData}
           />
-        </div>
-        <div
+        </Box>
+        <Box
           className={`absolute inset-0 h-full ${searchViewMode === "reels" ? "z-10" : "pointer-events-none invisible z-0"}`}
           aria-hidden={searchViewMode !== "reels"}
         >
@@ -334,14 +334,14 @@ export function SearchFeature({
           >
             <DesktopReelsView virtuosoRef={feedScrollRef} />
           </MotionView>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       <SearchPageModals
         selectedProperty={selectedProperty}
         onClosePropertyDetails={clearSelectedProperty}
         isLoadingPropertyDetails={isLoadingPropertyDetails}
       />
-    </div>
+    </Box>
   );
 }

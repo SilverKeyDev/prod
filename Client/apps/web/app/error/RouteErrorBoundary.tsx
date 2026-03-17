@@ -8,6 +8,7 @@ import { Icon } from "@ui/icons";
 import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router-dom";
 
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
+import { Box } from "packages/ui/components/primitives";
 import { getUserFriendlyMessage, normalizeError } from "packages/utils/errorHandling";
 
 import Card from "@/components/layout/Card.web";
@@ -27,14 +28,14 @@ function RouteErrorResponseView({
   onGoBack,
 }: RouteErrorResponseViewProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background-base p-4">
+    <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
       <Card className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
-        <div className="text-center">
-          <div className="mb-4 flex justify-center">
-            <div className="rounded-full border-2 border-destructive bg-background-surface p-3">
+        <Box className="text-center">
+          <Box className="mb-4 flex justify-center">
+            <Box className="rounded-full border-2 border-destructive bg-background-surface p-3">
               <Icon name="alert-triangle" className="h-8 w-8 text-destructive" />
-            </div>
-          </div>
+            </Box>
+          </Box>
           <Title size="xl" as="h1" className="mb-2 text-text-primary">
             {status}
           </Title>
@@ -44,7 +45,7 @@ function RouteErrorResponseView({
           <BodyText size="sm" muted className="mb-6">
             {message}
           </BodyText>
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <Box className="flex flex-col gap-3 sm:flex-row">
             <Button
               variant="primary"
               onClick={onGoHome}
@@ -61,10 +62,10 @@ function RouteErrorResponseView({
             >
               Go Back
             </Button>
-          </div>
-        </div>
+          </Box>
+        </Box>
       </Card>
-    </div>
+    </Box>
   );
 }
 type GenericRouteErrorViewProps = {
@@ -80,21 +81,21 @@ function GenericRouteErrorView({
   onGoBack,
 }: GenericRouteErrorViewProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background-base p-4">
+    <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
       <Card className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
-        <div className="text-center">
-          <div className="mb-4 flex justify-center">
-            <div className="rounded-full border-2 border-destructive bg-background-surface p-3">
+        <Box className="text-center">
+          <Box className="mb-4 flex justify-center">
+            <Box className="rounded-full border-2 border-destructive bg-background-surface p-3">
               <Icon name="alert-triangle" className="h-8 w-8 text-destructive" />
-            </div>
-          </div>
+            </Box>
+          </Box>
           <Title size="lg" as="h1" className="mb-2 text-text-primary">
             Route Error
           </Title>
           <BodyText size="sm" muted className="mb-6">
             {userMessage}
           </BodyText>
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+          <Box className="mb-4 flex flex-col gap-3 sm:flex-row">
             <Button
               variant="primary"
               onClick={onRetry}
@@ -111,7 +112,7 @@ function GenericRouteErrorView({
             >
               Go Home
             </Button>
-          </div>
+          </Box>
           <Button
             variant="ghost"
             size="sm"
@@ -120,9 +121,9 @@ function GenericRouteErrorView({
           >
             Go Back
           </Button>
-        </div>
+        </Box>
       </Card>
-    </div>
+    </Box>
   );
 }
 export function RouteErrorBoundary() {

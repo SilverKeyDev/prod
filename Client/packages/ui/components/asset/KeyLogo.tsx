@@ -47,12 +47,10 @@ const KeyLogo: React.FC<KeyLogoProps> = ({ size = "md", className = "", logoClas
   };
   const currentSize = sizeClasses[size];
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <Box className={`flex flex-row items-center ${currentSize.container} ${className}`}>
       <AppImage
         uri={LOGO_URI}
         alt="SilverKey Logo"
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`${currentSize.logo} object-contain ${logoClassName}`}
       />
     </Box>

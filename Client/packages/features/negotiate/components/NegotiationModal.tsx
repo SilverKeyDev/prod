@@ -4,6 +4,8 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { useNegotiationStore } from "packages/store";
+// Types for negotiation data
+import { Box } from "packages/ui/components/primitives";
 
 import BaseModal from "@/components/modals/BaseModal";
 import { Title } from "@/components/ui";
@@ -15,7 +17,6 @@ import { LoadingSection } from "@/features/negotiate/components/LoadingSection";
 import { OpeningOfferSection } from "@/features/negotiate/components/OpeningOfferSection";
 import { StrategyDisplaySection } from "@/features/negotiate/components/StrategyDisplaySection";
 import { useNegotiation } from "@/features/negotiate/hooks/data/useNegotiation";
-// Types for negotiation data
 type FavoriteHome = {
   user_id: string;
   address: string;
@@ -123,18 +124,18 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
       size="full"
       showCloseButton={true}
       headerContent={
-        <div className="flex min-w-0 items-center gap-2">
+        <Box className="flex min-w-0 items-center gap-2">
           <Icon name="handshake" className="text-text-secondary h-5 w-5 flex-shrink-0" />
           <Title as="h3" size="sm" className="text-text-primary truncate font-sans font-medium">
             {t("negotiation.title")}
           </Title>
-        </div>
+        </Box>
       }
       className="min-h-[min(65vh,65dvh)] max-w-4xl"
     >
-      <div>
+      <Box>
         {/* Main Content */}
-        <div>
+        <Box>
           {/* Home selector */}
           <HomeSelectorSection
             selectedHome={
@@ -166,8 +167,8 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
           {hasStrategyData && !isLoading && (
             <StrategyDisplaySection strategyData={strategyData} onShareJson={handleShareJson} />
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </BaseModal>
   );
 }

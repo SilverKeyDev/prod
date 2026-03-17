@@ -1,7 +1,8 @@
 import React from "react";
 
-import { BodyText, Button } from "@/components/ui";
+import { Box } from "packages/ui/components/primitives";
 
+import { BodyText, Button } from "@/components/ui";
 export type OptionTagOption = { value: string; label: string };
 
 type OptionTagInputProps = {
@@ -34,10 +35,10 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
   const unselectedOptions = options.filter((opt) => !selectedValues.includes(opt.value));
 
   return (
-    <div className={className}>
+    <Box className={className}>
       {/* Selected tags: brand accent, elevation, click-to-remove */}
       {selectedValues.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
+        <Box className="mb-3 flex flex-wrap gap-2">
           {selectedValues.map((v) => {
             const option = options.find((o) => o.value === v);
             const label = option?.label ?? v;
@@ -65,12 +66,12 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
               </BodyText>
             );
           })}
-        </div>
+        </Box>
       )}
 
       {/* Unselected options as addable pills (edit mode only) */}
       {isEditMode && unselectedOptions.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <Box className="flex flex-wrap gap-2">
           {unselectedOptions.map((opt) => (
             <Button
               variant="outline"
@@ -84,16 +85,16 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
               {opt.label}
             </Button>
           ))}
-        </div>
+        </Box>
       )}
 
       {/* Read-only: show nothing extra when no selection */}
       {!isEditMode && selectedValues.length === 0 && (
-        <div className="mobile-input bg-background-base text-text-secondary text-sm">
+        <Box className="mobile-input bg-background-base text-text-secondary text-sm">
           Not specified
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

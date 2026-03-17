@@ -1,10 +1,10 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
-
 const BED_TICKS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 const BATH_TICKS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -55,9 +55,9 @@ export default function BedBathFilter({
   };
 
   return (
-    <div className={`${compact ? "space-y-2" : "space-y-4"} ${className}`}>
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${compact ? "gap-2" : "gap-4"}`}>
-        <div className="touch-friendly">
+    <Box className={`${compact ? "space-y-2" : "space-y-4"} ${className}`}>
+      <Box className={`grid grid-cols-1 sm:grid-cols-2 ${compact ? "gap-2" : "gap-4"}`}>
+        <Box className="touch-friendly">
           <BodyText
             as="div"
             size="xs"
@@ -75,8 +75,8 @@ export default function BedBathFilter({
             disabled={disabled}
             minGap={0}
           />
-        </div>
-        <div className="touch-friendly">
+        </Box>
+        <Box className="touch-friendly">
           <BodyText as="div" size="xs" className="text-text-secondary mb-1">
             {t("search.baths")}
           </BodyText>
@@ -90,8 +90,8 @@ export default function BedBathFilter({
             disabled={disabled}
             minGap={0}
           />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

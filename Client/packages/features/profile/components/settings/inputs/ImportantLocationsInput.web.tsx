@@ -6,11 +6,13 @@ import { Icon } from "@ui/icons";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { GoogleMapsWindow } from "packages/types/google-maps";
 import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/form/fileUploadStyles";
+import { Box } from "packages/ui/components/primitives";
 import { asError } from "packages/utils";
 import { hasProperty, isFunction, isObject } from "packages/utils";
 import { getWindow } from "packages/utils/platform";
 
 import { BodyText, Button, CancelButton, IconButton } from "@/components/ui";
+
 type ImportantLocation = {
   address: string;
   commute_tolerance?: number;
@@ -228,18 +230,18 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
   const editingLocation = editingIndex !== null ? locations[editingIndex] : null;
 
   return (
-    <div className="space-y-4">
+    <Box className="space-y-4">
       {/* Existing Locations - always visible when present */}
       {locations.length > 0 && (
-        <div className="space-y-3">
+        <Box className="space-y-3">
           {locations.map((location, index) => (
-            <div
+            <Box
               key={index}
               className={`border-border bg-accent-muted flex items-center justify-between rounded-lg border p-3 ${
                 editingIndex === index ? "ring-brand-accent ring-2 ring-offset-2" : ""
               }`}
             >
-              <div className="min-w-0 flex-1 space-y-1">
+              <Box className="min-w-0 flex-1 space-y-1">
                 <BodyText as="span" size="sm" className="text-text-primary block break-words">
                   {location.address}
                 </BodyText>
@@ -248,9 +250,9 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                     {location.commute_tolerance} min max
                   </BodyText>
                 )}
-              </div>
+              </Box>
               {isEditMode && (
-                <div className="flex flex-shrink-0 items-center gap-1">
+                <Box className="flex flex-shrink-0 items-center gap-1">
                   <IconButton
                     variant="ghost"
                     size="sm"
@@ -269,11 +271,11 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                     label="Remove location"
                     className="text-destructive hover:text-destructive-hover"
                   />
-                </div>
+                </Box>
               )}
-            </div>
+            </Box>
           ))}
-        </div>
+        </Box>
       )}
 
       {/* Add / Edit Form */}
@@ -291,7 +293,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
               {addButtonLabel}
             </Button>
           ) : (
-            <div className={`space-y-3 ${LOCATION_INPUT_CONTAINER}`}>
+            <Box className={`space-y-3 ${LOCATION_INPUT_CONTAINER}`}>
               {editingIndex !== null && editingLocation && (
                 <BodyText as="p" size="sm" className="text-text-secondary font-medium">
                   Editing: {editingLocation.address}
@@ -375,7 +377,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 helperText="Max drive time to this location (minutes). Optional."
               />
 
-              <div className="flex space-x-3">
+              <Box className="flex space-x-3">
                 <Button
                   variant="primary"
                   size="md"
@@ -388,12 +390,12 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 <CancelButton onClick={handleCancel} size="md">
                   Cancel
                 </CancelButton>
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
         </>
       )}
-    </div>
+    </Box>
   );
 };
 export default ImportantLocationsInput;

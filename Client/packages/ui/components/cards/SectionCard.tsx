@@ -2,6 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 type SectionCardProps = {
   children: React.ReactNode;
@@ -22,18 +23,18 @@ export default function SectionCard({
   const resolvedIcon =
     icon ?? (iconName ? <Icon name={iconName} className="mobile-icon-sm text-brown" /> : null);
   return (
-    <div
+    <Box
       className={`border-border-card-subtle bg-background-surface mb-6 rounded-xl border p-6 shadow-sm ${className}`}
     >
       {title && (
-        <div
+        <Box
           className={`text-text-primary mb-4 flex items-center gap-3 text-lg font-semibold ${titleClassName}`}
         >
           {resolvedIcon}
           {title}
-        </div>
+        </Box>
       )}
       {children}
-    </div>
+    </Box>
   );
 }

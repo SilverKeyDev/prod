@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import type { Calendar, ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
+import type { GoogleEvent } from "packages/features/calendar/types/googleEvent";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useGoogleMapsStore, useUIStore } from "packages/store";
@@ -21,9 +23,6 @@ import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, CloseButton, DateInput, Input, TimeInput } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents";
-
-import type { Calendar, ExtendedGoogleEvent } from "../../types/calendar";
-import type { GoogleEvent } from "../../types/googleEvent";
 
 type CreateEventModalProps = {
   isOpen: boolean;

@@ -5,6 +5,7 @@ import { useHlsVideo } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui";
 import { useFeedStore } from "packages/store";
 import { useEmblaCarousel } from "packages/ui/components/adapters/carousel";
+import { Box } from "packages/ui/components/primitives";
 
 import { Button, Image, Region, Video } from "@/components/ui";
 import {
@@ -241,19 +242,19 @@ export const MediaCarousel = forwardRef<MediaCarouselRef, MediaCarouselProps>(
 
     if (media.length === 0) {
       return (
-        <div className={className} style={{ minHeight: spacing(0), flex: 1 }}>
+        <Box className={className} style={{ minHeight: spacing(0), flex: 1 }}>
           <Image
             src={DEFAULT_PLACEHOLDER_IMAGE}
             alt=""
             className="h-full w-full object-cover"
             loading="eager"
           />
-        </div>
+        </Box>
       );
     }
 
     return (
-      <div className={className} style={{ minHeight: spacing(0), flex: 1, position: "relative" }}>
+      <Box className={className} style={{ minHeight: spacing(0), flex: 1, position: "relative" }}>
         <Region
           ref={setViewportRef}
           role="button"
@@ -276,9 +277,9 @@ export const MediaCarousel = forwardRef<MediaCarouselRef, MediaCarouselProps>(
           onClick={handleTapViewportClick}
           onKeyDown={handleTapViewportKeyDown}
         >
-          <div className="embla__container flex h-full">
+          <Box className="embla__container flex h-full">
             {media.map((item, i) => (
-              <div
+              <Box
                 key={item.id ?? i}
                 className="embla__slide relative h-full min-w-0 flex-[0_0_100%]"
               >
@@ -309,9 +310,9 @@ export const MediaCarousel = forwardRef<MediaCarouselRef, MediaCarouselProps>(
                     loading={i === selectedIndex || i === selectedIndex + 1 ? "eager" : "lazy"}
                   />
                 )}
-              </div>
+              </Box>
             ))}
-          </div>
+          </Box>
         </Region>
 
         {media.length > 1 && !hideSlideIndicator && (
@@ -338,7 +339,7 @@ export const MediaCarousel = forwardRef<MediaCarouselRef, MediaCarouselProps>(
             ))}
           </Region>
         )}
-      </div>
+      </Box>
     );
   }
 );

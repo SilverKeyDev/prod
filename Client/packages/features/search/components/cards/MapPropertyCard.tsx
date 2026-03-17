@@ -2,9 +2,9 @@ import React, { useEffect, useMemo } from "react";
 
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { Box } from "packages/ui/components/primitives";
 
 import MapHomeCard from "./MapHomeCard";
-
 export type MapPropertyCardProps = {
   property: {
     id: string;
@@ -114,7 +114,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   );
 
   return (
-    <div className="relative">
+    <Box className="relative">
       <MapHomeCard
         home={homeData}
         onUnlock={onUnlock}
@@ -125,7 +125,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
         saveHome={saveHome}
         removeSavedHome={removeSavedHome}
       />
-    </div>
+    </Box>
   );
 };
 

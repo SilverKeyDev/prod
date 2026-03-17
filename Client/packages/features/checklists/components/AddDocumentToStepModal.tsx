@@ -8,6 +8,8 @@ import {
   getTaskChecklist,
   type TaskChecklistItem,
 } from "packages/features/checklists/api/checklists";
+import type { ChecklistTab } from "packages/features/checklists/types/checklists";
+import { CHECKLIST_TITLES } from "packages/features/checklists/types/checklists";
 import { useDocuments } from "packages/features/documents";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
@@ -15,9 +17,6 @@ import Button from "packages/ui/components/button/Button";
 import { BaseModal } from "packages/ui/components/modals";
 import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
 import { Platform } from "packages/utils/platform";
-
-import type { ChecklistTab } from "../types/checklists";
-import { CHECKLIST_TITLES } from "../types/checklists";
 
 const PROCESS_TABS: ChecklistTab[] = [
   "search",
@@ -62,6 +61,7 @@ export default function AddDocumentToStepModal({
   const [selectedStep, setSelectedStep] = useState<TaskChecklistItem | null>(null);
   const [steps, setSteps] = useState<TaskChecklistItem[]>([]);
   const [stepsLoading, setStepsLoading] = useState(false);
+
   const [selectedFile, setSelectedFile] = useState<File | PickerAsset | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -159,6 +159,8 @@ export default function AddDocumentToStepModal({
       const itemId = selectedStep.id;
 
       let fileToUpload: File;
+      // Platform.OS and File required for platform-specific file upload; not feature gating
+      // eslint-disable-next-line silverkey/no-platform-feature-check, no-restricted-globals
       if (Platform.OS === "web" && selectedFile instanceof File) {
         fileToUpload = selectedFile;
       } else {
@@ -215,6 +217,7 @@ export default function AddDocumentToStepModal({
   const canSubmit = !!selectedProcess && !!selectedStep && !!selectedFile && !isSubmitting;
 
   const fileName =
+    // eslint-disable-next-line no-restricted-globals -- File from web input; platform-specific
     selectedFile instanceof File
       ? selectedFile.name
       : ((selectedFile as PickerAsset | null)?.name ?? null);
@@ -308,8 +311,10 @@ export default function AddDocumentToStepModal({
           <Text className="text-text-primary mb-2 text-sm font-semibold">
             {t("checklists.upload_document.document_file", { defaultValue: "Document file" })}
           </Text>
+          {/* eslint-disable-next-line silverkey/no-platform-feature-check -- Platform-specific file picker UI, not feature gating */}
           {Platform.OS === "web" ? (
             <Box>
+              {/* eslint-disable-next-line silverkey/no-primitive-components -- file input has no UI replacement */}
               <input
                 ref={fileInputRef}
                 type="file"

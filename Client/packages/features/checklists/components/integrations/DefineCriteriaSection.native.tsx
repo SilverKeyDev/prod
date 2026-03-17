@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { HousingStep } from "packages/features/homeauth/components/onboarding-mobile/HousingStep";
+import { HousingStep } from "packages/features/homeauth/components/onboarding-mobile"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist DefineCriteria reuses HousingStep from onboarding; shared composition. */
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import Button from "packages/ui/components/button/Button";

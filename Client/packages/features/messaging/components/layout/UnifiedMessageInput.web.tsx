@@ -1,6 +1,7 @@
 import { Icon } from "@ui/icons";
 
 import Button from "packages/ui/components/button/Button";
+import { Box } from "packages/ui/components/primitives";
 
 import { AutoExpandingTextarea } from "@/components/ui";
 import AttachmentMenu from "@/features/agent/components/AttachmentMenu";
@@ -68,8 +69,8 @@ export default function UnifiedMessageInputWeb({
   );
 
   return (
-    <div className="border-border bg-background-base flex-shrink-0 border-t p-3 sm:p-4">
-      <div className="flex items-end gap-2 sm:gap-3">
+    <Box className="border-border bg-background-base flex-shrink-0 border-t p-3 sm:p-4">
+      <Box className="flex items-end gap-2 sm:gap-3">
         {/* Attachment button */}
         {hasAttachments && (
           <AttachmentMenu
@@ -82,7 +83,7 @@ export default function UnifiedMessageInputWeb({
         )}
 
         {/* Text input container */}
-        <div className="flex flex-1">
+        <Box className="flex flex-1">
           <AutoExpandingTextarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -93,7 +94,7 @@ export default function UnifiedMessageInputWeb({
             maxHeight={120}
             className="focus:border-primary focus:ring-accent-muted border-border bg-background-surface rounded-lg text-sm transition-colors duration-150 focus:outline-none focus:ring-2 sm:text-base"
           />
-        </div>
+        </Box>
 
         {/* Send button */}
         <Button
@@ -104,7 +105,7 @@ export default function UnifiedMessageInputWeb({
         >
           <Icon name="send" className="h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

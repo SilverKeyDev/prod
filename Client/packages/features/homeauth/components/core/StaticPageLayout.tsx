@@ -45,7 +45,6 @@ export function Paragraph({
   className?: string;
 }) {
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <BodyText as="p" className={`flex flex-col gap-2 ${className}`}>
       {children}
     </BodyText>

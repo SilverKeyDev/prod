@@ -64,7 +64,6 @@ export default function AgreementCard({
     <Box
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
       className={`border-border bg-background-surface hover:border-border active:border-border rounded-lg border active:opacity-90 ${onClick ? "cursor-pointer" : ""} ${className}`}
       onClick={handleCardClick}
       onKeyDown={
@@ -78,7 +77,6 @@ export default function AgreementCard({
           : undefined
       }
     >
-      {/* eslint-disable-next-line silverkey/no-dynamic-class-names -- conditional compact; refactor complex */}
       <Box className={`${compact ? "p-3" : "p-4"}`}>
         {/* Header */}
         <Box className="mb-2 flex flex-row items-start justify-between gap-3">

@@ -8,7 +8,7 @@ import { Link, ROUTES, useNavigation } from "packages/navigation";
 import type { AutocompleteSuggestion } from "packages/schemas/google-maps";
 import { LOGO } from "packages/ui/components/asset";
 import { RippleBackground } from "packages/ui/components/backgrounds";
-import { Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/primitives";
 import { asError } from "packages/utils/error";
 import { getWindow } from "packages/utils/platform";
 
@@ -114,11 +114,11 @@ export default function HomePage() {
     return () => clearTimeout(debounce);
   }, [address, scriptsReady, hasSelected]);
   return (
-    <div className="hide-scrollbar bg-background-surface flex min-h-screen flex-col">
+    <Box className="hide-scrollbar bg-background-surface flex min-h-screen flex-col">
       {/* Header */}
       <header className="px-responsive-sm border-border bg-background-surface fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between border-b py-2 shadow-lg sm:py-3">
         <Image src={LOGO} alt="SilverKey Logo" className="h-8 w-auto" />
-        <div className="text-responsive-sm flex gap-1.5 font-medium sm:gap-2">
+        <Box className="text-responsive-sm flex gap-1.5 font-medium sm:gap-2">
           <Link
             to={ROUTES.LOGIN}
             className="rounded-md px-3 py-2 hover:underline sm:px-4 sm:py-2.5 md:px-5"
@@ -131,29 +131,29 @@ export default function HomePage() {
           >
             Sign Up
           </Link>
-        </div>
+        </Box>
       </header>
 
       {/* Spacer for fixed header */}
-      <div className="h-16 flex-shrink-0 sm:h-20"></div>
+      <Box className="h-16 flex-shrink-0 sm:h-20"></Box>
 
       {/* Hero Section */}
       <main className="px-responsive-sm py-responsive-lg relative flex flex-1 flex-col items-center justify-center">
-        <div className="absolute inset-0 z-0">
+        <Box className="absolute inset-0 z-0">
           <RippleBackground />
-        </div>
+        </Box>
 
         {/* Centered Content Wrapper */}
-        <div className="relative z-10 mx-auto flex w-full max-w-[85%] flex-col items-center">
-          <div className="mx-auto w-full max-w-3xl text-center">
-            <div className="bg-background-surface rounded-lg p-6 shadow-lg sm:p-8">
+        <Box className="relative z-10 mx-auto flex w-full max-w-[85%] flex-col items-center">
+          <Box className="mx-auto w-full max-w-3xl text-center">
+            <Box className="bg-background-surface rounded-lg p-6 shadow-lg sm:p-8">
               <Title size="xl" as="h1" className="mb-4">
                 Discover a New Way to Buy
               </Title>
               <BodyText size="lg" className="mb-6">
                 Onboard, Search, Decide, Negotiate, Close
               </BodyText>
-              <div className="mt-4 sm:mt-8">
+              <Box className="mt-4 sm:mt-8">
                 <Button
                   onClick={() => setShowAuthModal(true)}
                   variant="primary"
@@ -162,12 +162,12 @@ export default function HomePage() {
                 >
                   Start Now
                 </Button>
-              </div>
-            </div>
-          </div>
+              </Box>
+            </Box>
+          </Box>
 
           {/* Feature Cards */}
-          <div className="z-12 gap-responsive-sm relative mx-auto mt-20 grid w-full max-w-6xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <Box className="z-12 gap-responsive-sm relative mx-auto mt-20 grid w-full max-w-6xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 title: "Find Properties",
@@ -193,23 +193,23 @@ export default function HomePage() {
                 icon: <Icon name="folder-lock" className="mobile-icon-lg text-text-secondary" />,
               },
             ].map((f, i) => (
-              <div
+              <Box
                 key={i}
                 className="touch-friendly bg-background-surface flex cursor-pointer flex-col items-center rounded-xl p-4 text-center shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-5"
               >
-                <div className="mb-2">{f.icon}</div>
+                <Box className="mb-2">{f.icon}</Box>
                 <Title size="md" as="h3" className="mb-3 w-[87%]">
                   {f.title}
                 </Title>
                 <BodyText size="sm" muted className="w-[87%]">
                   {f.description}
                 </BodyText>
-              </div>
+              </Box>
             ))}
-          </div>
+          </Box>
 
           {/* Footer Links */}
-          <div className="gap-responsive-sm text-responsive-xs relative mt-10 flex flex-wrap items-center justify-center text-center">
+          <Box className="gap-responsive-sm text-responsive-xs relative mt-10 flex flex-wrap items-center justify-center text-center">
             <Link
               to={ROUTES.PRIVACY}
               className="px-responsive-xl py-responsive-xs touch-friendly bg-background-surface text-text-secondary hover:text-text-primary flex items-center justify-center rounded-lg shadow transition-all duration-200 hover:shadow-md"
@@ -228,25 +228,25 @@ export default function HomePage() {
             >
               Contact Us
             </Link>
-          </div>
-        </div>
+          </Box>
+        </Box>
       </main>
 
       {/* Auth Modal */}
       {showAuthModal && (
-        <div className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="space-responsive-lg bg-background-surface w-full max-w-md rounded-2xl shadow">
-            <div className="mb-4 flex justify-between">
-              <div className="gap-responsive-xs flex items-center">
+        <Box className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Box className="space-responsive-lg bg-background-surface w-full max-w-md rounded-2xl shadow">
+            <Box className="mb-4 flex justify-between">
+              <Box className="gap-responsive-xs flex items-center">
                 <Icon name="lock" className="mobile-icon-sm text-text-secondary" />
                 Account Required
-              </div>
+              </Box>
               <CloseButton onClick={() => setShowAuthModal(false)} />
-            </div>
+            </Box>
             <BodyText size="sm" muted className="mb-4 text-center">
               Please log in or create an account to generate a report.
             </BodyText>
-            <div className="flex gap-2 sm:gap-3">
+            <Box className="flex gap-2 sm:gap-3">
               <Button
                 onClick={() => {
                   setShowAuthModal(false);
@@ -269,10 +269,10 @@ export default function HomePage() {
               >
                 Sign Up
               </Button>
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

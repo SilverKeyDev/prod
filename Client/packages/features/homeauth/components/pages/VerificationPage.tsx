@@ -7,6 +7,7 @@ import { useCountdown } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import Card from "packages/ui/components/cards/Card";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 import { getSessionStorage } from "packages/utils/storage";
 import { applyCodeChange, applyPaste, getBackspaceFocusIndex } from "packages/utils/verification";
@@ -195,7 +196,7 @@ export default function VerificationPage() {
     }
   };
   const renderCodeInputs = () => (
-    <div className="flex justify-center gap-3">
+    <Box className="flex justify-center gap-3">
       {code.map((digit, index) => (
         <Input
           key={index}
@@ -214,11 +215,11 @@ export default function VerificationPage() {
           disabled={loading}
         />
       ))}
-    </div>
+    </Box>
   );
   return (
-    <div className="px-responsive-sm py-responsive-md bg-background-base flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md">
+    <Box className="px-responsive-sm py-responsive-md bg-background-base flex min-h-screen items-center justify-center">
+      <Box className="w-full max-w-md">
         <Card className="space-y-responsive-md">
           {/* Back Button - Hidden when coming from signup */}
           {!isFromSignup && (
@@ -233,12 +234,12 @@ export default function VerificationPage() {
           )}
 
           {/* Header */}
-          <div className="text-center">
+          <Box className="text-center">
             <Title size="lg" as="h2" className="mb-4 flex items-center justify-center gap-2">
               <MiniLogo size="md" />
               {activeStep === "email" ? "Verify your email" : "Enter verification code"}
             </Title>
-          </div>
+          </Box>
 
           {/* Instructions */}
           <BodyText size="sm" muted className="mb-4 text-center">
@@ -249,23 +250,23 @@ export default function VerificationPage() {
 
           {/* Warning Message - shown when redirected from login */}
           {isFromLogin && !error && (
-            <div className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-yellow-50 p-3 text-yellow-800">
+            <Box className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-yellow-50 p-3 text-yellow-800">
               Please verify your email address to continue. A verification code has been sent to
               your email.
-            </div>
+            </Box>
           )}
 
           {/* Error Message */}
           {error && (
-            <div className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-red-50 text-red-600">
+            <Box className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-red-50 text-red-600">
               {error}
-            </div>
+            </Box>
           )}
 
           {/* Email Step */}
           {activeStep === "email" && (
             <form onSubmit={handleEmailSubmit} className="space-y-responsive-md">
-              <div>
+              <Box>
                 <Label
                   id="verification-email-label"
                   htmlFor="verification-email"
@@ -287,7 +288,7 @@ export default function VerificationPage() {
                   variant="mobile"
                   size="md"
                 />
-              </div>
+              </Box>
 
               <Button
                 type="submit"
@@ -310,7 +311,7 @@ export default function VerificationPage() {
             >
               {renderCodeInputs()}
 
-              <div className="text-responsive-sm text-text-secondary text-center">
+              <Box className="text-responsive-sm text-text-secondary text-center">
                 Didn't receive a code?{" "}
                 <Button
                   type="button"
@@ -323,9 +324,9 @@ export default function VerificationPage() {
                 >
                   {loading ? "Sending..." : canResend ? "Resend code" : `Resend in ${countdown}s`}
                 </Button>
-              </div>
+              </Box>
 
-              <div className="mt-6 flex justify-center">
+              <Box className="mt-6 flex justify-center">
                 <Button
                   type="button"
                   onClick={handleVerify}
@@ -337,11 +338,11 @@ export default function VerificationPage() {
                 >
                   Verify
                 </Button>
-              </div>
+              </Box>
             </form>
           )}
         </Card>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

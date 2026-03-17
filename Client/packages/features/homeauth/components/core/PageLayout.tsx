@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import BackButton from "@/features/homeauth/components/core/BackButton";
 
 import AuthFooter from "./Footer";
@@ -52,8 +54,8 @@ export default function AuthPageLayout({
       ? "w-full max-w-[90vw] sm:max-w-lg md:max-w-xl"
       : "w-full max-w-[85vw] sm:max-w-md";
   return (
-    <div className="px-responsive-sm py-responsive-md bg-background-base flex min-h-screen items-center justify-center">
-      <div className={containerWidth}>
+    <Box className="px-responsive-sm py-responsive-md bg-background-base flex min-h-screen items-center justify-center">
+      <Box className={containerWidth}>
         {/* Header */}
         {showHeader && (
           <AuthHeader
@@ -67,18 +69,18 @@ export default function AuthPageLayout({
         )}
 
         {/* Error Message */}
-        {error && <div className={errorClassName}>{error}</div>}
+        {error && <Box className={errorClassName}>{error}</Box>}
 
         {/* Content */}
-        <div className="mt-8">
+        <Box className="mt-8">
           <BackButton to={backButtonTo} className="mb-4 pl-0">
             {backButtonText}
           </BackButton>
           {children}
-        </div>
+        </Box>
 
         <AuthFooter />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

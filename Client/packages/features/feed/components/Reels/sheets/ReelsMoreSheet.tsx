@@ -135,7 +135,6 @@ export function ReelsMoreSheet({
                   >
                     <Icon
                       name="bookmark"
-                      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                       className={`h-5 w-5 shrink-0 ${isSaved ? "fill-text-primary text-text-primary" : "text-text-secondary"}`}
                     />
                     <BodyText as="span" size="sm">

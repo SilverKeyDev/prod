@@ -22,7 +22,7 @@ function loadLayoutsConfig() {
   }
 
   try {
-    const platformDir = path.join(__dirname, "../../../platform");
+    const platformDir = path.join(__dirname, "../../../../platform");
     const layoutsPath = path.join(platformDir, "layouts.json");
 
     if (!fs.existsSync(layoutsPath)) {
@@ -48,7 +48,7 @@ function loadLayoutsConfig() {
     configCache = layouts;
     lastCacheCheck = now;
     return configCache;
-  } catch (error) {
+  } catch {
     configCache = new Set();
     lastCacheCheck = now;
     return configCache;

@@ -2,6 +2,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 export type HeaderMode = "inbox" | "connection-requests" | "chat" | "no-agent" | "clients";
@@ -34,7 +35,7 @@ function HeaderLeftContent({
   switch (mode) {
     case "connection-requests":
       return (
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           {onBackClick && (
             <Button
               variant="ghost"
@@ -49,7 +50,7 @@ function HeaderLeftContent({
           <Title as="h2" size="sm" className="font-medium text-neutral-800">
             {t("agent.connection_requests")}
           </Title>
-        </div>
+        </Box>
       );
     case "inbox":
       return (
@@ -60,17 +61,17 @@ function HeaderLeftContent({
       );
     case "clients":
       return (
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
             <MiniLogo size="sm" />
             {t("agent.clients")}
           </Title>
-        </div>
+        </Box>
       );
     case "chat":
     case "no-agent":
       return (
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           {setIsSidebarExpanded && (
             <Button
               variant="ghost"
@@ -92,7 +93,7 @@ function HeaderLeftContent({
               {agentName}
             </Title>
           )}
-        </div>
+        </Box>
       );
   }
 }
@@ -127,10 +128,10 @@ function HeaderRightContent({
     ) : null;
   switch (mode) {
     case "connection-requests":
-      return <div className="flex items-center gap-2">{collapseBtn}</div>;
+      return <Box className="flex items-center gap-2">{collapseBtn}</Box>;
     case "inbox":
       return (
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           {onInboxClick && (
             <Button
               variant="ghost"
@@ -145,11 +146,11 @@ function HeaderRightContent({
             </Button>
           )}
           {collapseBtn}
-        </div>
+        </Box>
       );
     case "clients":
       return (
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           {onSearchClick && (
             <Button
               variant="ghost"
@@ -163,11 +164,11 @@ function HeaderRightContent({
             </Button>
           )}
           {collapseBtn}
-        </div>
+        </Box>
       );
     case "chat":
       return (
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           {selectedClientName && (
             <Title
               as="h3"
@@ -177,7 +178,7 @@ function HeaderRightContent({
               {selectedClientName}
             </Title>
           )}
-        </div>
+        </Box>
       );
     case "no-agent":
       return null;
@@ -198,7 +199,7 @@ export default function UnifiedMessagingHeader({
   const baseClasses =
     "flex w-full items-center justify-between border-b border-border bg-background-surface p-3 h-14";
   return (
-    <div className={`${baseClasses} ${className}`}>
+    <Box className={`${baseClasses} ${className}`}>
       <HeaderLeftContent
         mode={mode}
         isSidebarExpanded={isSidebarExpanded}
@@ -214,6 +215,6 @@ export default function UnifiedMessagingHeader({
         onInboxClick={onInboxClick}
         selectedClientName={selectedClientName}
       />
-    </div>
+    </Box>
   );
 }

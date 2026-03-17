@@ -1,12 +1,12 @@
 import { useLocalization } from "packages/contexts";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
+import { Box } from "packages/ui/components/primitives";
 
 import { PropertyCard } from "@/components/cards";
 import { CardCarousel, CardHeartSaveWithProps } from "@/components/cards/base/index.web";
 import { BodyText } from "@/components/ui";
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
 import type { SearchResult } from "@/features/search/types";
-
 export function PropertyCarousel(props: {
   items: SearchResult[];
   currentPage: number;
@@ -38,14 +38,14 @@ export function PropertyCarousel(props: {
 
   if (items.length === 0) {
     return (
-      <div className="py-responsive-md sm:py-responsive-lg px-responsive-sm text-text-secondary text-center">
+      <Box className="py-responsive-md sm:py-responsive-lg px-responsive-sm text-text-secondary text-center">
         <BodyText as="p" size="sm" className="sm:text-responsive-md">
           {t("search.no_properties_yet")}
         </BodyText>
         <BodyText as="p" size="xs" className="sm:text-responsive-sm mt-1">
           {t("search.tap_search_to_find")}
         </BodyText>
-      </div>
+      </Box>
     );
   }
 

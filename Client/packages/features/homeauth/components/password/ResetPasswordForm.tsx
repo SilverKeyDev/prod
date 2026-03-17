@@ -7,6 +7,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { PasswordValidation } from "@/components/feedback/PasswordValidation";
 import { Button, Input, VerificationCodeInput } from "@/components/ui";
 export type ResetPasswordStep = "request" | "verify" | "reset";
+import { Box } from "packages/ui/components/primitives";
 type ResetPasswordFormProps = {
   step: ResetPasswordStep;
   email: string;
@@ -62,7 +63,7 @@ export function ResetPasswordForm({
           className="autofill-gold"
         />
       ) : step === "verify" ? (
-        <div ref={codeInputWrapperRef}>
+        <Box ref={codeInputWrapperRef}>
           <VerificationCodeInput
             length={6}
             value={code}
@@ -75,9 +76,9 @@ export function ResetPasswordForm({
             }}
             disabled={loading}
           />
-        </div>
+        </Box>
       ) : (
-        <div className="space-y-1">
+        <Box className="space-y-1">
           <Input
             label="New password"
             type="password"
@@ -93,7 +94,7 @@ export function ResetPasswordForm({
             className="autofill-gold"
           />
           <PasswordValidation password={newPassword} showValidation={newPassword.length > 0} />
-        </div>
+        </Box>
       )}
 
       <Button
@@ -117,7 +118,7 @@ export function ResetPasswordForm({
       </Button>
 
       {step === "verify" && (
-        <div className="text-responsive-sm text-text-secondary text-center">
+        <Box className="text-responsive-sm text-text-secondary text-center">
           Didn't receive a code?{" "}
           <Button
             type="button"
@@ -134,7 +135,7 @@ export function ResetPasswordForm({
                 ? "Resend code"
                 : `Resend in ${countdown}s`}
           </Button>
-        </div>
+        </Box>
       )}
     </form>
   );

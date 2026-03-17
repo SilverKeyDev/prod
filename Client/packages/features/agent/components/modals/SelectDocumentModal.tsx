@@ -5,6 +5,7 @@ import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.we
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
 import type { DocumentData } from "packages/ui/components/cards/document/DocumentCard";
+import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 import { mapStoreDocumentsToDocumentData } from "packages/utils/documents";
 
@@ -42,28 +43,28 @@ export default function SelectDocumentModal({
       isOpen={isOpen}
       onClose={onClose}
       headerContent={
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           <Icon name="file-text" className="text-text-primary h-5 w-5 flex-shrink-0" />
           <Title as="h3" size="lg" className="text-text-primary truncate font-medium sm:text-lg">
             Select Document to Share
           </Title>
-        </div>
+        </Box>
       }
       size="md"
     >
-      <div className="space-y-4">
+      <Box className="space-y-4">
         {documentsLoadingFromHook ? (
-          <div className="flex items-center justify-center py-8">
+          <Box className="flex items-center justify-center py-8">
             <KeyTurnLoader message="Loading documents..." />
-          </div>
+          </Box>
         ) : mappedDocuments.length === 0 ? (
-          <div className="py-8 text-center">
+          <Box className="py-8 text-center">
             <BodyText as="p" size="sm" className="text-text-secondary">
               No documents found. Upload documents to share them in messages.
             </BodyText>
-          </div>
+          </Box>
         ) : (
-          <div className="max-h-96 space-y-2 overflow-y-auto">
+          <Box className="max-h-96 space-y-2 overflow-y-auto">
             {mappedDocuments.map((document, index) => (
               <Button
                 key={document.id || `document-${index}`}
@@ -77,11 +78,11 @@ export default function SelectDocumentModal({
                     : "border-border hover:border-border hover:bg-primary-muted"
                 }`}
               >
-                <div className="flex w-full items-start gap-3">
-                  <div className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
+                <Box className="flex w-full items-start gap-3">
+                  <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
                     <Icon name="file-text" className="text-primary h-5 w-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
+                  </Box>
+                  <Box className="min-w-0 flex-1">
                     <BodyText as="p" size="sm" className="text-text-primary font-medium">
                       {document.address || document.filename || `Document ${document.id}`}
                     </BodyText>
@@ -95,17 +96,17 @@ export default function SelectDocumentModal({
                         Type: {document.document_type}
                       </BodyText>
                     ) : null}
-                  </div>
+                  </Box>
                   {selectedDocumentId === document.id && (
-                    <div className="bg-primary h-2 w-2 flex-shrink-0 self-center rounded-full" />
+                    <Box className="bg-primary h-2 w-2 flex-shrink-0 self-center rounded-full" />
                   )}
-                </div>
+                </Box>
               </Button>
             ))}
-          </div>
+          </Box>
         )}
 
-        <div className="flex gap-3 pt-2">
+        <Box className="flex gap-3 pt-2">
           <CancelButton onClick={onClose} className="flex-1">
             Cancel
           </CancelButton>
@@ -118,8 +119,8 @@ export default function SelectDocumentModal({
           >
             Share Document
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
     </BaseModal>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import type { GoogleCalendar } from "packages/config/http/api";
+import { Box } from "packages/ui/components/primitives";
 import { getDocument } from "packages/utils/platform";
 
 import { BodyText, Button, OliveCheckbox } from "@/components/ui";
@@ -37,7 +38,7 @@ export function CalendarDropdown({
     onToggleCalendar(calendarId, enabled);
   };
   return (
-    <div className="relative" ref={dropdownRef}>
+    <Box className="relative" ref={dropdownRef}>
       <Button
         variant="ghost"
         size="sm"
@@ -48,16 +49,16 @@ export function CalendarDropdown({
         <Icon name="chevron-down" className="text-text-secondary h-4 w-4" />
       </Button>
       {isDropdownOpen && (
-        <div className="border-border bg-background-surface absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border shadow-lg">
-          <div className="p-2">
-            <div className="text-text-secondary mb-2 px-2 text-xs font-semibold uppercase tracking-wide">
+        <Box className="border-border bg-background-surface absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border shadow-lg">
+          <Box className="p-2">
+            <Box className="text-text-secondary mb-2 px-2 text-xs font-semibold uppercase tracking-wide">
               Calendars
-            </div>
-            <div className="space-y-1">
+            </Box>
+            <Box className="space-y-1">
               {calendars.length === 0 ? (
-                <div className="text-text-secondary px-2 py-4 text-center text-sm">
+                <Box className="text-text-secondary px-2 py-4 text-center text-sm">
                   No calendars available
-                </div>
+                </Box>
               ) : (
                 // Sort calendars to put SilverKey first
                 [...calendars]
@@ -73,7 +74,7 @@ export function CalendarDropdown({
                     const isSilverKey = silverKeyCalendarId === calendar.id;
                     const isDisabled = isSilverKey; // SilverKey calendar cannot be disabled
                     return (
-                      <div
+                      <Box
                         key={calendar.id}
                         className={`flex items-center justify-between gap-2 rounded px-2 py-2 ${isDisabled ? "cursor-not-allowed opacity-60" : "hover:bg-primary-muted"}`}
                       >
@@ -89,7 +90,7 @@ export function CalendarDropdown({
                             </BodyText>
                           )}
                         </BodyText>
-                        <div className={isDisabled ? "cursor-not-allowed opacity-50" : ""}>
+                        <Box className={isDisabled ? "cursor-not-allowed opacity-50" : ""}>
                           <OliveCheckbox
                             checked={isEnabled}
                             onToggle={() => {
@@ -98,15 +99,15 @@ export function CalendarDropdown({
                               }
                             }}
                           />
-                        </div>
-                      </div>
+                        </Box>
+                      </Box>
                     );
                   })
               )}
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 import Input from "@ui/form/Input";
 
+import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Label from "packages/ui/components/text/Label.web";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
@@ -147,12 +148,12 @@ export default function VerificationCodeInput({
   }, [autoFocus, disabled]);
 
   return (
-    <div className="w-full">
+    <Box className="w-full">
       {label && (
         <Label className="text-text-secondary mb-2 block text-sm font-medium">{label}</Label>
       )}
 
-      <div className="gap-responsive-sm sm:gap-responsive-md flex justify-between">
+      <Box className="gap-responsive-sm sm:gap-responsive-md flex justify-between">
         {Array.from({ length }).map((_, index) => (
           <Input
             key={index}
@@ -180,7 +181,7 @@ export default function VerificationCodeInput({
               .join(" ")}
           />
         ))}
-      </div>
+      </Box>
 
       {helperText && !error && (
         <BodyText size="xs" muted className="mt-1">
@@ -193,6 +194,6 @@ export default function VerificationCodeInput({
           {error}
         </BodyText>
       )}
-    </div>
+    </Box>
   );
 }

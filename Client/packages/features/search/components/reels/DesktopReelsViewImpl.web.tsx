@@ -5,9 +5,9 @@ import type { VirtuosoHandle } from "react-virtuoso";
 import { DEFAULT_PLACEHOLDER_IMAGE, type FeedScrollController } from "packages/features/feed";
 import { useIsMobile } from "packages/hooks/ui";
 import { useReelsShortcuts } from "packages/hooks/ui";
+import { Box } from "packages/ui/components/primitives";
 
 import { ReelsView } from "./ReelsView";
-
 type DesktopReelsViewProps = {
   virtuosoRef?: React.RefObject<VirtuosoHandle | null>;
 };
@@ -38,17 +38,17 @@ export function DesktopReelsView({ virtuosoRef }: DesktopReelsViewProps) {
   }
 
   return (
-    <div className="relative z-0 flex h-full w-full items-center justify-center bg-black">
-      <div
+    <Box className="relative z-0 flex h-full w-full items-center justify-center bg-black">
+      <Box
         className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl"
         style={{
           backgroundImage: `url(${DEFAULT_PLACEHOLDER_IMAGE})`,
         }}
         aria-hidden
       />
-      <div className="relative z-10 flex h-full w-full max-w-[80vw] shrink-0 items-center justify-center">
+      <Box className="relative z-10 flex h-full w-full max-w-[80vw] shrink-0 items-center justify-center">
         <ReelsView virtuosoRef={virtuosoRef} scrollControllerRef={scrollControllerRef} />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

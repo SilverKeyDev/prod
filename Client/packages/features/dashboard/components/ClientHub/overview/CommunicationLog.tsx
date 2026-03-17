@@ -69,32 +69,32 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
         )}
 
         {/* Decisions and Notes */}
-        <div>
+        <Box>
           <Title as="h3" size="md" className="text-text-primary mb-4 font-semibold">
             Decisions & Notes
           </Title>
           {allItems.length === 0 ? (
-            <div className="py-8 text-center">
+            <Box className="py-8 text-center">
               <BodyText as="p" size="sm" className="text-text-secondary">
                 No decisions or notes yet
               </BodyText>
-            </div>
+            </Box>
           ) : (
-            <div className="space-y-4">
+            <Box className="space-y-4">
               {allItems.map((item) => (
-                <div
+                <Box
                   key={item.id}
                   className="border-border bg-background-surface flex items-start gap-3 rounded-lg border p-4"
                 >
-                  <div className="mt-1 flex-shrink-0">
+                  <Box className="mt-1 flex-shrink-0">
                     {item.type === "decision" ? (
                       <Icon name="check-circle" className="text-primary h-5 w-5" />
                     ) : (
                       <Icon name="file-text" className="text-accent h-5 w-5" />
                     )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center justify-between gap-2">
+                  </Box>
+                  <Box className="min-w-0 flex-1">
+                    <Box className="mb-1 flex items-center justify-between gap-2">
                       <BodyText
                         as="span"
                         size="xs"
@@ -105,7 +105,7 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
                       <BodyText as="span" size="xs" className="text-text-disabled">
                         {formatDate(item.date)}
                       </BodyText>
-                    </div>
+                    </Box>
                     <BodyText as="p" size="sm" className="text-text-primary mb-1">
                       {item.content}
                     </BodyText>
@@ -114,12 +114,12 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
                         {item.context}
                       </BodyText>
                     )}
-                  </div>
-                </div>
+                  </Box>
+                </Box>
               ))}
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
       </Box>
     </SectionCard>
   );

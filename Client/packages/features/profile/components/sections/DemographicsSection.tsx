@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import AlignedRow from "@/components/layout/AlignedRow";
 import Card from "@/components/layout/Card.web";
 import { Dropdown, Input, Title } from "@/components/ui";
@@ -14,7 +16,6 @@ import {
 } from "@/features/profile/utils";
 
 import { DemographicsLookingForAgentCell } from "./DemographicsLookingForAgentCell";
-
 type DemographicsSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
@@ -59,13 +60,13 @@ export default function DemographicsSection({
       </Title>
 
       {!hideProfilePictureWhenOnboarding && (
-        <div className="mb-6">
+        <Box className="mb-6">
           <ProfilePictureUpload />
-        </div>
+        </Box>
       )}
 
       {/* Name */}
-      <div>
+      <Box>
         <Label>{FIELD_LABELS.NAME}</Label>
         {isEditMode ? (
           <Input
@@ -78,11 +79,11 @@ export default function DemographicsSection({
             className="mt-2"
           />
         ) : (
-          <div className="mobile-input bg-background-base mt-2">
+          <Box className="mobile-input bg-background-base mt-2">
             {formData.name ?? "Not specified"}
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
 
       {/* Are you a real estate agent? + Age - agent choice only shown during onboarding */}
       <AlignedRow
@@ -102,9 +103,9 @@ export default function DemographicsSection({
                       placeholder="Select..."
                     />
                   ) : (
-                    <div className="mobile-input bg-background-base">
+                    <Box className="mobile-input bg-background-base">
                       {getOptionLabel(IS_AGENT_OPTIONS, formData.is_agent)}
-                    </div>
+                    </Box>
                   ),
                 },
               ]
@@ -123,29 +124,29 @@ export default function DemographicsSection({
                 max={100}
               />
             ) : (
-              <div className="mobile-input bg-background-base">
+              <Box className="mobile-input bg-background-base">
                 {formData.age ?? "Not specified"}
-              </div>
+              </Box>
             ),
           },
         ]}
       />
 
       {/* Why are you joining SilverKey? (multiselect tags) */}
-      <div>
+      <Box>
         <Label>{FIELD_LABELS.WHY_JOINING_SILVERKEY}</Label>
-        <div className="mt-2">
+        <Box className="mt-2">
           <OptionTagInput
             options={WHY_JOINING_SILVERKEY_OPTIONS}
             value={(formData.why_joining_silverkey as string[]) ?? []}
             onChange={(value: string[]) => updateFormData("why_joining_silverkey", value)}
             isEditMode={isEditMode}
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {/* Buyer's Agent Section */}
-      <div className="mt-6">
+      <Box className="mt-6">
         <AlignedRow
           breakIntoRows="md"
           gap="lg"
@@ -161,9 +162,9 @@ export default function DemographicsSection({
                   placeholder="Select..."
                 />
               ) : (
-                <div className="mobile-input bg-background-base">
+                <Box className="mobile-input bg-background-base">
                   {getOptionLabel(HAS_BUYERS_AGENT_OPTIONS, formData.has_buyers_agent)}
-                </div>
+                </Box>
               ),
             },
             {
@@ -171,7 +172,7 @@ export default function DemographicsSection({
                 formData.has_buyers_agent === "no" ? (
                   <Label>Looking for Agent?</Label>
                 ) : (
-                  <div className="mb-2 block text-sm font-medium text-transparent">&nbsp;</div>
+                  <Box className="mb-2 block text-sm font-medium text-transparent">&nbsp;</Box>
                 ),
               content: (
                 <DemographicsLookingForAgentCell
@@ -183,12 +184,12 @@ export default function DemographicsSection({
             },
           ]}
         />
-      </div>
+      </Box>
     </>
   );
   return wrapInCard ? (
     <Card className="space-y-6">{content}</Card>
   ) : (
-    <div className="space-y-6">{content}</div>
+    <Box className="space-y-6">{content}</Box>
   );
 }

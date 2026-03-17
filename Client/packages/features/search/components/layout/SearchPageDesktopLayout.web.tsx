@@ -2,9 +2,9 @@ import SearchHeader from "packages/features/search/components/header/SearchHeade
 import { SidebarList } from "packages/features/search/components/list/SidebarList.web";
 import { Tabs } from "packages/features/search/components/list/Tabs.web";
 import type { SearchResult } from "packages/features/search/types";
+import { Box } from "packages/ui/components/primitives";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";
-
 const PROPERTIES_PER_PAGE = 1;
 
 export type SearchPageDesktopLayoutProps = {
@@ -98,9 +98,9 @@ export function SearchPageDesktopLayout({
   const loadingVariant = isSearching ? "gray" : "default";
 
   return (
-    <div className="gap-responsive-md hidden h-full md:flex">
-      <div className="flex w-64 flex-shrink-0 flex-col">
-        <div className="border-border bg-background-surface flex h-full flex-col rounded-tr-lg border p-4">
+    <Box className="gap-responsive-md hidden h-full md:flex">
+      <Box className="flex w-64 flex-shrink-0 flex-col">
+        <Box className="border-border bg-background-surface flex h-full flex-col rounded-tr-lg border p-4">
           <Tabs
             active={activeTab}
             onChange={handleTabChangeWithSideEffects}
@@ -110,7 +110,7 @@ export function SearchPageDesktopLayout({
             }}
           />
 
-          <div className="flex-1 overflow-hidden">
+          <Box className="flex-1 overflow-hidden">
             <SidebarList
               items={activeTab === "results" ? filteredSearchResults : savedHomes}
               selectedId={selectedPropertyId}
@@ -121,13 +121,13 @@ export function SearchPageDesktopLayout({
               saveHome={saveHome}
               removeSavedHome={removeSavedHome}
             />
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
 
-      <div className="flex flex-1 flex-col">
-        <div className="hidden w-full flex-shrink-0 md:block">
-          <div className="mb-4 flex w-full items-center justify-between">
+      <Box className="flex flex-1 flex-col">
+        <Box className="hidden w-full flex-shrink-0 md:block">
+          <Box className="mb-4 flex w-full items-center justify-between">
             <SearchHeader
               onPreferencesChanged={onPreferencesChanged}
               onSearchProperties={onSearchProperties}
@@ -140,10 +140,10 @@ export function SearchPageDesktopLayout({
               onBeforeSwitchToReels={onBeforeSwitchToReels}
               hasSearched={hasSearched}
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
 
-        <div className="border-border bg-background-surface relative flex-1 overflow-hidden rounded-tl-lg border">
+        <Box className="border-border bg-background-surface relative flex-1 overflow-hidden rounded-tl-lg border">
           <SearchPageMapContainer
             mapRef={desktopMapRef}
             isLoading={isLoading}
@@ -164,8 +164,8 @@ export function SearchPageDesktopLayout({
             mapMinHeight="400px"
             loadingOverlayClassName="rounded-tl-lg"
           />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

@@ -5,6 +5,7 @@ import { useLocalization } from "packages/contexts";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
 import { getMessagePreview } from "packages/features/messaging/utils";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
 import {
@@ -69,16 +70,16 @@ export default function UnifiedMessagingSidebar({
     if (mode === "client") {
       if (!agentId) {
         return (
-          <div className="flex h-full items-center justify-center p-3">
-            <div className="text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
+          <Box className="flex h-full items-center justify-center p-3">
+            <Box className="text-center">
+              <Box className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
                 <Icon name="message-circle" className="h-6 w-6 text-neutral-400" />
-              </div>
+              </Box>
               <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
                 {config.sidebar.emptyMessage}
               </BodyText>
-            </div>
-          </div>
+            </Box>
+          </Box>
         );
       }
       const handleYourAgentClick = () => {
@@ -88,7 +89,7 @@ export default function UnifiedMessagingSidebar({
         setIsSidebarExpanded(false);
       };
       return (
-        <div
+        <Box
           role="button"
           tabIndex={0}
           onClick={handleYourAgentClick}
@@ -104,8 +105,8 @@ export default function UnifiedMessagingSidebar({
               : ""
           }`}
         >
-          <div className="flex items-start justify-between">
-            <div className="min-w-0 flex-1">
+          <Box className="flex items-start justify-between">
+            <Box className="min-w-0 flex-1">
               <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                 {t("agent.your_agent")}
               </Title>
@@ -118,33 +119,33 @@ export default function UnifiedMessagingSidebar({
                   )}
                 </BodyText>
               )}
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
       );
     } else {
       // Agent mode
       if (isLoadingClients) {
         return (
-          <div className="flex h-full items-center justify-center p-3">
-            <div className="text-center">
+          <Box className="flex h-full items-center justify-center p-3">
+            <Box className="text-center">
               <KeyTurnLoader message={t("agent.loading_clients")} />
-            </div>
-          </div>
+            </Box>
+          </Box>
         );
       }
       if (clients.length === 0) {
         return (
-          <div className="flex h-full items-center justify-center p-3">
-            <div className="text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
+          <Box className="flex h-full items-center justify-center p-3">
+            <Box className="text-center">
+              <Box className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
                 <Icon name="message-circle" className="h-6 w-6 text-neutral-400" />
-              </div>
+              </Box>
               <BodyText as="p" size="sm" className="mb-4 text-neutral-600">
                 {config.sidebar.emptyMessage}
               </BodyText>
-            </div>
-          </div>
+            </Box>
+          </Box>
         );
       }
       return (
@@ -158,7 +159,7 @@ export default function UnifiedMessagingSidebar({
               setIsSidebarExpanded(false);
             };
             return (
-              <div
+              <Box
                 key={client.id}
                 role="button"
                 tabIndex={0}
@@ -171,8 +172,8 @@ export default function UnifiedMessagingSidebar({
                 }}
                 className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${selectedClientId === client.id ? "border-l-olive bg-olive/10 border-l-4" : ""}`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="min-w-0 flex-1">
+                <Box className="flex items-start gap-3">
+                  <Box className="min-w-0 flex-1">
                     <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                       {client.name}
                     </Title>
@@ -190,9 +191,9 @@ export default function UnifiedMessagingSidebar({
                         {client.phone}
                       </BodyText>
                     )}
-                  </div>
-                </div>
-              </div>
+                  </Box>
+                </Box>
+              </Box>
             );
           })}
         </>
@@ -208,7 +209,7 @@ export default function UnifiedMessagingSidebar({
     <>
       {/* Backdrop for mobile - only show when sidebar is expanded on mobile, positioned relative to messaging container */}
       {isSidebarExpanded && (
-        <div
+        <Box
           className="bg-overlay-backdrop absolute inset-0 z-40 transition-opacity duration-300 ease-in-out xl:hidden"
           onClick={() => setIsSidebarExpanded(false)}
           aria-hidden="true"
@@ -235,11 +236,11 @@ export default function UnifiedMessagingSidebar({
         />
 
         {/* Scrollable Content */}
-        <div
+        <Box
           className={`border-border bg-background-surface flex-1 overflow-y-auto border-r ${isSidebarExpanded ? "rounded-b-xl" : ""} xl:rounded-bl-xl xl:rounded-br-none`}
         >
           {renderSidebarContent()}
-        </div>
+        </Box>
       </aside>
     </>
   );

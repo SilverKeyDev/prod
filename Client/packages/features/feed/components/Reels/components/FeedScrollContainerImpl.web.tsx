@@ -6,6 +6,7 @@ import { FeedReelsProvider } from "packages/features/feed/hooks/feedReels/FeedRe
 import { useFeedReelsContext } from "packages/features/feed/hooks/feedReels/useFeedReelsContext";
 import { useFeedScrollContainer } from "packages/hooks/ui";
 import { Virtuoso, type VirtuosoHandle } from "packages/ui/components/adapters/virtuoso";
+import { Box } from "packages/ui/components/primitives";
 
 import { ReelsCommentsSheet } from "@/features/feed/components/Reels/sheets/ReelsCommentsSheet";
 import { ReelsMoreSheet } from "@/features/feed/components/Reels/sheets/ReelsMoreSheet";
@@ -17,7 +18,7 @@ import { ReelsItem, ReelsList, ReelsScroller } from "./ReelsVirtuosoComponents";
 
 /** Spacer so last reel can scroll above tab bar on mobile. */
 const ReelsFooter = () => (
-  <div className="h-0 shrink-0 max-md:min-h-[var(--mobile-bottom-reserved)]" aria-hidden />
+  <Box className="h-0 shrink-0 max-md:min-h-[var(--mobile-bottom-reserved)]" aria-hidden />
 );
 
 const ReelsScrollerWithContext = forwardRef<
@@ -145,7 +146,7 @@ export function FeedScrollContainer({
   );
 
   return (
-    <div
+    <Box
       ref={containerRef}
       className="h-full w-full overflow-hidden"
       style={
@@ -183,6 +184,6 @@ export function FeedScrollContainer({
         onCopyLink={handleMoreCopyLink}
         onSave={handleMoreSave}
       />
-    </div>
+    </Box>
   );
 }

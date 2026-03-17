@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useGoogleCalendarStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 
 import { BodyText, Button, CancelButton, Title } from "@/components/ui";
@@ -66,8 +67,8 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
 
   if (!isConnected) {
     return (
-      <div className="space-y-responsive-md mobile-padding">
-        <div className="text-center">
+      <Box className="space-y-responsive-md mobile-padding">
+        <Box className="text-center">
           <Title as="h2" size="sm" className="text-text-primary">
             Connect Google Calendar
           </Title>
@@ -75,44 +76,44 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
             Connect your Google Calendar to check availability and schedule events. We'll only see
             when you're busy, not your event details.
           </BodyText>
-        </div>
+        </Box>
 
-        <div className="space-y-responsive-sm">
+        <Box className="space-y-responsive-sm">
           <Button variant="primary" onClick={handleConnect} fullWidth className="w-full">
             Connect Google Calendar
           </Button>
           <CancelButton onClick={onClose} fullWidth>
             Cancel
           </CancelButton>
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
 
   if (step === "select") {
     return (
-      <div className="space-y-responsive-md mobile-padding">
-        <div>
+      <Box className="space-y-responsive-md mobile-padding">
+        <Box>
           <Title as="h2" size="sm" className="text-text-primary">
             Select a Time Slot
           </Title>
           <BodyText as="p" size="sm" className="text-text-secondary mt-1">
             Choose an available time slot for your event.
           </BodyText>
-        </div>
+        </Box>
 
         {scheduling.isLoadingAvailability && (
-          <div className="py-responsive-md text-responsive-sm text-text-secondary text-center">
+          <Box className="py-responsive-md text-responsive-sm text-text-secondary text-center">
             Loading availability...
-          </div>
+          </Box>
         )}
 
         {scheduling.availabilityError && (
-          <div className="p-responsive-sm text-responsive-sm bg-primary-muted text-destructive rounded-md">
+          <Box className="p-responsive-sm text-responsive-sm bg-primary-muted text-destructive rounded-md">
             {scheduling.availabilityError instanceof Error
               ? scheduling.availabilityError.message
               : "Failed to load availability"}
-          </div>
+          </Box>
         )}
 
         {!scheduling.isLoadingAvailability && !scheduling.availabilityError && (
@@ -124,19 +125,19 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
           />
         )}
 
-        <div className="gap-responsive-sm pt-responsive-md flex">
+        <Box className="gap-responsive-sm pt-responsive-md flex">
           <CancelButton onClick={onClose} fullWidth>
             Cancel
           </CancelButton>
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
 
   if (step === "form") {
     return (
-      <div className="space-y-responsive-md mobile-padding">
-        <div>
+      <Box className="space-y-responsive-md mobile-padding">
+        <Box>
           <Title as="h2" size="sm" className="text-text-primary">
             Schedule Event
           </Title>
@@ -155,7 +156,7 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
               })}
             </BodyText>
           )}
-        </div>
+        </Box>
 
         <SchedulingForm
           selectedSlot={scheduling.selectedSlot}
@@ -165,13 +166,13 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
         />
 
         {scheduling.schedulingError && (
-          <div className="p-responsive-sm text-responsive-sm bg-primary-muted text-destructive rounded-md">
+          <Box className="p-responsive-sm text-responsive-sm bg-primary-muted text-destructive rounded-md">
             {scheduling.schedulingError instanceof Error
               ? scheduling.schedulingError.message
               : "Failed to schedule event"}
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
     );
   }
 

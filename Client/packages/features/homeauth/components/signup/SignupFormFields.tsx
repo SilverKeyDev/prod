@@ -7,6 +7,7 @@ import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
 import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
 import type { FieldKey, SignupFormData } from "packages/hooks/data/auth/useSignupAutofill";
+import { Box } from "packages/ui/components/primitives";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 
 import { PasswordValidation } from "@/components/feedback";
@@ -178,12 +179,12 @@ export default function SignupFormFields({
         }}
       />
 
-      <div className="space-y-3">
+      <Box className="space-y-3">
         <PasswordValidation
           password={formData.password}
           showValidation={formData.password.length > 0}
         />
-      </div>
+      </Box>
 
       <Button
         type="submit"
@@ -200,7 +201,7 @@ export default function SignupFormFields({
 
       <GoogleSignInButton text="Sign up with Google" />
 
-      <div className="text-signup-mid text-center">
+      <Box className="text-signup-mid text-center">
         Already have an account?
         <AuthLink
           to="/login"
@@ -208,7 +209,7 @@ export default function SignupFormFields({
         >
           Sign in
         </AuthLink>
-      </div>
+      </Box>
     </>
   );
 }

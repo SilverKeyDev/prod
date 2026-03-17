@@ -2,6 +2,7 @@ import { Icon } from "@ui/icons";
 
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
@@ -39,33 +40,33 @@ export default function ConnectionRequestsInbox({
   };
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center p-4">
+      <Box className="flex h-full items-center justify-center p-4">
         <KeyTurnLoader message="Loading requests..." />
-      </div>
+      </Box>
     );
   }
   if (requests.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center p-4">
-        <div className="text-center">
+      <Box className="flex h-full items-center justify-center p-4">
+        <Box className="text-center">
           <Icon name="message-square" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
           <BodyText as="p" size="sm" className="text-neutral-600">
             No pending connection requests
           </BodyText>
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
+    <Box className="flex h-full min-h-0 flex-col">
+      <Box className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
         {requests.map((request) => (
-          <div key={request.id} className="border-border rounded-lg border bg-white p-4 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
+          <Box key={request.id} className="border-border rounded-lg border bg-white p-4 shadow-sm">
+            <Box className="flex items-start gap-3">
+              <Box className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
                 <Icon name="user" className="h-5 w-5 text-neutral-600" />
-              </div>
-              <div className="flex-1">
+              </Box>
+              <Box className="flex-1">
                 <Title as="h3" size="sm" className="font-medium text-neutral-800">
                   {request.other_party_name ?? "Unknown"}
                 </Title>
@@ -82,9 +83,9 @@ export default function ConnectionRequestsInbox({
                     ? "Agent requested to connect"
                     : "Client requested to connect"}
                 </BodyText>
-              </div>
-            </div>
-            <div className="mt-3 flex gap-3">
+              </Box>
+            </Box>
+            <Box className="mt-3 flex gap-3">
               <Button
                 variant="primary"
                 onClick={() => handleRespond(request.id, true)}
@@ -105,11 +106,11 @@ export default function ConnectionRequestsInbox({
               >
                 Reject
               </Button>
-            </div>
-          </div>
+            </Box>
+          </Box>
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 export { ConnectionRequestsInbox };

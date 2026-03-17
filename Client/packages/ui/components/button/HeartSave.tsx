@@ -150,11 +150,9 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         variant="toolbar"
         size={size}
         rounded="md"
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         icon={<Icon name="heart" className={`h-full w-full ${isSaved ? "fill-current" : ""}`} />}
         onClick={handleClick}
         label={label}
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`bg-gray-50 ${isSaved ? "text-red-500 hover:bg-gray-50 hover:text-red-600 active:bg-gray-100 active:text-red-700 active:opacity-90" : "text-gray-600 hover:bg-gray-100 active:bg-gray-200 active:opacity-90"} ${className}`}
       />
     );
@@ -167,20 +165,17 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         icon={
           <Icon
             name="heart"
-            // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
             className={`${iconSizeClass} ${isSaved ? "fill-current" : ""} ${ICON_TRANSFORM_CLASSES}`}
           />
         }
         label={label}
         onClick={handleClick}
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`group relative inline-flex flex-row items-center justify-center bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 active:bg-gray-100 active:opacity-90 ${isSaved ? "text-red-500 hover:text-red-600 active:text-red-600 active:text-red-700" : "text-gray-400 hover:text-red-500 active:text-red-500 active:text-red-600"} ${className}`}
       />
     );
   }
 
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <Box className={`absolute ${POSITION_MAP[position]} z-10`}>
       <IconButton
         variant="ghost"
@@ -189,7 +184,6 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
           <>
             <Icon
               name="heart"
-              // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
               className={`${OVERLAY_MARKER_ICON_CLASSES} ${isSaved ? "fill-current" : ""} group-hover:opacity-90 group-active:opacity-80`}
             />
             <Icon
@@ -200,7 +194,6 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         }
         label={label}
         onClick={handleClick}
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`group relative inline-flex flex-row items-center justify-center rounded-full bg-white shadow-md ring-1 ring-neutral-200 hover:bg-white hover:shadow-lg hover:ring-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 active:bg-white active:opacity-90 active:shadow-lg active:ring-neutral-200 ${isSaved ? "text-red-500 hover:text-red-600 active:text-red-600 active:text-red-700" : "text-gray-400 hover:text-red-500 active:text-red-500 active:text-red-600"} ${OVERLAY_MARKER_CIRCLE_CLASSES} ${className}`}
       />
     </Box>

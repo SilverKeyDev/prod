@@ -5,11 +5,13 @@ import type { Agreement, DocumentData, SavedPageViewType } from "packages/featur
 import { AgreementListItem } from "packages/features/documents";
 import type { SavedHome } from "packages/types";
 import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
+import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
 
 import { SavedHomeCard } from "./SavedHomeCard";
+
 type SavedHomesContentProps = {
   viewType: SavedPageViewType;
   filteredHomes: SavedHome[];
@@ -89,77 +91,77 @@ export default function SavedHomesContent({
     const isLoading = documentsLoading || agreementsLoading;
     if (isLoading) {
       return (
-        <div className={`${containerClass} py-responsive-lg flex justify-center`}>
+        <Box className={`${containerClass} py-responsive-lg flex justify-center`}>
           <KeyTurnLoader message={t("saved.loading_documents")} />
-        </div>
+        </Box>
       );
     }
     if (sortedItems.length === 0) {
       return (
-        <div className={`${containerClass} py-responsive-lg text-center`}>
+        <Box className={`${containerClass} py-responsive-lg text-center`}>
           <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
             {t("saved.no_documents_yet")}
           </BodyText>
-        </div>
+        </Box>
       );
     }
     return (
-      <div
+      <Box
         className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`}
       >
         {sortedItems.map((item) =>
           item.type === "document" ? (
-            <div key={`doc-${item.data.id}`} className="group relative w-full">
+            <Box key={`doc-${item.data.id}`} className="group relative w-full">
               <DocumentCard doc={item.data} onDelete={onDocumentDelete} />
-            </div>
+            </Box>
           ) : (
-            <div key={`agreement-${item.data.id}`} className="group relative w-full">
+            <Box key={`agreement-${item.data.id}`} className="group relative w-full">
               <AgreementListItem
                 agreement={item.data}
                 onClick={() => onAgreementClick?.(item.data.id)}
                 onSend={onAgreementSend}
                 onVoid={onAgreementVoid}
               />
-            </div>
+            </Box>
           )
         )}
-      </div>
+      </Box>
     );
   }
   if (viewType === "homes") {
     if (filteredHomes.length === 0) {
       if (homesLoading) {
         return (
-          <div className={`${containerClass} py-responsive-lg flex justify-center`}>
+          <Box className={`${containerClass} py-responsive-lg flex justify-center`}>
             <KeyTurnLoader message={t("saved.loading_homes")} />
-          </div>
+          </Box>
         );
       }
       return (
-        <div className={`${containerClass} py-responsive-lg text-center`}>
+        <Box className={`${containerClass} py-responsive-lg text-center`}>
           <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
             {t("saved.no_homes_yet")}
           </BodyText>
-        </div>
+        </Box>
       );
     }
     return (
-      <div
+      <Box
         className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
           selectedHomesDataLength >= 1 ? "mb-36 sm:mb-40" : ""
         }`}
       >
         {filteredHomes.map((home: SavedHome) => (
-          <div key={home.home_id} className="w-full">
+          <Box key={home.home_id} className="w-full">
             <SavedHomeCard
               home={home}
               isSelected={selectedHomesForComparison.has(home.home_id)}
               onToggleCompare={onToggleHomeSelection}
               onUnlock={onUnlockHome}
             />
-          </div>
+          </Box>
         ))}
-      </div>
+      </Box>
     );
   }
   return null;

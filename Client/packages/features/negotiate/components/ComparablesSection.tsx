@@ -1,12 +1,12 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { CardCarousel } from "@/components/cards/base";
 
 import CompCard from "./CompCard";
 import SectionTitle from "./SectionTitle";
-
 type ComparablesSectionProps = {
   compsData: unknown;
   isLoading: boolean;
@@ -37,7 +37,7 @@ export function ComparablesSection({
     : ([] as unknown[]);
 
   return (
-    <div className="my-responsive-lg">
+    <Box className="my-responsive-lg">
       <SectionTitle className="!text-text-secondary">
         {t("negotiate.comparables_title")}
       </SectionTitle>
@@ -66,6 +66,6 @@ export function ComparablesSection({
         infiniteLoop={false}
         ariaLabel="Property comparables carousel"
       />
-    </div>
+    </Box>
   );
 }

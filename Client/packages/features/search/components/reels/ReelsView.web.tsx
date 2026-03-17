@@ -13,7 +13,7 @@ import {
   useFeedData,
 } from "packages/features/feed";
 import { useReelsCleanup } from "packages/hooks/ui";
-
+import { Box } from "packages/ui/components/primitives";
 type ReelsViewProps = {
   virtuosoRef?: React.RefObject<VirtuosoHandle | null>;
   scrollControllerRef?: MutableRefObject<FeedScrollController | null>;
@@ -34,7 +34,7 @@ export function ReelsView({ virtuosoRef, scrollControllerRef, className }: Reels
   const items = useMemo(() => rawItems.map((listing) => listingToReelMedia(listing)), [rawItems]);
 
   return (
-    <div className={`h-full w-full bg-black ${className ?? ""}`} data-reels-feed-container>
+    <Box className={`h-full w-full bg-black ${className ?? ""}`} data-reels-feed-container>
       <FeedScrollContainer
         items={items}
         fetchNextPage={fetchNextPage}
@@ -43,6 +43,6 @@ export function ReelsView({ virtuosoRef, scrollControllerRef, className }: Reels
         virtuosoRef={virtuosoRef ?? undefined}
         scrollControllerRef={scrollControllerRef}
       />
-    </div>
+    </Box>
   );
 }

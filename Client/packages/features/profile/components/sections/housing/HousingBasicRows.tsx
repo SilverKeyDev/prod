@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import AlignedRow from "@/components/layout/AlignedRow";
 import { Input } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
@@ -39,9 +41,9 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 placeholder="Number of bedrooms"
               />
             ) : (
-              <div className="mobile-input bg-background-base">
+              <Box className="mobile-input bg-background-base">
                 {formData.preferred_bedrooms ?? "Not specified"}
-              </div>
+              </Box>
             ),
           },
           {
@@ -56,9 +58,9 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 placeholder="Number of bathrooms"
               />
             ) : (
-              <div className="mobile-input bg-background-base">
+              <Box className="mobile-input bg-background-base">
                 {formData.preferred_bathrooms ?? "Not specified"}
-              </div>
+              </Box>
             ),
           },
         ]}
@@ -81,7 +83,7 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 isEditMode={true}
               />
             ) : (
-              <div className="mobile-input bg-background-base">
+              <Box className="mobile-input bg-background-base">
                 {(() => {
                   const selected = parseHousingTypes(formData.preferred_housing_type);
                   if (selected.length === 0) return "Not specified";
@@ -90,7 +92,7 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                   );
                   return labels.join(", ");
                 })()}
-              </div>
+              </Box>
             ),
           },
           {
@@ -103,13 +105,13 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 isEditMode={true}
               />
             ) : (
-              <div className="mobile-input bg-background-base">
+              <Box className="mobile-input bg-background-base">
                 {((formData.must_have as string[]) ?? []).length === 0
                   ? "Not specified"
                   : ((formData.must_have as string[]) ?? [])
                       .map((v) => MUST_HAVE_OPTIONS.find((o) => o.value === v)?.label ?? v)
                       .join(", ")}
-              </div>
+              </Box>
             ),
           },
         ]}

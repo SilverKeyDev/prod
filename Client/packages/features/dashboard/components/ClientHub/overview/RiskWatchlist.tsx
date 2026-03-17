@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import type { RiskFlag as RiskFlagType } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 import RiskFlag from "@/features/dashboard/components/RiskFlag";
@@ -47,48 +48,48 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
   };
   return (
     <SectionCard title="Risk & Watchlist" iconName="alert-triangle">
-      <div className="space-y-6">
+      <Box className="space-y-6">
         {/* Risk Flags */}
-        <div>
+        <Box>
           <Title as="h3" size="md" className="text-text-primary mb-4 font-semibold">
             Risk Flags
           </Title>
           {riskFlags.length === 0 ? (
-            <div className="py-8 text-center">
+            <Box className="py-8 text-center">
               <BodyText as="p" size="sm" className="text-text-secondary">
                 No risk flags identified
               </BodyText>
-            </div>
+            </Box>
           ) : (
-            <div className="space-y-3">
+            <Box className="space-y-3">
               {riskFlags.map((flag, index) => {
                 const category = riskCategories[flag.type];
                 return (
-                  <div
+                  <Box
                     key={index}
                     className="border-border bg-background-surface flex items-start gap-3 rounded-lg border p-4"
                   >
-                    <div className="mt-1 flex-shrink-0">{category.icon}</div>
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-2 flex items-center justify-between gap-2">
+                    <Box className="mt-1 flex-shrink-0">{category.icon}</Box>
+                    <Box className="min-w-0 flex-1">
+                      <Box className="mb-2 flex items-center justify-between gap-2">
                         <BodyText as="span" size="sm" className="text-text-primary font-medium">
                           {category.label}
                         </BodyText>
                         <RiskFlag severity={flag.severity} message={flag.message} />
-                      </div>
+                      </Box>
                       <BodyText as="p" size="sm" className="text-text-secondary">
                         {flag.message}
                       </BodyText>
-                    </div>
-                  </div>
+                    </Box>
+                  </Box>
                 );
               })}
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
 
         {/* Emotional Volatility Indicator */}
-        <div>
+        <Box>
           <Title
             as="h3"
             size="md"
@@ -97,18 +98,18 @@ const RiskWatchlist: React.FC<RiskWatchlistProps> = ({
             <Icon name="heart" className="text-destructive h-5 w-5" />
             Emotional Volatility
           </Title>
-          <div
+          <Box
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 ${volatilityColors[emotionalVolatility]}`}
           >
             <BodyText as="span" size="sm" className="font-medium capitalize">
               {emotionalVolatility}
             </BodyText>
-          </div>
+          </Box>
           <BodyText as="p" size="xs" className="text-text-secondary mt-2">
             Client's emotional state and decision-making stability
           </BodyText>
-        </div>
-      </div>
+        </Box>
+      </Box>
     </SectionCard>
   );
 };

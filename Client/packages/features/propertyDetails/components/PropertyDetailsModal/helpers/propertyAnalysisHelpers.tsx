@@ -4,6 +4,7 @@
  */
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
 import { buildPropertyAnalysisSections } from "packages/utils/propertyDetails";
 
 import { BodyText, Title } from "@/components/ui";
@@ -45,13 +46,13 @@ export function renderPropertyAnalysisSectionContent(
   }
 
   return (
-    <div className="space-y-4">
+    <Box className="space-y-4">
       {entries.map(([key, value]) => {
         const displayKey = key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
         if (Array.isArray(value)) {
           return (
-            <div key={key}>
+            <Box key={key}>
               <Title as="h4" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </Title>
@@ -62,42 +63,42 @@ export function renderPropertyAnalysisSectionContent(
                   </li>
                 ))}
               </ul>
-            </div>
+            </Box>
           );
         }
         if (typeof value === "object" && value !== null) {
           return (
-            <div key={key} className="border-border bg-accent-muted rounded-lg border p-3">
+            <Box key={key} className="border-border bg-accent-muted rounded-lg border p-3">
               <Title as="h4" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </Title>
-              <div className="text-text-secondary space-y-2 text-sm">
+              <Box className="text-text-secondary space-y-2 text-sm">
                 {Object.entries(value as Record<string, unknown>).map(([subKey, subValue]) => (
-                  <div key={subKey} className="flex flex-col">
+                  <Box key={subKey} className="flex flex-col">
                     <BodyText as="span" className="text-text-secondary font-medium">
                       {subKey.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
                     </BodyText>
                     <BodyText as="span" className="text-text-secondary">
                       {String(subValue)}
                     </BodyText>
-                  </div>
+                  </Box>
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Box>
           );
         }
         return (
-          <div key={key} className="flex flex-col space-y-1">
+          <Box key={key} className="flex flex-col space-y-1">
             <BodyText as="span" className="text-text-secondary text-sm font-medium">
               {displayKey}
             </BodyText>
             <BodyText as="span" className="text-text-secondary text-sm">
               {String(value)}
             </BodyText>
-          </div>
+          </Box>
         );
       })}
-    </div>
+    </Box>
   );
 }
 

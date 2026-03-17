@@ -53,7 +53,7 @@ export const AutoExpandingTextarea = React.forwardRef<
           textarea.style.overflowY = "hidden";
         }
       }
-    }, [value, minHeight, maxHeight]);
+    }, [value, minHeight, maxHeight, textareaRef]);
 
     // Handle keyboard shortcuts
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -89,6 +89,7 @@ export const AutoExpandingTextarea = React.forwardRef<
     };
 
     return (
+      // eslint-disable-next-line silverkey/no-primitive-components -- AutoExpandingTextarea is the textarea primitive implementation
       <textarea
         ref={textareaRef}
         value={value}

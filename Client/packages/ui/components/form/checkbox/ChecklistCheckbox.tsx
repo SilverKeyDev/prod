@@ -67,7 +67,6 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`mt-0.5 flex h-5 w-5 flex-shrink-0 flex-row items-center justify-center rounded border ${HOVER_BG_CLASSES} lg:h-6 lg:w-6 ${disabled ? "border-border bg-disabled cursor-not-allowed" : checked ? "border-primary bg-primary cursor-pointer" : "border-border-input cursor-pointer"}`}
         onClick={handleToggle}
         onKeyDown={(e) => {

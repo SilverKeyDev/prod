@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import Dropdown from "packages/ui/components/form/Dropdown";
+import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
@@ -43,23 +44,23 @@ const TodoList: React.FC<TodoListProps> = ({
   };
   return (
     <Card className="h-full">
-      <div className="mb-4 flex items-center justify-between">
+      <Box className="mb-4 flex items-center justify-between">
         <Title as="h2" size="sm" className="text-text-primary">
           Today's To-Do
         </Title>
-      </div>
+      </Box>
 
       {/* Todo List */}
-      <div className="max-h-96 space-y-2 overflow-y-auto">
+      <Box className="max-h-96 space-y-2 overflow-y-auto">
         {sortedTodos.length === 0 ? (
-          <div className="py-8 text-center">
+          <Box className="py-8 text-center">
             <BodyText as="p" size="sm" className="text-text-secondary">
               No todos for today
             </BodyText>
-          </div>
+          </Box>
         ) : (
           sortedTodos.map((todo) => (
-            <div
+            <Box
               key={todo.id}
               className="border-border hover:bg-accent-muted bg-background-surface flex items-start gap-3 rounded-lg border p-3 transition-colors"
             >
@@ -78,7 +79,7 @@ const TodoList: React.FC<TodoListProps> = ({
               >
                 {todo.completed && <Icon name="check" className="h-3 w-3 sm:h-4 sm:w-4" />}
               </Button>
-              <div className="min-w-0 flex-1">
+              <Box className="min-w-0 flex-1">
                 <BodyText
                   as="p"
                   size="sm"
@@ -86,9 +87,9 @@ const TodoList: React.FC<TodoListProps> = ({
                 >
                   {todo.title}
                 </BodyText>
-                <div className="mt-1 flex items-center gap-2">
+                <Box className="mt-1 flex items-center gap-2">
                   {canEdit && onUpdatePriority && !todo.completed ? (
-                    <div className="w-24">
+                    <Box className="w-24">
                       <Dropdown<TodoPriority>
                         options={[
                           { value: "low", label: "Low" },
@@ -102,7 +103,7 @@ const TodoList: React.FC<TodoListProps> = ({
                         size="sm"
                         className="w-full"
                       />
-                    </div>
+                    </Box>
                   ) : (
                     <BodyText
                       as="span"
@@ -115,16 +116,16 @@ const TodoList: React.FC<TodoListProps> = ({
                   <BodyText as="span" size="xs" className="text-text-disabled">
                     {dateParseISO(todo.due_date).toDate().toLocaleDateString()}
                   </BodyText>
-                </div>
-              </div>
-            </div>
+                </Box>
+              </Box>
+            </Box>
           ))
         )}
-      </div>
+      </Box>
 
       {/* Add Todo Form */}
       {!canEdit ? null : showAddForm ? (
-        <div className="border-border bg-accent-muted mt-4 rounded-lg border p-3">
+        <Box className="border-border bg-accent-muted mt-4 rounded-lg border p-3">
           <Input
             type="text"
             value={newTodoTitle}
@@ -143,7 +144,7 @@ const TodoList: React.FC<TodoListProps> = ({
             // eslint-disable-next-line jsx-a11y/no-autofocus -- Focus for quick add when panel opens
             autoFocus
           />
-          <div className="mb-2">
+          <Box className="mb-2">
             <Dropdown<TodoPriority>
               options={[
                 { value: "low", label: "Low" },
@@ -158,8 +159,8 @@ const TodoList: React.FC<TodoListProps> = ({
               size="sm"
               className="w-full"
             />
-          </div>
-          <div className="flex gap-2">
+          </Box>
+          <Box className="flex gap-2">
             <Button variant="primary" size="sm" onClick={handleAddTodo} className="flex-1">
               Add
             </Button>
@@ -174,8 +175,8 @@ const TodoList: React.FC<TodoListProps> = ({
             >
               Cancel
             </CancelButton>
-          </div>
-        </div>
+          </Box>
+        </Box>
       ) : (
         <Button
           variant="outline"

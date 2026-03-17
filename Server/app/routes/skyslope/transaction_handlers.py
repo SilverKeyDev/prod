@@ -266,7 +266,9 @@ def link_agreement_to_checklist_item(user, transaction_id: str, section: str, it
 
         transaction = _get_or_create_transaction(transaction_id, str(user.id))
         agent_id = _get_agent_id_for_transaction(transaction, str(user.id))
-        buyer_id = str(transaction.buyer_id) if transaction and transaction.buyer_id else str(user.id)
+        buyer_id = (
+            str(transaction.buyer_id) if transaction and transaction.buyer_id else str(user.id)
+        )
 
         agreement = Agreement(
             title=document.filename,

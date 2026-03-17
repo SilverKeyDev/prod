@@ -3,6 +3,7 @@ import React, { forwardRef } from "react";
 import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
 
+import { Box } from "packages/ui/components/primitives";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 
 export type DateInputProps = {
@@ -67,7 +68,7 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       .join(" ");
 
     return (
-      <div className="w-full">
+      <Box className="w-full">
         {label != null && (
           <Label htmlFor={id} required={required} className="mb-2">
             {label}
@@ -91,7 +92,7 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
             {error}
           </BodyText>
         )}
-      </div>
+      </Box>
     );
   }
 );

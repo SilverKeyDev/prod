@@ -4,6 +4,7 @@ import { getEnv } from "packages/config";
 import { useWhyRender } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/schemas/property";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
 import type { SearchResult } from "@/features/search/types";
@@ -107,7 +108,7 @@ function PropertyCardImageSection({
   const placeholder = "/api/placeholder/400/300";
   const heightClass = cardType === "searchpage" ? "h-24 sm:h-28 md:h-32" : "h-32 sm:h-40 md:h-48";
   return (
-    <div className={`relative overflow-hidden ${heightClass}`}>
+    <Box className={`relative overflow-hidden ${heightClass}`}>
       <StyledImage
         src={imageUrl}
         alt={address}
@@ -116,17 +117,17 @@ function PropertyCardImageSection({
         className="h-full w-full"
       />
       {status && (
-        <div className="absolute left-3 top-3 sm:left-4 sm:top-4">
+        <Box className="absolute left-3 top-3 sm:left-4 sm:top-4">
           <BodyText
             as="span"
             className={`rounded-full px-2 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm ${status.className}`}
           >
             {status.text}
           </BodyText>
-        </div>
+        </Box>
       )}
       {pricePosition !== "below-address" && (
-        <div
+        <Box
           className={`absolute top-3 sm:top-4 ${
             pricePosition === "top-left" ? "left-3 sm:left-4" : "right-3 sm:right-4"
           } border-border bg-primary-muted rounded-full border px-2 py-1 backdrop-blur-sm sm:px-3 sm:py-1.5`}
@@ -134,11 +135,11 @@ function PropertyCardImageSection({
           <BodyText as="span" className="text-primary text-xs font-medium sm:text-sm">
             {formatPrice(price)}
           </BodyText>
-        </div>
+        </Box>
       )}
       {(topContent || (showNotInterested && property)) && (
-        <div className="pointer-events-none absolute inset-0">
-          <div className="pointer-events-auto relative h-full w-full">
+        <Box className="pointer-events-none absolute inset-0">
+          <Box className="pointer-events-auto relative h-full w-full">
             {showNotInterested && property && (
               <CardNotInterested
                 property={property}
@@ -148,10 +149,10 @@ function PropertyCardImageSection({
               />
             )}
             {topContent}
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
 
@@ -181,7 +182,7 @@ function PropertyCardBody(props: PropertyCardBodyProps) {
   const addressClassName = props.pricePosition === "below-address" ? "mb-0 w-full" : "mb-1 w-full";
   return (
     <>
-      <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
+      <Box className="space-y-2 p-3 sm:space-y-3 sm:p-4">
         {props.hideImage && (
           <PropertyCardHideImageHeader
             price={props.price}
@@ -209,8 +210,8 @@ function PropertyCardBody(props: PropertyCardBodyProps) {
           hideSquareFootage={props.hideSquareFootage}
           isOnMap={props.isOnMap}
         />
-        {props.bottomContent && <div>{props.bottomContent}</div>}
-      </div>
+        {props.bottomContent && <Box>{props.bottomContent}</Box>}
+      </Box>
       {props.showTrianglePointer && <PropertyCardTrianglePointer />}
     </>
   );
@@ -228,7 +229,7 @@ function PropertyCardReasonView({
   onUndo: () => Promise<void>;
 }) {
   return (
-    <div
+    <Box
       role="button"
       tabIndex={0}
       onClick={(e) => e.stopPropagation()}
@@ -243,7 +244,7 @@ function PropertyCardReasonView({
         onUndo={onUndo}
         cardType={cardType}
       />
-    </div>
+    </Box>
   );
 }
 

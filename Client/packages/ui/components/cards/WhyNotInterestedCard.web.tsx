@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/schemas/property";
+import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Input, Label, Textarea, Title } from "@/components/ui";
@@ -75,15 +76,15 @@ function WhyNotInterestedImageSection({
 }) {
   const heightClass = cardType === "searchpage" ? "h-24 sm:h-28 md:h-32" : "h-32 sm:h-40 md:h-48";
   return (
-    <div className={`relative overflow-hidden ${heightClass}`}>
+    <Box className={`relative overflow-hidden ${heightClass}`}>
       <StyledImage
         src={propertyImage}
         alt={propertyAddress || "Property"}
         variant="professional"
         className="h-full w-full"
       />
-      <div className="pointer-events-none absolute inset-0">
-        <div className="pointer-events-auto relative h-full w-full">
+      <Box className="pointer-events-none absolute inset-0">
+        <Box className="pointer-events-auto relative h-full w-full">
           <Button
             type="button"
             variant="ghost"
@@ -98,9 +99,9 @@ function WhyNotInterestedImageSection({
           >
             {t("why_not.back")}
           </Button>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 
@@ -118,7 +119,7 @@ function WhyNotInterestedReasonList({
   disabled: boolean;
 }) {
   return (
-    <div className="mb-4 space-y-2">
+    <Box className="mb-4 space-y-2">
       {availableReasons.map((reason) => (
         <Label
           key={reason.id}
@@ -144,7 +145,7 @@ function WhyNotInterestedReasonList({
           </BodyText>
         </Label>
       ))}
-    </div>
+    </Box>
   );
 }
 
@@ -160,7 +161,7 @@ function WhyNotInterestedCustomReason({
   t: (key: string) => string;
 }) {
   return (
-    <div className="mb-4">
+    <Box className="mb-4">
       <Label htmlFor="custom-reason" className="mb-2 block">
         {t("why_not.tell_more")}
       </Label>
@@ -173,7 +174,7 @@ function WhyNotInterestedCustomReason({
         placeholder={t("why_not.reason_placeholder")}
         className="border-border focus:border-primary disabled:bg-disabled disabled:text-text-disabled w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-neutral-400 disabled:cursor-not-allowed"
       />
-    </div>
+    </Box>
   );
 }
 
@@ -209,16 +210,16 @@ function WhyNotInterestedContentSection({
   t: (key: string) => string;
 }) {
   return (
-    <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
+    <Box className="space-y-2 p-3 sm:space-y-3 sm:p-4">
       {propertyAddress && (
-        <div className="w-full">
+        <Box className="w-full">
           <Title size="sm" as="h3" className="mb-1 line-clamp-2">
             {propertyAddress}
           </Title>
           <BodyText size="xs" muted className="mb-3">
             {t("why_not.why_not_fit")}
           </BodyText>
-        </div>
+        </Box>
       )}
       <WhyNotInterestedReasonList
         availableReasons={availableReasons}
@@ -246,7 +247,7 @@ function WhyNotInterestedContentSection({
       >
         {isSubmitting ? t("why_not.submitting") : t("why_not.confirm")}
       </Button>
-    </div>
+    </Box>
   );
 }
 

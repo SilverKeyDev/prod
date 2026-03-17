@@ -3,6 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 import {
@@ -29,10 +30,10 @@ export const PdfModalContent: React.FC<PdfModalContentProps> = ({
 }) => {
   const { t } = useLocalization();
   return (
-    <div className="relative flex-1 overflow-hidden" style={getPdfViewerStyles()}>
+    <Box className="relative flex-1 overflow-hidden" style={getPdfViewerStyles()}>
       {isMobile && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 p-6 text-center sm:hidden">
-          <div className="mb-4">
+        <Box className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 p-6 text-center sm:hidden">
+          <Box className="mb-4">
             <svg
               className="text-primary mx-auto h-16 w-16"
               fill="none"
@@ -46,7 +47,7 @@ export const PdfModalContent: React.FC<PdfModalContentProps> = ({
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-          </div>
+          </Box>
           <Title as="h3" size="lg" className="mb-2 font-semibold text-gray-900">
             {t("pdf.viewer_title")}
           </Title>
@@ -64,7 +65,7 @@ export const PdfModalContent: React.FC<PdfModalContentProps> = ({
               className="h-5 w-5 transition-transform duration-200 group-hover:-translate-y-1 group-hover:translate-x-1"
             />
           </Button>
-        </div>
+        </Box>
       )}
       <iframe
         src={optimizedPdfUrl || ""}
@@ -76,6 +77,6 @@ export const PdfModalContent: React.FC<PdfModalContentProps> = ({
         onLoad={onLoad}
         onError={onError}
       />
-    </div>
+    </Box>
   );
 };

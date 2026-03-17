@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { AuthMethod } from "packages/features/homeauth/types";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 interface AuthMethodIndicatorProps {
@@ -64,23 +65,23 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
   const authInfo = getAuthMethodInfo();
   if (!showDetails) {
     return (
-      <div
+      <Box
         className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${authInfo.bgColor} ${authInfo.color} ${className}`}
       >
         {authInfo.icon}
         <BodyText as="span" className="font-medium">
           {t(authInfo.labelKey)}
         </BodyText>
-      </div>
+      </Box>
     );
   }
   return (
-    <div
+    <Box
       className={`rounded-lg border p-4 ${authInfo.bgColor} ${authInfo.borderColor} ${className}`}
     >
-      <div className="flex items-start gap-3">
-        <div className={`mt-0.5 ${authInfo.color}`}>{authInfo.icon}</div>
-        <div className="flex-1">
+      <Box className="flex items-start gap-3">
+        <Box className={`mt-0.5 ${authInfo.color}`}>{authInfo.icon}</Box>
+        <Box className="flex-1">
           <Title as="h3" size="sm" className={`font-semibold ${authInfo.color}`}>
             {t(authInfo.labelKey)}
           </Title>
@@ -107,9 +108,9 @@ const AuthMethodIndicator: React.FC<AuthMethodIndicatorProps> = ({
               {t("auth.benefit.both_display")}
             </BodyText>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 export default AuthMethodIndicator;

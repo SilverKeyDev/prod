@@ -1,8 +1,10 @@
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { Button } from "@/components/ui";
+
 export function MapControls(props: {
   page: number;
   total: number;
@@ -23,7 +25,7 @@ export function MapControls(props: {
   return (
     <>
       {/* Zoom Controls */}
-      <div className="absolute bottom-[calc(3rem+4rem+env(safe-area-inset-bottom))] left-8 z-10 flex flex-row gap-1 md:bottom-12">
+      <Box className="absolute bottom-[calc(3rem+4rem+env(safe-area-inset-bottom))] left-8 z-10 flex flex-row gap-1 md:bottom-12">
         <Button
           type="button"
           onClick={onZoomOut}
@@ -46,11 +48,11 @@ export function MapControls(props: {
         >
           {t("search.zoom_in_symbol")}
         </Button>
-      </div>
+      </Box>
 
       {/* Property Navigation Controls (aligned and same size as zoom) */}
       {showNavigation && (
-        <div className="absolute bottom-[calc(3rem+4rem+env(safe-area-inset-bottom))] right-8 z-10 flex flex-row gap-1 md:bottom-12">
+        <Box className="absolute bottom-[calc(3rem+4rem+env(safe-area-inset-bottom))] right-8 z-10 flex flex-row gap-1 md:bottom-12">
           <Button
             type="button"
             onClick={onPrev}
@@ -62,9 +64,9 @@ export function MapControls(props: {
           >
             <Icon name="chevron-left" className="h-3 w-3 lg:h-3 lg:w-3" />
           </Button>
-          <div className="border-border bg-background-surface text-text-secondary flex h-8 w-auto items-center justify-center rounded-lg border px-2 text-xs font-medium shadow-md lg:h-10 lg:px-2 lg:text-xs">
+          <Box className="border-border bg-background-surface text-text-secondary flex h-8 w-auto items-center justify-center rounded-lg border px-2 text-xs font-medium shadow-md lg:h-10 lg:px-2 lg:text-xs">
             {t("search.page_of", { current: currentItem, total })}
-          </div>
+          </Box>
           <Button
             type="button"
             onClick={onNext}
@@ -76,7 +78,7 @@ export function MapControls(props: {
           >
             <Icon name="chevron-right" className="h-3 w-3 lg:h-3 lg:w-3" />
           </Button>
-        </div>
+        </Box>
       )}
     </>
   );

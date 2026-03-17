@@ -1,5 +1,7 @@
 import React, { forwardRef } from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 export type RegionProps = {
   /**
    * Unified accessibility label. Maps to aria-label (web) and accessibilityLabel (RN).
@@ -13,7 +15,7 @@ export type RegionProps = {
  */
 const Region = forwardRef<HTMLDivElement, RegionProps>(
   ({ label, role = "region", ...props }, ref) => {
-    return <div ref={ref} role={role} aria-label={label} {...props} />;
+    return <Box ref={ref} role={role} aria-label={label} {...props} />;
   }
 );
 Region.displayName = "Region";

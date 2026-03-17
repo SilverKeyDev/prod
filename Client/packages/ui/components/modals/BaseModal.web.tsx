@@ -1,8 +1,11 @@
 import React, { useEffect } from "react";
 
+import { Box } from "packages/ui/components/primitives";
 import { getDocument } from "packages/utils/platform";
 
-import { CloseButton, Portal, Title } from "@/components/ui";
+import CloseButton from "../button/CloseButton";
+import { Portal } from "../portal";
+import Title from "../text/Title";
 
 import type { BaseModalProps } from "./BaseModalTypes";
 
@@ -32,15 +35,15 @@ function BaseModalPanel({
   contentBackground,
 }: BaseModalPanelProps) {
   return (
-    <div
+    <Box
       className={`relative flex min-h-0 w-full max-w-full transform flex-col overflow-hidden rounded-lg text-left shadow-xl transition-all sm:rounded-xl ${contentBackground === "off-white" ? "bg-background-base" : "bg-background-base"} ${SIZE_STYLES[size ?? "md"]} ${className ?? ""}`}
       style={{ maxHeight: "min(90vh, 90dvh)" }}
     >
       {(title ?? headerContent ?? showCloseButton) && (
-        <div
+        <Box
           className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden p-3 sm:p-4 md:p-6 ${showHeaderBorder ? "border-border border-b" : ""}`}
         >
-          <div
+          <Box
             className="scrollbar-hide min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden"
             style={{ maxHeight: "min(200px, 30vh)" }}
           >
@@ -54,7 +57,7 @@ function BaseModalPanel({
                   {title}
                 </Title>
               ))}
-          </div>
+          </Box>
           {showCloseButton && (
             <CloseButton
               variant="ghost"
@@ -64,15 +67,15 @@ function BaseModalPanel({
               label="Close modal"
             />
           )}
-        </div>
+        </Box>
       )}
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">{children}</div>
+      <Box className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">{children}</Box>
       {footerContent && (
-        <div className="border-border flex-shrink-0 border-t p-3 sm:p-4 md:p-6">
+        <Box className="border-border flex-shrink-0 border-t p-3 sm:p-4 md:p-6">
           {footerContent}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
 
@@ -88,24 +91,24 @@ function BaseModalContent(p: BaseModalContentProps) {
     }
   };
   return (
-    <div
+    <Box
       className="fixed inset-0 overflow-y-auto overflow-x-hidden overscroll-contain"
       style={{ zIndex }}
     >
-      <div
+      <Box
         role="button"
         tabIndex={0}
         className="flex min-h-[100dvh] items-center justify-center p-2 sm:p-4 md:p-6"
         onClick={handleBackdrop}
         onKeyDown={handleKeyDown}
       >
-        <div
+        <Box
           className={`bg-overlay-backdrop fixed inset-0 transition-opacity ${backdropClassName}`}
           aria-hidden="true"
         />
         <BaseModalPanel {...rest} onClose={onClose} />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 

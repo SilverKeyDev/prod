@@ -1,16 +1,18 @@
+import { Box } from "packages/ui/components/primitives";
+
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function WeekDayHeaders() {
   return (
-    <div className="mb-2 grid grid-cols-7 gap-1">
+    <Box className="mb-2 grid grid-cols-7 gap-1">
       {WEEK_DAYS.map((day) => (
-        <div
+        <Box
           key={day}
           className="text-text-secondary py-2 text-center text-xs font-semibold sm:text-sm"
         >
           {day}
-        </div>
+        </Box>
       ))}
-    </div>
+    </Box>
   );
 }

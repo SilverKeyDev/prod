@@ -144,7 +144,6 @@ export function SavedPageLayout({
         onClose={closePdfModal}
       />
       <Box
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`flex flex-col ${isMobile ? "mt-0" : "mt-0 lg:mt-0"} gap-4 ${viewType === "homes" && selectedHomesData.length >= 1 ? "mb-36 sm:mb-40" : "mb-responsive-lg"}`}
       >
         <Box className="w-full">

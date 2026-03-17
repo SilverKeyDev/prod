@@ -14,6 +14,7 @@ import {
 } from "packages/features/homeauth/utils/signupPayload";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { useNavigation } from "packages/navigation";
+import { Box } from "packages/ui/components/primitives";
 import { getDocument } from "packages/utils/platform";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 
@@ -409,12 +410,12 @@ export default function SignupPage(_props: SignupPageProps) {
           }}
         />
 
-        <div className="space-y-3">
+        <Box className="space-y-3">
           <PasswordValidation
             password={formData.password}
             showValidation={formData.password.length > 0}
           />
-        </div>
+        </Box>
 
         <Button
           type="submit"
@@ -431,7 +432,7 @@ export default function SignupPage(_props: SignupPageProps) {
 
         <GoogleSignInButton text="Sign up with Google" />
 
-        <div className="text-signup-mid text-center">
+        <Box className="text-signup-mid text-center">
           Already have an account?
           <AuthLink
             to="/login"
@@ -439,7 +440,7 @@ export default function SignupPage(_props: SignupPageProps) {
           >
             Sign in
           </AuthLink>
-        </div>
+        </Box>
       </form>
     </AuthPageLayout>
   );

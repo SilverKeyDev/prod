@@ -1,6 +1,6 @@
 """Create calendar events when checklist items are checked off (relative-day schedule)."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from app import db
 from app.models import CalendarEvent

@@ -21,13 +21,11 @@ function ContactInfoBlock({ label, value }: { label: string; value: React.ReactN
       {label === "Email" ? (
         <Icon
           name="mail"
-          // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
           className={`${ICON_SIZE_CLASSES.sm} text-foreground mt-1 flex-shrink-0`}
         />
       ) : (
         <Icon
           name="phone"
-          // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
           className={`${ICON_SIZE_CLASSES.sm} text-foreground mt-1 flex-shrink-0`}
         />
       )}

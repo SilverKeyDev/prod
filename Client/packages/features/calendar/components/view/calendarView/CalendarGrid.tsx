@@ -1,3 +1,5 @@
+import { Box } from "packages/ui/components/primitives";
+
 import { DayCell } from "./DayCell";
 import type { GridDay } from "./types";
 
@@ -15,7 +17,7 @@ export function CalendarGrid({
   showAvailability = false,
 }: CalendarGridProps) {
   return (
-    <div className="grid min-w-0 grid-cols-7 gap-1">
+    <Box className="grid min-w-0 grid-cols-7 gap-1">
       {calendarGrid.map((day, index) => (
         <DayCell
           key={`${day.date.toISOString().split("T")[0]}-${index}`}
@@ -26,6 +28,6 @@ export function CalendarGrid({
           showAvailability={showAvailability}
         />
       ))}
-    </div>
+    </Box>
   );
 }

@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import BodyText from "./BodyText";
 
 export type PropertyStatSize = "sm" | "md";
@@ -47,11 +49,11 @@ export default function PropertyStat({
         })
       : null;
   return (
-    <div className={`flex flex-shrink-0 items-center ${styles.container} ${className}`.trim()}>
+    <Box className={`flex flex-shrink-0 items-center ${styles.container} ${className}`.trim()}>
       {iconWithClass}
       <BodyText as="span" className={styles.text}>
         {children}
       </BodyText>
-    </div>
+    </Box>
   );
 }

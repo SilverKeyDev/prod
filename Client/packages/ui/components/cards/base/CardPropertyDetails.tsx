@@ -3,6 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { PropertyStat } from "@/components/ui";
 export type CardPropertyDetailsProps = {
@@ -70,9 +71,9 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
   if (bedrooms === undefined && bathrooms === undefined && sqft === undefined && !lotSize)
     return null;
   return (
-    <div className={containerClasses}>
+    <Box className={containerClasses}>
       {/* First row: bedrooms, bathrooms, and optionally sqft */}
-      <div className="flex flex-nowrap items-center justify-center gap-1 sm:gap-1.5">
+      <Box className="flex flex-nowrap items-center justify-center gap-1 sm:gap-1.5">
         {bedrooms !== undefined && Number(bedrooms) > 0 && (
           <PropertyStat icon={showIcons ? <Icon name="bed" /> : undefined} size={statSize}>
             {variant === "modal"
@@ -96,17 +97,17 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
               : `${Math.round(Number(sqft)).toLocaleString()} ${t("house.sqft")}`}
           </PropertyStat>
         )}
-      </div>
+      </Box>
 
       {/* Second row: square footage (only if moved here for spacing) */}
       {shouldMoveSqftToSecondRow && (
-        <div className="flex flex-shrink-0 items-center justify-center">
+        <Box className="flex flex-shrink-0 items-center justify-center">
           <PropertyStat icon={showIcons ? <Icon name="square" /> : undefined} size={statSize}>
             {sqft === undefined || Number(sqft) <= 0
               ? `${t("house.na")} ${t("house.sqft")}`
               : `${Math.round(Number(sqft)).toLocaleString()} ${t("house.sqft")}`}
           </PropertyStat>
-        </div>
+        </Box>
       )}
 
       {variant === "modal" && hasSqft && (
@@ -118,7 +119,7 @@ const CardPropertyDetails: React.FC<CardPropertyDetailsProps> = ({
           {t("house.sqft")}
         </PropertyStat>
       )}
-    </div>
+    </Box>
   );
 };
 export default CardPropertyDetails;

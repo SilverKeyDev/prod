@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { spacing } from "packages/design-tokens";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, CancelButton, CloseButton, Portal, Title } from "@/components/ui";
 type ValidationWarningProps = {
@@ -28,13 +29,13 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
     bottom: spacing(0),
   };
   const dialogContent = (
-    <div className="fixed inset-0 z-50 overflow-y-auto" style={insetZero}>
-      <div
+    <Box className="fixed inset-0 z-50 overflow-y-auto" style={insetZero}>
+      <Box
         className="space-responsive-md flex min-h-screen items-center justify-center"
         style={{ width: "100vw", height: "100vh" }}
       >
         {/* Backdrop */}
-        <div
+        <Box
           role="button"
           tabIndex={0}
           className="bg-overlay-backdrop fixed inset-0 transition-opacity"
@@ -49,7 +50,7 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
         />
 
         {/* Dialog */}
-        <div className="space-responsive-lg relative z-50 mx-auto w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all">
+        <Box className="space-responsive-lg relative z-50 mx-auto w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all">
           {/* Close button */}
           <CloseButton
             onClick={onClose}
@@ -58,12 +59,12 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
           />
 
           {/* Warning Icon */}
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+          <Box className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
             <Icon name="alert-circle" className="h-6 w-6 text-amber-600" />
-          </div>
+          </Box>
 
           {/* Content */}
-          <div className="mb-6 text-center">
+          <Box className="mb-6 text-center">
             <Title
               as="h3"
               size="lg"
@@ -74,11 +75,11 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
             <BodyText as="p" size="sm" className="text-responsive-sm text-gray-600">
               {t("validation.complete_required_description")}
             </BodyText>
-          </div>
+          </Box>
 
           {/* Missing Fields */}
           {missingFields.length > 0 && (
-            <div className="mb-6">
+            <Box className="mb-6">
               <Title
                 as="h4"
                 size="sm"
@@ -86,22 +87,22 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
               >
                 {t("validation.required_fields_label")}
               </Title>
-              <div className="max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <Box className="max-h-60 overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 p-4">
                 <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {missingFields.map((field, index) => (
                     <li key={index} className="flex items-center gap-2">
-                      <div className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" />
+                      <Box className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" />
                       {field}
                     </li>
                   ))}
                 </ul>
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
 
           {/* Errors */}
           {errors.length > 0 && (
-            <div className="mb-6">
+            <Box className="mb-6">
               <Title
                 as="h4"
                 size="sm"
@@ -109,28 +110,28 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
               >
                 {t("validation.issues_to_fix_label")}
               </Title>
-              <div className="max-h-40 overflow-y-auto rounded-lg border border-red-200 bg-red-50 p-4">
+              <Box className="max-h-40 overflow-y-auto rounded-lg border border-red-200 bg-red-50 p-4">
                 <ul className="space-y-2">
                   {errors.map((error, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <div className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-red-500" />
+                      <Box className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-red-500" />
                       {error}
                     </li>
                   ))}
                 </ul>
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
 
           {/* Actions */}
-          <div className="flex flex-col justify-center gap-3 sm:flex-row">
+          <Box className="flex flex-col justify-center gap-3 sm:flex-row">
             <CancelButton onClick={onClose} size="md" className="min-w-24">
               {t("validation.review_information")}
             </CancelButton>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
   return <Portal>{dialogContent}</Portal>;
 };

@@ -76,6 +76,7 @@ export default function CreateAgreementModal({
       closeOnBackdropClick={!isCreatingAgreement}
     >
       {/* maxHeight and paddingBottom: layout constants; RN ScrollView needs numeric px */}
+      {/* eslint-disable-next-line silverkey/no-raw-spacing -- RN ScrollView contentContainerStyle requires numeric px */}
       <ScrollView style={{ maxHeight: 480 }} contentContainerStyle={{ paddingBottom: 16 }}>
         <Box className="gap-4">
           {/* Title */}
@@ -113,7 +114,6 @@ export default function CreateAgreementModal({
                     className="rounded-full px-3 py-2"
                   >
                     <Text
-                      // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                       className={`text-xs font-medium ${isSelected ? "text-white" : "text-text-primary"}`}
                     >
                       {getAgreementTypeLabel(type)}
@@ -173,7 +173,6 @@ export default function CreateAgreementModal({
                       className="mb-1 justify-start"
                     >
                       <Text
-                        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
                         className={`text-xs ${client.id === selectedBuyerId ? "text-white" : "text-text-primary"}`}
                       >
                         {client.name} — {client.email}

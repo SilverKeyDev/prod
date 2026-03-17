@@ -6,6 +6,7 @@ import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import { Textarea } from "@/components/form/FormField";
@@ -102,19 +103,19 @@ export default function CalendarEventRequestModal({
       isOpen={isOpen}
       onClose={onClose}
       headerContent={
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           <Icon name="calendar" className="text-text-primary h-5 w-5 flex-shrink-0" />
           <Title as="h3" size="lg" className="text-text-primary truncate font-medium sm:text-lg">
             Request Calendar Event
           </Title>
-        </div>
+        </Box>
       }
       size="md"
     >
-      <div className="space-y-4">
+      <Box className="space-y-4">
         {/* Client Selection (for agents) */}
         {isAgent && (
-          <div>
+          <Box>
             <Label>Send to client</Label>
             {isLoadingClients ? (
               <BodyText as="p" size="sm" className="text-text-secondary">
@@ -125,7 +126,7 @@ export default function CalendarEventRequestModal({
                 No clients available.
               </BodyText>
             ) : (
-              <div className="mt-2 max-h-48 space-y-2 overflow-y-auto">
+              <Box className="mt-2 max-h-48 space-y-2 overflow-y-auto">
                 {clients.map((client) => (
                   <Button
                     key={client.id}
@@ -139,31 +140,31 @@ export default function CalendarEventRequestModal({
                         : "border-border hover:border-border hover:bg-primary-muted"
                     }`}
                   >
-                    <div className="flex w-full items-center gap-2">
-                      <div className="bg-accent-muted flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
+                    <Box className="flex w-full items-center gap-2">
+                      <Box className="bg-accent-muted flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
                         <Icon name="calendar" className="text-text-primary h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
+                      </Box>
+                      <Box className="min-w-0 flex-1">
                         <BodyText as="p" size="sm" className="text-text-primary font-medium">
                           {client.name}
                         </BodyText>
                         <BodyText as="p" size="xs" className="text-text-secondary">
                           {client.email}
                         </BodyText>
-                      </div>
+                      </Box>
                       {selectedClientId === client.id && (
-                        <div className="bg-primary h-2 w-2 rounded-full" />
+                        <Box className="bg-primary h-2 w-2 rounded-full" />
                       )}
-                    </div>
+                    </Box>
                   </Button>
                 ))}
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
         )}
 
         {/* Event Title */}
-        <div>
+        <Box>
           <Label htmlFor="event-title" required>
             Event Title
           </Label>
@@ -174,10 +175,10 @@ export default function CalendarEventRequestModal({
             placeholder="e.g., Property Viewing, Home Inspection"
             className="mt-1"
           />
-        </div>
+        </Box>
 
         {/* Date and Time */}
-        <div className="grid grid-cols-2 gap-3">
+        <Box className="grid grid-cols-2 gap-3">
           <DateInput
             id="event-date"
             label="Date"
@@ -193,10 +194,10 @@ export default function CalendarEventRequestModal({
             value={eventTime}
             onChange={(e) => setEventTime(e.target.value)}
           />
-        </div>
+        </Box>
 
         {/* Event Description */}
-        <div>
+        <Box>
           <Label htmlFor="event-description">Description (optional)</Label>
           <Textarea
             id="event-description"
@@ -206,10 +207,10 @@ export default function CalendarEventRequestModal({
             rows={3}
             className="mt-1"
           />
-        </div>
+        </Box>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-2">
+        <Box className="flex gap-3 pt-2">
           <CancelButton onClick={onClose} className="flex-1" disabled={isSending}>
             Cancel
           </CancelButton>
@@ -222,8 +223,8 @@ export default function CalendarEventRequestModal({
           >
             {isSending ? "Sending..." : "Send Request"}
           </Button>
-        </div>
-      </div>
+        </Box>
+      </Box>
     </BaseModal>
   );
 }

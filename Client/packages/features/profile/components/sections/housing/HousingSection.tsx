@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import Card from "@/components/layout/Card.web";
 import { Title } from "@/components/ui";
 import { type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
@@ -8,7 +10,6 @@ import { HousingBasicRows } from "./HousingBasicRows";
 import { HousingDropdownRows } from "./HousingDropdownRows";
 import { HousingRangeRows } from "./HousingRangeRows";
 import { HousingTagRows } from "./HousingTagRows";
-
 type HousingSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
@@ -56,6 +57,6 @@ export default function HousingSection({
   return wrapInCard ? (
     <Card className="space-y-6">{content}</Card>
   ) : (
-    <div className="space-y-6">{content}</div>
+    <Box className="space-y-6">{content}</Box>
   );
 }

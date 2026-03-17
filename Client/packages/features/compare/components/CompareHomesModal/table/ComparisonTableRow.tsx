@@ -3,6 +3,7 @@ import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
 } from "packages/features/compare/utils/types";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
@@ -75,13 +76,13 @@ export function ComparisonTableRow({
         style={{ width: "25%" }}
       >
         {isSectionHeader ? (
-          <div className="flex items-center gap-2">
+          <Box className="flex items-center gap-2">
             {field.sectionKey &&
               renderSectionIcon(field.sectionKey, "h-4 w-4 sm:h-5 sm:w-5 text-text-secondary")}
             <BodyText as="span" className="text-text-secondary">
               {sectionTitle}
             </BodyText>
-          </div>
+          </Box>
         ) : (
           <BodyText as="span">{field.label}</BodyText>
         )}
@@ -99,13 +100,13 @@ export function ComparisonTableRow({
             }`}
           >
             {isSectionHeader ? (
-              <div />
+              <Box />
             ) : (
-              <div>
+              <Box>
                 {isLoading && value === "—" ? (
-                  <div className="flex items-center justify-center">
+                  <Box className="flex items-center justify-center">
                     <KeyTurnLoader message="" variant="gray" />
-                  </div>
+                  </Box>
                 ) : (
                   <BodyText
                     as="span"
@@ -114,7 +115,7 @@ export function ComparisonTableRow({
                     {value}
                   </BodyText>
                 )}
-              </div>
+              </Box>
             )}
           </td>
         );

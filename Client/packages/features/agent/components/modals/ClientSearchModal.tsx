@@ -5,6 +5,7 @@ import { Icon } from "@ui/icons";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/primitives";
 
 import {
   BodyText,
@@ -57,19 +58,19 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
   };
   if (!isOpen) return null;
   return (
-    <div className="bg-overlay-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="bg-background-surface relative w-full max-w-2xl rounded-xl shadow-lg">
+    <Box className="bg-overlay-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+      <Box className="bg-background-surface relative w-full max-w-2xl rounded-xl shadow-lg">
         {/* Header */}
-        <div className="border-border flex items-center justify-between border-b p-4">
+        <Box className="border-border flex items-center justify-between border-b p-4">
           <Title as="h2" size="lg" className="text-text-primary font-medium">
             {config.searchModal.title}
           </Title>
           <CloseButton onClick={onClose} size="sm" label="Close" />
-        </div>
+        </Box>
 
         {/* Search Input */}
-        <div className="border-border border-b p-4">
-          <div className="relative">
+        <Box className="border-border border-b p-4">
+          <Box className="relative">
             <Icon
               name="search"
               className="text-text-secondary absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2"
@@ -82,23 +83,23 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
               placeholder={config.searchModal.searchPlaceholder}
               className="border-border focus:border-primary focus:ring-accent-muted bg-background-surface w-full rounded-lg border px-10 py-2.5 text-base focus:outline-none focus:ring-2"
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {/* Results */}
-        <div className="max-h-96 overflow-y-auto p-4">
+        <Box className="max-h-96 overflow-y-auto p-4">
           {searchQuery.length < 2 ? null : isLoading ? (
-            <div className="py-8 text-center">
+            <Box className="py-8 text-center">
               <KeyTurnLoader message={config.searchModal.searchingMessage} />
-            </div>
+            </Box>
           ) : clients.length === 0 ? (
-            <div className="text-text-secondary py-8 text-center text-base font-medium">
+            <Box className="text-text-secondary py-8 text-center text-base font-medium">
               {config.searchModal.noResultsMessage} "{searchQuery}"
-            </div>
+            </Box>
           ) : (
-            <div className="space-y-2">
+            <Box className="space-y-2">
               {clients.map((client) => (
-                <div
+                <Box
                   key={client.id}
                   className={`rounded-lg border p-3 transition-colors ${
                     selectedClientId === client.id
@@ -107,20 +108,20 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                   }`}
                 >
                   {selectedClientId === client.id ? (
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <div className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+                    <Box className="space-y-3">
+                      <Box className="flex items-start gap-3">
+                        <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
                           <Icon name="user" className="text-text-primary h-5 w-5" />
-                        </div>
-                        <div className="flex-1">
+                        </Box>
+                        <Box className="flex-1">
                           <Title as="h3" size="md" className="text-text-primary font-semibold">
                             {client.name}
                           </Title>
                           <BodyText as="p" size="md" className="text-text-secondary font-medium">
                             {client.email}
                           </BodyText>
-                        </div>
-                      </div>
+                        </Box>
+                      </Box>
                       <Textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
@@ -128,7 +129,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                         className="border-border focus:border-primary focus:ring-accent-muted w-full rounded-lg border px-3 py-2 text-base focus:outline-none focus:ring-2"
                         rows={3}
                       />
-                      <div className="flex gap-2">
+                      <Box className="flex gap-2">
                         <Button
                           onClick={() => handleSendRequest(client.id)}
                           disabled={isCreatingRequest}
@@ -149,8 +150,8 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                         >
                           Cancel
                         </CancelButton>
-                      </div>
-                    </div>
+                      </Box>
+                    </Box>
                   ) : (
                     <Button
                       type="button"
@@ -159,10 +160,10 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                       onClick={() => setSelectedClientId(client.id)}
                       className="flex h-auto min-h-0 w-full items-start justify-start gap-3 py-0 text-left"
                     >
-                      <div className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+                      <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
                         <Icon name="user" className="text-text-primary h-5 w-5" />
-                      </div>
-                      <div className="flex-1">
+                      </Box>
+                      <Box className="flex-1">
                         <Title as="h3" size="md" className="text-text-primary font-semibold">
                           {client.name}
                         </Title>
@@ -174,15 +175,15 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                             {client.phone}
                           </BodyText>
                         )}
-                      </div>
+                      </Box>
                     </Button>
                   )}
-                </div>
+                </Box>
               ))}
-            </div>
+            </Box>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

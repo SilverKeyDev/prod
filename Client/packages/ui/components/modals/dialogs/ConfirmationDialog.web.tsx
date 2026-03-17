@@ -2,6 +2,7 @@ import { Icon } from "@ui/icons";
 
 import { spacing } from "packages/design-tokens";
 import { Portal } from "packages/ui/components/portal";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, CancelButton, CloseButton, Title } from "@/components/ui";
 
@@ -20,12 +21,12 @@ function ConfirmationDialogContent({
   onCancel,
 }: ConfirmationDialogContentProps) {
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div
+    <Box className="fixed inset-0 z-50 overflow-y-auto">
+      <Box
         className="space-responsive-md flex min-h-screen items-center justify-center"
         style={{ width: "100vw", height: "100vh" }}
       >
-        <div
+        <Box
           role="button"
           tabIndex={0}
           className="bg-overlay-backdrop fixed inset-0 transition-opacity"
@@ -37,7 +38,7 @@ function ConfirmationDialogContent({
             }
           }}
         />
-        <div
+        <Box
           className="space-responsive-lg relative z-50 mx-auto w-full max-w-sm transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all"
           style={{ maxWidth: spacing(80) }}
         >
@@ -47,19 +48,19 @@ function ConfirmationDialogContent({
             className="absolute right-2 top-2"
             aria-label="Close dialog"
           />
-          <div className="flex items-start justify-center">
-            <div className="mt-3 w-full text-center">
+          <Box className="flex items-start justify-center">
+            <Box className="mt-3 w-full text-center">
               <Title size="lg" as="h3">
                 {title}
               </Title>
-              <div className="mt-2">
+              <Box className="mt-2">
                 <BodyText size="sm" muted>
                   {message}
                 </BodyText>
-              </div>
-            </div>
-          </div>
-          <div className="gap-responsive-sm mt-5 flex flex-col justify-center sm:mt-6 sm:flex-row">
+              </Box>
+            </Box>
+          </Box>
+          <Box className="gap-responsive-sm mt-5 flex flex-col justify-center sm:mt-6 sm:flex-row">
             <Button
               type="button"
               variant="primary"
@@ -73,10 +74,10 @@ function ConfirmationDialogContent({
             <CancelButton onClick={onCancel} size="md" className="w-full sm:w-auto">
               {cancelText}
             </CancelButton>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 export default function ConfirmationDialog(props: ConfirmationDialogProps) {

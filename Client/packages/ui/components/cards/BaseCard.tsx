@@ -1,5 +1,7 @@
 import React, { forwardRef } from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { getBaseCardClasses } from "./base/BaseCardStyles";
 
 export type BaseCardProps = {
@@ -51,9 +53,9 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
       className,
     });
     return (
-      <div ref={ref} className={cardClasses} {...props}>
+      <Box ref={ref} className={cardClasses} {...props}>
         {children}
-      </div>
+      </Box>
     );
   }
 );

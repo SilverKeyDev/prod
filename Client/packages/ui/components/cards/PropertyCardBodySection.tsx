@@ -2,6 +2,7 @@ import React from "react";
 
 import { spacing } from "packages/design-tokens";
 import type { Property } from "packages/schemas/property";
+import { Box } from "packages/ui/components/primitives";
 
 import type { SearchResult } from "@/features/search/types";
 
@@ -30,10 +31,10 @@ export function PropertyCardHideImageHeader({
   onMarkNotInterested: () => void;
 }) {
   return (
-    <div className="relative flex w-full items-center justify-center">
-      <div className="text-primary text-lg font-bold sm:text-xl">{formatPriceDisplay(price)}</div>
+    <Box className="relative flex w-full items-center justify-center">
+      <Box className="text-primary text-lg font-bold sm:text-xl">{formatPriceDisplay(price)}</Box>
       {(topContent || (showNotInterested && property)) && (
-        <div className="absolute right-0 flex-shrink-0">
+        <Box className="absolute right-0 flex-shrink-0">
           {showNotInterested && property && (
             <CardNotInterested
               property={property}
@@ -43,9 +44,9 @@ export function PropertyCardHideImageHeader({
             />
           )}
           {topContent}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }
 
@@ -69,34 +70,34 @@ export function PropertyCardPriceRow({
   return (
     <>
       {!isOnMap && (
-        <div className="w-full">
+        <Box className="w-full">
           <CardAddressDisplay
             address={address}
             size="sm"
             variant="compact"
             className={addressClassName}
           />
-        </div>
+        </Box>
       )}
       {pricePosition === "below-address" && (
-        <div className="flex w-full items-center gap-2">
+        <Box className="flex w-full items-center gap-2">
           {showScore && score !== undefined ? (
-            <div className="flex flex-1 items-center gap-2">
-              <div className="text-primary text-lg font-bold sm:text-xl">
+            <Box className="flex flex-1 items-center gap-2">
+              <Box className="text-primary text-lg font-bold sm:text-xl">
                 {formatPriceDisplay(price)}
-              </div>
-              <div className="mr-3 sm:mr-4">
+              </Box>
+              <Box className="mr-3 sm:mr-4">
                 <CardMatchScore score={score} size="xs" useColorStyling={true} />
-              </div>
-            </div>
+              </Box>
+            </Box>
           ) : (
-            <div className="flex flex-1 justify-center">
-              <div className="text-primary text-lg font-bold sm:text-xl">
+            <Box className="flex flex-1 justify-center">
+              <Box className="text-primary text-lg font-bold sm:text-xl">
                 {formatPriceDisplay(price)}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
-        </div>
+        </Box>
       )}
     </>
   );
@@ -120,7 +121,7 @@ export function PropertyCardDetailsRow({
   isOnMap: boolean;
 }) {
   return (
-    <div className="flex items-center">
+    <Box className="flex items-center">
       <CardPropertyDetails
         bedrooms={bedrooms}
         bathrooms={bathrooms}
@@ -130,20 +131,20 @@ export function PropertyCardDetailsRow({
         variant="horizontal"
         hideSquareFootage={hideSquareFootage ?? isOnMap}
       />
-    </div>
+    </Box>
   );
 }
 
 export function PropertyCardTrianglePointer() {
   return (
-    <div className="relative w-full" style={{ height: spacing(2) }}>
-      <div
+    <Box className="relative w-full" style={{ height: spacing(2) }}>
+      <Box
         className="absolute left-0 top-0 w-full bg-white shadow-sm"
         style={{
           height: spacing(2),
           clipPath: "polygon(0 0, 100% 0, 50% 100%)",
         }}
       />
-    </div>
+    </Box>
   );
 }

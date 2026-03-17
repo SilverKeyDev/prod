@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { Dropdown, Input, Label, Title } from "@/components/ui";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 import HomePriceEstimate from "@/features/profile/components/settings/inputs/HomePriceEstimate";
@@ -34,11 +36,11 @@ export default function OnboardingFinancialSection({
   setIsAffordabilityCollapsed,
 }: OnboardingFinancialSectionProps) {
   return (
-    <div className="space-y-6">
+    <Box className="space-y-6">
       <Title size="lg" className="mb-4 sm:mb-6">
         {SECTION_TITLES.FINANCIAL_PROFILE}
       </Title>
-      <div className="col-span-1 flex flex-col items-center md:col-span-2">
+      <Box className="col-span-1 flex flex-col items-center md:col-span-2">
         <Label className="text-responsive-xl space-y-responsive-xs text-text-secondary block w-full text-center font-bold">
           {FIELD_LABELS.HOME_BUDGET} *
         </Label>
@@ -57,9 +59,9 @@ export default function OnboardingFinancialSection({
           formatPrefix="$"
           className="mt-2"
         />
-      </div>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="mx-auto w-4/5">
+      </Box>
+      <Box className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <Box className="mx-auto w-4/5">
           <Label className="text-text-secondary mb-1 block w-full text-center text-xs font-normal sm:text-sm md:text-base">
             {FIELD_LABELS.GROSS_INCOME} (after debts)
           </Label>
@@ -73,9 +75,9 @@ export default function OnboardingFinancialSection({
             formatPrefix="$"
             className="mt-2"
           />
-        </div>
+        </Box>
 
-        <div className="mx-auto w-4/5">
+        <Box className="mx-auto w-4/5">
           <Label className="text-text-secondary mb-1 block w-full text-center text-xs font-normal sm:text-sm md:text-base">
             {FIELD_LABELS.DOWN_PAYMENT}
           </Label>
@@ -89,9 +91,9 @@ export default function OnboardingFinancialSection({
             formatPrefix="$"
             className="mt-2"
           />
-        </div>
+        </Box>
 
-        <div>
+        <Box>
           <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.ideal_zip_code}>
             {FIELD_LABELS.IDEAL_ZIP_CODE}
           </OnPerLabel>
@@ -104,9 +106,9 @@ export default function OnboardingFinancialSection({
             }
             placeholder="Enter zip code"
           />
-        </div>
+        </Box>
 
-        <div>
+        <Box>
           <OnPerLabel required={REQUIRED_FIELDS_ONBOARDING.credit_score_range}>
             {FIELD_LABELS.CREDIT_SCORE_RANGE}
           </OnPerLabel>
@@ -116,7 +118,7 @@ export default function OnboardingFinancialSection({
             options={CREDIT_SCORE_OPTIONS}
             placeholder="Select credit score range"
           />
-        </div>
+        </Box>
 
         <HomePriceEstimate
           homePriceLoading={homePriceLoading}
@@ -126,7 +128,7 @@ export default function OnboardingFinancialSection({
           setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
           idealZipCode={formData.ideal_zip_code}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

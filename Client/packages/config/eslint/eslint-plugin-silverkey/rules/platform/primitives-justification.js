@@ -22,7 +22,7 @@ function loadPrimitivesConfig() {
   }
 
   try {
-    const platformDir = path.join(__dirname, "../../../platform");
+    const platformDir = path.join(__dirname, "../../../../platform");
     const primitivesPath = path.join(platformDir, "primitives.json");
 
     if (!fs.existsSync(primitivesPath)) {
@@ -45,7 +45,7 @@ function loadPrimitivesConfig() {
     configCache = primitives;
     lastCacheCheck = now;
     return configCache;
-  } catch (error) {
+  } catch {
     configCache = new Set();
     lastCacheCheck = now;
     return configCache;

@@ -4,6 +4,7 @@ import IconButton from "@ui/button/IconButton";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText } from "@/components/ui";
 type CompareHomesModalHeaderProps = {
@@ -23,14 +24,14 @@ export function CompareHomesModalHeader({
 }: CompareHomesModalHeaderProps) {
   const { t } = useLocalization();
   return (
-    <div className="flex w-full items-center justify-between gap-2 sm:gap-4">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+    <Box className="flex w-full items-center justify-between gap-2 sm:gap-4">
+      <Box className="flex min-w-0 flex-1 items-center gap-2">
         <Icon name="git-compare" className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
         <BodyText as="span" className="text-text-primary truncate text-base font-medium sm:text-lg">
           {t("compare.compare_properties")}
         </BodyText>
-      </div>
-      <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+      </Box>
+      <Box className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
         <IconButton
           onClick={onManageRows}
           variant="ghost"
@@ -66,7 +67,7 @@ export function CompareHomesModalHeader({
           className="text-text-disabled hover:text-text-secondary flex-shrink-0 touch-manipulation"
           label={t("compare.close_modal_aria")}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

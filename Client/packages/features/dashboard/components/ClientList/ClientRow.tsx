@@ -3,6 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import type { ClientDealInfo } from "packages/schemas/agent";
+import { Box } from "packages/ui/components/primitives";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import Card from "@/components/layout/Card.web";
@@ -32,30 +33,30 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
   };
   return (
     <Card onClick={onClick} hover={true} className="cursor-pointer transition-all">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <Box className="flex flex-col gap-4 sm:flex-row sm:items-center">
         {/* Avatar and Name */}
-        <div className="flex flex-shrink-0 items-center gap-3">
-          <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12">
+        <Box className="flex flex-shrink-0 items-center gap-3">
+          <Box className="bg-primary flex h-10 w-10 items-center justify-center rounded-full sm:h-12 sm:w-12">
             <Icon name="user" className="text-primary h-5 w-5 sm:h-6 sm:w-6" />
-          </div>
-          <div>
+          </Box>
+          <Box>
             <Title as="h3" size="md" className="text-text-primary font-semibold">
               {client.name}
             </Title>
             <BodyText as="p" size="sm" className="text-text-secondary">
               {client.email}
             </BodyText>
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {/* Deal Stage */}
-        <div className="flex-shrink-0">
+        <Box className="flex-shrink-0">
           <DealStageBadge stage={client.deal_stage} />
-        </div>
+        </Box>
 
         {/* Next Action */}
         {client.next_action && (
-          <div className="min-w-0 flex-1">
+          <Box className="min-w-0 flex-1">
             <ActionButton
               action={client.next_action}
               onClick={(e) => {
@@ -65,20 +66,20 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
               variant="primary"
               className="w-full sm:w-auto"
             />
-          </div>
+          </Box>
         )}
 
         {/* Time Since Last Action */}
-        <div className="text-responsive-sm text-text-secondary flex items-center gap-2">
+        <Box className="text-responsive-sm text-text-secondary flex items-center gap-2">
           <Icon name="clock" className="h-4 w-4 sm:h-5 sm:w-5" />
           <BodyText as="span" size="sm" className="text-text-secondary">
             {formatTimeSince(client.last_agent_action)}
           </BodyText>
-        </div>
+        </Box>
 
         {/* Risk Flags */}
         {client.risk_flags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <Box className="flex flex-wrap gap-2">
             {client.risk_flags.slice(0, 2).map((flag, index) => (
               <RiskFlag key={index} severity={flag.severity} message={flag.type} />
             ))}
@@ -87,9 +88,9 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
                 +{client.risk_flags.length - 2} more
               </BodyText>
             )}
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
     </Card>
   );
 };

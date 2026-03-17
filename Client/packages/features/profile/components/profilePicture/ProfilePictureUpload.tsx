@@ -4,12 +4,12 @@ import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePict
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { Image } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button } from "@/components/ui";
 import { FEED_AVATAR_IMAGE_CLASS } from "@/features/feed/components/Overlay/FeedActionButton";
 import { DEFAULT_AVATAR_IMAGE } from "@/features/feed/utils";
 import Label from "@/features/profile/components/settings/inputs/Label";
-
 const ACCEPTED_TYPES = "image/jpeg,image/png,image/gif";
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
@@ -56,17 +56,17 @@ export default function ProfilePictureUpload() {
   };
 
   return (
-    <div className="space-y-3">
+    <Box className="space-y-3">
       <Label>Profile picture</Label>
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="bg-primary-muted flex h-20 w-20 flex-shrink-0 overflow-hidden rounded-full">
+      <Box className="flex flex-wrap items-center gap-4">
+        <Box className="bg-primary-muted flex h-20 w-20 flex-shrink-0 overflow-hidden rounded-full">
           <Image
             src={profilePictureUrl ?? DEFAULT_AVATAR_IMAGE}
             alt="Profile"
             className={`h-full w-full ${FEED_AVATAR_IMAGE_CLASS}`}
           />
-        </div>
-        <div className="flex flex-col gap-1">
+        </Box>
+        <Box className="flex flex-col gap-1">
           {/* Native file input required for upload; design system Input does not support type="file" */}
           {/* eslint-disable-next-line silverkey/no-primitive-components -- file input has no UI replacement */}
           <input
@@ -92,11 +92,11 @@ export default function ProfilePictureUpload() {
               {error.message}
             </BodyText>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
       <BodyText size="xs" muted>
         JPEG, PNG, or GIF. Max 5MB.
       </BodyText>
-    </div>
+    </Box>
   );
 }

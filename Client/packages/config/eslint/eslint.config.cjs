@@ -4,8 +4,6 @@
  * Loads the real ESM config in a proper module context.
  */
 "use strict";
-/* eslint-env node */
-/* eslint-disable @typescript-eslint/no-require-imports -- This file is CommonJS for Node tooling */
 /* global require, module, __dirname */
 
 const path = require("node:path");

@@ -3,10 +3,12 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
 import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/constants";
+import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { IconButton, Input } from "@/components/ui";
 import { UnderlineTabs } from "@/components/ui";
+
 type SavedPageTabsAndSearchProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -52,13 +54,13 @@ export default function SavedPageTabsAndSearch({
   onUploadClick,
 }: SavedPageTabsAndSearchProps) {
   return (
-    <div className="mb-6 w-full">
+    <Box className="mb-6 w-full">
       <SavedPageTabNav viewType={viewType} onViewTypeChange={onViewTypeChange} />
       <Card padding="none" className="w-full p-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <Box className="flex flex-wrap items-center justify-between gap-3">
           {/* Search input */}
-          <div className="flex w-full min-w-0 flex-1 items-center justify-center gap-3 sm:w-auto sm:justify-start">
-            <div className="relative min-w-48 flex-1">
+          <Box className="flex w-full min-w-0 flex-1 items-center justify-center gap-3 sm:w-auto sm:justify-start">
+            <Box className="relative min-w-48 flex-1">
               <Icon
                 name="search"
                 className="mobile-icon-xs text-text-disabled absolute left-3 top-1/2 -translate-y-1/2"
@@ -70,11 +72,11 @@ export default function SavedPageTabsAndSearch({
                 className={SAVED_PAGE_SEARCH_INPUT_CLASS}
                 placeholder={searchPlaceholder}
               />
-            </div>
+            </Box>
 
             {/* Event type filter - only show when viewing documents */}
             {/* {viewType === "documents" && onEventTypeFilterChange && (
-      <div className="w-full sm:w-auto min-w-[150px]">
+      <Box className="w-full sm:w-auto min-w-[150px]">
         <Dropdown
           options={eventTypeOptions}
           value={eventTypeFilter}
@@ -84,13 +86,13 @@ export default function SavedPageTabsAndSearch({
           placeholder="Filter by event..."
           variant="mobile"
         />
-      </div>
+      </Box>
     )} */}
 
             {rightText && (
-              <div className="text-text-secondary mr-2 whitespace-nowrap text-sm">{rightText}</div>
+              <Box className="text-text-secondary mr-2 whitespace-nowrap text-sm">{rightText}</Box>
             )}
-          </div>
+          </Box>
 
           {/* Upload button - only show when viewing documents */}
           {viewType === "documents" && onUploadClick && (
@@ -103,8 +105,8 @@ export default function SavedPageTabsAndSearch({
               className="text-text-disabled hover:bg-transparent focus:ring-black/10 active:bg-transparent"
             />
           )}
-        </div>
+        </Box>
       </Card>
-    </div>
+    </Box>
   );
 }

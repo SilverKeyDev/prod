@@ -1,5 +1,7 @@
 import React from "react";
 
+import { Box } from "packages/ui/components/primitives";
+
 import AlignedRow from "@/components/layout/AlignedRow";
 import Card from "@/components/layout/Card.web";
 import { Dropdown, Input, Title } from "@/components/ui";
@@ -9,7 +11,6 @@ import Label from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
 import type { HomePriceResult } from "@/features/profile/utils";
 import { CREDIT_SCORE_OPTIONS, FIELD_LABELS, type OnboardingData } from "@/features/profile/utils";
-
 type FinancialSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
@@ -36,7 +37,7 @@ export default function FinancialSection({
       <Title size="md" className="mb-6">
         Financial Information
       </Title>
-      <div className="col-span-1 flex flex-col items-center md:col-span-2">
+      <Box className="col-span-1 flex flex-col items-center md:col-span-2">
         <Title size="sm" className="mb-2 w-full text-center">
           {FIELD_LABELS.HOME_BUDGET}
         </Title>
@@ -58,14 +59,14 @@ export default function FinancialSection({
             className="mt-2"
           />
         ) : (
-          <div className="mobile-input bg-background-base mt-2 text-center">
-            <div className="text-lg font-normal">
+          <Box className="mobile-input bg-background-base mt-2 text-center">
+            <Box className="text-lg font-normal">
               ${(formData.home_budget_min ?? 0).toLocaleString()} - $
               {(formData.home_budget_max ?? 0).toLocaleString()}
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
-      </div>
+      </Box>
 
       <AlignedRow
         breakIntoRows="md"
@@ -87,11 +88,11 @@ export default function FinancialSection({
                 className="mt-2"
               />
             ) : (
-              <div className="mobile-input bg-background-base text-left">
+              <Box className="mobile-input bg-background-base text-left">
                 {formData.gross_income
                   ? `$${formData.gross_income.toLocaleString()}`
                   : "Not specified"}
-              </div>
+              </Box>
             ),
           },
           {
@@ -109,11 +110,11 @@ export default function FinancialSection({
                 className="mt-2"
               />
             ) : (
-              <div className="mobile-input bg-background-base text-left">
+              <Box className="mobile-input bg-background-base text-left">
                 {formData.down_payment
                   ? `$${formData.down_payment.toLocaleString()}`
                   : "Not specified"}
-              </div>
+              </Box>
             ),
           },
         ]}
@@ -136,9 +137,9 @@ export default function FinancialSection({
                 placeholder="Enter zip code"
               />
             ) : (
-              <div className="mobile-input bg-background-base">
+              <Box className="mobile-input bg-background-base">
                 {formData.ideal_zip_code ?? "Not specified"}
-              </div>
+              </Box>
             ),
           },
           {
@@ -151,19 +152,19 @@ export default function FinancialSection({
                 placeholder="Select..."
               />
             ) : (
-              <div className="mobile-input bg-background-base">
+              <Box className="mobile-input bg-background-base">
                 {formData.credit_score_range
                   ? (CREDIT_SCORE_OPTIONS.find(
                       (option) => option.value === formData.credit_score_range
                     )?.label ?? "Not specified")
                   : "Not specified"}
-              </div>
+              </Box>
             ),
           },
         ]}
       />
 
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+      <Box className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         <HomePriceEstimate
           homePriceLoading={homePriceLoading}
           homePriceError={homePriceError}
@@ -172,7 +173,7 @@ export default function FinancialSection({
           setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
           idealZipCode={formData.ideal_zip_code}
         />
-      </div>
+      </Box>
     </Card>
   );
 }

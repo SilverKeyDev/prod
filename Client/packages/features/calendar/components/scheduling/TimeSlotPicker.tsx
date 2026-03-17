@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import Button from "packages/ui/components/button/Button";
+import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 
 type TimeSlot = { start: Date; end: Date; isAvailable: boolean };
@@ -20,7 +21,7 @@ export function TimeSlotPicker({
 }: TimeSlotPickerProps): ReactNode {
   if (isLoading) return <BodyText as="span">Loading availability...</BodyText>;
   return (
-    <div className="space-y-2">
+    <Box className="space-y-2">
       {slots.map((slot, i) => (
         <Button
           key={i}
@@ -47,6 +48,6 @@ export function TimeSlotPicker({
           {!slot.isAvailable && " (unavailable)"}
         </Button>
       ))}
-    </div>
+    </Box>
   );
 }

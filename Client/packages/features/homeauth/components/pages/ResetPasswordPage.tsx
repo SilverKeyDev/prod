@@ -12,6 +12,7 @@ import { useNavigation } from "packages/navigation";
 import { usePasswordValidation } from "packages/ui/components/feedback";
 import { PasswordValidation } from "packages/ui/components/feedback/PasswordValidation";
 import SuccessDialog from "packages/ui/components/modals/dialogs/SuccessDialog";
+import { Box } from "packages/ui/components/primitives";
 
 import { Button, Input } from "@/components/ui";
 export default function ResetPasswordPage() {
@@ -129,7 +130,7 @@ export default function ResetPasswordPage() {
               className="autofill-gold"
             />
 
-            <div className="space-y-1">
+            <Box className="space-y-1">
               <Input
                 label="New password"
                 type="password"
@@ -147,7 +148,7 @@ export default function ResetPasswordPage() {
                 className="autofill-gold"
               />
               <PasswordValidation password={newPassword} showValidation={newPassword.length > 0} />
-            </div>
+            </Box>
 
             <Input
               label="Confirm new password"
@@ -180,7 +181,7 @@ export default function ResetPasswordPage() {
           {step === "request" ? "Send reset code" : "Reset password"}
         </Button>
 
-        <div className="text-responsive-xs text-center">
+        <Box className="text-responsive-xs text-center">
           Remember your password?
           <AuthLink
             to="/login"
@@ -188,7 +189,7 @@ export default function ResetPasswordPage() {
           >
             Login
           </AuthLink>
-        </div>
+        </Box>
       </form>
 
       {/* Success Dialog */}

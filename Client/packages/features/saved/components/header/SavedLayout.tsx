@@ -5,9 +5,11 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/constants";
 import { useIsMobile } from "packages/hooks/ui";
+import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { Button, Input } from "@/components/ui";
+
 export type ViewMode = "grid" | "list";
 export type SortBy = "date" | "address";
 type SavedLayoutProps = {
@@ -49,19 +51,19 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   const { t } = useLocalization();
   const isMobile = useIsMobile();
   const ViewToggle = showViewToggle && onViewModeChange && (
-    <div className="hidden items-center gap-2 sm:flex">
+    <Box className="hidden items-center gap-2 sm:flex">
       <Button
         variant={viewMode === "grid" ? "primary" : "secondary"}
         size="sm"
         onClick={() => onViewModeChange("grid")}
         className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "grid" ? "bg-primary text-white" : "bg-accent-muted hover:bg-primary text-white"}`}
       >
-        <div className="mobile-icon-xs grid grid-cols-2 gap-1">
-          <div className="rounded-sm bg-current" />
-          <div className="rounded-sm bg-current" />
-          <div className="rounded-sm bg-current" />
-          <div className="rounded-sm bg-current" />
-        </div>
+        <Box className="mobile-icon-xs grid grid-cols-2 gap-1">
+          <Box className="rounded-sm bg-current" />
+          <Box className="rounded-sm bg-current" />
+          <Box className="rounded-sm bg-current" />
+          <Box className="rounded-sm bg-current" />
+        </Box>
       </Button>
       <Button
         variant={viewMode === "list" ? "primary" : "secondary"}
@@ -69,17 +71,17 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
         onClick={() => onViewModeChange("list")}
         className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "list" ? "bg-primary text-white" : "bg-accent-muted hover:bg-primary text-white"}`}
       >
-        <div className="mobile-icon-xs space-y-1">
-          <div className="h-0.5 rounded-sm bg-current" />
-          <div className="h-0.5 rounded-sm bg-current" />
-          <div className="h-0.5 rounded-sm bg-current" />
-        </div>
+        <Box className="mobile-icon-xs space-y-1">
+          <Box className="h-0.5 rounded-sm bg-current" />
+          <Box className="h-0.5 rounded-sm bg-current" />
+          <Box className="h-0.5 rounded-sm bg-current" />
+        </Box>
       </Button>
-    </div>
+    </Box>
   );
   // Tab navigation for homes/documents
   const TabNavigation = viewType && onViewTypeChange && (
-    <div className="border-border mb-3 flex items-center gap-2 border-b">
+    <Box className="border-border mb-3 flex items-center gap-2 border-b">
       <Button
         variant="ghost"
         size="sm"
@@ -104,34 +106,34 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
       >
         {t("saved.tab_documents")}
       </Button>
-    </div>
+    </Box>
   );
   return (
-    <div className="mb-6 w-full">
+    <Box className="mb-6 w-full">
       {TabNavigation}
       <Card padding="none" className="w-full p-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <Box className="flex flex-wrap items-center justify-between gap-3">
           {/* Separate div for left content */}
           {leftContent && !showSearch && (
-            <div className="flex shrink-0 items-center">
+            <Box className="flex shrink-0 items-center">
               {leftContent}
               {/* Dropdown for reports view - only show on mobile (desktop shows on right side) */}
               {/* {viewType && onViewTypeChange && isMobile && (
-            <div className="ml-2">{Dropdown}</div>
+            <Box className="ml-2">{Dropdown}</Box>
           )} */}
-            </div>
+            </Box>
           )}
 
           {/* Separate div for everything else (search, dropdown, refresh, view toggle, etc.) */}
-          <div
+          <Box
             className={`flex flex-1 flex-wrap items-center justify-between ${isMobile && viewType !== "homes" && viewType !== "documents" ? "hidden" : ""}`}
           >
             {/* Left side: Search input or empty space */}
-            <div
+            <Box
               className={`flex min-w-0 items-center gap-3 ${showSearch ? "w-full flex-1 justify-center sm:w-auto sm:justify-start" : "shrink-0"}`}
             >
               {showSearch ? (
-                <div className="relative min-w-48 flex-1">
+                <Box className="relative min-w-48 flex-1">
                   <Icon
                     name="search"
                     className="mobile-icon-xs text-text-disabled absolute left-3 top-1/2 -translate-y-1/2"
@@ -143,26 +145,26 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
                     className={SAVED_PAGE_SEARCH_INPUT_CLASS}
                     placeholder={searchPlaceholder}
                   />
-                </div>
+                </Box>
               ) : null}
 
               {rightText && (
-                <div className="text-text-secondary mr-2 whitespace-nowrap text-sm">
+                <Box className="text-text-secondary mr-2 whitespace-nowrap text-sm">
                   {rightText}
-                </div>
+                </Box>
               )}
-            </div>
+            </Box>
 
             {/* Right side: View toggle, refresh, dropdown, etc. */}
-            <div
+            <Box
               className={`flex shrink-0 items-center justify-end ${viewType === "homes" && isMobile ? "gap-3" : "gap-2"}`}
             >
               {ViewToggle}
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
       </Card>
-    </div>
+    </Box>
   );
 };
 export default SavedLayout;

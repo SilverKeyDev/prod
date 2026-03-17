@@ -13,6 +13,7 @@ import {
 import type { CompareHomesPropertyDetails } from "packages/features/compare/utils/types";
 import { useUIStore } from "packages/store";
 import type { SavedHome } from "packages/types";
+import { Box } from "packages/ui/components/primitives";
 
 import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, IconButton, Subtitle } from "@/components/ui";
@@ -212,14 +213,14 @@ function CompareHomesModalHeader({
 }: CompareHomesModalHeaderProps) {
   const { t } = useLocalization();
   return (
-    <div className="flex w-full items-center justify-between gap-2 sm:gap-4">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+    <Box className="flex w-full items-center justify-between gap-2 sm:gap-4">
+      <Box className="flex min-w-0 flex-1 items-center gap-2">
         <Icon name="git-compare" className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
         <BodyText as="span" className="text-text-primary truncate text-base font-medium sm:text-lg">
           {t("compare.compare_properties")}
         </BodyText>
-      </div>
-      <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+      </Box>
+      <Box className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
         <IconButton
           onClick={onOpenRowModal}
           variant="ghost"
@@ -255,8 +256,8 @@ function CompareHomesModalHeader({
           className="text-text-disabled hover:text-text-secondary flex-shrink-0 touch-manipulation"
           label={t("compare.close_modal_aria")}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
@@ -313,14 +314,14 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
       }
       className="max-w-7xl"
     >
-      <div className="space-y-responsive-md">
-        <div>
+      <Box className="space-y-responsive-md">
+        <Box>
           <Subtitle size="sm" muted>
             {selectedHomes.length === 1
               ? t("compare.selected_singular", { count: selectedHomes.length })
               : t("compare.selected_plural", { count: selectedHomes.length })}
           </Subtitle>
-        </div>
+        </Box>
         <ComparisonTable
           comparisonData={comparisonData}
           comparisonFields={visibleComparisonFields}
@@ -341,13 +342,13 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
           />
         )}
         {selectedHomes.length === 0 && (
-          <div className="py-responsive-lg text-center">
+          <Box className="py-responsive-lg text-center">
             <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
               {t("compare.no_homes_selected")}
             </BodyText>
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
       <ManageRowsModal
         showRowModal={showRowModal}
         setShowRowModal={setShowRowModal}

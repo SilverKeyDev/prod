@@ -6,6 +6,7 @@ import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 import { getDocument } from "packages/utils/platform";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 export type DropdownOption<T = unknown> = {
@@ -224,7 +225,7 @@ function Dropdown<T = unknown>({
     setSearchTerm(e.target.value);
   };
   return (
-    <div className="w-full">
+    <Box className="w-full">
       {/* Label */}
       {label && (
         <Label className="mb-2 block text-sm font-medium text-gray-700">
@@ -238,7 +239,7 @@ function Dropdown<T = unknown>({
       )}
 
       {/* Dropdown Container */}
-      <div className="relative" ref={dropdownRef}>
+      <Box className="relative" ref={dropdownRef}>
         {/* Trigger Button */}
         <Button
           type="button"
@@ -269,7 +270,7 @@ function Dropdown<T = unknown>({
           </BodyText>
 
           {/* Arrow and clear bound right */}
-          <div className="flex shrink-0 items-center gap-1">
+          <Box className="flex shrink-0 items-center gap-1">
             {clearable && selectedOption && !disabled && (
               <Button
                 type="button"
@@ -287,16 +288,16 @@ function Dropdown<T = unknown>({
               name="chevron-down"
               className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 transform" : ""}`}
             />
-          </div>
+          </Box>
         </Button>
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <div className={dropdownClasses}>
+          <Box className={dropdownClasses}>
             {/* Search Input */}
             {searchable && (
-              <div className="border-border border-b p-2">
-                <div className="relative">
+              <Box className="border-border border-b p-2">
+                <Box className="relative">
                   <Icon
                     name="search"
                     className="text-text-secondary absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform"
@@ -310,16 +311,16 @@ function Dropdown<T = unknown>({
                     placeholder={t("form.search_options")}
                     className={`border-border hover:border-border focus:border-primary focus:ring-accent-muted placeholder:text-text-secondary w-full rounded border py-2 pl-9 pr-3 transition-all duration-200 focus:outline-none focus:ring-2 ${(getSharedInputTextStyles as () => string)()}`}
                   />
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
 
             {/* Options List */}
-            <div>
+            <Box>
               {filteredOptions.length === 0 ? (
-                <div className="text-text-secondary px-3 py-2 text-sm">
+                <Box className="text-text-secondary px-3 py-2 text-sm">
                   {searchable ? "No options found" : "No options available"}
-                </div>
+                </Box>
               ) : (
                 filteredOptions.map((option, index) => (
                   <Button
@@ -334,7 +335,7 @@ function Dropdown<T = unknown>({
                         : "text-text-secondary hover:text-text-primary cursor-pointer hover:bg-neutral-50"
                     } ${option.value === value ? "bg-primary-muted text-text-primary font-medium" : ""} ${index > 0 ? "border-border border-t" : ""} hover:font-normal focus:bg-neutral-50 active:bg-neutral-100`}
                   >
-                    <div className="relative flex min-w-0 flex-1 items-center gap-2">
+                    <Box className="relative flex min-w-0 flex-1 items-center gap-2">
                       <BodyText
                         as="span"
                         ref={setOptionMeasureRef(index)}
@@ -352,17 +353,17 @@ function Dropdown<T = unknown>({
                         {option.icon}
                         {option.label}
                       </BodyText>
-                    </div>
+                    </Box>
                     {option.value === value && (
                       <Icon name="check" className="text-primary h-4 w-4" />
                     )}
                   </Button>
                 ))
               )}
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
-      </div>
+      </Box>
 
       {/* Error Message */}
       {error && (
@@ -370,7 +371,7 @@ function Dropdown<T = unknown>({
           {error}
         </BodyText>
       )}
-    </div>
+    </Box>
   );
 }
 export default Dropdown;

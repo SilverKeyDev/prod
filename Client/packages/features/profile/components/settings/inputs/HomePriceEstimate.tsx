@@ -2,8 +2,11 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { Box } from "packages/ui/components/primitives";
+
 import { BodyText, Title } from "@/components/ui";
 import type { HomePriceResult } from "@/features/profile/utils";
+
 type HomePriceEstimateProps = {
   homePriceLoading: boolean;
   homePriceError: string | null;
@@ -21,10 +24,10 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
   idealZipCode,
 }) => {
   return (
-    <div
+    <Box
       className={`border-primary bg-background-surface col-span-1 mt-4 rounded-lg border px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2`}
     >
-      <div
+      <Box
         role="button"
         tabIndex={0}
         className={`touch-friendly -m-2 flex cursor-pointer items-center justify-between rounded-lg p-2 transition-colors duration-150 hover:bg-neutral-100`}
@@ -43,21 +46,21 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
           name="chevron-down"
           className={`mobile-icon-sm text-primary transition-transform duration-300 ease-in-out ${isAffordabilityCollapsed ? "rotate-180" : ""}`}
         />
-      </div>
+      </Box>
 
-      <div
+      <Box
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
           isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-screen opacity-100"
         }`}
       >
-        <div className="pt-2">
+        <Box className="pt-2">
           {homePriceLoading ? (
-            <div className="flex items-center justify-center py-3 sm:py-4">
-              <div className="border-primary h-5 w-5 animate-spin rounded-full border-b-2 sm:h-6 sm:w-6"></div>
+            <Box className="flex items-center justify-center py-3 sm:py-4">
+              <Box className="border-primary h-5 w-5 animate-spin rounded-full border-b-2 sm:h-6 sm:w-6"></Box>
               Calculating affordability...
-            </div>
+            </Box>
           ) : homePriceError ? (
-            <div className="text-responsive-xs space-y-2 py-2 text-black">
+            <Box className="text-responsive-xs space-y-2 py-2 text-black">
               <BodyText as="p" className="font-medium">
                 Unable to calculate affordability:
               </BodyText>
@@ -65,33 +68,33 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
               <BodyText as="p">
                 Please ensure you've entered your income, zip code, and other financial details.
               </BodyText>
-            </div>
+            </Box>
           ) : homePriceResult ? (
-            <div className="space-responsive-sm">
-              <div className="gap-responsive-sm grid grid-cols-1 lg:grid-cols-2">
-                <div>
-                  <div className="px-2 py-3 text-center sm:p-4 lg:p-6">
-                    <div className="text-primary mb-0 text-xl font-bold sm:mb-1 sm:text-2xl lg:text-3xl xl:text-4xl">
+            <Box className="space-responsive-sm">
+              <Box className="gap-responsive-sm grid grid-cols-1 lg:grid-cols-2">
+                <Box>
+                  <Box className="px-2 py-3 text-center sm:p-4 lg:p-6">
+                    <Box className="text-primary mb-0 text-xl font-bold sm:mb-1 sm:text-2xl lg:text-3xl xl:text-4xl">
                       ${homePriceResult.maxHomePrice.toLocaleString()}
-                    </div>
-                    <div className="text-responsive-xs text-text-disabled mb-2 sm:mb-3">
+                    </Box>
+                    <Box className="text-responsive-xs text-text-disabled mb-2 sm:mb-3">
                       Maximum recommended home price
-                    </div>
-                  </div>
-                </div>
-                <div className="px-2 py-3 text-center sm:p-4 sm:px-0 lg:p-6 lg:text-left">
-                  <div className="text-primary mb-0 text-xl font-bold sm:mb-1 sm:text-2xl lg:text-3xl xl:text-4xl">
+                    </Box>
+                  </Box>
+                </Box>
+                <Box className="px-2 py-3 text-center sm:p-4 sm:px-0 lg:p-6 lg:text-left">
+                  <Box className="text-primary mb-0 text-xl font-bold sm:mb-1 sm:text-2xl lg:text-3xl xl:text-4xl">
                     ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
                     /mo
-                  </div>
-                  <div className="text-responsive-xs text-text-disabled mb-2 sm:mb-3">
+                  </Box>
+                  <Box className="text-responsive-xs text-text-disabled mb-2 sm:mb-3">
                     Monthly Payment
-                  </div>
-                </div>
-              </div>
+                  </Box>
+                </Box>
+              </Box>
 
-              <div className="text-responsive-xs border-primary bg-background-surface rounded border px-2 py-3 text-black sm:p-3">
-                <div className="bg-accent-muted space-y-1 overflow-x-auto rounded bg-opacity-20 px-2 py-2 font-mono text-black sm:space-y-2 sm:p-3 sm:text-xs">
+              <Box className="text-responsive-xs border-primary bg-background-surface rounded border px-2 py-3 text-black sm:p-3">
+                <Box className="bg-accent-muted space-y-1 overflow-x-auto rounded bg-opacity-20 px-2 py-2 font-mono text-black sm:space-y-2 sm:p-3 sm:text-xs">
                   <BodyText as="p" size="xs" className="text-tiny sm:text-xs">
                     1. <strong>Monthly Income</strong> = Gross Annual Income ÷
                   </BodyText>
@@ -178,9 +181,9 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                       </BodyText>
                     </>
                   )}
-                </div>
+                </Box>
 
-                <div className="mt-3 space-y-2 sm:mt-4 sm:space-y-3">
+                <Box className="mt-3 space-y-2 sm:mt-4 sm:space-y-3">
                   <BodyText as="p" size="xs" className="leading-relaxed">
                     We include estimated <strong>property taxes</strong>{" "}
                     {idealZipCode && (
@@ -192,20 +195,20 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
                     payment is under 20%. These are factored into your maximum affordable home price
                     using smart search logic.
                   </BodyText>
-                </div>
-              </div>
-            </div>
+                </Box>
+              </Box>
+            </Box>
           ) : (
-            <div className="text-responsive-xs px-2 py-2 text-black sm:px-0">
+            <Box className="text-responsive-xs px-2 py-2 text-black sm:px-0">
               <BodyText as="p">
                 Enter your income, zip code, and other financial details to see your estimated home
                 affordability.
               </BodyText>
-            </div>
+            </Box>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 export default HomePriceEstimate;

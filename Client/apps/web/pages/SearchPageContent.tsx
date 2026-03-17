@@ -3,6 +3,7 @@ import type { VirtuosoHandle } from "react-virtuoso";
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
 import { DesktopReelsView, SearchPageMapView, SearchPageModals } from "packages/features/search";
 import { MotionView } from "packages/ui/components/adapters/motion";
+import { Box } from "packages/ui/components/primitives";
 
 import { IconButton } from "@/components/ui";
 
@@ -90,9 +91,9 @@ export function SearchPageContent({
   clearSelectedProperty,
 }: SearchPageContentProps) {
   return (
-    <div className="relative h-full">
+    <Box className="relative h-full">
       {searchViewMode === "reels" && (
-        <div className="absolute right-4 top-4 z-30 flex items-center md:flex">
+        <Box className="absolute right-4 top-4 z-30 flex items-center md:flex">
           <IconButton
             variant="ghost"
             size="md"
@@ -101,10 +102,10 @@ export function SearchPageContent({
             label="Back to search"
             className={`bg-overlay-backdrop text-white backdrop-blur-sm ${FEED_ACTION_INTERACTION_CLASS}`}
           />
-        </div>
+        </Box>
       )}
-      <div className="relative h-full">
-        <div
+      <Box className="relative h-full">
+        <Box
           className={`absolute inset-0 h-full ${searchViewMode === "map" ? "z-10" : "pointer-events-none invisible z-0"}`}
           aria-hidden={searchViewMode !== "map"}
         >
@@ -144,8 +145,8 @@ export function SearchPageContent({
             isLoadingIsochrone={isLoadingIsochrone}
             isochroneData={isochroneData}
           />
-        </div>
-        <div
+        </Box>
+        <Box
           className={`absolute inset-0 h-full ${searchViewMode === "reels" ? "z-10" : "pointer-events-none invisible z-0"}`}
           aria-hidden={searchViewMode !== "reels"}
         >
@@ -158,13 +159,13 @@ export function SearchPageContent({
           >
             <DesktopReelsView virtuosoRef={feedScrollRef} />
           </MotionView>
-        </div>
-      </div>
+        </Box>
+      </Box>
       <SearchPageModals
         selectedProperty={selectedProperty}
         onClosePropertyDetails={clearSelectedProperty}
         isLoadingPropertyDetails={isLoadingPropertyDetails}
       />
-    </div>
+    </Box>
   );
 }

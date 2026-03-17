@@ -1,11 +1,11 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 import { formatCompactNumber } from "packages/utils";
 
 import { BodyText } from "@/components/ui";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
-
 const DEFAULT_MIN = 100_000;
 const DEFAULT_MAX = 2_000_000;
 const TICK_VALUES = [
@@ -42,7 +42,7 @@ export default function PriceRangeFilter({
   };
 
   return (
-    <div className={className}>
+    <Box className={className}>
       <BodyText
         size="sm"
         className={`text-text-secondary font-medium ${compact ? "mb-1" : "mb-2"}`}
@@ -60,6 +60,6 @@ export default function PriceRangeFilter({
         minGap={25000}
         showTextHeader={false}
       />
-    </div>
+    </Box>
   );
 }

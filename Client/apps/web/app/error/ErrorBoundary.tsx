@@ -8,10 +8,11 @@ import { Icon } from "@ui/icons";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { reportErrorWithCapture } from "packages/services/security/errorReporting";
+import { Box } from "packages/ui/components/primitives";
 import { normalizeError } from "packages/utils/errorHandling";
 
 import Card from "@/components/layout/Card.web";
-import { BodyText, Button, Title } from "@/components/ui";
+import { BodyText, Button, Textarea, Title } from "@/components/ui";
 type Props = {
   children: ReactNode;
   fallback?: ReactNode;
@@ -53,14 +54,14 @@ function ErrorFallbackContent({
   onGoHome,
 }: ErrorFallbackContentProps) {
   return (
-    <div className="px-responsive-lg py-responsive-lg flex min-h-screen items-center justify-center bg-background-base">
+    <Box className="px-responsive-lg py-responsive-lg flex min-h-screen items-center justify-center bg-background-base">
       <Card className="w-full max-w-2xl border-l-4 border-l-destructive shadow-lg" padding="lg">
-        <div className="text-center">
-          <div className="mb-responsive-md flex justify-center">
-            <div className="p-responsive-sm rounded-full border-2 border-destructive bg-background-surface">
+        <Box className="text-center">
+          <Box className="mb-responsive-md flex justify-center">
+            <Box className="p-responsive-sm rounded-full border-2 border-destructive bg-background-surface">
               <Icon name="alert-triangle" className="mobile-icon-lg text-destructive" />
-            </div>
-          </div>
+            </Box>
+          </Box>
 
           <Title size="xl" as="h1" className="mb-responsive-xs text-text-primary">
             Something went wrong
@@ -71,7 +72,7 @@ function ErrorFallbackContent({
             working to resolve this issue.
           </BodyText>
 
-          <div className="gap-responsive-xs mb-responsive-md flex flex-col sm:flex-row">
+          <Box className="gap-responsive-xs mb-responsive-md flex flex-col sm:flex-row">
             <Button
               variant="primary"
               onClick={onRetry}
@@ -88,7 +89,7 @@ function ErrorFallbackContent({
             >
               Go Home
             </Button>
-          </div>
+          </Box>
 
           <ErrorDetailsSection
             normalizedError={normalizedError}
@@ -103,9 +104,9 @@ function ErrorFallbackContent({
             onFeedbackMessageChange={onFeedbackMessageChange}
             onFeedbackSubmit={onFeedbackSubmit}
           />
-        </div>
+        </Box>
       </Card>
-    </div>
+    </Box>
   );
 }
 function ErrorDetailsSection({
@@ -123,7 +124,7 @@ function ErrorDetailsSection({
   onToggleDetails: () => void;
 }) {
   return (
-    <div className="text-left">
+    <Box className="text-left">
       <Button
         variant="ghost"
         size="sm"
@@ -134,30 +135,30 @@ function ErrorDetailsSection({
       </Button>
       {showDetails && (
         <Card className="mb-responsive-sm border-border bg-background-surface" padding="sm">
-          <div className="text-responsive-xs font-mono text-text-secondary">
-            <div className="mb-responsive-xs">
+          <Box className="text-responsive-xs font-mono text-text-secondary">
+            <Box className="mb-responsive-xs">
               <strong className="text-text-primary">Error:</strong> {normalizedError.message}
-            </div>
+            </Box>
             {normalizedError.stack && (
-              <div className="mb-responsive-xs">
+              <Box className="mb-responsive-xs">
                 <strong className="text-text-primary">Stack:</strong>
                 <pre className="p-responsive-xs mt-1 overflow-x-auto whitespace-pre-wrap rounded border bg-background-surface text-xs">
                   {normalizedError.stack}
                 </pre>
-              </div>
+              </Box>
             )}
             {errorInfo?.componentStack && (
-              <div>
+              <Box>
                 <strong className="text-text-primary">Component Stack:</strong>
                 <pre className="p-responsive-xs mt-1 overflow-x-auto whitespace-pre-wrap rounded border bg-background-surface text-xs">
                   {errorInfo.componentStack}
                 </pre>
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
         </Card>
       )}
-    </div>
+    </Box>
   );
 }
 function ErrorFeedbackSection({
@@ -173,15 +174,15 @@ function ErrorFeedbackSection({
 }) {
   return (
     <Card className="border-border bg-primary-muted" padding="md">
-      <div className="space-responsive-xs flex items-start">
+      <Box className="space-responsive-xs flex items-start">
         <Icon name="message-square" className="mobile-icon-sm mt-0.5 flex-shrink-0 text-primary" />
-        <div className="flex-1">
+        <Box className="flex-1">
           <Title size="sm" as="h3" className="mb-responsive-xs text-text-primary">
             Help us improve
           </Title>
           {!feedbackSubmitted ? (
-            <div>
-              <textarea
+            <Box>
+              <Textarea
                 value={feedbackMessage}
                 onChange={(e) => onFeedbackMessageChange(e.target.value)}
                 placeholder="What were you trying to do when this error occurred?"
@@ -197,14 +198,14 @@ function ErrorFeedbackSection({
               >
                 Send Feedback
               </Button>
-            </div>
+            </Box>
           ) : (
             <BodyText size="xs" className="text-primary">
               Thank you for your feedback! This helps us fix the issue.
             </BodyText>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </Card>
   );
 }

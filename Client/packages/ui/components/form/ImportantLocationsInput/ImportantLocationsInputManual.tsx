@@ -151,7 +151,6 @@ export function ImportantLocationsInputManual({
 
       <Pressable
         onPress={handleAddLocation}
-        // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
         className={`bg-background-surface rounded-lg py-3 ${DOTTED_BORDER_LIGHT_GRAY}`}
       >
         <Text className="text-center text-sm font-medium text-neutral-700">

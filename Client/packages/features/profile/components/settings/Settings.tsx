@@ -11,6 +11,7 @@ import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 // Core
 import { useGoogleMapsStore } from "packages/store";
+import { Box } from "packages/ui/components/primitives";
 import { getDocument, getWindow } from "packages/utils/platform";
 
 // Google Maps types
@@ -39,7 +40,6 @@ import {
 import CommunicationSection from "./sections/CommunicationSection";
 // Settings sections
 import FinancialSection from "./sections/FinancialSection";
-
 // Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
 
 type SettingsProps = {
@@ -298,9 +298,9 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-background-base flex min-h-screen items-center justify-center">
+      <Box className="bg-background-base flex min-h-screen items-center justify-center">
         <Loading message="Loading your preferences..." />
-      </div>
+      </Box>
     );
   }
 
@@ -368,9 +368,9 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
   };
 
   return (
-    <div className="bg-background-base min-h-screen">
-      <div className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
-        <div className="flex flex-row gap-6 lg:gap-8">
+    <Box className="bg-background-base min-h-screen">
+      <Box className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
+        <Box className="flex flex-row gap-6 lg:gap-8">
           {/* Sidebar - Always visible */}
           <SettingsSidebar
             items={convertStepsToNavItems(STEPS)}
@@ -391,8 +391,8 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
               </section>
             ))}
           </main>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

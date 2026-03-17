@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
@@ -33,7 +34,7 @@ export default function ClientSelector({
     setIsOpen(false);
   };
   return (
-    <div className={`relative ${className}`}>
+    <Box className={`relative ${className}`}>
       <Button
         type="button"
         variant="outline"
@@ -58,7 +59,7 @@ export default function ClientSelector({
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div
+          <Box
             role="button"
             tabIndex={0}
             className="fixed inset-0 z-10"
@@ -72,8 +73,8 @@ export default function ClientSelector({
           />
 
           {/* Dropdown */}
-          <div className="border-border bg-background-surface absolute z-20 mt-1 w-56 rounded-md border shadow-lg">
-            <div className="py-1">
+          <Box className="border-border bg-background-surface absolute z-20 mt-1 w-56 rounded-md border shadow-lg">
+            <Box className="py-1">
               {/* "Me" option */}
               <Button
                 type="button"
@@ -86,17 +87,17 @@ export default function ClientSelector({
               </Button>
 
               {/* Divider */}
-              {clients.length > 0 && <div className="border-border my-1 border-t" />}
+              {clients.length > 0 && <Box className="border-border my-1 border-t" />}
 
               {/* Client options */}
               {isLoading ? (
-                <div className="text-text-secondary px-4 py-2 text-sm">
+                <Box className="text-text-secondary px-4 py-2 text-sm">
                   {t("client_selector.loading_clients")}
-                </div>
+                </Box>
               ) : clients.length === 0 ? (
-                <div className="text-text-secondary px-4 py-2 text-sm">
+                <Box className="text-text-secondary px-4 py-2 text-sm">
                   {t("client_selector.no_clients_found")}
-                </div>
+                </Box>
               ) : (
                 clients.map((client) => (
                   <Button
@@ -111,21 +112,21 @@ export default function ClientSelector({
                     }`}
                     icon={<Icon name="user" className="h-4 w-4" />}
                   >
-                    <div className="flex flex-col">
+                    <Box className="flex flex-col">
                       <BodyText as="span">{client.name}</BodyText>
                       {client.email && (
                         <BodyText as="span" className="text-text-secondary text-xs">
                           {client.email}
                         </BodyText>
                       )}
-                    </div>
+                    </Box>
                   </Button>
                 ))
               )}
-            </div>
-          </div>
+            </Box>
+          </Box>
         </>
       )}
-    </div>
+    </Box>
   );
 }

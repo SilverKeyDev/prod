@@ -3,7 +3,7 @@ import type { RefObject } from "react";
 import { MapControls } from "packages/features/search/components/map/MapControls.web";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import { RippleBackground } from "packages/ui/components/backgrounds";
-
+import { Box } from "packages/ui/components/primitives";
 type SearchPageMapContainerProps = {
   mapRef: RefObject<HTMLDivElement | null>;
   isLoading: boolean;
@@ -46,30 +46,30 @@ export function SearchPageMapContainer({
   loadingOverlayClassName = "rounded-t-2xl",
 }: SearchPageMapContainerProps): JSX.Element {
   return (
-    <div className={containerClassName}>
+    <Box className={containerClassName}>
       {isLoading && (
-        <div
+        <Box
           className={`absolute inset-0 z-20 flex h-full w-full items-center justify-center overflow-hidden ${loadingOverlayClassName}`}
         >
-          <div className="absolute inset-0 z-0">
+          <Box className="absolute inset-0 z-0">
             <RippleBackground />
-          </div>
-          <div className="relative z-10 flex flex-col items-center gap-4">
+          </Box>
+          <Box className="relative z-10 flex flex-col items-center gap-4">
             {showLoadingWrapper ? (
-              <div className="bg-background-surface rounded-full px-6 py-3 shadow-md">
+              <Box className="bg-background-surface rounded-full px-6 py-3 shadow-md">
                 <KeyTurnLoader message={loadingMessage} variant={loadingVariant} />
-              </div>
+              </Box>
             ) : (
-              <div className="gap-responsive-sm flex flex-col items-center">
+              <Box className="gap-responsive-sm flex flex-col items-center">
                 <KeyTurnLoader message={loadingMessage} variant={loadingVariant} />
-              </div>
+              </Box>
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
 
-      <div className="relative h-full w-full">
-        <div ref={mapRef} className={mapClassName} style={{ minHeight: mapMinHeight }} />
+      <Box className="relative h-full w-full">
+        <Box ref={mapRef} className={mapClassName} style={{ minHeight: mapMinHeight }} />
 
         {!isSearching && (
           <MapControls
@@ -83,7 +83,7 @@ export function SearchPageMapContainer({
             disabled={disabled}
           />
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

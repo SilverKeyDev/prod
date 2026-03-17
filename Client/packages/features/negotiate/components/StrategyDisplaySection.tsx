@@ -3,11 +3,13 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, MiniLogo } from "@/components/ui";
 
 import SectionBox from "./SectionBox";
 import { formatStrategyValue } from "./StrategyFieldFormatter";
+
 type StrategyDisplaySectionProps = {
   strategyData: unknown;
   onShareJson: () => void;
@@ -38,7 +40,7 @@ export function StrategyDisplaySection({
     return 0;
   });
   return (
-    <div className="space-y-responsive-md">
+    <Box className="space-y-responsive-md">
       {sortedEntries.map(([key, value], index) => {
         // Skip empty or null values
         if (!value || (typeof value === "string" && value.trim() === "")) {
@@ -71,11 +73,11 @@ export function StrategyDisplaySection({
           <SectionBox key={key}>
             {/* Add share button to the first card */}
             {index === 0 && (
-              <div className="border-border mb-4 flex items-center justify-between border-b pb-4">
-                <div className="flex items-center gap-3">
+              <Box className="border-border mb-4 flex items-center justify-between border-b pb-4">
+                <Box className="flex items-center gap-3">
                   <MiniLogo size="sm" />
-                </div>
-                <div className="gap-responsive-sm flex">
+                </Box>
+                <Box className="gap-responsive-sm flex">
                   <Button
                     variant="primary"
                     size="sm"
@@ -85,21 +87,21 @@ export function StrategyDisplaySection({
                   >
                     {t("negotiate.strategy.share")}
                   </Button>
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
-            <div className="text-text-secondary">
+            <Box className="text-text-secondary">
               {typeof formattedValue === "string" ? (
                 <BodyText as="p" size="sm" className="leading-relaxed">
                   {formattedValue}
                 </BodyText>
               ) : (
-                <div>{formattedValue}</div>
+                <Box>{formattedValue}</Box>
               )}
-            </div>
+            </Box>
           </SectionBox>
         );
       })}
-    </div>
+    </Box>
   );
 }

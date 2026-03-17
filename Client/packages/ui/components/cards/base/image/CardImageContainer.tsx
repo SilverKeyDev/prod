@@ -45,7 +45,6 @@ export default function CardImageContainer({
     }
   };
   return (
-    // eslint-disable-next-line silverkey/no-dynamic-class-names -- refactor to static cn() or add to safelist
     <Box className={`relative w-full overflow-hidden bg-gray-100 ${getHeightClass()} ${className}`}>
       <StyledImage
         src={imageUrl ?? undefined}

@@ -3,11 +3,13 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { Box } from "packages/ui/components/primitives";
 
 import { AlignedRow } from "@/components/layout";
 import { Button, CancelButton, FavoriteHomesDropdown } from "@/components/ui";
 
 import SectionBox from "./SectionBox";
+
 type FavoriteHome = {
   user_id: string;
   address: string;
@@ -43,7 +45,7 @@ export function HomeSelectorSection({
           onHomeSelect={onHomeSelect}
           placeholder={t("negotiate.home_selector.placeholder")}
         />
-        <div className="flex items-center gap-2">
+        <Box className="flex items-center gap-2">
           <Button
             variant="primary"
             hideTextBelow="md"
@@ -60,7 +62,7 @@ export function HomeSelectorSection({
               {t("common.cancel")}
             </CancelButton>
           )}
-        </div>
+        </Box>
       </AlignedRow>
     </SectionBox>
   );

@@ -5,9 +5,9 @@ import { Tabs } from "packages/features/search/components/list/Tabs.web";
 import type { SearchResult } from "packages/features/search/types";
 import type { SavedHome } from "packages/features/search/types/property";
 import IconButton from "packages/ui/components/button/IconButton";
+import { Box } from "packages/ui/components/primitives";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";
-
 const PROPERTIES_PER_PAGE = 1;
 
 export type SearchPageMobileLayoutProps = {
@@ -88,9 +88,9 @@ export function SearchPageMobileLayout({
   const isLoading = isSearching && !hasSearched && searchResults.length === 0;
 
   return (
-    <div className="flex h-full flex-col md:hidden">
-      <div className="border-border bg-background-surface flex-shrink-0 border-b">
-        <div className="border-border flex items-center justify-center border-b">
+    <Box className="flex h-full flex-col md:hidden">
+      <Box className="border-border bg-background-surface flex-shrink-0 border-b">
+        <Box className="border-border flex items-center justify-center border-b">
           <Tabs
             active={activeTab}
             onChange={handleTabChangeWithSideEffects}
@@ -101,7 +101,7 @@ export function SearchPageMobileLayout({
             compact
           />
 
-          <div className="ml-4 px-2">
+          <Box className="ml-4 px-2">
             <IconButton
               onClick={() => setIsCarouselCollapsed(!isCarouselCollapsed)}
               variant="ghost"
@@ -116,13 +116,13 @@ export function SearchPageMobileLayout({
                 )
               }
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
 
-        <div
+        <Box
           className={`overflow-hidden transition-all duration-300 ease-in-out ${isCarouselCollapsed ? "max-h-0" : "max-h-[45vh]"}`}
         >
-          <div className="py-3">
+          <Box className="py-3">
             <PropertyCarousel
               items={activeTab === "results" ? filteredSearchResults : savedHomes}
               currentPage={currentPage}
@@ -134,11 +134,11 @@ export function SearchPageMobileLayout({
               saveHome={saveHomeAdapter}
               removeSavedHome={removeSavedHome}
             />
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
 
-      <div className="relative flex-1">
+      <Box className="relative flex-1">
         <SearchPageMapContainer
           mapRef={mobileMapRef}
           isLoading={isLoading}
@@ -155,7 +155,7 @@ export function SearchPageMobileLayout({
           disabled={!hasSearched}
           isSearching={isSearching}
         />
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

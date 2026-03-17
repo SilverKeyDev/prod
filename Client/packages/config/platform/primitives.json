@@ -22,5 +22,145 @@
     "kind": "layout",
     "module": "@ui",
     "platformIndependent": true
+  },
+  {
+    "id": "text-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/text/Text",
+    "platformIndependent": false,
+    "reason": "HTML span vs React Native Text - different rendering and layout behavior"
+  },
+  {
+    "id": "scroll-view-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/scroll/ScrollView",
+    "platformIndependent": false,
+    "reason": "CSS overflow vs React Native ScrollView - different scroll APIs and behavior"
+  },
+  {
+    "id": "touchable-box-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/touchable/TouchableBox",
+    "platformIndependent": false,
+    "reason": "Web uses div with event handlers; native uses React Native Pressable"
+  },
+  {
+    "id": "label-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/text/Label",
+    "platformIndependent": false,
+    "reason": "HTML label vs React Native Text - different form association"
+  },
+  {
+    "id": "button-component",
+    "kind": "component",
+    "module": "packages/ui/components/button/Button",
+    "platformIndependent": false,
+    "reason": "Web uses DOM button; native uses Pressable."
+  },
+  {
+    "id": "client-selector",
+    "kind": "component",
+    "module": "packages/ui/components/button/ClientSelector",
+    "platformIndependent": false,
+    "reason": "Different dropdown implementations per platform."
+  },
+  {
+    "id": "heart-save",
+    "kind": "component",
+    "module": "packages/ui/components/button/HeartSave",
+    "platformIndependent": false,
+    "reason": "Different touch handling per platform."
+  },
+  {
+    "id": "icon-button",
+    "kind": "component",
+    "module": "packages/ui/components/button/IconButton",
+    "platformIndependent": false,
+    "reason": "Web uses DOM; native uses Pressable."
+  },
+  {
+    "id": "input-component",
+    "kind": "component",
+    "module": "packages/ui/components/form/Input",
+    "platformIndependent": false,
+    "reason": "HTML input vs TextInput."
+  },
+  {
+    "id": "blur-view",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/blur/BlurView",
+    "platformIndependent": false,
+    "reason": "Web uses CSS backdrop-filter; native uses expo-blur."
+  },
+  {
+    "id": "box-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/box/Box",
+    "platformIndependent": false,
+    "reason": "Web uses div; native uses View."
+  },
+  {
+    "id": "button-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/button/Button",
+    "platformIndependent": false,
+    "reason": "Web uses button; native uses Pressable."
+  },
+  {
+    "id": "dashed-divider",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/divider/DashedDivider",
+    "platformIndependent": false,
+    "reason": "Different rendering per platform."
+  },
+  {
+    "id": "universal-gradient",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/gradient/UniversalGradient",
+    "platformIndependent": false,
+    "reason": "Web uses CSS; native uses expo-linear-gradient."
+  },
+  {
+    "id": "input-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/input/Input",
+    "platformIndependent": false,
+    "reason": "HTML input vs TextInput."
+  },
+  {
+    "id": "list-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/list/List",
+    "platformIndependent": false,
+    "reason": "Web uses ul/ol; native uses FlatList."
+  },
+  {
+    "id": "image-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/media/Image",
+    "platformIndependent": false,
+    "reason": "HTML img vs RN Image."
+  },
+  {
+    "id": "video-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/media/Video",
+    "platformIndependent": false,
+    "reason": "HTML video vs expo-av."
+  },
+  {
+    "id": "row-primitive",
+    "kind": "component",
+    "module": "packages/ui/components/primitives/row/Row",
+    "platformIndependent": false,
+    "reason": "Web uses div; native uses View."
+  },
+  {
+    "id": "primitives-index-web",
+    "kind": "layout",
+    "module": "packages/ui/components/primitives/index.web",
+    "platformIndependent": false,
+    "reason": "Web-specific primitive exports."
   }
 ]
