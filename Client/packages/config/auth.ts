@@ -3,6 +3,7 @@
    ========================= */
 
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { getLocalStorage, getSessionStorage } from "packages/utils/storage/platformStorage";
 
 /**
  * Authentication configuration that matches existing patterns
@@ -293,21 +294,21 @@ export const authUtils = {
      * @deprecated Use Zustand stores for state management instead
      */
     setSensitive: (key: string, value: string): void => {
-      sessionStorage.setItem(key, value);
+      getSessionStorage().setItem(key, value);
     },
 
     /**
      * @deprecated Use Zustand stores for state management instead
      */
     getSensitive: (key: string): string | null => {
-      return sessionStorage.getItem(key);
+      return getSessionStorage().getItem(key);
     },
 
     /**
      * @deprecated Use Zustand stores for state management instead
      */
     removeSensitive: (key: string): void => {
-      sessionStorage.removeItem(key);
+      getSessionStorage().removeItem(key);
     },
 
     /**
@@ -324,21 +325,21 @@ export const authUtils = {
         );
         return;
       }
-      localStorage.setItem(key, value);
+      getLocalStorage().setItem(key, value);
     },
 
     /**
      * Get non-sensitive data from localStorage
      */
     getNonSensitive: (key: string): string | null => {
-      return localStorage.getItem(key);
+      return getLocalStorage().getItem(key);
     },
 
     /**
      * Remove non-sensitive data from localStorage
      */
     removeNonSensitive: (key: string): void => {
-      localStorage.removeItem(key);
+      getLocalStorage().removeItem(key);
     },
 
     /**
@@ -346,21 +347,18 @@ export const authUtils = {
      * Note: This does NOT clear HTTP-only cookies - use authApi.logout() for that
      */
     clearAll: (): void => {
-      // Clear sessionStorage (auth state)
+      const session = getSessionStorage();
+      const local = getLocalStorage();
       Object.values(AUTH_CONFIG.STORAGE_KEYS).forEach((key) => {
-        sessionStorage.removeItem(key);
+        session.removeItem(key);
       });
-
-      // Clear localStorage (non-sensitive data only)
       Object.values(AUTH_CONFIG.STORAGE_KEYS).forEach((key) => {
         if (!AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.includes(key)) {
-          localStorage.removeItem(key);
+          local.removeItem(key);
         }
       });
-
-      // Clear forbidden keys from localStorage if they exist
       AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS.forEach((key) => {
-        localStorage.removeItem(key);
+        local.removeItem(key);
       });
     },
   },

@@ -13,10 +13,10 @@ env:
 jobs:
   lint:
     uses: ./.github/workflows/lint.yml
-    continue-on-error: true
 
   build-and-deploy:
     needs: [lint]
+    if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:

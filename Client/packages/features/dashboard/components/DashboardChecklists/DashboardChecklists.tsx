@@ -195,7 +195,7 @@ export default function DashboardChecklists() {
                       }
                     }}
                     aria-disabled={!checkable}
-                    className={`flex w-full cursor-pointer flex-row items-stretch ${checkable ? "bg-background-surface active:opacity-90" : "cursor-not-allowed bg-background-base opacity-75"}`}
+                    className={`flex w-full cursor-pointer flex-row items-stretch ${checkable ? "bg-background-surface active:opacity-90" : "bg-background-base cursor-not-allowed opacity-75"}`}
                   >
                     <Box className="flex min-w-0 flex-1 flex-row items-start gap-4 px-4 py-3">
                       <Box

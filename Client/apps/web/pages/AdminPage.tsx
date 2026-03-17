@@ -182,7 +182,7 @@ export default function AdminPage() {
     if (!stepUpModalProps.isOpen) return null;
 
     return (
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-overlay-backdrop p-4">
+      <Box className="fixed inset-0 z-[10000] flex items-center justify-center bg-overlay-backdrop p-4">
         <Card className="w-full max-w-md" padding="lg">
           <Title size="lg" as="h2" className="mb-2">
             Confirm your identity
@@ -191,7 +191,7 @@ export default function AdminPage() {
             {stepUpModalProps.description ??
               "For your security, please confirm your identity to access this admin feature."}
           </BodyText>
-          <div className="mt-4 flex justify-end gap-3">
+          <Box className="mt-4 flex justify-end gap-3">
             <Button
               variant="secondary"
               size="sm"
@@ -208,21 +208,21 @@ export default function AdminPage() {
             >
               Continue
             </Button>
-          </div>
+          </Box>
         </Card>
-      </div>
+      </Box>
     );
   };
 
   const content =
     !stepUpSatisfied || !frontendConfig ? (
-      <div className="flex min-h-[60vh] items-center justify-center">
+      <Box className="flex min-h-[60vh] items-center justify-center">
         <BodyText size="sm" muted>
           Preparing admin logger console…
         </BodyText>
-      </div>
+      </Box>
     ) : (
-      <div className="flex flex-col gap-6">
+      <Box className="flex flex-col gap-6">
         <Card padding="lg" className="w-full">
           <Title size="lg" as="h1" className="mb-2">
             Admin Logger Console
@@ -232,8 +232,8 @@ export default function AdminPage() {
             and other open tabs.
           </BodyText>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3">
+          <Box className="grid gap-4 md:grid-cols-2">
+            <Box className="space-y-3">
               <Title size="sm" as="h2" className="mb-1">
                 Categories
               </Title>
@@ -250,10 +250,10 @@ export default function AdminPage() {
                   </BodyText>
                 </Label>
               ))}
-            </div>
+            </Box>
 
-            <div className="space-y-3">
-              <div>
+            <Box className="space-y-3">
+              <Box>
                 <Label size="sm">Log level</Label>
                 <Select
                   className="mt-1"
@@ -263,10 +263,10 @@ export default function AdminPage() {
                     handleLogLevelChange(value as FrontendLoggerConfigState["logLevel"])
                   }
                 />
-              </div>
+              </Box>
 
               {apiConfig && (
-                <div className="space-y-2">
+                <Box className="space-y-2">
                   <Title size="sm" as="h2" className="mb-1">
                     API subcategories
                   </Title>
@@ -283,12 +283,12 @@ export default function AdminPage() {
                       </BodyText>
                     </Label>
                   ))}
-                </div>
+                </Box>
               )}
-            </div>
-          </div>
+            </Box>
+          </Box>
 
-          <div className="mt-6 flex items-center justify-between gap-4">
+          <Box className="mt-6 flex items-center justify-between gap-4">
             <BodyText size="xs" muted>
               Changes are applied only to the frontend logger. Backend logger config is managed
               separately.
@@ -301,7 +301,7 @@ export default function AdminPage() {
             >
               Apply frontend logger settings
             </Button>
-          </div>
+          </Box>
         </Card>
 
         <Card padding="lg" className="w-full">
@@ -343,16 +343,16 @@ export default function AdminPage() {
             </Button>
           )}
         </Card>
-      </div>
+      </Box>
     );
 
   return (
     <AuthGuard>
       <AdminGuard>
-        <div className="mx-auto max-w-5xl p-4 md:p-8">
+        <Box className="mx-auto max-w-5xl p-4 md:p-8">
           {content}
           {renderStepUpModal()}
-        </div>
+        </Box>
       </AdminGuard>
     </AuthGuard>
   );
