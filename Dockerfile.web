@@ -34,11 +34,11 @@
   # Headroom for Rollup
   ENV NODE_OPTIONS="--max-old-space-size=3072"
   
-  # Vite build (silent)
-  RUN pnpm --reporter=silent run -s build:web -- --logLevel silent >/dev/null 2>&1 \
-   && rm -rf /tmp/* || true
-  
-  # Verify assets exist
+  # Vite build (if build fails, this RUN fails so CI shows the error)
+  RUN pnpm --reporter=silent run -s build:web -- --logLevel warn \
+   && rm -rf /tmp/*
+
+  # Verify assets exist (build must produce Client/dist when run from WORKDIR /app/client)
   RUN test -d dist && [ "$(ls -A dist)" ] || (echo "dist missing or empty!" >&2 && exit 1)
   
   # ----------------------------
