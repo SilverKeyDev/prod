@@ -111,7 +111,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
   return (
     <Box className="mb-6 w-full">
       {TabNavigation}
-      <Card border="charcoal" padding="none" className="w-full p-3">
+      <Card border="light" padding="none" className="w-full p-3">
         <Box className="flex flex-wrap items-center justify-between gap-3">
           {/* Separate div for left content */}
           {leftContent && !showSearch && (

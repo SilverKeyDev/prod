@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { Box } from "packages/ui/components/primitives";
 
+import type { ButtonVariant } from "./Button";
 import Button from "./Button";
 export type NavigationButtonsProps = {
   /** Current step index (0-based) */
@@ -26,6 +27,10 @@ export type NavigationButtonsProps = {
   previousText?: string;
   /** Custom text for next button */
   nextText?: string;
+  /** Variant for the next (or skip) button when not on last step */
+  nextButtonVariant?: ButtonVariant;
+  /** Optional class name for the next button (e.g. white background for Skip) */
+  nextButtonClassName?: string;
   /** Custom text for submit button */
   submitText?: string;
   /** Layout variant */
@@ -46,6 +51,8 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   disablePrevious = false,
   previousText = "Previous",
   nextText = "Next",
+  nextButtonVariant = "primary",
+  nextButtonClassName,
   submitText = "Complete",
   layout = "centered",
   size = "lg",
@@ -104,13 +111,13 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         </Button>
       ) : (
         <Button
-          variant="primary"
+          variant={nextButtonVariant}
           size={size}
           onClick={onNext}
           disabled={disableNext}
           icon={<Icon name="chevron-right" />}
           iconPosition="right"
-          className="w-30 font-bold sm:w-36 md:w-40"
+          className={nextButtonClassName ?? "w-30 font-bold sm:w-36 md:w-40"}
         >
           {nextText}
         </Button>

@@ -59,8 +59,8 @@ export default function PersonalizationSidebar({
             <Button
               onClick={onEdit}
               variant="primary"
-              size="sm"
-              className={`min-h-9 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
+              size="md"
+              className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
               icon={<Icon name="edit" />}
             >
               {isLargeScreen ? "Edit" : ""}
@@ -73,19 +73,21 @@ export default function PersonalizationSidebar({
                 onClick={onSave}
                 disabled={isSaving}
                 variant="primary"
-                size="sm"
-                className={`min-h-9 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
+                size="md"
+                className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
                 icon={<Icon name="save" />}
               >
                 {isLargeScreen ? (isSaving ? "Saving..." : "Save") : ""}
               </Button>
-              <CancelButton
-                onClick={onCancel}
-                size="sm"
-                className={`min-h-9 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
-              >
-                {isLargeScreen ? "Cancel" : ""}
-              </CancelButton>
+              <Card border="dotted" padding="sm" className="w-full">
+                <CancelButton
+                  onClick={onCancel}
+                  size="md"
+                  className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
+                >
+                  {isLargeScreen ? "Cancel" : ""}
+                </CancelButton>
+              </Card>
             </Box>
           )}
         </Box>

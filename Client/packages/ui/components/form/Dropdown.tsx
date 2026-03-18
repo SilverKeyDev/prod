@@ -252,9 +252,9 @@ function Dropdown<T = unknown>({
           <BodyText
             as="span"
             ref={triggerLabelRef}
-            className={`relative min-w-0 flex-1 truncate text-left ${
+            className={`relative min-w-0 flex-1 truncate text-left text-xs sm:text-sm md:text-base ${
               selectedOption ? "text-gray-600" : "!text-gray-400"
-            } ${labelWraps ? "text-xs" : ""}`}
+            }`}
           >
             {displayLabel}
             {/* Hidden measurer: always default size so wrap detection is stable and doesn't glitch */}
@@ -347,8 +347,7 @@ function Dropdown<T = unknown>({
                       </BodyText>
                       <BodyText
                         as="span"
-                        size={wrappingOptionIndices.has(index) ? "sm" : "md"}
-                        className="relative z-10 flex items-center"
+                        className="relative z-10 flex items-center text-xs sm:text-sm md:text-base"
                       >
                         {option.icon}
                         {option.label}

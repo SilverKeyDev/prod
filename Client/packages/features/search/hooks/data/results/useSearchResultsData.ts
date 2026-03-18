@@ -24,8 +24,9 @@ export type UseSearchResultsDataReturn = {
 
 /**
  * Hook for managing search results with React Query.
- * Always fetches current search results from the database when visiting the search page.
- * No localStorage or client-side cache - results come from the backend (HomeUniversal table).
+ * Results are never considered stale: cached data is shown until a new search runs
+ * (setSearchResults) or the user explicitly refetches (refetchCachedResults).
+ * This prevents refetches from overwriting good results with empty API responses.
  */
 export function useSearchResultsData(): UseSearchResultsDataReturn {
   const queryClient = useQueryClient();
@@ -73,11 +74,11 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
       }
     },
     enabled: shouldLoadData,
-    staleTime: 0, // Always consider stale so we refetch from DB on mount
+    staleTime: Infinity, // Never stale - cached results stay until new search or explicit refetch
     gcTime: 5 * 60 * 1000, // 5 minutes - keep in memory for quick back/forward
-    refetchOnMount: true, // Always fetch fresh from DB when visiting search page
-    refetchOnWindowFocus: true, // Refetch when returning to tab
-    refetchOnReconnect: true,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Mutation to set search results (updates React Query cache after new search)

@@ -4,11 +4,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import type { OnboardingData } from "packages/features/profile/utils"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Onboarding form data matches profile preference shape. */
 import {
   calculateAffordableHomePrice,
   type HomePriceResult,
-  type OnboardingData,
-} from "@/features/profile/utils";
+} from "packages/utils/affordability";
 
 type OnboardingStep = { id: string };
 

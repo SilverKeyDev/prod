@@ -3,9 +3,9 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { Box } from "packages/ui/components/primitives";
+import type { HomePriceResult } from "packages/utils/affordability";
 
 import { BodyText, Title } from "@/components/ui";
-import type { HomePriceResult } from "@/features/profile/utils";
 
 type HomePriceEstimateProps = {
   homePriceLoading: boolean;
@@ -15,14 +15,15 @@ type HomePriceEstimateProps = {
   setIsAffordabilityCollapsed: (collapsed: boolean) => void;
   idealZipCode?: string;
 };
-const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
+
+export function HomePriceEstimate({
   homePriceLoading,
   homePriceError,
   homePriceResult,
   isAffordabilityCollapsed,
   setIsAffordabilityCollapsed,
   idealZipCode,
-}) => {
+}: HomePriceEstimateProps) {
   return (
     <Box
       className={`border-primary bg-background-surface col-span-1 mt-4 rounded-lg border px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2`}
@@ -210,5 +211,4 @@ const HomePriceEstimate: React.FC<HomePriceEstimateProps> = ({
       </Box>
     </Box>
   );
-};
-export default HomePriceEstimate;
+}

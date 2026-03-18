@@ -263,7 +263,7 @@ export function DashboardScreen() {
           </Box>
         ) : null}
 
-        <Box className="gap-3">
+        <Box className="mt-6 gap-3">
           <Text className="text-text-primary text-lg font-medium">Upcoming Events</Text>
           <UpcomingEvents embedInListHeader />
         </Box>

@@ -1,16 +1,16 @@
 import { useMemo, useState } from "react";
 
+import type { OnboardingData } from "packages/features/profile/utils"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Feed needs profile preference shape for payment estimate. */
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { Transition } from "packages/ui/components/adapters/headless";
 import { Box } from "packages/ui/components/primitives";
-
-import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
-import type { FeedListing } from "@/features/feed/types/feed";
 import {
   estimateMonthlyPayment,
   mapCreditScoreToNumber,
-  type OnboardingData,
-} from "@/features/profile/utils";
+} from "packages/utils/affordability";
+
+import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
+import type { FeedListing } from "@/features/feed/types/feed";
 
 type FeedAffordabilityBadgeProps = {
   item: FeedListing;

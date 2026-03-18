@@ -2,9 +2,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import {
-  calculateAffordableHomePrice,
   handleSubmit as handleSubmitUtil,
-  type HomePriceResult,
   type OnboardingData,
   validateSettingsData,
 } from "packages/features/profile";
@@ -57,68 +55,12 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
   // Modal state variables removed - modals not currently implemented
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [homePriceResult, setHomePriceResult] = useState<HomePriceResult | null>(null);
-  const [homePriceLoading, setHomePriceLoading] = useState(false);
-  const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
 
-  const calculateHomePrice = useCallback(() => {
-    // Check if we have all required data
-    if (!formData.gross_income || !formData.ideal_zip_code) {
-      return;
-    }
-
-    try {
-      setHomePriceLoading(true);
-      setHomePriceError(null);
-
-      const result = calculateAffordableHomePrice(formData);
-
-      if ("error" in result) {
-        setHomePriceError(result.error);
-        setHomePriceResult(null);
-      } else {
-        setHomePriceResult(result);
-      }
-    } catch (error: unknown) {
-      setHomePriceError(error instanceof Error ? error.message : "Failed to calculate home price");
-      setHomePriceResult(null);
-    } finally {
-      setHomePriceLoading(false);
-    }
-  }, [formData]);
-
-  // Trigger home price calculation when relevant form data changes
   useEffect(() => {
-    // Cleanup actions when component unmounts
     return () => {
       setMobileHeaderActions(null);
     };
   }, [setMobileHeaderActions]);
-
-  useEffect(() => {
-    // Only calculate if we're on the financial section
-    if (activeSection !== "financial") return;
-
-    // Only calculate if we have the minimum required data
-    if (formData.gross_income && formData.ideal_zip_code) {
-      void calculateHomePrice();
-    }
-  }, [
-    formData.gross_income,
-    formData.credit_score_range,
-    formData.ideal_zip_code,
-    formData.down_payment,
-    activeSection,
-    calculateHomePrice,
-  ]);
-
-  // Automatically collapse/expand affordability dropdown based on edit mode
-  useEffect(() => {
-    // When not in edit mode, collapse the dropdown (compact view)
-    // When in edit mode, expand the dropdown by default
-    setIsAffordabilityCollapsed(!isEditMode);
-  }, [isEditMode]);
 
   const loadUserPreferencesFromContext = useCallback(() => {
     try {
@@ -342,11 +284,6 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
             formData={formData}
             isEditMode={isEditMode}
             updateFormData={updateFormData}
-            homePriceLoading={homePriceLoading}
-            homePriceError={homePriceError}
-            homePriceResult={homePriceResult}
-            isAffordabilityCollapsed={isAffordabilityCollapsed}
-            setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
           />
         );
 

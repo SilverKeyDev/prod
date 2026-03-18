@@ -31,7 +31,7 @@ export function SettingsCommunicationSection({
   updateFormData,
 }: SettingsCommunicationSectionProps) {
   return (
-    <Card border="charcoal" className="space-y-6">
+    <Card border="light" className="space-y-6">
       <Title size="md" className="mb-6">
         {SECTION_TITLES.COMMUNICATION_PREFERENCES}
       </Title>

@@ -39,7 +39,8 @@ const iconForStepId = (id: string): StepWithIcon["icon"] => {
 };
 const withIcons = (steps: ProfileStep[]): StepWithIcon[] =>
   steps.map((step) => ({ ...step, icon: iconForStepId(step.id) }));
-export const getOnboardingStepsUi = (): StepWithIcon[] => withIcons(getOnboardingSteps());
+export const getOnboardingStepsUi = (): StepWithIcon[] =>
+  withIcons(getOnboardingSteps({ excludeFinancial: true }));
 export const getPersonalizationStepsUi = (): StepWithIcon[] => withIcons(getPersonalizationSteps());
 export const convertStepsToNavItems = (steps: StepWithIcon[]): NavItem[] =>
   steps.map((step) => ({

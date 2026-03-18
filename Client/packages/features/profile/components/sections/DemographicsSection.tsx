@@ -24,6 +24,8 @@ type DemographicsSectionProps = {
   wrapInCard?: boolean;
   /** When true, hide the profile picture upload block (e.g. on onboarding page). Default false. */
   hideProfilePictureWhenOnboarding?: boolean;
+  /** When true, hide the name field (onboarding only; name remains in regular settings). Default false. */
+  hideNameWhenOnboarding?: boolean;
   /**
    * When false, hide the agent/buyer choice. Agent status is immutable once set during onboarding;
    * the choice is only shown during onboarding, not in settings or profile.
@@ -51,6 +53,7 @@ export default function DemographicsSection({
   updateFormData,
   wrapInCard = true,
   hideProfilePictureWhenOnboarding = false,
+  hideNameWhenOnboarding = false,
   showAgentChoice = true,
 }: DemographicsSectionProps) {
   const content = (
@@ -65,25 +68,26 @@ export default function DemographicsSection({
         </Box>
       )}
 
-      {/* Name */}
-      <Box>
-        <Label>{FIELD_LABELS.NAME}</Label>
-        {isEditMode ? (
-          <Input
-            type="text"
-            value={formData.name ?? ""}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              updateFormData("name", e.target.value)
-            }
-            placeholder="Enter your name"
-            className="mt-2"
-          />
-        ) : (
-          <Box className="mobile-input bg-background-base mt-2">
-            {formData.name ?? "Not specified"}
-          </Box>
-        )}
-      </Box>
+      {!hideNameWhenOnboarding && (
+        <Box>
+          <Label>{FIELD_LABELS.NAME}</Label>
+          {isEditMode ? (
+            <Input
+              type="text"
+              value={formData.name ?? ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                updateFormData("name", e.target.value)
+              }
+              placeholder="Enter your name"
+              className="mt-2"
+            />
+          ) : (
+            <Box className="mobile-input bg-background-base mt-2">
+              {formData.name ?? "Not specified"}
+            </Box>
+          )}
+        </Box>
+      )}
 
       {/* Are you a real estate agent? + Age - agent choice only shown during onboarding */}
       <AlignedRow
@@ -188,7 +192,7 @@ export default function DemographicsSection({
     </>
   );
   return wrapInCard ? (
-    <Card border="charcoal" className="space-y-6">{content}</Card>
+    <Card border="light" className="space-y-6">{content}</Card>
   ) : (
     <Box className="space-y-6">{content}</Box>
   );

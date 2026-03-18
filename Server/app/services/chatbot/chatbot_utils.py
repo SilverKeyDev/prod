@@ -206,10 +206,13 @@ def generate_action_plan(user_preferences, client_name):
                 context_parts.append(
                     f"Home age preference: {user_preferences['preferred_home_age']}"
                 )
-            if user_preferences.get("preferred_home_age_max") is not None:
-                context_parts.append(
-                    f"Max home age: {user_preferences['preferred_home_age_max']} years"
-                )
+            if (
+                user_preferences.get("preferred_home_age_min") is not None
+                or user_preferences.get("preferred_home_age_max") is not None
+            ):
+                lo = user_preferences.get("preferred_home_age_min", "")
+                hi = user_preferences.get("preferred_home_age_max", "")
+                context_parts.append(f"Home age range: {lo}–{hi} years")
             if (
                 user_preferences.get("must_have")
                 and isinstance(user_preferences["must_have"], list)

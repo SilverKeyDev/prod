@@ -73,6 +73,8 @@ def format_user_data_for_matching(user: User, user_preferences: dict[str, Any]) 
         "preferred_lot_size_min": prefs.get("preferred_lot_size_min"),
         "preferred_lot_size_max": prefs.get("preferred_lot_size_max"),
         "preferred_home_age": prefs.get("preferred_home_age"),
+        "preferred_home_age_min": prefs.get("preferred_home_age_min"),
+        "preferred_home_age_max": prefs.get("preferred_home_age_max"),
         # Style and renovation
         "preferred_architectural_style": prefs.get("preferred_architectural_style")
         or prefs.get("architectural_style_preference"),

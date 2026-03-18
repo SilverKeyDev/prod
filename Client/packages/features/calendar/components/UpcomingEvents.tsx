@@ -170,6 +170,7 @@ export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProp
         title="Upcoming Events (Next 7 Days)"
         emptyMessage="No upcoming events"
         embedInListHeader={embedInListHeader}
+        border="light"
       />
     </Box>
   );

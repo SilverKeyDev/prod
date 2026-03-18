@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 
 import { color } from "packages/design-tokens";
 import Card from "packages/ui/components/cards/Card";
+import type { CardBorderVariant } from "packages/ui/components/cards/Card";
 import { Box, ScrollView, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
@@ -23,6 +24,8 @@ type EventListProps = {
   updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
   deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
   calendars?: Calendar[];
+  /** Card border variant. Default charcoal; use "light" for upcoming-events style. */
+  border?: CardBorderVariant;
 };
 
 const titleStyle = {
@@ -64,6 +67,7 @@ export function EventList({
   updateEvent,
   deleteEvent,
   calendars = [],
+  border = "charcoal",
 }: EventListProps) {
   const sortedEvents = useMemo(() => {
     return [...events].sort((a, b) => {
@@ -120,7 +124,7 @@ export function EventList({
     );
 
   return (
-    <Card border="charcoal" className="w-full" padding="md" hover={false}>
+    <Card border={border} className="w-full" padding="md" hover={false}>
       {title ? <Text style={titleStyle}>{title}</Text> : null}
       {listContent}
     </Card>

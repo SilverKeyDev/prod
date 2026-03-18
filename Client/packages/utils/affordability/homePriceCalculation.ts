@@ -1,5 +1,12 @@
 import { estimateAffordableHomePrice } from "./affordabilityCalculator";
-import type { OnboardingData } from "./types";
+
+/** Minimal input for affordability calculation; avoids dependency on profile OnboardingData. */
+export type AffordabilityInput = {
+  gross_income?: number;
+  ideal_zip_code?: string;
+  credit_score_range?: string;
+  down_payment?: number;
+};
 
 export type HomePriceResult = {
   maxHomePrice: number;
@@ -41,7 +48,7 @@ export const mapCreditScoreToNumber = (creditScoreRange?: string): number => {
 /** Builds human-readable explanation string for the home price result and form inputs. */
 export const generateHomePriceExplanation = (
   result: HomePriceResult,
-  data: OnboardingData
+  data: AffordabilityInput
 ): string => {
   // Calculate down payment percent for display
   const downPaymentPercent =
@@ -58,14 +65,14 @@ Key assumptions used:
 - **Property Tax Rate:** ${
     typeof result.propertyTaxRate === "number" ? result.propertyTaxRate.toFixed(2) : "-"
   }%
-- **DTI Used:** ${typeof result.dtiUsed === "number" ? (result.dtiUsed * 100).toFixed(0) : "-"}%
+- **DTI Used:** ${typeof result.dtiUsed === "number" ? result.dtiUsed.toFixed(0) : "-"}%
 
 Your estimated monthly payment of $${result.totalMonthlyHousingCost.toLocaleString()} includes principal, interest, property taxes, homeowner's insurance, and PMI (if applicable). This approach gives you a realistic maximum home price based on your income and debts—not just a budget cap.`;
 };
 
 // Main home price calculation function
 export const calculateAffordableHomePrice = (
-  formData: OnboardingData
+  formData: AffordabilityInput
 ): HomePriceResult | HomePriceError => {
   // Check if we have all required data
   if (!formData.gross_income || !formData.ideal_zip_code) {

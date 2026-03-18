@@ -53,7 +53,7 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
                 className="ring-accent-muted inline-flex rounded-full px-3 py-1.5 text-sm font-medium shadow-sm ring-1"
                 label={`Remove ${label}`}
               >
-                {label}
+                <span className="mx-1">{label}</span>
               </Button>
             ) : (
               <BodyText
@@ -62,27 +62,28 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
                 size="sm"
                 className="bg-primary ring-accent-muted inline-flex items-center rounded-full px-3 py-1.5 font-medium text-white shadow-sm ring-1"
               >
-                {label}
+                <span className="mx-1">{label}</span>
               </BodyText>
             );
           })}
         </Box>
       )}
 
-      {/* Unselected options as addable pills (edit mode only) */}
+      {/* Unselected options as cards with dotted outline (edit mode only) */}
       {isEditMode && unselectedOptions.length > 0 && (
-        <Box className="flex flex-wrap gap-2">
+        <Box className="flex flex-wrap gap-3">
           {unselectedOptions.map((opt) => (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               type="button"
               key={opt.value}
               onClick={() => handleToggle(opt.value)}
               disabled={disabled}
-              className="touch-friendly text-text-secondary inline-flex rounded-full px-3 py-1 text-sm"
+              className="touch-friendly min-h-[2.75rem] min-w-[5rem] rounded-lg border-2 border-dotted border-border bg-transparent text-text-secondary px-4 py-2.5 text-sm font-medium transition-colors hover:border-brand-accent hover:bg-background-surface hover:text-text-primary"
+              label={`Select ${opt.label}`}
             >
-              {opt.label}
+              <span className="mx-1">{opt.label}</span>
             </Button>
           ))}
         </Box>

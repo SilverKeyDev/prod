@@ -10,7 +10,6 @@ import {
   DemographicsSection,
   HousingSection,
   LocationSection,
-  OnboardingFinancialSection,
 } from "@/features/profile/components/sections/index.web";
 
 export default function OnboardingPage() {
@@ -30,12 +29,8 @@ export default function OnboardingPage() {
     handleSubmit,
     handleCloseValidationWarning,
     handleReviewInformation,
-    homePriceLoading,
-    homePriceError,
-    homePriceResult,
-    isAffordabilityCollapsed,
-    setIsAffordabilityCollapsed,
     isDesktop,
+    showSkipOnNext,
   } = useOnboardingForm();
 
   const renderStepContent = () => {
@@ -50,19 +45,7 @@ export default function OnboardingPage() {
             updateFormData={updateFormData}
             wrapInCard={false}
             hideProfilePictureWhenOnboarding={true}
-          />
-        );
-
-      case "financial":
-        return (
-          <OnboardingFinancialSection
-            formData={formData}
-            updateFormData={updateFormData}
-            homePriceLoading={homePriceLoading}
-            homePriceError={homePriceError}
-            homePriceResult={homePriceResult}
-            isAffordabilityCollapsed={isAffordabilityCollapsed}
-            setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
+            hideNameWhenOnboarding={true}
           />
         );
 
@@ -133,6 +116,13 @@ export default function OnboardingPage() {
                 loading={loading}
                 layout="centered"
                 size="md"
+                nextText={showSkipOnNext ? "Skip" : "Next"}
+                nextButtonVariant={showSkipOnNext ? "secondary" : "primary"}
+                nextButtonClassName={
+                  showSkipOnNext
+                    ? "w-30 font-bold sm:w-36 md:w-40 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    : undefined
+                }
               />
             </Box>
           </Card>

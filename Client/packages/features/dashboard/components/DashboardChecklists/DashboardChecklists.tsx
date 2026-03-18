@@ -131,7 +131,7 @@ export default function DashboardChecklists() {
         isSectionUnlocked={isSectionUnlocked}
       />
 
-      <Card border="charcoal" className="bg-background-base" padding="md" hover={false}>
+      <Card border="light" className="bg-background-base" padding="md" hover={false}>
         {isLoading ? (
           <Box className="flex flex-row items-center justify-center py-12">
             <Loading />

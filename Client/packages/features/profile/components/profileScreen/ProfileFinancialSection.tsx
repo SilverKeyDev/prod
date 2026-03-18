@@ -2,7 +2,7 @@ import React from "react";
 
 import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/BudgetRangeSlider";
 import PriceRangeSlider from "packages/features/profile/components/settings/inputs/PriceRangeSlider";
-import type { HomePriceResult, OnboardingData } from "packages/features/profile/utils";
+import type { OnboardingData } from "packages/features/profile/utils";
 import {
   CREDIT_SCORE_OPTIONS,
   FIELD_LABELS,
@@ -14,6 +14,7 @@ import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
+import type { HomePriceResult } from "packages/utils/affordability";
 
 import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue";
 
@@ -29,11 +30,12 @@ type ProfileFinancialSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
   updateField: (field: keyof OnboardingData, value: unknown) => void;
-  homePriceResult: HomePriceResult | null;
-  homePriceLoading: boolean;
-  homePriceError: string | null;
-  isAffordabilityCollapsed: boolean;
-  setIsAffordabilityCollapsed: (fn: (prev: boolean) => boolean) => void;
+  /** When provided, the affordability estimate block is shown (e.g. in checklist Set budget). */
+  homePriceResult?: HomePriceResult | null;
+  homePriceLoading?: boolean;
+  homePriceError?: string | null;
+  isAffordabilityCollapsed?: boolean;
+  setIsAffordabilityCollapsed?: (fn: (prev: boolean) => boolean) => void;
 };
 
 export function ProfileFinancialSection({
@@ -46,6 +48,7 @@ export function ProfileFinancialSection({
   isAffordabilityCollapsed,
   setIsAffordabilityCollapsed,
 }: ProfileFinancialSectionProps) {
+  const showAffordabilityBlock = setIsAffordabilityCollapsed != null;
   return (
     <Box className="gap-4">
       <Title size="md">{SECTION_TITLES.FINANCIAL_PROFILE}</Title>
@@ -69,6 +72,7 @@ export function ProfileFinancialSection({
             }}
             formatPrefix="$"
             className="mt-2"
+            variant="budget"
           />
         ) : (
           <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
@@ -171,58 +175,60 @@ export function ProfileFinancialSection({
         )}
       </Box>
 
-      <Box className="border-border bg-background-surface mt-2 rounded-lg border px-4 py-3">
-        <Box className="flex-row items-center justify-between">
-          <Text className="text-text-primary text-base font-semibold">Affordability estimate</Text>
-          <Pressable
-            onPress={() => setIsAffordabilityCollapsed((prev) => !prev)}
-            className="px-2 py-1"
-          >
-            <Text className="text-primary text-xs font-medium">
-              {isAffordabilityCollapsed ? "Show details" : "Hide details"}
-            </Text>
-          </Pressable>
-        </Box>
-
-        {homePriceLoading ? (
-          <Box className="mt-2">
-            <Text className="text-text-secondary text-sm">Calculating estimate…</Text>
-          </Box>
-        ) : homePriceError ? (
-          <Box className="mt-2">
-            <Text className="text-sm text-red-500">{homePriceError}</Text>
-          </Box>
-        ) : homePriceResult ? (
-          <Box className="mt-3 gap-1">
-            <Text className="text-text-primary text-sm">
-              Estimated max home price:{" "}
-              <Text className="font-semibold">
-                ${homePriceResult.maxHomePrice.toLocaleString()}
+      {showAffordabilityBlock && (
+        <Box className="border-border bg-background-surface mt-2 rounded-lg border px-4 py-3">
+          <Box className="flex-row items-center justify-between">
+            <Text className="text-text-primary text-base font-semibold">Affordability estimate</Text>
+            <Pressable
+              onPress={() => setIsAffordabilityCollapsed?.((prev) => !prev)}
+              className="px-2 py-1"
+            >
+              <Text className="text-primary text-xs font-medium">
+                {isAffordabilityCollapsed ? "Show details" : "Hide details"}
               </Text>
-            </Text>
-            {!isAffordabilityCollapsed && (
-              <>
-                <Text className="text-text-primary text-sm">
-                  Estimated monthly housing cost:{" "}
-                  <Text className="font-semibold">
-                    ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
+            </Pressable>
+          </Box>
+
+          {homePriceLoading ? (
+            <Box className="mt-2">
+              <Text className="text-text-secondary text-sm">Calculating estimate…</Text>
+            </Box>
+          ) : homePriceError ? (
+            <Box className="mt-2">
+              <Text className="text-sm text-red-500">{homePriceError}</Text>
+            </Box>
+          ) : homePriceResult ? (
+            <Box className="mt-3 gap-1">
+              <Text className="text-text-primary text-sm">
+                Estimated max home price:{" "}
+                <Text className="font-semibold">
+                  ${homePriceResult.maxHomePrice.toLocaleString()}
+                </Text>
+              </Text>
+              {!isAffordabilityCollapsed && (
+                <>
+                  <Text className="text-text-primary text-sm">
+                    Estimated monthly housing cost:{" "}
+                    <Text className="font-semibold">
+                      ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
+                    </Text>
                   </Text>
-                </Text>
-                <Text className="text-text-secondary mt-1 text-xs">
-                  This estimate uses your income, down payment, and credit band to give a realistic
-                  upper bound on what you can comfortably afford.
-                </Text>
-              </>
-            )}
-          </Box>
-        ) : (
-          <Box className="mt-2">
-            <Text className="text-text-secondary text-sm">
-              Enter your income and ideal zip code to see an affordability estimate.
-            </Text>
-          </Box>
-        )}
-      </Box>
+                  <Text className="text-text-secondary mt-1 text-xs">
+                    This estimate uses your income, down payment, and credit band to give a
+                    realistic upper bound on what you can comfortably afford.
+                  </Text>
+                </>
+              )}
+            </Box>
+          ) : (
+            <Box className="mt-2">
+              <Text className="text-text-secondary text-sm">
+                Enter your income and ideal zip code to see an affordability estimate.
+              </Text>
+            </Box>
+          )}
+        </Box>
+      )}
     </Box>
   );
 }

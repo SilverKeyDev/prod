@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import PersonalizationMobileHeader from "packages/features/profile/components/account/MobileHeader";
 // Hooks and utilities
-import { useHomePriceCalculation } from "packages/features/profile/hooks";
 import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
 import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useResponsive } from "packages/hooks/ui";
@@ -61,15 +60,8 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
   // Modal state variables removed - modals not currently implemented
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
 
-  // Use home price calculation hook
-  const { homePriceResult, homePriceLoading, homePriceError } = useHomePriceCalculation({
-    formData,
-    activeSection,
-  });
-
-  // Trigger home price calculation when relevant form data changes
+  // Trigger cleanup when component unmounts
   useEffect(() => {
     // Cleanup actions when component unmounts
     return () => {
@@ -78,13 +70,6 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
       }
     };
   }, [setMobileHeaderActions]);
-
-  // Automatically collapse/expand affordability dropdown based on edit mode
-  useEffect(() => {
-    // When not in edit mode, collapse the dropdown (compact view)
-    // When in edit mode, expand the dropdown by default
-    setIsAffordabilityCollapsed(!isEditMode);
-  }, [isEditMode]);
 
   const loadUserPreferencesFromContext = useCallback(() => {
     try {
@@ -313,11 +298,6 @@ export default function Settings({ setMobileHeaderActions }: SettingsProps) {
             formData={formData}
             isEditMode={isEditMode}
             updateFormData={updateFormData}
-            homePriceLoading={homePriceLoading}
-            homePriceError={homePriceError}
-            homePriceResult={homePriceResult}
-            isAffordabilityCollapsed={isAffordabilityCollapsed}
-            setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
           />
         );
 

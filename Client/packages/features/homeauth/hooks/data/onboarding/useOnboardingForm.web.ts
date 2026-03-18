@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
 import { useResponsive } from "packages/hooks/ui";
@@ -6,7 +6,10 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 
 import { getOnboardingStepsUi } from "@/features/profile/components/profilePicture/profileStepsUi";
-import { validateOnboardingData } from "@/features/profile/utils";
+import {
+  isOnboardingStepComplete,
+  validateOnboardingData,
+} from "@/features/profile/utils";
 
 import { useOnboardingAffordability } from "./useOnboardingAffordability";
 import { getScriptsReady } from "./useOnboardingForm.helpers";
@@ -34,6 +37,14 @@ export function useOnboardingForm() {
 
   const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
 
+  const currentStepId = core.steps[core.currentStep]?.id ?? "";
+  const isCurrentStepComplete = useMemo(
+    () => isOnboardingStepComplete(core.formData, currentStepId),
+    [core.formData, currentStepId]
+  );
+  const showSkipOnNext =
+    currentStepId !== "demographics" && !isCurrentStepComplete;
+
   useEffect(() => {
     if (googleMapsError) {
       log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
@@ -55,5 +66,6 @@ export function useOnboardingForm() {
     isAffordabilityCollapsed,
     setIsAffordabilityCollapsed,
     isDesktop: isMdUp,
+    showSkipOnNext,
   };
 }

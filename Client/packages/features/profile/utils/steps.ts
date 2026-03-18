@@ -37,10 +37,8 @@ export const getPersonalizationSteps = (): ProfileStep[] => {
 };
 
 /**
- * Onboarding steps for mobile. Currently matches web (demographics, housing, location, financial).
- * To exclude the financial step, use a feature flag and return getOnboardingSteps({ excludeFinancial: !useFeature("financial_onboarding_step") })
- * and align REQUIRED_FIELDS_ONBOARDING_MOBILE in constants.ts (see documentation/client/mobile-parity/DISPARITY_AUDIT_REMEDIATION.md).
+ * Onboarding steps for mobile. Excludes financial step (demographics, housing, location only).
  */
 export const getOnboardingStepsMobile = (): ProfileStep[] => {
-  return getOnboardingSteps();
+  return getOnboardingSteps({ excludeFinancial: true });
 };

@@ -4,12 +4,17 @@ import { Box } from "packages/ui/components/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { Title } from "@/components/ui";
-import { type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
+import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
+import { FIELD_LABELS, type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
 
 import { HousingBasicRows } from "./HousingBasicRows";
 import { HousingDropdownRows } from "./HousingDropdownRows";
 import { HousingRangeRows } from "./HousingRangeRows";
 import { HousingTagRows } from "./HousingTagRows";
+
+const BUDGET_TICK_VALUES = [
+  200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000, 10000000,
+];
 type HousingSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
@@ -30,6 +35,34 @@ export default function HousingSection({
       <Title size="md" className="mb-2">
         {SECTION_TITLES.HOUSING_PREFERENCES}
       </Title>
+
+      <Box className="mb-4">
+        <Title size="sm" className="mb-2">
+          {FIELD_LABELS.HOME_BUDGET}
+        </Title>
+        {isEditMode ? (
+          <BudgetRangeSlider
+            tickValues={BUDGET_TICK_VALUES}
+            minValue={formData.home_budget_min ?? 200000}
+            maxValue={formData.home_budget_max ?? 1000000}
+            onChange={(minValue, maxValue) => {
+              const roundedMin = Math.round(minValue / 25000) * 25000;
+              const roundedMax = Math.round(maxValue / 25000) * 25000;
+              updateFormData("home_budget_min", roundedMin);
+              updateFormData("home_budget_max", roundedMax);
+            }}
+            formatPrefix="$"
+            className="mt-2"
+          />
+        ) : (
+          <Box className="mobile-input bg-background-base mt-2 text-center">
+            <Box className="text-lg font-normal">
+              ${(formData.home_budget_min ?? 0).toLocaleString()} – $
+              {(formData.home_budget_max ?? 0).toLocaleString()}
+            </Box>
+          </Box>
+        )}
+      </Box>
 
       <HousingBasicRows
         formData={formData}
@@ -55,7 +88,7 @@ export default function HousingSection({
   );
 
   return wrapInCard ? (
-    <Card border="charcoal" className="space-y-6">{content}</Card>
+    <Card border="light" className="space-y-6">{content}</Card>
   ) : (
     <Box className="space-y-6">{content}</Box>
   );

@@ -121,6 +121,7 @@ export function userPreferencesToOnboardingData(
     preferred_home_age: toString(get("preferred_home_age")),
     preferred_lot_size_min: toNumber(get("preferred_lot_size_min")),
     preferred_lot_size_max: toNumber(get("preferred_lot_size_max")),
+    preferred_home_age_min: toNumber(get("preferred_home_age_min")),
     preferred_home_age_max: toNumber(get("preferred_home_age_max")),
     preferred_architectural_style: toString(get("preferred_architectural_style")),
     preferred_home_features: toStringArray(get("preferred_home_features")),

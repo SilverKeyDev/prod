@@ -7,9 +7,8 @@ import { ProfileDemographicsSection } from "packages/features/profile/components
 import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/ProfileFinancialSection";
 import { ProfileHousingSection } from "packages/features/profile/components/profileScreen/ProfileHousingSection";
 import { ProfileLocationSection } from "packages/features/profile/components/profileScreen/ProfileLocationSection";
-import type { HomePriceResult, OnboardingData } from "packages/features/profile/utils";
+import type { OnboardingData } from "packages/features/profile/utils";
 import {
-  calculateAffordableHomePrice,
   getProfileSectionCompletion,
   handleSubmit as handleSubmitUtil,
   userPreferencesToOnboardingData,
@@ -50,10 +49,6 @@ export function ProfileScreen() {
   }>({ missingFields: [], errors: [] });
   const [showValidationWarning, setShowValidationWarning] = useState(false);
 
-  const [homePriceResult, setHomePriceResult] = useState<HomePriceResult | null>(null);
-  const [homePriceLoading, setHomePriceLoading] = useState(false);
-  const [homePriceError, setHomePriceError] = useState<string | null>(null);
-  const [isAffordabilityCollapsed, setIsAffordabilityCollapsed] = useState(false);
   const STEPS = getPersonalizationStepsUi();
   const [activeSection, setActiveSection] = useState<string>(STEPS[0]?.id ?? "demographics");
 
@@ -105,54 +100,6 @@ export function ProfileScreen() {
   const updateField = useCallback((field: keyof OnboardingData, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
-
-  const calculateHomePrice = useCallback(() => {
-    if (!formData.gross_income || !formData.ideal_zip_code) {
-      setHomePriceResult(null);
-      setHomePriceError(null);
-      return;
-    }
-
-    try {
-      setHomePriceLoading(true);
-      setHomePriceError(null);
-
-      const result = calculateAffordableHomePrice(formData);
-
-      if ("error" in result) {
-        setHomePriceError(
-          "We couldn't calculate an estimate. Check your income and zip code and try again."
-        );
-        setHomePriceResult(null);
-      } else {
-        setHomePriceResult(result);
-      }
-    } catch (error: unknown) {
-      setHomePriceError(
-        error instanceof Error
-          ? error.message
-          : "We couldn't calculate an estimate. Check your income and zip code and try again."
-      );
-      setHomePriceResult(null);
-    } finally {
-      setHomePriceLoading(false);
-    }
-  }, [formData]);
-
-  useEffect(() => {
-    if (formData.gross_income && formData.ideal_zip_code) {
-      calculateHomePrice();
-    } else {
-      setHomePriceResult(null);
-      setHomePriceError(null);
-    }
-  }, [
-    formData.gross_income,
-    formData.down_payment,
-    formData.ideal_zip_code,
-    formData.credit_score_range,
-    calculateHomePrice,
-  ]);
 
   const handleStartEdit = useCallback(() => {
     setIsEditMode(true);
@@ -293,11 +240,6 @@ export function ProfileScreen() {
               formData={formData}
               isEditMode={isEditMode}
               updateField={updateField}
-              homePriceResult={homePriceResult}
-              homePriceLoading={homePriceLoading}
-              homePriceError={homePriceError}
-              isAffordabilityCollapsed={isAffordabilityCollapsed}
-              setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
             />
           )}
 

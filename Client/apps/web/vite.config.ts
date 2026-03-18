@@ -4,6 +4,37 @@ import path from "path";
 const root = path.resolve(__dirname, "../..");
 const packages = path.join(root, "packages");
 const uiComponents = path.join(packages, "ui/components");
+
+/** Stub for react-native in web build: no bare specifier in output, safe no-op exports. */
+const REACT_NATIVE_STUB = `
+export default {};
+export const Platform = { OS: "web", select: (o) => (o && (o.web ?? o.default)) };
+const noop = () => null;
+export const View = noop;
+export const Text = noop;
+export const Image = noop;
+export const ScrollView = noop;
+export const TouchableOpacity = noop;
+export const Pressable = noop;
+export const Modal = noop;
+export const StyleSheet = { create: (s) => s, flatten: (x) => x };
+export const Animated = { View: noop, Value: class {}, timing: () => ({ start: () => {} }) };
+export const Easing = {};
+export const Dimensions = { get: () => ({ width: 0, height: 0 }) };
+export const ActivityIndicator = noop;
+export const FlatList = noop;
+export const TextInput = noop;
+export const KeyboardAvoidingView = noop;
+export const SafeAreaView = noop;
+export const Linking = { openURL: () => Promise.resolve() };
+export const Alert = { alert: () => {} };
+export const NativeModules = {};
+class NativeEventEmitter {
+  addListener() { return { remove: () => {} }; }
+  removeAllListeners() {}
+}
+export { NativeEventEmitter };
+`;
 export default defineConfig(({ mode }) => {
   // .env is NOT loaded into process.env before config runs; load it so define has correct values
   const env = loadEnv(mode, root, "");
@@ -14,23 +45,34 @@ export default defineConfig(({ mode }) => {
       react(),
       {
         name: "exclude-native-files",
+        enforce: "pre",
         resolveId(id, importer) {
-          // Exclude React Native and .native.* files from web build processing
-          if (
+          // Stub React Native and .native.* so no bare specifiers appear in the web bundle
+          const isReactNative =
             id === "react-native" ||
             id.startsWith("react-native/") ||
             id.startsWith("@react-native/") ||
             id.includes("/react-native/") ||
+            id.includes("node_modules/react-native");
+          const isNativeFile =
             id.includes(".native.") ||
             (importer && importer.includes(".native.")) ||
-            (importer && importer.includes("react-native"))
-          ) {
-            return { id, external: true };
+            (importer && importer.includes("react-native"));
+          if (isReactNative) {
+            return "\0web-stub:react-native";
+          }
+          if (isNativeFile) {
+            return "\0web-stub:native";
           }
           return null;
         },
         load(id) {
-          // Prevent loading of React Native files entirely
+          if (id === "\0web-stub:react-native") {
+            return REACT_NATIVE_STUB;
+          }
+          if (id === "\0web-stub:native") {
+            return "export {};";
+          }
           if (id.includes("react-native") || id.includes(".native.")) {
             return "export {};";
           }
@@ -144,7 +186,6 @@ export default defineConfig(({ mode }) => {
       outDir: path.join(root, "dist"),
       // Configure code splitting for consistent behavior
       rollupOptions: {
-        external: ["react-native", /react-native\/.*/, /.*\.native\..*/],
         output: {
           // Ensure consistent chunk naming and splitting
           manualChunks: (id) => {
@@ -189,6 +230,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     resolve: {
+      // Prefer web when package exports specify conditions (no .native in web build)
+      conditions: ["web", "import", "module", "browser", "default"],
       // Aliases: broad roots (components, ui, packages, features) first; overrides only where path doesn't match layout. Order matters (specific before regex).
       // Path aliases should stay in sync with tsconfig.base.json paths; Metro (mobile) reads the same via packages/config/resolve-paths.cjs.
       alias: [

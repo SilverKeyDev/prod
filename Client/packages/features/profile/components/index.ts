@@ -1,5 +1,4 @@
 export { default as BudgetRangeSlider } from "./settings/inputs/BudgetRangeSlider";
-export { default as HomePriceEstimate } from "./settings/inputs/HomePriceEstimate";
 export { default as ImportantLocationsInput } from "./settings/inputs/ImportantLocationsInput.web";
 export {
   default as Label,

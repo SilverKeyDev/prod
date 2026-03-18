@@ -158,7 +158,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
       }
     },
     shouldPoll: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: Number.POSITIVE_INFINITY, // Never stale - results stay until new search or explicit refetch
     userType: "all",
     initialLoad: true,
   },

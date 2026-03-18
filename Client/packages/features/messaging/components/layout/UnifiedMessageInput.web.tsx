@@ -70,7 +70,7 @@ export default function UnifiedMessageInputWeb({
 
   return (
     <Box className="border-border bg-background-base flex-shrink-0 border-t p-3 sm:p-4">
-      <Box className="flex items-end gap-2 sm:gap-3">
+      <Box className="flex items-center gap-2 sm:gap-3">
         {/* Attachment button */}
         {hasAttachments && (
           <AttachmentMenu

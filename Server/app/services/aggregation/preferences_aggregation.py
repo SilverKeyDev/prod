@@ -70,6 +70,7 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         out["preferred_sqft_max"] = intent.preferred_sqft_max
         out["preferred_lot_size_min"] = intent.preferred_lot_size_min
         out["preferred_lot_size_max"] = intent.preferred_lot_size_max
+        out["preferred_home_age_min"] = intent.preferred_home_age_min
         out["preferred_home_age_max"] = intent.preferred_home_age_max
         out["days_on_market_min"] = intent.days_on_market_min
         out["days_on_market_max"] = intent.days_on_market_max
@@ -427,6 +428,8 @@ def write_preferences_from_payload(
         intent.preferred_lot_size_min = float(data["preferred_lot_size_min"])
     if "preferred_lot_size_max" in data and data["preferred_lot_size_max"] is not None:
         intent.preferred_lot_size_max = float(data["preferred_lot_size_max"])
+    if "preferred_home_age_min" in data and data["preferred_home_age_min"] is not None:
+        intent.preferred_home_age_min = int(data["preferred_home_age_min"])
     if "preferred_home_age_max" in data and data["preferred_home_age_max"] is not None:
         intent.preferred_home_age_max = int(data["preferred_home_age_max"])
     if "days_on_market_min" in data and data["days_on_market_min"] is not None:

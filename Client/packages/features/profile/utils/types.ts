@@ -37,7 +37,8 @@ export type OnboardingData = {
   preferred_home_age?: string;
   preferred_lot_size_min?: number; // acres (slider)
   preferred_lot_size_max?: number; // acres (slider)
-  preferred_home_age_max?: number; // max age in years (slider)
+  preferred_home_age_min?: number; // min age in years (range slider)
+  preferred_home_age_max?: number; // max age in years (range slider)
   preferred_architectural_style?: string;
   preferred_home_features?: string[];
   must_have?: string[]; // basement, single-story, garage, AC, heating, pool, waterfront

@@ -1,7 +1,6 @@
 import React from "react";
 
 import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/BudgetRangeSlider";
-import PriceRangeSlider from "packages/features/profile/components/settings/inputs/PriceRangeSlider";
 import {
   ARCHITECTURAL_STYLE_OPTIONS,
   DAYS_ON_MARKET_TICK_VALUES,
@@ -135,17 +134,18 @@ export function ProfileHousingSection({
               updateField("preferred_lot_size_min", minVal);
               updateField("preferred_lot_size_max", maxVal);
             }}
-            formatValue={(v) => `${v} ac`}
+            formatValue={(v) => `${Number(v).toFixed(2)} ac`}
             formatPrefix=""
             minGap={0.1}
+            valueDecimals={2}
             className="mt-2"
           />
         ) : (
           <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
             <Text className="text-text-primary text-center text-base">
-              {formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]} –{" "}
-              {formData.preferred_lot_size_max ??
-                LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]}{" "}
+              {(formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]).toFixed(2)} –{" "}
+              {(formData.preferred_lot_size_max ??
+                LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]).toFixed(2)}{" "}
               acres
             </Text>
           </Box>
@@ -157,22 +157,33 @@ export function ProfileHousingSection({
           {FIELD_LABELS.PREFERRED_HOME_AGE}
         </BodyText>
         {isEditMode ? (
-          <PriceRangeSlider
+          <BudgetRangeSlider
             tickValues={HOME_AGE_YEARS_TICK_VALUES}
-            value={
+            minValue={
+              formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]
+            }
+            maxValue={
               formData.preferred_home_age_max ??
               HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
             }
-            onChange={(val) => updateField("preferred_home_age_max", val)}
+            onChange={(minVal, maxVal) => {
+              updateField("preferred_home_age_min", minVal);
+              updateField("preferred_home_age_max", maxVal);
+            }}
             formatValue={(v) => `${v} years`}
             formatPrefix=""
+            minGap={5}
             className="mt-2"
           />
         ) : (
           <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
             <Text className="text-text-primary text-center text-base">
-              {formData.preferred_home_age_max != null
-                ? `Up to ${formData.preferred_home_age_max} years`
+              {formData.preferred_home_age_min != null ||
+              formData.preferred_home_age_max != null
+                ? `${formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]} – ${
+                    formData.preferred_home_age_max ??
+                    HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
+                  } years`
                 : "Not specified"}
             </Text>
           </Box>

@@ -5,68 +5,26 @@ import { Box } from "packages/ui/components/primitives";
 import AlignedRow from "@/components/layout/AlignedRow";
 import Card from "@/components/layout/Card.web";
 import { Dropdown, Input, Title } from "@/components/ui";
-import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
-import HomePriceEstimate from "@/features/profile/components/settings/inputs/HomePriceEstimate";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
-import type { HomePriceResult } from "@/features/profile/utils";
 import { CREDIT_SCORE_OPTIONS, FIELD_LABELS, type OnboardingData } from "@/features/profile/utils";
+
 type FinancialSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
-  homePriceLoading: boolean;
-  homePriceError: string | null;
-  homePriceResult: HomePriceResult | null;
-  isAffordabilityCollapsed: boolean;
-  setIsAffordabilityCollapsed: (collapsed: boolean) => void;
 };
 
 export default function FinancialSection({
   formData,
   isEditMode,
   updateFormData,
-  homePriceLoading,
-  homePriceError,
-  homePriceResult,
-  isAffordabilityCollapsed,
-  setIsAffordabilityCollapsed,
 }: FinancialSectionProps) {
   return (
-    <Card border="charcoal" className="mb-64 space-y-6">
+    <Card border="light" className="mb-64 space-y-6">
       <Title size="md" className="mb-6">
         Financial Information
       </Title>
-      <Box className="col-span-1 flex flex-col items-center md:col-span-2">
-        <Title size="sm" className="mb-2 w-full text-center">
-          {FIELD_LABELS.HOME_BUDGET}
-        </Title>
-        {isEditMode ? (
-          <BudgetRangeSlider
-            tickValues={[
-              200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000, 10000000,
-            ]}
-            minValue={formData.home_budget_min ?? 200000}
-            maxValue={formData.home_budget_max ?? 1000000}
-            onChange={(minValue, maxValue) => {
-              // Round to nearest $25,000 increment
-              const roundedMin = Math.round(minValue / 25000) * 25000;
-              const roundedMax = Math.round(maxValue / 25000) * 25000;
-              updateFormData("home_budget_min", roundedMin);
-              updateFormData("home_budget_max", roundedMax);
-            }}
-            formatPrefix="$"
-            className="mt-2"
-          />
-        ) : (
-          <Box className="mobile-input bg-background-base mt-2 text-center">
-            <Box className="text-lg font-normal">
-              ${(formData.home_budget_min ?? 0).toLocaleString()} - $
-              {(formData.home_budget_max ?? 0).toLocaleString()}
-            </Box>
-          </Box>
-        )}
-      </Box>
 
       <AlignedRow
         breakIntoRows="md"
@@ -163,17 +121,6 @@ export default function FinancialSection({
           },
         ]}
       />
-
-      <Box className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <HomePriceEstimate
-          homePriceLoading={homePriceLoading}
-          homePriceError={homePriceError}
-          homePriceResult={homePriceResult}
-          isAffordabilityCollapsed={isAffordabilityCollapsed}
-          setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
-          idealZipCode={formData.ideal_zip_code}
-        />
-      </Box>
     </Card>
   );
 }

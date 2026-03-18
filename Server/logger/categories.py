@@ -8,8 +8,8 @@ from enum import Enum
 try:
     from enum import StrEnum
 except ImportError:
-    # StrEnum added in Python 3.11; provide fallback for 3.10
-    class StrEnum(str, Enum):
+    # StrEnum added in Python 3.11; provide fallback for 3.10 (noqa: intentional)
+    class StrEnum(str, Enum):  # noqa: UP042
         """StrEnum fallback for Python < 3.11"""
 
         pass

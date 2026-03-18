@@ -281,7 +281,7 @@ export const INFORMATION_DETAIL_OPTIONS: DropdownOption[] = [
 ];
 
 // Required fields mapping - used to determine if a field needs RequiredLabel or OptionalLabel
-// Base required fields for onboarding (all demographics fields are required)
+// Base required fields for onboarding (only About You / agent fields required; housing/location optional)
 export const REQUIRED_FIELDS_ONBOARDING: Record<string, boolean> = {
   // Demographics
   name: false,
@@ -296,16 +296,16 @@ export const REQUIRED_FIELDS_ONBOARDING: Record<string, boolean> = {
 
   // Financial
   gross_income: false,
-  home_budget_min: true,
-  home_budget_max: true,
+  home_budget_min: false,
+  home_budget_max: false,
   down_payment: false,
   credit_score_range: false,
   ideal_zip_code: false,
 
   // Housing
   preferred_housing_type: false,
-  preferred_bedrooms: true,
-  preferred_bathrooms: true,
+  preferred_bedrooms: false,
+  preferred_bathrooms: false,
   preferred_lot_size: false,
   preferred_home_age: false,
   preferred_architectural_style: false,
@@ -322,10 +322,11 @@ export const REQUIRED_FIELDS_ONBOARDING: Record<string, boolean> = {
   days_on_market_max: false,
   preferred_lot_size_min: false,
   preferred_lot_size_max: false,
+  preferred_home_age_min: false,
   preferred_home_age_max: false,
 
   // Location
-  important_locations: true,
+  important_locations: false,
   // Communication
   communication_frequency: false,
   information_detail_level: false,
@@ -374,6 +375,7 @@ export const REQUIRED_FIELDS_SETTINGS: Record<string, boolean> = {
   days_on_market_max: false,
   preferred_lot_size_min: false,
   preferred_lot_size_max: false,
+  preferred_home_age_min: false,
   preferred_home_age_max: false,
 
   // Location

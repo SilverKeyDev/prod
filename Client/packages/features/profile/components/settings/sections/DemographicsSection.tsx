@@ -31,7 +31,7 @@ export default function DemographicsSection({
   updateFormData,
 }: DemographicsSectionProps) {
   return (
-    <Card border="charcoal" className="space-y-6">
+    <Card border="light" className="space-y-6">
       <Title size="md" className="mb-6">
         About You
       </Title>

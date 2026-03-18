@@ -94,9 +94,9 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
                   type="button"
                   onClick={() => handleRemoveTag(tag)}
                   disabled={disabled}
-                  className="text-off-white hover:text-off-white ml-4 h-auto min-w-0 p-0 hover:bg-transparent disabled:opacity-60"
+                  className="ml-4 h-auto min-w-0 p-0 text-off-white hover:bg-transparent hover:text-off-white disabled:opacity-60"
                 >
-                  <Icon name="x" className="h-3 w-3 text-current" />
+                  <Icon name="x" className="h-3 w-3 text-off-white" />
                 </Button>
               )}
             </Box>

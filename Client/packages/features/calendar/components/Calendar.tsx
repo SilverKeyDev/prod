@@ -208,7 +208,7 @@ export function Calendar({ sectionTitle }: CalendarProps) {
 
   if (!permissionsReady) {
     return (
-      <Card border="charcoal" className="w-full" padding="md" hover={false}>
+      <Card border="light" className="w-full" padding="md" hover={false}>
         <Text style={{ textAlign: "center", fontSize: 14, color: color("neutral.500") }}>
           Loading calendar permissions…
         </Text>
@@ -218,7 +218,7 @@ export function Calendar({ sectionTitle }: CalendarProps) {
 
   if (shouldShowConnectionPrompt) {
     return (
-      <Card border="charcoal" className="w-full" padding="md" hover={false}>
+      <Card border="light" className="w-full" padding="md" hover={false}>
         <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
       </Card>
     );
@@ -329,7 +329,7 @@ export function Calendar({ sectionTitle }: CalendarProps) {
   };
 
   return (
-    <Card border="charcoal" className="w-full" padding="none" hover={false}>
+    <Card border="none" className="w-full" padding="none" hover={false}>
       <Box style={styles.container}>
         <CalendarMonthViewHeader
           sectionTitle={sectionTitle}

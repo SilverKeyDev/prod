@@ -112,7 +112,7 @@
     display: none; /* Safari and Chrome */
   }
 
-  /* Range slider: hit target ever so slightly larger than visible orb, centered */
+  /* Range slider: hit target ever so slightly larger than visible orb, centered on value */
   .sk-range-slider-thumb::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -123,6 +123,8 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     pointer-events: auto;
+    /* Center thumb on value (browser positions by left edge by default) */
+    transform: translateX(-50%);
   }
   .sk-range-slider-thumb::-moz-range-thumb {
     appearance: none;
@@ -133,5 +135,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     pointer-events: auto;
+    /* Center thumb on value (Firefox positions by left edge by default) */
+    transform: translateX(-50%);
   }
 }

@@ -43,7 +43,7 @@ const TodoList: React.FC<TodoListProps> = ({
     urgent: "text-destructive",
   };
   return (
-    <Card border="charcoal" className="h-full">
+    <Card border="light" className="h-full">
       <Box className="mb-4 flex items-center justify-between">
         <Title as="h2" size="sm" className="text-text-primary">
           Today's To-Do

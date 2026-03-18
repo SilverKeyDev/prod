@@ -92,9 +92,8 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
       else if (firstMissingField.includes("bedroom") || firstMissingField.includes("bathroom"))
         setCurrentStep(1);
       else if (firstMissingField.includes("location")) setCurrentStep(2);
-      else if (firstMissingField.includes("budget") && steps.length > 3) setCurrentStep(3);
     }
-  }, [validationResult.missingFields, steps.length]);
+  }, [validationResult.missingFields]);
 
   return {
     steps,

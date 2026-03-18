@@ -4,16 +4,16 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/ProfileFinancialSection"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds profile financial UI; shared composition. */
-import {
-  calculateAffordableHomePrice,
-  type HomePriceResult,
-  type OnboardingData,
-} from "packages/features/profile/utils"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds profile financial UI; shared composition. */
+import type { OnboardingData } from "packages/features/profile/utils"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds profile financial UI; shared composition. */
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
+import {
+  calculateAffordableHomePrice,
+  type HomePriceResult,
+} from "packages/utils/affordability";
 
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";
 

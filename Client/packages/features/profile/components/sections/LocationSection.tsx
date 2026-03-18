@@ -65,7 +65,7 @@ export default function LocationSection({
   );
   const className = cardClassName ? `${cardClassName} space-y-2` : "space-y-2";
   return wrapInCard ? (
-    <Card border="charcoal" className={className}>{content}</Card>
+    <Card border="light" className={className}>{content}</Card>
   ) : (
     <Box className={className}>{content}</Box>
   );

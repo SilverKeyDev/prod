@@ -1,16 +1,16 @@
 import React from "react";
 
 import { Box } from "packages/ui/components/primitives";
+import type { HomePriceResult } from "packages/utils/affordability";
 
 import { Dropdown, Input, Label, Title } from "@/components/ui";
+import { HomePriceEstimate } from "@/features/homeauth/components/HomePriceEstimate";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
-import HomePriceEstimate from "@/features/profile/components/settings/inputs/HomePriceEstimate";
 import { OnPerLabel } from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
 import {
   CREDIT_SCORE_OPTIONS,
   FIELD_LABELS,
-  type HomePriceResult,
   type OnboardingData,
   REQUIRED_FIELDS_ONBOARDING,
   SECTION_TITLES,
@@ -19,11 +19,12 @@ import {
 type OnboardingFinancialSectionProps = {
   formData: OnboardingData;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
-  homePriceLoading: boolean;
-  homePriceError: string | null;
-  homePriceResult: HomePriceResult | null;
-  isAffordabilityCollapsed: boolean;
-  setIsAffordabilityCollapsed: (value: boolean) => void;
+  /** Affordability display (provided by onboarding when using useOnboardingAffordability) */
+  homePriceLoading?: boolean;
+  homePriceError?: string | null;
+  homePriceResult?: HomePriceResult | null;
+  isAffordabilityCollapsed?: boolean;
+  setIsAffordabilityCollapsed?: (value: boolean) => void;
 };
 
 export default function OnboardingFinancialSection({
@@ -35,6 +36,12 @@ export default function OnboardingFinancialSection({
   isAffordabilityCollapsed,
   setIsAffordabilityCollapsed,
 }: OnboardingFinancialSectionProps) {
+  const showAffordability =
+    homePriceLoading !== undefined &&
+    homePriceError !== undefined &&
+    homePriceResult !== undefined &&
+    isAffordabilityCollapsed !== undefined &&
+    setIsAffordabilityCollapsed !== undefined;
   return (
     <Box className="space-y-6">
       <Title size="lg" className="mb-4 sm:mb-6">
@@ -58,6 +65,7 @@ export default function OnboardingFinancialSection({
           }}
           formatPrefix="$"
           className="mt-2"
+          variant="budget"
         />
       </Box>
       <Box className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -120,14 +128,16 @@ export default function OnboardingFinancialSection({
           />
         </Box>
 
-        <HomePriceEstimate
-          homePriceLoading={homePriceLoading}
-          homePriceError={homePriceError}
-          homePriceResult={homePriceResult}
-          isAffordabilityCollapsed={isAffordabilityCollapsed}
-          setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
-          idealZipCode={formData.ideal_zip_code}
-        />
+        {showAffordability && (
+          <HomePriceEstimate
+            homePriceLoading={homePriceLoading!}
+            homePriceError={homePriceError}
+            homePriceResult={homePriceResult!}
+            isAffordabilityCollapsed={isAffordabilityCollapsed!}
+            setIsAffordabilityCollapsed={setIsAffordabilityCollapsed!}
+            idealZipCode={formData.ideal_zip_code}
+          />
+        )}
       </Box>
     </Box>
   );

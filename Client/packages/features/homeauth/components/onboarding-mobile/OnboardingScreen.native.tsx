@@ -11,7 +11,6 @@ import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
 import { DemographicsStep } from "./DemographicsStep.native";
-import { FinancialStep } from "./FinancialStep.native";
 import { HousingStep } from "./HousingStep.native";
 import { LocationStep } from "./LocationStep.native";
 
@@ -38,11 +37,6 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     handleSubmit,
     handleCloseValidationWarning,
     handleReviewInformation,
-    homePriceLoading,
-    homePriceError,
-    homePriceResult,
-    isAffordabilityCollapsed,
-    setIsAffordabilityCollapsed,
   } = useOnboardingForm({ onSubmitSuccess });
 
   React.useEffect(() => {
@@ -72,18 +66,6 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     switch (step.id) {
       case "demographics":
         return <DemographicsStep formData={formData} updateFormData={updateFormData} />;
-      case "financial":
-        return (
-          <FinancialStep
-            formData={formData}
-            updateFormData={updateFormData}
-            homePriceLoading={homePriceLoading}
-            homePriceError={homePriceError}
-            homePriceResult={homePriceResult}
-            isAffordabilityCollapsed={isAffordabilityCollapsed}
-            setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
-          />
-        );
       case "housing":
         return <HousingStep formData={formData} updateFormData={updateFormData} />;
       case "location":

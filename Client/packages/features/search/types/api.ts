@@ -48,6 +48,7 @@ export type SearchByPolygonRequest = {
     preferred_lot_size?: string;
     preferred_lot_size_min?: number;
     preferred_lot_size_max?: number;
+    preferred_home_age_min?: number;
     preferred_home_age_max?: number;
     must_have?: string[];
     preferred_sqft_min?: number;

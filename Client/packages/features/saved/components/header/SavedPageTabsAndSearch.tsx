@@ -56,7 +56,7 @@ export default function SavedPageTabsAndSearch({
   return (
     <Box className="mb-6 w-full">
       <SavedPageTabNav viewType={viewType} onViewTypeChange={onViewTypeChange} />
-      <Card border="charcoal" padding="none" className="w-full p-3">
+      <Card border="light" padding="none" className="w-full p-3">
         <Box className="flex flex-wrap items-center justify-between gap-3">
           {/* Search input */}
           <Box className="flex w-full min-w-0 flex-1 items-center justify-center gap-3 sm:w-auto sm:justify-start">

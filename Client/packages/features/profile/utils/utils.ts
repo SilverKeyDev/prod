@@ -129,6 +129,7 @@ export const getProfileSectionCompletion = (
     formData.preferred_sqft_max != null ||
     formData.preferred_lot_size_min != null ||
     formData.preferred_lot_size_max != null ||
+    formData.preferred_home_age_min != null ||
     formData.preferred_home_age_max != null;
   const hasHousingComplete =
     formData.preferred_bedrooms != null ||

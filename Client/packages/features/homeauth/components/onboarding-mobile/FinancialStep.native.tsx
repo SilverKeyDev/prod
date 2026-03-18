@@ -6,11 +6,11 @@ import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.native";
+import type { HomePriceResult } from "packages/utils/affordability";
 
 import {
   CREDIT_SCORE_OPTIONS,
   FIELD_LABELS,
-  type HomePriceResult,
   type OnboardingData,
   SECTION_TITLES,
 } from "@/features/profile/utils";

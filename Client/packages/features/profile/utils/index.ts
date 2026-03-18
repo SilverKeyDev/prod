@@ -1,9 +1,8 @@
 // Export all shared profile/onboarding utilities
-export * from "./affordabilityCalculator";
 export * from "./constants";
-export * from "./homePriceCalculation";
 export * from "./housingOptions";
 export * from "./importantLocations";
+export * from "./onboardingStepCompletion";
 export * from "./preferencesUtils";
 export * from "./profileFormSync";
 export * from "./propertyTax";

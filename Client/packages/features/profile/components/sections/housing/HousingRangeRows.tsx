@@ -5,7 +5,6 @@ import { Box } from "packages/ui/components/primitives";
 import AlignedRow from "@/components/layout/AlignedRow";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
 import Label from "@/features/profile/components/settings/inputs/Label";
-import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
 import {
   DAYS_ON_MARKET_TICK_VALUES,
   FIELD_LABELS,
@@ -102,14 +101,15 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
                   updateFormData("preferred_lot_size_min", minVal);
                   updateFormData("preferred_lot_size_max", maxVal);
                 }}
-                formatValue={(v) => `${v} ac`}
+                formatValue={(v) => `${Number(v).toFixed(2)} ac`}
                 formatPrefix=""
                 minGap={0.1}
+                valueDecimals={2}
               />
             ) : (
               <Box className="mobile-input bg-background-base">
                 {formData.preferred_lot_size_min != null || formData.preferred_lot_size_max != null
-                  ? `${formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]} – ${formData.preferred_lot_size_max ?? LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]} acres`
+                  ? `${(formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]).toFixed(2)} – ${(formData.preferred_lot_size_max ?? LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]).toFixed(2)} acres`
                   : "Not specified"}
               </Box>
             ),
@@ -117,20 +117,31 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
           {
             title: <Label>{FIELD_LABELS.PREFERRED_HOME_AGE}</Label>,
             content: isEditMode ? (
-              <PriceRangeSlider
+              <BudgetRangeSlider
                 tickValues={HOME_AGE_YEARS_TICK_VALUES}
-                value={
+                minValue={
+                  formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]
+                }
+                maxValue={
                   formData.preferred_home_age_max ??
                   HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
                 }
-                onChange={(val) => updateFormData("preferred_home_age_max", val)}
+                onChange={(minVal, maxVal) => {
+                  updateFormData("preferred_home_age_min", minVal);
+                  updateFormData("preferred_home_age_max", maxVal);
+                }}
                 formatValue={(v) => `${v} years`}
                 formatPrefix=""
+                minGap={5}
               />
             ) : (
               <Box className="mobile-input bg-background-base">
-                {formData.preferred_home_age_max != null
-                  ? `Up to ${formData.preferred_home_age_max} years`
+                {formData.preferred_home_age_min != null ||
+                formData.preferred_home_age_max != null
+                  ? `${formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]} – ${
+                      formData.preferred_home_age_max ??
+                      HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
+                    } years`
                   : "Not specified"}
               </Box>
             ),

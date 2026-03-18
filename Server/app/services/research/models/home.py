@@ -31,6 +31,13 @@ class Home(BaseModel):
             user_preferences.get("preferred_housing_type", "") if user_preferences else ""
         )
         home_age = user_preferences.get("preferred_home_age", "") if user_preferences else ""
+        home_age_min = user_preferences.get("preferred_home_age_min") if user_preferences else None
+        home_age_max = user_preferences.get("preferred_home_age_max") if user_preferences else None
+        home_age_range = ""
+        if home_age_min is not None or home_age_max is not None:
+            home_age_range = f"{home_age_min or 'any'}–{home_age_max or 'any'} years"
+        elif home_age:
+            home_age_range = home_age
         architectural_style = (
             user_preferences.get("preferred_architectural_style", "") if user_preferences else ""
         )
@@ -55,7 +62,7 @@ class Home(BaseModel):
             "desired_features_match": f"How well the home matches user's preferred features. {features_text}. Extremely brief.",
             "deal_breakers_check": f"Assessment of any deal breakers present or absent. {deal_breakers_text}. Extremely brief.",
             "layout_and_size": f"Bedrooms, bathrooms, square footage, and layout match to preferences. User wants: {bedrooms} bedrooms, {bathrooms} bathrooms, {housing_type}. Extremely brief.",
-            "condition_and_style": f"Home age, architectural style, renovation needs, and overall condition. User prefers: {home_age} age, {architectural_style} style, {renovation_preference} renovation level. Extremely brief.",
+            "condition_and_style": f"Home age, architectural style, renovation needs, and overall condition. User prefers: {home_age_range or 'any'} age, {architectural_style} style, {renovation_preference} renovation level. Extremely brief.",
             "property_features": f"Lot size, parking, outdoor space, and other property-specific features. User prefers: {lot_size} lot size. Extremely brief.",
         }
 

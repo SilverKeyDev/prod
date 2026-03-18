@@ -188,20 +188,40 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
           {FIELD_LABELS.PREFERRED_HOME_AGE}
         </Text>
         <Text className="text-text-secondary mb-3 text-xs">
-          How old is too old? We&apos;ll prioritize homes newer than this.
+          Preferred age range in years (e.g. 5–30 for newer homes).
         </Text>
-        <Input
-          value={formData.preferred_home_age_max?.toString() ?? ""}
-          onValueChange={(v) =>
-            updateFormData(
-              "preferred_home_age_max",
-              v && v.trim() !== "" ? parseInt(v, 10) || undefined : undefined
-            )
-          }
-          placeholder="e.g. 30"
-          keyboardType="number-pad"
-          className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-        />
+        <Box className="flex flex-row gap-3">
+          <Box className="flex-1">
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Min (years)</Text>
+            <Input
+              value={formData.preferred_home_age_min?.toString() ?? ""}
+              onValueChange={(v) =>
+                updateFormData(
+                  "preferred_home_age_min",
+                  v && v.trim() !== "" ? parseInt(v, 10) || undefined : undefined
+                )
+              }
+              placeholder="e.g. 5"
+              keyboardType="number-pad"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
+            />
+          </Box>
+          <Box className="flex-1">
+            <Text className="text-text-secondary mb-1 text-xs font-medium">Max (years)</Text>
+            <Input
+              value={formData.preferred_home_age_max?.toString() ?? ""}
+              onValueChange={(v) =>
+                updateFormData(
+                  "preferred_home_age_max",
+                  v && v.trim() !== "" ? parseInt(v, 10) || undefined : undefined
+                )
+              }
+              placeholder="e.g. 30"
+              keyboardType="number-pad"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
+            />
+          </Box>
+        </Box>
       </Box>
 
       <Box>

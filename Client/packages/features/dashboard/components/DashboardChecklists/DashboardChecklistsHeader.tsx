@@ -74,7 +74,7 @@ export default function DashboardChecklistsHeader({
   }));
 
   return (
-    <Card border="charcoal" className="bg-background-surface" padding="none" hover={false}>
+    <Card border="light" className="bg-background-surface" padding="none" hover={false}>
       <Box className="px-2 pl-4 pt-2">
         <Box className="items-center">
           <Title size="lg" as="h2" className="text-text-primary font-semibold">

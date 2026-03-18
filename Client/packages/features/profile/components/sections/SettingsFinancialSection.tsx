@@ -6,34 +6,23 @@ import AlignedRow from "@/components/layout/AlignedRow";
 import Card from "@/components/layout/Card.web";
 import { Dropdown, Input, Title } from "@/components/ui";
 import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
-import HomePriceEstimate from "@/features/profile/components/settings/inputs/HomePriceEstimate";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
-import type { HomePriceResult } from "@/features/profile/utils";
 import { CREDIT_SCORE_OPTIONS, FIELD_LABELS, type OnboardingData } from "@/features/profile/utils";
+
 type SettingsFinancialSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
-  homePriceLoading: boolean;
-  homePriceError: string | null;
-  homePriceResult: HomePriceResult | null;
-  isAffordabilityCollapsed: boolean;
-  setIsAffordabilityCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export function SettingsFinancialSection({
   formData,
   isEditMode,
   updateFormData,
-  homePriceLoading,
-  homePriceError,
-  homePriceResult,
-  isAffordabilityCollapsed,
-  setIsAffordabilityCollapsed,
 }: SettingsFinancialSectionProps) {
   return (
-    <Card border="charcoal" className="mb-64 space-y-6">
+    <Card border="light" className="mb-64 space-y-6">
       <Title size="md" className="mb-6">
         Financial Information
       </Title>
@@ -56,6 +45,7 @@ export function SettingsFinancialSection({
             }}
             formatPrefix="$"
             className="mt-2"
+            variant="budget"
           />
         ) : (
           <Box className="mobile-input bg-background-base mt-2 text-center">
@@ -160,17 +150,6 @@ export function SettingsFinancialSection({
           },
         ]}
       />
-
-      <Box className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <HomePriceEstimate
-          homePriceLoading={homePriceLoading}
-          homePriceError={homePriceError}
-          homePriceResult={homePriceResult}
-          isAffordabilityCollapsed={isAffordabilityCollapsed}
-          setIsAffordabilityCollapsed={setIsAffordabilityCollapsed}
-          idealZipCode={formData.ideal_zip_code}
-        />
-      </Box>
     </Card>
   );
 }

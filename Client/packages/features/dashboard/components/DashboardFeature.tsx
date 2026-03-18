@@ -44,7 +44,9 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
   return (
     <Box className="flex flex-col gap-6 sm:gap-8">
       {/* Upcoming Events */}
-      <UpcomingEvents />
+      <Box className="mt-6">
+        <UpcomingEvents />
+      </Box>
 
       {/* Checklists Section */}
       <DashboardChecklists />

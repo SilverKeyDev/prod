@@ -32,10 +32,10 @@ export default function SettingsSidebar({
     <Button
       onClick={onEdit}
       variant="primary"
-      size="sm"
+      size="md"
+      fullWidth
       hideTextBelow="lg"
       label={t("common.edit")}
-      className="h-8 min-h-8 w-8 min-w-8 items-center justify-center rounded-lg p-0 text-sm font-medium lg:h-auto lg:min-h-0 lg:w-full lg:min-w-0 lg:p-2"
       icon={<Icon name="edit" />}
     >
       {t("common.edit")}
@@ -46,20 +46,20 @@ export default function SettingsSidebar({
         onClick={onSave}
         disabled={isSaving}
         variant="primary"
-        size="sm"
+        size="md"
+        fullWidth
         hideTextBelow="lg"
         label={isSaving ? t("common.saving") : t("common.save")}
-        className="h-8 min-h-8 w-8 min-w-8 items-center justify-center rounded-lg p-0 text-sm font-medium lg:h-auto lg:min-h-0 lg:w-full lg:min-w-0 lg:p-2"
         icon={<Icon name="save" />}
       >
         {isSaving ? t("common.saving") : t("common.save")}
       </Button>
       <CancelButton
         onClick={onCancel}
-        size="sm"
+        size="md"
+        fullWidth
         hideTextBelow="lg"
         label={t("common.cancel")}
-        className="h-8 min-h-8 w-8 min-w-8 items-center justify-center rounded-lg p-0 text-sm font-medium lg:h-auto lg:min-h-0 lg:w-full lg:min-w-0 lg:p-2"
       >
         {t("common.cancel")}
       </CancelButton>

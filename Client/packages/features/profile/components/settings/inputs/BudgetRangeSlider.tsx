@@ -1,10 +1,13 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { spacing } from "packages/design-tokens";
 import RangeInput from "packages/ui/components/form/RangeInput";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { formatCompactNumber, formatNumber } from "packages/utils";
+
+const DEFAULT_MIN_PERCENT = 25;
+const DEFAULT_MAX_PERCENT = 75;
 
 type BudgetRangeSliderProps = {
   tickValues: number[];
@@ -18,6 +21,10 @@ type BudgetRangeSliderProps = {
   minGap?: number;
   /** When false, hides the min—max value text below the track. Default true. */
   showTextHeader?: boolean;
+  /** Number of decimal places for computed values (e.g. 2 for lot size in acres). Omit for integers. */
+  valueDecimals?: number;
+  /** 'budget' = slightly larger track and green fill; 'default' = current gold accent. */
+  variant?: "default" | "budget";
 };
 
 export default function BudgetRangeSlider({
@@ -31,6 +38,8 @@ export default function BudgetRangeSlider({
   disabled = false,
   minGap = 50000,
   showTextHeader = true,
+  valueDecimals,
+  variant = "default",
 }: BudgetRangeSliderProps) {
   const defaultFormatValue = (val: number) => {
     if (val >= 1000) {
@@ -39,8 +48,9 @@ export default function BudgetRangeSlider({
     return `${formatPrefix}${formatNumber(val)}`;
   };
   const formattedValue = formatValue ?? defaultFormatValue;
-  const [minSliderValue, setMinSliderValue] = useState(0);
-  const [maxSliderValue, setMaxSliderValue] = useState(100);
+  const [minSliderValue, setMinSliderValue] = useState(DEFAULT_MIN_PERCENT);
+  const [maxSliderValue, setMaxSliderValue] = useState(DEFAULT_MAX_PERCENT);
+  const hasInitializedDefault = useRef(false);
 
   const toSliderPercent = useCallback(
     (val: number): number => {
@@ -59,20 +69,46 @@ export default function BudgetRangeSlider({
     [tickValues]
   );
 
-  const fromSliderPercent = (percent: number): number => {
-    const totalSegments = tickValues.length - 1;
-    const segmentSize = 100 / totalSegments;
-    const segmentIndex = Math.min(Math.floor(percent / segmentSize), totalSegments - 1);
-    const segmentStart = tickValues[segmentIndex];
-    const segmentEnd = tickValues[segmentIndex + 1];
-    const percentInSegment = (percent - segmentIndex * segmentSize) / segmentSize;
-    return Math.round(segmentStart + percentInSegment * (segmentEnd - segmentStart));
-  };
+  const fromSliderPercent = useCallback(
+    (percent: number): number => {
+      const totalSegments = tickValues.length - 1;
+      const segmentSize = 100 / totalSegments;
+      const segmentIndex = Math.min(Math.floor(percent / segmentSize), totalSegments - 1);
+      const segmentStart = tickValues[segmentIndex];
+      const segmentEnd = tickValues[segmentIndex + 1];
+      const percentInSegment = (percent - segmentIndex * segmentSize) / segmentSize;
+      const raw = segmentStart + percentInSegment * (segmentEnd - segmentStart);
+      if (valueDecimals != null && valueDecimals >= 0) {
+        const factor = 10 ** valueDecimals;
+        return Math.round(raw * factor) / factor;
+      }
+      return Math.round(raw);
+    },
+    [tickValues, valueDecimals]
+  );
 
   useEffect(() => {
-    setMinSliderValue(toSliderPercent(minValue));
-    setMaxSliderValue(toSliderPercent(maxValue));
-  }, [minValue, maxValue, tickValues, toSliderPercent]);
+    const minPct = toSliderPercent(minValue);
+    const maxPct = toSliderPercent(maxValue);
+    const fullRange =
+      minValue <= tickValues[0] && maxValue >= tickValues[tickValues.length - 1];
+    if (fullRange && !hasInitializedDefault.current) {
+      hasInitializedDefault.current = true;
+      setMinSliderValue(DEFAULT_MIN_PERCENT);
+      setMaxSliderValue(DEFAULT_MAX_PERCENT);
+      onChange(
+        fromSliderPercent(DEFAULT_MIN_PERCENT),
+        fromSliderPercent(DEFAULT_MAX_PERCENT)
+      );
+    } else if (fullRange) {
+      setMinSliderValue(DEFAULT_MIN_PERCENT);
+      setMaxSliderValue(DEFAULT_MAX_PERCENT);
+    } else {
+      hasInitializedDefault.current = false;
+      setMinSliderValue(minPct);
+      setMaxSliderValue(maxPct);
+    }
+  }, [minValue, maxValue, tickValues, toSliderPercent, fromSliderPercent, onChange]);
 
   useEffect(() => {
     if (maxValue - minValue < minGap) {
@@ -104,7 +140,9 @@ export default function BudgetRangeSlider({
     }
   };
 
-  const trackHeight = spacing(2);
+  const isBudgetVariant = variant === "budget";
+  const trackHeight = isBudgetVariant ? spacing(2.5) : spacing(2);
+  const fillClassName = isBudgetVariant ? "bg-green-600" : "bg-accent";
   const valueBlock = (
     <Box className="flex flex-row items-center justify-center gap-2">
       <Text className="text-text-primary text-sm font-medium">{formattedValue(minValue)}</Text>
@@ -121,13 +159,14 @@ export default function BudgetRangeSlider({
     <Box className={`flex w-full flex-col items-center ${className}`}>
       <Box className="mx-auto w-full max-w-xl px-2">
         <Box className="flex flex-col items-center gap-2">
+          {showTextHeader ? valueBlock : null}
           <Box className="relative w-full justify-center" style={{ height: trackHeight }}>
             <Box
               className="bg-border absolute h-2 w-full rounded-lg"
               style={{ height: trackHeight }}
             />
             <Box
-              className="bg-accent absolute rounded-lg"
+              className={`absolute rounded-lg ${fillClassName}`}
               style={{
                 left: `${minSliderValue}%`,
                 width: `${maxSliderValue - minSliderValue}%`,
@@ -141,7 +180,7 @@ export default function BudgetRangeSlider({
                 left: spacing(0),
                 right: spacing(0),
                 height: trackHeight,
-                zIndex: minSliderValue > 100 - maxSliderValue ? 5 : 3,
+                zIndex: 4,
               }}
             >
               <RangeInput
@@ -154,7 +193,7 @@ export default function BudgetRangeSlider({
                 label="Minimum price"
                 transparentTrack
                 className={`sk-range-slider-thumb pointer-events-none absolute h-2 w-full touch-manipulation appearance-none rounded-lg bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
-                style={{ zIndex: minSliderValue > 100 - maxSliderValue ? 5 : 3 }}
+                style={{ zIndex: 4 }}
               />
             </Box>
             <Box
@@ -179,7 +218,6 @@ export default function BudgetRangeSlider({
               />
             </Box>
           </Box>
-          {showTextHeader ? valueBlock : null}
         </Box>
       </Box>
     </Box>
