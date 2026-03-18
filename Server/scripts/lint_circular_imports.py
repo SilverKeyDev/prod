@@ -22,6 +22,10 @@ def main() -> int:
     if server_root not in sys.path:
         sys.path.insert(0, server_root)
 
+    # Allow import chain to load without a real DB (we never call create_app()).
+    if not os.environ.get("DATABASE_URL"):
+        os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+
     try:
         from app import create_app  # noqa: F401
 
