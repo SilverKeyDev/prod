@@ -81,19 +81,32 @@ export default defineConfig(({ mode }) => {
       },
     ] as PluginOption[],
     envDir: root, // Look for .env in Client directory
-    // Inject process.env so packages/config/env.ts (process.env-only) sees values when built with Vite
-    define: {
-      "process.env.VITE_GOOGLE_MAPS_ID": JSON.stringify(
-        env.VITE_GOOGLE_MAPS_ID ?? process.env.VITE_GOOGLE_MAPS_ID ?? ""
-      ),
-      "process.env.VITE_GOOGLE_CLIENT_ID": JSON.stringify(
-        env.VITE_GOOGLE_CLIENT_ID ?? process.env.VITE_GOOGLE_CLIENT_ID ?? ""
-      ),
-      "process.env.VITE_PLAID_CLIENT_ID": JSON.stringify(
-        env.VITE_PLAID_CLIENT_ID ?? process.env.VITE_PLAID_CLIENT_ID ?? ""
-      ),
-      "process.env.NODE_ENV": JSON.stringify(mode === "production" ? "production" : "development"),
-    },
+    // Inject process.env so packages/config/env.ts (process.env-only) sees values when built with Vite.
+    // Define full process so browser bundle has process.env (otherwise env.ts gets p={} and NODE_ENV is always "development").
+    define: (() => {
+      const nodeEnv = mode === "production" ? "production" : "development";
+      const envVars = {
+        NODE_ENV: nodeEnv,
+        VITE_GOOGLE_MAPS_ID: env.VITE_GOOGLE_MAPS_ID ?? process.env.VITE_GOOGLE_MAPS_ID ?? "",
+        VITE_GOOGLE_CLIENT_ID: env.VITE_GOOGLE_CLIENT_ID ?? process.env.VITE_GOOGLE_CLIENT_ID ?? "",
+        VITE_PLAID_CLIENT_ID: env.VITE_PLAID_CLIENT_ID ?? process.env.VITE_PLAID_CLIENT_ID ?? "",
+        EXPO_PUBLIC_GOOGLE_MAPS_ID: env.EXPO_PUBLIC_GOOGLE_MAPS_ID ?? "",
+        EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS ?? "",
+        EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR:
+          env.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR ?? "",
+        EXPO_PUBLIC_API_URL: env.EXPO_PUBLIC_API_URL ?? "",
+        VITE_API_URL: env.VITE_API_URL ?? "",
+        EXPO_PUBLIC_API_BASE_URL: env.EXPO_PUBLIC_API_BASE_URL ?? "",
+        VITE_API_BASE_URL: env.VITE_API_BASE_URL ?? "",
+      };
+      const envJson = JSON.stringify(envVars);
+      return {
+        // Full process object so env.ts readProcessEnv() sees NODE_ENV and VITE_* in browser
+        process: `({ env: ${envJson} })`,
+        // React Native / Metro global; some deps (e.g. framer-motion) reference it. Undefined in prod => ReferenceError.
+        __DEV__: mode === "production" ? "false" : "true",
+      };
+    })(),
     publicDir: path.join(root, "public"),
     css: {
       postcss: "./postcss.config.js",
