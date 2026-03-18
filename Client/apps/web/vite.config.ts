@@ -1,6 +1,9 @@
 import { defineConfig, loadEnv, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
+import inject from "@rollup/plugin-inject";
+
 const root = path.resolve(__dirname, "../..");
 const packages = path.join(root, "packages");
 const uiComponents = path.join(packages, "ui/components");
@@ -38,6 +41,51 @@ export { NativeEventEmitter };
 export default defineConfig(({ mode }) => {
   // .env is NOT loaded into process.env before config runs; load it so define has correct values
   const env = loadEnv(mode, root, "");
+  const nodeEnv = mode === "production" ? "production" : "development";
+  const envVars = {
+    NODE_ENV: nodeEnv,
+    VITE_GOOGLE_MAPS_ID: env.VITE_GOOGLE_MAPS_ID ?? process.env.VITE_GOOGLE_MAPS_ID ?? "",
+    VITE_GOOGLE_CLIENT_ID: env.VITE_GOOGLE_CLIENT_ID ?? process.env.VITE_GOOGLE_CLIENT_ID ?? "",
+    VITE_PLAID_CLIENT_ID: env.VITE_PLAID_CLIENT_ID ?? process.env.VITE_PLAID_CLIENT_ID ?? "",
+    EXPO_PUBLIC_GOOGLE_MAPS_ID: env.EXPO_PUBLIC_GOOGLE_MAPS_ID ?? "",
+    EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS ?? "",
+    EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR:
+      env.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR ?? "",
+    EXPO_PUBLIC_API_URL: env.EXPO_PUBLIC_API_URL ?? "",
+    VITE_API_URL: env.VITE_API_URL ?? "",
+    EXPO_PUBLIC_API_BASE_URL: env.EXPO_PUBLIC_API_BASE_URL ?? "",
+    VITE_API_BASE_URL: env.VITE_API_BASE_URL ?? "",
+  };
+  // esbuild define only accepts JSON literals or identifiers; object expressions like
+  // ({ env: {...} }) are rejected. Inject process via a generated shim so env.ts sees process.env.
+  const shimDir = path.join(root, "node_modules", ".vite");
+  const shimPath = path.join(shimDir, "process-shim.cjs");
+  fs.mkdirSync(shimDir, { recursive: true });
+  const shimContent = `const env = ${JSON.stringify(envVars)};\nconst processLike = { env };\nmodule.exports = processLike;\nmodule.exports.default = processLike;`;
+  fs.writeFileSync(shimPath, shimContent, "utf8");
+
+  // #region agent log
+  const debugLogPath = path.join(root, ".cursor", "debug-a0035d.log");
+  try {
+    const logLine =
+      JSON.stringify({
+        sessionId: "a0035d",
+        id: "vite-shim-write",
+        timestamp: Date.now(),
+        location: "vite.config.ts:shim-write",
+        message: "process-shim written",
+        data: {
+          shimPath,
+          contentSnippet: shimContent.slice(0, 200),
+          hasDefaultInContent: shimContent.includes("default"),
+        },
+        runId: "build",
+        hypothesisId: "A",
+      }) + "\n";
+    fs.appendFileSync(debugLogPath, logLine, "utf8");
+  } catch (_) {}
+  // #endregion
+
   return {
     root: __dirname,
     base: "/",
@@ -79,34 +127,96 @@ export default defineConfig(({ mode }) => {
           return null;
         },
       },
+      {
+        name: "process-shim-esm",
+        enforce: "pre",
+        resolveId(id) {
+          const normalizedForLog = id.replace(/\?.*$/, "").replace(/^file:\/\//, "");
+          const mightBeShim =
+            id.includes("process-shim") ||
+            id === shimPath ||
+            normalizedForLog.endsWith("process-shim.cjs");
+          const normalized = id.replace(/\?.*$/, "").replace(/^file:\/\//, "");
+          const isShim =
+            normalized === shimPath ||
+            id.includes("process-shim") ||
+            normalized.endsWith("process-shim.cjs");
+          if (mightBeShim) {
+            const debugLogPath = path.join(root, ".cursor", "debug-a0035d.log");
+            try {
+              fs.appendFileSync(
+                debugLogPath,
+                JSON.stringify({
+                  sessionId: "a0035d",
+                  id: "resolveId-seen",
+                  timestamp: Date.now(),
+                  location: "vite.config.ts:resolveId",
+                  message: "resolveId called for process-shim",
+                  data: { requestedId: id, shimPath, normalized, isShim },
+                  runId: "debug-resolve",
+                  hypothesisId: "D",
+                }) + "\n",
+                "utf8"
+              );
+            } catch (_) {}
+          }
+          if (isShim) {
+            return "\0process-shim-esm";
+          }
+          return null;
+        },
+        load(id) {
+          if (id === "\0process-shim-esm") {
+            // #region agent log
+            try {
+              fs.appendFileSync(
+                path.join(root, ".cursor", "debug-a0035d.log"),
+                JSON.stringify({
+                  sessionId: "a0035d",
+                  id: "process-shim-esm-load",
+                  timestamp: Date.now(),
+                  location: "vite.config.ts:load(process-shim-esm)",
+                  message: "serving virtual process-shim as ESM",
+                  data: {},
+                  runId: "verify",
+                  hypothesisId: "B",
+                }) + "\n",
+                "utf8"
+              );
+            } catch (_) {}
+            // #endregion
+            // Fix: serve as ESM so default export exists; CJS->ESM interop does not expose default.
+            return `export default { env: ${JSON.stringify(envVars)} };`;
+          }
+          return null;
+        },
+      },
+      inject({
+        process: [shimPath, "default"],
+        exclude: ["**/node_modules/**"],
+      }),
+      {
+        name: "process-shim-middleware",
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url && req.url.includes("process-shim.cjs")) {
+              const esm = `export default { env: ${JSON.stringify(envVars)} };`;
+              res.setHeader("Content-Type", "application/javascript");
+              res.setHeader("Cache-Control", "no-cache");
+              res.end(esm);
+              return;
+            }
+            next();
+          });
+        },
+      },
     ] as PluginOption[],
     envDir: root, // Look for .env in Client directory
-    // Inject process.env so packages/config/env.ts (process.env-only) sees values when built with Vite.
-    // Define full process so browser bundle has process.env (otherwise env.ts gets p={} and NODE_ENV is always "development").
-    define: (() => {
-      const nodeEnv = mode === "production" ? "production" : "development";
-      const envVars = {
-        NODE_ENV: nodeEnv,
-        VITE_GOOGLE_MAPS_ID: env.VITE_GOOGLE_MAPS_ID ?? process.env.VITE_GOOGLE_MAPS_ID ?? "",
-        VITE_GOOGLE_CLIENT_ID: env.VITE_GOOGLE_CLIENT_ID ?? process.env.VITE_GOOGLE_CLIENT_ID ?? "",
-        VITE_PLAID_CLIENT_ID: env.VITE_PLAID_CLIENT_ID ?? process.env.VITE_PLAID_CLIENT_ID ?? "",
-        EXPO_PUBLIC_GOOGLE_MAPS_ID: env.EXPO_PUBLIC_GOOGLE_MAPS_ID ?? "",
-        EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS ?? "",
-        EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR:
-          env.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR ?? "",
-        EXPO_PUBLIC_API_URL: env.EXPO_PUBLIC_API_URL ?? "",
-        VITE_API_URL: env.VITE_API_URL ?? "",
-        EXPO_PUBLIC_API_BASE_URL: env.EXPO_PUBLIC_API_BASE_URL ?? "",
-        VITE_API_BASE_URL: env.VITE_API_BASE_URL ?? "",
-      };
-      const envJson = JSON.stringify(envVars);
-      return {
-        // Full process object so env.ts readProcessEnv() sees NODE_ENV and VITE_* in browser
-        process: `({ env: ${envJson} })`,
-        // React Native / Metro global; some deps (e.g. framer-motion) reference it. Undefined in prod => ReferenceError.
-        __DEV__: mode === "production" ? "false" : "true",
-      };
-    })(),
+    // esbuild define only accepts JSON literals or identifiers—never object expressions.
+    // process is provided via inject (process-shim.cjs) above; do not add process here.
+    define: {
+      __DEV__: mode === "production" ? "false" : "true",
+    },
     publicDir: path.join(root, "public"),
     css: {
       postcss: "./postcss.config.js",

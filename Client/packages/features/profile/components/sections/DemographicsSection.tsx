@@ -69,27 +69,53 @@ export default function DemographicsSection({
       )}
 
       {!hideNameWhenOnboarding && (
-        <Box>
-          <Label>{FIELD_LABELS.NAME}</Label>
-          {isEditMode ? (
-            <Input
-              type="text"
-              value={formData.name ?? ""}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                updateFormData("name", e.target.value)
-              }
-              placeholder="Enter your name"
-              className="mt-2"
-            />
-          ) : (
-            <Box className="mobile-input bg-background-base mt-2">
-              {formData.name ?? "Not specified"}
-            </Box>
-          )}
-        </Box>
+        <AlignedRow
+          breakIntoRows="md"
+          gap="lg"
+          justify="start"
+          items={[
+            {
+              title: <Label>{FIELD_LABELS.NAME}</Label>,
+              content: isEditMode ? (
+                <Input
+                  type="text"
+                  value={formData.name ?? ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    updateFormData("name", e.target.value)
+                  }
+                  placeholder="Enter your name"
+                  className="mt-2"
+                />
+              ) : (
+                <Box className="mobile-input bg-background-base mt-2">
+                  {formData.name ?? "Not specified"}
+                </Box>
+              ),
+            },
+            {
+              title: <Label>{FIELD_LABELS.AGE}</Label>,
+              content: isEditMode ? (
+                <Input
+                  type="number"
+                  value={formData.age?.toString() ?? ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    updateFormData("age", e.target.value ? parseInt(e.target.value, 10) : undefined)
+                  }
+                  placeholder="Enter your age"
+                  min={18}
+                  max={100}
+                />
+              ) : (
+                <Box className="mobile-input bg-background-base">
+                  {formData.age ?? "Not specified"}
+                </Box>
+              ),
+            },
+          ]}
+        />
       )}
 
-      {/* Are you a real estate agent? + Age - agent choice only shown during onboarding */}
+      {/* Are you a real estate agent? + Age (when name hidden) - agent choice only shown during onboarding */}
       <AlignedRow
         breakIntoRows="md"
         gap="lg"
@@ -114,25 +140,32 @@ export default function DemographicsSection({
                 },
               ]
             : []),
-          {
-            title: <Label>{FIELD_LABELS.AGE}</Label>,
-            content: isEditMode ? (
-              <Input
-                type="number"
-                value={formData.age?.toString() ?? ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  updateFormData("age", e.target.value ? parseInt(e.target.value, 10) : undefined)
-                }
-                placeholder="Enter your age"
-                min={18}
-                max={100}
-              />
-            ) : (
-              <Box className="mobile-input bg-background-base">
-                {formData.age ?? "Not specified"}
-              </Box>
-            ),
-          },
+          ...(hideNameWhenOnboarding
+            ? [
+                {
+                  title: <Label>{FIELD_LABELS.AGE}</Label>,
+                  content: isEditMode ? (
+                    <Input
+                      type="number"
+                      value={formData.age?.toString() ?? ""}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        updateFormData(
+                          "age",
+                          e.target.value ? parseInt(e.target.value, 10) : undefined
+                        )
+                      }
+                      placeholder="Enter your age"
+                      min={18}
+                      max={100}
+                    />
+                  ) : (
+                    <Box className="mobile-input bg-background-base">
+                      {formData.age ?? "Not specified"}
+                    </Box>
+                  ),
+                },
+              ]
+            : []),
         ]}
       />
 

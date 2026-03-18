@@ -83,38 +83,39 @@ export function ProfileDemographicsSection({
         </Box>
       )}
 
-      <Box>
-        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
-          {FIELD_LABELS.NAME}
-        </BodyText>
-        {isEditMode ? (
-          <PrimitiveInput
-            value={formData.name ?? ""}
-            onValueChange={(v) => updateField("name", v || undefined)}
-            placeholder="Your name"
-            keyboardType="default"
-            className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-          />
-        ) : (
-          <ProfileReadOnlyValue value={formData.name} />
-        )}
-      </Box>
-
-      <Box>
-        <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
-          {FIELD_LABELS.AGE}
-        </BodyText>
-        {isEditMode ? (
-          <PrimitiveInput
-            value={formData.age?.toString() ?? ""}
-            onValueChange={(v) => updateField("age", v ? parseInt(v, 10) || undefined : undefined)}
-            placeholder="Age"
-            keyboardType="number-pad"
-            className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-          />
-        ) : (
-          <ProfileReadOnlyValue value={formData.age} />
-        )}
+      <Box className="flex-row flex-wrap gap-4">
+        <Box className="min-w-0 flex-1 basis-40">
+          <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
+            {FIELD_LABELS.NAME}
+          </BodyText>
+          {isEditMode ? (
+            <PrimitiveInput
+              value={formData.name ?? ""}
+              onValueChange={(v) => updateField("name", v || undefined)}
+              placeholder="Your name"
+              keyboardType="default"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
+            />
+          ) : (
+            <ProfileReadOnlyValue value={formData.name} />
+          )}
+        </Box>
+        <Box className="min-w-0 flex-1 basis-24">
+          <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
+            {FIELD_LABELS.AGE}
+          </BodyText>
+          {isEditMode ? (
+            <PrimitiveInput
+              value={formData.age?.toString() ?? ""}
+              onValueChange={(v) => updateField("age", v ? parseInt(v, 10) || undefined : undefined)}
+              placeholder="Age"
+              keyboardType="number-pad"
+              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
+            />
+          ) : (
+            <ProfileReadOnlyValue value={formData.age} />
+          )}
+        </Box>
       </Box>
     </Box>
   );

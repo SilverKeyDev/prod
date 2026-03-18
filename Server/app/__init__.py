@@ -98,7 +98,10 @@ def create_app(config=None):
 
     CORS(
         app,
-        resources={r"/api/*": {"origins": ALLOWED}},
+        resources={
+            r"/api/*": {"origins": ALLOWED},
+            r"/healthz": {"origins": ALLOWED},
+        },
         supports_credentials=True,
         expose_headers=["Content-Type", "X-CSRFToken"],
         allow_headers=["Content-Type", "X-CSRFToken"],
