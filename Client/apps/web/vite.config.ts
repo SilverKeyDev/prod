@@ -188,17 +188,20 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           // Ensure consistent chunk naming and splitting
-          manualChunks: (id) => {
+            manualChunks: (id) => {
             // Vendor chunks for better caching
             if (id.includes("node_modules")) {
               // Keep React and all React-dependent libs in one chunk so React is initialized
-              // before zustand/use-sync-external-store run (avoids prod-only "Cannot set
-              // properties of undefined (setting 'Children')" when vendor runs before react-vendor).
+              // before they run (avoids prod-only "Cannot set properties of undefined (setting
+              // 'Children')" and "Cannot read properties of undefined (reading 'createContext')"
+              // when vendor runs before react-vendor).
               if (
                 id.includes("react") ||
                 id.includes("react-dom") ||
                 id.includes("use-sync-external-store") ||
-                id.includes("zustand")
+                id.includes("zustand") ||
+                id.includes("framer-motion") ||
+                id.includes("@tanstack")
               ) {
                 return "react-vendor";
               }
@@ -206,9 +209,6 @@ export default defineConfig(({ mode }) => {
               // to prevent timing issues where router context isn't available when hooks run
               if (id.includes("react-router")) {
                 return undefined; // Include in main bundle to ensure router context is always available
-              }
-              if (id.includes("@tanstack")) {
-                return "query-vendor";
               }
               // Other vendor code
               return "vendor";
