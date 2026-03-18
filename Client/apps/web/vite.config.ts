@@ -92,7 +92,7 @@ export default defineConfig(({ mode }) => {
       "process.env.VITE_PLAID_CLIENT_ID": JSON.stringify(
         env.VITE_PLAID_CLIENT_ID ?? process.env.VITE_PLAID_CLIENT_ID ?? ""
       ),
-      "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? "development"),
+      "process.env.NODE_ENV": JSON.stringify(mode === "production" ? "production" : "development"),
     },
     publicDir: path.join(root, "public"),
     css: {
@@ -191,7 +191,15 @@ export default defineConfig(({ mode }) => {
           manualChunks: (id) => {
             // Vendor chunks for better caching
             if (id.includes("node_modules")) {
-              if (id.includes("react") || id.includes("react-dom")) {
+              // Keep React and all React-dependent libs in one chunk so React is initialized
+              // before zustand/use-sync-external-store run (avoids prod-only "Cannot set
+              // properties of undefined (setting 'Children')" when vendor runs before react-vendor).
+              if (
+                id.includes("react") ||
+                id.includes("react-dom") ||
+                id.includes("use-sync-external-store") ||
+                id.includes("zustand")
+              ) {
                 return "react-vendor";
               }
               // Don't split react-router into separate chunk - keep it with main bundle

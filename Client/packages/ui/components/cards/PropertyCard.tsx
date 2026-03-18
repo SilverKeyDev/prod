@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 
-import { getEnv } from "packages/config";
 import { useWhyRender } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { Property } from "packages/schemas/property";
@@ -358,13 +357,7 @@ function PropertyCardImpl(props: PropertyCardProps) {
   } = props;
   const [showReasonCard, setShowReasonCard] = useState(false);
 
-  if (getEnv().isDevelopment) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useWhyRender({ id, address, price, score });
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const mounted = React.useRef(false);
-    if (!mounted.current) mounted.current = true;
-  }
+  useWhyRender({ id, address, price, score });
 
   const handleSelectReason = async (why: string) => {
     if (!onSelectNotInterestedReason) return;

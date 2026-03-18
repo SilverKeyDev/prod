@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 
 import { color } from "packages/design-tokens";
-import Card from "packages/ui/components/cards/Card";
 import type { CardBorderVariant } from "packages/ui/components/cards/Card";
+import Card from "packages/ui/components/cards/Card";
 import { Box, ScrollView, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 

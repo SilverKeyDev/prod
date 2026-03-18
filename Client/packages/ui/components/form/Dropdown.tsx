@@ -52,13 +52,13 @@ function Dropdown<T = unknown>({
   const { t } = useLocalization();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [labelWraps, setLabelWraps] = useState(false);
+  const [_labelWraps, setLabelWraps] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const triggerLabelRef = useRef<HTMLSpanElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
   const optionMeasureRefs = useRef<Record<number, HTMLSpanElement | null>>({});
-  const [wrappingOptionIndices, setWrappingOptionIndices] = useState<Set<number>>(new Set());
+  const [_wrappingOptionIndices, setWrappingOptionIndices] = useState<Set<number>>(new Set());
   // Find selected option
   const selectedOption = options.find((option) => option.value === value);
   const displayLabel = selectedOption

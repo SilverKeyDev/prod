@@ -19,6 +19,50 @@ import {
   WALKABILITY_OPTIONS,
 } from "@/features/profile/utils";
 
+const inputClassName =
+  "border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base";
+
+function HousingNumberFields({
+  formData,
+  updateFormData,
+}: {
+  formData: OnboardingData;
+  updateFormData: (field: string | number | symbol, value: unknown) => void;
+}) {
+  return (
+    <>
+      <Box>
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
+          {FIELD_LABELS.PREFERRED_BEDROOMS}
+        </Text>
+        <Input
+          value={formData.preferred_bedrooms?.toString() ?? ""}
+          onValueChange={(v) =>
+            updateFormData("preferred_bedrooms", v ? parseInt(v, 10) : undefined)
+          }
+          placeholder="e.g. 3"
+          keyboardType="number-pad"
+          className={inputClassName}
+        />
+      </Box>
+      <Box>
+        <Text className="text-text-secondary mb-2 text-sm font-medium">
+          {FIELD_LABELS.PREFERRED_BATHROOMS}
+        </Text>
+        <Input
+          value={formData.preferred_bathrooms?.toString() ?? ""}
+          onValueChange={(v) =>
+            updateFormData("preferred_bathrooms", v ? parseInt(v, 10) : undefined)
+          }
+          placeholder="e.g. 2"
+          keyboardType="number-pad"
+          className={inputClassName}
+        />
+      </Box>
+    </>
+  );
+}
+
 type HousingStepProps = {
   formData: OnboardingData;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
@@ -46,35 +90,7 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
         {SECTION_TITLES.HOUSING_PREFERENCES}
       </Text>
 
-      <Box>
-        <Text className="text-text-secondary mb-2 text-sm font-medium">
-          {FIELD_LABELS.PREFERRED_BEDROOMS}
-        </Text>
-        <Input
-          value={formData.preferred_bedrooms?.toString() ?? ""}
-          onValueChange={(v) =>
-            updateFormData("preferred_bedrooms", v ? parseInt(v, 10) : undefined)
-          }
-          placeholder="e.g. 3"
-          keyboardType="number-pad"
-          className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-        />
-      </Box>
-
-      <Box>
-        <Text className="text-text-secondary mb-2 text-sm font-medium">
-          {FIELD_LABELS.PREFERRED_BATHROOMS}
-        </Text>
-        <Input
-          value={formData.preferred_bathrooms?.toString() ?? ""}
-          onValueChange={(v) =>
-            updateFormData("preferred_bathrooms", v ? parseInt(v, 10) : undefined)
-          }
-          placeholder="e.g. 2"
-          keyboardType="number-pad"
-          className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-        />
-      </Box>
+      <HousingNumberFields formData={formData} updateFormData={updateFormData} />
 
       <Box>
         <Text className="text-text-secondary mb-2 text-sm font-medium">

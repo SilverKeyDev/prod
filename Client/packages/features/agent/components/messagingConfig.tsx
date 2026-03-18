@@ -107,7 +107,7 @@ export const CLIENT_MESSAGING_CONFIG: MessagingConfig = {
   },
   searchModal: {
     title: "Search for an Agent",
-    searchPlaceholder: "Search by name or email...",
+    searchPlaceholder: "Search by name...",
     noResultsMessage: "No agents found matching",
     sendButtonLabel: "Send Request",
     searchingMessage: "Searching agents...",

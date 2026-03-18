@@ -52,7 +52,7 @@ export function HomePageHeader() {
     </header>
   );
 }
-export function HomePageHero({ onStartNow }: { onStartNow: () => void }) {
+export function HomePageHero() {
   return (
     <main className="px-responsive-sm py-responsive-lg relative flex flex-1 flex-col items-center justify-center">
       <Box className="absolute inset-0 z-0">
@@ -67,11 +67,6 @@ export function HomePageHero({ onStartNow }: { onStartNow: () => void }) {
             <BodyText size="lg" className="mb-6">
               Onboard, Search, Decide, Negotiate, Close
             </BodyText>
-            <Box className="mt-4 sm:mt-8">
-              <Button onClick={onStartNow} variant="primary" size="md" className="w-1/2">
-                Start Now
-              </Button>
-            </Box>
           </Box>
         </Box>
 

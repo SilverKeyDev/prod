@@ -22,7 +22,7 @@ export function AttachmentMenuItem({
       variant="ghost"
       size="sm"
       onClick={onClick}
-      className="text-text-secondary hover:bg-background-base flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors"
+      className="text-text-secondary hover:bg-background-base flex w-full items-center justify-start gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors"
     >
       <BodyText as="span" className={iconClassName}>
         <Icon name={iconName} className={`h-4 w-4 ${iconColorClass}`} />

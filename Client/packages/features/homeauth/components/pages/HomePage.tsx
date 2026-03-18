@@ -153,16 +153,6 @@ export default function HomePage() {
               <BodyText size="lg" className="mb-6">
                 Onboard, Search, Decide, Negotiate, Close
               </BodyText>
-              <Box className="mt-4 sm:mt-8">
-                <Button
-                  onClick={() => setShowAuthModal(true)}
-                  variant="primary"
-                  size="md"
-                  className="w-1/2"
-                >
-                  Start Now
-                </Button>
-              </Box>
             </Box>
           </Box>
 

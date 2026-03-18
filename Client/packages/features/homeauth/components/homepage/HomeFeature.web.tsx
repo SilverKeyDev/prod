@@ -109,7 +109,6 @@ export function HomeFeature(_props: HomeFeatureProps) {
     return () => clearTimeout(debounce);
   }, [address, scriptsReady, hasSelected]);
 
-  const handleOpenAuth = () => setShowAuthModal(true);
   const handleCloseAuth = () => setShowAuthModal(false);
   const handleLogin = () => {
     setShowAuthModal(false);
@@ -124,7 +123,7 @@ export function HomeFeature(_props: HomeFeatureProps) {
     <Box className="hide-scrollbar bg-background-surface flex min-h-screen flex-col">
       <HomePageHeader />
       <Box className="h-16 flex-shrink-0 sm:h-20" />
-      <HomePageHero onStartNow={handleOpenAuth} />
+      <HomePageHero />
       {showAuthModal && (
         <HomePageAuthModal
           onClose={handleCloseAuth}

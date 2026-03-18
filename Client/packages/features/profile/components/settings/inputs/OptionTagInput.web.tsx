@@ -53,7 +53,9 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
                 className="ring-accent-muted inline-flex rounded-full px-3 py-1.5 text-sm font-medium shadow-sm ring-1"
                 label={`Remove ${label}`}
               >
-                <span className="mx-1">{label}</span>
+                <BodyText as="span" size="sm" className="mx-1">
+                  {label}
+                </BodyText>
               </Button>
             ) : (
               <BodyText
@@ -62,7 +64,9 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
                 size="sm"
                 className="bg-primary ring-accent-muted inline-flex items-center rounded-full px-3 py-1.5 font-medium text-white shadow-sm ring-1"
               >
-                <span className="mx-1">{label}</span>
+                <BodyText as="span" size="sm" className="mx-1">
+                  {label}
+                </BodyText>
               </BodyText>
             );
           })}
@@ -80,10 +84,12 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
               key={opt.value}
               onClick={() => handleToggle(opt.value)}
               disabled={disabled}
-              className="touch-friendly min-h-[2.75rem] min-w-[5rem] rounded-lg border-2 border-dotted border-border bg-transparent text-text-secondary px-4 py-2.5 text-sm font-medium transition-colors hover:border-brand-accent hover:bg-background-surface hover:text-text-primary"
+              className="touch-friendly min-h-11 min-w-20 rounded-lg border-2 border-dotted border-border bg-transparent text-text-secondary px-4 py-2.5 text-sm font-medium transition-colors hover:border-brand-accent hover:bg-background-surface hover:text-text-primary"
               label={`Select ${opt.label}`}
             >
-              <span className="mx-1">{opt.label}</span>
+              <BodyText as="span" size="sm" className="mx-1">
+                {opt.label}
+              </BodyText>
             </Button>
           ))}
         </Box>

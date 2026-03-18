@@ -105,7 +105,6 @@ export default function HomePage() {
     return () => clearTimeout(debounce);
   }, [address, scriptsReady, hasSelected]);
 
-  const handleOpenAuth = () => setShowAuthModal(true);
   const handleCloseAuth = () => setShowAuthModal(false);
   const handleLogin = () => {
     setShowAuthModal(false);
@@ -120,7 +119,7 @@ export default function HomePage() {
     <Box className="hide-scrollbar bg-background-surface flex min-h-screen flex-col">
       <HomePageHeader />
       <Box className="h-16 flex-shrink-0 sm:h-20" />
-      <HomePageHero onStartNow={handleOpenAuth} />
+      <HomePageHero />
       {showAuthModal && (
         <HomePageAuthModal
           onClose={handleCloseAuth}

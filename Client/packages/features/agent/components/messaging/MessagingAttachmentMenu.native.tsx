@@ -35,7 +35,7 @@ export function MessagingAttachmentMenu({
             }}
             style={styles.option}
           >
-            <Text className="text-text-primary text-base font-medium">Share home</Text>
+            <Text className="text-left text-base font-medium text-text-primary">Share home</Text>
           </RNPressable>
           <RNPressable
             onPress={() => {
@@ -44,7 +44,7 @@ export function MessagingAttachmentMenu({
             }}
             style={styles.option}
           >
-            <Text className="text-text-primary text-base font-medium">Share document</Text>
+            <Text className="text-left text-base font-medium text-text-primary">Share document</Text>
           </RNPressable>
           <RNPressable
             onPress={() => {
@@ -53,7 +53,7 @@ export function MessagingAttachmentMenu({
             }}
             style={styles.option}
           >
-            <Text className="text-text-primary text-base font-medium">Calendar event</Text>
+            <Text className="text-left text-base font-medium text-text-primary">Calendar event</Text>
           </RNPressable>
           {isAgent && onShareAgreement && (
             <RNPressable
@@ -63,11 +63,11 @@ export function MessagingAttachmentMenu({
               }}
               style={styles.option}
             >
-              <Text className="text-text-primary text-base font-medium">Share agreement</Text>
+              <Text className="text-left text-base font-medium text-text-primary">Share agreement</Text>
             </RNPressable>
           )}
           <RNPressable onPress={onClose} style={[styles.option, styles.cancel]}>
-            <Text className="text-text-secondary text-base font-medium">Cancel</Text>
+            <Text className="text-left text-base font-medium text-text-secondary">Cancel</Text>
           </RNPressable>
         </View>
       </RNPressable>
@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   option: {
+    alignItems: "flex-start",
     paddingVertical: 16,
     paddingHorizontal: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
