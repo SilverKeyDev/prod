@@ -269,16 +269,24 @@ function ImportantLocationsInputAutocomplete({
 
               {/* Address Suggestions */}
               {suggestions.length > 0 && (
-                <ul className="relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border bg-white shadow-sm">
+                <ul className="relative z-50 mt-2 flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md bg-white shadow-sm">
                   {suggestions.map((s, idx) => (
-                    <li key={idx}>
+                    <li
+                      key={idx}
+                      className="rounded border border-dotted border-neutral-300"
+                    >
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={handleSelect.bind(null, s)}
-                        className="w-full cursor-pointer justify-start px-3 py-2 text-left text-sm hover:bg-gray-100 active:bg-gray-200"
+                        className="w-full !justify-start cursor-pointer px-3 py-2 text-sm hover:bg-gray-100 active:bg-gray-200 [&>div]:w-full [&>div]:!justify-start [&>div>div]:!justify-start [&>div>div]:!text-left"
                       >
-                        {s.description}
+                        <Box className="flex w-full items-center justify-start gap-2 text-left">
+                          <Icon name="map-pin" className="h-4 w-4 shrink-0 text-neutral-500" />
+                          <BodyText as="span" size="sm" className="min-w-0 flex-1 text-left">
+                            {s.description}
+                          </BodyText>
+                        </Box>
                       </Button>
                     </li>
                   ))}

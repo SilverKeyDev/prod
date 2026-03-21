@@ -2,10 +2,42 @@
 Centralized logging configuration and utilities for the entire application.
 """
 
+import json
 import logging
+import os
 import sys
+from pathlib import Path
 
 from flask import current_app, has_app_context
+
+_LOG_LEVEL_NAMES = ("DEBUG", "INFO", "WARNING", "WARN", "ERROR", "CRITICAL")
+
+
+def _resolve_app_log_level() -> int:
+    """
+    Flask / stdlib log level: env APP_LOG_LEVEL wins, then logger/logger_config.json logLevel,
+    then INFO. Matches the centralized logger config file when present.
+    """
+    env_level = (os.environ.get("APP_LOG_LEVEL") or os.environ.get("LOG_LEVEL") or "").strip().upper()
+    if env_level in _LOG_LEVEL_NAMES:
+        return getattr(logging, env_level if env_level != "WARN" else "WARNING")
+
+    # Server/logger/logger_config.json (same source as logger.Logger)
+    try:
+        here = Path(__file__).resolve()
+        server_root = here.parent.parent.parent.parent
+        cfg_path = server_root / "logger" / "logger_config.json"
+        if cfg_path.is_file():
+            with cfg_path.open(encoding="utf-8") as f:
+                data = json.load(f)
+            name = str(data.get("logLevel", "INFO")).strip().upper()
+            if name in _LOG_LEVEL_NAMES:
+                return getattr(logging, name if name != "WARN" else "WARNING")
+    except (OSError, ValueError, TypeError):
+        pass
+
+    return logging.INFO
+
 
 # Global logger cache to avoid repeated instantiation
 _logger_cache = {}
@@ -46,15 +78,18 @@ def configure_app_logging(app):
     Configure logging for the entire application.
     Call this once during app initialization.
     """
+    level = _resolve_app_log_level()
+
     # Set up root logger configuration
     logging.basicConfig(
-        level=logging.INFO,
+        level=level,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
+        force=True,
     )
 
-    # Configure Flask app logger
-    app.logger.setLevel(logging.INFO)
+    # Configure Flask app logger (polygon search and other app.* messages use this)
+    app.logger.setLevel(level)
 
     # Silence verbose third-party libraries
     verbose_loggers = [
@@ -76,17 +111,10 @@ def configure_app_logging(app):
     for logger_name in verbose_loggers:
         logging.getLogger(logger_name).setLevel(logging.WARNING)
 
-    # Set application loggers to appropriate levels
-    app_loggers = {
-        "app.routes": logging.INFO,
-        "app.services": logging.INFO,
-        "app.models": logging.WARNING,
-        "app.utils": logging.INFO,
-        "app.celery": logging.INFO,
-    }
-
-    for logger_name, level in app_loggers.items():
+    # Application loggers: match resolved level; keep SQLAlchemy model noise down
+    for logger_name in ("app.routes", "app.services", "app.utils", "app.celery"):
         logging.getLogger(logger_name).setLevel(level)
+    logging.getLogger("app.models").setLevel(logging.WARNING)
 
 
 # Convenience function for common logging patterns

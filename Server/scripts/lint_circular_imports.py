@@ -22,9 +22,11 @@ def main() -> int:
     if server_root not in sys.path:
         sys.path.insert(0, server_root)
 
-    # Allow import chain to load without a real DB (we never call create_app()).
+    # Allow import chain to load without a real DB or AWS (we never call create_app()).
     if not os.environ.get("DATABASE_URL"):
         os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+    if not os.environ.get("AWS_SECRET_ACCESS_KEY"):
+        os.environ["AWS_SECRET_ACCESS_KEY"] = "lint-placeholder-not-a-real-secret"
 
     try:
         from app import create_app  # noqa: F401

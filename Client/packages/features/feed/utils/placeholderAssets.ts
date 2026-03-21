@@ -4,6 +4,8 @@
  * variety in test data and fallbacks.
  */
 
+import { DEFAULT_AVATAR_WEB_PATH } from "packages/utils/media/defaultAvatar";
+
 export const PLACEHOLDER_IMAGES: readonly string[] = [
   "/placeholders/dummy-photo.svg",
   "/placeholders/placeholder-living.svg",
@@ -26,9 +28,9 @@ export const DEFAULT_PLACEHOLDER_IMAGE = PLACEHOLDER_IMAGES[0];
 
 /**
  * Default profile picture when user has no avatar (Instagram-style gray silhouette).
- * Served from public/default-avatar.svg.
+ * Web: `public/default-avatar.svg`. Native: bundled `public/default-avatar.png` (same artwork).
  */
-export const DEFAULT_AVATAR_IMAGE = "/default-avatar.svg";
+export const DEFAULT_AVATAR_IMAGE = DEFAULT_AVATAR_WEB_PATH;
 
 /** Default video when no index. */
 export const DEFAULT_PLACEHOLDER_VIDEO = PLACEHOLDER_VIDEOS[0];

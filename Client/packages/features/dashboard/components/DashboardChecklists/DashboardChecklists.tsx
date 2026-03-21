@@ -42,11 +42,13 @@ export default function DashboardChecklists() {
   const setDropdownSelection = useViewStore((s: ViewState) => s.setDropdownSelection);
   const hasInitializedTabRef = useRef(false);
 
+  // Default tab: the one with the earliest unchecked item (currentSection from useChecklistProgress)
   const [activeTab, setActiveTab] = useState<ChecklistTab>(currentSection);
 
-  // On load, sync to the tab that contains the active (first unchecked) item once data is ready
+  // When progress is ready, sync to the tab with the earliest unchecked item (once per mount)
   useEffect(() => {
-    if (!progressLoading && !hasInitializedTabRef.current) {
+    if (progressLoading) return;
+    if (!hasInitializedTabRef.current) {
       setActiveTab(currentSection);
       hasInitializedTabRef.current = true;
     }
@@ -102,6 +104,21 @@ export default function DashboardChecklists() {
       return next;
     });
   }, [activeItemId]);
+  // When an item is checked off, collapse it
+  useEffect(() => {
+    setExpandedIds((prev) => {
+      if (checkedIds.length === 0) return prev;
+      const next = new Set(prev);
+      let changed = false;
+      checkedIds.forEach((id) => {
+        if (next.has(id)) {
+          next.delete(id);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [checkedIds]);
   const toggleExpand = useCallback((id: number) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);

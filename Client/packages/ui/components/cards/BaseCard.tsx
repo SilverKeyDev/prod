@@ -16,6 +16,8 @@ export type BaseCardProps = {
   width?: "auto" | "full" | "standard" | "wide" | "narrow";
   height?: "auto" | "full" | "standard" | "tall" | "compact";
   scale?: "xs" | "sm" | "md" | "lg" | "xl" | number;
+  /** When "white", use solid white background (e.g. home and document cards). */
+  background?: "default" | "white";
 } & React.HTMLAttributes<HTMLDivElement>;
 
 const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
@@ -32,6 +34,7 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
       width,
       height,
       scale,
+      background,
       className = "",
       children,
       ...props
@@ -50,6 +53,7 @@ const BaseCard = forwardRef<HTMLDivElement, BaseCardProps>(
       width,
       height,
       scale,
+      background,
       className,
     });
     return (

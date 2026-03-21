@@ -1,10 +1,11 @@
 import React, { forwardRef, useMemo } from "react";
 
-import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
+// import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import { Icon } from "@ui/icons";
 
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
 import { Box, Pressable, Row, Text } from "packages/ui/components/primitives";
 import { BUTTON_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 import { buttonNativeSizes } from "packages/ui/styles/variants/buttonSizes";
@@ -185,7 +186,10 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
     }, [children, hideTextBelow]);
 
     const isEdgeRight =
-      iconPosition === "right" && iconAlign === "edge" && (resolvedIcon || loading);
+      !loading &&
+      iconPosition === "right" &&
+      iconAlign === "edge" &&
+      Boolean(resolvedIcon);
     const layoutClass = isEdgeRight ? "justify-between" : "";
 
     const buttonClasses = [
@@ -196,6 +200,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       BUTTON_VARIANT_STYLES[effectiveVariant],
       fullWidth ? "w-full" : "",
       layoutClass,
+      loading ? "relative overflow-hidden border-2 border-neutral-600" : "",
       "touch-friendly",
       "",
       className,
@@ -215,9 +220,9 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
     const loaderBox = (
       <Box
-        className={`items-center justify-center ${BUTTON_ICON_SIZE_CLASS[size]} ${textColorClass}`.trim()}
+        className={`h-8 w-8 shrink-0 items-center justify-center ${textColorClass}`.trim()}
       >
-        <KeyTurnLoader message="" />
+        {/* <KeyTurnLoader message="" /> */}
       </Box>
     );
 
@@ -259,41 +264,55 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       );
     }
 
-    const content = isEdgeRight ? (
+    const loadingOnlyContent = (
       <>
-        <Box className={`min-w-0 flex-1 items-center justify-start gap-2 ${textColorClass}`.trim()}>
-          {iconLeft && renderIcon(resolvedIcon, size, textColorClass)}
-          {textContent}
-        </Box>
-        {(iconRight || loading) && (
-          <Box className={`shrink-0 items-center ${textColorClass}`.trim()}>
-            {loading
-              ? loaderBox
-              : iconRight
-                ? renderIcon(resolvedIcon, size, textColorClass)
-                : null}
-          </Box>
-        )}
+        <RippleBackground overlay />
+        <Row className="relative z-10 items-center justify-center gap-2">{loaderBox}</Row>
       </>
-    ) : (
-      <Row className="items-center justify-center gap-2">
-        {loading && iconPosition === "left" && loaderBox}
-        {iconLeft && (
-          <Box className="items-center justify-center">
-            {renderIcon(resolvedIcon, size, textColorClass)}
-          </Box>
-        )}
-        {textContent}
-        {loading && iconPosition === "right" && loaderBox}
-        {iconRight && (
-          <Box className="items-center justify-center">
-            {renderIcon(resolvedIcon, size, textColorClass)}
-          </Box>
-        )}
-      </Row>
     );
 
+    const content = loading
+      ? loadingOnlyContent
+      : isEdgeRight
+        ? (
+            <>
+              <Box
+                className={`min-w-0 flex-1 items-center justify-start gap-2 ${textColorClass}`.trim()}
+              >
+                {iconLeft && renderIcon(resolvedIcon, size, textColorClass)}
+                {textContent}
+              </Box>
+              {iconRight && (
+                <Box className={`shrink-0 items-center ${textColorClass}`.trim()}>
+                  {renderIcon(resolvedIcon, size, textColorClass)}
+                </Box>
+              )}
+            </>
+          )
+        : (
+            <Row className="items-center justify-center gap-2">
+              {iconLeft && (
+                <Box className="items-center justify-center">
+                  {renderIcon(resolvedIcon, size, textColorClass)}
+                </Box>
+              )}
+              {textContent}
+              {iconRight && (
+                <Box className="items-center justify-center">
+                  {renderIcon(resolvedIcon, size, textColorClass)}
+                </Box>
+              )}
+            </Row>
+          );
+
     const pressableProps = pickPressableProps(props);
+    const priorA11yState =
+      pressableProps.accessibilityState &&
+      typeof pressableProps.accessibilityState === "object" &&
+      !Array.isArray(pressableProps.accessibilityState)
+        ? (pressableProps.accessibilityState as Record<string, boolean | undefined>)
+        : {};
+    const mergedAccessibilityState = { ...priorA11yState, busy: loading };
 
     /** Native: merge buttonNativeSizes (CVA native: doesn't apply at Babel time). No inline theme overrides. */
     const nativeSizeStyle = isNative ? buttonNativeSizes[size ?? "md"] : undefined;
@@ -315,6 +334,8 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         aria-current={ariaCurrent}
         tabIndex={tabIndex}
         {...pressableProps}
+        aria-busy={loading}
+        accessibilityState={mergedAccessibilityState}
       >
         {content}
       </Pressable>

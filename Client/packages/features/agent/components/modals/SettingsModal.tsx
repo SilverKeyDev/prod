@@ -3,8 +3,7 @@ import React from "react";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 
-import { BaseModal } from "@/components/ui";
-import { BodyText, Button, Title } from "@/components/ui";
+import { BodyText, Button, Cover } from "@/components/ui";
 
 type SettingsModalProps = {
   isOpen: boolean;
@@ -14,34 +13,26 @@ type SettingsModalProps = {
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { navigateToPath } = useNavigation();
   return (
-    <BaseModal
+    <Cover
       isOpen={isOpen}
       onClose={onClose}
-      size="full"
-      className="max-h-[95vh]"
-      closeOnBackdropClick={false}
+      title="Settings"
       showHeaderBorder={false}
-      contentBackground="off-white"
     >
-      <Box className="h-full overflow-y-auto">
-        <Box className="space-y-4 p-6">
-          <Title size="lg" as="h2">
-            Settings
-          </Title>
-          <BodyText size="sm" muted>
-            Settings are managed on the Profile page.
-          </BodyText>
-          <Button
-            variant="primary"
-            onClick={() => {
-              navigateToPath("/profile", { replace: false });
-              onClose();
-            }}
-          >
-            Open Profile Settings
-          </Button>
-        </Box>
+      <Box className="space-y-4">
+        <BodyText size="sm" muted>
+          Settings are managed on the Profile page.
+        </BodyText>
+        <Button
+          variant="primary"
+          onClick={() => {
+            navigateToPath("/profile", { replace: false });
+            onClose();
+          }}
+        >
+          Open Profile Settings
+        </Button>
       </Box>
-    </BaseModal>
+    </Cover>
   );
 }

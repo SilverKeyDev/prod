@@ -45,7 +45,7 @@ export function SearchHeaderLocationsTrigger({
   panelId,
 }: SearchHeaderLocationsTriggerProps): React.ReactElement {
   const wrapperClass = `max-w-[60%] rounded-lg border-2 border-dotted border-gray-400 bg-gray-100 overflow-hidden ${compact ? "shrink-0" : "min-w-0 flex-1"}`;
-  const pressableClass = `flex flex-row items-center justify-between gap-2 px-3 w-full ${HEADER_ROW_HEIGHT}`;
+  const pressableClass = `flex flex-row items-center justify-between gap-2 px-4 w-full ${HEADER_ROW_HEIGHT}`;
 
   return (
     <Box className={wrapperClass}>

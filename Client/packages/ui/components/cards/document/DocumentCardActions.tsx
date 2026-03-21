@@ -47,7 +47,7 @@ function DocumentCardActionButtons({
           size="sm"
           onClick={() => onDownloadDocument(doc.id, doc.filename)}
           icon={<Icon name="download" size={16} />}
-          className="border-border text-text-secondary hover:border-primary hover:bg-accent-muted active:border-primary disabled:border-border disabled:text-text-disabled flex-1 bg-transparent focus:ring-neutral-400 active:bg-neutral-100 disabled:hover:bg-transparent"
+          className="border-border text-text-secondary disabled:border-border disabled:text-text-disabled flex-1 bg-transparent hover:bg-neutral-100 focus:ring-neutral-400 active:bg-neutral-100 active:bg-neutral-200 disabled:hover:bg-transparent"
         />
         <IconButton
           variant="tertiary"
@@ -108,13 +108,15 @@ export default function DocumentCardActions({
         </Portal>
       )}
       {showDelete && onDelete && (
-        <DeleteModal
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={handleDeleteConfirm}
-          title="Delete Report"
-          message="Are you sure you want to delete this report? This action cannot be undone."
-        />
+        <Portal>
+          <DeleteModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            onConfirm={handleDeleteConfirm}
+            title="Delete Report"
+            message="Are you sure you want to delete this report? This action cannot be undone."
+          />
+        </Portal>
       )}
     </>
   );

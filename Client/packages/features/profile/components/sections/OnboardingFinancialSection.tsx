@@ -1,15 +1,18 @@
 import React from "react";
 
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
 import type { HomePriceResult } from "packages/utils/affordability";
 
-import { Dropdown, Input, Label, Title } from "@/components/ui";
+import { BodyText, Dropdown, Input, Label, Title } from "@/components/ui";
 import { HomePriceEstimate } from "@/features/homeauth/components/HomePriceEstimate";
-import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
+import BudgetSlider from "@/features/profile/components/settings/inputs/BudgetSlider";
 import { OnPerLabel } from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
 import {
+  AGENT_OPTIONAL_BUYER_FINANCIAL_HINT,
   CREDIT_SCORE_OPTIONS,
+  effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   type OnboardingData,
   REQUIRED_FIELDS_ONBOARDING,
@@ -36,6 +39,11 @@ export default function OnboardingFinancialSection({
   isAffordabilityCollapsed,
   setIsAffordabilityCollapsed,
 }: OnboardingFinancialSectionProps) {
+  const authIsAgent = useIsAgent();
+  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
+    authIsAgent,
+    formIsAgent: formData.is_agent,
+  });
   const showAffordability =
     homePriceLoading !== undefined &&
     homePriceError !== undefined &&
@@ -47,11 +55,18 @@ export default function OnboardingFinancialSection({
       <Title size="lg" className="mb-4 sm:mb-6">
         {SECTION_TITLES.FINANCIAL_PROFILE}
       </Title>
+      {showAgentOptionalBuyerCallout && (
+        <Box className="border-border bg-background-surface mb-4 rounded-lg border px-3 py-2">
+          <BodyText size="xs" muted>
+            {AGENT_OPTIONAL_BUYER_FINANCIAL_HINT}
+          </BodyText>
+        </Box>
+      )}
       <Box className="col-span-1 flex flex-col items-center md:col-span-2">
-        <Label className="text-responsive-xl space-y-responsive-xs text-text-secondary block w-full text-center font-bold">
+        <Label className="text-responsive-lg space-y-responsive-xs text-text-secondary block w-full text-center font-bold">
           {FIELD_LABELS.HOME_BUDGET} *
         </Label>
-        <BudgetRangeSlider
+        <BudgetSlider
           tickValues={[
             200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000, 10000000,
           ]}
@@ -65,7 +80,6 @@ export default function OnboardingFinancialSection({
           }}
           formatPrefix="$"
           className="mt-2"
-          variant="budget"
         />
       </Box>
       <Box className="grid grid-cols-1 gap-6 md:grid-cols-2">

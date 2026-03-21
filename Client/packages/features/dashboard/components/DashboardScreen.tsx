@@ -1,9 +1,15 @@
 import React, { useCallback, useMemo, useState } from "react";
 
-import { Calendar, UpcomingEvents } from "packages/features/calendar";
+import { Alert, Modal, Pressable as ModalPressable, StyleSheet } from "react-native";
+
+import { type AgendaTodoDTO, Calendar, UpcomingEvents } from "packages/features/calendar";
 import { useIsAgent } from "packages/features/homeauth";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
+import { useUIStore } from "packages/store";
+import type { UIState } from "packages/store/ui.slice";
+import type { UrgentAlert } from "packages/types";
+import Button from "packages/ui/components/button/Button";
 import {
   Box,
   Pressable,
@@ -11,40 +17,172 @@ import {
   ScrollView,
   Text,
 } from "packages/ui/components/primitives";
-import { dateNow, dateParseISO } from "packages/utils/date";
+import { dateNow } from "packages/utils/date";
 
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useAgentDashboardMockData } from "@/features/agent/hooks/data/useAgentDashboardMockData";
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
-import type { TodoPriority } from "@/features/agent/types/agent";
-import {
-  sortTodosByPriority,
-  TODO_PRIORITY_LABELS,
-  TODO_PRIORITY_ORDER,
-} from "@/features/agent/utils/todoUtils";
+import type { TodoItem, TodoPriority } from "@/features/agent/types/agent";
+import { TODO_PRIORITY_LABELS, TODO_PRIORITY_ORDER } from "@/features/agent/utils/todoUtils";
+import { useCalendarOAuthCallback } from "@/features/calendar/hooks/data";
 
 import ClientList from "./ClientList/ClientList";
-import DashboardChecklists from "./DashboardChecklists/DashboardChecklists";
 
-type DashboardTodosSectionProps = {
-  isAgent: boolean;
+const modalStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+  },
+  sheetWrap: {
+    width: "100%",
+  },
+});
+
+function mapTodosToAgendaDTO(todos: TodoItem[]): AgendaTodoDTO[] {
+  return todos.map((t) => ({
+    id: t.id,
+    title: t.title,
+    due_date: t.due_date,
+    completed: t.completed,
+    priority: t.priority,
+  }));
+}
+
+type MobileAgendaAddButtonProps = {
+  onCreateTodo: (title: string, priority: TodoPriority) => Promise<void>;
+  onCalendarEventHint: () => void;
 };
 
-function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
-  const { todos, createTodo, updateTodo } = useAgentTodos(false);
-
-  const [showAddForm, setShowAddForm] = useState(false);
+function MobileAgendaAddButton({ onCreateTodo, onCalendarEventHint }: MobileAgendaAddButtonProps) {
+  const [modalOpen, setModalOpen] = useState(false);
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [selectedPriority, setSelectedPriority] = useState<TodoPriority>("medium");
 
-  const sortedTodos = useMemo(() => sortTodosByPriority(todos), [todos]);
+  const openChooser = useCallback(() => {
+    Alert.alert("Add", undefined, [
+      { text: "Add to-do", onPress: () => setModalOpen(true) },
+      {
+        text: "Add calendar event",
+        onPress: onCalendarEventHint,
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  }, [onCalendarEventHint]);
 
-  const handleToggleTodo = async (id: string) => {
-    if (!isAgent) return;
+  const closeModal = useCallback(() => {
+    setModalOpen(false);
+    setNewTodoTitle("");
+    setSelectedPriority("medium");
+  }, []);
 
-    const todo = todos.find((t) => t.id === id);
-    if (!todo) return;
+  const submitTodo = useCallback(async () => {
+    const trimmed = newTodoTitle.trim();
+    if (!trimmed) {
+      return;
+    }
+    try {
+      await onCreateTodo(trimmed, selectedPriority);
+      closeModal();
+    } catch (error) {
+      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create todo (mobile)", error);
+    }
+  }, [closeModal, newTodoTitle, onCreateTodo, selectedPriority]);
 
+  return (
+    <>
+      <Pressable
+        onPress={openChooser}
+        className="border-border rounded-lg border border-dashed px-3 py-2 active:opacity-80"
+      >
+        <Text className="text-primary text-center text-sm font-medium">Add</Text>
+      </Pressable>
+
+      <Modal visible={modalOpen} animationType="slide" transparent onRequestClose={closeModal}>
+        <ModalPressable style={modalStyles.backdrop} onPress={closeModal}>
+          <ModalPressable
+            style={modalStyles.sheetWrap}
+            onPress={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <Box className="bg-background-surface max-h-[85%] w-full rounded-t-2xl px-4 pb-8 pt-4">
+              <Text className="text-text-primary mb-3 text-base font-semibold">Add to-do</Text>
+              <PrimitiveInput
+                value={newTodoTitle}
+                onValueChange={setNewTodoTitle}
+                placeholder="What do you need to do?"
+                className="border-border bg-background-base text-text-primary mb-3 rounded-lg border px-3 py-2 text-base"
+              />
+              <Box className="mb-4 flex-row flex-wrap gap-2">
+                {(Object.keys(TODO_PRIORITY_ORDER) as TodoPriority[]).map((priority) => {
+                  const selected = selectedPriority === priority;
+                  return (
+                    <Pressable
+                      key={priority}
+                      onPress={() => setSelectedPriority(priority)}
+                      className={`rounded-full px-3 py-1 ${
+                        selected ? "bg-primary" : "border-border bg-background-base border"
+                      }`}
+                    >
+                      <Text
+                        className={`text-xs font-medium ${selected ? "text-white" : "text-text-primary"}`}
+                      >
+                        {TODO_PRIORITY_LABELS[priority]}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </Box>
+              <Text className="text-text-secondary mb-4 text-xs">
+                Due date defaults to end of today.
+              </Text>
+              <Box className="flex-row gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="flex-1"
+                  onPress={() => void submitTodo()}
+                >
+                  Save
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1" onPress={closeModal}>
+                  Cancel
+                </Button>
+              </Box>
+            </Box>
+          </ModalPressable>
+        </ModalPressable>
+      </Modal>
+    </>
+  );
+}
+
+export function DashboardScreen() {
+  const isAgent = useIsAgent();
+  const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
+  useCalendarOAuthCallback({ enqueueToast });
+  const { navigateToPath } = useNavigation();
+  const { clients } = useAgentClients();
+  const { generateMockAlerts } = useAgentDashboardMockData();
+
+  const { todos, createTodo, updateTodo } = useAgentTodos(false);
+
+  const agendaTodos = useMemo<AgendaTodoDTO[] | undefined>(() => {
+    if (!isAgent) {
+      return undefined;
+    }
+    return mapTodosToAgendaDTO(todos);
+  }, [isAgent, todos]);
+
+  const handleToggleAgendaTodo = async (id: string) => {
+    if (!isAgent) {
+      return;
+    }
+    const todo = todos.find((t: (typeof todos)[number]) => t.id === id);
+    if (!todo) {
+      return;
+    }
     try {
       await updateTodo(id, { completed: !todo.completed });
     } catch (error) {
@@ -52,150 +190,54 @@ function DashboardTodosSection({ isAgent }: DashboardTodosSectionProps) {
     }
   };
 
-  const handleAddTodo = async () => {
-    const trimmedTitle = newTodoTitle.trim();
-    if (!isAgent || !trimmedTitle) return;
-
+  const handleCreateAgendaTodo = async (title: string, priority: TodoPriority) => {
+    if (!isAgent) {
+      return;
+    }
     try {
       const dueDate = dateNow().endOf("day");
-
       await createTodo({
-        title: trimmedTitle,
+        title,
         due_date: dueDate.toISOString(),
-        priority: selectedPriority,
+        priority,
         type: "manual",
       });
-
-      setNewTodoTitle("");
-      setSelectedPriority("medium");
-      setShowAddForm(false);
     } catch (error) {
       log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create todo", error);
     }
   };
 
-  return (
-    <Box className="bg-background-surface gap-3 rounded-lg p-3 shadow-sm">
-      {sortedTodos.length === 0 ? (
-        <Text className="text-text-secondary text-sm">No todos for today.</Text>
-      ) : (
-        <Box className="gap-2">
-          {sortedTodos.map((todo) => (
-            <Box
-              key={todo.id}
-              className="border-border bg-background-surface flex-row items-start justify-between rounded-md border px-3 py-2"
-            >
-              <Pressable
-                onPress={() => handleToggleTodo(todo.id)}
-                disabled={!isAgent}
-                className={`mr-3 mt-1 h-5 w-5 items-center justify-center rounded-full border ${
-                  todo.completed ? "border-primary bg-primary" : "border-border"
-                }`}
-              >
-                {todo.completed ? (
-                  <Text className="text-xs font-semibold text-white">✓</Text>
-                ) : null}
-              </Pressable>
+  const handleUpdateAgendaTodoPriority = async (id: string, priority: TodoPriority) => {
+    if (!isAgent) {
+      return;
+    }
+    try {
+      await updateTodo(id, { priority });
+    } catch (error) {
+      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to update todo priority", error);
+    }
+  };
 
-              <Box className="flex-1 gap-1">
-                <Text
-                  className={`text-sm ${
-                    todo.completed ? "text-text-disabled line-through" : "text-text-primary"
-                  }`}
-                >
-                  {todo.title}
-                </Text>
-                <Box className="flex flex-row items-center gap-3">
-                  <Text className="text-text-secondary text-xs font-medium">
-                    {TODO_PRIORITY_LABELS[todo.priority]}
-                  </Text>
-                  {todo.due_date ? (
-                    <Text className="text-text-secondary text-xs">
-                      {dateParseISO(todo.due_date).toDate().toLocaleDateString()}
-                    </Text>
-                  ) : null}
-                </Box>
-              </Box>
-            </Box>
-          ))}
-        </Box>
-      )}
+  const handleCalendarEventHint = useCallback(() => {
+    enqueueToast({
+      message: "Create calendar events in the Calendar section below.",
+      type: "info",
+    });
+  }, [enqueueToast]);
 
-      {isAgent ? (
-        showAddForm ? (
-          <Box className="mt-2 flex flex-col gap-2">
-            <PrimitiveInput
-              value={newTodoTitle}
-              onValueChange={setNewTodoTitle}
-              placeholder="Add a todo for today"
-              className="border-border bg-background-surface text-text-primary rounded-lg border px-3 py-2 text-base"
-            />
-
-            <Box className="flex flex-row flex-wrap gap-2">
-              {(Object.keys(TODO_PRIORITY_ORDER) as TodoPriority[]).map((priority) => {
-                const selected = selectedPriority === priority;
-                return (
-                  <Pressable
-                    key={priority}
-                    onPress={() => setSelectedPriority(priority)}
-                    className={`rounded-full px-3 py-1 ${
-                      selected ? "bg-primary" : "border-border bg-background-base border"
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-medium ${selected ? "text-white" : "text-text-primary"}`}
-                    >
-                      {TODO_PRIORITY_LABELS[priority]}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </Box>
-
-            <Box className="flex flex-row gap-2">
-              <Pressable
-                onPress={handleAddTodo}
-                className="bg-primary flex-1 rounded-lg px-4 py-2 active:opacity-90"
-              >
-                <Text className="text-center text-sm font-semibold text-white">Add todo</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setShowAddForm(false);
-                  setNewTodoTitle("");
-                  setSelectedPriority("medium");
-                }}
-                className="border-border bg-background-surface flex-1 rounded-lg border px-4 py-2"
-              >
-                <Text className="text-text-primary text-center text-sm font-semibold">Cancel</Text>
-              </Pressable>
-            </Box>
-          </Box>
-        ) : (
-          <Pressable
-            onPress={() => setShowAddForm(true)}
-            className="border-border mt-1 rounded-lg border border-dashed px-3 py-2"
-          >
-            <Text className="text-primary text-center text-sm font-medium">Add todo</Text>
-          </Pressable>
-        )
-      ) : null}
-    </Box>
-  );
-}
-
-export function DashboardScreen() {
-  const isAgent = useIsAgent();
-  const { navigateToPath } = useNavigation();
-  const { clients } = useAgentClients();
-  const { generateMockAlerts } = useAgentDashboardMockData();
+  const headerActions = isAgent ? (
+    <MobileAgendaAddButton
+      onCreateTodo={handleCreateAgendaTodo}
+      onCalendarEventHint={handleCalendarEventHint}
+    />
+  ) : undefined;
 
   const allAlerts = useMemo(() => generateMockAlerts(clients), [clients, generateMockAlerts]);
   const [dismissedAlertIds, setDismissedAlertIds] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const visibleAlerts = useMemo(
-    () => allAlerts.filter((alert) => !dismissedAlertIds.includes(alert.id)),
+    () => allAlerts.filter((alert: UrgentAlert) => !dismissedAlertIds.includes(alert.id)),
     [allAlerts, dismissedAlertIds]
   );
 
@@ -205,7 +247,6 @@ export function DashboardScreen() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    // Add any refresh logic here
     setRefreshing(false);
   }, []);
 
@@ -215,7 +256,8 @@ export function DashboardScreen() {
         {isAgent ? (
           <Box className="gap-3">
             <Text className="text-text-primary text-lg font-medium">Today</Text>
-            <DashboardTodosSection isAgent={isAgent} />
+
+            <ClientList onClientClick={handleClientClick} />
 
             <Box className="bg-background-surface mt-2 gap-2 rounded-lg p-3 shadow-sm">
               <Text className="text-text-primary text-sm font-semibold">Urgent alerts</Text>
@@ -225,7 +267,7 @@ export function DashboardScreen() {
                 </Text>
               ) : (
                 <Box className="gap-2">
-                  {visibleAlerts.map((alert) => (
+                  {visibleAlerts.map((alert: UrgentAlert) => (
                     <Box
                       key={alert.id}
                       className="border-destructive bg-primary-muted flex-row items-start justify-between gap-3 rounded-lg border px-3 py-2"
@@ -263,20 +305,21 @@ export function DashboardScreen() {
           </Box>
         ) : null}
 
-        <Box className="mt-6 gap-3">
-          <Text className="text-text-primary text-lg font-medium">Upcoming Events</Text>
-          <UpcomingEvents embedInListHeader />
-        </Box>
-
-        <DashboardChecklists />
+        <UpcomingEvents
+          embedInListHeader
+          suppressConnectionPrompt
+          sectionTitle="Upcoming"
+          agendaTodos={agendaTodos}
+          onToggleAgendaTodo={handleToggleAgendaTodo}
+          onUpdateAgendaTodoPriority={handleUpdateAgendaTodoPriority}
+          canEditAgendaTodos={isAgent}
+          headerActions={headerActions}
+        />
 
         <Box className="gap-3">
           <Text className="text-text-primary text-lg font-medium">Calendar</Text>
           <Calendar />
         </Box>
-
-        {/* Client List Section */}
-        {isAgent && <ClientList onClientClick={handleClientClick} />}
       </Box>
     </ScrollView>
   );

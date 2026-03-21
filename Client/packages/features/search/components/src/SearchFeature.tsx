@@ -342,6 +342,7 @@ export function SearchFeature({
         onClosePropertyDetails={clearSelectedProperty}
         isLoadingPropertyDetails={isLoadingPropertyDetails}
       />
+
     </Box>
   );
 }

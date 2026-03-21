@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
@@ -11,11 +11,12 @@ import { FEED_AVATAR_IMAGE_CLASS } from "@/features/feed/components/Overlay/Feed
 import { DEFAULT_AVATAR_IMAGE } from "@/features/feed/utils";
 import Label from "@/features/profile/components/settings/inputs/Label";
 const ACCEPTED_TYPES = "image/jpeg,image/png,image/gif";
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE_MB = 15;
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
 function validateFile(file: File): string | null {
   if (file.size > MAX_SIZE_BYTES) {
-    return "Image must be 5MB or smaller.";
+    return `Image must be ${MAX_SIZE_MB}MB or smaller.`;
   }
   const allowed = ["image/jpeg", "image/png", "image/gif"];
   if (!allowed.includes(file.type)) {
@@ -28,8 +29,15 @@ export default function ProfilePictureUpload() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { userProfile } = useUserData();
   const { uploadProfilePicture, isUploading, error } = useProfilePictureUpload();
+  const [remoteLoadFailed, setRemoteLoadFailed] = useState(false);
 
   const profilePictureUrl = userProfile?.profile_picture_url ?? null;
+  const trimmedUrl = profilePictureUrl?.trim() ?? null;
+  const showRemote = Boolean(trimmedUrl && !remoteLoadFailed);
+
+  useEffect(() => {
+    setRemoteLoadFailed(false);
+  }, [trimmedUrl]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,9 +69,10 @@ export default function ProfilePictureUpload() {
       <Box className="flex flex-wrap items-center gap-4">
         <Box className="bg-primary-muted flex h-20 w-20 flex-shrink-0 overflow-hidden rounded-full">
           <Image
-            src={profilePictureUrl ?? DEFAULT_AVATAR_IMAGE}
+            src={showRemote ? trimmedUrl! : DEFAULT_AVATAR_IMAGE}
             alt="Profile"
             className={`h-full w-full ${FEED_AVATAR_IMAGE_CLASS}`}
+            onError={() => setRemoteLoadFailed(true)}
           />
         </Box>
         <Box className="flex flex-col gap-1">
@@ -95,7 +104,7 @@ export default function ProfilePictureUpload() {
         </Box>
       </Box>
       <BodyText size="xs" muted>
-        JPEG, PNG, or GIF. Max 5MB.
+        JPEG, PNG, or GIF. Max 15MB.
       </BodyText>
     </Box>
   );

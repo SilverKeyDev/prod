@@ -59,10 +59,7 @@ function BottomNavItems({
             <Box className="relative">
               <Icon name={item.icon} className={iconClass(active)} />
               {item.key === "agent" && isLoaded && (
-                <NotificationBadge
-                  count={unreadCount}
-                  className="absolute -right-1 -top-1 h-4 w-4 text-[10px]"
-                />
+                <NotificationBadge count={unreadCount} className="absolute -right-0.5 -top-0.5" />
               )}
             </Box>
             <span className={labelClass(active)}>{item.name}</span>

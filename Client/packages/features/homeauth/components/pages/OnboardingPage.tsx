@@ -2,11 +2,13 @@ import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboar
 import { LOGO } from "packages/ui/components/asset";
 import { Box, Image } from "packages/ui/components/primitives";
 
-import { ValidationWarning } from "@/components/feedback";
 import Card from "@/components/layout/Card.web";
 import { BodyText, NavigationButtons, Title } from "@/components/ui";
 import OnboardingHeader from "@/features/profile/components/onboard/Header";
 import {
+  AgentBrokerageSection,
+  AgentLicensingSection,
+  AgentProfileServiceSection,
   DemographicsSection,
   HousingSection,
   LocationSection,
@@ -24,11 +26,7 @@ export default function OnboardingPage() {
     loading,
     scriptsReady,
     loadError,
-    showValidationWarning,
-    validationResult,
     handleSubmit,
-    handleCloseValidationWarning,
-    handleReviewInformation,
     isDesktop,
     showSkipOnNext,
   } = useOnboardingForm();
@@ -46,6 +44,36 @@ export default function OnboardingPage() {
             wrapInCard={false}
             hideProfilePictureWhenOnboarding={true}
             hideNameWhenOnboarding={true}
+          />
+        );
+
+      case "agent_brokerage":
+        return (
+          <AgentBrokerageSection
+            formData={formData}
+            isEditMode={true}
+            updateFormData={updateFormData}
+            wrapInCard={false}
+          />
+        );
+
+      case "agent_licensing":
+        return (
+          <AgentLicensingSection
+            formData={formData}
+            isEditMode={true}
+            updateFormData={updateFormData}
+            wrapInCard={false}
+          />
+        );
+
+      case "agent_profile":
+        return (
+          <AgentProfileServiceSection
+            formData={formData}
+            isEditMode={true}
+            updateFormData={updateFormData}
+            wrapInCard={false}
           />
         );
 
@@ -92,13 +120,21 @@ export default function OnboardingPage() {
         {/* Header */}
         <Box className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
           <Box className="flex items-center">
-            <Image src={LOGO} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
+            <Image
+              src={LOGO}
+              alt="SilverKey Logo"
+              className="h-6 sm:h-8 md:h-10"
+            />
           </Box>
           <Box className="flex items-center gap-4" />
         </Box>
 
         {/* Progress Bar */}
-        <OnboardingHeader steps={steps} currentStep={currentStep} onStepClick={goToStep} />
+        <OnboardingHeader
+          steps={steps}
+          currentStep={currentStep}
+          onStepClick={goToStep}
+        />
 
         {/* Step Content */}
         <Box className="bg-background-surface mt-4 rounded-2xl shadow-sm">
@@ -128,14 +164,6 @@ export default function OnboardingPage() {
           </Card>
         </Box>
 
-        {/* Validation Warning Modal */}
-        <ValidationWarning
-          isVisible={showValidationWarning}
-          onClose={handleCloseValidationWarning}
-          onReview={handleReviewInformation}
-          missingFields={validationResult.missingFields}
-          errors={validationResult.errors}
-        />
       </Box>
     </Box>
   );

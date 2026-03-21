@@ -3,10 +3,9 @@ import React, { useState } from "react";
 import { PropertyImageGallery } from "packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery";
 import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
 import type { PropertyDetailsModalProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { ScrollView } from "packages/ui/components/primitives";
-
-import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
+import { useSavedHomesStoreIntegration } from "packages/hooks/store/useSavedHomesStoreIntegration";
+import { Cover } from "packages/ui/components/modals";
+import { Box } from "packages/ui/components/primitives";
 
 import { PropertyDetailsBody } from "./PropertyDetailsBody";
 
@@ -23,7 +22,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   if (!property) return null;
 
   return (
-    <BaseModal
+    <Cover
       isOpen={true}
       onClose={onClose}
       showCloseButton={false}
@@ -36,20 +35,17 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
         />
       }
       showHeaderBorder={true}
+      animation="slideFromRight"
     >
-      <ScrollView
-        className="max-h-96"
-        contentContainerClassName="pb-6"
-        showsVerticalScrollIndicator={false}
-      >
+      <Box className="pb-6">
         <PropertyImageGallery
           property={property}
           currentImageIndex={currentImageIndex}
           onImageChange={setCurrentImageIndex}
         />
         <PropertyDetailsBody property={property} isLoading={isLoading} />
-      </ScrollView>
-    </BaseModal>
+      </Box>
+    </Cover>
   );
 };
 

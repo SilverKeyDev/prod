@@ -18,7 +18,7 @@ const HOUSING_REQUIRED_FIELDS: (keyof OnboardingData)[] = [
  */
 export function isOnboardingStepComplete(
   formData: OnboardingData,
-  stepId: string
+  stepId: string,
 ): boolean {
   switch (stepId) {
     case "demographics":
@@ -42,6 +42,10 @@ export function isOnboardingStepComplete(
       if (!locations || locations.length === 0) return false;
       return locations.every((loc) => loc?.address?.trim() !== "");
     }
+    case "agent_brokerage":
+    case "agent_licensing":
+    case "agent_profile":
+      return true; // Optional in onboarding; agents can skip and fill in profile.
     default:
       return true;
   }

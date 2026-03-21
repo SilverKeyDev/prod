@@ -1,10 +1,10 @@
 import React from "react";
 
-import { Icon } from "@ui/icons";
-
 import { Box } from "packages/ui/components/primitives";
 
 import { Button, Input } from "@/components/ui";
+import { ProfileTagChip } from "@/features/profile/components/ProfileTagChip";
+import { PROFILE_NOT_SPECIFIED_LABEL } from "@/features/profile/utils";
 
 type OnPerTagInputProps = {
   value: string[];
@@ -78,29 +78,25 @@ const OnPerTagInput: React.FC<OnPerTagInputProps> = ({
         </Box>
       )}
 
-      {/* Tags display */}
+      {/* Tags display - same chip style as "Why are you joining SilverKey?" */}
       {value.length > 0 && (
         <Box className="flex flex-wrap gap-2">
           {value.map((tag, index) => (
-            <Box
+            <ProfileTagChip
               key={index}
-              className="bg-accent text-off-white inline-flex items-center rounded-full px-3 py-1 text-sm"
-            >
-              {tag}
-              {isEditMode && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  type="button"
-                  onClick={() => handleRemoveTag(tag)}
-                  disabled={disabled}
-                  className="ml-4 h-auto min-w-0 p-0 text-off-white hover:bg-transparent hover:text-off-white disabled:opacity-60"
-                >
-                  <Icon name="x" className="h-3 w-3 text-off-white" />
-                </Button>
-              )}
-            </Box>
+              label={tag}
+              onRemove={isEditMode && !disabled ? () => handleRemoveTag(tag) : undefined}
+              disabled={disabled}
+              removeLabel={`Remove ${tag}`}
+            />
           ))}
+        </Box>
+      )}
+
+      {/* Read-only empty state */}
+      {!isEditMode && value.length === 0 && (
+        <Box className="border-border bg-background-base text-text-secondary rounded-lg border px-4 py-3 text-sm">
+          {PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       )}
     </Box>

@@ -1,5 +1,5 @@
 // React imports
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   handleSubmit as handleSubmitUtil,
@@ -7,6 +7,7 @@ import {
   validateSettingsData,
 } from "packages/features/profile";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { useResponsive } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -26,11 +27,13 @@ import {
 } from "@/features/profile/components/profilePicture/profileStepsUi";
 // Features
 import {
+  AgentBrokerageSection,
+  AgentLicensingSection,
+  AgentProfileServiceSection,
   DemographicsSection,
   HousingSection,
   LocationSection,
 } from "@/features/profile/components/sections/index.web";
-import { SettingsCommunicationSection } from "@/features/profile/components/sections/SettingsCommunicationSection";
 import { SettingsFinancialSection } from "@/features/profile/components/sections/SettingsFinancialSection";
 
 // Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
@@ -42,16 +45,16 @@ type PersonalizationPageProps = {
   setMobileHeaderActions: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
 };
 
-const STEPS = getPersonalizationStepsUi();
-
 export default function PersonalizationPage({ setMobileHeaderActions }: PersonalizationPageProps) {
+  const isAgent = useIsAgent();
+  const STEPS = useMemo(() => getPersonalizationStepsUi(isAgent), [isAgent]);
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState("");
+  const [activeSection, setActiveSection] = useState(STEPS[0]?.id ?? "demographics");
   // Modal state variables removed - modals not currently implemented
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -93,6 +96,12 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
     }
   }, [userPreferences, loadUserPreferencesFromContext]);
 
+  useEffect(() => {
+    if (STEPS.length > 0 && !STEPS.some((s) => s.id === activeSection)) {
+      setActiveSection(STEPS[0]?.id ?? "demographics");
+    }
+  }, [STEPS, activeSection]);
+
   // Initialize active section based on current scroll position
   useEffect(() => {
     const initializeActiveSection = () => {
@@ -126,7 +135,7 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
 
     // Initialize on mount
     initializeActiveSection();
-  }, []);
+  }, [STEPS]);
 
   // Track scroll position to update active section
   useEffect(() => {
@@ -163,7 +172,7 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [STEPS]);
 
   // Use centralized Google Maps loading
   const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMapsStore();
@@ -268,6 +277,33 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
   const renderSectionContent = (sectionId: string) => {
     // Render content for each section based on sectionId
     switch (sectionId) {
+      case "agent_brokerage":
+        return (
+          <AgentBrokerageSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
+          />
+        );
+
+      case "agent_licensing":
+        return (
+          <AgentLicensingSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
+          />
+        );
+
+      case "agent_profile":
+        return (
+          <AgentProfileServiceSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
+          />
+        );
+
       case "demographics":
         // Agent status is immutable; choice only shown during onboarding
         return (
@@ -305,15 +341,6 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
             updateFormData={updateFormData}
             scriptsReady={scriptsReady}
             loadError={loadError}
-          />
-        );
-
-      case "communication":
-        return (
-          <SettingsCommunicationSection
-            formData={formData}
-            isEditMode={isEditMode}
-            updateFormData={updateFormData}
           />
         );
 

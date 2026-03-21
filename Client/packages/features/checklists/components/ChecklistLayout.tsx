@@ -111,6 +111,21 @@ export default function CloseLayout({
       return next;
     });
   }, [activeItemId]);
+  // When an item is checked off, collapse it
+  useEffect(() => {
+    setExpandedIds((prev) => {
+      if (checkedIds.length === 0) return prev;
+      const next = new Set(prev);
+      let changed = false;
+      checkedIds.forEach((id) => {
+        if (next.has(id)) {
+          next.delete(id);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [checkedIds]);
   const toggleExpand = useCallback((id: number) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);

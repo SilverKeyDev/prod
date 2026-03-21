@@ -30,6 +30,8 @@ export type CardHeartSaveWithPropsProps = {
   saveHome: (property: CardHeartSavePropertyLike) => Promise<void>;
   removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  /** When true, heart stays in layout flow (e.g. modal/toolbar). Ignores overlay `position`. Web only. */
+  inline?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "small" | "medium" | "large";
   className?: string;
   ariaLabel?: string;
@@ -69,6 +71,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
   saveHome,
   removeSavedHome,
   position = "top-right",
+  inline = false,
   size = "md",
   className = "",
   ariaLabel,
@@ -142,7 +145,10 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
   const sizeConfig = getCardBubbleSizeClasses(effectiveSize);
   const iconSizeClass = sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[effectiveSize];
   const isInlineButton =
-    !position || className.includes("border") || className.includes("rounded-md");
+    inline ||
+    !position ||
+    className.includes("border") ||
+    className.includes("rounded-md");
 
   if (isInlineButton && isToolbarSize(size)) {
     return (

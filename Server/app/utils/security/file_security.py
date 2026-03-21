@@ -28,9 +28,9 @@ ALLOWED_MIME_TYPES = {
 # Maximum file sizes by type (in bytes)
 MAX_FILE_SIZES = {
     "application/pdf": 50 * 1024 * 1024,  # 50MB for PDFs
-    "image/jpeg": 10 * 1024 * 1024,  # 10MB for images
-    "image/png": 10 * 1024 * 1024,
-    "image/gif": 5 * 1024 * 1024,  # 5MB for GIFs
+    "image/jpeg": 15 * 1024 * 1024,  # 15MB for images (e.g. profile pictures)
+    "image/png": 15 * 1024 * 1024,
+    "image/gif": 15 * 1024 * 1024,  # 15MB for GIFs (e.g. profile pictures)
     "text/plain": 1 * 1024 * 1024,  # 1MB for text files
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": 25
     * 1024

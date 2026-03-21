@@ -20,6 +20,9 @@ export default function KeyTurnLoader({
   message = "Unlocking...",
   variant = "default",
 }: KeyTurnLoaderProps) {
+  const trimmedMessage = message.trim();
+  const showMessage = trimmedMessage.length > 0;
+
   const spin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -55,11 +58,13 @@ export default function KeyTurnLoader({
   const isGray = variant === "gray";
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, !showMessage && styles.containerIconOnly]}>
       <Animated.View style={[styles.keyContainer, { transform: [{ rotate }] }]}>
         <Text style={[styles.key, isGray ? styles.keyGray : styles.keyDefault]}>🔑</Text>
       </Animated.View>
-      <Text style={[styles.message, isGray && styles.messageGray]}>{message}</Text>
+      {showMessage ? (
+        <Text style={[styles.message, isGray && styles.messageGray]}>{trimmedMessage}</Text>
+      ) : null}
     </View>
   );
 }
@@ -70,6 +75,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     columnGap: spacing(4),
     marginLeft: spacing(2),
+  },
+  containerIconOnly: {
+    columnGap: 0,
+    marginLeft: 0,
   },
   keyContainer: {
     justifyContent: "center",

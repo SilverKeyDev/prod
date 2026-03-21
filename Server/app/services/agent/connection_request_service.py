@@ -30,7 +30,7 @@ def search_agents(query: str, limit: int = 20) -> list[dict]:
         search_term = f"%{query.strip()}%"
         agents = (
             User.query.filter(
-                User.is_agent is True,
+                User.is_agent.is_(True),
                 db.or_(User.name.ilike(search_term), User.email.ilike(search_term)),
             )
             .limit(limit)
@@ -75,7 +75,7 @@ def search_clients(query: str, agent_id: str, limit: int = 20) -> list[dict]:
         search_term = f"%{query.strip()}%"
         clients = (
             User.query.filter(
-                User.is_agent is False,
+                User.is_agent.is_(False),
                 db.or_(User.name.ilike(search_term), User.email.ilike(search_term)),
             )
             .limit(limit)
@@ -114,14 +114,14 @@ def get_connection_requests(user_id: str, is_agent: bool) -> list[dict]:
     """
     try:
         if is_agent:
-            # Get requests where user is the agent (client requested them)
+            # Incoming only: clients who requested this agent
             requests = AgentConnectionRequest.query.filter_by(
-                agent_id=user_id, status="pending"
+                agent_id=user_id, status="pending", requested_by_agent=False
             ).all()
         else:
-            # Get requests where user is the client (agent requested them)
+            # Incoming only: agents who requested this client
             requests = AgentConnectionRequest.query.filter_by(
-                client_id=user_id, status="pending"
+                client_id=user_id, status="pending", requested_by_agent=True
             ).all()
 
         result = []
@@ -166,7 +166,7 @@ def create_connection_request(
         message: Optional message with the request
 
     Returns:
-        Created connection request dictionary
+        {"request": connection request dict, "already_pending": bool}
     """
     try:
         # Check if request already exists
@@ -175,7 +175,7 @@ def create_connection_request(
         ).first()
 
         if existing:
-            return existing.to_dict()
+            return {"request": existing.to_dict(), "already_pending": True}
 
         # Verify users exist
         agent = User.query.filter_by(id=agent_id, is_agent=True).first()
@@ -198,7 +198,7 @@ def create_connection_request(
         db.session.add(request)
         db.session.commit()
 
-        return request.to_dict()
+        return {"request": request.to_dict(), "already_pending": False}
 
     except Exception as e:
         db.session.rollback()
@@ -226,11 +226,13 @@ def respond_to_connection_request(
         if not request:
             raise ValueError(f"Connection request {request_id} not found")
 
-        # Verify user has permission to respond
-        if is_agent and request.agent_id != user_id:
-            raise ValueError("Agent does not have permission to respond to this request")
-        if not is_agent and request.client_id != user_id:
-            raise ValueError("Client does not have permission to respond to this request")
+        # Only the invitee may accept/reject (not the initiator)
+        if request.requested_by_agent:
+            if is_agent or request.client_id != user_id:
+                raise ValueError("Only the invited client can respond to this request")
+        else:
+            if not is_agent or request.agent_id != user_id:
+                raise ValueError("Only the invited agent can respond to this request")
 
         if request.status != "pending":
             raise ValueError(f"Request already {request.status}")

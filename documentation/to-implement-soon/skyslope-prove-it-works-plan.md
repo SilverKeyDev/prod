@@ -13,8 +13,8 @@
 
 ## 1. Prerequisites (manual / ops)
 
-- [ ] **SkySlope partner app:** In SkySlope partner portal, ensure app has client_id (→ `SKYSLOPE_ACCESS_KEY`) and client_secret (→ `SKYSLOPE_SECRET`).
-- [ ] **Redirect URI:** Register redirect URI(s) for this app (e.g. `https://<your-domain>/api/v1/skyslope/callback`, and for local dev `http://localhost:<port>/api/v1/skyslope/callback` if applicable).
+- [ ] **SkySlope OAuth client:** Obtain `client_id` (→ `SKYSLOPE_ACCESS_KEY`) and `client_secret` (→ `SKYSLOPE_SECRET`) from SkySlope. There is no self-service portal for most partners; redirect allowlisting is done on their side.
+- [ ] **Redirect URI:** Coordinate with SkySlope support so the callback URL(s) they attach to your client match what this server uses—exact string, including scheme and port (e.g. `https://<your-domain>/api/v1/skyslope/callback`, local dev `http://localhost:<port>/api/v1/skyslope/callback`). Set `SKYSLOPE_REDIRECT_URI` if it must differ from the default derived from `FLASK_ENV`.
 - [ ] **Server env:** Set `SKYSLOPE_ACCESS_KEY`, `SKYSLOPE_SECRET`, and (if not derived) `SKYSLOPE_REDIRECT_URI` (or equivalent) in Server `.env` / secrets; do not commit secrets.
 
 ---

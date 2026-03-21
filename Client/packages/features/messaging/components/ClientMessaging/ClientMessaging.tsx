@@ -10,6 +10,7 @@ import { useMessagingHandlers } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import { Region } from "@/components/ui";
+import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import UnifiedMessageInput from "@/features/messaging/components/layout/UnifiedMessageInput";
 import UnifiedMessagesList from "@/features/messaging/components/layout/UnifiedMessagesList";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
@@ -48,6 +49,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
 
   const [message, setMessage] = useState("");
   const [isTyping] = useState(false);
+
+  const { requests: pendingConnectionRequests } = useConnectionRequests();
+  const pendingConnectionRequestCount = pendingConnectionRequests.length;
 
   const {
     showSearchModal,
@@ -95,10 +99,11 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     return "chat";
   };
 
-  const headerMode = useMemo(
-    () => (showInbox ? "no-agent" : !agentId ? "no-agent" : "chat"),
-    [showInbox, agentId]
-  );
+  const headerMode = useMemo(() => {
+    if (showInbox) return "connection-requests";
+    if (!agentId) return "no-agent";
+    return "chat";
+  }, [showInbox, agentId]);
 
   const handleSendMessage = useCallback(async () => {
     const msg = messageRef.current.trim();
@@ -110,7 +115,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
   const headerContentKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (!setMobileHeaderActions) return;
-    const contentKey = `${headerMode}-${isSidebarExpanded}-${activeConversation?.agent_name ?? ""}`;
+    const contentKey = `${headerMode}-${isSidebarExpanded}-${activeConversation?.agent_name ?? ""}-${pendingConnectionRequestCount}`;
     if (headerContentKeyRef.current === contentKey) return;
     headerContentKeyRef.current = contentKey;
     setMobileHeaderActions(
@@ -119,6 +124,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
         isSidebarExpanded={isSidebarExpanded}
         setIsSidebarExpanded={setIsSidebarExpanded}
         onSearchClick={() => setShowSearchModal(true)}
+        onInboxClick={() => setShowInbox(true)}
+        onBackClick={() => setShowInbox(false)}
+        pendingConnectionRequestCount={pendingConnectionRequestCount}
         agentName={activeConversation?.agent_name}
       />
     );
@@ -132,6 +140,8 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     isSidebarExpanded,
     setIsSidebarExpanded,
     setShowSearchModal,
+    setShowInbox,
+    pendingConnectionRequestCount,
     activeConversation?.agent_name,
   ]);
 
@@ -159,6 +169,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
                   isSidebarExpanded={isSidebarExpanded}
                   setIsSidebarExpanded={setIsSidebarExpanded}
                   onSearchClick={() => setShowSearchModal(true)}
+                  onInboxClick={() => setShowInbox(true)}
+                  onBackClick={() => setShowInbox(false)}
+                  pendingConnectionRequestCount={pendingConnectionRequestCount}
                   agentName={activeConversation?.agent_name}
                 />
               </Box>

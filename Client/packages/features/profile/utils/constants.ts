@@ -5,80 +5,7 @@ import type { DropdownOption, OnboardingData } from "./types";
 // Re-export types for convenience
 export type { DropdownOption, OnboardingData };
 
-export const DEFAULT_REPORT_SECTIONS = [
-  {
-    id: "affordability",
-    key: "affordability",
-    label: "Affordability",
-    priority: 1,
-    description: "Affordability, taxes, long-term costs, projected value",
-    question: "Can I comfortably afford to live here now and long term?",
-  },
-  {
-    id: "neighborhood",
-    key: "neighborhood",
-    label: "Neighborhood",
-    priority: 2,
-    description: "Safety, upkeep, community feel",
-    question: "Is the area safe, pleasant, and stable?",
-  },
-  {
-    id: "commute",
-    key: "commute",
-    label: "Commute",
-    priority: 3,
-    description: "Driving time, public transit, road quality, infrastructure",
-    question: "Is it easy and efficient to get around from here?",
-  },
-  {
-    id: "family_friendly",
-    key: "family_friendly",
-    label: "Family-Friendly",
-    priority: 4,
-    description: "Schools, parks, healthcare, kid-friendly amenities",
-    question: "Is this a good place to raise kids and meet family needs?",
-  },
-  {
-    id: "entertainment",
-    key: "entertainment",
-    label: "Entertainment",
-    priority: 5,
-    description: "Restaurants, bars, gyms, activities, overall vibe",
-    question: "Are there enjoyable things to do nearby?",
-  },
-  {
-    id: "investment",
-    key: "investment",
-    label: "Investment",
-    priority: 6,
-    description: "Future growth, job market stability, resale potential",
-    question: "Is this area likely to appreciate or decline?",
-  },
-  {
-    id: "climate_environmental_safety",
-    key: "climate_environmental_safety",
-    label: "Weather & Natural Risk",
-    priority: 7,
-    description: "Climate preference, flood/fire/hurricane risk",
-    question: "Is the weather right for me, and is the area safe?",
-  },
-  {
-    id: "convenience_walkability",
-    key: "convenience_walkability",
-    label: "Convenience & Walkability",
-    priority: 8,
-    description: "Grocery, daily services, walkability, errands without a car",
-    question: "Is daily life here convenient and easy?",
-  },
-  {
-    id: "home",
-    key: "home",
-    label: "Home Match",
-    priority: 9,
-    description: "Features, layout, condition, style, deal breakers",
-    question: "Does this home match my desired preferences?",
-  },
-];
+export { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
 
 // Shared section titles and labels
 export const SECTION_TITLES = {
@@ -86,6 +13,10 @@ export const SECTION_TITLES = {
   HOUSING_PREFERENCES: "Housing",
   LOCATION_PREFERENCES: "Location",
   COMMUNICATION_PREFERENCES: "Communication",
+  AGENT_PROFESSIONAL_INFO: "Professional Info",
+  AGENT_BROKERAGE: "Brokerage",
+  AGENT_LICENSING: "Licensing",
+  AGENT_PROFILE_AND_SERVICE: "Profile & service area",
 } as const;
 
 /** Location section subtitle (web and native). */
@@ -125,6 +56,7 @@ export const FIELD_LABELS = {
   PREFERRED_ARCHITECTURAL_STYLE: "Architectural Style",
   RENOVATION_PREFERENCE: "Renovation Willingness",
   INTENDED_PROPERTY_USE: "Intended Property Use",
+  OTHER_REQUIREMENTS: "Other Requirements",
   PREFERRED_HOME_FEATURES: "Preferred Features",
   DEAL_BREAKERS: "Deal Breakers",
 
@@ -137,6 +69,21 @@ export const FIELD_LABELS = {
   INFORMATION_DETAIL_LEVEL: "Information Detail Level",
   HAS_BUYERS_AGENT: "Do you currently have a buyer's agent?",
   LOOKING_FOR_BUYERS_AGENT: "I'm looking for a buyer's agent",
+
+  // Agent profile (Professional Info)
+  AGENT_BROKERAGE_NAME: "Brokerage Name",
+  AGENT_BROKERAGE_BIC: "Brokerage BIC Name",
+  AGENT_BROKERAGE_ADDRESS: "Brokerage Address",
+  AGENT_BROKERAGE_EMAIL: "Brokerage Email",
+  AGENT_BROKERAGE_PHONE: "Brokerage Phone",
+  AGENT_PHYSICAL_MAILING_ADDRESS: "Physical Mailing Address",
+  AGENT_LICENSED_STATES: "Licensed States",
+  AGENT_LICENSE_TYPES: "License Types",
+  AGENT_LICENSE_NUMBERS: "License Numbers",
+  AGENT_LICENSE_EXPIRATION_DATES: "License Expiration Dates",
+  AGENT_BIO: "Bio",
+  AGENT_PRIMARY_SERVICE_ZIPS: "Primary Service Zips",
+  AGENT_SPECIALTIES: "Specialties",
 } as const;
 
 // Dropdown options
@@ -228,7 +175,9 @@ export const LISTING_TYPE_OPTIONS: DropdownOption[] = [
 ];
 
 // Slider scale values (for range/single sliders)
-export const SQFT_TICK_VALUES = [500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 7500, 10000];
+export const SQFT_TICK_VALUES = [
+  500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 7500, 10000,
+];
 export const DAYS_ON_MARKET_TICK_VALUES = [0, 7, 14, 30, 60, 90, 180, 365];
 export const LOT_SIZE_ACRES_TICK_VALUES = [0, 0.25, 0.5, 1, 2, 5];
 export const HOME_AGE_YEARS_TICK_VALUES = [5, 15, 30, 50, 100];
@@ -280,6 +229,16 @@ export const INFORMATION_DETAIL_OPTIONS: DropdownOption[] = [
   { value: "summary", label: "Summary Only" },
 ];
 
+/** Buyer-preference copy when the signed-in user is an agent (personal search only). */
+export const AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT =
+  "Optional for agents. Complete this only for personal search recommendations.";
+
+export const AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT =
+  "Optional for agents. Add locations here only for personal search recommendations.";
+
+export const AGENT_OPTIONAL_BUYER_FINANCIAL_HINT =
+  "Optional for agents. Complete this only for personal affordability and search recommendations.";
+
 // Required fields mapping - used to determine if a field needs RequiredLabel or OptionalLabel
 // Base required fields for onboarding (only About You / agent fields required; housing/location optional)
 export const REQUIRED_FIELDS_ONBOARDING: Record<string, boolean> = {
@@ -311,6 +270,7 @@ export const REQUIRED_FIELDS_ONBOARDING: Record<string, boolean> = {
   preferred_architectural_style: false,
   renovation_preference: false,
   intended_property_use: false,
+  other_requirements: false,
   preferred_home_features: false,
   deal_breakers: false,
   walkability_importance: false,
@@ -364,6 +324,7 @@ export const REQUIRED_FIELDS_SETTINGS: Record<string, boolean> = {
   preferred_architectural_style: false,
   renovation_preference: false,
   intended_property_use: false,
+  other_requirements: false,
   preferred_home_features: false,
   deal_breakers: false,
   walkability_importance: false,

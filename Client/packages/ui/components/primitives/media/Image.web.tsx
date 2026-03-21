@@ -1,8 +1,11 @@
 import React, { forwardRef } from "react";
 
 export type ImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
-  /** RN-style source; web maps to src. */
-  source?: { uri?: string };
+  /**
+   * RN-style source; web maps `source.uri` to `src`.
+   * `number` is a Metro `require()` module id (native only); web code should use `src` or `source.uri`.
+   */
+  source?: { uri?: string } | number;
   /** Unified label for a11y; maps to alt on web. */
   label?: string;
 };

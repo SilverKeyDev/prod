@@ -2,12 +2,11 @@ import React, { useState } from "react";
 
 import { useWhyRender } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { Property } from "packages/schemas/property";
 import CardNotInterested from "packages/ui/components/button/NotInterested";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 
-import type { SearchResult } from "@/features/search/types";
+import type { Property, SearchResult } from "@/features/search/types";
 
 import { StyledImage } from "./base/index.web";
 import BaseCard from "./BaseCard";
@@ -336,6 +335,7 @@ function PropertyCardMainView({
       padding="none"
       cardType={cardType}
       width={width}
+      background="white"
       className={className}
       onClick={onClick}
     >

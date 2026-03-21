@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { showErrorToast } from "packages/hooks/ui";
+import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import { preferencesApi } from "@/features/homeauth/api/preferences";
@@ -13,6 +13,13 @@ type UseAutoSavePreferencesOptions = {
   onError?: (error: unknown) => void;
   debounceMs?: number;
   showErrorToastOnError?: boolean;
+  /** When true (default), show a success toast when save completes. */
+  showSuccessToastOnSave?: boolean;
+  /**
+   * Success toast body. Default "" keeps legacy behavior (some toast UIs treat empty as generic success).
+   * Prefer passing localized copy, e.g. `t("common.saved")`, to match inline save labels.
+   */
+  successToastMessage?: string;
   /** Called after each successful save (e.g. to trigger search refresh) */
   onAfterSave?: () => void | Promise<void>;
 };
@@ -20,7 +27,7 @@ type UseAutoSavePreferencesOptions = {
 type UseAutoSavePreferencesReturn = {
   saveStatus: SaveStatus;
   isSaving: boolean;
-  autoSave: (data: Partial<OnboardingData>) => Promise<void>;
+  autoSave: (data: Partial<OnboardingData>) => void;
   updateFormData: <T extends Partial<OnboardingData>>(
     formData: T,
     setFormData: React.Dispatch<React.SetStateAction<T>>,
@@ -34,6 +41,8 @@ export function useAutoSavePreferences({
   onError,
   debounceMs = 1000,
   showErrorToastOnError = true,
+  showSuccessToastOnSave = true,
+  successToastMessage = "",
   onAfterSave,
 }: UseAutoSavePreferencesOptions): UseAutoSavePreferencesReturn {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -41,23 +50,25 @@ export function useAutoSavePreferences({
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const autoSave = useCallback(
-    async (data: Partial<OnboardingData>) => {
-      // Clear existing timeout
+    (data: Partial<OnboardingData>) => {
+      // Clear existing timeout so we debounce from the last change
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
 
-      // Set saving status
-      setSaveStatus("saving");
-      setIsSaving(true);
-
-      // Debounce save
+      // Debounce: only run save after debounceMs of no further changes
       saveTimeoutRef.current = setTimeout(async () => {
+        setSaveStatus("saving");
+        setIsSaving(true);
         try {
           const payload = formDataToPreferencesPayload(data as OnboardingData);
           await preferencesApi.createOrUpdate(payload);
           setSaveStatus("saved");
           setIsSaving(false);
+
+          if (showSuccessToastOnSave) {
+            showSuccessToast(successToastMessage);
+          }
 
           // Refresh preferences to get updated data
           await refreshUserPreferences();
@@ -83,7 +94,15 @@ export function useAutoSavePreferences({
         }
       }, debounceMs);
     },
-    [refreshUserPreferences, debounceMs, showErrorToastOnError, onError, onAfterSave]
+    [
+      refreshUserPreferences,
+      debounceMs,
+      showErrorToastOnError,
+      showSuccessToastOnSave,
+      successToastMessage,
+      onError,
+      onAfterSave,
+    ]
   );
 
   const updateFormData = useCallback(

@@ -43,35 +43,136 @@ function toImportantLocations(value: unknown): { address: string; commute_tolera
     .filter(
       (v): v is Record<string, unknown> => typeof v === "object" && v !== null && "address" in v
     )
-    .map((v) => ({
-      address: typeof v.address === "string" ? v.address : String(v.address ?? ""),
-      commute_tolerance:
+    .map((v) => {
+      const address = typeof v.address === "string" ? v.address : String(v.address ?? "");
+      const commuteTolerance =
         typeof v.commute_tolerance === "number" && !Number.isNaN(v.commute_tolerance)
           ? v.commute_tolerance
-          : undefined,
-    }))
+          : typeof v.max_commute_minutes === "number" && !Number.isNaN(v.max_commute_minutes)
+            ? v.max_commute_minutes
+            : undefined;
+      return { address, commute_tolerance: commuteTolerance };
+    })
     .filter((loc) => loc.address.trim() !== "");
+}
+
+function toDictArray(value: unknown): Record<string, unknown>[] {
+  const arr = parseUserPreferencesArray(value);
+  return arr.filter(
+    (v): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
+  );
+}
+
+function toRecordString(value: unknown): Record<string, string> | undefined {
+  if (value === null || value === undefined) return undefined;
+  if (typeof value !== "object" || Array.isArray(value)) return undefined;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (typeof k === "string" && typeof v === "string") out[k] = v;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 /** Optional user profile; when provided, name is synced from profile (auth source of truth). */
 export type UserProfileForSync = { name?: string | null } | null | undefined;
 
+const IS_AGENT_VALUES = new Set(["yes", "am_agent", "true", "1"]);
+
 /**
- * Builds the payload to send to the preferences API (users_demographics). Omits
- * fields that belong to the users table (e.g. name) so the backend is not sent
- * identity columns that it does not persist in preferences.
+ * Bump "major.minor" for preferences_version (profile/onboarding saves stay aligned).
+ */
+export function nextPreferencesVersion(current?: string | null): string {
+  const raw = (current ?? "1.0").trim();
+  const base = raw.length > 0 ? raw : "1.0";
+  const parts = base.split(".");
+  const major = parseInt(parts[0] ?? "1", 10);
+  const minor = parseInt(parts[1] ?? "0", 10);
+  const m = Number.isNaN(major) ? 1 : major;
+  const minorSafe = Number.isNaN(minor) ? 0 : minor;
+  return `${m}.${minorSafe + 1}`;
+}
+
+/** Merge GET /preferences with local onboarding draft; draft wins on overlaps; keep server locations if draft has none. */
+export function mergeOnboardingServerAndDraft(
+  server: OnboardingData,
+  draft: OnboardingData | null
+): OnboardingData {
+  if (!draft) {
+    const locs = server.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ?? [];
+    return { ...server, important_locations: locs };
+  }
+  const draftLocs = draft.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ?? [];
+  const serverLocs = server.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ?? [];
+  const important_locations =
+    draftLocs.length > 0 ? draftLocs : serverLocs.length > 0 ? serverLocs : [];
+  return {
+    ...server,
+    ...draft,
+    important_locations,
+  };
+}
+
+function isAgentFormData(formData: OnboardingData): boolean {
+  const v = formData.is_agent;
+  return typeof v === "string" && IS_AGENT_VALUES.has(v.toLowerCase());
+}
+
+/**
+ * Builds the payload to send to the preferences API. Includes name so the backend
+ * can persist it to User (single source of truth); GET preferences returns name from User.
+ * When formData.is_agent is not yes/am_agent, agent_* fields are omitted.
+ * Maps form keys to backend-expected keys (housing_type, preferred_*_min/max, important_locations).
  */
 export function formDataToPreferencesPayload(
   formData: OnboardingData
-): Omit<OnboardingData, "name"> & Record<string, unknown> {
-  const { name: _name, ...rest } = formData;
-  return rest as Omit<OnboardingData, "name"> & Record<string, unknown>;
+): Record<string, unknown> {
+  const { name, ...rest } = formData;
+  const payload = { ...rest, ...(name !== undefined && name !== "" ? { name } : {}) } as Record<
+    string,
+    unknown
+  >;
+
+  // Backend expects housing_type (form: preferred_housing_type)
+  if (formData.preferred_housing_type !== undefined) {
+    payload.housing_type = formData.preferred_housing_type;
+  }
+  // Backend expects preferred_bedrooms_min/max (form: preferred_bedrooms, preferred_bedrooms_max)
+  if (formData.preferred_bedrooms !== undefined) {
+    payload.preferred_bedrooms_min = formData.preferred_bedrooms;
+  }
+  if (formData.preferred_bedrooms_max !== undefined) {
+    payload.preferred_bedrooms_max = formData.preferred_bedrooms_max;
+  }
+  if (formData.preferred_bathrooms !== undefined) {
+    payload.preferred_bathrooms_min = formData.preferred_bathrooms;
+  }
+  if (formData.preferred_bathrooms_max !== undefined) {
+    payload.preferred_bathrooms_max = formData.preferred_bathrooms_max;
+  }
+  // Backend expects important_locations with max_commute_minutes (form: commute_tolerance)
+  if (Array.isArray(formData.important_locations) && formData.important_locations.length > 0) {
+    payload.important_locations = formData.important_locations.map((loc) => ({
+      address: loc.address,
+      max_commute_minutes:
+        loc.commute_tolerance !== undefined && loc.commute_tolerance !== null
+          ? loc.commute_tolerance
+          : undefined,
+    }));
+  }
+
+  if (!isAgentFormData(formData)) {
+    for (const key of Object.keys(payload)) {
+      if (key.startsWith("agent_")) delete payload[key];
+    }
+  }
+  delete payload.agent_professional_headshot_url;
+  return payload;
 }
 
 /**
  * Maps raw API user preferences to OnboardingData with every field normalized.
  * Use this whenever populating the profile form from userPreferences so that
- * all sections (demographics, financial, housing, location, communication)
+ * all sections (demographics, financial, housing, location, optional legacy prefs)
  * autofill correctly regardless of API response shape (strings vs numbers, etc.).
  * Pass userProfile when available so the name field syncs from the authenticated user profile.
  */
@@ -110,12 +211,15 @@ export function userPreferencesToOnboardingData(
     down_payment: toNumber(get("down_payment")),
     ideal_zip_code: toString(get("ideal_zip_code")),
 
-    // Housing
-    preferred_housing_type: toString(get("preferred_housing_type")),
-    preferred_bathrooms: toNumber(get("preferred_bathrooms")),
-    preferred_bedrooms: toNumber(get("preferred_bedrooms")),
-    preferred_bathrooms_max: toNumber(get("preferred_bathrooms_max")),
+    // Housing — map backend keys (housing_type, preferred_*_min/max) to form keys
+    preferred_housing_type:
+      toString(get("preferred_housing_type")) ?? toString(get("housing_type")),
+    preferred_bedrooms:
+      toNumber(get("preferred_bedrooms")) ?? toNumber(get("preferred_bedrooms_min")),
     preferred_bedrooms_max: toNumber(get("preferred_bedrooms_max")),
+    preferred_bathrooms:
+      toNumber(get("preferred_bathrooms")) ?? toNumber(get("preferred_bathrooms_min")),
+    preferred_bathrooms_max: toNumber(get("preferred_bathrooms_max")),
     listing_status: toString(get("listing_status")),
     preferred_lot_size: toString(get("preferred_lot_size")),
     preferred_home_age: toString(get("preferred_home_age")),
@@ -124,6 +228,13 @@ export function userPreferencesToOnboardingData(
     preferred_home_age_min: toNumber(get("preferred_home_age_min")),
     preferred_home_age_max: toNumber(get("preferred_home_age_max")),
     preferred_architectural_style: toString(get("preferred_architectural_style")),
+    other_requirements:
+      toStringArray(get("other_requirements")).length > 0
+        ? toStringArray(get("other_requirements"))
+        : [
+            ...toStringArray(get("preferred_home_features")),
+            ...toStringArray(get("deal_breakers")),
+          ],
     preferred_home_features: toStringArray(get("preferred_home_features")),
     must_have: toStringArray(get("must_have")),
     preferred_sqft_min: toNumber(get("preferred_sqft_min")),
@@ -154,5 +265,22 @@ export function userPreferencesToOnboardingData(
     information_detail_level: toString(get("information_detail_level")),
     has_buyers_agent: toString(get("has_buyers_agent")),
     looking_for_buyers_agent: toBool(get("looking_for_buyers_agent")),
+
+    // Agent profile (when user is agent; API returns these only when is_agent)
+    agent_physical_mailing_address: toString(get("agent_physical_mailing_address")),
+    agent_licensed_states: toStringArray(get("agent_licensed_states")),
+    agent_license_types: toStringArray(get("agent_license_types")),
+    agent_license_numbers: toStringArray(get("agent_license_numbers")),
+    agent_license_expiration_dates: toStringArray(get("agent_license_expiration_dates")),
+    agent_mls_affiliations: toDictArray(get("agent_mls_affiliations")),
+    agent_brokerage_name: toString(get("agent_brokerage_name")),
+    agent_brokerage_bic_name: toString(get("agent_brokerage_bic_name")),
+    agent_brokerage_address: toString(get("agent_brokerage_address")),
+    agent_brokerage_email: toString(get("agent_brokerage_email")),
+    agent_brokerage_phone: toString(get("agent_brokerage_phone")),
+    agent_bio: toString(get("agent_bio")),
+    agent_primary_service_zips: toStringArray(get("agent_primary_service_zips")),
+    agent_specialties: toStringArray(get("agent_specialties")),
+    agent_social_links: toRecordString(get("agent_social_links")),
   };
 }

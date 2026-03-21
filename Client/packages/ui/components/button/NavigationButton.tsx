@@ -127,7 +127,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
               transform: size === "sm" ? "scale(0.75)" : size === "lg" ? "scale(1.25)" : "scale(1)",
             }}
           >
-            <KeyTurnLoader message="Loading..." />
+            <KeyTurnLoader message="" />
           </Box>
         </Box>
       ) : (

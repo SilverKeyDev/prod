@@ -33,6 +33,7 @@ export default function DocumentCard({ doc, onDelete, showDelete = false }: Docu
       cardType="searchpage"
       scale="md"
       width="full"
+      background="white"
     >
       <DocumentCardHeader
         title={baseName}

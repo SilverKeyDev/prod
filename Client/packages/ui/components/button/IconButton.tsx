@@ -1,8 +1,9 @@
 import React, { cloneElement, forwardRef, isValidElement } from "react";
 
-import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
+// import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import { Icon } from "@ui/icons";
 
+import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
 import { Box, Pressable } from "packages/ui/components/primitives";
 import { BUTTON_TRANSITION_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 import type {
@@ -112,6 +113,7 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
       ICON_BUTTON_VARIANT_STYLES[variant],
       toolbarOverrides,
       ICON_BUTTON_TOUCH_CLASS,
+      loading ? "relative overflow-hidden border-2 border-neutral-600" : "",
       "",
       className,
     ]
@@ -133,9 +135,12 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
     const pressableProps = pickPressableProps(rest);
 
     const content = loading ? (
-      <Box className="items-center justify-center">
-        <KeyTurnLoader message="" />
-      </Box>
+      <>
+        <RippleBackground overlay />
+        <Box className="relative z-10 items-center justify-center">
+          {/* <KeyTurnLoader message="" /> */}
+        </Box>
+      </>
     ) : (
       iconWithStroke
     );

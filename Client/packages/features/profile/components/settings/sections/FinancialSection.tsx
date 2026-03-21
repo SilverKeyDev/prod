@@ -1,13 +1,22 @@
 import React from "react";
 
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import Card from "@/components/layout/Card.web";
-import { Dropdown, Input, Title } from "@/components/ui";
+import { BodyText, Dropdown, Input, Title } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
-import { CREDIT_SCORE_OPTIONS, FIELD_LABELS, type OnboardingData } from "@/features/profile/utils";
+import {
+  AGENT_OPTIONAL_BUYER_FINANCIAL_HINT,
+  CREDIT_SCORE_OPTIONS,
+  effectiveIsAgentForOptionalBuyerUi,
+  FIELD_LABELS,
+  type OnboardingData,
+  PROFILE_NOT_SPECIFIED_LABEL,
+  profileFieldValueClassName,
+} from "@/features/profile/utils";
 
 type FinancialSectionProps = {
   formData: OnboardingData;
@@ -20,11 +29,23 @@ export default function FinancialSection({
   isEditMode,
   updateFormData,
 }: FinancialSectionProps) {
+  const authIsAgent = useIsAgent();
+  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
+    authIsAgent,
+    formIsAgent: formData.is_agent,
+  });
   return (
     <Card border="light" className="mb-64 space-y-6">
       <Title size="md" className="mb-6">
         Financial Information
       </Title>
+      {showAgentOptionalBuyerCallout && (
+        <Box className="border-border bg-background-surface mb-4 rounded-lg border px-3 py-2">
+          <BodyText size="xs" muted>
+            {AGENT_OPTIONAL_BUYER_FINANCIAL_HINT}
+          </BodyText>
+        </Box>
+      )}
 
       <AlignedRow
         breakIntoRows="md"
@@ -46,10 +67,12 @@ export default function FinancialSection({
                 className="mt-2"
               />
             ) : (
-              <Box className="mobile-input bg-background-base text-left">
+              <Box
+                className={`mobile-input bg-background-base text-left ${formData.gross_income ? "text-text-primary" : "text-text-secondary"}`}
+              >
                 {formData.gross_income
                   ? `$${formData.gross_income.toLocaleString()}`
-                  : "Not specified"}
+                  : PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },
@@ -68,10 +91,12 @@ export default function FinancialSection({
                 className="mt-2"
               />
             ) : (
-              <Box className="mobile-input bg-background-base text-left">
+              <Box
+                className={`mobile-input bg-background-base text-left ${formData.down_payment ? "text-text-primary" : "text-text-secondary"}`}
+              >
                 {formData.down_payment
                   ? `$${formData.down_payment.toLocaleString()}`
-                  : "Not specified"}
+                  : PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },
@@ -95,8 +120,10 @@ export default function FinancialSection({
                 placeholder="Enter zip code"
               />
             ) : (
-              <Box className="mobile-input bg-background-base">
-                {formData.ideal_zip_code ?? "Not specified"}
+              <Box
+                className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.ideal_zip_code)}`}
+              >
+                {formData.ideal_zip_code ?? PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },
@@ -110,12 +137,14 @@ export default function FinancialSection({
                 placeholder="Select..."
               />
             ) : (
-              <Box className="mobile-input bg-background-base">
+              <Box
+                className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.credit_score_range)}`}
+              >
                 {formData.credit_score_range
                   ? (CREDIT_SCORE_OPTIONS.find(
                       (option) => option.value === formData.credit_score_range
-                    )?.label ?? "Not specified")
-                  : "Not specified"}
+                    )?.label ?? PROFILE_NOT_SPECIFIED_LABEL)
+                  : PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },

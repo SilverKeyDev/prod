@@ -13,14 +13,18 @@ export type UseConnectionRequestsReturn = {
   isLoading: boolean;
   error: string | null;
   refreshRequests: () => Promise<void>;
-  createRequest: (agentId: string, clientId: string, message?: string) => Promise<void>;
+  createRequest: (
+    agentId: string,
+    clientId: string,
+    message?: string
+  ) => Promise<{ alreadyPending: boolean }>;
   /** Create a connection request. Pass initiator (current user) and other party. Handles agentId/clientId order. */
   createRequestAsInitiator: (
     initiatorId: string,
     otherPartyId: string,
     isAgent: boolean,
     message?: string
-  ) => Promise<void>;
+  ) => Promise<{ alreadyPending: boolean }>;
   respondToRequest: (requestId: string, accept: boolean) => Promise<void>;
   isCreatingRequest: boolean;
   isResponding: boolean;
@@ -69,7 +73,10 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
       if (!response.success) {
         throw new Error(response.error ?? "Failed to create connection request");
       }
-      return response.request;
+      return {
+        request: response.request,
+        alreadyPending: response.already_pending === true,
+      };
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({
@@ -107,7 +114,8 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
 
   const createRequest = useCallback(
     async (agentId: string, clientId: string, message?: string) => {
-      await createRequestMutation.mutateAsync({ agentId, clientId, message });
+      const result = await createRequestMutation.mutateAsync({ agentId, clientId, message });
+      return { alreadyPending: result.alreadyPending };
     },
     [createRequestMutation]
   );
@@ -115,10 +123,9 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
   const createRequestAsInitiator = useCallback(
     async (initiatorId: string, otherPartyId: string, isAgent: boolean, message?: string) => {
       if (isAgent) {
-        await createRequest(initiatorId, otherPartyId, message);
-      } else {
-        await createRequest(otherPartyId, initiatorId, message);
+        return createRequest(initiatorId, otherPartyId, message);
       }
+      return createRequest(otherPartyId, initiatorId, message);
     },
     [createRequest]
   );

@@ -12,6 +12,8 @@ import {
   MUST_HAVE_OPTIONS,
   type OnboardingData,
   parseHousingTypes,
+  PROFILE_NOT_SPECIFIED_LABEL,
+  profileFieldValueClassName,
   serializeHousingTypes,
 } from "@/features/profile/utils";
 
@@ -41,8 +43,10 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 placeholder="Number of bedrooms"
               />
             ) : (
-              <Box className="mobile-input bg-background-base">
-                {formData.preferred_bedrooms ?? "Not specified"}
+              <Box
+                className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.preferred_bedrooms)}`}
+              >
+                {formData.preferred_bedrooms ?? PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },
@@ -58,8 +62,10 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
                 placeholder="Number of bathrooms"
               />
             ) : (
-              <Box className="mobile-input bg-background-base">
-                {formData.preferred_bathrooms ?? "Not specified"}
+              <Box
+                className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.preferred_bathrooms)}`}
+              >
+                {formData.preferred_bathrooms ?? PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
           },
@@ -73,45 +79,26 @@ export function HousingBasicRows({ formData, isEditMode, updateFormData }: Housi
         items={[
           {
             title: <Label>{FIELD_LABELS.PREFERRED_HOUSING_TYPE}</Label>,
-            content: isEditMode ? (
+            content: (
               <OptionTagInput
                 options={HOUSING_TYPE_OPTIONS}
                 value={parseHousingTypes(formData.preferred_housing_type)}
                 onChange={(arr) =>
                   updateFormData("preferred_housing_type", serializeHousingTypes(arr))
                 }
-                isEditMode={true}
+                isEditMode={isEditMode}
               />
-            ) : (
-              <Box className="mobile-input bg-background-base">
-                {(() => {
-                  const selected = parseHousingTypes(formData.preferred_housing_type);
-                  if (selected.length === 0) return "Not specified";
-                  const labels = selected.map(
-                    (v) => HOUSING_TYPE_OPTIONS.find((o) => o.value === v)?.label ?? v
-                  );
-                  return labels.join(", ");
-                })()}
-              </Box>
             ),
           },
           {
             title: <Label>{FIELD_LABELS.MUST_HAVE}</Label>,
-            content: isEditMode ? (
+            content: (
               <OptionTagInput
                 options={MUST_HAVE_OPTIONS}
                 value={(formData.must_have as string[]) ?? []}
                 onChange={(arr) => updateFormData("must_have", arr)}
-                isEditMode={true}
+                isEditMode={isEditMode}
               />
-            ) : (
-              <Box className="mobile-input bg-background-base">
-                {((formData.must_have as string[]) ?? []).length === 0
-                  ? "Not specified"
-                  : ((formData.must_have as string[]) ?? [])
-                      .map((v) => MUST_HAVE_OPTIONS.find((o) => o.value === v)?.label ?? v)
-                      .join(", ")}
-              </Box>
             ),
           },
         ]}

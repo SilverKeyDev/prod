@@ -14,6 +14,8 @@ export type BaseCardStyleProps = {
   width?: "auto" | "full" | "standard" | "wide" | "narrow";
   height?: "auto" | "full" | "standard" | "tall" | "compact";
   scale?: "xs" | "sm" | "md" | "lg" | "xl" | number;
+  /** When "white", use solid white background; otherwise use design token. */
+  background?: "default" | "white";
   className: string;
 };
 
@@ -81,10 +83,12 @@ export function getBaseCardClasses(props: BaseCardStyleProps): string {
     width: widthProp,
     height: heightProp,
     scale: scaleProp,
+    background = "default",
     className,
   } = props;
 
-  const baseStyles = `bg-background-base ${CARD_TRANSITION_CLASSES}`;
+  const bgClass = background === "white" ? "bg-white" : "bg-background-base";
+  const baseStyles = `${bgClass} ${CARD_TRANSITION_CLASSES}`;
   const variantStyles: Record<string, string> = {
     default: "border border-border-card-subtle",
     elevated: "border-0",

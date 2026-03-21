@@ -200,7 +200,7 @@ export function VerificationForm({
                   loading={loading}
                   className={canResend ? "text-accent hover:text-accent" : "text-text-disabled"}
                 >
-                  {loading ? "Sending..." : canResend ? "Resend code" : `Resend in ${countdown}s`}
+                  {canResend ? "Resend code" : `Resend in ${countdown}s`}
                 </Button>
               </Box>
               <Box className="mt-6 flex justify-center">

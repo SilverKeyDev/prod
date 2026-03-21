@@ -34,6 +34,7 @@ from .user import (
     UserImportantLocation,
     UserIntegration,
     UserIntentAttribute,
+    UserAdmin,
     UserRole,
     UserSearchIntent,
 )
@@ -56,6 +57,7 @@ __all__ = [
     "AgreementParticipant",
     "AgreementEvent",
     "UserRole",
+    "UserAdmin",
     "UserDemographics",
     "UserFinancials",
     "UserSearchIntent",

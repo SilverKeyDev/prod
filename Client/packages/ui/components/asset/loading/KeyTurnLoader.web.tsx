@@ -10,6 +10,9 @@ export default function KeyTurnLoader({
   message?: string;
   variant?: "default" | "gray" | "sidebar";
 }) {
+  const trimmedMessage = message.trim();
+  const showMessage = trimmedMessage.length > 0;
+
   const keyColor =
     variant === "gray"
       ? color("neutral.500")
@@ -90,17 +93,20 @@ export default function KeyTurnLoader({
   `;
 
   const containerStyle: React.CSSProperties = {
-    display: "inline-flex",
+    display: showMessage ? "inline-flex" : "flex",
     alignItems: "center",
-    gap: spacing(4),
+    justifyContent: "center",
+    gap: showMessage ? spacing(4) : 0,
     animation: "fadeIn 0.5s ease-in-out",
-    marginLeft: spacing(2),
+    marginLeft: showMessage ? spacing(2) : 0,
   };
 
   const keyStyle: React.CSSProperties = {
     animation:
       "turnKey 3.6s infinite cubic-bezier(0.25, 0.1, 0.25, 1), shimmer 4s infinite ease-in-out",
-    transformOrigin: "20px 32px", // pivot at center of key head
+    // viewBox 64×64: key-head center (20, 32) → percentages scale with any width/height
+    transformOrigin: "31.25% 50%",
+    display: "block",
     willChange: "transform, filter",
   };
 
@@ -124,19 +130,21 @@ export default function KeyTurnLoader({
           <rect x="52" y="30" width="4" height="8" fill={keyColor} rx="1" />
           <rect x="56" y="30" width="4" height="6" fill={keyColor} rx="1" />
         </svg>
-        <BodyText
-          as="span"
-          style={{
-            color:
-              variant === "gray"
-                ? color("neutral.500")
-                : variant === "sidebar"
-                  ? color("background-surface")
-                  : undefined,
-          }}
-        >
-          {message}
-        </BodyText>
+        {showMessage ? (
+          <BodyText
+            as="span"
+            style={{
+              color:
+                variant === "gray"
+                  ? color("neutral.500")
+                  : variant === "sidebar"
+                    ? color("background-surface")
+                    : undefined,
+            }}
+          >
+            {trimmedMessage}
+          </BodyText>
+        ) : null}
       </Box>
     </>
   );

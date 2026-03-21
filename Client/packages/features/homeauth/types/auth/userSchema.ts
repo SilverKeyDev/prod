@@ -6,7 +6,8 @@ import { z } from "zod";
 
 export const userSchema = z.object({
   id: z.string(),
-  cognito_id: z.string(),
+  /** Present for Cognito users; null for Google-only accounts (matches API). */
+  cognito_id: z.string().nullable().optional(),
   email: z.string(),
   name: z.string(),
   phone: z.string().optional(),

@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { FIELD_LABELS, type OnboardingData } from "packages/features/profile/utils";
-import { PrimitiveInput } from "packages/ui/components/primitives";
+import { Input } from "packages/ui/components";
+import { DEFAULT_AVATAR_BUNDLED, DEFAULT_AVATAR_WEB_PATH } from "packages/ui/components/asset/logoSource";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Image } from "packages/ui/components/primitives";
@@ -13,11 +14,47 @@ import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue";
 
 /** Agent/buyer choice is immutable and only shown during onboarding; omitted from profile. */
 
-function getInitials(name?: string | null): string | null {
-  if (!name) return null;
-  const trimmed = name.trim();
-  if (!trimmed) return null;
-  return trimmed.charAt(0).toUpperCase();
+function ProfileDemographicsAvatar({
+  profilePictureUrl,
+  label,
+}: {
+  profilePictureUrl?: string | null;
+  label?: string | null;
+}) {
+  const [loadFailed, setLoadFailed] = useState(false);
+  const trimmed = profilePictureUrl?.trim();
+  const useRemote = Boolean(trimmed && !loadFailed);
+
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [trimmed]);
+
+  const handleError = useCallback(() => {
+    setLoadFailed(true);
+  }, []);
+
+  const bundledDefault =
+    typeof DEFAULT_AVATAR_BUNDLED === "number" ? DEFAULT_AVATAR_BUNDLED : null;
+
+  if (bundledDefault != null) {
+    return (
+      <Image
+        source={useRemote ? { uri: trimmed! } : bundledDefault}
+        className="h-20 w-20 rounded-full"
+        label={label ?? "Profile"}
+        onError={handleError}
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={useRemote ? trimmed! : DEFAULT_AVATAR_WEB_PATH}
+      className="h-20 w-20 rounded-full"
+      label={label ?? "Profile"}
+      onError={handleError}
+    />
+  );
 }
 
 type ProfileDemographicsSectionProps = {
@@ -32,7 +69,7 @@ type ProfileDemographicsSectionProps = {
   isUploadingProfilePicture?: boolean;
   /** Error from last upload attempt */
   profilePictureError?: { message: string } | null;
-  /** User display name for initials fallback */
+  /** User display name for avatar accessibility label */
   userDisplayName?: string | null;
 };
 
@@ -57,13 +94,12 @@ export function ProfileDemographicsSection({
           </BodyText>
           <Box className="flex-row flex-wrap items-center gap-4">
             <Box className="bg-primary-muted h-20 w-20 items-center justify-center overflow-hidden rounded-full">
-              {profilePictureUrl ? (
-                <Image source={{ uri: profilePictureUrl }} className="h-20 w-20 rounded-full" />
-              ) : (
-                <Text className="text-text-secondary text-xl font-semibold">
-                  {getInitials(userDisplayName) ?? "?"}
-                </Text>
-              )}
+              <ProfileDemographicsAvatar
+                profilePictureUrl={profilePictureUrl}
+                label={
+                  userDisplayName?.trim() ? `Profile photo, ${userDisplayName.trim()}` : "Profile"
+                }
+              />
             </Box>
             <Box className="gap-1">
               <Pressable
@@ -83,37 +119,47 @@ export function ProfileDemographicsSection({
         </Box>
       )}
 
-      <Box className="flex-row flex-wrap gap-4">
-        <Box className="min-w-0 flex-1 basis-40">
+      {/* Row: Name | Age (aligned with other profile sections) */}
+      <Box className="flex flex-row flex-wrap gap-4">
+        <Box className="min-w-0 flex-1">
           <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
             {FIELD_LABELS.NAME}
           </BodyText>
           {isEditMode ? (
-            <PrimitiveInput
+            <Input
+              type="text"
               value={formData.name ?? ""}
-              onValueChange={(v) => updateField("name", v || undefined)}
+              onChange={(e) => updateField("name", e.target.value || undefined)}
               placeholder="Your name"
-              keyboardType="default"
-              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
+              className="mt-2"
             />
           ) : (
-            <ProfileReadOnlyValue value={formData.name} />
+            <Box className="mt-2">
+              <ProfileReadOnlyValue value={formData.name} />
+            </Box>
           )}
         </Box>
-        <Box className="min-w-0 flex-1 basis-24">
+        <Box className="min-w-0 flex-1">
           <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
             {FIELD_LABELS.AGE}
           </BodyText>
           {isEditMode ? (
-            <PrimitiveInput
+            <Input
+              type="number"
               value={formData.age?.toString() ?? ""}
-              onValueChange={(v) => updateField("age", v ? parseInt(v, 10) || undefined : undefined)}
+              onChange={(e) =>
+                updateField(
+                  "age",
+                  e.target.value ? parseInt(e.target.value, 10) || undefined : undefined
+                )
+              }
               placeholder="Age"
-              keyboardType="number-pad"
-              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
+              className="mt-2"
             />
           ) : (
-            <ProfileReadOnlyValue value={formData.age} />
+            <Box className="mt-2">
+              <ProfileReadOnlyValue value={formData.age} />
+            </Box>
           )}
         </Box>
       </Box>

@@ -290,12 +290,11 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
       void renderImportantLocationMarkersWrapper(isochroneData);
     } else {
       setTimeout(() => {
-        void primeIsochroneOverlay(searchResults.length > 0);
+        void primeIsochroneOverlay();
       }, 100);
     }
   }, [
     isGoogleMapsLoaded,
-    searchResults.length,
     isochroneData,
     googleMapRef,
     primeIsochroneOverlay,

@@ -1,14 +1,10 @@
 import React, { useState } from "react";
 
-import { StyleSheet } from "react-native";
-
 import { PropertyImageGallery } from "packages/features/propertyDetails/components/PropertyDetailsModal/gallery/PropertyImageGallery.native";
 import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
 import type { PropertyDetailsModalProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import { BaseModal } from "packages/ui/components/modals";
-import { ScrollView } from "packages/ui/components/primitives";
-
-import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
+import { useSavedHomesStoreIntegration } from "packages/hooks/store/useSavedHomesStoreIntegration";
+import { Cover } from "packages/ui/components/modals";
 
 import { PropertyDetailsBody } from "./PropertyDetailsBody";
 
@@ -25,7 +21,7 @@ export const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
   if (!property) return null;
 
   return (
-    <BaseModal
+    <Cover
       isOpen={true}
       onClose={onClose}
       showCloseButton={false}
@@ -39,29 +35,14 @@ export const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
       }
       showHeaderBorder={true}
     >
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <PropertyImageGallery
-          property={property}
-          currentImageIndex={currentImageIndex}
-          onImageChange={setCurrentImageIndex}
-        />
-        <PropertyDetailsBody property={property} isLoading={isLoading} />
-      </ScrollView>
-    </BaseModal>
+      <PropertyImageGallery
+        property={property}
+        currentImageIndex={currentImageIndex}
+        onImageChange={setCurrentImageIndex}
+      />
+      <PropertyDetailsBody property={property} isLoading={isLoading} />
+    </Cover>
   );
 };
-
-const styles = StyleSheet.create({
-  scroll: {
-    maxHeight: 500,
-  },
-  scrollContent: {
-    paddingBottom: 24,
-  },
-});
 
 export default PropertyDetailsModal;

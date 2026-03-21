@@ -5,14 +5,15 @@ import { FlatList, Modal, Pressable, StyleSheet, TextInput, View } from "react-n
 import { color } from "packages/design-tokens";
 import { useIsAgent } from "packages/features/homeauth";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
-import { useUIStore } from "packages/store";
-import { Loading } from "packages/ui/components/primitives";
+import { useAuthStore, useUIStore } from "packages/store";
+import { Loading } from "packages/ui/components/asset/loading/Loading";
 import { Text } from "packages/ui/components/primitives";
 
 import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
 import { useAgentSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 
 type ClientSearchModalNativeProps = {
   isOpen: boolean;
@@ -27,6 +28,8 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { userProfile } = useUserData();
+  const authUser = useAuthStore((s) => s.user);
+  const initiatorId = userProfile?.id ?? authUser?.id;
   const { clients: clientResults, isLoading: clientsLoading } = useClientSearch(
     searchQuery,
     isOpen && isAgent
@@ -44,15 +47,34 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
     : agentResults;
 
   const handleSendRequest = async (otherId: string) => {
-    if (!userProfile?.id) return;
+    if (!initiatorId) {
+      enqueueToast({
+        type: "error",
+        message: "Profile not loaded. Please try again in a moment.",
+      });
+      return;
+    }
     try {
-      await createRequestAsInitiator(userProfile.id, otherId, isAgent, message.trim() || undefined);
-      enqueueToast({ type: "success", message: "Connection request sent" });
+      const { alreadyPending } = await createRequestAsInitiator(
+        initiatorId,
+        otherId,
+        isAgent,
+        message.trim() || undefined
+      );
+      enqueueToast({
+        type: "success",
+        message: alreadyPending
+          ? "A connection request is already pending with this person."
+          : "Request sent",
+      });
       setMessage("");
       setSelectedId(null);
       onClose();
-    } catch {
-      enqueueToast({ type: "error", message: "Failed to send connection request" });
+    } catch (err: unknown) {
+      enqueueToast({
+        type: "error",
+        message: connectionRequestApiErrorMessage(err),
+      });
     }
   };
 
@@ -122,7 +144,7 @@ export default function ClientSearchModalNative({ isOpen, onClose }: ClientSearc
                       <View style={styles.buttonRow}>
                         <Pressable
                           onPress={() => handleSendRequest(item.id)}
-                          disabled={isCreatingRequest}
+                          disabled={isCreatingRequest || !initiatorId}
                           style={styles.sendButton}
                         >
                           <Text className="font-semibold text-white">

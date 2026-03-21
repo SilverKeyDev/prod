@@ -2,11 +2,12 @@
 
 import React, { forwardRef } from "react";
 
-import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
+// import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import { Icon } from "@ui/icons";
 import type { PressableProps } from "react-native";
 import { Pressable } from "react-native";
 
+import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
 import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 
@@ -117,9 +118,12 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
     const pressableProps = pickPressableProps(rest);
 
     const content = loading ? (
-      <Box className="items-center justify-center">
-        <KeyTurnLoader message="" />
-      </Box>
+      <>
+        <RippleBackground overlay />
+        <Box className="relative z-10 items-center justify-center">
+          {/* <KeyTurnLoader message="" /> */}
+        </Box>
+      </>
     ) : (
       resolvedIcon
     );
@@ -131,7 +135,7 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
         disabled={disabled ?? loading}
         accessibilityRole="button"
         accessibilityLabel={label}
-        className={`items-center justify-center ${variantClass} ${sizeClass} ${roundedClass} ${""} ${className}`}
+        className={`items-center justify-center ${variantClass} ${sizeClass} ${roundedClass} ${loading ? "overflow-hidden border-2 border-neutral-600" : ""} ${""} ${className}`}
         {...pressableProps}
       >
         {content}

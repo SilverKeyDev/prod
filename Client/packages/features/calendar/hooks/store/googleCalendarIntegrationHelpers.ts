@@ -5,7 +5,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { GoogleCalendar } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { useGoogleCalendarStore } from "packages/store";
-import { getDocument, getWindow } from "packages/utils/platform";
 
 import { googleCalendarApi } from "@/features/calendar/api";
 import { useGoogleEvents } from "@/features/calendar/hooks/data";
@@ -67,19 +66,6 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
       ? calendarsQuery.error.message
       : "Failed to fetch calendars"
     : null;
-
-  useEffect(() => {
-    const win = getWindow();
-    const doc = getDocument();
-    if (!win) return;
-    const urlParams = new URLSearchParams(win.location.search);
-    if (urlParams.get("google") === "connected") {
-      win.history.replaceState({}, doc?.title ?? "", win.location.pathname);
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.googleCalendar.all,
-      });
-    }
-  }, [queryClient]);
 
   return {
     queryClient,

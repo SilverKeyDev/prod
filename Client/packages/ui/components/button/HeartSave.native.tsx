@@ -22,6 +22,7 @@ export type CardHeartSaveWithPropsProps = {
   saveHome: (property: CardHeartSavePropertyLike) => Promise<void>;
   removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  inline?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "small" | "medium" | "large";
   className?: string;
   ariaLabel?: string;

@@ -1,5 +1,11 @@
 // React imports
-import React, { useCallback, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import PersonalizationMobileHeader from "packages/features/profile/components/account/MobileHeader";
 import {
@@ -8,14 +14,20 @@ import {
 } from "packages/features/profile/components/profilePicture/profileStepsUi";
 // Features
 import {
+  AgentBrokerageSection,
+  AgentLicensingSection,
+  AgentProfileServiceSection,
   DemographicsSection,
   HousingSection,
   LocationSection,
 } from "packages/features/profile/components/sections/index.web";
-import { SettingsCommunicationSection } from "packages/features/profile/components/sections/SettingsCommunicationSection";
 import { SettingsFinancialSection } from "packages/features/profile/components/sections/SettingsFinancialSection";
 import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
-import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import {
+  useUserData,
+  useUserPreferences,
+} from "packages/hooks/data/auth/useUserData";
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { useResponsive } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -33,30 +45,35 @@ import {
   handleSubmit as handleSubmitUtil,
   type OnboardingData,
   userPreferencesToOnboardingData,
-  validateSettingsData,
+  validateProfileSave,
 } from "@/features/profile/utils";
 
 // Google Maps types are handled by the global declaration in packages/services/googleMaps.ts
 
 type ProfileFeatureProps = {
-  setMobileHeaderActions: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
+  setMobileHeaderActions: React.Dispatch<
+    React.SetStateAction<React.ReactNode | null>
+  >;
 };
 
-const STEPS = getPersonalizationStepsUi();
-
-export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatureProps) {
+export default function ProfileFeature({
+  setMobileHeaderActions,
+}: ProfileFeatureProps) {
   const { userProfile } = useUserData();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
+  const isAgent = useIsAgent();
+  const STEPS = useMemo(() => getPersonalizationStepsUi(isAgent), [isAgent]);
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState("");
+  const [activeSection, setActiveSection] = useState(STEPS[0]?.id ?? "");
   // Modal state variables removed - modals not currently implemented
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const hasInitializedFormRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -71,13 +88,17 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
       if (userPreferences) {
         const normalized = userPreferencesToOnboardingData(
           userPreferences as Record<string, unknown>,
-          userProfile ?? undefined
+          userProfile ?? undefined,
         );
         setFormData(normalized);
         setOriginalData(normalized);
       }
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Failed to load user preferences from context",
+        error,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -88,16 +109,41 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
     void refreshUserPreferences();
   }, [refreshUserPreferences]); // Only run once on mount
 
-  // Load user preferences from centralized context
+  // Initialize form from server only once when preferences first become available.
+  // Never reset hasInitializedFormRef or clear form when userPreferences is falsy, so
+  // in-progress edits are not overwritten by refetch or cache updates.
   useEffect(() => {
-    if (userPreferences) {
-      void loadUserPreferencesFromContext();
-    } else {
-      setFormData({});
-      setOriginalData({});
-      setIsLoading(false);
-    }
+    if (!userPreferences) return;
+    if (hasInitializedFormRef.current) return;
+    hasInitializedFormRef.current = true;
+    void loadUserPreferencesFromContext();
   }, [userPreferences, loadUserPreferencesFromContext]);
+
+  // When profile loads after form was already initialized, backfill name from user profile
+  // (stored at sign-up) so it displays correctly even if preferences loaded first.
+  useEffect(() => {
+    if (!hasInitializedFormRef.current) return;
+    const nameFromProfile =
+      userProfile != null &&
+      typeof userProfile.name === "string" &&
+      userProfile.name.trim() !== ""
+        ? userProfile.name.trim()
+        : undefined;
+    if (!nameFromProfile) return;
+    setFormData((prev) =>
+      prev.name ? prev : { ...prev, name: nameFromProfile },
+    );
+    setOriginalData((prev) =>
+      prev.name ? prev : { ...prev, name: nameFromProfile },
+    );
+  }, [userProfile]);
+
+  // Keep activeSection in sync when STEPS change (e.g. isAgent loads)
+  useEffect(() => {
+    if (STEPS.length > 0 && !STEPS.some((s) => s.id === activeSection)) {
+      setActiveSection(STEPS[0]?.id ?? "");
+    }
+  }, [STEPS, activeSection]);
 
   // Initialize active section based on current scroll position (platform globals for RN parity)
   useEffect(() => {
@@ -130,7 +176,7 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
     };
 
     initializeActiveSection();
-  }, []);
+  }, [STEPS]);
 
   // Track scroll position to update active section
   useEffect(() => {
@@ -165,15 +211,20 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
 
     win.addEventListener("scroll", handleScroll);
     return () => win.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [STEPS]);
 
   // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMapsStore();
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
+    useGoogleMapsStore();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Google Maps loading error",
+        googleMapsError,
+      );
       void setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -181,15 +232,19 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
     const win = getWindow();
     if (
       googleMapsLoaded &&
-      (win as unknown as { google?: { maps?: { places?: unknown } } })?.google?.maps?.places
+      (win as unknown as { google?: { maps?: { places?: unknown } } })?.google
+        ?.maps?.places
     ) {
       setScriptsReady(true);
     }
   }, [googleMapsLoaded, googleMapsError]);
 
-  const updateFormData = useCallback((field: string | number | symbol, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const updateFormData = useCallback(
+    (field: string | number | symbol, value: unknown) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
 
   const handleSaveChanges = useCallback(async () => {
     // Increment version for this update
@@ -208,7 +263,7 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
       formData: dataToSave,
       submitPreferences,
       setLoading: setIsSaving,
-      validateFunction: validateSettingsData,
+      validateFunction: validateProfileSave,
       onShowError: showErrorToast,
       onSuccess: () => {
         // Update local state with new version
@@ -248,12 +303,19 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
           onEdit={() => setIsEditMode(true)}
           onCancel={handleCancel}
           onSave={handleSaveChanges}
-        />
+        />,
       );
     } else {
       setMobileHeaderActions(null);
     }
-  }, [isMobile, isEditMode, isSaving, setMobileHeaderActions, handleCancel, handleSaveChanges]);
+  }, [
+    isMobile,
+    isEditMode,
+    isSaving,
+    setMobileHeaderActions,
+    handleCancel,
+    handleSaveChanges,
+  ]);
 
   // Modal handlers removed - modals not currently implemented
 
@@ -277,6 +339,33 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
   const renderSectionContent = (sectionId: string) => {
     // Render content for each section based on sectionId
     switch (sectionId) {
+      case "agent_brokerage":
+        return (
+          <AgentBrokerageSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
+          />
+        );
+
+      case "agent_licensing":
+        return (
+          <AgentLicensingSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
+          />
+        );
+
+      case "agent_profile":
+        return (
+          <AgentProfileServiceSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
+          />
+        );
+
       case "demographics":
         // Agent status is immutable; choice only shown during onboarding
         return (
@@ -317,15 +406,6 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
           />
         );
 
-      case "communication":
-        return (
-          <SettingsCommunicationSection
-            formData={formData}
-            isEditMode={isEditMode}
-            updateFormData={updateFormData}
-          />
-        );
-
       default:
         return null;
     }
@@ -348,7 +428,9 @@ export default function ProfileFeature({ setMobileHeaderActions }: ProfileFeatur
           />
 
           {/* Main Content Area */}
-          <main className={`w-full flex-1 space-y-8 ${!isUltraSmallScreen ? "lg:ml-0" : ""}`}>
+          <main
+            className={`w-full flex-1 space-y-8 ${!isUltraSmallScreen ? "lg:ml-0" : ""}`}
+          >
             {STEPS.map((step) => (
               <section id={step.id} key={step.id}>
                 {renderSectionContent(step.id)}

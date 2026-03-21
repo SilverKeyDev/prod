@@ -2,13 +2,17 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import type { PropertyWithAnalysis } from "packages/types/property-analysis";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
+
 export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
+  const { t } = useLocalization();
   const propertyWithAnalysis = property as PropertyWithAnalysis;
   const propertyAnalysis = propertyWithAnalysis.property_analysis;
   if (!propertyAnalysis) {
@@ -19,19 +23,29 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
   if (!pros && !cons) {
     return null;
   }
+
+  const imbalancePill =
+    pros && cons && Math.abs(pros.length - cons.length) > 2 ? (
+      <Box className="flex flex-row items-center gap-1 rounded-full bg-yellow-50 px-2 py-1 text-yellow-700">
+        <BodyText as="span" size="xs" className="text-yellow-700">
+          {t("property_details.pros_cons_balance", {
+            pros: pros.length,
+            cons: cons.length,
+            defaultValue: "{{pros}} vs {{cons}}",
+          })}
+        </BodyText>
+      </Box>
+    ) : null;
+
   return (
     <Box className="p-6">
-      <Box className="mb-4 flex flex-row items-center gap-2">
-        <Icon name="alert-triangle" className="text-foreground h-5 w-5" />
-        <Title as="h3" size="lg" className="text-foreground font-semibold">
-          Pros & Cons
-        </Title>
-        {pros && cons && Math.abs(pros.length - cons.length) > 2 && (
-          <Box className="ml-auto flex flex-row items-center gap-1 rounded-full bg-yellow-50 px-2 py-1 text-xs text-yellow-700">
-            {pros.length > cons.length ? "More pros" : "More cons"}
-          </Box>
-        )}
-      </Box>
+      <PropertySectionHeader
+        iconName="alert-triangle"
+        title={t("property_details.pros_cons_heading", {
+          defaultValue: "Pros & Cons",
+        })}
+        action={imbalancePill}
+      />
       <Box className="grid-responsive-1-lg-2 mt-2">
         <Card
           border="light"
@@ -42,8 +56,11 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             size="sm"
             className="text-text-secondary mb-3 flex flex-row items-center gap-2 font-medium"
           >
-            <Icon name="check-circle" className="text-accent h-4 w-4 flex-shrink-0" />
-            Pros
+            <Icon
+              name="check-circle"
+              className="text-accent h-4 w-4 flex-shrink-0"
+            />
+            {t("property_details.pros_cons_pros", { defaultValue: "Pros" })}
             {pros && (
               <BodyText as="span" className="text-text-secondary ml-1 text-xs">
                 ({pros.length})
@@ -57,7 +74,10 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
                   key={i}
                   className="text-text-secondary flex flex-row items-start gap-2 text-left text-sm"
                 >
-                  <Icon name="check-circle" className="text-accent mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <Icon
+                    name="check-circle"
+                    className="text-accent mt-0.5 h-4 w-4 flex-shrink-0"
+                  />
                   <BodyText as="span" className="text-left">
                     {pro}
                   </BodyText>
@@ -66,7 +86,9 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             ) : (
               <Box className="text-text-secondary flex flex-row items-center gap-2 text-left text-sm">
                 <Icon name="check-circle" className="h-4 w-4 flex-shrink-0" />
-                No pros identified
+                {t("property_details.pros_cons_no_pros", {
+                  defaultValue: "No pros identified",
+                })}
               </Box>
             )}
           </Box>
@@ -81,8 +103,11 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             size="sm"
             className="text-text-secondary mb-3 flex flex-row items-center gap-2 font-medium"
           >
-            <Icon name="alert-triangle" className="text-destructive h-4 w-4 flex-shrink-0" />
-            Cons
+            <Icon
+              name="alert-triangle"
+              className="text-destructive h-4 w-4 flex-shrink-0"
+            />
+            {t("property_details.pros_cons_cons", { defaultValue: "Cons" })}
             {cons && (
               <BodyText as="span" className="text-text-secondary ml-1 text-xs">
                 ({cons.length})
@@ -108,7 +133,9 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             ) : (
               <Box className="text-text-secondary flex flex-row items-center gap-2 text-left text-sm">
                 <Icon name="alert-triangle" className="h-4 w-4 flex-shrink-0" />
-                No cons identified
+                {t("property_details.pros_cons_no_cons", {
+                  defaultValue: "No cons identified",
+                })}
               </Box>
             )}
           </Box>

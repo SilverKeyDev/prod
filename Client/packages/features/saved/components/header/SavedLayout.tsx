@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type ReactNode } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -13,6 +13,8 @@ import { Button, Input } from "@/components/ui";
 export type ViewMode = "grid" | "list";
 export type SortBy = "date" | "address";
 type SavedLayoutProps = {
+  /** Start of the toolbar row inside the card (e.g. agent client picker). */
+  toolbarLeading?: ReactNode;
   searchTerm: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
@@ -34,6 +36,7 @@ type SavedLayoutProps = {
   ) => void;
 };
 const SavedLayout: React.FC<SavedLayoutProps> = ({
+  toolbarLeading,
   searchTerm,
   onSearchChange,
   searchPlaceholder = "Filter by address",
@@ -113,6 +116,9 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
       {TabNavigation}
       <Card border="light" padding="none" className="w-full p-3">
         <Box className="flex flex-wrap items-center justify-between gap-3">
+          {toolbarLeading ? (
+            <Box className="flex w-full shrink-0 items-center sm:w-auto">{toolbarLeading}</Box>
+          ) : null}
           {/* Separate div for left content */}
           {leftContent && !showSearch && (
             <Box className="flex shrink-0 items-center">

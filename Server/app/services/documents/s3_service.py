@@ -250,8 +250,13 @@ class S3Service:
         assert client is not None  # ensured by _ensure_s3_client
         return url_generate_presigned(client, bucket_name, s3_key, operation, download_filename)
 
-    def generate_view_url(self, s3_key: str, operation: str = "get_object") -> str | None:
-        """Generate a presigned URL for viewing a PDF inline in the browser."""
+    def generate_view_url(
+        self,
+        s3_key: str,
+        operation: str = "get_object",
+        content_type: str | None = None,
+    ) -> str | None:
+        """Generate a presigned URL for viewing a file inline (e.g. PDF or profile image)."""
         if not self._ensure_s3_client():
             logger.error("S3 client not initialized - cannot generate view URL")
             return None
@@ -260,7 +265,7 @@ class S3Service:
             return None
         client = self.s3_client
         assert client is not None  # ensured by _ensure_s3_client
-        return url_generate_view(client, bucket_name, s3_key, operation)
+        return url_generate_view(client, bucket_name, s3_key, operation, content_type)
 
     def delete_pdf(self, s3_key: str) -> bool:
         """

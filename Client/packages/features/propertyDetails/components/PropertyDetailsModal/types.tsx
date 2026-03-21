@@ -1,9 +1,10 @@
-import type { SearchResult } from "packages/types";
-
-import type { Property } from "@/features/search/hooks/data/property/usePropertyDetails";
+import type {
+  PropertyDetailsStreamProperty,
+  SearchResult,
+} from "packages/types";
 
 export type PropertyDetailsModalProps = {
-  property: Property | SearchResult | null;
+  property: PropertyDetailsStreamProperty | SearchResult | null;
   onClose: () => void;
   onGenerateReport?: (address: string) => void;
   isLoading?: boolean;
@@ -12,7 +13,7 @@ export type PropertyDetailsModalProps = {
 };
 
 export type PropertyComponentProps = {
-  property: Property | SearchResult;
+  property: PropertyDetailsStreamProperty | SearchResult;
 };
 
 export type PropertyHeaderProps = PropertyComponentProps & {

@@ -1,8 +1,13 @@
 import React from "react";
 
+import { Icon } from "@ui/icons";
+
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button } from "@/components/ui";
+import { ProfileTagChip } from "@/features/profile/components/ProfileTagChip";
+import { PROFILE_NOT_SPECIFIED_LABEL } from "@/features/profile/utils";
+
 export type OptionTagOption = { value: string; label: string };
 
 type OptionTagInputProps = {
@@ -36,69 +41,73 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
 
   return (
     <Box className={className}>
-      {/* Selected tags: brand accent, elevation, click-to-remove */}
+      {/* Selected: chip row with label + dedicated remove (edit) or label only (read-only) */}
       {selectedValues.length > 0 && (
-        <Box className="mb-3 flex flex-wrap gap-2">
-          {selectedValues.map((v) => {
-            const option = options.find((o) => o.value === v);
-            const label = option?.label ?? v;
-            const isInteractive = isEditMode && !disabled;
-            return isInteractive ? (
+        <Box className="mb-4">
+          {isEditMode && (
+            <BodyText
+              as="span"
+              size="xs"
+              className="text-text-secondary mb-2 block font-medium"
+            >
+              Your selections ({selectedValues.length})
+            </BodyText>
+          )}
+          <Box className="flex flex-wrap gap-2">
+            {selectedValues.map((v) => {
+              const option = options.find((o) => o.value === v);
+              const label = option?.label ?? v;
+              const canRemove = isEditMode && !disabled;
+              return (
+                <ProfileTagChip
+                  key={v}
+                  label={label}
+                  onRemove={canRemove ? () => handleToggle(v) : undefined}
+                  disabled={disabled}
+                  removeLabel={`Remove ${label}`}
+                />
+              );
+            })}
+          </Box>
+        </Box>
+      )}
+
+      {/* Unselected: clean add-option tiles (edit mode only) */}
+      {isEditMode && unselectedOptions.length > 0 && (
+        <Box>
+          <BodyText
+            as="span"
+            size="xs"
+            className="text-text-secondary mb-2 block font-medium"
+          >
+            Add more
+          </BodyText>
+          <Box className="flex flex-wrap gap-2">
+            {unselectedOptions.map((opt) => (
               <Button
-                key={v}
-                variant="primary"
+                variant="ghost"
                 size="sm"
                 type="button"
-                onClick={() => handleToggle(v)}
-                className="ring-accent-muted inline-flex rounded-full px-3 py-1.5 text-sm font-medium shadow-sm ring-1"
-                label={`Remove ${label}`}
+                key={opt.value}
+                onClick={() => handleToggle(opt.value)}
+                disabled={disabled}
+                className="border-border bg-background-surface text-text-secondary hover:border-brand-accent/50 hover:bg-brand-accent/5 hover:text-text-primary inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors touch-manipulation"
+                label={`Select ${opt.label}`}
               >
-                <BodyText as="span" size="sm" className="mx-1">
-                  {label}
+                <Icon name="plus" className="h-3.5 w-3.5 flex-shrink-0" />
+                <BodyText as="span" size="sm">
+                  {opt.label}
                 </BodyText>
               </Button>
-            ) : (
-              <BodyText
-                key={v}
-                as="span"
-                size="sm"
-                className="bg-primary ring-accent-muted inline-flex items-center rounded-full px-3 py-1.5 font-medium text-white shadow-sm ring-1"
-              >
-                <BodyText as="span" size="sm" className="mx-1">
-                  {label}
-                </BodyText>
-              </BodyText>
-            );
-          })}
+            ))}
+          </Box>
         </Box>
       )}
 
-      {/* Unselected options as cards with dotted outline (edit mode only) */}
-      {isEditMode && unselectedOptions.length > 0 && (
-        <Box className="flex flex-wrap gap-3">
-          {unselectedOptions.map((opt) => (
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              key={opt.value}
-              onClick={() => handleToggle(opt.value)}
-              disabled={disabled}
-              className="touch-friendly min-h-11 min-w-20 rounded-lg border-2 border-dotted border-border bg-transparent text-text-secondary px-4 py-2.5 text-sm font-medium transition-colors hover:border-brand-accent hover:bg-background-surface hover:text-text-primary"
-              label={`Select ${opt.label}`}
-            >
-              <BodyText as="span" size="sm" className="mx-1">
-                {opt.label}
-              </BodyText>
-            </Button>
-          ))}
-        </Box>
-      )}
-
-      {/* Read-only: show nothing extra when no selection */}
+      {/* Read-only empty state */}
       {!isEditMode && selectedValues.length === 0 && (
-        <Box className="mobile-input bg-background-base text-text-secondary text-sm">
-          Not specified
+        <Box className="border-border bg-background-base text-text-secondary rounded-lg border px-4 py-3 text-sm">
+          {PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       )}
     </Box>

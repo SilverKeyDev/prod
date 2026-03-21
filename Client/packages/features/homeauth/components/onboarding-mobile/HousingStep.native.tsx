@@ -2,11 +2,14 @@ import React from "react";
 
 import Input from "@ui/form/Input";
 
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
 import {
+  AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,
+  effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   HOUSING_TYPE_OPTIONS,
   INTENDED_USE_OPTIONS,
@@ -69,6 +72,11 @@ type HousingStepProps = {
 };
 
 export function HousingStep({ formData, updateFormData }: HousingStepProps) {
+  const authIsAgent = useIsAgent();
+  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
+    authIsAgent,
+    formIsAgent: formData.is_agent,
+  });
   const housingTypes = parseHousingTypes(formData.preferred_housing_type ?? "");
   const mustHave = Array.isArray(formData.must_have) ? formData.must_have : [];
 
@@ -89,6 +97,13 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
       <Text className="text-text-primary text-lg font-semibold">
         {SECTION_TITLES.HOUSING_PREFERENCES}
       </Text>
+      {showAgentOptionalBuyerCallout && (
+        <Box className="border-border bg-background-surface rounded-lg border px-3 py-2">
+          <Text className="text-text-secondary text-xs">
+            {AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT}
+          </Text>
+        </Box>
+      )}
 
       <HousingNumberFields formData={formData} updateFormData={updateFormData} />
 
@@ -410,15 +425,15 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
 
       <Box>
         <Text className="text-text-secondary mb-2 text-sm font-medium">
-          {FIELD_LABELS.PREFERRED_HOME_FEATURES}
+          {FIELD_LABELS.OTHER_REQUIREMENTS}
         </Text>
         <Text className="text-text-secondary mb-3 text-xs">
-          Separate features with commas (e.g., garage, pool, fireplace).
+          Separate with commas (e.g., street parking, no gated communities).
         </Text>
         <Input
           value={
-            Array.isArray(formData.preferred_home_features)
-              ? formData.preferred_home_features.join(", ")
+            Array.isArray(formData.other_requirements)
+              ? formData.other_requirements.join(", ")
               : ""
           }
           onValueChange={(v) => {
@@ -429,33 +444,9 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
                     .map((item) => item.trim())
                     .filter(Boolean)
                 : [];
-            updateFormData("preferred_home_features", next.length > 0 ? next : undefined);
+            updateFormData("other_requirements", next.length > 0 ? next : undefined);
           }}
-          placeholder="e.g., garage, pool, fireplace"
-          className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-        />
-      </Box>
-
-      <Box>
-        <Text className="text-text-secondary mb-2 text-sm font-medium">
-          {FIELD_LABELS.DEAL_BREAKERS}
-        </Text>
-        <Text className="text-text-secondary mb-3 text-xs">
-          Separate deal breakers with commas (e.g., No parking, Busy road).
-        </Text>
-        <Input
-          value={Array.isArray(formData.deal_breakers) ? formData.deal_breakers.join(", ") : ""}
-          onValueChange={(v) => {
-            const next =
-              v && v.trim() !== ""
-                ? v
-                    .split(",")
-                    .map((item) => item.trim())
-                    .filter(Boolean)
-                : [];
-            updateFormData("deal_breakers", next.length > 0 ? next : undefined);
-          }}
-          placeholder="e.g., No parking, Busy road, Old plumbing"
+          placeholder="e.g., street parking, no gated communities"
           className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
         />
       </Box>

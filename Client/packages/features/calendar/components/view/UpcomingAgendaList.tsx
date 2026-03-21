@@ -1,0 +1,167 @@
+import React, { type ReactNode } from "react";
+
+import { color } from "packages/design-tokens";
+import type { CardBorderVariant } from "packages/ui/components/cards/Card";
+import Card from "packages/ui/components/cards/Card";
+import { Box, ScrollView, Text } from "packages/ui/components/primitives";
+
+import type { AgendaTodoPriority } from "@/features/calendar/types/agenda";
+import type { Calendar } from "@/features/calendar/types/calendar";
+import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
+import type { UpcomingAgendaItem } from "@/features/calendar/utils/mergeUpcomingAgenda";
+
+import { EventCard } from "./EventCard";
+import { TodoAgendaRow } from "./TodoAgendaRow";
+
+type UpcomingAgendaListProps = {
+  items: UpcomingAgendaItem[];
+  title?: string;
+  emptyMessage?: string;
+  headerActions?: ReactNode;
+  embedInListHeader?: boolean;
+  silverKeyCalendarId?: string | null;
+  refreshEvents?: () => Promise<void>;
+  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
+  deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
+  calendars?: Calendar[];
+  onEventClick?: (event: ExtendedGoogleEvent) => void;
+  onToggleAgendaTodo?: (id: string) => void;
+  onUpdateAgendaTodoPriority?: (id: string, priority: AgendaTodoPriority) => void;
+  canEditAgendaTodos?: boolean;
+  border?: CardBorderVariant;
+};
+
+const titleStyle = {
+  fontSize: 18,
+  fontWeight: "800" as const,
+  color: color("neutral.900"),
+  textAlign: "left" as const,
+};
+
+const emptyStyle = {
+  paddingVertical: 12,
+  alignItems: "flex-start" as const,
+};
+
+const emptyTextStyle = {
+  fontSize: 14,
+  color: color("neutral.500"),
+  textAlign: "left" as const,
+};
+
+const listStyle = {
+  paddingBottom: 8,
+  alignSelf: "stretch" as const,
+  alignItems: "flex-start" as const,
+};
+
+const sepStyle = {
+  height: 10,
+};
+
+function agendaItemKey(item: UpcomingAgendaItem, index: number) {
+  if (item.kind === "event") {
+    return String(item.event.id ?? `event-${index}`);
+  }
+  return `todo-${item.todo.id}`;
+}
+
+function renderRow(
+  item: UpcomingAgendaItem,
+  props: Omit<
+    UpcomingAgendaListProps,
+    "items" | "title" | "emptyMessage" | "headerActions" | "border"
+  >
+) {
+  if (item.kind === "event") {
+    return (
+      <EventCard
+        event={item.event}
+        silverKeyCalendarId={props.silverKeyCalendarId ?? null}
+        refreshEvents={props.refreshEvents}
+        updateEvent={props.updateEvent}
+        deleteEvent={props.deleteEvent}
+        calendars={props.calendars ?? []}
+        onClick={() => props.onEventClick?.(item.event)}
+      />
+    );
+  }
+
+  return (
+    <TodoAgendaRow
+      todo={item.todo}
+      onToggleComplete={(id) => props.onToggleAgendaTodo?.(id)}
+      onUpdatePriority={props.onUpdateAgendaTodoPriority}
+      canEditComplete={Boolean(props.canEditAgendaTodos && props.onToggleAgendaTodo)}
+      canEditPriority={Boolean(props.canEditAgendaTodos && props.onUpdateAgendaTodoPriority)}
+    />
+  );
+}
+
+export function UpcomingAgendaList({
+  items,
+  title = "Upcoming",
+  emptyMessage = "No upcoming events or to-dos in the next week",
+  headerActions,
+  embedInListHeader = false,
+  silverKeyCalendarId = null,
+  refreshEvents,
+  updateEvent,
+  deleteEvent,
+  calendars = [],
+  onEventClick,
+  onToggleAgendaTodo,
+  onUpdateAgendaTodoPriority,
+  canEditAgendaTodos = false,
+  border = "charcoal",
+}: UpcomingAgendaListProps) {
+  const rowProps = {
+    silverKeyCalendarId,
+    refreshEvents,
+    updateEvent,
+    deleteEvent,
+    calendars,
+    onEventClick,
+    onToggleAgendaTodo,
+    onUpdateAgendaTodoPriority,
+    canEditAgendaTodos,
+  };
+
+  const listContent =
+    items.length === 0 ? (
+      <Box style={emptyStyle}>
+        <Text style={emptyTextStyle}>{emptyMessage}</Text>
+      </Box>
+    ) : embedInListHeader ? (
+      <Box style={listStyle}>
+        {items.map((item, index) => (
+          <React.Fragment key={agendaItemKey(item, index)}>
+            {index > 0 ? <Box style={sepStyle} /> : null}
+            {renderRow(item, rowProps)}
+          </React.Fragment>
+        ))}
+      </Box>
+    ) : (
+      <ScrollView style={listStyle}>
+        {items.map((item, index) => (
+          <React.Fragment key={agendaItemKey(item, index)}>
+            {index > 0 ? <Box style={sepStyle} /> : null}
+            {renderRow(item, rowProps)}
+          </React.Fragment>
+        ))}
+      </ScrollView>
+    );
+
+  return (
+    <Card border={border} className="w-full text-left" padding="md" hover={false}>
+      {title || headerActions ? (
+        <Box className="mb-3 flex flex-row flex-wrap items-center gap-2">
+          {title ? <Text style={{ ...titleStyle, flex: 1 }}>{title}</Text> : <Box className="flex-1" />}
+          {headerActions ? <Box className="flex-shrink-0">{headerActions}</Box> : null}
+        </Box>
+      ) : null}
+      {listContent}
+    </Card>
+  );
+}

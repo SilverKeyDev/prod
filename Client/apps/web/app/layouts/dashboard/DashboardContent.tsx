@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { PropertyDetailsScreen } from "packages/features/propertyDetails";
 import { useIsMobile } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 

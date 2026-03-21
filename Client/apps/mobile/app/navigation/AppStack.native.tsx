@@ -1,11 +1,12 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { MessagingScreenNative } from "packages/features/agent/native";
 import { ProfileScreenNative } from "packages/features/profile/native";
 import { SavedScreenNative } from "packages/features/saved/native";
 import { SearchScreenNative } from "packages/features/search/native";
-import { type AppTabName, getTabBarBadge, TAB_ICONS } from "packages/navigation/constants";
+import { type AppTabName, TAB_ICONS } from "packages/navigation/constants";
 import { useNotificationStore } from "packages/store";
 import { Icon } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
@@ -19,7 +20,7 @@ const Tab = createBottomTabNavigator<AppTabParamList>();
 function TabBarIcon({
   name,
   focused,
-  color,
+  color: iconColor,
   size = 24,
 }: {
   name: IconName;
@@ -27,12 +28,44 @@ function TabBarIcon({
   color: string;
   size?: number;
 }) {
-  return <Icon name={name} size={size} color={color} strokeWidth={focused ? 2.25 : 2} />;
+  return <Icon name={name} size={size} color={iconColor} strokeWidth={focused ? 2.25 : 2} />;
+}
+
+function MessagingTabBarIcon({
+  focused,
+  color: iconColor,
+  size,
+  hasUnread,
+}: {
+  focused: boolean;
+  color: string;
+  size?: number;
+  hasUnread: boolean;
+}) {
+  return (
+    <View style={{ position: "relative" }}>
+      <TabBarIcon name={TAB_ICONS.Messaging} focused={focused} color={iconColor} size={size} />
+      {hasUnread ? (
+        <View
+          accessibilityLabel="Unread messages"
+          style={{
+            position: "absolute",
+            top: 0,
+            right: -1,
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: color("destructive-hover"),
+          }}
+        />
+      ) : null}
+    </View>
+  );
 }
 
 export function AppStack() {
   const unreadCount = useNotificationStore((s) => s.unreadCount);
-  const messagingBadge = getTabBarBadge(unreadCount);
+  const hasMessagingUnread = unreadCount > 0;
 
   return (
     <Tab.Navigator
@@ -84,9 +117,13 @@ export function AppStack() {
         options={{
           title: "Messaging",
           tabBarLabel: "Messaging",
-          tabBarBadge: messagingBadge,
           tabBarIcon: ({ focused, color, size }) => (
-            <TabBarIcon name={TAB_ICONS.Messaging} focused={focused} color={color} size={size} />
+            <MessagingTabBarIcon
+              focused={focused}
+              color={color}
+              size={size}
+              hasUnread={hasMessagingUnread}
+            />
           ),
         }}
       />

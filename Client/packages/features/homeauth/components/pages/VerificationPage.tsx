@@ -322,7 +322,7 @@ export default function VerificationPage() {
                   loading={loading}
                   className={canResend ? "text-accent hover:text-accent" : "text-text-disabled"}
                 >
-                  {loading ? "Sending..." : canResend ? "Resend code" : `Resend in ${countdown}s`}
+                  {canResend ? "Resend code" : `Resend in ${countdown}s`}
                 </Button>
               </Box>
 

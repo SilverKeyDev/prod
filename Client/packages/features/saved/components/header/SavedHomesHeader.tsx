@@ -6,6 +6,7 @@ import { ClientSelector } from "@/components/ui";
 import SavedLayout from "./SavedLayout";
 export type SavedHomesHeaderProps = {
   isMobile: boolean;
+  isAgent: boolean;
   searchTerm: string;
   onSearchChange: (term: string) => void;
   viewType: SavedPageViewType;
@@ -25,6 +26,7 @@ export type SavedHomesHeaderProps = {
 
 export default function SavedHomesHeader({
   isMobile,
+  isAgent,
   searchTerm,
   onSearchChange,
   viewType,
@@ -55,14 +57,16 @@ export default function SavedHomesHeader({
         ? `${documentsCount} documents`
         : "";
 
+  const clientToolbar = isAgent ? (
+    <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
+  ) : undefined;
+
   if (isMobile) {
     return (
       <Box className="flex w-full flex-col justify-center gap-1.5" key={viewType}>
-        <Box className="flex-shrink-0">
-          <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
-        </Box>
         <SavedLayout
           key={`saved-layout-${viewType}`}
+          toolbarLeading={clientToolbar}
           searchTerm={searchTerm}
           onSearchChange={onSearchChange}
           searchPlaceholder={searchPlaceholder}
@@ -83,26 +87,22 @@ export default function SavedHomesHeader({
   }
 
   return (
-    <>
-      <Box className="mb-4">
-        <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
-      </Box>
-      <SavedLayout
-        searchTerm={searchTerm}
-        onSearchChange={onSearchChange}
-        searchPlaceholder={searchPlaceholder}
-        showSearch={true}
-        leftContent={null}
-        onRefresh={onRefresh}
-        isRefreshing={isRefreshing}
-        isLoading={isLoading}
-        refreshTitle={refreshTitle}
-        rightText={rightText}
-        viewType={viewType}
-        onViewTypeChange={onViewTypeChange}
-        eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
-        onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
-      />
-    </>
+    <SavedLayout
+      toolbarLeading={clientToolbar}
+      searchTerm={searchTerm}
+      onSearchChange={onSearchChange}
+      searchPlaceholder={searchPlaceholder}
+      showSearch={true}
+      leftContent={null}
+      onRefresh={onRefresh}
+      isRefreshing={isRefreshing}
+      isLoading={isLoading}
+      refreshTitle={refreshTitle}
+      rightText={rightText}
+      viewType={viewType}
+      onViewTypeChange={onViewTypeChange}
+      eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
+      onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
+    />
   );
 }

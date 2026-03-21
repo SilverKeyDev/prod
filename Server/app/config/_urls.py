@@ -2,12 +2,15 @@ import os
 
 
 def get_google_redirect_uri():
-    """Get Google OAuth redirect URI based on environment."""
+    """Get Google Calendar OAuth redirect URI (must match Google Cloud Console)."""
+    explicit = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    if explicit:
+        return explicit
     flask_env = os.getenv("FLASK_ENV", "development")
 
     if flask_env == "production":
         return "https://usesilverkey.com/api/v1/google/oauth/callback"
-    # Development: use localhost with port 5000 (Flask backend) — OAuth callback is an API route
+    # Development: Flask backend — OAuth callback is an API route, not the Vite dev server
     return "http://localhost:5000/api/v1/google/oauth/callback"
 
 

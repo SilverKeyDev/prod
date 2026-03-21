@@ -33,6 +33,7 @@ const titleStyle = {
   fontWeight: "800" as const,
   color: color("neutral.900"),
   marginBottom: 12,
+  textAlign: "left" as const,
 };
 
 const emptyStyle = {
@@ -124,7 +125,7 @@ export function EventList({
     );
 
   return (
-    <Card border={border} className="w-full" padding="md" hover={false}>
+    <Card border={border} className="w-full text-left" padding="md" hover={false}>
       {title ? <Text style={titleStyle}>{title}</Text> : null}
       {listContent}
     </Card>

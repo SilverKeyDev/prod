@@ -4,13 +4,15 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import Card from "packages/ui/components/cards/Card";
 import { Image } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
-import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
-
-export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) => {
+export const PropertyAgent: React.FC<PropertyComponentProps> = ({
+  property,
+}) => {
   const { t } = useLocalization();
   const listedBy = (
     property as unknown as {

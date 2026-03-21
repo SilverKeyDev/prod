@@ -4,6 +4,7 @@
 
 import React, { useState } from "react";
 
+import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import Input from "@ui/form/Input";
 import { StyleSheet, View } from "react-native";
 
@@ -16,8 +17,8 @@ import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAu
 import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginResult";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
+import { Pressable } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
 export function LoginScreenNative() {
@@ -77,9 +78,15 @@ export function LoginScreenNative() {
       <Pressable
         onPress={handleSubmit}
         disabled={isLoading}
+        accessibilityRole="button"
+        accessibilityState={{ busy: isLoading }}
         style={[styles.primaryButton, isLoading && styles.primaryButtonDisabled]}
       >
-        <Text style={styles.primaryButtonText}>{isLoading ? "Signing in…" : "Login"}</Text>
+        {isLoading ? (
+          <KeyTurnLoader message="" />
+        ) : (
+          <Text style={styles.primaryButtonText}>Login</Text>
+        )}
       </Pressable>
 
       <AuthDivider />

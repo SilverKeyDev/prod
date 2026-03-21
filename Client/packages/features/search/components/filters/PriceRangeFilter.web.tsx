@@ -5,7 +5,7 @@ import { Box } from "packages/ui/components/primitives";
 import { formatCompactNumber } from "packages/utils";
 
 import { BodyText } from "@/components/ui";
-import BudgetRangeSlider from "@/features/profile/components/settings/inputs/BudgetRangeSlider";
+import BudgetSlider from "@/features/profile/components/settings/inputs/BudgetSlider";
 const DEFAULT_MIN = 100_000;
 const DEFAULT_MAX = 2_000_000;
 const TICK_VALUES = [
@@ -49,7 +49,7 @@ export default function PriceRangeFilter({
       >
         {t("search.price_range")}
       </BodyText>
-      <BudgetRangeSlider
+      <BudgetSlider
         tickValues={TICK_VALUES}
         minValue={safeMin}
         maxValue={safeMax}

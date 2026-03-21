@@ -5,34 +5,45 @@
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
 
+import { useLocalization } from "packages/contexts";
+import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
-
-import Card from "@/components/layout/Card.web";
+import { formatAnalysisLabel } from "packages/utils/propertyDetails";
 
 export function renderCommuteAnalysisContent(data: unknown): React.ReactNode {
   if (!data || typeof data !== "object") return null;
   const dataObj = data as Record<string, unknown>;
   const entries = Object.entries(dataObj).filter(
-    ([_, value]) => value !== null && value !== undefined && value !== ""
+    ([_, value]) => value !== null && value !== undefined && value !== "",
   );
   if (entries.length === 0) return null;
   return (
     <Box className="mt-4 space-y-2 text-left">
       {entries.map(([key, value]) => {
-        const displayKey = key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+        const displayKey = formatAnalysisLabel(key);
         if (Array.isArray(value)) {
           return (
             <Box key={key}>
-              <Title as="h4" size="sm" className="text-text-secondary mb-1 font-medium">
+              <Title
+                as="h4"
+                size="sm"
+                className="text-text-secondary mb-1 font-medium"
+              >
                 {displayKey}
               </Title>
-              <ul className="text-text-secondary space-y-1 text-sm">
+              <Box className="text-text-secondary ml-1 flex flex-col gap-1 text-sm">
                 {value.map((item, i) => (
-                  <li key={i}>• {String(item)}</li>
+                  <BodyText
+                    key={i}
+                    as="span"
+                    className="text-text-secondary text-sm"
+                  >
+                    • {String(item)}
+                  </BodyText>
                 ))}
-              </ul>
+              </Box>
             </Box>
           );
         }
@@ -60,16 +71,24 @@ type TravelTimeItem = {
   commute_tolerance?: number;
 };
 
-export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTimeItem[] }) {
+export function CommuteTravelTimeCards({
+  travelTimes,
+}: {
+  travelTimes: TravelTimeItem[];
+}) {
+  const { t } = useLocalization();
   return (
     <>
       {travelTimes.map((c, i) => {
         const travelTimeMinutes = c.travel_time
-          ? parseInt(String(c.travel_time).replace(/\D/g, ""))
+          ? parseInt(String(c.travel_time).replace(/\D/g, ""), 10)
           : null;
         const tolerance = c.commute_tolerance;
         let colorClass = "text-primary bg-primary";
-        if (typeof travelTimeMinutes === "number" && typeof tolerance === "number") {
+        if (
+          typeof travelTimeMinutes === "number" &&
+          typeof tolerance === "number"
+        ) {
           if (travelTimeMinutes > tolerance * 1.2) {
             colorClass = "text-destructive bg-primary-muted";
           } else if (travelTimeMinutes > tolerance) {
@@ -85,7 +104,10 @@ export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTim
                     as="span"
                     className="text-text-secondary flex-1 truncate text-sm font-medium"
                   >
-                    {c.location_name || c.name || c.location_address || c.address}
+                    {c.location_name ||
+                      c.name ||
+                      c.location_address ||
+                      c.address}
                   </BodyText>
                   <BodyText
                     as="span"
@@ -95,12 +117,21 @@ export function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTim
                   </BodyText>
                 </Box>
                 <Box className="mt-1 flex items-center justify-between">
-                  <BodyText as="p" className="text-text-secondary flex-1 truncate text-xs">
+                  <BodyText
+                    as="p"
+                    className="text-text-secondary flex-1 truncate text-xs"
+                  >
                     {c.location_address || c.address}
                   </BodyText>
-                  {tolerance && (
-                    <BodyText as="p" className="text-text-secondary ml-2 flex-shrink-0 text-xs">
-                      Target: {tolerance} min
+                  {tolerance != null && (
+                    <BodyText
+                      as="p"
+                      className="text-text-secondary ml-2 flex-shrink-0 text-xs"
+                    >
+                      {t("property_details.target_min", {
+                        count: tolerance,
+                        defaultValue: "Target: {{count}} min",
+                      })}
                     </BodyText>
                   )}
                 </Box>

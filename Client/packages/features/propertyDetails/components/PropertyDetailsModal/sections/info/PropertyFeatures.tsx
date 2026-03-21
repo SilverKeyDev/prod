@@ -2,12 +2,14 @@ import React, { useState } from "react";
 
 import { Icon } from "@ui/icons";
 
+import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import Button from "packages/ui/components/button/Button";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
+
 type ImageFeatures = {
   clean: string[];
   error?: unknown;
@@ -24,12 +26,12 @@ function isImageFeatures(x: unknown): x is ImageFeatures {
 function isFeatures(x: unknown): x is Features {
   if (typeof x !== "object" || x === null) return false;
   return Object.values(x as Record<string, unknown>).every(
-    (v) => Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
+    (v) =>
+      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string"),
   );
 }
 const deduplicateFeatures = (features: string[]): string[] => {
   const seen = new Set<string>();
-  const normalized = new Map<string, string>();
   return features.filter((feature) => {
     const trimmed = feature.trim();
     if (!trimmed) return false;
@@ -49,7 +51,6 @@ const deduplicateFeatures = (features: string[]): string[] => {
       return false;
     }
     seen.add(normalizedKey);
-    normalized.set(normalizedKey, trimmed);
     return true;
   });
 };
@@ -71,8 +72,17 @@ const deduplicateCategoryFeatures = (feats: Features): Features => {
   });
   return result;
 };
-export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property }) => {
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+const FEATURE_CHIP =
+  "bg-primary-muted text-text-secondary rounded-full px-3 py-1 text-left text-xs";
+
+export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
+  property,
+}) => {
+  const { t } = useLocalization();
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(),
+  );
   const { features, image_features: imageFeatures } = property as unknown as {
     features: unknown;
     image_features: unknown;
@@ -81,7 +91,9 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
     isImageFeatures(imageFeatures) && !imageFeatures.error
       ? { ...imageFeatures, clean: deduplicateFeatures(imageFeatures.clean) }
       : null;
-  const feats = isFeatures(features) ? deduplicateCategoryFeatures(features) : null;
+  const feats = isFeatures(features)
+    ? deduplicateCategoryFeatures(features)
+    : null;
   if (!img && !feats) return null;
   const toggleCategory = (category: string) => {
     setExpandedCategories((prev) => {
@@ -98,25 +110,28 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
     <Box className="px-6 py-6">
       <Box className="mb-4 flex flex-row items-center gap-2">
         <Title as="h3" size="lg" className="text-foreground font-semibold">
-          Property Features
+          {t("property_details.property_features", {
+            defaultValue: "Property Features",
+          })}
         </Title>
       </Box>
 
       <Card border="light" className="mt-2 border-r-0 p-6">
         {img && img.clean.length > 0 && (
           <Box className="mb-4 text-left">
-            <Title as="h4" size="sm" className="text-foreground mb-2 text-left font-semibold">
-              AI-Detected Features
+            <Title
+              as="h4"
+              size="sm"
+              className="text-foreground mb-2 text-left font-semibold"
+            >
+              {t("property_details.ai_detected_features", {
+                defaultValue: "AI-Detected Features",
+              })}
             </Title>
-            <Box className="text-text-secondary text-left text-xs leading-relaxed">
+            <Box className="flex flex-row flex-wrap gap-2 text-left">
               {img.clean.map((feature, i) => (
-                <BodyText key={i} as="span" className="flex flex-row text-left">
+                <BodyText key={i} as="span" className={FEATURE_CHIP}>
                   {feature.trim()}
-                  {i < img.clean.length - 1 && (
-                    <BodyText as="span" className="text-text-secondary mx-2">
-                      •
-                    </BodyText>
-                  )}
                 </BodyText>
               ))}
             </Box>
@@ -144,19 +159,21 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                       {displayName} ({list.length})
                     </Title>
                     {isExpanded ? (
-                      <Icon name="chevron-up" className="text-foreground h-4 w-4" />
+                      <Icon
+                        name="chevron-up"
+                        className="text-foreground h-4 w-4"
+                      />
                     ) : (
-                      <Icon name="chevron-down" className="text-foreground h-4 w-4" />
+                      <Icon
+                        name="chevron-down"
+                        className="text-foreground h-4 w-4"
+                      />
                     )}
                   </Button>
                   {isExpanded && (
                     <Box className="flex flex-row flex-wrap gap-2 text-left">
                       {list.map((feature, idx) => (
-                        <BodyText
-                          key={idx}
-                          as="span"
-                          className="bg-primary-muted text-text-secondary rounded-full px-3 py-1 text-left text-xs"
-                        >
+                        <BodyText key={idx} as="span" className={FEATURE_CHIP}>
                           {feature}
                         </BodyText>
                       ))}

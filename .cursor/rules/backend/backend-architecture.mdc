@@ -184,17 +184,18 @@ if not EC2_HOST:
 # ❌ WRONG: Hardcoded value
 EC2_HOST = '3.146.37.166'
 
-# ✅ CORRECT: Single function definition
-@classmethod
-def get_google_redirect_uri(cls):
-    flask_env = os.getenv('FLASK_ENV', 'development')
-    if flask_env == 'production':
-        return 'https://usesilverkey.com/api/v1/google/oauth/callback'
-    return 'http://localhost:5173/api/v1/google/oauth/callback'
+# ✅ CORRECT: Single definition in app/config/_urls.py (optional GOOGLE_REDIRECT_URI override)
+def get_google_redirect_uri():
+    explicit = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    if explicit:
+        return explicit
+    flask_env = os.getenv("FLASK_ENV", "development")
+    if flask_env == "production":
+        return "https://usesilverkey.com/api/v1/google/oauth/callback"
+    return "http://localhost:5000/api/v1/google/oauth/callback"  # Flask API, not Vite (5173)
 
 # ❌ WRONG: Duplicate functions
-@classmethod
-def get_google_redirect_uri(cls):
+def get_google_redirect_uri():
     # ...
 
 def _get_google_redirect_uri():

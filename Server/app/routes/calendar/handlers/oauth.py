@@ -187,8 +187,8 @@ def oauth_callback():
         # Log successful OAuth completion
         log_oauth_event("callback_success", user_id)
 
-        # Redirect back to SPA with success indicator
-        resp = redirect(f"{Config.FRONTEND_URL}/calendar?google=connected")
+        # Redirect back to SPA with success indicator (dashboard hosts calendar UX; /calendar route removed)
+        resp = redirect(f"{Config.FRONTEND_URL}/dashboard?google=connected")
         resp.set_cookie(
             "google_calendar_connected",
             "true",

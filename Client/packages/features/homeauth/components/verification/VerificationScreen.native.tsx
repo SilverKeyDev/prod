@@ -4,6 +4,7 @@
 
 import React, { useEffect, useState } from "react";
 
+import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import Input from "@ui/form/Input";
 import { StyleSheet } from "react-native";
 
@@ -13,8 +14,8 @@ import { useAuthVerification } from "packages/features/homeauth/hooks/data/useAu
 import { useCountdown } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
+import { Pressable } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { getSessionStorage } from "packages/utils/storage";
 import { performVerify } from "packages/utils/verification";
@@ -142,13 +143,19 @@ export function VerificationScreenNative() {
           <Pressable
             onPress={handleEmailSubmit}
             disabled={loading}
+            accessibilityRole="button"
+            accessibilityState={{ busy: loading }}
             style={[
               styles.primaryButton,
               styles.buttonMargin,
               loading && styles.primaryButtonDisabled,
             ]}
           >
-            <Text style={styles.primaryButtonText}>{loading ? "Sending…" : "Send code"}</Text>
+            {loading ? (
+              <KeyTurnLoader message="" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Send code</Text>
+            )}
           </Pressable>
         </Box>
       )}
@@ -168,13 +175,19 @@ export function VerificationScreenNative() {
           <Pressable
             onPress={handleVerify}
             disabled={loading || code.length !== 6}
+            accessibilityRole="button"
+            accessibilityState={{ busy: loading }}
             style={[
               styles.primaryButton,
               styles.buttonMargin,
               (loading || code.length !== 6) && styles.primaryButtonDisabled,
             ]}
           >
-            <Text style={styles.primaryButtonText}>{loading ? "Verifying…" : "Verify"}</Text>
+            {loading ? (
+              <KeyTurnLoader message="" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Verify</Text>
+            )}
           </Pressable>
           {canResend ? (
             <Pressable onPress={handleResend} disabled={loading} style={styles.linkButton}>

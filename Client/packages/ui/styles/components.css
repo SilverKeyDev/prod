@@ -112,30 +112,99 @@
     display: none; /* Safari and Chrome */
   }
 
-  /* Range slider: hit target ever so slightly larger than visible orb, centered on value */
+  /*
+   * Range slider (web): reset host + tracks so thumb centers traverse the same width as the
+   * custom overlay track/fill in BudgetRangeSlider / PriceRangeSlider (rem-based calc).
+   */
+  .sk-range-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+  }
+
+  .sk-range-slider-thumb:focus {
+    outline: none;
+  }
+
+  /* Firefox: remove default focus ring offset that can shift perceived thumb position. */
+  .sk-range-slider-thumb::-moz-focus-outer {
+    border: 0;
+  }
+
+  /* WebKit: stretch inner slider box to host width (avoids inset thumb travel vs overlay). */
+  .sk-range-slider-thumb::-webkit-slider-container {
+    height: 100%;
+    min-width: 100%;
+  }
+
+  .sk-range-slider-thumb::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: none;
+  }
+
+  .sk-range-slider-thumb::-moz-range-track {
+    width: 100%;
+    height: 100%;
+    appearance: none;
+    background: transparent;
+    pointer-events: none;
+    border: none;
+  }
+
+  /* Thumb: 1.25rem orb, centered on value and vertically aligned with track */
   .sk-range-slider-thumb::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 1.25rem; /* 20px target – slightly larger than 14px orb */
+    width: 1.25rem; /* keep in sync with profile slider fill calc (THUMB_DIAMETER_REM) */
     height: 1.25rem;
+    border: none;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 50%, white 7px, transparent 8px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     pointer-events: auto;
-    /* Center thumb on value (browser positions by left edge by default) */
-    transform: translateX(-50%);
+    margin-top: 0; /* avoid default track-based offset */
+    /*
+     * Center on value using margin, not transform: translateX(-50%).
+     * Blink/WebKit often misaligns range-thumb hit-testing from the painted transform,
+     * which breaks the right handle on dual sliders and feels "off" on single sliders.
+     */
+    margin-left: -0.625rem;
+    transform: none;
   }
   .sk-range-slider-thumb::-moz-range-thumb {
     appearance: none;
     width: 1.25rem;
     height: 1.25rem;
+    border: none;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 50%, white 7px, transparent 8px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     pointer-events: auto;
-    /* Center thumb on value (Firefox positions by left edge by default) */
-    transform: translateX(-50%);
+    margin-left: -0.625rem;
+    transform: none;
+  }
+  /* Focus-visible ring (gold/accent) for accessibility */
+  .sk-range-slider-thumb:focus-visible::-webkit-slider-thumb {
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.2),
+      0 0 0 2px theme("colors.accent");
+  }
+  .sk-range-slider-thumb:focus-visible::-moz-range-thumb {
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.2),
+      0 0 0 2px theme("colors.accent");
   }
 }

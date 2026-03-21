@@ -49,4 +49,37 @@ export const adminApi = {
     const response = await apiGet<{ connected: boolean }>("/api/v1/skyslope/status");
     return { connected: response.connected ?? false };
   },
+
+  /** Set the currently signed-in user's agent status (admin only). */
+  setCurrentUserAgentStatus: async (isAgent: boolean): Promise<{ is_agent: boolean }> => {
+    const response = await apiPost<{ success: boolean; is_agent?: boolean }, { is_agent: boolean }>(
+      "/api/v1/admin/current-user-agent-status",
+      { is_agent: isAgent }
+    );
+    if (!response.success || typeof response.is_agent !== "boolean") {
+      throw new Error("Failed to update agent status");
+    }
+    return { is_agent: response.is_agent };
+  },
+
+  /**
+   * Hard-delete a user and related DB rows (admin only). Sends confirm: true.
+   * Non-2xx responses throw HttpError with parsed body.
+   */
+  deleteUserById: async (userId: string): Promise<{ deleted_user_id: string }> => {
+    type DeleteUserResponse = {
+      success?: boolean;
+      deleted_user_id?: string;
+      error?: string;
+      message?: string;
+    };
+    const response = await apiPost<DeleteUserResponse>("/api/v1/admin/users/delete", {
+      user_id: userId.trim(),
+      confirm: true,
+    });
+    if (!response.success || typeof response.deleted_user_id !== "string") {
+      throw new Error(response.error ?? "Failed to delete user");
+    }
+    return { deleted_user_id: response.deleted_user_id };
+  },
 };

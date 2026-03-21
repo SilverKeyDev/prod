@@ -58,8 +58,14 @@ def create_connection_request_endpoint(user):
                     }
                 ), 403
             requested_by_agent = False
-        request_obj = create_connection_request(agent_id, client_id, requested_by_agent, message)
-        return jsonify({"success": True, "request": request_obj})
+        result = create_connection_request(agent_id, client_id, requested_by_agent, message)
+        return jsonify(
+            {
+                "success": True,
+                "request": result["request"],
+                "already_pending": result["already_pending"],
+            }
+        )
     except ValueError as e:
         return jsonify({"success": False, "error": str(e)}), 400
     except Exception as e:

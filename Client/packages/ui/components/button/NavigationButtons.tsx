@@ -107,7 +107,7 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           iconPosition="right"
           className="w-30 font-bold sm:w-36 md:w-40"
         >
-          {loading ? "Saving..." : submitText}
+          {submitText}
         </Button>
       ) : (
         <Button

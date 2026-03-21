@@ -69,21 +69,22 @@ def skyslope_connect():
     try:
         config = get_skyslope_config()
         state = secrets.token_urlsafe(32)
-        code_verifier, code_challenge = generate_pkce()
-
         session["skyslope_oauth_state"] = state
-        session["skyslope_oauth_code_verifier"] = code_verifier
         session.permanent = True
 
         params = {
             "response_type": "code",
             "client_id": config["client_id"],
             "redirect_uri": config["redirect_uri"],
-            "scope": "forms.files.read forms.templates.read offline_access",
+            "scope": config["scope"],
             "state": state,
-            "code_challenge": code_challenge,
-            "code_challenge_method": "S256",
         }
+        if config["use_pkce"]:
+            code_verifier, code_challenge = generate_pkce()
+            session["skyslope_oauth_code_verifier"] = code_verifier
+            params["code_challenge"] = code_challenge
+            params["code_challenge_method"] = "S256"
+
         auth_url = f"{config['authorize_url']}?{urlencode(params)}"
 
         log.info(
@@ -152,7 +153,9 @@ def skyslope_callback():
             True,
         ), 400
 
-    if not code_verifier:
+    config = get_skyslope_config()
+    use_pkce = config["use_pkce"]
+    if use_pkce and not code_verifier:
         log.warn(
             LOG_CATEGORIES["API"],
             "Skyslope callback: missing code_verifier in session",
@@ -167,7 +170,6 @@ def skyslope_callback():
     session.pop("skyslope_oauth_state", None)
     session.pop("skyslope_oauth_code_verifier", None)
 
-    config = get_skyslope_config()
     if not config["client_id"] or not config["client_secret"]:
         return _html_page(
             "Configuration Error",
@@ -175,17 +177,20 @@ def skyslope_callback():
             True,
         ), 500
 
+    token_data_payload = {
+        "grant_type": "authorization_code",
+        "client_id": config["client_id"],
+        "client_secret": config["client_secret"],
+        "code": code,
+        "redirect_uri": config["redirect_uri"],
+    }
+    if use_pkce and code_verifier:
+        token_data_payload["code_verifier"] = code_verifier
+
     try:
         token_resp = requests.post(
             config["token_url"],
-            data={
-                "grant_type": "authorization_code",
-                "client_id": config["client_id"],
-                "client_secret": config["client_secret"],
-                "code": code,
-                "redirect_uri": config["redirect_uri"],
-                "code_verifier": code_verifier,
-            },
+            data=token_data_payload,
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             timeout=30,
         )

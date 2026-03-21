@@ -69,8 +69,10 @@ def get_conversations(user_id: str, is_agent: bool) -> list[dict]:
                 "client_id": conv.client_id,
                 "client_name": client_name,
                 "client_email": client_email,
+                "client_profile_picture": client.profile_picture if client else None,
                 "agent_name": agent_name,
                 "agent_email": agent_email,
+                "agent_profile_picture": agent.profile_picture if agent else None,
                 "last_message": last_message_obj.message if last_message_obj else None,
                 "last_message_at": _format_timestamp(
                     last_message_obj.timestamp if last_message_obj else None

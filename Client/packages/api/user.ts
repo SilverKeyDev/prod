@@ -5,7 +5,7 @@ import { apiGet, apiPost, apiPut } from "packages/services/http/compatibility";
 // Types for user API
 export type User = {
   id: string;
-  cognito_id: string;
+  cognito_id?: string | null;
   email: string;
   name: string;
   phone?: string;

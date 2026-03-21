@@ -37,12 +37,11 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
   preferred_architectural_style: FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE,
   renovation_preference: FIELD_LABELS.RENOVATION_PREFERENCE,
   intended_property_use: FIELD_LABELS.INTENDED_PROPERTY_USE,
+  other_requirements: FIELD_LABELS.OTHER_REQUIREMENTS,
   preferred_home_features: FIELD_LABELS.PREFERRED_HOME_FEATURES,
   deal_breakers: FIELD_LABELS.DEAL_BREAKERS,
   important_locations: FIELD_LABELS.IMPORTANT_LOCATIONS,
   walkability_importance: FIELD_LABELS.WALKABILITY_IMPORTANCE,
-  communication_frequency: FIELD_LABELS.COMMUNICATION_FREQUENCY,
-  information_detail_level: FIELD_LABELS.INFORMATION_DETAIL_LEVEL,
   has_buyers_agent: FIELD_LABELS.HAS_BUYERS_AGENT,
 };
 
@@ -103,8 +102,6 @@ const validateFormData = (
     "renovation_preference",
     "intended_property_use",
     "walkability_importance",
-    "communication_frequency",
-    "information_detail_level",
     "has_buyers_agent",
   ] as const;
 
@@ -179,4 +176,42 @@ export const validateOnboardingDataMobile = (formData: OnboardingData): Validati
  */
 export const validateSettingsData = (formData: OnboardingData): ValidationResult => {
   return validateFormData(formData, REQUIRED_FIELDS_SETTINGS);
+};
+
+/**
+ * Validation for profile/settings save only.
+ * Does not require any section or field to be complete; only checks logical/consistency
+ * errors (e.g. down_payment vs budget, commute_tolerance). Save always proceeds unless
+ * there are consistency errors.
+ */
+export const validateProfileSave = (formData: OnboardingData): ValidationResult => {
+  const errors: string[] = [];
+
+  if (
+    formData.down_payment != null &&
+    formData.home_budget_max != null &&
+    formData.down_payment > formData.home_budget_max
+  ) {
+    errors.push("Down payment cannot be higher than home budget.");
+  }
+
+  if (Array.isArray(formData.important_locations)) {
+    formData.important_locations.forEach((location, index: number) => {
+      if (
+        location?.commute_tolerance !== undefined &&
+        location.commute_tolerance !== null &&
+        location.commute_tolerance < 0
+      ) {
+        errors.push(
+          `${FIELD_LABELS.IMPORTANT_LOCATIONS} ${index + 1} commute tolerance must be 0 or greater`
+        );
+      }
+    });
+  }
+
+  return {
+    isValid: errors.length === 0,
+    missingFields: [],
+    errors,
+  };
 };

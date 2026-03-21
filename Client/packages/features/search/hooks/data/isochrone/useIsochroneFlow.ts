@@ -35,7 +35,7 @@ export function useIsochroneFlow(params: {
   cachedIsochroneData?: Record<string, unknown> | null;
   fetchCachedIsochrone?: () => Promise<Record<string, unknown> | null>;
 }): {
-  primeIsochroneOverlay: (hasResults: boolean) => Promise<void>;
+  primeIsochroneOverlay: () => Promise<void>;
   runIsochroneSearch: () => Promise<void>;
   fetchIsochroneForMapOnly: () => Promise<Record<string, unknown> | null>;
 } {
@@ -147,10 +147,11 @@ export function useIsochroneFlow(params: {
   }, [handleSearchPropertiesInIsochrone, params, queryClient]);
 
   const primeIsochroneOverlay = useCallback(
-    async (hasResults: boolean) => {
+    async () => {
       if (params.cachedIsochroneData) {
         params.renderIsochronePolygon(params.cachedIsochroneData);
         await params.renderImportantLocationMarkers(params.cachedIsochroneData);
+        await handleSearchPropertiesInIsochrone(params.cachedIsochroneData);
         return;
       }
 
@@ -159,12 +160,12 @@ export function useIsochroneFlow(params: {
         if (cached) {
           params.renderIsochronePolygon(cached);
           await params.renderImportantLocationMarkers(cached);
+          await handleSearchPropertiesInIsochrone(cached);
           return;
         }
       }
 
-      const fetcher = hasResults ? fetchIsochroneForMapOnly : fetchIsochronePolygon;
-      const data = (await fetcher()) as unknown;
+      const data = (await fetchIsochronePolygon()) as unknown;
       if (data) {
         params.renderIsochronePolygon(data as Record<string, unknown>);
         await params.renderImportantLocationMarkers(data as Record<string, unknown>);
@@ -177,8 +178,8 @@ export function useIsochroneFlow(params: {
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      fetchIsochroneForMapOnly,
       fetchIsochronePolygon,
+      handleSearchPropertiesInIsochrone,
       params.renderIsochronePolygon,
       params.renderImportantLocationMarkers,
       params.cachedIsochroneData,
@@ -187,6 +188,7 @@ export function useIsochroneFlow(params: {
   );
 
   const runIsochroneSearch = useCallback(async () => {
+    log.info(LOG_CATEGORIES.SEARCH, "Search begins", {});
     await fetchIsochronePolygon();
   }, [fetchIsochronePolygon]);
 

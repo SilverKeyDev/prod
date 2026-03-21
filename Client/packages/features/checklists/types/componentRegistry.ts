@@ -5,6 +5,7 @@ export type ChecklistComponentKey =
   | "set_budget"
   | "finding_home"
   | "home_concierge"
+  | "partner_agent"
   | "review_comparables";
 
 /** Props expected by checklist integration components. */
@@ -18,6 +19,7 @@ const VALID_KEYS: ChecklistComponentKey[] = [
   "set_budget",
   "finding_home",
   "home_concierge",
+  "partner_agent",
   "review_comparables",
 ];
 

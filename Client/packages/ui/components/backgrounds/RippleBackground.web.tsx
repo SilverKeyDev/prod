@@ -4,6 +4,8 @@ import { color } from "packages/design-tokens";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
+import type { RippleBackgroundProps } from "./rippleBackgroundProps";
+
 const CONNECT_DISTANCE = 95;
 const MOUSE_RADIUS = 95;
 
@@ -14,11 +16,14 @@ type Particle = {
   vy: number;
 };
 
-export default function RippleBackground() {
+export default function RippleBackground({ overlay = false }: RippleBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
   const mouse = useRef({ x: -9999, y: -9999 });
+  const connectDistRef = useRef(CONNECT_DISTANCE);
+  const overlayRef = useRef(overlay);
+  overlayRef.current = overlay;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -27,38 +32,45 @@ export default function RippleBackground() {
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const margin = 20;
 
     const win = getWindow();
+    let raf = 0;
+
     const resize = () => {
-      // Get device pixel ratio for high-DPI displays (Retina, etc.)
+      const isOverlay = overlayRef.current;
       const dpr = win?.devicePixelRatio ?? 1;
       const width = container.clientWidth;
       const height = container.clientHeight;
 
-      // Set canvas internal resolution (accounting for DPI)
       canvas.width = width * dpr;
       canvas.height = height * dpr;
-
-      // Set canvas CSS size (actual display size)
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
-      // Scale context to match DPI
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
 
-      // Dynamically calculate particle count based on screen area
-      const baseParticleCount = 260;
-      const baseArea = 1920 * 1080; // Fixed base area for consistent scaling
       const currentArea = width * height;
-      const particleDensity = baseParticleCount / baseArea;
-      const particleCount = Math.max(50, Math.floor(particleDensity * currentArea));
+      let particleCount: number;
+      let margin: number;
 
-      // Re-initialize particles after resize (use CSS dimensions, not canvas dimensions)
-      // Base velocity ensures everything is always moving slightly for a living feel
+      if (isOverlay) {
+        const shortSide = Math.min(width, height);
+        connectDistRef.current = Math.max(24, Math.min(52, shortSide * 0.62));
+        margin = Math.max(2, Math.min(10, Math.floor(shortSide * 0.12)));
+        particleCount = Math.max(10, Math.min(28, Math.floor(currentArea / 1100)));
+      } else {
+        connectDistRef.current = CONNECT_DISTANCE;
+        margin = 20;
+        const baseParticleCount = 260;
+        const baseArea = 1920 * 1080;
+        const particleDensity = baseParticleCount / baseArea;
+        particleCount = Math.max(50, Math.floor(particleDensity * currentArea));
+      }
+
       particles.current = Array.from({ length: particleCount }, () => ({
-        x: Math.random() * (width - 2 * margin) + margin,
-        y: Math.random() * (height - 2 * margin) + margin,
+        x: Math.random() * Math.max(1, width - 2 * margin) + margin,
+        y: Math.random() * Math.max(1, height - 2 * margin) + margin,
         vx: (Math.random() - 0.5) * 0.28,
         vy: (Math.random() - 0.5) * 0.28,
       }));
@@ -66,10 +78,13 @@ export default function RippleBackground() {
 
     resize();
     if (win) win.addEventListener("resize", resize);
+    const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
+    resizeObserver?.observe(container);
 
     const animate = () => {
       const width = container.clientWidth;
       const height = container.clientHeight;
+      const connectD = connectDistRef.current;
 
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = color("neutral.300");
@@ -80,11 +95,9 @@ export default function RippleBackground() {
         p.x += p.vx;
         p.y += p.vy;
 
-        // Bounce off edges
         if (p.x <= 0 || p.x >= width) p.vx *= -1;
         if (p.y <= 0 || p.y >= height) p.vy *= -1;
 
-        // Mouse repulsion
         const dx = p.x - mouse.current.x;
         const dy = p.y - mouse.current.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -99,7 +112,6 @@ export default function RippleBackground() {
         ctx.fill();
       }
 
-      // Connecting lines (thinner for better legibility of overlaid content)
       ctx.strokeStyle = color("neutral.200");
       for (let i = 0; i < particles.current.length; i++) {
         for (let j = i + 1; j < particles.current.length; j++) {
@@ -108,7 +120,7 @@ export default function RippleBackground() {
           const dx = pi.x - pj.x;
           const dy = pi.y - pj.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < CONNECT_DISTANCE) {
+          if (dist < connectD) {
             const segments = 20;
             const maxWidth = 0.5;
             const minWidth = 0.2;
@@ -117,11 +129,9 @@ export default function RippleBackground() {
               const t1 = seg / segments;
               const t2 = (seg + 1) / segments;
 
-              // Calculate width using smooth curve (thicker at ends, thinner in middle)
-              // Using a power function for faster taper
               const getWidth = (t: number) => {
-                const centerDist = Math.abs(t - 0.5) * 2; // 0 at center, 1 at edges
-                const curve = Math.pow(centerDist, 2.5); // Higher power = faster taper
+                const centerDist = Math.abs(t - 0.5) * 2;
+                const curve = Math.pow(centerDist, 2.5);
                 return minWidth + (maxWidth - minWidth) * curve;
               };
 
@@ -140,7 +150,7 @@ export default function RippleBackground() {
         }
       }
 
-      requestAnimationFrame(animate);
+      raf = requestAnimationFrame(animate);
     };
     animate();
 
@@ -152,18 +162,20 @@ export default function RippleBackground() {
     if (win) win.addEventListener("mousemove", handleMouseMove);
 
     return () => {
+      cancelAnimationFrame(raf);
       if (win) {
         win.removeEventListener("resize", resize);
         win.removeEventListener("mousemove", handleMouseMove);
       }
+      resizeObserver?.disconnect();
     };
-  }, []);
+  }, [overlay]);
 
   return (
     <Box
       ref={containerRef}
       className="pointer-events-none absolute inset-0 z-0"
-      style={{ background: color("neutral.50") }}
+      style={overlay ? { background: "transparent" } : { background: color("neutral.50") }}
     >
       <canvas ref={canvasRef} />
     </Box>

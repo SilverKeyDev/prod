@@ -2,6 +2,7 @@ import React from "react";
 
 import Input from "@ui/form/Input";
 
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
@@ -9,7 +10,9 @@ import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.nat
 import type { HomePriceResult } from "packages/utils/affordability";
 
 import {
+  AGENT_OPTIONAL_BUYER_FINANCIAL_HINT,
   CREDIT_SCORE_OPTIONS,
+  effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   type OnboardingData,
   SECTION_TITLES,
@@ -34,6 +37,11 @@ export function FinancialStep({
   isAffordabilityCollapsed,
   setIsAffordabilityCollapsed,
 }: FinancialStepProps) {
+  const authIsAgent = useIsAgent();
+  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
+    authIsAgent,
+    formIsAgent: formData.is_agent,
+  });
   const parseCurrency = (value: string): number | undefined => {
     const numeric = value.replace(/[^\d]/g, "");
     if (!numeric) return undefined;
@@ -46,9 +54,14 @@ export function FinancialStep({
       <Text className="text-text-primary text-lg font-semibold">
         {SECTION_TITLES.FINANCIAL_PROFILE}
       </Text>
+      {showAgentOptionalBuyerCallout && (
+        <Box className="border-border bg-background-surface rounded-lg border px-3 py-2">
+          <Text className="text-text-secondary text-xs">{AGENT_OPTIONAL_BUYER_FINANCIAL_HINT}</Text>
+        </Box>
+      )}
 
       <Box className="gap-3">
-        <Text className="text-text-secondary mb-1 text-sm font-medium">
+        <Text className="text-text-secondary mb-1 text-center text-xs font-medium">
           {FIELD_LABELS.HOME_BUDGET}
         </Text>
         <Box className="flex flex-row gap-3">

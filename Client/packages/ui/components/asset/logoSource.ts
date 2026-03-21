@@ -4,6 +4,16 @@
  * platform-specific resolution in `logoSource.native.ts`.
  */
 
+import { DEFAULT_AVATAR_WEB_PATH } from "packages/utils/media/defaultAvatar";
+
+/** Public path to default profile silhouette (web); same art as bundled PNG on native. */
+export { DEFAULT_AVATAR_WEB_PATH };
+
+/**
+ * Metro-bundled default avatar on native; on web use `source={{ uri: DEFAULT_AVATAR_WEB_PATH }}`.
+ */
+export const DEFAULT_AVATAR_BUNDLED: number | undefined = undefined;
+
 /** Full SilverKey wordmark logo (horizontal). */
 export const LOGO_URI = "/logo.png";
 

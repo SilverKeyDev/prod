@@ -129,11 +129,7 @@ export function ResetPasswordForm({
             loading={loading && !canResend}
             className={canResend ? "text-accent hover:text-accent" : "text-text-disabled"}
           >
-            {loading && !canResend
-              ? "Sending..."
-              : canResend
-                ? "Resend code"
-                : `Resend in ${countdown}s`}
+            {canResend ? "Resend code" : `Resend in ${countdown}s`}
           </Button>
         </Box>
       )}

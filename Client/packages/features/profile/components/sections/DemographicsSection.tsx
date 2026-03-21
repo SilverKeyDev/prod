@@ -1,5 +1,6 @@
 import React from "react";
 
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
 
 import AlignedRow from "@/components/layout/AlignedRow";
@@ -9,9 +10,13 @@ import ProfilePictureUpload from "@/features/profile/components/profilePicture/P
 import Label from "@/features/profile/components/settings/inputs/Label";
 import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
 import {
+  AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,
+  effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   IS_AGENT_OPTIONS,
   type OnboardingData,
+  PROFILE_NOT_SPECIFIED_LABEL,
+  profileFieldValueClassName,
   WHY_JOINING_SILVERKEY_OPTIONS,
 } from "@/features/profile/utils";
 
@@ -43,8 +48,8 @@ function getOptionLabel(
   options: readonly { value: string; label: string }[],
   value: string | undefined
 ): string {
-  if (!value) return "Not specified";
-  return options.find((o) => o.value === value)?.label ?? "Not specified";
+  if (!value) return PROFILE_NOT_SPECIFIED_LABEL;
+  return options.find((o) => o.value === value)?.label ?? PROFILE_NOT_SPECIFIED_LABEL;
 }
 
 export default function DemographicsSection({
@@ -56,6 +61,11 @@ export default function DemographicsSection({
   hideNameWhenOnboarding = false,
   showAgentChoice = true,
 }: DemographicsSectionProps) {
+  const authIsAgent = useIsAgent();
+  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
+    authIsAgent,
+    formIsAgent: formData.is_agent,
+  });
   const content = (
     <>
       <Title size="md" className="mb-6">
@@ -75,7 +85,7 @@ export default function DemographicsSection({
           justify="start"
           items={[
             {
-              title: <Label>{FIELD_LABELS.NAME}</Label>,
+              title: <Label className="mb-0">{FIELD_LABELS.NAME}</Label>,
               content: isEditMode ? (
                 <Input
                   type="text"
@@ -87,13 +97,15 @@ export default function DemographicsSection({
                   className="mt-2"
                 />
               ) : (
-                <Box className="mobile-input bg-background-base mt-2">
-                  {formData.name ?? "Not specified"}
+                <Box
+                  className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(formData.name)}`}
+                >
+                  {formData.name ?? PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
             {
-              title: <Label>{FIELD_LABELS.AGE}</Label>,
+              title: <Label className="mb-0">{FIELD_LABELS.AGE}</Label>,
               content: isEditMode ? (
                 <Input
                   type="number"
@@ -104,10 +116,13 @@ export default function DemographicsSection({
                   placeholder="Enter your age"
                   min={18}
                   max={100}
+                  className="mt-2"
                 />
               ) : (
-                <Box className="mobile-input bg-background-base">
-                  {formData.age ?? "Not specified"}
+                <Box
+                  className={`mobile-input bg-background-base mt-2 ${profileFieldValueClassName(formData.age)}`}
+                >
+                  {formData.age ?? PROFILE_NOT_SPECIFIED_LABEL}
                 </Box>
               ),
             },
@@ -133,7 +148,9 @@ export default function DemographicsSection({
                       placeholder="Select..."
                     />
                   ) : (
-                    <Box className="mobile-input bg-background-base">
+                    <Box
+                      className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.is_agent)}`}
+                    >
                       {getOptionLabel(IS_AGENT_OPTIONS, formData.is_agent)}
                     </Box>
                   ),
@@ -159,8 +176,10 @@ export default function DemographicsSection({
                       max={100}
                     />
                   ) : (
-                    <Box className="mobile-input bg-background-base">
-                      {formData.age ?? "Not specified"}
+                    <Box
+                      className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.age)}`}
+                    >
+                      {formData.age ?? PROFILE_NOT_SPECIFIED_LABEL}
                     </Box>
                   ),
                 },
@@ -169,63 +188,76 @@ export default function DemographicsSection({
         ]}
       />
 
-      {/* Why are you joining SilverKey? (multiselect tags) */}
-      <Box>
-        <Label>{FIELD_LABELS.WHY_JOINING_SILVERKEY}</Label>
-        <Box className="mt-2">
-          <OptionTagInput
-            options={WHY_JOINING_SILVERKEY_OPTIONS}
-            value={(formData.why_joining_silverkey as string[]) ?? []}
-            onChange={(value: string[]) => updateFormData("why_joining_silverkey", value)}
-            isEditMode={isEditMode}
+      <>
+        {showAgentOptionalBuyerCallout && (
+          <Box className="border-border bg-background-surface rounded-lg border px-3 py-2">
+            <Box className="text-text-secondary text-xs">
+              {AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT}
+            </Box>
+          </Box>
+        )}
+        {/* Why are you joining SilverKey? (multiselect tags) */}
+        <Box>
+          <Label>{FIELD_LABELS.WHY_JOINING_SILVERKEY}</Label>
+          <Box className="mt-2">
+            <OptionTagInput
+              options={WHY_JOINING_SILVERKEY_OPTIONS}
+              value={(formData.why_joining_silverkey as string[]) ?? []}
+              onChange={(value: string[]) => updateFormData("why_joining_silverkey", value)}
+              isEditMode={isEditMode}
+            />
+          </Box>
+        </Box>
+
+        {/* Buyer's Agent Section */}
+        <Box className="mt-6">
+          <AlignedRow
+            breakIntoRows="md"
+            gap="lg"
+            justify="start"
+            items={[
+              {
+                title: <Label>{FIELD_LABELS.HAS_BUYERS_AGENT}</Label>,
+                content: isEditMode ? (
+                  <Dropdown
+                    value={formData.has_buyers_agent ?? ""}
+                    onChange={(value) => updateFormData("has_buyers_agent", value)}
+                    options={HAS_BUYERS_AGENT_OPTIONS}
+                    placeholder="Select..."
+                  />
+                ) : (
+                  <Box
+                    className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.has_buyers_agent)}`}
+                  >
+                    {getOptionLabel(HAS_BUYERS_AGENT_OPTIONS, formData.has_buyers_agent)}
+                  </Box>
+                ),
+              },
+              {
+                title:
+                  formData.has_buyers_agent === "no" ? (
+                    <Label>Looking for Agent?</Label>
+                  ) : (
+                    <Box className="mb-2 block text-sm font-medium text-transparent">&nbsp;</Box>
+                  ),
+                content: (
+                  <DemographicsLookingForAgentCell
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateFormData={updateFormData}
+                  />
+                ),
+              },
+            ]}
           />
         </Box>
-      </Box>
-
-      {/* Buyer's Agent Section */}
-      <Box className="mt-6">
-        <AlignedRow
-          breakIntoRows="md"
-          gap="lg"
-          justify="start"
-          items={[
-            {
-              title: <Label>{FIELD_LABELS.HAS_BUYERS_AGENT}</Label>,
-              content: isEditMode ? (
-                <Dropdown
-                  value={formData.has_buyers_agent ?? ""}
-                  onChange={(value) => updateFormData("has_buyers_agent", value)}
-                  options={HAS_BUYERS_AGENT_OPTIONS}
-                  placeholder="Select..."
-                />
-              ) : (
-                <Box className="mobile-input bg-background-base">
-                  {getOptionLabel(HAS_BUYERS_AGENT_OPTIONS, formData.has_buyers_agent)}
-                </Box>
-              ),
-            },
-            {
-              title:
-                formData.has_buyers_agent === "no" ? (
-                  <Label>Looking for Agent?</Label>
-                ) : (
-                  <Box className="mb-2 block text-sm font-medium text-transparent">&nbsp;</Box>
-                ),
-              content: (
-                <DemographicsLookingForAgentCell
-                  formData={formData}
-                  isEditMode={isEditMode}
-                  updateFormData={updateFormData}
-                />
-              ),
-            },
-          ]}
-        />
-      </Box>
+      </>
     </>
   );
   return wrapInCard ? (
-    <Card border="light" className="space-y-6">{content}</Card>
+    <Card border="light" className="space-y-6">
+      {content}
+    </Card>
   ) : (
     <Box className="space-y-6">{content}</Box>
   );

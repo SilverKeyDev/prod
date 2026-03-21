@@ -1,4 +1,4 @@
-import { getOnboardingStepsMobile, validateOnboardingDataMobile } from "@/features/profile/utils";
+import { getOnboardingStepsMobile } from "@/features/profile/utils";
 
 import { useOnboardingAffordability } from "./useOnboardingAffordability";
 import { useOnboardingFormCore } from "./useOnboardingFormCore";
@@ -12,8 +12,11 @@ export function useOnboardingForm(options: UseOnboardingFormOptions = {}) {
   const { onSubmitSuccess } = options;
 
   const core = useOnboardingFormCore({
-    getSteps: getOnboardingStepsMobile,
-    validate: validateOnboardingDataMobile,
+    getSteps: (formData) =>
+      getOnboardingStepsMobile({
+        isAgent:
+          formData.is_agent === "yes" || formData.is_agent === "am_agent",
+      }),
     onSubmitSuccess,
   });
 

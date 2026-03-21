@@ -133,14 +133,14 @@ function Dropdown<T = unknown>({
     });
     return () => observers.forEach((o) => o.disconnect());
   }, [isOpen, checkOptionWraps, filteredOptions]);
-  // Variant styles - using exact onboarding styling
+  // Variant styles - dark outline when not selected; primary on focus
   const variantStyles = {
     default:
-      "border-border bg-background-surface hover:border-border focus:ring-accent-muted focus:border-primary",
+      "border-neutral-400 bg-background-surface hover:border-neutral-400 focus:ring-accent-muted focus:border-primary",
     mobile:
-      "mobile-input border-border bg-background-surface hover:border-border focus:ring-accent-muted focus:border-primary touch-friendly",
+      "mobile-input border-neutral-400 bg-background-surface hover:border-neutral-400 focus:ring-accent-muted focus:border-primary touch-friendly",
     compact:
-      "border-border bg-background-surface hover:border-border focus:ring-accent-muted focus:border-primary",
+      "border-neutral-400 bg-background-surface hover:border-neutral-400 focus:ring-accent-muted focus:border-primary",
   };
   // Size styles - using exact onboarding sizing
   const sizeStyles = {

@@ -7,18 +7,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { color } from "packages/design-tokens";
 import { PropertyDetailsBody } from "packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsBody";
 import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
+import { usePropertyDetails } from "packages/hooks/data/usePropertyDetails";
+import type { PropertyDetailsStreamProperty } from "packages/types";
 import { ScrollView } from "packages/ui/components/primitives";
 import { setToStorage } from "packages/utils/storage";
-
-import type { Property } from "@/features/search/hooks/data/property/usePropertyDetails";
-import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
 
 export type PropertyDetailsScreenParams = {
   address: string;
   propertyId?: string;
 };
 
-function buildMinimalProperty(address: string, propertyId?: string): Property {
+function buildMinimalProperty(
+  address: string,
+  propertyId?: string,
+): PropertyDetailsStreamProperty {
   return {
     id: propertyId ?? "",
     address,
@@ -40,8 +42,12 @@ export function PropertyDetailsScreenNative() {
   const address = params?.address ?? "";
   const propertyId = params?.propertyId;
 
-  const { selectedProperty, isLoading, fetchPropertyDetails, clearSelectedProperty } =
-    usePropertyDetails();
+  const {
+    selectedProperty,
+    isLoading,
+    fetchPropertyDetails,
+    clearSelectedProperty,
+  } = usePropertyDetails();
 
   useEffect(() => {
     if (address && address.trim().length > 0) {
@@ -61,7 +67,8 @@ export function PropertyDetailsScreenNative() {
 
   const handleGenerateReport = useCallback(() => {
     const generateReportState = {
-      address: typeof property?.address === "string" ? property.address : address,
+      address:
+        typeof property?.address === "string" ? property.address : address,
       reportType: "detailed",
       selectedClientId: "",
     };
@@ -73,7 +80,8 @@ export function PropertyDetailsScreenNative() {
     return null;
   }
 
-  const property = selectedProperty ?? buildMinimalProperty(address, propertyId);
+  const property =
+    selectedProperty ?? buildMinimalProperty(address, propertyId);
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>

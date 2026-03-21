@@ -10,6 +10,7 @@ import ChooseAreasSection from "./ChooseAreasSection";
 import DefineCriteriaSection from "./DefineCriteriaSection";
 import FindingHome from "./FindingHome";
 import HomeConcierge from "./HomeConcierge";
+import PartnerAgentSection from "./PartnerAgentSection";
 import ReviewComparablesSection from "./ReviewComparablesSection";
 import SetBudgetSection from "./SetBudgetSection";
 
@@ -21,6 +22,7 @@ export const COMPONENT_REGISTRY: Record<
   define_criteria: DefineCriteriaSection,
   finding_home: FindingHome,
   home_concierge: HomeConcierge,
+  partner_agent: PartnerAgentSection,
   review_comparables: ReviewComparablesSection,
   set_budget: SetBudgetSection,
 };

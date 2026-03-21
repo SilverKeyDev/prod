@@ -11,6 +11,8 @@ export type ConnectedCardHeartSaveProps = {
     address?: string;
   };
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  /** Toolbar / header: keep heart in row with share actions (web: not absolutely positioned). */
+  inline?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "small" | "medium" | "large";
   className?: string;
   ariaLabel?: string;
@@ -24,6 +26,7 @@ export type ConnectedCardHeartSaveProps = {
 export function ConnectedCardHeartSave({
   property,
   position = "top-right",
+  inline = false,
   size = "md",
   className = "",
   ariaLabel,
@@ -44,6 +47,7 @@ export function ConnectedCardHeartSave({
       saveHome={saveHome}
       removeSavedHome={removeSavedHome}
       position={position}
+      inline={inline}
       size={size}
       className={className}
       ariaLabel={ariaLabel}

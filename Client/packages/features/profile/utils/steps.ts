@@ -1,44 +1,88 @@
 import type { ProfileStep } from "./types";
 
+const AGENT_STEPS: ProfileStep[] = [
+  { id: "agent_brokerage", title: "Brokerage" },
+  { id: "agent_licensing", title: "Licensing" },
+  { id: "agent_profile", title: "Profile & service area" },
+];
+
 const ALL_STEPS: ProfileStep[] = [
   { id: "demographics", title: "About You" },
   { id: "housing", title: "Housing" },
   { id: "location", title: "Location" },
-  { id: "communication", title: "Communication" },
   { id: "financial", title: "Finances" },
 ];
+
+function orderStepsWithFinancialLast(steps: ProfileStep[]): ProfileStep[] {
+  const financial = steps.find((step) => step.id === "financial");
+  const others = steps.filter((step) => step.id !== "financial");
+  return [...others, ...(financial ? [financial] : [])];
+}
+
+/**
+ * Buyer steps, or demographics + agent steps + buyer preference steps when `isAgent`.
+ * Financial is always last when present.
+ */
+function getProfileFlowSteps(isAgent: boolean): ProfileStep[] {
+  if (isAgent) {
+    const demographics = ALL_STEPS.find((s) => s.id === "demographics");
+    const housing = ALL_STEPS.find((s) => s.id === "housing");
+    const location = ALL_STEPS.find((s) => s.id === "location");
+    const financial = ALL_STEPS.find((s) => s.id === "financial");
+    return [
+      ...(demographics ? [demographics] : []),
+      ...AGENT_STEPS,
+      ...(housing ? [housing] : []),
+      ...(location ? [location] : []),
+      ...(financial ? [financial] : []),
+    ];
+  }
+  return orderStepsWithFinancialLast(ALL_STEPS);
+}
 
 export type GetOnboardingStepsOptions = {
   /** When true, financial step is excluded. Use feature flags to control step availability. */
   excludeFinancial?: boolean;
+  /** When true, insert agent steps after demographics (onboarding/profile). */
+  isAgent?: boolean;
 };
 
-function getOnboardingStepsBase(): ProfileStep[] {
-  const filtered = ALL_STEPS.filter((step) => step.id !== "communication");
-  const financial = filtered.find((step) => step.id === "financial");
-  const others = filtered.filter((step) => step.id !== "financial");
-  return [...others, ...(financial ? [financial] : [])];
+function getOnboardingStepsBase(options?: GetOnboardingStepsOptions): ProfileStep[] {
+  return getProfileFlowSteps(Boolean(options?.isAgent));
 }
 
-export const getOnboardingSteps = (options?: GetOnboardingStepsOptions): ProfileStep[] => {
-  const steps = getOnboardingStepsBase();
+export const getOnboardingSteps = (
+  options?: GetOnboardingStepsOptions,
+): ProfileStep[] => {
+  const steps = getOnboardingStepsBase(options);
   if (options?.excludeFinancial) {
     return steps.filter((step) => step.id !== "financial");
   }
   return steps;
 };
 
-export const getPersonalizationSteps = (): ProfileStep[] => {
-  const others = ALL_STEPS.filter((step) => step.id !== "communication");
-  const demographics = others.find((step) => step.id === "demographics");
-  const financial = others.find((step) => step.id === "financial");
-  const middle = others.filter((step) => step.id !== "demographics" && step.id !== "financial");
-  return [...(demographics ? [demographics] : []), ...middle, ...(financial ? [financial] : [])];
+export type GetPersonalizationStepsOptions = {
+  /** When true, include agent steps after demographics. */
+  isAgent?: boolean;
 };
 
 /**
- * Onboarding steps for mobile. Excludes financial step (demographics, housing, location only).
+ * Profile / settings: same buyer sections for everyone; agents also see brokerage,
+ * licensing, and profile tabs after About You (optional-buyer sections use in-flow disclaimers).
  */
-export const getOnboardingStepsMobile = (): ProfileStep[] => {
-  return getOnboardingSteps({ excludeFinancial: true });
+export const getPersonalizationSteps = (
+  options?: GetPersonalizationStepsOptions,
+): ProfileStep[] => getProfileFlowSteps(Boolean(options?.isAgent));
+
+/**
+ * Onboarding steps for mobile. Excludes financial step (demographics, housing, location only).
+ * Pass isAgent: true to include agent steps after demographics.
+ */
+export const getOnboardingStepsMobile = (
+  options?: GetOnboardingStepsOptions,
+): ProfileStep[] => {
+  return getOnboardingSteps({
+    excludeFinancial: true,
+    isAgent: options?.isAgent,
+  });
 };

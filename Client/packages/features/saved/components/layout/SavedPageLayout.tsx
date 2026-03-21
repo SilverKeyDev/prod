@@ -148,39 +148,39 @@ export function SavedPageLayout({
       >
         <Box className="w-full">
           {!isMobile && (
-            <>
-              <Box className="mb-4 w-full">
-                <ClientSelector
-                  selectedClientId={selectedClientId}
-                  onClientChange={setSelectedClientId}
-                />
-              </Box>
-              <Box className="w-full">
-                <SavedPageTabsAndSearch
-                  searchTerm={searchTerm}
-                  onSearchChange={setSearchTerm}
-                  searchPlaceholder={
-                    viewType === "homes"
-                      ? "Search saved homes..."
-                      : viewType === "documents"
-                        ? "Search documents..."
-                        : "Filter by address"
-                  }
-                  viewType={viewType}
-                  onViewTypeChange={setViewType}
-                  eventTypeFilter={eventTypeFilter}
-                  onEventTypeFilterChange={setEventTypeFilter}
-                  rightText={
-                    viewType === "homes"
-                      ? `${filteredHomes.length} saved`
-                      : viewType === "documents"
-                        ? `${filteredDocuments.length} documents`
-                        : ""
-                  }
-                  onUploadClick={() => setIsDocumentUploadModalOpen(true)}
-                />
-              </Box>
-            </>
+            <Box className="w-full">
+              <SavedPageTabsAndSearch
+                toolbarLeading={
+                  isAgent ? (
+                    <ClientSelector
+                      selectedClientId={selectedClientId}
+                      onClientChange={setSelectedClientId}
+                    />
+                  ) : undefined
+                }
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                searchPlaceholder={
+                  viewType === "homes"
+                    ? "Search saved homes..."
+                    : viewType === "documents"
+                      ? "Search documents..."
+                      : "Filter by address"
+                }
+                viewType={viewType}
+                onViewTypeChange={setViewType}
+                eventTypeFilter={eventTypeFilter}
+                onEventTypeFilterChange={setEventTypeFilter}
+                rightText={
+                  viewType === "homes"
+                    ? `${filteredHomes.length} saved`
+                    : viewType === "documents"
+                      ? `${filteredDocuments.length} documents`
+                      : ""
+                }
+                onUploadClick={() => setIsDocumentUploadModalOpen(true)}
+              />
+            </Box>
           )}
           {viewType === "documents" && isAgent && (
             <Box className="mb-4 w-full">

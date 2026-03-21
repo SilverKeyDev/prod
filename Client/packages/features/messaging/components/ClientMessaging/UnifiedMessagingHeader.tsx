@@ -13,11 +13,48 @@ type UnifiedMessagingHeaderProps = {
   onSearchClick?: () => void;
   onInboxClick?: () => void;
   onBackClick?: () => void;
+  /** Pending incoming connection requests (badge on Requests control). */
+  pendingConnectionRequestCount?: number;
   className?: string;
   chatTitle?: string;
   selectedClientName?: string;
   agentName?: string;
 };
+
+function ConnectionRequestsHeaderButton({
+  onClick,
+  label,
+  pendingCount,
+}: {
+  onClick: () => void;
+  label: string;
+  pendingCount: number;
+}) {
+  return (
+    <Box className="relative shrink-0">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onClick}
+        className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
+        label={label}
+      >
+        <Icon name="inbox" className="h-4 w-4 text-neutral-600" />
+        <BodyText as="span" size="sm" className="text-neutral-600">
+          {label}
+        </BodyText>
+      </Button>
+      {pendingCount > 0 ? (
+        <Box
+          className="bg-destructive absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-semibold leading-none text-white"
+          aria-hidden
+        >
+          {pendingCount > 9 ? "9+" : String(pendingCount)}
+        </Box>
+      ) : null}
+    </Box>
+  );
+}
 function HeaderLeftContent({
   mode,
   isSidebarExpanded = false,
@@ -104,6 +141,7 @@ function HeaderRightContent({
   onSearchClick,
   onInboxClick,
   selectedClientName,
+  pendingConnectionRequestCount = 0,
 }: {
   mode: HeaderMode;
   isSidebarExpanded?: boolean;
@@ -111,6 +149,7 @@ function HeaderRightContent({
   onSearchClick?: () => void;
   onInboxClick?: () => void;
   selectedClientName?: string;
+  pendingConnectionRequestCount?: number;
 }) {
   const { t } = useLocalization();
   const collapseBtn =
@@ -132,25 +171,26 @@ function HeaderRightContent({
     case "inbox":
       return (
         <Box className="flex items-center gap-2">
-          {onInboxClick && (
-            <Button
-              variant="ghost"
-              size="sm"
+          {onInboxClick ? (
+            <ConnectionRequestsHeaderButton
               onClick={onInboxClick}
-              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
-            >
-              <Icon name="inbox" className="h-4 w-4 text-neutral-600" />
-              <BodyText as="span" size="sm" className="text-neutral-600">
-                {t("agent.requests")}
-              </BodyText>
-            </Button>
-          )}
+              label={t("agent.requests")}
+              pendingCount={pendingConnectionRequestCount}
+            />
+          ) : null}
           {collapseBtn}
         </Box>
       );
     case "clients":
       return (
         <Box className="flex items-center gap-2">
+          {onInboxClick ? (
+            <ConnectionRequestsHeaderButton
+              onClick={onInboxClick}
+              label={t("agent.requests")}
+              pendingCount={pendingConnectionRequestCount}
+            />
+          ) : null}
           {onSearchClick && (
             <Button
               variant="ghost"
@@ -181,7 +221,33 @@ function HeaderRightContent({
         </Box>
       );
     case "no-agent":
-      return null;
+      return (
+        <Box className="flex items-center gap-2">
+          {onInboxClick ? (
+            <ConnectionRequestsHeaderButton
+              onClick={onInboxClick}
+              label={t("agent.requests")}
+              pendingCount={pendingConnectionRequestCount}
+            />
+          ) : null}
+          {onSearchClick ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSearchClick}
+              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
+              label={t("agent.search_agent_to_start_messaging")}
+              title={t("agent.search_agent_to_start_messaging")}
+            >
+              <Icon name="search" className="h-4 w-4 text-neutral-600" />
+              <BodyText as="span" size="sm" className="text-neutral-600">
+                {t("agent.search_for_agent")}
+              </BodyText>
+            </Button>
+          ) : null}
+          {collapseBtn}
+        </Box>
+      );
   }
 }
 export default function UnifiedMessagingHeader({
@@ -191,6 +257,7 @@ export default function UnifiedMessagingHeader({
   onInboxClick,
   onBackClick,
   onSearchClick,
+  pendingConnectionRequestCount = 0,
   className = "",
   chatTitle: _chatTitle,
   selectedClientName,
@@ -214,6 +281,7 @@ export default function UnifiedMessagingHeader({
         onSearchClick={onSearchClick}
         onInboxClick={onInboxClick}
         selectedClientName={selectedClientName}
+        pendingConnectionRequestCount={pendingConnectionRequestCount}
       />
     </Box>
   );

@@ -14,7 +14,8 @@ if (!fs.existsSync(distDir)) {
   process.exit(1);
 }
 
-const reactNativeSpecifier = /from\s+["']react-native["']|import\s+.*\s+from\s+["']react-native["']/;
+const reactNativeSpecifier =
+  /from\s+["']react-native["']|import\s+.*\s+from\s+["']react-native["']/;
 const nativeChunkName = /\.native\./;
 let failed = false;
 
@@ -29,12 +30,18 @@ function scanDir(dir) {
     if (e.name.endsWith(".js") && !e.name.endsWith(".map")) {
       const content = fs.readFileSync(full, "utf8");
       if (reactNativeSpecifier.test(content)) {
-        console.error("check-web-dist-no-native: found react-native specifier in", path.relative(distDir, full));
+        console.error(
+          "check-web-dist-no-native: found react-native specifier in",
+          path.relative(distDir, full)
+        );
         failed = true;
       }
     }
     if (nativeChunkName.test(e.name)) {
-      console.error("check-web-dist-no-native: found .native. in output name:", path.relative(distDir, full));
+      console.error(
+        "check-web-dist-no-native: found .native. in output name:",
+        path.relative(distDir, full)
+      );
       failed = true;
     }
   }
@@ -42,6 +49,8 @@ function scanDir(dir) {
 
 scanDir(distDir);
 if (failed) {
-  console.error("check-web-dist-no-native: web build must not contain react-native or .native modules. Fix Vite stubbing.");
+  console.error(
+    "check-web-dist-no-native: web build must not contain react-native or .native modules. Fix Vite stubbing."
+  );
   process.exit(1);
 }

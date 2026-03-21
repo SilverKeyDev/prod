@@ -16,6 +16,21 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
+# Map file extension to Content-Type for profile picture presigned URLs
+_PROFILE_PICTURE_EXT_TO_MIME = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".gif": "image/gif",
+}
+
+
+def _profile_picture_content_type(s3_key: str) -> str:
+    """Infer Content-Type from profile picture S3 key (e.g. .../avatar.jpg -> image/jpeg)."""
+    _, ext = os.path.splitext((s3_key or "").lower())
+    return _PROFILE_PICTURE_EXT_TO_MIME.get(ext, "image/jpeg")
+
+
 def _get_profile_picture_url(user):
     """Return presigned profile picture URL if user has one; else None. Does not raise."""
     from app.services.documents import s3_service
@@ -23,7 +38,10 @@ def _get_profile_picture_url(user):
     if not getattr(user, "profile_picture", None):
         return None
     try:
-        return s3_service.generate_view_url(user.profile_picture)
+        content_type = _profile_picture_content_type(user.profile_picture)
+        return s3_service.generate_view_url(
+            user.profile_picture, content_type=content_type
+        )
     except Exception as e:
         current_app.logger.warning(
             "Profile picture URL generation failed",
@@ -176,7 +194,9 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
         user.profile_picture = uploaded_key
         db.session.commit()
 
-        profile_picture_url = s3_service.generate_view_url(uploaded_key)
+        profile_picture_url = s3_service.generate_view_url(
+            uploaded_key, content_type=validated_mime_type
+        )
         return jsonify(
             {
                 "success": True,

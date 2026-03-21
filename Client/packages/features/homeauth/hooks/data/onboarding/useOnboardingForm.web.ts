@@ -6,24 +6,25 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 
 import { getOnboardingStepsUi } from "@/features/profile/components/profilePicture/profileStepsUi";
-import {
-  isOnboardingStepComplete,
-  validateOnboardingData,
-} from "@/features/profile/utils";
+import { isOnboardingStepComplete } from "@/features/profile/utils";
 
 import { useOnboardingAffordability } from "./useOnboardingAffordability";
 import { getScriptsReady } from "./useOnboardingForm.helpers";
 import { useOnboardingFormCore } from "./useOnboardingFormCore";
 
-export function useOnboardingForm() {
+export type UseOnboardingFormOptions = {
+  /** When provided, called on successful submit (native uses this; web uses navigate). */
+  onSubmitSuccess?: () => void;
+};
+
+export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
   const { navigateToPath } = useNavigation();
   const { isMdUp } = useResponsive();
   const [scriptsReadyState, setScriptsReadyState] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const core = useOnboardingFormCore({
-    getSteps: getOnboardingStepsUi,
-    validate: validateOnboardingData,
+    getSteps: (formData) => getOnboardingStepsUi(formData),
     navigate: (path: string) => navigateToPath(path),
   });
 
@@ -42,8 +43,7 @@ export function useOnboardingForm() {
     () => isOnboardingStepComplete(core.formData, currentStepId),
     [core.formData, currentStepId]
   );
-  const showSkipOnNext =
-    currentStepId !== "demographics" && !isCurrentStepComplete;
+  const showSkipOnNext = currentStepId !== "demographics" && !isCurrentStepComplete;
 
   useEffect(() => {
     if (googleMapsError) {

@@ -12,6 +12,8 @@ import {
   INTENDED_USE_OPTIONS,
   LISTING_TYPE_OPTIONS,
   type OnboardingData,
+  PROFILE_NOT_SPECIFIED_LABEL,
+  profileFieldValueClassName,
   RENOVATION_OPTIONS,
 } from "@/features/profile/utils";
 import { WALKABILITY_OPTIONS } from "@/features/profile/utils/constants";
@@ -39,12 +41,14 @@ export function HousingDropdownRows({
           placeholder="Select..."
         />
       ) : (
-        <Box className="mobile-input bg-background-base">
+        <Box
+          className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.preferred_architectural_style)}`}
+        >
           {formData.preferred_architectural_style
             ? ARCHITECTURAL_STYLE_OPTIONS.find(
                 (opt) => opt.value === formData.preferred_architectural_style
               )?.label
-            : "Not specified"}
+            : PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),
     },
@@ -58,11 +62,13 @@ export function HousingDropdownRows({
           placeholder="Select..."
         />
       ) : (
-        <Box className="mobile-input bg-background-base">
+        <Box
+          className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.walkability_importance)}`}
+        >
           {formData.walkability_importance
             ? WALKABILITY_OPTIONS.find((opt) => opt.value === formData.walkability_importance)
                 ?.label
-            : "Not specified"}
+            : PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),
     },
@@ -76,11 +82,13 @@ export function HousingDropdownRows({
           placeholder="Select..."
         />
       ) : (
-        <Box className="mobile-input bg-background-base">
+        <Box
+          className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.intended_property_use)}`}
+        >
           {formData.intended_property_use
             ? INTENDED_USE_OPTIONS.find((opt) => opt.value === formData.intended_property_use)
                 ?.label
-            : "Not specified"}
+            : PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),
     },
@@ -94,20 +102,19 @@ export function HousingDropdownRows({
           placeholder="Select..."
         />
       ) : (
-        <Box className="mobile-input bg-background-base">
+        <Box
+          className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.renovation_preference)}`}
+        >
           {formData.renovation_preference
-            ? RENOVATION_OPTIONS.find((opt) => opt.value === formData.renovation_preference)
-                ?.label
-            : "Not specified"}
+            ? RENOVATION_OPTIONS.find((opt) => opt.value === formData.renovation_preference)?.label
+            : PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),
     },
     ...(isDesktop
       ? [
           {
-            title: (
-              <Box className="mb-2 block text-sm font-medium text-transparent">&nbsp;</Box>
-            ),
+            title: <Box className="mb-2 block text-sm font-medium text-transparent">&nbsp;</Box>,
             content: <Box className="mobile-input bg-background-base opacity-0">&nbsp;</Box>,
           },
         ]
@@ -116,38 +123,20 @@ export function HousingDropdownRows({
 
   const listingTypeItem = {
     title: <Label>{FIELD_LABELS.LISTING_TYPE}</Label>,
-    content: isEditMode ? (
+    content: (
       <OptionTagInput
         options={LISTING_TYPE_OPTIONS}
         value={(formData.listing_type as string[]) ?? []}
         onChange={(arr) => updateFormData("listing_type", arr)}
-        isEditMode={true}
+        isEditMode={isEditMode}
       />
-    ) : (
-      <Box className="mobile-input bg-background-base">
-        {((formData.listing_type as string[]) ?? []).length === 0
-          ? "Not specified"
-          : ((formData.listing_type as string[]) ?? [])
-              .map((v) => LISTING_TYPE_OPTIONS.find((o) => o.value === v)?.label ?? v)
-              .join(", ")}
-      </Box>
     ),
   };
 
   return (
     <>
-      <AlignedRow
-        breakIntoRows="md"
-        gap="lg"
-        justify="start"
-        items={firstRowItems}
-      />
-      <AlignedRow
-        breakIntoRows="md"
-        gap="lg"
-        justify="start"
-        items={[listingTypeItem]}
-      />
+      <AlignedRow breakIntoRows="md" gap="lg" justify="start" items={firstRowItems} />
+      <AlignedRow breakIntoRows="md" gap="lg" justify="start" items={[listingTypeItem]} />
     </>
   );
 }

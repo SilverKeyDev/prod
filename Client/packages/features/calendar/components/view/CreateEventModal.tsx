@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { Icon } from "@ui/icons";
+
 import type { Calendar, ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
 import type { GoogleEvent } from "packages/features/calendar/types/googleEvent";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -438,16 +440,24 @@ export function CreateEventModal({
             </BodyText>
           )}
           {locationSuggestions.length > 0 && (
-            <ul className="bg-background-surface relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border shadow-sm">
+            <ul className="bg-background-surface relative z-50 mt-2 flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md shadow-sm">
               {locationSuggestions.map((s, idx) => (
-                <li key={s.placePrediction.text.text + idx}>
+                <li
+                  key={s.placePrediction.text.text + idx}
+                  className="rounded border border-dotted border-neutral-300"
+                >
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleLocationSelect(s)}
-                    className="hover:bg-primary-muted w-full cursor-pointer justify-start px-3 py-2 text-left text-sm"
+                    className="hover:bg-primary-muted w-full !justify-start cursor-pointer px-3 py-2 text-sm [&>div]:w-full [&>div]:!justify-start [&>div>div]:!justify-start [&>div>div]:!text-left"
                   >
-                    {s.description}
+                    <Box className="flex w-full items-center justify-start gap-2 text-left">
+                      <Icon name="map-pin" className="h-4 w-4 shrink-0 text-neutral-500" />
+                      <BodyText as="span" size="sm" className="min-w-0 flex-1 text-left">
+                        {s.description}
+                      </BodyText>
+                    </Box>
                   </Button>
                 </li>
               ))}

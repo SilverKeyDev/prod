@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import Card from "packages/ui/components/cards/Card";
@@ -7,6 +7,7 @@ import { dateNow, dayjs } from "packages/utils/date";
 
 import { useGoogleCalendarPermissions, useGoogleEvents } from "@/features/calendar/hooks/data";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
+import type { AgendaTodoDTO, AgendaTodoPriority } from "@/features/calendar/types/agenda";
 import {
   findSilverKeyCalendar,
   getCalendarsKey,
@@ -16,16 +17,42 @@ import {
   filterEventsByCalendars,
   filterUpcomingEvents,
 } from "@/features/calendar/utils/eventFiltering";
+import {
+  filterTodosInRange,
+  mergeUpcomingAgendaItems,
+} from "@/features/calendar/utils/mergeUpcomingAgenda";
 
 import { CalendarConnectionPrompt } from "./view/CalendarConnectionPrompt";
 import { EventList } from "./view/EventList";
+import { UpcomingAgendaList } from "./view/UpcomingAgendaList";
+
+const AGENDA_TITLE = "This week";
 
 type UpcomingEventsProps = {
   /** When true, EventList renders without FlatList (for use inside another VirtualizedList). */
   embedInListHeader?: boolean;
+  /** When true, omit the connect / permissions prompt when a sibling Calendar shows it below. */
+  suppressConnectionPrompt?: boolean;
+  /** Optional section heading; omitted when this block returns null (e.g. suppressed + disconnected). */
+  sectionTitle?: string;
+  /** When set (e.g. for agents), to-dos are merged into the upcoming list. Omit for non-agents. */
+  agendaTodos?: AgendaTodoDTO[];
+  onToggleAgendaTodo?: (id: string) => void;
+  onUpdateAgendaTodoPriority?: (id: string, priority: AgendaTodoPriority) => void;
+  canEditAgendaTodos?: boolean;
+  headerActions?: ReactNode;
 };
 
-export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProps = {}) {
+export function UpcomingEvents({
+  embedInListHeader = false,
+  suppressConnectionPrompt = false,
+  sectionTitle,
+  agendaTodos,
+  onToggleAgendaTodo,
+  onUpdateAgendaTodoPriority,
+  canEditAgendaTodos = false,
+  headerActions,
+}: UpcomingEventsProps = {}) {
   const { isConnected, calendars, calendarsLoading, connectGoogleCalendar } =
     useGoogleCalendarStoreIntegration();
 
@@ -41,7 +68,6 @@ export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProp
   const lastCalendarsRef = useRef<string>("");
   const hadDisabledCalendarsRef = useRef(false);
 
-  // Recalculate daily to ensure our "next 7 days" window stays current
   const [todayDateString, setTodayDateString] = useState(() => dateNow().format("ddd MMM DD YYYY"));
   const lastCheckedDateRef = useRef<string>(todayDateString);
 
@@ -60,7 +86,6 @@ export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProp
     return () => clearInterval(interval);
   }, []);
 
-  // Initialize enabled calendars from preferences (read-only; no toggling here)
   useEffect(() => {
     if (!calendars || calendars.length === 0) {
       return;
@@ -110,7 +135,12 @@ export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProp
     [enabledCalendarIds]
   );
 
-  const { events: upcomingEventsRaw } = useGoogleEvents({
+  const {
+    events: upcomingEventsRaw,
+    refreshEvents,
+    updateEvent,
+    deleteEvent,
+  } = useGoogleEvents({
     calendarIds: enabledCalendarIdsArray,
     timeMin: upcomingDateRange.timeMin,
     timeMax: upcomingDateRange.timeMax,
@@ -127,9 +157,30 @@ export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProp
     [filteredUpcomingEvents]
   );
 
+  const agendaTodosInRange = useMemo(() => {
+    if (!agendaTodos?.length) {
+      return [];
+    }
+    return filterTodosInRange(agendaTodos, upcomingDateRange.timeMin, upcomingDateRange.timeMax);
+  }, [agendaTodos, upcomingDateRange.timeMin, upcomingDateRange.timeMax]);
+
+  const mergedAgendaItems = useMemo(
+    () => mergeUpcomingAgendaItems(upcomingEvents, agendaTodosInRange),
+    [upcomingEvents, agendaTodosInRange]
+  );
+
   const handleConnect = useCallback(() => {
     connectGoogleCalendar();
   }, [connectGoogleCalendar]);
+
+  const wrapWithSectionTitle = (body: ReactNode) => (
+    <Box className="mt-6 gap-3">
+      {sectionTitle ? (
+        <Text className="text-text-primary text-lg font-medium">{sectionTitle}</Text>
+      ) : null}
+      {body}
+    </Box>
+  );
 
   const shouldShowConnectionPrompt = useMemo(() => {
     if (!isConnected) {
@@ -145,33 +196,105 @@ export function UpcomingEvents({ embedInListHeader = false }: UpcomingEventsProp
 
   const permissionsReady = !permissionsLoading && permissions !== undefined;
 
+  const useAgendaList = agendaTodos !== undefined;
+
+  const agendaListProps = {
+    embedInListHeader,
+    border: "light" as const,
+    title: AGENDA_TITLE,
+    emptyMessage: "No upcoming events or to-dos in the next week",
+    headerActions,
+    silverKeyCalendarId: silverKeyCalendarIdRef.current,
+    refreshEvents,
+    updateEvent,
+    deleteEvent,
+    calendars: calendars ?? [],
+    onToggleAgendaTodo,
+    onUpdateAgendaTodoPriority,
+    canEditAgendaTodos,
+  };
+
   if (!permissionsReady) {
-    return (
-      <Card border="charcoal" className="mt-4 w-full" padding="sm" hover={false}>
+    const loadingCard = (
+      <Card
+        border="charcoal"
+        className={sectionTitle ? "w-full" : "mt-4 w-full"}
+        padding="sm"
+        hover={false}
+      >
         <Text className="text-text-secondary text-center text-sm">
           Loading calendar permissions...
         </Text>
       </Card>
     );
+    return sectionTitle ? wrapWithSectionTitle(loadingCard) : loadingCard;
   }
 
   if (shouldShowConnectionPrompt) {
-    return (
-      <Card border="charcoal" className="mt-4 w-full" padding="sm" hover={false}>
-        <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
-      </Card>
+    const hasTodosWhileDisconnected = useAgendaList && agendaTodosInRange.length > 0;
+
+    if (suppressConnectionPrompt) {
+      if (!hasTodosWhileDisconnected) {
+        return null;
+      }
+      const todosOnly = (
+        <Box className={sectionTitle ? "w-full" : "mt-4 w-full"}>
+          <UpcomingAgendaList
+            items={mergeUpcomingAgendaItems([], agendaTodosInRange)}
+            {...agendaListProps}
+          />
+        </Box>
+      );
+      return sectionTitle ? wrapWithSectionTitle(todosOnly) : todosOnly;
+    }
+
+    if (!hasTodosWhileDisconnected) {
+      const promptCard = (
+        <Card
+          border="charcoal"
+          className={sectionTitle ? "w-full" : "mt-4 w-full"}
+          padding="sm"
+          hover={false}
+        >
+          <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
+        </Card>
+      );
+      return sectionTitle ? wrapWithSectionTitle(promptCard) : promptCard;
+    }
+
+    const disconnectedBody = (
+      <Box className={sectionTitle ? "w-full gap-4" : "mt-4 w-full gap-4"}>
+        <Card border="charcoal" className="w-full" padding="sm" hover={false}>
+          <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
+        </Card>
+        <UpcomingAgendaList
+          items={mergeUpcomingAgendaItems([], agendaTodosInRange)}
+          {...agendaListProps}
+        />
+      </Box>
     );
+    return sectionTitle ? wrapWithSectionTitle(disconnectedBody) : disconnectedBody;
   }
 
-  return (
+  const list = (
     <Box className="mt-4 w-full">
-      <EventList
-        events={upcomingEvents}
-        title="Upcoming Events (Next 7 Days)"
-        emptyMessage="No upcoming events"
-        embedInListHeader={embedInListHeader}
-        border="light"
-      />
+      {useAgendaList ? (
+        <UpcomingAgendaList items={mergedAgendaItems} {...agendaListProps} />
+      ) : (
+        <EventList
+          events={upcomingEvents}
+          title={AGENDA_TITLE}
+          emptyMessage="No upcoming events or to-dos in the next week"
+          embedInListHeader={embedInListHeader}
+          border="light"
+          silverKeyCalendarId={silverKeyCalendarIdRef.current}
+          refreshEvents={refreshEvents}
+          updateEvent={updateEvent}
+          deleteEvent={deleteEvent}
+          calendars={calendars ?? []}
+        />
+      )}
     </Box>
   );
+  return sectionTitle ? wrapWithSectionTitle(list) : list;
 }

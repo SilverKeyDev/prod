@@ -1,7 +1,5 @@
 import React, { forwardRef } from "react";
 
-import { spacing } from "packages/design-tokens";
-
 import type { ButtonPropsBase } from "./Button.types";
 
 /** RN-specific props to strip on web; map to aria-* / role instead. */
@@ -14,7 +12,7 @@ const RN_ACCESSIBILITY_KEYS = [
 ] as const;
 
 function omitRnAccessibilityProps<T extends Record<string, unknown>>(
-  props: T
+  props: T,
 ): Omit<T, (typeof RN_ACCESSIBILITY_KEYS)[number]> {
   const { ...rest } = props;
   for (const key of RN_ACCESSIBILITY_KEYS) {
@@ -44,15 +42,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     style,
     "aria-label": ariaLabel,
     accessibilityLabel,
+    label,
     role,
     accessibilityRole,
     ...props
   },
-  ref
+  ref,
 ) {
   const handleClick = onClick ?? onPress;
   const domProps = omitRnAccessibilityProps(props);
-  const resolvedAriaLabel = ariaLabel ?? accessibilityLabel;
+  const resolvedAriaLabel = ariaLabel ?? accessibilityLabel ?? label;
   const resolvedRole = role ?? accessibilityRole;
 
   return (
@@ -65,7 +64,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       aria-label={resolvedAriaLabel}
       style={{
         border: "none",
-        padding: spacing(0),
         cursor: "pointer",
         ...(style as React.CSSProperties),
       }}

@@ -2,9 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
-import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 export type CardViewButtonProps = {
   /** Click handler */
@@ -78,22 +76,14 @@ const CardViewButton: React.FC<CardViewButtonProps> = ({
       variant={variant === "primary" ? "primary" : variant === "secondary" ? "secondary" : "ghost"}
       onClick={onClick}
       disabled={disabled ?? loading}
+      loading={loading}
       className={buttonClasses}
       title={text}
     >
-      {loading ? (
-        <>
-          <Box className={text ? "mr-1" : ""}>
-            <KeyTurnLoader message="" />
-          </Box>
-          {text && text}
-        </>
-      ) : (
-        <>
-          {iconName && <Icon name={iconName} className={iconClasses} />}
-          {text && text}
-        </>
-      )}
+      <>
+        {iconName && <Icon name={iconName} className={iconClasses} />}
+        {text && text}
+      </>
     </Button>
   );
 };

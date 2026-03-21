@@ -334,7 +334,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                 <ul
                   id={suggestionsListId}
                   role="listbox"
-                  className="bg-background-surface relative z-50 mt-2 max-h-60 overflow-hidden overflow-y-auto rounded-md border shadow-sm"
+                  className="bg-background-surface relative z-50 mt-2 flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md shadow-sm"
                 >
                   {suggestions.map((s, idx) => (
                     <li
@@ -342,16 +342,22 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                       id={`${suggestionsListId}-option-${idx}`}
                       role="option"
                       aria-selected={highlightedIndex === idx}
+                      className="rounded border border-dotted border-neutral-300"
                     >
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => void handleSelect(s)}
-                        className={`w-full cursor-pointer justify-start px-3 py-2 text-left text-sm ${
+                        className={`w-full !justify-start cursor-pointer px-3 py-2 text-sm [&>div]:w-full [&>div]:!justify-start [&>div>div]:!justify-start [&>div>div]:!text-left ${
                           highlightedIndex === idx ? "bg-primary-muted" : "hover:bg-primary-muted"
                         }`}
                       >
-                        {s.description}
+                        <Box className="flex w-full items-center justify-start gap-2 text-left">
+                          <Icon name="map-pin" className="h-4 w-4 shrink-0 text-neutral-500" />
+                          <BodyText as="span" size="sm" className="min-w-0 flex-1 text-left">
+                            {s.description}
+                          </BodyText>
+                        </Box>
                       </Button>
                     </li>
                   ))}

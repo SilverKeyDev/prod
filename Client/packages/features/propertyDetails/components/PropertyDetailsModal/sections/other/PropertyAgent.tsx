@@ -3,16 +3,19 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import Card from "packages/ui/components/cards/Card";
 import { Image } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
-
-import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 interface PropertyAgentProps extends PropertyComponentProps {
   noCard?: boolean;
 }
-export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard = false }) => {
+export const PropertyAgent: React.FC<PropertyAgentProps> = ({
+  property,
+  noCard = false,
+}) => {
   const listedBy = (
     property as unknown as {
       listed_by: unknown;
@@ -102,7 +105,11 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
       <Box>
         <Box className="mb-4 flex items-center gap-2">
           <Icon name="user" className="text-text-secondary h-5 w-5" />
-          <Title as="h3" size="lg" className="text-text-secondary font-semibold">
+          <Title
+            as="h3"
+            size="lg"
+            className="text-text-secondary font-semibold"
+          >
             Listing Agent
           </Title>
         </Box>
@@ -119,7 +126,9 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard =
         </Title>
       </Box>
 
-      <Card border="light" className="mt-2 p-4">{agentContent}</Card>
+      <Card border="light" className="mt-2 p-4">
+        {agentContent}
+      </Card>
     </Box>
   );
 };

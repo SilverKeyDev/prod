@@ -164,6 +164,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   );
 
   const headerProps = useSavedPageMobileHeader({
+    isAgent,
     searchTerm,
     setSearchTerm,
     viewType,

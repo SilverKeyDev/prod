@@ -1,12 +1,23 @@
 import React from "react";
 
-import { Alert, KeyboardAvoidingView, StyleSheet, View } from "react-native";
+import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
+import {
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 
 import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useOnboardingForm } from "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm";
-import { ScrollView } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
+/* Agent sections shared with profile for onboarding; allowed cross-feature for consistent agent form. */
+import {
+  AgentBrokerageSection,
+  AgentLicensingSection,
+  AgentProfileServiceSection,
+} from "packages/features/profile/components/sections"; // eslint-disable-line silverkey/no-cross-feature-internals
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
@@ -21,7 +32,9 @@ export type OnboardingScreenNativeProps = {
 
 const KEYBOARD_AVOIDING_IOS = "onboarding_ios_keyboard_avoiding";
 
-export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNativeProps) {
+export function OnboardingScreenNative({
+  onSubmitSuccess,
+}: OnboardingScreenNativeProps) {
   const useIOSKeyboardAvoiding = useFeature(KEYBOARD_AVOIDING_IOS);
   const {
     steps,
@@ -32,31 +45,8 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     prevStep,
     goToStep,
     loading,
-    showValidationWarning,
-    validationResult,
     handleSubmit,
-    handleCloseValidationWarning,
-    handleReviewInformation,
   } = useOnboardingForm({ onSubmitSuccess });
-
-  React.useEffect(() => {
-    if (showValidationWarning && validationResult.missingFields.length > 0) {
-      Alert.alert(
-        "Missing information",
-        validationResult.missingFields.join("\n") +
-          (validationResult.errors.length > 0 ? "\n\n" + validationResult.errors.join("\n") : ""),
-        [
-          { text: "Review", onPress: handleReviewInformation },
-          { text: "OK", onPress: handleCloseValidationWarning },
-        ]
-      );
-    }
-  }, [
-    showValidationWarning,
-    validationResult,
-    handleReviewInformation,
-    handleCloseValidationWarning,
-  ]);
 
   const step = steps[currentStep];
   const isLastStep = currentStep === steps.length - 1;
@@ -65,11 +55,47 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     if (!step) return null;
     switch (step.id) {
       case "demographics":
-        return <DemographicsStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <DemographicsStep
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
+      case "agent_brokerage":
+        return (
+          <AgentBrokerageSection
+            formData={formData}
+            isEditMode={true}
+            updateFormData={updateFormData}
+            wrapInCard={false}
+          />
+        );
+      case "agent_licensing":
+        return (
+          <AgentLicensingSection
+            formData={formData}
+            isEditMode={true}
+            updateFormData={updateFormData}
+            wrapInCard={false}
+          />
+        );
+      case "agent_profile":
+        return (
+          <AgentProfileServiceSection
+            formData={formData}
+            isEditMode={true}
+            updateFormData={updateFormData}
+            wrapInCard={false}
+          />
+        );
       case "housing":
-        return <HousingStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <HousingStep formData={formData} updateFormData={updateFormData} />
+        );
       case "location":
-        return <LocationStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <LocationStep formData={formData} updateFormData={updateFormData} />
+        );
       default:
         return (
           <Box className="py-6">
@@ -125,7 +151,9 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       <View style={styles.footer}>
         {currentStep > 0 ? (
           <Pressable onPress={prevStep} style={styles.backButton}>
-            <Text className="text-text-secondary text-base font-medium">Back</Text>
+            <Text className="text-text-secondary text-base font-medium">
+              Back
+            </Text>
           </Pressable>
         ) : (
           <View style={styles.backPlaceholder} />
@@ -133,11 +161,20 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
         <Pressable
           onPress={isLastStep ? handleSubmit : nextStep}
           disabled={loading}
-          style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+          accessibilityRole="button"
+          accessibilityState={{ busy: loading }}
+          style={[
+            styles.primaryButton,
+            loading && styles.primaryButtonDisabled,
+          ]}
         >
-          <Text className="text-base font-semibold text-white">
-            {loading ? "Saving…" : isLastStep ? "Done" : "Continue"}
-          </Text>
+          {loading ? (
+            <KeyTurnLoader message="" />
+          ) : (
+            <Text className="text-base font-semibold text-white">
+              {isLastStep ? "Done" : "Continue"}
+            </Text>
+          )}
         </Pressable>
       </View>
     </KeyboardAvoidingView>

@@ -21,6 +21,7 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.retry_sending_message": "Retry sending message",
   "agent.schedule_meeting": "Schedule meeting",
   "agent.search_agent_to_start_messaging": "Search for an agent to start messaging",
+  "agent.search_for_agent": "Find agent",
   "agent.search_for_clients": "Search for clients",
   "agent.conversations": "Conversations",
   "agent.no_pending_connection_requests": "No pending connection requests",
@@ -40,6 +41,8 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.share_home": "Share home",
   "agent.share_home_description": "Send a home to your client",
   "agent.your_agent": "Your agent",
+  "agent.role_buyer": "Buyer",
+  "agent.role_agent": "Agent",
 
   "client_selector.me": "Me",
   "client_selector.select_client": "Select Client",

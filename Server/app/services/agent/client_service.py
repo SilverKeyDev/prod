@@ -18,7 +18,7 @@ def get_agent_clients(agent_id: str) -> list[dict]:
         agent_id: The ID of the agent
 
     Returns:
-        List of client dictionaries with id, name, email, phone, created_at
+        List of client dictionaries with id, name, email, phone, profile_picture, created_at
     """
     try:
         # Parse client_ids from agent's user record
@@ -61,6 +61,7 @@ def get_agent_clients(agent_id: str) -> list[dict]:
                 "name": client.name,
                 "email": client.email,
                 "phone": client.phone,
+                "profile_picture": client.profile_picture,
                 "created_at": client.created_at.isoformat() if client.created_at else None,
             }
             client_list.append(client_data)

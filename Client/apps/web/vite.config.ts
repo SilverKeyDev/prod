@@ -49,8 +49,7 @@ export default defineConfig(({ mode }) => {
     VITE_PLAID_CLIENT_ID: env.VITE_PLAID_CLIENT_ID ?? process.env.VITE_PLAID_CLIENT_ID ?? "",
     EXPO_PUBLIC_GOOGLE_MAPS_ID: env.EXPO_PUBLIC_GOOGLE_MAPS_ID ?? "",
     EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS ?? "",
-    EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR:
-      env.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR ?? "",
+    EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: env.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR ?? "",
     EXPO_PUBLIC_API_URL: env.EXPO_PUBLIC_API_URL ?? "",
     VITE_API_URL: env.VITE_API_URL ?? "",
     EXPO_PUBLIC_API_BASE_URL: env.EXPO_PUBLIC_API_BASE_URL ?? "",
@@ -311,7 +310,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           // Ensure consistent chunk naming and splitting
-            manualChunks: (id) => {
+          manualChunks: (id) => {
             // Vendor chunks for better caching
             if (id.includes("node_modules")) {
               // Keep React and all React-dependent libs in one chunk so React is initialized

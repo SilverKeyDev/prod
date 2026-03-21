@@ -5,8 +5,8 @@
 import { Platform } from "react-native";
 
 const nativeSizes = {
-  sm: { paddingHorizontal: 12, paddingVertical: 6, minHeight: 36 },
-  md: { paddingHorizontal: 16, paddingVertical: 10, minHeight: 44 },
+  sm: { paddingHorizontal: 16, paddingVertical: 8, minHeight: 36 },
+  md: { paddingHorizontal: 20, paddingVertical: 10, minHeight: 44 },
   lg: { paddingHorizontal: 24, paddingVertical: 12, minHeight: 56 },
 };
 

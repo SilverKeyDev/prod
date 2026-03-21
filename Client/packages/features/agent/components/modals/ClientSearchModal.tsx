@@ -3,22 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useUserData } from "packages/hooks/data/auth/useUserData";
-import { useUIStore } from "packages/store";
+import { useAuthStore, useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { Textarea } from "packages/ui/components/form/FormField";
 import { Box } from "packages/ui/components/primitives";
 
-import {
-  BodyText,
-  Button,
-  CancelButton,
-  CloseButton,
-  Input,
-  Textarea,
-  Title,
-} from "@/components/ui";
+import { BodyText, Button, CancelButton, CloseButton, Input, Title } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
 import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 type ClientSearchModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -31,6 +25,8 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
   const { clients, isLoading } = useClientSearch(searchQuery, isOpen);
   const { createRequestAsInitiator, isCreatingRequest } = useConnectionRequests();
   const { userProfile } = useUserData();
+  const authUser = useAuthStore((s) => s.user);
+  const initiatorId = userProfile?.id ?? authUser?.id;
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -39,20 +35,33 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
     }
   }, [isOpen]);
   const handleSendRequest = async (clientId: string) => {
-    if (!userProfile?.id) return;
+    if (!initiatorId) {
+      enqueueToast({
+        type: "error",
+        message: "Profile not loaded. Please try again in a moment.",
+      });
+      return;
+    }
     try {
-      await createRequestAsInitiator(userProfile.id, clientId, true, message.trim() || undefined);
+      const { alreadyPending } = await createRequestAsInitiator(
+        initiatorId,
+        clientId,
+        true,
+        message.trim() || undefined
+      );
       enqueueToast({
         type: "success",
-        message: "Connection request sent",
+        message: alreadyPending
+          ? "A connection request is already pending with this client."
+          : "Request sent",
       });
       setMessage("");
       setSelectedClientId(null);
       onClose();
-    } catch {
+    } catch (err: unknown) {
       enqueueToast({
         type: "error",
-        message: "Failed to send connection request",
+        message: connectionRequestApiErrorMessage(err),
       });
     }
   };
@@ -132,12 +141,12 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                       <Box className="flex gap-2">
                         <Button
                           onClick={() => handleSendRequest(client.id)}
-                          disabled={isCreatingRequest}
-                          variant="outline"
+                          disabled={isCreatingRequest || !initiatorId}
+                          variant="tertiary"
                           size="md"
                           icon={<Icon name="send" />}
                           iconPosition="left"
-                          className="bg-accent hover:bg-accent-hover border-accent flex-1 text-white hover:text-white"
+                          className="flex-1"
                         >
                           {config.searchModal.sendButtonLabel}
                         </Button>

@@ -15,8 +15,7 @@ import { useUIStore } from "packages/store";
 import type { SavedHome } from "packages/types";
 import { Box } from "packages/ui/components/primitives";
 
-import BaseModal from "@/components/modals/BaseModal";
-import { BodyText, IconButton, Subtitle } from "@/components/ui";
+import { BodyText, Cover, IconButton, Subtitle } from "@/components/ui";
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 import {
   type Property as PropertyDetailsProperty,
@@ -298,10 +297,9 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
     [fetchPropertyDetails]
   );
   return (
-    <BaseModal
+    <Cover
       isOpen={isOpen}
       onClose={onClose}
-      size="full"
       showCloseButton={false}
       headerContent={
         <CompareHomesModalHeader
@@ -312,7 +310,6 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
           onClose={onClose}
         />
       }
-      className="max-w-7xl"
     >
       <Box className="space-y-responsive-md">
         <Box>
@@ -360,7 +357,7 @@ const CompareHomesModal: React.FC<CompareHomesModalProps> = ({
         visibleFields={visibleComparisonFields}
         allFields={allComparisonFields}
       />
-    </BaseModal>
+    </Cover>
   );
 };
 export default CompareHomesModal;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { spacing } from "packages/design-tokens";
 import RangeInput from "packages/ui/components/form/RangeInput";
@@ -6,8 +6,7 @@ import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { formatCompactNumber, formatNumber } from "packages/utils";
 
-const DEFAULT_MIN_PERCENT = 25;
-const DEFAULT_MAX_PERCENT = 75;
+import { useSliderTickMapping } from "./useSliderTickMapping";
 
 type BudgetRangeSliderProps = {
   tickValues: number[];
@@ -27,6 +26,14 @@ type BudgetRangeSliderProps = {
   variant?: "default" | "budget";
 };
 
+/** Hit area height must be at least thumb size (1.25rem) so the full thumb is clickable. */
+const SLIDER_HIT_HEIGHT = spacing(6); /* 1.5rem = 24px */
+const THUMB_CLASS_BASE =
+  "sk-range-slider-thumb pointer-events-none absolute h-full w-full touch-manipulation appearance-none rounded-lg bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto";
+/** Must match `.sk-range-slider-thumb` in components.css (1.25rem thumb, -0.625rem centering). */
+const THUMB_HALF_REM = "0.625rem";
+const THUMB_DIAMETER_REM = "1.25rem";
+
 export default function BudgetRangeSlider({
   tickValues,
   minValue,
@@ -41,6 +48,8 @@ export default function BudgetRangeSlider({
   valueDecimals,
   variant = "default",
 }: BudgetRangeSliderProps) {
+  const [activeThumb, setActiveThumb] = useState<"min" | "max">("max");
+
   const defaultFormatValue = (val: number) => {
     if (val >= 1000) {
       return `${formatPrefix}${formatCompactNumber(val)}`;
@@ -48,94 +57,38 @@ export default function BudgetRangeSlider({
     return `${formatPrefix}${formatNumber(val)}`;
   };
   const formattedValue = formatValue ?? defaultFormatValue;
-  const [minSliderValue, setMinSliderValue] = useState(DEFAULT_MIN_PERCENT);
-  const [maxSliderValue, setMaxSliderValue] = useState(DEFAULT_MAX_PERCENT);
-  const hasInitializedDefault = useRef(false);
-
-  const toSliderPercent = useCallback(
-    (val: number): number => {
-      for (let i = 0; i < tickValues.length - 1; i++) {
-        const start = tickValues[i];
-        const end = tickValues[i + 1];
-        if (val >= start && val <= end) {
-          const segmentStart = (i / (tickValues.length - 1)) * 100;
-          const segmentEnd = ((i + 1) / (tickValues.length - 1)) * 100;
-          const percentWithinSegment = (val - start) / (end - start);
-          return segmentStart + percentWithinSegment * (segmentEnd - segmentStart);
-        }
-      }
-      return val <= tickValues[0] ? 0 : 100;
-    },
-    [tickValues]
+  const { toSliderPercent, fromSliderPercent } = useSliderTickMapping(
+    tickValues,
+    valueDecimals
   );
 
-  const fromSliderPercent = useCallback(
-    (percent: number): number => {
-      const totalSegments = tickValues.length - 1;
-      const segmentSize = 100 / totalSegments;
-      const segmentIndex = Math.min(Math.floor(percent / segmentSize), totalSegments - 1);
-      const segmentStart = tickValues[segmentIndex];
-      const segmentEnd = tickValues[segmentIndex + 1];
-      const percentInSegment = (percent - segmentIndex * segmentSize) / segmentSize;
-      const raw = segmentStart + percentInSegment * (segmentEnd - segmentStart);
-      if (valueDecimals != null && valueDecimals >= 0) {
-        const factor = 10 ** valueDecimals;
-        return Math.round(raw * factor) / factor;
-      }
-      return Math.round(raw);
-    },
-    [tickValues, valueDecimals]
+  const minSliderValue = useMemo(
+    () => toSliderPercent(minValue),
+    [minValue, toSliderPercent]
   );
-
-  useEffect(() => {
-    const minPct = toSliderPercent(minValue);
-    const maxPct = toSliderPercent(maxValue);
-    const fullRange =
-      minValue <= tickValues[0] && maxValue >= tickValues[tickValues.length - 1];
-    if (fullRange && !hasInitializedDefault.current) {
-      hasInitializedDefault.current = true;
-      setMinSliderValue(DEFAULT_MIN_PERCENT);
-      setMaxSliderValue(DEFAULT_MAX_PERCENT);
-      onChange(
-        fromSliderPercent(DEFAULT_MIN_PERCENT),
-        fromSliderPercent(DEFAULT_MAX_PERCENT)
-      );
-    } else if (fullRange) {
-      setMinSliderValue(DEFAULT_MIN_PERCENT);
-      setMaxSliderValue(DEFAULT_MAX_PERCENT);
-    } else {
-      hasInitializedDefault.current = false;
-      setMinSliderValue(minPct);
-      setMaxSliderValue(maxPct);
-    }
-  }, [minValue, maxValue, tickValues, toSliderPercent, fromSliderPercent, onChange]);
-
-  useEffect(() => {
-    if (maxValue - minValue < minGap) {
-      const correctedMin = Math.max(tickValues[0], maxValue - minGap);
-      const correctedMax = Math.min(tickValues[tickValues.length - 1], minValue + minGap);
-      if (correctedMax - correctedMin >= minGap) {
-        onChange(correctedMin, correctedMax);
-      }
-    }
-  }, [minValue, maxValue, minGap, tickValues, onChange]);
+  const maxSliderValue = useMemo(
+    () => toSliderPercent(maxValue),
+    [maxValue, toSliderPercent]
+  );
 
   const handleMinSliderChange = (e: { target: { value: string } }) => {
-    const newSliderPercent = parseFloat(e.target.value);
+    const raw = parseFloat(e.target.value);
+    const newSliderPercent = Math.min(raw, maxSliderValue);
+    setActiveThumb("min");
     const actualValue = fromSliderPercent(newSliderPercent);
     const maxAllowedMin = maxValue - minGap;
     if (actualValue <= maxAllowedMin) {
-      setMinSliderValue(newSliderPercent);
       onChange(actualValue, maxValue);
     }
   };
 
   const handleMaxSliderChange = (e: { target: { value: string } }) => {
-    const newSliderPercent = parseFloat(e.target.value);
+    const raw = parseFloat(e.target.value);
+    const newSliderPercent = Math.max(raw, minSliderValue);
+    setActiveThumb("max");
     const actualValue = fromSliderPercent(newSliderPercent);
     const minAllowedMax = minValue + minGap;
     if (actualValue >= minAllowedMax) {
-      setMaxSliderValue(newSliderPercent);
       onChange(minValue, actualValue);
     }
   };
@@ -155,32 +108,42 @@ export default function BudgetRangeSlider({
     </Box>
   );
 
+  const thumbClass = `${THUMB_CLASS_BASE} ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`;
+
+  const fillLeft = `calc(${THUMB_HALF_REM} + ${minSliderValue}% - (${minSliderValue} * ${THUMB_DIAMETER_REM} / 100))`;
+  const fillWidth = `calc(${maxSliderValue - minSliderValue}% - (${maxSliderValue - minSliderValue} * ${THUMB_DIAMETER_REM} / 100))`;
+
   return (
     <Box className={`flex w-full flex-col items-center ${className}`}>
       <Box className="mx-auto w-full max-w-xl px-2">
         <Box className="flex flex-col items-center gap-2">
           {showTextHeader ? valueBlock : null}
-          <Box className="relative w-full justify-center" style={{ height: trackHeight }}>
+          <Box className="relative w-full justify-center" style={{ height: SLIDER_HIT_HEIGHT }}>
             <Box
-              className="bg-border absolute h-2 w-full rounded-lg"
-              style={{ height: trackHeight }}
-            />
-            <Box
-              className={`absolute rounded-lg ${fillClassName}`}
+              className="pointer-events-none bg-border absolute left-0 right-0 w-full rounded-lg"
               style={{
-                left: `${minSliderValue}%`,
-                width: `${maxSliderValue - minSliderValue}%`,
                 height: trackHeight,
-                borderRadius: 4,
+                top: "50%",
+                transform: "translateY(-50%)",
               }}
             />
             <Box
-              className="absolute"
+              className={`pointer-events-none absolute left-0 overflow-hidden rounded-lg ${fillClassName}`}
               style={{
-                left: spacing(0),
-                right: spacing(0),
+                left: fillLeft,
+                width: fillWidth,
                 height: trackHeight,
-                zIndex: 4,
+                top: "50%",
+                transform: "translateY(-50%)",
+                borderRadius: 4,
+              }}
+            />
+            {/* Wrappers use pointer-events-none so thumbs still receive events; activeThumb raises that slider so overlapping thumbs stay usable. Fill uses same rem geometry as sk-range-slider-thumb. */}
+            <Box
+              className="pointer-events-none absolute inset-x-0 top-0"
+              style={{
+                height: SLIDER_HIT_HEIGHT,
+                zIndex: activeThumb === "min" ? 5 : 4,
               }}
             >
               <RangeInput
@@ -190,19 +153,16 @@ export default function BudgetRangeSlider({
                 value={minSliderValue}
                 onChange={disabled ? undefined : handleMinSliderChange}
                 disabled={disabled}
-                label="Minimum price"
+                label="Minimum value"
                 transparentTrack
-                className={`sk-range-slider-thumb pointer-events-none absolute h-2 w-full touch-manipulation appearance-none rounded-lg bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
-                style={{ zIndex: 4 }}
+                className={thumbClass}
               />
             </Box>
             <Box
-              className="absolute"
+              className="pointer-events-none absolute inset-x-0 top-0"
               style={{
-                left: spacing(0),
-                right: spacing(0),
-                height: trackHeight,
-                zIndex: 4,
+                height: SLIDER_HIT_HEIGHT,
+                zIndex: activeThumb === "max" ? 5 : 4,
               }}
             >
               <RangeInput
@@ -212,9 +172,9 @@ export default function BudgetRangeSlider({
                 value={maxSliderValue}
                 onChange={disabled ? undefined : handleMaxSliderChange}
                 disabled={disabled}
-                label="Maximum price"
+                label="Maximum value"
                 transparentTrack
-                className={`sk-range-slider-thumb pointer-events-none absolute h-2 w-full touch-manipulation appearance-none rounded-lg bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                className={thumbClass}
               />
             </Box>
           </Box>

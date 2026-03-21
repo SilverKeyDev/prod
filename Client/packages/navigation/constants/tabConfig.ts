@@ -1,7 +1,7 @@
 /**
- * Tab bar configuration: icon mapping and badge logic.
+ * Tab bar configuration: icon mapping for native bottom tabs.
  * Shared so AppStack.native and any tab-related logic stay consistent.
- * No platform APIs; only constants and pure functions.
+ * No platform APIs; only constants.
  */
 
 import type { IconName } from "packages/ui/types/icons";
@@ -19,10 +19,3 @@ export const TAB_ICONS: Record<AppTabName, IconName> = {
   Messaging: "send",
   Profile: "user",
 };
-
-/**
- * Resolve tab bar badge value: show count when > 0, otherwise undefined (no badge).
- */
-export function getTabBarBadge(count: number): number | undefined {
-  return count > 0 ? count : undefined;
-}

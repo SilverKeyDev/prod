@@ -5,7 +5,7 @@ import type { SavedHome } from "packages/types";
 
 export type User = {
   id: string;
-  cognito_id: string;
+  cognito_id?: string | null;
   email: string;
   name: string;
   phone?: string;

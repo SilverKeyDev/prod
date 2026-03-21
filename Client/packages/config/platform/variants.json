@@ -539,6 +539,13 @@
     "reason": "Web uses Portal; native uses RN Modal."
   },
   {
+    "id": "cover",
+    "description": "Full-screen overlay (Cover) with platform-specific presentation.",
+    "webPath": "packages/ui/components/modals/cover/Cover.web.tsx",
+    "nativePath": "packages/ui/components/modals/cover/Cover.native.tsx",
+    "reason": "Web uses Portal + fixed viewport; native uses RN Modal full-screen."
+  },
+  {
     "id": "pdf-modal",
     "description": "PDF modal with platform-specific viewer.",
     "webPath": "packages/ui/components/modals/PdfModal/index.tsx",

@@ -12,7 +12,6 @@ import { dateNow, dateParseISO } from "packages/utils/date";
 
 import {
   useCalendarErrorToasts,
-  useCalendarOAuthCallback,
   useGoogleCalendarPermissions,
   useGoogleEvents,
 } from "@/features/calendar/hooks/data";
@@ -59,12 +58,9 @@ export function Calendar({ sectionTitle }: CalendarProps) {
     calendarsLoading,
     calendarsError,
     eventsError,
-    refreshCalendars,
-    refreshEvents,
     connectGoogleCalendar,
   } = useGoogleCalendarStoreIntegration();
 
-  useCalendarOAuthCallback({ enqueueToast, refreshCalendars, refreshEvents });
   useCalendarErrorToasts({ calendarsError, eventsError, enqueueToast });
 
   const { userPreferences } = useUserPreferences();
@@ -311,9 +307,10 @@ export function Calendar({ sectionTitle }: CalendarProps) {
       maxWidth: "90%" as const,
       minWidth: 0,
       marginTop: 4,
-      marginLeft: 4,
+      marginLeft: spacing(2),
       paddingVertical: 2,
-      paddingHorizontal: 4,
+      paddingLeft: spacing(2),
+      paddingRight: 4,
       borderRadius: 4,
       borderLeftWidth: 3,
       borderLeftColor: color("brand.accent"),
@@ -347,7 +344,12 @@ export function Calendar({ sectionTitle }: CalendarProps) {
           </Box>
 
           <Box style={styles.grid}>
-            {days.map((d) => {
+            {days.map((d, index) => {
+              const rowIndex = Math.floor(index / 7);
+              const firstDayOfRow = days[rowIndex * 7];
+              const showMonthBorder =
+                rowIndex >= 1 && firstDayOfRow.date.getDate() === 1;
+
               const isSelected = d.key === selectedDayKey;
               const dayEvents = eventsByDay.get(d.key) ?? [];
               const sortedEvents = [...dayEvents].sort((a, b) => {
@@ -367,6 +369,10 @@ export function Calendar({ sectionTitle }: CalendarProps) {
                     ...(isLargeScreen && { minHeight: 80 }),
                     ...((!d.isCurrentMonth || d.isPast) && styles.cellMuted),
                     ...(isSelected && styles.cellSelected),
+                    ...(showMonthBorder && {
+                      borderTopWidth: 2,
+                      borderTopColor: color("neutral.300"),
+                    }),
                   }}
                 >
                   <Text

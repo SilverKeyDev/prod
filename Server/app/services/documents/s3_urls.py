@@ -63,16 +63,22 @@ def generate_presigned_url(
 
 
 def generate_view_url(
-    s3_client, bucket_name: str, s3_key: str, operation: str = "get_object"
+    s3_client,
+    bucket_name: str,
+    s3_key: str,
+    operation: str = "get_object",
+    content_type: str | None = None,
 ) -> str | None:
     """
-    Generate a presigned URL for viewing a PDF inline in the browser.
+    Generate a presigned URL for viewing a file inline in the browser.
 
     Args:
         s3_client: Boto3 S3 client
         bucket_name: S3 bucket name
         s3_key: The S3 key (path) of the file
         operation: The S3 operation (default: 'get_object' for viewing)
+        content_type: Optional response Content-Type (default: application/pdf for
+            backward compatibility; use image/jpeg etc. for profile pictures)
 
     Returns:
         The presigned URL, or None if generation failed
@@ -85,12 +91,13 @@ def generate_view_url(
         return None
 
     expiration = get_presigned_url_expiration()
+    response_content_type = content_type if content_type else "application/pdf"
     try:
         params = {
             "Bucket": bucket_name,
             "Key": s3_key,
             "ResponseContentDisposition": "inline",
-            "ResponseContentType": "application/pdf",
+            "ResponseContentType": response_content_type,
             "ResponseCacheControl": "public, max-age=3600",
             "ResponseContentEncoding": "identity",
         }

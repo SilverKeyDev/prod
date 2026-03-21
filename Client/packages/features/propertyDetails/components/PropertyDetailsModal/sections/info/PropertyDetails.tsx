@@ -1,5 +1,6 @@
 import React from "react";
 
+import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
@@ -18,7 +19,7 @@ function hasAnyDetails(
   propertyGarageSpaces: number | undefined,
   propertyParking: number | undefined,
   propertyZestimate: number | undefined,
-  propertyRentZestimate: number | undefined
+  propertyRentZestimate: number | undefined,
 ): boolean {
   return !!(
     (propertyYearBuilt && Number(propertyYearBuilt) > 0) ||
@@ -28,9 +29,12 @@ function hasAnyDetails(
           propertyLotSize !== "0" &&
           propertyLotSize.trim() !== ""))) ||
     (propertyHomeType && propertyHomeType !== "" && propertyHomeType !== "0") ||
-    (propertyPropertyType && propertyPropertyType !== "" && propertyPropertyType !== "0") ||
+    (propertyPropertyType &&
+      propertyPropertyType !== "" &&
+      propertyPropertyType !== "0") ||
     (propertyPricePerSquareFoot &&
-      ((typeof propertyPricePerSquareFoot === "number" && propertyPricePerSquareFoot > 0) ||
+      ((typeof propertyPricePerSquareFoot === "number" &&
+        propertyPricePerSquareFoot > 0) ||
         (typeof propertyPricePerSquareFoot === "string" &&
           propertyPricePerSquareFoot !== "0" &&
           propertyPricePerSquareFoot.trim() !== ""))) ||
@@ -41,27 +45,46 @@ function hasAnyDetails(
   );
 }
 
-export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) => {
+export const PropertyDetails: React.FC<PropertyComponentProps> = ({
+  property,
+}) => {
+  const { t } = useLocalization();
   const propertyYearBuilt =
-    "yearBuilt" in property ? (property.yearBuilt as number | string | undefined) : undefined;
+    "yearBuilt" in property
+      ? (property.yearBuilt as number | string | undefined)
+      : undefined;
   const propertyLotSize =
-    "lotSize" in property ? (property.lotSize as number | string | undefined) : undefined;
+    "lotSize" in property
+      ? (property.lotSize as number | string | undefined)
+      : undefined;
   const propertyHomeType =
-    "homeType" in property ? (property.homeType as string | undefined) : undefined;
+    "homeType" in property
+      ? (property.homeType as string | undefined)
+      : undefined;
   const propertyPropertyType =
-    "propertyType" in property ? (property.propertyType as string | undefined) : undefined;
+    "propertyType" in property
+      ? (property.propertyType as string | undefined)
+      : undefined;
   const propertyPricePerSquareFoot =
     "pricePerSquareFoot" in property
       ? (property.pricePerSquareFoot as number | string | undefined)
       : undefined;
   const propertyGarageSpaces =
-    "garageSpaces" in property ? (property.garageSpaces as number | undefined) : undefined;
+    "garageSpaces" in property
+      ? (property.garageSpaces as number | undefined)
+      : undefined;
   const propertyParking =
-    "parking" in property ? (property.parking as number | undefined) : undefined;
+    "parking" in property
+      ? (property.parking as number | undefined)
+      : undefined;
   const propertyZestimate =
-    "zestimate" in property ? (property.zestimate as number | undefined) : undefined;
+    "zestimate" in property
+      ? (property.zestimate as number | undefined)
+      : undefined;
   const propertyRentZestimate =
-    "rentZestimate" in property ? (property.rentZestimate as number | undefined) : undefined;
+    "rentZestimate" in property
+      ? (property.rentZestimate as number | undefined)
+      : undefined;
 
   const agent = getAgentFromProperty(property);
   const hasDetails = hasAnyDetails(
@@ -73,7 +96,7 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
     propertyGarageSpaces,
     propertyParking,
     propertyZestimate,
-    propertyRentZestimate
+    propertyRentZestimate,
   );
 
   if (!hasDetails && !agent.hasAgent) return null;
@@ -83,8 +106,14 @@ export const PropertyDetails: React.FC<PropertyComponentProps> = ({ property }) 
       <Card border="light" className="p-4">
         <Box className="grid-responsive-1-lg-3">
           <Box className="w-full lg:w-2/3">
-            <Title as="h3" size="lg" className="text-foreground mb-4 font-semibold">
-              Property Details
+            <Title
+              as="h3"
+              size="lg"
+              className="text-foreground mb-4 font-semibold"
+            >
+              {t("property_details.heading", {
+                defaultValue: "Property Details",
+              })}
             </Title>
             <PropertyDetailsFields
               propertyYearBuilt={propertyYearBuilt}

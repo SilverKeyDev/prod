@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import Button from "packages/ui/components/button/Button";
-import { StyledImage } from "packages/ui/components/cards/base/image";
+import { StyledImage } from "packages/ui/components/cards/base";
 import { Box } from "packages/ui/components/primitives";
 
 type PropertyImageGalleryFullScreenProps = {
@@ -28,7 +28,7 @@ export function PropertyImageGalleryFullScreen({
     <Box
       role="button"
       tabIndex={0}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4"
+      className="fixed inset-0 z-50 flex flex-row items-center justify-center bg-black/95 p-4"
       onClick={onClose}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -54,7 +54,7 @@ export function PropertyImageGalleryFullScreen({
         >
           <Icon name="x" className="h-6 w-6" />
         </Button>
-        <Box className="relative flex flex-1 items-center justify-center overflow-hidden">
+        <Box className="relative flex flex-1 flex-row items-center justify-center overflow-hidden">
           <StyledImage
             src={images[currentIndex]}
             alt={`Property image ${currentIndex + 1}`}
@@ -88,18 +88,18 @@ export function PropertyImageGalleryFullScreen({
         </Box>
         {images.length > 1 && (
           <Box className="h-32 overflow-x-auto bg-black/50 p-4">
-            <Box className="flex h-full justify-center gap-2">
+            <Box className="flex h-full flex-row justify-center gap-2">
               {images.map((image, index) => (
                 <Button
                   key={index}
                   type="button"
                   variant="ghost"
                   onClick={() => onIndexChange(index)}
-                  className={`relative h-full flex-shrink-0 overflow-hidden rounded border-2 transition-colors ${
+                  className={
                     index === currentIndex
-                      ? "border-white"
-                      : "border-transparent hover:border-white/50"
-                  }`}
+                      ? "relative h-full flex-shrink-0 overflow-hidden rounded border-2 border-white transition-colors"
+                      : "relative h-full flex-shrink-0 overflow-hidden rounded border-2 border-transparent transition-colors hover:border-white/50"
+                  }
                 >
                   <StyledImage
                     src={image}

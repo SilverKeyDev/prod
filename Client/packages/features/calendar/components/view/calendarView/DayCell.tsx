@@ -79,7 +79,7 @@ function EventChip({
   const tooltipText = allDay ? `All day: ${title}` : title;
 
   const baseClasses =
-    "flex h-6 min-h-6 w-full min-w-0 items-center overflow-hidden rounded border-l-4 px-1 font-medium";
+    "ml-2 flex h-6 min-h-6 w-full min-w-0 items-center overflow-hidden rounded border-l-4 pl-2 pr-1 font-medium";
   const variantClasses = isSilverKeyEvent
     ? isPast
       ? "bg-accent-muted border-accent text-text-secondary"

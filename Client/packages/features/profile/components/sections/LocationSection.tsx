@@ -1,13 +1,20 @@
 import React from "react";
 
+// Constants
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
 
 // Components
 import Card from "@/components/layout/Card.web";
 import { BodyText, Subtitle, Title } from "@/components/ui";
 import ImportantLocationsInput from "@/features/profile/components/settings/inputs/ImportantLocationsInput.web";
-// Constants
-import { LOCATION_SUBTITLE, type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
+import {
+  AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
+  effectiveIsAgentForOptionalBuyerUi,
+  LOCATION_SUBTITLE,
+  type OnboardingData,
+  SECTION_TITLES,
+} from "@/features/profile/utils";
 type LocationSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
@@ -35,11 +42,23 @@ export default function LocationSection({
   addButtonLabel,
   titleId,
 }: LocationSectionProps) {
+  const authIsAgent = useIsAgent();
+  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
+    authIsAgent,
+    formIsAgent: formData.is_agent,
+  });
   const content = (
     <>
       <Title size="md" as="h2" id={titleId}>
         {SECTION_TITLES.LOCATION_PREFERENCES}
       </Title>
+      {showAgentOptionalBuyerCallout && (
+        <Box className="border-border bg-background-surface rounded-lg border px-3 py-2">
+          <BodyText size="xs" muted>
+            {AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT}
+          </BodyText>
+        </Box>
+      )}
 
       {/* Important Locations for Commute */}
       <Box className="flex w-full flex-col">
@@ -65,7 +84,9 @@ export default function LocationSection({
   );
   const className = cardClassName ? `${cardClassName} space-y-2` : "space-y-2";
   return wrapInCard ? (
-    <Card border="light" className={className}>{content}</Card>
+    <Card border="light" className={className}>
+      {content}
+    </Card>
   ) : (
     <Box className={className}>{content}</Box>
   );

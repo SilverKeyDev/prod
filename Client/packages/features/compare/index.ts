@@ -4,6 +4,14 @@
 export { CompareFloatingBar } from "./components";
 export { default as CardCompareCheckbox } from "./components/CardCompareCheckbox";
 export { default as CompareHomesModal } from "./components/CompareHomesModal";
-export { renderSectionIcon } from "./components/CompareHomesModal/sectionIcons";
-export { exportToCSV, generateCSVContent, getAllComparisonFields, shareCSV } from "./utils";
-export type { CompareHomesComparisonField, CompareHomesPropertyDetails } from "./utils/types";
+export {
+  exportToCSV,
+  generateCSVContent,
+  getAllComparisonFields,
+  shareCSV,
+} from "./utils";
+export type {
+  CompareHomesComparisonField,
+  CompareHomesPropertyDetails,
+} from "./utils/types";
+export { renderReportSectionIcon as renderSectionIcon } from "packages/ui/components/icons/renderReportSectionIcon";

@@ -1,5 +1,7 @@
 // Shared types and interfaces for onboarding and personalization
 
+import type { ProfileStepId } from "packages/features/profile/types/profileStepIds";
+
 export type OnboardingData = {
   // Metadata
   preferences_version?: string;
@@ -40,6 +42,8 @@ export type OnboardingData = {
   preferred_home_age_min?: number; // min age in years (range slider)
   preferred_home_age_max?: number; // max age in years (range slider)
   preferred_architectural_style?: string;
+  /** Unified "other requirements" (e.g. street parking, no gated communities). Replaces preferred_home_features + deal_breakers in UI. */
+  other_requirements?: string[];
   preferred_home_features?: string[];
   must_have?: string[]; // basement, single-story, garage, AC, heating, pool, waterfront
   preferred_sqft_min?: number;
@@ -65,6 +69,23 @@ export type OnboardingData = {
   information_detail_level?: string;
   has_buyers_agent?: string; // 'yes' | 'no'
   looking_for_buyers_agent?: boolean;
+
+  // Agent profile (only when is_agent is yes/am_agent)
+  agent_physical_mailing_address?: string;
+  agent_licensed_states?: string[];
+  agent_license_types?: string[];
+  agent_license_numbers?: string[];
+  agent_license_expiration_dates?: string[];
+  agent_mls_affiliations?: Record<string, unknown>[];
+  agent_brokerage_name?: string;
+  agent_brokerage_bic_name?: string;
+  agent_brokerage_address?: string;
+  agent_brokerage_email?: string;
+  agent_brokerage_phone?: string;
+  agent_bio?: string;
+  agent_primary_service_zips?: string[];
+  agent_specialties?: string[];
+  agent_social_links?: Record<string, string>;
 };
 
 export type ValidationResult = {
@@ -74,9 +95,11 @@ export type ValidationResult = {
 };
 
 export type ProfileStep = {
-  id: string;
+  id: ProfileStepId;
   title: string;
 };
+
+export type { ProfileStepId } from "packages/features/profile/types/profileStepIds";
 
 export type DropdownOption = {
   value: string;

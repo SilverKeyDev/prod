@@ -113,20 +113,11 @@ export default function OtherFilterContent({
       </Box>
 
       <Box>
-        <Label>{FIELD_LABELS.PREFERRED_HOME_FEATURES}</Label>
+        <Label>{FIELD_LABELS.OTHER_REQUIREMENTS}</Label>
         <OnPerTagInput
-          value={(formData.preferred_home_features as string[]) ?? []}
-          onChange={(v: string[]) => updateFormData("preferred_home_features", v)}
-          placeholder="e.g., garage, pool, fireplace"
-          isEditMode={true}
-        />
-      </Box>
-      <Box>
-        <Label>{FIELD_LABELS.DEAL_BREAKERS}</Label>
-        <OnPerTagInput
-          value={(formData.deal_breakers as string[]) ?? []}
-          onChange={(v: string[]) => updateFormData("deal_breakers", v)}
-          placeholder="e.g., No parking, Busy road"
+          value={(formData.other_requirements as string[]) ?? []}
+          onChange={(v: string[]) => updateFormData("other_requirements", v)}
+          placeholder="e.g., street parking, no gated communities"
           isEditMode={true}
         />
       </Box>

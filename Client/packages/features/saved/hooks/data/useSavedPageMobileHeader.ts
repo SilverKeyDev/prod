@@ -4,6 +4,7 @@ import type { SavedPageViewType } from "packages/features/documents";
 import type { SavedHomesHeaderProps } from "packages/features/saved/components/SavedHomesHeader";
 
 export type UseSavedPageMobileHeaderParams = {
+  isAgent: boolean;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   viewType: SavedPageViewType;
@@ -28,6 +29,7 @@ export function useSavedPageMobileHeader(
   params: UseSavedPageMobileHeaderParams
 ): SavedHomesHeaderProps {
   const {
+    isAgent,
     searchTerm,
     setSearchTerm,
     viewType,
@@ -50,6 +52,7 @@ export function useSavedPageMobileHeader(
   return useMemo<SavedHomesHeaderProps>(
     () => ({
       isMobile: true,
+      isAgent,
       searchTerm,
       onSearchChange: setSearchTerm,
       viewType,
@@ -65,6 +68,7 @@ export function useSavedPageMobileHeader(
       onEventTypeFilterChange: setEventTypeFilter,
     }),
     [
+      isAgent,
       searchTerm,
       setSearchTerm,
       viewType,

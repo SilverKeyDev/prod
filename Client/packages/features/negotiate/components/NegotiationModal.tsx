@@ -7,8 +7,7 @@ import { useNegotiationStore } from "packages/store";
 // Types for negotiation data
 import { Box } from "packages/ui/components/primitives";
 
-import BaseModal from "@/components/modals/BaseModal";
-import { Title } from "@/components/ui";
+import { Cover, Title } from "@/components/ui";
 import { ComparablesSection } from "@/features/negotiate/components/ComparablesSection";
 import { DebugSection } from "@/features/negotiate/components/DebugSection";
 import { ErrorSection } from "@/features/negotiate/components/ErrorSection";
@@ -118,11 +117,10 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
     previousLoadingRef.current = isLoading;
   }, [isLoading, strategyData]);
   return (
-    <BaseModal
+    <Cover
       isOpen={isOpen}
       onClose={onClose}
-      size="full"
-      showCloseButton={true}
+      showCloseButton
       headerContent={
         <Box className="flex min-w-0 items-center gap-2">
           <Icon name="handshake" className="text-text-secondary h-5 w-5 flex-shrink-0" />
@@ -131,7 +129,6 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
           </Title>
         </Box>
       }
-      className="min-h-[min(65vh,65dvh)] max-w-4xl"
     >
       <Box>
         {/* Main Content */}
@@ -169,6 +166,6 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
           )}
         </Box>
       </Box>
-    </BaseModal>
+    </Cover>
   );
 }

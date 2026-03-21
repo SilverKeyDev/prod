@@ -4,6 +4,7 @@
 
 import React, { useState } from "react";
 
+import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import Input from "@ui/form/Input";
 import { StyleSheet, View } from "react-native";
 
@@ -19,8 +20,8 @@ import {
 } from "packages/features/homeauth/utils/signupPayload";
 import { useNavigation } from "packages/navigation";
 import { PasswordValidation, usePasswordValidation } from "packages/ui/components/feedback";
-import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
+import { Pressable } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
 export function SignupScreenNative() {
@@ -114,14 +115,18 @@ export function SignupScreenNative() {
       <Pressable
         onPress={handleSubmit}
         disabled={isLoading || !isPasswordValid}
+        accessibilityRole="button"
+        accessibilityState={{ busy: isLoading }}
         style={[
           styles.primaryButton,
           (isLoading || !isPasswordValid) && styles.primaryButtonDisabled,
         ]}
       >
-        <Text style={styles.primaryButtonText}>
-          {isLoading ? "Creating account…" : "Create account"}
-        </Text>
+        {isLoading ? (
+          <KeyTurnLoader message="" />
+        ) : (
+          <Text style={styles.primaryButtonText}>Create account</Text>
+        )}
       </Pressable>
 
       <AuthDivider />

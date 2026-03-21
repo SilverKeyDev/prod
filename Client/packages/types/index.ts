@@ -3,6 +3,7 @@
  * "packages/types" resolves for Vite and TypeScript.
  */
 
+export type { PropertyDetailsStreamProperty } from "./propertyDetailsStream";
 export type { SavedHome } from "./savedHome";
 export {
   CHECKLIST_SUBTITLES,
@@ -10,13 +11,22 @@ export {
   type ChecklistTab,
 } from "packages/features/checklists/types/checklists";
 export type { Agreement } from "packages/features/documents/types/agreements";
-export type { Document, DocumentCategory } from "packages/features/documents/types/documents";
-export type { CompareReport, Report } from "packages/features/documents/types/reports";
-export type { UserPreferences, UserProfile } from "packages/features/homeauth/types/index";
+export type {
+  Document,
+  DocumentCategory,
+} from "packages/features/documents/types/documents";
+export type {
+  CompareReport,
+  Report,
+} from "packages/features/documents/types/reports";
+export type {
+  UserPreferences,
+  UserProfile,
+} from "packages/features/homeauth/types/index";
 export type { Property } from "packages/features/search/types/property";
 export type { SearchResult } from "packages/features/search/types/result";
 
-/** Agent dashboard urgent alert (shape used by TodayPanel and agent utils) */
+/** Agent dashboard urgent alert (shape used by dashboard and agent utils) */
 export type UrgentAlert = {
   id: string;
   type: string;

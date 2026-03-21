@@ -13,6 +13,7 @@ from app import db
 from app.models import (
     User,
     UserAgentProfile,
+    UserCommunicationPrefs,
     UserDemographics,
     UserFinancials,
     UserImportantLocation,
@@ -29,8 +30,9 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
 
     out: dict[str, Any] = {}
 
-    # User-level: is_agent
+    # User-level: is_agent, name (name stored on User; exposed here so profile "About you" gets it)
     out["is_agent"] = "yes" if getattr(user, "is_agent", False) else "no"
+    out["name"] = getattr(user, "name", None) or ""
 
     # Financials
     fin = (
@@ -54,6 +56,20 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         out["pets"] = demo.pets
         out["occupation"] = demo.occupation
         out["gender"] = demo.gender
+        out["why_joining_silverkey"] = _parse_json_array(
+            getattr(demo, "why_joining_silverkey", None)
+        )
+
+    # Communication prefs (has_buyers_agent, looking_for_buyers_agent, etc.)
+    comm = (
+        getattr(user, "user_communication_prefs", None)
+        or UserCommunicationPrefs.query.filter_by(user_id=user_id).first()
+    )
+    if comm:
+        out["communication_frequency"] = comm.communication_frequency
+        out["information_detail_level"] = comm.information_detail_level
+        out["has_buyers_agent"] = comm.has_buyers_agent
+        out["looking_for_buyers_agent"] = comm.looking_for_buyers_agent
 
     # Search intent
     intent = (
@@ -70,7 +86,7 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         out["preferred_sqft_max"] = intent.preferred_sqft_max
         out["preferred_lot_size_min"] = intent.preferred_lot_size_min
         out["preferred_lot_size_max"] = intent.preferred_lot_size_max
-        out["preferred_home_age_min"] = intent.preferred_home_age_min
+        out["preferred_home_age_min"] = None  # column not in DB; kept for API compatibility
         out["preferred_home_age_max"] = intent.preferred_home_age_max
         out["days_on_market_min"] = intent.days_on_market_min
         out["days_on_market_max"] = intent.days_on_market_max
@@ -119,6 +135,8 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
     if attr_list is not None:
         features = []
         deal_breakers = []
+        must_have = []
+        listing_type = []
         for a in attr_list:
             key = getattr(a, "attribute_key", None)
             typ = getattr(a, "attribute_type", None)
@@ -126,13 +144,32 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
                 continue
             if typ == "deal_breaker":
                 deal_breakers.append(key)
-            elif typ in ("feature", "nice_to_have", "must_have", "listing_type"):
+            elif typ == "must_have":
+                must_have.append(key)
+            elif typ == "listing_type":
+                listing_type.append(key)
+            elif typ in ("feature", "nice_to_have"):
                 features.append(key)
+            elif typ == "preferred_architectural_style":
+                out["preferred_architectural_style"] = key
+            elif typ == "renovation_preference":
+                out["renovation_preference"] = key
+            elif typ == "intended_property_use":
+                out["intended_property_use"] = key
         out["preferred_home_features"] = features
         out["deal_breakers"] = deal_breakers
+        out["must_have"] = must_have
+        out["listing_type"] = listing_type
     else:
         out["preferred_home_features"] = []
         out["deal_breakers"] = []
+        out["must_have"] = []
+        out["listing_type"] = []
+
+    # Merged list for unified "Other requirements" UI (preferred + deal breakers)
+    out["other_requirements"] = list(out.get("preferred_home_features", [])) + list(
+        out.get("deal_breakers", [])
+    )
 
     # Agent profile (only when user.is_agent is True)
     if getattr(user, "is_agent", False):
@@ -154,7 +191,6 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
             out["agent_brokerage_address"] = agent.brokerage_address
             out["agent_brokerage_email"] = agent.brokerage_email
             out["agent_brokerage_phone"] = agent.brokerage_phone
-            out["agent_professional_headshot_url"] = agent.professional_headshot_url
             out["agent_bio"] = agent.agent_bio
             out["agent_primary_service_zips"] = _parse_json_array(agent.primary_service_zips)
             out["agent_specialties"] = _parse_json_array(agent.specialties)
@@ -218,6 +254,14 @@ def get_preferences_updated_at(user_id: str) -> datetime | None:
     intent = UserSearchIntent.query.filter_by(user_id=user_id).first()
     if intent and getattr(intent, "updated_at", None):
         candidates.append(intent.updated_at)
+    comm = UserCommunicationPrefs.query.filter_by(user_id=user_id).first()
+    if comm and getattr(comm, "updated_at", None):
+        candidates.append(comm.updated_at)
+    # UserImportantLocation: max updated_at among all locations for this user
+    loc_list = UserImportantLocation.query.filter_by(user_id=user_id).all()
+    for loc in loc_list:
+        if getattr(loc, "updated_at", None):
+            candidates.append(loc.updated_at)
     agent_prof = UserAgentProfile.query.filter_by(user_id=user_id).first()
     if agent_prof and getattr(agent_prof, "updated_at", None):
         candidates.append(agent_prof.updated_at)
@@ -315,12 +359,6 @@ def _write_agent_profile_from_payload(agent: UserAgentProfile, data: dict[str, A
             if data["agent_brokerage_phone"] is not None
             else None
         )
-    if "agent_professional_headshot_url" in data:
-        agent.professional_headshot_url = (
-            str(data["agent_professional_headshot_url"]).strip()
-            if data["agent_professional_headshot_url"] is not None
-            else None
-        )
     if "agent_bio" in data:
         agent.agent_bio = str(data["agent_bio"]).strip() if data["agent_bio"] is not None else None
     if "agent_primary_service_zips" in data:
@@ -369,6 +407,12 @@ def write_preferences_from_payload(
             val = data["is_agent"]
             u.is_agent = bool(val and str(val).lower() in ("yes", "true", "1", "am_agent"))
 
+    # User.name: when profile "About you" sends name, persist to User (single source of truth)
+    if "name" in data and data["name"] is not None:
+        new_name = str(data["name"]).strip()
+        if new_name:
+            u.name = new_name
+
     # Financials
     fin = UserFinancials.query.filter_by(user_id=user_id).first()
     if fin is None:
@@ -400,6 +444,42 @@ def write_preferences_from_payload(
         demo.occupation = str(data["occupation"]) if data["occupation"] is not None else None
     if "gender" in data:
         demo.gender = str(data["gender"]) if data["gender"] is not None else None
+    if "why_joining_silverkey" in data:
+        val = data["why_joining_silverkey"]
+        demo.why_joining_silverkey = (
+            json.dumps(list(val)) if isinstance(val, list) else (str(val) if val is not None else None)
+        )
+
+    # Communication prefs
+    comm = UserCommunicationPrefs.query.filter_by(user_id=user_id).first()
+    if comm is None:
+        comm = UserCommunicationPrefs(user_id=user_id)
+        db.session.add(comm)
+    if "communication_frequency" in data:
+        comm.communication_frequency = (
+            str(data["communication_frequency"]).strip()
+            if data["communication_frequency"] is not None
+            else None
+        )
+    if "information_detail_level" in data:
+        comm.information_detail_level = (
+            str(data["information_detail_level"]).strip()
+            if data["information_detail_level"] is not None
+            else None
+        )
+    if "has_buyers_agent" in data:
+        comm.has_buyers_agent = (
+            str(data["has_buyers_agent"]).strip()
+            if data["has_buyers_agent"] is not None
+            else None
+        )
+    if "looking_for_buyers_agent" in data:
+        val = data["looking_for_buyers_agent"]
+        comm.looking_for_buyers_agent = (
+            bool(val) if isinstance(val, bool) else str(val).lower() in ("true", "1", "yes")
+            if val is not None
+            else None
+        )
 
     # Search intent
     intent = UserSearchIntent.query.filter_by(user_id=user_id).first()
@@ -414,6 +494,10 @@ def write_preferences_from_payload(
         intent.preferred_bedrooms_min = int(data["preferred_bedrooms_min"])
     if "preferred_bedrooms_max" in data and data["preferred_bedrooms_max"] is not None:
         intent.preferred_bedrooms_max = int(data["preferred_bedrooms_max"])
+    if "preferred_bathrooms_min" in data and data["preferred_bathrooms_min"] is not None:
+        intent.preferred_bathrooms_min = int(data["preferred_bathrooms_min"])
+    if "preferred_bathrooms_max" in data and data["preferred_bathrooms_max"] is not None:
+        intent.preferred_bathrooms_max = int(data["preferred_bathrooms_max"])
     if "walkability_importance" in data:
         intent.walkability_importance = (
             str(data["walkability_importance"])
@@ -428,8 +512,7 @@ def write_preferences_from_payload(
         intent.preferred_lot_size_min = float(data["preferred_lot_size_min"])
     if "preferred_lot_size_max" in data and data["preferred_lot_size_max"] is not None:
         intent.preferred_lot_size_max = float(data["preferred_lot_size_max"])
-    if "preferred_home_age_min" in data and data["preferred_home_age_min"] is not None:
-        intent.preferred_home_age_min = int(data["preferred_home_age_min"])
+    # preferred_home_age_min column not in DB; payload key ignored for now
     if "preferred_home_age_max" in data and data["preferred_home_age_max"] is not None:
         intent.preferred_home_age_max = int(data["preferred_home_age_max"])
     if "days_on_market_min" in data and data["days_on_market_min"] is not None:
@@ -437,9 +520,19 @@ def write_preferences_from_payload(
     if "days_on_market_max" in data and data["days_on_market_max"] is not None:
         intent.days_on_market_max = int(data["days_on_market_max"])
 
-    # Important locations: replace with payload list if present
+    # Important locations: replace with payload list if present; prepend ideal_zip_code so it loads back
     locs = data.get("important_locations")
-    if isinstance(locs, list):
+    if not isinstance(locs, list):
+        locs = []
+    ideal_zip = data.get("ideal_zip_code")
+    if ideal_zip and isinstance(ideal_zip, str) and ideal_zip.strip():
+        ideal_zip = ideal_zip.strip()
+        # Prepend so _build_preferences_dict derives ideal_zip_code from first location
+        locs = [{"address": ideal_zip}] + [
+            loc for loc in locs
+            if isinstance(loc, dict) and (loc.get("address") or "").strip() != ideal_zip
+        ]
+    if isinstance(locs, list) and len(locs) > 0:
         UserImportantLocation.query.filter_by(user_id=user_id).delete()
         for loc in locs:
             if isinstance(loc, dict):
@@ -455,35 +548,120 @@ def write_preferences_from_payload(
                 row = UserImportantLocation(user_id=user_id, address=loc)
                 db.session.add(row)
 
-    # Intent attributes: preferred_home_features, deal_breakers
-    features = data.get("preferred_home_features")
-    if isinstance(features, list):
+    # Intent attributes: other_requirements (unified) or preferred_home_features + deal_breakers
+    # When other_requirements is sent, split: "no X" -> deal_breaker, else -> feature
+    other_req = data.get("other_requirements")
+    if isinstance(other_req, list):
+        features = []
+        breakers = []
+        for item in other_req:
+            key = item if isinstance(item, str) else str(item)
+            key_stripped = key.strip()
+            if not key_stripped:
+                continue
+            if key_stripped.lower().startswith("no "):
+                breakers.append(key_stripped)
+            else:
+                features.append(key_stripped)
         UserIntentAttribute.query.filter(
             UserIntentAttribute.user_id == user_id,
-            UserIntentAttribute.attribute_type.in_(["feature", "nice_to_have", "must_have"]),
+            UserIntentAttribute.attribute_type.in_(["feature", "nice_to_have"]),
         ).delete(synchronize_session=False)
-        for f in features:
-            key = f if isinstance(f, str) else str(f)
-            if key:
-                db.session.add(
-                    UserIntentAttribute(
-                        user_id=user_id, attribute_type="feature", attribute_key=key
-                    )
-                )
-    breakers = data.get("deal_breakers")
-    if isinstance(breakers, list):
         UserIntentAttribute.query.filter(
             UserIntentAttribute.user_id == user_id,
             UserIntentAttribute.attribute_type == "deal_breaker",
         ).delete(synchronize_session=False)
+        for f in features:
+            db.session.add(
+                UserIntentAttribute(
+                    user_id=user_id, attribute_type="feature", attribute_key=f
+                )
+            )
         for b in breakers:
-            key = b if isinstance(b, str) else str(b)
+            db.session.add(
+                UserIntentAttribute(
+                    user_id=user_id, attribute_type="deal_breaker", attribute_key=b
+                )
+            )
+    else:
+        features = data.get("preferred_home_features")
+        if isinstance(features, list):
+            UserIntentAttribute.query.filter(
+                UserIntentAttribute.user_id == user_id,
+                UserIntentAttribute.attribute_type.in_(["feature", "nice_to_have"]),
+            ).delete(synchronize_session=False)
+            for f in features:
+                key = f if isinstance(f, str) else str(f)
+                if key:
+                    db.session.add(
+                        UserIntentAttribute(
+                            user_id=user_id, attribute_type="feature", attribute_key=key
+                        )
+                    )
+        breakers = data.get("deal_breakers")
+        if isinstance(breakers, list):
+            UserIntentAttribute.query.filter(
+                UserIntentAttribute.user_id == user_id,
+                UserIntentAttribute.attribute_type == "deal_breaker",
+            ).delete(synchronize_session=False)
+            for b in breakers:
+                key = b if isinstance(b, str) else str(b)
+                if key:
+                    db.session.add(
+                        UserIntentAttribute(
+                            user_id=user_id, attribute_type="deal_breaker", attribute_key=key
+                        )
+                    )
+
+    # Intent attributes: must_have and listing_type (always from payload when present)
+    must_have = data.get("must_have")
+    if isinstance(must_have, list):
+        UserIntentAttribute.query.filter(
+            UserIntentAttribute.user_id == user_id,
+            UserIntentAttribute.attribute_type == "must_have",
+        ).delete(synchronize_session=False)
+        for m in must_have:
+            key = m if isinstance(m, str) else str(m)
             if key:
                 db.session.add(
                     UserIntentAttribute(
-                        user_id=user_id, attribute_type="deal_breaker", attribute_key=key
+                        user_id=user_id, attribute_type="must_have", attribute_key=key
                     )
                 )
+    listing_type = data.get("listing_type")
+    if isinstance(listing_type, list):
+        UserIntentAttribute.query.filter(
+            UserIntentAttribute.user_id == user_id,
+            UserIntentAttribute.attribute_type == "listing_type",
+        ).delete(synchronize_session=False)
+        for lt in listing_type:
+            key = lt if isinstance(lt, str) else str(lt)
+            if key:
+                db.session.add(
+                    UserIntentAttribute(
+                        user_id=user_id, attribute_type="listing_type", attribute_key=key
+                    )
+                )
+
+    # Single-value housing prefs stored in UserIntentAttribute (no schema change)
+    for attr_type, payload_key in [
+        ("preferred_architectural_style", "preferred_architectural_style"),
+        ("renovation_preference", "renovation_preference"),
+        ("intended_property_use", "intended_property_use"),
+    ]:
+        UserIntentAttribute.query.filter(
+            UserIntentAttribute.user_id == user_id,
+            UserIntentAttribute.attribute_type == attr_type,
+        ).delete(synchronize_session=False)
+        val = data.get(payload_key)
+        if val is not None and str(val).strip():
+            db.session.add(
+                UserIntentAttribute(
+                    user_id=user_id,
+                    attribute_type=attr_type,
+                    attribute_key=str(val).strip(),
+                )
+            )
 
     # Agent profile (when user.is_agent is True and agent fields present)
     if getattr(u, "is_agent", False):

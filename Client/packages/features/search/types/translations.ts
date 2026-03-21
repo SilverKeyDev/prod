@@ -47,4 +47,6 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.run_search_to_see_homes": "Run a search to see homes that match your profile.",
   "search.price_range": "Price range",
   "search.filters_beds_baths_range": "Beds and baths",
+  "search.beds": "Beds",
+  "search.baths": "Baths",
 };

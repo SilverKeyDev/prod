@@ -1,8 +1,7 @@
 import React from "react";
 
+import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
 import { Box } from "packages/ui/components/primitives";
-
-import { KeyTurnLoader } from "@/components/ui";
 
 export const PropertyDetailsLoadingIndicator: React.FC = () => {
   return (

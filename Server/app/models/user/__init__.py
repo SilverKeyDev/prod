@@ -11,6 +11,7 @@ from .user_financials import UserFinancials
 from .user_important_location import UserImportantLocation
 from .user_integration import UserIntegration
 from .user_intent_attribute import UserIntentAttribute
+from .user_admin import UserAdmin
 from .user_role import UserRole
 from .user_search_intent import UserSearchIntent
 
@@ -19,6 +20,7 @@ __all__ = [
     "OAuthState",
     "GoogleOAuthToken",
     "UserIntegration",
+    "UserAdmin",
     "UserRole",
     "UserDemographics",
     "UserFinancials",

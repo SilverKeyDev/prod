@@ -13,26 +13,14 @@ type HousingTagRowsProps = {
 
 export function HousingTagRows({ formData, isEditMode, updateFormData }: HousingTagRowsProps) {
   return (
-    <Box className="space-y-6">
-      <Box>
-        <Label>{FIELD_LABELS.PREFERRED_HOME_FEATURES}</Label>
-        <OnPerTagInput
-          value={(formData.preferred_home_features as string[]) ?? []}
-          onChange={(value: string[]) => updateFormData("preferred_home_features", value)}
-          placeholder="e.g., garage, pool, fireplace"
-          isEditMode={isEditMode}
-        />
-      </Box>
-
-      <Box>
-        <Label>{FIELD_LABELS.DEAL_BREAKERS}</Label>
-        <OnPerTagInput
-          value={(formData.deal_breakers as string[]) ?? []}
-          onChange={(value: string[]) => updateFormData("deal_breakers", value)}
-          placeholder="e.g., No parking, Busy road, Old plumbing"
-          isEditMode={isEditMode}
-        />
-      </Box>
+    <Box>
+      <Label>{FIELD_LABELS.OTHER_REQUIREMENTS}</Label>
+      <OnPerTagInput
+        value={(formData.other_requirements as string[]) ?? []}
+        onChange={(value: string[]) => updateFormData("other_requirements", value)}
+        placeholder="e.g., street parking, no gated communities"
+        isEditMode={isEditMode}
+      />
     </Box>
   );
 }

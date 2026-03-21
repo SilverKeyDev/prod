@@ -1,12 +1,10 @@
 import React from "react";
 
-import { Icon } from "@ui/icons";
-
 import { useLocalization } from "packages/contexts";
 import { useSearchContextStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 
-import { BodyText } from "@/components/ui";
+import PreferencesSaveStatusRow from "@/features/profile/components/settings/inputs/PreferencesSaveStatusRow";
 import type { OnboardingData } from "@/features/profile/utils";
 
 import BedBathFilter from "./BedBathFilter.web";
@@ -27,21 +25,12 @@ export default function SearchFiltersPanel({
   const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
   return (
     <Box className="space-y-4 pb-8">
-      {saveStatus !== "idle" && (
-        <Box className="flex items-center gap-2 text-sm">
-          {saveStatus === "saving" && (
-            <BodyText as="span" size="sm" muted>
-              {t("common.saving")}
-            </BodyText>
-          )}
-          {saveStatus === "saved" && (
-            <BodyText as="span" size="sm" className="text-accent flex items-center gap-1">
-              <Icon name="check" className="h-4 w-4" />
-              {t("search.saved")}
-            </BodyText>
-          )}
-        </Box>
-      )}
+      <PreferencesSaveStatusRow
+        saveStatus={saveStatus}
+        savingLabel={t("common.saving")}
+        savedLabel={t("common.saved")}
+        className="flex items-center gap-2 text-sm"
+      />
 
       <PriceRangeFilter
         minValue={formData.home_budget_min ?? 100000}

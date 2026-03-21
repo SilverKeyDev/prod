@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useMemo } from "react";
 
-import { color, spacing } from "packages/design-tokens";
+import { useLocalization } from "packages/contexts";
+import { spacing } from "packages/design-tokens";
+import { PropertySectionRatingBadge } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/PropertySectionRatingBadge";
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper.native";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { Icon } from "packages/ui/components/primitives";
 import { Box, Image, Text } from "packages/ui/components/primitives";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
+import { stripSectionRatingField } from "packages/utils/propertyDetails";
 
-import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
+import { CommuteTravelTimeCards } from "./propertyCommuteHelpers";
+import { CommuteAnalysisContent } from "./propertyCommuteRender";
 
 function spacingToNumber(token: string): number {
   const remMatch = token.match(/^([\d.]+)rem$/);
@@ -25,103 +31,17 @@ type TravelTimeItem = {
   commute_tolerance?: number;
 };
 
-function CommuteTravelTimeCards({ travelTimes }: { travelTimes: TravelTimeItem[] }) {
-  return (
-    <Box className="gap-4">
-      {travelTimes.map((c, i) => {
-        const travelTimeMinutes = c.travel_time
-          ? parseInt(String(c.travel_time).replace(/\D/g, ""), 10)
-          : null;
-        const tolerance = c.commute_tolerance;
-        let bgClass = "bg-primary";
-        let textClass = "text-primary";
-        if (typeof travelTimeMinutes === "number" && typeof tolerance === "number") {
-          if (travelTimeMinutes > tolerance * 1.2) {
-            bgClass = "bg-primary-muted";
-            textClass = "text-destructive";
-          } else if (travelTimeMinutes > tolerance) {
-            bgClass = "bg-accent-muted";
-            textClass = "text-accent";
-          }
-        }
-        return (
-          <Box key={i} className="border-border bg-background-surface rounded-lg border p-4">
-            <Box className="flex-row items-center justify-between">
-              <Box className="min-w-0 flex-1">
-                <Box className="flex-row items-center justify-between">
-                  <Text
-                    className={`text-text-secondary flex-1 text-sm font-medium ${textClass}`}
-                    numberOfLines={1}
-                  >
-                    {c.location_name || c.name || c.location_address || c.address}
-                  </Text>
-                  <Text
-                    className={`ml-2 flex-shrink-0 rounded px-2 py-1 font-medium ${bgClass} ${textClass}`}
-                  >
-                    {c.travel_time ?? "N/A"}
-                  </Text>
-                </Box>
-                <Box className="mt-1 flex-row items-center justify-between">
-                  <Text className="text-text-secondary flex-1 text-xs" numberOfLines={1}>
-                    {c.location_address || c.address}
-                  </Text>
-                  {tolerance != null && (
-                    <Text className="text-text-secondary ml-2 flex-shrink-0 text-xs">
-                      Target: {tolerance} min
-                    </Text>
-                  )}
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-        );
-      })}
-    </Box>
-  );
-}
-
-function CommuteAnalysisContent({ data }: { data: unknown }) {
-  if (!data || typeof data !== "object") return null;
-  const dataObj = data as Record<string, unknown>;
-  const entries = Object.entries(dataObj).filter(
-    ([, value]) => value !== null && value !== undefined && value !== ""
-  );
-  if (entries.length === 0) return null;
-  return (
-    <Box className="mt-4 gap-2">
-      {entries.map(([key, value]) => {
-        const displayKey = key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-        if (Array.isArray(value)) {
-          return (
-            <Box key={key}>
-              <Text className="text-text-secondary mb-1 text-sm font-medium">{displayKey}</Text>
-              <Box className="gap-1">
-                {value.map((item, i) => (
-                  <Text key={i} className="text-text-secondary text-sm">
-                    • {String(item)}
-                  </Text>
-                ))}
-              </Box>
-            </Box>
-          );
-        }
-        return (
-          <Box key={key} className="flex-row justify-between">
-            <Text className="text-text-secondary text-sm">{displayKey}:</Text>
-            <Text className="text-text-secondary text-sm font-medium">{String(value)}</Text>
-          </Box>
-        );
-      })}
-    </Box>
-  );
-}
-
 type PropertyCommuteProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
 
-export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, analysisContent }) => {
-  const commute = (property as unknown as { commute_data?: unknown }).commute_data as
+export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
+  property,
+  analysisContent,
+}) => {
+  const { t } = useLocalization();
+  const commute = (property as unknown as { commute_data?: unknown })
+    .commute_data as
     | {
         map_url?: string;
         travel_times?: TravelTimeItem[];
@@ -130,21 +50,64 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
       }
     | undefined;
 
+  const hasTravelTimes =
+    commute != null &&
+    Array.isArray(commute.travel_times) &&
+    commute.travel_times.length > 0;
+
+  const commuteSubtitle = useMemo(() => {
+    if (!commute || hasTravelTimes) return undefined;
+    const parts: string[] = [];
+    if (commute.commute_time != null) {
+      parts.push(
+        `${t("property_details.commute_time", { defaultValue: "Commute Time:" })} ${String(commute.commute_time)} ${t("property_details.minutes", { defaultValue: "minutes" })}`,
+      );
+    }
+    if (commute.commute_distance != null) {
+      parts.push(
+        `${t("property_details.commute_distance", { defaultValue: "Commute Distance:" })} ${String(commute.commute_distance)} ${t("property_details.miles", { defaultValue: "miles" })}`,
+      );
+    }
+    return parts.length > 0 ? parts.join(" · ") : undefined;
+  }, [commute, hasTravelTimes, t]);
+
   if (!commute) return null;
-  const hasTravelTimes = Array.isArray(commute.travel_times) && commute.travel_times.length > 0;
-  const hasSimple = commute.commute_time != null || commute.commute_distance != null;
+  const hasSimple =
+    commute.commute_time != null || commute.commute_distance != null;
   if (!hasTravelTimes && !hasSimple && !analysisContent) return null;
 
+  const { rest: commuteAnalysisBody, rating: commuteSectionRating } =
+    stripSectionRatingField(analysisContent);
+  const hasCommuteAnalysisBody =
+    commuteAnalysisBody != null &&
+    typeof commuteAnalysisBody === "object" &&
+    !Array.isArray(commuteAnalysisBody) &&
+    Object.keys(commuteAnalysisBody as Record<string, unknown>).length > 0;
+
   const sectionLabel =
-    DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "commute")
-      ?.label ?? "Commute Information";
+    DEFAULT_REPORT_SECTIONS.find(
+      (s: { key: string; label: string }) => s.key === "commute",
+    )?.label ?? "Commute Information";
+
+  const mapTitle = t("property_details.commute_map", {
+    defaultValue: "Commute Map",
+  });
+  const mapGenerating = t("property_details.map_generating", {
+    defaultValue: "Map generation in progress...",
+  });
+  const mapAlt = t("property_details.commute_map_alt", {
+    defaultValue: "Commute map preview",
+  });
 
   return (
     <Box className="p-6">
-      <Box className="mb-4 flex-row items-center gap-2">
-        <Icon name="map-pin" size={20} color={color("brown.DEFAULT")} />
-        <Text className="text-text-secondary text-lg font-semibold">{sectionLabel}</Text>
-      </Box>
+      <PropertySectionHeader
+        iconName="map-pin"
+        title={sectionLabel}
+        subtitle={commuteSubtitle}
+        className="!mb-4"
+        action={<PropertySectionRatingBadge rating={commuteSectionRating} />}
+      />
       <SectionTintWrapper className="mt-2">
         {hasTravelTimes ? (
           <Box className="gap-4">
@@ -152,20 +115,27 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
               <Box className="border-border bg-background-surface rounded-lg border p-4">
                 <Image
                   source={{ uri: commute.map_url }}
+                  label={mapAlt}
                   style={{
                     width: "100%",
-                    aspectRatio: 1,
+                    height: spacingToNumber(spacing(50)),
                     borderRadius: spacingToNumber(spacing(2)),
                   }}
                   resizeMode="contain"
                 />
               </Box>
             ) : (
-              <Box className="border-border bg-background-surface items-center justify-center rounded-lg border p-4">
-                <Icon name="map-pin" size={48} color="rgba(140, 111, 90, 0.4)" />
-                <Text className="text-text-secondary mt-3 font-medium">Commute Map</Text>
+              <Box className="border-border bg-background-surface min-h-32 items-center justify-center rounded-lg border p-4">
+                <Icon
+                  name="map-pin"
+                  size={48}
+                  color="rgba(140, 111, 90, 0.4)"
+                />
+                <Text className="text-text-secondary mt-3 font-medium">
+                  {mapTitle}
+                </Text>
                 <Text className="text-text-secondary mt-1 text-sm">
-                  Map generation in progress...
+                  {mapGenerating}
                 </Text>
               </Box>
             )}
@@ -175,21 +145,31 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, anal
           <Box className="gap-2">
             {commute.commute_time != null && (
               <Text className="text-text-secondary text-sm">
-                <Text className="text-text-secondary font-semibold">Commute Time:</Text>{" "}
-                {String(commute.commute_time)} minutes
+                <Text className="text-text-secondary font-semibold">
+                  {t("property_details.commute_time", {
+                    defaultValue: "Commute Time:",
+                  })}
+                </Text>{" "}
+                {String(commute.commute_time)}{" "}
+                {t("property_details.minutes", { defaultValue: "minutes" })}
               </Text>
             )}
             {commute.commute_distance != null && (
               <Text className="text-text-secondary text-sm">
-                <Text className="text-text-secondary font-semibold">Commute Distance:</Text>{" "}
-                {String(commute.commute_distance)} miles
+                <Text className="text-text-secondary font-semibold">
+                  {t("property_details.commute_distance", {
+                    defaultValue: "Commute Distance:",
+                  })}
+                </Text>{" "}
+                {String(commute.commute_distance)}{" "}
+                {t("property_details.miles", { defaultValue: "miles" })}
               </Text>
             )}
           </Box>
         )}
-        {analysisContent != null && (
+        {hasCommuteAnalysisBody && (
           <Box className="border-border bg-background-surface mt-4 rounded-lg border p-4">
-            <CommuteAnalysisContent data={analysisContent} />
+            <CommuteAnalysisContent data={commuteAnalysisBody} />
           </Box>
         )}
       </SectionTintWrapper>

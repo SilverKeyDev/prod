@@ -45,13 +45,14 @@ export const BUTTON_VARIANT_STYLES: Record<ButtonStyleVariant, string> = {
 
 /**
  * Unified size classes — raw Tailwind, same for web and native.
- * Native sizing uses buttonNativeSizes (inline styles) since CVA-assembled native: classes
- * don't apply at Babel transform time.
+ * Minimum horizontal padding from text/icon to outer rim: 16px (px-4) for sm/md, 20px (px-5) for lg
+ * so buttons are never cramped. Native sizing uses buttonNativeSizes (inline styles) since
+ * CVA-assembled native: classes don't apply at Babel transform time.
  */
 export const BUTTON_SIZE_CLASSES = {
-  sm: "px-2 py-1 sm:px-3 sm:py-1.5 min-h-8 sm:min-h-9 text-xs sm:text-sm rounded-lg font-medium",
-  md: "px-3 py-2 sm:px-4 sm:py-2.5 min-h-10 sm:min-h-11 text-sm sm:text-base rounded-lg font-medium",
-  lg: "px-4 py-3 sm:px-6 sm:py-3 min-h-12 sm:min-h-14 text-sm sm:text-base md:text-lg rounded-lg font-medium",
+  sm: "px-4 py-1.5 sm:py-2 min-h-8 sm:min-h-9 text-xs sm:text-sm rounded-lg font-medium",
+  md: "px-4 py-2 sm:px-5 sm:py-2.5 min-h-10 sm:min-h-11 text-sm sm:text-base rounded-lg font-medium",
+  lg: "px-5 py-3 sm:px-6 sm:py-3 min-h-12 sm:min-h-14 text-sm sm:text-base md:text-lg rounded-lg font-medium",
 } as const;
 
 export const BUTTON_TEXT_COLOR_CLASSES: Record<ButtonStyleVariant, string> = {

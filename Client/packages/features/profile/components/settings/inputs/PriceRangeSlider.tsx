@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useMemo } from "react";
 
 import { spacing } from "packages/design-tokens";
 import RangeInput from "packages/ui/components/form/RangeInput";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { formatNumber } from "packages/utils";
+
+import { useSliderTickMapping } from "./useSliderTickMapping";
 
 type PriceRangeSliderProps = {
   tickValues: number[];
@@ -15,6 +17,15 @@ type PriceRangeSliderProps = {
   className?: string;
   disabled?: boolean;
 };
+
+/** Hit area height must be at least thumb size (1.25rem) so the full thumb is clickable. */
+const SLIDER_HIT_HEIGHT = spacing(6); /* 1.5rem = 24px */
+
+const THUMB_CLASS_BASE =
+  "sk-range-slider-thumb pointer-events-none absolute h-full w-full touch-manipulation appearance-none rounded-lg bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto";
+/** Must match `.sk-range-slider-thumb` in components.css (1.25rem thumb, -0.625rem centering). */
+const THUMB_HALF_REM = "0.625rem";
+const THUMB_DIAMETER_REM = "1.25rem";
 
 export default function PriceRangeSlider({
   tickValues,
@@ -27,42 +38,15 @@ export default function PriceRangeSlider({
 }: PriceRangeSliderProps) {
   const defaultFormatValue = (val: number) => `${formatPrefix}${formatNumber(val)}`;
   const formattedValue = formatValue ?? defaultFormatValue;
-  const [sliderValue, setSliderValue] = useState(0);
+  const { toSliderPercent, fromSliderPercent } = useSliderTickMapping(tickValues);
 
-  const toSliderPercent = useCallback(
-    (val: number): number => {
-      for (let i = 0; i < tickValues.length - 1; i++) {
-        const start = tickValues[i];
-        const end = tickValues[i + 1];
-        if (val >= start && val <= end) {
-          const segmentStart = (i / (tickValues.length - 1)) * 100;
-          const segmentEnd = ((i + 1) / (tickValues.length - 1)) * 100;
-          const percentWithinSegment = (val - start) / (end - start);
-          return segmentStart + percentWithinSegment * (segmentEnd - segmentStart);
-        }
-      }
-      return val <= tickValues[0] ? 0 : 100;
-    },
-    [tickValues]
+  const sliderValue = useMemo(
+    () => toSliderPercent(value),
+    [value, toSliderPercent]
   );
-
-  const fromSliderPercent = (percent: number): number => {
-    const totalSegments = tickValues.length - 1;
-    const segmentSize = 100 / totalSegments;
-    const segmentIndex = Math.min(Math.floor(percent / segmentSize), totalSegments - 1);
-    const segmentStart = tickValues[segmentIndex];
-    const segmentEnd = tickValues[segmentIndex + 1];
-    const percentInSegment = (percent - segmentIndex * segmentSize) / segmentSize;
-    return Math.round(segmentStart + percentInSegment * (segmentEnd - segmentStart));
-  };
-
-  useEffect(() => {
-    setSliderValue(toSliderPercent(value));
-  }, [value, tickValues, toSliderPercent]);
 
   const handleSliderChange = (e: { target: { value: string } }) => {
     const newSliderPercent = parseFloat(e.target.value);
-    setSliderValue(newSliderPercent);
     onChange(fromSliderPercent(newSliderPercent));
   };
 
@@ -73,21 +57,32 @@ export default function PriceRangeSlider({
     </Box>
   );
 
+  const thumbClass = `${THUMB_CLASS_BASE} ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`;
+
+  const fillWidth = `calc(${THUMB_HALF_REM} + ${sliderValue}% - (${sliderValue} * ${THUMB_DIAMETER_REM} / 100))`;
+
   return (
     <Box className={`w-full items-center ${className}`}>
       <Box className="w-full max-w-xl px-2">
         <Box className="flex flex-col items-center gap-2">
-          <Box className="relative w-full justify-center" style={{ height: trackHeight }}>
+          {valueBlock}
+          <Box className="relative w-full justify-center" style={{ height: SLIDER_HIT_HEIGHT }}>
             <Box
-              className="bg-border absolute h-2 w-full rounded-lg"
-              style={{ height: trackHeight }}
+              className="pointer-events-none bg-border absolute left-0 right-0 w-full rounded-lg"
+              style={{
+                height: trackHeight,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
             />
             <Box
-              className="bg-accent absolute rounded-lg"
+              className="pointer-events-none bg-accent absolute left-0 rounded-lg"
               style={{
                 left: spacing(0),
-                width: `${sliderValue}%`,
+                width: fillWidth,
                 height: trackHeight,
+                top: "50%",
+                transform: "translateY(-50%)",
                 borderRadius: 4,
               }}
             />
@@ -96,7 +91,7 @@ export default function PriceRangeSlider({
               style={{
                 left: spacing(0),
                 right: spacing(0),
-                height: trackHeight,
+                height: SLIDER_HIT_HEIGHT,
                 zIndex: 3,
               }}
             >
@@ -107,12 +102,12 @@ export default function PriceRangeSlider({
                 value={sliderValue}
                 onChange={disabled ? undefined : handleSliderChange}
                 disabled={disabled}
+                label="Price"
                 transparentTrack
-                className={`sk-range-slider-thumb pointer-events-none absolute h-2 w-full touch-manipulation appearance-none rounded-lg bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                className={thumbClass}
               />
             </Box>
           </Box>
-          {valueBlock}
         </Box>
       </Box>
     </Box>

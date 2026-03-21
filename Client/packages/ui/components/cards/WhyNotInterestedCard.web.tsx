@@ -304,7 +304,12 @@ export default function WhyNotInterestedCard({
   };
 
   return (
-    <Card border="charcoal" className="relative w-full overflow-hidden transition-none" padding="none" hover={false}>
+    <Card
+      border="charcoal"
+      className="relative w-full overflow-hidden transition-none"
+      padding="none"
+      hover={false}
+    >
       {propertyImage && (
         <WhyNotInterestedImageSection
           propertyImage={propertyImage}

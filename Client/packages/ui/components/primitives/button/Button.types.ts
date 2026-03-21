@@ -11,4 +11,6 @@ export type ButtonPropsBase = {
   disabled?: boolean;
   className?: string;
   style?: unknown;
+  /** Maps to aria-label (web) / accessibilityLabel (native). */
+  label?: string;
 };

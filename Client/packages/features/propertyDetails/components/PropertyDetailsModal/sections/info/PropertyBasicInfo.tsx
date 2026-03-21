@@ -1,11 +1,10 @@
 import React from "react";
 
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
-
-import Card from "@/components/layout/Card.web";
-import { formatStructuredAddress } from "@/features/search/types/search/address";
-import { formatPrice } from "@/features/search/types/search/propertyDetailsFormatters";
+import { formatStructuredAddress } from "packages/utils/format/property/addressFormatting";
+import { formatPrice } from "packages/utils/format/property/propertyDetailsDisplayFormatters";
 
 import { ListingAgentCard } from "./ListingAgentCard";
 import {
@@ -32,7 +31,7 @@ function formatPropertyAddress(property: unknown): string {
         city: string;
         state: string;
         zipcode: string;
-      }
+      },
     );
   }
   try {
@@ -42,8 +41,12 @@ function formatPropertyAddress(property: unknown): string {
   }
 }
 
-export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }) => {
-  const fields = getPropertyBasicFields(property as unknown as Record<string, unknown>);
+export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
+  property,
+}) => {
+  const fields = getPropertyBasicFields(
+    property as unknown as Record<string, unknown>,
+  );
   const agent = getAgentFromProperty(property);
   const addressDisplay = formatPropertyAddress(property);
 
@@ -95,7 +98,9 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
               propertyLotSize={fields.lotSize ?? undefined}
               propertyHomeType={fields.homeType ?? undefined}
               propertyPropertyType={fields.propertyType ?? undefined}
-              propertyPricePerSquareFoot={fields.pricePerSquareFoot ?? undefined}
+              propertyPricePerSquareFoot={
+                fields.pricePerSquareFoot ?? undefined
+              }
               propertyGarageSpaces={fields.garageSpaces ?? undefined}
               propertyParking={fields.parking ?? undefined}
               propertyZestimate={fields.zestimate ?? undefined}

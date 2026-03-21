@@ -6,6 +6,7 @@ export type AgentClient = {
   name: string;
   email: string;
   phone?: string;
+  profile_picture?: string | null;
   created_at?: string;
 };
 
@@ -15,8 +16,10 @@ export type AgentConversation = {
   client_id: string;
   client_name?: string;
   client_email?: string;
+  client_profile_picture?: string | null;
   agent_name?: string;
   agent_email?: string;
+  agent_profile_picture?: string | null;
   last_message?: string;
   last_message_at?: string;
   created_at: string;
@@ -147,6 +150,8 @@ export type CreateConnectionRequestRequest = {
 export type CreateConnectionRequestResponse = {
   success: boolean;
   request?: AgentConnectionRequest;
+  /** True when a pending request already existed for this agent–client pair */
+  already_pending?: boolean;
   message?: string;
   error?: string;
 };

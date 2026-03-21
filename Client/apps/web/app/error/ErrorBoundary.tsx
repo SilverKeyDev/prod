@@ -55,7 +55,11 @@ function ErrorFallbackContent({
 }: ErrorFallbackContentProps) {
   return (
     <Box className="px-responsive-lg py-responsive-lg flex min-h-screen items-center justify-center bg-background-base">
-      <Card border="none" className="w-full max-w-2xl border-l-4 border-l-destructive shadow-lg" padding="lg">
+      <Card
+        border="none"
+        className="w-full max-w-2xl border-l-4 border-l-destructive shadow-lg"
+        padding="lg"
+      >
         <Box className="text-center">
           <Box className="mb-responsive-md flex justify-center">
             <Box className="p-responsive-sm rounded-full border-2 border-destructive bg-background-surface">
@@ -134,7 +138,11 @@ function ErrorDetailsSection({
         {showDetails ? "Hide" : "Show"} Error Details
       </Button>
       {showDetails && (
-        <Card border="light" className="mb-responsive-sm border-border bg-background-surface" padding="sm">
+        <Card
+          border="light"
+          className="mb-responsive-sm border-border bg-background-surface"
+          padding="sm"
+        >
           <Box className="text-responsive-xs font-mono text-text-secondary">
             <Box className="mb-responsive-xs">
               <strong className="text-text-primary">Error:</strong> {normalizedError.message}

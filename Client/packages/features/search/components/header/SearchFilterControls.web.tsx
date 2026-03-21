@@ -16,6 +16,7 @@ import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
+import PreferencesSaveStatusRow from "@/features/profile/components/settings/inputs/PreferencesSaveStatusRow";
 import type { OnboardingData } from "@/features/profile/utils";
 import { HOUSING_TYPE_OPTIONS } from "@/features/profile/utils";
 import BedBathFilter from "@/features/search/components/filters/BedBathFilter.web";
@@ -30,8 +31,10 @@ import {
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "./searchHeaderConstants";
 const panelClass = SEARCH_HEADER_PANEL_CLASS_DEFAULT;
+/** Hide horizontal scrollbar on stacked filter sections (sliders slightly wider than panel). */
+const morePopoverPanelClass = `${SEARCH_HEADER_PANEL_CLASS_DEFAULT} overflow-x-hidden`;
 const homeTypePanelClass = SEARCH_HEADER_PANEL_CLASS_HOME_TYPE;
-const buttonBase = `inline-flex items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 justify-between ${HEADER_ROW_HEIGHT}`;
+const buttonBase = `inline-flex items-center gap-1.5 rounded-lg border px-4 text-sm font-medium transition-colors whitespace-nowrap shrink-0 justify-between ${HEADER_ROW_HEIGHT}`;
 
 function getHomeTypeLabel(value: string): string {
   if (!value) return "Any";
@@ -77,6 +80,7 @@ function MoreButtonPlaceholder({ t }: { t: (key: string) => string }) {
 export default function SearchFilterControls({
   formData,
   updateFormData,
+  saveStatus = "idle",
   onPopoverClose,
   variant: _variant = "desktop",
 }: SearchFilterControlsProps): React.ReactElement {
@@ -220,8 +224,11 @@ export default function SearchFilterControls({
         case "price":
           return (
             <section className={sectionClass}>
-              <BodyText as="h3" size="sm" className="mb-2 font-medium">
+              <BodyText as="h3" size="sm" className="mb-1 font-medium">
                 Price
+              </BodyText>
+              <BodyText size="sm" muted className="mb-2">
+                {formatPriceRange(priceMin, priceMax)}
               </BodyText>
               <PriceRangeFilter
                 minValue={priceMin}
@@ -236,8 +243,11 @@ export default function SearchFilterControls({
         case "bedsBaths":
           return (
             <section className={sectionClass}>
-              <BodyText as="h3" size="sm" className="mb-2 font-medium">
+              <BodyText as="h3" size="sm" className="mb-1 font-medium">
                 Beds & baths
+              </BodyText>
+              <BodyText size="sm" muted className="mb-2">
+                {getBedBathSummary(minBeds, maxBeds, minBaths, maxBaths)}
               </BodyText>
               <BedBathFilter
                 minBeds={minBeds}
@@ -292,6 +302,12 @@ export default function SearchFilterControls({
 
   const overflowPanelContent = (
     <>
+      <PreferencesSaveStatusRow
+        saveStatus={saveStatus}
+        savingLabel={t("common.saving")}
+        savedLabel={t("common.saved")}
+        className="border-border mb-3 flex items-center gap-2 border-b pb-3 text-sm"
+      />
       {SEARCH_HEADER_FILTER_PROMOTION_ORDER.map(
         (id, index) =>
           index >= overflowFromIndex && (
@@ -347,7 +363,7 @@ export default function SearchFilterControls({
           }}
           usePortal={true}
           side="left"
-          panelClassName={panelClass}
+          panelClassName={morePopoverPanelClass}
           panelMaxHeight={SEARCH_HEADER_PANEL_MAX_HEIGHT}
           panelMinWidth="320px"
           trigger={({ open: isActive, onToggle }) => (

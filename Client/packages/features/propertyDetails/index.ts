@@ -5,3 +5,4 @@ export type {
   PropertyHeaderProps,
   PropertyImageGalleryProps,
 } from "./components/PropertyDetailsModal/types";
+export { PropertyDetailsScreen } from "./components/PropertyDetailsScreen/PropertyDetailsScreen";

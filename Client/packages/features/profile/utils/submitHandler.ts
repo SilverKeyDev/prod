@@ -26,6 +26,8 @@ export type SubmitHandlerParams = {
   onError?: (error: Error) => void;
   /** Callback to show error toast (avoids utils importing hooks). Caller passes e.g. showErrorToast. */
   onShowError?: (message: string) => void;
+  /** When true, bypasses pre-submit required-field validation. */
+  skipValidation?: boolean;
 };
 
 /**
@@ -44,26 +46,29 @@ export const handleSubmit = async ({
   onSuccess,
   onError,
   onShowError,
+  skipValidation = false,
 }: SubmitHandlerParams) => {
   // Validate form data before submission
-  const validation = validateFunction(formData);
+  if (!skipValidation) {
+    const validation = validateFunction(formData);
 
-  if (!validation.isValid) {
-    // Show the custom validation warning component if available
-    if (setValidationResult && setShowValidationWarning) {
-      setValidationResult({
-        missingFields: validation.missingFields,
-        errors: validation.errors,
-      });
-      setShowValidationWarning(true);
-    } else {
-      // Fallback to console warning if validation UI not available
-      log.warn(LOG_CATEGORIES.ERRORS, "Validation failed", {
-        missingFields: validation.missingFields,
-        errors: validation.errors,
-      });
+    if (!validation.isValid) {
+      // Show the custom validation warning component if available
+      if (setValidationResult && setShowValidationWarning) {
+        setValidationResult({
+          missingFields: validation.missingFields,
+          errors: validation.errors,
+        });
+        setShowValidationWarning(true);
+      } else {
+        // Fallback to warning log if validation UI not available
+        log.warn(LOG_CATEGORIES.ERRORS, "Validation failed", {
+          missingFields: validation.missingFields,
+          errors: validation.errors,
+        });
+      }
+      return;
     }
-    return;
   }
 
   setLoading(true);

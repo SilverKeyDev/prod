@@ -236,9 +236,7 @@ function SidebarNavCategory({
                 className={`${isActive(item.href) ? "h-6 w-6" : "h-5 w-5"} transition-all duration-200 ${expanded ? "mr-3" : ""}`}
               />
               {expanded && (
-                <span
-                  className={isActive(item.href) ? "text-base font-bold" : "text-sm"}
-                >
+                <span className={isActive(item.href) ? "text-base font-bold" : "text-sm"}>
                   {item.name}
                 </span>
               )}

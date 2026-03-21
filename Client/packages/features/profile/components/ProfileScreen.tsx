@@ -1,22 +1,36 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { useLocalization } from "packages/contexts";
 import { getPersonalizationStepsUi } from "packages/features/profile/components/profilePicture/profileStepsUi";
-import { ProfileCommunicationSection } from "packages/features/profile/components/profileScreen/ProfileCommunicationSection";
 import { ProfileDemographicsSection } from "packages/features/profile/components/profileScreen/ProfileDemographicsSection";
 import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/ProfileFinancialSection";
 import { ProfileHousingSection } from "packages/features/profile/components/profileScreen/ProfileHousingSection";
 import { ProfileLocationSection } from "packages/features/profile/components/profileScreen/ProfileLocationSection";
+import {
+  AgentBrokerageSection,
+  AgentLicensingSection,
+  AgentProfileServiceSection,
+} from "packages/features/profile/components/sections";
 import type { OnboardingData } from "packages/features/profile/utils";
 import {
   getProfileSectionCompletion,
   handleSubmit as handleSubmitUtil,
   userPreferencesToOnboardingData,
-  validateSettingsData,
+  validateProfileSave,
 } from "packages/features/profile/utils";
 import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
-import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import {
+  useUserData,
+  useUserPreferences,
+} from "packages/hooks/data/auth/useUserData";
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { showErrorToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import Button from "packages/ui/components/button/Button";
@@ -30,8 +44,12 @@ import { UnderlineTabs } from "packages/ui/components/tabs";
 export function ProfileScreen() {
   const { t } = useLocalization();
   const { userProfile } = useUserData();
-  const { userPreferences, preferencesLoading, preferencesError, refreshUserPreferences } =
-    useUserPreferences();
+  const {
+    userPreferences,
+    preferencesLoading,
+    preferencesError,
+    refreshUserPreferences,
+  } = useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
   const {
     uploadProfilePicture: _uploadProfilePicture,
@@ -49,10 +67,23 @@ export function ProfileScreen() {
   }>({ missingFields: [], errors: [] });
   const [showValidationWarning, setShowValidationWarning] = useState(false);
 
-  const STEPS = getPersonalizationStepsUi();
-  const [activeSection, setActiveSection] = useState<string>(STEPS[0]?.id ?? "demographics");
+  const isAgent = useIsAgent();
+  const STEPS = useMemo(() => getPersonalizationStepsUi(isAgent), [isAgent]);
+  const [activeSection, setActiveSection] = useState<string>(
+    STEPS[0]?.id ?? "demographics",
+  );
+  const hasInitializedFormRef = useRef(false);
 
-  const sectionCompletion = useMemo(() => getProfileSectionCompletion(formData), [formData]);
+  useEffect(() => {
+    if (STEPS.length > 0 && !STEPS.some((s) => s.id === activeSection)) {
+      setActiveSection(STEPS[0]?.id ?? "demographics");
+    }
+  }, [STEPS, activeSection]);
+
+  const sectionCompletion = useMemo(
+    () => getProfileSectionCompletion(formData),
+    [formData],
+  );
 
   const handleChangeProfilePhoto = useCallback(async () => {
     // Platform-specific photo upload handled by useProfilePictureUpload hook
@@ -60,7 +91,10 @@ export function ProfileScreen() {
     try {
       // On web: would use input[type="file"]
       // On native: would use expo-document-picker
-      log.warn(LOG_CATEGORIES.ERRORS, "Profile picture upload not implemented for this platform");
+      log.warn(
+        LOG_CATEGORIES.ERRORS,
+        "Profile picture upload not implemented for this platform",
+      );
     } catch (error) {
       const message =
         error instanceof Error
@@ -73,9 +107,13 @@ export function ProfileScreen() {
   useEffect(() => {
     if (
       showValidationWarning &&
-      (validationResult.missingFields.length > 0 || validationResult.errors.length > 0)
+      (validationResult.missingFields.length > 0 ||
+        validationResult.errors.length > 0)
     ) {
-      const message = [...validationResult.missingFields, ...validationResult.errors].join("\n");
+      const message = [
+        ...validationResult.missingFields,
+        ...validationResult.errors,
+      ].join("\n");
       // Platform-specific alert - web would use a modal, native uses Alert
       log.warn(LOG_CATEGORIES.ERRORS, "Profile validation issues", { message });
       setShowValidationWarning(false);
@@ -86,20 +124,46 @@ export function ProfileScreen() {
     void refreshUserPreferences();
   }, [refreshUserPreferences]);
 
+  // Initialize form from server only once when preferences first become available.
+  // Never reset hasInitializedFormRef when userPreferences is falsy (e.g. during refetch
+  // or cache updates), so in-progress edits are not overwritten by a re-init.
   useEffect(() => {
-    if (userPreferences) {
-      const data = userPreferencesToOnboardingData(
-        userPreferences as Record<string, unknown>,
-        userProfile ?? undefined
-      );
-      setFormData(data);
-      setOriginalData(data);
-    }
+    if (!userPreferences) return;
+    if (hasInitializedFormRef.current) return;
+    hasInitializedFormRef.current = true;
+    const data = userPreferencesToOnboardingData(
+      userPreferences as Record<string, unknown>,
+      userProfile ?? undefined,
+    );
+    setFormData(data);
+    setOriginalData(data);
   }, [userPreferences, userProfile]);
 
-  const updateField = useCallback((field: keyof OnboardingData, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  // When profile loads after form was already initialized, backfill name from user profile
+  // (stored at sign-up) so it displays correctly even if preferences loaded first.
+  useEffect(() => {
+    if (!hasInitializedFormRef.current) return;
+    const nameFromProfile =
+      userProfile != null &&
+      typeof userProfile.name === "string" &&
+      userProfile.name.trim() !== ""
+        ? userProfile.name.trim()
+        : undefined;
+    if (!nameFromProfile) return;
+    setFormData((prev) =>
+      prev.name ? prev : { ...prev, name: nameFromProfile },
+    );
+    setOriginalData((prev) =>
+      prev.name ? prev : { ...prev, name: nameFromProfile },
+    );
+  }, [userProfile]);
+
+  const updateField = useCallback(
+    (field: keyof OnboardingData, value: unknown) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
 
   const handleStartEdit = useCallback(() => {
     setIsEditMode(true);
@@ -128,7 +192,7 @@ export function ProfileScreen() {
       setLoading,
       setValidationResult,
       setShowValidationWarning,
-      validateFunction: validateSettingsData,
+      validateFunction: validateProfileSave,
       onSuccess: () => {
         setFormData(dataToSave);
         setOriginalData(dataToSave);
@@ -184,7 +248,7 @@ export function ProfileScreen() {
                   iconName="save"
                   className="flex-1"
                 >
-                  {loading ? t("profile.account.saving_save") : t("profile.account.save")}
+                  {t("profile.account.save")}
                 </Button>
               </>
             ) : (
@@ -203,13 +267,18 @@ export function ProfileScreen() {
           <UnderlineTabs
             items={STEPS.map((step) => {
               const status =
-                sectionCompletion[step.id as keyof typeof sectionCompletion] ?? "empty";
+                sectionCompletion[step.id as keyof typeof sectionCompletion] ??
+                "empty";
               const isComplete = status === "complete";
               const needsAttention = status === "needs_attention";
               const icon = step.icon
                 ? React.createElement(step.icon, { className: "h-4 w-4" })
                 : undefined;
-              const suffix = isComplete ? " ✓" : !isComplete && needsAttention ? " •" : "";
+              const suffix = isComplete
+                ? " ✓"
+                : !isComplete && needsAttention
+                  ? " •"
+                  : "";
               return {
                 id: step.id,
                 label: `${step.title}${suffix}`,
@@ -221,6 +290,30 @@ export function ProfileScreen() {
             compact
             className="mb-4"
           />
+
+          {activeSection === "agent_brokerage" && (
+            <AgentBrokerageSection
+              formData={formData}
+              isEditMode={isEditMode}
+              updateFormData={updateField}
+            />
+          )}
+
+          {activeSection === "agent_licensing" && (
+            <AgentLicensingSection
+              formData={formData}
+              isEditMode={isEditMode}
+              updateFormData={updateField}
+            />
+          )}
+
+          {activeSection === "agent_profile" && (
+            <AgentProfileServiceSection
+              formData={formData}
+              isEditMode={isEditMode}
+              updateFormData={updateField}
+            />
+          )}
 
           {activeSection === "demographics" && (
             <ProfileDemographicsSection
@@ -253,14 +346,6 @@ export function ProfileScreen() {
 
           {activeSection === "housing" && (
             <ProfileHousingSection
-              formData={formData}
-              isEditMode={isEditMode}
-              updateField={updateField}
-            />
-          )}
-
-          {activeSection === "communication" && (
-            <ProfileCommunicationSection
               formData={formData}
               isEditMode={isEditMode}
               updateField={updateField}

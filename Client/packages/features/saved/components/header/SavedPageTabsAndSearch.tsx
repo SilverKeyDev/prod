@@ -1,4 +1,5 @@
 import { Icon } from "@ui/icons";
+import type { ReactNode } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
@@ -10,6 +11,8 @@ import { IconButton, Input } from "@/components/ui";
 import { UnderlineTabs } from "@/components/ui";
 
 type SavedPageTabsAndSearchProps = {
+  /** Renders at the start of the toolbar row (e.g. agent client picker). */
+  toolbarLeading?: ReactNode;
   searchTerm: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
@@ -43,6 +46,7 @@ function SavedPageTabNav({
   );
 }
 export default function SavedPageTabsAndSearch({
+  toolbarLeading,
   searchTerm,
   onSearchChange,
   searchPlaceholder = "Search...",
@@ -58,6 +62,9 @@ export default function SavedPageTabsAndSearch({
       <SavedPageTabNav viewType={viewType} onViewTypeChange={onViewTypeChange} />
       <Card border="light" padding="none" className="w-full p-3">
         <Box className="flex flex-wrap items-center justify-between gap-3">
+          {toolbarLeading ? (
+            <Box className="flex w-full shrink-0 items-center sm:w-auto">{toolbarLeading}</Box>
+          ) : null}
           {/* Search input */}
           <Box className="flex w-full min-w-0 flex-1 items-center justify-center gap-3 sm:w-auto sm:justify-start">
             <Box className="relative min-w-48 flex-1">

@@ -1,11 +1,12 @@
 /// <reference types="nativewind/types" />
 import React, { forwardRef } from "react";
 
-import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
+// import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import { Icon } from "@ui/icons";
 import type { PressableProps } from "react-native";
 import { Pressable } from "react-native";
 
+import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
 import { Box, Text } from "packages/ui/components/primitives";
 
 import type { ButtonProps, ButtonVariant } from "./Button";
@@ -90,14 +91,18 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
     const handlePress = onPress ?? (onClick as (() => void) | undefined);
 
-    const content = (
-      <Box className="flex-row items-center justify-center gap-2">
-        {loading && iconPosition === "left" && (
+    const content = loading ? (
+      <>
+        <RippleBackground overlay />
+        <Box className="relative z-10 flex-row items-center justify-center gap-2">
           <Box className="items-center justify-center">
-            <KeyTurnLoader message="" />
+            {/* <KeyTurnLoader message="" /> */}
           </Box>
-        )}
-        {!loading && resolvedIcon && iconPosition === "left" && (
+        </Box>
+      </>
+    ) : (
+      <Box className="flex-row items-center justify-center gap-2">
+        {resolvedIcon && iconPosition === "left" && (
           <Box className="items-center justify-center">{resolvedIcon}</Box>
         )}
         {children != null &&
@@ -110,18 +115,20 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
           ) : (
             children
           ))}
-        {loading && iconPosition === "right" && (
-          <Box className="items-center justify-center">
-            <KeyTurnLoader message="" />
-          </Box>
-        )}
-        {!loading && resolvedIcon && iconPosition === "right" && (
+        {resolvedIcon && iconPosition === "right" && (
           <Box className="items-center justify-center">{resolvedIcon}</Box>
         )}
       </Box>
     );
 
     const pressableProps = pickPressableProps(props);
+    const priorA11yState =
+      pressableProps.accessibilityState &&
+      typeof pressableProps.accessibilityState === "object" &&
+      !Array.isArray(pressableProps.accessibilityState)
+        ? (pressableProps.accessibilityState as Record<string, boolean | undefined>)
+        : {};
+    const mergedAccessibilityState = { ...priorA11yState, busy: loading };
 
     return (
       <Pressable
@@ -129,8 +136,9 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         onPress={handlePress}
         disabled={disabled ?? loading}
         accessibilityLabel={label}
-        className={`flex-row items-center justify-center rounded-lg ${variantClass} ${sizeClass} ${""} ${className}`}
+        className={`flex-row items-center justify-center rounded-lg ${variantClass} ${sizeClass} ${loading ? "overflow-hidden border-2 border-neutral-600" : ""} ${""} ${className}`}
         {...pressableProps}
+        accessibilityState={mergedAccessibilityState}
       >
         {content}
       </Pressable>

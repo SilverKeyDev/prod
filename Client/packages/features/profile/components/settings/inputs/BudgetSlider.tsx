@@ -2,10 +2,7 @@ import React from "react";
 
 import BudgetRangeSlider from "./BudgetRangeSlider";
 
-type BudgetSliderProps = Omit<
-  React.ComponentProps<typeof BudgetRangeSlider>,
-  "variant"
->;
+type BudgetSliderProps = Omit<React.ComponentProps<typeof BudgetRangeSlider>, "variant">;
 
 /**
  * Budget range slider with the green "budget" variant (same as transaction "Set a budget" step).

@@ -4,10 +4,7 @@ import type { OnboardingData } from "packages/features/profile/utils"; /* eslint
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { Transition } from "packages/ui/components/adapters/headless";
 import { Box } from "packages/ui/components/primitives";
-import {
-  estimateMonthlyPayment,
-  mapCreditScoreToNumber,
-} from "packages/utils/affordability";
+import { estimateMonthlyPayment, mapCreditScoreToNumber } from "packages/utils/affordability";
 
 import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";

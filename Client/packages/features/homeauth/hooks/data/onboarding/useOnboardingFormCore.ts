@@ -1,16 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { usePreferencesSubmit } from "packages/features/homeauth/hooks/data/usePreferencesSubmit";
 import { showErrorToast } from "packages/hooks/ui";
 
-import type { ProfileStep, ValidationResult } from "@/features/profile/utils";
-import { handleSubmit as handleSubmitUtil, type OnboardingData } from "@/features/profile/utils";
+import type { ProfileStep } from "@/features/profile/utils";
+import {
+  handleSubmit as handleSubmitUtil,
+  nextPreferencesVersion,
+  type OnboardingData,
+} from "@/features/profile/utils";
 
-import { getOnboardingDraftFromStorage, persistOnboardingDraft } from "./useOnboardingForm.helpers";
+import {
+  getOnboardingDraftFromStorage,
+  persistOnboardingDraft,
+} from "./useOnboardingForm.helpers";
 
 export type UseOnboardingFormCoreOptions = {
-  getSteps: () => ProfileStep[];
-  validate: (data: OnboardingData) => ValidationResult;
+  /** Steps depend on formData so agent steps can be included when is_agent is yes/am_agent. */
+  getSteps: (formData: OnboardingData) => ProfileStep[];
   /** When provided, called on successful submit instead of navigate (e.g. React Native). */
   onSubmitSuccess?: () => void;
   /** When provided (web), used to navigate after submit. */
@@ -18,34 +25,33 @@ export type UseOnboardingFormCoreOptions = {
 };
 
 /**
- * Shared onboarding form state and submit logic. Platform wrappers pass getSteps, validate, and navigation.
+ * Shared onboarding form state and submit logic. Platform wrappers pass getSteps(formData), validate, and navigation.
  */
 export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
-  const { getSteps, validate, onSubmitSuccess, navigate } = options;
-  const steps = useMemo(() => getSteps(), [getSteps]);
+  const { getSteps, onSubmitSuccess, navigate } = options;
+  const [currentStep, setCurrentStep] = useState(0);
+  const [formData, setFormData] = useState<OnboardingData>(() => {
+    const draft = getOnboardingDraftFromStorage();
+    return draft ?? { important_locations: [] };
+  });
+  const skipNextPersistRef = useRef(true);
+  const steps = useMemo(() => getSteps(formData), [getSteps, formData]);
   const submitPreferences = usePreferencesSubmit();
 
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<OnboardingData>({
-    important_locations: [],
-  });
   const [loading, setLoading] = useState(false);
-  const [showValidationWarning, setShowValidationWarning] = useState(false);
-  const [validationResult, setValidationResult] = useState<{
-    missingFields: string[];
-    errors: string[];
-  }>({ missingFields: [], errors: [] });
 
-  const updateFormData = useCallback((field: string | number | symbol, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const updateFormData = useCallback(
+    (field: string | number | symbol, value: unknown) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
 
   useEffect(() => {
-    const draft = getOnboardingDraftFromStorage();
-    setFormData(draft ?? { important_locations: [] });
-  }, []);
-
-  useEffect(() => {
+    if (skipNextPersistRef.current) {
+      skipNextPersistRef.current = false;
+      return;
+    }
     persistOnboardingDraft(formData);
   }, [formData]);
 
@@ -62,38 +68,20 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
   }, []);
 
   const handleSubmit = useCallback(async () => {
+    const dataToSave: OnboardingData = {
+      ...formData,
+      preferences_version: nextPreferencesVersion(formData.preferences_version),
+    };
     await handleSubmitUtil({
-      formData,
+      formData: dataToSave,
       submitPreferences,
       setLoading,
-      setValidationResult,
-      setShowValidationWarning,
       navigate,
       onSuccessNavigate: onSubmitSuccess,
-      validateFunction: validate,
+      skipValidation: true,
       onShowError: showErrorToast,
     });
-  }, [formData, submitPreferences, navigate, onSubmitSuccess, validate]);
-
-  const handleCloseValidationWarning = useCallback(() => {
-    setShowValidationWarning(false);
-  }, []);
-
-  const handleReviewInformation = useCallback(() => {
-    setShowValidationWarning(false);
-    const firstMissingField = validationResult.missingFields[0];
-    if (firstMissingField) {
-      if (
-        firstMissingField.includes("Age") ||
-        firstMissingField.includes("Agent") ||
-        firstMissingField.includes("Children")
-      )
-        setCurrentStep(0);
-      else if (firstMissingField.includes("bedroom") || firstMissingField.includes("bathroom"))
-        setCurrentStep(1);
-      else if (firstMissingField.includes("location")) setCurrentStep(2);
-    }
-  }, [validationResult.missingFields]);
+  }, [formData, submitPreferences, navigate, onSubmitSuccess]);
 
   return {
     steps,
@@ -105,10 +93,6 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
     prevStep,
     goToStep,
     loading,
-    showValidationWarning,
-    validationResult,
     handleSubmit,
-    handleCloseValidationWarning,
-    handleReviewInformation,
   };
 }

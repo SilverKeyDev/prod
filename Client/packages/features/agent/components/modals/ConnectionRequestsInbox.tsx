@@ -6,6 +6,7 @@ import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 type ConnectionRequestsInboxProps = {
   onRequestAccepted?: () => void;
 };
@@ -20,7 +21,7 @@ export default function ConnectionRequestsInbox({
       if (accept) {
         enqueueToast({
           type: "success",
-          message: "Connection request accepted",
+          message: "Request accepted",
         });
         if (onRequestAccepted) {
           onRequestAccepted();
@@ -31,10 +32,10 @@ export default function ConnectionRequestsInbox({
           message: "Connection request rejected",
         });
       }
-    } catch {
+    } catch (err: unknown) {
       enqueueToast({
         type: "error",
-        message: "Failed to respond to connection request",
+        message: connectionRequestApiErrorMessage(err, "Failed to respond to connection request"),
       });
     }
   };

@@ -22,7 +22,8 @@ function isImageFeatures(x: unknown): x is ImageFeatures {
 function isFeatures(x: unknown): x is Features {
   if (typeof x !== "object" || x === null) return false;
   return Object.values(x as Record<string, unknown>).every(
-    (v) => Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
+    (v) =>
+      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string"),
   );
 }
 
@@ -70,8 +71,12 @@ const deduplicateCategoryFeatures = (feats: Features): Features => {
   return result;
 };
 
-export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property }) => {
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
+  property,
+}) => {
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(),
+  );
   const { features, image_features: imageFeatures } = property as unknown as {
     features: unknown;
     image_features: unknown;
@@ -80,7 +85,9 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
     isImageFeatures(imageFeatures) && !imageFeatures.error
       ? { ...imageFeatures, clean: deduplicateFeatures(imageFeatures.clean) }
       : null;
-  const feats = isFeatures(features) ? deduplicateCategoryFeatures(features) : null;
+  const feats = isFeatures(features)
+    ? deduplicateCategoryFeatures(features)
+    : null;
 
   if (!img && !feats) return null;
 
@@ -99,7 +106,9 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
   return (
     <Box className="px-6 py-6">
       <Box className="mb-4 flex-row items-center gap-2">
-        <Text className="text-text-secondary text-lg font-semibold">Property Features</Text>
+        <Text className="text-text-secondary text-lg font-semibold">
+          Property Features
+        </Text>
       </Box>
 
       <Box className="border-border bg-background-surface mt-2 rounded-lg border border-r-0 p-6">
@@ -142,8 +151,13 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property })
                   {isExpanded && (
                     <Box className="flex-row flex-wrap gap-2">
                       {list.map((feature, idx) => (
-                        <Box key={idx} className="bg-primary-muted rounded-full px-3 py-1">
-                          <Text className="text-text-secondary text-left text-xs">{feature}</Text>
+                        <Box
+                          key={idx}
+                          className="bg-primary-muted rounded-full px-3 py-1"
+                        >
+                          <Text className="text-text-secondary text-left text-xs">
+                            {feature}
+                          </Text>
                         </Box>
                       ))}
                     </Box>

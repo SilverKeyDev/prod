@@ -114,22 +114,24 @@ export function EventCard({
       <Pressable
         onPress={onClick}
         disabled={!onClick}
-        className="border-border bg-background-surface mb-2 w-full overflow-hidden rounded-xl border transition-shadow hover:shadow-md disabled:cursor-default disabled:opacity-100"
+        className="border-border bg-background-surface mb-2 ml-2 w-full overflow-hidden rounded-xl border transition-shadow hover:shadow-md disabled:cursor-default disabled:opacity-100"
       >
         <Box className="flex flex-row items-stretch">
           <Box className="bg-accent w-1" />
-          <Box className="flex-1 space-y-1 p-3">
-            <Text className="text-text-primary text-sm font-semibold">
+          <Box className="flex-1 space-y-1 p-3 text-left">
+            <Text className="text-text-primary text-left text-sm font-semibold">
               {event.summary || "Untitled Event"}
             </Text>
             {dateRange ? (
-              <Text className="text-text-secondary text-xs sm:text-sm">{dateRange}</Text>
+              <Text className="text-text-secondary text-left text-xs sm:text-sm">{dateRange}</Text>
             ) : null}
             {event.location ? (
-              <Text className="text-text-secondary text-xs sm:text-sm">{event.location}</Text>
+              <Text className="text-text-secondary text-left text-xs sm:text-sm">
+                {event.location}
+              </Text>
             ) : null}
             {event.description ? (
-              <Text className="text-text-secondary line-clamp-2 text-xs sm:text-sm">
+              <Text className="text-text-secondary line-clamp-2 text-left text-xs sm:text-sm">
                 {event.description}
               </Text>
             ) : null}

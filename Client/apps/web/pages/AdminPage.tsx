@@ -1,14 +1,28 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { useQueryClient } from "@tanstack/react-query";
 
 import { adminApi } from "packages/api/admin";
+import { queryKeys } from "packages/config/query/keys";
+import { AdminDeleteUserSection } from "packages/features/admin";
+import { useUserData } from "packages/hooks/data/useUserData";
 import { useStepUpAuth } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES, type LoggerConfig } from "packages/logger";
+import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 
 import { AuthGuard } from "@/app/guards";
 import { AdminGuard } from "@/app/guards/auth";
 import Card from "@/components/layout/Card.web";
-import { AccessibleCheckboxInput, BodyText, Button, Label, Select, Title } from "@/components/ui";
+import {
+  AccessibleCheckboxInput,
+  BodyText,
+  Button,
+  Label,
+  Select,
+  Title,
+  Toggle,
+} from "@/components/ui";
 
 type FrontendLoggerConfigState = LoggerConfig;
 
@@ -33,6 +47,32 @@ export default function AdminPage() {
   const [frontendConfig, setFrontendConfig] = useState<FrontendLoggerConfigState | null>(null);
   const [frontendSaving, setFrontendSaving] = useState(false);
   const [skyslopeConnected, setSkyslopeConnected] = useState<boolean | null>(null);
+  const [agentStatusSaving, setAgentStatusSaving] = useState(false);
+  const [agentStatusError, setAgentStatusError] = useState<string | null>(null);
+
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  const queryClient = useQueryClient();
+  const { refreshUserProfile } = useUserData();
+  const isAgent = user?.is_agent ?? false;
+
+  const handleToggleAgentStatus = useCallback(async () => {
+    if (!user) return;
+    setAgentStatusError(null);
+    setAgentStatusSaving(true);
+    try {
+      const result = await adminApi.setCurrentUserAgentStatus(!isAgent);
+      setUser({ ...user, is_agent: result.is_agent });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.user.profile() });
+      await refreshUserProfile();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to update agent status";
+      setAgentStatusError(message);
+      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] setCurrentUserAgentStatus failed", err);
+    } finally {
+      setAgentStatusSaving(false);
+    }
+  }, [user, isAgent, setUser, queryClient, refreshUserProfile]);
 
   useEffect(() => {
     let mounted = true;
@@ -306,11 +346,55 @@ export default function AdminPage() {
 
         <Card border="light" padding="lg" className="w-full">
           <Title size="lg" as="h2" className="mb-2">
-            Skyslope Integration
+            Current account: Agent status
+          </Title>
+          <BodyText size="sm" muted className="mb-4">
+            Toggle whether the currently signed-in account is treated as an agent. This updates
+            immediately across the app (sidebar, dashboard, messaging, etc.).
+          </BodyText>
+          <Box className="flex flex-col gap-3">
+            <Box className="flex items-center gap-3">
+              <Toggle
+                checked={isAgent}
+                disabled={agentStatusSaving || !user}
+                label={isAgent ? "Agent" : "Not an agent"}
+                onChange={handleToggleAgentStatus}
+                size="md"
+              />
+            </Box>
+            {agentStatusError && (
+              <BodyText size="sm" className="text-red-600">
+                {agentStatusError}
+              </BodyText>
+            )}
+            {agentStatusSaving && (
+              <BodyText size="xs" muted>
+                Updating…
+              </BodyText>
+            )}
+          </Box>
+        </Card>
+
+        <Card border="light" padding="lg" className="w-full border-rose-200">
+          <AdminDeleteUserSection />
+        </Card>
+
+        <Card border="light" padding="lg" className="w-full">
+          <Title size="lg" as="h2" className="mb-2">
+            SkySlope integration
           </Title>
           <BodyText size="sm" muted className="mb-4">
             Connect your SkySlope account to verify the integration. This will redirect you to
             SkySlope to authorize, then show your profile on success.
+          </BodyText>
+          <BodyText size="xs" muted className="mb-4">
+            If you see 400 Bad Request, SkySlope rejected the redirect URI. Allowed callback URLs are
+            configured on SkySlope’s side when your OAuth client is provisioned—there is no
+            self-service portal to add them. Ask SkySlope support to register the exact URL this
+            server sends (character-for-character, including scheme and port), e.g.{" "}
+            <code>http://localhost:5000/api/v1/skyslope/callback</code> for local dev. If the
+            server sets <code>SKYSLOPE_REDIRECT_URI</code>, that value must match what SkySlope has
+            on file.
           </BodyText>
           {skyslopeConnected === null ? (
             <BodyText size="sm" muted>

@@ -14,6 +14,7 @@ import { Box } from "packages/ui/components/primitives";
 
 import { Region } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
+import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
 
 type AgentMessagingProps = {
@@ -73,6 +74,9 @@ export default function AgentMessaging({
     setIsSidebarExpanded,
   } = useMessagingModals("agent");
 
+  const { requests: pendingConnectionRequests } = useConnectionRequests();
+  const pendingConnectionRequestCount = pendingConnectionRequests.length;
+
   const handlers = useMessagingHandlers({
     mode: "agent",
     selectedClientId,
@@ -112,7 +116,7 @@ export default function AgentMessaging({
     if (!setMobileHeaderActions) return;
     const headerMode = getHeaderMode();
     const chatTitle = selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle;
-    const contentKey = `${headerMode}-${isSidebarExpanded}-${selectedClient?.name ?? ""}-${chatTitle}`;
+    const contentKey = `${headerMode}-${isSidebarExpanded}-${selectedClient?.name ?? ""}-${chatTitle}-${pendingConnectionRequestCount}`;
     if (headerContentKeyRef.current === contentKey) return;
     headerContentKeyRef.current = contentKey;
     setMobileHeaderActions(
@@ -123,6 +127,9 @@ export default function AgentMessaging({
         chatTitle={chatTitle}
         selectedClientName={selectedClient?.name}
         onSearchClick={() => setShowSearchModal(true)}
+        onInboxClick={() => setShowInbox(true)}
+        onBackClick={() => setShowInbox(false)}
+        pendingConnectionRequestCount={pendingConnectionRequestCount}
       />
     );
     return () => {
@@ -136,6 +143,8 @@ export default function AgentMessaging({
     isSidebarExpanded,
     setIsSidebarExpanded,
     setShowSearchModal,
+    setShowInbox,
+    pendingConnectionRequestCount,
     selectedClient?.name,
     selectedClient,
     config.header.chatTitle,
@@ -172,6 +181,9 @@ export default function AgentMessaging({
                   }
                   selectedClientName={selectedClient?.name}
                   onSearchClick={() => setShowSearchModal(true)}
+                  onInboxClick={() => setShowInbox(true)}
+                  onBackClick={() => setShowInbox(false)}
+                  pendingConnectionRequestCount={pendingConnectionRequestCount}
                 />
               </Box>
             )}

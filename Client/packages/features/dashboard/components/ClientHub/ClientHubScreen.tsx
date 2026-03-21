@@ -83,9 +83,9 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   const [checklistTab, setChecklistTab] = useState<ChecklistTab>(currentSection);
   const prevActiveTabRef = useRef<ClientHubTab>("overview");
 
-  // When opening the checklists tab, select the first category with unselected items
+  // When opening the checklists tab, select the tab with the earliest unchecked item
   useEffect(() => {
-    if (activeTab === "checklists" && prevActiveTabRef.current !== "checklists") {
+    if (activeTab === "checklists") {
       setChecklistTab(currentSection);
     }
     prevActiveTabRef.current = activeTab;

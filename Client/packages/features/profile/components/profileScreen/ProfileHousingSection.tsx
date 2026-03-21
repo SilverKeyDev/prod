@@ -2,16 +2,21 @@ import React from "react";
 
 import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/BudgetRangeSlider";
 import {
+  AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,
   ARCHITECTURAL_STYLE_OPTIONS,
   DAYS_ON_MARKET_TICK_VALUES,
+  effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   HOME_AGE_YEARS_TICK_VALUES,
   LOT_SIZE_ACRES_TICK_VALUES,
   type OnboardingData,
+  PROFILE_NOT_SPECIFIED_LABEL,
+  profileRangeValueClassName,
   SECTION_TITLES,
   SQFT_TICK_VALUES,
 } from "packages/features/profile/utils";
-import { PrimitiveInput } from "packages/ui/components/primitives";
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
+import { Input } from "packages/ui/components";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
@@ -31,9 +36,21 @@ export function ProfileHousingSection({
   isEditMode,
   updateField,
 }: ProfileHousingSectionProps) {
+  const authIsAgent = useIsAgent();
+  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
+    authIsAgent,
+    formIsAgent: formData.is_agent,
+  });
   return (
     <Box className="gap-4">
       <Title size="md">{SECTION_TITLES.HOUSING_PREFERENCES}</Title>
+      {showAgentOptionalBuyerCallout && (
+        <Box className="border-border bg-background-surface rounded-lg border px-3 py-2">
+          <BodyText size="xs" muted>
+            {AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT}
+          </BodyText>
+        </Box>
+      )}
 
       <Box>
         <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
@@ -104,14 +121,17 @@ export function ProfileHousingSection({
           {FIELD_LABELS.PREFERRED_BEDROOMS}
         </BodyText>
         {isEditMode ? (
-          <PrimitiveInput
+          <Input
+            type="number"
             value={formData.preferred_bedrooms?.toString() ?? ""}
-            onValueChange={(v) =>
-              updateField("preferred_bedrooms", v ? parseInt(v, 10) || undefined : undefined)
+            onChange={(e) =>
+              updateField(
+                "preferred_bedrooms",
+                e.target.value ? parseInt(e.target.value, 10) || undefined : undefined
+              )
             }
             placeholder="Number of bedrooms"
-            keyboardType="number-pad"
-            className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
+            className="mt-2"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.preferred_bedrooms} />
@@ -144,8 +164,10 @@ export function ProfileHousingSection({
           <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
             <Text className="text-text-primary text-center text-base">
               {(formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]).toFixed(2)} –{" "}
-              {(formData.preferred_lot_size_max ??
-                LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]).toFixed(2)}{" "}
+              {(
+                formData.preferred_lot_size_max ??
+                LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]
+              ).toFixed(2)}{" "}
               acres
             </Text>
           </Box>
@@ -159,9 +181,7 @@ export function ProfileHousingSection({
         {isEditMode ? (
           <BudgetRangeSlider
             tickValues={HOME_AGE_YEARS_TICK_VALUES}
-            minValue={
-              formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]
-            }
+            minValue={formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]}
             maxValue={
               formData.preferred_home_age_max ??
               HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
@@ -177,14 +197,15 @@ export function ProfileHousingSection({
           />
         ) : (
           <Box className="border-border bg-background-base mt-2 rounded-lg border px-4 py-3">
-            <Text className="text-text-primary text-center text-base">
-              {formData.preferred_home_age_min != null ||
-              formData.preferred_home_age_max != null
+            <Text
+              className={`text-center text-base ${profileRangeValueClassName(formData.preferred_home_age_min, formData.preferred_home_age_max)}`}
+            >
+              {formData.preferred_home_age_min != null || formData.preferred_home_age_max != null
                 ? `${formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]} – ${
                     formData.preferred_home_age_max ??
                     HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
                   } years`
-                : "Not specified"}
+                : PROFILE_NOT_SPECIFIED_LABEL}
             </Text>
           </Box>
         )}
@@ -195,14 +216,17 @@ export function ProfileHousingSection({
           {FIELD_LABELS.PREFERRED_BATHROOMS}
         </BodyText>
         {isEditMode ? (
-          <PrimitiveInput
+          <Input
+            type="number"
             value={formData.preferred_bathrooms?.toString() ?? ""}
-            onValueChange={(v) =>
-              updateField("preferred_bathrooms", v ? parseInt(v, 10) || undefined : undefined)
+            onChange={(e) =>
+              updateField(
+                "preferred_bathrooms",
+                e.target.value ? parseInt(e.target.value, 10) || undefined : undefined
+              )
             }
             placeholder="Number of bathrooms"
-            keyboardType="number-pad"
-            className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
+            className="mt-2"
           />
         ) : (
           <ProfileReadOnlyValue value={formData.preferred_bathrooms} />

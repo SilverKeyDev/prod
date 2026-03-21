@@ -1,3 +1,6 @@
+export { default as AgentBrokerageSection } from "./AgentBrokerageSection";
+export { default as AgentLicensingSection } from "./AgentLicensingSection";
+export { default as AgentProfileServiceSection } from "./AgentProfileServiceSection";
 export { default as DemographicsSection } from "./DemographicsSection";
 export { default as HousingSection } from "./housing/HousingSection";
 export { default as LocationSection } from "./LocationSection";

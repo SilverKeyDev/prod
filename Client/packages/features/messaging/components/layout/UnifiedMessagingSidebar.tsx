@@ -1,3 +1,5 @@
+import React, { useCallback, useEffect, useState } from "react";
+
 import { Icon } from "@ui/icons";
 
 import type { AgentClient, AgentConversation } from "packages/api";
@@ -5,7 +7,8 @@ import { useLocalization } from "packages/contexts";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
 import { getMessagePreview } from "packages/features/messaging/utils";
-import { Box } from "packages/ui/components/primitives";
+import { DEFAULT_AVATAR_BUNDLED, DEFAULT_AVATAR_WEB_PATH } from "packages/ui/components/asset/logoSource";
+import { Box, Image } from "packages/ui/components/primitives";
 
 import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
 import {
@@ -13,6 +16,46 @@ import {
   type MessagingMode,
 } from "@/features/agent/components/messagingConfig";
 import { ConnectionRequestsInbox } from "@/features/agent/components/modals/ConnectionRequestsInbox";
+import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
+
+function MessagingSidebarAvatar({ name, imageUrl }: { name: string; imageUrl?: string | null }) {
+  const [loadFailed, setLoadFailed] = useState(false);
+  const trimmed = imageUrl?.trim();
+  const useRemote = Boolean(trimmed && !loadFailed);
+  const bundledDefault =
+    typeof DEFAULT_AVATAR_BUNDLED === "number" ? DEFAULT_AVATAR_BUNDLED : null;
+
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [trimmed]);
+
+  const handleError = useCallback(() => {
+    setLoadFailed(true);
+  }, []);
+
+  return (
+    <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
+      {bundledDefault != null ? (
+        <Image
+          source={useRemote ? { uri: trimmed! } : bundledDefault}
+          alt={name}
+          label={name}
+          className="h-full w-full object-cover"
+          onError={handleError}
+        />
+      ) : (
+        <Image
+          src={useRemote ? trimmed! : DEFAULT_AVATAR_WEB_PATH}
+          alt={name}
+          label={name}
+          className="h-full w-full object-cover"
+          onError={handleError}
+        />
+      )}
+    </Box>
+  );
+}
+
 type UnifiedMessagingSidebarProps = {
   mode: MessagingMode;
   isSidebarExpanded: boolean;
@@ -55,6 +98,8 @@ export default function UnifiedMessagingSidebar({
 }: UnifiedMessagingSidebarProps) {
   const { t } = useLocalization();
   const config = getMessagingConfig(mode);
+  const { requests: pendingConnectionRequests } = useConnectionRequests();
+  const pendingConnectionRequestCount = pendingConnectionRequests.length;
   // Create a map of client_id -> conversation for quick lookup (agent mode)
   const conversationMap = new Map(conversations.map((conv) => [conv.client_id, conv]));
   const renderSidebarContent = () => {
@@ -105,18 +150,26 @@ export default function UnifiedMessagingSidebar({
               : ""
           }`}
         >
-          <Box className="flex items-start justify-between">
+          <Box className="flex items-center gap-3">
+            <MessagingSidebarAvatar
+              name={activeConversation?.agent_name ?? t("agent.your_agent")}
+              imageUrl={activeConversation?.agent_profile_picture}
+            />
             <Box className="min-w-0 flex-1">
               <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                 {t("agent.your_agent")}
               </Title>
-              {localMessages.length > 0 && (
+              {localMessages.length > 0 ? (
                 <BodyText as="p" className="truncate text-xs text-neutral-600">
                   {getMessagePreview(
                     localMessages[localMessages.length - 1] ?? {
                       content: "",
                     }
                   )}
+                </BodyText>
+              ) : (
+                <BodyText as="p" className="truncate text-xs text-neutral-600">
+                  {t("agent.role_agent")}
                 </BodyText>
               )}
             </Box>
@@ -172,7 +225,11 @@ export default function UnifiedMessagingSidebar({
                 }}
                 className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${selectedClientId === client.id ? "border-l-olive bg-olive/10 border-l-4" : ""}`}
               >
-                <Box className="flex items-start gap-3">
+                <Box className="flex items-center gap-3">
+                  <MessagingSidebarAvatar
+                    name={client.name}
+                    imageUrl={client.profile_picture ?? conversation?.client_profile_picture}
+                  />
                   <Box className="min-w-0 flex-1">
                     <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
                       {client.name}
@@ -183,7 +240,7 @@ export default function UnifiedMessagingSidebar({
                       </BodyText>
                     ) : (
                       <BodyText as="p" className="truncate text-xs text-neutral-600">
-                        {client.email}
+                        {t("agent.role_buyer")}
                       </BodyText>
                     )}
                     {client.phone && !conversation?.last_message && (
@@ -229,9 +286,10 @@ export default function UnifiedMessagingSidebar({
           mode={getHeaderMode()}
           isSidebarExpanded={isSidebarExpanded}
           setIsSidebarExpanded={setIsSidebarExpanded}
-          onInboxClick={mode === "client" ? () => setShowInbox(true) : undefined}
+          onInboxClick={() => setShowInbox(true)}
           onBackClick={() => setShowInbox(false)}
           onSearchClick={onSearchClick}
+          pendingConnectionRequestCount={pendingConnectionRequestCount}
           className={`${isSidebarExpanded ? "rounded-t-xl" : ""} xl:rounded-tl-xl xl:rounded-tr-none`}
         />
 

@@ -33,7 +33,9 @@ export function ListingAgentCard({
     <Box>
       <Box className="mb-4 flex-row items-center gap-2">
         <Icon name="user" size={20} color={color("brown.DEFAULT")} />
-        <Text className="text-text-secondary text-lg font-semibold">{title}</Text>
+        <Text className="text-text-secondary text-lg font-semibold">
+          {title}
+        </Text>
       </Box>
       <Box className="flex-row items-start gap-4">
         <Box className="border-brown/20 bg-primary-muted h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
@@ -66,7 +68,9 @@ export function ListingAgentCard({
           {phone && (
             <Box className="mt-2 flex-row items-center">
               <Icon name="phone" size={16} color={color("brown.DEFAULT")} />
-              <Text className="text-text-secondary ml-1">{formatAgentPhoneNumber(phone)}</Text>
+              <Text className="text-text-secondary ml-1">
+                {formatAgentPhoneNumber(phone)}
+              </Text>
             </Box>
           )}
         </Box>

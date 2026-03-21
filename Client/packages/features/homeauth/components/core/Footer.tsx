@@ -9,7 +9,7 @@ import AuthLink from "./Link";
 export default function AuthFooter() {
   const { t } = useLocalization();
   return (
-    <Box className="animate-fade-in border-border mt-4 border-t pt-4">
+    <Box className="animate-fade-in mt-4 pt-4">
       <Box className="flex flex-col items-center justify-center gap-2 text-center text-sm">
         <Box className="text-text-secondary flex items-center justify-center gap-1 whitespace-nowrap sm:gap-2 md:gap-3">
           <AuthLink to="/privacy" variant="footer">

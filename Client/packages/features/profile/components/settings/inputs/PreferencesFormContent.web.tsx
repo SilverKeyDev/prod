@@ -1,7 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import { Icon } from "@ui/icons";
-
 import { useLocalization } from "packages/contexts";
 import {
   getPreservedImportantLocations,
@@ -9,15 +7,16 @@ import {
   LocationSection,
 } from "packages/features/profile/components/sections/index.web";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
-import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
 import { useResponsive } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
-import { BodyText } from "@/components/ui";
 import type { OnboardingData } from "@/features/profile/utils";
 import { userPreferencesToOnboardingData } from "@/features/profile/utils";
+
+import PreferencesSaveStatusRow from "./PreferencesSaveStatusRow";
 
 export type PreferencesFormContentRef = {
   formData: Partial<OnboardingData>;
@@ -47,7 +46,9 @@ export default function PreferencesFormContent({
   renderContent,
 }: PreferencesFormContentProps): React.ReactElement {
   const hasReportedInitialRef = useRef(false);
+  const hasInitializedFormRef = useRef(false);
   const { t } = useLocalization();
+  const { userProfile } = useUserData();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
   const { isLoaded: googleMapsLoaded } = useGoogleMaps();
   const { isMdUp } = useResponsive();
@@ -72,17 +73,24 @@ export default function PreferencesFormContent({
   })();
   const { saveStatus, updateFormData: updateFormDataWithAutoSave } = useAutoSavePreferences({
     refreshUserPreferences,
+    debounceMs: 3000,
     showErrorToastOnError,
+    successToastMessage: t("common.saved"),
     onAfterSave: onPreferencesSaved,
   });
+  // Initialize form from server only once when preferences first become available.
+  // Never reset hasInitializedFormRef when userPreferences is falsy, so in-progress
+  // edits are not overwritten by refetch or cache updates.
   useEffect(() => {
-    if (userPreferences) {
-      const initialData = userPreferencesToOnboardingData(
-        userPreferences as Record<string, unknown>
-      );
-      setFormData(initialData);
-    }
-  }, [userPreferences]);
+    if (!userPreferences) return;
+    if (hasInitializedFormRef.current) return;
+    hasInitializedFormRef.current = true;
+    const initialData = userPreferencesToOnboardingData(
+      userPreferences as Record<string, unknown>,
+      userProfile ?? undefined
+    );
+    setFormData(initialData);
+  }, [userPreferences, userProfile]);
   useEffect(() => {
     if (formContentRef) {
       formContentRef.current = {
@@ -134,21 +142,6 @@ export default function PreferencesFormContent({
   }
   return (
     <Box>
-      {saveStatus !== "idle" && (
-        <Box className="flex items-center gap-2 text-sm">
-          {saveStatus === "saving" && (
-            <BodyText as="span" size="sm" className="text-text-secondary">
-              {t("common.saving")}
-            </BodyText>
-          )}
-          {saveStatus === "saved" && (
-            <BodyText as="span" size="sm" className="text-accent flex items-center gap-1">
-              <Icon name="check" className="h-4 w-4" />
-              {t("common.saved")}
-            </BodyText>
-          )}
-        </Box>
-      )}
       <HousingSection
         formData={formData as OnboardingData}
         isEditMode={true}
@@ -160,6 +153,12 @@ export default function PreferencesFormContent({
         isEditMode={true}
         updateFormData={updateFormData}
         scriptsReady={scriptsReady}
+      />
+      <PreferencesSaveStatusRow
+        saveStatus={saveStatus}
+        savingLabel={t("common.saving")}
+        savedLabel={t("common.saved")}
+        className="mt-4 flex items-center gap-2 text-sm"
       />
     </Box>
   );

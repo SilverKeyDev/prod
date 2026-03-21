@@ -1,16 +1,16 @@
+import React, { useMemo } from "react";
+
 import { Icon } from "@ui/icons";
 
 import { spacing } from "packages/design-tokens";
 import { getPersonalizationNavItems } from "packages/features/profile/components/profilePicture/profileStepsUi";
+import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { useResponsive } from "packages/hooks/ui";
-import type { NavItem } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
 import type { IconName } from "packages/ui/types/icons";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, CancelButton } from "@/components/ui";
-
-const STEPS: NavItem[] = getPersonalizationNavItems();
 
 type PersonalizationSidebarProps = {
   activeSection: string;
@@ -30,11 +30,13 @@ export default function PersonalizationSidebar({
   onCancel,
   onScrollToSection,
 }: PersonalizationSidebarProps) {
+  const isAgent = useIsAgent();
+  const steps = useMemo(() => getPersonalizationNavItems({ isAgent }), [isAgent]);
   // This sidebar historically treated "mobile" as `< lg` (<=1024px). Preserve that intent.
   const { isLgUp } = useResponsive();
   const isLargeScreen = isLgUp;
   // Default to the first step when no active section is provided
-  const currentActiveSection = activeSection || STEPS[0]?.key;
+  const currentActiveSection = activeSection || steps[0]?.key;
   return (
     <aside
       className="sticky top-24 h-fit shrink-0"
@@ -93,7 +95,7 @@ export default function PersonalizationSidebar({
         </Box>
 
         {/* Navigation Links - Left aligned on desktop, icon only on mobile */}
-        {STEPS.map((step) => {
+        {steps.map((step) => {
           const stepIconName = step.icon as IconName | undefined;
           return (
             <Button

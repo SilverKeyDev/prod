@@ -1,100 +1,120 @@
 import React from "react";
 
-import { color } from "packages/design-tokens";
+import { useLocalization } from "packages/contexts";
+import { renderKeyValueRecord } from "packages/features/propertyDetails/components/PropertyDetailsModal/helpers/renderKeyValueRecord";
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper.native";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import { Icon } from "packages/ui/components/primitives";
-import { Box, Text } from "packages/ui/components/primitives";
-
-import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
+import {
+  PropertySectionHeader,
+  ScoreBar,
+} from "packages/features/propertyDetails/components/visualizations";
+import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
 
 type PropertySchoolsProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
 
-function renderAnalysisContent(data: unknown): React.ReactNode {
-  if (!data || typeof data !== "object") return null;
-  const dataObj = data as Record<string, unknown>;
-  const entries = Object.entries(dataObj).filter(
-    ([, value]) => value !== null && value !== undefined && value !== ""
-  );
-  if (entries.length === 0) return null;
-  return (
-    <Box className="mt-4 gap-4">
-      {entries.map(([key, value]) => {
-        const displayKey = key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-        if (Array.isArray(value)) {
-          return (
-            <Box key={key}>
-              <Text className="text-text-secondary mb-2 text-sm font-medium">{displayKey}</Text>
-              <Box className="ml-4 gap-1">
-                {value.map((item, i) => (
-                  <Text key={i} className="text-text-secondary text-sm">
-                    • {String(item)}
-                  </Text>
-                ))}
-              </Box>
-            </Box>
-          );
-        }
-        return (
-          <Box key={key} className="gap-1">
-            <Text className="text-text-secondary text-sm font-medium">{displayKey}</Text>
-            <Text className="text-text-secondary text-sm">{String(value)}</Text>
-          </Box>
-        );
-      })}
-    </Box>
-  );
-}
-
-export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, analysisContent }) => {
+export const PropertySchools: React.FC<PropertySchoolsProps> = ({
+  property,
+  analysisContent,
+}) => {
+  const { t } = useLocalization();
   const { schools } = property as unknown as { schools: unknown };
   const hasSchools = schools && Array.isArray(schools) && schools.length > 0;
   if (!hasSchools && !analysisContent) return null;
 
-  const schoolList = hasSchools ? (schools as Array<Record<string, unknown>>) : [];
+  const schoolList = hasSchools
+    ? (schools as Array<Record<string, unknown>>)
+    : [];
   const sectionLabel =
-    DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "family_friendly")
-      ?.label ?? "Nearby Schools";
+    DEFAULT_REPORT_SECTIONS.find(
+      (s: { key: string; label: string }) => s.key === "family_friendly",
+    )?.label ?? "Nearby Schools";
+
+  const miSuffix = t("property_details.mi", { defaultValue: "mi" });
+  const bullet = t("property_details.bullet_separator", {
+    defaultValue: " • ",
+  });
 
   return (
     <Box className="p-6">
-      <Box className="mb-4 flex-row items-center gap-2">
-        <Icon name="graduation-cap" size={20} color={color("brown.DEFAULT")} />
-        <Text className="text-text-secondary text-lg font-semibold">{sectionLabel}</Text>
-      </Box>
+      <PropertySectionHeader iconName="graduation-cap" title={sectionLabel} />
 
       <Box className="border-border bg-background-surface mt-2 rounded-lg border p-4">
         {hasSchools ? (
           <Box className="gap-3">
-            {schoolList.slice(0, 6).map((school, idx) => (
-              <Box key={idx} className="flex-row items-center justify-between">
-                <Box className="min-w-0 flex-1">
-                  <Text className="text-text-secondary font-medium" numberOfLines={1}>
-                    {String(school.name ?? "")}
-                  </Text>
-                  <Text className="text-text-secondary text-sm">
-                    {String(school.level ?? "")} • {String(school.grades ?? "")}
-                  </Text>
+            {schoolList.slice(0, 6).map((school, idx) => {
+              const ratingRaw = school.rating;
+              const ratingNum =
+                typeof ratingRaw === "number"
+                  ? ratingRaw
+                  : typeof ratingRaw === "string"
+                    ? parseFloat(ratingRaw)
+                    : NaN;
+              const score = Number.isFinite(ratingNum) ? ratingNum : 0;
+              const distRaw = school.distance;
+              const distStr =
+                distRaw !== undefined && distRaw !== null
+                  ? String(distRaw)
+                  : "";
+
+              return (
+                <Box
+                  key={idx}
+                  className="border-border-card bg-bg-card-subtle flex-row items-center justify-between gap-3 rounded-xl border p-3"
+                >
+                  <Box className="min-w-0 flex-1">
+                    <BodyText
+                      as="span"
+                      size="sm"
+                      className="text-text-primary font-semibold"
+                      numberOfLines={1}
+                    >
+                      {String(school.name ?? "")}
+                    </BodyText>
+                    <BodyText
+                      as="span"
+                      size="xs"
+                      className="text-text-secondary mt-1"
+                    >
+                      {String(school.level ?? "")}
+                      {bullet}
+                      {String(school.grades ?? "")}
+                    </BodyText>
+                  </Box>
+                  <Box className="shrink-0 items-end gap-2">
+                    <ScoreBar
+                      score={score}
+                      max={10}
+                      label={t("property_details.section_rating_value", {
+                        value: Math.round(score * 10) / 10,
+                        defaultValue: "{{value}}/10",
+                      })}
+                    />
+                    {distStr !== "" ? (
+                      <Box className="border-border rounded-full border px-2.5 py-0.5">
+                        <BodyText
+                          as="span"
+                          size="xs"
+                          className="text-text-secondary font-medium"
+                        >
+                          {distStr} {miSuffix}
+                        </BodyText>
+                      </Box>
+                    ) : null}
+                  </Box>
                 </Box>
-                <Box className="items-end">
-                  <Text className="text-text-secondary text-sm font-medium">
-                    {String(school.rating ?? 0)}/10
-                  </Text>
-                  <Text className="text-text-secondary text-xs">
-                    {String(school.distance ?? 0)} mi
-                  </Text>
-                </Box>
-              </Box>
-            ))}
+              );
+            })}
           </Box>
         ) : null}
-        {analysisContent !== undefined && analysisContent !== null && (
+        {analysisContent !== undefined && analysisContent !== null ? (
           <SectionTintWrapper className="mt-4">
-            {renderAnalysisContent(analysisContent)}
+            {renderKeyValueRecord(analysisContent)}
           </SectionTintWrapper>
-        )}
+        ) : null}
       </Box>
     </Box>
   );

@@ -5,7 +5,6 @@ import { Icon } from "@ui/icons";
 import { getEnv } from "packages/config";
 import { useLocalization } from "packages/contexts";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -122,37 +121,19 @@ function CardViewDetailsButton({
       type="button"
       onClick={handleClick}
       disabled={disabled || isUnlocking}
+      loading={isUnlocking}
+      label={text}
       className={buttonClasses}
     >
-      {isUnlocking ? (
-        <Box className="flex items-center justify-center">
-          <Box
-            className="flex items-center"
-            style={{
-              transform:
-                validSize === "xs"
-                  ? "scale(0.65)"
-                  : validSize === "sm"
-                    ? "scale(0.75)"
-                    : validSize === "lg"
-                      ? "scale(1.25)"
-                      : "scale(1)",
-            }}
-          >
-            <KeyTurnLoader message={t("common.loading")} variant="default" />
-          </Box>
-        </Box>
-      ) : (
-        <Box className="flex items-center justify-center">
-          {showIcon && <Icon name={iconName} className={iconClasses} />}
-          <BodyText
-            as="span"
-            className={["whitespace-nowrap", textColorClass].filter(Boolean).join(" ")}
-          >
-            {text}
-          </BodyText>
-        </Box>
-      )}
+      <Box className="flex items-center justify-center">
+        {showIcon && <Icon name={iconName} className={iconClasses} />}
+        <BodyText
+          as="span"
+          className={["whitespace-nowrap", textColorClass].filter(Boolean).join(" ")}
+        >
+          {text}
+        </BodyText>
+      </Box>
     </Button>
   );
 }

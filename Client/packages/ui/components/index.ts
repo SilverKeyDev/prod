@@ -68,6 +68,8 @@ export { default as ReportCard } from "./cards/ReportCard";
 
 // Modal components
 export { default as BaseModal } from "./modals/BaseModal";
+export type { CoverAnimation,CoverProps } from "./modals/cover";
+export { default as Cover } from "./modals/cover";
 export { default as ModalPortal } from "./modals/ModalPortal";
 export { default as PropertyDetailsModal } from "./modals/PropertyDetailsModal";
 export { default as ShareHomeModal } from "./modals/ShareHomeModal";

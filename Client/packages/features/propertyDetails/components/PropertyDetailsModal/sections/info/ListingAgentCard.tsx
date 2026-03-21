@@ -24,9 +24,17 @@ export function ListingAgentCard({
 }: ListingAgentCardProps) {
   return (
     <Box className="w-full lg:w-1/3">
-      <Box className="mb-4 flex flex-row items-center gap-2">
-        <Icon name="user" className="text-foreground h-5 w-5" />
-        <Title as="h3" size="lg" className="text-foreground font-semibold">
+      <Box className="mb-4 flex min-w-0 flex-row items-center gap-2">
+        <Icon
+          name="user"
+          className="text-foreground h-5 w-5 shrink-0"
+          aria-hidden
+        />
+        <Title
+          as="h3"
+          size="lg"
+          className="text-foreground min-w-0 flex-1 font-semibold leading-snug"
+        >
           {title}
         </Title>
       </Box>
@@ -46,7 +54,11 @@ export function ListingAgentCard({
         </Box>
         <Box className="flex-1">
           {displayName && (
-            <Title as="h4" size="lg" className="text-accent-underline font-medium">
+            <Title
+              as="h4"
+              size="lg"
+              className="text-accent-underline font-medium"
+            >
               {displayName}
             </Title>
           )}

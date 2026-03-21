@@ -2,10 +2,10 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
-
-import Card from "@/components/layout/Card.web";
-import { BodyText, Title } from "@/components/ui";
+import BodyText from "packages/ui/components/text/BodyText";
+import Title from "packages/ui/components/text/Title";
 
 type ImageFeatures = { clean: string[]; error?: unknown };
 type Features = Record<string, string[]>;
@@ -23,18 +23,24 @@ function isFeatures(x: unknown): x is Features {
   if (typeof x !== "object" || x === null) return false;
   // Optional: be strict about value shapes
   return Object.values(x as Record<string, unknown>).every(
-    (v) => Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
+    (v) =>
+      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string"),
   );
 }
 
-export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property }) => {
+export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
+  property,
+}) => {
   const { t } = useLocalization();
   const { features, image_features: imageFeatures } = property as unknown as {
     features: unknown;
     image_features: unknown;
   };
 
-  const img = isImageFeatures(imageFeatures) && !imageFeatures.error ? imageFeatures : null;
+  const img =
+    isImageFeatures(imageFeatures) && !imageFeatures.error
+      ? imageFeatures
+      : null;
   const feats = isFeatures(features) ? features : null;
 
   if (!img && !feats) return null;

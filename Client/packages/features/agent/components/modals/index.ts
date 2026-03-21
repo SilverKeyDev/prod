@@ -2,6 +2,8 @@
  * Agent modals - re-export or define modal components here.
  * Kept for alias @/features/agent/modals -> components/modals.
  */
+export { AgentSearchContent } from "../AgentSearchContent";
+export type { AgentSearchContentProps } from "../AgentSearchContent";
 export { default as AgentSearchModal } from "./AgentSearchModal";
 export { default as CalendarEventRequestModal } from "./CalendarEventRequestModal";
 export { default as ClientSearchModal } from "./ClientSearchModal";

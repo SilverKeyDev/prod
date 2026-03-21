@@ -50,6 +50,7 @@ class User(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "cognito_id": self.cognito_id,
             "email": self.email,
             "name": self.name,
             "phone": self.phone,
