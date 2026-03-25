@@ -43,8 +43,8 @@ if (!showFinancialStep) {
 }
 
 // ✅ CORRECT: Platform-aware UI with feature flags
-const hasFullInterface = useFeature("agreements_full_interface");
-const useWebClicks = useFeature("agreements_web_click_events");
+const hasFullInterface = useFeature("advanced_feature_ui");
+const useWebClicks = useFeature("advanced_feature_web_clicks");
 
 return hasFullInterface ? (
   <Button {...(useWebClicks ? { onClick: fn } : { onPress: fn })}>

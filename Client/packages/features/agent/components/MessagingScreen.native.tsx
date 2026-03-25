@@ -22,7 +22,6 @@ import { getMessagingConfig } from "@/features/agent/components/messagingConfig"
 import { MessagingMessageRowNative } from "@/features/agent/components/MessagingMessageRow.native";
 import CalendarEventRequestModal from "@/features/agent/components/modals/CalendarEventRequestModal";
 import ClientSearchModal from "@/features/agent/components/modals/ClientSearchModal";
-import SelectAgreementModal from "@/features/agent/components/modals/SelectAgreementModal";
 import SelectDocumentModal from "@/features/agent/components/modals/SelectDocumentModal";
 import SelectHomeModal from "@/features/agent/components/modals/SelectHomeModal";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
@@ -101,7 +100,6 @@ export function MessagingScreenNative() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showSelectHomeModal, setShowSelectHomeModal] = useState(false);
   const [showSelectDocumentModal, setShowSelectDocumentModal] = useState(false);
-  const [showSelectAgreementModal, setShowSelectAgreementModal] = useState(false);
   const [showCalendarEventModal, setShowCalendarEventModal] = useState(false);
   const [acceptingEventRequestId, setAcceptingEventRequestId] = useState<string | null>(null);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
@@ -126,6 +124,8 @@ export function MessagingScreenNative() {
     setAcceptingEventRequestId,
     refreshActiveConversationHistory,
     refreshChats,
+    sendSharedHome: clientMessaging.sendSharedHome,
+    sendSharedDocument: clientMessaging.sendSharedDocument,
   });
 
   const agentHandlers = useMessagingHandlers({
@@ -135,11 +135,12 @@ export function MessagingScreenNative() {
     activeConversation,
     setShowSelectHomeModal,
     setShowSelectDocumentModal,
-    setShowSelectAgreementModal,
     setShowCalendarEventModal,
     setAcceptingEventRequestId,
     refreshActiveConversationHistory,
     refreshChats,
+    sendSharedHome: agentMessaging.sendSharedHome,
+    sendSharedDocument: agentMessaging.sendSharedDocument,
   });
 
   const handlers = isAgent ? agentHandlers : clientHandlers;
@@ -310,8 +311,6 @@ export function MessagingScreenNative() {
         onShareHome={() => setShowSelectHomeModal(true)}
         onShareDocument={() => setShowSelectDocumentModal(true)}
         onCalendarEvent={() => setShowCalendarEventModal(true)}
-        onShareAgreement={isAgent ? () => setShowSelectAgreementModal(true) : undefined}
-        isAgent={isAgent}
       />
 
       <ClientSearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} />
@@ -329,15 +328,8 @@ export function MessagingScreenNative() {
         isOpen={showCalendarEventModal}
         onClose={() => setShowCalendarEventModal(false)}
         onSuccess={handlers.handleCalendarEventSuccess}
+        sendCalendarEventMessage={sendMessage}
       />
-      {isAgent && (
-        <SelectAgreementModal
-          isOpen={showSelectAgreementModal}
-          onClose={() => setShowSelectAgreementModal(false)}
-          onSelect={handlers.handleSelectAgreement!}
-          clientId={selectedClientId ?? undefined}
-        />
-      )}
     </KeyboardAvoidingView>
   );
 }

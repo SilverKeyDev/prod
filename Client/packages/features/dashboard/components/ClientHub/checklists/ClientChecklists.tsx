@@ -29,12 +29,15 @@ const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
 type ClientChecklistsProps = {
   userId: string;
   activeTab: ChecklistTab;
+  /** When true (e.g. agent viewing a client), checklist integration UIs are not rendered. */
+  hideIntegrationComponents?: boolean;
   onTabChange?: (tab: ChecklistTab) => void;
 };
 
 export default function ClientChecklists({
   userId,
   activeTab,
+  hideIntegrationComponents = false,
   onTabChange,
 }: ClientChecklistsProps) {
   const isAgent = useIsAgent();
@@ -154,7 +157,10 @@ export default function ClientChecklists({
             {sortedItems.map((item) => {
               const checked = checkedIds.includes(item.id);
               const checkable = isItemCheckable(currentTab, item.id);
-              const shouldShowIntegration = item.component_key && !isSectionLocked;
+              const shouldShowIntegration =
+                Boolean(item.component_key) &&
+                !isSectionLocked &&
+                !hideIntegrationComponents;
 
               return (
                 <Box key={item.id} className="m-3 w-full">

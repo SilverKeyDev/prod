@@ -1,4 +1,5 @@
-import type { OnboardingData } from "./constants";
+import type { OnboardingData, ValidationResult } from "packages/features/profile/types/onboarding";
+
 import {
   FIELD_LABELS,
   REQUIRED_FIELDS_ONBOARDING,
@@ -6,11 +7,7 @@ import {
   REQUIRED_FIELDS_SETTINGS,
 } from "./constants";
 
-export type ValidationResult = {
-  isValid: boolean;
-  missingFields: string[];
-  errors: string[];
-};
+export type { ValidationResult } from "packages/features/profile/types/onboarding";
 
 // Mapping of field keys to user-friendly display names
 const FIELD_DISPLAY_NAMES: Record<string, string> = {

@@ -1,21 +1,24 @@
 import { useEffect, useMemo } from "react";
 
+import { useQueryClient } from "@tanstack/react-query";
+
 import {
   type AgendaTodoDTO,
   Calendar,
+  filterCalendarsToAgentOwned,
   findSilverKeyCalendar,
   UpcomingEvents,
 } from "packages/features/calendar";
 import { useIsAgent } from "packages/features/homeauth";
+import { submitAgentAgendaTodo } from "packages/hooks/data/agentAgendaTodoSubmit";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useUIStore } from "packages/store";
 import type { UIState } from "packages/store/ui.slice";
 import { Box } from "packages/ui/components/primitives";
-import { dateNow } from "packages/utils/date";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
-import type { TodoItem, TodoPriority, TodoType } from "@/features/agent/types/agent";
+import type { TodoItem, TodoPriority } from "@/features/agent/types/agent";
 import { useCalendarOAuthCallback } from "@/features/calendar/hooks/data";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
 
@@ -40,16 +43,21 @@ function mapTodosToAgendaDTO(todos: TodoItem[]): AgendaTodoDTO[] {
 export function DashboardFeature({ setMobileHeaderActions }: DashboardFeatureProps) {
   const { navigateToPath, getCurrentRoute } = useNavigation();
   const isAgent = useIsAgent();
+  const queryClient = useQueryClient();
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   useCalendarOAuthCallback({ enqueueToast });
 
   const { todos, createTodo, updateTodo } = useAgentTodos(false);
   const { isConnected, calendars } = useGoogleCalendarStoreIntegration();
 
-  const silverKeyCalendar = useMemo(
-    () => findSilverKeyCalendar(calendars ?? []),
-    [calendars]
-  );
+  const scopedCalendars = useMemo(() => {
+    if (!isAgent || !calendars?.length) {
+      return calendars ?? [];
+    }
+    return filterCalendarsToAgentOwned(calendars);
+  }, [isAgent, calendars]);
+
+  const silverKeyCalendar = useMemo(() => findSilverKeyCalendar(scopedCalendars), [scopedCalendars]);
 
   const agendaTodos = useMemo<AgendaTodoDTO[] | undefined>(() => {
     if (!isAgent) {
@@ -73,24 +81,32 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
     }
   };
 
-  const handleCreateAgendaTodo = async (title: string, priority: TodoPriority, type: TodoType) => {
+  const defaultCalendarId = silverKeyCalendar?.id ?? scopedCalendars[0]?.id ?? null;
+  const useCalendarEventForTodo = Boolean(
+    isConnected && scopedCalendars.length > 0 && defaultCalendarId
+  );
+
+  const handleSubmitAgendaTodo = async (payload: {
+    title: string;
+    priority: TodoPriority | null;
+    deadlineDate: string | null;
+  }) => {
     if (!isAgent) {
       return;
     }
     try {
-      const dueDate = dateNow().endOf("day");
-      await createTodo({
-        title,
-        due_date: dueDate.toISOString(),
-        priority,
-        type,
+      await submitAgentAgendaTodo(payload, {
+        useCalendarEvent: useCalendarEventForTodo,
+        defaultCalendarId,
+        createTodo,
+        queryClient,
       });
     } catch (error) {
       log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create todo", error);
     }
   };
 
-  const handleUpdateAgendaTodoPriority = async (id: string, priority: TodoPriority) => {
+  const handleUpdateAgendaTodoPriority = async (id: string, priority: TodoPriority | null) => {
     if (!isAgent) {
       return;
     }
@@ -102,12 +118,7 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
   };
 
   const headerActions = isAgent ? (
-    <AgentAgendaPlusButton
-      calendars={calendars ?? []}
-      defaultCalendarId={silverKeyCalendar?.id ?? calendars?.[0]?.id ?? null}
-      canCreateEvent={Boolean(isConnected && (calendars?.length ?? 0) > 0)}
-      onCreateTodo={handleCreateAgendaTodo}
-    />
+    <AgentAgendaPlusButton onSubmitAgentTodo={handleSubmitAgendaTodo} />
   ) : undefined;
 
   useEffect(() => {
@@ -142,11 +153,12 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
         onUpdateAgendaTodoPriority={handleUpdateAgendaTodoPriority}
         canEditAgendaTodos={isAgent}
         headerActions={headerActions}
+        ownedCalendarsOnly={isAgent}
       />
 
       {isAgent ? <ClientList onClientClick={handleClientClick} /> : null}
 
-      <Calendar />
+      <Calendar ownedCalendarsOnly={isAgent} />
     </Box>
   );
 }

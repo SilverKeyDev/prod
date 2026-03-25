@@ -404,7 +404,7 @@ export default defineConfig(({ mode }) => {
         },
         {
           find: "packages/utils/domain/compare/types",
-          replacement: path.join(packages, "features/compare/utils/types"),
+          replacement: path.join(packages, "features/compare/types"),
         },
         {
           find: "packages/utils/profile",

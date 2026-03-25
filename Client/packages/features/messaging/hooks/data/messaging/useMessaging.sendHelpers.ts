@@ -37,14 +37,15 @@ const TIMESTAMP_MATCH_MS = 60000;
  */
 export function mergeServerMessagesPreservingTimestamp(
   serverMessages: ChatMessage[],
-  tempMessageId: string,
+  _tempMessageId: string,
   userContent: string,
-  tempTimestamp: Date | undefined
+  tempTimestamp: Date | undefined,
+  senderRole: "user" | "agent"
 ): ChatMessage[] {
   if (!tempTimestamp) return serverMessages;
   return serverMessages.map((msg) => {
     if (
-      msg.role === "user" &&
+      msg.role === senderRole &&
       msg.content === userContent &&
       Math.abs(msg.timestamp.getTime() - tempTimestamp.getTime()) < TIMESTAMP_MATCH_MS
     ) {
@@ -54,13 +55,46 @@ export function mergeServerMessagesPreservingTimestamp(
   });
 }
 
+/**
+ * After sharing a home/document, align server row timestamp with the optimistic bubble.
+ */
+export function mergeServerMessagesPreservingSharedSend(
+  serverMessages: ChatMessage[],
+  tempTimestamp: Date | undefined,
+  sharedHomeId: string | undefined,
+  sharedDocumentId: string | undefined,
+  messageRole: "user" | "agent"
+): ChatMessage[] {
+  if (!tempTimestamp) return serverMessages;
+  return serverMessages.map((msg) => {
+    if (msg.role !== messageRole) return msg;
+    const homeMatch = Boolean(sharedHomeId && msg.shared_home_id === sharedHomeId);
+    const docMatch = Boolean(sharedDocumentId && msg.shared_document_id === sharedDocumentId);
+    if (
+      (homeMatch || docMatch) &&
+      Math.abs(msg.timestamp.getTime() - tempTimestamp.getTime()) < TIMESTAMP_MATCH_MS
+    ) {
+      return { ...msg, timestamp: tempTimestamp };
+    }
+    return msg;
+  });
+}
+
+export type SendMessageApiFn = (
+  conversationId: string,
+  message: string,
+  clientId?: string,
+  sharedHomeId?: string,
+  sharedDocumentId?: string
+) => Promise<void>;
+
 export type ExecuteSendMessageParams = {
   userMessage: string;
   conversationId: string;
   mode: "client" | "agent";
   clientIdForSending: string | undefined;
   messageRole: "user" | "agent";
-  sendMessageApi: (conversationId: string, message: string, clientId?: string) => Promise<void>;
+  sendMessageApi: SendMessageApiFn;
   refreshChats: () => Promise<void>;
   setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   getChatHistoryRef: React.MutableRefObject<(id: string) => Promise<{ messages: unknown[] }>>;
@@ -110,7 +144,90 @@ export async function executeSendMessage(params: ExecuteSendMessageParams): Prom
           messages,
           tempMessageId,
           userMessage,
-          tempMessage?.timestamp
+          tempMessage?.timestamp,
+          messageRole
+        );
+      });
+    } else {
+      loadedHistoryIdsRef.current.clear();
+    }
+  } catch {
+    setLocalMessages((prev) =>
+      prev.map((msg) => (msg.id === tempMessageId ? { ...msg, status: "failed" as const } : msg))
+    );
+  }
+}
+
+export type ExecuteSendSharedAttachmentParams = {
+  conversationId: string;
+  mode: "client" | "agent";
+  clientIdForSending: string | undefined;
+  messageRole: "user" | "agent";
+  previewContent: string;
+  sharedHomeId?: string;
+  sharedDocumentId?: string;
+  sendMessageApi: SendMessageApiFn;
+  refreshChats: () => Promise<void>;
+  setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+  getChatHistoryRef: React.MutableRefObject<(id: string) => Promise<{ messages: unknown[] }>>;
+  loadedHistoryIdsRef: React.MutableRefObject<Set<string>>;
+};
+
+export async function executeSendSharedAttachment(
+  params: ExecuteSendSharedAttachmentParams
+): Promise<void> {
+  const {
+    conversationId,
+    mode,
+    clientIdForSending,
+    messageRole,
+    previewContent,
+    sharedHomeId,
+    sharedDocumentId,
+    sendMessageApi,
+    refreshChats,
+    setLocalMessages,
+    getChatHistoryRef,
+    loadedHistoryIdsRef,
+  } = params;
+  const tempMessageId = `temp-${Date.now()}`;
+  const newMessage: ChatMessage = {
+    id: tempMessageId,
+    content: previewContent,
+    role: messageRole,
+    timestamp: dateNow().toDate(),
+    status: "sending",
+    ...(sharedHomeId ? { shared_home_id: sharedHomeId } : {}),
+    ...(sharedDocumentId ? { shared_document_id: sharedDocumentId } : {}),
+  };
+  setLocalMessages((prev) => [...prev, newMessage]);
+  try {
+    if (mode === "agent") {
+      await sendMessageApi(
+        conversationId,
+        "",
+        clientIdForSending,
+        sharedHomeId,
+        sharedDocumentId
+      );
+    } else {
+      await sendMessageApi(conversationId, "", undefined, sharedHomeId, sharedDocumentId);
+    }
+    setLocalMessages((prev) =>
+      prev.map((msg) => (msg.id === tempMessageId ? { ...msg, status: "delivered" as const } : msg))
+    );
+    await refreshChats();
+    if (conversationId !== "new") {
+      const data = await getChatHistoryRef.current(conversationId);
+      const messages = mapApiMessagesToChatMessages(data.messages ?? []);
+      setLocalMessages((prev) => {
+        const tempMessage = prev.find((msg) => msg.id === tempMessageId);
+        return mergeServerMessagesPreservingSharedSend(
+          messages,
+          tempMessage?.timestamp,
+          sharedHomeId,
+          sharedDocumentId,
+          messageRole
         );
       });
     } else {
@@ -129,7 +246,10 @@ export type ExecuteRetryMessageParams = {
   mode: "client" | "agent";
   clientIdForSending: string | undefined;
   content: string;
-  sendMessageApi: (conversationId: string, message: string, clientId?: string) => Promise<void>;
+  sharedHomeId?: string;
+  sharedDocumentId?: string;
+  messageRole: "user" | "agent";
+  sendMessageApi: SendMessageApiFn;
   refreshChats: () => Promise<void>;
   setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   getChatHistoryRef: React.MutableRefObject<(id: string) => Promise<{ messages: unknown[] }>>;
@@ -143,20 +263,37 @@ export async function executeRetryMessage(params: ExecuteRetryMessageParams): Pr
     mode,
     clientIdForSending,
     content,
+    sharedHomeId,
+    sharedDocumentId,
+    messageRole,
     sendMessageApi,
     refreshChats,
     setLocalMessages,
     getChatHistoryRef,
     loadedHistoryIdsRef,
   } = params;
+  const isShared = Boolean(sharedHomeId || sharedDocumentId);
+  const body = isShared ? "" : content;
   setLocalMessages((prev) =>
     prev.map((msg) => (msg.id === messageId ? { ...msg, status: "sending" as const } : msg))
   );
   try {
     if (mode === "agent") {
-      await sendMessageApi(conversationId, content, clientIdForSending);
+      await sendMessageApi(
+        conversationId,
+        body,
+        clientIdForSending,
+        isShared ? sharedHomeId : undefined,
+        isShared ? sharedDocumentId : undefined
+      );
     } else {
-      await sendMessageApi(conversationId, content);
+      await sendMessageApi(
+        conversationId,
+        body,
+        undefined,
+        isShared ? sharedHomeId : undefined,
+        isShared ? sharedDocumentId : undefined
+      );
     }
     setLocalMessages((prev) =>
       prev.map((msg) => (msg.id === messageId ? { ...msg, status: "delivered" as const } : msg))
@@ -167,11 +304,22 @@ export async function executeRetryMessage(params: ExecuteRetryMessageParams): Pr
       const messages = mapApiMessagesToChatMessages(data.messages ?? []);
       setLocalMessages((prev) => {
         const failed = prev.find((msg) => msg.id === messageId);
+        if (!failed?.timestamp) return messages;
+        if (failed.shared_home_id || failed.shared_document_id) {
+          return mergeServerMessagesPreservingSharedSend(
+            messages,
+            failed.timestamp,
+            failed.shared_home_id ?? undefined,
+            failed.shared_document_id ?? undefined,
+            messageRole
+          );
+        }
         return mergeServerMessagesPreservingTimestamp(
           messages,
           messageId,
           content,
-          failed?.timestamp
+          failed.timestamp,
+          messageRole
         );
       });
     } else {

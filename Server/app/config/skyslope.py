@@ -1,47 +1,58 @@
-"""SkySlope OAuth and API configuration.
+"""SkySlope configuration.
 
-Redirect URI from app/config/_urls.py (get_skyslope_redirect_uri).
-Client ID and secret from env: SKYSLOPE_ACCESS_KEY, SKYSLOPE_SECRET.
-OAuth URLs and scope can be overridden via env for id.skyslope.com or custom scopes.
-Optional HMAC keys (SKYSLOPE_HMAC_ACCESS_KEY, SKYSLOPE_HMAC_ACCESS_SECRET) for
-api.skyslope.com server-to-server auth; see app.services.skyslope.hmac_auth.
+**Environment (Partner OAuth):** only ``SKYSLOPE_ACCESS_KEY`` and ``SKYSLOPE_SECRET`` are read
+from the environment. OAuth URLs, redirect URI, issuer, scope, and PKCE follow
+``app.config._urls`` (edit constants there if SkySlope or deploy hostname change).
+
+**Optional HMAC** (``api.skyslope.com`` REST only): set ``SKYSLOPE_HMAC_ACCESS_KEY`` and
+``SKYSLOPE_HMAC_ACCESS_SECRET`` in the environment if you use that surface; they are not
+required for the Partner / Forms OAuth flow. See ``app.services.skyslope.hmac_auth``.
 """
+
+from __future__ import annotations
 
 import os
 
-from ._urls import get_skyslope_redirect_uri
+from ._urls import (
+    get_skyslope_oauth_authorize_url,
+    get_skyslope_oauth_scope,
+    get_skyslope_oauth_token_url,
+    get_skyslope_redirect_uri,
+)
 
-_DEFAULT_AUTHORIZE_URL = "https://accounts.skyslope.com/oauth2/authorize"
-_DEFAULT_TOKEN_URL = "https://accounts.skyslope.com/oauth2/token"
 _DEFAULT_API_BASE = "https://forms.skyslope.com/partner/api"
+_DEFAULT_HMAC_LOGIN_URL = "https://api.skyslope.com/auth/login"
+_DEFAULT_HMAC_API_BASE = "https://api.skyslope.com"
 
 
-def _parse_bool_env(name: str, default: bool = False) -> bool:
-    """Parse env as boolean. 'true'/'1'/'yes' -> True; else False unless default."""
-    val = os.getenv(name, "").strip().lower()
-    if val in ("true", "1", "yes"):
-        return True
-    if val in ("false", "0", "no", ""):
-        return default
-    return default
+def _authorize_uses_id_skyslope(authorize_url: str) -> bool:
+    return "id.skyslope.com" in authorize_url.lower()
+
+
+def _use_pkce_for_authorize_url(authorize_url: str) -> bool:
+    """Okta (id.skyslope.com) expects PKCE; legacy accounts host does not."""
+    return _authorize_uses_id_skyslope(authorize_url)
 
 
 def get_skyslope_config():
-    """Return SkySlope config dict. Redirect URI from _urls.py."""
+    """Return SkySlope config. OAuth URLs from ``_urls``; only client id/secret from env."""
+    authorize_url = get_skyslope_oauth_authorize_url()
+    token_url = get_skyslope_oauth_token_url()
     return {
         "client_id": os.getenv("SKYSLOPE_ACCESS_KEY", ""),
         "client_secret": os.getenv("SKYSLOPE_SECRET", ""),
         "redirect_uri": get_skyslope_redirect_uri(),
-        "authorize_url": os.getenv("SKYSLOPE_AUTHORIZE_URL", _DEFAULT_AUTHORIZE_URL).strip()
-        or _DEFAULT_AUTHORIZE_URL,
-        "token_url": os.getenv("SKYSLOPE_TOKEN_URL", _DEFAULT_TOKEN_URL).strip()
-        or _DEFAULT_TOKEN_URL,
-        "api_base": os.getenv("SKYSLOPE_API_BASE", _DEFAULT_API_BASE).strip()
-        or _DEFAULT_API_BASE,
-        "scope": os.getenv("SKYSLOPE_SCOPE", "user_access").strip() or "user_access",
-        "use_pkce": _parse_bool_env("SKYSLOPE_USE_PKCE", False),
+        "authorize_url": authorize_url,
+        "token_url": token_url,
+        "api_base": _DEFAULT_API_BASE,
+        "scope": get_skyslope_oauth_scope(),
+        "use_pkce": _use_pkce_for_authorize_url(authorize_url),
         "hmac_access_key": os.getenv("SKYSLOPE_HMAC_ACCESS_KEY", "").strip(),
         "hmac_access_secret": os.getenv("SKYSLOPE_HMAC_ACCESS_SECRET", "").strip(),
+        "hmac_login_url": os.getenv("SKYSLOPE_HMAC_LOGIN_URL", _DEFAULT_HMAC_LOGIN_URL).strip()
+        or _DEFAULT_HMAC_LOGIN_URL,
+        "hmac_api_base": os.getenv("SKYSLOPE_HMAC_API_BASE", _DEFAULT_HMAC_API_BASE).strip()
+        or _DEFAULT_HMAC_API_BASE,
     }
 
 

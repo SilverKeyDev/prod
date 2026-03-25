@@ -1,5 +1,6 @@
+import type { OnboardingData } from "packages/features/profile/types/onboarding";
+
 import { parseHousingTypes } from "./constants";
-import type { OnboardingData } from "./types";
 
 /**
  * Fields that must be filled for the housing step to be considered "complete".
@@ -16,10 +17,7 @@ const HOUSING_REQUIRED_FIELDS: (keyof OnboardingData)[] = [
  * Used to show "Skip" (white) vs "Next" (primary): when not complete, show Skip.
  * Demographics (About You) never shows Skip regardless of completion.
  */
-export function isOnboardingStepComplete(
-  formData: OnboardingData,
-  stepId: string,
-): boolean {
+export function isOnboardingStepComplete(formData: OnboardingData, stepId: string): boolean {
   switch (stepId) {
     case "demographics":
       return true; // Not used for skip; About You has no skip option.

@@ -27,7 +27,7 @@ type UpcomingAgendaListProps = {
   calendars?: Calendar[];
   onEventClick?: (event: ExtendedGoogleEvent) => void;
   onToggleAgendaTodo?: (id: string) => void;
-  onUpdateAgendaTodoPriority?: (id: string, priority: AgendaTodoPriority) => void;
+  onUpdateAgendaTodoPriority?: (id: string, priority: AgendaTodoPriority | null) => void;
   canEditAgendaTodos?: boolean;
   border?: CardBorderVariant;
 };
@@ -157,7 +157,11 @@ export function UpcomingAgendaList({
     <Card border={border} className="w-full text-left" padding="md" hover={false}>
       {title || headerActions ? (
         <Box className="mb-3 flex flex-row flex-wrap items-center gap-2">
-          {title ? <Text style={{ ...titleStyle, flex: 1 }}>{title}</Text> : <Box className="flex-1" />}
+          {title ? (
+            <Text style={{ ...titleStyle, flex: 1 }}>{title}</Text>
+          ) : (
+            <Box className="flex-1" />
+          )}
           {headerActions ? <Box className="flex-shrink-0">{headerActions}</Box> : null}
         </Box>
       ) : null}

@@ -9,12 +9,7 @@ import { RefreshControl } from "react-native";
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useAgentClients } from "packages/features/agent";
-import {
-  type Agreement,
-  AgreementDetailModal,
-  CreateAgreementModal,
-  type DocumentData,
-} from "packages/features/documents";
+import type { DocumentData } from "packages/features/documents";
 import type { SavedPageLayoutProps } from "packages/features/saved/components/layout/SavedPageLayout";
 import { SavedHomeCard } from "packages/features/saved/components/SavedHomeCard";
 import DocumentUploadModal from "packages/features/saved/components/upload/DocumentUploadModal";
@@ -25,10 +20,6 @@ import BodyText from "packages/ui/components/text/BodyText";
 import { dateParseISO } from "packages/utils/date";
 
 type _EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";
-
-type CombinedItem =
-  | { type: "document"; data: DocumentData }
-  | { type: "agreement"; data: Agreement };
 
 function formatPrice(value: string | number | null | undefined): string {
   if (value == null) return "Price N/A";
@@ -68,8 +59,6 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     filteredDocuments,
     loading,
     documentsLoadingState,
-    agreements,
-    agreementsLoading,
     selectedHomesForComparison,
     selectedHomesData,
     selectedProperty: _selectedProperty,
@@ -80,10 +69,6 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     selectedHomeForNegotiation,
     isDocumentUploadModalOpen,
     setIsDocumentUploadModalOpen,
-    isCreateAgreementModalOpen,
-    setIsCreateAgreementModalOpen,
-    selectedAgreementId,
-    setSelectedAgreementId,
     isAgent,
     homes,
     currentPdf,
@@ -96,16 +81,12 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     onToggleHomeSelection,
     onUnlockHome: _onUnlockHome,
     onDocumentDelete,
-    onAgreementClick,
-    onAgreementSend,
-    onAgreementVoid,
     onRemoveFromComparison,
     onCloseNegotiation,
     onCompare,
     onClearComparison,
     clearSelectedProperty: _clearSelectedProperty,
     refetchDocuments: _refetchDocuments,
-    onCreateAgreementSuccess,
     refresh,
     refreshing,
   } = nativeProps;
@@ -118,36 +99,16 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
   const isDocumentsView = viewType === "documents";
 
   const documentsLoadingCombined = documentsLoadingState;
-  const agreementsLoadingCombined = agreementsLoading;
 
-  const combinedItems: CombinedItem[] = useMemo(() => {
-    const items: CombinedItem[] = [];
-
-    (filteredDocuments as DocumentData[]).forEach((doc) => {
-      items.push({ type: "document", data: doc });
-    });
-
-    (agreements as Agreement[]).forEach((agreement) => {
-      items.push({ type: "agreement", data: agreement });
-    });
-
+  const sortedDocuments = useMemo(() => {
     const toMs = (v: number | string | null | undefined) =>
       typeof v === "number" ? v : v ? dateParseISO(v).valueOf() : 0;
-
-    items.sort((a, b) => {
-      const dateA =
-        a.type === "document"
-          ? toMs(a.data.created_at ?? a.data.updated_at)
-          : toMs(a.data.created_at);
-      const dateB =
-        b.type === "document"
-          ? toMs(b.data.created_at ?? b.data.updated_at)
-          : toMs(b.data.created_at);
+    return [...(filteredDocuments as DocumentData[])].sort((a, b) => {
+      const dateA = toMs(a.created_at ?? a.updated_at);
+      const dateB = toMs(b.created_at ?? b.updated_at);
       return dateB - dateA;
     });
-
-    return items;
-  }, [filteredDocuments, agreements]);
+  }, [filteredDocuments]);
 
   const handleRefresh = useCallback(() => {
     if (!refresh) return;
@@ -213,138 +174,69 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     [navigation]
   );
 
-  const renderDocumentOrAgreement = useCallback(
-    (item: CombinedItem) => {
-      if (item.type === "document") {
-        const doc = item.data;
-        return (
-          <Box
-            key={`doc-${doc.id}`}
-            className="border-border bg-background-surface mb-3 rounded-lg border p-3 shadow-sm"
-          >
-            <Text className="text-text-primary text-sm font-semibold" numberOfLines={2}>
-              {doc.address || doc.filename}
-            </Text>
-            <Text className="text-text-secondary mt-1 text-xs">
-              {formatDate(doc.created_at)} · {doc.document_type ?? "Document"}
-            </Text>
-            <Box className="mt-3 flex flex-row flex-wrap gap-2">
-              {onViewDocument && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onPress={() => onViewDocument(doc.id, doc.filename)}
-                  className="min-w-[30%] flex-1"
-                >
-                  <Text className="text-sm font-medium">
-                    {t("saved.view_document", { defaultValue: "View" })}
-                  </Text>
-                </Button>
-              )}
-              {onDownloadDocument && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onPress={() => onDownloadDocument(doc.id, doc.filename)}
-                  className="min-w-[30%] flex-1"
-                >
-                  <Text className="text-sm font-medium">
-                    {t("saved.download_document", { defaultValue: "Download" })}
-                  </Text>
-                </Button>
-              )}
-              {onShareDocument && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onPress={() => onShareDocument(doc.id, doc.filename)}
-                  className="min-w-[30%] flex-1"
-                >
-                  <Text className="text-sm font-medium">
-                    {t("saved.share_document", { defaultValue: "Share" })}
-                  </Text>
-                </Button>
-              )}
-              <Button
-                variant="secondary"
-                size="sm"
-                onPress={() => onDocumentDelete(doc.id)}
-                className="min-w-[30%] flex-1"
-              >
-                <Text className="text-sm font-medium text-red-700">
-                  {t("saved.delete_document", { defaultValue: "Delete" })}
-                </Text>
-              </Button>
-            </Box>
-          </Box>
-        );
-      }
-
-      const agreement = item.data;
-      return (
-        <Box
-          key={`agreement-${agreement.id}`}
-          className="border-border bg-background-surface mb-3 rounded-lg border p-3 shadow-sm"
-        >
-          <Text className="text-text-primary text-sm font-semibold" numberOfLines={2}>
-            {agreement.title}
-          </Text>
-          {agreement.property_address && (
-            <Text className="text-text-secondary mt-1 text-xs" numberOfLines={1}>
-              {agreement.property_address}
-            </Text>
-          )}
-          <Text className="text-text-secondary mt-1 text-xs font-medium">
-            {t("saved.agreement_status", {
-              defaultValue: "Status: {{status}}",
-              status: agreement.status,
-            })}
-          </Text>
-          <Box className="mt-3 flex flex-row flex-wrap gap-2">
+  const renderDocument = useCallback(
+    (doc: DocumentData) => (
+      <Box
+        key={`doc-${doc.id}`}
+        className="border-border bg-background-surface mb-3 rounded-lg border p-3 shadow-sm"
+      >
+        <Text className="text-text-primary text-sm font-semibold" numberOfLines={2}>
+          {doc.address || doc.filename}
+        </Text>
+        <Text className="text-text-secondary mt-1 text-xs">
+          {formatDate(doc.created_at)} · {doc.document_type ?? "Document"}
+        </Text>
+        <Box className="mt-3 flex flex-row flex-wrap gap-2">
+          {onViewDocument && (
             <Button
               variant="primary"
               size="sm"
-              onPress={() => onAgreementClick(agreement.id)}
+              onPress={() => onViewDocument(doc.id, doc.filename)}
               className="min-w-[30%] flex-1"
             >
               <Text className="text-sm font-medium">
-                {t("saved.view_agreement", { defaultValue: "Details" })}
+                {t("saved.view_document", { defaultValue: "View" })}
               </Text>
             </Button>
+          )}
+          {onDownloadDocument && (
             <Button
               variant="secondary"
               size="sm"
-              onPress={() => onAgreementSend(agreement.id)}
+              onPress={() => onDownloadDocument(doc.id, doc.filename)}
               className="min-w-[30%] flex-1"
             >
               <Text className="text-sm font-medium">
-                {t("saved.send_agreement", { defaultValue: "Send" })}
+                {t("saved.download_document", { defaultValue: "Download" })}
               </Text>
             </Button>
+          )}
+          {onShareDocument && (
             <Button
               variant="secondary"
               size="sm"
-              onPress={() => onAgreementVoid(agreement.id)}
+              onPress={() => onShareDocument(doc.id, doc.filename)}
               className="min-w-[30%] flex-1"
             >
-              <Text className="text-sm font-medium text-red-700">
-                {t("saved.void_agreement", { defaultValue: "Void" })}
+              <Text className="text-sm font-medium">
+                {t("saved.share_document", { defaultValue: "Share" })}
               </Text>
             </Button>
-          </Box>
+          )}
+          <Button
+            variant="secondary"
+            size="sm"
+            onPress={() => onDocumentDelete(doc.id)}
+            className="min-w-[30%] flex-1"
+          >
+            <Text className="text-sm font-medium text-red-700">
+              {t("saved.delete_document", { defaultValue: "Delete" })}
+            </Text>
+          </Button>
         </Box>
-      );
-    },
-    [
-      onAgreementClick,
-      onAgreementSend,
-      onAgreementVoid,
-      onDocumentDelete,
-      onDownloadDocument,
-      onShareDocument,
-      onViewDocument,
-      t,
-    ]
+      </Box>
+    ),
+    [onDocumentDelete, onDownloadDocument, onShareDocument, onViewDocument, t]
   );
 
   const summaryCountText =
@@ -361,10 +253,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
   const showEmptyHomes =
     isHomesView && !loading && filteredHomes.length === 0 && homes.length === 0;
   const showEmptyDocuments =
-    isDocumentsView &&
-    !documentsLoadingCombined &&
-    !agreementsLoadingCombined &&
-    combinedItems.length === 0;
+    isDocumentsView && !documentsLoadingCombined && sortedDocuments.length === 0;
 
   const handleEventTypeFilterChange = useCallback(
     (next: _EventTypeFilter) => {
@@ -500,18 +389,6 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         {isDocumentsView && isAgent && (
           <Box className="mb-4 flex flex-row gap-2">
             <Button
-              variant="primary"
-              size="sm"
-              onPress={() => setIsCreateAgreementModalOpen(true)}
-              className="flex-1"
-            >
-              <Text className="text-sm font-medium">
-                {t("saved.create_agreement", {
-                  defaultValue: "Create agreement",
-                })}
-              </Text>
-            </Button>
-            <Button
               variant="secondary"
               size="sm"
               onPress={() => setIsDocumentUploadModalOpen(true)}
@@ -561,10 +438,10 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
           </>
         )}
 
-        {/* Documents + agreements content */}
+        {/* Documents content */}
         {isDocumentsView && (
           <>
-            {documentsLoadingCombined || agreementsLoadingCombined ? (
+            {documentsLoadingCombined ? (
               <Box className="py-8">
                 <Text className="text-text-secondary text-center text-sm">
                   {t("saved.loading_documents", {
@@ -578,14 +455,13 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
               <Box className="py-8">
                 <Text className="text-text-secondary text-center text-sm">
                   {t("saved.no_documents_yet", {
-                    defaultValue:
-                      "No documents or agreements yet. Upload documents or create agreements to see them here.",
+                    defaultValue: "No documents yet. Upload documents to see them here.",
                   })}
                 </Text>
               </Box>
             ) : null}
 
-            {combinedItems.map((item) => renderDocumentOrAgreement(item))}
+            {sortedDocuments.map((doc) => renderDocument(doc))}
           </>
         )}
 
@@ -753,22 +629,6 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         </BaseModal>
       )}
 
-      {isAgent && (
-        <CreateAgreementModal
-          isOpen={isCreateAgreementModalOpen}
-          onClose={() => setIsCreateAgreementModalOpen(false)}
-          preselectedBuyerId={selectedClientId ?? undefined}
-          onSuccess={onCreateAgreementSuccess}
-        />
-      )}
-
-      {selectedAgreementId && (
-        <AgreementDetailModal
-          agreementId={selectedAgreementId}
-          isOpen={!!selectedAgreementId}
-          onClose={() => setSelectedAgreementId(null)}
-        />
-      )}
     </>
   );
 }

@@ -1,34 +1,15 @@
+import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type { SubmitHandlerParams } from "packages/features/profile/types/submitHandler";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 import { formDataToPreferencesPayload } from "./profileFormSync";
-import type { OnboardingData } from "./types";
-import { validateOnboardingData, type ValidationResult } from "./validation";
+import { validateOnboardingData } from "./validation";
 
-export type PreferencesSubmitResult = {
-  success: boolean;
-  error?: string;
-  message?: string;
-};
-
-export type SubmitHandlerParams = {
-  formData: OnboardingData;
-  /** Caller injects API call to avoid utils importing config/api. */
-  submitPreferences: (formData: OnboardingData) => Promise<PreferencesSubmitResult>;
-  setLoading: (loading: boolean) => void;
-  setValidationResult?: (result: { missingFields: string[]; errors: string[] }) => void;
-  setShowValidationWarning?: (show: boolean) => void;
-  navigate?: (path: string) => void;
-  /** When provided and result.success, called instead of navigate("/search") (e.g. for React Native). */
-  onSuccessNavigate?: () => void;
-  validateFunction?: (data: OnboardingData) => ValidationResult;
-  onSuccess?: () => void;
-  onError?: (error: Error) => void;
-  /** Callback to show error toast (avoids utils importing hooks). Caller passes e.g. showErrorToast. */
-  onShowError?: (message: string) => void;
-  /** When true, bypasses pre-submit required-field validation. */
-  skipValidation?: boolean;
-};
+export type {
+  PreferencesSubmitResult,
+  SubmitHandlerParams,
+} from "packages/features/profile/types/submitHandler";
 
 /**
  * Handle form submission for onboarding/personalization

@@ -38,9 +38,10 @@ export default function ClientSelector({
       <Button
         type="button"
         variant="outline"
+        contentAlign="start"
         onClick={() => setIsOpen(!isOpen)}
-        className={`focus:ring-accent-muted focus:border-primary border-border bg-background-surface text-text-primary hover:bg-accent-muted flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 ${HEADER_ROW_HEIGHT}`}
-        icon={<Icon name="user" className="h-4 w-4" />}
+        className={`focus:ring-accent-muted focus:border-primary border-border bg-background-surface text-text-primary hover:bg-accent-muted flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 ${HEADER_ROW_HEIGHT}`}
+        icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
       >
         <>
           <BodyText as="span">
@@ -73,29 +74,33 @@ export default function ClientSelector({
           />
 
           {/* Dropdown */}
-          <Box className="border-border bg-background-surface absolute z-20 mt-1 w-56 rounded-md border shadow-lg">
-            <Box className="py-1">
+          <Box className="border-border bg-background-surface absolute left-0 top-full z-20 mt-2 w-60 min-w-56 rounded-md border py-1 shadow-lg">
+            <Box className="flex flex-col gap-1 px-1">
               {/* "Me" option */}
               <Button
                 type="button"
                 variant="ghost"
+                contentAlign="start"
+                rounded="md"
                 onClick={() => handleSelect(null)}
-                className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 ${selectedClientId === null ? "bg-primary-muted text-primary font-medium" : "text-text-primary"}`}
-                icon={<Icon name="user" className="h-4 w-4" />}
+                className={`w-full px-3 py-3 text-left text-sm hover:bg-neutral-100 ${selectedClientId === null ? "bg-primary-muted text-primary font-medium" : "text-text-primary"}`}
+                icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
               >
-                <BodyText as="span">{t("client_selector.me")}</BodyText>
+                <BodyText as="span" className="text-left">
+                  {t("client_selector.me")}
+                </BodyText>
               </Button>
 
               {/* Divider */}
-              {clients.length > 0 && <Box className="border-border my-1 border-t" />}
+              {clients.length > 0 && <Box className="border-border mx-1 my-1 border-t" />}
 
               {/* Client options */}
               {isLoading ? (
-                <Box className="text-text-secondary px-4 py-2 text-sm">
+                <Box className="text-text-secondary px-3 py-3 text-left text-sm">
                   {t("client_selector.loading_clients")}
                 </Box>
               ) : clients.length === 0 ? (
-                <Box className="text-text-secondary px-4 py-2 text-sm">
+                <Box className="text-text-secondary px-3 py-3 text-left text-sm">
                   {t("client_selector.no_clients_found")}
                 </Box>
               ) : (
@@ -104,18 +109,25 @@ export default function ClientSelector({
                     key={client.id}
                     type="button"
                     variant="ghost"
+                    contentAlign="start"
+                    rounded="md"
                     onClick={() => handleSelect(client.id)}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 ${
+                    className={`w-full px-3 py-3 text-left text-sm hover:bg-neutral-100 ${
                       selectedClientId === client.id
                         ? "bg-primary-muted text-primary font-medium"
                         : "text-text-primary"
                     }`}
-                    icon={<Icon name="user" className="h-4 w-4" />}
+                    icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
                   >
-                    <Box className="flex flex-col">
-                      <BodyText as="span">{client.name}</BodyText>
+                    <Box className="flex min-w-0 flex-1 flex-col items-start gap-1 text-left">
+                      <BodyText as="span" className="w-full truncate text-left">
+                        {client.name}
+                      </BodyText>
                       {client.email && (
-                        <BodyText as="span" className="text-text-secondary text-xs">
+                        <BodyText
+                          as="span"
+                          className="text-text-secondary w-full truncate text-left text-xs"
+                        >
                           {client.email}
                         </BodyText>
                       )}

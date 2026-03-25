@@ -63,6 +63,7 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
                 type="button"
                 variant="outline"
                 size="sm"
+                contentAlign="start"
                 onClick={() => setSelectedHomeId(home.home_id)}
                 className={`h-auto min-h-0 w-full justify-start rounded-lg border p-3 text-left ${
                   selectedHomeId === home.home_id

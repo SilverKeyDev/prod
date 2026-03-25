@@ -227,15 +227,12 @@ function AddressInputAutocomplete({
       {suggestions.length > 0 && (
         <ul className="relative z-50 flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md bg-white shadow-sm">
           {suggestions.map((s, idx) => (
-            <li
-              key={idx}
-              className="rounded border border-dotted border-neutral-300"
-            >
+            <li key={idx} className="rounded border border-dotted border-neutral-300">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => void handleSelect(s)}
-                className="w-full !justify-start cursor-pointer px-3 py-2 text-sm hover:bg-gray-100 active:bg-gray-200 [&>div]:w-full [&>div]:!justify-start [&>div>div]:!justify-start [&>div>div]:!text-left"
+                className="w-full cursor-pointer !justify-start px-3 py-2 text-sm hover:bg-gray-100 active:bg-gray-200 [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start"
               >
                 <Box className="flex w-full items-center justify-start gap-2 text-left">
                   <Icon name="map-pin" className="h-4 w-4 shrink-0 text-neutral-500" />

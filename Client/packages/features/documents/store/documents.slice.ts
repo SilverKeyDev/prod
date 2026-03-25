@@ -173,13 +173,20 @@ export const useDocumentsStore = create<DocumentsState>((set, get) => ({
     return Promise.resolve();
   },
 
-  setUploadDocumentImpl: (fn) => set({ uploadDocument: fn }),
-  setDeleteDocumentImpl: (fn) => set({ deleteDocument: fn }),
-  setUpdateDocumentStatusImpl: (fn) => set({ updateDocumentStatus: fn }),
-  setSignDocumentImpl: (fn) => set({ signDocument: fn }),
-  setDownloadDocumentImpl: (fn) => set({ downloadDocument: fn }),
-  setRefreshDocumentsImpl: (fn) => set({ refreshDocuments: fn }),
-  setRefreshCategoriesImpl: (fn) => set({ refreshCategories: fn }),
+  setUploadDocumentImpl: (fn) =>
+    set((state) => (state.uploadDocument === fn ? state : { uploadDocument: fn })),
+  setDeleteDocumentImpl: (fn) =>
+    set((state) => (state.deleteDocument === fn ? state : { deleteDocument: fn })),
+  setUpdateDocumentStatusImpl: (fn) =>
+    set((state) => (state.updateDocumentStatus === fn ? state : { updateDocumentStatus: fn })),
+  setSignDocumentImpl: (fn) =>
+    set((state) => (state.signDocument === fn ? state : { signDocument: fn })),
+  setDownloadDocumentImpl: (fn) =>
+    set((state) => (state.downloadDocument === fn ? state : { downloadDocument: fn })),
+  setRefreshDocumentsImpl: (fn) =>
+    set((state) => (state.refreshDocuments === fn ? state : { refreshDocuments: fn })),
+  setRefreshCategoriesImpl: (fn) =>
+    set((state) => (state.refreshCategories === fn ? state : { refreshCategories: fn })),
 
   // Reset function
   reset: () => set(initialState()),

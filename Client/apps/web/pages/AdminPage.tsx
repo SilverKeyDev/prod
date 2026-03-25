@@ -388,13 +388,17 @@ export default function AdminPage() {
             SkySlope to authorize, then show your profile on success.
           </BodyText>
           <BodyText size="xs" muted className="mb-4">
-            If you see 400 Bad Request, SkySlope rejected the redirect URI. Allowed callback URLs are
-            configured on SkySlope’s side when your OAuth client is provisioned—there is no
-            self-service portal to add them. Ask SkySlope support to register the exact URL this
-            server sends (character-for-character, including scheme and port), e.g.{" "}
-            <code>http://localhost:5000/api/v1/skyslope/callback</code> for local dev. If the
-            server sets <code>SKYSLOPE_REDIRECT_URI</code>, that value must match what SkySlope has
-            on file.
+            Put only <code>SKYSLOPE_ACCESS_KEY</code> and <code>SKYSLOPE_SECRET</code> in Server{" "}
+            <code>.env</code>. OAuth authorize/token URLs, issuer, and callback URL come from{" "}
+            <code>Server/app/config/_urls.py</code> (Okta issuer matches SkySlope OIDC discovery; set{" "}
+            <code>SKYSLOPE_OAUTH_USE_LEGACY_ACCOUNTS</code> there if you must use{" "}
+            <code>accounts.skyslope.com</code>). If you see <strong>400 Bad Request</strong> on{" "}
+            <code>/v1/authorize</code>, common causes are a redirect URI mismatch or an OAuth{" "}
+            <strong>scope</strong> this Okta server does not allow (defaults use{" "}
+            <code>openid profile offline_access</code> per OIDC discovery; edit{" "}
+            <code>SKYSLOPE_OAUTH_SCOPE_OKTA</code> in <code>_urls.py</code> if SkySlope specifies
+            different scopes). CSP / <code>cloudflareinsights.com</code> warnings on their login page are
+            unrelated.
           </BodyText>
           {skyslopeConnected === null ? (
             <BodyText size="sm" muted>

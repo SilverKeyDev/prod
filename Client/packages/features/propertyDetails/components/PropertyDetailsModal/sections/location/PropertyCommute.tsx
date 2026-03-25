@@ -19,10 +19,7 @@ type PropertyCommuteProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
 
-export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
-  property,
-  analysisContent,
-}) => {
+export const PropertyCommute: React.FC<PropertyCommuteProps> = ({ property, analysisContent }) => {
   const { t } = useLocalization();
   const commute = (
     property as unknown as {
@@ -45,29 +42,26 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
     | undefined;
 
   const hasTravelTimes =
-    commute != null &&
-    Array.isArray(commute.travel_times) &&
-    commute.travel_times.length > 0;
+    commute != null && Array.isArray(commute.travel_times) && commute.travel_times.length > 0;
 
   const commuteSubtitle = useMemo(() => {
     if (!commute || hasTravelTimes) return undefined;
     const parts: string[] = [];
     if (commute.commute_time != null) {
       parts.push(
-        `${t("property_details.commute_time", { defaultValue: "Commute Time:" })} ${String(commute.commute_time)} ${t("property_details.minutes", { defaultValue: "minutes" })}`,
+        `${t("property_details.commute_time", { defaultValue: "Commute Time:" })} ${String(commute.commute_time)} ${t("property_details.minutes", { defaultValue: "minutes" })}`
       );
     }
     if (commute.commute_distance != null) {
       parts.push(
-        `${t("property_details.commute_distance", { defaultValue: "Commute Distance:" })} ${String(commute.commute_distance)} ${t("property_details.miles", { defaultValue: "miles" })}`,
+        `${t("property_details.commute_distance", { defaultValue: "Commute Distance:" })} ${String(commute.commute_distance)} ${t("property_details.miles", { defaultValue: "miles" })}`
       );
     }
     return parts.length > 0 ? parts.join(" · ") : undefined;
   }, [commute, hasTravelTimes, t]);
 
   if (!commute) return null;
-  const hasSimple =
-    commute.commute_time != null || commute.commute_distance != null;
+  const hasSimple = commute.commute_time != null || commute.commute_distance != null;
   if (!hasTravelTimes && !hasSimple && !analysisContent) return null;
 
   const { rest: commuteAnalysisBody, rating: commuteSectionRating } =
@@ -78,9 +72,8 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
     !Array.isArray(commuteAnalysisBody) &&
     Object.keys(commuteAnalysisBody as Record<string, unknown>).length > 0;
   const sectionLabel =
-    DEFAULT_REPORT_SECTIONS.find(
-      (s: { key: string; label: string }) => s.key === "commute",
-    )?.label || "Commute Information";
+    DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "commute")
+      ?.label || "Commute Information";
 
   const mapTitle = t("property_details.commute_map", {
     defaultValue: "Commute Map",
@@ -103,15 +96,15 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
       />
       <SectionTintWrapper className="mt-2">
         {hasTravelTimes ? (
-          <Box className="grid-responsive-1-md-2 gap-4 sm:gap-6">
-            <Box>
+          <Box className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
+            <Box className="min-h-0 min-w-0">
               {commute.map_url ? (
                 <Box className="border-border-card-subtle bg-background-surface rounded-lg border p-4">
-                  <Box className="flex max-h-[min(42vh,15rem)] w-full items-center justify-center md:max-h-52">
+                  <Box className="flex max-h-[min(42vh,15rem)] min-h-0 w-full items-center justify-center md:max-h-52">
                     <Image
                       src={commute.map_url}
                       alt={mapAlt}
-                      className="max-h-full w-full rounded object-contain"
+                      className="max-h-full min-h-0 w-full rounded object-contain"
                     />
                   </Box>
                 </Box>
@@ -119,17 +112,10 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
                 <Box className="border-border-card-subtle bg-background-surface rounded-lg border p-4">
                   <Box className="flex max-h-[min(42vh,15rem)] min-h-32 w-full flex-row items-center justify-center md:max-h-52">
                     <Box className="text-text-secondary text-center">
-                      <BodyText
-                        as="p"
-                        className="text-foreground text-center font-medium"
-                      >
+                      <BodyText as="p" className="text-foreground text-center font-medium">
                         {mapTitle}
                       </BodyText>
-                      <BodyText
-                        as="p"
-                        size="sm"
-                        className="text-text-secondary mt-1 text-center"
-                      >
+                      <BodyText as="p" size="sm" className="text-text-secondary mt-1 text-center">
                         {mapGenerating}
                       </BodyText>
                     </Box>
@@ -137,10 +123,8 @@ export const PropertyCommute: React.FC<PropertyCommuteProps> = ({
                 </Box>
               )}
             </Box>
-            <Box className="flex h-full flex-col justify-center gap-4">
-              <CommuteTravelTimeCards
-                travelTimes={commute.travel_times ?? []}
-              />
+            <Box className="flex min-h-0 min-w-0 flex-col justify-center gap-4">
+              <CommuteTravelTimeCards travelTimes={commute.travel_times ?? []} />
             </Box>
           </Box>
         ) : (

@@ -321,22 +321,34 @@ def validate_event_data(event_data: dict[str, Any]) -> bool:
             logger.warning(f"Event validation failed: missing required field '{field}'")
             return False
 
-    # Validate start/end structure
-    if not isinstance(event_data["start"], dict) or "dateTime" not in event_data["start"]:
-        logger.warning("Event validation failed: invalid start time structure")
+    start = event_data["start"]
+    end = event_data["end"]
+    if not isinstance(start, dict) or not isinstance(end, dict):
+        logger.warning("Event validation failed: start/end must be objects")
         return False
 
-    if not isinstance(event_data["end"], dict) or "dateTime" not in event_data["end"]:
-        logger.warning("Event validation failed: invalid end time structure")
+    # All-day events: start.date / end.date (YYYY-MM-DD, end exclusive per Google)
+    if "date" in start and "date" in end:
+        date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+        if not isinstance(start["date"], str) or not date_pattern.match(start["date"]):
+            logger.warning("Event validation failed: invalid all-day start date")
+            return False
+        if not isinstance(end["date"], str) or not date_pattern.match(end["date"]):
+            logger.warning("Event validation failed: invalid all-day end date")
+            return False
+        return True
+
+    # Timed events: dateTime on start/end
+    if "dateTime" not in start or "dateTime" not in end:
+        logger.warning("Event validation failed: invalid start/end time structure")
         return False
 
-    # Validate datetime format (basic ISO 8601 check)
     datetime_pattern = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
-    if not re.match(datetime_pattern, event_data["start"]["dateTime"]):
+    if not re.match(datetime_pattern, start["dateTime"]):
         logger.warning("Event validation failed: invalid start datetime format")
         return False
 
-    if not re.match(datetime_pattern, event_data["end"]["dateTime"]):
+    if not re.match(datetime_pattern, end["dateTime"]):
         logger.warning("Event validation failed: invalid end datetime format")
         return False
 

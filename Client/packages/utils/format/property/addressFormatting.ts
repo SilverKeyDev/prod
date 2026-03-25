@@ -106,17 +106,14 @@ export function formatFilenameToAddress(filename: string): string {
     // Soft guess: if address starts with a number, keep tokens until we hit something
     // that looks like a city start (usually after the number + a couple tokens).
     const startsWithNumber = /^\d+[A-Za-z]?$/.test(parts[0]);
-    const cutoff = startsWithNumber
-      ? Math.min(4, stateIndex)
-      : Math.min(3, stateIndex);
+    const cutoff = startsWithNumber ? Math.min(4, stateIndex) : Math.min(3, stateIndex);
     streetParts = parts.slice(0, cutoff);
     cityParts = parts.slice(cutoff, stateIndex);
   }
 
   const state = parts[stateIndex];
   const zip = zipIndex === stateIndex + 1 ? parts[zipIndex] : undefined;
-  const tail =
-    zipIndex > -1 ? parts.slice(zipIndex + 1) : parts.slice(stateIndex + 1); // country already removed
+  const tail = zipIndex > -1 ? parts.slice(zipIndex + 1) : parts.slice(stateIndex + 1); // country already removed
 
   const formatted: string[] = [];
   if (streetParts.length) formatted.push(streetParts.join(" "));
@@ -160,8 +157,7 @@ export function addressForMarkerTitle(address: string | undefined): string {
     // State + Zip: CA 94043 or NY 10001-1234
     if (/^[A-Z]{2}\s+\d{5}(-\d{4})?$/.test(part)) return false;
     // Country
-    if (/^(USA|US|United States|United States of America)$/i.test(part))
-      return false;
+    if (/^(USA|US|United States|United States of America)$/i.test(part)) return false;
     return true;
   });
   return filtered.join(", ").trim() || address;
@@ -276,10 +272,7 @@ export function formatLotSize(lotSize: string | number | undefined): string {
 
   if (typeof lotSize === "string") {
     // If it already contains units, return as-is
-    if (
-      lotSize.toLowerCase().includes("acre") ||
-      lotSize.toLowerCase().includes("sqft")
-    ) {
+    if (lotSize.toLowerCase().includes("acre") || lotSize.toLowerCase().includes("sqft")) {
       return lotSize;
     }
 

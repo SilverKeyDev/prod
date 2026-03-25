@@ -12,6 +12,8 @@ import { buttonNativeSizes } from "packages/ui/styles/variants/buttonSizes";
 import {
   BUTTON_BASE_CLASSES,
   BUTTON_ICON_SIZE_CLASS,
+  BUTTON_LOADING_FRAME_CLASSES,
+  BUTTON_LOADING_VARIANT_OVERRIDES,
   BUTTON_ROUNDED_CLASSES,
   BUTTON_SIZE_CLASSES,
   BUTTON_TEXT_COLOR_CLASSES,
@@ -68,6 +70,11 @@ export type ButtonProps = {
   iconPosition?: "left" | "right";
   /** "inline" = icon next to text; "edge" = flush right (only when iconPosition="right"). */
   iconAlign?: "inline" | "edge";
+  /**
+   * Horizontal alignment of label/content. Use "start" for list rows and menus so nested
+   * JSX is not forced to justify-center/text-center by the inner wrapper.
+   */
+  contentAlign?: "center" | "start";
   fullWidth?: boolean;
   rounded?: "none" | "sm" | "md" | "lg" | "xl" | "full";
 
@@ -141,6 +148,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       iconName,
       iconPosition = "left",
       iconAlign = "inline",
+      contentAlign = "center",
       fullWidth = false,
       rounded = "lg",
       className = "",
@@ -186,21 +194,26 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
     }, [children, hideTextBelow]);
 
     const isEdgeRight =
-      !loading &&
-      iconPosition === "right" &&
-      iconAlign === "edge" &&
-      Boolean(resolvedIcon);
+      !loading && iconPosition === "right" && iconAlign === "edge" && Boolean(resolvedIcon);
     const layoutClass = isEdgeRight ? "justify-between" : "";
+    const mainAxisJustify = isEdgeRight
+      ? ""
+      : contentAlign === "start"
+        ? "justify-start"
+        : "justify-center";
 
     const buttonClasses = [
       BUTTON_BASE_CLASSES,
+      mainAxisJustify,
       BUTTON_TRANSITION_CLASSES,
       BUTTON_SIZE_CLASSES[size],
       BUTTON_ROUNDED_CLASSES[rounded],
       BUTTON_VARIANT_STYLES[effectiveVariant],
       fullWidth ? "w-full" : "",
       layoutClass,
-      loading ? "relative overflow-hidden border-2 border-neutral-600" : "",
+      loading
+        ? `${BUTTON_LOADING_FRAME_CLASSES} ${BUTTON_LOADING_VARIANT_OVERRIDES[effectiveVariant]}`
+        : "",
       "touch-friendly",
       "",
       className,
@@ -218,10 +231,13 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
     const iconLeft = !loading && resolvedIcon && iconPosition === "left";
     const iconRight = !loading && resolvedIcon && iconPosition === "right";
 
+    const contentInnerLayoutClass =
+      contentAlign === "start"
+        ? "inline-flex w-full flex-row items-start justify-start gap-2 text-left font-medium leading-none"
+        : "inline-flex w-full flex-row items-center justify-center gap-2 text-center font-medium leading-none";
+
     const loaderBox = (
-      <Box
-        className={`h-8 w-8 shrink-0 items-center justify-center ${textColorClass}`.trim()}
-      >
+      <Box className={`h-8 w-8 shrink-0 items-center justify-center ${textColorClass}`.trim()}>
         {/* <KeyTurnLoader message="" /> */}
       </Box>
     );
@@ -231,7 +247,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         typeof children === "string" ? (
           <Text
             className={[
-              "inline-flex w-full flex-row items-center justify-center gap-2 text-center font-medium leading-none",
+              contentInnerLayoutClass,
               textVisibilityClass,
               textColorClass,
               textSizeClass,
@@ -244,7 +260,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         ) : (
           <Box
             className={[
-              "inline-flex w-full flex-row items-center justify-center gap-2 text-center font-medium leading-none",
+              contentInnerLayoutClass,
               textVisibilityClass,
               textColorClass,
               textSizeClass,
@@ -271,39 +287,49 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       </>
     );
 
-    const content = loading
-      ? loadingOnlyContent
-      : isEdgeRight
-        ? (
-            <>
-              <Box
-                className={`min-w-0 flex-1 items-center justify-start gap-2 ${textColorClass}`.trim()}
-              >
-                {iconLeft && renderIcon(resolvedIcon, size, textColorClass)}
-                {textContent}
-              </Box>
-              {iconRight && (
-                <Box className={`shrink-0 items-center ${textColorClass}`.trim()}>
-                  {renderIcon(resolvedIcon, size, textColorClass)}
-                </Box>
-              )}
-            </>
-          )
-        : (
-            <Row className="items-center justify-center gap-2">
-              {iconLeft && (
-                <Box className="items-center justify-center">
-                  {renderIcon(resolvedIcon, size, textColorClass)}
-                </Box>
-              )}
-              {textContent}
-              {iconRight && (
-                <Box className="items-center justify-center">
-                  {renderIcon(resolvedIcon, size, textColorClass)}
-                </Box>
-              )}
-            </Row>
-          );
+    const content = loading ? (
+      loadingOnlyContent
+    ) : isEdgeRight ? (
+      <>
+        <Box className={`min-w-0 flex-1 items-center justify-start gap-2 ${textColorClass}`.trim()}>
+          {iconLeft && renderIcon(resolvedIcon, size, textColorClass)}
+          {textContent}
+        </Box>
+        {iconRight && (
+          <Box className={`shrink-0 items-center ${textColorClass}`.trim()}>
+            {renderIcon(resolvedIcon, size, textColorClass)}
+          </Box>
+        )}
+      </>
+    ) : (
+      <Row
+        className={
+          contentAlign === "start"
+            ? "w-full items-start justify-start gap-2"
+            : "items-center justify-center gap-2"
+        }
+      >
+        {iconLeft && (
+          <Box
+            className={
+              contentAlign === "start" ? "shrink-0 items-start justify-center" : "items-center justify-center"
+            }
+          >
+            {renderIcon(resolvedIcon, size, textColorClass)}
+          </Box>
+        )}
+        {textContent}
+        {iconRight && (
+          <Box
+            className={
+              contentAlign === "start" ? "shrink-0 items-start justify-center" : "items-center justify-center"
+            }
+          >
+            {renderIcon(resolvedIcon, size, textColorClass)}
+          </Box>
+        )}
+      </Row>
+    );
 
     const pressableProps = pickPressableProps(props);
     const priorA11yState =

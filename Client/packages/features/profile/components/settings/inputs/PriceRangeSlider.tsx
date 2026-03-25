@@ -40,10 +40,7 @@ export default function PriceRangeSlider({
   const formattedValue = formatValue ?? defaultFormatValue;
   const { toSliderPercent, fromSliderPercent } = useSliderTickMapping(tickValues);
 
-  const sliderValue = useMemo(
-    () => toSliderPercent(value),
-    [value, toSliderPercent]
-  );
+  const sliderValue = useMemo(() => toSliderPercent(value), [value, toSliderPercent]);
 
   const handleSliderChange = (e: { target: { value: string } }) => {
     const newSliderPercent = parseFloat(e.target.value);
@@ -68,7 +65,7 @@ export default function PriceRangeSlider({
           {valueBlock}
           <Box className="relative w-full justify-center" style={{ height: SLIDER_HIT_HEIGHT }}>
             <Box
-              className="pointer-events-none bg-border absolute left-0 right-0 w-full rounded-lg"
+              className="bg-border pointer-events-none absolute left-0 right-0 w-full rounded-lg"
               style={{
                 height: trackHeight,
                 top: "50%",
@@ -76,7 +73,7 @@ export default function PriceRangeSlider({
               }}
             />
             <Box
-              className="pointer-events-none bg-accent absolute left-0 rounded-lg"
+              className="bg-accent pointer-events-none absolute left-0 rounded-lg"
               style={{
                 left: spacing(0),
                 width: fillWidth,

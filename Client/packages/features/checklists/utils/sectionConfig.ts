@@ -1,4 +1,7 @@
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
+import type { SectionConfig } from "packages/features/checklists/types/sectionConfig";
+
+export type { SectionConfig } from "packages/features/checklists/types/sectionConfig";
 
 export const SECTION_ORDER: ChecklistTab[] = [
   "search",
@@ -8,13 +11,6 @@ export const SECTION_ORDER: ChecklistTab[] = [
   "financing",
   "closing",
 ];
-
-export type SectionConfig = {
-  id: ChecklistTab;
-  order: number;
-  unlockRequiresSections: ChecklistTab[];
-  componentKeys?: string[];
-};
 
 export const SECTION_CONFIG: Record<ChecklistTab, SectionConfig> = {
   search: { id: "search", order: 0, unlockRequiresSections: [] },

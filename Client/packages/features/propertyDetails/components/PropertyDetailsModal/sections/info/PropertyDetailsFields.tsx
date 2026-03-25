@@ -38,13 +38,10 @@ export function PropertyDetailsFields({
         propertyLotSize.trim() !== ""));
   const hasPropertyType =
     (propertyHomeType && propertyHomeType !== "" && propertyHomeType !== "0") ||
-    (propertyPropertyType &&
-      propertyPropertyType !== "" &&
-      propertyPropertyType !== "0");
+    (propertyPropertyType && propertyPropertyType !== "" && propertyPropertyType !== "0");
   const hasPricePerSqft =
     propertyPricePerSquareFoot &&
-    ((typeof propertyPricePerSquareFoot === "number" &&
-      propertyPricePerSquareFoot > 0) ||
+    ((typeof propertyPricePerSquareFoot === "number" && propertyPricePerSquareFoot > 0) ||
       (typeof propertyPricePerSquareFoot === "string" &&
         propertyPricePerSquareFoot !== "0" &&
         propertyPricePerSquareFoot.trim() !== ""));
@@ -84,7 +81,7 @@ export function PropertyDetailsFields({
         })}
         value={String(propertyYearBuilt)}
         emphasized
-      />,
+      />
     );
   }
 
@@ -97,7 +94,7 @@ export function PropertyDetailsFields({
           defaultValue: "Lot size",
         })}
         value={String(propertyLotSize)}
-      />,
+      />
     );
   }
 
@@ -110,11 +107,9 @@ export function PropertyDetailsFields({
           defaultValue: "Property type",
         })}
         value={formatPropertyType(
-          (propertyHomeType as string) ??
-            (propertyPropertyType as string) ??
-            "",
+          (propertyHomeType as string) ?? (propertyPropertyType as string) ?? ""
         )}
-      />,
+      />
     );
   }
 
@@ -128,7 +123,7 @@ export function PropertyDetailsFields({
         })}
         value={`$${pricePerSqftDisplay}`}
         emphasized
-      />,
+      />
     );
   }
 
@@ -139,7 +134,7 @@ export function PropertyDetailsFields({
         iconName="square"
         label={t("property_details.fact_parking", { defaultValue: "Parking" })}
         value={parkingValue}
-      />,
+      />
     );
   }
 
@@ -152,7 +147,7 @@ export function PropertyDetailsFields({
           defaultValue: "Zestimate",
         })}
         value={`$${propertyZestimate.toLocaleString()}`}
-      />,
+      />
     );
   }
 
@@ -165,13 +160,11 @@ export function PropertyDetailsFields({
           defaultValue: "Rent estimate",
         })}
         value={`$${propertyRentZestimate.toLocaleString()}${t("property_details.per_month", { defaultValue: "/month" })}`}
-      />,
+      />
     );
   }
 
   if (tiles.length === 0) return null;
 
-  return (
-    <Box className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">{tiles}</Box>
-  );
+  return <Box className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">{tiles}</Box>;
 }

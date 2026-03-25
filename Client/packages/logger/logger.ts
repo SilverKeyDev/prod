@@ -45,6 +45,7 @@ export interface LoggerConfig {
   errors: boolean;
   security: boolean;
   search?: boolean;
+  polygonSearch?: boolean;
   negotiation?: boolean;
   checklists?: boolean;
   calendar?: boolean;
@@ -111,6 +112,7 @@ class Logger {
       },
       errors: true,
       security: true,
+      polygonSearch: true,
       logLevel: "DEBUG",
     };
 

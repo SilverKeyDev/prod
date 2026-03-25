@@ -11,8 +11,6 @@ type MessagingAttachmentMenuProps = {
   onShareHome: () => void;
   onShareDocument: () => void;
   onCalendarEvent: () => void;
-  onShareAgreement?: () => void;
-  isAgent: boolean;
 };
 
 export function MessagingAttachmentMenu({
@@ -21,8 +19,6 @@ export function MessagingAttachmentMenu({
   onShareHome,
   onShareDocument,
   onCalendarEvent,
-  onShareAgreement,
-  isAgent,
 }: MessagingAttachmentMenuProps) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -59,19 +55,6 @@ export function MessagingAttachmentMenu({
               Calendar event
             </Text>
           </RNPressable>
-          {isAgent && onShareAgreement && (
-            <RNPressable
-              onPress={() => {
-                onClose();
-                onShareAgreement();
-              }}
-              style={styles.option}
-            >
-              <Text className="text-text-primary text-left text-base font-medium">
-                Share agreement
-              </Text>
-            </RNPressable>
-          )}
           <RNPressable onPress={onClose} style={[styles.option, styles.cancel]}>
             <Text className="text-text-secondary text-left text-base font-medium">Cancel</Text>
           </RNPressable>

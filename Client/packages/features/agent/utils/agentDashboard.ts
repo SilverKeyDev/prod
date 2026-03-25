@@ -1,8 +1,7 @@
 // Mock data service for agent dashboard
 // This will be replaced with real API calls when backend is ready
 import type { AgentClient } from "packages/config/http/api";
-import { dateNow } from "packages/utils/date";
-
+import type { TodoItem } from "packages/features/agent/api/agent";
 import type {
   AgentNote,
   ClientDealInfo,
@@ -12,9 +11,9 @@ import type {
   DealStage,
   DecisionLogEntry,
   RiskFlag,
-  TodoItem,
   UrgentAlert,
-} from "@/features/agent/types/agent";
+} from "packages/schemas/agent";
+import { dateNow } from "packages/utils/date";
 
 /**
  * Generate mock todos for a client or all clients

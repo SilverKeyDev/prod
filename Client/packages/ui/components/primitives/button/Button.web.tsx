@@ -12,7 +12,7 @@ const RN_ACCESSIBILITY_KEYS = [
 ] as const;
 
 function omitRnAccessibilityProps<T extends Record<string, unknown>>(
-  props: T,
+  props: T
 ): Omit<T, (typeof RN_ACCESSIBILITY_KEYS)[number]> {
   const { ...rest } = props;
   for (const key of RN_ACCESSIBILITY_KEYS) {
@@ -47,7 +47,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     accessibilityRole,
     ...props
   },
-  ref,
+  ref
 ) {
   const handleClick = onClick ?? onPress;
   const domProps = omitRnAccessibilityProps(props);

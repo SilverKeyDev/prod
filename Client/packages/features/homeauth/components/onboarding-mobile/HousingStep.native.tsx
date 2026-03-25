@@ -2,6 +2,7 @@ import React from "react";
 
 import Input from "@ui/form/Input";
 
+import { LotSizeAndHomeAgeSliders } from "packages/features/profile";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
@@ -173,86 +174,11 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
         </Box>
       </Box>
 
-      <Box>
-        <Text className="text-text-secondary mb-2 text-sm font-medium">
-          {FIELD_LABELS.PREFERRED_LOT_SIZE}
+      <Box className="gap-4">
+        <Text className="text-text-secondary text-xs">
+          Lot size and home age use the same ranges as search and profile. Adjust the sliders below.
         </Text>
-        <Text className="text-text-secondary mb-3 text-xs">
-          If yard size matters, set a rough range in acres.
-        </Text>
-        <Box className="flex flex-row gap-3">
-          <Box className="flex-1">
-            <Text className="text-text-secondary mb-1 text-xs font-medium">Min (acres)</Text>
-            <Input
-              value={formData.preferred_lot_size_min?.toString() ?? ""}
-              onValueChange={(v) =>
-                updateFormData(
-                  "preferred_lot_size_min",
-                  v && v.trim() !== "" ? Number.parseFloat(v) || undefined : undefined
-                )
-              }
-              placeholder="e.g. 0.25"
-              keyboardType="decimal-pad"
-              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-            />
-          </Box>
-          <Box className="flex-1">
-            <Text className="text-text-secondary mb-1 text-xs font-medium">Max (acres)</Text>
-            <Input
-              value={formData.preferred_lot_size_max?.toString() ?? ""}
-              onValueChange={(v) =>
-                updateFormData(
-                  "preferred_lot_size_max",
-                  v && v.trim() !== "" ? Number.parseFloat(v) || undefined : undefined
-                )
-              }
-              placeholder="e.g. 1"
-              keyboardType="decimal-pad"
-              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-            />
-          </Box>
-        </Box>
-      </Box>
-
-      <Box>
-        <Text className="text-text-secondary mb-2 text-sm font-medium">
-          {FIELD_LABELS.PREFERRED_HOME_AGE}
-        </Text>
-        <Text className="text-text-secondary mb-3 text-xs">
-          Preferred age range in years (e.g. 5–30 for newer homes).
-        </Text>
-        <Box className="flex flex-row gap-3">
-          <Box className="flex-1">
-            <Text className="text-text-secondary mb-1 text-xs font-medium">Min (years)</Text>
-            <Input
-              value={formData.preferred_home_age_min?.toString() ?? ""}
-              onValueChange={(v) =>
-                updateFormData(
-                  "preferred_home_age_min",
-                  v && v.trim() !== "" ? parseInt(v, 10) || undefined : undefined
-                )
-              }
-              placeholder="e.g. 5"
-              keyboardType="number-pad"
-              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-            />
-          </Box>
-          <Box className="flex-1">
-            <Text className="text-text-secondary mb-1 text-xs font-medium">Max (years)</Text>
-            <Input
-              value={formData.preferred_home_age_max?.toString() ?? ""}
-              onValueChange={(v) =>
-                updateFormData(
-                  "preferred_home_age_max",
-                  v && v.trim() !== "" ? parseInt(v, 10) || undefined : undefined
-                )
-              }
-              placeholder="e.g. 30"
-              keyboardType="number-pad"
-              className="border-border bg-background-surface text-text-primary rounded-lg border px-4 py-3 text-base"
-            />
-          </Box>
-        </Box>
+        <LotSizeAndHomeAgeSliders formData={formData} updateFormData={updateFormData} />
       </Box>
 
       <Box>
@@ -432,9 +358,7 @@ export function HousingStep({ formData, updateFormData }: HousingStepProps) {
         </Text>
         <Input
           value={
-            Array.isArray(formData.other_requirements)
-              ? formData.other_requirements.join(", ")
-              : ""
+            Array.isArray(formData.other_requirements) ? formData.other_requirements.join(", ") : ""
           }
           onValueChange={(v) => {
             const next =

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useAuthStore } from "packages/store";
+import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
 
 import type { UserPreferences, UserProfile } from "@/features/homeauth/types";
 import { preferencesApi, userApi } from "@/features/profile/api/user";
@@ -49,6 +50,8 @@ export function useUserData(): UseUserDataReturn {
           ? userData.client_ids.join(",")
           : userData.client_ids,
       };
+
+      prefetchRemoteImage(profile.profile_picture_url);
 
       return profile;
     },

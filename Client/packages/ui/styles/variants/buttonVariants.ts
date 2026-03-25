@@ -44,6 +44,23 @@ export const BUTTON_VARIANT_STYLES: Record<ButtonStyleVariant, string> = {
 };
 
 /**
+ * Applied when `loading` is true. Uses `!` so fill/border wins over base variant utilities.
+ * Lighter fill + dark rim; `BUTTON_LOADING_FRAME_CLASSES` adds the shared border width.
+ */
+export const BUTTON_LOADING_FRAME_CLASSES =
+  "relative overflow-hidden border-2 !border-neutral-800 !shadow-none";
+
+export const BUTTON_LOADING_VARIANT_OVERRIDES: Record<ButtonStyleVariant, string> = {
+  primary: "!bg-primary/70",
+  secondary: "!bg-neutral-50",
+  tertiary: "!bg-accent/70",
+  outline: "!bg-neutral-50",
+  ghost: "!bg-neutral-50",
+  danger: "!bg-destructive/70",
+  success: "!bg-brand-secondary/70",
+};
+
+/**
  * Unified size classes — raw Tailwind, same for web and native.
  * Minimum horizontal padding from text/icon to outer rim: 16px (px-4) for sm/md, 20px (px-5) for lg
  * so buttons are never cramped. Native sizing uses buttonNativeSizes (inline styles) since
@@ -66,11 +83,11 @@ export const BUTTON_TEXT_COLOR_CLASSES: Record<ButtonStyleVariant, string> = {
 };
 
 /**
- * Base classes shared by all variants. Ensures spacing and icon alignment.
- * Unified for web and native — explicit flex-row for RN; no select-none/cursor.
+ * Base row layout without main-axis justify — Button appends justify-center,
+ * justify-start (contentAlign="start"), or justify-between (icon edge layout).
  */
 export const BUTTON_BASE_CLASSES =
-  "flex flex-row items-center justify-center gap-2 font-medium leading-none focus:outline-none focus:ring-2 focus:ring-offset-2 web:active:translate-y-[0.5px]";
+  "flex flex-row items-center gap-2 font-medium leading-none focus:outline-none focus:ring-2 focus:ring-offset-2 web:active:translate-y-[0.5px]";
 
 export const BUTTON_ROUNDED_CLASSES: Record<"none" | "sm" | "md" | "lg" | "xl" | "full", string> = {
   none: "rounded-none",

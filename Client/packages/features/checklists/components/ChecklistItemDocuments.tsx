@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { getChecklistItemDocuments } from "packages/api";
 import { useLocalization } from "packages/contexts";
-import type { Agreement } from "packages/types";
+import type { ChecklistLinkedDocument } from "packages/features/documents";
 import Button from "packages/ui/components/button/Button";
 import { Box, Text } from "packages/ui/components/primitives";
 
@@ -31,7 +31,7 @@ export default function ChecklistItemDocuments({
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   const {
-    data: agreements = [],
+    data: linkedDocuments = [],
     refetch,
     isLoading,
   } = useQuery({
@@ -76,19 +76,19 @@ export default function ChecklistItemDocuments({
         <Text className="text-text-secondary text-xs">
           {t("checklists.loading", { defaultValue: "Loading..." })}
         </Text>
-      ) : agreements.length === 0 ? (
+      ) : linkedDocuments.length === 0 ? (
         <Text className="text-text-secondary text-xs">
           {t("checklists.no_documents", { defaultValue: "No documents linked yet." })}
         </Text>
       ) : (
         <Box className="flex flex-row flex-col gap-1">
-          {agreements.map((agreement: Agreement) => (
+          {linkedDocuments.map((doc: ChecklistLinkedDocument) => (
             <Box
-              key={agreement.id}
+              key={doc.id}
               className="border-border bg-background-surface flex flex-row items-center justify-between rounded border p-2"
             >
-              <Text className="text-text-primary text-sm">{agreement.title}</Text>
-              <Text className="text-text-secondary text-xs">{agreement.status}</Text>
+              <Text className="text-text-primary text-sm">{doc.title}</Text>
+              <Text className="text-text-secondary text-xs">{doc.status}</Text>
             </Box>
           ))}
         </Box>

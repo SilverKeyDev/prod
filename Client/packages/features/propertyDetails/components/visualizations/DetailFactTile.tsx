@@ -22,17 +22,8 @@ export function DetailFactTile({
   return (
     <Box className="border-border-card bg-bg-card-subtle flex flex-col rounded-xl border p-3 sm:p-4">
       <Box className="mb-2 flex flex-row items-center gap-2">
-        <Icon
-          name={iconName}
-          size={18}
-          className="text-brand-accent shrink-0"
-          aria-hidden
-        />
-        <BodyText
-          as="span"
-          size="xs"
-          className="text-text-secondary font-medium"
-        >
+        <Icon name={iconName} size={18} className="text-brand-accent shrink-0" aria-hidden />
+        <BodyText as="span" size="xs" className="text-text-secondary font-medium">
           {label}
         </BodyText>
       </Box>

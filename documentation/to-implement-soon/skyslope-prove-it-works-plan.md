@@ -14,8 +14,8 @@
 ## 1. Prerequisites (manual / ops)
 
 - [ ] **SkySlope OAuth client:** Obtain `client_id` (→ `SKYSLOPE_ACCESS_KEY`) and `client_secret` (→ `SKYSLOPE_SECRET`) from SkySlope. There is no self-service portal for most partners; redirect allowlisting is done on their side.
-- [ ] **Redirect URI:** Coordinate with SkySlope support so the callback URL(s) they attach to your client match what this server uses—exact string, including scheme and port (e.g. `https://<your-domain>/api/v1/skyslope/callback`, local dev `http://localhost:<port>/api/v1/skyslope/callback`). Set `SKYSLOPE_REDIRECT_URI` if it must differ from the default derived from `FLASK_ENV`.
-- [ ] **Server env:** Set `SKYSLOPE_ACCESS_KEY`, `SKYSLOPE_SECRET`, and (if not derived) `SKYSLOPE_REDIRECT_URI` (or equivalent) in Server `.env` / secrets; do not commit secrets.
+- [ ] **Redirect URI:** Coordinate with SkySlope support so the callback URL(s) they attach to your client match this server—exact string (e.g. production `https://usesilverkey.com/api/v1/skyslope/callback`, local dev `http://localhost:5000/api/v1/skyslope/callback`). Defined in `Server/app/config/_urls.py` (`get_skyslope_redirect_uri`, `SKYSLOPE_REDIRECT_URI_OVERRIDE` if the deploy host differs).
+- [ ] **Server env:** Only `SKYSLOPE_ACCESS_KEY` and `SKYSLOPE_SECRET` in `.env` / secrets. All OAuth URLs and issuer live in `_urls.py` (Okta issuer per OIDC discovery; flip `SKYSLOPE_OAUTH_USE_LEGACY_ACCOUNTS` only for `accounts.skyslope.com`). Do not commit secrets.
 
 ---
 
@@ -23,7 +23,7 @@
 
 ### 2.1 Config
 
-- [ ] Add Skyslope config (read from env): `client_id`, `client_secret`, `redirect_uri`, `authorize_url` (`https://accounts.skyslope.com/oauth2/authorize`), `token_url` (`https://accounts.skyslope.com/oauth2/token`), `api_base` (`https://forms.skyslope.com/partner/api`). Use existing secrets/config pattern (e.g. `Server/config/.env.example` updated with `SKYSLOPE_REDIRECT_URI` placeholder).
+- [ ] Skyslope config: `client_id` / `client_secret` from env only; `redirect_uri`, `authorize_url`, `token_url`, issuer flags from `Server/app/config/_urls.py`. `api_base`: `https://forms.skyslope.com/partner/api` (constant in `skyslope.py`).
 
 ### 2.2 PKCE helpers
 

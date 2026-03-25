@@ -9,6 +9,7 @@ import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UserProfile } from "packages/types";
+import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
 
 import { DATA_ROUTES, getInitialLoadRoutes } from "./dataConfig";
 
@@ -33,6 +34,8 @@ export class InitialDataLoader {
       userId: user.id,
       isAgent,
     });
+
+    prefetchRemoteImage(user.profile_picture_url);
 
     const routes = getInitialLoadRoutes(user);
     log.debug(LOG_CATEGORIES.API, "Routes to prefetch", {

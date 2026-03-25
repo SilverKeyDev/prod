@@ -37,7 +37,9 @@ def delete_user_account(data, user):
     actor_id = str(getattr(user, "id", "") or "")
 
     if target_id == actor_id:
-        return standardize_error_response("You cannot delete your own account from this endpoint", status_code=403)
+        return standardize_error_response(
+            "You cannot delete your own account from this endpoint", status_code=403
+        )
 
     deleted = delete_user_and_all_related_data(target_id)
 

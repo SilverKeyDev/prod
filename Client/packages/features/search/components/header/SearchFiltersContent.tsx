@@ -4,9 +4,11 @@ import Input from "@ui/form/Input";
 
 import { spacing } from "packages/design-tokens";
 import {
+  LotSizeAndHomeAgeSliders,
+  type LotSizeHomeAgeSearchOverridesPatch,
+} from "packages/features/profile";
+import {
   ARCHITECTURAL_STYLE_OPTIONS,
-  HOME_AGE_OPTIONS,
-  LOT_SIZE_OPTIONS,
   PROPERTY_USE_OPTIONS,
   RENOVATION_OPTIONS,
   WALKABILITY_OPTIONS,
@@ -23,6 +25,7 @@ import { FilterChipRow } from "./FilterChipRow";
 type SearchFiltersContentProps = {
   formData: Partial<SearchFiltersFormData>;
   update: (field: keyof SearchFiltersFormData, value: unknown) => void;
+  onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
 };
 
 const HOUSING_TYPE_LABELS: Record<string, string> = {
@@ -37,7 +40,11 @@ function spacingToNum(token: string): number {
   return m ? parseFloat(m[1]) * 16 : 0;
 }
 
-export function SearchFiltersContent({ formData, update }: SearchFiltersContentProps) {
+export function SearchFiltersContent({
+  formData,
+  update,
+  onSearchFilterOverridesPatch,
+}: SearchFiltersContentProps) {
   return (
     <ScrollView
       style={{ maxHeight: spacingToNum(spacing(100)) }}
@@ -169,18 +176,13 @@ export function SearchFiltersContent({ formData, update }: SearchFiltersContentP
           </Box>
         </Box>
 
-        <FilterChipRow
-          label="Lot size"
-          options={LOT_SIZE_OPTIONS}
-          value={formData.preferred_lot_size}
-          onChange={(v) => update("preferred_lot_size", v)}
-        />
-        <FilterChipRow
-          label="Home age"
-          options={HOME_AGE_OPTIONS}
-          value={formData.preferred_home_age}
-          onChange={(v) => update("preferred_home_age", v)}
-        />
+        <Box className="mb-4">
+          <LotSizeAndHomeAgeSliders
+            formData={formData}
+            updateFormData={(field, value) => update(field as keyof SearchFiltersFormData, value)}
+            onSearchFilterOverridesPatch={onSearchFilterOverridesPatch}
+          />
+        </Box>
         <FilterChipRow
           label="Architectural style"
           options={ARCHITECTURAL_STYLE_OPTIONS}

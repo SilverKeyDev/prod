@@ -4,13 +4,13 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { usePropertyComparison } from "packages/features/compare/hooks/data/usePropertyComparison";
+import type { CompareHomesPropertyDetails } from "packages/features/compare/types/compareHomes";
 import {
   exportToCSV,
   generateCSVContent,
   getAllComparisonFields,
   shareCSV,
 } from "packages/features/compare/utils";
-import type { CompareHomesPropertyDetails } from "packages/features/compare/utils/types";
 import { useUIStore } from "packages/store";
 import type { SavedHome } from "packages/types";
 import { Box } from "packages/ui/components/primitives";

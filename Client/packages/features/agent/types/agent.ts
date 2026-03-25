@@ -20,5 +20,5 @@ export type Agent = {
 
 // Todo types (re-exported from API for feature consumers)
 export type TodoItem = ApiTodoItem;
-export type TodoPriority = ApiTodoItem["priority"];
+export type TodoPriority = NonNullable<ApiTodoItem["priority"]>;
 export type TodoType = ApiTodoItem["type"];

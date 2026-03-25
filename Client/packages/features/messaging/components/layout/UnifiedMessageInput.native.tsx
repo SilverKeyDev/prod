@@ -30,7 +30,6 @@ export type UnifiedMessageInputProps = {
   onAttachmentHome?: () => void;
   onAttachmentCalendar?: () => void;
   onAttachmentDocument?: () => void;
-  onAttachmentAgreement?: () => void;
 };
 
 const styles = StyleSheet.create({
@@ -102,7 +101,6 @@ export default function UnifiedMessageInputNative({
   onAttachmentHome,
   onAttachmentCalendar,
   onAttachmentDocument,
-  onAttachmentAgreement,
 }: UnifiedMessageInputProps) {
   const [isFocused, setIsFocused] = React.useState(false);
   const config = getMessagingConfig(mode);
@@ -113,7 +111,7 @@ export default function UnifiedMessageInputNative({
       : config.input.placeholder);
 
   const hasAttachments = Boolean(
-    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument || onAttachmentAgreement
+    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument
   );
 
   const canSend = message.trim() && !isTyping && !disabled;
@@ -132,7 +130,6 @@ export default function UnifiedMessageInputNative({
               onSelectHome={onAttachmentHome || (() => {})}
               onSelectCalendar={onAttachmentCalendar || (() => {})}
               onSelectDocument={onAttachmentDocument}
-              onSelectAgreement={onAttachmentAgreement}
               disabled={isTyping || disabled}
             />
           )}

@@ -51,25 +51,14 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
       <Box className="mt-2 flex-row flex-wrap gap-4">
         <Box
           className={`border-border bg-background-surface min-w-0 flex-1 rounded-lg border p-4 ${
-            pros && cons && pros.length > cons.length + 2
-              ? "border-green-200 bg-green-50/30"
-              : ""
+            pros && cons && pros.length > cons.length + 2 ? "border-green-200 bg-green-50/30" : ""
           }`}
         >
           <Box className="mb-3 flex-row items-center gap-2">
-            <Icon
-              name="check-circle"
-              size={16}
-              color={color("green.DEFAULT")}
-            />
+            <Icon name="check-circle" size={16} color={color("green.DEFAULT")} />
             <Text className="text-text-secondary text-sm font-medium">
               {t("property_details.pros_cons_pros", { defaultValue: "Pros" })}
-              {pros && (
-                <Text className="text-text-secondary ml-1 text-xs">
-                  {" "}
-                  ({pros.length})
-                </Text>
-              )}
+              {pros && <Text className="text-text-secondary ml-1 text-xs"> ({pros.length})</Text>}
             </Text>
           </Box>
           <Box className="gap-3">
@@ -82,18 +71,12 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
                     color={color("green.DEFAULT")}
                     style={{ marginTop: spacingToNumber(spacing(0.5)) }}
                   />
-                  <Text className="text-text-secondary flex-1 text-sm">
-                    {pro}
-                  </Text>
+                  <Text className="text-text-secondary flex-1 text-sm">{pro}</Text>
                 </Box>
               ))
             ) : (
               <Box className="flex-row items-center gap-2">
-                <Icon
-                  name="check-circle"
-                  size={16}
-                  color={color("neutral.400")}
-                />
+                <Icon name="check-circle" size={16} color={color("neutral.400")} />
                 <Text className="text-text-secondary text-sm">
                   {t("property_details.pros_cons_no_pros", {
                     defaultValue: "No pros identified",
@@ -115,12 +98,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             <Icon name="alert-triangle" size={16} color={color("rose.800")} />
             <Text className="text-text-secondary text-sm font-medium">
               {t("property_details.pros_cons_cons", { defaultValue: "Cons" })}
-              {cons && (
-                <Text className="text-text-secondary ml-1 text-xs">
-                  {" "}
-                  ({cons.length})
-                </Text>
-              )}
+              {cons && <Text className="text-text-secondary ml-1 text-xs"> ({cons.length})</Text>}
             </Text>
           </Box>
           <Box className="gap-3">
@@ -133,18 +111,12 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
                     color={color("rose.800")}
                     style={{ marginTop: spacingToNumber(spacing(0.5)) }}
                   />
-                  <Text className="text-text-secondary flex-1 text-sm">
-                    {con}
-                  </Text>
+                  <Text className="text-text-secondary flex-1 text-sm">{con}</Text>
                 </Box>
               ))
             ) : (
               <Box className="flex-row items-center gap-2">
-                <Icon
-                  name="alert-triangle"
-                  size={16}
-                  color={color("neutral.400")}
-                />
+                <Icon name="alert-triangle" size={16} color={color("neutral.400")} />
                 <Text className="text-text-secondary text-sm">
                   {t("property_details.pros_cons_no_cons", {
                     defaultValue: "No cons identified",

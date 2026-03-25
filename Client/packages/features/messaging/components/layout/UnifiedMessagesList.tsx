@@ -7,11 +7,16 @@ import { useLocalization } from "packages/contexts";
 import { EventRequestCard } from "packages/features/calendar";
 import { useDocumentsData } from "packages/features/documents";
 import SharedDocumentCard from "packages/features/messaging/components/cards/SharedDocumentCard";
+import { PropertyDetailsModal } from "packages/features/propertyDetails";
 import { useSavedHomesData } from "packages/features/search";
+import { usePropertyDetails } from "packages/hooks/data/usePropertyDetails";
+import { useNavigation } from "packages/navigation";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import { Box } from "packages/ui/components/primitives";
+import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
 import HomeCard from "@/components/cards/HomeCard";
+import ModalPortal from "@/components/modals/ModalPortal";
 import { BodyText, Button, Title } from "@/components/ui";
 import {
   getMessagingConfig,
@@ -60,6 +65,25 @@ export default function UnifiedMessagesList({
   const config = getMessagingConfig(mode);
   const { getSavedHome, isHomeSaved, saveHome, removeSavedHome } = useSavedHomesData();
   const { documents } = useDocumentsData();
+  const {
+    selectedProperty,
+    fetchPropertyDetails,
+    clearSelectedProperty,
+    isLoading: isLoadingPropertyDetails,
+  } = usePropertyDetails();
+  const { navigate } = useNavigation();
+
+  const handleGenerateReport = (address: string) => {
+    getLocalStorage().setItem(
+      "generateReportState",
+      JSON.stringify({
+        address,
+        reportType: "detailed",
+        selectedClientId: "",
+      })
+    );
+    void navigate("SAVED");
+  };
   const homeCardSaveState =
     isHomeSaved && saveHome && removeSavedHome
       ? { isHomeSaved, saveHome, removeSavedHome }
@@ -209,7 +233,11 @@ export default function UnifiedMessagesList({
                     };
                     return (
                       <Box className="mb-2 w-full min-w-0 max-w-full overflow-hidden">
-                        <HomeCard home={homeData} saveState={homeCardSaveState} />
+                        <HomeCard
+                          home={homeData}
+                          saveState={homeCardSaveState}
+                          onViewDetails={fetchPropertyDetails}
+                        />
                       </Box>
                     );
                   })()}
@@ -217,7 +245,20 @@ export default function UnifiedMessagesList({
                 {msg.shared_document_id &&
                   (() => {
                     const document = documents.find((d) => d.id === msg.shared_document_id);
+                    const previewLabel = msg.content?.trim();
                     if (!document) {
+                      if (previewLabel) {
+                        return (
+                          <Box className="border-border bg-primary-muted mb-2 rounded-lg border p-4">
+                            <BodyText as="p" size="xs" className="text-text-secondary font-medium">
+                              {t("agent.share_document")}
+                            </BodyText>
+                            <BodyText as="p" size="sm" className="text-text-primary mt-1">
+                              {previewLabel}
+                            </BodyText>
+                          </Box>
+                        );
+                      }
                       return (
                         <Box className="border-border bg-primary-muted mb-2 rounded-lg border p-4">
                           <BodyText as="p" size="sm" className="text-text-secondary">
@@ -237,7 +278,11 @@ export default function UnifiedMessagesList({
                   !msg.shared_document_id &&
                   !showEventRequestCard &&
                   msg.content.trim() && (
-                    <BodyText as="p" size="sm" className="whitespace-pre-line">
+                    <BodyText
+                      as="p"
+                      size="sm"
+                      className={`whitespace-pre-line ${messageConfig.textColor}`}
+                    >
                       {msg.content}
                     </BodyText>
                   )}
@@ -303,6 +348,16 @@ export default function UnifiedMessagesList({
               </Box>
             </Box>
           )} */}
+      {selectedProperty && (
+        <ModalPortal>
+          <PropertyDetailsModal
+            property={selectedProperty}
+            onClose={clearSelectedProperty}
+            onGenerateReport={handleGenerateReport}
+            isLoading={isLoadingPropertyDetails}
+          />
+        </ModalPortal>
+      )}
       <Box ref={messagesEndRef} />
     </>
   );

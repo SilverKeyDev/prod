@@ -54,13 +54,12 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
   if (!propertyAnalysis) return null;
 
   const options = getBuildSectionsOptions();
-  const dynamicSections: PropertyAnalysisSection[] =
-    buildPropertyAnalysisSections(
-      propertyAnalysis,
-      excludeSections,
-      userPriorities,
-      options,
-    );
+  const dynamicSections: PropertyAnalysisSection[] = buildPropertyAnalysisSections(
+    propertyAnalysis,
+    excludeSections,
+    userPriorities,
+    options
+  );
   const noDataLabel = t("property_analysis.no_data", {
     defaultValue: "No data available",
   });
@@ -69,10 +68,11 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
 
   return (
     <Box className="p-6">
-      <Box className="gap-6">
+      <Box className="flex flex-col gap-10">
         {dynamicSections.map((section) => {
-          const { rest: sectionBody, rating: sectionRating } =
-            stripSectionRatingField(section.data);
+          const { rest: sectionBody, rating: sectionRating } = stripSectionRatingField(
+            section.data
+          );
           return (
             <Box key={section.key}>
               <PropertySectionHeader
@@ -82,11 +82,7 @@ export const PropertyAnalysis: React.FC<PropertyAnalysisProps> = ({
                 action={<PropertySectionRatingBadge rating={sectionRating} />}
               />
               <Box className="border-border bg-background-surface mt-2 rounded-lg border p-4">
-                {renderPropertyAnalysisSectionBody(
-                  section.key,
-                  sectionBody,
-                  noDataLabel,
-                )}
+                {renderPropertyAnalysisSectionBody(section.key, sectionBody, noDataLabel)}
               </Box>
             </Box>
           );

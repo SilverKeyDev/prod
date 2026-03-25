@@ -160,7 +160,7 @@ export function SidebarList(props: {
   };
   const itemsToRender = useIncrementalLoad ? displayItems.slice(0, visibleCount) : displayItems;
   return (
-    <Box className="scrollbar-hide max-md:pb-mobile-nav h-full space-y-3 overflow-y-auto pr-2">
+    <Box className="scrollbar-hide h-full space-y-3 overflow-y-auto pr-2">
       {itemsToRender.map((property: SearchResult) => {
         const showReasonCard = reasonCardPropertyId === property.id && activeTab === "results";
         return (

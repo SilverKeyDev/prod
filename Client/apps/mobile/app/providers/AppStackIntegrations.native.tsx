@@ -2,6 +2,13 @@ import type { ReactNode } from "react";
 
 import { useReportsStoreIntegration } from "packages/features/documents";
 import { useSavedHomesStoreIntegration } from "packages/features/search";
+import { useAgentDashboardStore } from "packages/store";
+
+function SavedHomesShellIntegrationNative() {
+  const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
+  useSavedHomesStoreIntegration(selectedClientId ?? undefined);
+  return null;
+}
 
 /**
  * Runs store integrations (reports, saved homes) inside the App Stack.
@@ -10,6 +17,10 @@ import { useSavedHomesStoreIntegration } from "packages/features/search";
  */
 export function AppStackIntegrations({ children }: { children: ReactNode }) {
   useReportsStoreIntegration();
-  useSavedHomesStoreIntegration();
-  return <>{children}</>;
+  return (
+    <>
+      <SavedHomesShellIntegrationNative />
+      {children}
+    </>
+  );
 }

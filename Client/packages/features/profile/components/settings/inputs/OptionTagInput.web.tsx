@@ -45,11 +45,7 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
       {selectedValues.length > 0 && (
         <Box className="mb-4">
           {isEditMode && (
-            <BodyText
-              as="span"
-              size="xs"
-              className="text-text-secondary mb-2 block font-medium"
-            >
+            <BodyText as="span" size="xs" className="text-text-secondary mb-2 block font-medium">
               Your selections ({selectedValues.length})
             </BodyText>
           )}
@@ -75,11 +71,7 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
       {/* Unselected: clean add-option tiles (edit mode only) */}
       {isEditMode && unselectedOptions.length > 0 && (
         <Box>
-          <BodyText
-            as="span"
-            size="xs"
-            className="text-text-secondary mb-2 block font-medium"
-          >
+          <BodyText as="span" size="xs" className="text-text-secondary mb-2 block font-medium">
             Add more
           </BodyText>
           <Box className="flex flex-wrap gap-2">
@@ -91,7 +83,7 @@ const OptionTagInput: React.FC<OptionTagInputProps> = ({
                 key={opt.value}
                 onClick={() => handleToggle(opt.value)}
                 disabled={disabled}
-                className="border-border bg-background-surface text-text-secondary hover:border-brand-accent/50 hover:bg-brand-accent/5 hover:text-text-primary inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors touch-manipulation"
+                className="border-border bg-background-surface text-text-secondary hover:border-brand-accent/50 hover:bg-brand-accent/5 hover:text-text-primary inline-flex touch-manipulation items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors"
                 label={`Select ${opt.label}`}
               >
                 <Icon name="plus" className="h-3.5 w-3.5 flex-shrink-0" />

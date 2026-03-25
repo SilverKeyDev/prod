@@ -3,9 +3,12 @@
  * Native-only screens are in ./native.
  */
 export { SavedFeature } from "./components/SavedFeature";
+export { default as SavedHomesContent } from "./components/SavedHomesContent";
+export { default as SavedPageModals } from "./components/SavedPageModals";
 export type { PropertyData, RawHomeData } from "./types/savedHomeMappers";
 export { mapHomeUniversalToSavedHome } from "./types/savedHomeMappers";
 export {
+  convertSavedHomeToProperty,
   convertToFavoriteHome,
   findSavedHomeByIdOrAddress,
   isProcessedSavedHomeList,

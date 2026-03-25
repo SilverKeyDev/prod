@@ -10,6 +10,7 @@ import {
 } from "packages/features/checklists";
 import { useIsAgent } from "packages/features/homeauth";
 import { useNavigation } from "packages/navigation";
+import { ProfileAvatar } from "packages/ui/components";
 import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs";
 import { dateParseISO } from "packages/utils/date";
@@ -17,7 +18,6 @@ import { dateParseISO } from "packages/utils/date";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useAgentDashboardMockData } from "@/features/agent/hooks/data/useAgentDashboardMockData";
 
-import ClientAgreements from "./agreements/ClientAgreements";
 import ClientCalendar from "./calendar/ClientCalendar";
 import ClientChecklists from "./checklists/ClientChecklists";
 import ClientDocuments from "./documents/ClientDocuments";
@@ -37,7 +37,6 @@ type ClientHubTab =
   | "overview"
   | "liked-homes"
   | "documents"
-  | "agreements"
   | "checklists"
   | "calendar";
 
@@ -114,7 +113,6 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
     { id: "overview", label: t("dashboard.tab_overview") },
     { id: "liked-homes", label: t("dashboard.tab_liked_homes") },
     { id: "documents", label: t("dashboard.tab_documents") },
-    { id: "agreements", label: t("dashboard.tab_agreements") },
     { id: "checklists", label: t("dashboard.tab_checklists") },
     { id: "calendar", label: t("dashboard.tab_calendar") },
   ];
@@ -176,10 +174,12 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
         </Pressable>
 
         <Box className="flex flex-1 flex-row items-center gap-3">
-          <Box className="bg-primary-muted flex h-10 w-10 items-center justify-center rounded-full">
-            <Text className="text-primary text-lg font-semibold">
-              {client.name.charAt(0).toUpperCase()}
-            </Text>
+          <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
+            <ProfileAvatar
+              imageUrl={client.profile_picture}
+              label={client.name}
+              imageClassName="h-full w-full object-cover"
+            />
           </Box>
           <Box className="flex-1">
             <Text className="text-text-primary text-lg font-semibold">{enhancedClient.name}</Text>
@@ -246,13 +246,6 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
             </Box>
           )}
 
-          {/* Agreements tab */}
-          {activeTab === "agreements" && (
-            <Box className="mt-4">
-              <ClientAgreements clientId={clientId} />
-            </Box>
-          )}
-
           {/* Checklists tab */}
           {activeTab === "checklists" && (
             <Box className="mt-4">
@@ -290,6 +283,7 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
               <ClientChecklists
                 userId={clientId}
                 activeTab={checklistTab}
+                hideIntegrationComponents={isAgent}
                 onTabChange={setChecklistTab}
               />
             </Box>

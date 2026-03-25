@@ -1,9 +1,11 @@
 import React from "react";
 
 import {
+  LotSizeAndHomeAgeSliders,
+  type LotSizeHomeAgeSearchOverridesPatch,
+} from "packages/features/profile";
+import {
   ARCHITECTURAL_STYLE_OPTIONS,
-  HOME_AGE_OPTIONS,
-  LOT_SIZE_OPTIONS,
   PROPERTY_USE_OPTIONS,
   RENOVATION_OPTIONS,
   WALKABILITY_OPTIONS,
@@ -27,12 +29,14 @@ export type OtherFilterContentProps = {
   updateFormData: (field: string | number | symbol, value: unknown) => void;
   /** When true, omit the housing type field (e.g. when shown in a separate "Home Type" filter) */
   hideHousingType?: boolean;
+  onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
 };
 
 export default function OtherFilterContent({
   formData,
   updateFormData,
   hideHousingType = false,
+  onSearchFilterOverridesPatch,
 }: OtherFilterContentProps): React.ReactElement {
   return (
     <Box className="space-y-4">
@@ -50,26 +54,11 @@ export default function OtherFilterContent({
             />
           </Box>
         )}
-        <Box>
-          <Label>{FIELD_LABELS.PREFERRED_LOT_SIZE}</Label>
-          <Dropdown
-            value={formData.preferred_lot_size ?? ""}
-            onChange={(v) => updateFormData("preferred_lot_size", v)}
-            options={LOT_SIZE_OPTIONS}
-            placeholder="Select..."
-            size="sm"
-          />
-        </Box>
-        <Box>
-          <Label>{FIELD_LABELS.PREFERRED_HOME_AGE}</Label>
-          <Dropdown
-            value={formData.preferred_home_age ?? ""}
-            onChange={(v) => updateFormData("preferred_home_age", v)}
-            options={HOME_AGE_OPTIONS}
-            placeholder="Select..."
-            size="sm"
-          />
-        </Box>
+        <LotSizeAndHomeAgeSliders
+          formData={formData}
+          updateFormData={updateFormData}
+          onSearchFilterOverridesPatch={onSearchFilterOverridesPatch}
+        />
         <Box>
           <Label>{FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE}</Label>
           <Dropdown

@@ -16,6 +16,7 @@ Canonical docs live here. One place for project documentation; no scattered long
 | Client docs index | [client/README.md](./client/README.md) |
 | Server docs index | [server/README.md](./server/README.md) |
 | To implement soon: Notifications | [to-implement-soon/notifications/](./to-implement-soon/notifications/) |
+| To implement soon: Broker team dashboard | [to-implement-soon/broker-workspace/01-broker-team-dashboard.md](./to-implement-soon/broker-workspace/01-broker-team-dashboard.md) |
 | Reels for Homes | [reels/](./reels/) |
 
 ## In-repo references

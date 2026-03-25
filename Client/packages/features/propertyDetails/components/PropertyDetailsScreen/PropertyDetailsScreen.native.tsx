@@ -17,10 +17,7 @@ export type PropertyDetailsScreenParams = {
   propertyId?: string;
 };
 
-function buildMinimalProperty(
-  address: string,
-  propertyId?: string,
-): PropertyDetailsStreamProperty {
+function buildMinimalProperty(address: string, propertyId?: string): PropertyDetailsStreamProperty {
   return {
     id: propertyId ?? "",
     address,
@@ -42,12 +39,8 @@ export function PropertyDetailsScreenNative() {
   const address = params?.address ?? "";
   const propertyId = params?.propertyId;
 
-  const {
-    selectedProperty,
-    isLoading,
-    fetchPropertyDetails,
-    clearSelectedProperty,
-  } = usePropertyDetails();
+  const { selectedProperty, isLoading, fetchPropertyDetails, clearSelectedProperty } =
+    usePropertyDetails();
 
   useEffect(() => {
     if (address && address.trim().length > 0) {
@@ -67,8 +60,7 @@ export function PropertyDetailsScreenNative() {
 
   const handleGenerateReport = useCallback(() => {
     const generateReportState = {
-      address:
-        typeof property?.address === "string" ? property.address : address,
+      address: typeof property?.address === "string" ? property.address : address,
       reportType: "detailed",
       selectedClientId: "",
     };
@@ -80,8 +72,7 @@ export function PropertyDetailsScreenNative() {
     return null;
   }
 
-  const property =
-    selectedProperty ?? buildMinimalProperty(address, propertyId);
+  const property = selectedProperty ?? buildMinimalProperty(address, propertyId);
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>

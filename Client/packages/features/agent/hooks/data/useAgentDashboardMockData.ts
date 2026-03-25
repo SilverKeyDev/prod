@@ -5,7 +5,6 @@
 import { useCallback } from "react";
 
 import type { AgentClient } from "packages/config/http/api";
-
 import type {
   AgentNote,
   ClientDealInfo,
@@ -15,7 +14,8 @@ import type {
   DealStage,
   DecisionLogEntry,
   UrgentAlert,
-} from "@/features/agent/types/agent";
+} from "packages/schemas/agent";
+
 import {
   enhanceClientWithDealInfo as enhanceClientWithDealInfoImpl,
   generateMockAlerts as generateMockAlertsImpl,

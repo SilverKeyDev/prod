@@ -191,10 +191,6 @@ def generate_action_plan(user_preferences, client_name):
                 context_parts.append(f"Bedrooms needed: {user_preferences['preferred_bedrooms']}")
             if user_preferences.get("preferred_bathrooms"):
                 context_parts.append(f"Bathrooms needed: {user_preferences['preferred_bathrooms']}")
-            if user_preferences.get("preferred_lot_size"):
-                context_parts.append(
-                    f"Lot size preference: {user_preferences['preferred_lot_size']}"
-                )
             if (
                 user_preferences.get("preferred_lot_size_min") is not None
                 or user_preferences.get("preferred_lot_size_max") is not None
@@ -202,9 +198,9 @@ def generate_action_plan(user_preferences, client_name):
                 lo = user_preferences.get("preferred_lot_size_min", "")
                 hi = user_preferences.get("preferred_lot_size_max", "")
                 context_parts.append(f"Lot size range: {lo}–{hi} acres")
-            if user_preferences.get("preferred_home_age"):
+            elif user_preferences.get("preferred_lot_size"):
                 context_parts.append(
-                    f"Home age preference: {user_preferences['preferred_home_age']}"
+                    f"Lot size preference: {user_preferences['preferred_lot_size']}"
                 )
             if (
                 user_preferences.get("preferred_home_age_min") is not None
@@ -213,6 +209,10 @@ def generate_action_plan(user_preferences, client_name):
                 lo = user_preferences.get("preferred_home_age_min", "")
                 hi = user_preferences.get("preferred_home_age_max", "")
                 context_parts.append(f"Home age range: {lo}–{hi} years")
+            elif user_preferences.get("preferred_home_age"):
+                context_parts.append(
+                    f"Home age preference: {user_preferences['preferred_home_age']}"
+                )
             if (
                 user_preferences.get("must_have")
                 and isinstance(user_preferences["must_have"], list)

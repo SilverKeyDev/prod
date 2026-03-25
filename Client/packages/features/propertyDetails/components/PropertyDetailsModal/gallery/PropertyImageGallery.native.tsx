@@ -5,14 +5,7 @@ import { Dimensions, FlatList, Modal, StyleSheet } from "react-native";
 import { useLocalization } from "packages/contexts";
 import { color, spacing } from "packages/design-tokens";
 import type { PropertyImageGalleryProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import {
-  Box,
-  Icon,
-  Image,
-  Pressable,
-  ScrollView,
-  Text,
-} from "packages/ui/components/primitives";
+import { Box, Icon, Image, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
 import { getPropertyImages } from "packages/utils/propertyDetails";
 
 const MAIN_IMAGE_HEIGHT = 280;
@@ -42,16 +35,14 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
   }, [currentImageIndex, onImageChange, propertyImages.length]);
 
   const prevImage = useCallback(() => {
-    onImageChange(
-      (currentImageIndex - 1 + propertyImages.length) % propertyImages.length,
-    );
+    onImageChange((currentImageIndex - 1 + propertyImages.length) % propertyImages.length);
   }, [currentImageIndex, onImageChange, propertyImages.length]);
 
   const goToImage = useCallback(
     (index: number) => {
       onImageChange(index);
     },
-    [onImageChange],
+    [onImageChange]
   );
 
   if (propertyImages.length === 0) return null;
@@ -62,11 +53,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
     <Box className="bg-primary-muted">
       {/* Main image */}
       <Box className="relative" style={styles.mainImageWrap}>
-        <Image
-          source={{ uri: mainImageUri }}
-          style={styles.mainImage}
-          resizeMode="cover"
-        />
+        <Image source={{ uri: mainImageUri }} style={styles.mainImage} resizeMode="cover" />
         {propertyImages.length > 1 && (
           <>
             <Pressable
@@ -83,11 +70,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
               style={styles.navButton}
               label={t("common.next", { defaultValue: "Next image" })}
             >
-              <Icon
-                name="chevron-right"
-                size={24}
-                color={color("neutral.50")}
-              />
+              <Icon name="chevron-right" size={24} color={color("neutral.50")} />
             </Pressable>
           </>
         )}
@@ -115,28 +98,15 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
             <Pressable
               key={index}
               onPress={() => goToImage(index)}
-              style={[
-                styles.thumb,
-                index === currentImageIndex && styles.thumbActive,
-              ]}
+              style={[styles.thumb, index === currentImageIndex && styles.thumbActive]}
             >
-              <Image
-                source={{ uri }}
-                style={styles.thumbImage}
-                resizeMode="cover"
-              />
+              <Image source={{ uri }} style={styles.thumbImage} resizeMode="cover" />
             </Pressable>
           ))}
           {propertyImages.length > 8 && (
-            <Pressable
-              onPress={() => setShowFullGallery(true)}
-              style={styles.seeAllThumb}
-            >
+            <Pressable onPress={() => setShowFullGallery(true)} style={styles.seeAllThumb}>
               <Icon name="grid-3x3" size={20} color={color("neutral.700")} />
-              <Text
-                className="mt-1 text-xs font-medium text-gray-700"
-                numberOfLines={1}
-              >
+              <Text className="mt-1 text-xs font-medium text-gray-700" numberOfLines={1}>
                 {t("property_details_gallery.see_all_photos", {
                   count: propertyImages.length,
                   defaultValue: `See all ${propertyImages.length} photos`,
@@ -159,10 +129,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
             data={propertyImages}
             horizontal
             pagingEnabled
-            initialScrollIndex={Math.min(
-              currentImageIndex,
-              Math.max(0, propertyImages.length - 1),
-            )}
+            initialScrollIndex={Math.min(currentImageIndex, Math.max(0, propertyImages.length - 1))}
             getItemLayout={(_, index) => ({
               length: Dimensions.get("window").width,
               offset: Dimensions.get("window").width * index,
@@ -170,7 +137,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
             })}
             onMomentumScrollEnd={(e) => {
               const idx = Math.round(
-                e.nativeEvent.contentOffset.x / Dimensions.get("window").width,
+                e.nativeEvent.contentOffset.x / Dimensions.get("window").width
               );
               if (idx >= 0 && idx < propertyImages.length) {
                 onImageChange(idx);
@@ -178,11 +145,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
             }}
             renderItem={({ item }) => (
               <Box style={styles.fullScreenItem}>
-                <Image
-                  source={{ uri: item }}
-                  style={styles.fullScreenImage}
-                  resizeMode="contain"
-                />
+                <Image source={{ uri: item }} style={styles.fullScreenImage} resizeMode="contain" />
               </Box>
             )}
           />

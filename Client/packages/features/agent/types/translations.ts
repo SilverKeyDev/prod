@@ -34,8 +34,6 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.sending": "Sending...",
   "agent.delivered": "Delivered",
   "agent.failed_to_send": "Failed to send",
-  "agent.share_agreement": "Share agreement",
-  "agent.share_agreement_description": "Send an agreement to your client",
   "agent.share_document": "Share document",
   "agent.share_document_description": "Send a document to your client",
   "agent.share_home": "Share home",

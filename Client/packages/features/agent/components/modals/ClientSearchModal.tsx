@@ -5,6 +5,7 @@ import { Icon } from "@ui/icons";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAuthStore, useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
+import { ProfileAvatar } from "packages/ui/components/avatar";
 import { Textarea } from "packages/ui/components/form/FormField";
 import { Box } from "packages/ui/components/primitives";
 
@@ -119,8 +120,12 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                   {selectedClientId === client.id ? (
                     <Box className="space-y-3">
                       <Box className="flex items-start gap-3">
-                        <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                          <Icon name="user" className="text-text-primary h-5 w-5" />
+                        <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
+                          <ProfileAvatar
+                            imageUrl={client.profile_picture}
+                            label={client.name}
+                            imageClassName="h-full w-full object-cover"
+                          />
                         </Box>
                         <Box className="flex-1">
                           <Title as="h3" size="md" className="text-text-primary font-semibold">
@@ -169,8 +174,12 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                       onClick={() => setSelectedClientId(client.id)}
                       className="flex h-auto min-h-0 w-full items-start justify-start gap-3 py-0 text-left"
                     >
-                      <Box className="bg-accent-muted flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                        <Icon name="user" className="text-text-primary h-5 w-5" />
+                      <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
+                        <ProfileAvatar
+                          imageUrl={client.profile_picture}
+                          label={client.name}
+                          imageClassName="h-full w-full object-cover"
+                        />
                       </Box>
                       <Box className="flex-1">
                         <Title as="h3" size="md" className="text-text-primary font-semibold">

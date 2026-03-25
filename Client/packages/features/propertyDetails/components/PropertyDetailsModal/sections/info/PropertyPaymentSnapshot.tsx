@@ -6,10 +6,7 @@ import { useUserPreferences } from "packages/hooks/data/useUserData";
 import { Box, Icon, Pressable } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
-import {
-  estimateMonthlyPayment,
-  mapCreditScoreToNumber,
-} from "packages/utils/affordability";
+import { estimateMonthlyPayment, mapCreditScoreToNumber } from "packages/utils/affordability";
 
 /** Subset of saved user prefs used for payment estimate (avoid profile feature type imports). */
 type PaymentEstimatePreferences = {
@@ -18,10 +15,7 @@ type PaymentEstimatePreferences = {
   credit_score_range?: string;
 };
 
-function getListingZip(
-  property: Record<string, unknown>,
-  fallbackZip: string | undefined,
-): string {
+function getListingZip(property: Record<string, unknown>, fallbackZip: string | undefined): string {
   const z =
     (typeof property.zipCode === "string" && property.zipCode) ||
     (typeof property.zipcode === "string" && property.zipcode) ||
@@ -45,11 +39,10 @@ function getListingPrice(property: Record<string, unknown>): number | null {
 
 function computeMonthlyPayment(
   property: Record<string, unknown>,
-  preferences: PaymentEstimatePreferences | null,
+  preferences: PaymentEstimatePreferences | null
 ): number | null {
   const homePrice = getListingPrice(property);
-  if (!homePrice || !preferences?.down_payment || !preferences?.ideal_zip_code)
-    return null;
+  if (!homePrice || !preferences?.down_payment || !preferences?.ideal_zip_code) return null;
   const zipCode = getListingZip(property, preferences.ideal_zip_code);
   if (!zipCode || zipCode.length < 2) return null;
   const creditScore = mapCreditScoreToNumber(preferences.credit_score_range);
@@ -61,9 +54,7 @@ function computeMonthlyPayment(
   });
 }
 
-export const PropertyPaymentSnapshot: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyPaymentSnapshot: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const { userPreferences } = useUserPreferences();
   const [expanded, setExpanded] = useState(false);
@@ -72,10 +63,7 @@ export const PropertyPaymentSnapshot: React.FC<PropertyComponentProps> = ({
   const price = getListingPrice(record);
   const prefs = (userPreferences ?? null) as PaymentEstimatePreferences | null;
 
-  const monthlyPayment = useMemo(
-    () => computeMonthlyPayment(record, prefs),
-    [record, prefs],
-  );
+  const monthlyPayment = useMemo(() => computeMonthlyPayment(record, prefs), [record, prefs]);
 
   if (price === null) return null;
 
@@ -98,11 +86,7 @@ export const PropertyPaymentSnapshot: React.FC<PropertyComponentProps> = ({
             accessibilityState={{ expanded }}
             label={title}
           >
-            <Title
-              as="h3"
-              size="sm"
-              className="text-text-primary font-semibold"
-            >
+            <Title as="h3" size="sm" className="text-text-primary font-semibold">
               {title}
             </Title>
             <Icon
@@ -121,11 +105,7 @@ export const PropertyPaymentSnapshot: React.FC<PropertyComponentProps> = ({
         <Box className="mt-3">
           {monthlyPayment !== null ? (
             <>
-              <BodyText
-                as="p"
-                size="lg"
-                className="text-brand-accent font-bold"
-              >
+              <BodyText as="p" size="lg" className="text-brand-accent font-bold">
                 ~${monthlyPayment.toLocaleString()}
                 {paymentSuffix}
               </BodyText>
@@ -138,8 +118,7 @@ export const PropertyPaymentSnapshot: React.FC<PropertyComponentProps> = ({
           ) : (
             <BodyText as="p" size="sm" className="text-text-secondary">
               {t("property_details.add_financials_hint", {
-                defaultValue:
-                  "Add income and preferences in your profile to see an estimate",
+                defaultValue: "Add income and preferences in your profile to see an estimate",
               })}
             </BodyText>
           )}

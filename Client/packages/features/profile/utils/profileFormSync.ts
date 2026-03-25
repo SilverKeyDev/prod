@@ -4,8 +4,12 @@
  * across ProfileFeature, Settings, ProfileScreen, and PreferencesFormContent.
  */
 
+import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type { UserProfileForSync } from "packages/features/profile/types/profileFormSync";
+
 import { parseUserPreferencesArray } from "./preferencesUtils";
-import type { OnboardingData } from "./types";
+
+export type { UserProfileForSync } from "packages/features/profile/types/profileFormSync";
 
 function toNumber(value: unknown): number | undefined {
   if (value === null || value === undefined) return undefined;
@@ -73,9 +77,6 @@ function toRecordString(value: unknown): Record<string, string> | undefined {
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
-/** Optional user profile; when provided, name is synced from profile (auth source of truth). */
-export type UserProfileForSync = { name?: string | null } | null | undefined;
-
 const IS_AGENT_VALUES = new Set(["yes", "am_agent", "true", "1"]);
 
 /**
@@ -102,7 +103,8 @@ export function mergeOnboardingServerAndDraft(
     return { ...server, important_locations: locs };
   }
   const draftLocs = draft.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ?? [];
-  const serverLocs = server.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ?? [];
+  const serverLocs =
+    server.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ?? [];
   const important_locations =
     draftLocs.length > 0 ? draftLocs : serverLocs.length > 0 ? serverLocs : [];
   return {
@@ -123,9 +125,7 @@ function isAgentFormData(formData: OnboardingData): boolean {
  * When formData.is_agent is not yes/am_agent, agent_* fields are omitted.
  * Maps form keys to backend-expected keys (housing_type, preferred_*_min/max, important_locations).
  */
-export function formDataToPreferencesPayload(
-  formData: OnboardingData
-): Record<string, unknown> {
+export function formDataToPreferencesPayload(formData: OnboardingData): Record<string, unknown> {
   const { name, ...rest } = formData;
   const payload = { ...rest, ...(name !== undefined && name !== "" ? { name } : {}) } as Record<
     string,

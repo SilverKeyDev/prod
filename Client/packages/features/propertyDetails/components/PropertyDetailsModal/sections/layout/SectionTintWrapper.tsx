@@ -12,9 +12,7 @@ export const SectionTintWrapper: React.FC<SectionTintWrapperProps> = ({
   className = "",
 }) => {
   return (
-    <Box
-      className={`border-border-card bg-bg-card-subtle rounded-lg border p-6 ${className}`}
-    >
+    <Box className={`border-border-card bg-bg-card-subtle rounded-lg border p-6 ${className}`}>
       {children}
     </Box>
   );

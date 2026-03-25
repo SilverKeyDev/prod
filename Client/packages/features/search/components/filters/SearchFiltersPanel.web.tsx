@@ -64,7 +64,13 @@ export default function SearchFiltersPanel({
         }}
       />
 
-      <OtherFilterDropdown formData={formData} updateFormData={updateFormData} />
+      <OtherFilterDropdown
+        formData={formData}
+        updateFormData={updateFormData}
+        onSearchFilterOverridesPatch={(patch) =>
+          setSearchFilterOverrides((prev) => ({ ...prev, ...patch }))
+        }
+      />
     </Box>
   );
 }

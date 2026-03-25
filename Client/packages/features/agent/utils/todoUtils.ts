@@ -14,9 +14,14 @@ export const TODO_PRIORITY_LABELS: Record<TodoPriority, string> = {
   urgent: "Urgent",
 };
 
+function priorityRank(p: TodoItem["priority"]): number {
+  if (p == null) {
+    return 0;
+  }
+  return TODO_PRIORITY_ORDER[p];
+}
+
 export function sortTodosByPriority(todos: TodoItem[]): TodoItem[] {
   const incomplete = todos.filter((todo) => !todo.completed);
-  return [...incomplete].sort(
-    (a, b) => TODO_PRIORITY_ORDER[b.priority] - TODO_PRIORITY_ORDER[a.priority]
-  );
+  return [...incomplete].sort((a, b) => priorityRank(b.priority) - priorityRank(a.priority));
 }

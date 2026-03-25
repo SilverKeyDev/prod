@@ -1,7 +1,18 @@
 // Shared utility functions for onboarding and personalization
 
+import type { OnboardingData } from "packages/features/profile/types/onboarding";
+import type {
+  ProfileSectionCompletionMap,
+  ProfileSectionCompletionStatus,
+} from "packages/features/profile/types/profileSections";
+
 import { DEFAULT_REPORT_SECTIONS } from "./constants";
-import type { OnboardingData } from "./types";
+
+export type {
+  ProfileSectionCompletionMap,
+  ProfileSectionCompletionStatus,
+  ProfileSectionId,
+} from "packages/features/profile/types/profileSections";
 
 /** True when demographics `is_agent` marks a real estate agent (aligns with server / useIsAgent). */
 export function isAgentFormSelection(is_agent: string | undefined): boolean {
@@ -28,7 +39,7 @@ type Dispatch<A> = (value: A) => void;
 export const updateFormData = <T extends OnboardingData>(
   prevData: T,
   field: keyof T,
-  value: unknown,
+  value: unknown
 ): T => {
   return { ...prevData, [field]: value };
 };
@@ -39,7 +50,7 @@ export const updateFormData = <T extends OnboardingData>(
 export const createDropdownManager = () => {
   const toggleDropdown = (
     fieldName: string,
-    setOpenDropdowns: Dispatch<SetStateAction<{ [key: string]: boolean }>>,
+    setOpenDropdowns: Dispatch<SetStateAction<{ [key: string]: boolean }>>
   ) => {
     setOpenDropdowns((prev) => ({
       ...prev,
@@ -48,7 +59,7 @@ export const createDropdownManager = () => {
   };
 
   const closeAllDropdowns = (
-    setOpenDropdowns: Dispatch<SetStateAction<{ [key: string]: boolean }>>,
+    setOpenDropdowns: Dispatch<SetStateAction<{ [key: string]: boolean }>>
   ) => {
     setOpenDropdowns({});
   };
@@ -82,7 +93,7 @@ export const getOrderedReportSections = (_formData?: OnboardingData) => {
  */
 export const navigateToMissingFieldSection = (
   missingField: string,
-  setActiveSection: (section: string) => void,
+  setActiveSection: (section: string) => void
 ) => {
   const lower = missingField.toLowerCase();
   if (
@@ -109,10 +120,7 @@ export const navigateToMissingFieldSection = (
     missingField.includes("property")
   ) {
     setActiveSection("housing");
-  } else if (
-    missingField.includes("location") ||
-    missingField.includes("walkability")
-  ) {
+  } else if (missingField.includes("location") || missingField.includes("walkability")) {
     setActiveSection("location");
   } else if (lower.includes("real estate agent")) {
     setActiveSection("demographics");
@@ -145,27 +153,8 @@ export const navigateToMissingFieldSection = (
   }
 };
 
-export type ProfileSectionId =
-  | "demographics"
-  | "housing"
-  | "location"
-  | "financial"
-  | "agent_brokerage"
-  | "agent_licensing"
-  | "agent_profile";
-
-export type ProfileSectionCompletionStatus =
-  | "empty"
-  | "needs_attention"
-  | "complete";
-
-export type ProfileSectionCompletionMap = Record<
-  ProfileSectionId,
-  ProfileSectionCompletionStatus
->;
-
 export const getProfileSectionCompletion = (
-  formData: OnboardingData,
+  formData: OnboardingData
 ): ProfileSectionCompletionMap => {
   const name = (formData.name ?? "").toString().trim();
 
@@ -193,31 +182,23 @@ export const getProfileSectionCompletion = (
 
   const hasLocationAny =
     Array.isArray(formData.important_locations) &&
-    formData.important_locations.some(
-      (loc) => (loc?.address ?? "").toString().trim().length > 0,
-    );
+    formData.important_locations.some((loc) => (loc?.address ?? "").toString().trim().length > 0);
 
   const idealZip =
-    typeof formData.ideal_zip_code === "string"
-      ? formData.ideal_zip_code.trim()
-      : "";
+    typeof formData.ideal_zip_code === "string" ? formData.ideal_zip_code.trim() : "";
   const hasFinancialAny =
     formData.gross_income != null ||
     formData.down_payment != null ||
     idealZip.length > 0 ||
     formData.credit_score_range != null;
   const hasFinancialComplete =
-    formData.gross_income != null &&
-    formData.down_payment != null &&
-    idealZip.length > 0;
+    formData.gross_income != null && formData.down_payment != null && idealZip.length > 0;
 
   const isAgent = isAgentFormSelection(formData.is_agent);
 
-  const nonEmptyStr = (v: unknown): boolean =>
-    typeof v === "string" && v.trim().length > 0;
+  const nonEmptyStr = (v: unknown): boolean => typeof v === "string" && v.trim().length > 0;
   const tagArrayAny = (v: unknown): boolean =>
-    Array.isArray(v) &&
-    v.some((x) => typeof x === "string" && x.trim().length > 0);
+    Array.isArray(v) && v.some((x) => typeof x === "string" && x.trim().length > 0);
 
   const hasBrokerageAny =
     isAgent &&
@@ -227,8 +208,7 @@ export const getProfileSectionCompletion = (
       nonEmptyStr(formData.agent_brokerage_email) ||
       nonEmptyStr(formData.agent_brokerage_phone) ||
       nonEmptyStr(formData.agent_physical_mailing_address));
-  const hasBrokerageComplete =
-    isAgent && nonEmptyStr(formData.agent_brokerage_name);
+  const hasBrokerageComplete = isAgent && nonEmptyStr(formData.agent_brokerage_name);
 
   const hasLicensingAny =
     isAgent &&
@@ -236,8 +216,7 @@ export const getProfileSectionCompletion = (
       tagArrayAny(formData.agent_license_numbers) ||
       tagArrayAny(formData.agent_license_types) ||
       tagArrayAny(formData.agent_license_expiration_dates));
-  const hasLicensingComplete =
-    isAgent && tagArrayAny(formData.agent_license_numbers);
+  const hasLicensingComplete = isAgent && tagArrayAny(formData.agent_license_numbers);
 
   const hasProfileAny =
     isAgent &&
@@ -246,10 +225,7 @@ export const getProfileSectionCompletion = (
       tagArrayAny(formData.agent_specialties));
   const hasProfileComplete = hasProfileAny;
 
-  const statusFor = (
-    hasAny: boolean,
-    isComplete: boolean,
-  ): ProfileSectionCompletionStatus => {
+  const statusFor = (hasAny: boolean, isComplete: boolean): ProfileSectionCompletionStatus => {
     if (!hasAny) return "empty";
     if (isComplete) return "complete";
     return "needs_attention";

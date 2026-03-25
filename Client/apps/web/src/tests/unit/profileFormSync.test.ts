@@ -74,7 +74,12 @@ describe("profileFormSync", () => {
     it("maps important_locations max_commute_minutes to commute_tolerance", () => {
       const fixture = {
         [API_GET_KEYS.important_locations]: [
-          { address: "123 Main St", max_commute_minutes: 30, label: "Work", commute_mode: "driving" },
+          {
+            address: "123 Main St",
+            max_commute_minutes: 30,
+            label: "Work",
+            commute_mode: "driving",
+          },
         ],
       };
       const result = userPreferencesToOnboardingData(fixture);

@@ -41,6 +41,8 @@ export default function AgentMessaging({
     activeConversation,
     conversations,
     sendMessage: sendMessageApi,
+    sendSharedHome,
+    sendSharedDocument,
     retryMessage,
     refreshActiveConversationHistory,
     refreshChats,
@@ -64,8 +66,6 @@ export default function AgentMessaging({
     setShowSelectHomeModal,
     showSelectDocumentModal,
     setShowSelectDocumentModal,
-    showSelectAgreementModal,
-    setShowSelectAgreementModal,
     showCalendarEventModal,
     setShowCalendarEventModal,
     acceptingEventRequestId,
@@ -84,11 +84,12 @@ export default function AgentMessaging({
     activeConversation,
     setShowSelectHomeModal,
     setShowSelectDocumentModal,
-    setShowSelectAgreementModal,
     setShowCalendarEventModal,
     setAcceptingEventRequestId,
     refreshActiveConversationHistory,
     refreshChats,
+    sendSharedHome,
+    sendSharedDocument,
   });
 
   const { messagesEndRef } = useMessageScroll(
@@ -190,7 +191,7 @@ export default function AgentMessaging({
             <Box className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <Region
                 label="Message list"
-                className="scrollbar-hide max-md:pb-mobile-nav min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
+                className="scrollbar-hide min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
               >
                 <UnifiedMessagesList
                   mode="agent"
@@ -220,7 +221,6 @@ export default function AgentMessaging({
               selectedClientName={selectedClient?.name}
               onAttachmentHome={() => setShowSelectHomeModal(true)}
               onAttachmentDocument={() => setShowSelectDocumentModal(true)}
-              onAttachmentAgreement={() => setShowSelectAgreementModal(true)}
               onAttachmentCalendar={() => setShowCalendarEventModal(true)}
             />
           </Box>
@@ -234,15 +234,12 @@ export default function AgentMessaging({
         setShowSelectHomeModal={setShowSelectHomeModal}
         showSelectDocumentModal={showSelectDocumentModal}
         setShowSelectDocumentModal={setShowSelectDocumentModal}
-        showSelectAgreementModal={showSelectAgreementModal}
-        setShowSelectAgreementModal={setShowSelectAgreementModal}
         showCalendarEventModal={showCalendarEventModal}
         setShowCalendarEventModal={setShowCalendarEventModal}
-        selectedClientId={selectedClientId}
         onSelectHome={handlers.handleSelectHome}
         onSelectDocument={handlers.handleSelectDocument}
-        onSelectAgreement={handlers.handleSelectAgreement!}
         onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
+        sendCalendarEventMessage={sendMessageApi}
       />
     </Box>
   );

@@ -87,9 +87,7 @@ export default function AgentBrokerageSection({
         />
 
         <Box>
-          <Label className="mb-2 block">
-            {FIELD_LABELS.AGENT_BROKERAGE_ADDRESS}
-          </Label>
+          <Label className="mb-2 block">{FIELD_LABELS.AGENT_BROKERAGE_ADDRESS}</Label>
           {isEditMode ? (
             <Input
               type="text"
@@ -158,9 +156,7 @@ export default function AgentBrokerageSection({
         />
 
         <Box>
-          <Label className="mb-2 block">
-            {FIELD_LABELS.AGENT_PHYSICAL_MAILING_ADDRESS}
-          </Label>
+          <Label className="mb-2 block">{FIELD_LABELS.AGENT_PHYSICAL_MAILING_ADDRESS}</Label>
           {isEditMode ? (
             <Input
               type="text"

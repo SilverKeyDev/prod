@@ -348,7 +348,7 @@ const ImportantLocationsInput: React.FC<ImportantLocationsInputProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => void handleSelect(s)}
-                        className={`w-full !justify-start cursor-pointer px-3 py-2 text-sm [&>div]:w-full [&>div]:!justify-start [&>div>div]:!justify-start [&>div>div]:!text-left ${
+                        className={`w-full cursor-pointer !justify-start px-3 py-2 text-sm [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start ${
                           highlightedIndex === idx ? "bg-primary-muted" : "hover:bg-primary-muted"
                         }`}
                       >

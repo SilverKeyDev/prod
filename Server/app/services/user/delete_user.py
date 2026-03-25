@@ -140,9 +140,9 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
                 synchronize_session=False
             )
 
-        Todo.query.filter(
-            or_(Todo.agent_id == uid, Todo.client_id == uid)
-        ).delete(synchronize_session=False)
+        Todo.query.filter(or_(Todo.agent_id == uid, Todo.client_id == uid)).delete(
+            synchronize_session=False
+        )
 
         CalendarShare.query.filter(
             or_(

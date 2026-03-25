@@ -31,7 +31,7 @@ function formatPropertyAddress(property: unknown): string {
         city: string;
         state: string;
         zipcode: string;
-      },
+      }
     );
   }
   try {
@@ -41,12 +41,8 @@ function formatPropertyAddress(property: unknown): string {
   }
 }
 
-export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
-  const fields = getPropertyBasicFields(
-    property as unknown as Record<string, unknown>,
-  );
+export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }) => {
+  const fields = getPropertyBasicFields(property as unknown as Record<string, unknown>);
   const agent = getAgentFromProperty(property);
   const addressDisplay = formatPropertyAddress(property);
 
@@ -98,9 +94,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
               propertyLotSize={fields.lotSize ?? undefined}
               propertyHomeType={fields.homeType ?? undefined}
               propertyPropertyType={fields.propertyType ?? undefined}
-              propertyPricePerSquareFoot={
-                fields.pricePerSquareFoot ?? undefined
-              }
+              propertyPricePerSquareFoot={fields.pricePerSquareFoot ?? undefined}
               propertyGarageSpaces={fields.garageSpaces ?? undefined}
               propertyParking={fields.parking ?? undefined}
               propertyZestimate={fields.zestimate ?? undefined}

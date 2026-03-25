@@ -35,6 +35,7 @@ class LoggerConfig:
         self.api: bool = config_dict.get("api", True)
         self.errors: bool = config_dict.get("errors", True)
         self.security: bool = config_dict.get("security", True)
+        self.polygonSearch: bool = config_dict.get("polygonSearch", True)
         self.logLevel: LogLevel = config_dict.get("logLevel", "DEBUG")
 
     def to_dict(self) -> dict[str, Any]:
@@ -48,6 +49,7 @@ class LoggerConfig:
             "api": self.api,
             "errors": self.errors,
             "security": self.security,
+            "polygonSearch": self.polygonSearch,
             "logLevel": self.logLevel,
         }
 
@@ -102,6 +104,8 @@ class Logger:
                 logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
             )
             self._py_logger.addHandler(handler)
+        # Root also has a StreamHandler from configure_app_logging; avoid duplicate lines.
+        self._py_logger.propagate = False
 
     def _load_config(self) -> LoggerConfig:
         """
@@ -119,6 +123,7 @@ class Logger:
             "api": True,
             "errors": True,
             "security": True,
+            "polygonSearch": True,
             "logLevel": "DEBUG",
         }
 

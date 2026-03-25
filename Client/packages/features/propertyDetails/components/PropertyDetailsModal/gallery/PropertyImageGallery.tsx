@@ -24,9 +24,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
     setFullGalleryIndex((prev) => (prev + 1) % propertyImages.length);
   }, [propertyImages.length]);
   const prevFullGalleryImage = useCallback(() => {
-    setFullGalleryIndex(
-      (prev) => (prev - 1 + propertyImages.length) % propertyImages.length,
-    );
+    setFullGalleryIndex((prev) => (prev - 1 + propertyImages.length) % propertyImages.length);
   }, [propertyImages.length]);
   const handleCloseFullGallery = useCallback(() => {
     setShowFullGallery(false);
@@ -52,18 +50,10 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
     return () => {
       if (win) win.removeEventListener("keydown", handleKeyDown);
     };
-  }, [
-    showFullGallery,
-    handleCloseFullGallery,
-    prevFullGalleryImage,
-    nextFullGalleryImage,
-  ]);
-  const nextImage = () =>
-    onImageChange((currentImageIndex + 1) % propertyImages.length);
+  }, [showFullGallery, handleCloseFullGallery, prevFullGalleryImage, nextFullGalleryImage]);
+  const nextImage = () => onImageChange((currentImageIndex + 1) % propertyImages.length);
   const prevImage = () =>
-    onImageChange(
-      (currentImageIndex - 1 + propertyImages.length) % propertyImages.length,
-    );
+    onImageChange((currentImageIndex - 1 + propertyImages.length) % propertyImages.length);
   const goToImage = (index: number) => onImageChange(index);
   const handleSeeAllClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -107,24 +97,24 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
           </Box>
         </Box>
         {propertyImages.length > 1 && (
-          <Box className="hidden w-1/3 bg-white p-2 md:flex md:flex-col">
-            <Box className="flex-two-cols-gap-1">
+          <Box className="hidden h-96 min-h-0 w-1/3 flex-col bg-white p-2 md:flex">
+            <Box className="grid h-full min-h-0 grid-cols-2 grid-rows-2 gap-1">
               {propertyImages.slice(0, 4).map((image, index) => (
                 <Button
                   key={index}
                   type="button"
                   variant="ghost"
                   onClick={() => goToImage(index)}
-                  className={
+                  className={`relative min-h-0 w-full overflow-hidden rounded-md p-0 ${
                     index === currentImageIndex
-                      ? "relative overflow-hidden rounded border-2 border-stone-300 active:border-stone-200"
-                      : "relative overflow-hidden rounded border-2 border-stone-100 hover:border-stone-200 active:border-stone-300 active:border-stone-200 active:opacity-90"
-                  }
+                      ? "border-2 border-stone-300 active:border-stone-200"
+                      : "border-2 border-stone-100 hover:border-stone-200 active:border-stone-200 active:border-stone-300 active:opacity-90"
+                  }`}
                 >
                   <StyledImage
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
-                    className="h-full w-full object-cover"
+                    className="h-full min-h-0 w-full object-cover"
                   />
                   {index === 3 && propertyImages.length > 4 && (
                     <Box

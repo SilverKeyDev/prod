@@ -22,7 +22,6 @@ export type UnifiedMessageInputProps = {
   onAttachmentHome?: () => void;
   onAttachmentCalendar?: () => void;
   onAttachmentDocument?: () => void;
-  onAttachmentAgreement?: () => void;
 };
 
 export default function UnifiedMessageInputWeb({
@@ -37,7 +36,6 @@ export default function UnifiedMessageInputWeb({
   onAttachmentHome,
   onAttachmentCalendar,
   onAttachmentDocument,
-  onAttachmentAgreement,
 }: UnifiedMessageInputProps) {
   const config = getMessagingConfig(mode);
   const finalPlaceholder =
@@ -65,7 +63,7 @@ export default function UnifiedMessageInputWeb({
   };
 
   const hasAttachments = Boolean(
-    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument || onAttachmentAgreement
+    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument
   );
 
   return (
@@ -77,7 +75,6 @@ export default function UnifiedMessageInputWeb({
             onSelectHome={onAttachmentHome || (() => {})}
             onSelectCalendar={onAttachmentCalendar || (() => {})}
             onSelectDocument={onAttachmentDocument}
-            onSelectAgreement={onAttachmentAgreement}
             disabled={isTyping || disabled}
           />
         )}
@@ -101,7 +98,7 @@ export default function UnifiedMessageInputWeb({
           onClick={onSendMessage}
           disabled={!message.trim() || isTyping || disabled}
           variant={config.input.buttonVariant}
-          className="disabled:bg-transparent disabled:text-text-disabled h-11 flex-shrink-0 px-4 transition-all duration-150 ease-out hover:shadow-md active:scale-95 disabled:scale-95"
+          className="disabled:text-text-disabled h-11 flex-shrink-0 px-4 transition-all duration-150 ease-out hover:shadow-md active:scale-95 disabled:scale-95 disabled:bg-transparent"
         >
           <Icon name="send" className="h-4 w-4" />
         </Button>

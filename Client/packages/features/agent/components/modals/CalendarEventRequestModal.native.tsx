@@ -4,6 +4,7 @@ import { Modal, Pressable, StyleSheet, TextInput, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { useIsAgent } from "packages/features/homeauth";
+import type { MessagingSendMessageOptions } from "packages/features/messaging/hooks/data/messaging/types"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Modal send callback type; lives in messaging package. */
 import { buildEventRequestMessage } from "packages/features/messaging/utils/eventRequestPayload"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Shared event request builder; utils live in messaging. */
 import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { Text } from "packages/ui/components/primitives";
@@ -15,16 +16,21 @@ type CalendarEventRequestModalNativeProps = {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  sendCalendarEventMessage?: (
+    message: string,
+    options: MessagingSendMessageOptions & { conversationId: string }
+  ) => Promise<void>;
 };
 
 export default function CalendarEventRequestModalNative({
   isOpen,
   onClose,
   onSuccess,
+  sendCalendarEventMessage,
 }: CalendarEventRequestModalNativeProps) {
   const isAgent = useIsAgent();
   const { clients } = useAgentClients();
-  const { conversations, sendMessage } = useAgentChats();
+  const { conversations, sendMessage: sendMessageDirect } = useAgentChats();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
@@ -49,6 +55,7 @@ export default function CalendarEventRequestModalNative({
       if (!clientConversation) return;
       conversationId = clientConversation.id;
     }
+    if (!conversationId) return;
     const dateTime = dateParseISO(`${eventDate}T${eventTime}`);
     const endTime = dateTime.add(30, "minute");
     const payload = {
@@ -61,7 +68,14 @@ export default function CalendarEventRequestModalNative({
     setIsSending(true);
     try {
       const clientIdToPass = isAgent && conversationId === "new" ? selectedClientId : undefined;
-      await sendMessage(conversationId, message, clientIdToPass ?? undefined);
+      if (sendCalendarEventMessage) {
+        await sendCalendarEventMessage(message, {
+          conversationId,
+          clientIdForAgent: clientIdToPass ?? undefined,
+        });
+      } else {
+        await sendMessageDirect(conversationId, message, clientIdToPass ?? undefined);
+      }
       setEventTitle("");
       setEventDescription("");
       setEventDate("");

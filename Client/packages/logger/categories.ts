@@ -13,6 +13,7 @@ export type LogCategory =
   | "ERRORS"
   | "SECURITY"
   | "SEARCH"
+  | "POLYGON_SEARCH"
   | "MAP_RENDERING"
   | "NEGOTIATION"
   | "CHECKLISTS"
@@ -34,6 +35,7 @@ export const LOG_CATEGORIES = {
   ERRORS: "ERRORS",
   SECURITY: "SECURITY",
   SEARCH: "SEARCH",
+  POLYGON_SEARCH: "POLYGON_SEARCH",
   MAP_RENDERING: "MAP_RENDERING",
   NEGOTIATION: "NEGOTIATION",
   CHECKLISTS: "CHECKLISTS",
@@ -78,6 +80,7 @@ export function categoryToConfigKey(category: LogCategory): string {
     ERRORS: "errors",
     SECURITY: "security",
     SEARCH: "search",
+    POLYGON_SEARCH: "polygonSearch",
     MAP_RENDERING: "mapRendering",
     NEGOTIATION: "negotiation",
     CHECKLISTS: "checklists",

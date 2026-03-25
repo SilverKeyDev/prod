@@ -11,22 +11,9 @@ export function setBaseUrlGetter(getter: () => string): void {
 const FLUSH_INTERVAL_MS = 10_000;
 const QUEUE_BATCH_SIZE = 5;
 
-export type FeedAnalyticsEvent = {
-  type:
-    | "dwell"
-    | "completion"
-    | "play"
-    | "pause"
-    | "share"
-    | "reels_to_map_click"
-    | "tour_click"
-    | "save_click";
-  listingId: string;
-  impressionId?: string;
-  durationMs?: number;
-  watchedPercent?: number;
-  timestamp: number;
-};
+import type { FeedAnalyticsEvent } from "packages/features/feed/types/feedAnalytics";
+
+export type { FeedAnalyticsEvent } from "packages/features/feed/types/feedAnalytics";
 
 const queue: FeedAnalyticsEvent[] = [];
 let flushTimer: ReturnType<typeof setInterval> | null = null;

@@ -3,6 +3,7 @@ export { useCalendarErrorToasts } from "./useCalendarErrorToasts";
 export type { UseCalendarOAuthCallbackParams } from "./useCalendarOAuthCallback";
 export { useCalendarOAuthCallback } from "./useCalendarOAuthCallback";
 export { useCalendarPreferences } from "./useCalendarPreferences";
+export { useClientCalendarEventsQuery } from "./useClientCalendarEventsQuery";
 export type { UseClientEventsReturn } from "./useClientEvents";
 export { useClientEvents } from "./useClientEvents";
 export type { UseGoogleCalendarPermissionsReturn } from "./useGoogleCalendarPermissions";

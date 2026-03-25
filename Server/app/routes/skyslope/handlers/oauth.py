@@ -1,4 +1,9 @@
-"""SkySlope OAuth connect and callback handlers."""
+"""SkySlope OAuth connect and callback handlers.
+
+Token exchange uses standard OAuth2 form posts; default endpoints come from
+app.config._urls (Okta issuer + /v1/token, or legacy accounts.*) — not HMAC.
+HMAC applies only to api.skyslope.com /auth/login; see app.services.skyslope.hmac_auth.
+"""
 
 import secrets
 from datetime import datetime, timedelta, timezone

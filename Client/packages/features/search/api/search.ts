@@ -2,6 +2,20 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { apiGet, apiPost, buildApiUrl } from "packages/services/http/compatibility";
 import type { SearchByPolygonRequest, SearchByPolygonResponse } from "packages/types/api";
 
+/** Log-safe summary of polygon search request (no addresses / PII). */
+function summarizePolygonSearchRequestForLog(req: SearchByPolygonRequest) {
+  const up = req.user_preferences;
+  const upKeys =
+    up && typeof up === "object" && !Array.isArray(up) ? Object.keys(up as object) : [];
+  return {
+    perBucketPages: req.perBucketPages,
+    forceSearch: req.forceSearch,
+    onlyCached: req.onlyCached,
+    userPreferenceKeyCount: upKeys.length,
+    userPreferenceKeysSample: upKeys.slice(0, 12),
+  };
+}
+
 // Types for search API
 export type PropertyCompsRequest = {
   address: string;
@@ -110,11 +124,52 @@ export const searchApi = {
     options?: { signal?: AbortSignal }
   ): Promise<PolygonSearchResponse> => {
     const url = "/api/v1/search/properties-by-polygon";
+    log.info(LOG_CATEGORIES.POLYGON_SEARCH, "searchByPolygon API request", {
+      url,
+      requestSummary: summarizePolygonSearchRequestForLog(data),
+    });
     return apiPost<PolygonSearchResponse>(url, data, {
       timeout: 300000, // 5 minutes for polygon search
       ...options,
     })
       .then((resp) => {
+        const rawCount = Array.isArray(resp.properties) ? resp.properties.length : 0;
+        const meta = resp.meta;
+        log.info(LOG_CATEGORIES.POLYGON_SEARCH, "searchByPolygon API response", {
+          success: resp.success,
+          error: resp.error,
+          propertiesCount: rawCount,
+          totalCount: resp.total_count,
+          metaCached: meta?.cached,
+          metaDeduped: meta?.deduped,
+          metaRequestsMade: meta?.requestsMade,
+          metaLimit: meta?.limit,
+          requestSummary: summarizePolygonSearchRequestForLog(data),
+        });
+        // #region agent log
+        // eslint-disable-next-line no-restricted-globals -- Cursor debug NDJSON ingest (session 8adfea)
+        fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "8adfea",
+          },
+          body: JSON.stringify({
+            sessionId: "8adfea",
+            location: "search.ts:searchByPolygon",
+            message: "polygon search API response",
+            data: {
+              success: resp.success,
+              propertiesCount: rawCount,
+              totalCount: resp.total_count,
+              metaCached: meta?.cached,
+              requestSummary: summarizePolygonSearchRequestForLog(data),
+            },
+            timestamp: Date.now(),
+            hypothesisId: "B",
+          }),
+        }).catch(() => {});
+        // #endregion
         return resp;
       })
       .catch((error) => {

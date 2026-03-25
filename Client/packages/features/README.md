@@ -18,7 +18,7 @@ packages/features/
 ├── search/         # Filters, list, map
 ├── agent/          # Agent dashboard, messaging, settings
 ├── profile/        # User profile, preferences, settings
-├── documents/      # Document and agreement management (provider-agnostic)
+├── documents/      # Document management (uploads, reports, SkySlope links)
 ├── negotiate/      # Negotiation strategies and tools
 └── ...
 ```

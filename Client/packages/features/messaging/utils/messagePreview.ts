@@ -3,14 +3,12 @@
  * Handles event requests, shared homes, shared documents, and plain text.
  */
 
+import type { MessagePreviewInput } from "packages/features/messaging/types/messagePreview";
+
+export type { MessagePreviewInput } from "packages/features/messaging/types/messagePreview";
+
 const EVENT_REQUEST_PREFIX = "__EVENT_REQUEST__";
 const PREVIEW_MAX_LENGTH = 60;
-
-export type MessagePreviewInput = {
-  content: string;
-  shared_home_id?: string | null;
-  shared_document_id?: string | null;
-};
 
 /**
  * Returns a short preview string for a message so sidebars don't show raw payloads.

@@ -6,18 +6,20 @@ import { useMediaQuery } from "packages/hooks/ui";
 import { useUIStore } from "packages/store";
 import type { UIState } from "packages/store/ui.slice";
 import Card from "packages/ui/components/cards/Card";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/primitives";
 import { screenUp } from "packages/ui/types/screens";
-import { dateNow, dateParseISO } from "packages/utils/date";
+import { dateNow } from "packages/utils/date";
 
 import {
   useCalendarErrorToasts,
+  useClientCalendarEventsQuery,
   useGoogleCalendarPermissions,
   useGoogleEvents,
 } from "@/features/calendar/hooks/data";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import {
+  filterCalendarsToAgentOwned,
   findSilverKeyCalendar,
   getCalendarsKey,
   initializeEnabledCalendars,
@@ -30,6 +32,8 @@ import {
 import { filterEventsByCalendars } from "@/features/calendar/utils/eventFiltering";
 import { getEventStartDate } from "@/features/calendar/utils/eventParsing";
 
+import { CalendarMonthBody } from "./CalendarMonthBody";
+import { buildCalendarMonthGridStyles } from "./calendarMonthGridStyles";
 import { CalendarConnectionPrompt } from "./view/CalendarConnectionPrompt";
 import { CalendarMonthViewHeader } from "./view/CalendarMonthViewHeader";
 import { EventList } from "./view/EventList";
@@ -37,6 +41,10 @@ import { EventList } from "./view/EventList";
 type CalendarProps = {
   /** Optional section title (e.g. "Calendar") rendered in the header row with month/year and nav */
   sectionTitle?: string;
+  /** Agent client hub: show this client’s Google Calendar events only (via server proxy). */
+  clientUserId?: string;
+  /** Agent dashboard: only calendars the user owns (not shared-in / subscription feeds). */
+  ownedCalendarsOnly?: boolean;
 };
 
 function toDateKey(d: Date) {
@@ -50,7 +58,11 @@ function toDateKey(d: Date) {
   }
 }
 
-export function Calendar({ sectionTitle }: CalendarProps) {
+export function Calendar({
+  sectionTitle,
+  clientUserId,
+  ownedCalendarsOnly = false,
+}: CalendarProps) {
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const {
     isConnected,
@@ -61,7 +73,23 @@ export function Calendar({ sectionTitle }: CalendarProps) {
     connectGoogleCalendar,
   } = useGoogleCalendarStoreIntegration();
 
-  useCalendarErrorToasts({ calendarsError, eventsError, enqueueToast });
+  const isClientView = Boolean(clientUserId);
+
+  const scopedCalendars = useMemo(() => {
+    if (isClientView) {
+      return calendars ?? [];
+    }
+    if (!ownedCalendarsOnly || !calendars?.length) {
+      return calendars ?? [];
+    }
+    return filterCalendarsToAgentOwned(calendars);
+  }, [calendars, ownedCalendarsOnly, isClientView]);
+
+  useCalendarErrorToasts({
+    calendarsError: isClientView ? null : calendarsError,
+    eventsError: isClientView ? null : eventsError,
+    enqueueToast,
+  });
 
   const { userPreferences } = useUserPreferences();
   const { permissionsLoading, hasRequiredPermissions, isPartiallyEnabled, permissions } =
@@ -81,9 +109,14 @@ export function Calendar({ sectionTitle }: CalendarProps) {
   const isLargeScreen = useMediaQuery(screenUp("md"));
 
   useEffect(() => {
-    if (!calendars || calendars.length === 0) return;
+    if (isClientView) {
+      return;
+    }
+    if (!scopedCalendars || scopedCalendars.length === 0) {
+      return;
+    }
 
-    const calendarsKey = getCalendarsKey(calendars);
+    const calendarsKey = getCalendarsKey(scopedCalendars);
     const calendarsChanged = lastCalendarsRef.current !== calendarsKey;
 
     const disabledCalendars = userPreferences?.disabled_calendars;
@@ -91,12 +124,12 @@ export function Calendar({ sectionTitle }: CalendarProps) {
     const disabledCalendarsJustLoaded = !hadDisabledCalendarsRef.current && hasDisabledCalendars;
     if (hasDisabledCalendars) hadDisabledCalendarsRef.current = true;
 
-    const silverKeyCalendar = findSilverKeyCalendar(calendars);
+    const silverKeyCalendar = findSilverKeyCalendar(scopedCalendars);
     if (silverKeyCalendar) silverKeyCalendarIdRef.current = silverKeyCalendar.id;
 
     if (!initializedFromPreferencesRef.current || calendarsChanged || disabledCalendarsJustLoaded) {
       const enabledSet = initializeEnabledCalendars(
-        calendars,
+        scopedCalendars,
         hasDisabledCalendars ? disabledCalendars : undefined,
         silverKeyCalendarIdRef.current
       );
@@ -104,7 +137,7 @@ export function Calendar({ sectionTitle }: CalendarProps) {
       initializedFromPreferencesRef.current = true;
       lastCalendarsRef.current = calendarsKey;
     }
-  }, [calendars, userPreferences]);
+  }, [scopedCalendars, userPreferences, isClientView]);
 
   const range = useMemo(() => {
     const { timeMin, timeMax } = calculateCalendarDateRange(monthAnchor.toDate());
@@ -117,7 +150,7 @@ export function Calendar({ sectionTitle }: CalendarProps) {
   );
 
   const {
-    events: rawEvents,
+    events: rawSelfEvents,
     refreshEvents: refetchEvents,
     updateEvent,
     deleteEvent,
@@ -125,12 +158,34 @@ export function Calendar({ sectionTitle }: CalendarProps) {
     calendarIds: enabledCalendarIdsArray,
     timeMin: range.timeMin,
     timeMax: range.timeMax,
-    enabled: isConnected && calendars && calendars.length > 0 && enabledCalendarIds.size > 0,
+    enabled:
+      !isClientView && isConnected && scopedCalendars.length > 0 && enabledCalendarIds.size > 0,
   });
 
+  const clientEventsQuery = useClientCalendarEventsQuery(
+    isClientView ? clientUserId! : null,
+    range.timeMin,
+    range.timeMax,
+    "primary"
+  );
+
+  const rawEvents = useMemo((): ExtendedGoogleEvent[] => {
+    if (isClientView) {
+      return (clientEventsQuery.data ?? []).map((e) => ({
+        ...e,
+        calendarId: "primary",
+        isClientEvent: true as const,
+      }));
+    }
+    return rawSelfEvents;
+  }, [isClientView, clientEventsQuery.data, rawSelfEvents]);
+
   const visibleEvents = useMemo(() => {
-    return filterEventsByCalendars(rawEvents, enabledCalendarIds, calendars || []);
-  }, [rawEvents, enabledCalendarIds, calendars]);
+    if (isClientView) {
+      return rawEvents;
+    }
+    return filterEventsByCalendars(rawEvents, enabledCalendarIds, scopedCalendars);
+  }, [isClientView, rawEvents, enabledCalendarIds, scopedCalendars]);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, ExtendedGoogleEvent[]>();
@@ -193,20 +248,47 @@ export function Calendar({ sectionTitle }: CalendarProps) {
   }, [connectGoogleCalendar]);
 
   const shouldShowConnectionPrompt = useMemo(() => {
+    if (isClientView) {
+      return false;
+    }
     if (!isConnected) return true;
     if (isConnected && permissions !== null) {
       if (!hasRequiredPermissions || isPartiallyEnabled) return true;
     }
     return false;
-  }, [isConnected, permissions, hasRequiredPermissions, isPartiallyEnabled]);
+  }, [isClientView, isConnected, permissions, hasRequiredPermissions, isPartiallyEnabled]);
 
-  const permissionsReady = !permissionsLoading && permissions !== undefined;
+  const permissionsReady = isClientView || (!permissionsLoading && permissions !== undefined);
 
   if (!permissionsReady) {
     return (
       <Card border="light" className="w-full" padding="md" hover={false}>
         <Text style={{ textAlign: "center", fontSize: 14, color: color("neutral.500") }}>
           Loading calendar permissions…
+        </Text>
+      </Card>
+    );
+  }
+
+  if (isClientView && clientEventsQuery.isLoading) {
+    return (
+      <Card border="light" className="w-full" padding="md" hover={false}>
+        <Text style={{ textAlign: "center", fontSize: 14, color: color("neutral.500") }}>
+          Loading client calendar…
+        </Text>
+      </Card>
+    );
+  }
+
+  if (isClientView && clientEventsQuery.isError) {
+    const message =
+      clientEventsQuery.error instanceof Error
+        ? clientEventsQuery.error.message
+        : "Could not load this client’s calendar.";
+    return (
+      <Card border="light" className="w-full" padding="md" hover={false}>
+        <Text style={{ textAlign: "center", fontSize: 14, color: color("neutral.500") }}>
+          {message}
         </Text>
       </Card>
     );
@@ -221,109 +303,7 @@ export function Calendar({ sectionTitle }: CalendarProps) {
   }
 
   const cellWidth = `${100 / 7}%` as const;
-
-  /** Max width/height ratio (1.5 = width at most 150% of height); min ratio enforced via maxHeight */
-  const MAX_ASPECT_RATIO = 1.5;
-
-  const styles = {
-    container: {
-      width: "100%" as const,
-      gap: 0,
-      flexDirection: "column" as const,
-    },
-    weekHeader: {
-      display: "flex" as const,
-      flexDirection: "row" as const,
-      width: "100%" as const,
-      flexShrink: 0,
-    },
-    weekHeaderCell: {
-      display: "flex" as const,
-      flex: 1,
-      paddingVertical: 8,
-      paddingHorizontal: 4,
-      alignItems: "center" as const,
-      justifyContent: "center" as const,
-      borderBottomWidth: 1,
-      borderColor: color("neutral.200"),
-      backgroundColor: color("neutral.50"),
-    },
-    weekHeaderText: {
-      textAlign: "center" as const,
-      fontSize: 12,
-      fontWeight: "700" as const,
-      color: color("neutral.500"),
-    },
-    grid: {
-      display: "flex" as const,
-      flexDirection: "row" as const,
-      flexWrap: "wrap" as const,
-    },
-    cell: {
-      width: cellWidth,
-      paddingVertical: 10,
-      paddingHorizontal: 4,
-      position: "relative" as const,
-      borderRightWidth: 1,
-      borderBottomWidth: 1,
-      borderColor: color("neutral.200"),
-      minHeight: 44,
-      maxHeight: 200,
-      aspectRatio: MAX_ASPECT_RATIO,
-      display: "flex" as const,
-      flexDirection: "column" as const,
-      alignItems: "center" as const,
-    },
-    cellMuted: { opacity: 0.45 },
-    cellSelected: { backgroundColor: "rgba(163, 177, 138, 0.18)" },
-    dayNumber: {
-      position: "absolute" as const,
-      top: spacing(1.5),
-      left: spacing(1.5),
-      fontSize: 14,
-      fontWeight: "700" as const,
-      color: color("neutral.800"),
-    },
-    dayNumberSelected: { color: color("brand.accent") },
-    cellContent: {
-      marginTop: 26,
-      width: "100%" as const,
-      minWidth: 0,
-      flex: 1,
-      alignSelf: "stretch" as const,
-      display: "flex" as const,
-      flexDirection: "column" as const,
-      alignItems: "flex-start" as const,
-      justifyContent: "flex-start" as const,
-    },
-    dot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: color("brand.accent"),
-    },
-    eventChip: {
-      width: "90%" as const,
-      maxWidth: "90%" as const,
-      minWidth: 0,
-      marginTop: 4,
-      marginLeft: spacing(2),
-      paddingVertical: 2,
-      paddingLeft: spacing(2),
-      paddingRight: 4,
-      borderRadius: 4,
-      borderLeftWidth: 3,
-      borderLeftColor: color("brand.accent"),
-      backgroundColor: "rgba(163, 177, 138, 0.12)",
-      alignSelf: "flex-start" as const,
-    },
-    eventChipText: {
-      fontSize: 10,
-      fontWeight: "600" as const,
-      color: color("neutral.800"),
-      textAlign: "left" as const,
-    },
-  };
+  const styles = buildCalendarMonthGridStyles(cellWidth, spacing);
 
   return (
     <Card border="none" className="w-full" padding="none" hover={false}>
@@ -335,102 +315,30 @@ export function Calendar({ sectionTitle }: CalendarProps) {
           onNext={handleNext}
           disabledPrev={!canGoPrev}
         >
-          <Box style={styles.weekHeader}>
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-              <Box key={d} style={styles.weekHeaderCell}>
-                <Text style={styles.weekHeaderText}>{d}</Text>
-              </Box>
-            ))}
-          </Box>
-
-          <Box style={styles.grid}>
-            {days.map((d, index) => {
-              const rowIndex = Math.floor(index / 7);
-              const firstDayOfRow = days[rowIndex * 7];
-              const showMonthBorder =
-                rowIndex >= 1 && firstDayOfRow.date.getDate() === 1;
-
-              const isSelected = d.key === selectedDayKey;
-              const dayEvents = eventsByDay.get(d.key) ?? [];
-              const sortedEvents = [...dayEvents].sort((a, b) => {
-                const aStart = a.start?.dateTime;
-                const bStart = b.start?.dateTime;
-                if (!aStart || !bStart) return 0;
-                return dateParseISO(aStart).valueOf() - dateParseISO(bStart).valueOf();
-              });
-              const visibleEventsInCell = isLargeScreen ? sortedEvents.slice(0, 3) : [];
-
-              return (
-                <Pressable
-                  key={d.key}
-                  onPress={() => setSelectedDayKey(d.key)}
-                  style={{
-                    ...styles.cell,
-                    ...(isLargeScreen && { minHeight: 80 }),
-                    ...((!d.isCurrentMonth || d.isPast) && styles.cellMuted),
-                    ...(isSelected && styles.cellSelected),
-                    ...(showMonthBorder && {
-                      borderTopWidth: 2,
-                      borderTopColor: color("neutral.300"),
-                    }),
-                  }}
-                >
-                  <Text
-                    style={{
-                      ...styles.dayNumber,
-                      ...(isSelected && styles.dayNumberSelected),
-                    }}
-                  >
-                    {d.date.getDate()}
-                  </Text>
-                  {isLargeScreen ? (
-                    <Box style={styles.cellContent}>
-                      {visibleEventsInCell.map((ev) => {
-                        const startTime = ev.start?.dateTime
-                          ? dateParseISO(ev.start.dateTime).toDate().toLocaleTimeString("en-US", {
-                              hour: "numeric",
-                              minute: "2-digit",
-                              hour12: true,
-                            })
-                          : "";
-                        const label = [startTime, ev.summary || "Untitled"]
-                          .filter(Boolean)
-                          .join(" · ");
-                        return (
-                          <Box key={ev.id ?? String(ev)} style={styles.eventChip}>
-                            <Text style={styles.eventChipText} numberOfLines={1}>
-                              {label}
-                            </Text>
-                          </Box>
-                        );
-                      })}
-                      {sortedEvents.length > 3 ? (
-                        <Box style={{ marginTop: spacing(2), alignSelf: "flex-start" }}>
-                          <Text style={{ fontSize: 10, color: color("neutral.500") }}>
-                            +{sortedEvents.length - 3} more
-                          </Text>
-                        </Box>
-                      ) : null}
-                    </Box>
-                  ) : d.count > 0 ? (
-                    <Box style={styles.cellContent}>
-                      <Box style={styles.dot} />
-                    </Box>
-                  ) : null}
-                </Pressable>
-              );
-            })}
-          </Box>
+          <CalendarMonthBody
+            styles={styles}
+            days={days}
+            eventsByDay={eventsByDay}
+            selectedDayKey={selectedDayKey}
+            onSelectDay={setSelectedDayKey}
+            isLargeScreen={isLargeScreen}
+          />
         </CalendarMonthViewHeader>
 
         <EventList
           events={selectedEvents}
           emptyMessage="No events for this day"
-          silverKeyCalendarId={silverKeyCalendarIdRef.current}
-          refreshEvents={refetchEvents}
-          updateEvent={updateEvent}
-          deleteEvent={deleteEvent}
-          calendars={calendars ?? []}
+          silverKeyCalendarId={isClientView ? null : silverKeyCalendarIdRef.current}
+          refreshEvents={
+            isClientView
+              ? async () => {
+                  await clientEventsQuery.refetch();
+                }
+              : refetchEvents
+          }
+          updateEvent={isClientView ? undefined : updateEvent}
+          deleteEvent={isClientView ? undefined : deleteEvent}
+          calendars={isClientView ? [] : scopedCalendars}
         />
       </Box>
     </Card>

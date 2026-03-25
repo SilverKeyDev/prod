@@ -1,18 +1,13 @@
+import type {
+  ApplyLoginResultOptions,
+  LoginResult,
+} from "packages/features/homeauth/types/auth/login";
 import { getSessionStorage } from "packages/utils/storage";
 
-export type LoginResult = {
-  success: boolean;
-  needsVerification?: boolean;
-};
-
-export type ApplyLoginResultOptions = {
-  email: string;
-  password: string;
-  /** Called when login succeeded (e.g. web: navigateToPath(safe); native: no-op). */
-  onSuccess?: () => void;
-  /** Called when needsVerification; session is already updated with signupEmail/signupPassword. */
-  onNeedsVerification: () => void;
-};
+export type {
+  ApplyLoginResultOptions,
+  LoginResult,
+} from "packages/features/homeauth/types/auth/login";
 
 /**
  * Shared post-login handling: session persistence for verification flow and optional success callback.

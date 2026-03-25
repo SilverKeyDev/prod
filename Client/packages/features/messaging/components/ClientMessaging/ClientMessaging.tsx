@@ -35,6 +35,8 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     isLoadingHistory,
     activeConversation,
     sendMessage: sendMessageApi,
+    sendSharedHome,
+    sendSharedDocument,
     retryMessage,
     refreshActiveConversationHistory,
     refreshChats,
@@ -82,6 +84,8 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     setAcceptingEventRequestId,
     refreshActiveConversationHistory,
     refreshChats,
+    sendSharedHome,
+    sendSharedDocument,
   });
 
   const { messagesEndRef } = useMessageScroll(
@@ -179,7 +183,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
             <Box className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <Region
                 label="Message list"
-                className="scrollbar-hide max-md:pb-mobile-nav min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
+                className="scrollbar-hide min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
               >
                 <UnifiedMessagesList
                   mode="client"
@@ -225,6 +229,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
         onSelectHome={handlers.handleSelectHome}
         onSelectDocument={handlers.handleSelectDocument}
         onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
+        sendCalendarEventMessage={sendMessageApi}
       />
     </Box>
   );

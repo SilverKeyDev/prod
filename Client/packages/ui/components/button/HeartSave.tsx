@@ -145,10 +145,7 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
   const sizeConfig = getCardBubbleSizeClasses(effectiveSize);
   const iconSizeClass = sizeConfig?.iconClass ?? ICON_SIZE_FALLBACK[effectiveSize];
   const isInlineButton =
-    inline ||
-    !position ||
-    className.includes("border") ||
-    className.includes("rounded-md");
+    inline || !position || className.includes("border") || className.includes("rounded-md");
 
   if (isInlineButton && isToolbarSize(size)) {
     return (

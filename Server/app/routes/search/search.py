@@ -107,7 +107,8 @@ def get_property_comps():
 @search_bp.route("/properties-by-polygon", methods=["POST"])
 def search_properties_by_polygon():
     """
-    Polygon search: cache, preferences, isochrone, search, post-filters, score, persist.
+    Polygon search endpoint. Without forceSearch: read-only response from persisted results (no new search).
+    With forceSearch: run full pipeline (isochrone, search, filters, score, persist).
     Delegates to run_polygon_search; returns JSON and status code.
     """
     start_time = time.time()

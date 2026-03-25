@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 
-import { Icon } from "@ui/icons";
-
 import type { Calendar, ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
 import type { GoogleEvent } from "packages/features/calendar/types/googleEvent";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -12,19 +10,14 @@ import type {
   AutocompleteSuggestion,
   GoogleMapsWindow,
 } from "packages/types/google-maps";
-import Button from "packages/ui/components/button/Button";
-import CancelButton from "packages/ui/components/button/CancelButton";
-import Dropdown from "packages/ui/components/form/Dropdown";
-import { Textarea } from "packages/ui/components/form/FormField";
-import { Box } from "packages/ui/components/primitives";
 import { asError } from "packages/utils";
 import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
 import { getWindow } from "packages/utils/platform";
 
-import BaseModal from "@/components/modals/BaseModal";
-import { BodyText, CloseButton, DateInput, Input, TimeInput } from "@/components/ui";
-import Label from "@/components/ui/text/Label.web";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents";
+import { detectEventTypeFromTitle } from "@/features/calendar/utils/createEventModalDetectEventType";
+
+import { CreateEventModalForm } from "./CreateEventModalForm";
 
 type CreateEventModalProps = {
   isOpen: boolean;
@@ -37,36 +30,6 @@ type CreateEventModalProps = {
   existingEvent?: ExtendedGoogleEvent;
   updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
 };
-
-// Helper function to detect event type from title
-function detectEventType(title: string): string | undefined {
-  const lowerTitle = title.toLowerCase();
-
-  if (
-    lowerTitle.includes("viewing") ||
-    lowerTitle.includes("tour") ||
-    lowerTitle.includes("showing")
-  ) {
-    return "property_viewing";
-  }
-  if (lowerTitle.includes("inspection")) {
-    return "inspection";
-  }
-  if (lowerTitle.includes("closing") || lowerTitle.includes("close")) {
-    return "closing";
-  }
-  if (lowerTitle.includes("meeting")) {
-    return "meeting";
-  }
-  if (lowerTitle.includes("appointment")) {
-    return "appointment";
-  }
-  if (lowerTitle.includes("open house")) {
-    return "open_house";
-  }
-
-  return undefined; // Let backend handle default
-}
 
 export function CreateEventModal({
   isOpen,
@@ -300,7 +263,7 @@ export function CreateEventModal({
         },
         calendarId: selectedCalendarId,
         // Optional: Add event type detection based on title keywords
-        eventType: detectEventType(eventTitle.trim()),
+        eventType: detectEventTypeFromTitle(eventTitle.trim()),
       };
 
       if (mode === "edit" && existingEvent?.id && updateEvent) {
@@ -349,157 +312,35 @@ export function CreateEventModal({
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} size="md">
-      <Box className="space-y-4">
-        <Box className="border-border flex items-center justify-between border-b pb-3">
-          <Label as="h3" htmlFor="event-title" className="text-text-primary text-base font-medium">
-            {mode === "edit" ? "Edit Event" : "Create New Event"}
-          </Label>
-          <CloseButton onClick={onClose} size="overlay" className="ml-2" />
-        </Box>
-        {/* Calendar Selection */}
-        {calendars.length > 1 && (
-          <Dropdown
-            label="Calendar"
-            options={calendars.map((cal) => ({
-              value: cal.id,
-              label: cal.summary,
-            }))}
-            value={selectedCalendarId}
-            onChange={(id) => setSelectedCalendarId(id)}
-          />
-        )}
-
-        {/* Event Title */}
-        <Box>
-          <Label htmlFor="event-title" required>
-            Event Title
-          </Label>
-          <Input
-            id="event-title"
-            value={eventTitle}
-            onChange={(e) => setEventTitle(e.target.value)}
-            placeholder="e.g., Property Viewing, Home Inspection"
-            className="mt-1"
-            // eslint-disable-next-line jsx-a11y/no-autofocus -- Focus title when modal opens
-            autoFocus
-          />
-        </Box>
-
-        {/* Start Date and Time */}
-        <Box className="grid grid-cols-2 gap-3">
-          <DateInput
-            id="start-date"
-            label="Start Date"
-            required
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-          <TimeInput
-            id="start-time"
-            label="Start Time"
-            required
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-          />
-        </Box>
-
-        {/* End Date and Time */}
-        <Box className="grid grid-cols-2 gap-3">
-          <DateInput
-            id="end-date"
-            label="End Date"
-            required
-            value={endDate}
-            min={startDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-          <TimeInput
-            id="end-time"
-            label="End Time"
-            required
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-          />
-        </Box>
-
-        {/* Location */}
-        <Box>
-          <Label htmlFor="event-location">Location (optional)</Label>
-          <Input
-            id="event-location"
-            value={eventLocation}
-            onChange={handleEventLocationChange}
-            placeholder="e.g., 123 Main St, City, State"
-            className="mt-1"
-            autoComplete="off"
-          />
-          {loadError && (
-            <BodyText as="p" size="xs" className="text-destructive mt-1">
-              {loadError} You can still type an address manually.
-            </BodyText>
-          )}
-          {locationSuggestions.length > 0 && (
-            <ul className="bg-background-surface relative z-50 mt-2 flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md shadow-sm">
-              {locationSuggestions.map((s, idx) => (
-                <li
-                  key={s.placePrediction.text.text + idx}
-                  className="rounded border border-dotted border-neutral-300"
-                >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleLocationSelect(s)}
-                    className="hover:bg-primary-muted w-full !justify-start cursor-pointer px-3 py-2 text-sm [&>div]:w-full [&>div]:!justify-start [&>div>div]:!justify-start [&>div>div]:!text-left"
-                  >
-                    <Box className="flex w-full items-center justify-start gap-2 text-left">
-                      <Icon name="map-pin" className="h-4 w-4 shrink-0 text-neutral-500" />
-                      <BodyText as="span" size="sm" className="min-w-0 flex-1 text-left">
-                        {s.description}
-                      </BodyText>
-                    </Box>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Box>
-
-        {/* Event Description */}
-        <Box>
-          <Label htmlFor="event-description">Description (optional)</Label>
-          <Textarea
-            id="event-description"
-            value={eventDescription}
-            onChange={(e) => setEventDescription(e.target.value)}
-            placeholder="Add any additional details about the event..."
-            rows={3}
-            className="mt-1"
-          />
-        </Box>
-
-        {/* Actions */}
-        <Box className="flex gap-3 pt-2">
-          <CancelButton onClick={onClose} className="flex-1" disabled={isSubmitting}>
-            Cancel
-          </CancelButton>
-          <Button
-            variant="primary"
-            onClick={handleSubmit}
-            disabled={!canSubmit || isSubmitting}
-            loading={isSubmitting}
-            className="flex-1"
-          >
-            {mode === "edit"
-              ? isUpdatingEvent
-                ? "Updating..."
-                : "Update Event"
-              : isCreatingEvent
-                ? "Creating..."
-                : "Create Event"}
-          </Button>
-        </Box>
-      </Box>
-    </BaseModal>
+    <CreateEventModalForm
+      isOpen={isOpen}
+      onClose={onClose}
+      mode={mode}
+      calendars={calendars}
+      selectedCalendarId={selectedCalendarId}
+      onCalendarChange={setSelectedCalendarId}
+      eventTitle={eventTitle}
+      onEventTitleChange={(e) => setEventTitle(e.target.value)}
+      startDate={startDate}
+      onStartDateChange={(e) => setStartDate(e.target.value)}
+      startTime={startTime}
+      onStartTimeChange={(e) => setStartTime(e.target.value)}
+      endDate={endDate}
+      onEndDateChange={(e) => setEndDate(e.target.value)}
+      endTime={endTime}
+      onEndTimeChange={(e) => setEndTime(e.target.value)}
+      eventLocation={eventLocation}
+      onEventLocationChange={handleEventLocationChange}
+      locationSuggestions={locationSuggestions}
+      onLocationSelect={handleLocationSelect}
+      loadError={loadError}
+      eventDescription={eventDescription}
+      onEventDescriptionChange={(e) => setEventDescription(e.target.value)}
+      canSubmit={Boolean(canSubmit)}
+      isSubmitting={isSubmitting}
+      isCreatingEvent={isCreatingEvent}
+      isUpdatingEvent={isUpdatingEvent}
+      onSubmit={handleSubmit}
+    />
   );
 }

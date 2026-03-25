@@ -1,3 +1,4 @@
+import type { ResetPasswordStores } from "packages/features/homeauth/types/auth/resetPassword";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import type { UserProfile } from "@/features/homeauth/types";
@@ -39,11 +40,7 @@ export function mapResultUserToProfile(resultUser: ResetResultUser, _email: stri
   };
 }
 
-export type ResetPasswordStores = {
-  setStoreUser: (user: UserProfile) => void;
-  setStoreIsAuthenticated: (v: boolean) => void;
-  setUserProfile: (profile: UserProfile & { name?: string }) => void;
-};
+export type { ResetPasswordStores } from "packages/features/homeauth/types/auth/resetPassword";
 
 /**
  * Update auth and user stores after successful password reset.

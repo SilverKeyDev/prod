@@ -19,7 +19,16 @@ function getTransformClass(animation: CoverProps["animation"], hasEntered: boole
 
 type CoverPanelProps = Pick<
   CoverProps,
-  "onClose" | "title" | "showCloseButton" | "children" | "headerContent" | "footerContent" | "showHeaderBorder" | "animation" | "className"
+  | "onClose"
+  | "title"
+  | "showCloseButton"
+  | "children"
+  | "headerContent"
+  | "footerContent"
+  | "showHeaderBorder"
+  | "animation"
+  | "className"
+  | "headerContainerClassName"
 > & { zIndex: number };
 
 function CoverPanel({
@@ -32,6 +41,7 @@ function CoverPanel({
   showHeaderBorder = true,
   animation = "none",
   className = "",
+  headerContainerClassName,
   zIndex,
 }: CoverPanelProps) {
   const [hasEntered, setHasEntered] = useState(animation === "none");
@@ -50,12 +60,11 @@ function CoverPanel({
   }, [animation]);
 
   const transformClass = getTransformClass(animation, hasEntered);
-  const transitionClass =
-    animation !== "none" ? "transition-transform duration-300 ease-out" : "";
+  const transitionClass = animation !== "none" ? "transition-transform duration-300 ease-out" : "";
 
   return (
     <Box
-      className={`fixed inset-0 z-[9999] flex flex-col overflow-hidden bg-background-base ${transitionClass} ${transformClass} ${className}`}
+      className={`bg-background-base fixed inset-0 flex flex-col overflow-hidden ${transitionClass} ${transformClass} ${className}`}
       style={{
         zIndex,
         width: "100vw",
@@ -67,7 +76,7 @@ function CoverPanel({
     >
       {(title ?? headerContent ?? showCloseButton) && (
         <Box
-          className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden p-3 sm:p-4 md:p-6 ${showHeaderBorder ? "border-border border-b" : ""}`}
+          className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden ${headerContainerClassName ?? "p-3 sm:p-4 md:p-6"} ${showHeaderBorder ? "border-border border-b" : ""}`}
         >
           <Box className="scrollbar-hide min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
             {headerContent ??
@@ -105,12 +114,7 @@ function CoverPanel({
 }
 
 const Cover: React.FC<CoverProps> = (props) => {
-  const {
-    isOpen,
-    onClose,
-    closeOnEscape = true,
-    zIndex = 9999,
-  } = props;
+  const { isOpen, onClose, closeOnEscape = true, zIndex = 9999 } = props;
 
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;

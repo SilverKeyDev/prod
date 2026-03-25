@@ -10,13 +10,19 @@ export const userSchema = z.object({
   cognito_id: z.string().nullable().optional(),
   email: z.string(),
   name: z.string(),
-  phone: z.string().optional(),
-  created_at: z.string(),
-  updated_at: z.string().optional(),
+  /** DB column is nullable; Flask may serialize as null. */
+  phone: z.string().nullable().optional(),
+  /** `to_dict` uses isoformat or None when unset. */
+  created_at: z.string().nullable().optional(),
+  updated_at: z.string().nullable().optional(),
   is_active: z.boolean(),
   is_agent: z.boolean().optional(),
   is_closing_mode: z.boolean().optional(),
-  client_ids: z.array(z.string()).optional(),
+  /** Stored as Text in DB — API returns a string (or null), not a JSON array. */
+  client_ids: z
+    .union([z.array(z.string()), z.string()])
+    .nullable()
+    .optional(),
   agency_name: z.string().optional(),
   has_subscription: z.boolean().optional(),
   subscription: z.unknown().optional(),

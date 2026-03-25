@@ -44,7 +44,7 @@ export function HomePageHeader() {
         </Link>
         <Link
           to={ROUTES.SIGNUP}
-          className="bg-accent hover:bg-accent-hover rounded-md px-3 py-2 text-white transition-colors sm:px-4 sm:py-2.5"
+          className="bg-olive hover:bg-olive-hover rounded-md px-3 py-2 text-white transition-colors sm:px-4 sm:py-2.5"
         >
           Sign Up
         </Link>

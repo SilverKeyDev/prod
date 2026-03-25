@@ -18,7 +18,7 @@ import { usePreActionSnapshot } from "packages/hooks/ui";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { useSearchContextStore, useSearchViewStore } from "packages/store";
+import { useAgentDashboardStore, useSearchContextStore, useSearchViewStore } from "packages/store";
 import { Box, Text } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
@@ -29,6 +29,8 @@ import { SearchPageMapView } from "./layout/SearchPageMapView";
 export function SearchScreen() {
   const mode = useSearchViewStore((s) => s.mode);
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
+  const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
+  const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
 
   const { userPreferences } = useUserPreferences();
 
@@ -349,8 +351,8 @@ export function SearchScreen() {
           onPreferencesChanged={runSearch}
           onSearchProperties={runSearch}
           onCancelSearch={handleCancelSearch}
-          selectedClientId={null}
-          onClientChange={() => {}}
+          selectedClientId={selectedClientId}
+          onClientChange={setSelectedClientId}
           isLoadingPropertyDetails={isLoadingPropertyDetails}
           isLoadingSearchResults={isLoadingSearchResults}
           isLoadingIsochrone={isLoadingIsochrone}

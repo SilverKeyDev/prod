@@ -124,11 +124,7 @@ export function AgentSearchContent({
                         <Icon name="user" className="text-text-secondary h-6 w-6" />
                       </Box>
                       <Box className="min-w-0 flex-1">
-                        <Title
-                          as="h3"
-                          size="md"
-                          className="text-text-primary mb-0.5 font-semibold"
-                        >
+                        <Title as="h3" size="md" className="text-text-primary mb-0.5 font-semibold">
                           {agent.name}
                         </Title>
                         <BodyText as="p" size="sm" className="text-text-secondary truncate">

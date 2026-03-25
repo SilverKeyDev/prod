@@ -77,13 +77,7 @@ function filterDomProps(props: Record<string, unknown>): React.HTMLAttributes<HT
 function normalizeRnLayoutStyle(style: React.CSSProperties | undefined): React.CSSProperties {
   if (!style) return {};
   const s = style as Record<string, unknown>;
-  const {
-    paddingHorizontal,
-    paddingVertical,
-    marginHorizontal,
-    marginVertical,
-    ...rest
-  } = s;
+  const { paddingHorizontal, paddingVertical, marginHorizontal, marginVertical, ...rest } = s;
   const out: React.CSSProperties = { ...(rest as React.CSSProperties) };
   if (paddingHorizontal !== undefined) {
     const p = paddingHorizontal as React.CSSProperties["paddingLeft"];

@@ -13,7 +13,10 @@ const PRIORITY_OPTIONS: { value: AgendaTodoPriority; label: string }[] = [
   { value: "urgent", label: "Urgent" },
 ];
 
-function formatDueLine(dueDate: string) {
+function formatDueLine(dueDate: string | null) {
+  if (dueDate == null || dueDate === "") {
+    return "";
+  }
   try {
     return dateParseISO(dueDate).toDate().toLocaleDateString(undefined, {
       weekday: "short",
@@ -28,7 +31,7 @@ function formatDueLine(dueDate: string) {
 type TodoAgendaRowProps = {
   todo: AgendaTodoDTO;
   onToggleComplete: (id: string) => void;
-  onUpdatePriority?: (id: string, priority: AgendaTodoPriority) => void;
+  onUpdatePriority?: (id: string, priority: AgendaTodoPriority | null) => void;
   canEditComplete?: boolean;
   canEditPriority?: boolean;
 };
@@ -43,13 +46,15 @@ export function TodoAgendaRow({
   const dueLine = useMemo(() => formatDueLine(todo.due_date), [todo.due_date]);
 
   const priorityClass =
-    todo.priority === "low"
+    todo.priority == null
       ? "text-text-secondary"
-      : todo.priority === "medium"
-        ? "text-accent"
-        : todo.priority === "high"
-          ? "text-primary"
-          : "text-destructive";
+      : todo.priority === "low"
+        ? "text-text-secondary"
+        : todo.priority === "medium"
+          ? "text-accent"
+          : todo.priority === "high"
+            ? "text-primary"
+            : "text-destructive";
 
   return (
     <Box className="border-border bg-background-surface mb-2 ml-2 w-full overflow-hidden rounded-xl border">
@@ -67,9 +72,7 @@ export function TodoAgendaRow({
                   : "border-border"
             }`}
           >
-            {todo.completed ? (
-              <Text className="text-xs font-semibold text-white">✓</Text>
-            ) : null}
+            {todo.completed ? <Text className="text-xs font-semibold text-white">✓</Text> : null}
           </Pressable>
           <Box className="min-w-0 flex-1 space-y-1">
             <Text
@@ -83,8 +86,12 @@ export function TodoAgendaRow({
               {canEditPriority && onUpdatePriority && !todo.completed ? (
                 <Box className="w-28">
                   <Dropdown<AgendaTodoPriority>
+                    label="Priority"
                     options={PRIORITY_OPTIONS}
-                    value={todo.priority}
+                    value={todo.priority ?? undefined}
+                    placeholder="Priority"
+                    clearable
+                    onClear={() => onUpdatePriority(todo.id, null)}
                     onChange={(value) => onUpdatePriority(todo.id, value)}
                     variant="compact"
                     size="sm"
@@ -93,7 +100,7 @@ export function TodoAgendaRow({
                 </Box>
               ) : (
                 <Text className={`text-left text-xs font-medium capitalize ${priorityClass}`}>
-                  {todo.priority}
+                  {todo.priority ?? "None"}
                 </Text>
               )}
               {dueLine ? (

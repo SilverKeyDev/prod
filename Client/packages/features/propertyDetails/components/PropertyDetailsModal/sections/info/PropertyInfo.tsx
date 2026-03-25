@@ -26,7 +26,7 @@ function getDisplayAddress(addr: unknown, notAvailable: string): string {
         city: string;
         state: string;
         zipcode: string;
-      },
+      }
     );
   }
   try {
@@ -36,38 +36,23 @@ function getDisplayAddress(addr: unknown, notAvailable: string): string {
   }
 }
 
-function parsePositiveNumber(
-  value: number | string | undefined,
-): number | null {
+function parsePositiveNumber(value: number | string | undefined): number | null {
   if (value === undefined || value === null || value === "") return null;
-  const n =
-    typeof value === "number"
-      ? value
-      : parseFloat(String(value).replace(/[^0-9.-]+/g, ""));
+  const n = typeof value === "number" ? value : parseFloat(String(value).replace(/[^0-9.-]+/g, ""));
   if (!Number.isFinite(n) || n <= 0) return null;
   return n;
 }
 
-export const PropertyInfo: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyInfo: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const propertyPrice =
-    "price" in property
-      ? (property.price as number | string | undefined)
-      : undefined;
+    "price" in property ? (property.price as number | string | undefined) : undefined;
   const propertySqft =
-    "sqft" in property
-      ? (property.sqft as number | string | undefined)
-      : undefined;
+    "sqft" in property ? (property.sqft as number | string | undefined) : undefined;
   const propertyBedrooms =
-    "bedrooms" in property
-      ? (property.bedrooms as number | string | undefined)
-      : undefined;
+    "bedrooms" in property ? (property.bedrooms as number | string | undefined) : undefined;
   const propertyBathrooms =
-    "bathrooms" in property
-      ? (property.bathrooms as number | string | undefined)
-      : undefined;
+    "bathrooms" in property ? (property.bathrooms as number | string | undefined) : undefined;
   const listingPricePerSqft =
     "pricePerSquareFoot" in property
       ? (property.pricePerSquareFoot as number | string | undefined)
@@ -85,18 +70,10 @@ export const PropertyInfo: React.FC<PropertyComponentProps> = ({
   });
   const displayAddress = getDisplayAddress(addr, notAvailable);
 
-  const priceNum = useMemo(
-    () => parsePositiveNumber(propertyPrice),
-    [propertyPrice],
-  );
-  const sqftNum = useMemo(
-    () => parsePositiveNumber(propertySqft),
-    [propertySqft],
-  );
+  const priceNum = useMemo(() => parsePositiveNumber(propertyPrice), [propertyPrice]);
+  const sqftNum = useMemo(() => parsePositiveNumber(propertySqft), [propertySqft]);
   const pricePerSqft =
-    priceNum !== null && sqftNum !== null
-      ? Math.round(priceNum / sqftNum)
-      : null;
+    priceNum !== null && sqftNum !== null ? Math.round(priceNum / sqftNum) : null;
 
   const bedsLabel = t("property_details.beds", { defaultValue: "beds" });
   const bathsLabel = t("property_details.baths", { defaultValue: "baths" });
@@ -118,18 +95,10 @@ export const PropertyInfo: React.FC<PropertyComponentProps> = ({
 
       <Box className="flex flex-row flex-wrap gap-2 sm:gap-3">
         {propertyBedrooms && Number(propertyBedrooms) > 0 ? (
-          <StatChip
-            iconName="bed"
-            value={String(propertyBedrooms)}
-            label={bedsLabel}
-          />
+          <StatChip iconName="bed" value={String(propertyBedrooms)} label={bedsLabel} />
         ) : null}
         {propertyBathrooms && Number(propertyBathrooms) > 0 ? (
-          <StatChip
-            iconName="bath"
-            value={String(propertyBathrooms)}
-            label={bathsLabel}
-          />
+          <StatChip iconName="bath" value={String(propertyBathrooms)} label={bathsLabel} />
         ) : null}
         {propertySqft && Number(propertySqft) > 0 ? (
           <StatChip

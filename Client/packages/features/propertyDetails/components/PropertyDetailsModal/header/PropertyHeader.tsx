@@ -29,9 +29,7 @@ function getDisplayAddress(address: unknown): string | null {
   return null;
 }
 
-function normalizePropertyForFavorites(
-  property: PropertyHeaderProps["property"],
-): {
+function normalizePropertyForFavorites(property: PropertyHeaderProps["property"]): {
   id: string;
   address: string;
   [key: string]: unknown;
@@ -50,12 +48,7 @@ function normalizePropertyForFavorites(
     (p.streetAddress
       ? [p.streetAddress, p.city, p.state, p.zipcode].filter(Boolean).join(", ")
       : "");
-  const id =
-    typeof p.id === "string"
-      ? p.id
-      : typeof p.home_id === "string"
-        ? p.home_id
-        : "";
+  const id = typeof p.id === "string" ? p.id : typeof p.home_id === "string" ? p.home_id : "";
   return {
     ...(property as Record<string, unknown>),
     id,
@@ -103,27 +96,18 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
     setIsShareModalOpen(true);
   }, []);
 
-  const iconSize =
-    toolbarButtonSize === "large"
-      ? 22
-      : toolbarButtonSize === "small"
-        ? 18
-        : 20;
+  const iconSize = toolbarButtonSize === "large" ? 22 : toolbarButtonSize === "small" ? 18 : 20;
 
   return (
     <>
-      <Box className="border-border bg-background-surface flex w-full flex-row flex-nowrap items-center justify-between gap-2 border-b px-4 py-3">
-        <Box className="min-w-0 flex flex-1 flex-row flex-nowrap items-center gap-2">
+      <Box className="border-border bg-background-surface flex w-full flex-row flex-nowrap items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4 sm:py-3">
+        <Box className="flex min-w-0 flex-1 flex-row flex-nowrap items-center gap-2">
           <Pressable
             onPress={handleBack}
             className="shrink-0 rounded-lg p-2"
             label={t("common.back", { defaultValue: "Back" })}
           >
-            <Icon
-              name="chevron-left"
-              size={iconSize}
-              color={color("neutral.700")}
-            />
+            <Icon name="chevron-left" size={iconSize} color={color("neutral.700")} />
           </Pressable>
           {displayAddress ? (
             <Text
@@ -144,11 +128,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
                 defaultValue: "Generate report",
               })}
             >
-              <Icon
-                name="file-text"
-                size={iconSize}
-                color={color("neutral.600")}
-              />
+              <Icon name="file-text" size={iconSize} color={color("neutral.600")} />
             </Pressable>
           ) : null}
           <Pressable
@@ -162,11 +142,7 @@ export const PropertyHeader: React.FC<PropertyHeaderProps> = ({
             property={normalizePropertyForFavorites(property)}
             inline
             size={
-              toolbarButtonSize === "large"
-                ? "lg"
-                : toolbarButtonSize === "small"
-                  ? "sm"
-                  : "md"
+              toolbarButtonSize === "large" ? "lg" : toolbarButtonSize === "small" ? "sm" : "md"
             }
           />
         </Box>

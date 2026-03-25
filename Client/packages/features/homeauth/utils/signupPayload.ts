@@ -1,14 +1,9 @@
+import type { SignupFormPayload } from "packages/features/homeauth/types/auth/signupForm";
 import { getSessionStorage } from "packages/utils/storage";
 
 import type { SignupData } from "@/features/homeauth/api/types";
 
-export type SignupFormPayload = {
-  name: string;
-  email: string;
-  password: string;
-  phone?: string;
-  agencyName?: string;
-};
+export type { SignupFormPayload } from "packages/features/homeauth/types/auth/signupForm";
 
 /**
  * Build API SignupData from form state. Shared by web and native signup screens.

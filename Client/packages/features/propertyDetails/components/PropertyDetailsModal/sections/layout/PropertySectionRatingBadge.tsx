@@ -38,11 +38,7 @@ export function PropertySectionRatingBadge({
         color: colors.textColor,
       }}
     >
-      <BodyText
-        as="span"
-        className="text-responsive-xs font-semibold"
-        style={{ color: "inherit" }}
-      >
+      <BodyText as="span" className="text-responsive-xs font-semibold" style={{ color: "inherit" }}>
         {t("property_details.section_rating_value", {
           value: display,
           defaultValue: "{{value}}/10",

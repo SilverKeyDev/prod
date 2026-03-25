@@ -71,7 +71,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     hasSearched,
     showPropertyModals,
     selectedProperty,
-    searchResults,
+    searchResults: _searchResults,
     setSearchStage,
     setSearchResults,
     setIsSearching,

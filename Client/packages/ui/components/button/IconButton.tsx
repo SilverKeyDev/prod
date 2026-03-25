@@ -14,6 +14,8 @@ import {
   ICON_BUTTON_ACTIVE_BG_MAP,
   ICON_BUTTON_BASE_CLASSES,
   ICON_BUTTON_HOVER_BG_MAP,
+  ICON_BUTTON_LOADING_FRAME_CLASSES,
+  ICON_BUTTON_LOADING_VARIANT_OVERRIDES,
   ICON_BUTTON_ROUNDED_CLASSES,
   ICON_BUTTON_SIZE_CLASSES,
   ICON_BUTTON_TOUCH_CLASS,
@@ -113,7 +115,9 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
       ICON_BUTTON_VARIANT_STYLES[variant],
       toolbarOverrides,
       ICON_BUTTON_TOUCH_CLASS,
-      loading ? "relative overflow-hidden border-2 border-neutral-600" : "",
+      loading
+        ? `${ICON_BUTTON_LOADING_FRAME_CLASSES} ${ICON_BUTTON_LOADING_VARIANT_OVERRIDES[variant]}`
+        : "",
       "",
       className,
     ]

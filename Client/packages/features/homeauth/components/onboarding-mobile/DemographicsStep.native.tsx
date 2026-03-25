@@ -9,7 +9,6 @@ import { Text } from "packages/ui/components/primitives";
 import { MOBILE_TEXT_INPUT_CLASS } from "packages/ui/styles/nativeFormStyles.native";
 
 import {
-  AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,
   effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   IS_AGENT_OPTIONS,
@@ -30,7 +29,7 @@ const HAS_BUYERS_AGENT_OPTIONS = [
 /** Mobile onboarding demographics. Agent/buyer choice appears only here; immutable after onboarding. */
 export function DemographicsStep({ formData, updateFormData }: DemographicsStepProps) {
   const authIsAgent = useIsAgent();
-  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
+  const showBuyerFacingDemographics = !effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
     formIsAgent: formData.is_agent,
   });
@@ -102,69 +101,34 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
         />
       </Box>
 
-      <>
-        {showAgentOptionalBuyerCallout && (
-          <Box className="border-border bg-background-surface rounded-lg border px-3 py-2">
-            <Text className="text-text-secondary text-xs">
-              {AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT}
-            </Text>
-          </Box>
-        )}
-        <Box>
-          <Text className="text-text-secondary mb-2 text-sm font-medium">
-            {FIELD_LABELS.WHY_JOINING_SILVERKEY}
-          </Text>
-          <Text className="text-text-secondary mb-3 text-xs">
-            Choose all that apply. This helps us personalize your experience.
-          </Text>
-          <Box className="flex flex-row flex-wrap gap-2">
-            {WHY_JOINING_SILVERKEY_OPTIONS.map((option) => {
-              const selected =
-                Array.isArray(formData.why_joining_silverkey) &&
-                formData.why_joining_silverkey.includes(option.value);
-              return (
-                <Pressable
-                  key={option.value}
-                  onPress={() => toggleWhyJoining(option.value)}
-                  className={`rounded-full border px-4 py-2 ${
-                    selected ? "border-primary bg-primary" : "border-border bg-background-surface"
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-medium ${
-                      selected ? "text-primary" : "text-text-secondary"
-                    }`}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </Box>
-        </Box>
-
-        <Box className="gap-3">
+      {showBuyerFacingDemographics && (
+        <>
           <Box>
             <Text className="text-text-secondary mb-2 text-sm font-medium">
-              {FIELD_LABELS.HAS_BUYERS_AGENT}
+              {FIELD_LABELS.WHY_JOINING_SILVERKEY}
             </Text>
-            <Box className="flex flex-row gap-3">
-              {HAS_BUYERS_AGENT_OPTIONS.map((opt) => {
-                const selected = formData.has_buyers_agent === opt.value;
+            <Text className="text-text-secondary mb-3 text-xs">
+              Choose all that apply. This helps us personalize your experience.
+            </Text>
+            <Box className="flex flex-row flex-wrap gap-2">
+              {WHY_JOINING_SILVERKEY_OPTIONS.map((option) => {
+                const selected =
+                  Array.isArray(formData.why_joining_silverkey) &&
+                  formData.why_joining_silverkey.includes(option.value);
                 return (
                   <Pressable
-                    key={opt.value}
-                    onPress={() => updateFormData("has_buyers_agent", opt.value)}
-                    className={`flex-1 rounded-lg border-2 px-4 py-3 ${
+                    key={option.value}
+                    onPress={() => toggleWhyJoining(option.value)}
+                    className={`rounded-full border px-4 py-2 ${
                       selected ? "border-primary bg-primary" : "border-border bg-background-surface"
                     }`}
                   >
                     <Text
-                      className={`text-center text-base font-medium ${
+                      className={`text-xs font-medium ${
                         selected ? "text-primary" : "text-text-secondary"
                       }`}
                     >
-                      {opt.label}
+                      {option.label}
                     </Text>
                   </Pressable>
                 );
@@ -172,25 +136,55 @@ export function DemographicsStep({ formData, updateFormData }: DemographicsStepP
             </Box>
           </Box>
 
-          {formData.has_buyers_agent === "no" && (
-            <Pressable
-              onPress={toggleLookingForAgent}
-              className="border-border bg-background-surface flex flex-row items-center gap-3 rounded-lg border px-4 py-3"
-            >
-              <Box
-                className={`h-5 w-5 items-center justify-center rounded border ${
-                  formData.looking_for_buyers_agent
-                    ? "border-primary bg-primary"
-                    : "border-border bg-background-base"
-                }`}
-              />
-              <Text className="text-text-primary text-sm font-medium">
-                I am looking for a buyer&apos;s agent
+          <Box className="gap-3">
+            <Box>
+              <Text className="text-text-secondary mb-2 text-sm font-medium">
+                {FIELD_LABELS.HAS_BUYERS_AGENT}
               </Text>
-            </Pressable>
-          )}
-        </Box>
-      </>
+              <Box className="flex flex-row gap-3">
+                {HAS_BUYERS_AGENT_OPTIONS.map((opt) => {
+                  const selected = formData.has_buyers_agent === opt.value;
+                  return (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() => updateFormData("has_buyers_agent", opt.value)}
+                      className={`flex-1 rounded-lg border-2 px-4 py-3 ${
+                        selected ? "border-primary bg-primary" : "border-border bg-background-surface"
+                      }`}
+                    >
+                      <Text
+                        className={`text-center text-base font-medium ${
+                          selected ? "text-primary" : "text-text-secondary"
+                        }`}
+                      >
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </Box>
+            </Box>
+
+            {formData.has_buyers_agent === "no" && (
+              <Pressable
+                onPress={toggleLookingForAgent}
+                className="border-border bg-background-surface flex flex-row items-center gap-3 rounded-lg border px-4 py-3"
+              >
+                <Box
+                  className={`h-5 w-5 items-center justify-center rounded border ${
+                    formData.looking_for_buyers_agent
+                      ? "border-primary bg-primary"
+                      : "border-border bg-background-base"
+                  }`}
+                />
+                <Text className="text-text-primary text-sm font-medium">
+                  I am looking for a buyer&apos;s agent
+                </Text>
+              </Pressable>
+            )}
+          </Box>
+        </>
+      )}
     </Box>
   );
 }

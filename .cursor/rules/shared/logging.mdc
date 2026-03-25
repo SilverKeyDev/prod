@@ -11,18 +11,18 @@ alwaysApply: true
 
 ## Frontend Logging
 
-**Location**: `Client/logger/`
+**Location**: `Client/packages/logger/`
 
 **Main Files**:
-- `Client/logger/logger.ts` - Main logger implementation with category-based filtering
-- `Client/logger/pii.ts` - PII scrubbing utilities (masks emails, phones, SSN, tokens, etc.)
-- `Client/logger/categories.ts` - Log category definitions and helpers
-- `Client/logger/index.ts` - Public API exports
-- `Client/logger/logger.config.json` - Configuration file
+- `Client/packages/logger/logger.ts` - Main logger implementation with category-based filtering
+- `Client/packages/logger/pii.ts` - PII scrubbing utilities (masks emails, phones, SSN, tokens, etc.)
+- `Client/packages/logger/categories.ts` - Log category definitions and helpers
+- `Client/packages/logger/index.ts` - Public API exports
+- `Client/packages/logger/logger.config.json` - Configuration file
 
 **Usage**:
 ```typescript
-import { log, LOG_CATEGORIES } from "../../logger";
+import { log, LOG_CATEGORIES } from "packages/logger";
 
 // Debug logging
 log.debug(LOG_CATEGORIES.API, "API request started", { endpoint: "/api/users" });
@@ -52,13 +52,13 @@ log.security(LOG_CATEGORIES.SECURITY, "Unauthorized access attempt", { ip: "1.2.
 - `LOG_CATEGORIES.SECURITY` - Security events (always enabled)
 
 **Configuration**:
-- Config file: `Client/logger/logger.config.json`
+- Config file: `Client/packages/logger/logger.config.json`
 - Runtime config updates: `log.updateConfig({ polling: false })`
 - Get current config: `log.getConfig()`
 - Reload config: `log.reloadConfig()`
 
 **PII Scrubbing**:
-- All log data is automatically scrubbed via `Client/logger/pii.ts`
+- All log data is automatically scrubbed via `Client/packages/logger/pii.ts`
 - Sensitive data (emails, phones, SSN, tokens, passwords) is automatically masked
 - Sensitive keys in objects are replaced with `[REDACTED]`
 
@@ -119,7 +119,12 @@ log.security(LOG_CATEGORIES["SECURITY"], "Unauthorized access attempt", {"ip": "
 
 ### When Adding Logging
 
-- **ALWAYS use the centralized logger** from `Client/logger/index.ts` (frontend) or `Server/logger/__init__.py` (backend)
+- **Config must match the change (same PR / task)** — Whenever you add new `log.*` calls gated by a category, **enable** verbose logging for an area, or introduce a **new** log category:
+  - Update **`Client/packages/logger/logger.config.json`** with the matching camelCase flag (`search`, `polygonSearch`, `api` sub-keys, etc.). Set it to `true` when the default checkout should emit those logs, or `false` for opt-in—**do not** leave new categories only in code with no config entry.
+  - Update **`Server/logger/logger_config.json`** the same way for backend flags.
+  - Update **code defaults** so behavior without a config file matches: `LoggerConfig` / `loadConfig` defaults in `Client/packages/logger/logger.ts` and merged defaults in `Server/logger/logger.py` (`_load_config`).
+  - For a **new** category: add it to `categories.ts` / `categories.py`, `categoryToConfigKey` / `category_to_config_key`, `LoggerConfig` fields, **both** JSON configs, and if the admin logger API should allow toggling it, extend `allowed_keys` in `Server/app/routes/admin/handlers/logger_config.py`.
+- **ALWAYS use the centralized logger** from `Client/packages/logger/index.ts` (frontend) or `Server/logger/__init__.py` (backend)
 - **NEVER use** `console.log()`, `console.info()`, `console.warn()`, `console.error()` directly in frontend code
 - **NEVER use** `print()`, `logging.info()`, `logging.warn()`, `logging.error()` directly in backend code
 - **ALWAYS specify a category** - use the appropriate category from `LOG_CATEGORIES`
@@ -133,19 +138,19 @@ log.security(LOG_CATEGORIES["SECURITY"], "Unauthorized access attempt", {"ip": "
 
 ### When Removing or Disabling Logging
 
-- **To disable a specific category**: Update the config file (`Client/logger/logger.config.json` or `Server/logger/logger_config.json`)
-- **To disable at runtime** (frontend): `log.updateConfig({ categoryName: false })` - see `Client/logger/logger.ts`
+- **To disable a specific category**: Update the config file (`Client/packages/logger/logger.config.json` or `Server/logger/logger_config.json`)
+- **To disable at runtime** (frontend): `log.updateConfig({ categoryName: false })` - see `Client/packages/logger/logger.ts`
 - **To disable at runtime** (backend): `log.update_config({"categoryName": False})` - see `Server/logger/logger.py`
 - **To change log level**: Update `logLevel` in config (DEBUG, INFO, WARN, ERROR)
 - **NEVER delete log statements** - disable via config instead to maintain audit trail
-- **Note**: `ERRORS` and `SECURITY` categories cannot be disabled (always enabled) - see `Client/logger/categories.ts` and `Server/logger/categories.py`
+- **Note**: `ERRORS` and `SECURITY` categories cannot be disabled (always enabled) - see `Client/packages/logger/categories.ts` and `Server/logger/categories.py`
 
 ### Examples of Correct Usage
 
 **Frontend**:
 ```typescript
-// ✅ CORRECT: Using centralized logger from Client/logger/index.ts
-import { log, LOG_CATEGORIES } from "../../logger";
+// ✅ CORRECT: Using centralized logger from packages/logger
+import { log, LOG_CATEGORIES } from "packages/logger";
 
 try {
   const response = await fetch("/api/users");
@@ -184,23 +189,23 @@ When updating existing code:
    - Search for `print(`, `logging.info`, `logging.warn`, `logging.error` in backend
 
 2. **Replace with centralized logger**:
-   - Import logger from `Client/logger/index.ts` (frontend) or `Server/logger/__init__.py` (backend)
-   - Choose appropriate category from `Client/logger/categories.ts` or `Server/logger/categories.py`
+   - Import logger from `packages/logger` (frontend) or `Server/logger/__init__.py` (backend)
+   - Choose appropriate category from `Client/packages/logger/categories.ts` or `Server/logger/categories.py`
    - Use appropriate log level
-   - Pass data as second/third parameter (will be automatically scrubbed by `Client/logger/pii.ts` or `Server/logger/pii.py`)
+   - Pass data as second/third parameter (will be automatically scrubbed by `Client/packages/logger/pii.ts` or `Server/logger/pii.py`)
 
 3. **Update imports**:
-   - Frontend: `import { log, LOG_CATEGORIES } from "../../logger";` (from `Client/logger/index.ts`)
+   - Frontend: `import { log, LOG_CATEGORIES } from "packages/logger";`
    - Backend: `from logger import log, LOG_CATEGORIES` (from `Server/logger/__init__.py`)
 
 ## File References
 
 ### Frontend Logging Files
-- **Main Logger**: `Client/logger/logger.ts`
-- **PII Scrubbing**: `Client/logger/pii.ts`
-- **Categories**: `Client/logger/categories.ts`
-- **Public API**: `Client/logger/index.ts`
-- **Config File**: `Client/logger/logger.config.json`
+- **Main Logger**: `Client/packages/logger/logger.ts`
+- **PII Scrubbing**: `Client/packages/logger/pii.ts`
+- **Categories**: `Client/packages/logger/categories.ts`
+- **Public API**: `Client/packages/logger/index.ts`
+- **Config File**: `Client/packages/logger/logger.config.json`
 
 ### Backend Logging Files
 - **Main Logger**: `Server/logger/logger.py`

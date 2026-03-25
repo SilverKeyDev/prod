@@ -26,8 +26,7 @@ function isImageFeatures(x: unknown): x is ImageFeatures {
 function isFeatures(x: unknown): x is Features {
   if (typeof x !== "object" || x === null) return false;
   return Object.values(x as Record<string, unknown>).every(
-    (v) =>
-      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string"),
+    (v) => Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
   );
 }
 const deduplicateFeatures = (features: string[]): string[] => {
@@ -76,13 +75,9 @@ const deduplicateCategoryFeatures = (feats: Features): Features => {
 const FEATURE_CHIP =
   "bg-primary-muted text-text-secondary rounded-full px-3 py-1 text-left text-xs";
 
-export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(),
-  );
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { features, image_features: imageFeatures } = property as unknown as {
     features: unknown;
     image_features: unknown;
@@ -91,9 +86,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
     isImageFeatures(imageFeatures) && !imageFeatures.error
       ? { ...imageFeatures, clean: deduplicateFeatures(imageFeatures.clean) }
       : null;
-  const feats = isFeatures(features)
-    ? deduplicateCategoryFeatures(features)
-    : null;
+  const feats = isFeatures(features) ? deduplicateCategoryFeatures(features) : null;
   if (!img && !feats) return null;
   const toggleCategory = (category: string) => {
     setExpandedCategories((prev) => {
@@ -119,11 +112,7 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
       <Card border="light" className="mt-2 border-r-0 p-6">
         {img && img.clean.length > 0 && (
           <Box className="mb-4 text-left">
-            <Title
-              as="h4"
-              size="sm"
-              className="text-foreground mb-2 text-left font-semibold"
-            >
+            <Title as="h4" size="sm" className="text-foreground mb-2 text-left font-semibold">
               {t("property_details.ai_detected_features", {
                 defaultValue: "AI-Detected Features",
               })}
@@ -159,15 +148,9 @@ export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
                       {displayName} ({list.length})
                     </Title>
                     {isExpanded ? (
-                      <Icon
-                        name="chevron-up"
-                        className="text-foreground h-4 w-4"
-                      />
+                      <Icon name="chevron-up" className="text-foreground h-4 w-4" />
                     ) : (
-                      <Icon
-                        name="chevron-down"
-                        className="text-foreground h-4 w-4"
-                      />
+                      <Icon name="chevron-down" className="text-foreground h-4 w-4" />
                     )}
                   </Button>
                   {isExpanded && (

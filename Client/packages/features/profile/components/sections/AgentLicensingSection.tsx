@@ -6,11 +6,7 @@ import Card from "@/components/layout/Card.web";
 import { Title } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import TagInput from "@/features/profile/components/settings/inputs/TagInput.web";
-import {
-  FIELD_LABELS,
-  type OnboardingData,
-  SECTION_TITLES,
-} from "@/features/profile/utils";
+import { FIELD_LABELS, type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
 
 export type AgentLicensingSectionProps = {
   formData: OnboardingData;
@@ -33,9 +29,7 @@ export default function AgentLicensingSection({
 
       <Box className="space-y-6">
         <Box>
-          <Label className="mb-2 block">
-            {FIELD_LABELS.AGENT_LICENSED_STATES}
-          </Label>
+          <Label className="mb-2 block">{FIELD_LABELS.AGENT_LICENSED_STATES}</Label>
           <TagInput
             value={formData.agent_licensed_states ?? []}
             onChange={(v) => updateFormData("agent_licensed_states", v)}
@@ -45,9 +39,7 @@ export default function AgentLicensingSection({
         </Box>
 
         <Box>
-          <Label className="mb-2 block">
-            {FIELD_LABELS.AGENT_LICENSE_NUMBERS}
-          </Label>
+          <Label className="mb-2 block">{FIELD_LABELS.AGENT_LICENSE_NUMBERS}</Label>
           <TagInput
             value={formData.agent_license_numbers ?? []}
             onChange={(v) => updateFormData("agent_license_numbers", v)}
@@ -57,9 +49,7 @@ export default function AgentLicensingSection({
         </Box>
 
         <Box>
-          <Label className="mb-2 block">
-            {FIELD_LABELS.AGENT_LICENSE_TYPES}
-          </Label>
+          <Label className="mb-2 block">{FIELD_LABELS.AGENT_LICENSE_TYPES}</Label>
           <TagInput
             value={formData.agent_license_types ?? []}
             onChange={(v) => updateFormData("agent_license_types", v)}
@@ -69,14 +59,10 @@ export default function AgentLicensingSection({
         </Box>
 
         <Box>
-          <Label className="mb-2 block">
-            {FIELD_LABELS.AGENT_LICENSE_EXPIRATION_DATES}
-          </Label>
+          <Label className="mb-2 block">{FIELD_LABELS.AGENT_LICENSE_EXPIRATION_DATES}</Label>
           <TagInput
             value={formData.agent_license_expiration_dates ?? []}
-            onChange={(v) =>
-              updateFormData("agent_license_expiration_dates", v)
-            }
+            onChange={(v) => updateFormData("agent_license_expiration_dates", v)}
             placeholder="e.g. 2025-12-31"
             isEditMode={isEditMode}
           />

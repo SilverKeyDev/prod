@@ -9,7 +9,9 @@ import {
   PROFILE_NOT_SPECIFIED_LABEL,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
-import { Button, Dropdown, Input } from "packages/ui/components";
+import Button from "packages/ui/components/button/Button";
+import Dropdown from "packages/ui/components/form/Dropdown";
+import { Input } from "packages/ui/components/form/Input";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
@@ -199,17 +201,17 @@ export function ProfileFinancialSection({
             <Box className="mt-3 flex flex-col gap-1">
               <BodyText size="sm" className="text-text-primary">
                 Estimated max home price:{" "}
-                <span className="font-semibold">
+                <BodyText as="span" size="sm" className="text-text-primary font-semibold">
                   ${homePriceResult.maxHomePrice.toLocaleString()}
-                </span>
+                </BodyText>
               </BodyText>
               {!isAffordabilityCollapsed && (
                 <>
                   <BodyText size="sm" className="text-text-primary">
                     Estimated monthly housing cost:{" "}
-                    <span className="font-semibold">
+                    <BodyText as="span" size="sm" className="text-text-primary font-semibold">
                       ${homePriceResult.totalMonthlyHousingCost.toLocaleString()}
-                    </span>
+                    </BodyText>
                   </BodyText>
                   <BodyText size="xs" className="text-text-secondary mt-1">
                     This estimate uses your income, down payment, and credit band to give a

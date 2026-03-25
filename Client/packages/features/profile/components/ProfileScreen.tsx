@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { getPersonalizationStepsUi } from "packages/features/profile/components/profilePicture/profileStepsUi";
@@ -26,10 +20,7 @@ import {
 } from "packages/features/profile/utils";
 import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
-import {
-  useUserData,
-  useUserPreferences,
-} from "packages/hooks/data/auth/useUserData";
+import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { showErrorToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -40,22 +31,35 @@ import { Loading } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs";
+import { isWeb } from "packages/utils/platform";
+
+const PROFILE_PHOTO_ACCEPT = "image/jpeg,image/png,image/gif";
+const PROFILE_PHOTO_MAX_BYTES = 15 * 1024 * 1024;
+
+function validateProfilePhotoFile(file: File): string | null {
+  if (file.size > PROFILE_PHOTO_MAX_BYTES) {
+    return "Image must be 15MB or smaller.";
+  }
+  const allowed = ["image/jpeg", "image/png", "image/gif"];
+  if (!allowed.includes(file.type)) {
+    return "Please use a JPEG, PNG, or GIF image.";
+  }
+  return null;
+}
 
 export function ProfileScreen() {
   const { t } = useLocalization();
   const { userProfile } = useUserData();
-  const {
-    userPreferences,
-    preferencesLoading,
-    preferencesError,
-    refreshUserPreferences,
-  } = useUserPreferences();
+  const { userPreferences, preferencesLoading, preferencesError, refreshUserPreferences } =
+    useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
   const {
-    uploadProfilePicture: _uploadProfilePicture,
+    uploadProfilePicture,
     isUploading: isUploadingProfilePicture,
     error: profilePictureError,
   } = useProfilePictureUpload();
+
+  const profilePhotoInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<OnboardingData>({});
   const [originalData, setOriginalData] = useState<OnboardingData>({});
@@ -69,9 +73,7 @@ export function ProfileScreen() {
 
   const isAgent = useIsAgent();
   const STEPS = useMemo(() => getPersonalizationStepsUi(isAgent), [isAgent]);
-  const [activeSection, setActiveSection] = useState<string>(
-    STEPS[0]?.id ?? "demographics",
-  );
+  const [activeSection, setActiveSection] = useState<string>(STEPS[0]?.id ?? "demographics");
   const hasInitializedFormRef = useRef(false);
 
   useEffect(() => {
@@ -80,40 +82,45 @@ export function ProfileScreen() {
     }
   }, [STEPS, activeSection]);
 
-  const sectionCompletion = useMemo(
-    () => getProfileSectionCompletion(formData),
-    [formData],
-  );
+  const sectionCompletion = useMemo(() => getProfileSectionCompletion(formData), [formData]);
 
-  const handleChangeProfilePhoto = useCallback(async () => {
-    // Platform-specific photo upload handled by useProfilePictureUpload hook
-    // This is a placeholder - actual implementation depends on platform
-    try {
-      // On web: would use input[type="file"]
-      // On native: would use expo-document-picker
-      log.warn(
-        LOG_CATEGORIES.ERRORS,
-        "Profile picture upload not implemented for this platform",
-      );
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to upload profile picture. Please try again.";
-      showErrorToast(message);
+  const handleChangeProfilePhoto = useCallback(() => {
+    if (!isWeb) {
+      showErrorToast("Change your profile photo from Settings.");
+      return;
     }
+    profilePhotoInputRef.current?.click();
   }, []);
+
+  const handleProfilePhotoInputChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const validationError = validateProfilePhotoFile(file);
+      if (validationError) {
+        showErrorToast(validationError);
+        e.target.value = "";
+        return;
+      }
+
+      try {
+        await uploadProfilePicture(file);
+      } catch {
+        showErrorToast("Failed to upload profile picture. Please try again.");
+      } finally {
+        e.target.value = "";
+      }
+    },
+    [uploadProfilePicture]
+  );
 
   useEffect(() => {
     if (
       showValidationWarning &&
-      (validationResult.missingFields.length > 0 ||
-        validationResult.errors.length > 0)
+      (validationResult.missingFields.length > 0 || validationResult.errors.length > 0)
     ) {
-      const message = [
-        ...validationResult.missingFields,
-        ...validationResult.errors,
-      ].join("\n");
+      const message = [...validationResult.missingFields, ...validationResult.errors].join("\n");
       // Platform-specific alert - web would use a modal, native uses Alert
       log.warn(LOG_CATEGORIES.ERRORS, "Profile validation issues", { message });
       setShowValidationWarning(false);
@@ -133,7 +140,7 @@ export function ProfileScreen() {
     hasInitializedFormRef.current = true;
     const data = userPreferencesToOnboardingData(
       userPreferences as Record<string, unknown>,
-      userProfile ?? undefined,
+      userProfile ?? undefined
     );
     setFormData(data);
     setOriginalData(data);
@@ -144,26 +151,17 @@ export function ProfileScreen() {
   useEffect(() => {
     if (!hasInitializedFormRef.current) return;
     const nameFromProfile =
-      userProfile != null &&
-      typeof userProfile.name === "string" &&
-      userProfile.name.trim() !== ""
+      userProfile != null && typeof userProfile.name === "string" && userProfile.name.trim() !== ""
         ? userProfile.name.trim()
         : undefined;
     if (!nameFromProfile) return;
-    setFormData((prev) =>
-      prev.name ? prev : { ...prev, name: nameFromProfile },
-    );
-    setOriginalData((prev) =>
-      prev.name ? prev : { ...prev, name: nameFromProfile },
-    );
+    setFormData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
+    setOriginalData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
   }, [userProfile]);
 
-  const updateField = useCallback(
-    (field: keyof OnboardingData, value: unknown) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    },
-    [],
-  );
+  const updateField = useCallback((field: keyof OnboardingData, value: unknown) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const handleStartEdit = useCallback(() => {
     setIsEditMode(true);
@@ -228,6 +226,19 @@ export function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Box className="gap-4 px-4 pb-10 pt-4">
+          {isWeb ? (
+            <>
+              {/* eslint-disable-next-line silverkey/no-primitive-components -- file input has no UI replacement */}
+              <input
+                ref={profilePhotoInputRef}
+                type="file"
+                accept={PROFILE_PHOTO_ACCEPT}
+                onChange={handleProfilePhotoInputChange}
+                className="hidden"
+                aria-hidden
+              />
+            </>
+          ) : null}
           <Box className="flex-row gap-3">
             {isEditMode ? (
               <>
@@ -267,18 +278,13 @@ export function ProfileScreen() {
           <UnderlineTabs
             items={STEPS.map((step) => {
               const status =
-                sectionCompletion[step.id as keyof typeof sectionCompletion] ??
-                "empty";
+                sectionCompletion[step.id as keyof typeof sectionCompletion] ?? "empty";
               const isComplete = status === "complete";
               const needsAttention = status === "needs_attention";
               const icon = step.icon
                 ? React.createElement(step.icon, { className: "h-4 w-4" })
                 : undefined;
-              const suffix = isComplete
-                ? " ✓"
-                : !isComplete && needsAttention
-                  ? " •"
-                  : "";
+              const suffix = isComplete ? " ✓" : !isComplete && needsAttention ? " •" : "";
               return {
                 id: step.id,
                 label: `${step.title}${suffix}`,

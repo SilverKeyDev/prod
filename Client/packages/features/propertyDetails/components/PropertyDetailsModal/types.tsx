@@ -1,7 +1,4 @@
-import type {
-  PropertyDetailsStreamProperty,
-  SearchResult,
-} from "packages/types";
+import type { PropertyDetailsStreamProperty, SearchResult } from "packages/types";
 
 export type PropertyDetailsModalProps = {
   property: PropertyDetailsStreamProperty | SearchResult | null;

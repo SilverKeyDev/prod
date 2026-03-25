@@ -10,9 +10,7 @@ import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 
-export const PropertyAgent: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const listedBy = (
     property as unknown as {

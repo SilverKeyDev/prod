@@ -69,8 +69,8 @@ def get_agent_todos(agent_id: str, include_completed: bool = False) -> list[dict
 def create_todo(
     agent_id: str,
     title: str,
-    due_date: datetime,
-    priority: str = "medium",
+    due_date: datetime | None = None,
+    priority: str | None = None,
     todo_type: str = "manual",
     client_id: str | None = None,
     description: str | None = None,
@@ -81,8 +81,8 @@ def create_todo(
     Args:
         agent_id: The ID of the agent
         title: The todo title
-        due_date: The due date
-        priority: The priority (low, medium, high, urgent)
+        due_date: Optional due date (omit for no deadline)
+        priority: Optional priority (low, medium, high, urgent)
         todo_type: The type (deadline, follow_up, inspection, offer_expiration, closing, manual)
         client_id: Optional client ID
         description: Optional description
@@ -93,8 +93,6 @@ def create_todo(
     try:
         if not title or not title.strip():
             raise ValueError("title is required")
-        if not due_date:
-            raise ValueError("due_date is required")
 
         todo = Todo(
             agent_id=agent_id,

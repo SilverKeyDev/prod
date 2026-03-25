@@ -14,8 +14,7 @@ export function useOnboardingForm(options: UseOnboardingFormOptions = {}) {
   const core = useOnboardingFormCore({
     getSteps: (formData) =>
       getOnboardingStepsMobile({
-        isAgent:
-          formData.is_agent === "yes" || formData.is_agent === "am_agent",
+        isAgent: formData.is_agent === "yes" || formData.is_agent === "am_agent",
       }),
     onSubmitSuccess,
   });

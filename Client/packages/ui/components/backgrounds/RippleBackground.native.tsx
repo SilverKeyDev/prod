@@ -186,9 +186,7 @@ function RippleOverlay() {
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
     if (width > 0 && height > 0) {
-      setSize((prev) =>
-        prev.w === width && prev.h === height ? prev : { w: width, h: height }
-      );
+      setSize((prev) => (prev.w === width && prev.h === height ? prev : { w: width, h: height }));
     }
   };
 

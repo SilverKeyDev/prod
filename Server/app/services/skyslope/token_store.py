@@ -1,4 +1,7 @@
-"""SkySlope OAuth token storage and refresh."""
+"""SkySlope OAuth token storage and refresh.
+
+Refresh uses the standard OAuth2 token endpoint (form body), not HMAC.
+"""
 
 from datetime import datetime, timedelta, timezone
 

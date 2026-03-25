@@ -7,7 +7,7 @@ export type AgendaTodoPriority = "low" | "medium" | "high" | "urgent";
 export type AgendaTodoDTO = {
   id: string;
   title: string;
-  due_date: string;
+  due_date: string | null;
   completed: boolean;
-  priority: AgendaTodoPriority;
+  priority: AgendaTodoPriority | null;
 };

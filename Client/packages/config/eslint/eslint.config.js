@@ -116,6 +116,14 @@ export default tseslint.config(
           },
         },
       ],
+      "silverkey/no-raw-translation-key-literal": [
+        "warn",
+        {
+          translationCalleeNames: ["t", "formatMessage"],
+          exemptCalleeNames: ["color"],
+          ignoredFirstSegments: ["brand", "neutral"],
+        },
+      ],
       "silverkey/no-process-env-outside-config": [
         "error",
         {
@@ -162,12 +170,32 @@ export default tseslint.config(
     },
   },
 
-  // Silence folder-max-items for config files
+  // Silence folder-max-items + max-lines for heavy eslint config files
   {
     files: [
       "packages/config/eslint/eslint.config.js",
       "packages/config/eslint/eslint-overrides.js",
     ],
+    plugins: { silverkey },
+    rules: {
+      "silverkey/folder-max-items": "off",
+      "silverkey/max-lines-hard": "off",
+    },
+  },
+
+  // ESLint plugin rule files live in a flat folder; suppress folder count noise per path
+  {
+    files: ["packages/config/eslint/eslint-plugin-silverkey/rules/ui/*.js"],
+    plugins: { silverkey },
+    rules: { "silverkey/folder-max-items": "off" },
+  },
+  {
+    files: ["packages/features/search/components/header/*.{ts,tsx}"],
+    plugins: { silverkey },
+    rules: { "silverkey/folder-max-items": "off" },
+  },
+  {
+    files: ["packages/ui/styles/*.{ts,tsx}"],
     plugins: { silverkey },
     rules: { "silverkey/folder-max-items": "off" },
   },

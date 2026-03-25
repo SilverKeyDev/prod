@@ -51,6 +51,7 @@ def update_logger_config(data, user):
         "api",
         "errors",
         "security",
+        "polygonSearch",
         "logLevel",
     }
 

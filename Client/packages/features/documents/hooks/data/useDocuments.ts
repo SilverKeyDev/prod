@@ -92,7 +92,7 @@ export const useDocuments = () => {
       address,
     }: {
       file: File;
-      category: string;
+      category?: string;
       propertyId?: string;
       offerId?: string;
       address?: string;
@@ -183,7 +183,7 @@ export const useDocuments = () => {
   const uploadDocument = useCallback(
     async (
       file: File,
-      category: string,
+      category?: string,
       propertyId?: string,
       offerId?: string,
       address?: string

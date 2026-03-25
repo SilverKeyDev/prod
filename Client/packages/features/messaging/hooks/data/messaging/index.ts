@@ -5,6 +5,7 @@
 export type {
   ChatMessage,
   EventRequestStatus,
+  MessagingSendMessageOptions,
   UseMessagingConfig,
   UseMessagingReturn,
 } from "./types";

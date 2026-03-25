@@ -26,10 +26,7 @@ export function LabeledBarRow({
           {valueText}
         </BodyText>
       </Box>
-      <Box
-        className="bg-accent-muted h-2 w-full overflow-hidden rounded-full"
-        aria-hidden
-      >
+      <Box className="bg-accent-muted h-2 w-full overflow-hidden rounded-full" aria-hidden>
         <Box
           className="bg-primary h-full rounded-full transition-all"
           style={{ width: `${clamped * 100}%` }}

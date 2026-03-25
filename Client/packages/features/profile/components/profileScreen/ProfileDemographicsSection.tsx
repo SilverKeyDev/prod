@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 
 import { FIELD_LABELS, type OnboardingData } from "packages/features/profile/utils";
-import { Input } from "packages/ui/components";
-import { DEFAULT_AVATAR_BUNDLED, DEFAULT_AVATAR_WEB_PATH } from "packages/ui/components/asset/logoSource";
+import { ProfileAvatar } from "packages/ui/components/avatar";
+import Input from "packages/ui/components/form/Input";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
-import { Image } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
@@ -13,49 +12,6 @@ import Title from "packages/ui/components/text/Title";
 import { ProfileReadOnlyValue } from "./ProfileReadOnlyValue";
 
 /** Agent/buyer choice is immutable and only shown during onboarding; omitted from profile. */
-
-function ProfileDemographicsAvatar({
-  profilePictureUrl,
-  label,
-}: {
-  profilePictureUrl?: string | null;
-  label?: string | null;
-}) {
-  const [loadFailed, setLoadFailed] = useState(false);
-  const trimmed = profilePictureUrl?.trim();
-  const useRemote = Boolean(trimmed && !loadFailed);
-
-  useEffect(() => {
-    setLoadFailed(false);
-  }, [trimmed]);
-
-  const handleError = useCallback(() => {
-    setLoadFailed(true);
-  }, []);
-
-  const bundledDefault =
-    typeof DEFAULT_AVATAR_BUNDLED === "number" ? DEFAULT_AVATAR_BUNDLED : null;
-
-  if (bundledDefault != null) {
-    return (
-      <Image
-        source={useRemote ? { uri: trimmed! } : bundledDefault}
-        className="h-20 w-20 rounded-full"
-        label={label ?? "Profile"}
-        onError={handleError}
-      />
-    );
-  }
-
-  return (
-    <Image
-      src={useRemote ? trimmed! : DEFAULT_AVATAR_WEB_PATH}
-      className="h-20 w-20 rounded-full"
-      label={label ?? "Profile"}
-      onError={handleError}
-    />
-  );
-}
 
 type ProfileDemographicsSectionProps = {
   formData: OnboardingData;
@@ -94,11 +50,12 @@ export function ProfileDemographicsSection({
           </BodyText>
           <Box className="flex-row flex-wrap items-center gap-4">
             <Box className="bg-primary-muted h-20 w-20 items-center justify-center overflow-hidden rounded-full">
-              <ProfileDemographicsAvatar
-                profilePictureUrl={profilePictureUrl}
+              <ProfileAvatar
+                imageUrl={profilePictureUrl}
                 label={
                   userDisplayName?.trim() ? `Profile photo, ${userDisplayName.trim()}` : "Profile"
                 }
+                imageClassName="h-20 w-20 rounded-full"
               />
             </Box>
             <Box className="gap-1">

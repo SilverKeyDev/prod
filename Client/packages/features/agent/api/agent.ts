@@ -105,6 +105,7 @@ export type ClientSearchResult = {
   name: string;
   email: string;
   phone?: string;
+  profile_picture?: string | null;
   created_at?: string;
 };
 
@@ -186,9 +187,9 @@ export type TodoItem = {
   client_id?: string;
   title: string;
   description?: string;
-  priority: "low" | "medium" | "high" | "urgent";
+  priority: "low" | "medium" | "high" | "urgent" | null;
   type: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
-  due_date: string;
+  due_date: string | null;
   completed: boolean;
   completed_at?: string;
   created_at: string;
@@ -204,7 +205,7 @@ export type GetTodosResponse = {
 
 export type CreateTodoRequest = {
   title: string;
-  due_date: string;
+  due_date?: string;
   priority?: "low" | "medium" | "high" | "urgent";
   type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
   client_id?: string;
@@ -221,9 +222,9 @@ export type CreateTodoResponse = {
 export type UpdateTodoRequest = {
   title?: string;
   description?: string;
-  priority?: "low" | "medium" | "high" | "urgent";
+  priority?: "low" | "medium" | "high" | "urgent" | null;
   type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
-  due_date?: string;
+  due_date?: string | null;
   completed?: boolean;
   client_id?: string;
 };

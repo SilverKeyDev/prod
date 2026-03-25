@@ -11,19 +11,18 @@ type DealStageBadgeProps = {
   className?: string;
 };
 const DealStageBadge: React.FC<DealStageBadgeProps> = ({ stage, className = "" }) => {
+  if (stage === "search") {
+    return null;
+  }
+
   const stageConfig: Record<
-    DealStage,
+    Exclude<DealStage, "search">,
     {
       label: string;
       variant: "success" | "warning" | "info" | "processing" | "default";
       icon: React.ReactNode;
     }
   > = {
-    search: {
-      label: "Search",
-      variant: "info",
-      icon: <Icon name="search" className="h-3 w-3 sm:h-4 sm:w-4" />,
-    },
     touring: {
       label: "Touring",
       variant: "processing",

@@ -138,8 +138,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     key: "searchResults",
     queryKey: () => queryKeys.search.results(),
     queryFn: async () => {
-      // Fetch cached search results on initial load
-      // Backend handles cache validation and returns cached or empty results
+      // Fetch persisted search results on initial load (read-only; no new search on server)
       try {
         const response = await searchApi.searchByPolygon({
           perBucketPages: 20,
@@ -160,7 +159,9 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     shouldPoll: false,
     staleTime: Number.POSITIVE_INFINITY, // Never stale - results stay until new search or explicit refetch
     userType: "all",
-    initialLoad: true,
+    // Do not prefetch at login: same key as useSearchResultsData — duplicate queryFn + refetchOnMount:false
+    // could leave a truncated onlyCached snapshot stuck until manual search. Search page owns first fetch.
+    initialLoad: false,
   },
 
   // ============================================

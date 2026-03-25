@@ -86,10 +86,12 @@ def run_polygon_search_for_all_users(
                 )
                 continue
 
-            # Prepare request body using stored preferences
+            # Prepare request body using stored preferences (forceSearch required to run a new search;
+            # non-force requests only return stored DB rows).
             body = {
                 "user_preferences": prefs,
                 "perBucketPages": int(max(0, min(per_bucket_pages, 20))),
+                "forceSearch": True,
             }
 
             headers = {

@@ -318,6 +318,9 @@ export default function SearchFilterControls({
         formData={formData}
         updateFormData={updateFormData}
         hideHousingType={true}
+        onSearchFilterOverridesPatch={(patch) =>
+          setSearchFilterOverrides((prev) => ({ ...prev, ...patch }))
+        }
       />
     </>
   );

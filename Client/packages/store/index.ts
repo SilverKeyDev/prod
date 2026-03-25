@@ -1,3 +1,4 @@
+export { type AgentDashboardState, useAgentDashboardStore } from "./slices/agentDashboard";
 export { useFeatureFlagsStore } from "./slices/featureFlags";
 export { useGoogleMapsStore } from "./slices/maps";
 export { useNotificationStore } from "./slices/notifications";

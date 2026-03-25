@@ -1,10 +1,7 @@
 /** Documents feature translation strings (documents, documents_upload, secure_upload, reports, pdf). */
 export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
-  "documents.shared_agreement": "Shared agreement",
   "documents.header": "Documents",
   "documents.uploaded": "Uploaded {{date}}",
-  "documents.loading_agreement": "Loading agreement...",
-  "documents.agreement_not_available": "Agreement not available",
 
   "documents_upload.category_label": "Document Category",
   "documents_upload.address_optional": "Address (Optional)",
@@ -18,6 +15,7 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "documents_upload.upload_failed": "Upload failed. Please try again.",
   "documents_upload.uploading": "Uploading...",
   "documents_upload.upload_document": "Upload Document",
+  "documents_upload.missing_file": "Please select a file to upload.",
 
   "secure_upload.click_or_drag": "Click to upload or drag and drop",
   "secure_upload.up_to": "{{types}} up to {{size}}",
@@ -50,26 +48,4 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "pdf.open_in_new_tab": "Open PDF in New Tab",
 
   "documents.revision_download_unavailable": "Download is not available for this revision.",
-
-  "documents_create.title": "Create Agreement",
-  "documents_create.validation_title": "Please enter an agreement title",
-  "documents_create.validation_buyer": "Please select a buyer",
-  "documents_create.success": "Agreement created successfully",
-  "documents_create.error_generic": "Failed to create agreement",
-  "documents_create.field_title": "Agreement Title *",
-  "documents_create.field_title_placeholder": "e.g., Buyer Representation Agreement - John Doe",
-  "documents_create.field_type": "Agreement Type *",
-  "documents_create.field_buyer": "Buyer *",
-  "documents_create.field_buyer_placeholder": "Select a buyer...",
-  "documents_create.show_buyers": "Show buyers",
-  "documents_create.hide_buyers": "Hide buyers",
-  "documents_create.no_buyers": "No buyers found.",
-  "documents_create.field_address": "Property Address (Optional)",
-  "documents_create.field_address_placeholder": "e.g., 123 Main St, San Francisco, CA 94102",
-  "documents_create.field_description": "Description (Optional)",
-  "documents_create.field_description_placeholder": "Add any additional details...",
-  "documents_create.templates_tip":
-    "Tip: After creating the agreement, you can upload the document PDF as a revision.",
-  "documents_create.submit": "Create Agreement",
-  "documents_create.submitting": "Creating...",
 };

@@ -112,13 +112,6 @@
     "reason": "RN modal and list behavior."
   },
   {
-    "id": "select-agreement-modal",
-    "description": "Select agreement modal with RN presentation.",
-    "webPath": "packages/features/agent/components/modals/SelectAgreementModal.tsx",
-    "nativePath": "packages/features/agent/components/modals/SelectAgreementModal.native.tsx",
-    "reason": "RN modal presentation."
-  },
-  {
     "id": "select-document-modal",
     "description": "Select document modal with RN document picker.",
     "webPath": "packages/features/agent/components/modals/SelectDocumentModal.tsx",

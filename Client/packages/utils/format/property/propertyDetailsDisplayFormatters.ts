@@ -46,12 +46,8 @@ export function formatAddress(address: unknown): string {
 }
 
 export function formatPrice(price: string | number | undefined): string {
-  if (price === null || price === undefined || price === "")
-    return "Price not available";
-  const numPrice =
-    typeof price === "string"
-      ? parseFloat(price.replace(/[^0-9.-]+/g, ""))
-      : price;
+  if (price === null || price === undefined || price === "") return "Price not available";
+  const numPrice = typeof price === "string" ? parseFloat(price.replace(/[^0-9.-]+/g, "")) : price;
   if (isNaN(numPrice)) return "Price not available";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -82,19 +78,11 @@ export function getPropertyImages(property: unknown): string[] {
         }
         if (p && typeof p === "object" && "mixedSources" in p) {
           const { mixedSources } = p;
-          if (
-            mixedSources &&
-            typeof mixedSources === "object" &&
-            "jpeg" in mixedSources
-          ) {
+          if (mixedSources && typeof mixedSources === "object" && "jpeg" in mixedSources) {
             const { jpeg } = mixedSources;
             if (Array.isArray(jpeg) && jpeg.length > 0) {
               const lastJpeg = jpeg[jpeg.length - 1];
-              if (
-                lastJpeg &&
-                typeof lastJpeg === "object" &&
-                "url" in lastJpeg
-              ) {
+              if (lastJpeg && typeof lastJpeg === "object" && "url" in lastJpeg) {
                 return lastJpeg.url;
               }
             }

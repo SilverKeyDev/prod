@@ -3,4 +3,4 @@ export { Calendar, CalendarConnectionPrompt, EventRequestCard, UpcomingEvents } 
 export { CreateEventModal } from "./components/view/CreateEventModal";
 export type { AgendaTodoDTO, AgendaTodoPriority } from "./types/agenda";
 export type { GoogleEvent } from "./types/googleEvent";
-export { findSilverKeyCalendar } from "./utils/calendar";
+export { filterCalendarsToAgentOwned, findSilverKeyCalendar } from "./utils/calendar";

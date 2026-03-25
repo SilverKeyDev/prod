@@ -9,10 +9,7 @@ import { Box } from "packages/ui/components/primitives";
 import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
 import { stripSectionRatingField } from "packages/utils/propertyDetails";
 
-import {
-  renderAgeDistribution,
-  renderNeighborhoodContent,
-} from "./propertyNeighborhoodHelpers";
+import { renderAgeDistribution, renderNeighborhoodContent } from "./propertyNeighborhoodHelpers";
 type PropertyNeighborhoodProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
@@ -20,54 +17,40 @@ export const PropertyNeighborhood: React.FC<PropertyNeighborhoodProps> = ({
   property: _property,
   analysisContent,
 }) => {
-  const neighborhoodOverview = analysisContent as
-    | Record<string, unknown>
-    | undefined;
+  const neighborhoodOverview = analysisContent as Record<string, unknown> | undefined;
   const ageDistribution = neighborhoodOverview?.age_distribution as
     | Record<string, string>
     | undefined;
-  const neighborhoodContent = neighborhoodOverview
-    ? { ...neighborhoodOverview }
-    : undefined;
+  const neighborhoodContent = neighborhoodOverview ? { ...neighborhoodOverview } : undefined;
   if (neighborhoodContent && "age_distribution" in neighborhoodContent) {
     delete neighborhoodContent.age_distribution;
   }
-  const { rest: neighborhoodBody, rating: neighborhoodSectionRating } =
-    stripSectionRatingField(neighborhoodContent ?? null);
+  const { rest: neighborhoodBody, rating: neighborhoodSectionRating } = stripSectionRatingField(
+    neighborhoodContent ?? null
+  );
   const neighborhoodContentForRender =
-    neighborhoodBody &&
-    typeof neighborhoodBody === "object" &&
-    !Array.isArray(neighborhoodBody)
+    neighborhoodBody && typeof neighborhoodBody === "object" && !Array.isArray(neighborhoodBody)
       ? (neighborhoodBody as Record<string, unknown>)
       : undefined;
   const hasNeighborhoodContent =
-    neighborhoodContentForRender &&
-    Object.keys(neighborhoodContentForRender).length > 0;
-  const hasAgeDistribution =
-    ageDistribution && Object.keys(ageDistribution).length > 0;
-  if (
-    !hasNeighborhoodContent &&
-    !hasAgeDistribution &&
-    neighborhoodSectionRating === null
-  ) {
+    neighborhoodContentForRender && Object.keys(neighborhoodContentForRender).length > 0;
+  const hasAgeDistribution = ageDistribution && Object.keys(ageDistribution).length > 0;
+  if (!hasNeighborhoodContent && !hasAgeDistribution && neighborhoodSectionRating === null) {
     return null;
   }
   const sectionLabel =
-    DEFAULT_REPORT_SECTIONS.find(
-      (s: { key: string; label: string }) => s.key === "neighborhood",
-    )?.label || "Neighborhood Information";
+    DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "neighborhood")
+      ?.label || "Neighborhood Information";
   return (
     <Box className="p-6">
       <PropertySectionHeader
         iconName="shield"
         title={sectionLabel}
         className="!mb-4"
-        action={
-          <PropertySectionRatingBadge rating={neighborhoodSectionRating} />
-        }
+        action={<PropertySectionRatingBadge rating={neighborhoodSectionRating} />}
       />
       <SectionTintWrapper className="mt-2">
-        <Box className="grid-responsive-1-md-2 gap-6">
+        <Box className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {hasNeighborhoodContent && (
             <Box>
               <Card border="light" className="p-4">

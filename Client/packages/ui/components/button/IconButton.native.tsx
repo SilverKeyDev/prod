@@ -9,6 +9,10 @@ import { Pressable } from "react-native";
 
 import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
 import { Box } from "packages/ui/components/primitives";
+import {
+  ICON_BUTTON_LOADING_FRAME_CLASSES,
+  ICON_BUTTON_LOADING_VARIANT_OVERRIDES,
+} from "packages/ui/styles/variants/iconButtonVariants";
 import type { IconName } from "packages/ui/types/icons";
 
 type IconButtonVariant =
@@ -135,7 +139,7 @@ const IconButton = forwardRef<React.ElementRef<typeof Pressable>, IconButtonProp
         disabled={disabled ?? loading}
         accessibilityRole="button"
         accessibilityLabel={label}
-        className={`items-center justify-center ${variantClass} ${sizeClass} ${roundedClass} ${loading ? "overflow-hidden border-2 border-neutral-600" : ""} ${""} ${className}`}
+        className={`items-center justify-center ${variantClass} ${sizeClass} ${roundedClass} ${loading ? `${ICON_BUTTON_LOADING_FRAME_CLASSES} ${ICON_BUTTON_LOADING_VARIANT_OVERRIDES[variant]}` : ""} ${""} ${className}`}
         {...pressableProps}
       >
         {content}

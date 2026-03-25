@@ -12,10 +12,7 @@ import Title from "packages/ui/components/text/Title";
 interface PropertyAgentProps extends PropertyComponentProps {
   noCard?: boolean;
 }
-export const PropertyAgent: React.FC<PropertyAgentProps> = ({
-  property,
-  noCard = false,
-}) => {
+export const PropertyAgent: React.FC<PropertyAgentProps> = ({ property, noCard = false }) => {
   const listedBy = (
     property as unknown as {
       listed_by: unknown;
@@ -105,11 +102,7 @@ export const PropertyAgent: React.FC<PropertyAgentProps> = ({
       <Box>
         <Box className="mb-4 flex items-center gap-2">
           <Icon name="user" className="text-text-secondary h-5 w-5" />
-          <Title
-            as="h3"
-            size="lg"
-            className="text-text-secondary font-semibold"
-          >
+          <Title as="h3" size="lg" className="text-text-secondary font-semibold">
             Listing Agent
           </Title>
         </Box>

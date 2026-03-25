@@ -1,7 +1,7 @@
 import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
-} from "packages/features/compare/utils/types";
+} from "packages/features/compare/types/compareHomes";
 import { renderReportSectionIcon as renderSectionIcon } from "packages/ui/components/icons/renderReportSectionIcon";
 import { Box } from "packages/ui/components/primitives";
 
@@ -16,11 +16,7 @@ type ComparisonTableRowProps = {
   selectedHomesCount: number;
 };
 
-function getRowClasses(
-  isSectionHeader: boolean,
-  isEven: boolean,
-  isSectionField: boolean,
-) {
+function getRowClasses(isSectionHeader: boolean, isEven: boolean, isSectionField: boolean) {
   const bgClass = isSectionHeader
     ? "bg-accent-muted"
     : isEven
@@ -53,15 +49,14 @@ export function ComparisonTableRow({
 
   const sectionTitle =
     isSectionHeader && field.sectionKey
-      ? DEFAULT_REPORT_SECTIONS.find(
-          (s: { key: string }) => s.key === field.sectionKey,
-        )?.label || field.label
+      ? DEFAULT_REPORT_SECTIONS.find((s: { key: string }) => s.key === field.sectionKey)?.label ||
+        field.label
       : null;
 
   const { bgClass, stickyBgClass, labelCellClass } = getRowClasses(
     isSectionHeader,
     isEven,
-    isSectionField,
+    isSectionField
   );
 
   const cellMinWidth =
@@ -73,9 +68,7 @@ export function ComparisonTableRow({
     <tr
       key={`${isSectionHeader ? "section-header" : "field"}-${field.key}-${index}`}
       className={`relative ${
-        isSectionHeader
-          ? "bg-accent-muted"
-          : `${bgClass} border-border border-t`
+        isSectionHeader ? "bg-accent-muted" : `${bgClass} border-border border-t`
       }`}
     >
       <td
@@ -85,10 +78,7 @@ export function ComparisonTableRow({
         {isSectionHeader ? (
           <Box className="flex items-center gap-2">
             {field.sectionKey &&
-              renderSectionIcon(
-                field.sectionKey,
-                "h-4 w-4 sm:h-5 sm:w-5 text-text-secondary",
-              )}
+              renderSectionIcon(field.sectionKey, "h-4 w-4 sm:h-5 sm:w-5 text-text-secondary")}
             <BodyText as="span" className="text-text-secondary">
               {sectionTitle}
             </BodyText>

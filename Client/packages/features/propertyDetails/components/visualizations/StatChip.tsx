@@ -37,10 +37,7 @@ export function StatChip({
       >
         {value}
       </BodyText>
-      <BodyText
-        as="span"
-        className="text-text-secondary mt-0.5 text-center text-xs"
-      >
+      <BodyText as="span" className="text-text-secondary mt-0.5 text-center text-xs">
         {label}
       </BodyText>
     </Box>

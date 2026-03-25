@@ -1,6 +1,6 @@
-import type { OnboardingData } from "./types";
+import type { ImportantLocation } from "packages/features/profile/types/onboarding";
 
-export type ImportantLocation = NonNullable<OnboardingData["important_locations"]>[number];
+export type { ImportantLocation } from "packages/features/profile/types/onboarding";
 
 export function getPreservedImportantLocations(
   previous: ImportantLocation[] | undefined | null,

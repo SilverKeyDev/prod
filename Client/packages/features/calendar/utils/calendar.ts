@@ -3,6 +3,16 @@ import { color } from "packages/design-tokens";
 import type { Calendar } from "@/features/calendar/types/calendar";
 
 /**
+ * Calendars the signed-in user owns (excludes others’ calendars shared in as reader/freeBusy).
+ * Primary is always included when present.
+ */
+export function filterCalendarsToAgentOwned<T extends { accessRole?: string; primary?: boolean }>(
+  calendars: T[]
+): T[] {
+  return calendars.filter((cal) => cal.primary === true || cal.accessRole === "owner");
+}
+
+/**
  * Find SilverKey calendar from calendars list
  */
 export function findSilverKeyCalendar(calendars: Calendar[]): Calendar | undefined {

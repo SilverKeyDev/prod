@@ -71,6 +71,7 @@ export default function SelectDocumentModal({
                 type="button"
                 variant="outline"
                 size="sm"
+                contentAlign="start"
                 onClick={() => setSelectedDocumentId(document.id)}
                 className={`h-auto min-h-0 w-full justify-start rounded-lg border p-3 text-left ${
                   selectedDocumentId === document.id

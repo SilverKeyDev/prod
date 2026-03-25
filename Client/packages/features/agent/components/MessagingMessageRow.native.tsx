@@ -154,7 +154,18 @@ export function MessagingMessageRowNative({
           {message.shared_document_id &&
             (() => {
               const document = documents.find((d) => d.id === message.shared_document_id);
+              const previewLabel = message.content?.trim();
               if (!document) {
+                if (previewLabel) {
+                  return (
+                    <Box className="border-border bg-background-base mb-2 rounded-lg border p-3">
+                      <Text className="text-text-secondary text-xs font-medium">Shared document</Text>
+                      <Text className="text-text-primary mt-1 text-sm" numberOfLines={2}>
+                        {previewLabel}
+                      </Text>
+                    </Box>
+                  );
+                }
                 return (
                   <Box className="border-border bg-background-base mb-2 rounded-lg border p-3">
                     <Text className="text-text-secondary text-xs font-medium">Shared document</Text>

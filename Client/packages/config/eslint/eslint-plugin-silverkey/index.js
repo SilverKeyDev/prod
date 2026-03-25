@@ -9,6 +9,7 @@ module.exports = {
     "no-restricted-imports-architecture": require("./rules/architecture/no-restricted-imports-architecture"),
     "no-primitive-components": require("./rules/ui/no-primitive-components"),
     "no-console-logger": require("./rules/ui/no-console-logger"),
+    "no-raw-translation-key-literal": require("./rules/ui/no-raw-translation-key-literal"),
     "no-zustand-get-state": require("./rules/hooks/no-zustand-get-state"),
     "no-async-use-effect": require("./rules/hooks/no-async-use-effect"),
     "no-focused-tests": require("./rules/ui/no-focused-tests"),

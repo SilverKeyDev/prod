@@ -3,8 +3,16 @@
  */
 
 import type { AgentConversation } from "packages/api";
+import type { SavedHome } from "packages/schemas/property";
+import type { DocumentData } from "packages/ui/components/cards/document/types";
 
 export type EventRequestStatus = "pending" | "accepted" | "cancelled";
+
+/** Optional args when sending from a modal that already resolved conversation + client. */
+export type MessagingSendMessageOptions = {
+  conversationId?: string;
+  clientIdForAgent?: string;
+};
 
 export type ChatMessage = {
   id: string;
@@ -32,7 +40,9 @@ export type UseMessagingReturn = {
   isLoadingHistory: boolean;
   activeConversation: AgentConversation | null | undefined;
   conversations: AgentConversation[];
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, options?: MessagingSendMessageOptions) => Promise<void>;
+  sendSharedHome: (home: SavedHome) => Promise<void>;
+  sendSharedDocument: (document: DocumentData) => Promise<void>;
   retryMessage: (messageId: string) => Promise<void>;
   setActiveConversationId: (id: string) => void;
   refreshActiveConversationHistory: () => Promise<void>;

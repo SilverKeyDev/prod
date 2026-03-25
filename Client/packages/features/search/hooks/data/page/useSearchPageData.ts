@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useMemo } from "react";
 
 import { getEnv } from "packages/config";
+import { useSavedHomesData } from "packages/hooks/data/useSavedHomesData";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useFiltersStore, useUIStore } from "packages/store";
-import { useSearchContextStore } from "packages/store";
+import { useAgentDashboardStore, useFiltersStore, useSearchContextStore, useUIStore } from "packages/store";
 import { simpleHash } from "packages/utils";
 
 import { useIsochroneData } from "@/features/search/hooks/data/isochrone/useIsochroneData";
 import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
 import { useSearchResultsData } from "@/features/search/hooks/data/results/useSearchResultsData";
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
-import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
 import type { SearchResult } from "@/features/search/types";
 import type { SavedHome } from "@/features/search/types/property";
 
@@ -43,12 +42,14 @@ export function useSearchPageData() {
   const setActiveTab = useFiltersStore((s) => s.setActiveTab);
   const setFiltersHash = useSearchContextStore((s) => s.setFiltersHash);
 
+  const agentViewClientId = useAgentDashboardStore((s) => s.selectedClientId);
+  const clientIdForSavedHomes = agentViewClientId ?? undefined;
   const {
     savedHomes: savedHomesRaw,
     isHomeSaved,
     saveHome,
     removeSavedHome,
-  } = useSavedHomesStoreIntegration();
+  } = useSavedHomesData(clientIdForSavedHomes);
   const { isNotInterested } = useNotInterestedHomesData();
 
   const convertSavedHomeToSearchResult = useCallback((savedHome: SavedHome): SearchResult => {
@@ -87,6 +88,15 @@ export function useSearchPageData() {
       ),
     [searchResults, isNotInterested]
   );
+
+  useEffect(() => {
+    const hidden = searchResults.length - filteredSearchResults.length;
+    log.info(LOG_CATEGORIES.SEARCH, "Search UI pipeline: results vs not-interested filter", {
+      searchResultsCount: searchResults.length,
+      filteredSearchResultsCount: filteredSearchResults.length,
+      hiddenByNotInterested: hidden,
+    });
+  }, [searchResults, filteredSearchResults]);
 
   useEffect(() => {
     if (searchResults.length > 0 && !hasSearched) {

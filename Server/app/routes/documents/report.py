@@ -12,7 +12,7 @@ from ... import db
 from ...models import Document
 from ...services.auth import SecurityException, get_current_user
 from ...services.documents import DocumentService, s3_service
-from ...utils.common_patterns import require_authenticated_user
+from ...utils.common_patterns import require_authenticated_user, resolve_agent_scoped_user_id
 from ...utils.security import rate_limit
 
 # Get logger using centralized utility
@@ -247,7 +247,10 @@ def delete_report(user, report_id):
 def get_user_documents(user):
     """Get all documents for the authenticated user."""
     try:
-        documents = Document.query.filter_by(user_id=user.id).all()
+        target_uid, scope_err = resolve_agent_scoped_user_id(user)
+        if scope_err:
+            return scope_err[0], scope_err[1]
+        documents = Document.query.filter_by(user_id=target_uid).all()
 
         documents_data = [
             {

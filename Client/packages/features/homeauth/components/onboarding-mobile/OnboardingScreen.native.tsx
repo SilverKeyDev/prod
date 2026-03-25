@@ -1,13 +1,7 @@
 import React from "react";
 
 import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
-import {
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Pressable, StyleSheet, View } from "react-native";
 
 import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
@@ -20,6 +14,7 @@ import {
 } from "packages/features/profile/components/sections"; // eslint-disable-line silverkey/no-cross-feature-internals
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
+import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
 
 import { DemographicsStep } from "./DemographicsStep.native";
 import { HousingStep } from "./HousingStep.native";
@@ -32,9 +27,7 @@ export type OnboardingScreenNativeProps = {
 
 const KEYBOARD_AVOIDING_IOS = "onboarding_ios_keyboard_avoiding";
 
-export function OnboardingScreenNative({
-  onSubmitSuccess,
-}: OnboardingScreenNativeProps) {
+export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNativeProps) {
   const useIOSKeyboardAvoiding = useFeature(KEYBOARD_AVOIDING_IOS);
   const {
     steps,
@@ -55,12 +48,7 @@ export function OnboardingScreenNative({
     if (!step) return null;
     switch (step.id) {
       case "demographics":
-        return (
-          <DemographicsStep
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        );
+        return <DemographicsStep formData={formData} updateFormData={updateFormData} />;
       case "agent_brokerage":
         return (
           <AgentBrokerageSection
@@ -89,13 +77,9 @@ export function OnboardingScreenNative({
           />
         );
       case "housing":
-        return (
-          <HousingStep formData={formData} updateFormData={updateFormData} />
-        );
+        return <HousingStep formData={formData} updateFormData={updateFormData} />;
       case "location":
-        return (
-          <LocationStep formData={formData} updateFormData={updateFormData} />
-        );
+        return <LocationStep formData={formData} updateFormData={updateFormData} />;
       default:
         return (
           <Box className="py-6">
@@ -151,9 +135,7 @@ export function OnboardingScreenNative({
       <View style={styles.footer}>
         {currentStep > 0 ? (
           <Pressable onPress={prevStep} style={styles.backButton}>
-            <Text className="text-text-secondary text-base font-medium">
-              Back
-            </Text>
+            <Text className="text-text-secondary text-base font-medium">Back</Text>
           </Pressable>
         ) : (
           <View style={styles.backPlaceholder} />
@@ -163,10 +145,7 @@ export function OnboardingScreenNative({
           disabled={loading}
           accessibilityRole="button"
           accessibilityState={{ busy: loading }}
-          style={[
-            styles.primaryButton,
-            loading && styles.primaryButtonDisabled,
-          ]}
+          style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
         >
           {loading ? (
             <KeyTurnLoader message="" />

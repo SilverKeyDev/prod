@@ -46,7 +46,7 @@ export function ProfileTagChip({
           icon={<Icon name="x" className="h-3.5 w-3.5" />}
           onClick={onRemove}
           disabled={disabled}
-          className="text-text-secondary hover:bg-neutral-100 -mr-0.5 h-6 min-w-0 rounded-full p-0.5 touch-manipulation"
+          className="text-text-secondary -mr-0.5 h-6 min-w-0 touch-manipulation rounded-full p-0.5 hover:bg-neutral-100"
           label={removeLabel ?? `Remove ${label}`}
         />
       ) : null}

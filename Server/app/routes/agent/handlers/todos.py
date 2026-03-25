@@ -40,18 +40,20 @@ def create_todo_endpoint(user):
         data = request.get_json(force=True)
         title = data.get("title")
         due_date_str = data.get("due_date")
-        priority = data.get("priority", "medium")
+        priority = data.get("priority") if "priority" in data else None
         todo_type = data.get("type", "manual")
         client_id = data.get("client_id")
         description = data.get("description")
         if not title:
             return jsonify({"success": False, "error": "title is required"}), 400
-        if not due_date_str:
-            return jsonify({"success": False, "error": "due_date is required"}), 400
-        try:
-            due_date = datetime.fromisoformat(due_date_str.replace("Z", "+00:00"))
-        except Exception as e:
-            return jsonify({"success": False, "error": f"Invalid due_date format: {str(e)}"}), 400
+        due_date = None
+        if due_date_str:
+            try:
+                due_date = datetime.fromisoformat(due_date_str.replace("Z", "+00:00"))
+            except Exception as e:
+                return jsonify(
+                    {"success": False, "error": f"Invalid due_date format: {str(e)}"}
+                ), 400
         todo = create_todo(
             agent_id=str(user.id),
             title=title,
@@ -90,13 +92,16 @@ def update_todo_endpoint(user, todo_id):
         if "type" in data:
             update_data["type"] = data["type"]
         if "due_date" in data:
-            try:
-                due_date = datetime.fromisoformat(data["due_date"].replace("Z", "+00:00"))
-                update_data["due_date"] = due_date
-            except Exception as e:
-                return jsonify(
-                    {"success": False, "error": f"Invalid due_date format: {str(e)}"}
-                ), 400
+            if data["due_date"] is None:
+                update_data["due_date"] = None
+            else:
+                try:
+                    due_date = datetime.fromisoformat(data["due_date"].replace("Z", "+00:00"))
+                    update_data["due_date"] = due_date
+                except Exception as e:
+                    return jsonify(
+                        {"success": False, "error": f"Invalid due_date format: {str(e)}"}
+                    ), 400
         if "completed" in data:
             update_data["completed"] = bool(data["completed"])
         if "client_id" in data:

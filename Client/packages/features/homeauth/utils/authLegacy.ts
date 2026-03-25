@@ -8,12 +8,10 @@
  * This file is kept for backward compatibility but should not be used in new code.
  */
 
+import type { LogoutResult } from "packages/features/homeauth/types/auth/logout";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
-export type LogoutResult = {
-  success: boolean;
-  error?: string;
-};
+export type { LogoutResult } from "packages/features/homeauth/types/auth/logout";
 
 /**
  * @deprecated Use useSecureAuth().logout or authApi.logout() instead

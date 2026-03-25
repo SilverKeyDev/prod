@@ -8,9 +8,7 @@ import Card from "packages/ui/components/cards/Card";
 import { Box, Image } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
-export const PropertyCommute: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyCommute: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const commute = (
     property as unknown as {
@@ -32,10 +30,8 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({
       }
     | undefined;
   if (!commute) return null;
-  const hasTravelTimes =
-    Array.isArray(commute.travel_times) && commute.travel_times.length > 0;
-  const hasSimple =
-    commute.commute_time != null || commute.commute_distance != null;
+  const hasTravelTimes = Array.isArray(commute.travel_times) && commute.travel_times.length > 0;
+  const hasSimple = commute.commute_time != null || commute.commute_distance != null;
   if (!hasTravelTimes && !hasSimple) return null;
   return (
     <Box className="p-6">
@@ -64,21 +60,11 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({
                 <Box className="border-border bg-background-surface rounded-lg border p-4">
                   <Box className="flex aspect-square w-full items-center justify-center">
                     <Box className="text-text-secondary text-center">
-                      <Icon
-                        name="map-pin"
-                        className="text-text-secondary mx-auto mb-3 h-12 w-12"
-                      />
-                      <BodyText
-                        as="p"
-                        className="text-text-secondary font-medium"
-                      >
+                      <Icon name="map-pin" className="text-text-secondary mx-auto mb-3 h-12 w-12" />
+                      <BodyText as="p" className="text-text-secondary font-medium">
                         {t("property_details.commute_map")}
                       </BodyText>
-                      <BodyText
-                        as="p"
-                        size="sm"
-                        className="text-text-secondary mt-1"
-                      >
+                      <BodyText as="p" size="sm" className="text-text-secondary mt-1">
                         {t("property_details.map_generating")}
                       </BodyText>
                     </Box>
@@ -94,10 +80,7 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({
                   : null;
                 const tolerance = c.commute_tolerance;
                 let colorClass = "text-primary bg-primary";
-                if (
-                  typeof travelTimeMinutes === "number" &&
-                  typeof tolerance === "number"
-                ) {
+                if (typeof travelTimeMinutes === "number" && typeof tolerance === "number") {
                   if (travelTimeMinutes > tolerance * 1.2) {
                     colorClass = "text-red-600 bg-red-50";
                   } else if (travelTimeMinutes > tolerance) {
@@ -123,10 +106,7 @@ export const PropertyCommute: React.FC<PropertyComponentProps> = ({
                           </BodyText>
                         </Box>
                         <Box className="mt-1 flex items-center justify-between">
-                          <BodyText
-                            as="p"
-                            className="text-text-secondary flex-1 truncate text-xs"
-                          >
+                          <BodyText as="p" className="text-text-secondary flex-1 truncate text-xs">
                             {c.location_address || c.address}
                           </BodyText>
                           {tolerance && (

@@ -2,21 +2,23 @@ import { dateParseISO } from "packages/utils/date";
 
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { UpcomingAgendaItem } from "@/features/calendar/types/upcomingAgenda";
 
 import { getEventStartDate } from "./eventParsing";
 
-export type UpcomingAgendaItem =
-  | { kind: "event"; event: ExtendedGoogleEvent }
-  | { kind: "todo"; todo: AgendaTodoDTO };
+export type { UpcomingAgendaItem } from "@/features/calendar/types/upcomingAgenda";
 
 /**
  * Todos use start-of-local-day for sorting so they align with the upcoming week window.
  */
 export function todoAgendaSortTimestamp(todo: AgendaTodoDTO): number {
+  if (todo.due_date == null || todo.due_date === "") {
+    return Number.MAX_SAFE_INTEGER;
+  }
   try {
     return dateParseISO(todo.due_date).startOf("day").valueOf();
   } catch {
-    return 0;
+    return Number.MAX_SAFE_INTEGER;
   }
 }
 
@@ -38,6 +40,9 @@ export function filterTodosInRange(
   }
 
   return todos.filter((t) => {
+    if (t.due_date == null || t.due_date === "") {
+      return true;
+    }
     try {
       const dueMs = dateParseISO(t.due_date).valueOf();
       return dueMs >= minMs && dueMs <= maxMs;

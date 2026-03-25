@@ -2,7 +2,6 @@ import { useCallback } from "react";
 
 import { getEnv } from "packages/config";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useNavigation } from "packages/navigation";
 import { dateNow } from "packages/utils/date";
 
 import type { SearchResult } from "@/features/search/types";

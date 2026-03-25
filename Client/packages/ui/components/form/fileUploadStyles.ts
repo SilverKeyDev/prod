@@ -46,7 +46,7 @@ export const FILE_UPLOAD_ENABLED = "cursor-pointer";
 /** Base dashed border for drop zones (add state colors separately) */
 export const DROP_ZONE_BORDER_BASE = `rounded-lg ${DROP_ZONE_BORDER_WEB}`;
 
-/** Empty state / add-more container (e.g. no agreements yet, add todo) */
+/** Empty state / add-more container (e.g. empty list, add todo) */
 export const EMPTY_STATE_DASHED_BORDER = DASHED_BORDER_THIN_GRAY_300;
 
 /** Add button dashed border (e.g. add location, add another) */

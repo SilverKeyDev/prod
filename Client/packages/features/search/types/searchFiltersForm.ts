@@ -10,8 +10,14 @@ export type SearchFiltersFormData = {
   preferred_bathrooms?: number;
   preferred_bathrooms_max?: number;
   preferred_housing_type?: string;
+  /** Legacy categorical; cleared when using acre range sliders */
   preferred_lot_size?: string;
+  /** Legacy categorical; cleared when using age range sliders */
   preferred_home_age?: string;
+  preferred_lot_size_min?: number;
+  preferred_lot_size_max?: number;
+  preferred_home_age_min?: number;
+  preferred_home_age_max?: number;
   preferred_architectural_style?: string;
   renovation_preference?: string;
   intended_property_use?: string;

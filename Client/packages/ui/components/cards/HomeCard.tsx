@@ -1,20 +1,13 @@
 import type { CardHeartSavePropertyLike } from "@ui/button/HeartSave";
+import type { KeyboardEvent } from "react";
 
-import PropertyDetailsModal from "packages/features/propertyDetails/components/PropertyDetailsModal";
+import type { Property } from "packages/features/search/hooks/data/property/propertyDetailsTypes";
 import {
   formatFilenameToAddress,
   formatLotSize,
   truncateText,
 } from "packages/features/search/types/search/address";
-import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/primitives";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
-
-import ModalPortal from "@/components/modals/ModalPortal";
-import {
-  type Property,
-  usePropertyDetails,
-} from "@/features/search/hooks/data/property/usePropertyDetails";
 
 import { CardHeartSaveWithProps, CardViewDetailsButton, TrianglePointer } from "./base/index";
 import PropertyCard from "./PropertyCard";
@@ -48,6 +41,8 @@ type HomeCardProps = {
   onFocus?: (property: Property) => void;
   /** When provided, the card shows a save/favorite heart using this state (e.g. from useSavedHomesData). */
   saveState?: HomeCardSaveState;
+  /** Fetch/open property details (e.g. pass `fetchPropertyDetails` from `usePropertyDetails`). Modal lives in the parent to avoid ui → propertyDetails → ui cycles. */
+  onViewDetails: (property: Property) => Promise<void>;
 };
 
 function convertHomeToProperty(home: HomeDescription, formattedAddress: string): Property {
@@ -84,7 +79,7 @@ function formatHomePrice(price: string | number | undefined): string {
 type HomeCardViewProps = {
   isOnMap: boolean;
   onCardClick: () => void;
-  onKeyDown: (e: React.KeyboardEvent) => void;
+  onKeyDown: (e: KeyboardEvent) => void;
   home: HomeDescription;
   displayName: string;
   price: string;
@@ -93,10 +88,6 @@ type HomeCardViewProps = {
   property: Property;
   saveState: HomeCardSaveState | undefined;
   onViewDetails: () => Promise<void>;
-  selectedProperty: Property | null;
-  onCloseModal: () => void;
-  onGenerateReport: (address: string) => void;
-  isLoadingPropertyDetails: boolean;
 };
 
 function HomeCardView({
@@ -111,10 +102,6 @@ function HomeCardView({
   property,
   saveState,
   onViewDetails,
-  selectedProperty,
-  onCloseModal,
-  onGenerateReport,
-  isLoadingPropertyDetails,
 }: HomeCardViewProps) {
   const propertyLike: CardHeartSavePropertyLike = {
     id: property.id,
@@ -165,16 +152,6 @@ function HomeCardView({
           />
         }
       />
-      {selectedProperty && (
-        <ModalPortal>
-          <PropertyDetailsModal
-            property={selectedProperty}
-            onClose={onCloseModal}
-            onGenerateReport={onGenerateReport}
-            isLoading={isLoadingPropertyDetails}
-          />
-        </ModalPortal>
-      )}
     </Box>
   );
 }
@@ -185,14 +162,8 @@ export default function HomeCard({
   isOnMap = false,
   onFocus,
   saveState,
+  onViewDetails,
 }: HomeCardProps) {
-  const {
-    selectedProperty,
-    fetchPropertyDetails,
-    clearSelectedProperty,
-    isLoading: isLoadingPropertyDetails,
-  } = usePropertyDetails();
-  const { navigate } = useNavigation();
   const formattedAddress = formatFilenameToAddress(home.home_id);
   const displayName = truncateText(home.address ?? formattedAddress ?? `Home ${home.home_id}`, 35);
   const property = convertHomeToProperty(home, formattedAddress);
@@ -200,24 +171,12 @@ export default function HomeCard({
   const price = formatHomePrice(home.price);
 
   const handleViewDetails = async () => {
-    await fetchPropertyDetails(property);
-  };
-
-  const handleGenerateReport = (address: string) => {
-    getLocalStorage().setItem(
-      "generateReportState",
-      JSON.stringify({
-        address,
-        reportType: "detailed",
-        selectedClientId: "",
-      })
-    );
-    void navigate("SAVED");
+    await onViewDetails(property);
   };
 
   const handleCardClick = () => onFocus?.(property);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       handleCardClick();
@@ -237,10 +196,6 @@ export default function HomeCard({
       property={property}
       saveState={saveState}
       onViewDetails={handleViewDetails}
-      selectedProperty={selectedProperty ?? null}
-      onCloseModal={clearSelectedProperty}
-      onGenerateReport={handleGenerateReport}
-      isLoadingPropertyDetails={isLoadingPropertyDetails}
     />
   );
 }

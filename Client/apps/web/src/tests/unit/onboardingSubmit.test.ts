@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { handleSubmit, type PreferencesSubmitResult } from "packages/features/profile/utils/submitHandler";
+import { handleSubmit, type PreferencesSubmitResult } from "packages/features/profile";
 
 const removeItemMock = vi.fn();
 
@@ -20,9 +20,8 @@ describe("onboarding submission validation bypass", () => {
       .fn<() => Promise<PreferencesSubmitResult>>()
       .mockResolvedValue({ success: true });
     const setLoading = vi.fn<(value: boolean) => void>();
-    const setValidationResult = vi.fn<
-      (value: { missingFields: string[]; errors: string[] }) => void
-    >();
+    const setValidationResult =
+      vi.fn<(value: { missingFields: string[]; errors: string[] }) => void>();
     const setShowValidationWarning = vi.fn<(value: boolean) => void>();
     const validateFunction = vi.fn(() => ({
       isValid: false,

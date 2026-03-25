@@ -57,19 +57,10 @@ export default function BudgetRangeSlider({
     return `${formatPrefix}${formatNumber(val)}`;
   };
   const formattedValue = formatValue ?? defaultFormatValue;
-  const { toSliderPercent, fromSliderPercent } = useSliderTickMapping(
-    tickValues,
-    valueDecimals
-  );
+  const { toSliderPercent, fromSliderPercent } = useSliderTickMapping(tickValues, valueDecimals);
 
-  const minSliderValue = useMemo(
-    () => toSliderPercent(minValue),
-    [minValue, toSliderPercent]
-  );
-  const maxSliderValue = useMemo(
-    () => toSliderPercent(maxValue),
-    [maxValue, toSliderPercent]
-  );
+  const minSliderValue = useMemo(() => toSliderPercent(minValue), [minValue, toSliderPercent]);
+  const maxSliderValue = useMemo(() => toSliderPercent(maxValue), [maxValue, toSliderPercent]);
 
   const handleMinSliderChange = (e: { target: { value: string } }) => {
     const raw = parseFloat(e.target.value);
@@ -120,7 +111,7 @@ export default function BudgetRangeSlider({
           {showTextHeader ? valueBlock : null}
           <Box className="relative w-full justify-center" style={{ height: SLIDER_HIT_HEIGHT }}>
             <Box
-              className="pointer-events-none bg-border absolute left-0 right-0 w-full rounded-lg"
+              className="bg-border pointer-events-none absolute left-0 right-0 w-full rounded-lg"
               style={{
                 height: trackHeight,
                 top: "50%",

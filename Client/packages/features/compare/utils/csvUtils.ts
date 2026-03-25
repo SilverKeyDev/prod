@@ -1,7 +1,9 @@
+import type {
+  CompareHomesComparisonField,
+  CompareHomesPropertyDetails,
+} from "packages/features/compare/types/compareHomes";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
 import { createBlob, createFile, getDocument, getNavigator } from "packages/utils/platform";
-
-import type { CompareHomesComparisonField, CompareHomesPropertyDetails } from "./types";
 
 export function generateCSVContent(
   comparisonData: CompareHomesPropertyDetails[],

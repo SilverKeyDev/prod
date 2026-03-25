@@ -17,6 +17,7 @@ const Cover: React.FC<CoverProps> = (props) => {
     headerContent,
     footerContent,
     showHeaderBorder = true,
+    headerContainerStyle,
   } = props;
 
   useEffect(() => {
@@ -36,16 +37,14 @@ const Cover: React.FC<CoverProps> = (props) => {
     >
       <View style={styles.container}>
         {(title ?? headerContent ?? showCloseButton) && (
-          <View style={[styles.header, showHeaderBorder && styles.headerBorder]}>
+          <View
+            style={[styles.header, showHeaderBorder && styles.headerBorder, headerContainerStyle]}
+          >
             <View style={styles.headerContent}>
               {headerContent ?? (title ? <Text style={styles.title}>{title}</Text> : null)}
             </View>
             {showCloseButton && (
-              <Pressable
-                onPress={onClose}
-                style={styles.closeButton}
-                accessibilityLabel="Close"
-              >
+              <Pressable onPress={onClose} style={styles.closeButton} accessibilityLabel="Close">
                 <Text style={styles.closeText}>×</Text>
               </Pressable>
             )}

@@ -1,14 +1,14 @@
 import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
-} from "packages/features/compare/utils/types";
+} from "packages/features/compare/types/compareHomes";
 
 import { addAnalysisFields } from "./analysisFields";
 import { addCommuteFields } from "./commuteFields";
 import { getCoreFields } from "./coreFields";
 import { addFeatureFields } from "./featureFields";
 
-export type { CompareHomesComparisonField } from "packages/features/compare/utils/types";
+export type { CompareHomesComparisonField } from "packages/features/compare/types/compareHomes";
 
 export function getAllComparisonFields(
   comparisonData: CompareHomesPropertyDetails[],

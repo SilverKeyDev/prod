@@ -31,9 +31,7 @@ function safeStringify(value: unknown): string {
   return "[Unknown]";
 }
 
-export function formatAgentPhoneNumber(
-  ph: Record<string, unknown> | undefined,
-): string {
+export function formatAgentPhoneNumber(ph: Record<string, unknown> | undefined): string {
   if (!ph) return "Phone available";
   const { areacode, prefix, number } = ph as {
     areacode?: unknown;
@@ -59,8 +57,7 @@ export function getAgentFromProperty(property: unknown): {
   phone: Record<string, unknown> | undefined;
 } {
   const listedBy = (property as { listed_by: unknown }).listed_by;
-  const hasAgent =
-    listedBy && typeof listedBy === "object" && listedBy !== null;
+  const hasAgent = listedBy && typeof listedBy === "object" && listedBy !== null;
   const agent = hasAgent ? (listedBy as Record<string, unknown>) : null;
   return {
     hasAgent: !!agent,
@@ -96,10 +93,7 @@ export function getPropertyBasicFields(property: Record<string, unknown>): {
     lotSize: property.lotSize as number | string | undefined,
     homeType: property.homeType as string | undefined,
     propertyType: property.propertyType as string | undefined,
-    pricePerSquareFoot: property.pricePerSquareFoot as
-      | number
-      | string
-      | undefined,
+    pricePerSquareFoot: property.pricePerSquareFoot as number | string | undefined,
     garageSpaces: property.garageSpaces as number | undefined,
     parking: property.parking as number | undefined,
     zestimate: property.zestimate as number | undefined,

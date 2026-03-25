@@ -10,7 +10,6 @@ import ProfilePictureUpload from "@/features/profile/components/profilePicture/P
 import Label from "@/features/profile/components/settings/inputs/Label";
 import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
 import {
-  AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT,
   effectiveIsAgentForOptionalBuyerUi,
   FIELD_LABELS,
   IS_AGENT_OPTIONS,
@@ -62,7 +61,7 @@ export default function DemographicsSection({
   showAgentChoice = true,
 }: DemographicsSectionProps) {
   const authIsAgent = useIsAgent();
-  const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
+  const showBuyerFacingDemographics = !effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
     formIsAgent: formData.is_agent,
   });
@@ -188,70 +187,65 @@ export default function DemographicsSection({
         ]}
       />
 
-      <>
-        {showAgentOptionalBuyerCallout && (
-          <Box className="border-border bg-background-surface rounded-lg border px-3 py-2">
-            <Box className="text-text-secondary text-xs">
-              {AGENT_OPTIONAL_BUYER_SEARCH_PREFERENCES_HINT}
+      {showBuyerFacingDemographics ? (
+        <>
+          {/* Why are you joining SilverKey? (multiselect tags) */}
+          <Box>
+            <Label>{FIELD_LABELS.WHY_JOINING_SILVERKEY}</Label>
+            <Box className="mt-2">
+              <OptionTagInput
+                options={WHY_JOINING_SILVERKEY_OPTIONS}
+                value={(formData.why_joining_silverkey as string[]) ?? []}
+                onChange={(value: string[]) => updateFormData("why_joining_silverkey", value)}
+                isEditMode={isEditMode}
+              />
             </Box>
           </Box>
-        )}
-        {/* Why are you joining SilverKey? (multiselect tags) */}
-        <Box>
-          <Label>{FIELD_LABELS.WHY_JOINING_SILVERKEY}</Label>
-          <Box className="mt-2">
-            <OptionTagInput
-              options={WHY_JOINING_SILVERKEY_OPTIONS}
-              value={(formData.why_joining_silverkey as string[]) ?? []}
-              onChange={(value: string[]) => updateFormData("why_joining_silverkey", value)}
-              isEditMode={isEditMode}
+
+          {/* Buyer's Agent Section */}
+          <Box className="mt-6">
+            <AlignedRow
+              breakIntoRows="md"
+              gap="lg"
+              justify="start"
+              items={[
+                {
+                  title: <Label>{FIELD_LABELS.HAS_BUYERS_AGENT}</Label>,
+                  content: isEditMode ? (
+                    <Dropdown
+                      value={formData.has_buyers_agent ?? ""}
+                      onChange={(value) => updateFormData("has_buyers_agent", value)}
+                      options={HAS_BUYERS_AGENT_OPTIONS}
+                      placeholder="Select..."
+                    />
+                  ) : (
+                    <Box
+                      className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.has_buyers_agent)}`}
+                    >
+                      {getOptionLabel(HAS_BUYERS_AGENT_OPTIONS, formData.has_buyers_agent)}
+                    </Box>
+                  ),
+                },
+                {
+                  title:
+                    formData.has_buyers_agent === "no" ? (
+                      <Label>Looking for Agent?</Label>
+                    ) : (
+                      <Box className="mb-2 block text-sm font-medium text-transparent">&nbsp;</Box>
+                    ),
+                  content: (
+                    <DemographicsLookingForAgentCell
+                      formData={formData}
+                      isEditMode={isEditMode}
+                      updateFormData={updateFormData}
+                    />
+                  ),
+                },
+              ]}
             />
           </Box>
-        </Box>
-
-        {/* Buyer's Agent Section */}
-        <Box className="mt-6">
-          <AlignedRow
-            breakIntoRows="md"
-            gap="lg"
-            justify="start"
-            items={[
-              {
-                title: <Label>{FIELD_LABELS.HAS_BUYERS_AGENT}</Label>,
-                content: isEditMode ? (
-                  <Dropdown
-                    value={formData.has_buyers_agent ?? ""}
-                    onChange={(value) => updateFormData("has_buyers_agent", value)}
-                    options={HAS_BUYERS_AGENT_OPTIONS}
-                    placeholder="Select..."
-                  />
-                ) : (
-                  <Box
-                    className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.has_buyers_agent)}`}
-                  >
-                    {getOptionLabel(HAS_BUYERS_AGENT_OPTIONS, formData.has_buyers_agent)}
-                  </Box>
-                ),
-              },
-              {
-                title:
-                  formData.has_buyers_agent === "no" ? (
-                    <Label>Looking for Agent?</Label>
-                  ) : (
-                    <Box className="mb-2 block text-sm font-medium text-transparent">&nbsp;</Box>
-                  ),
-                content: (
-                  <DemographicsLookingForAgentCell
-                    formData={formData}
-                    isEditMode={isEditMode}
-                    updateFormData={updateFormData}
-                  />
-                ),
-              },
-            ]}
-          />
-        </Box>
-      </>
+        </>
+      ) : null}
     </>
   );
   return wrapInCard ? (

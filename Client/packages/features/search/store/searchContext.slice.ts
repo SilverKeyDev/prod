@@ -9,10 +9,14 @@ export type SearchContextAnchor = {
   zoom?: number;
 };
 
-/** Non-persisted filter overrides sent with search request (e.g. max beds/baths from range sliders) */
+/** Non-persisted filter overrides sent with search request (e.g. range sliders before DB save) */
 export type SearchFilterOverrides = {
   preferred_bedrooms_max?: number;
   preferred_bathrooms_max?: number;
+  preferred_lot_size_min?: number;
+  preferred_lot_size_max?: number;
+  preferred_home_age_min?: number;
+  preferred_home_age_max?: number;
 };
 
 export type SearchContextState = {

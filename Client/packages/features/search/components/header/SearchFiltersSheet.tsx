@@ -48,12 +48,27 @@ export function SearchFiltersSheet({
     setSaving(true);
     try {
       await submitPreferences(formData as Record<string, unknown>);
-      const overrides: { preferred_bedrooms_max?: number; preferred_bathrooms_max?: number } = {};
-      if (formData.preferred_bedrooms_max != null)
-        overrides.preferred_bedrooms_max = formData.preferred_bedrooms_max;
-      if (formData.preferred_bathrooms_max != null)
-        overrides.preferred_bathrooms_max = formData.preferred_bathrooms_max;
-      setSearchFilterOverrides(overrides);
+      setSearchFilterOverrides((prev) => ({
+        ...prev,
+        ...(formData.preferred_bedrooms_max != null && {
+          preferred_bedrooms_max: formData.preferred_bedrooms_max,
+        }),
+        ...(formData.preferred_bathrooms_max != null && {
+          preferred_bathrooms_max: formData.preferred_bathrooms_max,
+        }),
+        ...(formData.preferred_lot_size_min != null && {
+          preferred_lot_size_min: formData.preferred_lot_size_min,
+        }),
+        ...(formData.preferred_lot_size_max != null && {
+          preferred_lot_size_max: formData.preferred_lot_size_max,
+        }),
+        ...(formData.preferred_home_age_min != null && {
+          preferred_home_age_min: formData.preferred_home_age_min,
+        }),
+        ...(formData.preferred_home_age_max != null && {
+          preferred_home_age_max: formData.preferred_home_age_max,
+        }),
+      }));
       await refreshUserPreferences();
       onApply();
       onClose();
@@ -92,7 +107,13 @@ export function SearchFiltersSheet({
         </Button>
       }
     >
-      <SearchFiltersContent formData={formData} update={update} />
+      <SearchFiltersContent
+        formData={formData}
+        update={update}
+        onSearchFilterOverridesPatch={(patch) =>
+          setSearchFilterOverrides((prev) => ({ ...prev, ...patch }))
+        }
+      />
     </BaseModal>
   );
 }

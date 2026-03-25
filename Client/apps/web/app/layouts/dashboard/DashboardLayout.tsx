@@ -19,8 +19,10 @@ import { DashboardContent } from "./DashboardContent";
 import { DashboardHeader } from "./DashboardHeader";
 import { useDashboardRoute } from "./useDashboardRoute";
 
-/** Height reserved for fixed MobileBottomNav on mobile (4rem + safe area). */
-const MOBILE_BOTTOM_NAV_OFFSET = "calc(4rem + env(safe-area-inset-bottom))";
+/** Matches MobileBottomNav: min-h-16 + vertical padding max(safe-area, 4px) each. */
+const MOBILE_BOTTOM_RESERVED =
+  "calc(4rem + max(env(safe-area-inset-bottom, 0), 4px) + max(env(safe-area-inset-bottom, 0), 4px))";
+const MOBILE_BOTTOM_NAV_OFFSET = MOBILE_BOTTOM_RESERVED;
 
 type HeaderConfig =
   | { type: "rheader"; title: string; subtitle?: string }
@@ -89,7 +91,7 @@ export default function DashboardLayout({
           isMobile
             ? ({
                 "--mobile-bottom-nav-offset": MOBILE_BOTTOM_NAV_OFFSET,
-                "--mobile-bottom-reserved": "calc(4rem + env(safe-area-inset-bottom, 0))",
+                "--mobile-bottom-reserved": MOBILE_BOTTOM_RESERVED,
               } as React.CSSProperties & {
                 "--mobile-bottom-nav-offset": string;
                 "--mobile-bottom-reserved": string;
@@ -115,7 +117,7 @@ export default function DashboardLayout({
         <main
           id="main-content"
           tabIndex={-1}
-          className={`relative z-0 ml-0 min-w-0 flex-1 transition-all duration-200 md:ml-0 ${
+          className={`relative z-0 ml-0 min-w-0 flex-1 transition-all duration-200 md:ml-0 max-md:pb-mobile-nav ${
             isFullHeightRoute ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >

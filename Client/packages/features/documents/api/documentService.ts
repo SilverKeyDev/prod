@@ -4,6 +4,9 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { createAbortManager, HttpError, isAbortError } from "packages/services/http";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
+/** Client-side category when upload UI does not collect one (not sent on multipart upload). */
+export const DEFAULT_UPLOAD_DOCUMENT_CATEGORY = "general";
+
 /* =========================
    Document Service
    ========================= */
@@ -33,7 +36,7 @@ export class DocumentService {
       {
         id: "contract",
         name: "Contract",
-        description: "Purchase agreements and contracts",
+        description: "Sales contracts and related documents",
         required_for: ["offer", "closing"],
       },
       {
@@ -58,13 +61,13 @@ export class DocumentService {
 
   async uploadDocument(
     file: File,
-    category: string,
+    category?: string,
     propertyId?: string,
     offerId?: string,
     address?: string
   ): Promise<Document> {
+    const resolvedCategory = category ?? DEFAULT_UPLOAD_DOCUMENT_CATEGORY;
     try {
-      // Upload file with optional address
       const result = await secureUploadApi.uploadDocument(file, address);
 
       // Backend returns: { success: true, document: { id, filename, size, type, hash, uploaded_at } }
@@ -75,7 +78,7 @@ export class DocumentService {
           file_path: result.document.filename ?? "",
           file_size: result.document.size ?? file.size,
           file_type: result.document.type ?? file.type,
-          category,
+          category: resolvedCategory,
           property_id: propertyId,
           offer_id: offerId,
           uploaded_by: "", // Will be set by backend

@@ -61,11 +61,7 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
       <ScrollView refreshing={refreshing} onRefresh={handleRefresh}>
         <Box className="gap-3">
           {enhancedClients.map((client) => (
-            <ClientRow
-              key={client.id}
-              client={client}
-              onClick={() => onClientClick?.(client.id)}
-            />
+            <ClientRow key={client.id} client={client} onClick={() => onClientClick?.(client.id)} />
           ))}
         </Box>
       </ScrollView>

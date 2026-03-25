@@ -109,7 +109,7 @@ export default function SavedPageTabsAndSearch({
               onClick={onUploadClick}
               label="Upload"
               icon={<Icon name="plus" className="h-4 w-4" />}
-              className="text-text-disabled hover:bg-transparent focus:ring-black/10 active:bg-transparent"
+              className="!text-text-primary hover:bg-transparent focus:ring-black/10 active:bg-transparent"
             />
           )}
         </Box>

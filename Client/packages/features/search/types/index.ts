@@ -46,4 +46,9 @@ export type {
   SearchResult,
 } from "./result";
 export { getMatchScore, isPropertyDetails } from "./result";
+export {
+  SEARCH_HEADER_FILTER_GAP_PX,
+  SEARCH_HEADER_FILTER_PROMOTION_ORDER,
+  type SearchHeaderFilterId,
+} from "./searchHeaderFilter";
 export { SEARCH_TRANSLATIONS } from "./translations";

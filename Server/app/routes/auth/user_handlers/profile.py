@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from typing import TYPE_CHECKING
@@ -24,6 +25,25 @@ _PROFILE_PICTURE_EXT_TO_MIME = {
     ".gif": "image/gif",
 }
 
+_AGENT_DEBUG_LOG = "/Users/jaycewalzer/Desktop/SilverKey/.cursor/debug-244579.log"
+
+
+def _agent_debug_log(message: str, data: dict, hypothesis_id: str) -> None:
+    """Append one NDJSON line for debug session (no PII / no presigned URLs)."""
+    try:
+        payload = {
+            "sessionId": "244579",
+            "timestamp": int(time.time() * 1000),
+            "location": "profile.py",
+            "message": message,
+            "data": data,
+            "hypothesisId": hypothesis_id,
+        }
+        with open(_AGENT_DEBUG_LOG, "a", encoding="utf-8") as log_f:
+            log_f.write(json.dumps(payload) + "\n")
+    except OSError:
+        pass
+
 
 def _profile_picture_content_type(s3_key: str) -> str:
     """Infer Content-Type from profile picture S3 key (e.g. .../avatar.jpg -> image/jpeg)."""
@@ -39,9 +59,7 @@ def _get_profile_picture_url(user):
         return None
     try:
         content_type = _profile_picture_content_type(user.profile_picture)
-        return s3_service.generate_view_url(
-            user.profile_picture, content_type=content_type
-        )
+        return s3_service.generate_view_url(user.profile_picture, content_type=content_type)
     except Exception as e:
         current_app.logger.warning(
             "Profile picture URL generation failed",
@@ -76,6 +94,18 @@ def get_user_profile(user: User) -> Response | tuple[Response, int]:
     #   if u and not any(r.role == "admin" for r in u.user_roles): db.session.add(UserRole(user_id=u.id, role="admin")); db.session.commit()
     user_data["roles"] = [ur.role for ur in user.user_roles]
     profile_picture_url = _get_profile_picture_url(user)
+    # #region agent log
+    has_s3_key = bool(getattr(user, "profile_picture", None))
+    _agent_debug_log(
+        "get_user_profile pfp fields",
+        {
+            "has_s3_key": has_s3_key,
+            "presign_ok": profile_picture_url is not None,
+            "will_attach_profile_picture_url": profile_picture_url is not None,
+        },
+        "A",
+    )
+    # #endregion
     if profile_picture_url is not None:
         user_data["profile_picture_url"] = profile_picture_url
     duration_ms = int((time.time() - start_time) * 1000)
@@ -167,6 +197,9 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
 
     try:
         if not s3_service or not s3_service.s3_client:
+            # #region agent log
+            _agent_debug_log("upload_profile_picture s3_unavailable", {}, "E")
+            # #endregion
             return SecureErrorHandler.create_secure_response(
                 "configuration_error",
                 503,
@@ -197,6 +230,17 @@ def upload_profile_picture(user: User) -> Response | tuple[Response, int]:
         profile_picture_url = s3_service.generate_view_url(
             uploaded_key, content_type=validated_mime_type
         )
+        # #region agent log
+        _, ext_dbg = os.path.splitext(safe_filename.lower())
+        _agent_debug_log(
+            "upload_profile_picture success",
+            {
+                "presign_ok": bool(profile_picture_url),
+                "ext": ext_dbg or "unknown",
+            },
+            "E",
+        )
+        # #endregion
         return jsonify(
             {
                 "success": True,

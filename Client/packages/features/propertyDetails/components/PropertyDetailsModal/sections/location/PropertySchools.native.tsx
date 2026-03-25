@@ -2,12 +2,10 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import { renderKeyValueRecord } from "packages/features/propertyDetails/components/PropertyDetailsModal/helpers/renderKeyValueRecord";
+import { PropertySectionRatingBadge } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/PropertySectionRatingBadge";
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper.native";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import {
-  PropertySectionHeader,
-  ScoreBar,
-} from "packages/features/propertyDetails/components/visualizations";
+import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
@@ -16,22 +14,16 @@ type PropertySchoolsProps = PropertyComponentProps & {
   analysisContent?: unknown;
 };
 
-export const PropertySchools: React.FC<PropertySchoolsProps> = ({
-  property,
-  analysisContent,
-}) => {
+export const PropertySchools: React.FC<PropertySchoolsProps> = ({ property, analysisContent }) => {
   const { t } = useLocalization();
   const { schools } = property as unknown as { schools: unknown };
   const hasSchools = schools && Array.isArray(schools) && schools.length > 0;
   if (!hasSchools && !analysisContent) return null;
 
-  const schoolList = hasSchools
-    ? (schools as Array<Record<string, unknown>>)
-    : [];
+  const schoolList = hasSchools ? (schools as Array<Record<string, unknown>>) : [];
   const sectionLabel =
-    DEFAULT_REPORT_SECTIONS.find(
-      (s: { key: string; label: string }) => s.key === "family_friendly",
-    )?.label ?? "Nearby Schools";
+    DEFAULT_REPORT_SECTIONS.find((s: { key: string; label: string }) => s.key === "family_friendly")
+      ?.label ?? "Nearby Schools";
 
   const miSuffix = t("property_details.mi", { defaultValue: "mi" });
   const bullet = t("property_details.bullet_separator", {
@@ -53,12 +45,9 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({
                   : typeof ratingRaw === "string"
                     ? parseFloat(ratingRaw)
                     : NaN;
-              const score = Number.isFinite(ratingNum) ? ratingNum : 0;
+              const hasRating = Number.isFinite(ratingNum);
               const distRaw = school.distance;
-              const distStr =
-                distRaw !== undefined && distRaw !== null
-                  ? String(distRaw)
-                  : "";
+              const distStr = distRaw !== undefined && distRaw !== null ? String(distRaw) : "";
 
               return (
                 <Box
@@ -74,32 +63,17 @@ export const PropertySchools: React.FC<PropertySchoolsProps> = ({
                     >
                       {String(school.name ?? "")}
                     </BodyText>
-                    <BodyText
-                      as="span"
-                      size="xs"
-                      className="text-text-secondary mt-1"
-                    >
+                    <BodyText as="span" size="xs" className="text-text-secondary mt-1">
                       {String(school.level ?? "")}
                       {bullet}
                       {String(school.grades ?? "")}
                     </BodyText>
                   </Box>
                   <Box className="shrink-0 items-end gap-2">
-                    <ScoreBar
-                      score={score}
-                      max={10}
-                      label={t("property_details.section_rating_value", {
-                        value: Math.round(score * 10) / 10,
-                        defaultValue: "{{value}}/10",
-                      })}
-                    />
+                    {hasRating ? <PropertySectionRatingBadge rating={ratingNum} /> : null}
                     {distStr !== "" ? (
                       <Box className="border-border rounded-full border px-2.5 py-0.5">
-                        <BodyText
-                          as="span"
-                          size="xs"
-                          className="text-text-secondary font-medium"
-                        >
+                        <BodyText as="span" size="xs" className="text-text-secondary font-medium">
                           {distStr} {miSuffix}
                         </BodyText>
                       </Box>

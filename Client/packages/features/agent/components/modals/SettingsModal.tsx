@@ -13,12 +13,7 @@ type SettingsModalProps = {
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { navigateToPath } = useNavigation();
   return (
-    <Cover
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Settings"
-      showHeaderBorder={false}
-    >
+    <Cover isOpen={isOpen} onClose={onClose} title="Settings" showHeaderBorder={false}>
       <Box className="space-y-4">
         <BodyText size="sm" muted>
           Settings are managed on the Profile page.

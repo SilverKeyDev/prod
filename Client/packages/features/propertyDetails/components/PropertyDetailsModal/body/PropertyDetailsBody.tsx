@@ -26,7 +26,7 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
   const { t } = useLocalization();
   const propertyAnalysis = useMemo(
     () => (property as PropertyWithAnalysis).property_analysis,
-    [property],
+    [property]
   );
 
   const hasCommute = useMemo(() => {
@@ -37,8 +37,7 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
     const schools = (property as unknown as { schools?: unknown }).schools;
     return (
       Array.isArray(schools) &&
-      ((property as unknown as { schools?: unknown[] }).schools?.length ?? 0) >
-        0
+      ((property as unknown as { schools?: unknown[] }).schools?.length ?? 0) > 0
     );
   }, [property]);
 
@@ -51,31 +50,25 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
 
   const hasAnalysis = useMemo(() => !!propertyAnalysis, [propertyAnalysis]);
   const commuteAnalysis = useMemo(
-    () =>
-      propertyAnalysis
-        ? (propertyAnalysis as Record<string, unknown>).commute
-        : undefined,
-    [propertyAnalysis],
+    () => (propertyAnalysis ? (propertyAnalysis as Record<string, unknown>).commute : undefined),
+    [propertyAnalysis]
   );
   const familyFriendlyAnalysis = useMemo(
     () =>
-      propertyAnalysis
-        ? (propertyAnalysis as Record<string, unknown>).family_friendly
-        : undefined,
-    [propertyAnalysis],
+      propertyAnalysis ? (propertyAnalysis as Record<string, unknown>).family_friendly : undefined,
+    [propertyAnalysis]
   );
   const neighborhoodAnalysis = useMemo(
     () =>
       propertyAnalysis
         ? (propertyAnalysis as Record<string, unknown>).neighborhood_overview
         : undefined,
-    [propertyAnalysis],
+    [propertyAnalysis]
   );
   const hasNeighborhood = useMemo(
     () =>
-      !!propertyAnalysis &&
-      !!(propertyAnalysis as Record<string, unknown>).neighborhood_overview,
-    [propertyAnalysis],
+      !!propertyAnalysis && !!(propertyAnalysis as Record<string, unknown>).neighborhood_overview,
+    [propertyAnalysis]
   );
 
   const excludeSections = useMemo(() => {
@@ -102,35 +95,19 @@ export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
       <PropertyPaymentSnapshot property={property} />
       <PropertyDetails property={property} />
       <ProsAndCons property={property} />
-      {hasFeatures && (
-        <PropertyFeatures key="propertyFeatures" property={property} />
-      )}
+      {hasFeatures && <PropertyFeatures key="propertyFeatures" property={property} />}
 
       {/* Dynamic sections in same order as propertyDetailsModalSectionHelpers (by priority: neighborhood 2, commute 3, family_friendly 4, analysis 10) */}
       {(hasNeighborhood || neighborhoodAnalysis) && (
-        <PropertyNeighborhood
-          property={property}
-          analysisContent={neighborhoodAnalysis}
-        />
+        <PropertyNeighborhood property={property} analysisContent={neighborhoodAnalysis} />
       )}
       {(hasCommute || commuteAnalysis) && (
-        <PropertyCommute
-          property={property}
-          analysisContent={commuteAnalysis}
-        />
+        <PropertyCommute property={property} analysisContent={commuteAnalysis} />
       )}
       {(hasSchools || familyFriendlyAnalysis) && (
-        <PropertySchools
-          property={property}
-          analysisContent={familyFriendlyAnalysis}
-        />
+        <PropertySchools property={property} analysisContent={familyFriendlyAnalysis} />
       )}
-      {hasAnalysis && (
-        <PropertyAnalysis
-          property={property}
-          excludeSections={excludeSections}
-        />
-      )}
+      {hasAnalysis && <PropertyAnalysis property={property} excludeSections={excludeSections} />}
 
       {isLoading && (
         <Box className="mt-4 items-center px-4">

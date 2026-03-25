@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { CompareHomesPropertyDetails } from "packages/features/compare/utils/types";
+import type { CompareHomesPropertyDetails } from "packages/features/compare/types/compareHomes";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import { researchApi } from "@/features/search/api/research";

@@ -1,72 +1,63 @@
 import React, { useCallback, useState } from "react";
 
-import { CreateEventModal } from "packages/features/calendar";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 
-import {
-  BaseModal,
-  BodyText,
-  Button,
-  CancelButton,
-  Dropdown,
-  Input,
-  Label,
-} from "@/components/ui";
-import type { TodoPriority, TodoType } from "@/features/agent/types/agent";
+import { BaseModal, BodyText, Button, CancelButton, Dropdown, Input, Label } from "@/components/ui";
+import type { TodoPriority } from "@/features/agent/types/agent";
 
-/** Minimal calendar row for create-event UI (matches Google calendar list shape). */
-type AgendaCalendarRow = { id: string; summary: string; primary?: boolean };
+const PRIORITY_OPTIONS: { value: TodoPriority; label: string }[] = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "urgent", label: "Urgent" },
+];
 
-type AgentAgendaPlusButtonProps = {
-  calendars: AgendaCalendarRow[];
-  defaultCalendarId: string | null;
-  canCreateEvent: boolean;
-  onCreateTodo: (title: string, priority: TodoPriority, type: TodoType) => Promise<void>;
+export type AgentAgendaTodoFormPayload = {
+  title: string;
+  priority: TodoPriority | null;
+  deadlineDate: string | null;
 };
 
-export function AgentAgendaPlusButton({
-  calendars,
-  defaultCalendarId,
-  canCreateEvent,
-  onCreateTodo,
-}: AgentAgendaPlusButtonProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [todoModalOpen, setTodoModalOpen] = useState(false);
-  const [eventModalOpen, setEventModalOpen] = useState(false);
+type AgentAgendaPlusButtonProps = {
+  onSubmitAgentTodo: (payload: AgentAgendaTodoFormPayload) => Promise<void>;
+};
+
+export function AgentAgendaPlusButton({ onSubmitAgentTodo }: AgentAgendaPlusButtonProps) {
+  const [modalOpen, setModalOpen] = useState(false);
   const [newTodoTitle, setNewTodoTitle] = useState("");
-  const [selectedPriority, setSelectedPriority] = useState<TodoPriority>("medium");
+  const [selectedPriority, setSelectedPriority] = useState<TodoPriority | null>(null);
+  const [deadlineDate, setDeadlineDate] = useState("");
 
-  const openTodoModal = useCallback(() => {
-    setMenuOpen(false);
-    setTodoModalOpen(true);
+  const resetForm = useCallback(() => {
+    setNewTodoTitle("");
+    setSelectedPriority(null);
+    setDeadlineDate("");
   }, []);
 
-  const openEventModal = useCallback(() => {
-    setMenuOpen(false);
-    setEventModalOpen(true);
-  }, []);
-
-  const handleSubmitTodo = useCallback(async () => {
+  const handleSubmit = useCallback(async () => {
     const trimmed = newTodoTitle.trim();
     if (!trimmed) {
       return;
     }
+    const deadline = deadlineDate.trim() === "" ? null : deadlineDate.trim();
     try {
-      await onCreateTodo(trimmed, selectedPriority, "manual");
-      setNewTodoTitle("");
-      setSelectedPriority("medium");
-      setTodoModalOpen(false);
+      await onSubmitAgentTodo({
+        title: trimmed,
+        priority: selectedPriority,
+        deadlineDate: deadline,
+      });
+      resetForm();
+      setModalOpen(false);
     } catch (error) {
-      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create todo from agenda menu", error);
+      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to add agenda item", error);
     }
-  }, [newTodoTitle, onCreateTodo, selectedPriority]);
+  }, [deadlineDate, newTodoTitle, onSubmitAgentTodo, resetForm, selectedPriority]);
 
-  const handleCloseTodoModal = useCallback(() => {
-    setTodoModalOpen(false);
-    setNewTodoTitle("");
-    setSelectedPriority("medium");
-  }, []);
+  const handleClose = useCallback(() => {
+    setModalOpen(false);
+    resetForm();
+  }, [resetForm]);
 
   return (
     <Box className="relative">
@@ -74,53 +65,31 @@ export function AgentAgendaPlusButton({
         variant="outline"
         size="sm"
         iconName="plus"
-        aria-expanded={menuOpen}
-        aria-haspopup="menu"
-        onPress={() => setMenuOpen((o) => !o)}
+        aria-haspopup="dialog"
+        onPress={() => setModalOpen(true)}
       >
         Add
       </Button>
-      {menuOpen ? (
-        <Box
-          className="border-border bg-background-surface absolute right-0 top-full z-20 mt-1 min-w-44 rounded-lg border py-1 shadow-md"
-          role="menu"
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-auto w-full justify-start rounded-none px-3 py-2 font-normal"
-            onPress={openTodoModal}
-          >
-            Add to-do
-          </Button>
-          {canCreateEvent ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-auto w-full justify-start rounded-none px-3 py-2 font-normal"
-              onPress={openEventModal}
-            >
-              Add calendar event
-            </Button>
-          ) : null}
-        </Box>
-      ) : null}
 
-      <BaseModal isOpen={todoModalOpen} onClose={handleCloseTodoModal} title="Add to-do">
+      <BaseModal isOpen={modalOpen} onClose={handleClose} title="Add to agenda">
         <Box className="gap-3 p-1">
+          <BodyText size="xs" muted>
+            When Google Calendar is connected, this adds an all-day event. Otherwise it saves as a
+            to-do.
+          </BodyText>
           <Box>
-            <Label htmlFor="agenda-todo-title" size="sm">
+            <Label htmlFor="agenda-item-title" size="sm">
               Title
             </Label>
             <Input
-              id="agenda-todo-title"
+              id="agenda-item-title"
               value={newTodoTitle}
               onChange={(e) => setNewTodoTitle(e.target.value)}
               placeholder="What do you need to do?"
               className="mt-1"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  void handleSubmitTodo();
+                  void handleSubmit();
                 }
               }}
             />
@@ -128,41 +97,46 @@ export function AgentAgendaPlusButton({
           <Box>
             <Dropdown<TodoPriority>
               label="Priority"
-              options={[
-                { value: "low", label: "Low" },
-                { value: "medium", label: "Medium" },
-                { value: "high", label: "High" },
-                { value: "urgent", label: "Urgent" },
-              ]}
-              value={selectedPriority}
-              onChange={(v) => setSelectedPriority(v)}
+              options={PRIORITY_OPTIONS}
+              value={selectedPriority ?? undefined}
+              placeholder="Optional"
+              clearable
+              onClear={() => setSelectedPriority(null)}
+              onChange={(value) => setSelectedPriority(value)}
               variant="compact"
               size="sm"
             />
           </Box>
+          <Box>
+            <Label htmlFor="agenda-item-deadline" size="sm">
+              Date
+            </Label>
+            <Input
+              id="agenda-item-deadline"
+              type="date"
+              value={deadlineDate}
+              onChange={(e) => setDeadlineDate(e.target.value)}
+              className="mt-1"
+            />
+            <BodyText size="xs" muted className="mt-1">
+              Optional. If empty, the item uses today when on your calendar.
+            </BodyText>
+          </Box>
           <Box className="mt-2 flex flex-row gap-2">
-            <Button variant="primary" size="sm" className="flex-1" onPress={() => void handleSubmitTodo()}>
+            <Button
+              variant="primary"
+              size="sm"
+              className="flex-1"
+              onPress={() => void handleSubmit()}
+            >
               Save
             </Button>
-            <CancelButton size="sm" className="flex-1" onPress={handleCloseTodoModal}>
+            <CancelButton size="sm" className="flex-1" onPress={handleClose}>
               Cancel
             </CancelButton>
           </Box>
-          <BodyText size="xs" muted>
-            Due date defaults to end of today.
-          </BodyText>
         </Box>
       </BaseModal>
-
-      {canCreateEvent && calendars.length > 0 ? (
-        <CreateEventModal
-          isOpen={eventModalOpen}
-          onClose={() => setEventModalOpen(false)}
-          calendars={calendars}
-          defaultCalendarId={defaultCalendarId ?? undefined}
-          onEventCreated={() => setEventModalOpen(false)}
-        />
-      ) : null}
     </Box>
   );
 }

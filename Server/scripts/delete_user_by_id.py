@@ -23,16 +23,16 @@ from app.services.user.delete_user import delete_user_and_all_related_data  # no
 
 def main() -> None:
     if len(sys.argv) != 2:
-        print("Usage: python scripts/delete_user_by_id.py <user_id>", file=sys.stderr)
+        sys.stderr.write("Usage: python scripts/delete_user_by_id.py <user_id>\n")
         sys.exit(1)
     user_id = sys.argv[1].strip()
     app = create_app()
     with app.app_context():
         deleted = delete_user_and_all_related_data(user_id)
     if deleted:
-        print(f"Deleted user and related data: {user_id}")
+        sys.stdout.write(f"Deleted user and related data: {user_id}\n")
     else:
-        print(f"No user found with id: {user_id}", file=sys.stderr)
+        sys.stderr.write(f"No user found with id: {user_id}\n")
         sys.exit(2)
 
 

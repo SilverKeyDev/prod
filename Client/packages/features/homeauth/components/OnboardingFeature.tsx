@@ -121,21 +121,13 @@ export function OnboardingFeature() {
         {/* Header */}
         <Box className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
           <Box className="flex items-center">
-            <Image
-              src={LOGO}
-              alt="SilverKey Logo"
-              className="h-6 sm:h-8 md:h-10"
-            />
+            <Image src={LOGO} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
           </Box>
           <Box className="flex items-center gap-4" />
         </Box>
 
         {/* Progress Bar */}
-        <OnboardingHeader
-          steps={steps}
-          currentStep={currentStep}
-          onStepClick={goToStep}
-        />
+        <OnboardingHeader steps={steps} currentStep={currentStep} onStepClick={goToStep} />
 
         {/* Step Content */}
         <Box className="bg-background-surface mt-4 rounded-2xl shadow-sm">
@@ -164,7 +156,6 @@ export function OnboardingFeature() {
             </Box>
           </Card>
         </Box>
-
       </Box>
     </Box>
   );

@@ -45,6 +45,13 @@ class Home(BaseModel):
             user_preferences.get("renovation_preference", "") if user_preferences else ""
         )
         lot_size = user_preferences.get("preferred_lot_size", "") if user_preferences else ""
+        lot_min = user_preferences.get("preferred_lot_size_min") if user_preferences else None
+        lot_max = user_preferences.get("preferred_lot_size_max") if user_preferences else None
+        lot_range = ""
+        if lot_min is not None or lot_max is not None:
+            lot_range = f"{lot_min or 'any'}–{lot_max or 'any'} acres"
+        elif lot_size:
+            lot_range = lot_size
 
         features_text = (
             f"User wants: {', '.join(preferred_features)}"
@@ -63,7 +70,7 @@ class Home(BaseModel):
             "deal_breakers_check": f"Assessment of any deal breakers present or absent. {deal_breakers_text}. Extremely brief.",
             "layout_and_size": f"Bedrooms, bathrooms, square footage, and layout match to preferences. User wants: {bedrooms} bedrooms, {bathrooms} bathrooms, {housing_type}. Extremely brief.",
             "condition_and_style": f"Home age, architectural style, renovation needs, and overall condition. User prefers: {home_age_range or 'any'} age, {architectural_style} style, {renovation_preference} renovation level. Extremely brief.",
-            "property_features": f"Lot size, parking, outdoor space, and other property-specific features. User prefers: {lot_size} lot size. Extremely brief.",
+            "property_features": f"Lot size, parking, outdoor space, and other property-specific features. User prefers: {lot_range or 'any'} lot size. Extremely brief.",
         }
 
     @classmethod

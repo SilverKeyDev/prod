@@ -8,6 +8,10 @@ import { Pressable } from "react-native";
 
 import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
 import { Box, Text } from "packages/ui/components/primitives";
+import {
+  BUTTON_LOADING_FRAME_CLASSES,
+  BUTTON_LOADING_VARIANT_OVERRIDES,
+} from "packages/ui/styles/variants/buttonVariants";
 
 import type { ButtonProps, ButtonVariant } from "./Button";
 
@@ -95,9 +99,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       <>
         <RippleBackground overlay />
         <Box className="relative z-10 flex-row items-center justify-center gap-2">
-          <Box className="items-center justify-center">
-            {/* <KeyTurnLoader message="" /> */}
-          </Box>
+          <Box className="items-center justify-center">{/* <KeyTurnLoader message="" /> */}</Box>
         </Box>
       </>
     ) : (
@@ -136,7 +138,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         onPress={handlePress}
         disabled={disabled ?? loading}
         accessibilityLabel={label}
-        className={`flex-row items-center justify-center rounded-lg ${variantClass} ${sizeClass} ${loading ? "overflow-hidden border-2 border-neutral-600" : ""} ${""} ${className}`}
+        className={`flex-row items-center justify-center rounded-lg ${variantClass} ${sizeClass} ${loading ? `${BUTTON_LOADING_FRAME_CLASSES} ${BUTTON_LOADING_VARIANT_OVERRIDES[effectiveVariant]}` : ""} ${""} ${className}`}
         {...pressableProps}
         accessibilityState={mergedAccessibilityState}
       >

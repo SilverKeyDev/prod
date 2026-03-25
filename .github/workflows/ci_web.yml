@@ -105,7 +105,6 @@ jobs:
           export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
           export_if_present "$skyslope_json" "SKYSLOPE_ACCESS_KEY" "SKYSLOPE_ACCESS_KEY"
           export_if_present "$skyslope_json" "SKYSLOPE_SECRET" "SKYSLOPE_SECRET"
-          export_if_present "$skyslope_json" "SKYSLOPE_REDIRECT_URI" "SKYSLOPE_REDIRECT_URI"
 
       - name: Set up Docker Buildx (container driver)
         uses: docker/setup-buildx-action@v3
@@ -188,7 +187,6 @@ jobs:
           RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY }}
           SKYSLOPE_ACCESS_KEY: ${{ env.SKYSLOPE_ACCESS_KEY }}
           SKYSLOPE_SECRET: ${{ env.SKYSLOPE_SECRET }}
-          SKYSLOPE_REDIRECT_URI: ${{ env.SKYSLOPE_REDIRECT_URI }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
@@ -201,7 +199,7 @@ jobs:
             CENSUS_API_KEY,MAPBOX_API_KEY,OPENAI_KEY,PERPLEXITY_API_KEY,
             PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,
             SERP_API,RAPIDAPI_KEY,
-            SKYSLOPE_ACCESS_KEY,SKYSLOPE_SECRET,SKYSLOPE_REDIRECT_URI
+            SKYSLOPE_ACCESS_KEY,SKYSLOPE_SECRET
           script: |
             set -euo pipefail
 
@@ -339,7 +337,6 @@ jobs:
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
               -e SKYSLOPE_ACCESS_KEY="${SKYSLOPE_ACCESS_KEY}" \
               -e SKYSLOPE_SECRET="${SKYSLOPE_SECRET}" \
-              -e SKYSLOPE_REDIRECT_URI="${SKYSLOPE_REDIRECT_URI}" \
               "$IMAGE" >/dev/null
 
             echo "⏳ Waiting for App to start..."
@@ -400,7 +397,6 @@ jobs:
               -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
               -e SKYSLOPE_ACCESS_KEY="${SKYSLOPE_ACCESS_KEY}" \
               -e SKYSLOPE_SECRET="${SKYSLOPE_SECRET}" \
-              -e SKYSLOPE_REDIRECT_URI="${SKYSLOPE_REDIRECT_URI}" \
               "$IMAGE" \
               celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1
 

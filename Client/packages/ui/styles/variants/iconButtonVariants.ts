@@ -81,6 +81,20 @@ export const ICON_BUTTON_ACTIVE_BG_MAP = {
 
 export const ICON_BUTTON_TOUCH_CLASS = "touch-manipulation active:scale-95";
 
+/** Same rim as `BUTTON_LOADING_FRAME_CLASSES` — lighter fill per variant below. */
+export const ICON_BUTTON_LOADING_FRAME_CLASSES =
+  "relative overflow-hidden border-2 !border-neutral-800 !shadow-none";
+
+export const ICON_BUTTON_LOADING_VARIANT_OVERRIDES: Record<IconButtonVariant, string> = {
+  primary: "!bg-primary/70",
+  secondary: "!bg-neutral-50",
+  tertiary: "!bg-accent/70",
+  outline: "!bg-neutral-50",
+  ghost: "!bg-neutral-50",
+  danger: "!bg-destructive/70",
+  toolbar: "!bg-neutral-50",
+};
+
 /** Standalone icon size classes — for Icon components outside IconButton. Replaces mobile-icon-*. */
 export const ICON_SIZE_CLASSES = {
   xs: "h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4",

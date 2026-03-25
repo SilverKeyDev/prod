@@ -23,24 +23,18 @@ function isFeatures(x: unknown): x is Features {
   if (typeof x !== "object" || x === null) return false;
   // Optional: be strict about value shapes
   return Object.values(x as Record<string, unknown>).every(
-    (v) =>
-      Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string"),
+    (v) => Array.isArray(v) && (v as unknown[]).every((s) => typeof s === "string")
   );
 }
 
-export const PropertyFeatures: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertyFeatures: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const { features, image_features: imageFeatures } = property as unknown as {
     features: unknown;
     image_features: unknown;
   };
 
-  const img =
-    isImageFeatures(imageFeatures) && !imageFeatures.error
-      ? imageFeatures
-      : null;
+  const img = isImageFeatures(imageFeatures) && !imageFeatures.error ? imageFeatures : null;
   const feats = isFeatures(features) ? features : null;
 
   if (!img && !feats) return null;

@@ -15,23 +15,31 @@ import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, DateInput, Input, TimeInput, Title } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
+import type { MessagingSendMessageOptions } from "@/features/messaging/hooks/data/messaging/types";
 import {
   buildEventRequestMessage,
   type EventRequestPayload,
 } from "@/features/messaging/utils/eventRequestPayload";
+
 type CalendarEventRequestModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  sendCalendarEventMessage?: (
+    message: string,
+    options: MessagingSendMessageOptions & { conversationId: string }
+  ) => Promise<void>;
 };
+
 export default function CalendarEventRequestModal({
   isOpen,
   onClose,
   onSuccess,
+  sendCalendarEventMessage,
 }: CalendarEventRequestModalProps) {
   const isAgent = useIsAgent();
   const { clients, isLoading: isLoadingClients } = useAgentClients();
-  const { conversations, sendMessage } = useAgentChats();
+  const { conversations, sendMessage: sendMessageDirect } = useAgentChats();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
@@ -60,6 +68,7 @@ export default function CalendarEventRequestModal({
       if (!clientConversation) return;
       conversationId = clientConversation.id;
     }
+    if (!conversationId) return;
     // Build structured payload with default duration (30 minutes)
     const dateTime = dateParseISO(`${eventDate}T${eventTime}`);
     const endTime = dateTime.add(30, "minute");
@@ -73,7 +82,14 @@ export default function CalendarEventRequestModal({
     setIsSending(true);
     try {
       const clientIdToPass = isAgent && conversationId === "new" ? selectedClientId : undefined;
-      await sendMessage(conversationId, message, clientIdToPass ?? undefined);
+      if (sendCalendarEventMessage) {
+        await sendCalendarEventMessage(message, {
+          conversationId,
+          clientIdForAgent: clientIdToPass ?? undefined,
+        });
+      } else {
+        await sendMessageDirect(conversationId, message, clientIdToPass ?? undefined);
+      }
       // Reset form
       setEventTitle("");
       setEventDescription("");
@@ -133,6 +149,7 @@ export default function CalendarEventRequestModal({
                     type="button"
                     variant="outline"
                     size="sm"
+                    contentAlign="start"
                     onClick={() => setSelectedClientId(client.id)}
                     className={`h-auto min-h-0 w-full justify-start rounded-lg border p-3 text-left ${
                       selectedClientId === client.id

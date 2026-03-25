@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import type { LotSizeHomeAgeSearchOverridesPatch } from "packages/features/profile";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button } from "@/components/ui";
@@ -14,11 +15,13 @@ export type OtherFilterDropdownProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
   defaultOpen?: boolean;
+  onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
 };
 export default function OtherFilterDropdown({
   formData,
   updateFormData,
   defaultOpen = false,
+  onSearchFilterOverridesPatch,
 }: OtherFilterDropdownProps): React.ReactElement {
   const { t } = useLocalization();
   const [open, setOpen] = useState(defaultOpen);
@@ -47,7 +50,11 @@ export default function OtherFilterDropdown({
       </Button>
       {open && (
         <Box className="mt-3 max-h-[60vh] overflow-y-auto pr-1">
-          <OtherFilterContent formData={formData} updateFormData={updateFormData} />
+          <OtherFilterContent
+            formData={formData}
+            updateFormData={updateFormData}
+            onSearchFilterOverridesPatch={onSearchFilterOverridesPatch}
+          />
         </Box>
       )}
     </Box>

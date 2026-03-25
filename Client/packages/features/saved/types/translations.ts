@@ -4,7 +4,7 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "saved.tab_homes": "Homes",
   "saved.tab_documents": "Documents",
   "saved.loading_documents": "Loading documents...",
-  "saved.no_documents_yet": "You have no documents or agreements yet.",
+  "saved.no_documents_yet": "You have no documents yet.",
   "saved.loading_homes": "Loading saved homes...",
   "saved.no_homes_yet": "You have no saved homes yet.",
 
@@ -41,16 +41,11 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "saved.compare_modal_title": "Compare homes",
   "saved.compare_modal_empty": "Select at least two homes to compare.",
 
-  // Saved documents and agreements
+  // Saved documents
   "saved.view_document": "View",
   "saved.download_document": "Download",
   "saved.share_document": "Share",
   "saved.delete_document": "Delete",
-  "saved.agreement_status": "Status: {{status}}",
-  "saved.view_agreement": "Details",
-  "saved.send_agreement": "Send",
-  "saved.void_agreement": "Void",
-  "saved.create_agreement": "Create agreement",
   "saved.upload_document": "Upload document",
 
   // Negotiation flows

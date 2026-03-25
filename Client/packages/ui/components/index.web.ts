@@ -5,6 +5,10 @@ export * from "./text";
 // Text components (explicit exports for commonly used ones)
 export { default as PropertyStat } from "./text/PropertyStat";
 
+// Avatar
+export type { ProfileAvatarProps } from "./avatar";
+export { ProfileAvatar } from "./avatar";
+
 // Higher-level components that are frequently imported
 export { default as Button } from "./button/Button";
 export { default as CancelButton } from "./button/CancelButton";
@@ -49,10 +53,9 @@ export { default as Popover } from "./popover/Popover";
 
 // Modal components
 export { default as BaseModal } from "./modals/BaseModal";
-export type { CoverAnimation,CoverProps } from "./modals/cover";
+export type { CoverAnimation, CoverProps } from "./modals/cover";
 export { default as Cover } from "./modals/cover";
 export { default as ModalPortal } from "./modals/ModalPortal";
-export { default as PropertyDetailsModal } from "./modals/PropertyDetailsModal";
 export { default as ShareHomeModal } from "./modals/ShareHomeModal";
 export { default as DeleteModal } from "./modals/standalone/DeleteModal";
 

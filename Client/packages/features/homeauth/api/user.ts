@@ -33,7 +33,7 @@ export const userApi = {
   /**
    * Upload profile picture. Returns presigned URL on success.
    */
-  uploadProfilePicture: (
+  uploadProfilePicture: async (
     file: File
   ): Promise<{
     success: boolean;
@@ -43,12 +43,37 @@ export const userApi = {
   }> => {
     const formData = new FormData();
     formData.append("file", file);
-    return apiUpload<{
+    type UploadRes = {
       success: boolean;
       profile_picture_url?: string;
       data?: { profile_picture?: string; profile_picture_url?: string };
       error?: string;
-    }>("/api/v1/user/profile-picture", formData);
+    };
+    const res = await apiUpload<UploadRes>("/api/v1/user/profile-picture", formData);
+    // #region agent log
+    // eslint-disable-next-line no-restricted-globals -- debug NDJSON ingest (session 244579)
+    fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "244579",
+      },
+      body: JSON.stringify({
+        sessionId: "244579",
+        location: "homeauth/api/user.ts:uploadProfilePicture",
+        message: "upload response",
+        data: {
+          success: Boolean(res.success),
+          hasTopUrl: Boolean(res.profile_picture_url),
+          hasNestedUrl: Boolean(res.data?.profile_picture_url),
+          topUrlLen: res.profile_picture_url?.length ?? 0,
+        },
+        timestamp: Date.now(),
+        hypothesisId: "E",
+      }),
+    }).catch(() => {});
+    // #endregion
+    return res;
   },
 
   /**
@@ -58,9 +83,37 @@ export const userApi = {
     const raw = await apiGet<unknown>("/api/v1/user/profile");
     const parsed = userResponseSchema.safeParse(raw);
     if (!parsed.success) {
+      const paths = parsed.error.errors.map((e) => e.path.join("."));
+      log.error(LOG_CATEGORIES.API, "User profile validation failed", { paths });
       const msg = parsed.error.errors.map((e) => e.message).join("; ");
       throw new Error(`User profile validation failed: ${msg}`);
     }
+    // #region agent log
+    {
+      const inner = parsed.data.user ?? parsed.data.data;
+      // eslint-disable-next-line no-restricted-globals -- debug NDJSON ingest (session 244579)
+      fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "244579",
+        },
+        body: JSON.stringify({
+          sessionId: "244579",
+          location: "homeauth/api/user.ts:getProfile",
+          message: "profile API parsed",
+          data: {
+            hasInner: inner != null,
+            hasPictureKey: Boolean(inner?.profile_picture),
+            hasPictureUrl: Boolean(inner?.profile_picture_url),
+            pictureUrlLen: inner?.profile_picture_url?.length ?? 0,
+          },
+          timestamp: Date.now(),
+          hypothesisId: "D",
+        }),
+      }).catch(() => {});
+    }
+    // #endregion
     return parsed.data;
   },
 

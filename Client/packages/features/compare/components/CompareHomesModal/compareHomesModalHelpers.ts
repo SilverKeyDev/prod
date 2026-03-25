@@ -1,4 +1,4 @@
-import type { CompareHomesPropertyDetails } from "packages/features/compare/utils/types";
+import type { CompareHomesPropertyDetails } from "packages/features/compare/types/compareHomes";
 import type { SavedHome } from "packages/types";
 
 /**

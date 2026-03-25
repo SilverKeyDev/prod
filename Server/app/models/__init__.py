@@ -26,6 +26,7 @@ from .user import (
     GoogleOAuthToken,
     OAuthState,
     User,
+    UserAdmin,
     UserAgentProfile,
     UserCalendarConnection,
     UserCommunicationPrefs,
@@ -34,7 +35,6 @@ from .user import (
     UserImportantLocation,
     UserIntegration,
     UserIntentAttribute,
-    UserAdmin,
     UserRole,
     UserSearchIntent,
 )

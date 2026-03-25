@@ -53,20 +53,6 @@ export type NegotiationStrategyResponse = {
   traceback?: string;
 };
 
-export type PurchaseAgreementRequest = {
-  property_address: string;
-  offer_price: number;
-  earnest_money: number;
-  closing_date: string;
-  contingencies: string[];
-  exclusions?: string[];
-  buyer_info: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-};
-
 export type PreApprovalLetterRequest = {
   buyer_name: string;
   loan_amount: number;
@@ -109,12 +95,6 @@ export const offerApi = {
       timeout: 300000,
       ...options,
     }),
-
-  /**
-   * Generate a purchase agreement document
-   */
-  generatePurchaseAgreement: (data: PurchaseAgreementRequest): Promise<DocumentResponse> =>
-    apiPost<DocumentResponse>("/api/v1/offer/purchase-agreement", data),
 
   /**
    * Generate a pre-approval letter

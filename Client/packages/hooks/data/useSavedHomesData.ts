@@ -196,7 +196,10 @@ export const useSavedHomesData = (clientId?: string) => {
   // Save home mutation
   const saveHomeMutation = useMutation({
     mutationFn: async (property: unknown) => {
-      const response = await userApi.addFavoriteHome({ home: property });
+      const response = await userApi.addFavoriteHome({
+        home: property,
+        ...(clientId ? { client_id: clientId } : {}),
+      });
       if (!response.success) {
         throw new Error(response.error ?? "Failed to save home");
       }
@@ -204,9 +207,9 @@ export const useSavedHomesData = (clientId?: string) => {
     },
     onMutate: async (property: unknown) => {
       // Optimistic update - add the home to cache immediately
-      // Note: We need to get the current clientId from the query context
-      // For now, we'll use the query key without clientId for mutations
-      const previousHomes = queryClient.getQueryData<SavedHome[]>(queryKeys.homes.favorites());
+      const previousHomes = queryClient.getQueryData<SavedHome[]>(
+        queryKeys.homes.favorites(clientId)
+      );
 
       // Convert property to SavedHome format for optimistic update
       const propertyData = property as PropertyData;
@@ -251,7 +254,10 @@ export const useSavedHomesData = (clientId?: string) => {
   // Remove saved home mutation
   const removeSavedHomeMutation = useMutation({
     mutationFn: async ({ address }: { propertyId: string; address: string }) => {
-      const response = await userApi.removeFavoriteHome({ address });
+      const response = await userApi.removeFavoriteHome({
+        address,
+        ...(clientId ? { client_id: clientId } : {}),
+      });
       if (!response.success) {
         throw new Error(response.error ?? "Failed to remove home");
       }

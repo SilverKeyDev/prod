@@ -12,12 +12,11 @@ import {
   convertSavedHomeToProperty,
   filterHomesBySearchTerm,
 } from "packages/features/saved/types/savedHomeUtils";
-import { usePropertyDetails, useSavedHomesStoreIntegration } from "packages/features/search";
+import { usePropertyDetails } from "packages/features/search";
 import { useIsMobile, useSavedPageEffects, useSavedPageModals } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useAuthStore } from "packages/store";
-import { useUIStore } from "packages/store";
-import type { Agreement, SavedHome } from "packages/types";
+import { useAgentDashboardStore, useAuthStore, useSavedHomesStore } from "packages/store";
+import type { SavedHome } from "packages/types";
 import { dateNow } from "packages/utils/date";
 
 import SavedHomesHeader from "./header/SavedHomesHeader";
@@ -32,21 +31,19 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const { viewType, setViewType } = useSavedPageView();
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
+  const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
   const [eventTypeFilter, setEventTypeFilter] = useState<
     "listed" | "price_change" | "sold" | "withdrawn" | ""
   >("");
   const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const isAgent = user?.is_agent ?? false;
-  const enqueueToast = useUIStore((s) => s.enqueueToast);
 
-  const {
-    savedHomes: homes,
-    savedHomesLoading: loading,
-    savedHomesError: error,
-    refreshSavedHomes,
-  } = useSavedHomesStoreIntegration(selectedClientId ?? undefined);
+  const homes = useSavedHomesStore((s) => s.savedHomes);
+  const loading = useSavedHomesStore((s) => s.savedHomesLoading);
+  const error = useSavedHomesStore((s) => s.savedHomesError);
+  const refreshSavedHomes = useSavedHomesStore((s) => s.refreshSavedHomes);
   const {
     currentPdf,
     currentDocumentId,
@@ -56,30 +53,6 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     handleDownloadDocument,
     handleShareDocument,
   } = useDocumentActions();
-  const agreements: Agreement[] = [];
-  const agreementsLoading = false;
-  const agreementsError: unknown = null;
-  const refetchAgreements = useCallback(async () => {}, []);
-  const [isCreateAgreementModalOpen, setIsCreateAgreementModalOpen] = useState(false);
-  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
-  const handleAgreementClick = (id: string) => {
-    setSelectedAgreementId(id);
-  };
-  const handleAgreementSend = (_id: string) => {
-    enqueueToast({
-      type: "info",
-      message: "Agreement sending will be available soon.",
-    });
-  };
-  const handleAgreementVoid = (_id: string) => {
-    enqueueToast({
-      type: "info",
-      message: "Voiding agreements will be available soon.",
-    });
-  };
-  const handleCreateAgreementSuccess = (_id: string) => {
-    setIsCreateAgreementModalOpen(false);
-  };
   const {
     documents,
     documentsLoading: documentsLoadingState,
@@ -133,16 +106,12 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const refresh = useCallback(async () => {
     setRefreshing(true);
     if (viewType === "homes") await refreshSavedHomes();
-    else if (viewType === "documents") await Promise.all([refetchDocuments(), refetchAgreements()]);
+    else if (viewType === "documents") await refetchDocuments();
     setRefreshing(false);
-  }, [viewType, refreshSavedHomes, refetchDocuments, refetchAgreements]);
+  }, [viewType, refreshSavedHomes, refetchDocuments]);
 
   const documentsErrorForEffects: string | null =
-    documentsErrorState != null
-      ? String(documentsErrorState)
-      : agreementsError != null
-        ? String(agreementsError)
-        : null;
+    documentsErrorState != null ? String(documentsErrorState) : null;
   useSavedPageEffects({
     viewType,
     refreshSavedHomes,
@@ -210,8 +179,6 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       filteredDocuments={filteredDocuments}
       loading={loading}
       documentsLoadingState={documentsLoadingState}
-      agreements={agreements}
-      agreementsLoading={agreementsLoading}
       selectedHomesForComparison={selectedHomesForComparison}
       selectedHomesData={selectedHomesData}
       selectedProperty={selectedProperty}
@@ -222,10 +189,6 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       selectedHomeForNegotiation={selectedHomeForNegotiation}
       isDocumentUploadModalOpen={isDocumentUploadModalOpen}
       setIsDocumentUploadModalOpen={setIsDocumentUploadModalOpen}
-      isCreateAgreementModalOpen={isCreateAgreementModalOpen}
-      setIsCreateAgreementModalOpen={setIsCreateAgreementModalOpen}
-      selectedAgreementId={selectedAgreementId}
-      setSelectedAgreementId={setSelectedAgreementId}
       isAgent={isAgent}
       homes={homes}
       currentPdf={currentPdf}
@@ -241,16 +204,12 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
         const doc = documents.find((d) => d.id === docId);
         if (doc) void handleDocumentDelete(doc);
       }}
-      onAgreementClick={handleAgreementClick}
-      onAgreementSend={handleAgreementSend}
-      onAgreementVoid={handleAgreementVoid}
       onRemoveFromComparison={handleRemoveFromComparison}
       onCloseNegotiation={handleCloseNegotiation}
       onCompare={handleCompare}
       onClearComparison={handleClearComparison}
       clearSelectedProperty={clearSelectedProperty}
       refetchDocuments={refetchDocuments}
-      onCreateAgreementSuccess={() => handleCreateAgreementSuccess("")}
       refresh={refresh}
       refreshing={refreshing}
     />

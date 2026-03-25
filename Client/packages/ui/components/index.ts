@@ -30,6 +30,10 @@ export { default as Select } from "./form/Select";
 export { default as TimeInput } from "./form/TimeInput";
 export { default as Toggle } from "./form/Toggle";
 
+// Avatar
+export type { ProfileAvatarProps } from "./avatar";
+export { ProfileAvatar } from "./avatar";
+
 // Asset/loading components
 export { default as AppImage } from "./asset/AppImage";
 export { default as KeyLogo } from "./asset/KeyLogo";
@@ -68,8 +72,7 @@ export { default as ReportCard } from "./cards/ReportCard";
 
 // Modal components
 export { default as BaseModal } from "./modals/BaseModal";
-export type { CoverAnimation,CoverProps } from "./modals/cover";
+export type { CoverAnimation, CoverProps } from "./modals/cover";
 export { default as Cover } from "./modals/cover";
 export { default as ModalPortal } from "./modals/ModalPortal";
-export { default as PropertyDetailsModal } from "./modals/PropertyDetailsModal";
 export { default as ShareHomeModal } from "./modals/ShareHomeModal";

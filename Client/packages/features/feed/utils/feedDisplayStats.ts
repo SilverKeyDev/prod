@@ -1,13 +1,6 @@
-/**
- * Display-only (illusion) stats for reels feed. Deterministic per listing id.
- * Ranges: likes 10–1000, comments 0–17, shares 1–29. Not persisted.
- */
+import type { FeedDisplayStats } from "packages/features/feed/types/feedDisplayStats";
 
-export type FeedDisplayStats = {
-  likes: number;
-  comments: number;
-  shares: number;
-};
+export type { FeedDisplayStats } from "packages/features/feed/types/feedDisplayStats";
 
 const LIKES_MIN = 10;
 const LIKES_MAX = 1000;

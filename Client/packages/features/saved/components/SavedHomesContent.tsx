@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 
 import { useLocalization } from "packages/contexts";
-import type { Agreement, DocumentData, SavedPageViewType } from "packages/features/documents";
-import { AgreementListItem } from "packages/features/documents";
+import type { DocumentData, SavedPageViewType } from "packages/features/documents";
 import type { SavedHome } from "packages/types";
 import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
 import { Box } from "packages/ui/components/primitives";
@@ -18,18 +17,15 @@ type SavedHomesContentProps = {
   homesLoading: boolean;
   documents: DocumentData[];
   documentsLoading: boolean;
-  agreements?: Agreement[];
-  agreementsLoading?: boolean;
   selectedHomesForComparison: Set<string>;
   onToggleHomeSelection: (homeId: string) => void;
   onUnlockHome: (home: SavedHome) => void;
   onDocumentDelete: (document: DocumentData) => void;
-  onAgreementClick?: (agreementId: string) => void;
-  onAgreementSend?: (agreementId: string) => void;
-  onAgreementVoid?: (agreementId: string) => void;
   selectedHomesDataLength: number;
   /** When true, container has no padding (parent provides it for alignment) */
   noPadding?: boolean;
+  /** Override default empty copy when the homes list is empty (not loading). */
+  noHomesYetKey?: string;
 };
 const CONTENT_PADDING = "px-4 sm:px-6 md:px-8 lg:px-12";
 export default function SavedHomesContent({
@@ -38,65 +34,33 @@ export default function SavedHomesContent({
   homesLoading,
   documents,
   documentsLoading,
-  agreements = [],
-  agreementsLoading = false,
   selectedHomesForComparison,
   onToggleHomeSelection,
   onUnlockHome,
   onDocumentDelete,
-  onAgreementClick,
-  onAgreementSend,
-  onAgreementVoid,
   selectedHomesDataLength,
   noPadding = false,
+  noHomesYetKey,
 }: SavedHomesContentProps) {
   const { t } = useLocalization();
   const containerClass = noPadding ? "w-full" : `w-full ${CONTENT_PADDING}`;
-  // Merge and sort documents and agreements by date
-  const sortedItems = useMemo(() => {
-    const items: Array<
-      | {
-          type: "document";
-          data: DocumentData;
-        }
-      | {
-          type: "agreement";
-          data: Agreement;
-        }
-    > = [];
-    // Add documents
-    documents.forEach((doc) => {
-      items.push({ type: "document", data: doc });
-    });
-    // Add agreements
-    agreements.forEach((agreement) => {
-      items.push({ type: "agreement", data: agreement });
-    });
-    // Sort by created_at/updated_at (most recent first)
+  const sortedDocuments = useMemo(() => {
     const toMs = (v: number | string) => (typeof v === "number" ? v : dateParseISO(v).valueOf());
-    items.sort((a, b) => {
-      const dateA =
-        a.type === "document"
-          ? toMs(a.data.created_at ?? a.data.updated_at ?? 0)
-          : toMs(a.data.created_at);
-      const dateB =
-        b.type === "document"
-          ? toMs(b.data.created_at ?? b.data.updated_at ?? 0)
-          : toMs(b.data.created_at);
+    return [...documents].sort((a, b) => {
+      const dateA = toMs(a.created_at ?? a.updated_at ?? 0);
+      const dateB = toMs(b.created_at ?? b.updated_at ?? 0);
       return dateB - dateA;
     });
-    return items;
-  }, [documents, agreements]);
+  }, [documents]);
   if (viewType === "documents") {
-    const isLoading = documentsLoading || agreementsLoading;
-    if (isLoading) {
+    if (documentsLoading) {
       return (
         <Box className={`${containerClass} py-responsive-lg flex justify-center`}>
           <KeyTurnLoader message={t("saved.loading_documents")} />
         </Box>
       );
     }
-    if (sortedItems.length === 0) {
+    if (sortedDocuments.length === 0) {
       return (
         <Box className={`${containerClass} py-responsive-lg text-center`}>
           <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
@@ -109,22 +73,11 @@ export default function SavedHomesContent({
       <Box
         className={`${containerClass} gap-responsive-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`}
       >
-        {sortedItems.map((item) =>
-          item.type === "document" ? (
-            <Box key={`doc-${item.data.id}`} className="group relative w-full">
-              <DocumentCard doc={item.data} onDelete={onDocumentDelete} />
-            </Box>
-          ) : (
-            <Box key={`agreement-${item.data.id}`} className="group relative w-full">
-              <AgreementListItem
-                agreement={item.data}
-                onClick={() => onAgreementClick?.(item.data.id)}
-                onSend={onAgreementSend}
-                onVoid={onAgreementVoid}
-              />
-            </Box>
-          )
-        )}
+        {sortedDocuments.map((doc) => (
+          <Box key={`doc-${doc.id}`} className="group relative w-full">
+            <DocumentCard doc={doc} onDelete={onDocumentDelete} />
+          </Box>
+        ))}
       </Box>
     );
   }
@@ -140,7 +93,7 @@ export default function SavedHomesContent({
       return (
         <Box className={`${containerClass} py-responsive-lg text-center`}>
           <BodyText as="p" size="sm" className="text-responsive-sm text-text-secondary">
-            {t("saved.no_homes_yet")}
+            {t(noHomesYetKey ?? "saved.no_homes_yet")}
           </BodyText>
         </Box>
       );

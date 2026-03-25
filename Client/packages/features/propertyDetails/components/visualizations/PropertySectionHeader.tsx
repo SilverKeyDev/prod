@@ -22,14 +22,14 @@ export function PropertySectionHeader({
   action,
   className = "",
 }: PropertySectionHeaderProps): React.ReactElement {
+  const alignItems = subtitle ? "items-start" : "items-center";
+  const iconMargin = subtitle ? "mt-0.5" : "";
   return (
-    <Box
-      className={`mb-4 flex min-w-0 flex-row items-start gap-2 ${className}`}
-    >
+    <Box className={`mb-4 flex min-w-0 flex-row gap-2 ${alignItems} ${className}`}>
       <Icon
         name={iconName}
         size={20}
-        className="text-foreground mt-0.5 h-5 w-5 shrink-0"
+        className={`text-foreground h-5 w-5 shrink-0 ${iconMargin}`}
         aria-hidden
       />
       <Box className="min-w-0 flex-1">

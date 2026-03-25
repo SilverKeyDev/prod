@@ -1,7 +1,5 @@
 import { useCallback } from "react";
 
-import { useMessaging } from "packages/hooks/data/chat/messaging";
-import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SavedHome } from "packages/schemas/property";
 import { useUIStore } from "packages/store";
@@ -12,8 +10,7 @@ import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents"
 import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 
 // Parity note: this hook is used by both web (AgentMessaging, ClientMessaging) and mobile (MessagingScreen.native).
-// When adding new messaging attachment or event-request behaviors, update both platforms and
-// keep `documentation/client/mobile-parity/messaging-mobile-parity.md` in sync.
+// When adding new messaging attachment or event-request behaviors, update both platforms.
 
 type UseMessagingHandlersArgs = {
   mode: "agent" | "client";
@@ -25,9 +22,10 @@ type UseMessagingHandlersArgs = {
   setAcceptingEventRequestId: (v: string | null) => void;
   refreshActiveConversationHistory: () => Promise<void>;
   refreshChats: () => Promise<void>;
+  sendSharedHome: (home: SavedHome) => Promise<void>;
+  sendSharedDocument: (document: DocumentData) => Promise<void>;
   // Agent-only
   selectedClientId?: string | null;
-  setShowSelectAgreementModal?: (v: boolean) => void;
   // Client-only (conversationSelector for useMessaging when mode is client)
   agentId?: string | null;
   clientUserId?: string | null;
@@ -43,50 +41,29 @@ export function useMessagingHandlers({
   setAcceptingEventRequestId,
   refreshActiveConversationHistory,
   refreshChats,
+  sendSharedHome,
+  sendSharedDocument,
   selectedClientId,
   agentId,
-  clientUserId,
-  setShowSelectAgreementModal,
+  clientUserId: _clientUserId,
 }: UseMessagingHandlersArgs) {
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const { sendMessage: sendMessageApi } = useMessaging({
-    mode,
-    conversationSelector:
-      mode === "agent" ? selectedClientId : (clientUserId ?? activeConversationId),
-    clientIdForSending: mode === "agent" ? selectedClientId : undefined,
-    agentId: mode === "client" ? agentId : undefined,
-  });
-  const { sendMessage: sendMessageWithAttachment } = useAgentChats();
   const { updateEventRequestStatus } = useEventRequests();
   const { createEvent } = useGoogleEvents({ enabled: false });
 
-  const clientIdForAttachment = mode === "agent" ? selectedClientId : undefined;
   const canShare = mode === "agent" ? !!selectedClientId : !!(activeConversationId || agentId);
 
   const handleSelectHome = useCallback(
     async (home: SavedHome) => {
       if (!canShare) return;
-      const conversationId = activeConversationId || "new";
-      const propertyId = home.home_id || home.address || "";
       try {
-        await sendMessageWithAttachment(
-          conversationId,
-          "",
-          clientIdForAttachment ?? undefined,
-          propertyId
-        );
+        await sendSharedHome(home);
         setShowSelectHomeModal(false);
       } catch (error) {
         log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
       }
     },
-    [
-      canShare,
-      activeConversationId,
-      clientIdForAttachment,
-      sendMessageWithAttachment,
-      setShowSelectHomeModal,
-    ]
+    [canShare, sendSharedHome, setShowSelectHomeModal]
   );
 
   const handleSelectDocument = useCallback(
@@ -106,13 +83,7 @@ export function useMessagingHandlers({
       }
       const conversationId = activeConversationId || "new";
       try {
-        await sendMessageWithAttachment(
-          conversationId,
-          "",
-          clientIdForAttachment ?? undefined,
-          undefined,
-          document.id
-        );
+        await sendSharedDocument(document);
         if (mode === "client") {
           log.info(LOG_CATEGORIES.MESSAGES, "Document shared successfully", {
             documentId: document.id,
@@ -134,23 +105,9 @@ export function useMessagingHandlers({
       mode,
       activeConversationId,
       agentId,
-      clientIdForAttachment,
-      sendMessageWithAttachment,
+      sendSharedDocument,
       setShowSelectDocumentModal,
     ]
-  );
-
-  const handleSelectAgreement = useCallback(
-    async (agreement: { title?: string }) => {
-      if (mode !== "agent" || !selectedClientId || !setShowSelectAgreementModal) return;
-      try {
-        await sendMessageApi(`Shared agreement: ${agreement.title}`);
-        setShowSelectAgreementModal(false);
-      } catch (error) {
-        log.error(LOG_CATEGORIES.MESSAGES, "Error sharing agreement", error);
-      }
-    },
-    [mode, selectedClientId, sendMessageApi, setShowSelectAgreementModal]
   );
 
   const handleCalendarEventSuccess = useCallback(() => {
@@ -251,7 +208,6 @@ export function useMessagingHandlers({
   return {
     handleSelectHome,
     handleSelectDocument,
-    handleSelectAgreement: mode === "agent" ? handleSelectAgreement : undefined,
     handleCalendarEventSuccess,
     handleAcceptEventRequest,
     handleCancelEventRequest,

@@ -76,7 +76,38 @@ export function transformSearchResponse(
     return [];
   }
 
-  return response.properties.map((property, index) =>
+  const mapped = response.properties.map((property, index) =>
     transformPropertySearchResult(property, index, fallbackCenter)
   );
+  log.info(
+    LOG_CATEGORIES.SEARCH,
+    "transformSearchResponse: mapped API properties to SearchResult",
+    {
+      inputCount: response.properties.length,
+      outputCount: mapped.length,
+      metaCached: response.meta?.cached,
+    }
+  );
+  // #region agent log
+  // eslint-disable-next-line no-restricted-globals -- Cursor debug NDJSON ingest (session 8adfea)
+  fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": "8adfea",
+    },
+    body: JSON.stringify({
+      sessionId: "8adfea",
+      location: "searchTransform.ts:transformSearchResponse",
+      message: "transform complete",
+      data: {
+        inputCount: response.properties.length,
+        outputCount: mapped.length,
+      },
+      timestamp: Date.now(),
+      hypothesisId: "E",
+    }),
+  }).catch(() => {});
+  // #endregion
+  return mapped;
 }

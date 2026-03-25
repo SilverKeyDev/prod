@@ -8,9 +8,7 @@ import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import Title from "packages/ui/components/text/Title";
 
-export const PropertySchools: React.FC<PropertyComponentProps> = ({
-  property,
-}) => {
+export const PropertySchools: React.FC<PropertyComponentProps> = ({ property }) => {
   const { t } = useLocalization();
   const { schools } = property as unknown as {
     schools: unknown;
@@ -33,9 +31,7 @@ export const PropertySchools: React.FC<PropertyComponentProps> = ({
           {schoolList.slice(0, 6).map((school, idx) => (
             <Box key={idx} className="flex items-center justify-between">
               <Box className="flex-1">
-                <Box className="text-text-secondary font-medium">
-                  {school.name as string}
-                </Box>
+                <Box className="text-text-secondary font-medium">{school.name as string}</Box>
                 <Box className="text-text-secondary text-sm">
                   {school.level as string}
                   {t("property_details.bullet_separator")}

@@ -1,8 +1,6 @@
-export type ValidationRule = {
-  id: string;
-  label: string;
-  test: (password: string) => boolean;
-};
+import type { ValidationRule } from "packages/features/homeauth/types/auth/passwordValidation";
+
+export type { ValidationRule } from "packages/features/homeauth/types/auth/passwordValidation";
 
 export const validationRules: ValidationRule[] = [
   {

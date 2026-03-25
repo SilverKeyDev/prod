@@ -1,18 +1,3 @@
-export const LOT_SIZE_OPTIONS = [
-  { value: "small", label: "Small (under 0.25 acres)" },
-  { value: "medium", label: "Medium (0.25 - 0.5 acres)" },
-  { value: "large", label: "Large (0.5 - 1 acre)" },
-  { value: "very_large", label: "Very Large (1+ acres)" },
-] as const;
-
-export const HOME_AGE_OPTIONS = [
-  { value: "new", label: "New (0-5 years)" },
-  { value: "recent", label: "Recent (5-15 years)" },
-  { value: "established", label: "Established (15-30 years)" },
-  { value: "mature", label: "Mature (30-50 years)" },
-  { value: "historic", label: "Historic (50+ years)" },
-] as const;
-
 export const ARCHITECTURAL_STYLE_OPTIONS = [
   { value: "modern", label: "Modern" },
   { value: "traditional", label: "Traditional" },

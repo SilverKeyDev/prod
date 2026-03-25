@@ -15,20 +15,13 @@ export const BUYER_FACING_DEMOGRAPHICS_FIELD_KEYS = [
   "looking_for_buyers_agent",
 ] as const;
 
-export type BuyerFacingDemographicsFieldKey =
-  (typeof BUYER_FACING_DEMOGRAPHICS_FIELD_KEYS)[number];
+export type BuyerFacingDemographicsFieldKey = (typeof BUYER_FACING_DEMOGRAPHICS_FIELD_KEYS)[number];
 
 /**
  * When true, agents still see buyer-preference demographics with an “optional for personal search” note.
  */
-export function isBuyerFacingDemographicsOptionalForAgent(
-  surface: ProfileUiSurface,
-): boolean {
-  return (
-    surface === "personalization" ||
-    surface === "onboarding" ||
-    surface === "settings_modal"
-  );
+export function isBuyerFacingDemographicsOptionalForAgent(surface: ProfileUiSurface): boolean {
+  return surface === "personalization" || surface === "onboarding" || surface === "settings_modal";
 }
 
 export type GetStepIdsForSurfaceOptions = {
@@ -42,7 +35,7 @@ export type GetStepIdsForSurfaceOptions = {
 export function getStepIdsForSurface(
   surface: ProfileUiSurface,
   isAgent: boolean,
-  options?: GetStepIdsForSurfaceOptions,
+  options?: GetStepIdsForSurfaceOptions
 ): ProfileStepId[] {
   if (surface === "onboarding") {
     return getOnboardingSteps({
@@ -52,10 +45,10 @@ export function getStepIdsForSurface(
   }
   if (surface === "settings_modal") {
     return getPersonalizationSteps(isAgent ? { isAgent: true } : undefined).map(
-      (s) => s.id as ProfileStepId,
+      (s) => s.id as ProfileStepId
     );
   }
   return getPersonalizationSteps(isAgent ? { isAgent: true } : undefined).map(
-    (s) => s.id as ProfileStepId,
+    (s) => s.id as ProfileStepId
   );
 }

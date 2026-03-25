@@ -3,11 +3,12 @@
  * Native-only screens are in ./native.
  */
 // Web pages must not import feature internals; re-export shared profile utilities.
-export type {
-  AgentProfileFormFieldKey,
-  ProfileStepId,
-  ProfileUiSurface,
-} from "./types";
+export {
+  LotSizeAndHomeAgeSliders,
+  type LotSizeHomeAgeFormSlice,
+  type LotSizeHomeAgeSearchOverridesPatch,
+} from "./components/LotSizeAndHomeAgeSliders";
+export type { AgentProfileFormFieldKey, ProfileStepId, ProfileUiSurface } from "./types";
 export {
   AGENT_ONLY_SECTION_IDS,
   AGENT_PROFILE_FORM_FIELD_KEYS,
@@ -17,7 +18,7 @@ export {
   isBuyerFacingDemographicsOptionalForAgent,
   PROFILE_STEP_IDS,
 } from "./types";
-export type { OnboardingData } from "./utils";
+export type { OnboardingData, PreferencesSubmitResult } from "./utils";
 export {
   FIELD_LABELS,
   formDataToPreferencesPayload,

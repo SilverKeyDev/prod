@@ -1,16 +1,13 @@
 import React from "react";
 
-import { AgentSearchContent } from "packages/features/agent";
-
-import type { ChecklistIntegrationComponentProps } from "../../types/componentRegistry";
+import type { ChecklistIntegrationComponentProps } from "packages/features/checklists/types/componentRegistry";
+import { AgentSearchContent } from "packages/hooks/data/checklistAgentSearchContent";
 
 /**
  * Checklist step "Partner with a real estate agent": shows agent search UI inline (no modal, no button).
  * When the user sends a connection request, onComplete is called so the step can be marked done.
  */
-export default function PartnerAgentSection({
-  onComplete,
-}: ChecklistIntegrationComponentProps) {
+export default function PartnerAgentSection({ onComplete }: ChecklistIntegrationComponentProps) {
   return (
     <AgentSearchContent
       isActive={true}

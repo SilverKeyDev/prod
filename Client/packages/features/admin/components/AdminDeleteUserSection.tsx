@@ -5,14 +5,7 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { HttpError } from "packages/services/http/client";
 import { Box } from "packages/ui/components/primitives";
 
-import {
-  AccessibleCheckboxInput,
-  BodyText,
-  Button,
-  Input,
-  Label,
-  Title,
-} from "@/components/ui";
+import { AccessibleCheckboxInput, BodyText, Button, Input, Label, Title } from "@/components/ui";
 
 export function AdminDeleteUserSection() {
   const [deleteUserIdInput, setDeleteUserIdInput] = useState("");
@@ -63,9 +56,9 @@ export function AdminDeleteUserSection() {
         Delete user (database)
       </Title>
       <BodyText size="sm" muted className="mb-4">
-        Permanently removes the user row and related application data (documents, agreements where they
-        are a party, transactions, messages, etc.). This cannot be undone. You cannot delete your own
-        account here.
+        Permanently removes the user row and related application data (documents, transactions,
+        messages, etc.). This cannot be undone. You cannot delete
+        your own account here.
       </BodyText>
       <Box className="flex max-w-xl flex-col gap-4">
         <Input

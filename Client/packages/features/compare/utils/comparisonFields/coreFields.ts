@@ -1,4 +1,4 @@
-import type { CompareHomesComparisonField } from "packages/features/compare/utils/types";
+import type { CompareHomesComparisonField } from "packages/features/compare/types/compareHomes";
 import { formatPrice, formatPropertyType } from "packages/utils/format/property";
 
 export function getCoreFields(): CompareHomesComparisonField[] {

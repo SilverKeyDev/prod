@@ -11,11 +11,7 @@ export type ScoreBarProps = {
   label?: string;
 };
 
-export function ScoreBar({
-  score,
-  max = 10,
-  label,
-}: ScoreBarProps): React.ReactElement {
+export function ScoreBar({ score, max = 10, label }: ScoreBarProps): React.ReactElement {
   const safeMax = max > 0 ? max : 10;
   const n = Number.isFinite(score) ? score : 0;
   const ratio = Math.min(1, Math.max(0, n / safeMax));
@@ -24,10 +20,7 @@ export function ScoreBar({
   return (
     <Box className="min-w-[4.5rem]">
       <Box className="flex items-center justify-end gap-2">
-        <Box
-          className="bg-accent-muted h-2 w-16 overflow-hidden rounded-full sm:w-20"
-          aria-hidden
-        >
+        <Box className="bg-accent-muted h-2 w-16 overflow-hidden rounded-full sm:w-20" aria-hidden>
           <Box
             className="bg-brand-accent h-full rounded-full transition-all"
             style={{ width: `${ratio * 100}%` }}

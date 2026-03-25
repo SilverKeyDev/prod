@@ -10,12 +10,12 @@ export * from "./profileFormSync";
 export * from "./propertyTax";
 export * from "./steps";
 export * from "./submitHandler";
+export * from "./utils";
+export * from "./validation";
 export type {
   DropdownOption,
   OnboardingData,
   ProfileStep,
   ProfileStepId,
   ValidationResult,
-} from "./types";
-export * from "./utils";
-export * from "./validation";
+} from "packages/features/profile/types/onboarding";

@@ -16,7 +16,7 @@ import {
   SQFT_TICK_VALUES,
 } from "packages/features/profile/utils";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { Input } from "packages/ui/components";
+import { Input } from "packages/ui/components/form/Input";
 import { Pressable } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";

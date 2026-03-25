@@ -1,6 +1,6 @@
 // Shared constants for onboarding and personalization
 
-import type { DropdownOption, OnboardingData } from "./types";
+import type { DropdownOption, OnboardingData } from "packages/features/profile/types/onboarding";
 
 // Re-export types for convenience
 export type { DropdownOption, OnboardingData };
@@ -16,7 +16,7 @@ export const SECTION_TITLES = {
   AGENT_PROFESSIONAL_INFO: "Professional Info",
   AGENT_BROKERAGE: "Brokerage",
   AGENT_LICENSING: "Licensing",
-  AGENT_PROFILE_AND_SERVICE: "Profile & service area",
+  AGENT_PROFILE_AND_SERVICE: "Service Area",
 } as const;
 
 /** Location section subtitle (web and native). */
@@ -175,9 +175,7 @@ export const LISTING_TYPE_OPTIONS: DropdownOption[] = [
 ];
 
 // Slider scale values (for range/single sliders)
-export const SQFT_TICK_VALUES = [
-  500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 7500, 10000,
-];
+export const SQFT_TICK_VALUES = [500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 7500, 10000];
 export const DAYS_ON_MARKET_TICK_VALUES = [0, 7, 14, 30, 60, 90, 180, 365];
 export const LOT_SIZE_ACRES_TICK_VALUES = [0, 0.25, 0.5, 1, 2, 5];
 export const HOME_AGE_YEARS_TICK_VALUES = [5, 15, 30, 50, 100];

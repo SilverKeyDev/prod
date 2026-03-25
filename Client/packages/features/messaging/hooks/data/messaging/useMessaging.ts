@@ -63,7 +63,7 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     lastMessageAtRef,
   } = history;
 
-  const { sendMessage, retryMessage } = useMessagingSend({
+  const { sendMessage, sendSharedHome, sendSharedDocument, retryMessage } = useMessagingSend({
     config: { mode, conversationSelector, clientIdForSending, agentId },
     activeConversationId,
     localMessages,
@@ -132,6 +132,8 @@ export function useMessaging(config: UseMessagingConfig): UseMessagingReturn {
     activeConversation,
     conversations,
     sendMessage,
+    sendSharedHome,
+    sendSharedDocument,
     retryMessage,
     setActiveConversationId,
     refreshActiveConversationHistory,

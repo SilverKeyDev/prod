@@ -5,6 +5,7 @@ import { Icon } from "@ui/icons";
 import type { NavItem } from "packages/navigation";
 import type { IconName } from "packages/ui/types/icons";
 
+import type { OnboardingData } from "@/features/profile/types/onboarding";
 import {
   getOnboardingSteps,
   getPersonalizationSteps,
@@ -12,7 +13,6 @@ import {
   type ProfileStep,
   type ProfileStepId,
 } from "@/features/profile/utils";
-import type { OnboardingData } from "@/features/profile/utils/types";
 
 type StepWithIcon = ProfileStep & {
   icon: React.ComponentType<{ size?: number; className?: string }> | undefined;
@@ -48,18 +48,13 @@ const withIcons = (steps: ProfileStep[]): StepWithIcon[] =>
   steps.map((step) => ({ ...step, icon: iconForStepId(step.id) }));
 
 /** Onboarding steps with optional agent step; pass formData to include agent when is_agent is yes/am_agent. */
-export const getOnboardingStepsUi = (
-  formData?: OnboardingData,
-): StepWithIcon[] => {
-  const isAgent =
-    formData?.is_agent === "yes" || formData?.is_agent === "am_agent";
+export const getOnboardingStepsUi = (formData?: OnboardingData): StepWithIcon[] => {
+  const isAgent = formData?.is_agent === "yes" || formData?.is_agent === "am_agent";
   return withIcons(getOnboardingSteps({ excludeFinancial: true, isAgent }));
 };
 
 /** Personalization steps; pass isAgent true to include Brokerage, Licensing, Profile tabs. */
-export const getPersonalizationStepsUi = (
-  isAgent: boolean = false,
-): StepWithIcon[] =>
+export const getPersonalizationStepsUi = (isAgent: boolean = false): StepWithIcon[] =>
   withIcons(getPersonalizationSteps(isAgent ? { isAgent: true } : undefined));
 
 export const convertStepsToNavItems = (steps: StepWithIcon[]): NavItem[] =>
@@ -71,7 +66,5 @@ export const convertStepsToNavItems = (steps: StepWithIcon[]): NavItem[] =>
   }));
 
 /** Nav items for personalization; pass isAgent to include agent steps. */
-export const getPersonalizationNavItems = (
-  options?: GetPersonalizationStepsOptions,
-): NavItem[] =>
+export const getPersonalizationNavItems = (options?: GetPersonalizationStepsOptions): NavItem[] =>
   convertStepsToNavItems(getPersonalizationStepsUi(Boolean(options?.isAgent)));

@@ -1,7 +1,7 @@
 import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
-} from "packages/features/compare/utils/types";
+} from "packages/features/compare/types/compareHomes";
 
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 

@@ -12,14 +12,12 @@ type AttachmentMenuProps = {
   onSelectHome: () => void;
   onSelectCalendar: () => void;
   onSelectDocument?: () => void;
-  onSelectAgreement?: () => void;
   disabled?: boolean;
 };
 export default function AttachmentMenu({
   onSelectHome,
   onSelectCalendar,
   onSelectDocument,
-  onSelectAgreement,
   disabled = false,
 }: AttachmentMenuProps) {
   const { t } = useLocalization();
@@ -94,13 +92,6 @@ export default function AttachmentMenu({
                   iconName="file-text"
                   title={t("agent.share_document")}
                   onClick={closeAnd(onSelectDocument)}
-                />
-              )}
-              {onSelectAgreement && (
-                <AttachmentMenuItem
-                  iconName="file-signature"
-                  title={t("agent.share_agreement")}
-                  onClick={closeAnd(onSelectAgreement)}
                 />
               )}
               <AttachmentMenuItem

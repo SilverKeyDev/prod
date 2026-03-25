@@ -6,7 +6,7 @@ import { getSectionIconName } from "packages/utils/propertyDetails/sectionIconNa
 
 export function renderReportSectionIcon(
   sectionKey: string,
-  className: string = "h-5 w-5",
+  className: string = "h-5 w-5"
 ): React.ReactNode {
   const iconName = getSectionIconName(sectionKey);
   if (!iconName) {

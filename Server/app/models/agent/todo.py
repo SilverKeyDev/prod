@@ -19,16 +19,14 @@ class Todo(db.Model):
     title = db.Column(db.String(500), nullable=False)
     description = db.Column(db.Text, nullable=True)
 
-    # Priority and type
-    priority = db.Column(
-        db.String(20), nullable=False, default="medium"
-    )  # low, medium, high, urgent
+    # Priority and type (nullable = unset / optional)
+    priority = db.Column(db.String(20), nullable=True)  # low, medium, high, urgent
     type = db.Column(
         db.String(50), nullable=False, default="manual"
     )  # deadline, follow_up, inspection, offer_expiration, closing, manual
 
-    # Dates
-    due_date = db.Column(db.DateTime, nullable=False)
+    # Dates (nullable = no deadline)
+    due_date = db.Column(db.DateTime, nullable=True)
     completed = db.Column(db.Boolean, default=False, nullable=False)
     completed_at = db.Column(db.DateTime, nullable=True)
 
@@ -65,4 +63,4 @@ class Todo(db.Model):
         }
 
     def __repr__(self):
-        return f"<Todo {self.title} - {self.priority}>"
+        return f"<Todo {self.title} - {self.priority or 'none'}>"

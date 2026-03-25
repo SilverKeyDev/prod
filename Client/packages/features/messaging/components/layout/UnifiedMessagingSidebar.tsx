@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -7,8 +7,8 @@ import { useLocalization } from "packages/contexts";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
 import { getMessagePreview } from "packages/features/messaging/utils";
-import { DEFAULT_AVATAR_BUNDLED, DEFAULT_AVATAR_WEB_PATH } from "packages/ui/components/asset/logoSource";
-import { Box, Image } from "packages/ui/components/primitives";
+import { ProfileAvatar } from "packages/ui/components";
+import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
 import {
@@ -19,39 +19,9 @@ import { ConnectionRequestsInbox } from "@/features/agent/components/modals/Conn
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
 
 function MessagingSidebarAvatar({ name, imageUrl }: { name: string; imageUrl?: string | null }) {
-  const [loadFailed, setLoadFailed] = useState(false);
-  const trimmed = imageUrl?.trim();
-  const useRemote = Boolean(trimmed && !loadFailed);
-  const bundledDefault =
-    typeof DEFAULT_AVATAR_BUNDLED === "number" ? DEFAULT_AVATAR_BUNDLED : null;
-
-  useEffect(() => {
-    setLoadFailed(false);
-  }, [trimmed]);
-
-  const handleError = useCallback(() => {
-    setLoadFailed(true);
-  }, []);
-
   return (
     <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
-      {bundledDefault != null ? (
-        <Image
-          source={useRemote ? { uri: trimmed! } : bundledDefault}
-          alt={name}
-          label={name}
-          className="h-full w-full object-cover"
-          onError={handleError}
-        />
-      ) : (
-        <Image
-          src={useRemote ? trimmed! : DEFAULT_AVATAR_WEB_PATH}
-          alt={name}
-          label={name}
-          className="h-full w-full object-cover"
-          onError={handleError}
-        />
-      )}
+      <ProfileAvatar imageUrl={imageUrl} label={name} imageClassName="h-full w-full object-cover" />
     </Box>
   );
 }

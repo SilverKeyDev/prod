@@ -1,7 +1,20 @@
 import type { ReactNode } from "react";
 
+import { useAgentDashboardStore } from "packages/store";
+
 import { useReportsStoreIntegration } from "@/features/documents/hooks/store/useReportsStoreIntegration";
 import { useSavedHomesStoreIntegration } from "@/features/search/hooks/store/useSavedHomesStoreIntegration";
+
+/**
+ * Single integration for saved homes: follows agent dashboard "view as client" selection
+ * so Search, Saved, and Zustand stay aligned.
+ */
+function SavedHomesShellIntegration() {
+  const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
+  const clientId = selectedClientId ?? undefined;
+  useSavedHomesStoreIntegration(clientId);
+  return null;
+}
 
 /**
  * Full auth shell providers for standard and specialized routes
@@ -15,9 +28,10 @@ export function AuthShellProviders({ children }: { children: ReactNode }) {
   // Data is already prefetched on login, this just syncs to store
   useReportsStoreIntegration();
 
-  // Sync saved homes data from React Query cache to Zustand store
-  // Data is already prefetched on login, this just syncs to store
-  useSavedHomesStoreIntegration();
-
-  return <>{children}</>;
+  return (
+    <>
+      <SavedHomesShellIntegration />
+      {children}
+    </>
+  );
 }

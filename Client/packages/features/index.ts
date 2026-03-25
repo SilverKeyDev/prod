@@ -18,7 +18,7 @@ export * from "./compare";
 // Dashboard feature - main dashboard screens
 export * from "./dashboard";
 
-// Documents feature - document management, agreements
+// Documents feature - document management
 export * from "./documents";
 
 // Feed feature - property feed, reels, media carousel

@@ -31,7 +31,7 @@ export default function SuccessToast({ message, onClose, duration = 3000 }: Succ
             <BodyText
               as="p"
               size="sm"
-              className="flex-1 text-center text-responsive-sm font-medium text-green-800 break-words"
+              className="text-responsive-sm flex-1 break-words text-center font-medium text-green-800"
             >
               {message}
             </BodyText>

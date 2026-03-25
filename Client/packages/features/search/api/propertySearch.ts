@@ -30,14 +30,19 @@ export type SearchResult = {
   _score: number;
 };
 
+/** Legacy polygon payload shape; prefer numeric ranges for lot/home age when present. */
 export type UserPreferences = {
   home_budget_min: number;
   home_budget_max: number;
   preferred_bedrooms: number;
   preferred_bathrooms: number;
   preferred_housing_type: string;
-  preferred_home_age: string;
-  preferred_lot_size: string;
+  preferred_home_age?: string;
+  preferred_lot_size?: string;
+  preferred_lot_size_min?: number;
+  preferred_lot_size_max?: number;
+  preferred_home_age_min?: number;
+  preferred_home_age_max?: number;
   preferred_home_features: string[];
   deal_breakers: string[];
   important_locations: Array<{
@@ -47,6 +52,31 @@ export type UserPreferences = {
     lng?: number | null;
   }>;
 };
+
+const POLYGON_SEARCH_OVERRIDE_KEYS: (keyof SearchFilterOverrides)[] = [
+  "preferred_bedrooms_max",
+  "preferred_bathrooms_max",
+  "preferred_lot_size_min",
+  "preferred_lot_size_max",
+  "preferred_home_age_min",
+  "preferred_home_age_max",
+];
+
+/** Build non-empty user_preferences for polygon search when any slider override is set. */
+export function compactSearchFilterOverridesForPolygon(
+  overrides: SearchFilterOverrides
+): SearchByPolygonRequest["user_preferences"] | undefined {
+  const out: Record<string, number> = {};
+  for (const k of POLYGON_SEARCH_OVERRIDE_KEYS) {
+    const v = overrides[k];
+    if (typeof v === "number" && Number.isFinite(v)) {
+      out[k] = v;
+    }
+  }
+  return Object.keys(out).length > 0
+    ? (out as SearchByPolygonRequest["user_preferences"])
+    : undefined;
+}
 
 export type SearchByPolygonParams = {
   polygon: LatLng[];
@@ -86,17 +116,48 @@ export const searchPropertiesInIsochrone = async (
   try {
     setSearchStage("Extracting property data...");
 
-    // Backend pulls user preferences from database; send overrides (e.g. max beds/baths) when set
+    // Backend pulls user preferences from database; send overrides when any slider override is set
     const overrides = searchFilterOverrides;
+    const userPrefsOverride = compactSearchFilterOverridesForPolygon(overrides);
     const searchRequest: SearchByPolygonRequest = {
       perBucketPages: 20,
       forceSearch: true, // Force new search, ignore cache (for search button)
-      ...(overrides.preferred_bedrooms_max != null || overrides.preferred_bathrooms_max != null
-        ? { user_preferences: overrides }
-        : {}),
+      ...(userPrefsOverride ? { user_preferences: userPrefsOverride } : {}),
     };
 
-    log.debug(LOG_CATEGORIES.SEARCH, "Making API request", searchRequest);
+    log.info(LOG_CATEGORIES.SEARCH, "Isochrone search: request filters (overrides + payload)", {
+      overrideBedMax: overrides.preferred_bedrooms_max ?? null,
+      overrideBathMax: overrides.preferred_bathrooms_max ?? null,
+      overrideLotHomeKeys: userPrefsOverride ? Object.keys(userPrefsOverride) : [],
+      includesUserPreferenceOverrides:
+        searchRequest.user_preferences != null &&
+        typeof searchRequest.user_preferences === "object",
+      perBucketPages: searchRequest.perBucketPages,
+      forceSearch: searchRequest.forceSearch,
+    });
+    // #region agent log
+    // eslint-disable-next-line no-restricted-globals -- Cursor debug NDJSON ingest (session 8adfea)
+    fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "8adfea",
+      },
+      body: JSON.stringify({
+        sessionId: "8adfea",
+        location: "propertySearch.ts:before-searchByPolygon",
+        message: "isochrone search filters and request flags",
+        data: {
+          overrideBedMax: overrides.preferred_bedrooms_max ?? null,
+          overrideBathMax: overrides.preferred_bathrooms_max ?? null,
+          perBucketPages: searchRequest.perBucketPages,
+          forceSearch: searchRequest.forceSearch,
+        },
+        timestamp: Date.now(),
+        hypothesisId: "A",
+      }),
+    }).catch(() => {});
+    // #endregion
 
     const searchResult = (await searchApi.searchByPolygon(searchRequest, {
       signal,
@@ -105,6 +166,35 @@ export const searchPropertiesInIsochrone = async (
     if (!searchResult.success) {
       throw new Error(searchResult.error ?? "Search failed");
     }
+
+    const apiPropertyCount = searchResult.properties?.length ?? 0;
+    log.info(LOG_CATEGORIES.SEARCH, "Isochrone search: raw API homes before client transform", {
+      propertiesCount: apiPropertyCount,
+      totalCount: searchResult.total_count,
+      meta: searchResult.meta,
+    });
+    // #region agent log
+    // eslint-disable-next-line no-restricted-globals -- Cursor debug NDJSON ingest (session 8adfea)
+    fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "8adfea",
+      },
+      body: JSON.stringify({
+        sessionId: "8adfea",
+        location: "propertySearch.ts:after-searchByPolygon",
+        message: "raw properties from API before map/transform",
+        data: {
+          propertiesCount: apiPropertyCount,
+          totalCount: searchResult.total_count,
+          metaCached: searchResult.meta?.cached,
+        },
+        timestamp: Date.now(),
+        hypothesisId: "E",
+      }),
+    }).catch(() => {});
+    // #endregion
 
     // Log cache status if available
     if (searchResult.meta?.cached !== undefined) {
@@ -199,9 +289,36 @@ export const searchPropertiesInIsochrone = async (
     setCurrentPage(0);
     setShowPropertyModals(true);
 
-    log.info(LOG_CATEGORIES.SEARCH, "Successfully found properties", {
-      count: transformedResults.length,
-    });
+    log.info(
+      LOG_CATEGORIES.SEARCH,
+      "Successfully found properties (after home matching transform)",
+      {
+        rawApiCount: apiPropertyCount,
+        transformedCount: transformedResults.length,
+        sampleIds: transformedResults.slice(0, 5).map((r) => r.id),
+      }
+    );
+    // #region agent log
+    // eslint-disable-next-line no-restricted-globals -- Cursor debug NDJSON ingest (session 8adfea)
+    fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "8adfea",
+      },
+      body: JSON.stringify({
+        sessionId: "8adfea",
+        location: "propertySearch.ts:after-transform",
+        message: "results after client transform / setSearchResults",
+        data: {
+          rawApiCount: apiPropertyCount,
+          transformedCount: transformedResults.length,
+        },
+        timestamp: Date.now(),
+        hypothesisId: "E",
+      }),
+    }).catch(() => {});
+    // #endregion
   } catch (error: unknown) {
     // User-initiated cancel: stop loading silently
     if (error instanceof Error && error.name === "AbortError") {

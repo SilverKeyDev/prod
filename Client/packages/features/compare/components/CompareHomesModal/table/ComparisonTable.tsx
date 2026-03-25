@@ -2,7 +2,7 @@ import { useLocalization } from "packages/contexts";
 import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
-} from "packages/features/compare/utils/types";
+} from "packages/features/compare/types/compareHomes";
 import { Box, Image } from "packages/ui/components/primitives";
 
 import { ComparisonTableRow } from "./ComparisonTableRow";

@@ -6,6 +6,7 @@ import { preferencesApi, userApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import type { UserPreferences, UserProfile } from "packages/schemas";
 import { useAuthStore } from "packages/store";
+import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
 
 export type UseUserDataReturn = {
   userProfile: UserProfile | null;
@@ -48,6 +49,8 @@ export function useUserData(): UseUserDataReturn {
           ? userData.client_ids.join(",")
           : userData.client_ids,
       };
+
+      prefetchRemoteImage(profile.profile_picture_url);
 
       return profile;
     },

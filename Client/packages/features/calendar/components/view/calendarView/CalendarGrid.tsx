@@ -24,17 +24,12 @@ export function CalendarGrid({
         const rowIndex = Math.floor(index / 7);
         const isFirstCellOfRow = index % 7 === 0;
         const showMonthBorderAbove =
-          isFirstCellOfRow &&
-          rowIndex >= 1 &&
-          calendarGrid[rowIndex * 7].isFirstOfMonth;
+          isFirstCellOfRow && rowIndex >= 1 && calendarGrid[rowIndex * 7].isFirstOfMonth;
 
         return (
           <Fragment key={`${day.date.toISOString().split("T")[0]}-${index}`}>
             {showMonthBorderAbove ? (
-              <Box
-                className="col-span-7 border-t-2 border-border"
-                aria-hidden
-              />
+              <Box className="border-border col-span-7 border-t-2" aria-hidden />
             ) : null}
             <DayCell
               day={day}

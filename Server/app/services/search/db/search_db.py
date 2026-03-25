@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from .search_db_cache import (
-    get_cached_results_for_only_cached,
     get_cached_results_with_age,
     get_cached_search_results,
-    is_search_cache_valid,
     mark_past_search_results_as_not_current,
 )
 from .search_db_sync import sync_to_home_likes, sync_to_home_not_interested
@@ -18,7 +16,5 @@ __all__ = [
     "add_or_update_home_basic",
     "get_cached_search_results",
     "get_cached_results_with_age",
-    "is_search_cache_valid",
-    "get_cached_results_for_only_cached",
     "mark_past_search_results_as_not_current",
 ]

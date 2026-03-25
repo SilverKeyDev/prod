@@ -32,22 +32,23 @@ export function useDocumentsStoreIntegration() {
     getDocumentsByOffer,
   } = documentsResult;
 
-  const {
-    setDocuments,
-    setDocumentCategories,
-    setUploadedFiles,
-    setDocumentsLoading,
-    setCategoriesLoading,
-    setDocumentsError,
-    setCategoriesError,
-    setUploadDocumentImpl,
-    setDeleteDocumentImpl,
-    setUpdateDocumentStatusImpl,
-    setSignDocumentImpl,
-    setDownloadDocumentImpl,
-    setRefreshDocumentsImpl,
-    setRefreshCategoriesImpl,
-  } = useDocumentsStore();
+  // Select stable action references only. Subscribing to the full store would
+  // re-run this hook on every set({ uploadDocument }) from the effect below,
+  // which recreates useDocuments callbacks and causes an infinite loop.
+  const setDocuments = useDocumentsStore((s) => s.setDocuments);
+  const setDocumentCategories = useDocumentsStore((s) => s.setDocumentCategories);
+  const setUploadedFiles = useDocumentsStore((s) => s.setUploadedFiles);
+  const setDocumentsLoading = useDocumentsStore((s) => s.setDocumentsLoading);
+  const setCategoriesLoading = useDocumentsStore((s) => s.setCategoriesLoading);
+  const setDocumentsError = useDocumentsStore((s) => s.setDocumentsError);
+  const setCategoriesError = useDocumentsStore((s) => s.setCategoriesError);
+  const setUploadDocumentImpl = useDocumentsStore((s) => s.setUploadDocumentImpl);
+  const setDeleteDocumentImpl = useDocumentsStore((s) => s.setDeleteDocumentImpl);
+  const setUpdateDocumentStatusImpl = useDocumentsStore((s) => s.setUpdateDocumentStatusImpl);
+  const setSignDocumentImpl = useDocumentsStore((s) => s.setSignDocumentImpl);
+  const setDownloadDocumentImpl = useDocumentsStore((s) => s.setDownloadDocumentImpl);
+  const setRefreshDocumentsImpl = useDocumentsStore((s) => s.setRefreshDocumentsImpl);
+  const setRefreshCategoriesImpl = useDocumentsStore((s) => s.setRefreshCategoriesImpl);
 
   const refreshDocumentsWrapped = useCallback(async (): Promise<void> => {
     await refreshDocuments();

@@ -94,9 +94,26 @@ class LLMUserInput(BaseInputModel):
         else:
             essential_reqs.append("Bathrooms needed: Not specified")
 
-        # Lot size preferences
-        if prefs.get("preferred_lot_size"):
+        # Lot size preferences (numeric range preferred over legacy categorical)
+        if (
+            prefs.get("preferred_lot_size_min") is not None
+            or prefs.get("preferred_lot_size_max") is not None
+        ):
+            lo = prefs.get("preferred_lot_size_min", "")
+            hi = prefs.get("preferred_lot_size_max", "")
+            essential_reqs.append(f"Lot size range: {lo}–{hi} acres")
+        elif prefs.get("preferred_lot_size"):
             essential_reqs.append(f"Lot size preference: {prefs['preferred_lot_size']}")
+
+        if (
+            prefs.get("preferred_home_age_min") is not None
+            or prefs.get("preferred_home_age_max") is not None
+        ):
+            lo = prefs.get("preferred_home_age_min", "")
+            hi = prefs.get("preferred_home_age_max", "")
+            essential_reqs.append(f"Home age range: {lo}–{hi} years")
+        elif prefs.get("preferred_home_age"):
+            essential_reqs.append(f"Home age preference: {prefs['preferred_home_age']}")
 
         # Square footage
         if prefs.get("min_sqft"):

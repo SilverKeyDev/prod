@@ -34,11 +34,7 @@ export default function AgentSearchModal({ isOpen, onClose }: AgentSearchModalPr
           <CloseButton onClick={onClose} size="sm" label="Close" />
         </Box>
 
-        <AgentSearchContent
-          isActive={isOpen}
-          onSuccess={onClose}
-          inputRef={inputRef}
-        />
+        <AgentSearchContent isActive={isOpen} onSuccess={onClose} inputRef={inputRef} />
       </Box>
     </Box>
   );

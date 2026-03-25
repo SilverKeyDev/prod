@@ -34,5 +34,4 @@ export const BUYER_PERSONALIZATION_SECTION_IDS = [
   "financial",
 ] as const satisfies ReadonlyArray<ProfileStepId>;
 
-export type BuyerPersonalizationSectionId =
-  (typeof BUYER_PERSONALIZATION_SECTION_IDS)[number];
+export type BuyerPersonalizationSectionId = (typeof BUYER_PERSONALIZATION_SECTION_IDS)[number];

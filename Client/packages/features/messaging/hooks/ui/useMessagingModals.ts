@@ -4,7 +4,7 @@ import { useState } from "react";
  * Centralized modal and UI state for messaging (client and agent).
  * Extracted to keep the main component under max-lines-per-function.
  */
-export function useMessagingModals(mode: "agent" | "client" = "client") {
+export function useMessagingModals(_mode: "agent" | "client" = "client") {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showInbox, setShowInbox] = useState(false);
   const [showSelectHomeModal, setShowSelectHomeModal] = useState(false);
@@ -13,9 +13,7 @@ export function useMessagingModals(mode: "agent" | "client" = "client") {
   const [acceptingEventRequestId, setAcceptingEventRequestId] = useState<string | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
-  const [showSelectAgreementModal, setShowSelectAgreementModal] = useState(false);
-
-  const base = {
+  return {
     showSearchModal,
     setShowSearchModal,
     showInbox,
@@ -31,14 +29,4 @@ export function useMessagingModals(mode: "agent" | "client" = "client") {
     isSidebarExpanded,
     setIsSidebarExpanded,
   };
-
-  if (mode === "agent") {
-    return {
-      ...base,
-      showSelectAgreementModal,
-      setShowSelectAgreementModal,
-    };
-  }
-
-  return base;
 }

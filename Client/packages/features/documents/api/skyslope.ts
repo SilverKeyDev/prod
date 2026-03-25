@@ -1,4 +1,4 @@
-import type { Agreement } from "packages/features/documents/types/agreements";
+import type { ChecklistLinkedDocument } from "packages/features/documents/types/checklistLinkedDocument";
 import { apiGet, apiPost } from "packages/services/http/compatibility";
 
 export type SkyslopeForm = {
@@ -17,17 +17,37 @@ export type SkyslopeFormsResponse = {
   error?: string;
 };
 
-export type AttachFormsResponse = {
+type AttachFormsResponse = {
   success: boolean;
-  data?: { agreements: Agreement[] };
+  data?: { agreements?: unknown[] };
   error?: string;
 };
 
-export type ChecklistItemDocumentsResponse = {
+type ChecklistItemDocumentsResponse = {
   success: boolean;
-  data?: { agreements: Agreement[] };
+  data?: { agreements?: unknown[] };
   error?: string;
 };
+
+type LinkDocumentResponse = {
+  success: boolean;
+  data?: { agreement?: unknown };
+  error?: string;
+};
+
+function mapToLinkedDocument(item: unknown): ChecklistLinkedDocument {
+  const o = item as Record<string, unknown>;
+  return {
+    id: String(o.id ?? ""),
+    title: String(o.title ?? ""),
+    status: String(o.status ?? ""),
+  };
+}
+
+function mapToLinkedDocuments(items: unknown[] | undefined): ChecklistLinkedDocument[] {
+  if (!items?.length) return [];
+  return items.map(mapToLinkedDocument);
+}
 
 export async function getSkyslopeFormsForStep(
   transactionId: string,
@@ -49,7 +69,7 @@ export async function attachSkyslopeForms(
   formIds: number[],
   section: string,
   itemId: number
-): Promise<Agreement[]> {
+): Promise<ChecklistLinkedDocument[]> {
   const response = await apiPost<AttachFormsResponse>(
     `/api/v1/transactions/${transactionId}/skyslope/attach`,
     {
@@ -61,35 +81,29 @@ export async function attachSkyslopeForms(
   if (!response.success || !response.data?.agreements) {
     throw new Error(response.error ?? "Failed to attach forms");
   }
-  return response.data.agreements;
+  return mapToLinkedDocuments(response.data.agreements);
 }
 
 export async function getChecklistItemDocuments(
   transactionId: string,
   section: string,
   itemId: number
-): Promise<Agreement[]> {
+): Promise<ChecklistLinkedDocument[]> {
   const response = await apiGet<ChecklistItemDocumentsResponse>(
     `/api/v1/transactions/${transactionId}/checklist-items/${section}/${itemId}/documents`
   );
   if (!response.success || !response.data) {
     throw new Error(response.error ?? "Failed to fetch documents");
   }
-  return response.data.agreements ?? [];
+  return mapToLinkedDocuments(response.data.agreements);
 }
-
-export type LinkDocumentResponse = {
-  success: boolean;
-  data?: { agreement: Agreement };
-  error?: string;
-};
 
 export async function linkDocumentToChecklistItem(
   transactionId: string,
   section: string,
   itemId: number,
   documentId: string
-): Promise<Agreement> {
+): Promise<ChecklistLinkedDocument> {
   const response = await apiPost<LinkDocumentResponse>(
     `/api/v1/transactions/${transactionId}/checklist-items/${section}/${itemId}/documents`,
     { document_id: documentId }
@@ -97,5 +111,5 @@ export async function linkDocumentToChecklistItem(
   if (!response.success || !response.data?.agreement) {
     throw new Error(response.error ?? "Failed to link document to checklist item");
   }
-  return response.data.agreement;
+  return mapToLinkedDocument(response.data.agreement);
 }

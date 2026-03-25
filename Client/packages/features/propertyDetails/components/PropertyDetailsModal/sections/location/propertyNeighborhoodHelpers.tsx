@@ -3,31 +3,25 @@
  */
 import React from "react";
 
+import { AnalysisKeyValueLine } from "packages/features/propertyDetails/components/PropertyDetailsModal/helpers/analysisKeyValueLine";
 import { LabeledBarRow } from "packages/features/propertyDetails/components/visualizations";
 import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
 import Title from "packages/ui/components/text/Title";
 import { formatAnalysisLabel } from "packages/utils/propertyDetails";
 
-export function renderNeighborhoodContent(
-  data: Record<string, unknown>,
-): React.ReactNode {
+export function renderNeighborhoodContent(data: Record<string, unknown>): React.ReactNode {
   const entries = Object.entries(data).filter(
-    ([_, value]) => value !== null && value !== undefined && value !== "",
+    ([_, value]) => value !== null && value !== undefined && value !== ""
   );
   if (entries.length === 0) return null;
   return (
-    <Box className="space-y-4">
+    <Box className="space-y-6">
       {entries.map(([key, value]) => {
         const displayKey = formatAnalysisLabel(key);
         if (Array.isArray(value)) {
           return (
             <Box key={key}>
-              <Title
-                as="h4"
-                size="sm"
-                className="text-text-secondary mb-2 font-medium"
-              >
+              <Title as="h4" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </Title>
               <ul className="text-text-secondary ml-4 space-y-1 text-sm">
@@ -42,58 +36,29 @@ export function renderNeighborhoodContent(
         }
         if (typeof value === "object" && value !== null) {
           return (
-            <Box
-              key={key}
-              className="border-border bg-accent-muted rounded-lg border p-3"
-            >
-              <Title
-                as="h4"
-                size="sm"
-                className="text-text-secondary mb-2 font-medium"
-              >
+            <Box key={key} className="border-border bg-accent-muted rounded-lg border p-3">
+              <Title as="h4" size="sm" className="text-text-secondary mb-2 font-medium">
                 {displayKey}
               </Title>
-              <Box className="text-text-secondary space-y-2 text-sm">
-                {Object.entries(value as Record<string, unknown>).map(
-                  ([subKey, subValue]) => (
-                    <Box key={subKey} className="flex flex-col">
-                      <BodyText
-                        as="span"
-                        className="text-text-secondary font-medium"
-                      >
-                        {formatAnalysisLabel(subKey)}
-                      </BodyText>
-                      <BodyText as="span" className="text-text-secondary">
-                        {String(subValue)}
-                      </BodyText>
-                    </Box>
-                  ),
-                )}
+              <Box className="space-y-2">
+                {Object.entries(value as Record<string, unknown>).map(([subKey, subValue]) => (
+                  <AnalysisKeyValueLine
+                    key={subKey}
+                    label={formatAnalysisLabel(subKey)}
+                    value={String(subValue)}
+                  />
+                ))}
               </Box>
             </Box>
           );
         }
-        return (
-          <Box key={key} className="flex flex-col space-y-1">
-            <BodyText
-              as="span"
-              className="text-text-secondary text-sm font-medium"
-            >
-              {displayKey}
-            </BodyText>
-            <BodyText as="span" className="text-text-secondary text-sm">
-              {String(value)}
-            </BodyText>
-          </Box>
-        );
+        return <AnalysisKeyValueLine key={key} label={displayKey} value={String(value)} />;
       })}
     </Box>
   );
 }
 
-export function renderAgeDistribution(
-  data: Record<string, string>,
-): React.ReactNode {
+export function renderAgeDistribution(data: Record<string, string>): React.ReactNode {
   const entries = Object.entries(data)
     .map(([key, value]) => {
       const numValue = parseFloat(String(value).replace("%", "")) || 0;

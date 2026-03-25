@@ -13,6 +13,7 @@
   "errors": true,
   "security": true,
   "search": false,
+  "polygonSearch": true,
   "mapRendering": false,
   "negotiation": false,
   "checklists": false,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
 import IconButton from "@ui/button/IconButton";
 
@@ -22,7 +22,11 @@ import type { SearchResult } from "packages/features/search/types";
 import { useSearchRefreshIntegration } from "packages/hooks/data/useSearchRefreshIntegration";
 import { usePreActionSnapshot } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useSearchContextStore, useSearchViewStore } from "packages/store";
+import {
+  useAgentDashboardStore,
+  useSearchContextStore,
+  useSearchViewStore,
+} from "packages/store";
 import { MotionView } from "packages/ui/components/adapters/motion";
 import { Box } from "packages/ui/components/primitives";
 type SearchFeatureProps = {
@@ -45,7 +49,8 @@ export function SearchFeature({
   const feedScrollRef = useRef<unknown>(null);
   const setAnchor = useSearchContextStore((s) => s.setAnchor);
   const searchAbortControllerRef = useRef<AbortController | null>(null);
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
+  const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
 
   const data = useSearchPageData();
   const {
@@ -342,7 +347,6 @@ export function SearchFeature({
         onClosePropertyDetails={clearSelectedProperty}
         isLoadingPropertyDetails={isLoadingPropertyDetails}
       />
-
     </Box>
   );
 }

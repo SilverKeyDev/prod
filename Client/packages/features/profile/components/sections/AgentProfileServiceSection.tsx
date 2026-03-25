@@ -56,9 +56,7 @@ export default function AgentProfileServiceSection({
         </Box>
 
         <Box>
-          <Label className="mb-2 block">
-            {FIELD_LABELS.AGENT_PRIMARY_SERVICE_ZIPS}
-          </Label>
+          <Label className="mb-2 block">{FIELD_LABELS.AGENT_PRIMARY_SERVICE_ZIPS}</Label>
           <TagInput
             value={formData.agent_primary_service_zips ?? []}
             onChange={(v) => updateFormData("agent_primary_service_zips", v)}

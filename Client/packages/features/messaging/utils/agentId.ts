@@ -1,4 +1,6 @@
-export type AgentIdRaw = string | string[] | null | undefined;
+import type { AgentIdRaw } from "packages/features/messaging/types/agentId";
+
+export type { AgentIdRaw } from "packages/features/messaging/types/agentId";
 
 export function resolvePrimaryAgentId(raw: AgentIdRaw): string | null {
   if (!raw) {

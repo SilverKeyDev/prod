@@ -1,20 +1,21 @@
 /**
  * User API request/response types (single source of truth for config/api and apps).
  */
-import type { SavedHome } from "packages/types";
+import type { SavedHome } from "packages/types/savedHome";
 
 export type User = {
   id: string;
   cognito_id?: string | null;
   email: string;
   name: string;
-  phone?: string;
-  created_at: string;
-  updated_at?: string;
+  phone?: string | null;
+  created_at: string | null;
+  updated_at?: string | null;
   is_active: boolean;
   is_agent?: boolean;
   is_closing_mode?: boolean;
-  client_ids?: string[];
+  /** API stores as Text — may be comma-separated string or (if ever) array. */
+  client_ids?: string[] | string | null;
   agency_name?: string;
   has_subscription?: boolean;
   subscription?: unknown;
@@ -58,10 +59,13 @@ export type NotInterestedHomesResponse = {
 
 export type AddFavoriteRequest = {
   home: unknown;
+  /** When set, an agent saves to this client's favorites (server validates roster). */
+  client_id?: string;
 };
 
 export type RemoveFavoriteRequest = {
   address: string;
+  client_id?: string;
 };
 
 export type AddNotInterestedRequest = {

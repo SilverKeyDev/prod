@@ -4,7 +4,7 @@ import { PropertyImageGallery } from "packages/features/propertyDetails/componen
 import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
 import type { PropertyDetailsModalProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { useSavedHomesStoreIntegration } from "packages/hooks/store/useSavedHomesStoreIntegration";
-import { Cover } from "packages/ui/components/modals";
+import Cover from "packages/ui/components/modals/cover";
 import { Box } from "packages/ui/components/primitives";
 
 import { PropertyDetailsBody } from "./PropertyDetailsBody";
@@ -26,6 +26,7 @@ const PropertyDetailsModal: React.FC<PropertyDetailsModalProps> = ({
       isOpen={true}
       onClose={onClose}
       showCloseButton={false}
+      headerContainerClassName="p-0"
       headerContent={
         <PropertyHeader
           property={property}

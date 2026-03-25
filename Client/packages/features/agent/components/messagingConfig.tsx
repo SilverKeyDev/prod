@@ -74,7 +74,7 @@ export const CLIENT_MESSAGING_CONFIG: MessagingConfig = {
   messageStyles: {
     user: {
       bgColor: "bg-primary text-white",
-      textColor: "text-white",
+      textColor: "!text-white",
       iconBg: "bg-accent-muted",
       iconName: "user",
       justify: "end",
@@ -140,7 +140,7 @@ export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
     },
     agent: {
       bgColor: "bg-primary text-white",
-      textColor: "text-white",
+      textColor: "!text-white",
       iconBg: "bg-accent",
       iconName: "bot",
       justify: "end",

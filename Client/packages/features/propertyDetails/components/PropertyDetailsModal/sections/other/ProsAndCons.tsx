@@ -46,7 +46,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
         })}
         action={imbalancePill}
       />
-      <Box className="grid-responsive-1-lg-2 mt-2">
+      <Box className="mt-2 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card
           border="light"
           className={`p-3 sm:p-4 ${pros && cons && pros.length > cons.length + 2 ? "bg-green-50 ring-1 ring-green-200" : ""}`}
@@ -56,10 +56,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             size="sm"
             className="text-text-secondary mb-3 flex flex-row items-center gap-2 font-medium"
           >
-            <Icon
-              name="check-circle"
-              className="text-accent h-4 w-4 flex-shrink-0"
-            />
+            <Icon name="check-circle" className="text-accent h-4 w-4 flex-shrink-0" />
             {t("property_details.pros_cons_pros", { defaultValue: "Pros" })}
             {pros && (
               <BodyText as="span" className="text-text-secondary ml-1 text-xs">
@@ -74,10 +71,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
                   key={i}
                   className="text-text-secondary flex flex-row items-start gap-2 text-left text-sm"
                 >
-                  <Icon
-                    name="check-circle"
-                    className="text-accent mt-0.5 h-4 w-4 flex-shrink-0"
-                  />
+                  <Icon name="check-circle" className="text-accent mt-0.5 h-4 w-4 flex-shrink-0" />
                   <BodyText as="span" className="text-left">
                     {pro}
                   </BodyText>
@@ -103,10 +97,7 @@ export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
             size="sm"
             className="text-text-secondary mb-3 flex flex-row items-center gap-2 font-medium"
           >
-            <Icon
-              name="alert-triangle"
-              className="text-destructive h-4 w-4 flex-shrink-0"
-            />
+            <Icon name="alert-triangle" className="text-destructive h-4 w-4 flex-shrink-0" />
             {t("property_details.pros_cons_cons", { defaultValue: "Cons" })}
             {cons && (
               <BodyText as="span" className="text-text-secondary ml-1 text-xs">

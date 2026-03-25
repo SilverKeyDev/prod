@@ -1,9 +1,4 @@
-import {
-  type Agreement,
-  AgreementDetailModal,
-  CreateAgreementModal,
-  type DocumentData,
-} from "packages/features/documents";
+import type { DocumentData } from "packages/features/documents";
 import SavedPageTabsAndSearch from "packages/features/saved/components/header/SavedPageTabsAndSearch";
 import SavedHomesContent from "packages/features/saved/components/SavedHomesContent";
 import SavedPageModals from "packages/features/saved/components/SavedPageModals";
@@ -13,7 +8,7 @@ import type { SavedHome, SearchResult } from "packages/types";
 import { PdfModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
 
-import { Button, ClientSelector } from "@/components/ui";
+import { ClientSelector } from "@/components/ui";
 
 type SavedPageViewType = "homes" | "documents";
 type EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";
@@ -32,8 +27,6 @@ export type SavedPageLayoutProps = {
   filteredDocuments: DocumentData[];
   loading: boolean;
   documentsLoadingState: boolean;
-  agreements: Agreement[];
-  agreementsLoading: boolean;
   selectedHomesForComparison: Set<string>;
   selectedHomesData: SavedHome[];
   selectedProperty: Property | SearchResult | null;
@@ -44,10 +37,6 @@ export type SavedPageLayoutProps = {
   selectedHomeForNegotiation: SavedHome | null;
   isDocumentUploadModalOpen: boolean;
   setIsDocumentUploadModalOpen: (v: boolean) => void;
-  isCreateAgreementModalOpen: boolean;
-  setIsCreateAgreementModalOpen: (v: boolean) => void;
-  selectedAgreementId: string | null;
-  setSelectedAgreementId: (v: string | null) => void;
   isAgent: boolean;
   homes: SavedHome[];
   currentPdf: string | null;
@@ -64,16 +53,12 @@ export type SavedPageLayoutProps = {
   onToggleHomeSelection: (homeId: string) => void;
   onUnlockHome: (home: SavedHome) => Promise<void>;
   onDocumentDelete: (docId: string) => void;
-  onAgreementClick: (agreementId: string) => void;
-  onAgreementSend: (agreementId: string) => void;
-  onAgreementVoid: (agreementId: string) => void;
   onRemoveFromComparison: (homeId: string) => void;
   onCloseNegotiation: () => void;
   onCompare: () => void;
   onClearComparison: () => void;
   clearSelectedProperty: () => void;
   refetchDocuments: () => Promise<unknown>;
-  onCreateAgreementSuccess: () => void;
   // Optional refresh controls (used by native layout)
   refresh?: () => Promise<void> | void;
   refreshing?: boolean;
@@ -93,8 +78,6 @@ export function SavedPageLayout({
   filteredDocuments,
   loading,
   documentsLoadingState,
-  agreements,
-  agreementsLoading,
   selectedHomesForComparison,
   selectedHomesData,
   selectedProperty,
@@ -105,35 +88,21 @@ export function SavedPageLayout({
   selectedHomeForNegotiation,
   isDocumentUploadModalOpen,
   setIsDocumentUploadModalOpen,
-  isCreateAgreementModalOpen,
-  setIsCreateAgreementModalOpen,
-  selectedAgreementId,
-  setSelectedAgreementId,
   isAgent,
   homes,
   currentPdf,
   currentDocumentId,
   currentDocumentName,
   closePdfModal,
-  // Currently unused in the web layout but passed through for native layout parity
-  // onViewDocument,
-  // onDownloadDocument,
-  // onShareDocument,
   onToggleHomeSelection,
   onUnlockHome,
   onDocumentDelete,
-  onAgreementClick,
-  onAgreementSend,
-  onAgreementVoid,
   onRemoveFromComparison,
   onCloseNegotiation,
   onCompare,
   onClearComparison,
   clearSelectedProperty,
   refetchDocuments,
-  onCreateAgreementSuccess,
-  // refresh,
-  // refreshing,
 }: SavedPageLayoutProps) {
   return (
     <Box>
@@ -182,32 +151,16 @@ export function SavedPageLayout({
               />
             </Box>
           )}
-          {viewType === "documents" && isAgent && (
-            <Box className="mb-4 w-full">
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => setIsCreateAgreementModalOpen(true)}
-              >
-                Create Agreement
-              </Button>
-            </Box>
-          )}
           <SavedHomesContent
             viewType={viewType}
             filteredHomes={filteredHomes}
             homesLoading={loading}
             documents={filteredDocuments}
             documentsLoading={documentsLoadingState}
-            agreements={agreements}
-            agreementsLoading={agreementsLoading}
             selectedHomesForComparison={selectedHomesForComparison}
             onToggleHomeSelection={onToggleHomeSelection}
             onUnlockHome={onUnlockHome}
             onDocumentDelete={onDocumentDelete}
-            onAgreementClick={onAgreementClick}
-            onAgreementSend={onAgreementSend}
-            onAgreementVoid={onAgreementVoid}
             selectedHomesDataLength={selectedHomesData.length}
             noPadding
           />
@@ -233,19 +186,6 @@ export function SavedPageLayout({
           isOpen={isDocumentUploadModalOpen}
           onClose={() => setIsDocumentUploadModalOpen(false)}
           onUploadSuccess={refetchDocuments}
-        />
-        {isAgent && (
-          <CreateAgreementModal
-            isOpen={isCreateAgreementModalOpen}
-            onClose={() => setIsCreateAgreementModalOpen(false)}
-            preselectedBuyerId={selectedClientId ?? undefined}
-            onSuccess={onCreateAgreementSuccess}
-          />
-        )}
-        <AgreementDetailModal
-          agreementId={selectedAgreementId}
-          isOpen={!!selectedAgreementId}
-          onClose={() => setSelectedAgreementId(null)}
         />
       </Box>
     </Box>

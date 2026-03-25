@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { useAuthStore } from "packages/store";
 import type { UserPreferences, UserProfile } from "packages/types";
+import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
 
 import { preferencesApi } from "@/features/homeauth/api/preferences";
 import { userApi } from "@/features/homeauth/api/user";
@@ -54,6 +55,31 @@ export function useUserData(): UseUserDataReturn {
           ? userData.client_ids.join(",")
           : userData.client_ids,
       };
+
+      // #region agent log
+      // eslint-disable-next-line no-restricted-globals -- debug NDJSON ingest (session 244579)
+      fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "244579",
+        },
+        body: JSON.stringify({
+          sessionId: "244579",
+          location: "homeauth/hooks/data/useUserData.ts:queryFn",
+          message: "user profile cache row",
+          data: {
+            hasPictureKey: Boolean(profile.profile_picture),
+            hasPictureUrl: Boolean(profile.profile_picture_url),
+            pictureUrlLen: profile.profile_picture_url?.length ?? 0,
+          },
+          timestamp: Date.now(),
+          hypothesisId: "B",
+        }),
+      }).catch(() => {});
+      // #endregion
+
+      prefetchRemoteImage(profile.profile_picture_url);
 
       return profile;
     },

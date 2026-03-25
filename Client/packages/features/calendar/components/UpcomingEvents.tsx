@@ -9,6 +9,7 @@ import { useGoogleCalendarPermissions, useGoogleEvents } from "@/features/calend
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
 import type { AgendaTodoDTO, AgendaTodoPriority } from "@/features/calendar/types/agenda";
 import {
+  filterCalendarsToAgentOwned,
   findSilverKeyCalendar,
   getCalendarsKey,
   initializeEnabledCalendars,
@@ -38,9 +39,11 @@ type UpcomingEventsProps = {
   /** When set (e.g. for agents), to-dos are merged into the upcoming list. Omit for non-agents. */
   agendaTodos?: AgendaTodoDTO[];
   onToggleAgendaTodo?: (id: string) => void;
-  onUpdateAgendaTodoPriority?: (id: string, priority: AgendaTodoPriority) => void;
+  onUpdateAgendaTodoPriority?: (id: string, priority: AgendaTodoPriority | null) => void;
   canEditAgendaTodos?: boolean;
   headerActions?: ReactNode;
+  /** Agent dashboard: only fetch/display events from calendars the user owns. */
+  ownedCalendarsOnly?: boolean;
 };
 
 export function UpcomingEvents({
@@ -52,9 +55,17 @@ export function UpcomingEvents({
   onUpdateAgendaTodoPriority,
   canEditAgendaTodos = false,
   headerActions,
+  ownedCalendarsOnly = false,
 }: UpcomingEventsProps = {}) {
   const { isConnected, calendars, calendarsLoading, connectGoogleCalendar } =
     useGoogleCalendarStoreIntegration();
+
+  const scopedCalendars = useMemo(() => {
+    if (!ownedCalendarsOnly || !calendars?.length) {
+      return calendars ?? [];
+    }
+    return filterCalendarsToAgentOwned(calendars);
+  }, [calendars, ownedCalendarsOnly]);
 
   const { userPreferences } = useUserPreferences();
 
@@ -87,11 +98,11 @@ export function UpcomingEvents({
   }, []);
 
   useEffect(() => {
-    if (!calendars || calendars.length === 0) {
+    if (!scopedCalendars || scopedCalendars.length === 0) {
       return;
     }
 
-    const calendarsKey = getCalendarsKey(calendars);
+    const calendarsKey = getCalendarsKey(scopedCalendars);
     const calendarsChanged = lastCalendarsRef.current !== calendarsKey;
 
     const disabledCalendars = userPreferences?.disabled_calendars;
@@ -102,14 +113,14 @@ export function UpcomingEvents({
       hadDisabledCalendarsRef.current = true;
     }
 
-    const silverKeyCalendar = findSilverKeyCalendar(calendars);
+    const silverKeyCalendar = findSilverKeyCalendar(scopedCalendars);
     if (silverKeyCalendar) {
       silverKeyCalendarIdRef.current = silverKeyCalendar.id;
     }
 
     if (!initializedFromPreferencesRef.current || calendarsChanged || disabledCalendarsJustLoaded) {
       const enabledSet = initializeEnabledCalendars(
-        calendars,
+        scopedCalendars,
         hasDisabledCalendars ? disabledCalendars : undefined,
         silverKeyCalendarIdRef.current
       );
@@ -117,7 +128,7 @@ export function UpcomingEvents({
       initializedFromPreferencesRef.current = true;
       lastCalendarsRef.current = calendarsKey;
     }
-  }, [calendars, userPreferences]);
+  }, [scopedCalendars, userPreferences]);
 
   const upcomingDateRange = useMemo(() => {
     const parsed = todayDateString ? dayjs(todayDateString, "ddd MMM DD YYYY") : null;
@@ -144,12 +155,14 @@ export function UpcomingEvents({
     calendarIds: enabledCalendarIdsArray,
     timeMin: upcomingDateRange.timeMin,
     timeMax: upcomingDateRange.timeMax,
-    enabled: isConnected && calendars && calendars.length > 0 && enabledCalendarIds.size > 0,
+    enabled:
+      isConnected && scopedCalendars.length > 0 && enabledCalendarIds.size > 0,
   });
 
   const filteredUpcomingEvents = useMemo(
-    () => filterEventsByCalendars(upcomingEventsRaw, enabledCalendarIds, calendars || []),
-    [upcomingEventsRaw, enabledCalendarIds, calendars]
+    () =>
+      filterEventsByCalendars(upcomingEventsRaw, enabledCalendarIds, scopedCalendars),
+    [upcomingEventsRaw, enabledCalendarIds, scopedCalendars]
   );
 
   const upcomingEvents = useMemo(
@@ -208,7 +221,7 @@ export function UpcomingEvents({
     refreshEvents,
     updateEvent,
     deleteEvent,
-    calendars: calendars ?? [],
+    calendars: scopedCalendars,
     onToggleAgendaTodo,
     onUpdateAgendaTodoPriority,
     canEditAgendaTodos,
@@ -291,7 +304,7 @@ export function UpcomingEvents({
           refreshEvents={refreshEvents}
           updateEvent={updateEvent}
           deleteEvent={deleteEvent}
-          calendars={calendars ?? []}
+          calendars={scopedCalendars}
         />
       )}
     </Box>

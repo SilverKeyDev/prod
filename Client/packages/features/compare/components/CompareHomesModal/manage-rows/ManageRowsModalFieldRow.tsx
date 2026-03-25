@@ -3,7 +3,7 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import type { CompareHomesComparisonField } from "packages/features/compare/utils/types";
+import type { CompareHomesComparisonField } from "packages/features/compare/types/compareHomes";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Input, Label } from "@/components/ui";

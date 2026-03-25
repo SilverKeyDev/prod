@@ -27,7 +27,7 @@ export const DOCUMENT_TYPES: Record<DocumentTypeId, DocumentTypeDefinition> = {
   contract: {
     id: "contract",
     name: "Contract",
-    description: "Purchase agreements and contracts",
+    description: "Sales contracts and related documents",
     required_for: ["offer", "closing"],
     report_types: ["standard"],
   },

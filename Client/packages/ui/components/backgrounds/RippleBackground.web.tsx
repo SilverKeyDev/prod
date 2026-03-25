@@ -78,7 +78,8 @@ export default function RippleBackground({ overlay = false }: RippleBackgroundPr
 
     resize();
     if (win) win.addEventListener("resize", resize);
-    const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
     resizeObserver?.observe(container);
 
     const animate = () => {

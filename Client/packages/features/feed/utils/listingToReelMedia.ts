@@ -1,10 +1,13 @@
-import type { FeedListing, MediaItem } from "@/features/feed/types/feed";
+import type { FeedListingWithMedia } from "packages/features/feed/types/listingWithMedia";
+
+import type { FeedListing } from "@/features/feed/types/feed";
+import type { MediaItem } from "@/features/feed/types/media";
 
 import { DEFAULT_PLACEHOLDER_IMAGE } from "./placeholderAssets";
 
-const FALLBACK_IMAGE = DEFAULT_PLACEHOLDER_IMAGE;
+export type { FeedListingWithMedia } from "packages/features/feed/types/listingWithMedia";
 
-export type FeedListingWithMedia = FeedListing & { media: MediaItem[] };
+const FALLBACK_IMAGE = DEFAULT_PLACEHOLDER_IMAGE;
 
 /**
  * Transforms a FeedListing into a reel item with normalized media[].

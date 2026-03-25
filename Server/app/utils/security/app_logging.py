@@ -18,7 +18,9 @@ def _resolve_app_log_level() -> int:
     Flask / stdlib log level: env APP_LOG_LEVEL wins, then logger/logger_config.json logLevel,
     then INFO. Matches the centralized logger config file when present.
     """
-    env_level = (os.environ.get("APP_LOG_LEVEL") or os.environ.get("LOG_LEVEL") or "").strip().upper()
+    env_level = (
+        (os.environ.get("APP_LOG_LEVEL") or os.environ.get("LOG_LEVEL") or "").strip().upper()
+    )
     if env_level in _LOG_LEVEL_NAMES:
         return getattr(logging, env_level if env_level != "WARN" else "WARNING")
 

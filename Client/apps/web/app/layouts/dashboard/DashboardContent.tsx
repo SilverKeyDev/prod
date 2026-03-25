@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { PropertyDetailsScreen } from "packages/features/propertyDetails";
 import { useIsMobile } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 
@@ -85,7 +84,7 @@ export function DashboardContent({
   return (
     <Box
       key={route.pathname}
-      className={`dashboard-content max-md:pb-mobile-nav w-full ${wrapperClass}`}
+      className={`dashboard-content w-full ${wrapperClass}`}
       style={style}
     >
       {displayContent}

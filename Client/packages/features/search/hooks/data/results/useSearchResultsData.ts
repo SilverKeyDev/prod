@@ -24,9 +24,8 @@ export type UseSearchResultsDataReturn = {
 
 /**
  * Hook for managing search results with React Query.
- * Results are never considered stale: cached data is shown until a new search runs
- * (setSearchResults) or the user explicitly refetches (refetchCachedResults).
- * This prevents refetches from overwriting good results with empty API responses.
+ * Server returns stored results for onlyCached requests without running a new search;
+ * fresh results come from setSearchResults after the user runs a search (forceSearch).
  */
 export function useSearchResultsData(): UseSearchResultsDataReturn {
   const queryClient = useQueryClient();
@@ -44,27 +43,56 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
     queryKey: queryKeys.search.results(),
     queryFn: async () => {
       try {
-        log.debug(LOG_CATEGORIES.SEARCH, "Fetching search results from database");
+        log.debug(LOG_CATEGORIES.POLYGON_SEARCH, "Fetching search results from database");
         const response = await searchApi.searchByPolygon({
           perBucketPages: 20,
           onlyCached: true, // Return stored results from DB (HomeUniversal), don't trigger new search
         });
 
         if (!response.success) {
-          log.warn(LOG_CATEGORIES.SEARCH, "Search API returned unsuccessful response", {
+          log.warn(LOG_CATEGORIES.POLYGON_SEARCH, "Search API returned unsuccessful response", {
             error: response.error,
           });
           return [] as SearchResult[];
         }
 
+        const rawLen = Array.isArray(response.properties) ? response.properties.length : 0;
+        log.info(
+          LOG_CATEGORIES.POLYGON_SEARCH,
+          "onlyCached DB load: API response before transform",
+          {
+            propertiesCount: rawLen,
+            totalCount: response.total_count,
+            metaCached: response.meta?.cached,
+          }
+        );
+        // #region agent log
+        // eslint-disable-next-line no-restricted-globals -- Cursor debug NDJSON ingest (session 8adfea)
+        fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "8adfea",
+          },
+          body: JSON.stringify({
+            sessionId: "8adfea",
+            location: "useSearchResultsData.ts:queryFn",
+            message: "onlyCached polygon response",
+            data: { propertiesCount: rawLen, metaCached: response.meta?.cached },
+            timestamp: Date.now(),
+            hypothesisId: "B",
+          }),
+        }).catch(() => {});
+        // #endregion
+
         const transformedResults = transformSearchResponse(response);
 
         if (transformedResults.length > 0) {
-          log.info(LOG_CATEGORIES.SEARCH, "Loaded search results from database", {
+          log.info(LOG_CATEGORIES.POLYGON_SEARCH, "Loaded search results from database", {
             count: transformedResults.length,
           });
         } else {
-          log.info(LOG_CATEGORIES.SEARCH, "No search results in database, returned empty");
+          log.info(LOG_CATEGORIES.POLYGON_SEARCH, "No search results in database, returned empty");
         }
 
         return transformedResults;

@@ -3,8 +3,6 @@ import { useCallback, useRef, useState } from "react";
 import StatusBadge from "@ui/asset/StatusBadge";
 import Button from "@ui/button/Button";
 import IconButton from "@ui/button/IconButton";
-import type { DropdownOption } from "@ui/form/Dropdown";
-import Dropdown from "@ui/form/Dropdown";
 import Input from "@ui/form/Input.web";
 import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
@@ -25,17 +23,10 @@ type DocumentUploadProps = {
 export default function DocumentUpload({ onUploadSuccess, useCard = true }: DocumentUploadProps) {
   const { t } = useLocalization();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const { uploadDocument, documentCategories, categoriesLoading, uploadedFiles } = useDocuments();
+  const { uploadDocument, uploadedFiles } = useDocuments();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [address, setAddress] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // Convert categories to dropdown options
-  const categoryOptions: DropdownOption<string>[] = documentCategories.map((cat) => ({
-    value: cat.id,
-    label: cat.name,
-  }));
   // Find current upload status for selected file
   const currentUpload = selectedFile
     ? uploadedFiles.find(
@@ -51,34 +42,23 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
       setSelectedFile(file);
     }
   }, []);
-  const handleCategoryChange = useCallback((value: string) => {
-    setSelectedCategory(value);
-  }, []);
   const handleUpload = useCallback(async () => {
-    if (!selectedFile || !selectedCategory) {
+    if (!selectedFile) {
       enqueueToast({
         type: "error",
-        message: "Please select both a file and a category",
+        message: t("documents_upload.missing_file"),
       });
       return;
     }
     setIsUploading(true);
     try {
-      await uploadDocument(
-        selectedFile,
-        selectedCategory,
-        undefined,
-        undefined,
-        address || undefined
-      );
+      await uploadDocument(selectedFile);
       enqueueToast({
         type: "success",
         message: "Document uploaded successfully",
       });
       // Clear selections
       setSelectedFile(null);
-      setSelectedCategory("");
-      setAddress("");
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -114,43 +94,16 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
     } finally {
       setIsUploading(false);
     }
-  }, [selectedFile, selectedCategory, address, uploadDocument, enqueueToast, onUploadSuccess]);
+  }, [selectedFile, uploadDocument, enqueueToast, onUploadSuccess, t]);
   const handleClearFile = useCallback(() => {
     setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   }, []);
-  const canUpload = selectedFile && selectedCategory && !isUploading;
+  const canUpload = Boolean(selectedFile) && !isUploading;
   const content = (
     <Box className="flex flex-col gap-3">
-      <Box>
-        <Label size="sm" required>
-          {t("documents_upload.category_label")}
-        </Label>
-        <Dropdown
-          options={categoryOptions}
-          value={selectedCategory}
-          onChange={handleCategoryChange}
-          placeholder={t("documents_upload.select_category")}
-          disabled={categoriesLoading || isUploading}
-          required
-          variant="mobile"
-        />
-      </Box>
-
-      <Box>
-        <Label size="sm">{t("documents_upload.address_optional")}</Label>
-        <Input
-          type="text"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          placeholder={t("documents_upload.placeholder_address")}
-          disabled={isUploading}
-          variant="mobile"
-        />
-      </Box>
-
       <Box>
         <Label size="sm" required>
           {t("documents_upload.document_file")}

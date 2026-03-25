@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from flask import current_app
 
 from app import db
 from app.models import HomeUniversal
-from app.services.aggregation import get_preferences_updated_at
 
 
 def get_cached_search_results(user_id: str) -> list[dict[str, Any]]:
@@ -25,7 +24,8 @@ def get_cached_search_results(user_id: str) -> list[dict[str, Any]]:
     try:
         homes = (
             HomeUniversal.query.filter(
-                HomeUniversal.user_id == str(user_id), HomeUniversal.current is True
+                HomeUniversal.user_id == str(user_id),
+                HomeUniversal.current.is_(True),
             )
             .order_by(HomeUniversal.ranking.asc())
             .all()
@@ -126,7 +126,8 @@ def get_cached_results_with_age(user_id: str) -> tuple[list[dict[str, Any]], int
 
     most_recent_home = (
         HomeUniversal.query.filter(
-            HomeUniversal.user_id == str(user_id), HomeUniversal.current is True
+            HomeUniversal.user_id == str(user_id),
+            HomeUniversal.current.is_(True),
         )
         .order_by(HomeUniversal.updated_at.desc())
         .first()
@@ -140,57 +141,6 @@ def get_cached_results_with_age(user_id: str) -> tuple[list[dict[str, Any]], int
     return results, cache_age_days
 
 
-def is_search_cache_valid(user_id: str) -> tuple[bool, list[dict[str, Any]] | None]:
-    """
-    Check if search results cache is valid for a user.
-    Cache is valid if user has current results and preferences updated within 7 days.
-    """
-    try:
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
-
-        current_homes = (
-            HomeUniversal.query.filter(
-                HomeUniversal.user_id == str(user_id), HomeUniversal.current is True
-            )
-            .order_by(HomeUniversal.ranking.asc())
-            .all()
-        )
-
-        if not current_homes:
-            current_app.logger.debug(f"[CACHE] No current search results found for user {user_id}")
-            return False, None
-
-        prefs_updated_at = get_preferences_updated_at(str(user_id))
-        if not prefs_updated_at:
-            current_app.logger.debug(f"[CACHE] No user preferences found for user {user_id}")
-            return False, None
-        if prefs_updated_at < seven_days_ago:
-            current_app.logger.debug(
-                f"[CACHE] User preferences too old for user {user_id}. "
-                f"Updated: {prefs_updated_at}, threshold: {seven_days_ago}"
-            )
-            return False, None
-
-        cached_results = get_cached_search_results(user_id)
-        return True, cached_results
-
-    except Exception as e:
-        current_app.logger.error(
-            f"[CACHE] ❌ Error checking cache validity for user {user_id}: {e}", exc_info=True
-        )
-        return False, None
-
-
-def get_cached_results_for_only_cached(
-    user_id: str,
-) -> tuple[list[dict[str, Any]] | None, int | None]:
-    """
-    Get cached results with age when onlyCached=true, even if cache is invalid.
-    """
-    results, cache_age_days = get_cached_results_with_age(user_id)
-    return (results if results else None, cache_age_days)
-
-
 def mark_past_search_results_as_not_current(user_id: str) -> int:
     """
     Mark all past search results for a user as not current (current=False).
@@ -198,7 +148,8 @@ def mark_past_search_results_as_not_current(user_id: str) -> int:
     """
     try:
         current_homes = HomeUniversal.query.filter(
-            HomeUniversal.user_id == str(user_id), HomeUniversal.current is True
+            HomeUniversal.user_id == str(user_id),
+            HomeUniversal.current.is_(True),
         ).all()
 
         count = len(current_homes)

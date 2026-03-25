@@ -33,7 +33,7 @@ type BuildSectionsParams = {
 };
 
 export function buildPropertyDetailsOrderedSections(
-  params: BuildSectionsParams,
+  params: BuildSectionsParams
 ): SectionComponent[] {
   const {
     property,
@@ -52,11 +52,7 @@ export function buildPropertyDetailsOrderedSections(
     sections.push({
       key: "commute",
       component: (
-        <PropertyCommute
-          key="commute"
-          property={property}
-          analysisContent={commuteAnalysis}
-        />
+        <PropertyCommute key="commute" property={property} analysisContent={commuteAnalysis} />
       ),
       priority: SECTION_ORDER.commute ?? 1000,
     });
@@ -93,8 +89,7 @@ export function buildPropertyDetailsOrderedSections(
   if (hasAnalysis) {
     const excludeSections: string[] = [];
     if (hasCommute || commuteAnalysis) excludeSections.push("commute");
-    if (hasSchools || familyFriendlyAnalysis)
-      excludeSections.push("family_friendly");
+    if (hasSchools || familyFriendlyAnalysis) excludeSections.push("family_friendly");
     if (hasNeighborhood || neighborhoodAnalysis) {
       excludeSections.push("neighborhood_overview");
       excludeSections.push("age_distribution");
@@ -102,11 +97,7 @@ export function buildPropertyDetailsOrderedSections(
     sections.push({
       key: "analysis",
       component: (
-        <PropertyAnalysis
-          key="analysis"
-          property={property}
-          excludeSections={excludeSections}
-        />
+        <PropertyAnalysis key="analysis" property={property} excludeSections={excludeSections} />
       ),
       priority: SECTION_ORDER.analysis ?? 2000,
     });
