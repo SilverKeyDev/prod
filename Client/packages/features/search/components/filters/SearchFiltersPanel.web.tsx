@@ -42,11 +42,11 @@ export default function SearchFiltersPanel({
       />
 
       <BedBathFilter
-        minBeds={formData.preferred_bedrooms ?? 0}
+        minBeds={formData.preferred_bedrooms_min ?? 0}
         maxBeds={formData.preferred_bedrooms_max ?? 8}
-        minBaths={formData.preferred_bathrooms ?? 0}
+        minBaths={formData.preferred_bathrooms_min ?? 0}
         maxBaths={formData.preferred_bathrooms_max ?? 8}
-        onMinBedsChange={(v) => updateFormData("preferred_bedrooms", v)}
+        onMinBedsChange={(v) => updateFormData("preferred_bedrooms_min", v)}
         onMaxBedsChange={(v) => {
           updateFormData("preferred_bedrooms_max", v);
           setSearchFilterOverrides((prev) => ({
@@ -54,7 +54,7 @@ export default function SearchFiltersPanel({
             preferred_bedrooms_max: v,
           }));
         }}
-        onMinBathsChange={(v) => updateFormData("preferred_bathrooms", v)}
+        onMinBathsChange={(v) => updateFormData("preferred_bathrooms_min", v)}
         onMaxBathsChange={(v) => {
           updateFormData("preferred_bathrooms_max", v);
           setSearchFilterOverrides((prev) => ({

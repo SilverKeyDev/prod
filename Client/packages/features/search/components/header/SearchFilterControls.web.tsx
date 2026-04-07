@@ -104,9 +104,9 @@ export default function SearchFilterControls({
 
   const priceMin = formData.home_budget_min ?? 100_000;
   const priceMax = formData.home_budget_max ?? 2_000_000;
-  const minBeds = formData.preferred_bedrooms ?? 0;
+  const minBeds = formData.preferred_bedrooms_min ?? 0;
   const maxBeds = formData.preferred_bedrooms_max ?? 8;
-  const minBaths = formData.preferred_bathrooms ?? 0;
+  const minBaths = formData.preferred_bathrooms_min ?? 0;
   const maxBaths = formData.preferred_bathrooms_max ?? 8;
   const housingType = formData.preferred_housing_type ?? "";
 
@@ -165,7 +165,7 @@ export default function SearchFilterControls({
                   maxBeds={maxBeds}
                   minBaths={minBaths}
                   maxBaths={maxBaths}
-                  onMinBedsChange={(v) => updateFormData("preferred_bedrooms", v)}
+                  onMinBedsChange={(v) => updateFormData("preferred_bedrooms_min", v)}
                   onMaxBedsChange={(v) => {
                     updateFormData("preferred_bedrooms_max", v);
                     setSearchFilterOverrides((prev) => ({
@@ -173,7 +173,7 @@ export default function SearchFilterControls({
                       preferred_bedrooms_max: v,
                     }));
                   }}
-                  onMinBathsChange={(v) => updateFormData("preferred_bathrooms", v)}
+                  onMinBathsChange={(v) => updateFormData("preferred_bathrooms_min", v)}
                   onMaxBathsChange={(v) => {
                     updateFormData("preferred_bathrooms_max", v);
                     setSearchFilterOverrides((prev) => ({
@@ -254,7 +254,7 @@ export default function SearchFilterControls({
                 maxBeds={maxBeds}
                 minBaths={minBaths}
                 maxBaths={maxBaths}
-                onMinBedsChange={(v) => updateFormData("preferred_bedrooms", v)}
+                onMinBedsChange={(v) => updateFormData("preferred_bedrooms_min", v)}
                 onMaxBedsChange={(v) => {
                   updateFormData("preferred_bedrooms_max", v);
                   setSearchFilterOverrides((prev) => ({
@@ -262,7 +262,7 @@ export default function SearchFilterControls({
                     preferred_bedrooms_max: v,
                   }));
                 }}
-                onMinBathsChange={(v) => updateFormData("preferred_bathrooms", v)}
+                onMinBathsChange={(v) => updateFormData("preferred_bathrooms_min", v)}
                 onMaxBathsChange={(v) => {
                   updateFormData("preferred_bathrooms_max", v);
                   setSearchFilterOverrides((prev) => ({
