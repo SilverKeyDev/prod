@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from ..config.settings import MAX_TEXT_LENGTH
+from .feature_engineering import _distance_to_numeric_range
 
 logger = logging.getLogger(__name__)
 
@@ -105,14 +106,18 @@ class DataPreprocessor:
             preferences["budget_min"] = self.normalize_price(preferences["budget_min"])
         if "budget_max" in preferences:
             preferences["budget_max"] = self.normalize_price(preferences["budget_max"])
-        if "preferred_bedrooms" in preferences:
-            preferences["preferred_bedrooms"] = self.normalize_bedrooms(
-                preferences["preferred_bedrooms"]
-            )
-        if "preferred_bathrooms" in preferences:
-            preferences["preferred_bathrooms"] = self.normalize_bathrooms(
-                preferences["preferred_bathrooms"]
-            )
+        for _k in (
+            "preferred_bedrooms_min",
+            "preferred_bedrooms_max",
+        ):
+            if _k in preferences:
+                preferences[_k] = self.normalize_bedrooms(preferences[_k])
+        for _k in (
+            "preferred_bathrooms_min",
+            "preferred_bathrooms_max",
+        ):
+            if _k in preferences:
+                preferences[_k] = self.normalize_bathrooms(preferences[_k])
         if "min_sqft" in preferences:
             preferences["min_sqft"] = self.normalize_sqft(preferences["min_sqft"])
 
@@ -171,8 +176,10 @@ class DataPreprocessor:
             [
                 preferences.get("budget_min", 0),
                 preferences.get("budget_max", 0),
-                preferences.get("preferred_bedrooms", 0),
-                preferences.get("preferred_bathrooms", 0),
+                preferences.get("preferred_bedrooms_min", 0),
+                preferences.get("preferred_bedrooms_max", 0),
+                preferences.get("preferred_bathrooms_min", 0),
+                preferences.get("preferred_bathrooms_max", 0),
                 preferences.get("min_sqft", 0),
             ]
         )
@@ -195,14 +202,33 @@ class DataPreprocessor:
         price_ratio = home_price / budget_max if budget_max > 0 else 0
         features.append(price_ratio)
 
-        # Bedroom delta
-        bedroom_delta = abs(preferences.get("preferred_bedrooms", 0) - home_data.get("bedrooms", 0))
-        features.append(bedroom_delta)
+        home_beds = float(home_data.get("bedrooms", 0) or 0)
+        bl = preferences.get("preferred_bedrooms_min")
+        bh = preferences.get("preferred_bedrooms_max")
+        if bl is not None or bh is not None:
+            bedroom_delta = _distance_to_numeric_range(
+                home_beds,
+                float(bl) if bl is not None else None,
+                float(bh) if bh is not None else None,
+                3.0,
+            )
+        else:
+            bedroom_delta = 0.0
 
-        # Bathroom delta
-        bathroom_delta = abs(
-            preferences.get("preferred_bathrooms", 0) - home_data.get("bathrooms", 0)
-        )
+        home_baths = float(home_data.get("bathrooms", 0) or 0)
+        tl = preferences.get("preferred_bathrooms_min")
+        th = preferences.get("preferred_bathrooms_max")
+        if tl is not None or th is not None:
+            bathroom_delta = _distance_to_numeric_range(
+                home_baths,
+                float(tl) if tl is not None else None,
+                float(th) if th is not None else None,
+                2.0,
+            )
+        else:
+            bathroom_delta = 0.0
+
+        features.append(bedroom_delta)
         features.append(bathroom_delta)
 
         # Square footage ratio

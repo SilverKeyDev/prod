@@ -25,8 +25,18 @@ class Home(BaseModel):
             user_preferences.get("preferred_home_features", []) if user_preferences else []
         )
         deal_breakers = user_preferences.get("deal_breakers", []) if user_preferences else []
-        bedrooms = user_preferences.get("preferred_bedrooms") if user_preferences else None
-        bathrooms = user_preferences.get("preferred_bathrooms") if user_preferences else None
+        bed_min = user_preferences.get("preferred_bedrooms_min") if user_preferences else None
+        bed_max = user_preferences.get("preferred_bedrooms_max") if user_preferences else None
+        bath_min = user_preferences.get("preferred_bathrooms_min") if user_preferences else None
+        bath_max = user_preferences.get("preferred_bathrooms_max") if user_preferences else None
+        if bed_min is not None or bed_max is not None:
+            bedrooms = f"{bed_min or 'any'}–{bed_max or 'any'}"
+        else:
+            bedrooms = None
+        if bath_min is not None or bath_max is not None:
+            bathrooms = f"{bath_min or 'any'}–{bath_max or 'any'}"
+        else:
+            bathrooms = None
         housing_type = (
             user_preferences.get("preferred_housing_type", "") if user_preferences else ""
         )
@@ -68,7 +78,7 @@ class Home(BaseModel):
             "home_match_rating": "Overall home match score as decimal to tenths place (e.g., 8.5, 7.2). Must be extremely brief - just the decimal number. Weight based on how well home matches user's preferences.",
             "desired_features_match": f"How well the home matches user's preferred features. {features_text}. Extremely brief.",
             "deal_breakers_check": f"Assessment of any deal breakers present or absent. {deal_breakers_text}. Extremely brief.",
-            "layout_and_size": f"Bedrooms, bathrooms, square footage, and layout match to preferences. User wants: {bedrooms} bedrooms, {bathrooms} bathrooms, {housing_type}. Extremely brief.",
+            "layout_and_size": f"Bedrooms, bathrooms, square footage, and layout match to preferences. User wants: {bedrooms or 'any'} bedrooms, {bathrooms or 'any'} bathrooms, {housing_type}. Extremely brief.",
             "condition_and_style": f"Home age, architectural style, renovation needs, and overall condition. User prefers: {home_age_range or 'any'} age, {architectural_style} style, {renovation_preference} renovation level. Extremely brief.",
             "property_features": f"Lot size, parking, outdoor space, and other property-specific features. User prefers: {lot_range or 'any'} lot size. Extremely brief.",
         }

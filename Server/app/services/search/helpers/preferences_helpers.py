@@ -39,13 +39,19 @@ def map_user_preferences_to_filters(
             else:
                 filters["minPrice"] = int(budget_max * 0.65)
 
-    # Map preferred bedrooms
-    if user_preferences.get("preferred_bedrooms"):
-        filters["bedsMin"] = user_preferences["preferred_bedrooms"]
-
-    # Map preferred bathrooms
-    if user_preferences.get("preferred_bathrooms"):
-        filters["bathsMin"] = user_preferences["preferred_bathrooms"]
+    # Map preferred bedrooms / bathrooms (min for API floor filters; max handled in post-filters)
+    beds_min = user_preferences.get("preferred_bedrooms_min")
+    if beds_min is not None:
+        try:
+            filters["bedsMin"] = int(beds_min)
+        except (TypeError, ValueError):
+            pass
+    baths_min = user_preferences.get("preferred_bathrooms_min")
+    if baths_min is not None:
+        try:
+            filters["bathsMin"] = int(baths_min)
+        except (TypeError, ValueError):
+            pass
 
     # Map housing type based on status type
     raw_type = str(

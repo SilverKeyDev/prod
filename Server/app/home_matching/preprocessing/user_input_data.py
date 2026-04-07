@@ -61,9 +61,11 @@ def format_user_data_for_matching(user: User, user_preferences: dict[str, Any]) 
         # Budget
         "budget_min": prefs.get("home_budget_min"),
         "budget_max": prefs.get("home_budget_max"),
-        # Bedrooms and bathrooms
-        "preferred_bedrooms": prefs.get("preferred_bedrooms"),
-        "preferred_bathrooms": prefs.get("preferred_bathrooms"),
+        # Bedrooms and bathrooms (range)
+        "preferred_bedrooms_min": prefs.get("preferred_bedrooms_min"),
+        "preferred_bedrooms_max": prefs.get("preferred_bedrooms_max"),
+        "preferred_bathrooms_min": prefs.get("preferred_bathrooms_min"),
+        "preferred_bathrooms_max": prefs.get("preferred_bathrooms_max"),
         # Home type
         "preferred_home_types": _parse_home_types(
             prefs.get("preferred_housing_type", prefs.get("housing_type"))

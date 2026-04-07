@@ -12,6 +12,31 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+def _distance_to_numeric_range(
+    value: float, lo: float | None, hi: float | None, default_lo: float
+) -> float:
+    """Non-negative distance outside [lo, hi]; 0 when inside or when no bounds."""
+    if lo is None and hi is None:
+        lo = default_lo
+        hi = None
+    if lo is not None and value + 1e-6 < lo:
+        return lo - value
+    if hi is not None and value > hi + 1e-6:
+        return value - hi
+    return 0.0
+
+
+def _in_numeric_range(value: float, lo: float | None, hi: float | None, default_lo: float) -> bool:
+    if lo is None and hi is None:
+        lo = default_lo
+        hi = None
+    if lo is not None and value + 1e-6 < lo:
+        return False
+    if hi is not None and value > hi + 1e-6:
+        return False
+    return True
+
+
 class FeatureEngineer:
     """Creates engineered features for user-home matching."""
 
@@ -87,38 +112,68 @@ class FeatureEngineer:
         """Calculate size-related features."""
         features = []
 
-        # Bedroom features with median imputation
-        preferred_bedrooms = user_prefs.get("preferred_bedrooms", 3)
+        # Bedroom features with median imputation (range: min / max)
+        bed_lo = user_prefs.get("preferred_bedrooms_min")
+        bed_hi = user_prefs.get("preferred_bedrooms_max")
         home_bedrooms = home_data.get("bedrooms", 0)
 
         # Use median imputation (3 bedrooms is median from training)
         if home_bedrooms <= 0:
             home_bedrooms = 3  # Median from training data
 
-        bedroom_delta = abs(preferred_bedrooms - home_bedrooms)
+        bedroom_delta = _distance_to_numeric_range(
+            float(home_bedrooms),
+            float(bed_lo) if bed_lo is not None else None,
+            float(bed_hi) if bed_hi is not None else None,
+            3.0,
+        )
         bedroom_score = max(0.0, 1.0 - bedroom_delta / 5.0)
 
         features.extend([bedroom_delta, bedroom_score])
 
-        # MISSING FEATURE 2: bedroom_match (exact match from training)
-        bedroom_match = 1.0 if home_bedrooms >= preferred_bedrooms else 0.0
+        # MISSING FEATURE 2: bedroom_match (within preferred range when set)
+        bedroom_match = (
+            1.0
+            if _in_numeric_range(
+                float(home_bedrooms),
+                float(bed_lo) if bed_lo is not None else None,
+                float(bed_hi) if bed_hi is not None else None,
+                3.0,
+            )
+            else 0.0
+        )
         features.append(bedroom_match)
 
         # Bathroom features with median imputation
-        preferred_bathrooms = user_prefs.get("preferred_bathrooms", 2)
+        bath_lo = user_prefs.get("preferred_bathrooms_min")
+        bath_hi = user_prefs.get("preferred_bathrooms_max")
         home_bathrooms = home_data.get("bathrooms", 0)
 
         # Use median imputation (2 bathrooms is median from training)
         if home_bathrooms <= 0:
             home_bathrooms = 2  # Median from training data
 
-        bathroom_delta = abs(preferred_bathrooms - home_bathrooms)
+        bathroom_delta = _distance_to_numeric_range(
+            float(home_bathrooms),
+            float(bath_lo) if bath_lo is not None else None,
+            float(bath_hi) if bath_hi is not None else None,
+            2.0,
+        )
         bathroom_score = max(0.0, 1.0 - bathroom_delta / 3.0)
 
         features.extend([bathroom_delta, bathroom_score])
 
-        # MISSING FEATURE 3: bathroom_match (exact match from training)
-        bathroom_match = 1.0 if home_bathrooms >= preferred_bathrooms else 0.0
+        # MISSING FEATURE 3: bathroom_match (within preferred range when set)
+        bathroom_match = (
+            1.0
+            if _in_numeric_range(
+                float(home_bathrooms),
+                float(bath_lo) if bath_lo is not None else None,
+                float(bath_hi) if bath_hi is not None else None,
+                2.0,
+            )
+            else 0.0
+        )
         features.append(bathroom_match)
 
         # Square footage with median imputation

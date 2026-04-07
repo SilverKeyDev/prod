@@ -12,6 +12,22 @@ from .user_encoder import UserEncoder
 logger = logging.getLogger(__name__)
 
 
+def _beds_baths_range_display(prefs: dict[str, Any]) -> tuple[str, str]:
+    """Human-readable min–max strings for beds/baths preferences."""
+
+    def one(min_k: str, max_k: str) -> str:
+        lo = prefs.get(min_k)
+        hi = prefs.get(max_k)
+        if lo is None and hi is None:
+            return "Not specified"
+        return f"{lo if lo is not None else 'any'}–{hi if hi is not None else 'any'}"
+
+    return (
+        one("preferred_bedrooms_min", "preferred_bedrooms_max"),
+        one("preferred_bathrooms_min", "preferred_bathrooms_max"),
+    )
+
+
 class EmbeddingScorer:
     """Computes similarity scores between users and homes using embeddings."""
 
@@ -198,6 +214,7 @@ class EmbeddingScorer:
 
             # Extract key features for explanation
             user_prefs = user_data.get("preferences", {})
+            beds_disp, baths_disp = _beds_baths_range_display(user_prefs)
 
             explanation = {
                 "overall_similarity": overall_similarity,
@@ -208,8 +225,8 @@ class EmbeddingScorer:
                 },
                 "user_preferences": {
                     "budget_range": f"${user_prefs.get('budget_min', 0):,} - ${user_prefs.get('budget_max', 0):,}",
-                    "preferred_bedrooms": user_prefs.get("preferred_bedrooms", "Not specified"),
-                    "preferred_bathrooms": user_prefs.get("preferred_bathrooms", "Not specified"),
+                    "preferred_bedrooms": beds_disp,
+                    "preferred_bathrooms": baths_disp,
                     "lifestyle": user_prefs.get("lifestyle", "Not specified"),
                 },
                 "home_features": {

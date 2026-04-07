@@ -80,17 +80,17 @@ class LLMUserInput(BaseInputModel):
         else:
             essential_reqs.append("Budget: Not specified")
 
-        # Bedroom requirements - Always show
-        preferred_bedrooms = prefs.get("preferred_bedrooms", 0)
-        if preferred_bedrooms > 0:
-            essential_reqs.append(f"Bedrooms needed: {preferred_bedrooms}")
+        if prefs.get("preferred_bedrooms_min") is not None or prefs.get("preferred_bedrooms_max") is not None:
+            lo = prefs.get("preferred_bedrooms_min", "")
+            hi = prefs.get("preferred_bedrooms_max", "")
+            essential_reqs.append(f"Bedrooms range: {lo}–{hi}")
         else:
             essential_reqs.append("Bedrooms needed: Not specified")
 
-        # Bathroom requirements - Always show
-        preferred_bathrooms = prefs.get("preferred_bathrooms", 0)
-        if preferred_bathrooms > 0:
-            essential_reqs.append(f"Bathrooms needed: {preferred_bathrooms}")
+        if prefs.get("preferred_bathrooms_min") is not None or prefs.get("preferred_bathrooms_max") is not None:
+            lo = prefs.get("preferred_bathrooms_min", "")
+            hi = prefs.get("preferred_bathrooms_max", "")
+            essential_reqs.append(f"Bathrooms range: {lo}–{hi}")
         else:
             essential_reqs.append("Bathrooms needed: Not specified")
 

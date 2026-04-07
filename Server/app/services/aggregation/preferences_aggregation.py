@@ -19,6 +19,21 @@ from app.models import (
     UserIntentAttribute,
     UserSearchIntent,
 )
+from app.services.aggregation.extended_buyer_preferences import (
+    apply_extended_buyer_preference_canonical_keys,
+    coerce_extension_value,
+    normalize_stored_document,
+)
+
+
+def apply_canonical_housing_preference_keys(out: dict[str, Any]) -> None:
+    """
+    Mutate aggregated prefs so map_user_preferences_to_filters and MCDA see canonical keys.
+    Safe to call on any flat dict shaped like _build_preferences_dict output.
+    """
+    ht = out.get("housing_type")
+    if not out.get("preferred_housing_type") and ht is not None and str(ht).strip():
+        out["preferred_housing_type"] = ht
 
 
 def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
@@ -90,6 +105,13 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
         out["days_on_market_min"] = intent.days_on_market_min
         out["days_on_market_max"] = intent.days_on_market_max
         out["walkability_importance"] = intent.walkability_importance
+        out["listing_status"] = getattr(intent, "listing_status", None)
+        raw_ext = getattr(intent, "extended_buyer_preferences", None)
+        ext = coerce_extension_value(raw_ext)
+        if isinstance(ext, dict):
+            norm = normalize_stored_document(ext)
+            if len(norm) > 1:
+                out["extended_buyer_preferences"] = norm
 
     # Important locations -> important_locations list
     locations_rel = getattr(user, "user_important_locations", None)
@@ -155,6 +177,8 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
                 out["renovation_preference"] = key
             elif typ == "intended_property_use":
                 out["intended_property_use"] = key
+            elif typ == "paying_cash":
+                out["paying_cash"] = str(key).lower() in ("yes", "true", "1")
         out["preferred_home_features"] = features
         out["deal_breakers"] = deal_breakers
         out["must_have"] = must_have
@@ -169,6 +193,9 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
     out["other_requirements"] = list(out.get("preferred_home_features", [])) + list(
         out.get("deal_breakers", [])
     )
+
+    apply_canonical_housing_preference_keys(out)
+    apply_extended_buyer_preference_canonical_keys(out)
 
     # Agent profile (only when user.is_agent is True)
     if getattr(user, "is_agent", False):

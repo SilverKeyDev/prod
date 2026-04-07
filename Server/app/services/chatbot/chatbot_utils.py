@@ -4,6 +4,12 @@ import os
 import httpx
 from openai import OpenAI
 
+from app.config.llm_models import (
+    openai_chat_token_limit_params,
+    openai_model_action_plan,
+    openai_model_chat,
+    openai_model_summarize,
+)
 from app.services.aggregation import get_preferences_dict_optional
 
 from .chatbot_retry import make_openai_request_with_retry
@@ -59,16 +65,17 @@ Now respond helpfully to the user's question.
             return "AI service unavailable. Please try again later.", None
 
         client = OpenAI(api_key=api_key, http_client=httpx.Client())
+        chat_model = openai_model_chat()
 
         def make_request():
             return client.chat.completions.create(
-                model="gpt-4o",
+                model=chat_model,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": user_message},
                 ],
                 temperature=0.7,
-                max_tokens=1000,
+                **openai_chat_token_limit_params(chat_model, 1000),
             )
 
         response = make_openai_request_with_retry(client, make_request)
@@ -100,6 +107,7 @@ def summarize_user_message(user_message):
             return "chat message"  # Fallback summary
 
         client = OpenAI(api_key=api_key, http_client=httpx.Client())
+        summarize_model = openai_model_summarize()
 
         SUMMARY_PROMPT = """Summarize the following user message in exactly 3 words or less.
 Focus on the main topic or intent. Use simple, clear words.
@@ -113,13 +121,13 @@ Message to summarize:"""
 
         def make_request():
             return client.chat.completions.create(
-                model="gpt-4o",
+                model=summarize_model,
                 messages=[
                     {"role": "system", "content": SUMMARY_PROMPT},
                     {"role": "user", "content": user_message},
                 ],
                 temperature=0.3,  # Lower temperature for more consistent summaries
-                max_tokens=10,  # Very short response needed
+                **openai_chat_token_limit_params(summarize_model, 10),
             )
 
         response = make_openai_request_with_retry(client, make_request)
@@ -151,6 +159,7 @@ def generate_action_plan(user_preferences, client_name):
             return "AI service unavailable. Please try again later."
 
         client = OpenAI(api_key=api_key, http_client=httpx.Client())
+        action_plan_model = openai_model_action_plan()
 
         # Build context from user preferences (aggregated dict)
         context_parts = []
@@ -187,10 +196,18 @@ def generate_action_plan(user_preferences, client_name):
             # Housing Preferences (using actual fields)
             if user_preferences.get("housing_type"):
                 context_parts.append(f"Preferred housing type: {user_preferences['housing_type']}")
-            if user_preferences.get("preferred_bedrooms"):
-                context_parts.append(f"Bedrooms needed: {user_preferences['preferred_bedrooms']}")
-            if user_preferences.get("preferred_bathrooms"):
-                context_parts.append(f"Bathrooms needed: {user_preferences['preferred_bathrooms']}")
+            if user_preferences.get("preferred_bedrooms_min") is not None or user_preferences.get(
+                "preferred_bedrooms_max"
+            ) is not None:
+                lo = user_preferences.get("preferred_bedrooms_min", "")
+                hi = user_preferences.get("preferred_bedrooms_max", "")
+                context_parts.append(f"Bedrooms range: {lo}–{hi}")
+            if user_preferences.get("preferred_bathrooms_min") is not None or user_preferences.get(
+                "preferred_bathrooms_max"
+            ) is not None:
+                lo = user_preferences.get("preferred_bathrooms_min", "")
+                hi = user_preferences.get("preferred_bathrooms_max", "")
+                context_parts.append(f"Bathrooms range: {lo}–{hi}")
             if (
                 user_preferences.get("preferred_lot_size_min") is not None
                 or user_preferences.get("preferred_lot_size_max") is not None
@@ -336,7 +353,7 @@ Keep tone friendly, expert, and strategic. Response should be specific and agent
 
         def make_request():
             return client.chat.completions.create(
-                model="gpt-4o",
+                model=action_plan_model,
                 messages=[
                     {
                         "role": "system",
@@ -347,8 +364,8 @@ Keep tone friendly, expert, and strategic. Response should be specific and agent
                     },
                     {"role": "user", "content": ACTION_PLAN_PROMPT},
                 ],
-                max_tokens=900,
                 temperature=0.7,
+                **openai_chat_token_limit_params(action_plan_model, 900),
             )
 
         response = make_openai_request_with_retry(client, make_request)

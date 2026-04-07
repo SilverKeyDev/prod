@@ -47,7 +47,8 @@ SHARED_FEATURES = {
         extractor_func=lambda data: data.get(
             "bedrooms",
             data.get(
-                "preferred_bedrooms", data.get("preferences", {}).get("preferred_bedrooms", 0)
+                "preferred_bedrooms_min",
+                data.get("preferences", {}).get("preferred_bedrooms_min", 0),
             ),
         ),
         normalizer=10,
@@ -58,7 +59,8 @@ SHARED_FEATURES = {
         extractor_func=lambda data: data.get(
             "bathrooms",
             data.get(
-                "preferred_bathrooms", data.get("preferences", {}).get("preferred_bathrooms", 0)
+                "preferred_bathrooms_min",
+                data.get("preferences", {}).get("preferred_bathrooms_min", 0),
             ),
         ),
         normalizer=10,
