@@ -1,5 +1,6 @@
 // Shared types and interfaces for onboarding and personalization
 
+import type { BuyerPreferenceExtensions } from "./buyerPreferenceExtensions";
 import type { ProfileStepId } from "./profileStepIds";
 
 export type OnboardingData = {
@@ -18,6 +19,8 @@ export type OnboardingData = {
   children_count?: number;
 
   // Financial
+  /** When true, user is paying cash (financing fields hidden in UI). */
+  paying_cash?: boolean;
   gross_income?: number;
   home_budget_min?: number;
   home_budget_max?: number;
@@ -27,11 +30,9 @@ export type OnboardingData = {
 
   // Housing
   preferred_housing_type?: string;
-  preferred_bathrooms?: number;
-  preferred_bedrooms?: number;
-  /** Optional max for search filter (not persisted); use with preferred_bathrooms as min */
+  preferred_bathrooms_min?: number;
+  preferred_bedrooms_min?: number;
   preferred_bathrooms_max?: number;
-  /** Optional max for search filter (not persisted); use with preferred_bedrooms as min */
   preferred_bedrooms_max?: number;
   /** Search filter: FOR_SALE | PENDING | SOLD | "" for all */
   listing_status?: string;
@@ -63,6 +64,8 @@ export type OnboardingData = {
     commute_tolerance?: number;
   }[];
   walkability_importance?: string;
+  /** Server key `extended_buyer_preferences` (v1 JSON); merged on save. */
+  buyerPreferenceExtensions?: BuyerPreferenceExtensions;
 
   // Communication
   communication_frequency?: string;
