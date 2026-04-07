@@ -4,8 +4,10 @@ import Input from "@ui/form/Input";
 
 import { spacing } from "packages/design-tokens";
 import {
+  ImportantLocationsInput,
   LotSizeAndHomeAgeSliders,
   type LotSizeHomeAgeSearchOverridesPatch,
+  MUST_HAVE_OPTIONS,
 } from "packages/features/profile";
 import {
   ARCHITECTURAL_STYLE_OPTIONS,
@@ -15,6 +17,7 @@ import {
 } from "packages/features/search/types/otherFilterOptions";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import ClientSelector from "packages/ui/components/button/ClientSelector";
 import { ScrollView } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
@@ -26,6 +29,8 @@ type SearchFiltersContentProps = {
   formData: Partial<SearchFiltersFormData>;
   update: (field: keyof SearchFiltersFormData, value: unknown) => void;
   onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
+  selectedClientId?: string | null;
+  onClientChange?: (clientId: string | null) => void;
 };
 
 const HOUSING_TYPE_LABELS: Record<string, string> = {
@@ -44,7 +49,13 @@ export function SearchFiltersContent({
   formData,
   update,
   onSearchFilterOverridesPatch,
+  selectedClientId,
+  onClientChange,
 }: SearchFiltersContentProps) {
+  const importantLocations = Array.isArray(formData.important_locations)
+    ? formData.important_locations
+    : [];
+
   return (
     <ScrollView
       style={{ maxHeight: spacingToNum(spacing(100)) }}
@@ -53,6 +64,21 @@ export function SearchFiltersContent({
         paddingBottom: spacingToNum(spacing(6)),
       }}
     >
+      {selectedClientId !== undefined && onClientChange ? (
+        <Box className="mb-4">
+          <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
+        </Box>
+      ) : null}
+      <Text className="text-text-secondary mb-2 text-xs font-medium">
+        {SEARCH_TRANSLATIONS["search.location_preferences"] ?? "Location preferences"}
+      </Text>
+      <Box className="mb-4">
+        <ImportantLocationsInput
+          locations={importantLocations}
+          onChange={(locs) => update("important_locations", locs)}
+          isEditMode
+        />
+      </Box>
       <Box className="mb-4 flex-row gap-2">
         <Box className="flex-1">
           <Input
@@ -85,9 +111,14 @@ export function SearchFiltersContent({
         <Box className="flex-1">
           <Input
             placeholder="Min beds"
-            value={formData.preferred_bedrooms != null ? String(formData.preferred_bedrooms) : ""}
+            value={
+              formData.preferred_bedrooms_min != null ? String(formData.preferred_bedrooms_min) : ""
+            }
             onValueChange={(v) =>
-              update("preferred_bedrooms", parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined)
+              update(
+                "preferred_bedrooms_min",
+                parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined,
+              )
             }
             keyboardType="numeric"
             className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
@@ -112,9 +143,16 @@ export function SearchFiltersContent({
         <Box className="flex-1">
           <Input
             placeholder="Min baths"
-            value={formData.preferred_bathrooms != null ? String(formData.preferred_bathrooms) : ""}
+            value={
+              formData.preferred_bathrooms_min != null
+                ? String(formData.preferred_bathrooms_min)
+                : ""
+            }
             onValueChange={(v) =>
-              update("preferred_bathrooms", parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined)
+              update(
+                "preferred_bathrooms_min",
+                parseInt((v ?? "").replace(/\D/g, ""), 10) || undefined,
+              )
             }
             keyboardType="numeric"
             className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
@@ -138,6 +176,67 @@ export function SearchFiltersContent({
         </Box>
       </Box>
 
+      <Text className="text-text-secondary mb-1 text-xs font-medium">
+        {SEARCH_TRANSLATIONS["search.must_have_features"] ?? "Must-have features"}
+      </Text>
+      <Text className="text-text-tertiary mb-2 text-xs">
+        {SEARCH_TRANSLATIONS["search.must_have_features_hint"] ??
+          "Every home in your results must include all of these."}
+      </Text>
+      <Box className="mb-4 flex-row flex-wrap gap-2">
+        {MUST_HAVE_OPTIONS.map((opt) => {
+          const selected = new Set(Array.isArray(formData.must_have) ? formData.must_have : []);
+          const isSelected = selected.has(opt.value);
+          const next = isSelected
+            ? [...selected].filter((v) => v !== opt.value)
+            : [...selected, opt.value];
+          return (
+            <Pressable
+              key={opt.value}
+              onPress={() => update("must_have", next)}
+              className={`rounded-full border px-3 py-1.5 ${
+                isSelected
+                  ? "border-border bg-primary-muted"
+                  : "border-border bg-background-surface"
+              }`}
+            >
+              <Text
+                className={`text-xs font-medium ${
+                  isSelected ? "text-primary" : "text-text-secondary"
+                }`}
+              >
+                {opt.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </Box>
+
+      <Text className="text-text-secondary mb-1 text-xs font-medium">
+        {SEARCH_TRANSLATIONS["search.preferred_features_ranking"] ??
+          "Features that boost match score"}
+      </Text>
+      <Text className="text-text-tertiary mb-2 text-xs">
+        {SEARCH_TRANSLATIONS["search.preferred_features_hint"] ??
+          "Optional. Comma-separated phrases we look for in listings."}
+      </Text>
+      <Box className="mb-4">
+        <Input
+          placeholder="e.g. walk-in closet, hardwood floors"
+          value={(formData.preferred_home_features ?? []).join(", ")}
+          onValueChange={(v) =>
+            update(
+              "preferred_home_features",
+              (v ?? "")
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+            )
+          }
+          className="border-border bg-background-surface rounded-lg border px-3 py-2 text-sm"
+        />
+      </Box>
+
       <Box className="mt-2">
         <Text className="text-text-secondary mb-1 text-xs font-medium">
           Housing type and other preferences
@@ -159,7 +258,7 @@ export function SearchFiltersContent({
                   }
                   className={`rounded-full border px-3 py-1.5 ${
                     isSelected
-                      ? "border-primary bg-primary-muted"
+                      ? "border-border bg-primary-muted"
                       : "border-border bg-background-surface"
                   }`}
                 >
@@ -208,10 +307,6 @@ export function SearchFiltersContent({
           onChange={(v) => update("walkability_importance", v)}
           className="mb-4"
         />
-        <Text className="text-text-secondary text-xs">
-          Important locations are managed in Profile. Search uses your saved locations to find
-          homes.
-        </Text>
       </Box>
     </ScrollView>
   );
