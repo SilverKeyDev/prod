@@ -3,12 +3,12 @@ import type { OnboardingData } from "packages/features/profile/types/onboarding"
 import { parseHousingTypes } from "./constants";
 
 /**
- * Fields that must be filled for the housing step to be considered "complete".
+ * Fields that must be filled for the housing essentials step to be considered "complete".
  * All other housing inputs (sliders, optional dropdowns/tags) can be empty.
  */
-const HOUSING_REQUIRED_FIELDS: (keyof OnboardingData)[] = [
-  "preferred_bedrooms",
-  "preferred_bathrooms",
+const HOUSING_ESSENTIALS_REQUIRED_FIELDS: (keyof OnboardingData)[] = [
+  "preferred_bedrooms_min",
+  "preferred_bathrooms_min",
   "preferred_housing_type",
 ];
 
@@ -21,8 +21,8 @@ export function isOnboardingStepComplete(formData: OnboardingData, stepId: strin
   switch (stepId) {
     case "demographics":
       return true; // Not used for skip; About You has no skip option.
-    case "housing": {
-      for (const key of HOUSING_REQUIRED_FIELDS) {
+    case "housing_essentials": {
+      for (const key of HOUSING_ESSENTIALS_REQUIRED_FIELDS) {
         const value = formData[key];
         if (key === "preferred_housing_type") {
           const parsed = parseHousingTypes(value as string | undefined);
@@ -35,6 +35,9 @@ export function isOnboardingStepComplete(formData: OnboardingData, stepId: strin
       }
       return true;
     }
+    case "housing_ranges":
+    case "search_property":
+      return true;
     case "location": {
       const locations = formData.important_locations;
       if (!locations || locations.length === 0) return false;

@@ -28,10 +28,10 @@ describe("profileFormSync", () => {
     it("uses server locations when draft has none", () => {
       const merged = mergeOnboardingServerAndDraft(
         { gross_income: 100000, important_locations: [{ address: "1 Main St" }] },
-        { preferred_bedrooms: 3, important_locations: [] }
+        { preferred_bedrooms_min: 3, important_locations: [] }
       );
       expect(merged.gross_income).toBe(100000);
-      expect(merged.preferred_bedrooms).toBe(3);
+      expect(merged.preferred_bedrooms_min).toBe(3);
       expect(merged.important_locations).toEqual([{ address: "1 Main St" }]);
     });
 
@@ -51,23 +51,32 @@ describe("profileFormSync", () => {
       expect(result.preferred_housing_type).toBe("house");
     });
 
-    it("maps preferred_bedrooms_min/max to form preferred_bedrooms and preferred_bedrooms_max", () => {
+    it("maps preferred_bedrooms_min/max to form preferred_bedrooms_min and preferred_bedrooms_max", () => {
       const fixture = {
         [API_GET_KEYS.preferred_bedrooms_min]: 2,
         [API_GET_KEYS.preferred_bedrooms_max]: 4,
       };
       const result = userPreferencesToOnboardingData(fixture);
-      expect(result.preferred_bedrooms).toBe(2);
+      expect(result.preferred_bedrooms_min).toBe(2);
       expect(result.preferred_bedrooms_max).toBe(4);
     });
 
-    it("maps preferred_bathrooms_min/max to form preferred_bathrooms and preferred_bathrooms_max", () => {
+    it("maps legacy mirrored preferred_bedrooms from API when present (search/MCDA canonical key)", () => {
+      const fixture = {
+        preferred_bedrooms: 3,
+        [API_GET_KEYS.preferred_bedrooms_min]: 3,
+      };
+      const result = userPreferencesToOnboardingData(fixture);
+      expect(result.preferred_bedrooms_min).toBe(3);
+    });
+
+    it("maps preferred_bathrooms_min/max to form preferred_bathrooms_min and preferred_bathrooms_max", () => {
       const fixture = {
         [API_GET_KEYS.preferred_bathrooms_min]: 1,
         [API_GET_KEYS.preferred_bathrooms_max]: 3,
       };
       const result = userPreferencesToOnboardingData(fixture);
-      expect(result.preferred_bathrooms).toBe(1);
+      expect(result.preferred_bathrooms_min).toBe(1);
       expect(result.preferred_bathrooms_max).toBe(3);
     });
 
@@ -142,15 +151,15 @@ describe("profileFormSync", () => {
       expect(payload[API_POST_KEYS.housing_type]).toBe("townhome");
     });
 
-    it("sends preferred_bedrooms and preferred_bedrooms_max as preferred_bedrooms_min/max", () => {
-      const formData = { preferred_bedrooms: 2, preferred_bedrooms_max: 4 };
+    it("sends preferred_bedrooms_min and preferred_bedrooms_max in payload", () => {
+      const formData = { preferred_bedrooms_min: 2, preferred_bedrooms_max: 4 };
       const payload = formDataToPreferencesPayload(formData);
       expect(payload[API_POST_KEYS.preferred_bedrooms_min]).toBe(2);
       expect(payload[API_POST_KEYS.preferred_bedrooms_max]).toBe(4);
     });
 
-    it("sends preferred_bathrooms and preferred_bathrooms_max as preferred_bathrooms_min/max", () => {
-      const formData = { preferred_bathrooms: 1, preferred_bathrooms_max: 3 };
+    it("sends preferred_bathrooms_min and preferred_bathrooms_max in payload", () => {
+      const formData = { preferred_bathrooms_min: 1, preferred_bathrooms_max: 3 };
       const payload = formDataToPreferencesPayload(formData);
       expect(payload[API_POST_KEYS.preferred_bathrooms_min]).toBe(1);
       expect(payload[API_POST_KEYS.preferred_bathrooms_max]).toBe(3);

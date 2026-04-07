@@ -136,19 +136,7 @@ export function formDataToPreferencesPayload(formData: OnboardingData): Record<s
   if (formData.preferred_housing_type !== undefined) {
     payload.housing_type = formData.preferred_housing_type;
   }
-  // Backend expects preferred_bedrooms_min/max (form: preferred_bedrooms, preferred_bedrooms_max)
-  if (formData.preferred_bedrooms !== undefined) {
-    payload.preferred_bedrooms_min = formData.preferred_bedrooms;
-  }
-  if (formData.preferred_bedrooms_max !== undefined) {
-    payload.preferred_bedrooms_max = formData.preferred_bedrooms_max;
-  }
-  if (formData.preferred_bathrooms !== undefined) {
-    payload.preferred_bathrooms_min = formData.preferred_bathrooms;
-  }
-  if (formData.preferred_bathrooms_max !== undefined) {
-    payload.preferred_bathrooms_max = formData.preferred_bathrooms_max;
-  }
+  // preferred_bedrooms_min/max and preferred_bathrooms_min/max pass through via ...rest
   // Backend expects important_locations with max_commute_minutes (form: commute_tolerance)
   if (Array.isArray(formData.important_locations) && formData.important_locations.length > 0) {
     payload.important_locations = formData.important_locations.map((loc) => ({
@@ -214,10 +202,10 @@ export function userPreferencesToOnboardingData(
     // Housing — map backend keys (housing_type, preferred_*_min/max) to form keys
     preferred_housing_type:
       toString(get("preferred_housing_type")) ?? toString(get("housing_type")),
-    preferred_bedrooms:
+    preferred_bedrooms_min:
       toNumber(get("preferred_bedrooms")) ?? toNumber(get("preferred_bedrooms_min")),
     preferred_bedrooms_max: toNumber(get("preferred_bedrooms_max")),
-    preferred_bathrooms:
+    preferred_bathrooms_min:
       toNumber(get("preferred_bathrooms")) ?? toNumber(get("preferred_bathrooms_min")),
     preferred_bathrooms_max: toNumber(get("preferred_bathrooms_max")),
     listing_status: toString(get("listing_status")),

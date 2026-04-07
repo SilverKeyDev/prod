@@ -9,6 +9,48 @@ import {
 
 export type { ValidationResult } from "packages/features/profile/types/onboarding";
 
+function appendPreferredBedBathRangeErrors(formData: OnboardingData, errors: string[]): void {
+  const data = formData;
+  if (
+    data.preferred_bedrooms_min != null &&
+    (data.preferred_bedrooms_min < 1 || data.preferred_bedrooms_min > 8)
+  ) {
+    errors.push("Minimum bedrooms must be between 1 and 8");
+  }
+  if (
+    data.preferred_bedrooms_max != null &&
+    (data.preferred_bedrooms_max < 1 || data.preferred_bedrooms_max > 8)
+  ) {
+    errors.push("Maximum bedrooms must be between 1 and 8");
+  }
+  if (
+    data.preferred_bedrooms_min != null &&
+    data.preferred_bedrooms_max != null &&
+    data.preferred_bedrooms_min > data.preferred_bedrooms_max
+  ) {
+    errors.push("Minimum bedrooms cannot exceed maximum bedrooms");
+  }
+  if (
+    data.preferred_bathrooms_min != null &&
+    (data.preferred_bathrooms_min < 1 || data.preferred_bathrooms_min > 8)
+  ) {
+    errors.push("Minimum bathrooms must be between 1 and 8");
+  }
+  if (
+    data.preferred_bathrooms_max != null &&
+    (data.preferred_bathrooms_max < 1 || data.preferred_bathrooms_max > 8)
+  ) {
+    errors.push("Maximum bathrooms must be between 1 and 8");
+  }
+  if (
+    data.preferred_bathrooms_min != null &&
+    data.preferred_bathrooms_max != null &&
+    data.preferred_bathrooms_min > data.preferred_bathrooms_max
+  ) {
+    errors.push("Minimum bathrooms cannot exceed maximum bathrooms");
+  }
+}
+
 // Mapping of field keys to user-friendly display names
 const FIELD_DISPLAY_NAMES: Record<string, string> = {
   name: FIELD_LABELS.NAME,
@@ -27,8 +69,8 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
   down_payment: FIELD_LABELS.DOWN_PAYMENT,
   ideal_zip_code: FIELD_LABELS.IDEAL_ZIP_CODE,
   preferred_housing_type: FIELD_LABELS.PREFERRED_HOUSING_TYPE,
-  preferred_bedrooms: FIELD_LABELS.PREFERRED_BEDROOMS,
-  preferred_bathrooms: FIELD_LABELS.PREFERRED_BATHROOMS,
+  preferred_bedrooms_min: FIELD_LABELS.PREFERRED_BEDROOMS,
+  preferred_bathrooms_min: FIELD_LABELS.PREFERRED_BATHROOMS,
   preferred_lot_size: FIELD_LABELS.PREFERRED_LOT_SIZE,
   preferred_home_age: FIELD_LABELS.PREFERRED_HOME_AGE,
   preferred_architectural_style: FIELD_LABELS.PREFERRED_ARCHITECTURAL_STYLE,
@@ -60,8 +102,8 @@ const validateFormData = (
     "gross_income",
     "home_budget_min",
     "home_budget_max",
-    "preferred_bedrooms",
-    "preferred_bathrooms",
+    "preferred_bedrooms_min",
+    "preferred_bathrooms_min",
   ] as const;
 
   numericFields.forEach((field) => {
@@ -137,12 +179,15 @@ const validateFormData = (
 
   // Additional validation rules
   if (
+    !formData.paying_cash &&
     formData.down_payment &&
     formData.home_budget_max &&
     formData.down_payment > formData.home_budget_max
   ) {
     errors.push("Down payment cannot be higher than home budget.");
   }
+
+  appendPreferredBedBathRangeErrors(formData, errors);
 
   return {
     isValid: missingFields.length === 0 && errors.length === 0,
@@ -184,7 +229,10 @@ export const validateSettingsData = (formData: OnboardingData): ValidationResult
 export const validateProfileSave = (formData: OnboardingData): ValidationResult => {
   const errors: string[] = [];
 
+  appendPreferredBedBathRangeErrors(formData, errors);
+
   if (
+    !formData.paying_cash &&
     formData.down_payment != null &&
     formData.home_budget_max != null &&
     formData.down_payment > formData.home_budget_max

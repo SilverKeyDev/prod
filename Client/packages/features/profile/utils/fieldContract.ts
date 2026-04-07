@@ -11,7 +11,12 @@ export const API_GET_KEYS = {
   preferred_bedrooms_max: "preferred_bedrooms_max",
   preferred_bathrooms_min: "preferred_bathrooms_min",
   preferred_bathrooms_max: "preferred_bathrooms_max",
+  /** Mirrored from housing_type when client expects preferred_housing_type. */
+  preferred_housing_type: "preferred_housing_type",
   important_locations: "important_locations",
+  listing_status: "listing_status",
+  extended_buyer_preferences: "extended_buyer_preferences",
+  walkability_importance: "walkability_importance",
 } as const;
 
 /** Payload keys backend expects on POST (write_preferences_from_payload). */
@@ -22,14 +27,16 @@ export const API_POST_KEYS = {
   preferred_bathrooms_min: "preferred_bathrooms_min",
   preferred_bathrooms_max: "preferred_bathrooms_max",
   important_locations: "important_locations",
+  listing_status: "listing_status",
+  extended_buyer_preferences: "extended_buyer_preferences",
 } as const;
 
 /** Form keys (OnboardingData) used in UI. */
 export const FORM_KEYS = {
   preferred_housing_type: "preferred_housing_type",
-  preferred_bedrooms: "preferred_bedrooms",
+  preferred_bedrooms_min: "preferred_bedrooms_min",
   preferred_bedrooms_max: "preferred_bedrooms_max",
-  preferred_bathrooms: "preferred_bathrooms",
+  preferred_bathrooms_min: "preferred_bathrooms_min",
   preferred_bathrooms_max: "preferred_bathrooms_max",
   important_locations: "important_locations",
 } as const;
