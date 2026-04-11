@@ -1,0 +1,106 @@
+# Reusable tests only (no PR comments). Safe to call from push/workflow_dispatch
+# where GITHUB_TOKEN cannot grant pull-requests: write.
+name: Test & Coverage (callable)
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-test:
+    name: Frontend Tests & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: Client/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: Client
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        working-directory: Client
+        run: pnpm test:coverage
+
+      - name: Upload frontend coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage
+          path: |
+            Client/coverage/
+          retention-days: 30
+
+  backend-test:
+    name: Backend Tests & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        working-directory: Server
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Create coverage directory
+        working-directory: Server
+        run: mkdir -p coverage
+
+      # Full suite includes Server/tests/contract (OpenAPI ↔ Pydantic response checks).
+      - name: Run tests with coverage
+        working-directory: Server
+        run: pytest
+
+      - name: Check module-specific coverage thresholds
+        working-directory: Server
+        run: python scripts/check_coverage_thresholds.py
+
+      - name: Upload backend coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: |
+            Server/coverage/
+          retention-days: 30
+
+  coverage-summary:
+    name: Coverage Summary
+    runs-on: ubuntu-latest
+    needs: [frontend-test, backend-test]
+    if: always()
+
+    steps:
+      - name: Summary
+        run: |
+          echo "## Test & Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Frontend tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "Backend tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage reports have been uploaded as artifacts." >> $GITHUB_STEP_SUMMARY

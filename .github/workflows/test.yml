@@ -4,52 +4,31 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-  workflow_call:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
-  frontend-test:
-    name: Frontend Tests & Coverage
+  tests:
+    uses: ./.github/workflows/test-callable.yml
+
+  frontend-coverage-pr-comment:
+    name: Frontend coverage PR comment
+    needs: tests
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "pnpm"
-          cache-dependency-path: Client/pnpm-lock.yaml
-
-      - name: Install dependencies
-        working-directory: Client
-        run: pnpm install --frozen-lockfile
-
-      - name: Run tests with coverage
-        working-directory: Client
-        run: pnpm test:coverage
-
-      - name: Upload frontend coverage reports
-        uses: actions/upload-artifact@v4
-        if: always()
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v4
         with:
           name: frontend-coverage
-          path: |
-            Client/coverage/
-          retention-days: 30
+          path: Client/coverage
 
       - name: Comment coverage on PR
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -67,7 +46,7 @@ jobs:
               const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
               const total = coverage.total;
 
-              const comment = `## 📊 Frontend Coverage Report
+              const comment = `## Frontend coverage report
 
               | Metric | Coverage | Threshold |
               |--------|----------|-----------|
@@ -76,7 +55,7 @@ jobs:
               | Functions | ${total.functions.pct.toFixed(2)}% | 70% (utils/hooks), 50% (features) |
               | Branches | ${total.branches.pct.toFixed(2)}% | 65% (utils/hooks), 45% (features) |
 
-              📁 [View detailed coverage report](../actions/runs/${context.runId})
+              [View detailed coverage report](../actions/runs/${context.runId})
               `;
 
               github.rest.issues.createComment({
@@ -89,51 +68,23 @@ jobs:
               console.log('Error posting coverage comment:', error.message);
             }
 
-  backend-test:
-    name: Backend Tests & Coverage
+  backend-coverage-pr-comment:
+    name: Backend coverage PR comment
+    needs: tests
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: 'pip'
-
-      - name: Install dependencies
-        working-directory: Server
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
-
-      - name: Create coverage directory
-        working-directory: Server
-        run: mkdir -p coverage
-
-      # Full suite includes Server/tests/contract (OpenAPI ↔ Pydantic response checks).
-      - name: Run tests with coverage
-        working-directory: Server
-        run: pytest
-
-      - name: Check module-specific coverage thresholds
-        working-directory: Server
-        run: python scripts/check_coverage_thresholds.py
-
-      - name: Upload backend coverage reports
-        uses: actions/upload-artifact@v4
-        if: always()
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
         with:
           name: backend-coverage
-          path: |
-            Server/coverage/
-          retention-days: 30
+          path: Server/coverage
 
       - name: Comment coverage on PR
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -156,7 +107,7 @@ jobs:
                 ? ((totals.covered_branches / totals.num_branches) * 100).toFixed(2)
                 : 'N/A';
 
-              const comment = `## 🐍 Backend Coverage Report
+              const comment = `## Backend coverage report
 
               | Metric | Coverage | Threshold |
               |--------|----------|-----------|
@@ -169,7 +120,7 @@ jobs:
               - Models: 60% required
               - Utils: 70% required
 
-              📁 [View detailed coverage report](../actions/runs/${context.runId})
+              [View detailed coverage report](../actions/runs/${context.runId})
               `;
 
               github.rest.issues.createComment({
@@ -181,19 +132,3 @@ jobs:
             } catch (error) {
               console.log('Error posting coverage comment:', error.message);
             }
-
-  coverage-summary:
-    name: Coverage Summary
-    runs-on: ubuntu-latest
-    needs: [frontend-test, backend-test]
-    if: always()
-
-    steps:
-      - name: Summary
-        run: |
-          echo "## Test & Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Frontend tests completed" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Backend tests completed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Coverage reports have been uploaded as artifacts." >> $GITHUB_STEP_SUMMARY
