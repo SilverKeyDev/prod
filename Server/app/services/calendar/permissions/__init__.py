@@ -11,8 +11,8 @@ from .google_calendar_oauth import (
     get_scopes_from_tokeninfo,
     parse_scopes_to_permissions,
     require_permission,
-    update_token_permissions_from_scopes,
 )
+from .google_calendar_token_permissions import update_token_permissions_from_scopes
 
 # Backward-compatible exports for existing code
 # These are derived from the single permissions dict

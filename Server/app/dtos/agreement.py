@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, cast
 
 from app.schemas.generated import Agreement as AgreementSchema
 from app.schemas.generated import AgreementEvent as AgreementEventSchema
 from app.schemas.generated import AgreementParticipant as AgreementParticipantSchema
 from app.schemas.generated import AgreementRevision as AgreementRevisionSchema
+from app.utils.datetime_utc import to_aware_utc_iso
 
 if TYPE_CHECKING:
     from app.models.documents.agreement import Agreement as AgreementModel
@@ -18,15 +18,6 @@ if TYPE_CHECKING:
         AgreementParticipant as AgreementParticipantModel,
     )
     from app.models.documents.agreement_revision import AgreementRevision as AgreementRevisionModel
-
-
-def _ensure_timezone_aware(dt: datetime | None) -> str | None:
-    """Convert naive datetime to timezone-aware UTC datetime ISO string."""
-    if dt is None:
-        return None
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.isoformat()
 
 
 def _event_metadata_dict(raw: str | None) -> dict[str, Any] | None:
@@ -58,10 +49,10 @@ class AgreementParticipantDTO:
             status=None,
             routing_order=1 if ro is None else int(ro),
             signing_order=None,
-            sent_at=_ensure_timezone_aware(participant.sent_at),
-            delivered_at=_ensure_timezone_aware(participant.delivered_at),
-            signed_at=_ensure_timezone_aware(participant.signed_at),
-            declined_at=_ensure_timezone_aware(participant.declined_at),
+            sent_at=to_aware_utc_iso(participant.sent_at),
+            delivered_at=to_aware_utc_iso(participant.delivered_at),
+            signed_at=to_aware_utc_iso(participant.signed_at),
+            declined_at=to_aware_utc_iso(participant.declined_at),
             declined_reason=None,
             created_at=None,
             updated_at=None,
@@ -71,7 +62,7 @@ class AgreementParticipantDTO:
 class AgreementRevisionDTO:
     @staticmethod
     def from_orm(revision: AgreementRevisionModel) -> AgreementRevisionSchema:
-        created = _ensure_timezone_aware(revision.created_at) or ""
+        created = to_aware_utc_iso(revision.created_at) or ""
         return AgreementRevisionSchema(
             id=revision.id,
             agreement_id=revision.agreement_id,
@@ -102,7 +93,7 @@ class AgreementEventDTO:
             status=None,
             actor_id=event.actor_id,
             metadata=_event_metadata_dict(event.event_metadata),
-            created_at=_ensure_timezone_aware(event.created_at) or "",
+            created_at=to_aware_utc_iso(event.created_at) or "",
             actor_name=None,
         )
 
@@ -114,8 +105,8 @@ class AgreementDTO:
         *,
         include_relationships: bool = False,
     ) -> AgreementSchema:
-        created_at = _ensure_timezone_aware(agreement.created_at) or ""
-        updated_at = _ensure_timezone_aware(agreement.updated_at) or ""
+        created_at = to_aware_utc_iso(agreement.created_at) or ""
+        updated_at = to_aware_utc_iso(agreement.updated_at) or ""
 
         participants = None
         events = None
@@ -153,9 +144,9 @@ class AgreementDTO:
             docusign_status=agreement.docusign_status,
             created_at=created_at,
             updated_at=updated_at,
-            sent_at=_ensure_timezone_aware(agreement.sent_at),
-            completed_at=_ensure_timezone_aware(agreement.completed_at),
-            voided_at=_ensure_timezone_aware(agreement.voided_at),
+            sent_at=to_aware_utc_iso(agreement.sent_at),
+            completed_at=to_aware_utc_iso(agreement.completed_at),
+            voided_at=to_aware_utc_iso(agreement.voided_at),
             current_revision_id=agreement.current_revision_id,
             signed_document_path=agreement.signed_document_path,
             certificate_path=agreement.certificate_path,

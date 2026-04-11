@@ -1,4 +1,7 @@
+import json
 import os
+from datetime import date, time
+from typing import Any
 
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
@@ -6,6 +9,20 @@ if not database_url:
 
 SQLALCHEMY_DATABASE_URI = database_url
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+def _sqlalchemy_json_serializer(value: Any) -> str:
+    """Serialize Python values for JSON/JSONB columns (SQLAlchemy engine hook)."""
+
+    def _default(obj: object) -> str:
+        if isinstance(obj, date | time):
+            return obj.isoformat()
+        raise TypeError(f"Object of type {type(obj)!r} is not JSON serializable")
+
+    return json.dumps(value, default=_default)
+
+
+_JSON_ENGINE_OPTS = {"json_serializer": _sqlalchemy_json_serializer}
 
 # Configure engine options based on database type
 # For testing with SQLite in-memory, use minimal config (no pool settings)
@@ -17,6 +34,7 @@ if database_url.startswith("sqlite://"):
         SQLALCHEMY_ENGINE_OPTIONS = {
             "pool_pre_ping": True,
             "pool_recycle": 300,
+            **_JSON_ENGINE_OPTS,
         }
     else:
         # SQLite file-based - pool settings
@@ -26,6 +44,7 @@ if database_url.startswith("sqlite://"):
             "pool_timeout": 300,
             "pool_size": 10,
             "max_overflow": 20,
+            **_JSON_ENGINE_OPTS,
         }
 else:
     # PostgreSQL/other database configuration with connection args
@@ -41,6 +60,7 @@ else:
             "keepalives_interval": 30,
             "keepalives_count": 3,
         },
+        **_JSON_ENGINE_OPTS,
     }
 
 __all__ = [

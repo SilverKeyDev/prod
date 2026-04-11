@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import current_app, jsonify, request
 
 from app.schemas import SearchByPolygonRequest, SearchByPolygonResponse
 from app.utils.validation import validate_request, validate_response
@@ -13,13 +13,7 @@ from ...services.search.data.neighborhood_boundaries import (
     get_area_boundary,
     search_areas,
 )
-from ...services.search.helpers.geometry_helpers import geocode_address_google
-from ...services.search.helpers.preferences_helpers import (
-    get_authenticated_user,
-    get_user_preferences_parsed,
-    parse_important_locations,
-)
-from ...services.search.polygon.locationPolygon import isochrone_union_for_addresses
+from ...services.search.helpers.preferences_helpers import get_authenticated_user
 from ...services.search.polygon.polygon_search_runner import run_polygon_search
 from ...services.search.property.monthly_cost import monthly_cost_addon_estimates
 from ...services.search.scoring.research_preferences_context import (
@@ -28,7 +22,9 @@ from ...services.search.scoring.research_preferences_context import (
 )
 from ...utils.security.secure_errors import SecureErrorHandler
 
-search_bp = Blueprint("search", __name__, url_prefix="/api/v1/search")
+# Register isochrone route (large handler lives in separate module).
+from . import search_isochrone_routes  # noqa: F401
+from .search_blueprint import search_bp
 
 
 @search_bp.route("/propertyComps", methods=["GET"])
@@ -60,7 +56,7 @@ def get_property_comps():
         )
 
         if err:
-            current_app.logger.error(f"🏠 [PROPERTY_COMPS] Slipstream error: {err}")
+            current_app.logger.error("[PROPERTY_COMPS] Slipstream error: %s", err)
             return SecureErrorHandler.handle_external_api_error(
                 Exception(err.get("details", "Unknown error")),
                 "Slipstream API",
@@ -77,7 +73,7 @@ def get_property_comps():
         ), 200
 
     except Exception as e:
-        current_app.logger.error(f"🏠 [PROPERTY_COMPS] Unexpected error: {e}", exc_info=True)
+        current_app.logger.error("[PROPERTY_COMPS] Unexpected error: %s", e, exc_info=True)
         return jsonify(
             {
                 "success": False,
@@ -162,7 +158,7 @@ def search_properties_by_polygon(data: SearchByPolygonRequest | None = None):
     except Exception as e:
         total_time = time.time() - start_time
         current_app.logger.error(
-            f"[POLYGON_SEARCH] ❌ {request_id} - Exception: {e}", exc_info=True
+            "[POLYGON_SEARCH] %s - Exception: %s", request_id, e, exc_info=True
         )
         return jsonify(
             {
@@ -171,209 +167,6 @@ def search_properties_by_polygon(data: SearchByPolygonRequest | None = None):
                 "message": str(e),
                 "requestId": request_id,
                 "searchTime": round(total_time, 2),
-            }
-        ), 500
-
-
-@search_bp.route("/isochrone", methods=["GET"])
-def get_isochrone():
-    """
-    Generate and return isochrone polygon data based on user preferences.
-    Returns GeoJSON polygon representing areas reachable within commute tolerance
-    from the first important location.
-    """
-    try:
-        # Authenticate user
-        user, auth_error = get_authenticated_user()
-        if auth_error:
-            current_app.logger.error("[ISOCHRONE] ❌ User authentication failed")
-            return auth_error
-        if user is None:
-            return jsonify(
-                {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required"}
-            ), 401
-
-        requested = request.args.get("preferences_user_id")
-        resolved_prefs_uid, resolve_err = resolve_preferences_user_id_for_research(user, requested)
-        if resolve_err is not None:
-            return jsonify(resolve_err), 403
-        assert resolved_prefs_uid is not None
-
-        # Get and parse user preferences
-        user_preferences, pref_error = get_user_preferences_parsed(str(resolved_prefs_uid))
-        if pref_error:
-            return pref_error
-
-        # Parse important locations
-        important_locations, loc_error = parse_important_locations(user_preferences or {})
-        if loc_error:
-            current_app.logger.warning(f"[ISOCHRONE] ⚠️ {loc_error}")
-            return jsonify({"success": False, "error": "NO_LOCATIONS", "message": loc_error}), 400
-        if not important_locations:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "NO_LOCATIONS",
-                    "message": "No important locations found",
-                }
-            ), 400
-
-        # Prepare address and commute tolerance pairs for all locations and geocode them
-        addresses_and_minutes = []
-        geocoded_locations = []
-        primary_location = important_locations[0]
-        primary_address = primary_location.get("address", "")
-        primary_name = (
-            primary_location.get("name")
-            or primary_location.get("address", "")[:40]
-            or "Primary Location"
-        )
-
-        # Use the Google Maps geocoding function
-        for location in important_locations:
-            address = location.get("address")
-            commute_tolerance = location.get("commute_tolerance", 30)
-            name = location.get("name") or location.get("address", "")[:40] or "Unknown Location"
-
-            if address and address.strip():
-                addresses_and_minutes.append((address.strip(), commute_tolerance))
-
-                # Geocode the address to get coordinates using Google Maps API
-                coords = geocode_address_google(address.strip())
-                if coords:
-                    lat, lng = coords
-                    geocoded_locations.append(
-                        {
-                            "name": name,
-                            "address": address.strip(),
-                            "commute_tolerance": commute_tolerance,
-                            "lat": lat,
-                            "lng": lng,
-                        }
-                    )
-                else:
-                    current_app.logger.error(
-                        f"[ISOCHRONE] ❌ Failed to geocode {name} at {address}"
-                    )
-                    # Add location with null coordinates to maintain consistency
-                    geocoded_locations.append(
-                        {
-                            "name": name,
-                            "address": address.strip(),
-                            "commute_tolerance": commute_tolerance,
-                            "lat": None,
-                            "lng": None,
-                        }
-                    )
-                    current_app.logger.warning(
-                        f"[ISOCHRONE] ⚠️ Added {name} with null coordinates due to geocoding failure"
-                    )
-
-        if not addresses_and_minutes:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "NO_VALID_LOCATIONS",
-                    "message": "No valid locations with addresses found",
-                }
-            ), 400
-
-        # Generate union isochrone polygon for all locations
-        try:
-            isochrone_feature = isochrone_union_for_addresses(
-                addresses_and_minutes,
-                mode="drive",
-                include_individual=True,  # Include individual polygons for rendering
-            )
-            if isinstance(isochrone_feature, dict) and "geometry" in isochrone_feature:
-                isochrone_feature["geometry"]
-        except Exception as e:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "ISOCHRONE_GENERATION_FAILED",
-                    "message": f"Failed to generate isochrone polygon: {str(e)}",
-                }
-            ), 500
-
-        # Calculate center point from all locations (use first location as primary center for backward compatibility)
-        if not important_locations:
-            return jsonify(
-                {"success": False, "error": "NO_LOCATIONS", "message": "No locations"}
-            ), 400
-        primary_location = important_locations[0]
-        primary_address = primary_location.get("address")
-        primary_name = (
-            primary_location.get("name")
-            or primary_location.get("address", "")[:40]
-            or "Multiple Locations"
-        )
-
-        try:
-            coords = geocode_address_google(primary_address) if primary_address else None
-            if coords:
-                center_lat, center_lon = coords
-            else:
-                # Fallback: use center of isochrone bounds if available
-                center_lat, center_lon = 0, 0
-                current_app.logger.warning(
-                    f"🗺️ [ISOCHRONE_CENTER] Geocoding failed for address '{primary_address}', using fallback coordinates: lat={center_lat}, lon={center_lon}"
-                )
-        except Exception as e:
-            center_lat, center_lon = 0, 0
-            current_app.logger.error(
-                f"🗺️ [ISOCHRONE_CENTER] Exception during geocoding: {str(e)}, using fallback coordinates: lat={center_lat}, lon={center_lon}"
-            )
-
-        # Extract individual isochrones if available
-        individual_isochrones = []
-        if isinstance(isochrone_feature, dict) and "extras" in isochrone_feature:
-            individual_features = isochrone_feature["extras"].get("individual_features", []) or []
-            for i, feature in enumerate(individual_features):
-                if i < len(important_locations):
-                    location = important_locations[i]
-                    individual_isochrones.append(
-                        {
-                            "name": location.get("name")
-                            or location.get("address", "")[:40]
-                            or f"Location {i + 1}",
-                            "address": location.get("address"),
-                            "commute_tolerance": location.get("commute_tolerance", 30),
-                            "isochrone": feature,
-                        }
-                    )
-
-        # Return the isochrone data
-        response_data = {
-            "success": True,
-            "data": {
-                "isochrone": isochrone_feature,
-                "individual_isochrones": individual_isochrones,
-                "center": {
-                    "lat": center_lat,
-                    "lon": center_lon,
-                    "address": primary_address,
-                    "name": primary_name,
-                },
-                "locations": geocoded_locations,
-                "commute_tolerance": primary_location.get(
-                    "commute_tolerance", 30
-                ),  # Primary location's tolerance for backward compatibility
-                "mode": "drive",
-            },
-        }
-
-        return jsonify(response_data), 200
-
-    except Exception as e:
-        current_app.logger.error(f"[ISOCHRONE] ❌ Unexpected error in get_isochrone: {e}")
-        current_app.logger.error(f"[ISOCHRONE] ❌ Error type: {type(e)}")
-        current_app.logger.error("[ISOCHRONE] ❌ Error traceback:", exc_info=True)
-        return jsonify(
-            {
-                "success": False,
-                "error": "INTERNAL_ERROR",
-                "message": f"Internal server error: {str(e)}",
             }
         ), 500
 
@@ -398,13 +191,13 @@ def get_area_suggestions():
     try:
         areas, err = search_areas(keyword, state=state, limit=limit)
         if err:
-            current_app.logger.warning(f"[AREA_SUGGESTIONS] ⚠️ {err}")
+            current_app.logger.warning("[AREA_SUGGESTIONS] %s", err)
             return jsonify({"success": False, "error": "SEARCH_FAILED", "message": err}), 502
 
         return jsonify({"success": True, "areas": areas}), 200
 
     except Exception as e:
-        current_app.logger.error(f"[AREA_SUGGESTIONS] ❌ Unexpected error: {e}", exc_info=True)
+        current_app.logger.error("[AREA_SUGGESTIONS] Unexpected error: %s", e, exc_info=True)
         return jsonify(
             {"success": False, "error": "INTERNAL_ERROR", "message": "Failed to search areas"}
         ), 500
@@ -426,7 +219,7 @@ def get_area_boundary_route():
     try:
         area_data, err = get_area_boundary(area_id)
         if err:
-            current_app.logger.warning(f"[AREA_BOUNDARY] ⚠️ {err}")
+            current_app.logger.warning("[AREA_BOUNDARY] %s", err)
             status = 404 if "Invalid" in err or "No area" in err else 502
             return jsonify({"success": False, "error": "BOUNDARY_FAILED", "message": err}), status
 
@@ -454,7 +247,7 @@ def get_area_boundary_route():
         ), 200
 
     except Exception as e:
-        current_app.logger.error(f"[AREA_BOUNDARY] ❌ Unexpected error: {e}", exc_info=True)
+        current_app.logger.error("[AREA_BOUNDARY] Unexpected error: %s", e, exc_info=True)
         return jsonify(
             {
                 "success": False,

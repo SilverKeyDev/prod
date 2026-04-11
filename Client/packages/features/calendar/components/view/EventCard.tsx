@@ -164,26 +164,30 @@ export function EventCard({
         <Box className="flex flex-row items-stretch">
           <Box className="bg-accent w-1" />
           <Box className="flex-1 p-3 text-left">
-            {onClick ? (
-              <TouchableBox
-                onPress={onClick}
-                className="space-y-1 text-left outline-none"
-              >
-                {eventBody}
-              </TouchableBox>
-            ) : (
-              <Box className="space-y-1">{eventBody}</Box>
-            )}
-            {showEditActions ? (
-              <Box className="mt-2 flex flex-row gap-2">
-                <Button variant="outline" size="sm" onPress={handleEdit}>
-                  Edit
-                </Button>
-                <CancelButton size="sm" onPress={handleCancel}>
-                  Cancel
-                </CancelButton>
+            <Box className="flex flex-row items-start gap-2">
+              <Box className="min-w-0 flex-1">
+                {onClick ? (
+                  <TouchableBox
+                    onPress={onClick}
+                    className="space-y-1 text-left outline-none"
+                  >
+                    {eventBody}
+                  </TouchableBox>
+                ) : (
+                  <Box className="space-y-1">{eventBody}</Box>
+                )}
               </Box>
-            ) : null}
+              {showEditActions ? (
+                <Box className="flex flex-shrink-0 flex-row flex-wrap justify-end gap-2">
+                  <Button variant="outline" size="sm" onPress={handleEdit}>
+                    Edit
+                  </Button>
+                  <CancelButton size="sm" onPress={handleCancel}>
+                    Cancel
+                  </CancelButton>
+                </Box>
+              ) : null}
+            </Box>
           </Box>
         </Box>
       </Box>

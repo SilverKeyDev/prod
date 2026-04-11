@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
+from app.utils.datetime_utc import to_aware_utc_iso
 
 
 class AgreementRevision(db.Model):
@@ -30,7 +31,10 @@ class AgreementRevision(db.Model):
 
     # Metadata
     created_by: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
     notes: Mapped[str | None] = mapped_column(db.Text)
 
     # Relationships
@@ -57,7 +61,7 @@ class AgreementRevision(db.Model):
             "template_id": self.template_id,
             "template_variables": self.template_variables,
             "created_by": self.created_by,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": to_aware_utc_iso(self.created_at),
             "notes": self.notes,
         }
 

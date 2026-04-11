@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
+from app.utils.datetime_utc import to_aware_utc_iso
 
 if TYPE_CHECKING:
     from app.models.documents.agreement_revision import AgreementRevision
@@ -45,15 +46,19 @@ class Agreement(db.Model):
         db.String(50)
     )  # offer, inspection_contingency, financing, etc.
 
-    # Timestamps
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    # Timestamps (timezone=True aligns ORM with Pydantic AwareDatetime / API)
+    created_at: Mapped[datetime] = mapped_column(
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
     updated_at: Mapped[datetime] = mapped_column(
+        db.DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
-    sent_at: Mapped[datetime | None] = mapped_column(db.DateTime)
-    completed_at: Mapped[datetime | None] = mapped_column(db.DateTime)
-    voided_at: Mapped[datetime | None] = mapped_column(db.DateTime)
+    sent_at: Mapped[datetime | None] = mapped_column(db.DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(db.DateTime(timezone=True))
+    voided_at: Mapped[datetime | None] = mapped_column(db.DateTime(timezone=True))
 
     # S3 paths for completed documents
     signed_document_path: Mapped[str | None] = mapped_column(db.String(512))
@@ -124,11 +129,11 @@ class Agreement(db.Model):
             "docusign_status": self.docusign_status,
             "property_address": self.property_address,
             "agreement_type": self.agreement_type,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "sent_at": self.sent_at.isoformat() if self.sent_at else None,
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
-            "voided_at": self.voided_at.isoformat() if self.voided_at else None,
+            "created_at": to_aware_utc_iso(self.created_at),
+            "updated_at": to_aware_utc_iso(self.updated_at),
+            "sent_at": to_aware_utc_iso(self.sent_at),
+            "completed_at": to_aware_utc_iso(self.completed_at),
+            "voided_at": to_aware_utc_iso(self.voided_at),
             "signed_document_path": self.signed_document_path,
             "certificate_path": self.certificate_path,
         }

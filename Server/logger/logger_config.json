@@ -1,13 +1,13 @@
 {
-  "polling": true,
-  "pages": true,
-  "hooks": true,
-  "auth": true,
-  "http": true,
-  "api": true,
-  "errors": true,
-  "security": true,
-  "polygonSearch": true,
+  "polling": false,
+  "pages": false,
+  "hooks": false,
+  "auth": false,
+  "http": false,
+  "api": false,
+  "errors": false,
+  "security": false,
+  "polygonSearch": false,
   "docusign": true,
-  "logLevel": "DEBUG"
+  "logLevel": "ERROR"
 }

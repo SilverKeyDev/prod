@@ -22,7 +22,6 @@ from app.services.property_cache import (
     save_user_highlights,
     should_regenerate_section,
     update_property_basic_data,
-    update_property_images,
     update_property_price,
 )
 from app.services.property_cache.section_cache import get_cached_sections
@@ -38,7 +37,6 @@ from app.services.research.property.property_analysis import (
 from app.services.research.property.property_analysis_payload import (
     finalize_property_analysis_payload,
 )
-from app.services.search.features.image_features import extract_and_clean_features
 from app.services.search.scoring import (
     ResearchAnalysisOptions,
     attach_analysis_cache_meta,
@@ -48,14 +46,11 @@ from app.services.search.scoring import (
     resolve_highlights_counts_and_signature,
 )
 
+from .property_stream_internal_tail import iter_stream_tail_after_analysis
 from .property_stream_steps import (
-    build_combined_features,
     build_commute_data,
-    build_features,
     fetch_basic_property_data,
-    fetch_zillow_images,
     get_property_address,
-    persist_to_property_cache,
 )
 
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
@@ -80,13 +75,7 @@ def _generate_property_stream_internal(
     skip_pros_cons: bool = False,
     research_body: dict[str, Any] | None = None,
 ):
-    """Internal generator: shared-cache-aware property stream.
-
-    1. Look up shared PropertyCache (by zpid/address).
-    2. Always refresh price from Slipstream API.
-    3. Serve cached images / features / analysis sections when fresh.
-    4. Commute and highlights are per-user.
-    """
+    """Shared-cache-aware property SSE stream (Slipstream price refresh; per-user commute/highlights)."""
     try:
         # ----- resolve current user -----
         current_user = None
@@ -262,9 +251,9 @@ def _generate_property_stream_internal(
                                     "cons": cached_hl.cons,
                                 }
                                 if cached_hl.highlights_context:
-                                    property_analysis[
-                                        "highlights_context"
-                                    ] = cached_hl.highlights_context
+                                    property_analysis["highlights_context"] = (
+                                        cached_hl.highlights_context
+                                    )
                                 highlights_from_cache = True
                                 current_app.logger.info(
                                     "[PROPERTY] Using cached highlights for user"
@@ -385,112 +374,20 @@ def _generate_property_stream_internal(
         )
         yield _sse("property_analysis", public_property_analysis(property_analysis))
 
-        # ----- images (shared) -----
-        zillow_images: list[str] = []
-        if (
-            prop_record
-            and prop_record.images
-            and not _is_stale(prop_record.images_fetched_at, _IMAGES_MAX_AGE)
-        ):
-            zillow_images = prop_record.images if isinstance(prop_record.images, list) else []
-            current_app.logger.info("[PROPERTY] Using cached images (%d)", len(zillow_images))
-        else:
-            zillow_images = fetch_zillow_images(params, data or {})
-            if prop_record:
-                try:
-                    primary_img = (
-                        zillow_images[0]
-                        if zillow_images
-                        else data.get("imgSrc") or data.get("image") or data.get("image_url") or ""
-                    )
-                    update_property_images(
-                        prop_record, zillow_images, primary_image_url=primary_img
-                    )
-                    db.session.commit()
-                except Exception:
-                    db.session.rollback()
-
-        yield _sse(
-            "images",
-            zillow_images if isinstance(zillow_images, dict) else {"images": zillow_images or []},
+        yield from iter_stream_tail_after_analysis(
+            sse=_sse,
+            is_stale=_is_stale,
+            skip_pros_cons=skip_pros_cons,
+            property_analysis=property_analysis,
+            data=data,
+            prop_record=prop_record,
+            params=params,
+            address=address,
+            current_user=current_user,
+            commute_data=commute_data,
+            images_max_age=_IMAGES_MAX_AGE,
+            image_features_max_age=_IMAGE_FEATURES_MAX_AGE,
         )
-
-        # ----- image features (shared, expensive) -----
-        image_features: dict[str, Any] | None = None
-        if (
-            prop_record
-            and prop_record.image_features
-            and not _is_stale(prop_record.image_features_generated_at, _IMAGE_FEATURES_MAX_AGE)
-        ):
-            image_features = prop_record.image_features
-            current_app.logger.info("[PROPERTY] Using cached image_features")
-        else:
-            try:
-                if zillow_images:
-                    image_features = extract_and_clean_features(zillow_images[:5])
-                    if prop_record and image_features and "error" not in (image_features or {}):
-                        try:
-                            prop_record.image_features = image_features
-                            prop_record.image_features_generated_at = datetime.now(timezone.utc)
-                            db.session.commit()
-                        except Exception:
-                            db.session.rollback()
-            except Exception as e:
-                current_app.logger.error("[PROPERTY] Error extracting image features: %s", e)
-                image_features = {"error": "Failed to extract features from images"}
-
-        # ----- listing features (shared) -----
-        features: dict[str, Any] = {}
-        if (
-            prop_record
-            and prop_record.listing_features
-            and not _is_stale(prop_record.basic_data_updated_at, _IMAGES_MAX_AGE)
-        ):
-            features = prop_record.listing_features
-            current_app.logger.info("[PROPERTY] Using cached listing_features")
-        else:
-            features = build_features(data or {})
-            if prop_record:
-                try:
-                    prop_record.listing_features = features
-                    db.session.commit()
-                except Exception:
-                    db.session.rollback()
-
-        combined_features_data = build_combined_features(features, image_features, current_user)
-
-        if skip_pros_cons:
-            yield _sse("combined_features", combined_features_data or {})
-            yield _sse("image_features", image_features or {})
-            yield _sse("features", features or {})
-        else:
-            yield _sse("image_features", image_features or {})
-            yield _sse("features", features or {})
-            yield _sse("combined_features", combined_features_data or {})
-
-        # ----- persist to PropertyCache + UserPropertyLink -----
-        try:
-            if current_user:
-                persist_to_property_cache(
-                    user_id=str(current_user.id),
-                    prop_record=prop_record,
-                    data=data or {},
-                    address=address,
-                    params=params,
-                    features=features,
-                    combined_features_data=combined_features_data,
-                    property_analysis=property_analysis,
-                    commute_data=commute_data,
-                    zillow_images=zillow_images,
-                )
-        except Exception as persist_err:
-            current_app.logger.error(
-                "[PROPERTY] Failed to persist property details: %s",
-                persist_err,
-                exc_info=True,
-            )
-
-        yield _sse("complete", {})
 
     except Exception as e:
         current_app.logger.error("[PROPERTY] Streaming error: %s", e, exc_info=True)

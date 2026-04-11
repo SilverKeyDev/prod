@@ -1,3 +1,5 @@
+export type { UseAllAgendaEventsModalQueryParams } from "./useAllAgendaEventsModalQuery";
+export { useAllAgendaEventsModalQuery } from "./useAllAgendaEventsModalQuery";
 export type { UseCalendarErrorToastsParams } from "./useCalendarErrorToasts";
 export { useCalendarErrorToasts } from "./useCalendarErrorToasts";
 export type { UseCalendarOAuthCallbackParams } from "./useCalendarOAuthCallback";

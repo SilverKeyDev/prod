@@ -58,6 +58,7 @@ cryptography==41.0.7
 
 # --- Pydantic & Serialization ---
 pydantic==2.10.5
+email-validator==2.2.0
 marshmallow==3.20.2
 marshmallow-sqlalchemy==0.28.1
 json5==0.9.14

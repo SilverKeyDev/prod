@@ -114,10 +114,7 @@ class Config:
     # Google Calendar Settings
     GOOGLE_CALENDAR_SECRET = os.getenv("GOOGLE_CALENDAR_SECRET")
     GOOGLE_CLIENT_ID = GOOGLE_CLIENT_ID
-    # Use calendar.app.created (non-sensitive scope) - allows managing only calendars/events created by the app
-    # This scope does NOT require OAuth verification
-    # NOTE: This should match permissions['calendar_app_created']['scope_url'] from
-    # app.services.calendar.permissions.constants. The service validates this at runtime.
+    # Full Calendar scope (see permissions.constants); required for ACL and sharing flows.
     GOOGLE_SCOPES = GOOGLE_SCOPES
 
     # Google OAuth Redirect URI - set as class attribute

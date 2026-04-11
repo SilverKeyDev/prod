@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
+from app.utils.datetime_utc import to_aware_utc_iso
 
 
 class AgreementParticipant(db.Model):
@@ -36,10 +37,10 @@ class AgreementParticipant(db.Model):
     )  # sent, delivered, signed, declined
 
     # Timestamps
-    sent_at: Mapped[datetime | None] = mapped_column(db.DateTime)
-    delivered_at: Mapped[datetime | None] = mapped_column(db.DateTime)
-    signed_at: Mapped[datetime | None] = mapped_column(db.DateTime)
-    declined_at: Mapped[datetime | None] = mapped_column(db.DateTime)
+    sent_at: Mapped[datetime | None] = mapped_column(db.DateTime(timezone=True))
+    delivered_at: Mapped[datetime | None] = mapped_column(db.DateTime(timezone=True))
+    signed_at: Mapped[datetime | None] = mapped_column(db.DateTime(timezone=True))
+    declined_at: Mapped[datetime | None] = mapped_column(db.DateTime(timezone=True))
 
     # Relationships
     agreement = db.relationship(
@@ -63,10 +64,10 @@ class AgreementParticipant(db.Model):
             "routing_order": self.routing_order,
             "docusign_recipient_id": self.docusign_recipient_id,
             "recipient_status": self.recipient_status,
-            "sent_at": self.sent_at.isoformat() if self.sent_at else None,
-            "delivered_at": self.delivered_at.isoformat() if self.delivered_at else None,
-            "signed_at": self.signed_at.isoformat() if self.signed_at else None,
-            "declined_at": self.declined_at.isoformat() if self.declined_at else None,
+            "sent_at": to_aware_utc_iso(self.sent_at),
+            "delivered_at": to_aware_utc_iso(self.delivered_at),
+            "signed_at": to_aware_utc_iso(self.signed_at),
+            "declined_at": to_aware_utc_iso(self.declined_at),
         }
 
     def __repr__(self):

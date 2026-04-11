@@ -83,3 +83,21 @@ export function filterUpcomingEvents(
     return eventDate >= today && eventDate <= nextWeek;
   });
 }
+
+/**
+ * Agenda "display all" — same calendar scope as {@link filterUpcomingEvents}
+ * (SilverKey-only when `silverKeyCalendarId` is set), but any past or future start time.
+ */
+export function filterAgendaEventsAllTime(
+  events: ExtendedGoogleEvent[],
+  silverKeyCalendarId: string | null,
+): ExtendedGoogleEvent[] {
+  return events.filter((event) => {
+    if (silverKeyCalendarId && event.calendarId !== silverKeyCalendarId) {
+      return false;
+    }
+    const eventDate = getEventStartDate(event);
+    if (!eventDate) return false;
+    return true;
+  });
+}

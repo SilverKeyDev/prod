@@ -54,4 +54,11 @@ permissions = {
             "https://www.googleapis.com/auth/calendar.freebusy",
         ],
     },
+    # Full Calendar access (required for ACL / calendarList.insert on arbitrary calendars, etc.).
+    # Granted scope is tracked in token.scopes; no separate DB column (field_name None).
+    "calendar": {
+        "field_name": None,
+        "scope_url": "https://www.googleapis.com/auth/calendar",
+        "description": "Full access to your calendars, including sharing and access control (ACLs)",
+    },
 }

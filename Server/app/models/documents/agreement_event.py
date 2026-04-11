@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
+from app.utils.datetime_utc import to_aware_utc_iso
 
 
 class AgreementEvent(db.Model):
@@ -32,7 +33,8 @@ class AgreementEvent(db.Model):
 
     # Timestamp
     created_at: Mapped[datetime] = mapped_column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc)
+        db.DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
     )
 
     # Relationships
@@ -52,7 +54,7 @@ class AgreementEvent(db.Model):
             "description": self.description,
             "actor_id": self.actor_id,
             "metadata": self.event_metadata,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": to_aware_utc_iso(self.created_at),
         }
 
     def __repr__(self):

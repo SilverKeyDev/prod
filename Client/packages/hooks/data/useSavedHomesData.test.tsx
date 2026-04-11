@@ -38,8 +38,14 @@ vi.mock("packages/config", async (importOriginal) => {
 });
 vi.mock("packages/logger", () => ({
   log: {
-    info: vi.fn(),
     debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    security: vi.fn(),
+    reloadConfig: vi.fn(),
+    updateConfig: vi.fn(),
+    getConfig: vi.fn(() => ({})),
   },
   LOG_CATEGORIES: {
     MAP_RENDERING: "map_rendering",

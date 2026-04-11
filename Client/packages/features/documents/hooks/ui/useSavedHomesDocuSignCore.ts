@@ -54,7 +54,7 @@ export function useSavedHomesDocuSignCore(
         await sendAgreement({ agreementId });
         enqueueToast({
           type: "success",
-          message: "Agreement sent for signature",
+          message: "Successfully sent for signature.",
         });
         await refetchAgreements();
       } catch (error) {

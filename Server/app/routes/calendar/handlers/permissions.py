@@ -11,6 +11,7 @@ from app.services.calendar.core import get_authenticated_user_id
 from app.services.calendar.permissions import (
     PERMISSION_DESCRIPTIONS,
     PERMISSIONS,
+    check_permission,
     get_permission_scope_map,
     get_scopes_from_tokeninfo,
     update_token_permissions_from_scopes,
@@ -27,9 +28,14 @@ logger = get_logger()
 
 def _permissions_payload_from_token(token_record: GoogleOAuthToken) -> dict:
     permissions: dict = {}
+    uid = token_record.user_id
     for perm_name, perm_field in PERMISSIONS.items():
+        if perm_field is None:
+            granted = check_permission(uid, perm_name)
+        else:
+            granted = getattr(token_record, perm_field, False)
         permissions[perm_name] = {
-            "granted": getattr(token_record, perm_field, False),
+            "granted": granted,
             "description": PERMISSION_DESCRIPTIONS.get(perm_name, ""),
             "scope": get_permission_scope_map().get(perm_name, ""),
         }

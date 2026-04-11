@@ -1,5 +1,6 @@
 # Pre-commit hooks for SilverKey
 # Install: pip install pre-commit && pre-commit install
+# Resilient hook (skips if pre-commit missing): git config core.hooksPath scripts/githooks
 # Run manually: pre-commit run --all-files
 
 repos:

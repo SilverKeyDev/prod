@@ -95,6 +95,15 @@ SCOPE_CALENDAR_EVENTS_FREEBUSY = GoogleScope(
     category="calendar",
 )
 
+SCOPE_CALENDAR = GoogleScope(
+    url=permissions["calendar"]["scope_url"],
+    name="calendar",
+    description=permissions["calendar"]["description"],
+    documentation_url="https://developers.google.com/calendar/api/guides/auth#calendar",
+    requires_verification=True,
+    category="calendar",
+)
+
 # Dictionary mapping scope names to scope objects
 SCOPE_BY_NAME: dict[str, GoogleScope] = {
     SCOPE_USERINFO_EMAIL.name: SCOPE_USERINFO_EMAIL,
@@ -104,6 +113,7 @@ SCOPE_BY_NAME: dict[str, GoogleScope] = {
     SCOPE_CALENDAR_FREEBUSY.name: SCOPE_CALENDAR_FREEBUSY,
     SCOPE_CALENDAR_CALENDARLIST_READONLY.name: SCOPE_CALENDAR_CALENDARLIST_READONLY,
     SCOPE_CALENDAR_EVENTS_FREEBUSY.name: SCOPE_CALENDAR_EVENTS_FREEBUSY,
+    SCOPE_CALENDAR.name: SCOPE_CALENDAR,
 }
 
 # Dictionary mapping scope URLs to scope objects
@@ -136,6 +146,7 @@ CALENDAR_SCOPES: list[str] = [
     SCOPE_CALENDAR_FREEBUSY.url,
     SCOPE_CALENDAR_CALENDARLIST_READONLY.url,
     SCOPE_CALENDAR_EVENTS_FREEBUSY.url,
+    SCOPE_CALENDAR.url,
 ]
 
 

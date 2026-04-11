@@ -18,6 +18,7 @@ from app.services.calendar.core import (
     google_calendar_service,
     handle_google_api_error,
 )
+from app.services.calendar.permissions import require_permission
 from app.utils.security.app_logging import get_logger
 from app.utils.security.security import rate_limit
 from app.utils.validation import validate_request, validate_response
@@ -80,6 +81,12 @@ def add_calendar_acl(calendar_id, data: AddCalendarACLRequest | None = None):
         return make_response(("Unauthorized", 401))
 
     try:
+        ok, perm_err = require_permission(
+            user_id, "calendar", "add sharing rules to your calendar"
+        )
+        if not ok and perm_err:
+            return jsonify(perm_err), 403
+
         if data is None:
             raw = request.get_json(silent=True) or {}
             agent_email = raw.get("agent_email")

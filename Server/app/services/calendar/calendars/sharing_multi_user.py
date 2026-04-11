@@ -6,6 +6,7 @@ from app.utils.security.app_logging import get_logger
 from app.utils.security.security import sanitize_error_message
 
 from ..core.credentials import load_credentials
+from ..permissions import check_permission
 from .sharing import add_calendar_acl
 
 logger = get_logger()
@@ -51,6 +52,13 @@ def share_calendar_with_users(
     result = {"success": True, "shared_with": [], "errors": []}
 
     try:
+        if not check_permission(calendar_owner_id, "calendar"):
+            result["errors"].append(
+                "Calendar owner must reconnect Google with full calendar access to share calendars (ACLs)"
+            )
+            result["success"] = False
+            return result
+
         owner = User.query.filter_by(id=calendar_owner_id).first()
         if not owner:
             result["errors"].append(f"Calendar owner {calendar_owner_id} not found")

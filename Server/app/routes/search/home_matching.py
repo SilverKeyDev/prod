@@ -19,8 +19,7 @@ from ...utils.security.secure_errors import SecureErrorHandler
 class _CeleryTaskWithDelay(Protocol):
     """Protocol for Celery task so Pyright accepts .delay()."""
 
-    def delay(self, **kwargs: Any) -> Any:
-        ...
+    def delay(self, **kwargs: Any) -> Any: ...
 
 
 # Create blueprint

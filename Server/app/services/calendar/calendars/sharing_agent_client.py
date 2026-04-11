@@ -11,6 +11,7 @@ from app.utils.security.security import (
 )
 
 from ..core.credentials import load_credentials
+from ..permissions import check_permission
 from .sharing import add_calendar_acl
 
 logger = get_logger()
@@ -81,6 +82,19 @@ def setup_agent_client_calendar_sharing(
             result["errors"].append(f"Client {client_id} does not have Google Calendar connected")
             result["success"] = False
             logger.warning(f"Cannot set up calendar sharing: client {client_id} not connected")
+            return result
+
+        if not check_permission(agent_id, "calendar"):
+            result["errors"].append(
+                "Agent must reconnect Google Calendar with full calendar access to set up sharing (ACLs)"
+            )
+            result["success"] = False
+            return result
+        if not check_permission(client_id, "calendar"):
+            result["errors"].append(
+                "Client must reconnect Google Calendar with full calendar access to set up sharing (ACLs)"
+            )
+            result["success"] = False
             return result
 
         try:

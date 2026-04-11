@@ -110,12 +110,6 @@ export function useSavedFeatureSignatureFlow(
         title: sendForSignatureTitle,
         recipientClientId: sendForSignatureRecipientClientId,
       });
-
-      enqueueToast({
-        type: "info",
-        message:
-          "Form signature feature coming soon. The form will be converted to a document and sent via DocuSign.",
-      });
       closeSendForSignatureModal();
       return;
     }
@@ -138,7 +132,7 @@ export function useSavedFeatureSignatureFlow(
       });
       enqueueToast({
         type: "success",
-        message: "Agreement sent for signature",
+        message: "Successfully sent for signature.",
       });
       await refetchDocuments();
       closeSendForSignatureModal();
@@ -180,7 +174,7 @@ export function useSavedFeatureSignatureFlow(
         });
         enqueueToast({
           type: "success",
-          message: "Agreement sent for signature",
+          message: "Successfully sent for signature.",
         });
         await refetchDocuments();
       } catch (error) {
