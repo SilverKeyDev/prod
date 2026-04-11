@@ -7,7 +7,10 @@
  */
 
 export { asError } from "./error";
-export { type ErrorBoundaryInfo, reportErrorBoundary } from "./errorBoundaryReport";
+export {
+  type ErrorBoundaryInfo,
+  reportErrorBoundary,
+} from "./errorBoundaryReport";
 export {
   createAuthenticationError,
   createAuthorizationError,
@@ -28,5 +31,9 @@ export type {
   StandardError,
   ValidationError,
 } from "./types";
+export {
+  debounceErrorReporting,
+  isRetryableError,
+  withTimeout,
+} from "./userFacingErrors";
 export { getUserFriendlyMessage } from "./userMessages";
-export { debounceErrorReporting, isRetryableError, withTimeout } from "./utils";

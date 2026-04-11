@@ -1,0 +1,17 @@
+type: object
+description: >
+  Response from GET /healthz (app liveness and DB connectivity). Aligns with Flask healthz handler.
+required:
+  - status
+  - database
+additionalProperties: false
+properties:
+  status:
+    type: string
+    enum: [ok, error]
+  database:
+    type: string
+    enum: [connected, disconnected]
+  error:
+    type: string
+    description: Present when status is error; connection or query failure detail.

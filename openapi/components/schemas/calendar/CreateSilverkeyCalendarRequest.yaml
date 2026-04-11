@@ -1,0 +1,6 @@
+type: object
+properties:
+  force:
+    type: boolean
+    nullable: true
+    description: Force creation even if SilverKey calendar already exists

@@ -1,0 +1,218 @@
+# Cursor AI Optimization Guide
+
+## Using Web Context (@web)
+
+Cursor can fetch and reason about live web pages. Use this to save context:
+
+### External API Documentation
+
+Instead of explaining APIs, use `@web`:
+
+```
+@web https://developers.docusign.com/docs/esign-rest-api/reference/
+@web https://www.attomdata.com/documentation/
+@web https://docs.bridgedataoutput.com/
+```
+
+Cursor will fetch the actual documentation and understand the API contracts.
+
+### Your Own Website
+
+For landing page or UI work:
+
+```
+@web https://silverkey.com
+@web http://localhost:5173  (if dev server is running)
+```
+
+Paste screenshots or HTML directly into Composer to match/extend designs.
+
+### Public Examples
+
+Reference similar implementations:
+
+```
+@web https://github.com/similar-project/feature-you-want
+```
+
+## MCP Servers (Model Context Protocol)
+
+Cursor supports MCP for connecting to live data sources. This makes Cursor **see** rather than **guess**.
+
+### Recommended MCP Servers for SilverKey
+
+**1. mcp-server-postgres**
+- Point at your dev PostgreSQL database
+- Cursor can inspect real schema, relationships, and data
+- Eliminates schema guessing errors
+
+**Installation:**
+```bash
+npm install -g @modelcontextprotocol/server-postgres
+```
+
+**Configuration (in Cursor settings):**
+```json
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "mcp-server-postgres",
+      "args": ["postgresql://user:pass@localhost:5432/silverkey_dev"]
+    }
+  }
+}
+```
+
+**2. mcp-server-filesystem**
+- Structured file access with better context
+- Faster than reading files one-by-one
+
+**3. mcp-server-aws** (community)
+- Query AWS resources directly
+- Inspect S3 buckets, Cognito pools, RDS instances
+- Verify resource names and configurations
+
+### Benefits
+
+With MCP servers, Cursor can:
+- Read your **actual** database schema instead of guessing column names
+- See **real** user preferences data structure
+- Verify AWS resource names before generating code
+- Understand relationships between tables automatically
+
+## Linter Integration
+
+Cursor reads linter diagnostics natively and will fix errors when asked.
+
+### Python (ruff + mypy)
+
+Configured in `Server/pyproject.toml`:
+- Ruff catches style, imports, and common bugs
+- Mypy adds gradual type checking
+- Cursor sees errors in real-time and can fix them
+
+Run manually:
+```bash
+cd Server
+ruff check . --fix
+mypy .
+```
+
+### TypeScript (ESLint + Prettier)
+
+Configured in `Client/packages/config/eslint/`:
+- ESLint enforces architecture rules (custom silverkey plugins)
+- Prettier handles formatting
+- Cursor sees errors in real-time
+
+Run manually:
+```bash
+cd Client
+npm run lint
+npm run format
+```
+
+### Pre-commit Hooks
+
+Install once:
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Now every commit:
+1. Runs ruff, mypy, eslint automatically
+2. Fails if linters find issues
+3. Cursor sees the error output and self-corrects
+
+This creates a **feedback loop**: Cursor → Edit → Lint Fails → Cursor Sees Error → Fixes → Success
+
+## Tips for Better Context
+
+### 1. Reference Architecture Files
+
+At session start for complex tasks:
+```
+@ARCHITECTURE.md
+@Client/ARCHITECTURE.md
+@documentation/server/flask-architecture.md
+```
+
+### 2. Use Specific @-references
+
+Instead of:
+```
+"Fix the user preferences bug"
+```
+
+Better:
+```
+@Server/app/services/aggregation/preferences_aggregation_write.py
+@.cursor/rules/shared/user-preferences-schema.mdc
+"Fix the user preferences bug - see schema contract in rules"
+```
+
+### 3. Leverage .cursorignore
+
+Already configured to exclude:
+- Build artifacts (dist/, coverage/)
+- Dependencies (node_modules/, .venv/)
+- Migrations (Server/migrations/versions/)
+- Generated files
+
+Cursor won't waste tokens indexing these.
+
+### 4. Use Rules Files
+
+Rules in `.cursor/rules/` are **automatically applied** to every session.
+- Backend patterns: `.cursor/rules/backend/`
+- Frontend patterns: `.cursor/rules/frontend/`
+- Shared conventions: `.cursor/rules/shared/`
+
+No need to explain conventions every session.
+
+## Performance Tips
+
+### Parallel Exploration
+
+When starting a new feature, launch multiple explore agents:
+```
+One agent: Search for similar patterns in codebase
+Another agent: Read API documentation
+Third agent: Analyze database schema
+```
+
+### Composer vs Chat
+
+- **Composer**: Multi-file refactors, cross-cutting changes
+- **Chat**: Single-file questions, quick edits
+
+### Session Hygiene
+
+- Start new Composer session for unrelated tasks
+- Don't let context accumulate across different features
+- Pin key files with @ at session start rather than letting Cursor rediscover
+
+## Troubleshooting
+
+### "Cursor keeps guessing wrong field names"
+
+→ Use MCP postgres server to let it see real schema
+
+### "Cursor doesn't follow our patterns"
+
+→ Make rules more specific in `.cursor/rules/` (see constraints section)
+
+### "Linter errors after Cursor edits"
+
+→ Install pre-commit hooks; Cursor will see failures and self-correct
+
+### "Context window filling up"
+
+→ Check `.cursorignore` excludes build artifacts and dependencies
+
+## Further Reading
+
+- **MCP Documentation**: https://modelcontextprotocol.io/
+- **Cursor @web feature**: https://docs.cursor.com/context/@-symbols
+- **Pre-commit hooks**: https://pre-commit.com/

@@ -3,9 +3,7 @@ Cognito JWT verification and user resolution.
 """
 
 import logging
-import time
 
-from flask import current_app, request
 from jose import jwt as jose_jwt
 from sqlalchemy.exc import InvalidRequestError, SQLAlchemyError
 
@@ -105,26 +103,5 @@ def verify_cognito_token_and_get_user(token: str, start_time: float | None = Non
     if not user:
         log_security_event("auth_user_not_found", {"cognito_id": f"{sub[:8]}..."})
         raise SecurityException(SecurityError.UNAUTHORIZED)
-
-    _start = start_time if start_time is not None else time.time()
-    duration_ms = int((time.time() - _start) * 1000)
-    request_id = getattr(request, "request_id", f"session_{int(time.time() * 1000)}")
-    endpoint = request.endpoint or "unknown"
-    # Always log at DEBUG to avoid noisy INFO logs, even for profile endpoint
-    current_app.logger.debug(
-        "🔍 BACKEND_SESSION_VERIFICATION_SUCCESS",
-        extra={
-            "endpoint": endpoint,
-            "request_id": request_id,
-            "user_id": str(getattr(user, "id", None)),
-            "email": (user.email[:3] + "***" + user.email[-3:])
-            if getattr(user, "email", None)
-            else "missing",
-            "token_type": "cognito",
-            "token_use": token_use,
-            "is_agent": getattr(user, "is_agent", False),
-            "duration_ms": duration_ms,
-        },
-    )
 
     return user

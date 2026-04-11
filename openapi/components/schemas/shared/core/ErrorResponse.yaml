@@ -1,0 +1,91 @@
+type: object
+description: |
+  Standard error envelope for JSON APIs. `success` is always false; `error` is a stable
+  code for clients, while `message` is safe to show to users. Use `error_id` when
+  correlating with server logs; `field_errors` carries validation details when present.
+required:
+  - success
+  - error
+properties:
+  success:
+    type: boolean
+    enum: [false]
+  error:
+    type: string
+    description: Machine-oriented error code or short error type (e.g. validation_error, GOOGLE_OAUTH_FAILED).
+  message:
+    description: Human-readable message when provided.
+    anyOf:
+      - type: string
+      - type: "null"
+  error_id:
+    description: Unique error tracking ID from SecureErrorHandler (short UUID prefix) for server-side log correlation.
+    anyOf:
+      - type: string
+      - type: "null"
+  retryable:
+    description: True when the client may retry (e.g. transient Google token refresh / network failures, 503-style cases).
+    anyOf:
+      - type: boolean
+      - type: "null"
+  field_errors:
+    description: >
+      Per-field validation messages from SecureErrorHandler (sanitized string per field);
+      some validators may emit multiple messages per field as an array.
+    anyOf:
+      - type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+      - type: "null"
+  validation_errors:
+    description: >
+      Optional alternate validation map when included via secure error additional_info. Values are
+      usually strings or lists of strings (same shape as field_errors); additionalProperties stays open
+      for legacy or nested payloads from some validators.
+    anyOf:
+      - type: object
+        additionalProperties: true
+      - type: "null"
+  details:
+    description: Additional context as plain text or structured map (e.g. legacy Marshmallow validate_request).
+    anyOf:
+      - type: string
+      - type: object
+        additionalProperties: true
+      - type: "null"
+  status_code:
+    description: Optional HTTP status echoed in the JSON body; the authoritative status is the response status line.
+    anyOf:
+      - type: integer
+      - type: "null"
+  retry_after:
+    description: Suggested delay in seconds before retrying (e.g. rate limit responses).
+    anyOf:
+      - type: integer
+      - type: "null"
+  allowed_types:
+    description: Allowed values hint (e.g. some file upload error responses).
+    anyOf:
+      - type: array
+        items:
+          type: string
+      - type: "null"
+examples:
+  invalidCredentials:
+    summary: Wrong email or password
+    value:
+      success: false
+      error: INVALID_CREDENTIALS
+      message: The provided email or password is incorrect
+      error_id: a1b2c3d4
+      retryable: false
+      status_code: 401
+      field_errors: null
+      validation_errors: null
+      details: null
+      retry_after: null
+      allowed_types: null

@@ -1,8 +1,8 @@
 import { log, LOG_CATEGORIES } from "packages/logger";
 
+import { isGoogleMapsReady } from "./googleMapsReadiness";
 import { MapInstanceManager } from "./mapInstanceManager";
 import { ScriptLoader } from "./scriptLoader";
-import { isGoogleMapsReady } from "./utils";
 
 /**
  * Google Maps service for managing map initialization, script loading, and map creation.
@@ -33,12 +33,22 @@ export class GoogleMapsService {
     return this.scriptLoader.loadGoogleMapsScript();
   }
 
-  public createMap(container: HTMLElement): google.maps.Map | null {
+  public createMap(
+    container: HTMLElement,
+    overrides?: Partial<google.maps.MapOptions>,
+  ): google.maps.Map | null {
     if (!this.isGoogleMapsReady()) {
-      log.error(LOG_CATEGORIES.MAP_RENDERING, "Google Maps not ready yet - missing required APIs");
+      log.error(
+        LOG_CATEGORIES.MAP_RENDERING,
+        "Google Maps not ready yet - missing required APIs",
+      );
       return null;
     }
-    return this.mapManager.createMap(container, this.scriptLoader.getMapId());
+    return this.mapManager.createMap(
+      container,
+      this.scriptLoader.getMapId(),
+      overrides,
+    );
   }
 
   public triggerMapResize(map: google.maps.Map): void {

@@ -48,9 +48,12 @@ function mapRawToFavoriteHome(home: unknown): FavoriteHomeItem {
           : "",
     lot_size: typeof typedHome.lot_size === "string" ? typedHome.lot_size : "",
     price: typeof typedHome.price === "string" ? typedHome.price : "",
-    image_url: typeof typedHome.image_url === "string" ? typedHome.image_url : "",
-    created_at: typeof typedHome.created_at === "string" ? typedHome.created_at : "",
-    updated_at: typeof typedHome.updated_at === "string" ? typedHome.updated_at : "",
+    image_url:
+      typeof typedHome.image_url === "string" ? typedHome.image_url : "",
+    created_at:
+      typeof typedHome.created_at === "string" ? typedHome.created_at : "",
+    updated_at:
+      typeof typedHome.updated_at === "string" ? typedHome.updated_at : "",
   };
 }
 
@@ -70,9 +73,13 @@ export function useFavoriteHomesList(clientId?: string) {
       return raw.map(mapRawToFavoriteHome);
     },
     enabled,
+    staleTime: 1 * 60 * 1000, // 1 minute - favorites can change as user browses
   });
 
-  const favoriteHomes = useMemo(() => (query.data ?? []) as FavoriteHomeItem[], [query.data]);
+  const favoriteHomes = useMemo(
+    () => (query.data ?? []) as FavoriteHomeItem[],
+    [query.data],
+  );
 
   return {
     favoriteHomes,

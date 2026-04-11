@@ -20,7 +20,11 @@ export default function HomeConcierge() {
             loading="lazy"
           />
           <Box className="flex min-w-0 max-w-[72ch] flex-1 flex-col justify-between self-stretch">
-            <Subtitle size="sm" muted className="leading-relaxed md:text-base lg:text-lg">
+            <Subtitle
+              size="sm"
+              muted
+              className="leading-relaxed md:text-base lg:text-lg"
+            >
               {t("close.home_concierge.subtitle")}
             </Subtitle>
             <Subtitle
@@ -32,10 +36,14 @@ export default function HomeConcierge() {
             </Subtitle>
             <NavigationButton
               onClick={() =>
-                getWindow()?.open("https://mc.partners/SilverKey", "_blank", "noopener,noreferrer")
+                getWindow()?.open(
+                  "https://mc.partners/SilverKey",
+                  "_blank",
+                  "noopener,noreferrer",
+                )
               }
               size="md"
-              className="text-olive hover:text-olive/80 border-olive rounded border border-dotted px-2 py-1"
+              className="text-olive hover:text-olive/80 rounded border border-dotted border-neutral-400 px-2 py-1"
             >
               {t("close.home_concierge.start_today")}
             </NavigationButton>

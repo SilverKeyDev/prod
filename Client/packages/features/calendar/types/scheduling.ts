@@ -1,26 +1,18 @@
 /**
- * Scheduling schema types for Google Calendar scheduling MVP
+ * Scheduling types for Google Calendar scheduling MVP.
+ * Free/busy API types are aliases of OpenAPI-generated schemas (api.generated.ts).
  */
 
-export interface FreebusyRequest {
-  timeMin: string; // ISO 8601
-  timeMax: string; // ISO 8601
-  calendarIds?: string[]; // defaults to ["primary"]
-}
+import type { components } from "packages/types/api.generated";
 
-export interface FreebusyTimeBlock {
-  start: string; // ISO 8601
-  end: string; // ISO 8601
-}
+export type FreebusyRequest = components["schemas"]["FreebusyRequest"];
+export type FreebusyResponse = components["schemas"]["FreebusyResponse"];
 
-export interface FreebusyResponse {
-  calendars: Record<
-    string,
-    {
-      busy: FreebusyTimeBlock[];
-    }
-  >;
-}
+/** Busy interval as returned under each calendar in a Freebusy response. */
+type FreebusyCalendarEntry = FreebusyResponse["calendars"][string];
+export type FreebusyTimeBlock = NonNullable<
+  NonNullable<FreebusyCalendarEntry["busy"]>[number]
+>;
 
 export interface TimeSlot {
   start: Date;

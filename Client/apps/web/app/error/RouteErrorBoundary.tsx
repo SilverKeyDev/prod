@@ -5,11 +5,18 @@
 import { useEffect } from "react";
 
 import { Icon } from "@ui/icons";
-import { isRouteErrorResponse, useNavigate, useRouteError } from "react-router-dom";
+import {
+  isRouteErrorResponse,
+  useNavigate,
+  useRouteError,
+} from "react-router-dom";
 
-import { reportErrorWithCapture } from "packages/services/security/errorReporting";
+import { useErrorReporting } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
-import { getUserFriendlyMessage, normalizeError } from "packages/utils/errorHandling";
+import {
+  getUserFriendlyMessage,
+  normalizeError,
+} from "packages/utils/errorHandling";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Title } from "@/components/ui";
@@ -29,11 +36,18 @@ function RouteErrorResponseView({
 }: RouteErrorResponseViewProps) {
   return (
     <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
-      <Card border="none" className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
+      <Card
+        border="none"
+        className="w-full max-w-lg border-l-4 border-l-destructive"
+        padding="lg"
+      >
         <Box className="text-center">
           <Box className="mb-4 flex justify-center">
-            <Box className="rounded-full border-2 border-destructive bg-background-surface p-3">
-              <Icon name="alert-triangle" className="h-8 w-8 text-destructive" />
+            <Box className="rounded-full border-2 border-border bg-background-surface p-3">
+              <Icon
+                name="alert-triangle"
+                className="h-8 w-8 text-destructive"
+              />
             </Box>
           </Box>
           <Title size="xl" as="h1" className="mb-2 text-text-primary">
@@ -82,11 +96,18 @@ function GenericRouteErrorView({
 }: GenericRouteErrorViewProps) {
   return (
     <Box className="flex min-h-screen items-center justify-center bg-background-base p-4">
-      <Card border="none" className="w-full max-w-lg border-l-4 border-l-destructive" padding="lg">
+      <Card
+        border="none"
+        className="w-full max-w-lg border-l-4 border-l-destructive"
+        padding="lg"
+      >
         <Box className="text-center">
           <Box className="mb-4 flex justify-center">
-            <Box className="rounded-full border-2 border-destructive bg-background-surface p-3">
-              <Icon name="alert-triangle" className="h-8 w-8 text-destructive" />
+            <Box className="rounded-full border-2 border-border bg-background-surface p-3">
+              <Icon
+                name="alert-triangle"
+                className="h-8 w-8 text-destructive"
+              />
             </Box>
           </Box>
           <Title size="lg" as="h1" className="mb-2 text-text-primary">
@@ -129,12 +150,14 @@ function GenericRouteErrorView({
 export function RouteErrorBoundary() {
   const error = useRouteError();
   const navigate = useNavigate();
+  const { reportError } = useErrorReporting();
+
   useEffect(() => {
-    reportErrorWithCapture(error, {
+    reportError(error, {
       routeError: true,
       url: window.location.href,
     });
-  }, [error]);
+  }, [error, reportError]);
   const handleGoBack = () => {
     void navigate(-1);
   };
@@ -148,11 +171,11 @@ export function RouteErrorBoundary() {
     const message =
       error.status === 404
         ? "The page you're looking for doesn't exist or has been moved."
-        : ((
+        : (
             error.data as {
               message?: string;
             }
-          )?.message ?? "An error occurred while loading this page.");
+          )?.message ?? "An error occurred while loading this page.";
     return (
       <RouteErrorResponseView
         status={error.status}

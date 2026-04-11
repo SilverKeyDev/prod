@@ -1,0 +1,13 @@
+type: object
+required:
+  - email
+properties:
+  email:
+    type: string
+    format: email
+  displayName:
+    type: string
+    nullable: true
+  responseStatus:
+    type: string
+    nullable: true

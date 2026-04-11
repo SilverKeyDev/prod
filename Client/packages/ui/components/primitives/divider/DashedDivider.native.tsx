@@ -1,5 +1,5 @@
 /**
- * Dashed divider — native uses react-native-svg for reliable dashed rendering.
+ * Dashed divider - native uses react-native-svg for reliable dashed rendering.
  * CSS border-dashed is unreliable on older iOS/Android.
  */
 
@@ -61,7 +61,9 @@ export const DashedDivider: React.FC<DashedDividerProps> = ({
         width={orientation === "horizontal" ? "100%" : strokeWidth}
         height={orientation === "horizontal" ? strokeWidth : "100%"}
         viewBox={
-          orientation === "horizontal" ? `0 0 ${size} ${strokeWidth}` : `0 0 ${strokeWidth} ${size}`
+          orientation === "horizontal"
+            ? `0 0 ${size} ${strokeWidth}`
+            : `0 0 ${strokeWidth} ${size}`
         }
         preserveAspectRatio="none"
       >

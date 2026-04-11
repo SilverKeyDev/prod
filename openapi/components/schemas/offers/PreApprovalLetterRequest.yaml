@@ -1,0 +1,15 @@
+type: object
+required:
+  - buyer_name
+  - loan_amount
+  - property_address
+  - loan_type
+properties:
+  buyer_name:
+    type: string
+  loan_amount:
+    type: number
+  property_address:
+    type: string
+  loan_type:
+    type: string

@@ -29,11 +29,11 @@ from app.models import (
     CalendarShare,
     ChatHistory,
     Document,
+    DocumentLibraryItem,
     GoogleOAuthToken,
     HomeComment,
     HomeLikes,
     HomeNotInterested,
-    HomeUniversal,
     OAuthState,
     ReelLike,
     ScoringResultsTracker,
@@ -51,6 +51,9 @@ from app.models import (
     UserImportantLocation,
     UserIntegration,
     UserIntentAttribute,
+    UserPropertyCommute,
+    UserPropertyHighlights,
+    UserPropertyLink,
     UserRole,
     UserScoreWeights,
     UserSearchIntent,
@@ -174,7 +177,13 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
             )
             Transaction.query.filter(Transaction.id.in_(tx_ids)).delete(synchronize_session=False)
 
-        Document.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        for d in Document.query.filter_by(user_id=uid).all():
+            li_id = d.library_item_id
+            db.session.delete(d)
+            if li_id:
+                li = DocumentLibraryItem.query.get(li_id)
+                if li:
+                    db.session.delete(li)
 
         agreements = Agreement.query.filter(
             or_(Agreement.agent_id == uid, Agreement.buyer_id == uid)
@@ -185,7 +194,12 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
                 synchronize_session=False
             )
             for ag in agreements:
+                li_id = ag.library_item_id
                 db.session.delete(ag)
+                if li_id:
+                    li = DocumentLibraryItem.query.get(li_id)
+                    if li:
+                        db.session.delete(li)
 
         # Clear user FKs on agreement rows we are not removing (participant / audit only).
         AgreementParticipant.query.filter(AgreementParticipant.user_id == uid).update(
@@ -218,7 +232,9 @@ def delete_user_and_all_related_data(user_id: str) -> bool:
 
         GoogleOAuthToken.query.filter_by(user_id=uid).delete(synchronize_session=False)
 
-        HomeUniversal.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        UserPropertyHighlights.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        UserPropertyCommute.query.filter_by(user_id=uid).delete(synchronize_session=False)
+        UserPropertyLink.query.filter_by(user_id=uid).delete(synchronize_session=False)
         HomeLikes.query.filter_by(user_id=uid).delete(synchronize_session=False)
         HomeNotInterested.query.filter_by(user_id=uid).delete(synchronize_session=False)
         HomeComment.query.filter_by(user_id=uid).delete(synchronize_session=False)

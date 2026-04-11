@@ -1,0 +1,15 @@
+allOf:
+  - $ref: './PropertyResearchOptions.yaml'
+  - type: object
+    required:
+      - address
+    properties:
+      address:
+        type: string
+      zpid:
+        type: string
+        nullable: true
+      property_url:
+        type: string
+        format: uri
+        nullable: true

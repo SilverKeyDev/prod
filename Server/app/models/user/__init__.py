@@ -13,6 +13,7 @@ from .user_important_location import UserImportantLocation
 from .user_integration import UserIntegration
 from .user_intent_attribute import UserIntentAttribute
 from .user_role import UserRole
+from .user_search_display import UserSearchDisplaySettings
 from .user_search_intent import UserSearchIntent
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "UserDemographics",
     "UserFinancials",
     "UserSearchIntent",
+    "UserSearchDisplaySettings",
     "UserIntentAttribute",
     "UserImportantLocation",
     "UserCommunicationPrefs",

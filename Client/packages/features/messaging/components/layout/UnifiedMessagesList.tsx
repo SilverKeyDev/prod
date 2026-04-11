@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -6,17 +6,21 @@ import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import { EventRequestCard } from "packages/features/calendar";
 import { useDocumentsData } from "packages/features/documents";
+import AgreementEventCard from "packages/features/messaging/components/cards/AgreementEventCard";
 import SharedDocumentCard from "packages/features/messaging/components/cards/SharedDocumentCard";
-import { PropertyDetailsModal } from "packages/features/propertyDetails";
-import { useSavedHomesData } from "packages/features/search";
-import { usePropertyDetails } from "packages/hooks/data/usePropertyDetails";
+import { parseAgreementEventPayload } from "packages/features/messaging/utils/agreementEventPayload";
+import {
+  type SearchResult,
+  SearchResultListingCard,
+  useSavedHomesData,
+} from "packages/features/search";
 import { useNavigation } from "packages/navigation";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import { Box } from "packages/ui/components/primitives";
+import { buildPropertyUrl } from "packages/utils/property/slug";
+import { homeDescriptionToSearchResult } from "packages/utils/search/homeDescriptionToSearchResult";
 import { getLocalStorage } from "packages/utils/storage/platformStorage";
 
-import HomeCard from "@/components/cards/HomeCard";
-import ModalPortal from "@/components/modals/ModalPortal";
 import { BodyText, Button, Title } from "@/components/ui";
 import {
   getMessagingConfig,
@@ -29,6 +33,12 @@ import type {
 import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 import { parseEventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 import { getDateDividerText } from "@/features/messaging/utils/messageDateUtils";
+import {
+  mergeSharedDocumentForDisplay,
+  mergeSharedHomeForDisplay,
+  parseSharedAttachmentSnapshot,
+} from "@/features/messaging/utils/sharedAttachmentSnapshot";
+
 type UnifiedMessagesListProps = {
   mode: MessagingMode;
   canSendMessage: boolean;
@@ -41,7 +51,10 @@ type UnifiedMessagesListProps = {
   selectedClientName?: string;
   onRetryMessage?: (messageId: string) => void;
   activeConversation?: AgentConversation | null;
-  onAcceptEventRequest?: (messageId: string, payload: EventRequestPayload) => Promise<void>;
+  onAcceptEventRequest?: (
+    messageId: string,
+    payload: EventRequestPayload,
+  ) => Promise<void>;
   onCancelEventRequest?: (messageId: string) => Promise<void>;
   acceptedEventRequestIds?: Set<string>;
   acceptingEventRequestId?: string | null;
@@ -63,31 +76,36 @@ export default function UnifiedMessagesList({
 }: UnifiedMessagesListProps) {
   const { t } = useLocalization();
   const config = getMessagingConfig(mode);
-  const { getSavedHome, isHomeSaved, saveHome, removeSavedHome } = useSavedHomesData();
+  const { getSavedHome, isHomeSaved, saveHome, removeSavedHome } =
+    useSavedHomesData();
   const { documents } = useDocumentsData();
-  const {
-    selectedProperty,
-    fetchPropertyDetails,
-    clearSelectedProperty,
-    isLoading: isLoadingPropertyDetails,
-  } = usePropertyDetails();
-  const { navigate } = useNavigation();
+  const { navigate, navigateToPath } = useNavigation();
 
-  const handleGenerateReport = (address: string) => {
+  const openSharedHomeDetails = useCallback(
+    (property: SearchResult) => {
+      const zpid = property.zpid ?? property.id;
+      const address =
+        typeof property.address === "string"
+          ? property.address
+          : property.address && typeof property.address === "object"
+            ? Object.values(property.address).filter(Boolean).join(" ")
+            : "property";
+      navigateToPath(buildPropertyUrl(zpid, address));
+    },
+    [navigateToPath],
+  );
+
+  const _handleGenerateReport = (address: string) => {
     getLocalStorage().setItem(
       "generateReportState",
       JSON.stringify({
         address,
         reportType: "detailed",
         selectedClientId: "",
-      })
+      }),
     );
     void navigate("SAVED");
   };
-  const homeCardSaveState =
-    isHomeSaved && saveHome && removeSavedHome
-      ? { isHomeSaved, saveHome, removeSavedHome }
-      : undefined;
   if (!canSendMessage) {
     // In agent mode, when canSendMessage is false, just show the same empty state as no messages
     // In client mode, when canSendMessage is false, it means no agent is assigned
@@ -97,12 +115,23 @@ export default function UnifiedMessagesList({
         <Box className="flex h-full items-center justify-center">
           <Box className="text-center">
             <Box className="bg-accent-muted mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full">
-              <Icon name="message-circle" className="text-text-secondary h-8 w-8" />
+              <Icon
+                name="message-circle"
+                className="text-text-secondary h-8 w-8"
+              />
             </Box>
-            <Title as="h3" size="lg" className="text-text-primary mb-2 font-medium">
+            <Title
+              as="h3"
+              size="lg"
+              className="text-text-primary mb-2 font-medium"
+            >
               {config.emptyStates.noMessages.title}
             </Title>
-            <BodyText as="p" size="sm" className="text-text-secondary mx-auto max-w-md">
+            <BodyText
+              as="p"
+              size="sm"
+              className="text-text-secondary mx-auto max-w-md"
+            >
               {config.emptyStates.noMessages.message}
             </BodyText>
           </Box>
@@ -113,8 +142,15 @@ export default function UnifiedMessagesList({
     return (
       <Box className="flex h-full items-center justify-center">
         <Box className="text-center">
-          <Icon name="message-circle" className="text-text-secondary mx-auto mb-3 h-16 w-16" />
-          <Title as="h3" size="lg" className="text-text-primary mb-2 font-medium">
+          <Icon
+            name="message-circle"
+            className="text-text-secondary mx-auto mb-3 h-16 w-16"
+          />
+          <Title
+            as="h3"
+            size="lg"
+            className="text-text-primary mb-2 font-medium"
+          >
             {config.emptyStates.noAgent.title}
           </Title>
           <BodyText as="p" size="sm" className="text-text-secondary mb-4">
@@ -127,7 +163,7 @@ export default function UnifiedMessagesList({
               icon={<Icon name="search" className="h-4 w-4" />}
               iconPosition="left"
               onClick={onSearchClick}
-              className="border-border hover:border-accent hover:bg-accent-muted bg-background-surface text-text-secondary hover:text-text-primary mx-auto flex items-center justify-center gap-2"
+              className="border-border hover:bg-accent-muted bg-background-surface text-text-secondary hover:text-text-primary mx-auto flex items-center justify-center gap-2 hover:border-neutral-400"
             >
               {config.emptyStates.noAgent.actionLabel}
             </Button>
@@ -148,42 +184,65 @@ export default function UnifiedMessagesList({
       <Box className="flex h-full items-center justify-center">
         <Box className="text-center">
           <Box className="bg-accent-muted mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full">
-            <Icon name="message-circle" className="text-text-secondary h-8 w-8" />
+            <Icon
+              name="message-circle"
+              className="text-text-secondary h-8 w-8"
+            />
           </Box>
-          <Title as="h3" size="lg" className="text-text-primary mb-2 font-medium">
+          <Title
+            as="h3"
+            size="lg"
+            className="text-text-primary mb-2 font-medium"
+          >
             {config.emptyStates.noMessages.title}
           </Title>
-          <BodyText as="p" size="sm" className="text-text-secondary mx-auto max-w-md">
+          <BodyText
+            as="p"
+            size="sm"
+            className="text-text-secondary mx-auto max-w-md"
+          >
             {mode === "agent" && selectedClientName
-              ? config.emptyStates.noMessages.message.replace("your client", selectedClientName)
+              ? config.emptyStates.noMessages.message.replace(
+                  "your client",
+                  selectedClientName,
+                )
               : config.emptyStates.noMessages.message}
           </BodyText>
         </Box>
       </Box>
     );
   }
+  // TODO: Add virtualization for very long message threads (>100 messages)
+  // Use Virtuoso from packages/ui/components/adapters/virtuoso for better performance
+  // Current implementation works well for typical conversation sizes
   return (
     <>
       {localMessages.map((msg, index) => {
         const messageConfig =
-          msg.role === "agent" ? config.messageStyles.agent : config.messageStyles.user;
+          msg.role === "agent"
+            ? config.messageStyles.agent
+            : config.messageStyles.user;
         const isMostRecentMessage = index === localMessages.length - 1;
         // Determine which role represents the current user based on mode
         const currentUserRole = mode === "client" ? "user" : "agent";
         const isCurrentUserMessage = msg.role === currentUserRole;
         const shouldShowDelivered =
-          isCurrentUserMessage && msg.status === "delivered" && isMostRecentMessage;
+          isCurrentUserMessage &&
+          msg.status === "delivered" &&
+          isMostRecentMessage;
         // Get previous message for date divider logic
         const previousMessage = index > 0 ? localMessages[index - 1] : null;
         const dateDividerText = getDateDividerText(
           msg.timestamp,
-          previousMessage?.timestamp ?? null
+          previousMessage?.timestamp ?? null,
         );
         const eventRequestPayload = parseEventRequestPayload(msg.content);
         const showEventRequestCard =
           eventRequestPayload &&
           activeConversation !== undefined &&
           (onAcceptEventRequest || onCancelEventRequest);
+        const agreementEventPayload = parseAgreementEventPayload(msg.content);
+        const showAgreementEventCard = !!agreementEventPayload;
         const eventRequestStatus: EventRequestStatus =
           msg.event_request_status ??
           (acceptedEventRequestIds.has(msg.id) ? "accepted" : "pending");
@@ -193,18 +252,27 @@ export default function UnifiedMessagesList({
             {dateDividerText && (
               <Box className="flex items-center justify-center py-2">
                 <Box className="rounded-full bg-black/5 px-3 py-1">
-                  <BodyText as="span" size="xs" className="text-text-secondary font-medium">
+                  <BodyText
+                    as="span"
+                    size="xs"
+                    className="text-text-secondary font-medium"
+                  >
                     {dateDividerText}
                   </BodyText>
                 </Box>
               </Box>
             )}
             <Box
-              className={`flex w-full min-w-0 max-w-full flex-col overflow-hidden ${messageConfig.justify === "end" ? "items-end" : "items-start"}`}
+              className={`flex w-full min-w-0 max-w-full flex-col overflow-hidden ${
+                messageConfig.justify === "end" ? "items-end" : "items-start"
+              }`}
             >
               <Box
                 className={`min-w-0 max-w-[85%] overflow-hidden rounded-xl md:max-w-[60%] ${
-                  msg.shared_home_id || msg.shared_document_id || showEventRequestCard
+                  msg.shared_home_id ||
+                  msg.shared_document_id ||
+                  showEventRequestCard ||
+                  showAgreementEventCard
                     ? ""
                     : `px-4 py-3 ${messageConfig.bgColor}`
                 }`}
@@ -214,7 +282,9 @@ export default function UnifiedMessagesList({
                   <Box className="mb-2 w-full min-w-0 max-w-full overflow-hidden">
                     <EventRequestCard
                       payload={eventRequestPayload}
-                      onAccept={() => onAcceptEventRequest?.(msg.id, eventRequestPayload)}
+                      onAccept={() =>
+                        onAcceptEventRequest?.(msg.id, eventRequestPayload)
+                      }
                       onCancel={() => onCancelEventRequest?.(msg.id)}
                       isFromCurrentUser={isCurrentUserMessage}
                       status={eventRequestStatus}
@@ -223,20 +293,52 @@ export default function UnifiedMessagesList({
                     />
                   </Box>
                 )}
+                {/* Show agreement event card if present */}
+                {showAgreementEventCard && agreementEventPayload && (
+                  <Box className="mb-2 w-full min-w-0 max-w-full overflow-hidden">
+                    <AgreementEventCard
+                      payload={agreementEventPayload}
+                      isAgent={mode === "agent"}
+                      onViewDocument={() =>
+                        navigateToPath("/saved?view=agreements")
+                      }
+                      onSignNow={() => navigateToPath("/saved?view=agreements")}
+                    />
+                  </Box>
+                )}
                 {/* Show shared home card if present */}
                 {msg.shared_home_id &&
                   (() => {
-                    const savedHome = getSavedHome(msg.shared_home_id);
-                    const homeData = savedHome || {
-                      home_id: msg.shared_home_id,
-                      address: msg.content || undefined,
-                    };
+                    const homeData = mergeSharedHomeForDisplay(
+                      msg.shared_home_id,
+                      msg.content,
+                      getSavedHome,
+                    );
+                    const searchProperty =
+                      homeDescriptionToSearchResult(homeData);
                     return (
-                      <Box className="mb-2 w-full min-w-0 max-w-full overflow-hidden">
-                        <HomeCard
-                          home={homeData}
-                          saveState={homeCardSaveState}
-                          onViewDetails={fetchPropertyDetails}
+                      <Box
+                        role="button"
+                        tabIndex={0}
+                        className="mb-2 w-full min-w-0 max-w-full cursor-pointer overflow-hidden"
+                        onClick={() =>
+                          void openSharedHomeDetails(searchProperty)
+                        }
+                        onKeyDown={(e: React.KeyboardEvent) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            void openSharedHomeDetails(searchProperty);
+                          }
+                        }}
+                      >
+                        <SearchResultListingCard
+                          property={searchProperty}
+                          activeTab="results"
+                          isHomeSaved={isHomeSaved}
+                          saveHome={saveHome}
+                          removeSavedHome={removeSavedHome}
+                          showNotInterested={false}
+                          showMatchScore={true}
                         />
                       </Box>
                     );
@@ -244,16 +346,32 @@ export default function UnifiedMessagesList({
                 {/* Show shared document card if present */}
                 {msg.shared_document_id &&
                   (() => {
-                    const document = documents.find((d) => d.id === msg.shared_document_id);
-                    const previewLabel = msg.content?.trim();
+                    const document = mergeSharedDocumentForDisplay(
+                      msg.content,
+                      msg.shared_document_id,
+                      documents,
+                    );
+                    const snap = parseSharedAttachmentSnapshot(msg.content);
+                    const previewLabel =
+                      snap?.kind === "document"
+                        ? snap.displayLine
+                        : msg.content?.trim();
                     if (!document) {
                       if (previewLabel) {
                         return (
                           <Box className="border-border bg-primary-muted mb-2 rounded-lg border p-4">
-                            <BodyText as="p" size="xs" className="text-text-secondary font-medium">
+                            <BodyText
+                              as="p"
+                              size="xs"
+                              className="text-text-secondary font-medium"
+                            >
                               {t("agent.share_document")}
                             </BodyText>
-                            <BodyText as="p" size="sm" className="text-text-primary mt-1">
+                            <BodyText
+                              as="p"
+                              size="sm"
+                              className="text-text-primary mt-1"
+                            >
                               {previewLabel}
                             </BodyText>
                           </Box>
@@ -261,7 +379,11 @@ export default function UnifiedMessagesList({
                       }
                       return (
                         <Box className="border-border bg-primary-muted mb-2 rounded-lg border p-4">
-                          <BodyText as="p" size="sm" className="text-text-secondary">
+                          <BodyText
+                            as="p"
+                            size="sm"
+                            className="text-text-secondary"
+                          >
                             {t("agent.document_not_found")}
                           </BodyText>
                         </Box>
@@ -273,10 +395,11 @@ export default function UnifiedMessagesList({
                       </Box>
                     );
                   })()}
-                {/* Show message content only if there's no shared home, document, or event request card */}
+                {/* Show message content only if there's no shared home, document, event request, or agreement event card */}
                 {!msg.shared_home_id &&
                   !msg.shared_document_id &&
                   !showEventRequestCard &&
+                  !showAgreementEventCard &&
                   msg.content.trim() && (
                     <BodyText
                       as="p"
@@ -291,7 +414,11 @@ export default function UnifiedMessagesList({
               {/* Status text for current user's messages only - below the entire message row */}
               {isCurrentUserMessage && msg.status && (
                 <Box
-                  className={`mt-1 flex w-full gap-1.5 ${messageConfig.justify === "end" ? "justify-end" : "justify-start"}`}
+                  className={`mt-1 flex w-full gap-1.5 ${
+                    messageConfig.justify === "end"
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
                 >
                   {msg.status === "failed" && onRetryMessage && (
                     <Button
@@ -307,7 +434,11 @@ export default function UnifiedMessagesList({
                   <BodyText
                     as="span"
                     size="xs"
-                    className={`font-medium ${msg.status === "failed" ? "text-destructive" : "text-text-secondary"}`}
+                    className={`font-medium ${
+                      msg.status === "failed"
+                        ? "text-destructive"
+                        : "text-text-secondary"
+                    }`}
                   >
                     {msg.status === "sending"
                       ? t("agent.sending")
@@ -348,16 +479,6 @@ export default function UnifiedMessagesList({
               </Box>
             </Box>
           )} */}
-      {selectedProperty && (
-        <ModalPortal>
-          <PropertyDetailsModal
-            property={selectedProperty}
-            onClose={clearSelectedProperty}
-            onGenerateReport={handleGenerateReport}
-            isLoading={isLoadingPropertyDetails}
-          />
-        </ModalPortal>
-      )}
       <Box ref={messagesEndRef} />
     </>
   );

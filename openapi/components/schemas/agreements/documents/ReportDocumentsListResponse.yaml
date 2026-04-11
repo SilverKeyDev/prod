@@ -1,0 +1,32 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      documents:
+        type: array
+        items:
+          $ref: './UploadedDocumentRecord.yaml'
+        nullable: true
+        description: Rows from GET /api/v1/report/documents
+      reports:
+        type: array
+        items:
+          $ref: './UploadedDocumentRecord.yaml'
+        nullable: true
+        description: Legacy alias for documents (backward compatibility)
+      count:
+        type: integer
+        nullable: true
+      total:
+        type: integer
+        nullable: true
+        description: Total matching rows when paginated
+      limit:
+        type: integer
+        nullable: true
+      offset:
+        type: integer
+        nullable: true
+      hasMore:
+        type: boolean
+        nullable: true

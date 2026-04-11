@@ -15,6 +15,12 @@ const POLLING_INTERVALS = {
 } as const;
 
 /**
+ * @deprecated This service class is no longer used. Background polling logic
+ * has been moved directly into useDataInitialization hook to comply with
+ * architecture rules (hooks/data should not import business logic services).
+ *
+ * See: Client/packages/hooks/data/useDataInitialization.ts
+ *
  * Background polling service - polls endpoints at different intervals
  * Automatically adjusts based on page visibility and user type
  */
@@ -97,7 +103,9 @@ export class BackgroundPolling {
   /**
    * Start polling for a single route using its configuration
    */
-  private startRoutePolling(route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES]): void {
+  private startRoutePolling(
+    route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES],
+  ): void {
     const poll = async () => {
       if (!this.user) return;
 
@@ -111,7 +119,7 @@ export class BackgroundPolling {
       const baseInterval =
         isOnActivePage && route.pollingIntervalActive
           ? route.pollingIntervalActive
-          : (route.pollingInterval ?? 0);
+          : route.pollingInterval ?? 0;
 
       const interval = this.getPollingInterval(baseInterval);
       if (interval === 0) return;
@@ -135,7 +143,7 @@ export class BackgroundPolling {
     const intervalMs =
       isOnActivePage && route.pollingIntervalActive
         ? route.pollingIntervalActive
-        : (route.pollingInterval ?? 0);
+        : route.pollingInterval ?? 0;
 
     if (intervalMs > 0) {
       const intervalId = setInterval(poll, intervalMs);
@@ -146,7 +154,9 @@ export class BackgroundPolling {
   /**
    * Check if the current pathname indicates we're on the active page for this route
    */
-  private isRouteActivePage(route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES]): boolean {
+  private isRouteActivePage(
+    route: (typeof DATA_ROUTES)[keyof typeof DATA_ROUTES],
+  ): boolean {
     // Conversations have adaptive polling when on messaging page
     if (route.key === "conversations") {
       return this.currentPathname.startsWith("/messaging");

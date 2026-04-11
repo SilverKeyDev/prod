@@ -26,7 +26,7 @@ export function HomePriceEstimate({
 }: HomePriceEstimateProps) {
   return (
     <Box
-      className={`border-primary bg-background-surface col-span-1 mt-4 rounded-lg border px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2`}
+      className={`border-border bg-background-surface col-span-1 mt-4 rounded-lg border px-3 py-4 sm:mt-6 sm:p-4 md:col-span-2`}
     >
       <Box
         role="button"
@@ -40,24 +40,32 @@ export function HomePriceEstimate({
           }
         }}
       >
-        <Title as="h3" size="md" className="text-primary font-medium sm:text-lg">
+        <Title
+          as="h3"
+          size="md"
+          className="text-primary font-medium sm:text-lg"
+        >
           Estimated Home Affordability
         </Title>
         <Icon
           name="chevron-down"
-          className={`mobile-icon-sm text-primary transition-transform duration-300 ease-in-out ${isAffordabilityCollapsed ? "rotate-180" : ""}`}
+          className={`mobile-icon-sm text-primary transition-transform duration-300 ease-in-out ${
+            isAffordabilityCollapsed ? "rotate-180" : ""
+          }`}
         />
       </Box>
 
       <Box
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isAffordabilityCollapsed ? "max-h-0 opacity-0" : "max-h-screen opacity-100"
+          isAffordabilityCollapsed
+            ? "max-h-0 opacity-0"
+            : "max-h-screen opacity-100"
         }`}
       >
         <Box className="pt-2">
           {homePriceLoading ? (
             <Box className="flex items-center justify-center py-3 sm:py-4">
-              <Box className="border-primary h-5 w-5 animate-spin rounded-full border-b-2 sm:h-6 sm:w-6"></Box>
+              <Box className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-b-neutral-700 sm:h-6 sm:w-6"></Box>
               Calculating affordability...
             </Box>
           ) : homePriceError ? (
@@ -67,7 +75,8 @@ export function HomePriceEstimate({
               </BodyText>
               <BodyText as="p">{homePriceError}</BodyText>
               <BodyText as="p">
-                Please ensure you've entered your income, zip code, and other financial details.
+                Please ensure you've entered your income, zip code, and other
+                financial details.
               </BodyText>
             </Box>
           ) : homePriceResult ? (
@@ -94,31 +103,44 @@ export function HomePriceEstimate({
                 </Box>
               </Box>
 
-              <Box className="text-responsive-xs border-primary bg-background-surface rounded border px-2 py-3 text-black sm:p-3">
+              <Box className="text-responsive-xs border-border bg-background-surface rounded border px-2 py-3 text-black sm:p-3">
                 <Box className="bg-accent-muted space-y-1 overflow-x-auto rounded bg-opacity-20 px-2 py-2 font-mono text-black sm:space-y-2 sm:p-3 sm:text-xs">
                   <BodyText as="p" size="xs" className="text-tiny sm:text-xs">
                     1. <strong>Monthly Income</strong> = Gross Annual Income ÷
                   </BodyText>
-                  <BodyText as="p" size="xs" className="ml-2 break-words sm:ml-4 sm:text-xs">
+                  <BodyText
+                    as="p"
+                    size="xs"
+                    className="ml-2 break-words sm:ml-4 sm:text-xs"
+                  >
                     = ${homePriceResult.netAnnualIncome.toLocaleString()} ÷ 12 ={" "}
                     <strong>
                       $
-                      {(homePriceResult.netAnnualIncome / 12).toLocaleString(undefined, {
-                        maximumFractionDigits: 0,
-                      })}
+                      {(homePriceResult.netAnnualIncome / 12).toLocaleString(
+                        undefined,
+                        {
+                          maximumFractionDigits: 0,
+                        },
+                      )}
                     </strong>
                   </BodyText>
 
                   <BodyText as="p" size="xs" className="text-tiny sm:text-xs">
-                    2. <strong>Max Monthly Housing Cost</strong> = Monthly Income × DTI Ratio
+                    2. <strong>Max Monthly Housing Cost</strong> = Monthly
+                    Income × DTI Ratio
                   </BodyText>
-                  <BodyText as="p" size="xs" className="ml-2 break-words sm:ml-4 sm:text-xs">
-                    = ${(homePriceResult.netAnnualIncome / 12).toLocaleString()} ×{" "}
-                    {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
+                  <BodyText
+                    as="p"
+                    size="xs"
+                    className="ml-2 break-words sm:ml-4 sm:text-xs"
+                  >
+                    = ${(homePriceResult.netAnnualIncome / 12).toLocaleString()}{" "}
+                    × {(homePriceResult.dtiUsed / 100).toFixed(2)} ={" "}
                     <strong>
                       $
                       {Math.round(
-                        (homePriceResult.netAnnualIncome / 12) * (homePriceResult.dtiUsed / 100)
+                        (homePriceResult.netAnnualIncome / 12) *
+                          (homePriceResult.dtiUsed / 100),
                       ).toLocaleString()}
                     </strong>
                   </BodyText>
@@ -127,29 +149,56 @@ export function HomePriceEstimate({
                     3. <strong>Mortgage Payment</strong> = P × r × (1 + r)
                     <sup>n</sup> ÷ ((1 + r)<sup>n</sup> - 1)
                   </BodyText>
-                  <BodyText as="p" size="xs" className="ml-2 sm:ml-4 sm:text-xs">
+                  <BodyText
+                    as="p"
+                    size="xs"
+                    className="ml-2 sm:ml-4 sm:text-xs"
+                  >
                     Where:
                   </BodyText>
-                  <BodyText as="p" size="xs" className="ml-4 break-words sm:ml-8 sm:text-xs">
-                    P = ${Math.round(homePriceResult.loanAmount).toLocaleString()}
+                  <BodyText
+                    as="p"
+                    size="xs"
+                    className="ml-4 break-words sm:ml-8 sm:text-xs"
+                  >
+                    P = $
+                    {Math.round(homePriceResult.loanAmount).toLocaleString()}
                   </BodyText>
-                  <BodyText as="p" size="xs" className="ml-4 sm:ml-8 sm:text-xs">
-                    r = {(homePriceResult.interestRate / 100 / 12).toFixed(4)} (monthly interest)
+                  <BodyText
+                    as="p"
+                    size="xs"
+                    className="ml-4 sm:ml-8 sm:text-xs"
+                  >
+                    r = {(homePriceResult.interestRate / 100 / 12).toFixed(4)}{" "}
+                    (monthly interest)
                   </BodyText>
-                  <BodyText as="p" size="xs" className="ml-4 sm:ml-8 sm:text-xs">
+                  <BodyText
+                    as="p"
+                    size="xs"
+                    className="ml-4 sm:ml-8 sm:text-xs"
+                  >
                     n = {30 * 12} months (30-year loan)
                   </BodyText>
-                  <BodyText as="p" size="xs" className="ml-2 break-words sm:ml-4 sm:text-xs">
+                  <BodyText
+                    as="p"
+                    size="xs"
+                    className="ml-2 break-words sm:ml-4 sm:text-xs"
+                  >
                     →{" "}
                     <strong>
-                      Monthly Mortgage = ${homePriceResult.monthlyMortgage.toLocaleString()}
+                      Monthly Mortgage = $
+                      {homePriceResult.monthlyMortgage.toLocaleString()}
                     </strong>
                   </BodyText>
 
                   <BodyText as="p" size="xs" className="text-tiny sm:text-xs">
                     4. <strong>Property Tax</strong> = Home Price × Tax Rate ÷
                   </BodyText>
-                  <BodyText as="p" size="xs" className="ml-2 break-words sm:ml-4 sm:text-xs">
+                  <BodyText
+                    as="p"
+                    size="xs"
+                    className="ml-2 break-words sm:ml-4 sm:text-xs"
+                  >
                     = ${homePriceResult.maxHomePrice.toLocaleString()} ×{" "}
                     {(homePriceResult.propertyTaxRate * 100).toFixed(2)}% ÷ 12
                   </BodyText>
@@ -157,27 +206,46 @@ export function HomePriceEstimate({
                   <BodyText as="p" size="xs" className="text-tiny sm:text-xs">
                     5. <strong>Home Insurance</strong> = Home Price × 0.50% ÷ 12
                   </BodyText>
-                  <BodyText as="p" size="xs" className="ml-2 break-words sm:ml-4 sm:text-xs">
+                  <BodyText
+                    as="p"
+                    size="xs"
+                    className="ml-2 break-words sm:ml-4 sm:text-xs"
+                  >
                     = ${homePriceResult.maxHomePrice.toLocaleString()} × 0.005 ÷
                   </BodyText>
 
                   {homePriceResult.monthlyPMI > 0 && (
                     <>
-                      <BodyText as="p" size="xs" className="text-tiny sm:text-xs">
-                        6. <strong>PMI (Private Mortgage Insurance)</strong> = Loan × PMI Rate ÷ 12
+                      <BodyText
+                        as="p"
+                        size="xs"
+                        className="text-tiny sm:text-xs"
+                      >
+                        6. <strong>PMI (Private Mortgage Insurance)</strong> =
+                        Loan × PMI Rate ÷ 12
                       </BodyText>
-                      <BodyText as="p" size="xs" className="text-tiny ml-2 sm:ml-4 sm:text-xs">
+                      <BodyText
+                        as="p"
+                        size="xs"
+                        className="text-tiny ml-2 sm:ml-4 sm:text-xs"
+                      >
                         PMI Rate ≈{" "}
                         {(
-                          ((homePriceResult.monthlyPMI * 12) / homePriceResult.loanAmount) *
+                          ((homePriceResult.monthlyPMI * 12) /
+                            homePriceResult.loanAmount) *
                           100
                         ).toFixed(2)}
                         %
                       </BodyText>
-                      <BodyText as="p" size="xs" className="ml-2 break-words sm:ml-4 sm:text-xs">
+                      <BodyText
+                        as="p"
+                        size="xs"
+                        className="ml-2 break-words sm:ml-4 sm:text-xs"
+                      >
                         →{" "}
                         <strong>
-                          Monthly PMI = ${homePriceResult.monthlyPMI.toLocaleString()}
+                          Monthly PMI = $
+                          {homePriceResult.monthlyPMI.toLocaleString()}
                         </strong>
                       </BodyText>
                     </>
@@ -192,9 +260,9 @@ export function HomePriceEstimate({
                         (based on ZIP code <strong>{idealZipCode}</strong>)
                       </>
                     )}
-                    , <strong>insurance</strong> costs, and <strong>PMI</strong> if your down
-                    payment is under 20%. These are factored into your maximum affordable home price
-                    using smart search logic.
+                    , <strong>insurance</strong> costs, and <strong>PMI</strong>{" "}
+                    if your down payment is under 20%. These are factored into
+                    your maximum affordable home price using smart search logic.
                   </BodyText>
                 </Box>
               </Box>
@@ -202,8 +270,8 @@ export function HomePriceEstimate({
           ) : (
             <Box className="text-responsive-xs px-2 py-2 text-black sm:px-0">
               <BodyText as="p">
-                Enter your income, zip code, and other financial details to see your estimated home
-                affordability.
+                Enter your income, zip code, and other financial details to see
+                your estimated home affordability.
               </BodyText>
             </Box>
           )}

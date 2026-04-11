@@ -11,7 +11,10 @@ import type {
   TimeSlot,
   WorkingHours,
 } from "@/features/calendar/types/scheduling";
-import { generateTimeSlots, getBusyBlocksFromResponse } from "@/features/calendar/utils/scheduling";
+import {
+  generateTimeSlots,
+  getBusyBlocksFromResponse,
+} from "@/features/calendar/utils/scheduling";
 
 /**
  * Query availability using freebusy API
@@ -19,12 +22,12 @@ import { generateTimeSlots, getBusyBlocksFromResponse } from "@/features/calenda
 export async function queryAvailability(
   timeMin: string,
   timeMax: string,
-  calendarIds?: string[]
+  calendarIds?: string[],
 ): Promise<FreebusyTimeBlock[]> {
   const request: FreebusyRequest = {
     timeMin,
     timeMax,
-    calendarIds: calendarIds || ["primary"],
+    items: (calendarIds || ["primary"]).map((id) => ({ id })),
   };
 
   const response = await googleCalendarApi.queryFreebusy(request);
@@ -44,9 +47,15 @@ export function generateAvailableTimeSlots(
   startDate: Date,
   endDate: Date,
   slotDurationMinutes: number = 30,
-  workingHours?: WorkingHours
+  workingHours?: WorkingHours,
 ): TimeSlot[] {
-  return generateTimeSlots(busyBlocks, startDate, endDate, slotDurationMinutes, workingHours);
+  return generateTimeSlots(
+    busyBlocks,
+    startDate,
+    endDate,
+    slotDurationMinutes,
+    workingHours,
+  );
 }
 
 /**
@@ -54,7 +63,7 @@ export function generateAvailableTimeSlots(
  */
 export async function createScheduledEvent(
   eventData: ScheduleEventRequest,
-  silverKeyCalendarId: string
+  silverKeyCalendarId: string,
 ): Promise<unknown> {
   // Convert our scheduling request shape to the Google Calendar event shape
   const event: GoogleEvent = {
@@ -79,11 +88,16 @@ export async function createScheduledEvent(
 /**
  * Get or create SilverKey calendar
  */
-export async function getOrCreateSilverKeyCalendar(buyerName?: string): Promise<string> {
-  const response = await googleCalendarApi.getOrCreateSilverKeyCalendar(buyerName);
+export async function getOrCreateSilverKeyCalendar(
+  buyerName?: string,
+): Promise<string> {
+  const response =
+    await googleCalendarApi.getOrCreateSilverKeyCalendar(buyerName);
 
   if (!response.success || !response.data) {
-    throw new Error(response.error || "Failed to get or create SilverKey calendar");
+    throw new Error(
+      response.error || "Failed to get or create SilverKey calendar",
+    );
   }
 
   return response.data.id;

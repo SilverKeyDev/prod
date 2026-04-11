@@ -3,6 +3,10 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   // Saved tab labels and loading states
   "saved.tab_homes": "Homes",
   "saved.tab_documents": "Documents",
+  "saved.tab_agreements": "DocuSign",
+  "saved.loading_agreements": "Loading agreements...",
+  "saved.no_agreements_yet": "No DocuSign agreements yet.",
+  "saved.agreements_count": "{{count}} agreements",
   "saved.loading_documents": "Loading documents...",
   "saved.no_documents_yet": "You have no documents yet.",
   "saved.loading_homes": "Loading saved homes...",
@@ -56,7 +60,8 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "saved.price_label_with_value": "Price: {{price}}",
 
   // Client hub empty / error states
-  "saved.error_generic": "We couldn't load saved homes. Pull to refresh to try again.",
+  "saved.error_generic":
+    "We couldn't load saved homes. Pull to refresh to try again.",
   "saved.client_empty": "No liked homes for this client yet.",
 
   "why_not.reason": "Reason",
@@ -79,7 +84,8 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "why_not.reason_layout": "Layout doesn't work",
   "why_not.reason_yard": "Yard size or features",
   "why_not.reason_timing": "Timing isn't right",
-  "why_not.help_understand": "Help us understand why {{address}} isn't a good fit.",
+  "why_not.help_understand":
+    "Help us understand why {{address}} isn't a good fit.",
 
   "modals.not_interested.title": "Why not interested?",
   "modals.not_interested.reason_label": "Reason",
@@ -96,5 +102,6 @@ export const SAVED_TRANSLATIONS: Record<string, string> = {
   "modals.share_home.no_agent": "No agent assigned",
   "modals.share_home.message_optional": "Message (optional)",
   "modals.share_home.sharing": "Sharing...",
+  "modals.share_home.copy_link": "Copy Property Link",
   "modals.share_home.share": "Share",
 };

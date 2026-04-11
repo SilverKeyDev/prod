@@ -1,0 +1,11 @@
+type: object
+required:
+  - is_agent
+properties:
+  is_agent:
+    type: boolean
+    description: Whether user should be an agent
+  brokerage:
+    type: string
+    nullable: true
+    description: Optional users.brokerage when toggling agent status (if used by client).

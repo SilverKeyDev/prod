@@ -1,38 +1,29 @@
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
+
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { apiGet, apiPost } from "packages/services/http/compatibility";
+import type { components } from "packages/types/api.generated";
 import { getFetch } from "packages/utils/platform";
 
-// Types for research API
-export type PropertyRequest = {
-  address: string;
-  zpid?: string;
-  property_url?: string;
-};
-
-export type PropertyResponse = {
-  success: boolean;
-  query?: unknown;
-  data?: unknown;
-  features?: unknown;
-  commute_data?: unknown;
-  property_analysis?: unknown;
-  image_features?: unknown;
-  images?: string[];
-  error?: string;
-};
-
-export type TaskStatusResponse = {
-  success: boolean;
-  task_id: string;
-  status: "SUCCESS" | "PENDING" | "PROGRESS" | "FAILURE";
-  result?: unknown;
-  meta?: unknown;
-  message?: string;
-  error?: string;
-  status_code?: number;
-  elapsed_time?: number;
-};
+// Re-export types from generated schema
+export type PropertyResearchOptions =
+  components["schemas"]["PropertyResearchOptions"];
+export type PropertyRequest = components["schemas"]["PropertyRequest"];
+export type PropertyResponse = components["schemas"]["PropertyResponse"];
+export type TaskStatusResponse = components["schemas"]["TaskStatusResponse"];
 
 /**
  * Research API client using centralized utilities
@@ -40,7 +31,7 @@ export type TaskStatusResponse = {
  */
 export const researchApi = {
   /**
-   * Get property details via address using RapidAPI
+   * Get property details via address
    */
   getProperty: (data: PropertyRequest): Promise<PropertyResponse> => {
     const url = "/api/v1/research/property";
@@ -54,7 +45,9 @@ export const researchApi = {
           hasFeatures: !!resp?.features,
           hasCommute: !!resp?.commute_data,
           hasAnalysis: !!resp?.property_analysis,
-          imagesCount: Array.isArray(resp?.images) ? resp?.images?.length : undefined,
+          imagesCount: Array.isArray(resp?.images)
+            ? resp?.images?.length
+            : undefined,
           hasError: !!resp?.error,
         });
         return resp;
@@ -72,7 +65,7 @@ export const researchApi = {
    * Returns an async generator that yields property updates as sections are generated
    */
   streamProperty: async function* (
-    data: PropertyRequest
+    data: PropertyRequest,
   ): AsyncGenerator<{ type: string; data: unknown }, void, unknown> {
     const baseUrl = getEnv().apiBaseUrl;
     const url = `${baseUrl}/api/v1/research/property?stream=true`;
@@ -127,7 +120,7 @@ export const researchApi = {
                 {
                   line,
                   error: parseError,
-                }
+                },
               );
             }
           }
@@ -167,7 +160,7 @@ export const researchApi = {
    * Returns an async generator that yields property updates as sections are generated
    */
   streamCompare: async function* (
-    data: PropertyRequest
+    data: PropertyRequest,
   ): AsyncGenerator<{ type: string; data: unknown }, void, unknown> {
     const baseUrl = getEnv().apiBaseUrl;
     const url = `${baseUrl}/api/v1/research/compare?stream=true`;
@@ -222,7 +215,7 @@ export const researchApi = {
                 {
                   line,
                   error: parseError,
-                }
+                },
               );
             }
           }

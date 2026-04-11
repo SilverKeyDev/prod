@@ -6,6 +6,7 @@ import { useFeedStore } from "packages/store";
 import { Box } from "packages/ui/components/primitives";
 import { formatCompactNumber } from "packages/utils";
 import { getNavigator, getWindow } from "packages/utils/platform";
+import { buildPropertyUrl } from "packages/utils/property";
 
 import { BodyText } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";
@@ -21,10 +22,27 @@ type FeedActionStackProps = {
   onSave?: () => void;
   onMore?: () => void;
 };
-/** Search page URL for share/copy (no reel-specific params). */
-function getSearchPageShareUrl(): string {
+/** Build property-specific share URL with zpid and address slug. Falls back to search page if property data is missing. */
+function getPropertyShareUrl(item: FeedListing): string {
   const win = getWindow();
   const base = win?.location?.origin ?? "";
+
+  // Try to build property-specific URL if we have an ID
+  if (item.id) {
+    try {
+      // Use address if available, otherwise use a generic fallback
+      const address =
+        [item.streetAddress, item.city, item.state, item.zipCode]
+          .filter(Boolean)
+          .join(" ") || "property";
+
+      return `${base}${buildPropertyUrl(item.id, address)}`;
+    } catch {
+      // Fall back to search page if URL building fails
+    }
+  }
+
+  // Fallback to search page
   return `${base}${ROUTES.SEARCH}`;
 }
 export function FeedActionStack({
@@ -37,7 +55,7 @@ export function FeedActionStack({
   onMore,
 }: FeedActionStackProps) {
   const copyToClipboard = useSecureClipboardCopy();
-  const shareUrl = getSearchPageShareUrl();
+  const shareUrl = getPropertyShareUrl(item);
   const userHasUnmuted = useFeedStore((s) => s.userHasUnmuted);
   const setUserHasUnmuted = useFeedStore((s) => s.setUserHasUnmuted);
   const handleToggleMute = () => {
@@ -70,7 +88,9 @@ export function FeedActionStack({
         <Box className="flex flex-col items-center gap-1">
           <Icon
             name="heart"
-            className={`h-8 w-8 shrink-0 ${isLiked ? "fill-red-500 text-red-500" : "text-white"}`}
+            className={`h-8 w-8 shrink-0 ${
+              isLiked ? "fill-red-500 text-red-500" : "text-white"
+            }`}
           />
           <BodyText as="span" size="xs" className="text-white">
             {formatCompactNumber(displayLikes)}
@@ -93,7 +113,10 @@ export function FeedActionStack({
           </BodyText>
         </Box>
       </FeedActionButton>
-      <FeedActionButton onClick={handleToggleMute} label={userHasUnmuted ? "Mute" : "Unmute"}>
+      <FeedActionButton
+        onClick={handleToggleMute}
+        label={userHasUnmuted ? "Mute" : "Unmute"}
+      >
         {userHasUnmuted ? (
           <Icon name="volume-2" className="h-8 w-8 shrink-0 text-white" />
         ) : (

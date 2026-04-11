@@ -3,15 +3,13 @@ import React from "react";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
-import { ClientSelector } from "@/components/ui";
-
 import SearchActions from "./SearchActions.web";
 export type SearchMobileHeaderProps = {
-  /** Called when filters are changed (e.g. trigger search) */
-  onPreferencesChanged?: () => void | Promise<void>;
   onSearch: () => void;
   onCancelSearch?: () => void;
   isSearching?: boolean;
+  /** When false, Search is disabled until user adds a location in Preferences */
+  hasLocations?: boolean;
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
   mode?: "map" | "reels";
@@ -20,10 +18,10 @@ export type SearchMobileHeaderProps = {
 };
 
 const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
-  onPreferencesChanged,
   onSearch,
   onCancelSearch,
   isSearching = false,
+  hasLocations = true,
   selectedClientId,
   onClientChange,
   mode,
@@ -31,21 +29,21 @@ const SearchMobileHeader: React.FC<SearchMobileHeaderProps> = ({
   onBeforeSwitchToReels,
 }) => {
   return (
-    <Box className={`flex w-full max-w-full items-center gap-2 sm:max-w-lg ${HEADER_ROW_HEIGHT}`}>
-      {selectedClientId !== undefined && onClientChange ? (
-        <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
-      ) : null}
+    <Box
+      className={`flex w-full max-w-full items-center gap-2 sm:max-w-lg ${HEADER_ROW_HEIGHT}`}
+    >
       <SearchActions
-        onPreferencesChanged={onPreferencesChanged}
         onSearchProperties={onSearch}
         onCancelSearch={onCancelSearch}
         isSearching={isSearching}
-        hasLocations={true}
+        hasLocations={hasLocations}
         variant="mobile"
         showReelsButton={mode === "map"}
         showMapButton={mode === "reels"}
         onToggleMode={onToggleMode}
         onBeforeSwitchToReels={onBeforeSwitchToReels}
+        selectedClientId={selectedClientId}
+        onClientChange={onClientChange}
       />
     </Box>
   );

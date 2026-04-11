@@ -3,6 +3,10 @@ import { Box, Pressable, Text } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
 
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import {
+  eventSpansMultipleLocalDays,
+  getEventFirstLocalDayKey,
+} from "@/features/calendar/utils/eventParsing";
 
 import type { CalendarMonthGridStyles } from "./calendarMonthGridStyles";
 
@@ -20,7 +24,7 @@ type CalendarMonthBodyProps = {
   styles: GridStyles;
   days: DayCell[];
   eventsByDay: Map<string, ExtendedGoogleEvent[]>;
-  selectedDayKey: string;
+  selectedDayKey: string | null;
   onSelectDay: (key: string) => void;
   isLargeScreen: boolean;
 };
@@ -49,17 +53,22 @@ export function CalendarMonthBody({
         {days.map((d, index) => {
           const rowIndex = Math.floor(index / 7);
           const firstDayOfRow = days[rowIndex * 7];
-          const showMonthBorder = rowIndex >= 1 && firstDayOfRow.date.getDate() === 1;
+          const showMonthBorder =
+            rowIndex >= 1 && firstDayOfRow.date.getDate() === 1;
 
           const isSelected = d.key === selectedDayKey;
           const dayEvents = eventsByDay.get(d.key) ?? [];
           const sortedEvents = [...dayEvents].sort((a, b) => {
-            const aStart = a.start?.dateTime;
-            const bStart = b.start?.dateTime;
+            const aStart = a.start?.dateTime ?? a.start?.date;
+            const bStart = b.start?.dateTime ?? b.start?.date;
             if (!aStart || !bStart) return 0;
-            return dateParseISO(aStart).valueOf() - dateParseISO(bStart).valueOf();
+            return (
+              dateParseISO(aStart).valueOf() - dateParseISO(bStart).valueOf()
+            );
           });
-          const visibleEventsInCell = isLargeScreen ? sortedEvents.slice(0, 3) : [];
+          const visibleEventsInCell = isLargeScreen
+            ? sortedEvents.slice(0, 3)
+            : [];
 
           return (
             <Pressable
@@ -87,16 +96,46 @@ export function CalendarMonthBody({
               {isLargeScreen ? (
                 <Box style={styles.cellContent}>
                   {visibleEventsInCell.map((ev) => {
-                    const startTime = ev.start?.dateTime
-                      ? dateParseISO(ev.start.dateTime).toDate().toLocaleTimeString("en-US", {
+                    const isMultiDay = eventSpansMultipleLocalDays(ev);
+                    const firstDayKey = getEventFirstLocalDayKey(ev);
+                    const isContinuation = Boolean(
+                      isMultiDay &&
+                        firstDayKey !== null &&
+                        d.key !== firstDayKey,
+                    );
+
+                    let label: string;
+                    if (isContinuation) {
+                      label = `→ · ${ev.summary || "Untitled"}`;
+                    } else if (ev.start?.dateTime) {
+                      const startTime = dateParseISO(ev.start.dateTime)
+                        .toDate()
+                        .toLocaleTimeString("en-US", {
                           hour: "numeric",
                           minute: "2-digit",
                           hour12: true,
-                        })
-                      : "";
-                    const label = [startTime, ev.summary || "Untitled"].filter(Boolean).join(" · ");
+                        });
+                      label = [startTime, ev.summary || "Untitled"]
+                        .filter(Boolean)
+                        .join(" · ");
+                    } else if (isMultiDay) {
+                      label = `All day · ${ev.summary || "Untitled"}`;
+                    } else {
+                      label = ev.summary || "Untitled";
+                    }
+
+                    const chipStyle = {
+                      ...styles.eventChip,
+                      ...(isMultiDay && !isContinuation
+                        ? styles.eventChipMultiDay
+                        : null),
+                      ...(isContinuation
+                        ? styles.eventChipMultiDayContinuation
+                        : null),
+                    };
+
                     return (
-                      <Box key={ev.id ?? String(ev)} style={styles.eventChip}>
+                      <Box key={ev.id ?? String(ev)} style={chipStyle}>
                         <Text style={styles.eventChipText} numberOfLines={1}>
                           {label}
                         </Text>
@@ -104,8 +143,12 @@ export function CalendarMonthBody({
                     );
                   })}
                   {sortedEvents.length > 3 ? (
-                    <Box style={{ marginTop: spacing(2), alignSelf: "flex-start" }}>
-                      <Text style={{ fontSize: 10, color: color("neutral.500") }}>
+                    <Box
+                      style={{ marginTop: spacing(2), alignSelf: "flex-start" }}
+                    >
+                      <Text
+                        style={{ fontSize: 10, color: color("neutral.500") }}
+                      >
                         +{sortedEvents.length - 3} more
                       </Text>
                     </Box>

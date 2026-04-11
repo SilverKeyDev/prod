@@ -31,7 +31,9 @@ export function CalendarMonthViewHeader({
   return (
     <Box style={styles.wrapper}>
       <Box style={styles.headerRow}>
-        {sectionTitle ? <Text style={styles.sectionTitle}>{sectionTitle}</Text> : null}
+        {sectionTitle ? (
+          <Text style={styles.sectionTitle}>{sectionTitle}</Text>
+        ) : null}
         <Text style={styles.monthLabel}>{monthLabel}</Text>
         <IconButton
           iconName="chevron-left"
@@ -74,6 +76,8 @@ const styles = {
     alignItems: "center" as const,
     justifyContent: "flex-start" as const,
     gap: spacing(2),
+    paddingTop: spacing(3),
+    paddingLeft: spacing(3),
   },
   sectionTitle: {
     fontSize: 18,

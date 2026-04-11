@@ -16,7 +16,11 @@ type ComparisonTableRowProps = {
   selectedHomesCount: number;
 };
 
-function getRowClasses(isSectionHeader: boolean, isEven: boolean, isSectionField: boolean) {
+function getRowClasses(
+  isSectionHeader: boolean,
+  isEven: boolean,
+  isSectionField: boolean,
+) {
   const bgClass = isSectionHeader
     ? "bg-accent-muted"
     : isEven
@@ -49,14 +53,15 @@ export function ComparisonTableRow({
 
   const sectionTitle =
     isSectionHeader && field.sectionKey
-      ? DEFAULT_REPORT_SECTIONS.find((s: { key: string }) => s.key === field.sectionKey)?.label ||
-        field.label
+      ? DEFAULT_REPORT_SECTIONS.find(
+          (s: { key: string }) => s.key === field.sectionKey,
+        )?.label || field.label
       : null;
 
   const { bgClass, stickyBgClass, labelCellClass } = getRowClasses(
     isSectionHeader,
     isEven,
-    isSectionField
+    isSectionField,
   );
 
   const cellMinWidth =
@@ -66,9 +71,13 @@ export function ComparisonTableRow({
 
   return (
     <tr
-      key={`${isSectionHeader ? "section-header" : "field"}-${field.key}-${index}`}
+      key={`${isSectionHeader ? "section-header" : "field"}-${
+        field.key
+      }-${index}`}
       className={`relative ${
-        isSectionHeader ? "bg-accent-muted" : `${bgClass} border-border border-t`
+        isSectionHeader
+          ? "bg-accent-muted"
+          : `${bgClass} border-border border-t`
       }`}
     >
       <td
@@ -78,7 +87,10 @@ export function ComparisonTableRow({
         {isSectionHeader ? (
           <Box className="flex items-center gap-2">
             {field.sectionKey &&
-              renderSectionIcon(field.sectionKey, "h-4 w-4 sm:h-5 sm:w-5 text-text-secondary")}
+              renderSectionIcon(
+                field.sectionKey,
+                "h-4 w-4 sm:h-5 sm:w-5 text-text-secondary",
+              )}
             <BodyText as="span" className="text-text-secondary">
               {sectionTitle}
             </BodyText>
@@ -96,14 +108,16 @@ export function ComparisonTableRow({
             className={`relative px-1 py-1 sm:px-2 sm:py-2 md:px-4 md:py-3 ${cellMinWidth} ${
               isSectionHeader
                 ? "bg-accent-muted border-border border-b border-t-2"
-                : `${isPrice ? "text-accent font-medium" : "text-text-primary"} text-center`
+                : `${
+                    isPrice ? "text-accent font-medium" : "text-text-primary"
+                  } text-center`
             }`}
           >
             {isSectionHeader ? (
               <Box />
             ) : (
               <Box>
-                {isLoading && value === "—" ? (
+                {isLoading && value === "-" ? (
                   <Box className="flex items-center justify-center">
                     <KeyTurnLoader message="" variant="gray" />
                   </Box>

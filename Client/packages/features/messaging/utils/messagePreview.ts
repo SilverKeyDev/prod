@@ -5,6 +5,8 @@
 
 import type { MessagePreviewInput } from "packages/features/messaging/types/messagePreview";
 
+import { parseSharedAttachmentSnapshot } from "./sharedAttachmentSnapshot";
+
 export type { MessagePreviewInput } from "packages/features/messaging/types/messagePreview";
 
 const EVENT_REQUEST_PREFIX = "__EVENT_REQUEST__";
@@ -18,11 +20,25 @@ const PREVIEW_MAX_LENGTH = 60;
  * - Plain text → trimmed content, truncated to PREVIEW_MAX_LENGTH
  */
 export function getMessagePreview(msg: MessagePreviewInput): string {
+  const snapshot = parseSharedAttachmentSnapshot(msg.content);
+  if (snapshot?.kind === "home") {
+    const line = snapshot.displayLine.trim();
+    if (!line) return "Shared home";
+    if (line.length <= PREVIEW_MAX_LENGTH) return `Shared home: ${line}`;
+    return `Shared home: ${line.slice(0, PREVIEW_MAX_LENGTH - 3)}...`;
+  }
+  if (snapshot?.kind === "document") {
+    const line = snapshot.displayLine.trim();
+    if (!line) return "Shared document";
+    if (line.length <= PREVIEW_MAX_LENGTH) return `Shared document: ${line}`;
+    return `Shared document: ${line.slice(0, PREVIEW_MAX_LENGTH - 3)}...`;
+  }
+
   if (msg.shared_home_id) {
-    return "Shared a home";
+    return "Shared home";
   }
   if (msg.shared_document_id) {
-    return "Shared a document";
+    return "Shared document";
   }
   const content = (msg.content ?? "").trim();
   if (!content) {
@@ -40,7 +56,7 @@ export function getMessagePreview(msg: MessagePreviewInput): string {
         typeof (parsed as { title: string }).title === "string"
       ) {
         const title = (parsed as { title: string }).title.trim();
-        return title ? `Event: ${title}` : "Event request";
+        return title ? `Event request: ${title}` : "Event request";
       }
     } catch {
       // Invalid JSON

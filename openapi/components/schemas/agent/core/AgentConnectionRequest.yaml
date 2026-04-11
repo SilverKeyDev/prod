@@ -1,0 +1,31 @@
+type: object
+required:
+  - id
+  - agent_id
+  - client_id
+  - requested_by_agent
+  - status
+  - created_at
+properties:
+  id:
+    type: string
+  agent_id:
+    type: string
+  client_id:
+    type: string
+  requested_by_agent:
+    type: boolean
+  status:
+    type: string
+    enum: [pending, accepted, rejected]
+  message:
+    type: string
+    nullable: true
+  other_party_name:
+    type: string
+    nullable: true
+  other_party_email:
+    type: string
+    nullable: true
+  created_at:
+    type: string

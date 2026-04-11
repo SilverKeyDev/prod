@@ -1,28 +1,28 @@
-// Document-related type definitions
+/**
+ * Document-domain types: workflow UI models and upload UI state.
+ * API contracts use OpenAPI-generated names (`WorkflowDocumentRecord`, `UploadedDocumentRecord`, etc.).
+ */
 
-export type Document = {
-  id: string;
-  name: string;
-  file_path: string;
-  file_size: number;
-  file_type: string;
-  category: string;
-  property_id?: string;
-  offer_id?: string;
-  uploaded_by: string;
+import type { components } from "packages/types/api.generated";
+
+/** Dashboard workflow document from OpenAPI `WorkflowDocumentRecord` (string dates). */
+export type WorkflowDocumentRecord =
+  components["schemas"]["WorkflowDocumentRecord"];
+
+/** In-memory workflow document with parsed dates (store / document service). */
+export type WorkflowDocument = Omit<
+  WorkflowDocumentRecord,
+  "uploaded_at" | "expiry_date"
+> & {
   uploaded_at: Date;
-  is_signed?: boolean;
   expiry_date?: Date;
-  status: "pending" | "approved" | "rejected" | "expired";
-  address?: string;
-  document_type?: string;
 };
 
 export type DocumentCategory = {
   id: string;
   name: string;
   description: string;
-  required_for: string[]; // e.g., ['offer', 'closing', 'inspection']
+  required_for: string[];
   template_url?: string;
 };
 

@@ -17,7 +17,7 @@ import type { SearchResult } from "packages/features/search/types/result";
  */
 export function getMapFocusedProperty(
   results: SearchResult[],
-  currentPage: number
+  currentPage: number,
 ): SearchResult | null {
   if (!results.length || currentPage < 0) return null;
   const index = Math.min(currentPage, results.length - 1);
@@ -28,7 +28,29 @@ export function getMapFocusedProperty(
  * Returns the page index for a property by id. Use when handling marker click
  * to set current page so the card and sidebar stay in sync.
  */
-export function getPageIndexForProperty(results: SearchResult[], propertyId: string): number {
+export function getPageIndexForProperty(
+  results: SearchResult[],
+  propertyId: string,
+): number {
   const index = results.findIndex((p) => p.id === propertyId);
   return index >= 0 ? index : 0;
+}
+
+/**
+ * Visible map card window: `count` listings starting at `startPage` (0-based).
+ */
+export function getMapFocusedProperties(
+  results: SearchResult[],
+  startPage: number,
+  count: number,
+): SearchResult[] {
+  if (!results.length || count < 1 || startPage < 0) return [];
+  const out: SearchResult[] = [];
+  for (let i = 0; i < count; i++) {
+    const idx = startPage + i;
+    if (idx >= results.length) break;
+    const p = results[idx];
+    if (p) out.push(p);
+  }
+  return out;
 }

@@ -70,7 +70,7 @@ module.exports = {
     type: "problem",
     docs: {
       description:
-        "Do not import one feature's internals into another (e.g. agent component into calendar, negotiate hook into search/property-details). Apps must not import feature internals—use the feature barrel or shared packages. Shared code used by multiple features should live in packages/hooks, packages/utils, or packages/ui.",
+        "Do not import one feature's internals into another (e.g. agent component into calendar, negotiate hook into search/property-details). Apps must not import feature internals, use the feature barrel or shared packages. Shared code used by multiple features should live in packages/hooks, packages/utils, or packages/ui.",
     },
     schema: [],
     messages: {
@@ -86,10 +86,13 @@ module.exports = {
     const filename = rawFilename.split(path.sep).join("/");
 
     const currentFeature = getFeatureNameFromPath(filename);
-    const inApp = filename.includes("apps/web/") || filename.includes("apps/mobile/");
+    const inApp =
+      filename.includes("apps/web/") || filename.includes("apps/mobile/");
     if (!currentFeature && !inApp) return {};
 
-    const fromDir = filename.includes("/") ? filename.replace(/\/[^/]+$/, "") : "";
+    const fromDir = filename.includes("/")
+      ? filename.replace(/\/[^/]+$/, "")
+      : "";
 
     return {
       ImportDeclaration(node) {

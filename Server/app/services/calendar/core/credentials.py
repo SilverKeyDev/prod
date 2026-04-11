@@ -13,6 +13,10 @@ from app.services.auth.tokens import tokens_delete, tokens_get, tokens_upsert
 from app.services.calendar.permissions import (
     get_scopes_from_tokeninfo,
 )
+from app.services.calendar.permissions.google_calendar_oauth import (
+    normalize_google_oauth_scope_list,
+    normalize_google_oauth_scope_string,
+)
 from app.utils.security.app_logging import get_logger
 from app.utils.security.security import log_oauth_event
 
@@ -62,7 +66,9 @@ def load_credentials(
     token_uri = token_data.get("token_uri") or token_endpoint
     stored_client_id = token_data.get("client_id") or client_id
     stored_client_secret = client_secret  # Always use config value
-    stored_scopes = token_data.get("scopes", "").split() if token_data.get("scopes") else scopes
+    stored_scopes = normalize_google_oauth_scope_list(
+        token_data["scopes"].split() if token_data.get("scopes") else list(scopes)
+    )
 
     # Validate that we have the minimum required fields
     if not token_data.get("access_token"):
@@ -152,8 +158,8 @@ def load_credentials(
                     token_uri = token_data.get("token_uri") or token_endpoint
                     stored_client_id = token_data.get("client_id") or client_id
                     stored_client_secret = client_secret  # Always use config value
-                    stored_scopes = (
-                        token_data.get("scopes", "").split() if token_data.get("scopes") else scopes
+                    stored_scopes = normalize_google_oauth_scope_list(
+                        token_data["scopes"].split() if token_data.get("scopes") else list(scopes)
                     )
 
                     # Recreate creds with latest token data and validated fields
@@ -203,7 +209,9 @@ def load_credentials(
                         logger.warning(
                             f"Tokeninfo failed for user {user_id}, using stored scopes: {token_data.get('scopes', '')}"
                         )
-                        scopes_to_store = token_data.get("scopes", "")
+                        scopes_to_store = normalize_google_oauth_scope_string(
+                            token_data.get("scopes", "")
+                        )
 
                     # Update stored tokens - explicitly preserve refresh_token
                     # client_secret not stored - always use config value
@@ -266,8 +274,8 @@ def load_credentials(
                 token_uri = token_data.get("token_uri") or token_endpoint
                 stored_client_id = token_data.get("client_id") or client_id
                 stored_client_secret = client_secret  # Always use config value
-                stored_scopes = (
-                    token_data.get("scopes", "").split() if token_data.get("scopes") else scopes
+                stored_scopes = normalize_google_oauth_scope_list(
+                    token_data["scopes"].split() if token_data.get("scopes") else list(scopes)
                 )
 
                 creds = Credentials(

@@ -4,7 +4,7 @@ import logging
 import random
 import time
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timezone
 
 from botocore.exceptions import ClientError
 
@@ -94,7 +94,7 @@ def sign_in(client, client_id: str, get_secret_hash: Callable[[str], str], usern
                     "RequestId", "unknown"
                 ),
                 "duration_ms": dm,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         if error_code == "NotAuthorizedException":
@@ -140,7 +140,7 @@ def sign_in(client, client_id: str, get_secret_hash: Callable[[str], str], usern
                 "error_type": type(e).__name__,
                 "error_message": str(e),
                 "duration_ms": duration_ms(),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return {

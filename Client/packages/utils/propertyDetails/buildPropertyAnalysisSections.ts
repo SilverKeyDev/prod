@@ -22,14 +22,20 @@ export function buildPropertyAnalysisSections(
   propertyAnalysis: Record<string, unknown>,
   excludeSections: string[],
   userPriorities: string[],
-  options: BuildPropertyAnalysisSectionsOptions
+  options: BuildPropertyAnalysisSectionsOptions,
 ): PropertyAnalysisSection[] {
   const { sectionLabels, defaultPriorityMap, getIconName } = options;
-  const coreSectionKeys = new Set(["neighborhood_overview"]);
-  const excludedSectionKeys = new Set(["pros", "cons", ...excludeSections]);
+  const coreSectionKeys = new Set(["neighborhood_overview", "neighborhood"]);
+  const excludedSectionKeys = new Set([
+    "pros",
+    "cons",
+    "highlights_context",
+    ...excludeSections,
+  ]);
 
   const allSectionKeys = Object.keys(propertyAnalysis).filter(
-    (key) => propertyAnalysis[key] !== null && propertyAnalysis[key] !== undefined
+    (key) =>
+      propertyAnalysis[key] !== null && propertyAnalysis[key] !== undefined,
   );
 
   return allSectionKeys
@@ -37,11 +43,14 @@ export function buildPropertyAnalysisSections(
     .map((key) => {
       const userPriorityIndex = userPriorities.indexOf(key);
       const priority =
-        userPriorityIndex >= 0 ? userPriorityIndex : 1000 + (defaultPriorityMap.get(key) ?? 9999);
+        userPriorityIndex >= 0
+          ? userPriorityIndex
+          : 1000 + (defaultPriorityMap.get(key) ?? 9999);
       return {
         key,
         label:
-          sectionLabels[key] || key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+          sectionLabels[key] ||
+          key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
         data: propertyAnalysis[key],
         iconName: getIconName(key) ?? "check-circle",
         priority,

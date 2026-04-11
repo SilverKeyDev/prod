@@ -7,6 +7,7 @@
 @import "./maps.css";
 @import "./embla.css";
 @import "./scrollbar.css";
+@import "./semantic-variables.css";
 
 @tailwind base;
 @tailwind components;

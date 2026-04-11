@@ -4,10 +4,20 @@ import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { reportApi } from "packages/features/documents/api/report";
+import type { DocumentLibraryKind } from "packages/features/documents/types/documentLibrary";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 
-// Document data structure from API
+export type AgreementParticipantData = {
+  user_id: string;
+  email: string;
+  name: string;
+  role: string;
+  routing_order: number;
+  recipient_status: string | null;
+};
+
+// Document data structure from API (unified library: uploads + agreements)
 export type DocumentData = {
   id: string;
   filename: string;
@@ -19,6 +29,13 @@ export type DocumentData = {
   document_type: string | null;
   address: string | null;
   event_type?: "listed" | "price_change" | "sold" | "withdrawn" | null;
+  library_item_id?: string;
+  library_kind?: DocumentLibraryKind;
+  agreement_type?: string | null;
+  // Agreement-specific fields (populated when library_kind === "agreement")
+  agent_id?: string | null;
+  buyer_id?: string | null;
+  participants?: AgreementParticipantData[] | null;
 };
 
 export type UseDocumentsDataReturn = {
@@ -38,7 +55,10 @@ export function useDocumentsData(clientId?: string): UseDocumentsDataReturn {
   const authReady = useAuthStore((s) => s.authReady);
 
   // Gate loading on auth readiness and authentication
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   const {
     data: documentsResponse,
@@ -49,28 +69,40 @@ export function useDocumentsData(clientId?: string): UseDocumentsDataReturn {
     queryKey: queryKeys.documents.list(undefined, clientId),
     queryFn: async () => {
       try {
-        const response = await reportApi.getDocuments(clientId);
+        const response = await reportApi.getDocumentLibrary(clientId);
         if (!response.success) {
-          const errorMessage = response.error ?? "Failed to fetch documents";
-          log.error(LOG_CATEGORIES.API, "Failed to fetch documents", {
+          const errorMessage =
+            response.error ?? "Failed to fetch document library";
+          log.error(LOG_CATEGORIES.API, "Failed to fetch document library", {
             error: errorMessage,
           });
           throw new Error(errorMessage);
         }
-        // Backend returns 'documents' field
-        const docs = response.documents ?? [];
-        // Transform API response to DocumentData format
-        return docs.map((doc) => ({
-          id: doc.id,
-          filename: doc.filename,
-          file_path: doc.file_path,
-          status: doc.status,
-          created_at: doc.created_at ?? null,
-          updated_at: doc.updated_at ?? null,
-          user_id: doc.user_id,
-          document_type: doc.document_type ?? null,
-          address: doc.address ?? null,
-          event_type: doc.event_type ?? null,
+        const items = response.items ?? [];
+        return items.map((row) => ({
+          id: row.id,
+          filename: row.filename,
+          file_path: row.file_path,
+          status: row.status,
+          created_at: row.created_at ?? null,
+          updated_at: row.updated_at ?? null,
+          user_id: row.user_id,
+          document_type: row.document_type ?? null,
+          address: row.address ?? null,
+          event_type: row.event_type ?? null,
+          library_item_id: row.library_item_id,
+          library_kind: row.library_kind,
+          agreement_type: row.agreement_type ?? null,
+          agent_id:
+            ((row as Record<string, unknown>).agent_id as string | null) ??
+            null,
+          buyer_id:
+            ((row as Record<string, unknown>).buyer_id as string | null) ??
+            null,
+          participants:
+            ((row as Record<string, unknown>).participants as
+              | AgreementParticipantData[]
+              | null) ?? null,
         }));
       } catch (err) {
         log.error(LOG_CATEGORIES.ERRORS, "Error fetching documents", err);

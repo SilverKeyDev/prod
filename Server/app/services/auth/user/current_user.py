@@ -90,37 +90,6 @@ def _verify_minimal_token(token: str, start_time: float | None = None) -> User:
         )
         raise SecurityException(SecurityError.UNAUTHORIZED)
 
-    # Log successful minimal token verification at DEBUG level (too verbose for INFO)
-    duration_ms = int((time.time() - start_time) * 1000)
-    request_id = getattr(request, "request_id", f"session_{int(time.time() * 1000)}")
-    endpoint = request.endpoint or "unknown"
-    # Always log at DEBUG to avoid noisy INFO logs, even for profile endpoint
-    current_app.logger.debug(
-        "🔍 BACKEND_SESSION_VERIFICATION_SUCCESS",
-        extra={
-            "endpoint": endpoint,
-            "request_id": request_id,
-            "user_id": str(getattr(user, "id", None)),
-            "email": (user.email[:3] + "***" + user.email[-3:])
-            if getattr(user, "email", None)
-            else "missing",
-            "token_type": "minimal",
-            "is_agent": getattr(user, "is_agent", False),
-            "duration_ms": duration_ms,
-        },
-    )
-    logger.debug(
-        "MINIMAL_TOKEN_VERIFIED_SUCCESSFULLY",
-        extra={
-            "user_id": getattr(user, "id", None),
-            "email": (user.email[:3] + "***" + user.email[-3:])
-            if getattr(user, "email", None)
-            else "missing",
-            "token_type": claims.get("type", "unknown"),
-            "expires_at": claims.get("exp", "unknown"),
-        },
-    )
-
     return user
 
 
@@ -135,49 +104,20 @@ def get_current_user():
     request_id = getattr(request, "request_id", f"session_{int(time.time() * 1000)}")
     endpoint = request.endpoint or "unknown"
 
-    # Always log at DEBUG to avoid noisy INFO logs, even for profile endpoint
-    current_app.logger.debug(
-        "🔍 BACKEND_SESSION_VERIFICATION_START",
-        extra={
-            "request_id": request_id,
-            "endpoint": endpoint,
-            "path": request.path,
-            "has_session_cookie": "session" in request.cookies,
-            "has_refresh_cookie": "refresh_token" in request.cookies,
-            "has_authorization_header": "Authorization" in request.headers,
-        },
-    )
-
     token = None
 
     # Try to get token from HttpOnly cookie first (preferred method)
     session_cookie = request.cookies.get("session")
     if session_cookie:
         token = session_cookie
-        # Token source logging is already at DEBUG level - keep it
-        current_app.logger.debug(
-            "🔍 BACKEND_SESSION_TOKEN_SOURCE",
-            extra={
-                "request_id": request_id,
-                "source": "http_only_cookie",
-                "token_length": len(token) if token else 0,
-            },
-        )
+
     else:
         # Fallback to Authorization header for backward compatibility
         auth = request.headers.get("Authorization", "")
         parts = auth.split()
         if len(parts) == 2 and parts[0].lower() == "bearer":
             token = parts[1]
-            # Token source logging is already at DEBUG level - keep it
-            current_app.logger.debug(
-                "🔍 BACKEND_SESSION_TOKEN_SOURCE",
-                extra={
-                    "request_id": request_id,
-                    "source": "authorization_header",
-                    "token_length": len(token) if token else 0,
-                },
-            )
+
         else:
             if not auth:
                 current_app.logger.warning(

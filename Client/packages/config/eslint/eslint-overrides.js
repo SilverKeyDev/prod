@@ -27,7 +27,8 @@ function sharedPackagesRestrictedGlobals() {
           "warn",
           {
             name: "fetch",
-            message: "Use apiClient (config/api or services/http) instead of direct fetch.",
+            message:
+              "Use apiClient (config/api or services/http) instead of direct fetch.",
           },
           {
             name: "localStorage",
@@ -46,19 +47,23 @@ function sharedPackagesRestrictedGlobals() {
           },
           {
             name: "document",
-            message: "Do not use document in shared packages; it is not available in React Native.",
+            message:
+              "Do not use document in shared packages; it is not available in React Native.",
           },
           {
             name: "window",
-            message: "Do not use window in shared packages; it is not available in React Native.",
+            message:
+              "Do not use window in shared packages; it is not available in React Native.",
           },
           {
             name: "File",
-            message: "Do not use global File in shared packages; behavior differs in React Native.",
+            message:
+              "Do not use global File in shared packages; behavior differs in React Native.",
           },
           {
             name: "Blob",
-            message: "Do not use global Blob in shared packages; behavior differs in React Native.",
+            message:
+              "Do not use global Blob in shared packages; behavior differs in React Native.",
           },
           {
             name: "IntersectionObserver",
@@ -98,7 +103,8 @@ function appsWebFetchOverride() {
           "error",
           {
             name: "fetch",
-            message: "Use apiClient (config/api or services/http) instead of direct fetch.",
+            message:
+              "Use apiClient (config/api or services/http) instead of direct fetch.",
           },
         ],
       },
@@ -121,8 +127,15 @@ function silverkeyComponentsAndFeatures(silverkey) {
         "silverkey/no-restricted-imports-architecture": [
           "error",
           {
-            forbidden: ["packages/services/**", "packages/config/api", "packages/config/api/**"],
-            allowedExceptions: ["packages/services/http/**", "packages/services/security/**"],
+            forbidden: [
+              "packages/services/**",
+              "packages/config/api",
+              "packages/config/api/**",
+            ],
+            allowedExceptions: [
+              "packages/services/http/**",
+              "packages/services/security/**",
+            ],
             // In packages/features, only api/ and services/ may import config/api or services; hooks/components/utils must use feature api layer.
             allowedPathsInFeatures: ["/api/", "/services/"],
             loggerPath: "logger",
@@ -131,7 +144,10 @@ function silverkeyComponentsAndFeatures(silverkey) {
       },
     },
     {
-      files: ["packages/features/**/*.{ts,tsx}", "apps/web/pages/**/*.{ts,tsx}"],
+      files: [
+        "packages/features/**/*.{ts,tsx}",
+        "apps/web/pages/**/*.{ts,tsx}",
+      ],
       plugins: { silverkey },
       rules: { "silverkey/require-ui-alias": "warn" },
     },
@@ -153,7 +169,10 @@ function silverkeyComponentsAndFeatures(silverkey) {
       },
     },
     {
-      files: ["packages/features/**/*.{ts,tsx}", "apps/web/pages/**/*.{ts,tsx}"],
+      files: [
+        "packages/features/**/*.{ts,tsx}",
+        "apps/web/pages/**/*.{ts,tsx}",
+      ],
       plugins: { silverkey },
       rules: {
         "silverkey/no-direct-accessibility-props": [
@@ -224,7 +243,11 @@ function silverkeyComponentsAndFeatures(silverkey) {
               "label",
             ],
             uiLibraryPath: "components/ui",
-            exceptions: { uiComponents: true, testFiles: true, externalLinks: true },
+            exceptions: {
+              uiComponents: true,
+              testFiles: true,
+              externalLinks: true,
+            },
           },
         ],
       },
@@ -240,7 +263,11 @@ function silverkeyComponentsAndFeatures(silverkey) {
         "silverkey/no-literal-hex-colors": [
           "warn",
           {
-            includePaths: ["packages/ui/", "packages/features/", "apps/web/pages/"],
+            includePaths: [
+              "packages/ui/",
+              "packages/features/",
+              "apps/web/pages/",
+            ],
             allowedPaths: ["packages/design-tokens/"],
           },
         ],
@@ -331,24 +358,44 @@ function packagesNoReactNoJsx() {
 function contextsHooksOverrides(reactHooks, reactRefresh, silverkey) {
   return [
     {
-      files: ["packages/contexts/**/*.{js,jsx,ts,tsx}", "packages/hooks/**/*.{js,jsx,ts,tsx}"],
-      plugins: { "react-hooks": reactHooks, "react-refresh": reactRefresh, silverkey },
+      files: [
+        "packages/contexts/**/*.{js,jsx,ts,tsx}",
+        "packages/hooks/**/*.{js,jsx,ts,tsx}",
+      ],
+      plugins: {
+        "react-hooks": reactHooks,
+        "react-refresh": reactRefresh,
+        silverkey,
+      },
       rules: {
         ...reactHooks.configs.recommended.rules,
         "react-hooks/exhaustive-deps": "error",
-        "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+        "react-refresh/only-export-components": [
+          "warn",
+          { allowConstantExport: true },
+        ],
         "silverkey/no-async-use-effect": "error",
         "no-restricted-imports": [
           "error",
           {
             patterns: [
               {
-                group: ["react-dom", "react-dom/*", "react-native", "react-native/*"],
+                group: [
+                  "react-dom",
+                  "react-dom/*",
+                  "react-native",
+                  "react-native/*",
+                ],
                 message:
                   "Do not use react-dom or react-native in shared packages; keep contexts/hooks dependency-pure for RN parity.",
               },
               {
-                group: ["react-router-dom", "react-router-dom/*", "react-router", "react-router/*"],
+                group: [
+                  "react-router-dom",
+                  "react-router-dom/*",
+                  "react-router",
+                  "react-router/*",
+                ],
                 message:
                   "Use the navigation adapter (packages/navigation) instead of react-router so a second implementation for React Native can be added later.",
               },
@@ -375,7 +422,12 @@ function navigationOverrides(reactHooks, silverkey) {
           {
             patterns: [
               {
-                group: ["react-dom", "react-dom/*", "react-native", "react-native/*"],
+                group: [
+                  "react-dom",
+                  "react-dom/*",
+                  "react-native",
+                  "react-native/*",
+                ],
                 message:
                   "Do not use react-dom or react-native in the navigation package; keep adapter dependency-pure for RN parity.",
               },
@@ -391,14 +443,22 @@ function navigationOverrides(reactHooks, silverkey) {
 function featuresReactRouterRestriction() {
   return [
     {
-      files: ["packages/features/**/*.{ts,tsx}", "apps/web/pages/**/*.{ts,tsx}"],
+      files: [
+        "packages/features/**/*.{ts,tsx}",
+        "apps/web/pages/**/*.{ts,tsx}",
+      ],
       rules: {
         "no-restricted-imports": [
           "warn",
           {
             patterns: [
               {
-                group: ["react-router-dom", "react-router-dom/*", "react-router", "react-router/*"],
+                group: [
+                  "react-router-dom",
+                  "react-router-dom/*",
+                  "react-router",
+                  "react-router/*",
+                ],
                 message:
                   "Use the navigation adapter (packages/navigation) instead of react-router so a second implementation for React Native can be added later.",
               },
@@ -453,11 +513,27 @@ function eslintPluginOverrides() {
   ];
 }
 
+/** OpenAPI-generated types: allow large file and helper `any` from openapi-typescript output. */
+function generatedApiTypesOverride() {
+  return [
+    {
+      files: ["packages/types/api.generated.ts"],
+      rules: {
+        "@typescript-eslint/no-explicit-any": "off",
+        "silverkey/max-lines-hard": "off",
+      },
+    },
+  ];
+}
+
 /** Folders with 15–16 direct children; defer decomposition to avoid import churn. */
 function folderMaxItemsOverrides(silverkey) {
   return [
     {
-      files: ["apps/web/pages/HomeAuth/**/*.{ts,tsx}", "packages/hooks/data/auth/**/*.ts"],
+      files: [
+        "apps/web/pages/HomeAuth/**/*.{ts,tsx}",
+        "packages/hooks/data/auth/**/*.ts",
+      ],
       plugins: { silverkey },
       rules: { "silverkey/folder-max-items": "off" },
     },
@@ -488,6 +564,7 @@ export default function getEslintOverrides(plugins) {
     ...testNoFocusedOverrides(silverkey),
     ...fileExceptionsOverrides(),
     ...eslintPluginOverrides(),
+    ...generatedApiTypesOverride(),
     ...folderMaxItemsOverrides(silverkey),
   ];
 }

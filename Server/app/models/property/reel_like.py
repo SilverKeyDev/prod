@@ -1,7 +1,9 @@
 """Reel/feed like by (user_id, home_id). Requires migration to create reel_likes table."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -11,10 +13,12 @@ class ReelLike(db.Model):
 
     __tablename__ = "reel_likes"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), nullable=False)
-    home_id = db.Column(db.String(64), nullable=False, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(db.String(36))
+    home_id: Mapped[str] = mapped_column(db.String(64), index=True)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {

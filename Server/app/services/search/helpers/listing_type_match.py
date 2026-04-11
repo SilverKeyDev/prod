@@ -53,6 +53,10 @@ def _collect_searchable_text(prop: dict[str, Any]) -> str:
     """Lowercase blob from non-address fields for keyword heuristics (no PII logging here)."""
     parts: list[str] = []
 
+    desc = prop.get("description")
+    if desc:
+        parts.append(str(desc).lower())
+
     for key in ("listingType", "listing_type", "homeStatus", "home_type", "propertyType"):
         v = prop.get(key)
         if v is not None:
@@ -140,6 +144,24 @@ def _pref_matches(
 
     # Unknown pref: preserve legacy substring behavior between pref and status
     return pref_norm in status_norm or status_norm in pref_norm
+
+
+def listing_type_prefs_are_owner_posted_only(prefs: list[Any]) -> bool:
+    """
+    True when every non-empty preference normalizes to owner_posted.
+
+    Used to detect FSBO-only filters: upstream MLS rows are usually listingStatus=for_sale
+    without FSBO markers, so a hard filter would incorrectly return an empty list.
+    """
+    norms: list[str] = []
+    for pref in prefs:
+        s = str(pref).strip()
+        if not s:
+            continue
+        n = _normalize_token(s)
+        if n:
+            norms.append(n)
+    return bool(norms) and all(n == "owner_posted" for n in norms)
 
 
 def property_matches_listing_type_prefs(prop: dict[str, Any], prefs: list[Any]) -> bool:

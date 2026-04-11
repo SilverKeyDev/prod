@@ -1,0 +1,23 @@
+type: object
+required:
+  - email
+  - name
+  - role
+  - user_id
+properties:
+  email:
+    type: string
+    format: email
+    description: Participant email address
+  name:
+    type: string
+    description: Participant full name
+  role:
+    $ref: '../agreements/ParticipantRole.yaml'
+  routing_order:
+    type: integer
+    nullable: true
+    description: Signing order (defaults to next available)
+  user_id:
+    type: string
+    description: SilverKey user ID (required)

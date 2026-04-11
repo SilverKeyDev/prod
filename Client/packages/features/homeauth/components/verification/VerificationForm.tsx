@@ -3,10 +3,21 @@ import React, { type RefObject } from "react";
 import { Icon } from "@ui/icons";
 
 import { Box } from "packages/ui/components/primitives";
-import { applyCodeChange, applyPaste, getBackspaceFocusIndex } from "packages/utils/verification";
+import {
+  applyCodeChange,
+  applyPaste,
+  getBackspaceFocusIndex,
+} from "packages/utils/verification";
 
 import Card from "@/components/layout/Card.web";
-import { BodyText, Button, Input, Label, MiniLogo, Title } from "@/components/ui";
+import {
+  BodyText,
+  Button,
+  Input,
+  Label,
+  MiniLogo,
+  Title,
+} from "@/components/ui";
 export type VerificationStep = "email" | "code";
 type VerificationCodeInputsProps = {
   code: string[];
@@ -28,14 +39,20 @@ export function VerificationCodeInputs({
     inputRefs.current?.[nextFocusIndex]?.focus();
     if (index === 5 && nextCode.every((digit) => digit)) void onVerify();
   };
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
+  const handlePaste = (
+    e: React.ClipboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text/plain");
     const { nextCode, nextFocusIndex } = applyPaste(code, pasteData, index);
     setCode(nextCode);
     inputRefs.current?.[nextFocusIndex]?.focus();
   };
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       const focusIndex = getBackspaceFocusIndex(code, index);
       if (focusIndex !== null) inputRefs.current?.[focusIndex]?.focus();
@@ -59,7 +76,7 @@ export function VerificationCodeInputs({
           }
           onPaste={(e) => handlePaste(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
-          className="border-primary focus:ring-primary text-text-secondary h-12 w-12 rounded-lg border-2 text-center text-lg font-bold focus:border-transparent focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="border-border text-text-secondary h-12 w-12 rounded-lg border-2 text-center text-lg font-bold focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-400 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={loading}
         />
       ))}
@@ -119,9 +136,15 @@ export function VerificationForm({
             </Button>
           )}
           <Box className="text-center">
-            <Title size="lg" as="h2" className="mb-4 flex items-center justify-center gap-2">
+            <Title
+              size="lg"
+              as="h2"
+              className="mb-4 flex items-center justify-center gap-2"
+            >
               <MiniLogo size="md" />
-              {activeStep === "email" ? "Verify your email" : "Enter verification code"}
+              {activeStep === "email"
+                ? "Verify your email"
+                : "Enter verification code"}
             </Title>
           </Box>
           <BodyText size="sm" muted className="mb-4 text-center">
@@ -131,8 +154,8 @@ export function VerificationForm({
           </BodyText>
           {isFromLogin && !error && (
             <Box className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-yellow-50 p-3 text-yellow-800">
-              Please verify your email address to continue. A verification code has been sent to
-              your email.
+              Please verify your email address to continue. A verification code
+              has been sent to your email.
             </Box>
           )}
           {error && (
@@ -179,7 +202,9 @@ export function VerificationForm({
           )}
           {activeStep === "code" && (
             <form
-              onSubmit={(e: React.FormEvent<HTMLFormElement>) => e.preventDefault()}
+              onSubmit={(e: React.FormEvent<HTMLFormElement>) =>
+                e.preventDefault()
+              }
               className="space-y-responsive-md"
             >
               <VerificationCodeInputs
@@ -198,7 +223,11 @@ export function VerificationForm({
                   size="sm"
                   disabled={!canResend || loading}
                   loading={loading}
-                  className={canResend ? "text-accent hover:text-accent" : "text-text-disabled"}
+                  className={
+                    canResend
+                      ? "text-accent hover:text-accent"
+                      : "text-text-disabled"
+                  }
                 >
                   {canResend ? "Resend code" : `Resend in ${countdown}s`}
                 </Button>

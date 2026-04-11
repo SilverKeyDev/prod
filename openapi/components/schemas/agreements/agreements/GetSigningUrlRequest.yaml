@@ -1,0 +1,6 @@
+type: object
+required:
+  - participant_id
+properties:
+  participant_id:
+    type: string

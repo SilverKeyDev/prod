@@ -27,6 +27,7 @@ class LogCategory(StrEnum):
     ERRORS = "ERRORS"
     SECURITY = "SECURITY"
     POLYGON_SEARCH = "POLYGON_SEARCH"
+    DOCUSIGN = "DOCUSIGN"
 
 
 # Constant dict for easy access
@@ -40,6 +41,7 @@ LOG_CATEGORIES: dict[str, LogCategory] = {
     "ERRORS": LogCategory.ERRORS,
     "SECURITY": LogCategory.SECURITY,
     "POLYGON_SEARCH": LogCategory.POLYGON_SEARCH,
+    "DOCUSIGN": LogCategory.DOCUSIGN,
 }
 
 
@@ -63,6 +65,7 @@ def category_to_config_key(category: LogCategory) -> str:
         LogCategory.ERRORS: "errors",
         LogCategory.SECURITY: "security",
         LogCategory.POLYGON_SEARCH: "polygonSearch",
+        LogCategory.DOCUSIGN: "docusign",
     }
     return mapping[category]
 

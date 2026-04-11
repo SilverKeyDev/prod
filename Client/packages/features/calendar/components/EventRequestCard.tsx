@@ -54,7 +54,8 @@ export default function EventRequestCard({
   const { t } = useLocalization();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [cancelSubmitting, setCancelSubmitting] = React.useState(false);
-  const isAccepting = isAcceptingProp || (messageId != null && messageId === acceptingMessageId);
+  const isAccepting =
+    isAcceptingProp || (messageId != null && messageId === acceptingMessageId);
   const loading = isAccepting || isSubmitting || cancelSubmitting;
   const handleAccept = React.useCallback(async () => {
     if (status !== "pending" || loading) return;
@@ -90,6 +91,11 @@ export default function EventRequestCard({
             <BodyText size="sm" muted className="mb-2">
               {dateTimeStr}
             </BodyText>
+            {payload.location?.trim() && (
+              <BodyText size="sm" muted className="mb-2">
+                {payload.location.trim()}
+              </BodyText>
+            )}
             {payload.description?.trim() && (
               <BodyText size="sm" muted className="mb-3 whitespace-pre-line">
                 {payload.description.trim()}
@@ -118,6 +124,11 @@ export default function EventRequestCard({
             <BodyText size="sm" muted className="mb-2">
               {dateTimeStr}
             </BodyText>
+            {payload.location?.trim() && (
+              <BodyText size="sm" muted className="mb-2">
+                {payload.location.trim()}
+              </BodyText>
+            )}
             {payload.description?.trim() && (
               <BodyText size="sm" muted className="mb-3 whitespace-pre-line">
                 {payload.description.trim()}
@@ -148,6 +159,11 @@ export default function EventRequestCard({
           <BodyText size="sm" muted className="mb-2">
             {dateTimeStr}
           </BodyText>
+          {payload.location?.trim() && (
+            <BodyText size="sm" muted className="mb-2">
+              {payload.location.trim()}
+            </BodyText>
+          )}
           {payload.description?.trim() && (
             <BodyText size="sm" muted className="mb-3 whitespace-pre-line">
               {payload.description.trim()}

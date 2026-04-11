@@ -1,7 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Index
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -17,27 +18,35 @@ class UserScoreWeights(db.Model):
         Index("idx_usw_user_updated", "user_id", "last_trained_at"),
     )
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
 
     # Either user_id OR cohort_id should be set, not both
-    user_id = db.Column(db.String(36), nullable=True)  # Nullable for cohort weights
-    cohort_id = db.Column(db.String(64), nullable=True)  # Nullable for user-specific weights
+    user_id: Mapped[str | None] = mapped_column(db.String(36))  # Nullable for cohort weights
+    cohort_id: Mapped[str | None] = mapped_column(
+        db.String(64)
+    )  # Nullable for user-specific weights
 
     # Learned weights (normalized to sum to 1.0)
-    embedding_weight = db.Column(db.Float, nullable=False)
-    llm_weight = db.Column(db.Float, nullable=False)
+    embedding_weight: Mapped[float] = mapped_column(db.Float)
+    llm_weight: Mapped[float] = mapped_column(db.Float)
 
     # Training metadata
-    training_samples_count = db.Column(db.Integer, nullable=False, default=0)
-    last_trained_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    model_version = db.Column(db.String(20), nullable=False, default="1.0")
+    training_samples_count: Mapped[int] = mapped_column(db.Integer, default=0)
+    last_trained_at: Mapped[datetime] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+    model_version: Mapped[str] = mapped_column(db.String(20), default="1.0")
 
     # Performance metrics (optional, for monitoring)
-    training_accuracy = db.Column(db.Float, nullable=True)
-    training_auc = db.Column(db.Float, nullable=True)
+    training_accuracy: Mapped[float | None] = mapped_column(db.Float)
+    training_auc: Mapped[float | None] = mapped_column(db.Float)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime | None] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime | None] = mapped_column(
+        default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -105,7 +114,7 @@ class UserScoreWeights(db.Model):
                 existing.llm_weight = llm_weight
             if training_samples_count is not None:
                 existing.training_samples_count = training_samples_count
-            existing.last_trained_at = datetime.utcnow()
+            existing.last_trained_at = datetime.now(timezone.utc)
             existing.model_version = model_version
             if training_accuracy is not None:
                 existing.training_accuracy = training_accuracy

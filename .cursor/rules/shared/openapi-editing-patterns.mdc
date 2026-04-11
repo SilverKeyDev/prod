@@ -1,0 +1,258 @@
+---
+description: Best practices for editing OpenAPI schema files
+alwaysApply: true
+---
+
+# OpenAPI Schema Editing Patterns
+
+## Required Fields Pattern
+
+Always specify required fields explicitly:
+
+```yaml
+# ✅ CORRECT: Explicit required array
+type: object
+required:
+  - id
+  - name
+  - email
+properties:
+  id:
+    type: string
+  name:
+    type: string
+  email:
+    type: string
+  phoneNumber:
+    type: string
+    nullable: true  # Optional field
+
+# ❌ WRONG: No required array
+type: object
+properties:
+  id:
+    type: string
+  name:
+    type: string
+```
+
+## Nullable vs Optional
+
+- **Optional field**: Not in `required` array
+- **Nullable field**: Can be `null`, use `nullable: true`
+
+```yaml
+# ✅ CORRECT: Clear nullable pattern
+properties:
+  middleName:
+    type: string
+    nullable: true
+    description: Optional middle name (can be null)
+
+  lastName:
+    type: string
+    description: Required last name (not nullable)
+```
+
+## Descriptions
+
+Add descriptions for non-obvious fields:
+
+```yaml
+# ✅ CORRECT: Descriptive
+properties:
+  status:
+    type: string
+    enum: [pending, approved, rejected]
+    description: Current approval status of the application
+
+  createdAt:
+    type: string
+    format: date-time
+    description: ISO 8601 timestamp when record was created
+
+# ❌ WRONG: Missing descriptions
+properties:
+  status:
+    type: string
+    enum: [pending, approved, rejected]
+  createdAt:
+    type: string
+```
+
+## Unverified Backend Contracts
+
+Mark fields that need backend verification with `x-unverified: true`:
+
+```yaml
+# ✅ CORRECT: Mark unverified fields
+properties:
+  agentCommission:
+    type: number
+    nullable: true
+    x-unverified: true
+    description: "TODO: Verify with backend - observed in responses but not documented in route handler"
+```
+
+## Enum Values
+
+Use enums for fixed value sets:
+
+```yaml
+# ✅ CORRECT: Enum with description
+status:
+  type: string
+  enum:
+    - draft
+    - pending
+    - approved
+    - rejected
+  description: Document workflow status
+
+# ❌ WRONG: String without enum constraint
+status:
+  type: string
+  description: Status (draft, pending, approved, or rejected)
+```
+
+## Nested Objects
+
+Prefer inline definitions for simple nested objects, $ref for reusable types:
+
+```yaml
+# ✅ CORRECT: Inline for simple nested object
+address:
+  type: object
+  required:
+    - street
+    - city
+  properties:
+    street:
+      type: string
+    city:
+      type: string
+
+# ✅ CORRECT: $ref for reusable type
+location:
+  $ref: '#/components/schemas/GeoLocation'
+```
+
+## Array Properties
+
+Always specify `items` for arrays:
+
+```yaml
+# ✅ CORRECT: Array with items
+favoriteHomes:
+  type: array
+  items:
+    type: string
+  description: List of saved home IDs
+
+# ✅ CORRECT: Array of objects
+results:
+  type: array
+  items:
+    $ref: '#/components/schemas/SearchResult'
+
+# ❌ WRONG: Array without items
+favoriteHomes:
+  type: array
+```
+
+## Date/Time Fields
+
+Use `format: date-time` for timestamps:
+
+```yaml
+# ✅ CORRECT: ISO 8601 datetime
+createdAt:
+  type: string
+  format: date-time
+  description: ISO 8601 timestamp (e.g., 2024-03-15T10:30:00Z)
+
+# ✅ CORRECT: Date only
+birthDate:
+  type: string
+  format: date
+  description: Date in YYYY-MM-DD format
+```
+
+## Response Objects
+
+Follow consistent response patterns:
+
+```yaml
+# ✅ CORRECT: Response object pattern
+UserProfileResponse:
+  type: object
+  required:
+    - user
+  properties:
+    user:
+      $ref: '#/components/schemas/UserProfile'
+    metadata:
+      type: object
+      properties:
+        lastUpdated:
+          type: string
+          format: date-time
+```
+
+## Validation After Changes
+
+After editing any schema file:
+
+```bash
+# 1. Validate OpenAPI spec
+swagger-cli validate openapi/openapi.yaml
+
+# 2. Regenerate client types
+cd Client && pnpm generate:api-types
+
+# 3. Regenerate server schemas
+cd Server && bash scripts/generate-pydantic-models.sh
+
+# 4. Type check
+cd Client && pnpm typecheck
+```
+
+## Common Mistakes
+
+```yaml
+# ❌ WRONG: Missing type
+properties:
+  name:
+    description: User's name
+
+# ✅ CORRECT: Always specify type
+properties:
+  name:
+    type: string
+    description: User's name
+
+# ❌ WRONG: Using null as type
+properties:
+  optional:
+    type: null
+
+# ✅ CORRECT: Use nullable
+properties:
+  optional:
+    type: string
+    nullable: true
+```
+
+## Quick Checklist
+
+When editing a schema file:
+
+- [ ] `type` specified for all properties
+- [ ] `required` array defined for required fields
+- [ ] `nullable: true` for fields that can be null
+- [ ] `description` added for non-obvious fields
+- [ ] `enum` used for fixed value sets
+- [ ] `items` specified for arrays
+- [ ] `format` used for dates/times
+- [ ] Validated with `swagger-cli validate`
+- [ ] Types regenerated for client and server

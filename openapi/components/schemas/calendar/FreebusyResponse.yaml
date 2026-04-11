@@ -1,0 +1,29 @@
+type: object
+required:
+  - calendars
+properties:
+  calendars:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        busy:
+          type: array
+          items:
+            type: object
+            properties:
+              start:
+                type: string
+                format: date-time
+              end:
+                type: string
+                format: date-time
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              domain:
+                type: string
+              reason:
+                type: string

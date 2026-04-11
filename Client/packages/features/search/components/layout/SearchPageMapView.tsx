@@ -1,3 +1,4 @@
+import type { PreciseStreetAddressPayload } from "packages/features/search/components/header/location-bar/SearchLocationBar.web";
 import { useSearchViewStore } from "packages/store";
 import { MotionView } from "packages/ui/components/adapters/motion";
 
@@ -32,8 +33,11 @@ export type SearchPageMapViewProps = {
   setShowPropertyModals: (show: boolean) => void;
   setHasSearched: (searched: boolean) => void;
   selectedPropertyId: string | undefined;
-  onPreferencesChanged?: () => void | Promise<void>;
   onSearchProperties: () => void | Promise<void>;
+  /** When false, header preferences Search is disabled until user adds an important location */
+  hasLocations?: boolean;
+  /** Location bar / map viewport polygon search (not preferences isochrone). */
+  onLocationSearchSubmit: () => void | Promise<void>;
   onCancelSearch: () => void;
   selectedClientId: string | null;
   onClientChange: (clientId: string | null) => void;
@@ -43,6 +47,13 @@ export type SearchPageMapViewProps = {
   isochroneData: unknown;
   /** Called before switching to Reels - use to set anchor from map selection */
   onBeforeSwitchToReels?: () => void;
+  fitMapToBounds: (bounds: google.maps.LatLngBounds) => void;
+  /** Native map: toggles isochrone polygon drawing. */
+  showCommuteOverlay?: boolean;
+  mapHomeCardsCount: number;
+  onPreciseStreetAddressSelected?: (
+    payload: PreciseStreetAddressPayload,
+  ) => void;
 };
 
 export function SearchPageMapView({
@@ -70,8 +81,9 @@ export function SearchPageMapView({
   setShowPropertyModals,
   setHasSearched,
   selectedPropertyId,
-  onPreferencesChanged,
   onSearchProperties,
+  hasLocations = true,
+  onLocationSearchSubmit,
   onCancelSearch,
   selectedClientId,
   onClientChange,
@@ -80,6 +92,9 @@ export function SearchPageMapView({
   isLoadingIsochrone,
   isochroneData,
   onBeforeSwitchToReels,
+  fitMapToBounds,
+  mapHomeCardsCount,
+  onPreciseStreetAddressSelected,
 }: SearchPageMapViewProps): JSX.Element {
   const mode = useSearchViewStore((s) => s.mode);
   const toggleMode = useSearchViewStore((s) => s.toggleMode);
@@ -112,6 +127,7 @@ export function SearchPageMapView({
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         onViewPropertyDetails={onViewPropertyDetails}
+        onNavigateToProperty={onNavigateToProperty}
         isHomeSaved={isHomeSaved}
         saveHome={saveHomeForSidebar}
         removeSavedHome={removeSavedHome}
@@ -126,6 +142,7 @@ export function SearchPageMapView({
         mobileMapRef={mobileMapRef}
         setShowPropertyModals={setShowPropertyModals}
         setHasSearched={setHasSearched}
+        mapHomeCardsCount={mapHomeCardsCount}
       />
 
       <SearchPageDesktopLayout
@@ -137,8 +154,9 @@ export function SearchPageMapView({
         setCurrentPage={setCurrentPage}
         selectedPropertyId={selectedPropertyId}
         onNavigateToProperty={onNavigateToProperty}
-        onPreferencesChanged={onPreferencesChanged}
         onSearchProperties={onSearchProperties}
+        hasLocations={hasLocations}
+        onLocationSearchSubmit={onLocationSearchSubmit}
         onCancelSearch={onCancelSearch}
         isSearching={isSearching}
         selectedClientId={selectedClientId}
@@ -161,6 +179,9 @@ export function SearchPageMapView({
         mode={mode}
         onToggleMode={handleToggleMode}
         onBeforeSwitchToReels={onBeforeSwitchToReels}
+        fitMapToBounds={fitMapToBounds}
+        mapHomeCardsCount={mapHomeCardsCount}
+        onPreciseStreetAddressSelected={onPreciseStreetAddressSelected}
       />
     </MotionView>
   );

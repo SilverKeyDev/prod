@@ -1,0 +1,9 @@
+type: object
+required:
+  - home
+properties:
+  home:
+    $ref: '../favorites/FavoriteHomePayload.yaml'
+  why:
+    type: string
+    nullable: true

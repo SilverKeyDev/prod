@@ -48,7 +48,10 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
     const doc = getDocument();
     if (!doc) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
@@ -63,12 +66,11 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         type="button"
         variant="ghost"
         onClick={toggleDropdown}
-        className={`border-border hover:border-primary focus:border-primary focus:ring-accent-muted bg-background-surface flex h-full w-full items-center gap-2 rounded-lg border px-2 py-2 transition-colors duration-200 focus:ring-2 lg:px-3 lg:py-3 ${className}`}
+        className={`border-border focus:border-input-variant-focus-border bg-background-surface flex h-full w-full items-center gap-2 rounded-lg border px-2 py-2 transition-colors duration-200 hover:border-neutral-400 focus:ring-2 focus:ring-neutral-400 lg:px-3 lg:py-3 ${className}`}
         disabled={disabled ?? loadingHomes}
-        icon={<Icon name="home" className="text-primary h-4 w-4" />}
+        icon={<Icon name="home" className="text-primary h-4 w-4 shrink-0" />}
       >
-        <Icon name="home" className="text-primary h-4 w-4" />
-        <Box className="flex-1 text-left">
+        <Box className="min-w-0 flex-1 text-left">
           {loadingHomes ? (
             <KeyTurnLoader message={t("favorite_homes.loading_homes")} />
           ) : selectedHome ? (
@@ -77,7 +79,9 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                 {(() => {
                   const { address } = selectedHome;
                   const lastCommaIndex = address.lastIndexOf(",");
-                  return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
+                  return lastCommaIndex > 0
+                    ? address.substring(0, lastCommaIndex)
+                    : address;
                 })()}
               </Box>
               <Box className="text-responsive-xs text-text-secondary hidden sm:block">
@@ -88,26 +92,36 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                     })
                   : t("favorite_homes.selected_property")}
                 {selectedHome.price &&
-                  ` • ${selectedHome.price.startsWith("$") ? selectedHome.price : `$${selectedHome.price}`}`}
+                  ` • ${
+                    selectedHome.price.startsWith("$")
+                      ? selectedHome.price
+                      : `$${selectedHome.price}`
+                  }`}
               </Box>
             </Box>
           ) : (
             <Box>
-              <Box className="text-responsive-xs text-text-secondary">{displayPlaceholder}</Box>
-              <Box className="text-responsive-xs text-text-secondary hidden sm:block">
-                {t("favorite_homes.choose_saved_properties")}
+              <Box className="text-responsive-xs text-text-secondary">
+                {displayPlaceholder}
               </Box>
+              {placeholder === undefined ? (
+                <Box className="text-responsive-xs text-text-secondary mt-0.5 hidden sm:block">
+                  {t("favorite_homes.choose_saved_properties")}
+                </Box>
+              ) : null}
             </Box>
           )}
         </Box>
         <Icon
           name="chevron-down"
-          className={`text-primary h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+          className={`text-primary h-4 w-4 transition-transform duration-200 ${
+            isDropdownOpen ? "rotate-180" : ""
+          }`}
         />
       </Button>
 
       {isDropdownOpen && !loadingHomes && !disabled && (
-        <Box className="border-border bg-background-surface absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-lg border shadow-lg">
+        <Box className="border-border bg-background-surface z-dropdown absolute left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto rounded-lg border shadow-lg">
           {favoriteHomes.length === 0 ? (
             <Box className="text-text-secondary px-3 py-2 text-center text-sm">
               {t("favorite_homes.no_favorite_homes_found")}
@@ -120,7 +134,13 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                   type="button"
                   variant="ghost"
                   onClick={() => handleHomeSelection(home)}
-                  className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${index === 0 ? "first:rounded-t-lg" : ""} ${index === favoriteHomes.length - 1 ? "last:rounded-b-lg" : ""} ${
+                  className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
+                    index === 0 ? "first:rounded-t-lg" : ""
+                  } ${
+                    index === favoriteHomes.length - 1
+                      ? "last:rounded-b-lg"
+                      : ""
+                  } ${
                     selectedHome?.address === home.address
                       ? "bg-primary-muted text-primary"
                       : "hover:bg-accent-muted text-text-primary"
@@ -130,7 +150,9 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                     {(() => {
                       const { address } = home;
                       const lastCommaIndex = address.lastIndexOf(",");
-                      return lastCommaIndex > 0 ? address.substring(0, lastCommaIndex) : address;
+                      return lastCommaIndex > 0
+                        ? address.substring(0, lastCommaIndex)
+                        : address;
                     })()}
                   </Box>
                   <Box className="text-responsive-xs text-text-secondary mt-1 hidden sm:block">
@@ -142,9 +164,15 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                       : t("favorite_homes.property_details")}
                     {home.sqft &&
                       Number(home.sqft) > 0 &&
-                      ` • ${Math.round(Number(home.sqft)).toLocaleString()} sqft`}
+                      ` • ${Math.round(
+                        Number(home.sqft),
+                      ).toLocaleString()} sqft`}
                     {home.price &&
-                      ` • ${home.price.startsWith("$") ? home.price : `$${home.price}`}`}
+                      ` • ${
+                        home.price.startsWith("$")
+                          ? home.price
+                          : `$${home.price}`
+                      }`}
                   </Box>
                 </Button>
               );

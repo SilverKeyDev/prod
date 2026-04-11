@@ -4,8 +4,9 @@ const path = require("path");
 
 const ALLOWLIST = [
   "packages/config/env.ts",
-  "apps/web/vite.config.ts",
-  "vite.config.ts",
+  "apps/web/vite.config.js",
+  "apps/web/vite.config.resolve.js",
+  "vite.config.js",
   "vitest.config.",
   "postcss.config.",
   "tailwind.config.",
@@ -49,7 +50,7 @@ module.exports = {
       if (pattern.endsWith(".")) return filename.includes(pattern);
       if (pattern.includes("*")) {
         const regex = new RegExp(
-          "^.*" + pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*") + "$"
+          "^.*" + pattern.replace(/\*\*/g, ".*").replace(/\*/g, "[^/]*") + "$",
         );
         return regex.test(filename);
       }

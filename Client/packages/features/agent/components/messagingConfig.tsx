@@ -92,9 +92,10 @@ export const CLIENT_MESSAGING_CONFIG: MessagingConfig = {
     iconName: "bot",
   },
   sidebar: {
-    title: "Inbox",
-    emptyTitle: "No agent assigned",
-    emptyMessage: "Search for an agent to start messaging",
+    title: "Agents",
+    emptyTitle: "No conversations yet",
+    emptyMessage:
+      "Connect with an agent to start messaging. Your conversations will appear here.",
   },
   header: {
     chatTitle: "Chat with agent",

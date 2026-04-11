@@ -1,124 +1,288 @@
 import React, { useMemo } from "react";
 
 import { useLocalization } from "packages/contexts";
-import { PropertyAnalysis } from "packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyAnalysis";
-import { PropertyDetails } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyDetails";
-import { PropertyFeatures } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyFeatures";
-import { PropertyInfo } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyInfo";
-import { PropertyPaymentSnapshot } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/PropertyPaymentSnapshot";
-import { PropertyCommute } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertyCommute";
-import { PropertyNeighborhood } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertyNeighborhood";
-import { PropertySchools } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/PropertySchools";
+import { PropertyAnalysis } from "packages/features/propertyDetails/components/PropertyDetailsModal/body/analysis/PropertyAnalysis";
+import { ListingAgentCard } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/agent/ListingAgentCard";
+import { ListingAgentCardSkeleton } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/agent/ListingAgentCardSkeleton";
+import { MlsListingComplianceFooter } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/compliance/MlsListingComplianceFooter";
+import { PropertyDescription } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/description/PropertyDescription";
+import { PropertyFeatures } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/features/PropertyFeatures";
+import {
+  getAgentFromProperty,
+  getMlsListingId,
+} from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
+import { PropertyInfo } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/summary/PropertyInfo";
+import { PropertyCommute } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/commute/PropertyCommute";
+import { PropertyDemographics } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/demographics/PropertyDemographics";
+import { PropertyLocationMapSection } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/map/PropertyLocationMapSection";
+import { PropertyNeighborhood } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/neighborhood/PropertyNeighborhood";
+import { PropertySchools } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/schools/PropertySchools";
+import { PropertyEnvironmentalFactors } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/other/PropertyEnvironmentalFactors";
 import { ProsAndCons } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/other/ProsAndCons";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
+import type { PropertyDetailsSectionRefs } from "packages/features/propertyDetails/hooks/usePropertyDetailsSectionScroll.web";
 import type { PropertyWithAnalysis } from "packages/types/property-analysis";
+import Card from "packages/ui/components/cards/Card";
 import { Box, Text } from "packages/ui/components/primitives";
 import { Loading } from "packages/ui/components/primitives";
+import {
+  getClimateEnvironmentalSection,
+  getNeighborhoodAnalysisPayload,
+  hasEnvironmentalFactorsContent,
+} from "packages/utils/propertyDetails";
 
 export type PropertyDetailsBodyProps = PropertyComponentProps & {
   isLoading?: boolean;
+  /** Section refs for scroll navigation */
+  sectionRefs?: PropertyDetailsSectionRefs;
 };
 
 export const PropertyDetailsBody: React.FC<PropertyDetailsBodyProps> = ({
   property,
   isLoading = false,
+  sectionRefs,
 }) => {
   const { t } = useLocalization();
   const propertyAnalysis = useMemo(
     () => (property as PropertyWithAnalysis).property_analysis,
-    [property]
+    [property],
   );
 
   const hasCommute = useMemo(() => {
     return !!(property as unknown as { commute_data?: unknown }).commute_data;
   }, [property]);
 
-  const hasSchools = useMemo(() => {
-    const schools = (property as unknown as { schools?: unknown }).schools;
-    return (
-      Array.isArray(schools) &&
-      ((property as unknown as { schools?: unknown[] }).schools?.length ?? 0) > 0
-    );
-  }, [property]);
-
-  const hasFeatures = useMemo(() => {
-    return (
-      !!(property as unknown as { features?: unknown }).features ||
-      !!(property as unknown as { image_features?: unknown }).image_features
-    );
-  }, [property]);
+  // Note: Schools display removed from family-friendly section
 
   const hasAnalysis = useMemo(() => !!propertyAnalysis, [propertyAnalysis]);
   const commuteAnalysis = useMemo(
-    () => (propertyAnalysis ? (propertyAnalysis as Record<string, unknown>).commute : undefined),
-    [propertyAnalysis]
+    () =>
+      propertyAnalysis
+        ? (propertyAnalysis as Record<string, unknown>).commute
+        : undefined,
+    [propertyAnalysis],
   );
   const familyFriendlyAnalysis = useMemo(
     () =>
-      propertyAnalysis ? (propertyAnalysis as Record<string, unknown>).family_friendly : undefined,
-    [propertyAnalysis]
+      propertyAnalysis
+        ? (propertyAnalysis as Record<string, unknown>).family_friendly
+        : undefined,
+    [propertyAnalysis],
   );
   const neighborhoodAnalysis = useMemo(
     () =>
-      propertyAnalysis
-        ? (propertyAnalysis as Record<string, unknown>).neighborhood_overview
-        : undefined,
-    [propertyAnalysis]
+      getNeighborhoodAnalysisPayload(
+        propertyAnalysis as Record<string, unknown> | undefined,
+      ),
+    [propertyAnalysis],
   );
   const hasNeighborhood = useMemo(
     () =>
-      !!propertyAnalysis && !!(propertyAnalysis as Record<string, unknown>).neighborhood_overview,
-    [propertyAnalysis]
+      getNeighborhoodAnalysisPayload(
+        propertyAnalysis as Record<string, unknown> | undefined,
+      ) != null,
+    [propertyAnalysis],
   );
+
+  const climateEnvironmentalRaw = useMemo(
+    () =>
+      getClimateEnvironmentalSection(
+        propertyAnalysis as Record<string, unknown> | null | undefined,
+      ),
+    [propertyAnalysis],
+  );
+  const hasEnvironmentalSection = useMemo(
+    () => hasEnvironmentalFactorsContent(climateEnvironmentalRaw),
+    [climateEnvironmentalRaw],
+  );
+
+  /**
+   * When commute has travel times, that section renders the map (or the same unavailable message).
+   * Hide the standalone location map to avoid duplicate "Map" sections.
+   */
+  const commuteSectionHasTravelTimesMap = useMemo(() => {
+    const cd = (
+      property as unknown as { commute_data?: { travel_times?: unknown[] } }
+    ).commute_data;
+    return Array.isArray(cd?.travel_times) && cd.travel_times.length > 0;
+  }, [property]);
 
   const excludeSections = useMemo(() => {
     const out: string[] = [];
     if (hasCommute || commuteAnalysis) out.push("commute");
-    if (hasSchools || familyFriendlyAnalysis) out.push("family_friendly");
+    if (familyFriendlyAnalysis) out.push("family_friendly");
     if (hasNeighborhood || neighborhoodAnalysis) {
       out.push("neighborhood_overview");
+      out.push("neighborhood");
       out.push("age_distribution");
+      out.push("race_distribution");
+      out.push("income_distribution");
+      out.push("education_distribution");
+      out.push("demographics");
     }
+    if (hasEnvironmentalSection) out.push("climate_environmental_safety");
     return out;
   }, [
     hasCommute,
     commuteAnalysis,
-    hasSchools,
     familyFriendlyAnalysis,
     hasNeighborhood,
     neighborhoodAnalysis,
+    hasEnvironmentalSection,
   ]);
+
+  const agent = useMemo(() => getAgentFromProperty(property), [property]);
+  const mlsListingId = useMemo(() => getMlsListingId(property), [property]);
 
   return (
     <Box className="pb-4">
-      <PropertyInfo property={property} />
-      <PropertyPaymentSnapshot property={property} />
-      <PropertyDetails property={property} />
-      <ProsAndCons property={property} />
-      {hasFeatures && <PropertyFeatures key="propertyFeatures" property={property} />}
+      {/* Two-column layout: main content on left, agent sidebar on right */}
+      <Box className="flex flex-col lg:flex-row lg:gap-6">
+        {/* Main content area */}
+        <Box className="min-w-0 flex-1">
+          {/* Overview Section */}
+          <Box
+            ref={
+              sectionRefs?.overview as
+                | React.RefObject<HTMLDivElement>
+                | undefined
+            }
+            data-section-id="overview"
+          >
+            <PropertyInfo property={property} />
+          </Box>
 
-      {/* Dynamic sections in same order as propertyDetailsModalSectionHelpers (by priority: neighborhood 2, commute 3, family_friendly 4, analysis 10) */}
-      {(hasNeighborhood || neighborhoodAnalysis) && (
-        <PropertyNeighborhood property={property} analysisContent={neighborhoodAnalysis} />
-      )}
-      {(hasCommute || commuteAnalysis) && (
-        <PropertyCommute property={property} analysisContent={commuteAnalysis} />
-      )}
-      {(hasSchools || familyFriendlyAnalysis) && (
-        <PropertySchools property={property} analysisContent={familyFriendlyAnalysis} />
-      )}
-      {hasAnalysis && <PropertyAnalysis property={property} excludeSections={excludeSections} />}
+          {/* Location Section */}
+          <Box
+            ref={
+              sectionRefs?.location as
+                | React.RefObject<HTMLDivElement>
+                | undefined
+            }
+            data-section-id="location"
+          >
+            {!commuteSectionHasTravelTimesMap ? (
+              <PropertyLocationMapSection
+                property={property}
+                isLoading={isLoading}
+              />
+            ) : null}
+            {commuteSectionHasTravelTimesMap &&
+            (hasCommute || commuteAnalysis) ? (
+              <PropertyCommute
+                property={property}
+                analysisContent={commuteAnalysis}
+              />
+            ) : null}
+            {(hasNeighborhood || neighborhoodAnalysis) && (
+              <PropertyNeighborhood
+                property={property}
+                analysisContent={neighborhoodAnalysis}
+              />
+            )}
+            {neighborhoodAnalysis && (
+              <PropertyDemographics
+                property={property}
+                analysisContent={neighborhoodAnalysis}
+              />
+            )}
+            {!commuteSectionHasTravelTimesMap &&
+            (hasCommute || commuteAnalysis) ? (
+              <PropertyCommute
+                property={property}
+                analysisContent={commuteAnalysis}
+              />
+            ) : null}
+            {familyFriendlyAnalysis && (
+              <PropertySchools
+                property={property}
+                analysisContent={familyFriendlyAnalysis}
+              />
+            )}
+          </Box>
 
-      {isLoading && (
-        <Box className="mt-4 items-center px-4">
-          <Loading />
-          <Text className="text-text-secondary mt-2 text-xs">
-            {t("property_details.loading", {
-              defaultValue: "Fetching additional details…",
-            })}
-          </Text>
+          {/* Match Section */}
+          <Box
+            ref={
+              sectionRefs?.match as React.RefObject<HTMLDivElement> | undefined
+            }
+            data-section-id="match"
+          >
+            <ProsAndCons property={property} />
+          </Box>
+
+          {/* Analysis Section */}
+          <Box
+            ref={
+              sectionRefs?.analysis as
+                | React.RefObject<HTMLDivElement>
+                | undefined
+            }
+            data-section-id="analysis"
+          >
+            <PropertyFeatures
+              key="propertyFeatures"
+              property={property}
+              hideListingAgentOnMdUp
+              isLoading={isLoading}
+            />
+            {hasEnvironmentalSection ? (
+              <PropertyEnvironmentalFactors
+                key="environmentalFactors"
+                property={property}
+              />
+            ) : null}
+            {hasAnalysis && (
+              <PropertyAnalysis
+                property={property}
+                excludeSections={excludeSections}
+              />
+            )}
+          </Box>
+
+          {/* Description Section — rendered last */}
+          <PropertyDescription property={property} />
+
+          {isLoading && (
+            <Box className="mt-4 items-center px-4">
+              <Loading />
+              <Text className="text-text-secondary mt-2 text-xs">
+                {t("property_details.loading", {
+                  defaultValue: "Fetching additional details…",
+                })}
+              </Text>
+            </Box>
+          )}
         </Box>
-      )}
+
+        {/* Sidebar with listing agent card */}
+        {(isLoading || agent.hasAgent) && (
+          <Box className="hidden lg:block lg:w-80 lg:flex-shrink-0">
+            <Box className="sticky top-6">
+              <Card border="light" className="p-4">
+                {isLoading ? (
+                  <ListingAgentCardSkeleton
+                    variant="default"
+                    className="w-full max-w-none"
+                  />
+                ) : (
+                  <ListingAgentCard
+                    imageUrl={agent.imageUrl}
+                    displayName={agent.displayName}
+                    businessName={agent.businessName}
+                    phone={agent.phone}
+                    email={agent.email}
+                    mlsListingId={mlsListingId}
+                    variant="default"
+                    className="w-full max-w-none"
+                  />
+                )}
+              </Card>
+            </Box>
+          </Box>
+        )}
+      </Box>
+      <MlsListingComplianceFooter />
     </Box>
   );
 };

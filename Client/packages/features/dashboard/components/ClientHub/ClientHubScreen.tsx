@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -10,8 +16,13 @@ import {
 } from "packages/features/checklists";
 import { useIsAgent } from "packages/features/homeauth";
 import { useNavigation } from "packages/navigation";
-import { ProfileAvatar } from "packages/ui/components";
-import { Box, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
+import ClientSelector from "packages/ui/components/button/ClientSelector";
+import {
+  Box,
+  Pressable,
+  ScrollView,
+  Text,
+} from "packages/ui/components/primitives";
 import { UnderlineTabs } from "packages/ui/components/tabs";
 import { dateParseISO } from "packages/utils/date";
 
@@ -79,7 +90,8 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
 
   const [activeTab, setActiveTab] = useState<ClientHubTab>("overview");
   const { currentSection, isSectionUnlocked } = useChecklistProgress();
-  const [checklistTab, setChecklistTab] = useState<ChecklistTab>(currentSection);
+  const [checklistTab, setChecklistTab] =
+    useState<ChecklistTab>(currentSection);
   const prevActiveTabRef = useRef<ClientHubTab>("overview");
 
   // When opening the checklists tab, select the tab with the earliest unchecked item
@@ -90,23 +102,46 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
     prevActiveTabRef.current = activeTab;
   }, [activeTab, currentSection]);
 
-  const client = useMemo(() => clients.find((c) => c.id === clientId), [clients, clientId]);
+  const client = useMemo(
+    () => clients.find((c) => c.id === clientId),
+    [clients, clientId],
+  );
+
+  const handleHubClientChange = useCallback(
+    (nextId: string | null) => {
+      if (nextId !== null) {
+        navigateToPath(`/dashboard/client/${nextId}`);
+      } else {
+        navigateToPath("/dashboard");
+      }
+    },
+    [navigateToPath],
+  );
 
   const enhancedClient = useMemo(
     () => (client ? enhanceClientWithDealInfo(client, "search") : null),
-    [client, enhanceClientWithDealInfo]
+    [client, enhanceClientWithDealInfo],
   );
 
-  const financial = useMemo(() => generateMockFinancialSnapshot(), [generateMockFinancialSnapshot]);
-  const goals = useMemo(() => generateMockClientGoals(), [generateMockClientGoals]);
+  const financial = useMemo(
+    () => generateMockFinancialSnapshot(),
+    [generateMockFinancialSnapshot],
+  );
+  const goals = useMemo(
+    () => generateMockClientGoals(),
+    [generateMockClientGoals],
+  );
   const timelineEvents = useMemo(
     () => generateMockTimelineEvents(clientId),
-    [clientId, generateMockTimelineEvents]
+    [clientId, generateMockTimelineEvents],
   );
-  const notes = useMemo(() => generateMockNotes(clientId), [clientId, generateMockNotes]);
+  const notes = useMemo(
+    () => generateMockNotes(clientId),
+    [clientId, generateMockNotes],
+  );
   const decisions = useMemo(
     () => generateMockDecisionLog(clientId),
-    [clientId, generateMockDecisionLog]
+    [clientId, generateMockDecisionLog],
   );
 
   const tabs: { id: ClientHubTab; label: string }[] = [
@@ -126,9 +161,11 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
           onPress={() => {
             goBack();
           }}
-          className="border-primary rounded-lg border px-4 py-2"
+          className="border-border rounded-lg border px-4 py-2"
         >
-          <Text className="text-primary text-sm font-medium">Back to dashboard</Text>
+          <Text className="text-primary text-sm font-medium">
+            Back to dashboard
+          </Text>
         </Pressable>
       </Box>
     );
@@ -145,14 +182,18 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
   if (!client || !enhancedClient) {
     return (
       <Box className="flex-1 items-center justify-center p-6">
-        <Text className="text-text-secondary mb-3 text-sm">Client not found.</Text>
+        <Text className="text-text-secondary mb-3 text-sm">
+          Client not found.
+        </Text>
         <Pressable
           onPress={() => {
             goBack();
           }}
-          className="border-primary rounded-lg border px-4 py-2"
+          className="border-border rounded-lg border px-4 py-2"
         >
-          <Text className="text-primary text-sm font-medium">Back to dashboard</Text>
+          <Text className="text-primary text-sm font-medium">
+            Back to dashboard
+          </Text>
         </Pressable>
       </Box>
     );
@@ -173,23 +214,21 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
           <Text className="text-primary text-sm font-medium">← Back</Text>
         </Pressable>
 
-        <Box className="flex flex-1 flex-row items-center gap-3">
-          <Box className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100">
-            <ProfileAvatar
-              imageUrl={client.profile_picture}
-              label={client.name}
-              imageClassName="h-full w-full object-cover"
-            />
-          </Box>
-          <Box className="flex-1">
-            <Text className="text-text-primary text-lg font-semibold">{enhancedClient.name}</Text>
-            <Text className="text-text-secondary text-sm">{enhancedClient.email}</Text>
+        <Box className="min-w-0 flex-1 flex-col gap-2">
+          <ClientSelector
+            selectedClientId={clientId}
+            onClientChange={handleHubClientChange}
+            hideMeOption
+            className="w-full max-w-md self-end sm:self-auto"
+          />
+          <Box>
             <Text className="text-text-secondary text-xs">
               Stage: {enhancedClient.deal_stage.replace(/_/g, " ")}
             </Text>
             {enhancedClient.last_agent_action ? (
               <Text className="text-text-secondary text-xs">
-                Last action: {formatRelativeDate(enhancedClient.last_agent_action)}
+                Last action:{" "}
+                {formatRelativeDate(enhancedClient.last_agent_action)}
               </Text>
             ) : null}
           </Box>
@@ -226,16 +265,27 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
               <FinancialSnapshot financial={financial} />
 
               {/* Risk flags */}
-              <RiskWatchlist riskFlags={enhancedClient.risk_flags} emotionalVolatility="medium" />
+              <RiskWatchlist
+                riskFlags={enhancedClient.risk_flags}
+                emotionalVolatility="medium"
+              />
 
               {/* Search Activity */}
-              <SearchActivity viewedHomes={12} favoritedHomes={5} rejectedHomes={7} />
+              <SearchActivity
+                viewedHomes={12}
+                favoritedHomes={5}
+                rejectedHomes={7}
+              />
 
               {/* Timeline */}
               <ClientTimeline events={timelineEvents} />
 
               {/* Communication Log */}
-              <CommunicationLog clientId={clientId} decisions={decisions} notes={notes} />
+              <CommunicationLog
+                clientId={clientId}
+                decisions={decisions}
+                notes={notes}
+              />
             </Box>
           )}
 
@@ -252,7 +302,14 @@ export function ClientHubScreen({ clientId }: ClientHubScreenProps) {
               {/* Checklist sub-tabs */}
               <UnderlineTabs
                 items={(
-                  ["search", "offer", "escrow", "inspections", "financing", "closing"] as const
+                  [
+                    "search",
+                    "offer",
+                    "escrow",
+                    "inspections",
+                    "financing",
+                    "closing",
+                  ] as const
                 ).map((id) => ({
                   id,
                   label: CHECKLIST_TITLES[id],

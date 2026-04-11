@@ -1,16 +1,25 @@
 """Admin-only endpoint to set the current user's is_agent flag (for testing/development)."""
 
+from flask import request
+
+from app.dtos.user import UserDTO
+from app.schemas import UpdateAgentStatusRequest, UpdateAgentStatusResponse
 from app.utils.admin import user_has_admin_role
 from app.utils.common_patterns import (
-    api_route,
+    handle_exceptions_with_logging,
+    require_authenticated_user,
     standardize_error_response,
     standardize_success_response,
 )
+from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
 
 
-@api_route(require_auth=True, require_json=True)
-def set_current_user_agent_status(data, user):
+@handle_exceptions_with_logging
+@require_authenticated_user
+@validate_request(UpdateAgentStatusRequest)
+@validate_response(UpdateAgentStatusResponse)
+def set_current_user_agent_status(user, data: UpdateAgentStatusRequest | None = None):
     """Set the signed-in user's is_agent flag. Admin only."""
     if not user_has_admin_role(user):
         log.security(
@@ -20,9 +29,12 @@ def set_current_user_agent_status(data, user):
         )
         return standardize_error_response("Admin access required", status_code=403)
 
-    if "is_agent" not in data:
-        return standardize_error_response("is_agent is required", status_code=400)
-    is_agent = data.get("is_agent")
+    if data is None:
+        request_data = request.get_json(silent=True) or {}
+        is_agent = request_data.get("is_agent")
+    else:
+        is_agent = data.is_agent
+
     if not isinstance(is_agent, bool):
         return standardize_error_response(
             "is_agent must be a boolean",
@@ -40,4 +52,4 @@ def set_current_user_agent_status(data, user):
         {"user_id": getattr(user, "id", None), "is_agent": is_agent},
     )
 
-    return standardize_success_response({"is_agent": user.is_agent})
+    return standardize_success_response({"user": UserDTO.to_response(user)})

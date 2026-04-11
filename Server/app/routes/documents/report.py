@@ -6,10 +6,13 @@ from flask import Blueprint, Response, jsonify, request
 from jose.exceptions import ExpiredSignatureError, JWTError
 from sqlalchemy import or_
 
+from app.schemas import DeleteReportRequest, DeleteReportResponse, DocumentLibraryResponse
+from app.utils.pagination import build_pagination, parse_query_pagination_args
 from app.utils.security.app_logging import get_logger
+from app.utils.validation import validate_request, validate_response
 
 from ... import db
-from ...models import Document
+from ...models import Agreement, Document, DocumentLibraryItem
 from ...services.auth import SecurityException, get_current_user
 from ...services.documents import DocumentService, s3_service
 from ...utils.common_patterns import require_authenticated_user, resolve_agent_scoped_user_id
@@ -20,6 +23,106 @@ logger = get_logger()
 
 # Blueprint setup
 report_bp = Blueprint("report", __name__, url_prefix="/api/v1/report")
+
+
+def _document_library_rows_for_user(target_uid: str) -> list[dict]:
+    """Unified list: file uploads and DocuSign agreements for Saved / documents."""
+    items = (
+        DocumentLibraryItem.query.filter_by(user_id=target_uid)
+        .order_by(DocumentLibraryItem.updated_at.desc().nulls_last())
+        .all()
+    )
+
+    if not items:
+        return []
+
+    # Separate items by kind and collect IDs
+    upload_item_ids = [item.id for item in items if item.kind == "upload"]
+    agreement_item_ids = [item.id for item in items if item.kind == "agreement"]
+
+    # Batch load all documents and agreements
+    documents = (
+        Document.query.filter(Document.library_item_id.in_(upload_item_ids)).all()
+        if upload_item_ids
+        else []
+    )
+    agreements = (
+        Agreement.query.filter(Agreement.library_item_id.in_(agreement_item_ids)).all()
+        if agreement_item_ids
+        else []
+    )
+
+    # Create lookup dictionaries
+    docs_by_item_id = {doc.library_item_id: doc for doc in documents}
+    agreements_by_item_id = {ag.library_item_id: ag for ag in agreements}
+
+    rows: list[dict] = []
+    for item in items:
+        if item.kind == "upload":
+            doc = docs_by_item_id.get(item.id)
+            if not doc:
+                continue
+            rows.append(
+                {
+                    "document_record_kind": "library",
+                    "library_item_id": item.id,
+                    "library_kind": "upload",
+                    "id": doc.id,
+                    "filename": doc.filename,
+                    "file_path": doc.file_path,
+                    "status": doc.status,
+                    "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                    "updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
+                    "user_id": doc.user_id,
+                    "document_type": getattr(doc, "document_type", None),
+                    "address": getattr(doc, "address", None),
+                    "event_type": None,
+                }
+            )
+        elif item.kind == "agreement":
+            ag = agreements_by_item_id.get(item.id)
+            if not ag:
+                continue
+            participants_list = [
+                {
+                    "user_id": p.user_id,
+                    "email": p.email,
+                    "name": p.name,
+                    "role": p.role,
+                    "routing_order": p.routing_order,
+                    "recipient_status": p.recipient_status,
+                }
+                for p in (ag.participants or [])
+            ]
+            rows.append(
+                {
+                    "document_record_kind": "library",
+                    "library_item_id": item.id,
+                    "library_kind": "agreement",
+                    "id": ag.id,
+                    "filename": ag.title,
+                    "file_path": ag.signed_document_path or "",
+                    "status": ag.status,
+                    "created_at": ag.created_at.isoformat() if ag.created_at else None,
+                    "updated_at": ag.updated_at.isoformat() if ag.updated_at else None,
+                    "user_id": ag.buyer_id,
+                    "document_type": "agreement",
+                    "address": ag.property_address,
+                    "agreement_type": ag.agreement_type,
+                    "event_type": None,
+                    "agent_id": ag.agent_id,
+                    "buyer_id": ag.buyer_id,
+                    "participants": participants_list,
+                }
+            )
+    rows.sort(
+        key=lambda r: (
+            r.get("updated_at") or r.get("created_at") or "",
+            r.get("id") or "",
+        ),
+        reverse=True,
+    )
+    return rows
 
 
 @report_bp.route("/list", methods=["GET"])
@@ -166,7 +269,7 @@ def get_view_url(user, report_id):
         return jsonify({"error": "Internal server error"}), 500
 
 
-@report_bp.route("/<report_id>/view", methods=["GET"])
+@report_bp.route("/<report_id>/view", methods=["GET", "HEAD"])
 @require_authenticated_user
 def view_pdf_inline(user, report_id):
     """Serve PDF with iframe-friendly headers for inline viewing."""
@@ -207,11 +310,16 @@ def view_pdf_inline(user, report_id):
 
 @report_bp.route("/<report_id>", methods=["DELETE"])
 @require_authenticated_user
-def delete_report(user, report_id):
+@validate_request(DeleteReportRequest)
+@validate_response(DeleteReportResponse)
+def delete_report(user, report_id, data: DeleteReportRequest | None = None):
     """Delete a report from S3 and database."""
     try:
-        data = request.get_json() or {}
-        s3_key = (data.get("s3_key") or data.get("file_path") or "").lstrip("/")
+        if data is None:
+            request_data = request.get_json(silent=True) or {}
+        else:
+            request_data = data.model_dump(mode="json")
+        s3_key = (request_data.get("s3_key") or request_data.get("file_path") or "").lstrip("/")
 
         # Delete from S3
         s3_deleted = False
@@ -224,7 +332,12 @@ def delete_report(user, report_id):
         if not pdf_doc or pdf_doc.user_id != user.id:
             return jsonify({"error": "Report not found"}), 404
 
+        li_id = pdf_doc.library_item_id
         db.session.delete(pdf_doc)
+        if li_id:
+            li = DocumentLibraryItem.query.get(li_id)
+            if li:
+                db.session.delete(li)
         db.session.commit()
 
         return jsonify(
@@ -245,15 +358,23 @@ def delete_report(user, report_id):
 @report_bp.route("/documents", methods=["GET"])
 @require_authenticated_user
 def get_user_documents(user):
-    """Get all documents for the authenticated user."""
+    """Get all documents for the authenticated user (uploads only; use /document-library for unified)."""
     try:
         target_uid, scope_err = resolve_agent_scoped_user_id(user)
         if scope_err:
             return scope_err[0], scope_err[1]
-        documents = Document.query.filter_by(user_id=target_uid).all()
+
+        # Add pagination support
+        limit = min(100, max(1, int(request.args.get("limit", "100"))))
+        offset = max(0, int(request.args.get("offset", "0")))
+
+        query = Document.query.filter_by(user_id=target_uid).order_by(Document.updated_at.desc())
+        total_count = query.count()
+        documents = query.limit(limit).offset(offset).all()
 
         documents_data = [
             {
+                "document_record_kind": "pipeline",
                 "id": doc.id,
                 "filename": doc.filename,
                 "file_path": doc.file_path,
@@ -268,7 +389,15 @@ def get_user_documents(user):
         ]
 
         return jsonify(
-            {"success": True, "documents": documents_data, "count": len(documents_data)}
+            {
+                "success": True,
+                "documents": documents_data,
+                "count": len(documents_data),
+                "total": total_count,
+                "limit": limit,
+                "offset": offset,
+                "hasMore": (offset + len(documents_data)) < total_count,
+            }
         ), 200
 
     except (SecurityException, ExpiredSignatureError, JWTError):
@@ -276,3 +405,66 @@ def get_user_documents(user):
     except Exception as e:
         logger.error(f"Error retrieving documents: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+
+
+@report_bp.route("/document-library", methods=["GET"])
+@require_authenticated_user
+@validate_response(DocumentLibraryResponse)
+def get_document_library(user):
+    """Unified file uploads + DocuSign agreements for the scoped user (buyer-centric agreements)."""
+    try:
+        target_uid, scope_err = resolve_agent_scoped_user_id(user)
+        if scope_err:
+            return scope_err[0], scope_err[1]
+        rows = _document_library_rows_for_user(target_uid)
+        page, per_page = parse_query_pagination_args(request.args, default_per_page=20)
+        total = len(rows)
+        offset = (page - 1) * per_page
+        items = rows[offset : offset + per_page]
+        pagination = build_pagination(page=page, per_page=per_page, total=total)
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "items": items,
+                    "count": len(items),
+                    "pagination": pagination,
+                }
+            ),
+            200,
+        )
+    except (SecurityException, ExpiredSignatureError, JWTError):
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    except Exception as e:
+        logger.error(f"Error retrieving document library: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@report_bp.route("/document-library/<library_item_id>", methods=["DELETE"])
+@require_authenticated_user
+def remove_from_library(user, library_item_id):
+    """Remove a document from the user's library (does not delete the actual document)."""
+    try:
+        # Find the library item
+        library_item = DocumentLibraryItem.query.filter_by(id=library_item_id).first()
+
+        if not library_item:
+            return jsonify({"success": False, "error": "Library item not found"}), 404
+
+        # Verify the library item belongs to the current user
+        if library_item.user_id != user.id:
+            return jsonify({"success": False, "error": "Unauthorized"}), 403
+
+        # Delete only the library item, not the underlying document/agreement
+        db.session.delete(library_item)
+        db.session.commit()
+
+        logger.info(f"Removed library item {library_item_id} for user {user.id}")
+        return jsonify({"success": True, "message": "Document removed from library"}), 200
+
+    except (SecurityException, ExpiredSignatureError, JWTError):
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+    except Exception as e:
+        logger.error(f"Error removing from library: {str(e)}")
+        db.session.rollback()
+        return jsonify({"success": False, "error": "Internal server error"}), 500

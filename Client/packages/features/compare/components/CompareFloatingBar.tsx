@@ -45,14 +45,17 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
       ? t("compare_floating.home_selected")
       : t("compare_floating.homes_selected", { count: selectedHomes.length });
   return (
-    <Box className="safe-bottom bottom-reserved border-border bg-background-surface fixed left-0 right-0 z-50 border-t shadow-lg md:bottom-0">
+    <Box className="safe-bottom bottom-reserved border-border bg-background-surface z-dock fixed left-0 right-0 border-t shadow-lg md:bottom-0">
       <Box className="px-responsive-md py-responsive-sm max-w-7xl self-center sm:px-6 sm:py-4">
         <Box className="gap-responsive-sm flex flex-row items-center sm:gap-4">
           {/* Count and thumbnails */}
           <Box className="gap-responsive-sm flex flex-1 flex-row items-center">
             <Box className="flex-shrink-0">
               <Box className="bg-primary-muted flex h-8 w-8 flex-row items-center justify-center rounded-full sm:h-10 sm:w-10">
-                <Icon name="bar-chart-2" className="text-primary h-4 w-4 sm:h-5 sm:w-5" />
+                <Icon
+                  name="bar-chart-2"
+                  className="text-primary h-4 w-4 sm:h-5 sm:w-5"
+                />
               </Box>
             </Box>
             <Box className="min-w-0 flex-1">
@@ -80,7 +83,10 @@ const CompareFloatingBar: React.FC<CompareFloatingBarProps> = ({
                     />
                   ) : (
                     <Box className="bg-primary-muted flex h-full w-full flex-row items-center justify-center">
-                      <Icon name="bar-chart-2" className="text-text-disabled h-5 w-5" />
+                      <Icon
+                        name="bar-chart-2"
+                        className="text-text-disabled h-5 w-5"
+                      />
                     </Box>
                   )}
                   <IconButton

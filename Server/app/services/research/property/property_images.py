@@ -1,63 +1,34 @@
 """
 Image fetching utilities for property research endpoints.
-Handles fetching images from property API.
+Handles fetching images from Slipstream property API.
 """
 
 from typing import Any
 
-import requests
 from flask import current_app
 
-RAPI_HOST = "us-housing-market-data1.p.rapidapi.com"
+from app.services.search.data import get_property_images as _slipstream_get_images
 
 
-def fetch_zillow_images(zpid: str, rapidapi_key: str) -> list[str]:
+def fetch_zillow_images(zpid: str, rapidapi_key: str | None = None) -> list[str]:
     """
-    Fetch property images from property images API.
+    Fetch property images from Slipstream API.
 
     Args:
-        zpid: Property ID
-        rapidapi_key: RapidAPI key
+        zpid: Property / MLS listing ID
+        rapidapi_key: Unused (kept for backward compat signature)
 
     Returns:
         List of image URLs
     """
-    zillow_api_images = []
-
     if not zpid:
-        return zillow_api_images
+        return []
 
     try:
-        images_url = f"https://{RAPI_HOST}/images"
-        images_params = {"zpid": zpid}
-        images_headers = {"X-RapidAPI-Key": rapidapi_key, "X-RapidAPI-Host": RAPI_HOST}
-
-        images_response = requests.get(
-            images_url, headers=images_headers, params=images_params, timeout=300
-        )
-
-        if images_response.status_code == 200:
-            images_data = images_response.json()
-
-            # Extract image URLs from the response
-            if isinstance(images_data, dict):
-                # Look for images in various possible fields
-                for key in ["images", "photos", "imageList", "data"]:
-                    if key in images_data and isinstance(images_data[key], list):
-                        for img_item in images_data[key]:
-                            if isinstance(img_item, str):
-                                zillow_api_images.append(img_item)
-                            elif isinstance(img_item, dict):
-                                # Look for URL fields
-                                for url_key in ["url", "src", "href", "link"]:
-                                    if url_key in img_item and isinstance(img_item[url_key], str):
-                                        zillow_api_images.append(img_item[url_key])
-                                        break
-
+        return _slipstream_get_images(str(zpid))
     except Exception as e:
         current_app.logger.warning(f"🖼️ [PROPERTY] Failed to fetch images from API: {e}")
-
-    return zillow_api_images
+        return []
 
 
 def extract_primary_image(zillow_api_images: list[str], data: dict[str, Any] | None) -> str | None:
@@ -71,12 +42,13 @@ def extract_primary_image(zillow_api_images: list[str], data: dict[str, Any] | N
     Returns:
         Primary image URL if found, None otherwise
     """
-    # Try images from API first
     if zillow_api_images:
         return zillow_api_images[0]
 
-    # Fallback to data fields
     if data and isinstance(data, dict):
+        imgs = data.get("images")
+        if isinstance(imgs, list) and imgs:
+            return imgs[0]
         for key in ["imgSrc", "image", "image_url", "imageUrl"]:
             if data.get(key):
                 return data.get(key)

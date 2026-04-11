@@ -19,7 +19,6 @@ import type { SecureFileUploadProps } from "./SecureFileUpload";
  */
 export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   label,
-  required,
   disabled,
 }) => {
   const { t } = useLocalization();
@@ -27,13 +26,12 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   return (
     <View style={[styles.card, disabled && styles.cardDisabled]}>
       {label ? (
-        <Text style={styles.label}>
-          {label}
-          {required ? <Text style={styles.required}> *</Text> : null}
-        </Text>
+        <Text style={styles.label}>{label}</Text>
       ) : (
         <Text style={styles.label}>
-          {t("secure_upload.title_mobile_fallback", { defaultValue: "Document upload" })}
+          {t("secure_upload.title_mobile_fallback", {
+            defaultValue: "Document upload",
+          })}
         </Text>
       )}
       <Text style={styles.description}>
@@ -65,9 +63,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: color("neutral.900"),
     marginBottom: 4,
-  },
-  required: {
-    color: color("destructive"),
   },
   description: {
     fontSize: 13,

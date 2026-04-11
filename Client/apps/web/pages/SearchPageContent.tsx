@@ -1,7 +1,12 @@
 import type { VirtuosoHandle } from "react-virtuoso";
 
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
-import { DesktopReelsView, SearchPageMapView, SearchPageModals } from "packages/features/search";
+import {
+  DesktopReelsView,
+  SearchPageMapView,
+  SearchPageModals,
+  type SearchResult,
+} from "packages/features/search";
 import { MotionView } from "packages/ui/components/adapters/motion";
 import { Box } from "packages/ui/components/primitives";
 
@@ -14,7 +19,7 @@ export type SearchPageContentProps = {
   onBeforeSwitchToReels: () => void;
   activeTab: "results" | "saved";
   handleTabChange: (tab: "results" | "saved") => void;
-  filteredSearchResults: unknown[];
+  filteredSearchResults: SearchResult[];
   savedHomes: unknown[];
   currentPage: number;
   setCurrentPage: (n: number) => void;
@@ -36,8 +41,9 @@ export type SearchPageContentProps = {
   setShowPropertyModals: (v: boolean) => void;
   setHasSearched: (v: boolean) => void;
   selectedPropertyId: string | undefined;
-  onPreferencesChanged: () => Promise<void>;
   onSearchProperties: () => Promise<void>;
+  hasLocations?: boolean;
+  onLocationSearchSubmit: () => void | Promise<void>;
   onCancelSearch: () => void;
   selectedClientId: string | null;
   onClientChange: (id: string | null) => void;
@@ -47,6 +53,9 @@ export type SearchPageContentProps = {
   isochroneData: unknown;
   selectedProperty: unknown;
   clearSelectedProperty: () => void;
+  fitMapToBounds?: (bounds: google.maps.LatLngBounds) => void;
+  mapHomeCardsCount?: number;
+  showCommuteOverlay?: boolean;
 };
 
 export function SearchPageContent({
@@ -78,8 +87,9 @@ export function SearchPageContent({
   setShowPropertyModals,
   setHasSearched,
   selectedPropertyId,
-  onPreferencesChanged,
   onSearchProperties,
+  hasLocations = true,
+  onLocationSearchSubmit,
   onCancelSearch,
   selectedClientId,
   onClientChange,
@@ -89,6 +99,11 @@ export function SearchPageContent({
   isochroneData,
   selectedProperty,
   clearSelectedProperty,
+  fitMapToBounds = () => {
+    /* optional legacy page shell */
+  },
+  mapHomeCardsCount = 1,
+  showCommuteOverlay = true,
 }: SearchPageContentProps) {
   return (
     <Box className="relative h-full">
@@ -106,7 +121,11 @@ export function SearchPageContent({
       )}
       <Box className="relative h-full">
         <Box
-          className={`absolute inset-0 h-full ${searchViewMode === "map" ? "z-10" : "pointer-events-none invisible z-0"}`}
+          className={`absolute inset-0 h-full ${
+            searchViewMode === "map"
+              ? "z-10"
+              : "pointer-events-none invisible z-0"
+          }`}
           aria-hidden={searchViewMode !== "map"}
         >
           <SearchPageMapView
@@ -135,8 +154,9 @@ export function SearchPageContent({
             setShowPropertyModals={setShowPropertyModals}
             setHasSearched={setHasSearched}
             selectedPropertyId={selectedPropertyId}
-            onPreferencesChanged={onPreferencesChanged}
             onSearchProperties={onSearchProperties}
+            hasLocations={hasLocations}
+            onLocationSearchSubmit={onLocationSearchSubmit}
             onCancelSearch={onCancelSearch}
             selectedClientId={selectedClientId}
             onClientChange={onClientChange}
@@ -144,10 +164,17 @@ export function SearchPageContent({
             isLoadingSearchResults={isLoadingSearchResults}
             isLoadingIsochrone={isLoadingIsochrone}
             isochroneData={isochroneData}
+            fitMapToBounds={fitMapToBounds}
+            mapHomeCardsCount={mapHomeCardsCount}
+            showCommuteOverlay={showCommuteOverlay}
           />
         </Box>
         <Box
-          className={`absolute inset-0 h-full ${searchViewMode === "reels" ? "z-10" : "pointer-events-none invisible z-0"}`}
+          className={`absolute inset-0 h-full ${
+            searchViewMode === "reels"
+              ? "z-10"
+              : "pointer-events-none invisible z-0"
+          }`}
           aria-hidden={searchViewMode !== "reels"}
         >
           <MotionView
@@ -157,7 +184,12 @@ export function SearchPageContent({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            <DesktopReelsView virtuosoRef={feedScrollRef} />
+            <DesktopReelsView
+              virtuosoRef={feedScrollRef}
+              filteredSearchResults={filteredSearchResults}
+              onRunSearch={onSearchProperties}
+              isSearching={isSearching}
+            />
           </MotionView>
         </Box>
       </Box>

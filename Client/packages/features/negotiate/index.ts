@@ -11,3 +11,5 @@ export {
   SectionTitle,
   StrategyDisplaySection,
 } from "./components";
+export type { NegotiationInitialHome } from "./types/negotiationInitialHome";
+export { propertyToNegotiationInitialHome } from "./utils";

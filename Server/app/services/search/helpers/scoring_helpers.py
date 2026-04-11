@@ -11,12 +11,16 @@ from typing import Any, cast
 import redis
 from flask import current_app
 
-from ....home_matching.config.match import find_best_matches
-from ....home_matching.preprocessing.home_input_data import format_homes_data_from_api
+from ..home_matching.config.match import find_best_matches
+from ..home_matching.mcda import MCDA_CONFIG, score_listing_mcda
+from ..home_matching.preprocessing.home_input_data import format_homes_data_from_api
 
 
 def score_and_sort_properties(
-    properties: list[dict[str, Any]], user_data: dict[str, Any], request_id: str
+    properties: list[dict[str, Any]],
+    user_data: dict[str, Any],
+    request_id: str,
+    status_type: str = "ForSale",
 ) -> list[dict[str, Any]]:
     """
     Score properties using home matching and sort by score.
@@ -29,29 +33,46 @@ def score_and_sort_properties(
         return []
 
     try:
-        # Convert properties to format expected by home matching system
-        # Use the new home_input_data module for consistent formatting
-        homes_data = format_homes_data_from_api(properties)
+        preferences = user_data.get("preferences") or {}
+        embed_weight = float(MCDA_CONFIG.get("embedding_blend_weight", 0.0))
 
-        # Get scored matches
-        scored_matches = find_best_matches(
-            user_data=user_data,
-            homes_data=homes_data,
-            top_k=len(homes_data),
-            include_explanations=False,
-            embedding_provider="sentence_transformer",
-            request_id=request_id,
-            track_to_db=True,
-        )
+        embedding_by_zpid: dict[str, float] = {}
+        if embed_weight > 0.0:
+            homes_data = format_homes_data_from_api(properties)
+            scored_matches = find_best_matches(
+                user_data=user_data,
+                homes_data=homes_data,
+                top_k=len(homes_data),
+                include_explanations=False,
+                embedding_provider="sentence_transformer",
+                request_id=request_id,
+                track_to_db=True,
+            )
+            for match in scored_matches:
+                home_data = match.get("home_data", {})
+                zpid = home_data.get("zpid")
+                score = match.get("final_score", 0.0)
+                if zpid is not None:
+                    embedding_by_zpid[str(zpid)] = float(score)
 
-        # Build score map
-        score_map = {}
-        for match in scored_matches:
-            home_data = match.get("home_data", {})
-            zpid = home_data.get("zpid")
-            score = match.get("final_score", 0.0)
-            if zpid:
-                score_map[zpid] = score
+        score_map: dict[str, float] = {}
+        for prop in properties:
+            zpid = prop.get("zpid")
+            if zpid is None:
+                continue
+            zkey = str(zpid)
+            mcda = score_listing_mcda(
+                preferences,
+                prop,
+                status_type=status_type,
+            )
+            if embed_weight > 0.0:
+                emb = embedding_by_zpid.get(zkey)
+                if emb is not None:
+                    emb_display = 15.0 + (emb / 100.0) * (90.0 - 15.0)
+                    mcda = (1.0 - embed_weight) * mcda + embed_weight * emb_display
+                    mcda = round(mcda, 1)
+            score_map[zkey] = mcda
 
         # Try Redis sorting first
         scored_properties = _sort_with_redis(properties, score_map, request_id)
@@ -70,7 +91,7 @@ def score_and_sort_properties(
 
 
 def _sort_with_redis(
-    properties: list[dict[str, Any]], score_map: dict[Any, float], request_id: str
+    properties: list[dict[str, Any]], score_map: dict[str, float], request_id: str
 ) -> list[dict[str, Any]]:
     """Sort properties using Redis sorted set."""
     redis_client = None
@@ -130,11 +151,11 @@ def _sort_with_redis(
 
 
 def _sort_with_python(
-    properties: list[dict[str, Any]], score_map: dict[Any, float]
+    properties: list[dict[str, Any]], score_map: dict[str, float]
 ) -> list[dict[str, Any]]:
     """Sort properties using Python (fallback)."""
     for prop in properties:
-        zpid = prop.get("zpid")
-        prop["_score"] = score_map.get(zpid, 0.0)
+        zk = str(prop["zpid"]) if prop.get("zpid") is not None else ""
+        prop["_score"] = score_map.get(zk, 0.0)
 
     return sorted(properties, key=lambda x: x.get("_score", 0.0), reverse=True)

@@ -1,0 +1,20 @@
+type: string
+description: |
+  Template/category for the agreement row (`agreements.agreement_type`, VARCHAR). Drives
+  which DocuSign template or checklist path is used and how the UI groups items.
+  Values mean:
+  - `buyer_representation`: Agency / buyer representation agreement
+  - `offer`: Purchase offer or counter package
+  - `inspection_addendum`: Inspection-related addenda or amendments
+  - `financing_contingency`: Financing or loan contingency documents
+  - `closing_disclosure`: CD / settlement-related disclosures
+  - `other`: Catch-all custom agreement type
+  - `uploaded_document`: Checklist-linked upload not from a standard template
+enum:
+  - buyer_representation
+  - offer
+  - inspection_addendum
+  - financing_contingency
+  - closing_disclosure
+  - other
+  - uploaded_document

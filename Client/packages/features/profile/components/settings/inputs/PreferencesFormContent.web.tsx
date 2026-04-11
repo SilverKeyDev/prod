@@ -6,9 +6,13 @@ import {
   HousingSection,
   LocationSection,
 } from "packages/features/profile/components/sections/index.web";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import { useGoogleMaps } from "packages/hooks/data";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
-import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
+import {
+  useUserData,
+  useUserPreferences,
+} from "packages/hooks/data/auth/useUserData";
 import { useResponsive } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
@@ -34,9 +38,17 @@ type PreferencesFormContentProps = {
   /** When provided, renders this instead of the default HousingSection + LocationSection */
   renderContent?: (props: {
     formData: Partial<OnboardingData>;
-    updateFormData: (field: string | number | symbol, value: unknown) => void;
+    updateFormData: (field: keyof OnboardingData, value: unknown) => void;
     saveStatus: "idle" | "saving" | "saved";
+    patchBuyerPreferenceExtensions: (
+      fn: (
+        prev: BuyerPreferenceExtensions | undefined,
+      ) => BuyerPreferenceExtensions,
+    ) => void;
+    scriptsReady: boolean;
   }) => React.ReactNode;
+  /** When an agent views a client in search, load that user's preferences into the form. */
+  preferencesSubjectUserId?: string | null;
 };
 export default function PreferencesFormContent({
   formContentRef,
@@ -44,12 +56,14 @@ export default function PreferencesFormContent({
   onInitialSnapshot,
   onPreferencesSaved,
   renderContent,
+  preferencesSubjectUserId,
 }: PreferencesFormContentProps): React.ReactElement {
   const hasReportedInitialRef = useRef(false);
-  const hasInitializedFormRef = useRef(false);
   const { t } = useLocalization();
   const { userProfile } = useUserData();
-  const { userPreferences, refreshUserPreferences } = useUserPreferences();
+  const { userPreferences, refreshUserPreferences } = useUserPreferences({
+    preferencesSubjectUserId,
+  });
   const { isLoaded: googleMapsLoaded } = useGoogleMaps();
   const { isMdUp } = useResponsive();
   const isDesktop = isMdUp;
@@ -71,26 +85,26 @@ export default function PreferencesFormContent({
       ).google?.maps?.places
     );
   })();
-  const { saveStatus, updateFormData: updateFormDataWithAutoSave } = useAutoSavePreferences({
-    refreshUserPreferences,
-    debounceMs: 3000,
-    showErrorToastOnError,
-    successToastMessage: t("common.saved"),
-    onAfterSave: onPreferencesSaved,
-  });
-  // Initialize form from server only once when preferences first become available.
-  // Never reset hasInitializedFormRef when userPreferences is falsy, so in-progress
-  // edits are not overwritten by refetch or cache updates.
+  const { saveStatus, updateFormData: updateFormDataWithAutoSave } =
+    useAutoSavePreferences({
+      refreshUserPreferences,
+      debounceMs: 3000,
+      showErrorToastOnError,
+      successToastMessage: t("common.saved"),
+      onAfterSave: onPreferencesSaved,
+    });
+  useEffect(() => {
+    hasReportedInitialRef.current = false;
+  }, [preferencesSubjectUserId]);
+
   useEffect(() => {
     if (!userPreferences) return;
-    if (hasInitializedFormRef.current) return;
-    hasInitializedFormRef.current = true;
     const initialData = userPreferencesToOnboardingData(
       userPreferences as Record<string, unknown>,
-      userProfile ?? undefined
+      userProfile ?? undefined,
     );
     setFormData(initialData);
-  }, [userPreferences, userProfile]);
+  }, [userPreferences, userProfile, preferencesSubjectUserId]);
   useEffect(() => {
     if (formContentRef) {
       formContentRef.current = {
@@ -100,19 +114,28 @@ export default function PreferencesFormContent({
     }
   }, [formContentRef, formData, preventedDeleteWarning]);
   useEffect(() => {
-    if (onInitialSnapshot && !hasReportedInitialRef.current && Object.keys(formData).length > 0) {
+    if (
+      onInitialSnapshot &&
+      !hasReportedInitialRef.current &&
+      Object.keys(formData).length > 0
+    ) {
       hasReportedInitialRef.current = true;
       onInitialSnapshot(formData);
     }
   }, [formData, onInitialSnapshot]);
   const updateFormData = useCallback(
-    (field: string | number | symbol, value: unknown) => {
+    (field: keyof OnboardingData, value: unknown) => {
       if (field === "important_locations") {
         const prevLocations = Array.isArray(formData.important_locations)
           ? formData.important_locations
           : [];
-        const nextLocations = Array.isArray(value) ? (value as typeof prevLocations) : [];
-        const preserved = getPreservedImportantLocations(prevLocations, nextLocations);
+        const nextLocations = Array.isArray(value)
+          ? (value as typeof prevLocations)
+          : [];
+        const preserved = getPreservedImportantLocations(
+          prevLocations,
+          nextLocations,
+        );
         if (
           prevLocations.length > 0 &&
           nextLocations.length === 0 &&
@@ -122,12 +145,34 @@ export default function PreferencesFormContent({
         } else if ((preserved?.length ?? nextLocations.length) > 0) {
           setPreventedDeleteWarning(false);
         }
-        updateFormDataWithAutoSave(formData, setFormData, field, preserved ?? []);
+        updateFormDataWithAutoSave(
+          formData,
+          setFormData,
+          field,
+          preserved ?? [],
+        );
         return;
       }
       updateFormDataWithAutoSave(formData, setFormData, field, value);
     },
-    [formData, updateFormDataWithAutoSave]
+    [formData, updateFormDataWithAutoSave],
+  );
+
+  const patchBuyerPreferenceExtensions = useCallback(
+    (
+      fn: (
+        prev: BuyerPreferenceExtensions | undefined,
+      ) => BuyerPreferenceExtensions,
+    ) => {
+      const next = fn(formData.buyerPreferenceExtensions);
+      updateFormDataWithAutoSave(
+        formData,
+        setFormData,
+        "buyerPreferenceExtensions",
+        next,
+      );
+    },
+    [formData, updateFormDataWithAutoSave],
   );
   if (renderContent) {
     return (
@@ -136,24 +181,31 @@ export default function PreferencesFormContent({
           formData,
           updateFormData,
           saveStatus,
+          patchBuyerPreferenceExtensions,
+          scriptsReady,
         })}
       </Box>
     );
   }
+
   return (
-    <Box>
+    <Box className="space-y-8">
       <HousingSection
         formData={formData as OnboardingData}
         isEditMode={true}
         updateFormData={updateFormData}
         isDesktop={isDesktop}
+        patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
       />
+
       <LocationSection
         formData={formData as OnboardingData}
         isEditMode={true}
         updateFormData={updateFormData}
         scriptsReady={scriptsReady}
+        patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
       />
+
       <PreferencesSaveStatusRow
         saveStatus={saveStatus}
         savingLabel={t("common.saving")}

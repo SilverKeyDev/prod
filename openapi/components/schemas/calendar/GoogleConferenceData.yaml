@@ -1,0 +1,12 @@
+type: object
+properties:
+  createRequest:
+    type: object
+    properties:
+      requestId:
+        type: string
+      conferenceSolutionKey:
+        type: object
+        properties:
+          type:
+            type: string

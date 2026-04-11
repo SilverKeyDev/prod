@@ -1,84 +1,33 @@
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
+
 import { apiPost } from "packages/services/http/compatibility";
+import type { components } from "packages/types/api.generated";
 
-import type { PropertyAnalysis } from "@/features/search/types/property";
-
-// Types for offer/negotiation API
-export type NegotiationStrategyRequest = {
-  address: string;
-  user_id?: string; // For agent client selection
-};
-
-export type PropertyData = {
-  streetAddress?: string;
-  city?: string;
-  state?: string;
-  zipcode?: string;
-  price?: number;
-  listPrice?: number;
-  bedrooms?: number;
-  beds?: number;
-  bathrooms?: number;
-  baths?: number;
-  livingArea?: number;
-  sqft?: number;
-  propertyType?: string;
-  homeType?: string;
-  lotAreaValue?: number;
-  lotAreaUnit?: string;
-  listingStatus?: string;
-};
-
-export type CommuteData = {
-  travel_times: Array<{
-    name: string;
-    address: string;
-    travel_time: string;
-    commute_tolerance: number;
-  }>;
-  property_address: string;
-};
-
-export type NegotiationStrategyResponse = {
-  success: boolean;
-  strategy: unknown;
-  property_address: string;
-  strategy_id: string;
-  filename: string;
-  generated_at: string;
-  generated_for_user: string;
-  property_data?: PropertyData;
-  commute_data?: CommuteData;
-  property_analysis?: PropertyAnalysis;
-  error?: string;
-  traceback?: string;
-};
-
-export type PreApprovalLetterRequest = {
-  buyer_name: string;
-  loan_amount: number;
-  property_address: string;
-  loan_type: string;
-};
-
-export type EarnestMoneyRequest = {
-  property_address: string;
-  earnest_amount: number;
-  escrow_company: string;
-};
-
-export type CoverLetterRequest = {
-  property_address: string;
-  buyer_story: string;
-  offer_highlights: string[];
-};
-
-export type DocumentResponse = {
-  success: boolean;
-  document_url?: string;
-  document_id?: string;
-  filename?: string;
-  error?: string;
-};
+// Re-export types from generated schema
+export type NegotiationStrategyRequest =
+  components["schemas"]["NegotiationStrategyRequest"];
+export type PropertyData = components["schemas"]["PropertyData"];
+export type CommuteData = components["schemas"]["CommuteData"];
+export type NegotiationStrategyResponse =
+  components["schemas"]["NegotiationStrategyResponse"];
+export type PreApprovalLetterRequest =
+  components["schemas"]["PreApprovalLetterRequest"];
+export type EarnestMoneyRequest = components["schemas"]["EarnestMoneyRequest"];
+export type CoverLetterRequest = components["schemas"]["CoverLetterRequest"];
+export type OfferDocumentGenerationResponse =
+  components["schemas"]["OfferDocumentGenerationResponse"];
 
 /**
  * Offer/Negotiation API client using centralized utilities
@@ -89,28 +38,47 @@ export const offerApi = {
    */
   generateStrategy: (
     data: NegotiationStrategyRequest,
-    options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal },
   ): Promise<NegotiationStrategyResponse> =>
-    apiPost<NegotiationStrategyResponse>("/api/v1/offer/generate-strategy", data, {
-      timeout: 300000,
-      ...options,
-    }),
+    apiPost<NegotiationStrategyResponse>(
+      "/api/v1/offer/generate-strategy",
+      data,
+      {
+        timeout: 300000,
+        ...options,
+      },
+    ),
 
   /**
    * Generate a pre-approval letter
    */
-  generatePreApprovalLetter: (data: PreApprovalLetterRequest): Promise<DocumentResponse> =>
-    apiPost<DocumentResponse>("/api/v1/offer/pre-approval-letter", data),
+  generatePreApprovalLetter: (
+    data: PreApprovalLetterRequest,
+  ): Promise<OfferDocumentGenerationResponse> =>
+    apiPost<OfferDocumentGenerationResponse>(
+      "/api/v1/offer/pre-approval-letter",
+      data,
+    ),
 
   /**
    * Generate earnest money instructions
    */
-  generateEarnestMoneyInstructions: (data: EarnestMoneyRequest): Promise<DocumentResponse> =>
-    apiPost<DocumentResponse>("/api/v1/offer/earnest-money-instructions", data),
+  generateEarnestMoneyInstructions: (
+    data: EarnestMoneyRequest,
+  ): Promise<OfferDocumentGenerationResponse> =>
+    apiPost<OfferDocumentGenerationResponse>(
+      "/api/v1/offer/earnest-money-instructions",
+      data,
+    ),
 
   /**
    * Generate a cover letter for the offer
    */
-  generateCoverLetter: (data: CoverLetterRequest): Promise<DocumentResponse> =>
-    apiPost<DocumentResponse>("/api/v1/offer/cover-letter", data),
+  generateCoverLetter: (
+    data: CoverLetterRequest,
+  ): Promise<OfferDocumentGenerationResponse> =>
+    apiPost<OfferDocumentGenerationResponse>(
+      "/api/v1/offer/cover-letter",
+      data,
+    ),
 };

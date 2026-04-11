@@ -1,0 +1,29 @@
+type: object
+required:
+  - id
+  - name
+  - label
+  - geoType
+  - state
+properties:
+  id:
+    type: string
+    description: Slipstream area ID (hex hash)
+  name:
+    type: string
+    description: Area name (e.g. "Atlanta", "Sandy Springs")
+  label:
+    type: string
+    description: Formatted label (e.g. "Sandy Springs, GA")
+  geoType:
+    type: string
+    description: >-
+      Slipstream area type (area/neighborhood, area/postal-city,
+      area/census-place, area/county, area/zipcode, area/township)
+  state:
+    type: string
+    description: State postal abbreviation (e.g. "GA")
+  place:
+    type: string
+    nullable: true
+    description: Parent place name for neighborhoods and ZIP codes

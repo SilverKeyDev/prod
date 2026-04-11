@@ -1,0 +1,69 @@
+type: object
+description: |
+  Agent-scoped task with optional client linkage. `type` drives reminders and calendar
+  treatment; `due_date` may be null for backlog-style manual tasks.
+required:
+  - id
+  - agent_id
+  - title
+  - type
+  - due_date
+  - completed
+  - created_at
+  - updated_at
+properties:
+  id:
+    type: string
+  agent_id:
+    type: string
+  client_id:
+    type: string
+    nullable: true
+  title:
+    type: string
+  description:
+    type: string
+    nullable: true
+  type:
+    type: string
+    enum: [deadline, follow_up, inspection, offer_expiration, closing, manual]
+    description: |
+      Task category for UX and automation:
+      - `deadline`: Hard cutoff (e.g. contingency date)
+      - `follow_up`: Scheduled callback or nudge
+      - `inspection`: Inspection-related milestone
+      - `offer_expiration`: Offer or counter deadline
+      - `closing`: Closing or escrow milestone
+      - `manual`: User-defined task without automatic rules
+  due_date:
+    description: Optional ISO 8601 due date or datetime; null for undated backlog items.
+    anyOf:
+      - type: string
+        format: date-time
+      - type: "null"
+  completed:
+    type: boolean
+    description: Whether the task is closed in the agent dashboard.
+  completed_at:
+    type: string
+    format: date-time
+    nullable: true
+    description: Set when `completed` became true; null while open.
+  created_at:
+    type: string
+    format: date-time
+  updated_at:
+    type: string
+    format: date-time
+example:
+  id: "todo-8a7b6c5d-4e3f-2109-8765-43210fedcba9"
+  agent_id: "b2c3d4e5-f6a7-8901-bcde-f23456789012"
+  client_id: "c3d4e5f6-a7b8-9012-cdef-345678901234"
+  title: "Send disclosure package"
+  description: "Email PDFs before Friday tour."
+  type: "follow_up"
+  due_date: "2026-04-11T15:00:00.000Z"
+  completed: false
+  completed_at: null
+  created_at: "2026-04-07T10:00:00.000Z"
+  updated_at: "2026-04-07T10:00:00.000Z"

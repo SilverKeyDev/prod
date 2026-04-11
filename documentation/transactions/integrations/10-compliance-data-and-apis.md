@@ -15,7 +15,7 @@ There is **no single universal “deadlines API”** that completely covers:
 We need a strategy to:
 - Encode and maintain **our own rules** for deadlines and checklist behavior.
 - Stay open to leveraging:
-  - Vendor-provided rule feeds (e.g. from SkySlope or others) when/if they emerge.
+  - Vendor-provided rule feeds when/if they emerge.
   - Legal/compliance content providers.
 
 ### Data model & invariants
@@ -85,9 +85,8 @@ are driven by **rules that can vary by jurisdiction**, not hard-coded global def
 
 - **Vendor and content provider integration**
   - Survey potential sources:
-    - SkySlope APIs (if they eventually surface structured timing/compliance metadata).
+    - Third-party brokerage or compliance APIs (if they surface structured timing/compliance metadata).
     - State-specific forms/vendors that publish timing guidelines in machine-readable form.
   - Strategy:
     - Treat external sources as **advisory feeds**.
     - Use them to update our `JurisdictionRuleSet` tables, not as live, opaque black-box logic.
-

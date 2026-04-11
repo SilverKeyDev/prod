@@ -1,0 +1,8 @@
+allOf:
+  - $ref: './SuccessResponse.yaml'
+  - type: object
+    properties:
+      script_url:
+        type: string
+        format: uri
+        nullable: true

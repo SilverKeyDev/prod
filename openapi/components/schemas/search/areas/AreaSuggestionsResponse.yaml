@@ -1,0 +1,17 @@
+type: object
+required:
+  - success
+properties:
+  success:
+    type: boolean
+  areas:
+    type: array
+    items:
+      $ref: './AreaSearchResult.yaml'
+    description: Matching geographic areas from Slipstream
+  error:
+    type: string
+    nullable: true
+  message:
+    type: string
+    nullable: true

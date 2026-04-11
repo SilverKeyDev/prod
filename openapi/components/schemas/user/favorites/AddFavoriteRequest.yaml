@@ -1,0 +1,25 @@
+type: object
+required:
+  - home
+properties:
+  home:
+    $ref: './FavoriteHomePayload.yaml'
+  client_id:
+    type: string
+    nullable: true
+    description: "When set, agent saves to client's favorites"
+example:
+  home:
+    zpid: "12345678"
+    address: "742 Evergreen Terrace"
+    city: "Springfield"
+    state: "IL"
+    zipcode: "62704"
+    price: 425000
+    bedrooms: 4
+    bathrooms: 2.5
+    livingArea: 2400
+    homeType: "SINGLE_FAMILY"
+    imageUrl: "https://photos.examplecdn.com/listings/12345678/hero.jpg"
+    listingStatus: "FOR_SALE"
+  client_id: "c3d4e5f6-a7b8-9012-cdef-345678901234"

@@ -1,0 +1,201 @@
+---
+description: OpenAPI CI workflow and sync process
+alwaysApply: true
+---
+
+# OpenAPI CI Workflow
+
+## Overview
+
+The OpenAPI spec is the single source of truth for API contracts. CI enforces that client and server types stay in sync with `openapi.yaml`.
+
+## GitHub Actions Workflow
+
+**File**: `.github/workflows/openapi-sync.yml`
+
+**Triggers on changes to:**
+- `openapi.yaml`
+- `Server/app/schemas/**`
+- `Client/packages/types/**`
+- `.github/workflows/openapi-sync.yml`
+
+## Workflow Jobs
+
+### 1. Validate OpenAPI Spec
+
+Validates `openapi.yaml` syntax and structure:
+
+```bash
+swagger-cli validate openapi.yaml
+```
+
+**Fails if:**
+- Invalid YAML syntax
+- Invalid OpenAPI 3.1.0 structure
+- Broken `$ref` references
+- Missing required fields
+
+### 2. Verify Server Schemas
+
+Regenerates Pydantic models and checks for drift:
+
+```bash
+cd Server
+bash scripts/generate-pydantic-models.sh
+git diff --exit-code Server/app/schemas/generated.py
+```
+
+**Fails if:**
+- `Server/app/schemas/generated.py` is out of sync
+- Backend models don't match OpenAPI spec
+
+**Fix:**
+```bash
+cd Server
+bash scripts/generate-pydantic-models.sh
+git add Server/app/schemas/generated.py
+git commit -m "Regenerate server schemas from OpenAPI spec"
+```
+
+### 3. Verify Client Types
+
+Regenerates TypeScript types and checks for drift:
+
+```bash
+cd Client
+pnpm generate:api-types
+git diff --exit-code Client/packages/types/api.generated.ts
+```
+
+**Fails if:**
+- `Client/packages/types/api.generated.ts` is out of sync
+- Frontend types don't match OpenAPI spec
+
+**Fix:**
+```bash
+cd Client
+pnpm generate:api-types
+git add Client/packages/types/api.generated.ts
+git commit -m "Regenerate client types from OpenAPI spec"
+```
+
+## Local Development Workflow
+
+### Step 1: Edit OpenAPI Spec
+
+```bash
+# Edit the schema file
+vim openapi/components/schemas/user/profile/UserProfile.yaml
+
+# Or edit the main spec
+vim openapi/openapi.yaml
+```
+
+### Step 2: Validate
+
+```bash
+# Install swagger-cli if needed
+npm install -g @apidevtools/swagger-cli
+
+# Validate spec
+swagger-cli validate openapi/openapi.yaml
+```
+
+### Step 3: Regenerate Types
+
+```bash
+# Client (TypeScript)
+cd Client
+pnpm generate:api-types
+
+# Server (Pydantic)
+cd Server
+bash scripts/generate-pydantic-models.sh
+```
+
+### Step 4: Verify Changes
+
+```bash
+# Check TypeScript compilation
+cd Client
+pnpm typecheck
+
+# Check Python (if running server)
+cd Server
+mypy app/
+```
+
+### Step 5: Commit
+
+```bash
+# Commit all changes together
+git add openapi/
+git add Client/packages/types/api.generated.ts
+git add Server/app/schemas/generated.py
+git commit -m "Add UserNotifications schema
+
+- Add NotificationPreferences type
+- Regenerate client and server types"
+```
+
+## Breaking the Build
+
+**CI will fail if you:**
+
+1. **Edit openapi.yaml but don't regenerate types**
+   - Fix: Run `pnpm generate:api-types` (client) and generate script (server)
+
+2. **Edit api.generated.ts directly**
+   - Fix: Revert changes, edit `openapi.yaml` instead, then regenerate
+
+3. **Edit Server/app/schemas/generated.py directly**
+   - Fix: Revert changes, edit `openapi.yaml` instead, then regenerate
+
+4. **Break $ref links**
+   - Fix: Ensure referenced schema files exist
+   - Fix: Check path is correct (relative to openapi.yaml)
+
+5. **Invalid OpenAPI syntax**
+   - Fix: Run `swagger-cli validate openapi.yaml` locally
+   - Fix: Check YAML indentation and structure
+
+## Quick Commands
+
+```bash
+# Validate spec
+swagger-cli validate openapi/openapi.yaml
+
+# Regenerate client types
+cd Client && pnpm generate:api-types
+
+# Regenerate server schemas
+cd Server && bash scripts/generate-pydantic-models.sh
+
+# Run all checks
+cd Client && pnpm typecheck && pnpm lint
+```
+
+## Pre-commit Checklist
+
+Before committing OpenAPI changes:
+
+- [ ] Validated spec with `swagger-cli validate`
+- [ ] Regenerated client types
+- [ ] Regenerated server schemas
+- [ ] Client typecheck passes
+- [ ] Committed all generated files together
+- [ ] Descriptive commit message
+
+## Summary
+
+```mermaid
+graph LR
+    A[Edit openapi.yaml] --> B[Validate]
+    B --> C[Regenerate Client]
+    B --> D[Regenerate Server]
+    C --> E[Typecheck]
+    D --> E
+    E --> F[Commit All]
+```
+
+**Golden Rule**: Never commit `openapi.yaml` changes without regenerating and committing the corresponding `api.generated.ts` and `generated.py` files.

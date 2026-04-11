@@ -19,7 +19,7 @@ ESCROW_ITEMS = [
         "id": 2,
         "label": "Deposit earnest money into escrow",
         "explanation": "Shows good faith and is credited toward your closing. Follow the contract timeline.",
-        "suggested_form_ids": ["earnest_money", "wire_instructions"],
+        "suggested_form_ids": ["earnest_money", "wiring_fraud_advisory", "notice_of_contract_fmls"],
         "calendar": {"hasDates": False, "days": 3, "eventSchedule": [3]},
         "bullets": [
             "Commonly 1–3% of purchase price (varies by market).",
@@ -50,7 +50,7 @@ ESCROW_ITEMS = [
         "id": 4,
         "label": "Review escrow instructions",
         "explanation": "Spell out what the escrow holder must do and what conditions must be met before closing.",
-        "suggested_form_ids": ["escrow_instructions"],
+        "suggested_form_ids": [],
         "bullets": [
             "Verify names, property address, price, and timelines.",
             "Confirm contingencies and payoffs are listed correctly.",

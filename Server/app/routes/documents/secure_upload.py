@@ -8,6 +8,7 @@ import uuid
 from flask import Blueprint, current_app, jsonify, request
 
 from ... import db
+from ...schemas import UploadResponse
 from ...services.documents import s3_service
 from ...utils.common_patterns import require_authenticated_user
 from ...utils.security.app_logging import get_logger
@@ -18,6 +19,7 @@ from ...utils.security.file_security import (
     validate_file_upload,
 )
 from ...utils.security.secure_errors import SecureErrorHandler
+from ...utils.validation import validate_response
 
 logger = get_logger()
 secure_upload_bp = Blueprint("secure_upload", __name__, url_prefix="/api/v1/upload")
@@ -25,6 +27,7 @@ secure_upload_bp = Blueprint("secure_upload", __name__, url_prefix="/api/v1/uplo
 
 @secure_upload_bp.route("/document", methods=["POST"])
 @require_authenticated_user
+@validate_response(UploadResponse)
 def upload_document(user):
     """
     Secure document upload endpoint with comprehensive validation.
@@ -105,6 +108,10 @@ def upload_document(user):
         )
 
         db.session.add(document)
+        db.session.flush()
+        from app.services.documents.document_library_items import attach_library_item_to_document
+
+        attach_library_item_to_document(document)
         db.session.commit()
 
         # Clean up temporary file if uploaded to S3
@@ -136,6 +143,7 @@ def upload_document(user):
 
 @secure_upload_bp.route("/image", methods=["POST"])
 @require_authenticated_user
+@validate_response(UploadResponse)
 def upload_image(user):
     """
     Secure image upload endpoint with content validation.

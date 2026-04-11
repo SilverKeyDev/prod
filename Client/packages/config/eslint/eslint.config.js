@@ -18,7 +18,10 @@ const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const silverkey = require(path.join(__dirname, "eslint-plugin-silverkey"));
 const clientRoot = path.join(__dirname, "../../..");
-const tsconfigAppPath = path.resolve(clientRoot, "packages/config/tsconfig/tsconfig.app.json");
+const tsconfigAppPath = path.resolve(
+  clientRoot,
+  "packages/config/tsconfig/tsconfig.app.json",
+);
 
 export default tseslint.config(
   // Ignore patterns
@@ -29,7 +32,9 @@ export default tseslint.config(
       "**/build/**",
       "**/coverage/**",
       "**/.turbo/**",
-      "**/vite.config.ts",
+      "**/vite.config.js",
+      "**/vite.config.resolve.js",
+      "**/vite.config.d.ts",
       "**/postcss.config.js",
       "**/tailwind.config.ts",
       "**/*.md", // Ignore all markdown files
@@ -73,7 +78,11 @@ export default tseslint.config(
       ],
       "silverkey/max-lines-hard": [
         "warn",
-        { warnAt: 500, max: 650, ignorePatterns: ["dist/", "build/", "coverage/", ".d.ts"] },
+        {
+          warnAt: 500,
+          max: 650,
+          ignorePatterns: ["dist/", "build/", "coverage/", ".d.ts"],
+        },
       ],
       "silverkey/folder-extension-policy": [
         "error",
@@ -103,7 +112,10 @@ export default tseslint.config(
       ],
       // Package feature modules: only api/, components/, hooks/, store/, types/, utils/, index.ts (enabled only for packages/features below)
       "silverkey/package-module-allowed-children": ["off"],
-      "silverkey/no-hardcoded-breakpoints": ["error", { allowedBreakpoints: [] }],
+      "silverkey/no-hardcoded-breakpoints": [
+        "error",
+        { allowedBreakpoints: [] },
+      ],
       // Enforce alias-based imports; set to "error" after migrating existing relative parent imports
       "silverkey/no-relative-parent-imports": "warn",
       "silverkey/no-console-logger": [
@@ -269,7 +281,10 @@ export default tseslint.config(
       // Note: no-console is replaced by silverkey/no-console-logger which provides better error messages
       "no-debugger": "error",
       // Cap function size and complexity; limits set to avoid file fragmentation (code-organization: prefer complexity over line count)
-      "max-lines-per-function": ["warn", { max: 400, skipBlankLines: true, skipComments: true }],
+      "max-lines-per-function": [
+        "warn",
+        { max: 400, skipBlankLines: true, skipComments: true },
+      ],
       complexity: ["warn", { max: 60 }],
       "silverkey/no-explicit-any-disable-reason": "error",
     },
@@ -358,7 +373,10 @@ export default tseslint.config(
         },
       ],
       // Catch require/import cycles (e.g. barrel files) before Metro/runtime
-      "import/no-cycle": ["error", { maxDepth: Infinity, ignoreExternal: true }],
+      "import/no-cycle": [
+        "error",
+        { maxDepth: Infinity, ignoreExternal: true },
+      ],
     },
   },
 
@@ -380,7 +398,10 @@ export default tseslint.config(
       "react-hooks/exhaustive-deps": "error",
 
       // React Refresh rules
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
       // State: no getState() in app/feature UI; use selectors/hooks only
       "silverkey/no-zustand-get-state": "error",
       // Async: no useEffect(async) to avoid setState on unmounted + enforce cancellation
@@ -392,5 +413,5 @@ export default tseslint.config(
   ...getEslintOverrides({ silverkey, reactHooks, reactRefresh, jsxA11y }),
 
   // Prettier config to disable conflicting rules
-  prettier
+  prettier,
 );

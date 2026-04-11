@@ -56,7 +56,7 @@ class FlexibleEnvValidator:
         "AWS Services": [r".*AWS.*", r".*S3.*", r".*BUCKET.*"],
         "External APIs": [
             r".*API[_-]?KEY.*",
-            r".*RAPIDAPI.*",
+            r".*SLIPSTREAM.*",
             r".*GOOGLE.*",
             r".*PERPLEXITY.*",
             r".*CENSUS.*",

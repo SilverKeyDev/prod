@@ -10,7 +10,7 @@ Enable buyers and agents to **fully manage a real estate transaction through che
   - Checklist items and progress.
   - Milestones and deadlines (inspection window, financing contingency, closing, etc.).
   - Calendar events.
-  - Documents and agreements (forms pulled from FMLS, eXp API, and/or SkySlope).
+  - Documents and agreements (**DocuSign** for e-sign and templates; **S3** for file storage; optional **FMLS** / **eXp API** form catalogs where configured).
   - Completion rules (signed, reviewed, integration-completed).
 - **Shared visibility** between buyer, agent, and other participants (TC, loan officer, etc.).
 
@@ -32,18 +32,17 @@ Enable buyers and agents to **fully manage a real estate transaction through che
 
 - **Calendar and documents integration**:
   - Milestones appear as calendar events, tied back to the underlying checklist items.
-  - Events and checklist items link to **documents/agreements**, especially SkySlope-based forms.
+  - Events and checklist items link to **documents/agreements** (DocuSign-backed agreements and S3-stored files).
 
 - **Agent + multi-party collaboration**:
   - Multiple roles per transaction (buyer, agent, TC, loan officer, escrow, etc.).
   - Role-based permissions for seeing and updating tasks, docs, and deadlines.
-  - Agent-only flows for **SkySlope forms browsing/selection**; buyers see attached forms, not the entire library.
+  - Agent-only flows for **template/form selection** (e.g. DocuSign templates, optional FMLS/eXp catalogs); buyers see attached forms, not the full agent library.
 
 - **Integrations (v1 and future)**:
-  - **Form sources**: Transaction forms are pulled from **FMLS** and/or **eXp API** and/or **SkySlope**, depending on agent/brokerage configuration.
-  - **SkySlope** as:
-    - System-of-record for agent forms/templates (especially for eXp brokerages).
-    - Signing provider (via the `SignatureProvider` abstraction).
+  - **E-sign and agreement storage**: **DocuSign** (envelopes, templates, webhooks) and **S3** (revisions, signed PDFs, uploads). See `integrations/09-documents-docusign-and-s3.md`.
+  - **Optional form catalogs**: **FMLS** and/or **eXp API** where product configuration requires brokerage-specific forms outside DocuSign templates.
+  - **`SignatureProvider`** (`Server/app/services/signature/base.py`) remains the provider-agnostic hook; production signing is implemented via **DocuSign** services.
   - **HomeConcierge** as a v1 integration:
     - Optional checklist item or section (e.g. in closing/move-in).
     - Initiation and completion signals that can update checklist state.
@@ -61,7 +60,7 @@ Enable buyers and agents to **fully manage a real estate transaction through che
   - Instead, we provide **structured hooks** (jurisdiction rule sets, compliance data doc) and rely on curated rules and/or vendor feeds.
 
 - **Brokerage-agnostic forms library**:
-  - v1 assumes forms are pulled from **FMLS** and/or **eXp API** and/or **SkySlope**; supporting every brokerage and every forms provider is out of scope. We design an **extensible integration model** instead.
+  - v1 centers agreements on **DocuSign + S3**; optional **FMLS** / **eXp** catalogs may supplement templates. Supporting every brokerage and every forms provider is out of scope. We design an **extensible integration model** instead.
 
 - **Non-residential transactions**:
   - v1 focuses on **residential purchase** workflows; rentals, commercial, and highly bespoke transactions are out of scope.
@@ -84,8 +83,8 @@ Enable buyers and agents to **fully manage a real estate transaction through che
 
 - **Documents and agreements**
   - `Server/app/models/documents/agreement.py` and `agreement_participant.py` – agreement system-of-record and participants.
-  - `Server/app/services/signature/base.py` – `SignatureProvider` abstraction and `NoOpSignatureProvider` for migration to SkySlope.
-  - `Client/packages/features/documents/*` – agreements list, detail, and status UI; `useAgreementSignature` stub.
+  - `Server/app/services/signature/base.py` – `SignatureProvider` abstraction and `NoOpSignatureProvider` when DocuSign is not configured.
+  - `Server/app/services/docusign/` – DocuSign integration (see `Server/app/services/docusign/README.md`).
+  - `Client/packages/features/documents/*` – agreements list, detail, status UI, and DocuSign-oriented hooks.
 
 Future docs in this folder will call out, for each concern, whether we should **extend**, **migrate**, or **create new** infrastructure.
-

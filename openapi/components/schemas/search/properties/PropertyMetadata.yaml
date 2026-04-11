@@ -1,0 +1,50 @@
+type: object
+description: Property listing metadata and status
+properties:
+  zpid:
+    type: string
+    nullable: true
+    description: Property listing ID (MLS ID from Slipstream)
+  mlsHomeId:
+    type: string
+    nullable: true
+    description: MLS listing ID
+  listingStatus:
+    type: string
+    enum: [FOR_SALE, PENDING, SOLD, OFF_MARKET, COMING_SOON, CONTINGENT, ACTIVE]
+    nullable: true
+    description: Current listing status
+  daysOnMarket:
+    type: integer
+    minimum: 0
+    nullable: true
+    description: Number of days property has been listed
+  listingDate:
+    type: string
+    format: date
+    nullable: true
+    description: Date property was listed
+  lastUpdated:
+    type: string
+    format: date-time
+    nullable: true
+    description: Last time listing was updated
+  createdAt:
+    type: string
+    format: date-time
+    nullable: true
+    description: When record was created in our system
+  updatedAt:
+    type: string
+    format: date-time
+    nullable: true
+    description: When record was last updated in our system
+example:
+  zpid: "12345678"
+  mlsHomeId: "MLS98765432"
+  listingStatus: "FOR_SALE"
+  daysOnMarket: 12
+  listingDate: "2026-03-27"
+  lastUpdated: "2026-04-08T10:30:00Z"
+  createdAt: "2026-03-27T09:00:00Z"
+  updatedAt: "2026-04-08T10:30:00Z"

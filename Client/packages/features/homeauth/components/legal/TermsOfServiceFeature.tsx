@@ -6,12 +6,17 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout";
+import { LEGAL_PAGES_LAST_UPDATED } from "packages/features/homeauth/utils/staticLegalContact";
 
 import { TermsOfServiceContent } from "./TermsOfServiceContent";
 
 export function TermsOfServiceFeature() {
   return (
-    <StaticPageLayout title="Terms of Service" subtitle="Last updated: 8/27/2025">
+    <StaticPageLayout
+      title="Terms of service"
+      subtitle={LEGAL_PAGES_LAST_UPDATED}
+      legalSuiteActive="terms"
+    >
       <TermsOfServiceContent
         Section={Section}
         Paragraph={Paragraph}

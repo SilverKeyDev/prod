@@ -1,6 +1,7 @@
 # Single lint workflow: runs root script for client and server.
 # All linters are defined by scripts/run-all-linters.sh (Server: auto-discovers lint_*.py; Client: check:all).
 # See .cursor/rules/shared/ci-gates.mdc for required gates.
+# Tests are run separately via test.yml workflow.
 name: Lint
 
 on:
@@ -59,3 +60,9 @@ jobs:
 
       - name: Run all server linters (root script)
         run: ./scripts/run-all-linters.sh server
+
+  openapi-validation:
+    name: OpenAPI Contract Validation
+    uses: ./.github/workflows/openapi-sync.yml
+    permissions:
+      contents: read

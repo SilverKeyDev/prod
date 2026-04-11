@@ -1,5 +1,5 @@
 /**
- * Universal gradient — web uses Tailwind gradient classes.
+ * Universal gradient - web uses Tailwind gradient classes.
  * Native uses expo-linear-gradient for reliable rendering.
  */
 
@@ -16,7 +16,9 @@ export const UniversalGradient: React.FC<UniversalGradientProps> = ({
   children,
 }) => {
   const gradientClass = UNIVERSAL_GRADIENT_VARIANT_CLASSES[variant];
-  return <Box className={`${gradientClass} ${className}`.trim()}>{children}</Box>;
+  return (
+    <Box className={`${gradientClass} ${className}`.trim()}>{children}</Box>
+  );
 };
 
 export default UniversalGradient;

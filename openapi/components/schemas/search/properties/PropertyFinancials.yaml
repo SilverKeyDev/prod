@@ -1,0 +1,65 @@
+type: object
+description: Property pricing, taxes, and financial details
+properties:
+  price:
+    type: number
+    minimum: 0
+    nullable: true
+    description: Current listing price
+  listPrice:
+    type: number
+    minimum: 0
+    nullable: true
+    description: Original list price
+  pricePerSqft:
+    type: number
+    minimum: 0
+    nullable: true
+    description: Price per square foot
+  priceHistory:
+    type: array
+    nullable: true
+    items:
+      type: object
+      required:
+        - eventDate
+        - price
+        - event
+      properties:
+        eventDate:
+          type: string
+          format: date
+          description: Date of price event
+        price:
+          type: number
+          description: Price at this event
+        event:
+          type: string
+          enum: [listed, sold, price_change, delisted, pending]
+          description: Type of price event
+  taxAssessedValue:
+    type: number
+    minimum: 0
+    nullable: true
+    description: Tax assessed value
+  annualTaxes:
+    type: number
+    minimum: 0
+    nullable: true
+    description: Annual property taxes
+  hoaFees:
+    type: number
+    minimum: 0
+    nullable: true
+    description: Monthly HOA fees
+  insurance:
+    type: number
+    minimum: 0
+    nullable: true
+    description: Estimated monthly insurance cost
+example:
+  price: 425000
+  listPrice: 450000
+  pricePerSqft: 177
+  annualTaxes: 5200
+  hoaFees: 150

@@ -1,0 +1,5 @@
+type: string
+description: Value of Cognito `CodeDeliveryDetails.DeliveryMedium` (EMAIL or SMS).
+enum:
+  - EMAIL
+  - SMS

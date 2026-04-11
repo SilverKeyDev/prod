@@ -1,0 +1,17 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    description: >
+      Result of offer-related document generation (pre-approval letter, earnest money instructions,
+      cover letter). Returns a URL and identifiers — not a workflow row or upload pipeline record.
+    properties:
+      document_url:
+        type: string
+        format: uri
+        nullable: true
+      document_id:
+        type: string
+        nullable: true
+      filename:
+        type: string
+        nullable: true

@@ -1,0 +1,39 @@
+type: object
+description: Agent and brokerage information
+properties:
+  listingAgentId:
+    type: string
+    nullable: true
+    description: MLS or internal agent ID
+  listingAgentName:
+    type: string
+    nullable: true
+    description: Full name of listing agent
+  listingAgentPhone:
+    type: string
+    nullable: true
+    description: Agent phone number
+  listingAgentEmail:
+    type: string
+    format: email
+    nullable: true
+    description: Agent email address
+  brokerage:
+    type: string
+    nullable: true
+    description: Brokerage firm name
+  mlsId:
+    type: string
+    nullable: true
+    description: MLS listing ID
+  mlsRegion:
+    type: string
+    nullable: true
+    description: MLS region or board
+example:
+  listingAgentName: "Jane Smith"
+  listingAgentPhone: "+15551234567"
+  listingAgentEmail: "jane.smith@realty.com"
+  brokerage: "Premier Realty Group"
+  mlsId: "MLS12345678"
+  mlsRegion: "Central Illinois MLS"

@@ -1,0 +1,7 @@
+allOf:
+  - $ref: '../core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      document:
+        $ref: '../../agreements/documents/WorkflowDocumentRecord.yaml'
+        nullable: true

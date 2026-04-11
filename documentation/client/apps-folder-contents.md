@@ -198,7 +198,7 @@ This prevents “random react-native import inside business logic” later. See 
 
 ## Config & Environment (Build-Time vs Runtime)
 
-- **Web (Vite):** env is **build-time** (injected at build via `define` in vite.config.ts so `process.env` is populated; use `VITE_*` in .env).
+- **Web (Vite):** env is **build-time** (injected at build via `define` in vite.config.js so `process.env` is populated; use `VITE_*` in .env).
 - **Mobile (Expo):** env is **build-time** (Expo injects `EXPO_PUBLIC_*` into `process.env`).
 
 **Packages must not read env directly.** The app passes configuration in via:

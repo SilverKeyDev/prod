@@ -187,6 +187,27 @@
     "category": "layout"
   },
   {
+    "id": "saved-page-header",
+    "description": "Saved page header with tabs and filters (extracted from SavedPageLayout)",
+    "nativePath": "packages/features/saved/components/layout/SavedHeader.native.tsx",
+    "reason": "Native-only subcomponent extracted from SavedPageLayout.native.tsx to reduce file size. Uses RN layout primitives for tabs, client selector, and event filters.",
+    "category": "layout"
+  },
+  {
+    "id": "saved-homes-list",
+    "description": "Saved homes list view (extracted from SavedPageLayout)",
+    "nativePath": "packages/features/saved/components/layout/SavedHomesList.native.tsx",
+    "reason": "Native-only subcomponent extracted from SavedPageLayout.native.tsx to reduce file size. Renders list of saved homes with loading and empty states.",
+    "category": "layout"
+  },
+  {
+    "id": "saved-documents-list",
+    "description": "Saved documents list view (extracted from SavedPageLayout)",
+    "nativePath": "packages/features/saved/components/layout/SavedDocumentsList.native.tsx",
+    "reason": "Native-only subcomponent extracted from SavedPageLayout.native.tsx to reduce file size. Renders list of documents with actions (view, download, share, sign).",
+    "category": "layout"
+  },
+  {
     "id": "saved-screen",
     "description": "Saved screen layout",
     "webPath": "packages/features/saved/components/layout/SavedScreen.tsx",
@@ -224,6 +245,30 @@
     "webPath": "packages/navigation/hooks/useNavigation.web.ts",
     "nativePath": "packages/navigation/hooks/useNavigation.native.ts",
     "reason": "Different navigation APIs per platform.",
+    "category": "navigation"
+  },
+  {
+    "id": "use-route-params-hook",
+    "description": "Route/path params hook",
+    "webPath": "packages/navigation/hooks/useRouteParams.web.ts",
+    "nativePath": "packages/navigation/hooks/useRouteParams.native.ts",
+    "reason": "Web reads react-router useParams; native reads React Navigation route.params.",
+    "category": "navigation"
+  },
+  {
+    "id": "navigation-home-hash-link",
+    "description": "Home landing hash section link",
+    "webPath": "packages/navigation/link/HomeHashLink.web.tsx",
+    "nativePath": "packages/navigation/link/HomeHashLink.native.tsx",
+    "reason": "Web scrolls to in-page section; native routes to home.",
+    "category": "navigation"
+  },
+  {
+    "id": "navigation-landing-hash-scroll",
+    "description": "Home landing hash scroll effect",
+    "webPath": "packages/navigation/hooks/useLandingHashScroll.web.ts",
+    "nativePath": "packages/navigation/hooks/useLandingHashScroll.native.ts",
+    "reason": "Web-only DOM scroll after route+hash; native no-op.",
     "category": "navigation"
   },
   {

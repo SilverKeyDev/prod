@@ -3,6 +3,7 @@
  * Re-exported from the search feature to avoid cross-feature internal imports.
  */
 
+export type { PropertyHighlightsContext } from "./propertyHighlightsContext";
 export type {
   PropertyAnalysis,
   PropertyWithAnalysis,

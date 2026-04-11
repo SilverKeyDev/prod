@@ -1,11 +1,17 @@
 import React from "react";
 
 import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
-import { KeyboardAvoidingView, Pressable, StyleSheet, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Pressable,
+  StyleSheet,
+  View,
+} from "react-native";
 
 import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useOnboardingForm } from "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm";
+import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/ProfileSearchPropertySection"; // eslint-disable-line silverkey/no-cross-feature-internals -- onboarding wizard parity with web
 /* Agent sections shared with profile for onboarding; allowed cross-feature for consistent agent form. */
 import {
   AgentBrokerageSection,
@@ -17,7 +23,8 @@ import { Text } from "packages/ui/components/primitives";
 import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
 
 import { DemographicsStep } from "./DemographicsStep.native";
-import { HousingStep } from "./HousingStep.native";
+import { HousingStepEssentials } from "./housing/HousingStepEssentials.native";
+import { HousingStepRanges } from "./housing/HousingStepRanges.native";
 import { LocationStep } from "./LocationStep.native";
 
 export type OnboardingScreenNativeProps = {
@@ -27,12 +34,15 @@ export type OnboardingScreenNativeProps = {
 
 const KEYBOARD_AVOIDING_IOS = "onboarding_ios_keyboard_avoiding";
 
-export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNativeProps) {
+export function OnboardingScreenNative({
+  onSubmitSuccess,
+}: OnboardingScreenNativeProps) {
   const useIOSKeyboardAvoiding = useFeature(KEYBOARD_AVOIDING_IOS);
   const {
     steps,
     formData,
     updateFormData,
+    patchBuyerPreferenceExtensions,
     currentStep,
     nextStep,
     prevStep,
@@ -48,7 +58,12 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     if (!step) return null;
     switch (step.id) {
       case "demographics":
-        return <DemographicsStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <DemographicsStep
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
       case "agent_brokerage":
         return (
           <AgentBrokerageSection
@@ -76,10 +91,37 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
             wrapInCard={false}
           />
         );
-      case "housing":
-        return <HousingStep formData={formData} updateFormData={updateFormData} />;
+      case "housing_essentials":
+        return (
+          <HousingStepEssentials
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
+      case "housing_ranges":
+        return (
+          <HousingStepRanges
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
       case "location":
-        return <LocationStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <LocationStep
+            formData={formData}
+            updateFormData={updateFormData}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+          />
+        );
+      case "search_property":
+        return (
+          <ProfileSearchPropertySection
+            formData={formData}
+            isEditMode={true}
+            updateField={(field, value) => updateFormData(field, value)}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+          />
+        );
       default:
         return (
           <Box className="py-6">
@@ -135,7 +177,9 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       <View style={styles.footer}>
         {currentStep > 0 ? (
           <Pressable onPress={prevStep} style={styles.backButton}>
-            <Text className="text-text-secondary text-base font-medium">Back</Text>
+            <Text className="text-text-secondary text-base font-medium">
+              Back
+            </Text>
           </Pressable>
         ) : (
           <View style={styles.backPlaceholder} />
@@ -145,7 +189,10 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
           disabled={loading}
           accessibilityRole="button"
           accessibilityState={{ busy: loading }}
-          style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
+          style={[
+            styles.primaryButton,
+            loading && styles.primaryButtonDisabled,
+          ]}
         >
           {loading ? (
             <KeyTurnLoader message="" />

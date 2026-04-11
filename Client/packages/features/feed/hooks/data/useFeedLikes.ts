@@ -20,6 +20,7 @@ export function useFeedLikes(homeIds: string[]) {
     queryKey,
     queryFn: () => feedReelApi.getFeedLikes(stableIds),
     enabled: stableIds.length > 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes - likes don't change frequently
   });
 
   const likesByHomeId = query.data ?? {};

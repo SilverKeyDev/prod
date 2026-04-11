@@ -1,0 +1,67 @@
+allOf:
+  - $ref: './SuccessResponse.yaml'
+  - type: object
+    description: |
+      Login, signup, token refresh, and verification responses. Session tokens are issued
+      as HTTP-only cookies; deprecated token fields may be null. Use `needs_verification`
+      and `code_delivery` for Cognito MFA / email confirmation flows.
+    properties:
+      user:
+        nullable: true
+        allOf:
+          - $ref: './AuthSessionUser.yaml'
+      access_token:
+        type: string
+        nullable: true
+        deprecated: true
+        description: "Tokens are stored in HTTP-only cookies. Do not store client-side."
+      id_token:
+        type: string
+        nullable: true
+        deprecated: true
+      refresh_token:
+        type: string
+        nullable: true
+        deprecated: true
+      user_sub:
+        type: string
+        nullable: true
+        description: Cognito subject identifier; mirrors `AuthSessionUser.user_sub` for clients that cache it.
+      verification_complete:
+        type: boolean
+        nullable: true
+        description: True when email/phone verification requirements are satisfied for this session.
+      login_failed:
+        type: boolean
+        nullable: true
+        description: True when the last password or token exchange attempt failed (check `message` / `error`).
+      auto_login_failed:
+        type: boolean
+        nullable: true
+        description: True when silent refresh or cookie-based auto-login could not establish a session.
+      code_delivery:
+        nullable: true
+        allOf:
+          - $ref: './CognitoCodeDeliveryDetails.yaml'
+      needs_verification:
+        type: boolean
+        nullable: true
+        description: True when the user must complete a verification step before full access.
+example:
+  success: true
+  message: null
+  error: null
+  user:
+    auth_user_kind: session
+    id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    email: "jane.buyer@example.com"
+    name: "Jane Buyer"
+  user_sub: "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  verification_complete: true
+  login_failed: false
+  auto_login_failed: false
+  needs_verification: false
+  access_token: null
+  id_token: null
+  refresh_token: null
+  code_delivery: null

@@ -4,6 +4,7 @@ import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
 
 import { Box } from "packages/ui/components/primitives";
+import { INPUT_AUTOFILL_CLASS_NAME } from "packages/ui/styles/variants/inputVariants";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 
 export type TimeInputProps = {
@@ -32,18 +33,19 @@ const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       max,
       ...props
     },
-    ref
+    ref,
   ) => {
     const baseStyles =
-      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input";
+      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input " +
+      INPUT_AUTOFILL_CLASS_NAME;
 
     const variantStyles = {
       default:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
       mobile:
-        "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary touch-friendly autofill-gold",
+        "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
       compact:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
     };
 
     const sizeStyles = {
@@ -53,7 +55,7 @@ const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
     };
 
     const errorStyles = error
-      ? "border-destructive focus:border-destructive focus:ring-destructive"
+      ? "border-neutral-600 focus:border-neutral-700 focus:ring-neutral-400"
       : "";
 
     const inputClasses = [
@@ -94,7 +96,7 @@ const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
         )}
       </Box>
     );
-  }
+  },
 );
 
 TimeInput.displayName = "TimeInput";

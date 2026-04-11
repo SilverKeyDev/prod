@@ -6,12 +6,16 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout.native";
+import { LEGAL_PAGES_LAST_UPDATED } from "packages/features/homeauth/utils/staticLegalContact";
 
 import { PrivacyPolicyContent } from "./PrivacyPolicyContent";
 
 export function PrivacyPolicyScreenNative() {
   return (
-    <StaticPageLayout title="Privacy Policy" subtitle="Last updated: 8/27/2025">
+    <StaticPageLayout
+      title="Privacy policy"
+      subtitle={LEGAL_PAGES_LAST_UPDATED}
+    >
       <PrivacyPolicyContent
         Section={Section}
         Paragraph={Paragraph}

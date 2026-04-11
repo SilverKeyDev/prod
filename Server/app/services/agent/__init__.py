@@ -25,6 +25,8 @@ from .todo_service import (
     create_todo,
     delete_todo,
     get_agent_todos,
+    get_client_todos,
+    resolve_primary_agent_id_for_client,
     update_todo,
 )
 
@@ -46,6 +48,8 @@ __all__ = [
     "create_connection_request",
     "respond_to_connection_request",
     "get_agent_todos",
+    "get_client_todos",
+    "resolve_primary_agent_id_for_client",
     "create_todo",
     "update_todo",
     "delete_todo",

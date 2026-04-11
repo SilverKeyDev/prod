@@ -82,7 +82,7 @@ Invariants:
 
 - **Documents and signing**
   - Agreement models and signature provider integration:
-    - See signing and SkySlope docs in `integrations/`.
+    - See `integrations/07-signing-review-and-completion.md` and `integrations/09-documents-docusign-and-s3.md`.
 
 - **Calendar and notifications**
   - Existing calendar and notification infrastructure:
@@ -102,4 +102,3 @@ Invariants:
       - Funds are cleared.
       - Title is clear.
       - Move-in tasks are prepared.
-

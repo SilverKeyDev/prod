@@ -8,5 +8,6 @@
   "errors": true,
   "security": true,
   "polygonSearch": true,
+  "docusign": true,
   "logLevel": "DEBUG"
 }

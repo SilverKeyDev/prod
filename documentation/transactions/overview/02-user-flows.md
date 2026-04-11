@@ -11,7 +11,7 @@ Each flow includes:
 
 ### 1. Start a new transaction from checklists
 
-**Actors:** Buyer (optionally agent-coached)  
+**Actors:** Buyer (optionally agent-coached)
 **Goal:** Start a new transaction by entering an address, then land on tailored checklists.
 
 1. Buyer opens the **Close / Transactions** area (web or mobile).
@@ -41,7 +41,7 @@ Each flow includes:
 
 ### 2. Switching between multiple transactions
 
-**Actors:** Buyer, Agent  
+**Actors:** Buyer, Agent
 **Goal:** Move between different active transactions for the same user.
 
 1. From any **transaction-aware view** (checklists, calendar, docs), the user can open a **transaction switcher**:
@@ -66,7 +66,7 @@ Each flow includes:
 
 ### 3. Checklist use and completion (manual + signature + review)
 
-**Actors:** Buyer (primary), Agent (reviewer), other roles (viewers/assignees)  
+**Actors:** Buyer (primary), Agent (reviewer), other roles (viewers/assignees)
 **Goal:** Use checklists to track progress and drive the transaction forward.
 
 1. Buyer views checklist categories (escrow, inspections, financing, closing, move-in).
@@ -96,7 +96,7 @@ Each flow includes:
 
 ### 4. Calendar and deadlines
 
-**Actors:** Buyer, Agent  
+**Actors:** Buyer, Agent
 **Goal:** View transaction milestones and related events on the calendar.
 
 1. When a transaction is created and enriched, the **deadline engine** computes milestone dates:
@@ -118,37 +118,39 @@ Each flow includes:
 
 ---
 
-### 5. Documents, SkySlope forms, and signing flows
+### 5. Documents, DocuSign templates, S3 files, and signing flows
 
-**Actors:** Agent, Buyer, other parties (as signers/recipients)  
-**Goal:** Agents attach the right forms, send for signature via SkySlope, and checklist items mark complete when done.
+**Actors:** Agent, Buyer, other parties (as signers/recipients)
+**Goal:** Agents attach the right agreements and files, send for signature via **DocuSign**, store artifacts in **S3**, and checklist items mark complete when done.
 
 1. Agent views the transaction’s **documents/agreements** section.
 2. From there, the agent:
-   - Browses **SkySlope forms library** (brokerage- and market-specific).
-   - Selects templates to attach to the transaction.
-3. For each attached form:
+   - Selects **DocuSign templates** (synced per product setup) and/or uploads supporting files (stored in **S3** where applicable).
+   - Optionally uses **FMLS** / **eXp**-sourced forms when those integrations are configured.
+3. For each attached agreement:
    - An `Agreement` is created or linked.
    - A checklist item is associated with that agreement.
 4. Sending for signature:
-   - Uses the **signature abstraction** around SkySlope.
+   - Uses **DocuSign** (OAuth per agent, envelopes, embedded signing as configured).
+   - **Connect** webhooks and/or polling update agreement status; completed PDFs land in **S3**.
    - Status changes (sent, delivered, signed, completed) drive checklist completion and notifications.
 
 **Existing infrastructure to reuse / extend**
-- Agreement models and DocuSign-era fields:
+- Agreement models and DocuSign fields:
   - `Server/app/models/documents/agreement.py` and `agreement_participant.py`.
-- Signature provider abstraction:
+- Signature provider abstraction and DocuSign services:
   - `Server/app/services/signature/base.py` (`SignatureProvider`, `NoOpSignatureProvider`).
+  - `Server/app/services/docusign/` — see `Server/app/services/docusign/README.md`.
 - Documents UI:
   - `Client/packages/features/documents/*`, including `AgreementListItem`, `AgreementCard`, and `AgreementDetailModal`.
-- `useAgreementSignature` hook:
-  - Currently a stub returning `unconfigured`; will be wired to SkySlope-backed endpoints.
+- Signature hooks:
+  - `Client/packages/features/documents/hooks/data/useDocusignAgreement.ts`, `useDocusignActions.ts`, and related DocuSign hooks for signing state and actions.
 
 ---
 
 ### 6. Multi-party collaboration (agent, TC, loan officer, etc.)
 
-**Actors:** Buyer, Agent, TC, Loan Officer, others  
+**Actors:** Buyer, Agent, TC, Loan Officer, others
 **Goal:** Treat each transaction as a **shared workspace** with role-based visibility and capabilities.
 
 1. Transaction owner (typically buyer + primary agent) can invite other parties:
@@ -175,4 +177,3 @@ Each flow includes:
   - `documentation/to-implement-soon/notifications/*` for email/push design patterns.
 
 Further details for collaboration live in `collaboration/*.md`.
-

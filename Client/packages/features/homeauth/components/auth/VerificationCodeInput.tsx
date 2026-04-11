@@ -37,7 +37,7 @@ export default function VerificationCodeInput({
   autoFocus = false,
 }: VerificationCodeInputProps) {
   const [digits, setDigits] = useState<string[]>(() =>
-    Array.from({ length }, (_, index) => value[index] ?? "")
+    Array.from({ length }, (_, index) => value[index] ?? ""),
   );
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -83,7 +83,10 @@ export default function VerificationCodeInput({
     }
   };
 
-  const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (disabled) return;
 
     if (event.key === "Backspace") {
@@ -124,7 +127,10 @@ export default function VerificationCodeInput({
     const pasted = event.clipboardData.getData("text").replace(/\D/g, "");
     if (!pasted) return;
 
-    const nextDigits = Array.from({ length }, (_, index) => pasted[index] ?? "");
+    const nextDigits = Array.from(
+      { length },
+      (_, index) => pasted[index] ?? "",
+    );
     const nextCode = nextDigits.join("");
     setDigits(nextDigits);
     onChange?.(nextCode);
@@ -150,7 +156,9 @@ export default function VerificationCodeInput({
   return (
     <Box className="w-full">
       {label && (
-        <Label className="text-text-secondary mb-2 block text-sm font-medium">{label}</Label>
+        <Label className="text-text-secondary mb-2 block text-sm font-medium">
+          {label}
+        </Label>
       )}
 
       <Box className="gap-responsive-sm sm:gap-responsive-md flex justify-between">
@@ -171,11 +179,13 @@ export default function VerificationCodeInput({
             disabled={disabled}
             className={[
               "h-14 w-10 border-0 border-b-2 bg-transparent text-center tracking-widest sm:h-16 sm:w-12 md:h-20 md:w-14",
-              "focus:border-primary border-border focus:outline-none focus:ring-0",
+              "focus:border-input-variant-focus-border border-border focus:outline-none focus:ring-0",
               "pb-0 text-[1.40625rem] font-bold leading-none sm:text-[1.6875rem] md:text-[2.25rem]",
               "rounded-none", // keep the underline look
               sharedInputTextStyles,
-              disabled ? "border-border text-text-disabled cursor-not-allowed" : "text-black",
+              disabled
+                ? "border-border text-text-disabled cursor-not-allowed"
+                : "text-black",
             ]
               .filter(Boolean)
               .join(" ")}

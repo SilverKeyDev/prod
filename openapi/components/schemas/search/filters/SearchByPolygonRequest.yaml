@@ -1,0 +1,49 @@
+type: object
+description: |
+  Map-bounded property search. `viewport_polygon` is an ordered ring of points with
+  explicit `lat` and `lng` (WGS-84 decimal degrees), closing implicitly by edge order.
+  Optional filters come from `user_preferences` and strictness flags; results are
+  scored server-side unless overridden by route-specific sort parameters.
+required:
+  - viewport_polygon
+properties:
+  viewport_polygon:
+    type: array
+    items:
+      $ref: '../properties/ViewportPolygonPoint.yaml'
+    description: Closed polygon covering the visible map region (typically 4+ corners).
+  user_preferences:
+    $ref: '../../user/profile/UserPreferencesData.yaml'
+    nullable: true
+    description: Buyer preference slice applied as soft or hard filters depending on `preferences_strict_filter`.
+  preferences_strict_filter:
+    type: boolean
+    nullable: true
+    description: When true, exclude properties that fail preference constraints instead of only down-ranking them.
+  perBucketPages:
+    type: integer
+    nullable: true
+    description: Cap on hits per internal price or geography bucket when paginating large result sets.
+  forceSearch:
+    type: boolean
+    nullable: true
+    description: Bypass short-circuit caches and recompute matches (admin or debug style refresh).
+  onlyCached:
+    type: boolean
+    nullable: true
+    description: When true, return previously materialized results only without hitting upstream MLS.
+example:
+  viewport_polygon:
+    - lat: 39.75
+      lng: -104.98
+    - lat: 39.75
+      lng: -104.9
+    - lat: 39.7
+      lng: -104.9
+    - lat: 39.7
+      lng: -104.98
+  user_preferences: null
+  preferences_strict_filter: false
+  perBucketPages: 10
+  forceSearch: false
+  onlyCached: false

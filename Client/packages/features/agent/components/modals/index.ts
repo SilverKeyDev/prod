@@ -4,6 +4,8 @@
  */
 export type { AgentSearchContentProps } from "../AgentSearchContent";
 export { AgentSearchContent } from "../AgentSearchContent";
+export type { AgentSearchPanelProps } from "../AgentSearchPanel";
+export { AgentSearchPanel } from "../AgentSearchPanel";
 export { default as AgentSearchModal } from "./AgentSearchModal";
 export { default as CalendarEventRequestModal } from "./CalendarEventRequestModal";
 export { default as ClientSearchModal } from "./ClientSearchModal";

@@ -1,0 +1,21 @@
+type: object
+additionalProperties: true
+properties:
+  id:
+    type: string
+    nullable: true
+  address:
+    type: string
+    nullable: true
+  latitude:
+    type: number
+    nullable: true
+  longitude:
+    type: number
+    nullable: true
+  zpid:
+    type: string
+    nullable: true
+  mls_home_id:
+    type: string
+    nullable: true

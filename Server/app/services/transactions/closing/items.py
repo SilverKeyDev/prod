@@ -20,7 +20,7 @@ CLOSING_ITEMS = [
         "id": 2,
         "label": "Review & sign closing documents",
         "explanation": "Carefully review each document; ask your escrow officer or attorney for digital copies in advance.",
-        "suggested_form_ids": ["closing_disclosure", "deed", "loan_documents"],
+        "suggested_form_ids": ["notice_of_closing_fmls", "change_in_ownership_fmls"],
         "completion_type": "signature_based",
         "calendar": {"hasDates": False, "days": 3, "eventSchedule": [3]},
         "bullets": [

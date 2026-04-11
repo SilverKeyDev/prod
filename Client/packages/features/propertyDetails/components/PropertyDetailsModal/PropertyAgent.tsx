@@ -10,7 +10,27 @@ import AppImage from "@/components/ui/asset/AppImage";
 
 import type { PropertyComponentProps } from "./types";
 
-export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) => {
+const formatPhoneNumber = (phone: Record<string, unknown>): string => {
+  const toString = (value: unknown): string => {
+    if (typeof value === "string") return value;
+    if (typeof value === "number") return String(value);
+    return "";
+  };
+
+  const areacode = toString(phone.areacode);
+  const prefix = toString(phone.prefix);
+  const number = toString(phone.number);
+
+  if (areacode && prefix && number) {
+    return `(${areacode}) ${prefix}-${number}`;
+  }
+
+  return areacode || prefix || number || "Phone available";
+};
+
+export const PropertyAgent: React.FC<PropertyComponentProps> = ({
+  property,
+}) => {
   const listedBy = (property as unknown as { listed_by: unknown }).listed_by;
 
   if (!listedBy || typeof listedBy !== "object") {
@@ -24,16 +44,16 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) =>
   const phone = agent.phone as Record<string, unknown> | undefined;
 
   return (
-    <Box>
-      <Box className="mb-4 flex flex-row items-center gap-2">
+    <Box className="space-y-4">
+      <Box className="flex items-center gap-2">
         <User className="h-5 w-5 text-gray-600" />
-        <Title as="h3" size="sm" className="text-brown text-lg font-semibold">
+        <Title as="h3" size="sm" className="text-brown">
           Listing Agent
         </Title>
       </Box>
 
       <Card className="p-4">
-        <Box className="flex flex-row items-start gap-4">
+        <Box className="flex items-start gap-4">
           <Box className="border-brown/20 bg-brown/10 h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border-2">
             {imageUrl ? (
               <AppImage
@@ -42,66 +62,26 @@ export const PropertyAgent: React.FC<PropertyComponentProps> = ({ property }) =>
                 className="h-full w-full object-cover"
               />
             ) : (
-              <Box
-                className={`h-full w-full items-center justify-center ${
-                  imageUrl ? "hidden" : "flex"
-                }`}
-              >
+              <Box className="flex h-full w-full items-center justify-center">
                 <User className="text-brown/60 h-8 w-8" />
               </Box>
             )}
           </Box>
 
-          <Box className="flex-1">
-            <Title as="h4" size="sm" className="text-gold text-lg font-medium">
+          <Box className="flex flex-1 flex-col gap-1">
+            <Title as="h4" size="sm" className="text-gold">
               {displayName}
             </Title>
             {businessName && (
-              <BodyText as="p" size="sm" className="text-brown/70">
+              <BodyText size="sm" className="text-brown/70">
                 {businessName}
               </BodyText>
             )}
             {phone && (
-              <Box className="text-brown mt-2 flex flex-row items-center">
-                <Phone className="mr-1 h-4 w-4" />
-                <BodyText as="span" size="sm" className="text-brown">
-                  {(() => {
-                    const ph = phone;
-                    if (!ph) return "Phone available";
-                    const { areacode, prefix, number } = ph;
-
-                    const safeStringify = (value: unknown): string => {
-                      if (typeof value === "string") return value;
-                      if (typeof value === "number") return String(value);
-                      if (value === null || value === undefined) return "";
-                      if (typeof value === "object" && value !== null) {
-                        try {
-                          return JSON.stringify(value);
-                        } catch {
-                          return "[Object]";
-                        }
-                      }
-                      try {
-                        if (typeof value === "string") return value;
-                        if (typeof value === "number") return String(value);
-                        if (typeof value === "boolean") return String(value);
-                        if (value === null || value === undefined) return "";
-                        return "[Unknown]";
-                      } catch {
-                        return "[Unknown]";
-                      }
-                    };
-
-                    if (areacode && prefix && number) {
-                      return `(${safeStringify(areacode)}) ${safeStringify(prefix)}-${safeStringify(number)}`;
-                    }
-                    return (
-                      (typeof areacode === "string" ? areacode : null) ??
-                      (typeof prefix === "string" ? prefix : null) ??
-                      (typeof number === "string" ? number : null) ??
-                      "Phone available"
-                    );
-                  })()}
+              <Box className="text-brown mt-1 flex items-center gap-1.5">
+                <Phone className="h-4 w-4" />
+                <BodyText size="sm" className="text-brown">
+                  {formatPhoneNumber(phone)}
                 </BodyText>
               </Box>
             )}

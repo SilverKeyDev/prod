@@ -1,7 +1,13 @@
 import { Transition } from "packages/ui/components/adapters/headless";
 import { Box } from "packages/ui/components/primitives";
 
-import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
+import {
+  AccessibleDialog,
+  BodyText,
+  Button,
+  CloseButton,
+  Title,
+} from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";
 import { logTourClick } from "@/features/feed/utils";
 
@@ -15,10 +21,18 @@ type FeedBookTourModalProps = {
  * Modal for booking a property tour from the feed.
  * Keeps user in flow without navigating away.
  */
-export function FeedBookTourModal({ isOpen, onClose, item }: FeedBookTourModalProps) {
+export function FeedBookTourModal({
+  isOpen,
+  onClose,
+  item,
+}: FeedBookTourModalProps) {
   return (
     <Transition show={isOpen} as="div">
-      <AccessibleDialog onClose={onClose} className="relative z-50" label="Book Tour">
+      <AccessibleDialog
+        onClose={onClose}
+        className="z-modal relative"
+        label="Book Tour"
+      >
         <Transition.Child
           enter="ease-out duration-200"
           enterFrom="opacity-0"
@@ -27,7 +41,11 @@ export function FeedBookTourModal({ isOpen, onClose, item }: FeedBookTourModalPr
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Box className="fixed inset-0 bg-black/50" aria-hidden onClick={onClose} />
+          <Box
+            className="fixed inset-0 bg-black/50"
+            aria-hidden
+            onClick={onClose}
+          />
         </Transition.Child>
         <Box className="fixed inset-0 flex items-center justify-center p-4">
           <Transition.Child
@@ -46,8 +64,8 @@ export function FeedBookTourModal({ isOpen, onClose, item }: FeedBookTourModalPr
                 <CloseButton onClick={onClose} size="sm" />
               </Box>
               <BodyText size="sm" className="mt-3" muted>
-                Schedule a viewing for {item.user.name || "this property"}. A SilverKey agent will
-                reach out to confirm your tour.
+                Schedule a viewing for {item.user.name || "this property"}. A
+                SilverKey agent will reach out to confirm your tour.
               </BodyText>
               <Box className="mt-4 flex flex-col gap-2">
                 <Button

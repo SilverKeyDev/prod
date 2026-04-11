@@ -196,15 +196,17 @@ def generate_action_plan(user_preferences, client_name):
             # Housing Preferences (using actual fields)
             if user_preferences.get("housing_type"):
                 context_parts.append(f"Preferred housing type: {user_preferences['housing_type']}")
-            if user_preferences.get("preferred_bedrooms_min") is not None or user_preferences.get(
-                "preferred_bedrooms_max"
-            ) is not None:
+            if (
+                user_preferences.get("preferred_bedrooms_min") is not None
+                or user_preferences.get("preferred_bedrooms_max") is not None
+            ):
                 lo = user_preferences.get("preferred_bedrooms_min", "")
                 hi = user_preferences.get("preferred_bedrooms_max", "")
                 context_parts.append(f"Bedrooms range: {lo}–{hi}")
-            if user_preferences.get("preferred_bathrooms_min") is not None or user_preferences.get(
-                "preferred_bathrooms_max"
-            ) is not None:
+            if (
+                user_preferences.get("preferred_bathrooms_min") is not None
+                or user_preferences.get("preferred_bathrooms_max") is not None
+            ):
                 lo = user_preferences.get("preferred_bathrooms_min", "")
                 hi = user_preferences.get("preferred_bathrooms_max", "")
                 context_parts.append(f"Bathrooms range: {lo}–{hi}")

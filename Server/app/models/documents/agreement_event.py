@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app import db
 
 
@@ -9,25 +11,29 @@ class AgreementEvent(db.Model):
 
     __tablename__ = "agreement_events"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    agreement_id = db.Column(
-        db.String(36), db.ForeignKey("agreements.id"), nullable=False, index=True
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    agreement_id: Mapped[str] = mapped_column(
+        db.String(36), db.ForeignKey("agreements.id"), index=True
     )
 
     # Event details
-    event_type = db.Column(
-        db.String(50), nullable=False
+    event_type: Mapped[str] = mapped_column(
+        db.String(50)
     )  # revision_created, sent, delivered, signed, completed, voided, etc.
-    description = db.Column(db.Text, nullable=False)
+    description: Mapped[str] = mapped_column(db.Text)
 
     # Context
-    actor_id = db.Column(
-        db.String(36), db.ForeignKey("users.id"), nullable=True
+    actor_id: Mapped[str | None] = mapped_column(
+        db.String(36), db.ForeignKey("users.id")
     )  # Who triggered it
-    event_metadata = db.Column(db.Text, nullable=True)  # JSON for additional context
+    event_metadata: Mapped[str | None] = mapped_column(db.Text)  # JSON for additional context
 
     # Timestamp
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationships
     agreement = db.relationship("Agreement", back_populates="events", foreign_keys=[agreement_id])

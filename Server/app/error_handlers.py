@@ -1,12 +1,24 @@
 """Flask error handlers and response security headers."""
 
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import g, jsonify, request
 from jose.exceptions import ExpiredSignatureError
 from sqlalchemy.exc import DatabaseError, IntegrityError, OperationalError, ProgrammingError
 from werkzeug.exceptions import Unauthorized
+
+from app.services.docusign.errors import (
+    AgreementNotFoundError,
+    AgreementStateError,
+    DocusignAPIError,
+    DocusignAuthError,
+    DocusignError,
+    ParticipantNotFoundError,
+    RevisionNotFoundError,
+    TemplateNotFoundError,
+)
+from app.utils.security.secure_errors import SecureErrorHandler
 
 
 def register_after_request_headers(app):
@@ -70,7 +82,7 @@ def register_error_handlers(app):
                 "traceback": error_traceback,
                 "url": request.url if request else "unknown",
                 "method": request.method if request else "unknown",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return jsonify(
@@ -95,7 +107,7 @@ def register_error_handlers(app):
                 "url": request.url if request else "unknown",
                 "method": request.method if request else "unknown",
                 "headers": dict(request.headers) if request else {},
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return jsonify(
@@ -119,7 +131,7 @@ def register_error_handlers(app):
                 "traceback": error_traceback,
                 "url": request.url if request else "unknown",
                 "method": request.method if request else "unknown",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return jsonify(
@@ -143,7 +155,7 @@ def register_error_handlers(app):
                 "traceback": error_traceback,
                 "url": request.url if request else "unknown",
                 "method": request.method if request else "unknown",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return jsonify(
@@ -168,7 +180,7 @@ def register_error_handlers(app):
                 "url": request.url if request else "unknown",
                 "method": request.method if request else "unknown",
                 "endpoint": request.endpoint if request else "unknown",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return jsonify(
@@ -193,7 +205,7 @@ def register_error_handlers(app):
                 "url": request.url if request else "unknown",
                 "method": request.method if request else "unknown",
                 "endpoint": request.endpoint if request else "unknown",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return jsonify(
@@ -218,7 +230,7 @@ def register_error_handlers(app):
                 "url": request.url if request else "unknown",
                 "method": request.method if request else "unknown",
                 "endpoint": request.endpoint if request else "unknown",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return jsonify(
@@ -243,7 +255,7 @@ def register_error_handlers(app):
                 "url": request.url if request else "unknown",
                 "method": request.method if request else "unknown",
                 "endpoint": request.endpoint if request else "unknown",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return jsonify(
@@ -266,9 +278,86 @@ def register_error_handlers(app):
                 "url": request.url if request else "unknown",
                 "method": request.method if request else "unknown",
                 "endpoint": request.endpoint if request else "unknown",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return jsonify(
             {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required."}
         ), 401
+
+    @app.errorhandler(AgreementStateError)
+    def handle_agreement_state_error(error):
+        return SecureErrorHandler.handle_docusign_error(
+            error,
+            error_type="agreement_state_error",
+            status_code=400,
+            context={"error_message": str(error)},
+        )
+
+    @app.errorhandler(AgreementNotFoundError)
+    def handle_agreement_not_found_error(error):
+        return SecureErrorHandler.handle_docusign_error(
+            error,
+            error_type="agreement_not_found",
+            status_code=404,
+            context={"error_message": str(error)},
+        )
+
+    @app.errorhandler(ParticipantNotFoundError)
+    def handle_participant_not_found_error(error):
+        return SecureErrorHandler.handle_docusign_error(
+            error,
+            error_type="participant_not_found",
+            status_code=404,
+            context={"error_message": str(error)},
+        )
+
+    @app.errorhandler(RevisionNotFoundError)
+    def handle_revision_not_found_error(error):
+        return SecureErrorHandler.handle_docusign_error(
+            error,
+            error_type="revision_not_found",
+            status_code=404,
+            context={"error_message": str(error)},
+        )
+
+    @app.errorhandler(TemplateNotFoundError)
+    def handle_template_not_found_error(error):
+        return SecureErrorHandler.handle_docusign_error(
+            error,
+            error_type="template_not_found",
+            status_code=404,
+            context={"error_message": str(error)},
+        )
+
+    @app.errorhandler(DocusignAuthError)
+    def handle_docusign_auth_error(error):
+        return SecureErrorHandler.handle_docusign_error(
+            error,
+            error_type="authentication_failed",
+            status_code=401,
+            context={"error_message": str(error), "service": "DocuSign"},
+        )
+
+    @app.errorhandler(DocusignAPIError)
+    def handle_docusign_api_error(error):
+        status_code = error.status_code if hasattr(error, "status_code") else 503
+        return SecureErrorHandler.handle_docusign_error(
+            error,
+            error_type="external_api_error",
+            status_code=status_code,
+            context={
+                "error_message": str(error),
+                "service": "DocuSign",
+                "status_code": status_code,
+            },
+        )
+
+    @app.errorhandler(DocusignError)
+    def handle_docusign_error(error):
+        return SecureErrorHandler.handle_docusign_error(
+            error,
+            error_type="docusign_error",
+            status_code=500,
+            context={"error_message": str(error)},
+        )

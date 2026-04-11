@@ -9,7 +9,7 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
 };
 
 /**
- * Base Input primitive — native <input> for web.
+ * Base Input primitive - native <input> for web.
  * Native uses TextInput (Input.native.tsx). Use onValueChange for unified change handling.
  */
 const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
@@ -22,7 +22,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     keyboardType: _keyboardType,
     ...props
   },
-  ref
+  ref,
 ) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange?.(e);

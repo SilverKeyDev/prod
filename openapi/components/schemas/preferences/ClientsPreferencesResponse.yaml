@@ -1,0 +1,16 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          properties:
+            client:
+              $ref: '../agent/clients/ClientInfo.yaml'
+              nullable: true
+            preferences:
+              $ref: './PreferencesResponse.yaml'
+              nullable: true
+        nullable: true

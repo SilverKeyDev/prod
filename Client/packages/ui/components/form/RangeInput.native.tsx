@@ -7,7 +7,7 @@ import { View } from "react-native";
 import { color } from "packages/design-tokens";
 
 /**
- * Native range input — same API as web RangeInput so shared slider components
+ * Native range input - same API as web RangeInput so shared slider components
  * (BudgetRangeSlider, PriceRangeSlider) can use one code path.
  * Parent uses parseFloat(e.target.value); we synthesize that from Slider's onValueChange.
  */
@@ -48,8 +48,12 @@ export default function RangeInputNative({
         step={step}
         value={value}
         onValueChange={(v) => onChange?.({ target: { value: String(v) } })}
-        minimumTrackTintColor={transparentTrack ? "transparent" : color("accent")}
-        maximumTrackTintColor={transparentTrack ? "transparent" : color("neutral.300")}
+        minimumTrackTintColor={
+          transparentTrack ? "transparent" : color("accent")
+        }
+        maximumTrackTintColor={
+          transparentTrack ? "transparent" : color("neutral.300")
+        }
         thumbTintColor={color("neutral.50")}
         disabled={disabled}
         accessibilityLabel={label}

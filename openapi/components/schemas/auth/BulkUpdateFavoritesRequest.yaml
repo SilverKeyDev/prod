@@ -1,0 +1,11 @@
+type: object
+required:
+  - favorites
+properties:
+  favorites:
+    type: array
+    items:
+      $ref: '../user/favorites/FavoriteHomePayload.yaml'
+    description: >
+      Replaces the user's favorites; each element is a home object passed to
+      add_or_update_home_basic (same flexible shape as add-favorite).

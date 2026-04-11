@@ -48,7 +48,9 @@ const PRESSABLE_FORWARD_KEYS = [
   "nativeID",
 ] as const;
 
-function pickPressableProps(props: Record<string, unknown>): Record<string, unknown> {
+function pickPressableProps(
+  props: Record<string, unknown>,
+): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const key of PRESSABLE_FORWARD_KEYS) {
     if (key in props && props[key] !== undefined) {
@@ -122,19 +124,25 @@ export type ButtonProps = {
 function renderIcon(
   icon: React.ReactNode,
   size: "sm" | "md" | "lg",
-  textColorClass: string
+  textColorClass: string,
 ): React.ReactNode {
   const iconClass = `${BUTTON_ICON_SIZE_CLASS[size]} ${textColorClass}`.trim();
   if (!icon) return null;
   if (React.isValidElement(icon)) {
-    const existingClassName = (icon.props as { className?: string })?.className ?? "";
+    const existingClassName =
+      (icon.props as { className?: string })?.className ?? "";
     const className = [existingClassName, iconClass].filter(Boolean).join(" ");
-    return React.cloneElement(icon as React.ReactElement<{ className?: string }>, {
-      className,
-    }) as React.ReactNode;
+    return React.cloneElement(
+      icon as React.ReactElement<{ className?: string }>,
+      {
+        className,
+      },
+    ) as React.ReactNode;
   }
   return (
-    <Box className={`inline-flex flex-row items-center ${iconClass}`}>{icon}</Box>
+    <Box className={`inline-flex flex-row items-center ${iconClass}`}>
+      {icon}
+    </Box>
   ) as React.ReactNode;
 }
 
@@ -168,15 +176,18 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       "aria-label": ariaLabel,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const effectiveVariant: ButtonStyleVariant = variant === "cancel" ? "ghost" : variant;
+    const effectiveVariant: ButtonStyleVariant =
+      variant === "cancel" ? "ghost" : variant;
     const textColorClass = BUTTON_TEXT_COLOR_CLASSES[effectiveVariant];
     const textSizeClass = BUTTON_TEXT_SIZE_CLASSES[size];
-    const iconClassName = `${BUTTON_ICON_SIZE_CLASS[size]} ${textColorClass}`.trim();
+    const iconClassName =
+      `${BUTTON_ICON_SIZE_CLASS[size]} ${textColorClass}`.trim();
 
     const resolvedIcon =
-      icon ?? (iconName ? <Icon name={iconName} className={iconClassName} /> : null);
+      icon ??
+      (iconName ? <Icon name={iconName} className={iconClassName} /> : null);
 
     // Unified press handler: prefer onPress (cross-platform), fallback to onClick (web legacy)
     const handlePress = onPress ?? onClick;
@@ -194,7 +205,10 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
     }, [children, hideTextBelow]);
 
     const isEdgeRight =
-      !loading && iconPosition === "right" && iconAlign === "edge" && Boolean(resolvedIcon);
+      !loading &&
+      iconPosition === "right" &&
+      iconAlign === "edge" &&
+      Boolean(resolvedIcon);
     const layoutClass = isEdgeRight ? "justify-between" : "";
     const mainAxisJustify = isEdgeRight
       ? ""
@@ -223,7 +237,8 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
     if (typeof __DEV__ !== "undefined" && __DEV__ && isNative) {
       log.debug(LOG_CATEGORIES.STYLING, "[Button] buttonClasses", {
-        truncated: buttonClasses.slice(0, 80) + (buttonClasses.length > 80 ? "..." : ""),
+        truncated:
+          buttonClasses.slice(0, 80) + (buttonClasses.length > 80 ? "..." : ""),
       });
       log.debug(LOG_CATEGORIES.STYLING, "[Button] full classes", buttonClasses);
     }
@@ -233,11 +248,13 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 
     const contentInnerLayoutClass =
       contentAlign === "start"
-        ? "inline-flex w-full flex-row items-start justify-start gap-2 text-left font-medium leading-none"
+        ? "inline-flex w-full flex-row items-center justify-start gap-2 text-left font-medium leading-none"
         : "inline-flex w-full flex-row items-center justify-center gap-2 text-center font-medium leading-none";
 
     const loaderBox = (
-      <Box className={`h-8 w-8 shrink-0 items-center justify-center ${textColorClass}`.trim()}>
+      <Box
+        className={`h-8 w-8 shrink-0 items-center justify-center ${textColorClass}`.trim()}
+      >
         {/* <KeyTurnLoader message="" /> */}
       </Box>
     );
@@ -276,14 +293,16 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
     if (getEnv().isDevelopment && hideTextBelow && !label) {
       log.warn(
         LOG_CATEGORIES.ERRORS,
-        "[Button] hideTextBelow is set but label (aria-label) is missing. Provide label for accessibility when text is hidden."
+        "[Button] hideTextBelow is set but label (aria-label) is missing. Provide label for accessibility when text is hidden.",
       );
     }
 
     const loadingOnlyContent = (
       <>
         <RippleBackground overlay />
-        <Row className="relative z-10 items-center justify-center gap-2">{loaderBox}</Row>
+        <Row className="relative z-10 items-center justify-center gap-2">
+          {loaderBox}
+        </Row>
       </>
     );
 
@@ -291,7 +310,9 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       loadingOnlyContent
     ) : isEdgeRight ? (
       <>
-        <Box className={`min-w-0 flex-1 items-center justify-start gap-2 ${textColorClass}`.trim()}>
+        <Box
+          className={`min-w-0 flex-1 items-center justify-start gap-2 ${textColorClass}`.trim()}
+        >
           {iconLeft && renderIcon(resolvedIcon, size, textColorClass)}
           {textContent}
         </Box>
@@ -305,14 +326,16 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       <Row
         className={
           contentAlign === "start"
-            ? "w-full items-start justify-start gap-2"
+            ? "w-full items-center justify-start gap-2"
             : "items-center justify-center gap-2"
         }
       >
         {iconLeft && (
           <Box
             className={
-              contentAlign === "start" ? "shrink-0 items-start justify-center" : "items-center justify-center"
+              contentAlign === "start"
+                ? "shrink-0 items-center justify-center"
+                : "items-center justify-center"
             }
           >
             {renderIcon(resolvedIcon, size, textColorClass)}
@@ -322,7 +345,9 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         {iconRight && (
           <Box
             className={
-              contentAlign === "start" ? "shrink-0 items-start justify-center" : "items-center justify-center"
+              contentAlign === "start"
+                ? "shrink-0 items-center justify-center"
+                : "items-center justify-center"
             }
           >
             {renderIcon(resolvedIcon, size, textColorClass)}
@@ -336,13 +361,20 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
       pressableProps.accessibilityState &&
       typeof pressableProps.accessibilityState === "object" &&
       !Array.isArray(pressableProps.accessibilityState)
-        ? (pressableProps.accessibilityState as Record<string, boolean | undefined>)
+        ? (pressableProps.accessibilityState as Record<
+            string,
+            boolean | undefined
+          >)
         : {};
     const mergedAccessibilityState = { ...priorA11yState, busy: loading };
 
     /** Native: merge buttonNativeSizes (CVA native: doesn't apply at Babel time). No inline theme overrides. */
-    const nativeSizeStyle = isNative ? buttonNativeSizes[size ?? "md"] : undefined;
-    const mergedStyle = isNative ? [nativeSizeStyle, style].filter(Boolean) : style;
+    const nativeSizeStyle = isNative
+      ? buttonNativeSizes[size ?? "md"]
+      : undefined;
+    const mergedStyle = isNative
+      ? [nativeSizeStyle, style].filter(Boolean)
+      : style;
 
     return (
       <Pressable
@@ -366,7 +398,7 @@ const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
         {content}
       </Pressable>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

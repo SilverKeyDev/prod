@@ -15,12 +15,18 @@
     "ios:clean": "pnpm --filter @silverkey/mobile ios:clean",
     "ios:native": "pnpm --filter @silverkey/mobile run:ios",
     "android": "pnpm --filter @silverkey/mobile android",
-    "lint": "eslint . --config packages/config/eslint/eslint.config.cjs",
-    "lint:fix": "eslint . --fix --config packages/config/eslint/eslint.config.cjs",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest watch",
+    "lint": "eslint . --config packages/config/eslint/eslint.config.cjs --no-warn-ignored",
+    "lint:fix": "eslint . --fix --config packages/config/eslint/eslint.config.cjs --no-warn-ignored",
     "lint:all": "pnpm lint",
     "format": "prettier . --config packages/config/prettier/prettier.config.js --ignore-path packages/config/prettier/.prettierignore --write",
     "format:check": "prettier . --config packages/config/prettier/prettier.config.js --ignore-path packages/config/prettier/.prettierignore --check",
     "typecheck": "tsc -p apps/web/tsconfig.json",
+    "typecheck:workspace": "tsc -p packages/config/tsconfig/tsconfig.app.json --noEmit",
     "typecheck:watch": "pnpm --filter @silverkey/web typecheck:watch",
     "typecheck:mobile": "tsc -p apps/mobile/tsconfig.json",
     "audit": "pnpm audit --audit-level=critical",
@@ -32,9 +38,11 @@
     "audit:native-duplication:json": "node scripts/duplication/audit-native-regular-dup.mjs --min-lines 40 --json",
     "audit:native-duplication:ci": "node scripts/duplication/audit-native-regular-dup.mjs --min-lines 80 --fail-on-duplication",
     "parity:web:record-storage": "node scripts/visual-parity/record-web-storage.mjs",
-    "parity:web:screenshots": "node scripts/visual-parity/capture-web.mjs"
+    "parity:web:screenshots": "node scripts/visual-parity/capture-web.mjs",
+    "generate:api-types": "bash scripts/generate-api-types.sh"
   },
   "devDependencies": {
+    "@apidevtools/json-schema-ref-parser": "11",
     "@playwright/test": "^1.55.0",
     "@react-email/components": "^1.0.8",
     "@react-email/render": "^2.0.4",
@@ -42,6 +50,8 @@
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.18",
     "baseline-browser-mapping": "^2.9.19",
     "dotenv": "^16.4.5",
@@ -52,12 +62,15 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^15.9.0",
     "husky": "^9.1.6",
+    "jsdom": "^25.0.0",
     "lint-staged": "^15.2.7",
     "madge": "^8.0.0",
+    "openapi-typescript": "6.7.6",
     "prettier": "^3.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.2",
@@ -76,6 +89,7 @@
     "react-router-dom": "^7.12.0",
     "react-virtuoso": "^4.18.1",
     "typescript-eslint": "^8.45.0",
+    "yet-another-react-lightbox": "^3.30.1",
     "zod": "^3.25.76",
     "zustand": "^5.0.8"
   },
@@ -92,7 +106,8 @@
       "vite": ">=7.1.11",
       "postcss": ">=8.4.31",
       "js-yaml": ">=4.1.1",
-      "ajv": "^6.14.0"
+      "ajv": "^6.14.0",
+      "handlebars": ">=4.7.9"
     }
   }
 }

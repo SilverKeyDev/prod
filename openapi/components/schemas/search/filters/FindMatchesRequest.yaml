@@ -1,0 +1,27 @@
+type: object
+required:
+  - user_data
+  - homes_data
+properties:
+  user_data:
+    type: object
+    description: User preferences and profile data
+    additionalProperties: true
+  homes_data:
+    type: array
+    items:
+      type: object
+      additionalProperties: true
+    description: Array of home data objects
+  top_k:
+    type: integer
+    nullable: true
+    description: Number of top matches to return (default 10)
+  include_explanations:
+    type: boolean
+    nullable: true
+    description: Include match explanations (default false)
+  embedding_provider:
+    type: string
+    nullable: true
+    description: Embedding provider to use (default sentence_transformer)

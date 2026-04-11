@@ -2,8 +2,10 @@ import { useMemo } from "react";
 
 import { Navigate, Route, useLocation } from "react-router-dom";
 
+import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
 import type { UserProfile } from "@/features/homeauth/types";
 import AdminPage from "@/pages/AdminPage";
+import PropertyDetailsPage from "@/pages/PropertyDetailsPage";
 
 import { createProtectedRoute } from "./RouteConfig";
 import { ROUTE_CONFIGS } from "./routeConfigExports";
@@ -20,8 +22,14 @@ type DynamicRoutesProps = {
 };
 
 /** Single shared element so the dashboard shell stays mounted across route changes. */
-function useProtectedDashboardElement(user: UserProfile | null, handleLogout: () => void) {
-  return useMemo(() => createProtectedRoute(user ?? undefined, handleLogout), [handleLogout, user]);
+function useProtectedDashboardElement(
+  user: UserProfile | null,
+  handleLogout: () => void,
+) {
+  return useMemo(
+    () => createProtectedRoute(user ?? undefined, handleLogout),
+    [handleLogout, user],
+  );
 }
 
 export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
@@ -35,7 +43,11 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
         path="/buyer-checklists"
         element={<Navigate to="/dashboard" replace />}
       />,
-      <Route key="settings-redirect" path="/settings/*" element={<SettingsRedirect />} />,
+      <Route
+        key="settings-redirect"
+        path="/settings/*"
+        element={<SettingsRedirect />}
+      />,
       /* Lightweight Protected Routes – same element so shell persists */
       ...ROUTE_CONFIGS.lightweight.map((path) => (
         <Route key={path} path={path} element={protectedElement} />
@@ -52,7 +64,19 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
 
     // Admin route: always registered so /admin is reachable; access is enforced by AuthGuard + AdminGuard + step-up on the page.
     // Use VITE_ENABLE_ADMIN_PANEL=false in production .env to optionally hide the route at build time if desired.
-    baseRoutes.push(<Route key="/admin" path="/admin" element={<AdminPage />} />);
+    baseRoutes.push(
+      <Route key="/admin" path="/admin" element={<AdminPage />} />,
+    );
+
+    // Property details route: public route for shareable property URLs
+    baseRoutes.push(
+      <Route
+        key="/property"
+        path="/property/:zpid/:slug?"
+        element={<PropertyDetailsPage />}
+        errorElement={<RouteErrorBoundary />}
+      />,
+    );
 
     return baseRoutes;
   }, [protectedElement]);

@@ -2,16 +2,14 @@
 
 from flask import Blueprint, current_app, jsonify, request
 
+from app.schemas import TransactionAddressData, TransactionAddressResponse
+from app.utils.validation import validate_request, validate_response
+
 from .. import db
 from ..models import TransactionAddress
 from ..utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from ..utils.security.security import rate_limit
-from .skyslope.transaction_handlers import (
-    attach_skyslope_forms,
-    get_checklist_item_documents,
-    get_skyslope_forms,
-    link_agreement_to_checklist_item,
-)
+from .checklist_forms import download_form, get_checklist_item_forms, send_form
 
 transactions_bp = Blueprint("transactions", __name__, url_prefix="/api/v1/transactions")
 
@@ -49,15 +47,20 @@ def get_transaction_address(user):
 @rate_limit(max_requests=50, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
-def save_transaction_address(user):
+@validate_request(TransactionAddressData)
+@validate_response(TransactionAddressResponse)
+def save_transaction_address(user, data: TransactionAddressData | None = None):
     """POST /api/v1/transactions/address. Saves the user's transaction address.
     Body: { "address": string, "street"?, "city"?, "state"?, "postal_code"?, "country"?, "place_id"? }
     """
     try:
-        data = request.get_json(force=True)
-        if not isinstance(data, dict):
-            return jsonify({"success": False, "error": "Expected JSON object"}), 400
-        address = data.get("address")
+        if data is None:
+            request_data = request.get_json(silent=True)
+            if not isinstance(request_data, dict):
+                return jsonify({"success": False, "error": "Expected JSON object"}), 400
+        else:
+            request_data = data.model_dump()
+        address = request_data.get("address")
         if not address or not isinstance(address, str):
             return jsonify({"success": False, "error": "address is required"}), 400
         address = str(address).strip()
@@ -68,26 +71,52 @@ def save_transaction_address(user):
         addr = TransactionAddress.query.filter_by(user_id=user_id).first()
         if addr:
             addr.address = address
-            addr.street = data.get("street") if isinstance(data.get("street"), str) else None
-            addr.city = data.get("city") if isinstance(data.get("city"), str) else None
-            addr.state = data.get("state") if isinstance(data.get("state"), str) else None
-            addr.postal_code = (
-                data.get("postal_code") if isinstance(data.get("postal_code"), str) else None
+            addr.street = (
+                request_data.get("street") if isinstance(request_data.get("street"), str) else None
             )
-            addr.country = data.get("country") if isinstance(data.get("country"), str) else None
-            addr.place_id = data.get("place_id") if isinstance(data.get("place_id"), str) else None
+            addr.city = (
+                request_data.get("city") if isinstance(request_data.get("city"), str) else None
+            )
+            addr.state = (
+                request_data.get("state") if isinstance(request_data.get("state"), str) else None
+            )
+            addr.postal_code = (
+                request_data.get("postal_code")
+                if isinstance(request_data.get("postal_code"), str)
+                else None
+            )
+            addr.country = (
+                request_data.get("country")
+                if isinstance(request_data.get("country"), str)
+                else None
+            )
+            addr.place_id = (
+                request_data.get("place_id")
+                if isinstance(request_data.get("place_id"), str)
+                else None
+            )
         else:
             addr = TransactionAddress(
                 user_id=user_id,
                 address=address,
-                street=data.get("street") if isinstance(data.get("street"), str) else None,
-                city=data.get("city") if isinstance(data.get("city"), str) else None,
-                state=data.get("state") if isinstance(data.get("state"), str) else None,
-                postal_code=data.get("postal_code")
-                if isinstance(data.get("postal_code"), str)
+                street=request_data.get("street")
+                if isinstance(request_data.get("street"), str)
                 else None,
-                country=data.get("country") if isinstance(data.get("country"), str) else None,
-                place_id=data.get("place_id") if isinstance(data.get("place_id"), str) else None,
+                city=request_data.get("city")
+                if isinstance(request_data.get("city"), str)
+                else None,
+                state=request_data.get("state")
+                if isinstance(request_data.get("state"), str)
+                else None,
+                postal_code=request_data.get("postal_code")
+                if isinstance(request_data.get("postal_code"), str)
+                else None,
+                country=request_data.get("country")
+                if isinstance(request_data.get("country"), str)
+                else None,
+                place_id=request_data.get("place_id")
+                if isinstance(request_data.get("place_id"), str)
+                else None,
             )
             db.session.add(addr)
         db.session.commit()
@@ -110,26 +139,22 @@ def save_transaction_address(user):
         return jsonify({"success": False, "error": "Server error"}), 500
 
 
-# SkySlope integration routes
+# Checklist forms endpoints (embedded in steps, visible to all authenticated users)
 transactions_bp.add_url_rule(
-    "/<transaction_id>/skyslope/forms",
-    view_func=get_skyslope_forms,
+    "/<transaction_id>/checklist-items/<section>/<item_id>/forms",
+    "get_checklist_item_forms",
+    get_checklist_item_forms,
     methods=["GET"],
 )
 transactions_bp.add_url_rule(
-    "/<transaction_id>/skyslope/attach",
-    view_func=attach_skyslope_forms,
-    methods=["POST"],
-)
-transactions_bp.add_url_rule(
-    "/<transaction_id>/checklist-items/<section>/<item_id>/documents",
-    "get_checklist_item_documents",
-    get_checklist_item_documents,
+    "/<transaction_id>/checklist-items/<section>/<item_id>/forms/<form_id>/download",
+    "download_form",
+    download_form,
     methods=["GET"],
 )
 transactions_bp.add_url_rule(
-    "/<transaction_id>/checklist-items/<section>/<item_id>/documents",
-    "link_agreement_to_checklist_item",
-    link_agreement_to_checklist_item,
+    "/<transaction_id>/checklist-items/<section>/<item_id>/forms/<form_id>/send",
+    "send_form",
+    send_form,
     methods=["POST"],
 )

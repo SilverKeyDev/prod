@@ -1,0 +1,8 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      sender_url:
+        type: string
+        format: uri
+        nullable: true

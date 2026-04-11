@@ -8,7 +8,6 @@ from .entertainment import Entertainment
 from .environment import ClimateEnvironmentalSafety
 from .family import FamilyFriendlySection
 from .financial import Affordability
-from .home import Home
 from .investment import Investment
 from .neighborhood import Neighborhood
 
@@ -22,12 +21,11 @@ DEFAULT_SECTION_ORDER = [
     "investment",
     "climate_environmental_safety",
     "convenience_walkability",
-    "home",
 ]
 
 
 class FullReport(BaseModel):
-    # === 9 core sections ===
+    # === 8 core sections ===
     affordability: Affordability | None = None
     neighborhood: Neighborhood | None = None
     commute: CommuteSection | None = None
@@ -36,7 +34,6 @@ class FullReport(BaseModel):
     investment: Investment | None = None
     climate_environmental_safety: ClimateEnvironmentalSafety | None = None
     convenience_walkability: ConvenienceWalkability | None = None
-    home: Home | None = None
 
     # === Internal field (not part of schema) ===
     _prioritized_fields: list[str] = PrivateAttr(default=[])

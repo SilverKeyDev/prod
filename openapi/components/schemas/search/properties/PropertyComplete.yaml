@@ -1,0 +1,59 @@
+type: object
+description: |
+  Complete property record with all details organized into logical submodels.
+  Use this for detailed property views and comprehensive data requirements.
+required:
+  - id
+  - essentials
+  - location
+properties:
+  id:
+    type: string
+    description: Unique property identifier (ZPID or internal ID)
+  essentials:
+    $ref: './PropertyEssentials.yaml'
+  location:
+    $ref: './PropertyLocation.yaml'
+  financials:
+    $ref: './PropertyFinancials.yaml'
+  agent:
+    $ref: './PropertyAgent.yaml'
+  features:
+    $ref: './PropertyFeatures.yaml'
+  media:
+    $ref: './PropertyMedia.yaml'
+  metadata:
+    $ref: './PropertyMetadata.yaml'
+  score:
+    type: number
+    format: float
+    nullable: true
+    description: Match score (0-100) based on user preferences
+  ranking:
+    type: integer
+    nullable: true
+    description: Position in search results (1 = best match)
+example:
+  id: "12345678"
+  essentials:
+    bedrooms: 4
+    bathrooms: 2.5
+    livingAreaSqft: 2400
+    lotSizeSqft: 8000
+    yearBuilt: 2015
+  location:
+    address: "742 Evergreen Terrace"
+    city: "Springfield"
+    state: "IL"
+    zipcode: "62704"
+    latitude: 39.7817
+    longitude: -89.6501
+  financials:
+    price: 425000
+    pricePerSqft: 177
+    annualTaxes: 5200
+  metadata:
+    listingStatus: "FOR_SALE"
+    daysOnMarket: 12
+  score: 87.5
+  ranking: 3

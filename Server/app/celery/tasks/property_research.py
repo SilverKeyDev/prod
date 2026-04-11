@@ -8,7 +8,7 @@ from app.celery.celery_worker import celery
 
 # Property Research Tasks
 @celery.task(name="tasks.research_property_task", bind=True)
-def research_property_task(self, params, address=None, skip_pros_cons=False):
+def research_property_task(self, params, address=None, skip_pros_cons=False, research_body=None):
     """
     Celery task to research a property.
 
@@ -23,13 +23,13 @@ def research_property_task(self, params, address=None, skip_pros_cons=False):
     try:
         start_time = time.time()
         GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-        RAPI_KEY = os.getenv("RAPIDAPI_KEY")
-        if not GOOGLE_MAPS_API_KEY or not RAPI_KEY:
+        SLIPSTREAM_PRIVATE = os.getenv("SLIPSTREAM_PRIVATE")
+        if not GOOGLE_MAPS_API_KEY or not SLIPSTREAM_PRIVATE:
             missing = []
             if not GOOGLE_MAPS_API_KEY:
                 missing.append("GOOGLE_MAPS_API_KEY")
-            if not RAPI_KEY:
-                missing.append("RAPIDAPI_KEY")
+            if not SLIPSTREAM_PRIVATE:
+                missing.append("SLIPSTREAM_PRIVATE")
             return {
                 "success": False,
                 "error": f"Missing required env: {', '.join(missing)}",
@@ -56,15 +56,14 @@ def research_property_task(self, params, address=None, skip_pros_cons=False):
             state="PROGRESS", meta={"status": "Processing property data", "progress": 30}
         )
 
-        # Call the research pipeline
         response_data, status_code = handle_property_request_non_streaming(
             params=params,
             address=address,
             google_maps_api_key=GOOGLE_MAPS_API_KEY,
-            rapidapi_key=RAPI_KEY,
             start_time=start_time,
             log_prefix="[PROPERTY]",
             skip_pros_cons=skip_pros_cons,
+            research_body=research_body,
         )
 
         # Update progress
@@ -91,7 +90,7 @@ def research_property_task(self, params, address=None, skip_pros_cons=False):
 
 
 @celery.task(name="tasks.compare_property_task", bind=True)
-def compare_property_task(self, params, address=None):
+def compare_property_task(self, params, address=None, research_body=None):
     """
     Celery task to compare a property (same as research but skips pros/cons).
 
@@ -105,13 +104,13 @@ def compare_property_task(self, params, address=None):
     try:
         start_time = time.time()
         GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
-        RAPI_KEY = os.getenv("RAPIDAPI_KEY")
-        if not GOOGLE_MAPS_API_KEY or not RAPI_KEY:
+        SLIPSTREAM_PRIVATE = os.getenv("SLIPSTREAM_PRIVATE")
+        if not GOOGLE_MAPS_API_KEY or not SLIPSTREAM_PRIVATE:
             missing = []
             if not GOOGLE_MAPS_API_KEY:
                 missing.append("GOOGLE_MAPS_API_KEY")
-            if not RAPI_KEY:
-                missing.append("RAPIDAPI_KEY")
+            if not SLIPSTREAM_PRIVATE:
+                missing.append("SLIPSTREAM_PRIVATE")
             return {
                 "success": False,
                 "error": f"Missing required env: {', '.join(missing)}",
@@ -138,15 +137,14 @@ def compare_property_task(self, params, address=None):
             state="PROGRESS", meta={"status": "Processing property data", "progress": 30}
         )
 
-        # Call the research pipeline with skip_pros_cons=True
         response_data, status_code = handle_property_request_non_streaming(
             params=params,
             address=address,
             google_maps_api_key=GOOGLE_MAPS_API_KEY,
-            rapidapi_key=RAPI_KEY,
             start_time=start_time,
             log_prefix="[COMPARE]",
             skip_pros_cons=True,
+            research_body=research_body,
         )
 
         # Update progress

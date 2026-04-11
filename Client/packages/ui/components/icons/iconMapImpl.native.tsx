@@ -74,6 +74,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Square,
+  Star,
   Target,
   Trash2,
   TrendingDown,
@@ -170,6 +171,7 @@ const ICONS: Record<IconName, React.ComponentType<SvgProps>> = {
   "sliders-horizontal": SlidersHorizontal,
   sparkles: Sparkles,
   square: Square,
+  star: Star,
   target: Target,
   trash: Trash2,
   "trash-2": Trash2,
@@ -186,6 +188,8 @@ const ICONS: Record<IconName, React.ComponentType<SvgProps>> = {
   "x-circle": XCircle,
 };
 
-export function getIcon(name: IconName): React.ComponentType<SvgProps> | undefined {
+export function getIcon(
+  name: IconName,
+): React.ComponentType<SvgProps> | undefined {
   return ICONS[name];
 }

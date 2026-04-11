@@ -68,19 +68,19 @@ We should **reuse** existing client-side autocomplete patterns and **align** ser
 
 ---
 
-### Option C – Brokerage / SkySlope-driven address selection
+### Option C – Brokerage transaction record as address source
 
-**Idea:** Use the address associated with a SkySlope transaction/record as the canonical source for addresses.
+**Idea:** Use the address associated with an external brokerage transaction record (e.g. a future Dotloop-linked deal) as the canonical source for addresses.
 
 - **Pros**
   - Aligns transaction addresses with what the brokerage already uses for forms and compliance.
   - Could avoid mismatches between forms and internal representation.
 - **Cons**
-  - Tightly couples transaction creation to SkySlope:
+  - Tightly couples transaction creation to an external platform:
     - Hard for buyers in self-service contexts or before an agent is engaged.
-  - Not all workflows will have a SkySlope record at the point when checklists should start.
+  - Not all workflows will have an external record at the point when checklists should start.
 
-**Conclusion:** Useful **as a sync/check** (ensure our address matches SkySlope), but not as the primary way to collect addresses.
+**Conclusion:** Useful **as a sync/check** (ensure our address matches the brokerage record), but not as the primary way to collect addresses.
 
 ---
 
@@ -103,8 +103,7 @@ Adopt **Option A (strict canonicalization)** with explicit fallback handling:
   - For edge-case addresses:
     - Consider a “drop a pin” or “confirm approximate location” flow that still returns lat/lng and basic components.
 
-- **Integration with SkySlope**
-  - Once a SkySlope transaction is connected:
+- **Integration with external brokerage records**
+  - If/when a brokerage platform integration is connected:
     - Cross-validate addresses.
     - Alert if there is a significant discrepancy (optional v2).
-

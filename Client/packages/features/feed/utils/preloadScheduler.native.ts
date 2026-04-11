@@ -1,5 +1,5 @@
 /**
- * Native preload scheduler — mirrors web API but uses React Native image prefetch.
+ * Native preload scheduler - mirrors web API but uses React Native image prefetch.
  *
  * Note: React Native does not support `new Image()`. We use `Image.prefetch` instead.
  */
@@ -24,7 +24,7 @@ export function preloadPoster(url: string): void {
 
 export function schedulePreload(
   items: Array<{ id: string; thumbnailUrl: string }>,
-  activeIndex: number
+  activeIndex: number,
 ): void {
   for (let i = 1; i <= 3; i++) {
     const idx = activeIndex + i;

@@ -7,7 +7,7 @@ import UnifiedMessagingHeader from "packages/features/messaging/components/Clien
 import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
 import UnifiedMessageInput from "packages/features/messaging/components/layout/UnifiedMessageInput";
 import UnifiedMessagesList from "packages/features/messaging/components/layout/UnifiedMessagesList";
-import { useMessaging } from "packages/hooks/data/chat/useMessaging";
+import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
@@ -23,7 +23,9 @@ type AgentMessagingProps = {
   selectedClientId: string | null;
   selectedClient?: AgentClient;
   onClientSelect?: (clientId: string) => void;
-  setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
+  setMobileHeaderActions?: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
 };
 
 export default function AgentMessaging({
@@ -95,7 +97,7 @@ export default function AgentMessaging({
   const { messagesEndRef } = useMessageScroll(
     localMessages,
     activeConversationId,
-    isLoadingHistory
+    isLoadingHistory,
   );
   const config = getMessagingConfig("agent");
 
@@ -116,8 +118,12 @@ export default function AgentMessaging({
   useEffect(() => {
     if (!setMobileHeaderActions) return;
     const headerMode = getHeaderMode();
-    const chatTitle = selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle;
-    const contentKey = `${headerMode}-${isSidebarExpanded}-${selectedClient?.name ?? ""}-${chatTitle}-${pendingConnectionRequestCount}`;
+    const chatTitle = selectedClient
+      ? `Chat with ${selectedClient.name}`
+      : config.header.chatTitle;
+    const contentKey = `${headerMode}-${isSidebarExpanded}-${
+      selectedClient?.name ?? ""
+    }-${chatTitle}-${pendingConnectionRequestCount}`;
     if (headerContentKeyRef.current === contentKey) return;
     headerContentKeyRef.current = contentKey;
     setMobileHeaderActions(
@@ -131,7 +137,7 @@ export default function AgentMessaging({
         onInboxClick={() => setShowInbox(true)}
         onBackClick={() => setShowInbox(false)}
         pendingConnectionRequestCount={pendingConnectionRequestCount}
-      />
+      />,
     );
     return () => {
       headerContentKeyRef.current = null;
@@ -178,7 +184,9 @@ export default function AgentMessaging({
                   isSidebarExpanded={isSidebarExpanded}
                   setIsSidebarExpanded={setIsSidebarExpanded}
                   chatTitle={
-                    selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle
+                    selectedClient
+                      ? `Chat with ${selectedClient.name}`
+                      : config.header.chatTitle
                   }
                   selectedClientName={selectedClient?.name}
                   onSearchClick={() => setShowSearchModal(true)}

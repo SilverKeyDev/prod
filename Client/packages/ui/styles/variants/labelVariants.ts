@@ -1,5 +1,5 @@
 /**
- * Label variant, size, and color styles — single source of truth for web and native.
+ * Label variant, size, and color styles - single source of truth for web and native.
  * Platform files (.web, .native) must import from here; they must NOT define local
  * baseStyles, variantStyles, sizeStyles, etc.
  */
@@ -33,5 +33,3 @@ export const LABEL_COLOR_STYLES: Record<LabelColor, string> = {
 };
 
 export const LABEL_DISABLED_STYLES = "text-gray-400 cursor-not-allowed";
-
-export const LABEL_REQUIRED_INDICATOR_STYLES = "text-red-500";

@@ -8,7 +8,6 @@ import IconButton from "packages/ui/components/button/IconButton";
 import { Box } from "packages/ui/components/primitives";
 
 import { SearchPageMapContainer } from "./SearchPageMapContainer.web";
-const PROPERTIES_PER_PAGE = 1;
 
 export type SearchPageMobileLayoutProps = {
   activeTab: "results" | "saved";
@@ -18,6 +17,7 @@ export type SearchPageMobileLayoutProps = {
   currentPage: number;
   setCurrentPage: (page: number) => void;
   onViewPropertyDetails: (property: SearchResult) => void | Promise<void>;
+  onNavigateToProperty?: (property: SearchResult) => void;
   isHomeSaved: (id: string, address?: string) => boolean;
   saveHome: (p: SearchResult) => Promise<void>;
   removeSavedHome: (id: string, address?: string) => Promise<void>;
@@ -32,6 +32,7 @@ export type SearchPageMobileLayoutProps = {
   mobileMapRef: React.RefObject<HTMLDivElement | null>;
   setShowPropertyModals: (show: boolean) => void;
   setHasSearched: (searched: boolean) => void;
+  mapHomeCardsCount: number;
 };
 
 export function SearchPageMobileLayout({
@@ -42,6 +43,7 @@ export function SearchPageMobileLayout({
   currentPage,
   setCurrentPage,
   onViewPropertyDetails,
+  onNavigateToProperty,
   isHomeSaved,
   saveHome,
   removeSavedHome,
@@ -56,6 +58,7 @@ export function SearchPageMobileLayout({
   mobileMapRef,
   setShowPropertyModals,
   setHasSearched,
+  mapHomeCardsCount,
 }: SearchPageMobileLayoutProps): JSX.Element {
   const handleTabChangeWithSideEffects = (tab: "results" | "saved") => {
     onTabChange(tab);
@@ -84,7 +87,10 @@ export function SearchPageMobileLayout({
     await saveHome(savedHome);
   };
 
-  const total = activeTab === "results" ? filteredSearchResults.length : savedHomes.length;
+  const total =
+    activeTab === "results" ? filteredSearchResults.length : savedHomes.length;
+  const perPage = mapHomeCardsCount;
+  const maxCardStart = Math.max(0, total - perPage);
   const isLoading = isSearching && !hasSearched && searchResults.length === 0;
 
   return (
@@ -107,7 +113,9 @@ export function SearchPageMobileLayout({
               variant="ghost"
               size="sm"
               rounded="full"
-              label={isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"}
+              label={
+                isCarouselCollapsed ? "Expand carousel" : "Collapse carousel"
+              }
               icon={
                 isCarouselCollapsed ? (
                   <Icon name="chevron-down" className="h-4 w-4" />
@@ -120,13 +128,18 @@ export function SearchPageMobileLayout({
         </Box>
 
         <Box
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${isCarouselCollapsed ? "max-h-0" : "max-h-[45vh]"}`}
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isCarouselCollapsed ? "max-h-0" : "max-h-[45vh]"
+          }`}
         >
           <Box className="py-3">
             <PropertyCarousel
-              items={activeTab === "results" ? filteredSearchResults : savedHomes}
+              items={
+                activeTab === "results" ? filteredSearchResults : savedHomes
+              }
               currentPage={currentPage}
               onViewDetails={onViewPropertyDetails}
+              onNavigateToProperty={onNavigateToProperty}
               onSlideChange={(index) => setCurrentPage(index)}
               infiniteLoop={false}
               activeTab={activeTab}
@@ -147,9 +160,9 @@ export function SearchPageMobileLayout({
           showLoadingWrapper={false}
           page={currentPage}
           total={total}
-          perPage={PROPERTIES_PER_PAGE}
+          perPage={perPage}
           onPrev={() => setCurrentPage(Math.max(0, currentPage - 1))}
-          onNext={() => setCurrentPage(currentPage + 1)}
+          onNext={() => setCurrentPage(Math.min(maxCardStart, currentPage + 1))}
           onZoomIn={mapZoomIn}
           onZoomOut={mapZoomOut}
           disabled={!hasSearched}

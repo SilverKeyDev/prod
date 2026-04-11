@@ -7,6 +7,7 @@ import Title from "packages/ui/components/text/Title";
 import { getDocument } from "packages/utils/platform";
 
 import type { BaseModalProps } from "./BaseModalTypes";
+import { SILVERKEY_MODAL_ROOT_DATA_ATTR } from "./BaseModalTypes";
 
 const SIZE_STYLES: Record<NonNullable<BaseModalProps["size"]>, string> = {
   xs: "max-w-xs mx-responsive-sm",
@@ -35,12 +36,18 @@ function BaseModalPanel({
 }: BaseModalPanelProps) {
   return (
     <Box
-      className={`relative flex min-h-0 w-full max-w-full transform flex-col overflow-hidden rounded-lg text-left shadow-xl transition-all sm:rounded-xl ${contentBackground === "off-white" ? "bg-background-base" : "bg-background-base"} ${SIZE_STYLES[size ?? "md"]} ${className ?? ""}`}
+      className={`relative flex min-h-0 w-full max-w-full transform flex-col overflow-hidden rounded-lg text-left shadow-xl transition-all sm:rounded-xl ${
+        contentBackground === "off-white"
+          ? "bg-background-base"
+          : "bg-background-base"
+      } ${SIZE_STYLES[size ?? "md"]} ${className ?? ""}`}
       style={{ maxHeight: "min(90vh, 90dvh)" }}
     >
       {(title ?? headerContent ?? showCloseButton) && (
         <Box
-          className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden p-3 sm:p-4 md:p-6 ${showHeaderBorder ? "border-border border-b" : ""}`}
+          className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden p-3 sm:p-4 md:p-6 ${
+            showHeaderBorder ? "border-border border-b" : ""
+          }`}
         >
           <Box
             className="scrollbar-hide min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden"
@@ -68,7 +75,9 @@ function BaseModalPanel({
           )}
         </Box>
       )}
-      <Box className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">{children}</Box>
+      <Box className="scrollbar-hide min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+        {children}
+      </Box>
       {footerContent && (
         <Box className="border-border flex-shrink-0 border-t p-3 sm:p-4 md:p-6">
           {footerContent}
@@ -79,11 +88,17 @@ function BaseModalPanel({
 }
 
 function BaseModalContent(p: BaseModalContentProps) {
-  const { onClose, closeOnBackdropClick, backdropClassName = "", zIndex, ...rest } = p;
-  const handleBackdrop = (e: React.MouseEvent) => {
-    if (closeOnBackdropClick && e.target === e.currentTarget) onClose();
+  const {
+    onClose,
+    closeOnBackdropClick = true,
+    backdropClassName = "",
+    zIndex,
+    ...rest
+  } = p;
+  const handleBackdropClick = () => {
+    if (closeOnBackdropClick) onClose();
   };
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
     if ((e.key === "Enter" || e.key === " ") && closeOnBackdropClick) {
       e.preventDefault();
       onClose();
@@ -91,19 +106,18 @@ function BaseModalContent(p: BaseModalContentProps) {
   };
   return (
     <Box
-      className="fixed inset-0 overflow-y-auto overflow-x-hidden overscroll-contain"
+      {...{ [SILVERKEY_MODAL_ROOT_DATA_ATTR]: true }}
+      className="scrollbar-hide fixed inset-0 overflow-y-auto overflow-x-hidden overscroll-contain"
       style={{ zIndex }}
     >
-      <Box
-        role="button"
-        tabIndex={0}
-        className="flex min-h-[100dvh] items-center justify-center p-2 sm:p-4 md:p-6"
-        onClick={handleBackdrop}
-        onKeyDown={handleKeyDown}
-      >
+      <Box className="flex min-h-[100dvh] items-center justify-center p-2 sm:p-4 md:p-6">
         <Box
+          role="button"
+          tabIndex={0}
           className={`bg-overlay-backdrop fixed inset-0 transition-opacity ${backdropClassName}`}
           aria-hidden="true"
+          onClick={closeOnBackdropClick ? handleBackdropClick : undefined}
+          onKeyDown={closeOnBackdropClick ? handleBackdropKeyDown : undefined}
         />
         <BaseModalPanel {...rest} onClose={onClose} />
       </Box>
@@ -112,7 +126,7 @@ function BaseModalContent(p: BaseModalContentProps) {
 }
 
 const BaseModal: React.FC<BaseModalProps> = (props) => {
-  const { isOpen, onClose, closeOnEscape = true, zIndex = 9999 } = props;
+  const { isOpen, onClose, closeOnEscape = true, zIndex = 10000 } = props;
 
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;

@@ -1,0 +1,28 @@
+type: object
+required:
+  - timeMin
+  - timeMax
+  - items
+properties:
+  timeMin:
+    type: string
+    format: date-time
+    description: Start of time range
+  timeMax:
+    type: string
+    format: date-time
+    description: End of time range
+  items:
+    type: array
+    items:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: Calendar ID
+  timeZone:
+    type: string
+    nullable: true
+    description: Timezone for response (defaults to UTC)

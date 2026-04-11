@@ -1,0 +1,10 @@
+allOf:
+  - $ref: './SuccessResponse.yaml'
+  - type: object
+    properties:
+      hoa_monthly:
+        type: number
+        nullable: true
+      utilities_monthly:
+        type: number
+        nullable: true

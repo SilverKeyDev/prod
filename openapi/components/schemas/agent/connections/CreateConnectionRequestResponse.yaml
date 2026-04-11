@@ -1,0 +1,11 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      request:
+        $ref: '../core/AgentConnectionRequest.yaml'
+        nullable: true
+      already_pending:
+        type: boolean
+        nullable: true
+        description: "True when pending request already existed"

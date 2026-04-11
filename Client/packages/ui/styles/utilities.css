@@ -307,11 +307,11 @@
 
   /* Control button patterns */
   .control-button-sm {
-    @apply hover:border-primary hover:text-primary focus:ring-accent-muted border-border text-text-primary flex h-8 w-8 items-center justify-center rounded-lg border bg-white shadow-md transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14;
+    @apply hover:text-primary border-border text-text-primary flex h-8 w-8 items-center justify-center rounded-lg border bg-white shadow-md transition-all duration-200 hover:border-neutral-400 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-neutral-400 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14;
   }
 
   .control-button-md {
-    @apply touch-friendly hover:border-primary hover:text-primary focus:ring-accent-muted border-border text-text-primary flex h-10 w-10 items-center justify-center rounded-lg border bg-white shadow-md transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16;
+    @apply touch-friendly hover:text-primary border-border text-text-primary flex h-10 w-10 items-center justify-center rounded-lg border bg-white shadow-md transition-all duration-200 hover:border-neutral-400 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-neutral-400 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16;
   }
 
   /* Mobile-friendly spacing utilities */
@@ -626,12 +626,12 @@
   }
 
   .muted-button-primary {
-    @apply border-primary bg-primary border text-white;
+    @apply bg-primary border border-transparent text-white;
     transition: all 0.2s ease;
   }
 
   .muted-button-primary:hover {
-    @apply bg-primary-hover border-primary-hover;
+    @apply bg-primary-hover border-transparent;
   }
 
   /* Autofill Styling - Light Brown/Gold Theme */

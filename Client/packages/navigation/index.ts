@@ -7,9 +7,14 @@
  * Not allowed in features/hooks: direct imports from react-router-dom
  */
 
+export { useLandingHashScroll } from "./hooks/useLandingHashScroll";
 export { useNavigation } from "./hooks/useNavigation";
+export { useRouteParams } from "./hooks/useRouteParams";
+export type { HomeHashLinkProps } from "./link/HomeHashLink";
+export { HomeHashLink } from "./link/HomeHashLink";
 export { Link } from "./link/Link";
 export { LinkPrimitiveContext } from "./link/linkPrimitiveContext";
+export { homeLandingSectionIdFromHref } from "./router/homeLandingHash";
 export { getDocumentTitle, getPageTitle } from "./router/pageTitles";
 export { pathFor, ROUTES } from "./router/paths";
 export { useInRouterContext } from "./router/routerContext";

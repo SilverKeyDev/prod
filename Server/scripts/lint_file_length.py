@@ -26,6 +26,10 @@ EXCLUDED_DIRS = frozenset(
 
 WARN_THRESHOLD = 400
 ERROR_THRESHOLD = 500
+# Auto-generated OpenAPI → Pydantic file; splitting is not practical.
+SKIP_LENGTH_CHECK_PATH_SUFFIXES: tuple[str, ...] = ("app/schemas/generated.py",)
+# Large route test modules are intentionally grouped; keep soft cap via WARN_THRESHOLD.
+TEST_ERROR_THRESHOLD = 1200
 
 
 def server_root():
@@ -37,6 +41,16 @@ def should_skip_dir(dirpath: str) -> bool:
     """True if any path segment is in EXCLUDED_DIRS."""
     parts = os.path.normpath(dirpath).split(os.sep)
     return any(p in EXCLUDED_DIRS for p in parts)
+
+
+def _rel_path_from_root(abs_path: str, root: str) -> str:
+    return os.path.relpath(abs_path, root).replace(os.sep, "/")
+
+
+def _error_threshold_for_path(rel_posix: str) -> int:
+    if rel_posix.startswith("tests/"):
+        return TEST_ERROR_THRESHOLD
+    return ERROR_THRESHOLD
 
 
 def collect_py_files(root: str):
@@ -66,9 +80,13 @@ def main() -> int:
             continue
         n = len(lines)
         abs_path = os.path.abspath(path)
-        if n > ERROR_THRESHOLD:
+        rel_posix = _rel_path_from_root(abs_path, root)
+        if rel_posix.endswith(SKIP_LENGTH_CHECK_PATH_SUFFIXES):
+            continue
+        err_cap = _error_threshold_for_path(rel_posix)
+        if n > err_cap:
             print(
-                f"{abs_path}:1:1: error: File has {n} lines (max {ERROR_THRESHOLD}).",
+                f"{abs_path}:1:1: error: File has {n} lines (max {err_cap}).",
                 flush=True,
             )
             has_error = True

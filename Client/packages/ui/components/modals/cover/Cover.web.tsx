@@ -8,7 +8,10 @@ import { getDocument } from "packages/utils/platform";
 
 import type { CoverProps } from "./CoverTypes";
 
-function getTransformClass(animation: CoverProps["animation"], hasEntered: boolean): string {
+function getTransformClass(
+  animation: CoverProps["animation"],
+  hasEntered: boolean,
+): string {
   if (animation === "none" || !animation) return "";
   if (!hasEntered) {
     if (animation === "slideFromRight") return "translate-x-full";
@@ -29,6 +32,7 @@ type CoverPanelProps = Pick<
   | "animation"
   | "className"
   | "headerContainerClassName"
+  | "maxWidth"
 > & { zIndex: number };
 
 function CoverPanel({
@@ -42,6 +46,7 @@ function CoverPanel({
   animation = "none",
   className = "",
   headerContainerClassName,
+  maxWidth,
   zIndex,
 }: CoverPanelProps) {
   const [hasEntered, setHasEntered] = useState(animation === "none");
@@ -60,23 +65,28 @@ function CoverPanel({
   }, [animation]);
 
   const transformClass = getTransformClass(animation, hasEntered);
-  const transitionClass = animation !== "none" ? "transition-transform duration-300 ease-out" : "";
+  const transitionClass =
+    animation !== "none" ? "transition-transform duration-300 ease-out" : "";
+  const hasMaxWidth = maxWidth && maxWidth !== "100vw";
 
-  return (
+  const modalContent = (
     <Box
-      className={`bg-background-base fixed inset-0 flex flex-col overflow-hidden ${transitionClass} ${transformClass} ${className}`}
-      style={{
-        zIndex,
-        width: "100vw",
-        height: "100dvh",
-        maxHeight: "100dvh",
-      }}
+      className={`bg-background-base flex flex-col overflow-hidden ${transitionClass} ${transformClass} ${className} ${
+        hasMaxWidth ? "shadow-2xl" : ""
+      }`}
+      style={
+        hasMaxWidth
+          ? { width: maxWidth, height: "100dvh", maxHeight: "100dvh" }
+          : { position: "fixed", top: 0, right: 0, bottom: 0, left: 0, zIndex }
+      }
       role="dialog"
       aria-modal="true"
     >
       {(title ?? headerContent ?? showCloseButton) && (
         <Box
-          className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden ${headerContainerClassName ?? "p-3 sm:p-4 md:p-6"} ${showHeaderBorder ? "border-border border-b" : ""}`}
+          className={`flex min-h-0 flex-shrink-0 items-center justify-between gap-2 overflow-hidden ${
+            headerContainerClassName ?? "p-3 sm:p-4 md:p-6"
+          } ${showHeaderBorder ? "border-border border-b" : ""}`}
         >
           <Box className="scrollbar-hide min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
             {headerContent ??
@@ -111,10 +121,23 @@ function CoverPanel({
       )}
     </Box>
   );
+
+  if (hasMaxWidth) {
+    return (
+      <Box
+        className="bg-background-overlay/50 fixed inset-0 flex items-center justify-center"
+        style={{ zIndex }}
+      >
+        {modalContent}
+      </Box>
+    );
+  }
+
+  return modalContent;
 }
 
 const Cover: React.FC<CoverProps> = (props) => {
-  const { isOpen, onClose, closeOnEscape = true, zIndex = 9999 } = props;
+  const { isOpen, onClose, closeOnEscape = true, zIndex = 10000 } = props;
 
   useEffect(() => {
     if (!isOpen || !closeOnEscape) return;

@@ -1,27 +1,26 @@
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
+
 import { apiGet, apiPost } from "packages/services/http/compatibility";
+import type { components } from "packages/types/api.generated";
 
 import type { UserPreferences } from "@/features/homeauth/types";
 
-export type PreferencesResponse = {
-  success: boolean;
-  preferences?: UserPreferences;
-  message?: string;
-  error?: string;
-};
-
-export type ClientInfo = {
-  id: string;
-  name: string;
-  email: string;
-  preferences?: UserPreferences;
-};
-
-export type ClientsResponse = {
-  success: boolean;
-  clients?: ClientInfo[];
-  message?: string;
-  error?: string;
-};
+// Re-export types from generated schema
+export type PreferencesResponse = components["schemas"]["PreferencesResponse"];
+export type ClientInfo = components["schemas"]["ClientInfo"];
+export type ClientsResponse = components["schemas"]["ClientsResponse"];
 
 /**
  * Preferences API client using centralized utilities
@@ -30,13 +29,16 @@ export const preferencesApi = {
   /**
    * Create or update user preferences
    */
-  createOrUpdate: (preferences: Partial<UserPreferences>): Promise<PreferencesResponse> =>
+  createOrUpdate: (
+    preferences: Partial<UserPreferences>,
+  ): Promise<PreferencesResponse> =>
     apiPost<PreferencesResponse>("/api/v1/preferences", preferences),
 
   /**
    * Get current user's preferences
    */
-  get: (): Promise<PreferencesResponse> => apiGet<PreferencesResponse>("/api/v1/preferences"),
+  get: (): Promise<PreferencesResponse> =>
+    apiGet<PreferencesResponse>("/api/v1/preferences"),
 
   /**
    * Get preferences for a specific user by ID (admin/agent only)

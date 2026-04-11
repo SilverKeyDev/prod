@@ -1,15 +1,21 @@
 import { useCallback, useEffect, useRef } from "react";
 
+import { useQueryClient } from "@tanstack/react-query";
+
 import { env } from "packages/config";
 import { calculatePropertyScore } from "packages/features/search/types/search/calculatePropertyScore";
 import {
+  clearImportantLocationMarkers,
   type GoogleAdvancedMarkerElement,
   renderImportantLocationMarkers,
 } from "packages/features/search/types/search/importantLocationRenderer";
-import { renderIsochronePolygon } from "packages/features/search/types/search/isochroneRenderer";
-import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
+import {
+  clearIsochroneOverlays,
+  renderIsochronePolygon,
+} from "packages/features/search/types/search/isochroneRenderer";
+import { useGoogleMaps } from "packages/hooks/data";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useSearchContextStore } from "packages/store";
+import { useFiltersStore, useSearchContextStore } from "packages/store";
 import type { IsochroneData, UserPreferencesData } from "packages/types/api";
 import { getWindow } from "packages/utils/platform";
 
@@ -19,16 +25,22 @@ import { useMapInitAndResize } from "@/features/search/hooks/data/map/useMapInit
 import { useMapZoomController } from "@/features/search/hooks/data/map/useMapZoomController";
 import { useMarkerUpdates } from "@/features/search/hooks/data/map/useMarkerUpdates";
 import { usePropertyFocus } from "@/features/search/hooks/data/map/usePropertyFocus";
+import { useWebMapCameraPersistence } from "@/features/search/hooks/data/map/useWebMapCameraPersistence";
+import { useSearchPageMapGeoSearch } from "@/features/search/hooks/data/page/useSearchPageMapGeoSearch";
 import type { MapPropertyCardRenderProps } from "@/features/search/hooks/data/useMapMarkers";
 import { useMapMarkers } from "@/features/search/hooks/data/useMapMarkers";
 import type { SearchResult } from "@/features/search/types";
 import type { Property } from "@/features/search/types/property";
-
-const PROPERTIES_PER_PAGE = 1;
+import type { LastSearchContext } from "@/features/search/types/searchDisplay";
 
 export type UseSearchPageMapParams = {
   isochroneData: IsochroneData | null;
+  /** Map polygon: location bounds / viewport synthetic or commute isochrone (see useSearchMapOverlayData). */
+  displayIsochroneData: IsochroneData | null;
   fetchIsochrone: () => Promise<IsochroneData | null>;
+  /** When false, commute isochrone polygons and pins are hidden (search may still use server isochrone). */
+  showCommuteOverlay: boolean;
+  mapHomeCardsCount: number;
   filteredSearchResults: SearchResult[];
   savedHomes: SearchResult[];
   activeTab: "results" | "saved";
@@ -54,16 +66,21 @@ export type UseSearchPageMapParams = {
   renderMapPropertyCard: (
     container: HTMLElement,
     props: MapPropertyCardRenderProps,
-    onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void
+    onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void,
   ) => void;
   /** Injected from apps/web (MapPropertyCardUtils) */
   cleanupMapPropertyCard: (container: HTMLElement) => void;
+  preferencesSubjectUserId?: string | null;
+  saveLastSearchContext?: (ctx: LastSearchContext) => void;
 };
 
 export function useSearchPageMap(params: UseSearchPageMapParams) {
   const {
     isochroneData,
+    displayIsochroneData,
     fetchIsochrone,
+    showCommuteOverlay,
+    mapHomeCardsCount,
     filteredSearchResults,
     savedHomes,
     activeTab,
@@ -87,14 +104,37 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     getSearchAbortSignal,
     renderMapPropertyCard,
     cleanupMapPropertyCard,
+    preferencesSubjectUserId,
+    saveLastSearchContext,
   } = params;
 
-  const searchFilterOverrides = useSearchContextStore((s) => s.searchFilterOverrides);
+  const queryClient = useQueryClient();
+  const preferencesStrictFilter = useFiltersStore(
+    (s) => s.preferencesStrictFilter,
+  );
+  const searchFilterOverrides = useSearchContextStore(
+    (s) => s.searchFilterOverrides,
+  );
+  const locationPlaceViewportRing = useSearchContextStore(
+    (s) => s.locationPlaceViewportRing,
+  );
+  const locationPlaceLabel = useSearchContextStore((s) => s.locationPlaceLabel);
+  const locationSearchOverlayData = useSearchContextStore(
+    (s) => s.locationSearchOverlayData,
+  );
+  const setLocationSearchOverlayData = useSearchContextStore(
+    (s) => s.setLocationSearchOverlayData,
+  );
+  const clearLocationPlaceSearchArea = useSearchContextStore(
+    (s) => s.clearLocationPlaceSearchArea,
+  );
   const { isLoaded: isGoogleMapsLoaded, createMap } = useGoogleMaps();
   const mobileMapRef = useRef<HTMLDivElement>(null);
   const desktopMapRef = useRef<HTMLDivElement>(null);
   const polygonRef = useRef<google.maps.Polygon | null>(null);
   const individualPolygonsRef = useRef<google.maps.Polygon[]>([]);
+  const showCommuteOverlayRef = useRef(showCommuteOverlay);
+  showCommuteOverlayRef.current = showCommuteOverlay;
 
   const { googleMapRef } = useMapInitAndResize({
     isLocalStorageLoaded: true,
@@ -103,6 +143,8 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     mobileMapRef,
     desktopMapRef,
   });
+
+  useWebMapCameraPersistence({ googleMapRef, isGoogleMapsLoaded });
 
   const {
     resetToDefaultZoom,
@@ -118,9 +160,10 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
   });
 
   const { updateMapMarkers, importantMarkersRef } = useMapMarkers({
+    activeTab,
     googleMapRef,
     currentPage,
-    propertiesPerPage: PROPERTIES_PER_PAGE,
+    propertiesPerPage: mapHomeCardsCount,
     isochroneData: isochroneData ?? null,
     setIsochroneData: () => {},
     fetchIsochroneForMapOnly: async () => {
@@ -139,52 +182,116 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
   });
 
   const renderIsochronePolygonWrapper = useCallback(
-    (data: unknown) => {
-      if (!googleMapRef.current) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Map not initialized yet");
-        return;
-      }
-      renderIsochronePolygon(data as IsochroneData, {
-        map: googleMapRef.current,
-        polygonRef,
-        individualPolygonsRef,
-        focusOnCurrentProperty: mapFocusOnCurrentProperty,
-      });
-    },
-    [mapFocusOnCurrentProperty, googleMapRef]
-  );
-
-  const renderImportantLocationMarkersWrapper = useCallback(
-    (data: unknown) => {
+    (
+      data: unknown,
+      options?: {
+        /**
+         * When true, draw `data` even if the commute overlay toggle is off.
+         * Used for location bar / viewport polygons and preferences neighborhood bounds
+         * (see useSearchMapOverlayData). Omit for commute isochrone priming, which must
+         * stay hidden when commute overlay is disabled.
+         */
+        skipCommuteToggle?: boolean;
+      },
+    ) => {
       if (!googleMapRef.current) {
         log.warn(
           LOG_CATEGORIES.MAP_RENDERING,
-          "Cannot render important location markers: map not available"
+          "Google Map not initialized yet",
         );
+        return;
+      }
+      const map = googleMapRef.current;
+      const overlayOpts = {
+        map,
+        polygonRef,
+        individualPolygonsRef,
+        focusOnCurrentProperty: mapFocusOnCurrentProperty,
+      };
+      const skipCommuteToggle = options?.skipCommuteToggle === true;
+      if (!showCommuteOverlayRef.current && !skipCommuteToggle) {
+        clearIsochroneOverlays(overlayOpts);
+        return;
+      }
+      if (data != null) {
+        renderIsochronePolygon(data as IsochroneData, overlayOpts);
+      } else {
+        clearIsochroneOverlays(overlayOpts);
+      }
+    },
+    [mapFocusOnCurrentProperty, googleMapRef],
+  );
+
+  const renderImportantLocationMarkersWrapper = useCallback(
+    async (data: unknown) => {
+      if (!googleMapRef.current) {
+        log.warn(
+          LOG_CATEGORIES.MAP_RENDERING,
+          "Cannot render important location markers: map not available",
+        );
+        return;
+      }
+      if (!showCommuteOverlayRef.current) {
+        clearImportantLocationMarkers(importantMarkersRef);
         return;
       }
       renderImportantLocationMarkers(data as IsochroneData, {
         map: googleMapRef.current,
         importantMarkersRef,
-        setImportantLocationMarkers: (markers: GoogleAdvancedMarkerElement[]) => {
+        setImportantLocationMarkers: (
+          markers: GoogleAdvancedMarkerElement[],
+        ) => {
           importantMarkersRef.current = markers;
         },
         resetToDefaultZoom,
       });
     },
-    [resetToDefaultZoom, googleMapRef, importantMarkersRef]
+    [resetToDefaultZoom, googleMapRef, importantMarkersRef],
   );
 
-  const saveSearchResultsToLocalStorage = useCallback(async (_results: SearchResult[]) => {
-    // No-op: React Query handles caching automatically
-  }, []);
+  const saveSearchResultsToLocalStorage = useCallback(
+    async (_results: SearchResult[]) => {
+      // No-op: React Query handles caching automatically
+    },
+    [],
+  );
+
+  const { runPreferencesSearch, runViewportSearch } = useSearchPageMapGeoSearch(
+    {
+      queryClient,
+      googleMapRef,
+      polygonRef,
+      individualPolygonsRef,
+      importantMarkersRef,
+      showCommuteOverlayRef,
+      locationPlaceViewportRing,
+      locationPlaceLabel,
+      setLocationSearchOverlayData,
+      renderIsochronePolygonWrapper,
+      renderImportantLocationMarkersWrapper,
+      mapFocusOnCurrentProperty,
+      clearLocationPlaceSearchArea,
+      setSearchStage,
+      setSearchResults,
+      setIsSearching,
+      setHasSearched,
+      setCurrentPage,
+      setShowPropertyModals,
+      saveSearchResultsToLocalStorage,
+      searchFilterOverrides,
+      preferencesStrictFilter,
+      preferencesSubjectUserId,
+      getSearchAbortSignal,
+      saveLastSearchContext,
+    },
+  );
 
   const { primeIsochroneOverlay, runIsochroneSearch } = useIsochroneFlow({
     env,
     googleMapRef,
     renderIsochronePolygon: renderIsochronePolygonWrapper,
     renderImportantLocationMarkers: (data: unknown) => {
-      renderImportantLocationMarkersWrapper(data);
+      void renderImportantLocationMarkersWrapper(data);
       return Promise.resolve();
     },
     searchPropertiesInIsochrone: async (data: unknown) => {
@@ -200,7 +307,9 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
         setShowPropertyModals,
         saveSearchResultsToLocalStorage,
         searchFilterOverrides,
-        getSearchAbortSignal()
+        preferencesStrictFilter,
+        preferencesSubjectUserId,
+        getSearchAbortSignal(),
       );
     },
     setSearchStage: (stage?: string) => setSearchStage(stage ?? ""),
@@ -216,7 +325,17 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
       const data = await fetchIsochrone();
       return data as Record<string, unknown> | null;
     },
+    preferencesSubjectUserId,
   });
+
+  const fitMapToBounds = useCallback(
+    (b: google.maps.LatLngBounds) => {
+      const map = googleMapRef.current;
+      if (!map) return;
+      map.fitBounds(b, 16);
+    },
+    [googleMapRef],
+  );
 
   useMarkerUpdates({
     googleMapRef,
@@ -234,6 +353,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     savedLength: 0,
     activeTab: "results",
     currentPage: 0,
+    mapHomeCardsCount,
   });
 
   useEffect(() => {
@@ -244,16 +364,19 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
       prevDataRef.current.resultsLength !== filteredSearchResults.length ||
       prevDataRef.current.savedLength !== savedHomes.length ||
       prevDataRef.current.activeTab !== activeTab ||
-      prevDataRef.current.currentPage !== currentPage;
+      prevDataRef.current.currentPage !== currentPage ||
+      prevDataRef.current.mapHomeCardsCount !== mapHomeCardsCount;
 
     if (hasData && dataChanged) {
-      const currentData = activeTab === "results" ? filteredSearchResults : savedHomes;
+      const currentData =
+        activeTab === "results" ? filteredSearchResults : savedHomes;
       void updateMapMarkers(currentData);
       prevDataRef.current = {
         resultsLength: filteredSearchResults.length,
         savedLength: savedHomes.length,
         activeTab,
         currentPage,
+        mapHomeCardsCount,
       };
     }
   }, [
@@ -263,6 +386,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     savedHomes,
     activeTab,
     currentPage,
+    mapHomeCardsCount,
     googleMapRef,
     updateMapMarkers,
   ]);
@@ -277,29 +401,56 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     selectedProperty,
   });
 
-  const hasInitializedIsochrone = useRef(false);
+  const hasPrimedWithoutIsochroneData = useRef(false);
   useEffect(() => {
     if (!isGoogleMapsLoaded) return;
-    if (hasInitializedIsochrone.current) return;
     if (!googleMapRef.current) return;
 
-    hasInitializedIsochrone.current = true;
+    if (displayIsochroneData) {
+      renderIsochronePolygonWrapper(displayIsochroneData, {
+        skipCommuteToggle: true,
+      });
+      if (
+        showCommuteOverlay &&
+        isochroneData?.locations &&
+        isochroneData.locations.length > 0 &&
+        locationSearchOverlayData == null
+      ) {
+        void renderImportantLocationMarkersWrapper(isochroneData);
+      } else {
+        clearImportantLocationMarkers(importantMarkersRef);
+      }
+      return;
+    }
 
-    if (isochroneData) {
-      renderIsochronePolygonWrapper(isochroneData);
-      void renderImportantLocationMarkersWrapper(isochroneData);
-    } else {
+    if (googleMapRef.current) {
+      clearIsochroneOverlays({
+        map: googleMapRef.current,
+        polygonRef,
+        individualPolygonsRef,
+        focusOnCurrentProperty: mapFocusOnCurrentProperty,
+      });
+      clearImportantLocationMarkers(importantMarkersRef);
+    }
+
+    if (!isochroneData && !hasPrimedWithoutIsochroneData.current) {
+      hasPrimedWithoutIsochroneData.current = true;
       setTimeout(() => {
         void primeIsochroneOverlay();
       }, 100);
     }
   }, [
     isGoogleMapsLoaded,
+    displayIsochroneData,
+    locationSearchOverlayData,
     isochroneData,
+    showCommuteOverlay,
     googleMapRef,
     primeIsochroneOverlay,
     renderIsochronePolygonWrapper,
     renderImportantLocationMarkersWrapper,
+    mapFocusOnCurrentProperty,
+    importantMarkersRef,
   ]);
 
   const triggerMapResize = useCallback(() => {
@@ -317,6 +468,9 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     mapZoomOut,
     updateMapMarkers,
     runIsochroneSearch,
+    runPreferencesSearch,
+    runViewportSearch,
+    fitMapToBounds,
     primeIsochroneOverlay,
     triggerMapResize,
   };

@@ -1,6 +1,8 @@
 import "packages/ui/styles/index.css";
 import "./app/platformBootstrap";
 
+import React from "react";
+
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
@@ -28,16 +30,20 @@ log.updateConfig({
   routing: true,
 });
 
-const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+const root = ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement,
+);
 
 // v7_startTransition: false so navigation commits synchronously. When true, the previous
 // screen can stay visible and Search URL-sync timeouts can race with navigate() and overwrite nav.
 root.render(
-  // Temporarily removed React.StrictMode to prevent double bootstrap calls in development
-  // TODO: Re-enable after auth debugging is complete
-  <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: false }}>
-    <CoreProviders>
-      <App />
-    </CoreProviders>
-  </BrowserRouter>
+  <React.StrictMode>
+    <BrowserRouter
+      future={{ v7_relativeSplatPath: true, v7_startTransition: false }}
+    >
+      <CoreProviders>
+        <App />
+      </CoreProviders>
+    </BrowserRouter>
+  </React.StrictMode>,
 );

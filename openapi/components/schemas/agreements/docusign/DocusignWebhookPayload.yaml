@@ -1,0 +1,15 @@
+type: object
+description: DocuSign Connect webhook payload
+additionalProperties: true
+properties:
+  event:
+    type: string
+    description: Webhook event type
+  envelopeId:
+    type: string
+    nullable: true
+    description: DocuSign envelope ID
+  status:
+    type: string
+    nullable: true
+    description: Envelope status

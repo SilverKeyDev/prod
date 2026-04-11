@@ -2,7 +2,7 @@
 Event operations and helpers for Google Calendar
 """
 
-from .helpers import (
+from .google_event_datetime import (
     extract_calendar_id_from_request,
     extract_event_datetimes,
     parse_google_datetime,

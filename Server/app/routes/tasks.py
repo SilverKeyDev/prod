@@ -4,6 +4,9 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, current_app, jsonify, request
 
+from app.schemas import TaskChecklistApiResponse, UpdateTaskChecklistRequest
+from app.utils.validation import validate_request, validate_response
+
 from .. import db
 from ..models import TransactionTask
 from ..services.transactions.retrieval import get_checklist_definition, get_series_metadata
@@ -92,17 +95,24 @@ def get_task_checklist(user):
 @rate_limit(max_requests=100, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
-def put_task_checklist(user):
+@validate_request(UpdateTaskChecklistRequest)
+@validate_response(TaskChecklistApiResponse)
+def put_task_checklist(user, data: UpdateTaskChecklistRequest | None = None):
     """PUT /api/v1/tasks?type=... Body: { \"checkedIds\": number[] }. Updates user progress."""
     checklist_type = request.args.get("type", "escrow")
     if checklist_type not in TASK_CATEGORIES:
         return jsonify({"success": False, "error": "Invalid checklist type"}), 400
 
     try:
-        data = request.get_json(force=True)
-        if not isinstance(data, dict):
-            return jsonify({"success": False, "error": "Expected JSON object"}), 400
-        ids = data.get("checkedIds")
+        if data is None:
+            request_data = request.get_json(silent=True)
+            if not isinstance(request_data, dict):
+                return jsonify({"success": False, "error": "Expected JSON object"}), 400
+            ids = request_data.get("checkedIds")
+        else:
+            payload = data.model_dump()
+            inner = payload.get("data") or {}
+            ids = inner.get("checkedIds")
         if not isinstance(ids, list):
             return jsonify({"success": False, "error": "checkedIds must be an array"}), 400
 
@@ -137,7 +147,20 @@ def put_task_checklist(user):
                     e,
                 )
 
-        return jsonify({"success": True, "data": {"checkedIds": ids}})
+        metadata = get_series_metadata(checklist_type)
+        return jsonify(
+            {
+                "success": True,
+                "data": {
+                    "items": items,
+                    "checkedIds": ids,
+                    "title": metadata.get("title"),
+                    "subtitle": metadata.get("subtitle"),
+                    "deadline": metadata.get("deadline"),
+                    "date_finished": metadata.get("date_finished"),
+                },
+            }
+        )
     except ValueError as e:
         return jsonify({"success": False, "error": str(e)}), 400
     except Exception as e:

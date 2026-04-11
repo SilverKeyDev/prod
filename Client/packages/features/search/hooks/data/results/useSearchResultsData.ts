@@ -32,7 +32,10 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
 
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   const {
     data: searchResultsData,
@@ -43,20 +46,29 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
     queryKey: queryKeys.search.results(),
     queryFn: async () => {
       try {
-        log.debug(LOG_CATEGORIES.POLYGON_SEARCH, "Fetching search results from database");
+        log.debug(
+          LOG_CATEGORIES.POLYGON_SEARCH,
+          "Fetching search results from database",
+        );
         const response = await searchApi.searchByPolygon({
           perBucketPages: 20,
           onlyCached: true, // Return stored results from DB (HomeUniversal), don't trigger new search
         });
 
         if (!response.success) {
-          log.warn(LOG_CATEGORIES.POLYGON_SEARCH, "Search API returned unsuccessful response", {
-            error: response.error,
-          });
+          log.warn(
+            LOG_CATEGORIES.POLYGON_SEARCH,
+            "Search API returned unsuccessful response",
+            {
+              error: response.error,
+            },
+          );
           return [] as SearchResult[];
         }
 
-        const rawLen = Array.isArray(response.properties) ? response.properties.length : 0;
+        const rawLen = Array.isArray(response.properties)
+          ? response.properties.length
+          : 0;
         log.info(
           LOG_CATEGORIES.POLYGON_SEARCH,
           "onlyCached DB load: API response before transform",
@@ -64,46 +76,40 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
             propertiesCount: rawLen,
             totalCount: response.total_count,
             metaCached: response.meta?.cached,
-          }
-        );
-        // #region agent log
-        // eslint-disable-next-line no-restricted-globals -- Cursor debug NDJSON ingest (session 8adfea)
-        fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Debug-Session-Id": "8adfea",
           },
-          body: JSON.stringify({
-            sessionId: "8adfea",
-            location: "useSearchResultsData.ts:queryFn",
-            message: "onlyCached polygon response",
-            data: { propertiesCount: rawLen, metaCached: response.meta?.cached },
-            timestamp: Date.now(),
-            hypothesisId: "B",
-          }),
-        }).catch(() => {});
-        // #endregion
+        );
 
         const transformedResults = transformSearchResponse(response);
 
         if (transformedResults.length > 0) {
-          log.info(LOG_CATEGORIES.POLYGON_SEARCH, "Loaded search results from database", {
-            count: transformedResults.length,
-          });
+          log.info(
+            LOG_CATEGORIES.POLYGON_SEARCH,
+            "Loaded search results from database",
+            {
+              count: transformedResults.length,
+            },
+          );
         } else {
-          log.info(LOG_CATEGORIES.POLYGON_SEARCH, "No search results in database, returned empty");
+          log.info(
+            LOG_CATEGORIES.POLYGON_SEARCH,
+            "No search results in database, returned empty",
+          );
         }
 
         return transformedResults;
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch search results from database", error);
+        log.error(
+          LOG_CATEGORIES.ERRORS,
+          "Failed to fetch search results from database",
+          error,
+        );
         return [] as SearchResult[];
       }
     },
     enabled: shouldLoadData,
     staleTime: Infinity, // Never stale - cached results stay until new search or explicit refetch
-    gcTime: 5 * 60 * 1000, // 5 minutes - keep in memory for quick back/forward
+    // Keep results while navigating away from Search so back-navigation still shows homes + map context
+    gcTime: Infinity,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -122,7 +128,7 @@ export function useSearchResultsData(): UseSearchResultsDataReturn {
     (results: SearchResult[]) => {
       setSearchResultsMutation.mutate(results);
     },
-    [setSearchResultsMutation]
+    [setSearchResultsMutation],
   );
 
   const clearSearchResults = useCallback(() => {

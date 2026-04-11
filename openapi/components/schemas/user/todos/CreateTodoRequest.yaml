@@ -1,0 +1,36 @@
+type: object
+description: |
+  Payload for creating an agent todo. Only `title` is required; omit `client_id` for
+  personal tasks. `type` defaults in the API when omitted—see TodoItem enum for meanings.
+required:
+  - title
+properties:
+  title:
+    type: string
+    description: Short label shown in lists and notifications.
+  due_date:
+    anyOf:
+      - type: string
+      - type: "null"
+    description: Optional ISO 8601 due date or datetime; null for undated tasks.
+  type:
+    type: string
+    enum: [deadline, follow_up, inspection, offer_expiration, closing, manual]
+    nullable: true
+    description: |
+      Task category: `deadline`, `follow_up`, `inspection`, `offer_expiration`, `closing`, or `manual`
+      (same semantics as `TodoItem.type`).
+  client_id:
+    type: string
+    nullable: true
+    description: Associate the task with a specific client when set.
+  description:
+    type: string
+    nullable: true
+    description: Longer notes or checklist context for the assignee.
+example:
+  title: "Follow up on pre-approval"
+  due_date: "2026-04-12"
+  type: "follow_up"
+  client_id: "c3d4e5f6-a7b8-9012-cdef-345678901234"
+  description: "Check in if no doc upload by Tuesday."

@@ -10,10 +10,10 @@ Single source of truth for design tokens (colors, spacing, typography, breakpoin
 
 ## API
 
-- `colors`, `spacing` (map), `breakpoints`, `fontFamily`, `fontSize`, `themeSpacing` — raw token objects.
-- `spacing(n)` / `spacingToken(n)` — resolve spacing by key (number or semantic name).
-- `color(path)` — resolve color by path string (e.g. `"neutral.500"`).
-- `breakpoint(name)` — resolve breakpoint value (e.g. `"768px"`).
+- `colors`, `spacing` (map), `breakpoints`, `fontFamily`, `fontSize`, `themeSpacing` - raw token objects.
+- `spacing(n)` / `spacingToken(n)` - resolve spacing by key (number or semantic name).
+- `color(path)` - resolve color by path string (e.g. `"neutral.500"`).
+- `breakpoint(name)` - resolve breakpoint value (e.g. `"768px"`).
 
 ## Rules
 

@@ -1,0 +1,461 @@
+openapi: 3.1.0
+
+info:
+  title: SilverKey API
+  version: 1.0.0
+  description: Real estate AI platform API - comprehensive type definitions for frontend-backend contract
+
+servers:
+  - url: http://localhost:5000
+    description: Local development
+  - url: https://staging.silverkey.com
+    description: Staging environment
+  - url: https://api.silverkey.com
+    description: Production
+
+components:
+  schemas:
+    ActionPlanResponse:
+      $ref: './components/schemas/preferences/ActionPlanResponse.yaml'
+    AddAgentResponse:
+      $ref: './components/schemas/preferences/AddAgentResponse.yaml'
+    AddCalendarACLRequest:
+      $ref: './components/schemas/calendar/AddCalendarACLRequest.yaml'
+    AddCalendarACLResponse:
+      $ref: './components/schemas/calendar/AddCalendarACLResponse.yaml'
+    AddCommentRequest:
+      $ref: './components/schemas/feed/AddCommentRequest.yaml'
+    AddCommentResponse:
+      $ref: './components/schemas/feed/AddCommentResponse.yaml'
+    AddFavoriteRequest:
+      $ref: './components/schemas/user/favorites/AddFavoriteRequest.yaml'
+    AddFeedLikeRequest:
+      $ref: './components/schemas/feed/AddFeedLikeRequest.yaml'
+    AddNotInterestedRequest:
+      $ref: './components/schemas/user/not-interested/AddNotInterestedRequest.yaml'
+    AgentChatHistoryResponse:
+      $ref: './components/schemas/agent/core/AgentChatHistoryResponse.yaml'
+    AgentChatMessage:
+      $ref: './components/schemas/agent/core/AgentChatMessage.yaml'
+    AgentClient:
+      $ref: './components/schemas/agent/core/AgentClient.yaml'
+    AgentClientsResponse:
+      $ref: './components/schemas/agent/core/AgentClientsResponse.yaml'
+    AgentConnectionRequest:
+      $ref: './components/schemas/agent/core/AgentConnectionRequest.yaml'
+    AgentConversation:
+      $ref: './components/schemas/agent/core/AgentConversation.yaml'
+    AgentConversationsResponse:
+      $ref: './components/schemas/agent/core/AgentConversationsResponse.yaml'
+    AgentSearchResult:
+      $ref: './components/schemas/agent/core/AgentSearchResult.yaml'
+    Agreement:
+      $ref: './components/schemas/agreements/agreements/Agreement.yaml'
+    AgreementEvent:
+      $ref: './components/schemas/agreements/agreements/AgreementEvent.yaml'
+    AgreementParticipant:
+      $ref: './components/schemas/agreements/agreements/AgreementParticipant.yaml'
+    AgreementRevision:
+      $ref: './components/schemas/agreements/agreements/AgreementRevision.yaml'
+    AgreementStatus:
+      $ref: './components/schemas/agreements/agreements/AgreementStatus.yaml'
+    AgreementType:
+      $ref: './components/schemas/agreements/agreements/AgreementType.yaml'
+    AuthResponse:
+      $ref: './components/schemas/shared/core/AuthResponse.yaml'
+    AuthSessionUser:
+      $ref: './components/schemas/shared/core/AuthSessionUser.yaml'
+    BulkUpdateFavoritesRequest:
+      $ref: './components/schemas/auth/BulkUpdateFavoritesRequest.yaml'
+    ChatbotHistoryMessage:
+      $ref: './components/schemas/shared/chatbot/ChatbotHistoryMessage.yaml'
+    ChatbotHistoryResponse:
+      $ref: './components/schemas/shared/chatbot/ChatbotHistoryResponse.yaml'
+    ChatbotResponse:
+      $ref: './components/schemas/shared/chatbot/ChatbotResponse.yaml'
+    ChatbotSendRequest:
+      $ref: './components/schemas/shared/chatbot/ChatbotSendRequest.yaml'
+    ChecklistResponse:
+      $ref: './components/schemas/checklists/ChecklistResponse.yaml'
+    ChecklistType:
+      $ref: './components/schemas/checklists/ChecklistType.yaml'
+    ClientAvailabilityRequest:
+      $ref: './components/schemas/calendar/ClientAvailabilityRequest.yaml'
+    ClientAvailabilityResponse:
+      $ref: './components/schemas/calendar/ClientAvailabilityResponse.yaml'
+    ClientErrorReport:
+      $ref: './components/schemas/admin/ClientErrorReport.yaml'
+    ClientInfo:
+      $ref: './components/schemas/agent/clients/ClientInfo.yaml'
+    ClientSearchResult:
+      $ref: './components/schemas/agent/clients/ClientSearchResult.yaml'
+    ClientsPreferencesResponse:
+      $ref: './components/schemas/preferences/ClientsPreferencesResponse.yaml'
+    ClientsResponse:
+      $ref: './components/schemas/agent/clients/ClientsResponse.yaml'
+    CommuteData:
+      $ref: './components/schemas/search/properties/CommuteData.yaml'
+    CompareReportsRequest:
+      $ref: './components/schemas/user/profile/CompareReportsRequest.yaml'
+    CompareReportsResponse:
+      $ref: './components/schemas/user/profile/CompareReportsResponse.yaml'
+    ConnectionRequestsResponse:
+      $ref: './components/schemas/agent/connections/ConnectionRequestsResponse.yaml'
+    ConnectionStatusResponse:
+      $ref: './components/schemas/calendar/ConnectionStatusResponse.yaml'
+    CoverLetterRequest:
+      $ref: './components/schemas/offers/CoverLetterRequest.yaml'
+    CreateAgreementRequest:
+      $ref: './components/schemas/agreements/agreements/CreateAgreementRequest.yaml'
+    CreateAgreementResponse:
+      $ref: './components/schemas/agreements/agreements/CreateAgreementResponse.yaml'
+    CreateCalendarRequest:
+      $ref: './components/schemas/calendar/CreateCalendarRequest.yaml'
+    CreateConnectionRequestRequest:
+      $ref: './components/schemas/agent/connections/CreateConnectionRequestRequest.yaml'
+    CreateConnectionRequestResponse:
+      $ref: './components/schemas/agent/connections/CreateConnectionRequestResponse.yaml'
+    CreateConversationRequest:
+      $ref: './components/schemas/agent/conversations/CreateConversationRequest.yaml'
+    CreateConversationResponse:
+      $ref: './components/schemas/agent/conversations/CreateConversationResponse.yaml'
+    CreateParticipantRequest:
+      $ref: './components/schemas/agreements/docusign/CreateParticipantRequest.yaml'
+    CreateParticipantResponse:
+      $ref: './components/schemas/agreements/docusign/CreateParticipantResponse.yaml'
+    CreatePreferencesRequest:
+      $ref: './components/schemas/preferences/CreatePreferencesRequest.yaml'
+    CreateRevisionResponse:
+      $ref: './components/schemas/agreements/agreements/CreateRevisionResponse.yaml'
+    CreateSilverkeyCalendarRequest:
+      $ref: './components/schemas/calendar/CreateSilverkeyCalendarRequest.yaml'
+    CreateTodoRequest:
+      $ref: './components/schemas/user/todos/CreateTodoRequest.yaml'
+    CreateTodoResponse:
+      $ref: './components/schemas/user/todos/CreateTodoResponse.yaml'
+    DashboardResponse:
+      $ref: './components/schemas/shared/dashboard/DashboardResponse.yaml'
+    DeleteEventResponse:
+      $ref: './components/schemas/calendar/DeleteEventResponse.yaml'
+    DeleteReportRequest:
+      $ref: './components/schemas/agreements/documents/DeleteReportRequest.yaml'
+    DeleteReportResponse:
+      $ref: './components/schemas/user/profile/DeleteReportResponse.yaml'
+    DeleteUserRequest:
+      $ref: './components/schemas/admin/DeleteUserRequest.yaml'
+    DeleteUserResponse:
+      $ref: './components/schemas/user/profile/DeleteUserResponse.yaml'
+    DocumentLibraryListItem:
+      $ref: './components/schemas/agreements/documents/DocumentLibraryListItem.yaml'
+    DocumentLibraryResponse:
+      $ref: './components/schemas/agreements/documents/DocumentLibraryResponse.yaml'
+    WorkflowDocumentRecord:
+      $ref: './components/schemas/agreements/documents/WorkflowDocumentRecord.yaml'
+    DocumentsResponse:
+      $ref: './components/schemas/agreements/documents/DocumentsResponse.yaml'
+    DocusignListTemplatesResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignListTemplatesResponse.yaml'
+    DocusignOAuthStartResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignOAuthStartResponse.yaml'
+    DocusignSyncTemplatesResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.yaml'
+    DocusignTemplate:
+      $ref: './components/schemas/agreements/docusign/DocusignTemplate.yaml'
+    DocusignTemplateListItem:
+      $ref: './components/schemas/agreements/docusign/DocusignTemplateListItem.yaml'
+    DocusignWebhookPayload:
+      $ref: './components/schemas/agreements/docusign/DocusignWebhookPayload.yaml'
+    DownloadUrlResponse:
+      $ref: './components/schemas/agreements/documents/DownloadUrlResponse.yaml'
+    EarnestMoneyRequest:
+      $ref: './components/schemas/offers/EarnestMoneyRequest.yaml'
+    ErrorResponse:
+      $ref: './components/schemas/shared/core/ErrorResponse.yaml'
+    EventRequestStatus:
+      $ref: './components/schemas/shared/event-requests/EventRequestStatus.yaml'
+    FavoriteHomePayload:
+      $ref: './components/schemas/user/favorites/FavoriteHomePayload.yaml'
+    FavoriteHomesPagination:
+      $ref: './components/schemas/user/favorites/FavoriteHomesPagination.yaml'
+    FavoriteHomesReplaceResponse:
+      $ref: './components/schemas/user/favorites/FavoriteHomesReplaceResponse.yaml'
+    FavoriteHomesResponse:
+      $ref: './components/schemas/user/favorites/FavoriteHomesResponse.yaml'
+    FeedCommentApiShape:
+      $ref: './components/schemas/feed/FeedCommentApiShape.yaml'
+    FeedCommentsResponse:
+      $ref: './components/schemas/feed/FeedCommentsResponse.yaml'
+    FeedLikeEntry:
+      $ref: './components/schemas/feed/FeedLikeEntry.yaml'
+    FeedLikesResponse:
+      $ref: './components/schemas/feed/FeedLikesResponse.yaml'
+    FeedListing:
+      $ref: './components/schemas/search/results/FeedListing.yaml'
+    FeedResponse:
+      $ref: './components/schemas/feed/FeedResponse.yaml'
+    FindMatchesRequest:
+      $ref: './components/schemas/search/filters/FindMatchesRequest.yaml'
+    ForgotPasswordData:
+      $ref: './components/schemas/auth/ForgotPasswordData.yaml'
+    ForgotPasswordResponse:
+      $ref: './components/schemas/auth/ForgotPasswordResponse.yaml'
+    FreebusyRequest:
+      $ref: './components/schemas/calendar/FreebusyRequest.yaml'
+    FreebusyResponse:
+      $ref: './components/schemas/calendar/FreebusyResponse.yaml'
+    GenerateReportRequest:
+      $ref: './components/schemas/user/profile/GenerateReportRequest.yaml'
+    GenerateReportResponse:
+      $ref: './components/schemas/user/profile/GenerateReportResponse.yaml'
+    GetAgreementResponse:
+      $ref: './components/schemas/agreements/agreements/GetAgreementResponse.yaml'
+    GetDashboardResponse:
+      $ref: './components/schemas/shared/dashboard/GetDashboardResponse.yaml'
+    GetLoggerConfigResponse:
+      $ref: './components/schemas/shared/logger/GetLoggerConfigResponse.yaml'
+    GetSenderViewUrlResponse:
+      $ref: './components/schemas/agreements/agreements/GetSenderViewUrlResponse.yaml'
+    GetSigningUrlRequest:
+      $ref: './components/schemas/agreements/agreements/GetSigningUrlRequest.yaml'
+    GetSigningUrlResponse:
+      $ref: './components/schemas/agreements/agreements/GetSigningUrlResponse.yaml'
+    GetTodosResponse:
+      $ref: './components/schemas/user/todos/GetTodosResponse.yaml'
+    GoogleCalendar:
+      $ref: './components/schemas/calendar/GoogleCalendar.yaml'
+    GoogleCalendarApiResponse:
+      $ref: './components/schemas/calendar/GoogleCalendarApiResponse.yaml'
+    GoogleCalendarEventCreateBody:
+      $ref: './components/schemas/calendar/GoogleCalendarEventCreateBody.yaml'
+    GoogleCalendarListResponse:
+      $ref: './components/schemas/calendar/GoogleCalendarListResponse.yaml'
+    GoogleCalendarPermission:
+      $ref: './components/schemas/calendar/GoogleCalendarPermission.yaml'
+    GoogleCalendarPermissionsResponse:
+      $ref: './components/schemas/calendar/GoogleCalendarPermissionsResponse.yaml'
+    GoogleConferenceData:
+      $ref: './components/schemas/calendar/GoogleConferenceData.yaml'
+    GoogleEvent:
+      $ref: './components/schemas/calendar/GoogleEvent.yaml'
+    GoogleEventAttendee:
+      $ref: './components/schemas/calendar/GoogleEventAttendee.yaml'
+    GoogleEventCreateResponse:
+      $ref: './components/schemas/calendar/GoogleEventCreateResponse.yaml'
+    GoogleEventDateTime:
+      $ref: './components/schemas/calendar/GoogleEventDateTime.yaml'
+    GoogleEventListResponse:
+      $ref: './components/schemas/calendar/GoogleEventListResponse.yaml'
+    GoogleEventReminders:
+      $ref: './components/schemas/calendar/GoogleEventReminders.yaml'
+    GoogleReminderOverride:
+      $ref: './components/schemas/calendar/GoogleReminderOverride.yaml'
+    HealthResponse:
+      $ref: './components/schemas/shared/core/HealthResponse.yaml'
+    IsochroneData:
+      $ref: './components/schemas/search/properties/IsochroneData.yaml'
+    IsochroneGeometry:
+      $ref: './components/schemas/search/properties/IsochroneGeometry.yaml'
+    IsochroneResponse:
+      $ref: './components/schemas/search/properties/IsochroneResponse.yaml'
+    ListAgreementsResponse:
+      $ref: './components/schemas/agreements/agreements/ListAgreementsResponse.yaml'
+    ListTemplatesResponse:
+      $ref: './components/schemas/agreements/templates/ListTemplatesResponse.yaml'
+    LoginData:
+      $ref: './components/schemas/user/profile/LoginData.yaml'
+    MapsScriptResponse:
+      $ref: './components/schemas/shared/core/MapsScriptResponse.yaml'
+    MarkMessagesAsReadResponse:
+      $ref: './components/schemas/agent/messages/MarkMessagesAsReadResponse.yaml'
+    MonthlyCostEstimatesResponse:
+      $ref: './components/schemas/shared/core/MonthlyCostEstimatesResponse.yaml'
+    NegotiationStrategyRequest:
+      $ref: './components/schemas/offers/NegotiationStrategyRequest.yaml'
+    NegotiationStrategyResponse:
+      $ref: './components/schemas/offers/NegotiationStrategyResponse.yaml'
+    NotInterestedHomeItem:
+      $ref: './components/schemas/user/not-interested/NotInterestedHomeItem.yaml'
+    NotInterestedHomesResponse:
+      $ref: './components/schemas/user/not-interested/NotInterestedHomesResponse.yaml'
+    NotificationCounterResponse:
+      $ref: './components/schemas/shared/core/NotificationCounterResponse.yaml'
+    OAuthStartResponse:
+      $ref: './components/schemas/shared/core/OAuthStartResponse.yaml'
+    PaginatedResponse:
+      $ref: './components/schemas/shared/core/PaginatedResponse.yaml'
+    Pagination:
+      $ref: './components/schemas/shared/core/Pagination.yaml'
+    PaginationRequest:
+      $ref: './components/schemas/shared/core/PaginationRequest.yaml'
+    ParticipantRole:
+      $ref: './components/schemas/agreements/agreements/ParticipantRole.yaml'
+    ParticipantStatus:
+      $ref: './components/schemas/agreements/agreements/ParticipantStatus.yaml'
+    PollReportResponse:
+      $ref: './components/schemas/user/profile/PollReportResponse.yaml'
+    PreApprovalLetterRequest:
+      $ref: './components/schemas/offers/PreApprovalLetterRequest.yaml'
+    OfferDocumentGenerationResponse:
+      $ref: './components/schemas/offers/OfferDocumentGenerationResponse.yaml'
+    PreferencesResponse:
+      $ref: './components/schemas/preferences/PreferencesResponse.yaml'
+    ProfilePictureResponse:
+      $ref: './components/schemas/auth/ProfilePictureResponse.yaml'
+    PropertyCompsRequest:
+      $ref: './components/schemas/search/properties/PropertyCompsRequest.yaml'
+    PropertyCompsResponse:
+      $ref: './components/schemas/search/properties/PropertyCompsResponse.yaml'
+    PropertyData:
+      $ref: './components/schemas/search/properties/PropertyData.yaml'
+    PropertyRequest:
+      $ref: './components/schemas/search/properties/PropertyRequest.yaml'
+    PropertyResearchOptions:
+      $ref: './components/schemas/search/properties/PropertyResearchOptions.yaml'
+    PropertyResponse:
+      $ref: './components/schemas/search/properties/PropertyResponse.yaml'
+    PropertySearchResult:
+      $ref: './components/schemas/search/results/PropertySearchResult.yaml'
+    RemoveAgentResponse:
+      $ref: './components/schemas/preferences/RemoveAgentResponse.yaml'
+    RemoveFavoriteRequest:
+      $ref: './components/schemas/user/favorites/RemoveFavoriteRequest.yaml'
+    RemoveNotInterestedRequest:
+      $ref: './components/schemas/user/not-interested/RemoveNotInterestedRequest.yaml'
+    ReportListItem:
+      $ref: './components/schemas/user/profile/ReportListItem.yaml'
+    ReportDocumentsListResponse:
+      $ref: './components/schemas/agreements/documents/ReportDocumentsListResponse.yaml'
+    ReportsListResponse:
+      $ref: './components/schemas/user/profile/ReportsListResponse.yaml'
+    ReportsResponse:
+      $ref: './components/schemas/user/profile/ReportsResponse.yaml'
+    ResendCodeData:
+      $ref: './components/schemas/auth/ResendCodeData.yaml'
+    ResendCodeResponse:
+      $ref: './components/schemas/auth/ResendCodeResponse.yaml'
+    ResetPasswordData:
+      $ref: './components/schemas/auth/ResetPasswordData.yaml'
+    RespondToConnectionRequestRequest:
+      $ref: './components/schemas/agent/connections/RespondToConnectionRequestRequest.yaml'
+    RespondToConnectionRequestResponse:
+      $ref: './components/schemas/agent/connections/RespondToConnectionRequestResponse.yaml'
+    RevokeResponse:
+      $ref: './components/schemas/calendar/RevokeResponse.yaml'
+    SavedHome:
+      $ref: './components/schemas/user/favorites/SavedHome.yaml'
+    SearchAgentsPreferencesResponse:
+      $ref: './components/schemas/preferences/SearchAgentsPreferencesResponse.yaml'
+    SearchAgentsResponse:
+      $ref: './components/schemas/agent/core/SearchAgentsResponse.yaml'
+    SearchByPolygonRequest:
+      $ref: './components/schemas/search/filters/SearchByPolygonRequest.yaml'
+    SearchByPolygonResponse:
+      $ref: './components/schemas/search/filters/SearchByPolygonResponse.yaml'
+    SearchClientsResponse:
+      $ref: './components/schemas/agent/clients/SearchClientsResponse.yaml'
+    SearchDisplayPayload:
+      $ref: './components/schemas/search/results/SearchDisplayPayload.yaml'
+    SearchDisplayResponse:
+      $ref: './components/schemas/search/results/SearchDisplayResponse.yaml'
+    SecureUploadDocumentPayload:
+      $ref: './components/schemas/agreements/documents/SecureUploadDocumentPayload.yaml'
+    SendAgreementRequest:
+      $ref: './components/schemas/agreements/agreements/SendAgreementRequest.yaml'
+    SendAgreementResponse:
+      $ref: './components/schemas/agreements/agreements/SendAgreementResponse.yaml'
+    SendMessageRequest:
+      $ref: './components/schemas/agent/messages/SendMessageRequest.yaml'
+    SendMessageResponse:
+      $ref: './components/schemas/agent/messages/SendMessageResponse.yaml'
+    ServerLoggerConfig:
+      $ref: './components/schemas/shared/logger/ServerLoggerConfig.yaml'
+    SigningMethod:
+      $ref: './components/schemas/agreements/agreements/SigningMethod.yaml'
+    SignupData:
+      $ref: './components/schemas/user/profile/SignupData.yaml'
+    SuccessResponse:
+      $ref: './components/schemas/shared/core/SuccessResponse.yaml'
+    SyncTemplatesResponse:
+      $ref: './components/schemas/agreements/templates/SyncTemplatesResponse.yaml'
+    TaskChecklistApiResponse:
+      $ref: './components/schemas/checklists/TaskChecklistApiResponse.yaml'
+    TaskChecklistItem:
+      $ref: './components/schemas/checklists/TaskChecklistItem.yaml'
+    TaskChecklistResponse:
+      $ref: './components/schemas/checklists/TaskChecklistResponse.yaml'
+    TaskStatusResponse:
+      $ref: './components/schemas/shared/core/TaskStatusResponse.yaml'
+    Timestamp:
+      $ref: './components/schemas/shared/core/Timestamp.yaml'
+    TodoItem:
+      $ref: './components/schemas/user/todos/TodoItem.yaml'
+    TransactionAddressData:
+      $ref: './components/schemas/search/properties/TransactionAddressData.yaml'
+    TransactionAddressResponse:
+      $ref: './components/schemas/search/properties/TransactionAddressResponse.yaml'
+    UpdateAgentStatusRequest:
+      $ref: './components/schemas/admin/UpdateAgentStatusRequest.yaml'
+    UpdateAgentStatusResponse:
+      $ref: './components/schemas/admin/UpdateAgentStatusResponse.yaml'
+    UpdateChecklistRequest:
+      $ref: './components/schemas/checklists/UpdateChecklistRequest.yaml'
+    UpdateClosingModeRequest:
+      $ref: './components/schemas/auth/UpdateClosingModeRequest.yaml'
+    UpdateClosingModeResponse:
+      $ref: './components/schemas/auth/UpdateClosingModeResponse.yaml'
+    UpdateEventRequestStatusRequest:
+      $ref: './components/schemas/shared/event-requests/UpdateEventRequestStatusRequest.yaml'
+    UpdateLoggerConfigRequest:
+      $ref: './components/schemas/shared/logger/UpdateLoggerConfigRequest.yaml'
+    UpdateNotInterestedRequest:
+      $ref: './components/schemas/user/not-interested/UpdateNotInterestedRequest.yaml'
+    UpdateRoutingOrderRequest:
+      $ref: './components/schemas/agreements/docusign/UpdateRoutingOrderRequest.yaml'
+    UpdateRoutingOrderResponse:
+      $ref: './components/schemas/agreements/docusign/UpdateRoutingOrderResponse.yaml'
+    UpdateTaskChecklistRequest:
+      $ref: './components/schemas/checklists/UpdateTaskChecklistRequest.yaml'
+    UpdateTodoRequest:
+      $ref: './components/schemas/user/todos/UpdateTodoRequest.yaml'
+    UpdateTodoResponse:
+      $ref: './components/schemas/user/todos/UpdateTodoResponse.yaml'
+    UploadedDocumentRecord:
+      $ref: './components/schemas/agreements/documents/UploadedDocumentRecord.yaml'
+    UploadResponse:
+      $ref: './components/schemas/agreements/documents/UploadResponse.yaml'
+    User:
+      $ref: './components/schemas/user/profile/User.yaml'
+    UserAgentsResponse:
+      $ref: './components/schemas/preferences/UserAgentsResponse.yaml'
+    UserId:
+      $ref: './components/schemas/user/profile/UserId.yaml'
+    UserPreferencesData:
+      $ref: './components/schemas/user/profile/UserPreferencesData.yaml'
+    UserProfile:
+      $ref: './components/schemas/user/profile/UserProfile.yaml'
+    UserResponse:
+      $ref: './components/schemas/user/profile/UserResponse.yaml'
+    VerifyData:
+      $ref: './components/schemas/auth/VerifyData.yaml'
+    ViewUrlResponse:
+      $ref: './components/schemas/agreements/agreements/ViewUrlResponse.yaml'
+    ViewportPolygonPoint:
+      $ref: './components/schemas/search/properties/ViewportPolygonPoint.yaml'
+    VoidAgreementRequest:
+      $ref: './components/schemas/agreements/agreements/VoidAgreementRequest.yaml'
+    VoidAgreementResponse:
+      $ref: './components/schemas/agreements/agreements/VoidAgreementResponse.yaml'
+
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session
+      description: HttpOnly JWT access token (primary browser auth).
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Optional Authorization header fallback (same JWT as session cookie).
+
+paths: {}

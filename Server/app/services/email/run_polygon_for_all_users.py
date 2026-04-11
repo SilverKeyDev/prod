@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import time
 from collections.abc import Iterable
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from flask import current_app
 
@@ -24,7 +24,7 @@ def _iter_users_with_prefs(
     """
     query = session.query(User)
     if only_recently_logged_in:
-        one_month_ago = datetime.utcnow() - timedelta(days=30)
+        one_month_ago = datetime.now(timezone.utc) - timedelta(days=30)
         query = query.filter(User.last_logged_in.isnot(None), User.last_logged_in >= one_month_ago)
     if isinstance(limit, int) and limit > 0:
         query = query.limit(limit)

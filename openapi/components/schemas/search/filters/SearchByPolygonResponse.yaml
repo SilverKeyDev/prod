@@ -1,0 +1,67 @@
+type: object
+description: |
+  Polygon search outcome: ranked `PropertySearchResult` rows when `success` is true.
+  `cached` indicates a fast path from server cache; `error` carries a short diagnostic
+  when `success` is false without throwing HTTP errors.
+required:
+  - success
+properties:
+  success:
+    type: boolean
+    description: False when the search could not complete; inspect `error` and HTTP status.
+  properties:
+    type: array
+    items:
+      $ref: '../results/PropertySearchResult.yaml'
+    nullable: true
+    description: Matching listings normalized for map and list UIs.
+  count:
+    type: integer
+    nullable: true
+    description: Number of items in `properties` for this response page.
+  cached:
+    type: boolean
+    nullable: true
+    description: True when results were served from an in-memory or DB cache without full re-query.
+  error:
+    type: string
+    nullable: true
+    description: Machine-oriented failure hint when `success` is false (e.g. invalid polygon).
+  pagination:
+    $ref: '../../shared/core/Pagination.yaml'
+    nullable: true
+    description: Standard pagination for the returned property list (single-page responses use page 1).
+example:
+  success: true
+  count: 2
+  cached: false
+  error: null
+  properties:
+    - zpid: "12345678"
+      address: "742 Evergreen Terrace"
+      city: "Springfield"
+      state: "IL"
+      zipcode: "62704"
+      latitude: 39.7817
+      longitude: -89.6501
+      price: 425000
+      bedrooms: 4
+      bathrooms: 2.5
+      livingArea: 2400
+      homeType: "SINGLE_FAMILY"
+      imageUrl: "https://photos.examplecdn.com/listings/12345678/hero.jpg"
+      listingStatus: "FOR_SALE"
+    - zpid: "87654321"
+      address: "100 Main St"
+      city: "Springfield"
+      state: "IL"
+      zipcode: "62701"
+      latitude: 39.8
+      longitude: -89.64
+      price: 310000
+      bedrooms: 3
+      bathrooms: 2
+      livingArea: 1850
+      homeType: "TOWNHOUSE"
+      imageUrl: "https://photos.examplecdn.com/listings/87654321/hero.jpg"
+      listingStatus: "FOR_SALE"

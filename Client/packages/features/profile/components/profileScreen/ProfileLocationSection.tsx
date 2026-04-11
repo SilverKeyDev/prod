@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useCallback } from "react";
 
+import {
+  ProfileSectionBody,
+  ProfileSectionCallout,
+  useHidePersonalizationStepHeading,
+} from "packages/features/profile/components/layout";
 import { ImportantLocationsInput } from "packages/features/profile/components/settings/inputs/ImportantLocationsInput";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import {
   AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
   effectiveIsAgentForOptionalBuyerUi,
@@ -15,33 +21,56 @@ import BodyText from "packages/ui/components/text/BodyText";
 import Subtitle from "packages/ui/components/text/Subtitle";
 import Title from "packages/ui/components/text/Title";
 
+import { SearchPrefsLocation } from "./searchPreferences/SearchPrefsLocation";
+import { SearchPrefsNeighborhood } from "./searchPreferences/SearchPrefsNeighborhood";
+import type { PatchBuyerPreferenceExtensions } from "./searchPreferences/types";
+import { withBuyerExtV1 } from "./searchPreferences/withBuyerExtV1";
+
 type ProfileLocationSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
   updateField: (field: keyof OnboardingData, value: unknown) => void;
+  patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
 };
 
 export function ProfileLocationSection({
   formData,
   isEditMode,
   updateField,
+  patchBuyerPreferenceExtensions,
 }: ProfileLocationSectionProps) {
+  const hideStepHeading = useHidePersonalizationStepHeading();
   const authIsAgent = useIsAgent();
   const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
     formIsAgent: formData.is_agent,
   });
-  const locations = Array.isArray(formData.important_locations) ? formData.important_locations : [];
+  const locations = Array.isArray(formData.important_locations)
+    ? formData.important_locations
+    : [];
+
+  const patch = useCallback(
+    (
+      fn: (
+        prev: BuyerPreferenceExtensions | undefined,
+      ) => BuyerPreferenceExtensions,
+    ) => {
+      patchBuyerPreferenceExtensions(fn);
+    },
+    [patchBuyerPreferenceExtensions],
+  );
+
+  const ext = withBuyerExtV1(formData.buyerPreferenceExtensions);
 
   return (
-    <Box className="gap-4">
-      <Title size="md">{SECTION_TITLES.LOCATION_PREFERENCES}</Title>
+    <ProfileSectionBody>
+      {!hideStepHeading && (
+        <Title size="md">{SECTION_TITLES.LOCATION_PREFERENCES}</Title>
+      )}
       {showAgentOptionalBuyerCallout && (
-        <Box className="border-border bg-background-surface rounded-lg border px-3 py-2">
-          <BodyText size="xs" muted>
-            {AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT}
-          </BodyText>
-        </Box>
+        <ProfileSectionCallout>
+          {AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT}
+        </ProfileSectionCallout>
       )}
 
       <Subtitle size="xs" muted className="mb-4">
@@ -55,7 +84,8 @@ export function ProfileLocationSection({
         {Array.isArray(formData.important_locations) &&
         formData.important_locations.length === 0 ? (
           <BodyText size="xs" muted className="mb-2">
-            Add work, school, or frequently visited places to guide commute-friendly search results.
+            Add work, school, neighborhoods, or frequently visited places to
+            guide commute-friendly search results.
           </BodyText>
         ) : null}
         <ImportantLocationsInput
@@ -64,6 +94,19 @@ export function ProfileLocationSection({
           isEditMode={isEditMode}
         />
       </Box>
-    </Box>
+
+      <Box className="space-y-6">
+        <SearchPrefsLocation
+          isEditMode={isEditMode}
+          patch={patch}
+          loc={ext.location_prefs ?? {}}
+        />
+        <SearchPrefsNeighborhood
+          isEditMode={isEditMode}
+          patch={patch}
+          neigh={ext.neighborhood ?? {}}
+        />
+      </Box>
+    </ProfileSectionBody>
   );
 }

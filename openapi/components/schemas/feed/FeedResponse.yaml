@@ -1,0 +1,14 @@
+type: object
+required:
+  - items
+  - hasMore
+properties:
+  items:
+    type: array
+    items:
+      $ref: '../search/results/FeedListing.yaml'
+  hasMore:
+    type: boolean
+  cursor:
+    type: string
+    nullable: true

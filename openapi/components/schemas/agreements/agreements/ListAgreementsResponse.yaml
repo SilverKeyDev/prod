@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      agreements:
+        type: array
+        items:
+          $ref: './Agreement.yaml'
+        nullable: true

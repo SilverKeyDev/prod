@@ -3,62 +3,153 @@
  */
 import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { PropertySearchResult, SearchByPolygonResponse } from "packages/types/api";
+import type {
+  PropertySearchResult,
+  SearchByPolygonResponse,
+} from "packages/types/api";
 
 import type { SearchResult } from "@/features/search/types";
 
-/**
- * Transform PropertySearchResult from API to SearchResult format
- */
-export function transformPropertySearchResult(
-  property: PropertySearchResult,
+import { formatPropertySearchListingPrice } from "./formatPropertySearchListingPrice";
+
+/** Pre–OpenAPI-alignment polygon row (flat). */
+type LegacyFlatPolygonProperty = {
+  zpid?: string;
+  mls_home_id?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  livingArea?: number | string;
+  lotAreaValue?: number;
+  lotAreaUnit?: string;
+  propertyType?: string;
+  listingStatus?: string;
+  imgSrc?: string;
+  _score?: number;
+  score?: number;
+};
+
+function isOpenApiPropertySearchResult(p: unknown): p is PropertySearchResult {
+  return (
+    typeof p === "object" &&
+    p !== null &&
+    "essentials" in p &&
+    "location" in p &&
+    typeof (p as PropertySearchResult).id === "string"
+  );
+}
+
+function transformLegacyFlatPolygonProperty(
+  property: LegacyFlatPolygonProperty,
   index: number,
-  fallbackCenter?: { lat: number; lng: number }
+  fallbackCenter?: { lat: number; lng: number },
 ): SearchResult {
-  const score = property._score ?? 0;
-
-  const isDev = getEnv().isDevelopment;
-  if (index < 5) {
-    // Log only the first few properties per response to avoid log spam
-    log.debug(
-      LOG_CATEGORIES.MAP_RENDERING,
-      "🗺️ [SEARCH TRANSFORM] Property coordinates before/after transform",
-      {
-        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-        index,
-        id: property.zpid,
-        address: property.address,
-        rawLatitude: property.latitude,
-        rawLongitude: property.longitude,
-        fallbackCenter,
-      }
-    );
-  }
-
+  const score = property._score ?? property.score ?? 0;
+  const id = property.zpid ?? property.mls_home_id ?? `${Date.now()}-${index}`;
+  const lat = property.latitude ?? fallbackCenter?.lat ?? 0;
+  const lng = property.longitude ?? fallbackCenter?.lng ?? 0;
   return {
-    id: property.zpid ?? `${Date.now()}-${index}`,
+    id,
     address: property.address ?? "Address not available",
-    price: property.price ? property.price.toLocaleString() : "Price not available",
+    price: formatPropertySearchListingPrice(property),
     bedrooms: property.bedrooms ?? 0,
     bathrooms: property.bathrooms ?? 0,
     sqft:
       typeof property.livingArea === "number"
         ? property.livingArea
         : typeof property.livingArea === "string"
-          ? parseInt((property.livingArea as string).replace(/,/g, "")) || 0
+          ? parseInt(property.livingArea.replace(/,/g, "")) || 0
           : 0,
-    lat: property.latitude ?? fallbackCenter?.lat ?? 0 + (Math.random() - 0.5) * 0.01,
-    lng: property.longitude ?? fallbackCenter?.lng ?? 0 + (Math.random() - 0.5) * 0.01,
+    lat,
+    lng,
     lotSize:
-      property.lotAreaValue && property.lotAreaUnit
+      property.lotAreaValue != null && property.lotAreaUnit
         ? `${property.lotAreaValue.toLocaleString()} ${property.lotAreaUnit}`
         : undefined,
     propertyType: property.propertyType ?? "Single Family",
     listingStatus: property.listingStatus ?? "For Sale",
     imageUrl: property.imgSrc ?? "/default-home.jpg",
     _score: score,
-    zpid: property.zpid ? parseInt(property.zpid) : undefined,
+    zpid: property.zpid ? parseInt(property.zpid, 10) : undefined,
   };
+}
+
+/**
+ * Transform PropertySearchResult from API to SearchResult format
+ */
+export function transformPropertySearchResult(
+  property: PropertySearchResult | LegacyFlatPolygonProperty,
+  index: number,
+  fallbackCenter?: { lat: number; lng: number },
+): SearchResult {
+  if (isOpenApiPropertySearchResult(property)) {
+    const score = property.score ?? 0;
+    const isDev = getEnv().isDevelopment;
+    if (index < 5) {
+      log.debug(
+        LOG_CATEGORIES.MAP_RENDERING,
+        "[SEARCH TRANSFORM] Property coordinates (OpenAPI nested)",
+        {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          index,
+          id: property.id,
+          address: property.location.address,
+          rawLatitude: property.location.latitude,
+          rawLongitude: property.location.longitude,
+          fallbackCenter,
+        },
+      );
+    }
+
+    const lat = property.location.latitude ?? fallbackCenter?.lat ?? 0;
+    const lng = property.location.longitude ?? fallbackCenter?.lng ?? 0;
+    const zpidNum = /^\d+$/.test(property.id)
+      ? parseInt(property.id, 10)
+      : undefined;
+
+    return {
+      id: property.id || `${Date.now()}-${index}`,
+      address: property.location.address || "Address not available",
+      price: formatPropertySearchListingPrice({
+        price: property.financials?.price ?? undefined,
+      }),
+      bedrooms: property.essentials.bedrooms ?? 0,
+      bathrooms: property.essentials.bathrooms ?? 0,
+      sqft: property.essentials.livingAreaSqft ?? 0,
+      lat,
+      lng,
+      propertyType: property.metadata?.homeType ?? "Single Family",
+      listingStatus: property.metadata?.listingStatus ?? "FOR_SALE",
+      imageUrl: property.media?.primaryImageUrl ?? "/default-home.jpg",
+      _score: score,
+      zpid: zpidNum,
+    };
+  }
+
+  const isDev = getEnv().isDevelopment;
+  if (index < 5) {
+    log.debug(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "[SEARCH TRANSFORM] Property coordinates (legacy flat row)",
+      {
+        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+        index,
+        id: (property as LegacyFlatPolygonProperty).zpid,
+        address: (property as LegacyFlatPolygonProperty).address,
+        rawLatitude: (property as LegacyFlatPolygonProperty).latitude,
+        rawLongitude: (property as LegacyFlatPolygonProperty).longitude,
+        fallbackCenter,
+      },
+    );
+  }
+
+  return transformLegacyFlatPolygonProperty(
+    property as LegacyFlatPolygonProperty,
+    index,
+    fallbackCenter,
+  );
 }
 
 /**
@@ -66,7 +157,7 @@ export function transformPropertySearchResult(
  */
 export function transformSearchResponse(
   response: SearchByPolygonResponse,
-  fallbackCenter?: { lat: number; lng: number }
+  fallbackCenter?: { lat: number; lng: number },
 ): SearchResult[] {
   if (!response.success || !response.properties) {
     log.warn(LOG_CATEGORIES.SEARCH, "Search response has no properties", {
@@ -77,7 +168,7 @@ export function transformSearchResponse(
   }
 
   const mapped = response.properties.map((property, index) =>
-    transformPropertySearchResult(property, index, fallbackCenter)
+    transformPropertySearchResult(property, index, fallbackCenter),
   );
   log.info(
     LOG_CATEGORIES.SEARCH,
@@ -85,29 +176,10 @@ export function transformSearchResponse(
     {
       inputCount: response.properties.length,
       outputCount: mapped.length,
-      metaCached: response.meta?.cached,
-    }
-  );
-  // #region agent log
-  // eslint-disable-next-line no-restricted-globals -- Cursor debug NDJSON ingest (session 8adfea)
-  fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "8adfea",
+      metaCached: (
+        response as SearchByPolygonResponse & { meta?: { cached?: boolean } }
+      ).meta?.cached,
     },
-    body: JSON.stringify({
-      sessionId: "8adfea",
-      location: "searchTransform.ts:transformSearchResponse",
-      message: "transform complete",
-      data: {
-        inputCount: response.properties.length,
-        outputCount: mapped.length,
-      },
-      timestamp: Date.now(),
-      hypothesisId: "E",
-    }),
-  }).catch(() => {});
-  // #endregion
+  );
   return mapped;
 }

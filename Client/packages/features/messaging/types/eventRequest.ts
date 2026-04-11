@@ -8,4 +8,6 @@ export type EventRequestPayload = {
   start: string; // ISO 8601
   end: string; // ISO 8601
   description?: string;
+  /** Persisted on the message so the card can show location after reload. */
+  location?: string;
 };

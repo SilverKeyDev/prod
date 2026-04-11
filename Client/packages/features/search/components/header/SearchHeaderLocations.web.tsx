@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from "react";
 
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
-import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
+import { useGoogleMaps } from "packages/hooks/data";
 import { getWindow } from "packages/utils/platform";
 
 import { Popover } from "@/components/ui";
@@ -59,7 +59,7 @@ export default function SearchHeaderLocations({
         setOpen(true);
       }
     },
-    [saveAndClose]
+    [saveAndClose],
   );
 
   const formData: Partial<OnboardingData> = {

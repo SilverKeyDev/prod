@@ -23,7 +23,7 @@ export default function SuccessDialog({
   if (!isOpen) return null;
 
   const dialogContent = (
-    <Box className="fixed inset-0 z-50 overflow-y-auto">
+    <Box className="z-modal fixed inset-0 overflow-y-auto">
       <Box
         className="space-responsive-md flex min-h-screen items-center justify-center"
         style={{ width: "100vw", height: "100vh" }}
@@ -65,7 +65,12 @@ export default function SuccessDialog({
 
           {/* Action */}
           <Box className="flex justify-center">
-            <Button type="button" variant="primary" size="md" onClick={onConfirm}>
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              onClick={onConfirm}
+            >
               {confirmText}
             </Button>
           </Box>

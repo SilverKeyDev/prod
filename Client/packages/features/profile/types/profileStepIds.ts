@@ -5,8 +5,10 @@
 
 export const PROFILE_STEP_IDS = [
   "demographics",
-  "housing",
+  "housing_essentials",
+  "housing_ranges",
   "location",
+  "search_property",
   "financial",
   "agent_brokerage",
   "agent_licensing",
@@ -29,9 +31,12 @@ export type AgentOnlySectionId = (typeof AGENT_ONLY_SECTION_IDS)[number];
  * with an “optional for personal search” callout in the section body.
  */
 export const BUYER_PERSONALIZATION_SECTION_IDS = [
-  "housing",
+  "housing_essentials",
+  "housing_ranges",
   "location",
+  "search_property",
   "financial",
 ] as const satisfies ReadonlyArray<ProfileStepId>;
 
-export type BuyerPersonalizationSectionId = (typeof BUYER_PERSONALIZATION_SECTION_IDS)[number];
+export type BuyerPersonalizationSectionId =
+  (typeof BUYER_PERSONALIZATION_SECTION_IDS)[number];

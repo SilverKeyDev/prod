@@ -21,6 +21,33 @@ def extract_property_features(listing: dict[str, Any]) -> dict[str, list[str]]:
     """
     rf: dict[str, Any] = (listing.get("resoFacts") or {}) if isinstance(listing, dict) else {}
 
+    # Slipstream listings carry feature fields at the top level (no resoFacts).
+    # Build a merged view so the extraction logic below works for both formats.
+    if not rf and isinstance(listing, dict):
+        _SLIPSTREAM_FEATURE_KEYS = [
+            "interiorFeatures",
+            "communityFeatures",
+            "cooling",
+            "heating",
+            "parkingFeatures",
+            "lotFeatures",
+            "constructionMaterials",
+            "fireplaceFeatures",
+            "securityFeatures",
+            "fencing",
+            "pool",
+            "roof",
+        ]
+        for k in _SLIPSTREAM_FEATURE_KEYS:
+            val = listing.get(k)
+            if val is not None:
+                if isinstance(val, str):
+                    rf[k] = [s.strip() for s in val.split(",") if s.strip()]
+                elif isinstance(val, list):
+                    rf[k] = val
+                else:
+                    rf[k] = val
+
     # Categorized features
     categories = {
         "Architectural Style": [],

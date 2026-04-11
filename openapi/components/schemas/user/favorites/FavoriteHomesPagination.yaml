@@ -1,0 +1,12 @@
+type: object
+description: >
+  Parallel pagination for GET /favorite-homes: `favorites` and `listings` share the same
+  page and per_page slice; each stream has its own totals.
+required:
+  - favorites
+  - listings
+properties:
+  favorites:
+    $ref: '../../shared/core/Pagination.yaml'
+  listings:
+    $ref: '../../shared/core/Pagination.yaml'

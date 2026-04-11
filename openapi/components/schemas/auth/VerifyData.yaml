@@ -1,0 +1,17 @@
+type: object
+required:
+  - email
+  - code
+  - password
+properties:
+  email:
+    type: string
+    format: email
+    description: User's email address
+  code:
+    type: string
+    description: Verification code sent via email
+  password:
+    type: string
+    format: password
+    description: User's password for auto-login after verification

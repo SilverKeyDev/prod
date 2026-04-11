@@ -1,50 +1,20 @@
-import type { UserProfile } from "@/features/homeauth/types";
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
 
-export type SignupData = {
-  name: string;
-  email: string;
-  password: string;
-  phone?: string;
-  agency_name?: string;
-};
+import type { components } from "packages/types/api.generated";
 
-export type LoginData = {
-  email: string;
-  password: string;
-};
-
-export type AuthResponse = {
-  success: boolean;
-  /**
-   * @deprecated Tokens are stored in HTTP-only cookies by the backend.
-   * These fields are returned for logging/debugging only and should NOT be stored client-side.
-   * The browser automatically sends tokens via cookies with credentials: "include".
-   */
-  access_token?: string;
-  /**
-   * @deprecated Tokens are stored in HTTP-only cookies by the backend.
-   * These fields are returned for logging/debugging only and should NOT be stored client-side.
-   */
-  id_token?: string;
-  /**
-   * @deprecated Tokens are stored in HTTP-only cookies by the backend.
-   * These fields are returned for logging/debugging only and should NOT be stored client-side.
-   */
-  refresh_token?: string;
-  user?:
-    | UserProfile
-    | {
-        email: string;
-        user_sub: string;
-        name: string;
-        id: string;
-      };
-  message?: string;
-  error?: string;
-  user_sub?: string;
-  verification_complete?: boolean;
-  login_failed?: boolean;
-  auto_login_failed?: boolean;
-  code_delivery?: unknown;
-  needs_verification?: boolean;
-};
+// Re-export types from generated schema
+export type SignupData = components["schemas"]["SignupData"];
+export type LoginData = components["schemas"]["LoginData"];
+export type AuthResponse = components["schemas"]["AuthResponse"];

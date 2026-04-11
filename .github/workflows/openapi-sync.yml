@@ -1,0 +1,155 @@
+name: OpenAPI Schema Sync
+
+on:
+  push:
+    paths:
+      - 'openapi/**/*.yaml'
+      - 'openapi.yaml'
+      - 'Server/app/schemas/**'
+      - 'Client/packages/types/**'
+      - '.github/workflows/openapi-sync.yml'
+  pull_request:
+    paths:
+      - 'openapi/**/*.yaml'
+      - 'openapi.yaml'
+      - 'Server/app/schemas/**'
+      - 'Client/packages/types/**'
+      - '.github/workflows/openapi-sync.yml'
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-openapi-spec:
+    name: Validate OpenAPI Specification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install OpenAPI tools
+        run: |
+          npm install -g @apidevtools/swagger-cli
+          npm install -g @redocly/cli
+
+      - name: Bundle modular OpenAPI spec
+        run: redocly bundle openapi/openapi.yaml -o openapi.yaml
+
+      - name: Validate bundled OpenAPI spec
+        run: swagger-cli validate openapi.yaml
+
+  verify-server-schemas:
+    name: Verify Server Schemas In Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Redocly CLI
+        run: npm install -g @redocly/cli
+
+      - name: Bundle modular OpenAPI spec
+        run: redocly bundle openapi/openapi.yaml -o openapi.yaml
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install datamodel-code-generator
+        run: pip install datamodel-code-generator
+
+      - name: Regenerate server schemas
+        working-directory: Server
+        run: bash scripts/generate-pydantic-models.sh
+
+      - name: Check for differences
+        run: |
+          if ! git diff --exit-code Server/app/schemas/generated.py; then
+            echo "❌ Server schemas are out of sync with openapi.yaml"
+            echo ""
+            echo "To fix, run:"
+            echo "  cd Server && bash scripts/generate-pydantic-models.sh"
+            echo ""
+            echo "Then commit the changes to Server/app/schemas/generated.py"
+            exit 1
+          fi
+          echo "✅ Server schemas are in sync with openapi.yaml"
+
+  verify-client-types:
+    name: Verify Client Types In Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js for Redocly
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Redocly CLI
+        run: npm install -g @redocly/cli
+
+      - name: Bundle modular OpenAPI spec
+        run: redocly bundle openapi/openapi.yaml -o openapi.yaml
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js with pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: Client/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: Client
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate client types
+        working-directory: Client
+        run: pnpm generate:api-types
+
+      - name: Check for differences
+        run: |
+          if ! git diff --exit-code Client/packages/types/api.generated.ts; then
+            echo "❌ Client types are out of sync with openapi.yaml"
+            echo ""
+            echo "To fix, run:"
+            echo "  cd Client && pnpm generate:api-types"
+            echo ""
+            echo "Then commit the changes to Client/packages/types/api.generated.ts"
+            exit 1
+          fi
+          echo "✅ Client types are in sync with openapi.yaml"
+
+  summary:
+    name: OpenAPI Sync Summary
+    runs-on: ubuntu-latest
+    needs: [validate-openapi-spec, verify-server-schemas, verify-client-types]
+    if: always()
+    steps:
+      - name: Check status
+        run: |
+          if [ "${{ needs.validate-openapi-spec.result }}" != "success" ] || \
+             [ "${{ needs.verify-server-schemas.result }}" != "success" ] || \
+             [ "${{ needs.verify-client-types.result }}" != "success" ]; then
+            echo "❌ OpenAPI validation failed"
+            exit 1
+          fi
+          echo "✅ All OpenAPI checks passed"

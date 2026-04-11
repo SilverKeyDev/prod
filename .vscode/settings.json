@@ -42,5 +42,9 @@
   "less.lint.unknownAtRules": "ignore",
 
   "problems.showCurrentInStatus": true,
-  "task.autoReveal": "on"
+  "task.autoReveal": "on",
+  "cursorpyright.analysis.diagnosticMode": "workspace",
+  "cursorpyright.analysis.extraPaths": [
+    "Server"
+  ]
 }

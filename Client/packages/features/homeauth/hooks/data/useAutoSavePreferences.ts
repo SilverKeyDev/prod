@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useLocalization } from "packages/contexts";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
 import { preferencesApi } from "@/features/homeauth/api/preferences";
-import { formDataToPreferencesPayload, type OnboardingData } from "@/features/profile/utils";
+import {
+  formDataToPreferencesPayload,
+  type OnboardingData,
+} from "@/features/profile/utils";
 
 type SaveStatus = "idle" | "saving" | "saved";
 
@@ -16,8 +20,7 @@ type UseAutoSavePreferencesOptions = {
   /** When true (default), show a success toast when save completes. */
   showSuccessToastOnSave?: boolean;
   /**
-   * Success toast body. Default "" keeps legacy behavior (some toast UIs treat empty as generic success).
-   * Prefer passing localized copy, e.g. `t("common.saved")`, to match inline save labels.
+   * Success toast body. When omitted or whitespace-only, uses localized `common.saved` (same as inline “Saved” status).
    */
   successToastMessage?: string;
   /** Called after each successful save (e.g. to trigger search refresh) */
@@ -32,7 +35,7 @@ type UseAutoSavePreferencesReturn = {
     formData: T,
     setFormData: React.Dispatch<React.SetStateAction<T>>,
     field: string | number | symbol,
-    value: unknown
+    value: unknown,
   ) => void;
 };
 
@@ -45,6 +48,7 @@ export function useAutoSavePreferences({
   successToastMessage = "",
   onAfterSave,
 }: UseAutoSavePreferencesOptions): UseAutoSavePreferencesReturn {
+  const { t } = useLocalization();
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [isSaving, setIsSaving] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -67,7 +71,11 @@ export function useAutoSavePreferences({
           setIsSaving(false);
 
           if (showSuccessToastOnSave) {
-            showSuccessToast(successToastMessage);
+            showSuccessToast(
+              successToastMessage.trim()
+                ? successToastMessage
+                : t("common.saved"),
+            );
           }
 
           // Refresh preferences to get updated data
@@ -100,9 +108,10 @@ export function useAutoSavePreferences({
       showErrorToastOnError,
       showSuccessToastOnSave,
       successToastMessage,
+      t,
       onError,
       onAfterSave,
-    ]
+    ],
   );
 
   const updateFormData = useCallback(
@@ -110,7 +119,7 @@ export function useAutoSavePreferences({
       _formData: T,
       setFormData: React.Dispatch<React.SetStateAction<T>>,
       field: string | number | symbol,
-      value: unknown
+      value: unknown,
     ) => {
       setFormData((prev) => {
         const next = { ...prev, [field]: value } as T;
@@ -118,7 +127,7 @@ export function useAutoSavePreferences({
         return next;
       });
     },
-    [autoSave]
+    [autoSave],
   );
 
   // Cleanup timeout on unmount

@@ -4,66 +4,77 @@ import { getEnv } from "packages/config/env";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { Box } from "packages/ui/components/primitives";
 
-import MapHomeCard from "./MapHomeCard";
-export type MapPropertyCardProps = {
-  property: {
-    id: string;
-    address: string;
-    price: string;
-    bedrooms?: number;
-    bathrooms?: number;
-    sqft?: number;
-    lotSize?: string;
-    propertyType?: string;
-    lat: number;
-    lng: number;
-    images?: string[];
-    calculatedScore?: number;
-  };
-  isSaved?: boolean;
-  onUnlock?: (property: MapPropertyCardProps["property"]) => void | Promise<void>;
-  showScore?: boolean;
-  onCardRendered?: (property: MapPropertyCardProps["property"]) => void;
-  /** Optional save state functions for use outside React context (e.g., map markers) */
-  isHomeSaved?: (propertyId: string, propertyAddress?: string) => boolean;
-  saveHome?: (property: MapPropertyCardProps["property"]) => Promise<void>;
-  removeSavedHome?: (propertyId: string, propertyAddress?: string) => Promise<void>;
-  /** Optional context key to force a remount when external context changes (e.g., tab) */
-  contextKey?: string;
+import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "@/components/cards/perfectMatchCardGlowClasses";
+import { SearchResultListingCard } from "@/features/search/components/list/SearchResultListingCard.web";
+import type { MapPropertyCardRenderProps } from "@/features/search/hooks/data/useMapMarkers";
+import {
+  isListingFullCriteriaMatch,
+  type SearchResult,
+} from "@/features/search/types";
+
+export type MapPropertyCardProps = MapPropertyCardRenderProps & {
+  onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void;
 };
 
+function mapCardPropertyToSearchResult(
+  p: MapPropertyCardRenderProps["property"],
+  normalizedScore: number | undefined,
+  showScore: boolean,
+): SearchResult {
+  const _score =
+    showScore && normalizedScore !== undefined && normalizedScore > 0
+      ? normalizedScore
+      : undefined;
+  return {
+    id: p.id,
+    address: p.address,
+    price: p.price,
+    bedrooms: p.bedrooms ?? 0,
+    bathrooms: p.bathrooms ?? 0,
+    sqft: p.sqft ?? 0,
+    lat: p.lat,
+    lng: p.lng,
+    lotSize: p.lotSize,
+    propertyType: p.propertyType,
+    imageUrl: p.images?.[0],
+    images: p.images,
+    _score,
+  };
+}
+
 const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
+  activeTab,
   property,
   isSaved = false,
-  onUnlock,
+  onUnlock: _onUnlock,
   showScore = true,
   onCardRendered,
   isHomeSaved,
   saveHome,
   removeSavedHome,
 }) => {
-  // Trigger map repositioning when the card is rendered or updated
   useEffect(() => {
     if (onCardRendered) {
       onCardRendered(property);
     }
-    // Depend on property.id and key props to ensure re-execution when property changes
     // eslint-disable-next-line react-hooks/exhaustive-deps -- property identity intentionally not in deps to avoid reposition on every property change
   }, [property.id, isSaved, showScore, onCardRendered]);
 
-  // Add comprehensive logging for debugging score issues
   const isDev = getEnv().isDevelopment;
 
-  // Validate and normalize the calculated score (must run before hooks)
   let normalizedScore = property.calculatedScore;
   if (normalizedScore !== undefined && normalizedScore !== null) {
     if (typeof normalizedScore !== "number" || isNaN(normalizedScore)) {
-      log.warn(LOG_CATEGORIES.MAP_RENDERING, "🗺️ [MAP PROPERTY CARD] Invalid score type detected", {
-        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-        propertyId: property.id,
-        originalScore: property.calculatedScore,
-        scoreType: typeof property.calculatedScore,
-      });
+      log.warn(
+        LOG_CATEGORIES.MAP_RENDERING,
+        "🗺️ [MAP PROPERTY CARD] Invalid score type detected",
+        {
+          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+          propertyId: property.id,
+          originalScore: property.calculatedScore,
+          scoreType: typeof property.calculatedScore,
+        },
+      );
       normalizedScore = undefined;
     } else if (normalizedScore < 0 || normalizedScore > 100) {
       log.warn(
@@ -73,7 +84,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
           propertyId: property.id,
           score: normalizedScore,
-        }
+        },
       );
       normalizedScore = Math.max(0, Math.min(100, normalizedScore));
     } else if (normalizedScore === 0) {
@@ -81,49 +92,34 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
     }
   }
 
-  // Convert property to HomeDescription format (hooks must be at top level)
-  const homeData = useMemo(
-    () => ({
-      home_id: property.id,
-      image_url: property.images?.[0],
-      price: property.price,
-      bedrooms: property.bedrooms,
-      bathrooms: property.bathrooms,
-      sqft: property.sqft,
-      lot_size: property.lotSize,
-      propertyType: property.propertyType,
-      lat: property.lat,
-      lng: property.lng,
-      address: property.address,
-      calculatedScore: normalizedScore,
-    }),
-    [
-      property.id,
-      property.images,
-      property.price,
-      property.bedrooms,
-      property.bathrooms,
-      property.sqft,
-      property.lotSize,
-      property.propertyType,
-      property.lat,
-      property.lng,
-      property.address,
-      normalizedScore,
-    ]
+  const searchResult = useMemo(
+    () => mapCardPropertyToSearchResult(property, normalizedScore, showScore),
+    [property, normalizedScore, showScore],
   );
 
+  const fullCriteriaMatch = isListingFullCriteriaMatch(searchResult);
+
   return (
-    <Box className="relative">
-      <MapHomeCard
-        home={homeData}
-        onUnlock={onUnlock}
-        showScore={showScore}
-        isOnMap
-        isSaved={isSaved}
+    <Box
+      className={`relative scale-90 transform ${
+        fullCriteriaMatch ? PERFECT_CRITERIA_MATCH_CARD_CLASSNAME : ""
+      }`}
+    >
+      <SearchResultListingCard
+        property={searchResult}
+        activeTab={activeTab}
         isHomeSaved={isHomeSaved}
-        saveHome={saveHome}
+        saveHome={
+          saveHome
+            ? async (p) => {
+                await saveHome(p);
+              }
+            : undefined
+        }
         removeSavedHome={removeSavedHome}
+        isOnMap
+        showMatchScore={showScore}
+        showNotInterested={false}
       />
     </Box>
   );

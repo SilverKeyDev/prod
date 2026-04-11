@@ -53,7 +53,9 @@ type CloseLayoutProps = {
   showLoadingScreen?: boolean;
   containerClassName?: string;
   showMinLoadingText?: boolean;
-  setClosePageHeaderData?: React.Dispatch<React.SetStateAction<ClosePageHeaderData | null>>;
+  setClosePageHeaderData?: React.Dispatch<
+    React.SetStateAction<ClosePageHeaderData | null>
+  >;
 };
 export default function CloseLayout({
   title,
@@ -71,7 +73,16 @@ export default function CloseLayout({
     const match = apiEndpoint.match(/type=(\w+)/);
     if (match && match[1]) {
       const type = match[1] as ChecklistType;
-      if (["search", "offer", "escrow", "financing", "closing", "insurance"].includes(type)) {
+      if (
+        [
+          "search",
+          "offer",
+          "escrow",
+          "financing",
+          "closing",
+          "insurance",
+        ].includes(type)
+      ) {
         return type;
       }
     }
@@ -102,7 +113,7 @@ export default function CloseLayout({
   };
   // Expansion state: active item starts expanded; sync when activeItemId or checkedIds change
   const [expandedIds, setExpandedIds] = useState<Set<number>>(() =>
-    activeItemId != null ? new Set([activeItemId]) : new Set()
+    activeItemId != null ? new Set([activeItemId]) : new Set(),
   );
   useEffect(() => {
     setExpandedIds((prev) => {
@@ -187,7 +198,10 @@ export default function CloseLayout({
           <Card border="light" className="mb-responsive-md" padding="sm">
             <Box className={sectionTitle}>
               <Box className="flex h-4 w-4 flex-shrink-0 flex-row items-center justify-center lg:h-5 lg:w-5">
-                <Icon name="check-square" className="text-foreground h-4 w-4 lg:h-5 lg:w-5" />
+                <Icon
+                  name="check-square"
+                  className="text-foreground h-4 w-4 lg:h-5 lg:w-5"
+                />
               </Box>
               {sectionTitleText}
             </Box>
@@ -196,14 +210,19 @@ export default function CloseLayout({
               <Text className="sr-only">Checklist</Text>
               <Box className="flex flex-col gap-2 overflow-visible">
                 {items.map((item, index) => {
-                  const isActive = activeItemId != null && item.id === activeItemId;
+                  const isActive =
+                    activeItemId != null && item.id === activeItemId;
                   const shouldShowIntegration =
                     (item as { component_key?: string }).component_key != null;
                   const isExpanded = expandedIds.has(item.id);
                   return (
                     <Box
                       key={item.id}
-                      className={`w-full rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY} ${isActive ? "ring-gold relative z-10 overflow-visible shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1" : ""}`}
+                      className={`w-full rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY} ${
+                        isActive
+                          ? "ring-gold relative z-10 overflow-visible shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1"
+                          : ""
+                      }`}
                     >
                       <Box className="flex flex-row items-start gap-2">
                         <Box className="min-w-0 flex-1">
@@ -221,19 +240,25 @@ export default function CloseLayout({
                         <IconButton
                           variant="ghost"
                           size="sm"
-                          iconName={isExpanded ? "chevron-down" : "chevron-right"}
+                          iconName={
+                            isExpanded ? "chevron-down" : "chevron-right"
+                          }
                           label={isExpanded ? "Collapse step" : "Expand step"}
                           onPress={() => toggleExpand(item.id)}
                           className="text-text-secondary hover:text-text-primary mt-0.5 flex h-6 w-6 flex-shrink-0"
                         />
                       </Box>
-                      {isExpanded && shouldShowIntegration && (
-                        <ChecklistIntegrationSlot
-                          componentKey={(item as { component_key?: string }).component_key}
-                          isCurrent={true}
-                          onComplete={() => void toggleItem(item.id)}
-                        />
-                      )}
+                      {
+                        /* isExpanded && */ shouldShowIntegration && (
+                          <ChecklistIntegrationSlot
+                            componentKey={
+                              (item as { component_key?: string }).component_key
+                            }
+                            isCurrent={true}
+                            onComplete={() => void toggleItem(item.id)}
+                          />
+                        )
+                      }
                     </Box>
                   );
                 })}

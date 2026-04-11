@@ -23,6 +23,11 @@ from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 
 from .config import Config
+from .config.constants._constants_public_urls import (
+    DEV_FRONTEND_ORIGIN,
+    DEV_FRONTEND_ORIGIN_LOOPBACK,
+    PUBLIC_PRODUCTION_ORIGIN,
+)
 from .extensions import db
 
 # Initialize extensions (db from extensions; others local for create_app)
@@ -68,7 +73,7 @@ def create_app(config=None):
 
     # Initialize database within app context
     with app.app_context():
-        from .models import ChatHistory, Document, HomeUniversal, User  # noqa: F401
+        from .models import ChatHistory, Document, PropertyCache, User  # noqa: F401
 
         db.create_all()
 
@@ -91,9 +96,9 @@ def create_app(config=None):
     ALLOWED = [o.strip() for o in raw.split(",") if o.strip()]
     if not ALLOWED:
         ALLOWED = [
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-            "https://usesilverkey.com",
+            DEV_FRONTEND_ORIGIN,
+            DEV_FRONTEND_ORIGIN_LOOPBACK,
+            PUBLIC_PRODUCTION_ORIGIN,
         ]
 
     CORS(
@@ -104,13 +109,12 @@ def create_app(config=None):
         },
         supports_credentials=True,
         expose_headers=["Content-Type", "X-CSRFToken"],
-        allow_headers=["Content-Type", "X-CSRFToken"],
-        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "X-CSRFToken", "Authorization"],
+        methods=["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         vary_header=True,
     )
 
-    # Register login manager loader
-    from .models import User
+    # Register login manager loader (User already imported in app_context block above)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -147,23 +151,25 @@ def create_app(config=None):
     from .routes.agent.agent import agent_bp
     from .routes.auth.auth import auth_bp
     from .routes.auth.preferences import preferences_bp
+    from .routes.auth.search_display import search_display_bp
     from .routes.auth.user import user_bp
     from .routes.calendar.google_calendar import google_calendar_bp
     from .routes.client_errors import client_errors_bp
     from .routes.documents.report import report_bp
     from .routes.documents.secure_upload import secure_upload_bp
     from .routes.feed import feed_bp
+    from .routes.forms import forms_bp
     from .routes.maps import maps_bp
     from .routes.offer import offer_bp
     from .routes.search.home_matching import home_matching_bp
     from .routes.search.research import research_bp
     from .routes.search.search import search_bp
-    from .routes.skyslope import skyslope_bp
     from .routes.tasks import tasks_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(preferences_bp)
+    app.register_blueprint(search_display_bp)
     app.register_blueprint(home_matching_bp)
     app.register_blueprint(maps_bp)
     app.register_blueprint(search_bp)
@@ -177,7 +183,16 @@ def create_app(config=None):
     app.register_blueprint(feed_bp)
     app.register_blueprint(tasks_bp)
     app.register_blueprint(admin_bp)
-    app.register_blueprint(skyslope_bp)
+    app.register_blueprint(forms_bp)
+
+    try:
+        from .routes.documents.docusign import docusign_bp, webhook_bp
+
+        app.register_blueprint(docusign_bp)
+        app.register_blueprint(webhook_bp)
+        logger.info(LOG_CATEGORIES["API"], "DocuSign routes registered")
+    except ImportError as e:
+        logger.warn(LOG_CATEGORIES["API"], f"DocuSign routes not available: {e}")
 
     # ---------- Static asset routes (Vite build) ----------
     # Serve /assets/* out of the Vite dist directory with correct MIME types.

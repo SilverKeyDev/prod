@@ -1,0 +1,50 @@
+type: object
+required:
+  - id
+  - thumbnailUrl
+  - user
+  - stats
+  - images
+properties:
+  id:
+    type: string
+  thumbnailUrl:
+    type: string
+    format: uri
+  videoUrl:
+    type: string
+    format: uri
+    nullable: true
+  audioSpeechUrl:
+    type: string
+    format: uri
+    nullable: true
+  audioSongUrl:
+    type: string
+    format: uri
+    nullable: true
+  user:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      avatarUrl:
+        type: string
+        format: uri
+        nullable: true
+  stats:
+    type: object
+    properties:
+      likes:
+        type: integer
+      comments:
+        type: integer
+      shares:
+        type: integer
+  images:
+    type: array
+    items:
+      type: string
+      format: uri

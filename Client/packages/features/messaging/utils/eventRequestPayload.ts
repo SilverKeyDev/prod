@@ -10,7 +10,9 @@ const EVENT_REQUEST_PREFIX = "__EVENT_REQUEST__";
  * If the message starts with __EVENT_REQUEST__{...}, parses the first line and returns the payload.
  * Otherwise returns null.
  */
-export function parseEventRequestPayload(content: string): EventRequestPayload | null {
+export function parseEventRequestPayload(
+  content: string,
+): EventRequestPayload | null {
   const trimmed = content?.trim();
   if (!trimmed || !trimmed.startsWith(EVENT_REQUEST_PREFIX)) {
     return null;
@@ -29,14 +31,14 @@ export function parseEventRequestPayload(content: string): EventRequestPayload |
       typeof (parsed as EventRequestPayload).start === "string" &&
       typeof (parsed as EventRequestPayload).end === "string"
     ) {
+      const p = parsed as EventRequestPayload;
       return {
-        title: (parsed as EventRequestPayload).title,
-        start: (parsed as EventRequestPayload).start,
-        end: (parsed as EventRequestPayload).end,
+        title: p.title,
+        start: p.start,
+        end: p.end,
         description:
-          typeof (parsed as EventRequestPayload).description === "string"
-            ? (parsed as EventRequestPayload).description
-            : undefined,
+          typeof p.description === "string" ? p.description : undefined,
+        location: typeof p.location === "string" ? p.location : undefined,
       };
     }
   } catch {
@@ -65,8 +67,11 @@ export function buildEventRequestMessage(payload: EventRequestPayload): string {
   let human = `📅 Event Request: ${payload.title}\n\n`;
   human += `Date: ${formattedDate}\n`;
   human += `Time: ${formattedTime}\n`;
+  if (payload.location?.trim()) {
+    human += `\nLocation: ${payload.location.trim()}`;
+  }
   if (payload.description?.trim()) {
-    human += `\n${payload.description.trim()}`;
+    human += `\n\n${payload.description.trim()}`;
   }
   return `${line}\n\n${human}`;
 }

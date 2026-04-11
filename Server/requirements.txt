@@ -14,9 +14,9 @@ flask_executor==1.0.0
 flask_jwt_extended==4.5.2
 
 # --- Data & ML ---
-numpy==1.26.4
-pandas==1.5.3
-matplotlib==3.7.2
+numpy>=1.26.0
+pandas>=2.0.0
+matplotlib>=3.8.0
 scikit-learn==1.4.2
 scipy==1.13.1
 xgboost==2.0.3
@@ -30,7 +30,7 @@ tensorflow==2.18.0
 jax==0.4.35
 jaxlib==0.4.35
 chex==0.1.87
-openai==1.56.0
+openai==1.76.2
 httpx>=0.24.1
 
 # --- Geospatial ---
@@ -76,7 +76,7 @@ httplib2==0.31.0
 cryptography==41.0.7
 
 # --- Pydantic & Serialization ---
-pydantic==2.5.0
+pydantic==2.10.5
 marshmallow==3.20.2
 marshmallow-sqlalchemy==0.28.1
 json5==0.9.14
@@ -86,3 +86,4 @@ celery==5.3.4
 redis==5.0.1
 
 plaid-python==36.1.0
+tenacity==8.2.3

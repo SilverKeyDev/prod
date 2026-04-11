@@ -1,0 +1,316 @@
+# AWS Resource Naming and Infrastructure Conventions
+
+## Overview
+
+This document defines naming conventions and infrastructure patterns for AWS resources used in SilverKey. Consistent naming enables easier resource discovery, cost tracking, and automation.
+
+## Current AWS Services
+
+SilverKey uses the following AWS services:
+
+| Service | Purpose | Naming Pattern |
+|---------|---------|----------------|
+| **Cognito** | User authentication and identity management | User pools, app clients |
+| **S3** | Document storage (DocuSign forms, uploaded files) | Buckets with environment prefixes |
+| **Secrets Manager** | API keys and sensitive configuration | Secrets with descriptive names |
+| **RDS** (implied) | PostgreSQL database | Instance with environment prefix |
+| **EC2/ECS** (deployment) | Application hosting | Instances/containers with environment tags |
+
+## Region Standards
+
+**Primary Region**: `us-east-2` (Ohio)
+
+- All production resources are hosted in `us-east-2`
+- Documented in `documentation/compliance/PRIVACY_POLICY.md` and `documentation/compliance/GDPR.md`
+- EU regions available upon request for GDPR compliance
+
+## Environment Naming
+
+### Environment Prefixes
+
+Use consistent prefixes for all resources:
+
+| Environment | Prefix | Example |
+|-------------|--------|---------|
+| **Development** | `dev-` | `dev-silverkey-documents` |
+| **Staging** | `staging-` | `staging-silverkey-documents` |
+| **Production** | `prod-` | `prod-silverkey-documents` |
+
+### Suffix Patterns
+
+- Stack name or service: `-silverkey-<service>`
+- Region (optional): `-us-east-2` (omit if single-region)
+
+## Resource-Specific Conventions
+
+### Cognito
+
+**User Pools**:
+```
+{env}-silverkey-users
+```
+Examples:
+- `prod-silverkey-users`
+- `dev-silverkey-users`
+
+**App Clients**:
+```
+{env}-silverkey-web-client
+{env}-silverkey-mobile-client
+```
+
+**Environment Variables**:
+```bash
+AWS_COGNITO_USER_POOL_ID=us-east-2_XXXXX
+AWS_COGNITO_CLIENT_ID=<client-id>
+AWS_COGNITO_CLIENT_SECRET=<client-secret>
+```
+
+### S3 Buckets
+
+**Naming Pattern**:
+```
+{env}-silverkey-{purpose}
+```
+
+**Purposes**:
+- `documents`: DocuSign agreements, uploaded forms
+- `property-images`: Property photos and media (if used)
+- `backups`: Database backups
+- `logs`: Application logs (if using S3 for archival)
+
+**Examples**:
+- `prod-silverkey-documents`
+- `dev-silverkey-documents`
+- `staging-silverkey-backups`
+
+**Bucket Configuration**:
+- Versioning: Enabled for documents bucket
+- Encryption: AES-256 (SSE-S3) or KMS
+- Access: Private, presigned URLs for client access
+- Lifecycle: Define retention policies per bucket purpose
+
+**Environment Variables**:
+```bash
+S3_BUCKET_NAME=prod-silverkey-documents
+S3_REGION=us-east-2
+```
+
+### Secrets Manager
+
+**Naming Pattern**:
+```
+{env}/silverkey/{service}/{secret-name}
+```
+
+**Examples**:
+- `prod/silverkey/docusign/integration-key`
+- `prod/silverkey/docusign/client-secret`
+- `prod/silverkey/google/oauth-client-secret`
+- `prod/silverkey/plaid/secret`
+- `dev/silverkey/stripe/api-key`
+
+**Retrieval**:
+```python
+import boto3
+
+client = boto3.client('secretsmanager', region_name='us-east-2')
+response = client.get_secret_value(SecretId='prod/silverkey/docusign/client-secret')
+secret = response['SecretString']
+```
+
+**Environment Variables** (references):
+```bash
+# These should reference Secrets Manager, not contain actual secrets
+DOCUSIGN_CLIENT_SECRET=<from-secrets-manager>
+GOOGLE_CALENDAR_SECRET=<from-secrets-manager>
+PLAID_SECRET=<from-secrets-manager>
+```
+
+### RDS (Database)
+
+**Instance Naming**:
+```
+{env}-silverkey-postgres
+```
+
+**Examples**:
+- `prod-silverkey-postgres`
+- `dev-silverkey-postgres`
+
+**Configuration**:
+- Engine: PostgreSQL 14+
+- Instance class: Sized per environment (t3.micro for dev, production-sized for prod)
+- Storage: Encrypted with KMS
+- Backups: Automated daily snapshots
+- Multi-AZ: Enabled for production
+
+### EC2/ECS Instances
+
+**Instance Tags** (minimum required):
+```json
+{
+  "Name": "{env}-silverkey-app",
+  "Environment": "production|staging|development",
+  "Application": "silverkey",
+  "ManagedBy": "terraform|manual",
+  "CostCenter": "engineering"
+}
+```
+
+**Auto Scaling Groups**:
+```
+{env}-silverkey-asg
+```
+
+## Tagging Strategy
+
+### Required Tags (All Resources)
+
+| Tag Key | Description | Example Values |
+|---------|-------------|----------------|
+| `Environment` | Deployment environment | `production`, `staging`, `development` |
+| `Application` | Application name | `silverkey` |
+| `ManagedBy` | How resource is provisioned | `terraform`, `cloudformation`, `manual` |
+| `CostCenter` | Billing allocation | `engineering`, `operations` |
+
+### Optional Tags
+
+| Tag Key | Description | Example Values |
+|---------|-------------|----------------|
+| `Owner` | Team or person responsible | `backend-team`, `devops` |
+| `Version` | Application version | `1.2.3`, `2024-01-15` |
+| `Backup` | Backup policy | `daily`, `weekly`, `none` |
+
+## Security Best Practices
+
+### IAM Naming
+
+**Roles**:
+```
+{env}-silverkey-{service}-role
+```
+Examples:
+- `prod-silverkey-app-role`
+- `prod-silverkey-lambda-role`
+
+**Policies**:
+```
+{env}-silverkey-{service}-policy
+```
+
+**Users** (service accounts only):
+```
+silverkey-{purpose}-user
+```
+Examples:
+- `silverkey-ci-user`
+- `silverkey-backup-user`
+
+### Least Privilege
+
+- App roles: Access only to required S3 buckets and Secrets Manager secrets
+- Secrets Manager: Use IAM policies to restrict secret access per service
+- S3: Use bucket policies + IAM for defense in depth
+
+## Infrastructure as Code
+
+### Terraform/CloudFormation
+
+When using IaC:
+- Store state in S3: `{env}-silverkey-terraform-state`
+- Use remote backend with state locking (DynamoDB: `{env}-silverkey-terraform-locks`)
+- Tag all resources via IaC defaults
+
+### Stack Naming
+
+If using CloudFormation stacks:
+```
+{env}-silverkey-{component}
+```
+Examples:
+- `prod-silverkey-network`
+- `prod-silverkey-database`
+- `prod-silverkey-app`
+
+## Cost Tracking
+
+### Cost Allocation Tags
+
+Enable these tags in AWS Cost Explorer:
+- `Environment`
+- `Application`
+- `CostCenter`
+
+### Budget Alerts
+
+Set up budget alerts per environment:
+- Development: Low threshold (cost-saving)
+- Staging: Medium threshold
+- Production: Higher threshold with anomaly detection
+
+## Compliance and Data Residency
+
+### GDPR
+
+- Primary: `us-east-2` (Ohio, USA)
+- EU customers: Option to use `eu-west-1` (Ireland) or `eu-central-1` (Frankfurt)
+- Document data residency in Terms of Service per `documentation/compliance/GDPR.md`
+
+### Data Retention
+
+- S3 lifecycle policies for automatic archival/deletion
+- Secrets Manager: Rotate secrets according to schedule
+- Backups: Retain per compliance requirements (typically 30-90 days)
+
+## Environment Variables Reference
+
+Standard env vars for AWS configuration (see `Server/.env.example` and `Server/config/.env.example`):
+
+```bash
+# AWS Core
+AWS_REGION=us-east-2
+AWS_ACCESS_KEY_ID=<key>
+AWS_SECRET_ACCESS_KEY=<secret>
+
+# Cognito
+AWS_COGNITO_USER_POOL_ID=<pool-id>
+AWS_COGNITO_CLIENT_ID=<client-id>
+AWS_COGNITO_CLIENT_SECRET=<client-secret>
+
+# S3 (if explicitly configured)
+S3_BUCKET_NAME=prod-silverkey-documents
+S3_REGION=us-east-2
+
+# Secrets (reference to Secrets Manager)
+DOCUSIGN_CLIENT_SECRET=<from-secrets-manager>
+GOOGLE_CALENDAR_SECRET=<from-secrets-manager>
+PLAID_SECRET=<from-secrets-manager>
+```
+
+## Adding New AWS Resources
+
+When adding new AWS services:
+
+1. **Choose name** following `{env}-silverkey-{purpose}` pattern
+2. **Apply tags**: At minimum: Environment, Application, ManagedBy, CostCenter
+3. **Document usage**: Update this file with service purpose and naming
+4. **Update IaC**: Add to Terraform/CloudFormation if used
+5. **Set up monitoring**: CloudWatch alarms, cost alerts
+6. **Review permissions**: Least privilege IAM policies
+
+## Cross-References
+
+- **Environment configuration**: `Server/.env.example`, `Server/config/.env.example`
+- **Compliance**: `documentation/compliance/PRIVACY_POLICY.md`, `documentation/compliance/GDPR.md`
+- **Security**: `.cursor/rules/shared/security.mdc`
+- **DocuSign + S3**: `documentation/transactions/integrations/09-documents-docusign-and-s3.md`
+
+## Future Services (Documented in `documentation/to-implement-soon/`)
+
+- **QuickSight**: Analytics dashboards
+- **Athena**: Query logs and analytics data
+- **Kinesis Firehose**: Real-time data streaming
+- **SES**: Transactional emails
+
+Follow the same naming conventions when implementing these services.

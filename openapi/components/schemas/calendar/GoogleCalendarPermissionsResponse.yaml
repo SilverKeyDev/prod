@@ -1,0 +1,14 @@
+type: object
+required:
+  - permissions
+  - scopes
+properties:
+  permissions:
+    type: object
+    additionalProperties:
+      $ref: './GoogleCalendarPermission.yaml'
+  scopes:
+    type: string
+  last_updated:
+    type: string
+    nullable: true

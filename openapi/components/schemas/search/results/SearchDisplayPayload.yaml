@@ -1,0 +1,57 @@
+type: object
+description: "Search display state including persisted UI settings and last search context."
+properties:
+  show_commute_overlay:
+    type: boolean
+    description: Whether the commute isochrone overlay is visible on the map.
+  map_home_cards_count:
+    type: integer
+    description: Number of property cards shown on the map at once.
+  results_order_by:
+    type: string
+    description: Sort key for the search results list.
+  preferences_strict_filter:
+    type: boolean
+    description: When true, preference post-filters always apply server-side.
+  last_search_context:
+    type: object
+    nullable: true
+    description: Snapshot of the user's last executed search for restoring polygon and map state on page load.
+    properties:
+      search_source:
+        type: string
+        enum:
+          - preferences
+          - location
+        description: Whether the search was driven by user preferences/commute or a location bar entry.
+      viewport_ring:
+        type: array
+        nullable: true
+        items:
+          $ref: '../../search/properties/ViewportPolygonPoint.yaml'
+        description: Closed polygon ring from the last search viewport or place bounds.
+      place_label:
+        type: string
+        nullable: true
+        description: Formatted label for the searched place (e.g. "Atlanta, GA").
+      map_center:
+        type: object
+        nullable: true
+        properties:
+          lat:
+            type: number
+            format: double
+          lng:
+            type: number
+            format: double
+        description: Map center at the time of the last search.
+      map_zoom:
+        type: integer
+        nullable: true
+        description: Map zoom level at the time of the last search.
+      searched_at:
+        type: string
+        format: date-time
+        nullable: true
+        description: ISO 8601 timestamp of when the search was executed.
+additionalProperties: true

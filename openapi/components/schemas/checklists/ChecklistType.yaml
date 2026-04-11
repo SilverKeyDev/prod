@@ -1,0 +1,2 @@
+type: string
+enum: [search, offer, escrow, financing, closing, insurance]

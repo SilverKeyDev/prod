@@ -1,0 +1,9 @@
+type: object
+properties:
+  signing_method:
+    $ref: './SigningMethod.yaml'
+    nullable: true
+  participant_user_id:
+    type: string
+    nullable: true
+    description: "Optional selected signer user id"

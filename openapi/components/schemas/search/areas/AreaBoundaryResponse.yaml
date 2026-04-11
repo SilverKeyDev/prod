@@ -1,0 +1,57 @@
+type: object
+required:
+  - success
+properties:
+  success:
+    type: boolean
+  area:
+    type: object
+    nullable: true
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      label:
+        type: string
+      geoType:
+        type: string
+      state:
+        type: string
+      center:
+        type: object
+        nullable: true
+        properties:
+          lat:
+            type: number
+          lng:
+            type: number
+    description: Area metadata
+  geometry:
+    type: object
+    nullable: true
+    description: GeoJSON Polygon or MultiPolygon boundary geometry
+    properties:
+      type:
+        type: string
+        enum:
+          - Polygon
+          - MultiPolygon
+      coordinates:
+        type: array
+        items: {}
+        description: GeoJSON coordinate arrays
+  viewport_ring:
+    type: array
+    nullable: true
+    items:
+      $ref: '../properties/ViewportPolygonPoint.yaml'
+    description: >-
+      Boundary as viewport-compatible ring of {lat, lng} points.
+      Can be sent directly as viewport_polygon in polygon search.
+  error:
+    type: string
+    nullable: true
+  message:
+    type: string
+    nullable: true

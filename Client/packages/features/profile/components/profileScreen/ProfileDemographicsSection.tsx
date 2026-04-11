@@ -1,6 +1,10 @@
 import React from "react";
 
-import { FIELD_LABELS, type OnboardingData } from "packages/features/profile/utils";
+import { useHidePersonalizationStepHeading } from "packages/features/profile/components/layout/PersonalizationSectionLayout";
+import {
+  FIELD_LABELS,
+  type OnboardingData,
+} from "packages/features/profile/utils";
 import { ProfileAvatar } from "packages/ui/components/avatar";
 import Input from "packages/ui/components/form/Input";
 import { Pressable } from "packages/ui/components/primitives";
@@ -39,9 +43,11 @@ export function ProfileDemographicsSection({
   profilePictureError,
   userDisplayName,
 }: ProfileDemographicsSectionProps) {
+  const hideStepHeading = useHidePersonalizationStepHeading();
+
   return (
     <Box className="gap-4">
-      <Title size="md">About You</Title>
+      {!hideStepHeading && <Title size="md">About You</Title>}
 
       {onUploadPhoto != null && (
         <Box className="gap-3">
@@ -53,7 +59,9 @@ export function ProfileDemographicsSection({
               <ProfileAvatar
                 imageUrl={profilePictureUrl}
                 label={
-                  userDisplayName?.trim() ? `Profile photo, ${userDisplayName.trim()}` : "Profile"
+                  userDisplayName?.trim()
+                    ? `Profile photo, ${userDisplayName.trim()}`
+                    : "Profile"
                 }
                 imageClassName="h-20 w-20 rounded-full"
               />
@@ -69,7 +77,9 @@ export function ProfileDemographicsSection({
                 </Text>
               </Pressable>
               {profilePictureError != null && (
-                <Text className="text-xs text-red-500">{profilePictureError.message}</Text>
+                <Text className="text-xs text-red-500">
+                  {profilePictureError.message}
+                </Text>
               )}
             </Box>
           </Box>
@@ -107,7 +117,9 @@ export function ProfileDemographicsSection({
               onChange={(e) =>
                 updateField(
                   "age",
-                  e.target.value ? parseInt(e.target.value, 10) || undefined : undefined
+                  e.target.value
+                    ? parseInt(e.target.value, 10) || undefined
+                    : undefined,
                 )
               }
               placeholder="Age"

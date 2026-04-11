@@ -1,0 +1,125 @@
+type: object
+description: |
+  DocuSign-backed agreement between an agent and buyer, including envelope metadata,
+  participant list, optional revisions/history, and denormalized names for list views.
+  `docusign_envelope_id` is the primary correlation key with DocuSign; `envelope_id`
+  is legacy and may duplicate or diverge on older rows.
+required:
+  - id
+  - agent_id
+  - buyer_id
+  - title
+  - agreement_type
+  - status
+  - created_at
+  - updated_at
+properties:
+  id:
+    type: string
+  agent_id:
+    type: string
+  buyer_id:
+    type: string
+  title:
+    type: string
+  agreement_type:
+    $ref: './AgreementType.yaml'
+  status:
+    $ref: './AgreementStatus.yaml'
+  property_address:
+    type: string
+    nullable: true
+    description: Human-readable property line for titles and notifications.
+  description:
+    type: string
+    nullable: true
+    description: Free-text summary or internal notes shown on agreement detail.
+  envelope_id:
+    type: string
+    nullable: true
+    description: "Legacy field"
+  docusign_envelope_id:
+    type: string
+    nullable: true
+    description: Current DocuSign envelope UUID used for API callbacks and deep links.
+  docusign_status:
+    type: string
+    nullable: true
+    description: Last observed DocuSign composite status string (e.g. sent, completed).
+  created_at:
+    type: string
+    format: date-time
+  updated_at:
+    type: string
+    format: date-time
+  sent_at:
+    type: string
+    format: date-time
+    nullable: true
+  completed_at:
+    type: string
+    format: date-time
+    nullable: true
+  voided_at:
+    type: string
+    format: date-time
+    nullable: true
+  current_revision_id:
+    type: string
+    nullable: true
+  signed_document_path:
+    type: string
+    nullable: true
+    description: Storage path to the merged signed PDF after completion.
+  certificate_path:
+    type: string
+    nullable: true
+    description: Optional path to the completion certificate artifact.
+  participants:
+    type: array
+    items:
+      $ref: './AgreementParticipant.yaml'
+    nullable: true
+  revisions:
+    type: array
+    items:
+      $ref: './AgreementRevision.yaml'
+    nullable: true
+  events:
+    type: array
+    items:
+      $ref: './AgreementEvent.yaml'
+    nullable: true
+  current_revision:
+    $ref: './AgreementRevision.yaml'
+    nullable: true
+  agent_name:
+    type: string
+    nullable: true
+  buyer_name:
+    type: string
+    nullable: true
+  buyer_email:
+    type: string
+    format: email
+    nullable: true
+example:
+  id: "agr-1a2b3c4d-5e6f-7890-abcd-ef1234567890"
+  agent_id: "b2c3d4e5-f6a7-8901-bcde-f23456789012"
+  buyer_id: "c3d4e5f6-a7b8-9012-cdef-345678901234"
+  title: "Buyer representation — Jordan Client"
+  agreement_type: "buyer_representation"
+  status: "sent"
+  property_address: "742 Evergreen Terrace, Springfield, IL 62704"
+  description: "Standard BRA for spring 2026 search."
+  envelope_id: null
+  docusign_envelope_id: "abc123de-4567-89ab-cdef-0123456789ab"
+  docusign_status: "sent"
+  created_at: "2026-03-01T12:00:00.000Z"
+  updated_at: "2026-03-02T09:30:00.000Z"
+  sent_at: "2026-03-02T09:31:00.000Z"
+  completed_at: null
+  voided_at: null
+  agent_name: "Alex Agent"
+  buyer_name: "Jordan Client"
+  buyer_email: "jordan.client@example.com"

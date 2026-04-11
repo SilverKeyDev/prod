@@ -5,7 +5,7 @@ Google OAuth callback flow handler.
 import time
 import traceback
 import uuid as uuid_lib
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, cast
 
 from flask import Response, current_app, redirect, session
@@ -163,8 +163,8 @@ def handle_google_oauth_callback(
         if user:
             # Link Google account to existing user
             user.google_id = google_id
-            user.updated_at = datetime.utcnow()
-            user.last_logged_in = datetime.utcnow()
+            user.updated_at = datetime.now(timezone.utc)
+            user.last_logged_in = datetime.now(timezone.utc)
             db.session.commit()
 
             current_app.logger.info(
@@ -173,7 +173,7 @@ def handle_google_oauth_callback(
             )
         else:
             # Create new user
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             user = User(
                 id=str(uuid_lib.uuid4()),
                 google_id=google_id,
@@ -195,7 +195,7 @@ def handle_google_oauth_callback(
             )
     else:
         # User exists, update last_logged_in
-        user.last_logged_in = datetime.utcnow()
+        user.last_logged_in = datetime.now(timezone.utc)
         db.session.commit()
 
     # Create tokens - match old approach: create access token directly, ID token is optional

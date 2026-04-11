@@ -29,7 +29,15 @@ export type OtherFilterContentProps = {
   updateFormData: (field: string | number | symbol, value: unknown) => void;
   /** When true, omit the housing type field (e.g. when shown in a separate "Home Type" filter) */
   hideHousingType?: boolean;
-  onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
+  onSearchFilterOverridesPatch?: (
+    patch: LotSizeHomeAgeSearchOverridesPatch,
+  ) => void;
+  /** Borderless dropdown triggers (e.g. search header popover). */
+  noBorder?: boolean;
+  /** Render dropdown menus in a portal so they are not clipped inside scrollable panels. */
+  menuInPortal?: boolean;
+  /** When using menuInPortal inside a Popover, forward registration so outside-click does not close the popover. */
+  registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
 };
 
 export default function OtherFilterContent({
@@ -37,6 +45,9 @@ export default function OtherFilterContent({
   updateFormData,
   hideHousingType = false,
   onSearchFilterOverridesPatch,
+  noBorder = false,
+  menuInPortal = false,
+  registerOutsideClickSafeTarget,
 }: OtherFilterContentProps): React.ReactElement {
   return (
     <Box className="space-y-4">
@@ -48,7 +59,10 @@ export default function OtherFilterContent({
               options={HOUSING_TYPE_OPTIONS}
               value={parseHousingTypes(formData.preferred_housing_type)}
               onChange={(arr) =>
-                updateFormData("preferred_housing_type", serializeHousingTypes(arr))
+                updateFormData(
+                  "preferred_housing_type",
+                  serializeHousingTypes(arr),
+                )
               }
               isEditMode={true}
             />
@@ -67,6 +81,9 @@ export default function OtherFilterContent({
             options={ARCHITECTURAL_STYLE_OPTIONS}
             placeholder="Select..."
             size="sm"
+            noBorder={noBorder}
+            menuInPortal={menuInPortal}
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
           />
         </Box>
         <Box>
@@ -77,6 +94,9 @@ export default function OtherFilterContent({
             options={RENOVATION_OPTIONS}
             placeholder="Select..."
             size="sm"
+            noBorder={noBorder}
+            menuInPortal={menuInPortal}
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
           />
         </Box>
         <Box>
@@ -87,6 +107,9 @@ export default function OtherFilterContent({
             options={PROPERTY_USE_OPTIONS}
             placeholder="Select..."
             size="sm"
+            noBorder={noBorder}
+            menuInPortal={menuInPortal}
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
           />
         </Box>
         <Box className="sm:col-span-2">
@@ -97,6 +120,9 @@ export default function OtherFilterContent({
             options={WALKABILITY_OPTIONS}
             placeholder="Select..."
             size="sm"
+            noBorder={noBorder}
+            menuInPortal={menuInPortal}
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
           />
         </Box>
       </Box>

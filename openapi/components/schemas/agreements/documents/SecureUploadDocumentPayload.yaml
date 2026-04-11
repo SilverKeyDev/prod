@@ -1,0 +1,25 @@
+type: object
+description: >
+  Nested payload returned by POST /api/v1/upload/document (field `document` on `UploadResponse`).
+  Immediate upload metadata; not the full `UploadedDocumentRecord` (no `user_id` / pipeline status in body).
+required:
+  - id
+  - filename
+properties:
+  id:
+    type: string
+  filename:
+    type: string
+  size:
+    type: integer
+    nullable: true
+  type:
+    type: string
+    description: Validated MIME type of the uploaded file
+    nullable: true
+  hash:
+    type: string
+    nullable: true
+  uploaded_at:
+    type: string
+    nullable: true

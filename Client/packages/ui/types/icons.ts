@@ -81,6 +81,7 @@ export type IconName =
   | "shield"
   | "sparkles"
   | "square"
+  | "star"
   | "target"
   | "trash"
   | "trash-2"

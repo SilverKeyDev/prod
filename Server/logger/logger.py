@@ -6,7 +6,7 @@ Supports runtime config reloading and PII scrubbing
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +36,7 @@ class LoggerConfig:
         self.errors: bool = config_dict.get("errors", True)
         self.security: bool = config_dict.get("security", True)
         self.polygonSearch: bool = config_dict.get("polygonSearch", True)
+        self.docusign: bool = config_dict.get("docusign", True)
         self.logLevel: LogLevel = config_dict.get("logLevel", "DEBUG")
 
     def to_dict(self) -> dict[str, Any]:
@@ -50,6 +51,7 @@ class LoggerConfig:
             "errors": self.errors,
             "security": self.security,
             "polygonSearch": self.polygonSearch,
+            "docusign": self.docusign,
             "logLevel": self.logLevel,
         }
 
@@ -124,6 +126,7 @@ class Logger:
             "errors": True,
             "security": True,
             "polygonSearch": True,
+            "docusign": True,
             "logLevel": "DEBUG",
         }
 
@@ -216,12 +219,12 @@ class Logger:
             Formatted log message
         """
         if self.is_processing:
-            timestamp = datetime.utcnow().isoformat()
+            timestamp = datetime.now(timezone.utc).isoformat()
             return f"[{timestamp}] [{level}] [{category.value}] {message} [RECURSION_PREVENTED]"
 
         try:
             self.is_processing = True
-            timestamp = datetime.utcnow().isoformat()
+            timestamp = datetime.now(timezone.utc).isoformat()
             prefix = f"[{timestamp}] [{level}] [{category.value}]"
 
             # Mask sensitive data in message
@@ -234,7 +237,7 @@ class Logger:
 
             return f"{prefix} {safe_message}"
         except Exception:
-            timestamp = datetime.utcnow().isoformat()
+            timestamp = datetime.now(timezone.utc).isoformat()
             return f"[{timestamp}] [{level}] [{category.value}] {message} [FORMAT_ERROR]"
         finally:
             self.is_processing = False

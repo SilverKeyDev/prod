@@ -1,0 +1,10 @@
+type: object
+properties:
+  useDefault:
+    type: boolean
+    nullable: true
+  overrides:
+    type: array
+    items:
+      $ref: './GoogleReminderOverride.yaml'
+    nullable: true

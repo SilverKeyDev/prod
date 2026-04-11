@@ -1,0 +1,79 @@
+type: object
+description: |
+  Single row in the unified document library: either a user upload or a DocuSign-backed
+  agreement. Use `library_kind` to branch UI; `status` reflects upload pipeline or
+  envelope state depending on kind.
+required:
+  - document_record_kind
+  - library_item_id
+  - library_kind
+  - id
+  - filename
+  - file_path
+  - status
+  - user_id
+properties:
+  document_record_kind:
+    type: string
+    const: library
+    description: Discriminator for OpenAPI tooling; always `library` for unified library list rows.
+  library_item_id:
+    type: string
+  library_kind:
+    type: string
+    enum: [upload, agreement]
+    description: |
+      Source of the row:
+      - `upload`: User- or agent-uploaded file in storage
+      - `agreement`: DocuSign envelope or generated agreement tracked in agreements service
+  id:
+    type: string
+  filename:
+    type: string
+  file_path:
+    type: string
+  status:
+    type: string
+    description: Normalized status string (upload lifecycle or agreement/envelope phase; compare to `library_kind`).
+  created_at:
+    type: string
+    nullable: true
+  updated_at:
+    type: string
+    nullable: true
+  user_id:
+    type: string
+  document_type:
+    type: string
+    nullable: true
+  address:
+    type: string
+    nullable: true
+  agreement_type:
+    type: string
+    nullable: true
+  event_type:
+    type: string
+    enum: [listed, price_change, sold, withdrawn]
+    nullable: true
+    description: |
+      MLS-style listing event when the library item ties to a feed update:
+      - `listed`: New listing associated with documents
+      - `price_change`: Price update triggering revised paperwork
+      - `sold`: Closed transaction context
+      - `withdrawn`: Listing canceled or taken off market
+example:
+  document_record_kind: library
+  library_item_id: "lib-1a2b3c4d-5e6f-7890-abcd-ef1234567890"
+  library_kind: "agreement"
+  id: "docusign-envelope-abc123def456"
+  filename: "Disclosure_Package.pdf"
+  file_path: "library/a1b2c3d4/disclosure-package.pdf"
+  status: "completed"
+  created_at: "2026-02-10T09:00:00.000Z"
+  updated_at: "2026-02-11T14:20:00.000Z"
+  user_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  document_type: "disclosure"
+  address: "742 Evergreen Terrace, Springfield, IL 62704"
+  agreement_type: "BUYER_REPRESENTATION"
+  event_type: null

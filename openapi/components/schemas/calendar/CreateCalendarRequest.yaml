@@ -1,0 +1,15 @@
+type: object
+required:
+  - summary
+properties:
+  summary:
+    type: string
+    description: Calendar name/title
+  description:
+    type: string
+    nullable: true
+    description: Calendar description
+  timeZone:
+    type: string
+    nullable: true
+    description: Calendar timezone (defaults to user's timezone)

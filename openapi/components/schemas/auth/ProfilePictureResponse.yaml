@@ -1,0 +1,8 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      profile_picture_url:
+        type: string
+        format: uri
+        description: Public URL of the uploaded profile picture

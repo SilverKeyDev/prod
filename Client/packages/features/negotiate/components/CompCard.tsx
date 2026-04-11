@@ -1,8 +1,12 @@
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { formatAgentName, formatLotSize, formatPrice } from "packages/features/search";
 import { Box, Image } from "packages/ui/components/primitives";
+import {
+  formatAgentName,
+  formatLotSizeInAcres,
+  formatPrice,
+} from "packages/utils/format/property/addressFormatting";
 
 import { BodyText, PropertyStat, Title } from "@/components/ui";
 
@@ -47,13 +51,14 @@ type CompCardProps = {
 function getCompLotSizeDisplay(comp: CompData): string | null {
   const rawLotSize = comp.lotAreaValue ?? comp.lotSize;
   if (!rawLotSize) return null;
-  const lotSizeValue = typeof rawLotSize === "string" ? parseFloat(rawLotSize) : rawLotSize;
+  const lotSizeValue =
+    typeof rawLotSize === "string" ? parseFloat(rawLotSize) : rawLotSize;
   if (isNaN(lotSizeValue) || lotSizeValue <= 0) return null;
   const unit = comp.lotAreaUnits?.toLowerCase();
   if (unit?.includes("acre")) {
-    return formatLotSize(lotSizeValue * 43560);
+    return formatLotSizeInAcres(`${lotSizeValue} acres`);
   }
-  return formatLotSize(lotSizeValue);
+  return formatLotSizeInAcres(lotSizeValue);
 }
 function CompCardImage({
   imageUrl,
@@ -68,7 +73,11 @@ function CompCardImage({
 }) {
   return (
     <Box className="relative h-28 overflow-hidden sm:h-32 md:h-36">
-      <Image src={imageUrl} alt={address} className="h-full w-full object-cover" />
+      <Image
+        src={imageUrl}
+        alt={address}
+        className="h-full w-full object-cover"
+      />
       <Box className="absolute left-2 right-2 top-2 flex items-center justify-between">
         <Box className="text-primary border-border bg-background-base rounded-full border px-2 py-1 text-xs font-medium backdrop-blur-sm sm:text-sm">
           {formatPrice(price, currency)}
@@ -77,22 +86,47 @@ function CompCardImage({
     </Box>
   );
 }
-function CompCardAddress({ comp, t }: { comp: CompData; t: (key: string) => string }) {
+function CompCardAddress({
+  comp,
+  t,
+}: {
+  comp: CompData;
+  t: (key: string) => string;
+}) {
   return (
     <Box className="mb-3 text-left">
       <Box className="mb-1 flex items-center gap-1">
-        <Icon name="map-pin" className="text-text-disabled h-3 w-3 flex-shrink-0" />
-        <Title as="h3" size="sm" className="text-text-primary truncate font-medium">
+        <Icon
+          name="map-pin"
+          className="text-text-disabled h-3 w-3 flex-shrink-0"
+        />
+        <Title
+          as="h3"
+          size="sm"
+          className="text-text-primary truncate font-medium"
+        >
           {comp.address.streetAddress}
         </Title>
       </Box>
-      <BodyText as="p" size="xs" className="text-text-secondary ml-4 truncate sm:text-sm">
-        {`${comp.address.city}${t("house.address_separator")}${comp.address.state}${t("house.space")}${comp.address.zipcode}`}
+      <BodyText
+        as="p"
+        size="xs"
+        className="text-text-secondary ml-4 truncate sm:text-sm"
+      >
+        {`${comp.address.city}${t("house.address_separator")}${
+          comp.address.state
+        }${t("house.space")}${comp.address.zipcode}`}
       </BodyText>
     </Box>
   );
 }
-function CompCardPropertyDetails({ comp, t }: { comp: CompData; t: (key: string) => string }) {
+function CompCardPropertyDetails({
+  comp,
+  t,
+}: {
+  comp: CompData;
+  t: (key: string) => string;
+}) {
   return (
     <Box className="mb-3 text-left">
       <Box className="flex flex-wrap gap-x-4 gap-y-2">
@@ -117,7 +151,10 @@ function CompCardPropertyDetails({ comp, t }: { comp: CompData; t: (key: string)
             {t("house.sqft")}
           </PropertyStat>
         ) : (
-          <PropertyStat icon={<Icon name="square" className="text-transparent" />} size="sm">
+          <PropertyStat
+            icon={<Icon name="square" className="text-transparent" />}
+            size="sm"
+          >
             {`${" ".repeat(8)}${t("house.sqft")}`}
           </PropertyStat>
         )}
@@ -139,18 +176,30 @@ function CompCardLotSize({
           {`${t("house.lot")}: ${lotSizeDisplay}`}
         </PropertyStat>
       ) : (
-        <PropertyStat icon={<Icon name="map-pin" className="text-transparent" />} size="sm">
+        <PropertyStat
+          icon={<Icon name="map-pin" className="text-transparent" />}
+          size="sm"
+        >
           {`${t("house.lot")}: ${" ".repeat(6)}`}
         </PropertyStat>
       )}
     </Box>
   );
 }
-function CompCardAgent({ comp, t }: { comp: CompData; t: (key: string) => string }) {
+function CompCardAgent({
+  comp,
+  t,
+}: {
+  comp: CompData;
+  t: (key: string) => string;
+}) {
   return (
     <Box className="mt-auto space-y-2 text-left">
       <Box className="flex items-center gap-1">
-        <Icon name="user" className="text-text-disabled h-2.5 w-2.5 flex-shrink-0 sm:h-3 sm:w-3" />
+        <Icon
+          name="user"
+          className="text-text-disabled h-2.5 w-2.5 flex-shrink-0 sm:h-3 sm:w-3"
+        />
         <BodyText as="span" className="text-text-secondary text-xs sm:text-sm">
           {`${t("house.agent")}: ${
             comp.attributionInfo?.agentName

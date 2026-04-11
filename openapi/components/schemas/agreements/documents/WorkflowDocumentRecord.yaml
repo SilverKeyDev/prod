@@ -1,0 +1,87 @@
+type: object
+description: >
+  Buyer/agent workflow document on the dashboard (review, signing, expiry).
+  Distinct from file pipeline rows (`UploadedDocumentRecord`) and unified Saved list rows
+  (`DocumentLibraryListItem`).
+required:
+  - document_record_kind
+  - id
+  - name
+  - file_path
+  - file_size
+  - file_type
+  - category
+  - uploaded_by
+  - uploaded_at
+  - status
+properties:
+  document_record_kind:
+    type: string
+    const: workflow
+    description: Discriminator for OpenAPI tooling; always `workflow` for this shape.
+  id:
+    type: string
+  name:
+    type: string
+  file_path:
+    type: string
+    description: Storage key or path for the PDF/binary in the workflow bucket.
+  file_size:
+    type: integer
+    description: Byte length of the stored object.
+  file_type:
+    type: string
+    description: MIME type as stored (e.g. application/pdf).
+  category:
+    type: string
+    description: Workflow grouping (e.g. offer, disclosure) for dashboard filters.
+  property_id:
+    type: string
+    nullable: true
+    description: Linked listing identifier when the document belongs to a specific property.
+  offer_id:
+    type: string
+    nullable: true
+    description: Linked offer workflow when this file is part of an active offer package.
+  uploaded_by:
+    type: string
+  uploaded_at:
+    type: string
+  is_signed:
+    type: boolean
+    nullable: true
+  expiry_date:
+    type: string
+    nullable: true
+  status:
+    type: string
+    enum: [pending, approved, rejected, expired]
+    description: |
+      Review and signing workflow state for this document:
+      - `pending`: Awaiting agent or compliance review
+      - `approved`: Cleared for signing or distribution
+      - `rejected`: Send back for corrections or re-upload
+      - `expired`: Past allowed signing or review window
+  address:
+    type: string
+    nullable: true
+  document_type:
+    type: string
+    nullable: true
+example:
+  document_record_kind: workflow
+  id: "doc-wf-7f8e9d0c-1b2a-3948-8576-543210fedcba"
+  name: "Purchase Agreement - 742 Evergreen Terrace"
+  file_path: "workflows/a1b2c3d4/agreements/purchase-agreement.pdf"
+  file_size: 524288
+  file_type: "application/pdf"
+  category: "offer"
+  property_id: "prop-12345678"
+  offer_id: "offer-9a8b7c6d-5e4f-3210-abcd-ef1234567890"
+  uploaded_by: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  uploaded_at: "2026-03-28T15:30:00.000Z"
+  is_signed: false
+  expiry_date: "2026-04-15"
+  status: "pending"
+  address: "742 Evergreen Terrace, Springfield, IL 62704"
+  document_type: "purchase_agreement"

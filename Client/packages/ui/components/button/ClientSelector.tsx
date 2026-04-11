@@ -15,11 +15,14 @@ type ClientSelectorProps = {
   selectedClientId: string | null;
   onClientChange: (clientId: string | null) => void;
   className?: string;
+  /** When true, omits the "Me" row so agents only pick among clients (e.g. client hub). */
+  hideMeOption?: boolean;
 };
 export default function ClientSelector({
   selectedClientId,
   onClientChange,
   className = "",
+  hideMeOption = false,
 }: ClientSelectorProps) {
   const { clients, isLoading } = useAgentClients();
   const [isOpen, setIsOpen] = useState(false);
@@ -40,19 +43,23 @@ export default function ClientSelector({
         variant="outline"
         contentAlign="start"
         onClick={() => setIsOpen(!isOpen)}
-        className={`focus:ring-accent-muted focus:border-primary border-border bg-background-surface text-text-primary hover:bg-accent-muted flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 ${HEADER_ROW_HEIGHT}`}
+        className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary hover:bg-accent-muted flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-neutral-400 ${HEADER_ROW_HEIGHT}`}
         icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
       >
         <>
           <BodyText as="span">
             {selectedClientId === null
-              ? t("client_selector.me")
+              ? hideMeOption
+                ? t("client_selector.select_client")
+                : t("client_selector.me")
               : clients.find((c) => c.id === selectedClientId)?.name ||
                 t("client_selector.select_client")}
           </BodyText>
           <Icon
             name="chevron-down"
-            className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+            className={`h-4 w-4 transition-transform ${
+              isOpen ? "rotate-180" : ""
+            }`}
           />
         </>
       </Button>
@@ -76,23 +83,30 @@ export default function ClientSelector({
           {/* Dropdown */}
           <Box className="border-border bg-background-surface absolute left-0 top-full z-20 mt-2 w-60 min-w-56 rounded-md border py-1 shadow-lg">
             <Box className="flex flex-col gap-1 px-1">
-              {/* "Me" option */}
-              <Button
-                type="button"
-                variant="ghost"
-                contentAlign="start"
-                rounded="md"
-                onClick={() => handleSelect(null)}
-                className={`w-full px-3 py-3 text-left text-sm hover:bg-neutral-100 ${selectedClientId === null ? "bg-primary-muted text-primary font-medium" : "text-text-primary"}`}
-                icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
-              >
-                <BodyText as="span" className="text-left">
-                  {t("client_selector.me")}
-                </BodyText>
-              </Button>
-
-              {/* Divider */}
-              {clients.length > 0 && <Box className="border-border mx-1 my-1 border-t" />}
+              {!hideMeOption ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    contentAlign="start"
+                    rounded="md"
+                    onClick={() => handleSelect(null)}
+                    className={`w-full px-3 py-3 text-left text-sm hover:bg-neutral-100 ${
+                      selectedClientId === null
+                        ? "bg-primary-muted text-primary font-medium"
+                        : "text-text-primary"
+                    }`}
+                    icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
+                  >
+                    <BodyText as="span" className="text-left">
+                      {t("client_selector.me")}
+                    </BodyText>
+                  </Button>
+                  {clients.length > 0 ? (
+                    <Box className="border-border mx-1 my-1 border-t" />
+                  ) : null}
+                </>
+              ) : null}
 
               {/* Client options */}
               {isLoading ? (

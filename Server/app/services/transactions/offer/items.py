@@ -38,6 +38,7 @@ OFFER_ITEMS = [
         "order": 4,
         "label": "Determine your earnest money deposit",
         "explanation": 'Decide on a "good faith" deposit, typically 1% to 3% of the purchase price, to show the seller you are serious.',
+        "suggested_form_ids": ["property_compensation_amendment"],
         "bullets": [
             "Ensure the funds are placed securely into an escrow account.",
             "Understand the conditions under which you can get this deposit back.",

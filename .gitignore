@@ -127,3 +127,6 @@ htmlcov/
 
 .cursorignore
 .cursorindexingignore
+
+# OpenAPI bundled output (generated from openapi/ directory)
+/openapi.yaml

@@ -5,6 +5,8 @@ from collections.abc import Callable
 
 from botocore.exceptions import ClientError
 
+from ..utils.code_delivery import normalize_cognito_code_delivery
+
 logger = logging.getLogger(__name__)
 
 
@@ -28,7 +30,7 @@ def sign_up(
         return {
             "success": True,
             "user_sub": response["UserSub"],
-            "code_delivery": response["CodeDeliveryDetails"],
+            "code_delivery": normalize_cognito_code_delivery(response["CodeDeliveryDetails"]),
         }
     except ClientError as e:
         logger.error("Error signing up user: %s", e)

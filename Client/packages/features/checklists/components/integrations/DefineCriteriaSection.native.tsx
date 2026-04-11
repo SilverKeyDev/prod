@@ -16,23 +16,47 @@ type DefineCriteriaSectionProps = {
   onComplete?: () => void;
 };
 
-export default function DefineCriteriaSection({ onComplete }: DefineCriteriaSectionProps) {
+export default function DefineCriteriaSection({
+  onComplete,
+}: DefineCriteriaSectionProps) {
   const { t } = useLocalization();
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
 
   const [formData, setFormData] = useState<Partial<OnboardingData>>({});
 
-  const { saveStatus, updateFormData: updateFormDataWithAutoSave } = useAutoSavePreferences({
+  const {
+    saveStatus,
+    updateFormData: updateFormDataWithAutoSave,
+    autoSave,
+  } = useAutoSavePreferences({
     refreshUserPreferences,
     debounceMs: 3000,
     showErrorToastOnError: true,
     successToastMessage: t("common.saved"),
   });
 
+  const patchBuyerPreferenceExtensions = useCallback(
+    (
+      fn: (
+        prev: OnboardingData["buyerPreferenceExtensions"],
+      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>,
+    ) => {
+      setFormData((prev) => {
+        const next = {
+          ...prev,
+          buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
+        } as OnboardingData;
+        autoSave(next);
+        return next;
+      });
+    },
+    [autoSave],
+  );
+
   useEffect(() => {
     if (userPreferences) {
       const initialData = userPreferencesToOnboardingData(
-        userPreferences as Record<string, unknown>
+        userPreferences as Record<string, unknown>,
       );
       setFormData(initialData);
     }
@@ -42,7 +66,7 @@ export default function DefineCriteriaSection({ onComplete }: DefineCriteriaSect
     (field: string | number | symbol, value: unknown) => {
       updateFormDataWithAutoSave(formData, setFormData, field, value);
     },
-    [formData, updateFormDataWithAutoSave]
+    [formData, updateFormDataWithAutoSave],
   );
 
   const handleDone = useCallback(() => {
@@ -59,7 +83,11 @@ export default function DefineCriteriaSection({ onComplete }: DefineCriteriaSect
           className="flex flex-row items-center gap-2"
         />
 
-        <HousingStep formData={formData as OnboardingData} updateFormData={updateFormData} />
+        <HousingStep
+          formData={formData as OnboardingData}
+          updateFormData={updateFormData}
+          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+        />
 
         <Button variant="primary" size="md" onPress={handleDone}>
           Done

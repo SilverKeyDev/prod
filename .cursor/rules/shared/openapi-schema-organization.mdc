@@ -1,0 +1,145 @@
+---
+description: OpenAPI schema file organization and structure conventions
+alwaysApply: true
+---
+
+# OpenAPI Schema Organization
+
+## File Structure
+
+```
+openapi/
+├── openapi.yaml                    # Main spec with $ref to components
+├── _onepath.yaml                   # Variant with paths included
+├── _nopaths.yaml                   # Variant without paths
+└── components/
+    └── schemas/
+        ├── agent/                  # Agent workspace schemas
+        │   ├── core/              # Core agent types
+        │   └── conversations/     # Conversation types
+        ├── auth/                   # Authentication schemas
+        ├── calendar/              # Calendar and events
+        ├── checklists/            # Task checklists
+        ├── feed/                  # Social feed
+        ├── offers/                # Offer management
+        ├── preferences/           # User preferences
+        ├── search/                # Property search
+        │   ├── filters/          # Search filters
+        │   ├── properties/       # Property details
+        │   └── results/          # Search results
+        ├── shared/               # Shared/common schemas
+        │   ├── core/            # Core shared types
+        │   └── chatbot/         # Chatbot types
+        └── user/                # User-related schemas
+            ├── favorites/       # Favorite homes
+            ├── not-interested/  # Not interested homes
+            ├── profile/         # User profile
+            └── todos/           # User todos
+```
+
+## Naming Conventions
+
+### File Names
+
+- **PascalCase**: `UserProfile.yaml`, `SearchByPolygonRequest.yaml`
+- **Match schema name**: File name = schema name
+- **Descriptive suffixes**: Request/Response for API DTOs
+
+### Schema Organization
+
+Group schemas by domain, then by subdomain:
+
+```yaml
+# ✅ CORRECT: Organized by domain
+components/schemas/user/profile/UserProfile.yaml
+components/schemas/user/favorites/FavoriteHomesResponse.yaml
+components/schemas/search/filters/SearchByPolygonRequest.yaml
+
+# ❌ WRONG: Flat structure
+components/schemas/UserProfile.yaml
+components/schemas/FavoriteHomesResponse.yaml
+components/schemas/SearchByPolygonRequest.yaml
+```
+
+## Adding New Schemas
+
+### 1. Choose the correct domain folder
+
+- **Agent-related**: `agent/`
+- **Auth/users**: `auth/` or `user/`
+- **Calendar**: `calendar/`
+- **Search**: `search/`
+- **Shared/reusable**: `shared/`
+
+### 2. Create subdomain folder if needed
+
+```bash
+# Example: Adding notification types
+mkdir -p openapi/components/schemas/user/notifications
+```
+
+### 3. Create schema file
+
+```yaml
+# openapi/components/schemas/user/notifications/NotificationPreferences.yaml
+type: object
+required:
+  - emailEnabled
+  - smsEnabled
+properties:
+  emailEnabled:
+    type: boolean
+    description: Enable email notifications
+  smsEnabled:
+    type: boolean
+    description: Enable SMS notifications
+```
+
+### 4. Register in main openapi.yaml
+
+```yaml
+# openapi.yaml
+components:
+  schemas:
+    NotificationPreferences:
+      $ref: './components/schemas/user/notifications/NotificationPreferences.yaml'
+```
+
+## Schema Reference Pattern
+
+**Main spec uses $ref, individual files contain definitions:**
+
+```yaml
+# ✅ CORRECT: openapi.yaml uses $ref
+components:
+  schemas:
+    UserProfile:
+      $ref: './components/schemas/user/profile/UserProfile.yaml'
+
+# ✅ CORRECT: Individual file contains definition
+# openapi/components/schemas/user/profile/UserProfile.yaml
+type: object
+properties:
+  id:
+    type: string
+  # ... more properties
+```
+
+## Domain Guidelines
+
+- **agent/**: Agent workspace, clients, tasks
+- **auth/**: Login, signup, tokens
+- **calendar/**: Google Calendar integration, events
+- **search/**: Property search, filters, results
+- **user/**: User profile, favorites, todos
+- **shared/**: Cross-cutting types (auth, pagination, errors)
+
+## Quick Reference
+
+| Task | Location |
+|------|----------|
+| Add user preference | `openapi/components/schemas/preferences/` |
+| Add search filter | `openapi/components/schemas/search/filters/` |
+| Add agent type | `openapi/components/schemas/agent/core/` |
+| Add shared type | `openapi/components/schemas/shared/core/` |
+| Register schema | `openapi/openapi.yaml` components.schemas |

@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import BigInteger, DateTime, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, JSONB
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -19,41 +20,44 @@ class ScoringResultsTracker(db.Model):
         Index("idx_hse_experiment_time", "experiment_key", "experiment_variant", "created_at"),
     )
 
-    id = db.Column(
+    id: Mapped[int] = mapped_column(
         BigInteger().with_variant(db.Integer, "sqlite"), primary_key=True, autoincrement=True
     )
-    created_at = db.Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        nullable=False,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         server_default=db.func.now(),
     )
 
-    request_id = db.Column(String(36), nullable=False)
-    user_id = db.Column(String(36), nullable=False)
-    home_id = db.Column(String(36), nullable=False)
+    request_id: Mapped[str] = mapped_column(String(36))
+    user_id: Mapped[str] = mapped_column(String(36))
+    home_id: Mapped[str] = mapped_column(String(36))
 
-    embedding_score = db.Column(DOUBLE_PRECISION().with_variant(db.Float, "sqlite"), nullable=True)
-    llm_score = db.Column(DOUBLE_PRECISION().with_variant(db.Float, "sqlite"), nullable=True)
-    final_score = db.Column(DOUBLE_PRECISION().with_variant(db.Float, "sqlite"), nullable=False)
+    embedding_score: Mapped[float | None] = mapped_column(
+        DOUBLE_PRECISION().with_variant(db.Float, "sqlite")
+    )
+    llm_score: Mapped[float | None] = mapped_column(
+        DOUBLE_PRECISION().with_variant(db.Float, "sqlite")
+    )
+    final_score: Mapped[float] = mapped_column(DOUBLE_PRECISION().with_variant(db.Float, "sqlite"))
 
-    embedding_model = db.Column(Text, nullable=True)
-    embedding_provider = db.Column(Text, nullable=True)
-    llm_model = db.Column(Text, nullable=True)
-    llm_provider = db.Column(Text, nullable=True)
-    prompt_version = db.Column(Text, nullable=True)
+    embedding_model: Mapped[str | None] = mapped_column(Text)
+    embedding_provider: Mapped[str | None] = mapped_column(Text)
+    llm_model: Mapped[str | None] = mapped_column(Text)
+    llm_provider: Mapped[str | None] = mapped_column(Text)
+    prompt_version: Mapped[str | None] = mapped_column(Text)
 
-    weights = db.Column(
-        JSONB().with_variant(db.JSON, "sqlite"), nullable=True
+    weights: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB().with_variant(db.JSON, "sqlite")
     )  # {"embedding":0.6,"llm":0.4}
-    rank_position = db.Column(Integer, nullable=True)
-    candidate_set_size = db.Column(Integer, nullable=True)
-    latency_ms = db.Column(Integer, nullable=True)
+    rank_position: Mapped[int | None] = mapped_column(Integer)
+    candidate_set_size: Mapped[int | None] = mapped_column(Integer)
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
 
     # Optional but very useful for later evaluation
-    experiment_key = db.Column(Text, nullable=True)
-    experiment_variant = db.Column(Text, nullable=True)
-    session_id = db.Column(Text, nullable=True)
+    experiment_key: Mapped[str | None] = mapped_column(Text)
+    experiment_variant: Mapped[str | None] = mapped_column(Text)
+    session_id: Mapped[str | None] = mapped_column(Text)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -1,0 +1,2 @@
+type: string
+enum: [pending, sent, delivered, signed, completed, declined]

@@ -46,16 +46,16 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
       size = "md",
       className = "",
     },
-    ref
+    ref,
   ) => {
     const baseStyles =
       "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input appearance-none bg-background-surface";
 
     const borderStyles =
-      "border-border hover:border-border focus:ring-accent-muted focus:border-primary";
+      "border-border hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border";
 
     const errorStyles = error
-      ? "border-destructive focus:border-destructive focus:ring-destructive"
+      ? "border-neutral-600 focus:border-neutral-700 focus:ring-neutral-400"
       : "";
 
     const selectClasses = [
@@ -104,7 +104,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
       </Box>
     );
-  }
+  },
 );
 
 Select.displayName = "Select";

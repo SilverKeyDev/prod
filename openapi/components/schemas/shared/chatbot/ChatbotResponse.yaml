@@ -1,0 +1,17 @@
+type: object
+required:
+  - response
+  - message_id
+  - message_summary
+properties:
+  response:
+    type: string
+  function_call:
+    type: object
+    nullable: true
+    description: "LLM function call structure (currently always null, reserved for future OpenAI function calling support)"
+    additionalProperties: true
+  message_id:
+    type: string
+  message_summary:
+    type: string

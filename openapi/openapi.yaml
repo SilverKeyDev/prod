@@ -1,0 +1,5162 @@
+openapi: 3.1.0
+
+info:
+  title: SilverKey API
+  version: 1.0.0
+  description: Real estate AI platform API - comprehensive type definitions for
+    frontend-backend contract
+
+servers:
+  - url: http://localhost:5000
+    description: Local development
+  - url: https://staging.silverkey.com
+    description: Staging environment
+  - url: https://api.silverkey.com
+    description: Production
+
+tags:
+  - name: Auth
+    description: >
+      Cognito-backed login/signup, HttpOnly cookies, and token refresh. There is
+      no GET /auth/session; use POST /auth/refresh-token or GET /user/profile as
+      a session probe.
+  - name: User
+    description: Current-user profile and favorite homes (routes under /api/v1/user).
+  - name: Preferences
+    description: Create/update persisted preferences (profile-adjacent fields; no
+      PUT /user/profile on this API).
+  - name: Search
+    description: Authenticated property search (polygon pipeline).
+  - name: Agent
+    description: Agent workspace endpoints (e.g. assigned clients).
+  - name: Calendar
+    description: Google Calendar OAuth, events, and availability (routes under
+      /api/v1/google).
+  - name: Feed
+    description: Listing feed, likes, and comments (routes under /api/v1/feed).
+  - name: Documents
+    description: Reports, document library, and secure uploads (routes under
+      /api/v1/report, /api/v1/upload).
+  - name: DocuSign
+    description: DocuSign agreements, templates, and webhooks (routes under
+      /api/v1/docusign and /api/v1/webhooks/docusign).
+  - name: Admin
+    description: Admin-only configuration and user management (routes under /api/v1/admin).
+  - name: Client
+    description: Client error reporting and diagnostics (routes under /api/v1/client).
+  - name: Maps
+    description: Google Maps script URL for the frontend (routes under /api/maps).
+  - name: Offer
+    description: Offer and negotiation helpers (routes under /api/v1/offer).
+  - name: Research
+    description: Property research and comparison tasks (routes under /api/v1/research).
+  - name: Tasks
+    description: Unified transaction task checklists (routes under /api/v1/tasks).
+  - name: HomeMatching
+    description: Background home-matching tasks (routes under /api/home-matching;
+      uses Flask-Login).
+  - name: Transactions
+    description: Saved transaction address and checklist-linked documents
+      (/api/v1/transactions).
+  - name: Health
+    description: Process liveness and infrastructure checks (/healthz).
+  - name: Chatbot
+    description: Property chatbot for address-based conversations (routes under /api/v1/chat).
+
+components:
+  schemas:
+    ActionPlanResponse:
+      $ref: "./components/schemas/preferences/ActionPlanResponse.yaml"
+    AddAgentResponse:
+      $ref: "./components/schemas/preferences/AddAgentResponse.yaml"
+    AddCalendarACLRequest:
+      $ref: "./components/schemas/calendar/AddCalendarACLRequest.yaml"
+    AddCalendarACLResponse:
+      $ref: "./components/schemas/calendar/AddCalendarACLResponse.yaml"
+    AddCommentRequest:
+      $ref: "./components/schemas/feed/AddCommentRequest.yaml"
+    AddCommentResponse:
+      $ref: "./components/schemas/feed/AddCommentResponse.yaml"
+    AddFavoriteRequest:
+      $ref: "./components/schemas/user/favorites/AddFavoriteRequest.yaml"
+    AreaBoundaryResponse:
+      $ref: "./components/schemas/search/areas/AreaBoundaryResponse.yaml"
+    AreaSearchResult:
+      $ref: "./components/schemas/search/areas/AreaSearchResult.yaml"
+    AreaSuggestionsResponse:
+      $ref: "./components/schemas/search/areas/AreaSuggestionsResponse.yaml"
+    AddFeedLikeRequest:
+      $ref: "./components/schemas/feed/AddFeedLikeRequest.yaml"
+    AddNotInterestedRequest:
+      $ref: "./components/schemas/user/not-interested/AddNotInterestedRequest.yaml"
+    AgentChatHistoryResponse:
+      $ref: "./components/schemas/agent/core/AgentChatHistoryResponse.yaml"
+    AgentChatMessage:
+      $ref: "./components/schemas/agent/core/AgentChatMessage.yaml"
+    AgentClient:
+      $ref: "./components/schemas/agent/core/AgentClient.yaml"
+    AgentClientsResponse:
+      $ref: "./components/schemas/agent/core/AgentClientsResponse.yaml"
+    AgentConnectionRequest:
+      $ref: "./components/schemas/agent/core/AgentConnectionRequest.yaml"
+    AgentConversation:
+      $ref: "./components/schemas/agent/core/AgentConversation.yaml"
+    AgentConversationsResponse:
+      $ref: "./components/schemas/agent/core/AgentConversationsResponse.yaml"
+    AgentSearchResult:
+      $ref: "./components/schemas/agent/core/AgentSearchResult.yaml"
+    Agreement:
+      $ref: "./components/schemas/agreements/agreements/Agreement.yaml"
+    AgreementEvent:
+      $ref: "./components/schemas/agreements/agreements/AgreementEvent.yaml"
+    AgreementParticipant:
+      $ref: "./components/schemas/agreements/agreements/AgreementParticipant.yaml"
+    AgreementRevision:
+      $ref: "./components/schemas/agreements/agreements/AgreementRevision.yaml"
+    AgreementStatus:
+      $ref: "./components/schemas/agreements/agreements/AgreementStatus.yaml"
+    AgreementType:
+      $ref: "./components/schemas/agreements/agreements/AgreementType.yaml"
+    AuthResponse:
+      $ref: "./components/schemas/shared/core/AuthResponse.yaml"
+    AuthSessionUser:
+      $ref: "./components/schemas/shared/core/AuthSessionUser.yaml"
+    BulkUpdateFavoritesRequest:
+      $ref: "./components/schemas/auth/BulkUpdateFavoritesRequest.yaml"
+    ChatbotHistoryMessage:
+      $ref: "./components/schemas/shared/chatbot/ChatbotHistoryMessage.yaml"
+    ChatbotHistoryResponse:
+      $ref: "./components/schemas/shared/chatbot/ChatbotHistoryResponse.yaml"
+    ChatbotResponse:
+      $ref: "./components/schemas/shared/chatbot/ChatbotResponse.yaml"
+    ChatbotSendRequest:
+      $ref: "./components/schemas/shared/chatbot/ChatbotSendRequest.yaml"
+    ChecklistResponse:
+      $ref: "./components/schemas/checklists/ChecklistResponse.yaml"
+    ChecklistType:
+      $ref: "./components/schemas/checklists/ChecklistType.yaml"
+    ClientAvailabilityRequest:
+      $ref: "./components/schemas/calendar/ClientAvailabilityRequest.yaml"
+    ClientAvailabilityResponse:
+      $ref: "./components/schemas/calendar/ClientAvailabilityResponse.yaml"
+    ClientErrorReport:
+      $ref: "./components/schemas/admin/ClientErrorReport.yaml"
+    ClientInfo:
+      $ref: "./components/schemas/agent/clients/ClientInfo.yaml"
+    ClientSearchResult:
+      $ref: "./components/schemas/agent/clients/ClientSearchResult.yaml"
+    ClientsPreferencesResponse:
+      $ref: "./components/schemas/preferences/ClientsPreferencesResponse.yaml"
+    ClientsResponse:
+      $ref: "./components/schemas/agent/clients/ClientsResponse.yaml"
+    CommuteData:
+      $ref: "./components/schemas/search/properties/CommuteData.yaml"
+    CompareReportsRequest:
+      $ref: "./components/schemas/user/profile/CompareReportsRequest.yaml"
+    CompareReportsResponse:
+      $ref: "./components/schemas/user/profile/CompareReportsResponse.yaml"
+    CognitoCodeDeliveryDetails:
+      $ref: "./components/schemas/shared/core/CognitoCodeDeliveryDetails.yaml"
+    CognitoEmailSmsMedium:
+      $ref: "./components/schemas/shared/core/CognitoEmailSmsMedium.yaml"
+    ConnectionRequestsResponse:
+      $ref: "./components/schemas/agent/connections/ConnectionRequestsResponse.yaml"
+    ConnectionStatusResponse:
+      $ref: "./components/schemas/calendar/ConnectionStatusResponse.yaml"
+    CoverLetterRequest:
+      $ref: "./components/schemas/offers/CoverLetterRequest.yaml"
+    CreateAgreementRequest:
+      $ref: "./components/schemas/agreements/agreements/CreateAgreementRequest.yaml"
+    CreateAgreementResponse:
+      $ref: "./components/schemas/agreements/agreements/CreateAgreementResponse.yaml"
+    CreateCalendarRequest:
+      $ref: "./components/schemas/calendar/CreateCalendarRequest.yaml"
+    CreateConnectionRequestRequest:
+      $ref: "./components/schemas/agent/connections/CreateConnectionRequestRequest.ya\
+        ml"
+    CreateConnectionRequestResponse:
+      $ref: "./components/schemas/agent/connections/CreateConnectionRequestResponse.y\
+        aml"
+    CreateConversationRequest:
+      $ref: "./components/schemas/agent/conversations/CreateConversationRequest.yaml"
+    CreateConversationResponse:
+      $ref: "./components/schemas/agent/conversations/CreateConversationResponse.yaml"
+    CreateParticipantRequest:
+      $ref: "./components/schemas/agreements/docusign/CreateParticipantRequest.yaml"
+    CreateParticipantResponse:
+      $ref: "./components/schemas/agreements/docusign/CreateParticipantResponse.yaml"
+    CreatePreferencesRequest:
+      $ref: "./components/schemas/preferences/CreatePreferencesRequest.yaml"
+    CreateRevisionResponse:
+      $ref: "./components/schemas/agreements/agreements/CreateRevisionResponse.yaml"
+    CreateSilverkeyCalendarRequest:
+      $ref: "./components/schemas/calendar/CreateSilverkeyCalendarRequest.yaml"
+    CreateTodoRequest:
+      $ref: "./components/schemas/user/todos/CreateTodoRequest.yaml"
+    CreateTodoResponse:
+      $ref: "./components/schemas/user/todos/CreateTodoResponse.yaml"
+    DashboardResponse:
+      $ref: "./components/schemas/shared/dashboard/DashboardResponse.yaml"
+    DeleteEventResponse:
+      $ref: "./components/schemas/calendar/DeleteEventResponse.yaml"
+    DeleteReportRequest:
+      $ref: "./components/schemas/agreements/documents/DeleteReportRequest.yaml"
+    DeleteReportResponse:
+      $ref: "./components/schemas/user/profile/DeleteReportResponse.yaml"
+    DeleteUserRequest:
+      $ref: "./components/schemas/admin/DeleteUserRequest.yaml"
+    DeleteUserResponse:
+      $ref: "./components/schemas/user/profile/DeleteUserResponse.yaml"
+    DocumentLibraryListItem:
+      $ref: "./components/schemas/agreements/documents/DocumentLibraryListItem.yaml"
+    DocumentLibraryResponse:
+      $ref: "./components/schemas/agreements/documents/DocumentLibraryResponse.yaml"
+    WorkflowDocumentRecord:
+      $ref: "./components/schemas/agreements/documents/WorkflowDocumentRecord.yaml"
+    DocumentsResponse:
+      $ref: "./components/schemas/agreements/documents/DocumentsResponse.yaml"
+    DocusignListTemplatesResponse:
+      $ref: "./components/schemas/agreements/docusign/DocusignListTemplatesResponse.y\
+        aml"
+    DocusignOAuthStartResponse:
+      $ref: "./components/schemas/agreements/docusign/DocusignOAuthStartResponse.yaml"
+    DocusignSyncTemplatesResponse:
+      $ref: "./components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.y\
+        aml"
+    DocusignTemplate:
+      $ref: "./components/schemas/agreements/docusign/DocusignTemplate.yaml"
+    DocusignTemplateListItem:
+      $ref: "./components/schemas/agreements/docusign/DocusignTemplateListItem.yaml"
+    DocusignWebhookPayload:
+      $ref: "./components/schemas/agreements/docusign/DocusignWebhookPayload.yaml"
+    DownloadUrlResponse:
+      $ref: "./components/schemas/agreements/documents/DownloadUrlResponse.yaml"
+    EarnestMoneyRequest:
+      $ref: "./components/schemas/offers/EarnestMoneyRequest.yaml"
+    ErrorResponse:
+      $ref: "./components/schemas/shared/core/ErrorResponse.yaml"
+    EventRequestStatus:
+      $ref: "./components/schemas/shared/event-requests/EventRequestStatus.yaml"
+    FavoriteHomePayload:
+      $ref: "./components/schemas/user/favorites/FavoriteHomePayload.yaml"
+    FavoriteHomesPagination:
+      $ref: "./components/schemas/user/favorites/FavoriteHomesPagination.yaml"
+    FavoriteHomesReplaceResponse:
+      $ref: "./components/schemas/user/favorites/FavoriteHomesReplaceResponse.yaml"
+    FavoriteHomesResponse:
+      $ref: "./components/schemas/user/favorites/FavoriteHomesResponse.yaml"
+    FeedCommentApiShape:
+      $ref: "./components/schemas/feed/FeedCommentApiShape.yaml"
+    FeedCommentsResponse:
+      $ref: "./components/schemas/feed/FeedCommentsResponse.yaml"
+    FeedLikeEntry:
+      $ref: "./components/schemas/feed/FeedLikeEntry.yaml"
+    FeedLikesResponse:
+      $ref: "./components/schemas/feed/FeedLikesResponse.yaml"
+    FeedListing:
+      $ref: "./components/schemas/search/results/FeedListing.yaml"
+    FeedResponse:
+      $ref: "./components/schemas/feed/FeedResponse.yaml"
+    FindMatchesRequest:
+      $ref: "./components/schemas/search/filters/FindMatchesRequest.yaml"
+    ForgotPasswordData:
+      $ref: "./components/schemas/auth/ForgotPasswordData.yaml"
+    ForgotPasswordResponse:
+      $ref: "./components/schemas/auth/ForgotPasswordResponse.yaml"
+    FreebusyRequest:
+      $ref: "./components/schemas/calendar/FreebusyRequest.yaml"
+    FreebusyResponse:
+      $ref: "./components/schemas/calendar/FreebusyResponse.yaml"
+    GenerateReportRequest:
+      $ref: "./components/schemas/user/profile/GenerateReportRequest.yaml"
+    GenerateReportResponse:
+      $ref: "./components/schemas/user/profile/GenerateReportResponse.yaml"
+    GetAgreementResponse:
+      $ref: "./components/schemas/agreements/agreements/GetAgreementResponse.yaml"
+    GetDashboardResponse:
+      $ref: "./components/schemas/shared/dashboard/GetDashboardResponse.yaml"
+    GetLoggerConfigResponse:
+      $ref: "./components/schemas/shared/logger/GetLoggerConfigResponse.yaml"
+    GetSenderViewUrlResponse:
+      $ref: "./components/schemas/agreements/agreements/GetSenderViewUrlResponse.yaml"
+    GetSigningUrlRequest:
+      $ref: "./components/schemas/agreements/agreements/GetSigningUrlRequest.yaml"
+    GetSigningUrlResponse:
+      $ref: "./components/schemas/agreements/agreements/GetSigningUrlResponse.yaml"
+    GetTodosResponse:
+      $ref: "./components/schemas/user/todos/GetTodosResponse.yaml"
+    GoogleCalendar:
+      $ref: "./components/schemas/calendar/GoogleCalendar.yaml"
+    GoogleCalendarApiResponse:
+      $ref: "./components/schemas/calendar/GoogleCalendarApiResponse.yaml"
+    GoogleCalendarEventCreateBody:
+      $ref: "./components/schemas/calendar/GoogleCalendarEventCreateBody.yaml"
+    GoogleCalendarListResponse:
+      $ref: "./components/schemas/calendar/GoogleCalendarListResponse.yaml"
+    GoogleCalendarPermission:
+      $ref: "./components/schemas/calendar/GoogleCalendarPermission.yaml"
+    GoogleCalendarPermissionsResponse:
+      $ref: "./components/schemas/calendar/GoogleCalendarPermissionsResponse.yaml"
+    GoogleConferenceData:
+      $ref: "./components/schemas/calendar/GoogleConferenceData.yaml"
+    GoogleEvent:
+      $ref: "./components/schemas/calendar/GoogleEvent.yaml"
+    GoogleEventAttendee:
+      $ref: "./components/schemas/calendar/GoogleEventAttendee.yaml"
+    GoogleEventCreateResponse:
+      $ref: "./components/schemas/calendar/GoogleEventCreateResponse.yaml"
+    GoogleEventDateTime:
+      $ref: "./components/schemas/calendar/GoogleEventDateTime.yaml"
+    GoogleEventListResponse:
+      $ref: "./components/schemas/calendar/GoogleEventListResponse.yaml"
+    GoogleEventReminders:
+      $ref: "./components/schemas/calendar/GoogleEventReminders.yaml"
+    GoogleReminderOverride:
+      $ref: "./components/schemas/calendar/GoogleReminderOverride.yaml"
+    HealthResponse:
+      $ref: "./components/schemas/shared/core/HealthResponse.yaml"
+    IsochroneData:
+      $ref: "./components/schemas/search/properties/IsochroneData.yaml"
+    IsochroneGeometry:
+      $ref: "./components/schemas/search/properties/IsochroneGeometry.yaml"
+    IsochroneResponse:
+      $ref: "./components/schemas/search/properties/IsochroneResponse.yaml"
+    ListAgreementsResponse:
+      $ref: "./components/schemas/agreements/agreements/ListAgreementsResponse.yaml"
+    ListTemplatesResponse:
+      $ref: "./components/schemas/agreements/templates/ListTemplatesResponse.yaml"
+    LoginData:
+      $ref: "./components/schemas/user/profile/LoginData.yaml"
+    MapsScriptResponse:
+      $ref: "./components/schemas/shared/core/MapsScriptResponse.yaml"
+    MarkMessagesAsReadResponse:
+      $ref: "./components/schemas/agent/messages/MarkMessagesAsReadResponse.yaml"
+    MonthlyCostEstimatesResponse:
+      $ref: "./components/schemas/shared/core/MonthlyCostEstimatesResponse.yaml"
+    NegotiationStrategyRequest:
+      $ref: "./components/schemas/offers/NegotiationStrategyRequest.yaml"
+    NegotiationStrategyResponse:
+      $ref: "./components/schemas/offers/NegotiationStrategyResponse.yaml"
+    NotInterestedHomeItem:
+      $ref: "./components/schemas/user/not-interested/NotInterestedHomeItem.yaml"
+    NotInterestedHomesResponse:
+      $ref: "./components/schemas/user/not-interested/NotInterestedHomesResponse.yaml"
+    NotificationCounterResponse:
+      $ref: "./components/schemas/shared/core/NotificationCounterResponse.yaml"
+    OAuthStartResponse:
+      $ref: "./components/schemas/shared/core/OAuthStartResponse.yaml"
+    PaginatedResponse:
+      $ref: "./components/schemas/shared/core/PaginatedResponse.yaml"
+    Pagination:
+      $ref: "./components/schemas/shared/core/Pagination.yaml"
+    PaginationRequest:
+      $ref: "./components/schemas/shared/core/PaginationRequest.yaml"
+    ParticipantRole:
+      $ref: "./components/schemas/agreements/agreements/ParticipantRole.yaml"
+    ParticipantStatus:
+      $ref: "./components/schemas/agreements/agreements/ParticipantStatus.yaml"
+    PollReportResponse:
+      $ref: "./components/schemas/user/profile/PollReportResponse.yaml"
+    PreApprovalLetterRequest:
+      $ref: "./components/schemas/offers/PreApprovalLetterRequest.yaml"
+    OfferDocumentGenerationResponse:
+      $ref: "./components/schemas/offers/OfferDocumentGenerationResponse.yaml"
+    PreferencesResponse:
+      $ref: "./components/schemas/preferences/PreferencesResponse.yaml"
+    ProfilePictureResponse:
+      $ref: "./components/schemas/auth/ProfilePictureResponse.yaml"
+    PropertyCompsRequest:
+      $ref: "./components/schemas/search/properties/PropertyCompsRequest.yaml"
+    PropertyCompsResponse:
+      $ref: "./components/schemas/search/properties/PropertyCompsResponse.yaml"
+    PropertyData:
+      $ref: "./components/schemas/search/properties/PropertyData.yaml"
+    PropertyAgent:
+      $ref: "./components/schemas/search/properties/PropertyAgent.yaml"
+    PropertyComplete:
+      $ref: "./components/schemas/search/properties/PropertyComplete.yaml"
+    PropertyEssentials:
+      $ref: "./components/schemas/search/properties/PropertyEssentials.yaml"
+    PropertyFeatures:
+      $ref: "./components/schemas/search/properties/PropertyFeatures.yaml"
+    PropertyFinancials:
+      $ref: "./components/schemas/search/properties/PropertyFinancials.yaml"
+    PropertyLocation:
+      $ref: "./components/schemas/search/properties/PropertyLocation.yaml"
+    PropertyMedia:
+      $ref: "./components/schemas/search/properties/PropertyMedia.yaml"
+    PropertyMetadata:
+      $ref: "./components/schemas/search/properties/PropertyMetadata.yaml"
+    PropertyRequest:
+      $ref: "./components/schemas/search/properties/PropertyRequest.yaml"
+    PropertyResearchOptions:
+      $ref: "./components/schemas/search/properties/PropertyResearchOptions.yaml"
+    PropertyResponse:
+      $ref: "./components/schemas/search/properties/PropertyResponse.yaml"
+    PropertySearchResult:
+      $ref: "./components/schemas/search/results/PropertySearchResult.yaml"
+    RemoveAgentResponse:
+      $ref: "./components/schemas/preferences/RemoveAgentResponse.yaml"
+    RemoveFavoriteRequest:
+      $ref: "./components/schemas/user/favorites/RemoveFavoriteRequest.yaml"
+    RemoveNotInterestedRequest:
+      $ref: "./components/schemas/user/not-interested/RemoveNotInterestedRequest.yaml"
+    ReportListItem:
+      $ref: "./components/schemas/user/profile/ReportListItem.yaml"
+    ReportDocumentsListResponse:
+      $ref: "./components/schemas/agreements/documents/ReportDocumentsListResponse.ya\
+        ml"
+    ReportsListResponse:
+      $ref: "./components/schemas/user/profile/ReportsListResponse.yaml"
+    ReportsResponse:
+      $ref: "./components/schemas/user/profile/ReportsResponse.yaml"
+    ResendCodeData:
+      $ref: "./components/schemas/auth/ResendCodeData.yaml"
+    ResendCodeResponse:
+      $ref: "./components/schemas/auth/ResendCodeResponse.yaml"
+    ResetPasswordData:
+      $ref: "./components/schemas/auth/ResetPasswordData.yaml"
+    RespondToConnectionRequestRequest:
+      $ref: "./components/schemas/agent/connections/RespondToConnectionRequestRequest\
+        .yaml"
+    RespondToConnectionRequestResponse:
+      $ref: "./components/schemas/agent/connections/RespondToConnectionRequestRespons\
+        e.yaml"
+    RevokeResponse:
+      $ref: "./components/schemas/calendar/RevokeResponse.yaml"
+    SavedHome:
+      $ref: "./components/schemas/user/favorites/SavedHome.yaml"
+    SearchAgentsPreferencesResponse:
+      $ref: "./components/schemas/preferences/SearchAgentsPreferencesResponse.yaml"
+    SearchAgentsResponse:
+      $ref: "./components/schemas/agent/core/SearchAgentsResponse.yaml"
+    SearchByPolygonRequest:
+      $ref: "./components/schemas/search/filters/SearchByPolygonRequest.yaml"
+    SearchByPolygonResponse:
+      $ref: "./components/schemas/search/filters/SearchByPolygonResponse.yaml"
+    SearchClientsResponse:
+      $ref: "./components/schemas/agent/clients/SearchClientsResponse.yaml"
+    SearchDisplayPayload:
+      $ref: "./components/schemas/search/results/SearchDisplayPayload.yaml"
+    SearchDisplayResponse:
+      $ref: "./components/schemas/search/results/SearchDisplayResponse.yaml"
+    SecureUploadDocumentPayload:
+      $ref: "./components/schemas/agreements/documents/SecureUploadDocumentPayload.ya\
+        ml"
+    SendAgreementRequest:
+      $ref: "./components/schemas/agreements/agreements/SendAgreementRequest.yaml"
+    SendAgreementResponse:
+      $ref: "./components/schemas/agreements/agreements/SendAgreementResponse.yaml"
+    SendMessageRequest:
+      $ref: "./components/schemas/agent/messages/SendMessageRequest.yaml"
+    SendMessageResponse:
+      $ref: "./components/schemas/agent/messages/SendMessageResponse.yaml"
+    ServerLoggerConfig:
+      $ref: "./components/schemas/shared/logger/ServerLoggerConfig.yaml"
+    SigningMethod:
+      $ref: "./components/schemas/agreements/agreements/SigningMethod.yaml"
+    SignupData:
+      $ref: "./components/schemas/user/profile/SignupData.yaml"
+    SuccessResponse:
+      $ref: "./components/schemas/shared/core/SuccessResponse.yaml"
+    SyncTemplatesResponse:
+      $ref: "./components/schemas/agreements/templates/SyncTemplatesResponse.yaml"
+    TaskChecklistApiResponse:
+      $ref: "./components/schemas/checklists/TaskChecklistApiResponse.yaml"
+    TaskChecklistItem:
+      $ref: "./components/schemas/checklists/TaskChecklistItem.yaml"
+    TaskChecklistResponse:
+      $ref: "./components/schemas/checklists/TaskChecklistResponse.yaml"
+    TaskStatusResponse:
+      $ref: "./components/schemas/shared/core/TaskStatusResponse.yaml"
+    Timestamp:
+      $ref: "./components/schemas/shared/core/Timestamp.yaml"
+    TodoItem:
+      $ref: "./components/schemas/user/todos/TodoItem.yaml"
+    TransactionAddressData:
+      $ref: "./components/schemas/search/properties/TransactionAddressData.yaml"
+    TransactionAddressResponse:
+      $ref: "./components/schemas/search/properties/TransactionAddressResponse.yaml"
+    UpdateAgentStatusRequest:
+      $ref: "./components/schemas/admin/UpdateAgentStatusRequest.yaml"
+    UpdateAgentStatusResponse:
+      $ref: "./components/schemas/admin/UpdateAgentStatusResponse.yaml"
+    UpdateChecklistRequest:
+      $ref: "./components/schemas/checklists/UpdateChecklistRequest.yaml"
+    UpdateClosingModeRequest:
+      $ref: "./components/schemas/auth/UpdateClosingModeRequest.yaml"
+    UpdateClosingModeResponse:
+      $ref: "./components/schemas/auth/UpdateClosingModeResponse.yaml"
+    UpdateEventRequestStatusRequest:
+      $ref: "./components/schemas/shared/event-requests/UpdateEventRequestStatusReque\
+        st.yaml"
+    UpdateLoggerConfigRequest:
+      $ref: "./components/schemas/shared/logger/UpdateLoggerConfigRequest.yaml"
+    UpdateNotInterestedRequest:
+      $ref: "./components/schemas/user/not-interested/UpdateNotInterestedRequest.yaml"
+    UpdateRoutingOrderRequest:
+      $ref: "./components/schemas/agreements/docusign/UpdateRoutingOrderRequest.yaml"
+    UpdateRoutingOrderResponse:
+      $ref: "./components/schemas/agreements/docusign/UpdateRoutingOrderResponse.yaml"
+    UpdateTaskChecklistRequest:
+      $ref: "./components/schemas/checklists/UpdateTaskChecklistRequest.yaml"
+    UpdateTodoRequest:
+      $ref: "./components/schemas/user/todos/UpdateTodoRequest.yaml"
+    UpdateTodoResponse:
+      $ref: "./components/schemas/user/todos/UpdateTodoResponse.yaml"
+    UploadedDocumentRecord:
+      $ref: "./components/schemas/agreements/documents/UploadedDocumentRecord.yaml"
+    UploadResponse:
+      $ref: "./components/schemas/agreements/documents/UploadResponse.yaml"
+    User:
+      $ref: "./components/schemas/user/profile/User.yaml"
+    UserAgentsResponse:
+      $ref: "./components/schemas/preferences/UserAgentsResponse.yaml"
+    UserId:
+      $ref: "./components/schemas/user/profile/UserId.yaml"
+    UserPreferencesData:
+      $ref: "./components/schemas/user/profile/UserPreferencesData.yaml"
+    UserProfile:
+      $ref: "./components/schemas/user/profile/UserProfile.yaml"
+    UserResponse:
+      $ref: "./components/schemas/user/profile/UserResponse.yaml"
+    VerifyData:
+      $ref: "./components/schemas/auth/VerifyData.yaml"
+    ViewUrlResponse:
+      $ref: "./components/schemas/agreements/agreements/ViewUrlResponse.yaml"
+    ViewportPolygonPoint:
+      $ref: "./components/schemas/search/properties/ViewportPolygonPoint.yaml"
+    VoidAgreementRequest:
+      $ref: "./components/schemas/agreements/agreements/VoidAgreementRequest.yaml"
+    VoidAgreementResponse:
+      $ref: "./components/schemas/agreements/agreements/VoidAgreementResponse.yaml"
+
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session
+      description: HttpOnly JWT access token (primary browser auth).
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Optional Authorization header fallback (same JWT as session cookie).
+
+paths:
+  /api/v1/agent/clients:
+    get:
+      tags:
+        - Agent
+      summary: List agent clients
+      description: Returns clients assigned to the authenticated agent.
+      operationId: getAgentClients
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Clients retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentClientsResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Caller is not an agent or lacks access
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Log in with email and password
+      description: Authenticates via Cognito; sets HttpOnly session and refresh_token
+        cookies on success.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginData"
+      responses:
+        "200":
+          description: Login result (success or verification-required shape)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation or missing fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Log out
+      description: Clears auth cookies.
+      operationId: logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/refresh-token:
+    post:
+      tags:
+        - Auth
+      summary: Refresh session
+      description: |
+        Uses the session cookie (access JWT) and refresh_token cookie to issue new tokens. There is no separate GET /auth/session route; clients treat a successful refresh or GET /api/v1/user/profile as the session check.
+      operationId: refreshToken
+      responses:
+        "200":
+          description: Tokens refreshed; new cookies set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Missing or invalid tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Transient upstream error (e.g. Google refresh network failure)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/signup:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupData"
+      responses:
+        "200":
+          description: Signup result (may require email verification)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation or missing fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/preferences:
+    get:
+      tags:
+        - Preferences
+      summary: Get current user preferences
+      operationId: getPreferences
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Preferences payload
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      preferences:
+                        $ref: "#/components/schemas/PreferencesResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Preferences
+      summary: Create or update user preferences
+      description: |
+        Persists preference payload for the current user. There is no PUT /api/v1/user/profile; profile-adjacent data is updated here (and closing mode via PUT /api/v1/user/closing-mode, not documented in this core set).
+      operationId: upsertPreferences
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePreferencesRequest"
+      responses:
+        "200":
+          description: Preferences saved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      preferences:
+                        $ref: "#/components/schemas/PreferencesResponse"
+                      message:
+                        type: string
+        "400":
+          description: Invalid or empty body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/search/properties-by-polygon:
+    post:
+      tags:
+        - Search
+      summary: Search homes by viewport polygon
+      description: |
+        Primary authenticated polygon search. Replaces a hypothetical POST /search/homes (no such route).
+      operationId: searchPropertiesByPolygon
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchByPolygonRequest"
+      responses:
+        "200":
+          description: Search result or cached read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchByPolygonResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Cannot resolve preferences scope for subject user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Search pipeline error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/favorite-homes:
+    get:
+      tags:
+        - User
+      summary: List favorite and listing homes
+      description: Paginated liked homes plus parallel listings snapshot.
+      operationId: listFavoriteHomes
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Favorites and listings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteHomesResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - User
+      summary: Replace favorite homes
+      description: Replaces the user's favorites with the provided home objects.
+      operationId: replaceFavoriteHomes
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkUpdateFavoritesRequest"
+      responses:
+        "200":
+          description: Updated favorites
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteHomesReplaceResponse"
+        "400":
+          description: Invalid body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/favorite-homes/add:
+    post:
+      tags:
+        - User
+      summary: Add one favorite home
+      description: Persists full home payload and returns the updated liked-homes list.
+      operationId: addFavoriteHome
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddFavoriteRequest"
+      responses:
+        "200":
+          description: Home added; full favorites list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteHomesReplaceResponse"
+        "400":
+          description: Invalid body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/favorite-homes/remove:
+    post:
+      tags:
+        - User
+      summary: Remove one favorite home by address
+      description: Unlikes all matching rows for the normalized address and returns
+        remaining liked homes.
+      operationId: removeFavoriteHome
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoveFavoriteRequest"
+      responses:
+        "200":
+          description: Home removed from favorites
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteHomesReplaceResponse"
+        "400":
+          description: Invalid body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Address not found in favorites
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/profile:
+    get:
+      tags:
+        - User
+      summary: Get current user profile
+      operationId: getUserProfile
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile payload (user dict under data)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/profile-picture:
+    post:
+      tags:
+        - User
+      summary: Upload user profile picture
+      description: Upload and update profile picture (JPEG, PNG, GIF allowed)
+      operationId: uploadProfilePicture
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Profile picture uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfilePictureResponse"
+        "400":
+          description: Invalid file or file type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/closing-mode:
+    put:
+      tags:
+        - User
+      summary: Update closing mode status
+      description: Toggle user's closing mode (legacy API compatibility only)
+      operationId: updateClosingMode
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClosingModeRequest"
+      responses:
+        "200":
+          description: Closing mode updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateClosingModeResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/not-interested:
+    get:
+      tags:
+        - User
+      summary: List not-interested homes
+      description: Retrieve the user's list of not-interested homes
+      operationId: getNotInterestedHomes
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Not-interested homes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotInterestedHomesResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - User
+      summary: Mark home as not interested
+      description: Add a home to the not-interested list
+      operationId: addNotInterestedHome
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddNotInterestedRequest"
+      responses:
+        "200":
+          description: Home marked as not interested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotInterestedHomesResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - User
+      summary: Remove home from not-interested list
+      description: Undo not-interested status for a home
+      operationId: removeNotInterestedHome
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoveNotInterestedRequest"
+      responses:
+        "200":
+          description: Home removed from not-interested list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotInterestedHomesResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Home not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags:
+        - User
+      summary: Update not-interested reason
+      description: Update the reason for a not-interested home
+      operationId: updateNotInterestedHome
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNotInterestedRequest"
+      responses:
+        "200":
+          description: Not-interested reason updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotInterestedHomesResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Home not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/me/events:
+    get:
+      tags:
+        - Calendar
+      summary: List user's Google Calendar events
+      description: List events from authenticated user's own calendar (agents use
+        /clients/{client_id}/availability for client calendars)
+      operationId: listGoogleEvents
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: calendarId
+          in: query
+          required: false
+          schema:
+            type: string
+            default: primary
+        - name: timeMin
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: timeMax
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: maxResults
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 250
+            default: 100
+      responses:
+        "200":
+          description: Events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleEventListResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Calendar
+      summary: Create Google Calendar event
+      description: Create a new event in user's Google calendar with optional
+        cross-calendar creation for agent-client relationships
+      operationId: createGoogleEvent
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleCalendarEventCreateBody"
+      responses:
+        "201":
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleEventCreateResponse"
+        "400":
+          description: Invalid event data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Missing calendar permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/me/events/{event_id}:
+    patch:
+      tags:
+        - Calendar
+      summary: Update Google Calendar event
+      description: Update an existing event in user's Google calendar
+      operationId: updateGoogleEvent
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleCalendarEventCreateBody"
+      responses:
+        "200":
+          description: Event updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarApiResponse"
+        "400":
+          description: Invalid event data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Missing calendar permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Calendar
+      summary: Delete Google Calendar event
+      description: Delete an event from user's Google calendar
+      operationId: deleteGoogleEvent
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: calendarId
+          in: query
+          required: false
+          schema:
+            type: string
+            default: primary
+      responses:
+        "200":
+          description: Event deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteEventResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Missing calendar permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/me/freebusy:
+    post:
+      tags:
+        - Calendar
+      summary: Query freebusy information
+      description: Check availability for specified calendars
+      operationId: getFreebusyInfo
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FreebusyRequest"
+      responses:
+        "200":
+          description: Freebusy information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FreebusyResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/oauth/start:
+    get:
+      tags:
+        - Calendar
+      summary: Start Google OAuth flow
+      description: Initiates Google OAuth authorization with incremental scopes
+      operationId: startGoogleOAuth
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: full_scope
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Request full calendar access (deprecated - all scopes always
+            requested)
+        - name: scheduling
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Request scheduling scopes (deprecated - all scopes always requested)
+      responses:
+        "302":
+          description: Redirect to Google OAuth consent screen
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/oauth/callback:
+    get:
+      tags:
+        - Calendar
+      summary: Google OAuth callback
+      description: Handles OAuth callback from Google and exchanges code for tokens
+      operationId: googleOAuthCallback
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: error
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to frontend with success indicator
+        "400":
+          description: Missing or invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated or invalid state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/oauth/revoke:
+    post:
+      tags:
+        - Calendar
+      summary: Revoke Google OAuth access
+      description: Revoke Google Calendar access for the authenticated user
+      operationId: revokeGoogleOAuth
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Access revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevokeResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/chats:
+    get:
+      tags: [ Agent ]
+      summary: List agent/client conversations
+      operationId: getAgentChats
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: client_id
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentConversationsResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Agent ]
+      summary: Create a conversation
+      operationId: createAgentChat
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationRequest"
+      responses:
+        "201":
+          description: HTTP 201
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateConversationResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/chats/{conversationId}/history:
+    get:
+      tags: [ Agent ]
+      summary: Get conversation message history
+      operationId: getAgentChatHistory
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentChatHistoryResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/chats/message:
+    post:
+      tags: [ Agent ]
+      summary: Send a chat message
+      operationId: sendAgentChatMessage
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMessageResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/chats/messages/{messageId}/event-request-status:
+    patch:
+      tags: [ Agent ]
+      summary: Update calendar event request status on a message
+      operationId: updateAgentChatEventRequestStatus
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEventRequestStatusRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/chats/{conversationId}/read:
+    post:
+      tags: [ Agent ]
+      summary: Mark conversation messages as read
+      operationId: markAgentChatAsRead
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarkMessagesAsReadResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/search-agents:
+    get:
+      tags: [ Agent ]
+      summary: Search agents by query
+      operationId: searchAgents
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchAgentsResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/search-clients:
+    get:
+      tags: [ Agent ]
+      summary: Search clients by query
+      operationId: searchClients
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchClientsResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/connection-requests:
+    get:
+      tags: [ Agent ]
+      summary: List connection requests
+      operationId: getConnectionRequests
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectionRequestsResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Agent ]
+      summary: Create a connection request
+      operationId: createConnectionRequest
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConnectionRequestRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateConnectionRequestResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/connection-requests/{requestId}/respond:
+    post:
+      tags: [ Agent ]
+      summary: Accept or decline a connection request
+      operationId: respondToConnectionRequest
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RespondToConnectionRequestRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespondToConnectionRequestResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/notification-counter:
+    get:
+      tags: [ Agent ]
+      summary: Unread messages and pending requests count
+      operationId: getAgentNotificationCounter
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationCounterResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/todos:
+    get:
+      tags: [ Agent ]
+      summary: List todos for agent or client
+      operationId: getAgentTodos
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: include_completed
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetTodosResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Agent ]
+      summary: Create a todo
+      operationId: createAgentTodo
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTodoRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTodoResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/todos/{todoId}:
+    put:
+      tags: [ Agent ]
+      summary: Update a todo
+      operationId: updateAgentTodo
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: todoId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTodoRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateTodoResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [ Agent ]
+      summary: Delete a todo
+      operationId: deleteAgentTodo
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: todoId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/auth/forgot-password:
+    post:
+      tags: [ Auth ]
+      summary: Start password recovery
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordData"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForgotPasswordResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/google/start:
+    get:
+      tags: [ Auth ]
+      summary: Start Google OAuth (login/signup)
+      operationId: googleOAuthStart
+      responses:
+        "302":
+          description: Redirect to Google
+          headers:
+            Location:
+              schema: { type: string }
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/google/callback:
+    get:
+      tags: [ Auth ]
+      summary: Google OAuth callback
+      operationId: googleOAuthCallback
+      parameters:
+        - name: code
+          in: query
+          schema: { type: string }
+        - name: state
+          in: query
+          schema: { type: string }
+        - name: error
+          in: query
+          schema: { type: string }
+      responses:
+        "302":
+          description: Redirect to frontend
+          headers:
+            Location:
+              schema: { type: string, format: uri }
+  /api/v1/auth/resend-code:
+    post:
+      tags: [ Auth ]
+      summary: Resend email verification code
+      operationId: resendVerificationCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResendCodeData"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResendCodeResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/reset-password:
+    post:
+      tags: [ Auth ]
+      summary: Complete password reset with verification code
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordData"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/verify:
+    post:
+      tags: [ Auth ]
+      summary: Verify email with code and log in
+      operationId: verifyEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyData"
+      responses:
+        "200":
+          description: Verification result (may set cookies)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/preferences/action-plan/{client_id}:
+    post:
+      tags: [ Preferences ]
+      summary: Generate client action plan
+      operationId: generateClientActionPlan
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionPlanResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/preferences/add:
+    get:
+      tags: [ Preferences ]
+      summary: Set current user as agent
+      operationId: setCurrentUserAsAgent
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddAgentResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/preferences/agents:
+    get:
+      tags: [ Preferences ]
+      summary: Search agents for preferences UI
+      operationId: getPreferencesAgents
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchAgentsPreferencesResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/preferences/clients:
+    get:
+      tags: [ Preferences ]
+      summary: List clients for preferences context
+      operationId: getPreferencesClients
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientsPreferencesResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/preferences/remove:
+    get:
+      tags: [ Preferences ]
+      summary: Remove agent relationship
+      operationId: removeAgentRelationship
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoveAgentResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/preferences/user/{userId}:
+    get:
+      tags: [ Preferences ]
+      summary: Get preferences by user id (scoped)
+      operationId: getUserPreferencesById
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/SuccessResponse"
+                  - type: object
+                    properties:
+                      preferences:
+                        $ref: "#/components/schemas/PreferencesResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/preferences/users_agents:
+    get:
+      tags: [ Preferences ]
+      summary: List agents linked to the current user
+      operationId: getUserAgents
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAgentsResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/search-display:
+    get:
+      tags: [ Search ]
+      summary: Get search display settings
+      operationId: getSearchDisplay
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchDisplayResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags: [ Search ]
+      summary: Update search display settings
+      operationId: patchSearchDisplay
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchDisplayPayload"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchDisplayResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/search/propertyComps:
+    get:
+      tags: [ Search ]
+      summary: Property comparables (Slipstream GAMLS)
+      operationId: getPropertyComps
+      parameters:
+        - name: address
+          in: query
+          schema: { type: string }
+        - name: zpid
+          in: query
+          schema: { type: string }
+        - name: property_url
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropertyCompsResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/search/monthly-cost-estimates:
+    get:
+      tags: [ Search ]
+      summary: Monthly HOA/utilities estimates by ZIP
+      operationId: getMonthlyCostEstimates
+      parameters:
+        - name: zipcode
+          in: query
+          schema: { type: string }
+        - name: zip
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlyCostEstimatesResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/search/isochrone:
+    get:
+      tags: [ Search ]
+      summary: Isochrone from user commute preferences
+      operationId: getSearchIsochrone
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IsochroneResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/search/area-suggestions:
+    get:
+      tags: [ Search ]
+      summary: Autocomplete for geographic areas (neighborhoods, cities, ZIP codes)
+      operationId: getAreaSuggestions
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search keyword (min 2 characters)
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: State postal abbreviation filter (e.g. "GA")
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 25
+          description: Maximum number of results
+      responses:
+        "200":
+          description: Matching geographic areas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaSuggestionsResponse"
+        "502":
+          description: Upstream API error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/search/area-boundary:
+    get:
+      tags: [ Search ]
+      summary: Get boundary polygon for a Slipstream area
+      operationId: getAreaBoundary
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Slipstream area ID
+      responses:
+        "200":
+          description: Area boundary with GeoJSON geometry and viewport ring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaBoundaryResponse"
+        "400":
+          description: Missing area ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Area not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/research/property:
+    post:
+      tags: [ Research ]
+      summary: Queue or stream property research
+      operationId: researchProperty
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: stream
+          in: query
+          schema: { type: boolean, default: false }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyRequest"
+      responses:
+        "202":
+          description: Celery task queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStatusResponse"
+        "200":
+          description: SSE when stream=true
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/research/compare:
+    post:
+      tags: [ Research ]
+      summary: Queue or stream property comparison research
+      operationId: researchCompareProperty
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: stream
+          in: query
+          schema: { type: boolean, default: false }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyRequest"
+      responses:
+        "202":
+          description: HTTP 202
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStatusResponse"
+        "200":
+          description: HTTP 200
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/research/task-status/{task_id}:
+    get:
+      tags: [ Research ]
+      summary: Celery task status for research/compare
+      operationId: getResearchTaskStatus
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStatusResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/home-matching/find-matches:
+    post:
+      tags: [ HomeMatching ]
+      summary: Queue home matching task (Flask-Login session)
+      operationId: homeMatchingFindMatches
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FindMatchesRequest"
+      responses:
+        "202":
+          description: HTTP 202
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStatusResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/home-matching/task-status/{task_id}:
+    get:
+      tags: [ HomeMatching ]
+      summary: Home matching Celery task status
+      operationId: getHomeMatchingTaskStatus
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStatusResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/offer/generate-strategy:
+    post:
+      tags: [ Offer ]
+      summary: Generate negotiation strategy for an address
+      operationId: generateNegotiationStrategy
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NegotiationStrategyRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NegotiationStrategyResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/maps/script:
+    get:
+      tags: [ Maps ]
+      summary: Google Maps JS script URL (key stays server-side)
+      operationId: getMapsScriptUrl
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapsScriptResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/timeline:
+    get:
+      tags: [ User ]
+      summary: Get timeline checklist progress
+      operationId: getTimelineChecklist
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [ User ]
+      summary: Replace timeline checklist progress
+      operationId: putTimelineChecklist
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChecklistRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/close:
+    get:
+      tags: [ User ]
+      summary: Get close checklist progress
+      operationId: getCloseChecklist
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [ User ]
+      summary: Replace close checklist progress
+      operationId: putCloseChecklist
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChecklistRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/not-interested-homes:
+    get:
+      tags: [ User ]
+      summary: List not-interested homes
+      operationId: listNotInterestedHomes
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotInterestedHomesResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/not-interested-homes/add:
+    post:
+      tags: [ User ]
+      summary: Mark a home as not interested
+      operationId: addNotInterestedHome
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddNotInterestedRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotInterestedHomesResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/not-interested-homes/remove:
+    post:
+      tags: [ User ]
+      summary: Remove not-interested status
+      operationId: removeNotInterestedHome
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoveNotInterestedRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotInterestedHomesResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/user/not-interested-homes/update:
+    post:
+      tags: [ User ]
+      summary: Update not-interested metadata
+      operationId: updateNotInterestedHome
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNotInterestedRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotInterestedHomesResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/transactions/address:
+    get:
+      tags: [ Tasks ]
+      summary: Get saved transaction address
+      operationId: getTransactionAddress
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionAddressResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Tasks ]
+      summary: Save transaction address
+      operationId: saveTransactionAddress
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionAddressData"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionAddressResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/tasks:
+    get:
+      tags: [ Tasks ]
+      summary: Unified task checklist definitions and progress
+      operationId: getUnifiedTaskChecklist
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            default: escrow
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/TaskChecklistResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [ Tasks ]
+      summary: Replace unified task checklist progress
+      operationId: putUnifiedTaskChecklist
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            default: escrow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskChecklistRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskChecklistApiResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/client/errors:
+    post:
+      tags: [ Client ]
+      summary: Report client-side errors (optional auth)
+      operationId: reportClientError
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientErrorReport"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/feed:
+    get:
+      tags: [ Feed ]
+      summary: Paginated listing feed
+      operationId: getFeed
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+        - name: filtersHash
+          in: query
+          schema: { type: string }
+        - name: cursor
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedResponse"
+  /api/v1/feed/likes:
+    get:
+      tags: [ Feed ]
+      summary: Batch like counts for home ids
+      operationId: getFeedLikes
+      parameters:
+        - name: ids
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedLikesResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Feed ]
+      summary: Like a feed item
+      operationId: postFeedLike
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddFeedLikeRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/feed/likes/{home_id}:
+    delete:
+      tags: [ Feed ]
+      summary: Unlike a feed item
+      operationId: deleteFeedLike
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: home_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/feed/comments/{home_id}:
+    get:
+      tags: [ Feed ]
+      summary: Comments for a home
+      operationId: getFeedComments
+      parameters:
+        - name: home_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedCommentsResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/feed/comments:
+    post:
+      tags: [ Feed ]
+      summary: Add a comment
+      operationId: postFeedComment
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddCommentRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddCommentResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/google/health:
+    get:
+      tags: [ Calendar ]
+      summary: Google Calendar integration health
+      operationId: googleCalendarHealth
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /api/v1/google/connection-status:
+    get:
+      tags: [ Calendar ]
+      summary: Google Calendar connection status
+      operationId: googleCalendarConnectionStatus
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectionStatusResponse"
+  /api/v1/google/oauth/enhance:
+    get:
+      tags: [ Calendar ]
+      summary: Request incremental Calendar scopes
+      operationId: googleCalendarOAuthEnhance
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: permissions
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "302":
+          description: Redirect to Google authorization URL
+          headers:
+            Location:
+              schema: { type: string, format: uri }
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/me/calendars:
+    get:
+      tags: [ Calendar ]
+      summary: List user's Google calendars
+      operationId: listGoogleCalendars
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarListResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/calendars:
+    post:
+      tags: [ Calendar ]
+      summary: Create a Google calendar
+      operationId: createGoogleCalendar
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCalendarRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarApiResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/calendars/{calendar_id}/acl:
+    post:
+      tags: [ Calendar ]
+      summary: Add ACL rule to a calendar
+      operationId: addGoogleCalendarAcl
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: calendar_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddCalendarACLRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddCalendarACLResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/me/silverkey-calendar:
+    get:
+      tags: [ Calendar ]
+      summary: Get or describe SilverKey calendar
+      operationId: getSilverkeyCalendar
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarApiResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Calendar ]
+      summary: Create or ensure SilverKey calendar
+      operationId: ensureSilverkeyCalendar
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSilverkeyCalendarRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarApiResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/me/permissions:
+    get:
+      tags: [ Calendar ]
+      summary: Get calendar permission flags
+      operationId: getGoogleCalendarPermissions
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarPermissionsResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [ Calendar ]
+      summary: Replace calendar permission flags
+      operationId: putGoogleCalendarPermissions
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleCalendarPermissionsResponse"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleCalendarPermissionsResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/clients/{client_id}/availability:
+    post:
+      tags: [ Calendar ]
+      summary: Query client availability
+      operationId: queryClientAvailability
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientAvailabilityRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientAvailabilityResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/clients/{client_id}/events:
+    get:
+      tags: [ Calendar ]
+      summary: List events for a client
+      operationId: listClientGoogleEvents
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleEventListResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/google/calendar/webhook:
+    post:
+      tags: [ Calendar ]
+      summary: Google Calendar push notification channel
+      operationId: googleCalendarWebhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Acknowledged
+  /api/v1/report/list:
+    get:
+      tags: [ Documents ]
+      summary: List reports for current user
+      operationId: listReports
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportsListResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/report/{report_id}/download-url:
+    get:
+      tags: [ Documents ]
+      summary: Presigned download URL for report PDF
+      operationId: getReportDownloadUrl
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DownloadUrlResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/report/{report_id}/view-url:
+    get:
+      tags: [ Documents ]
+      summary: Presigned view URL for report PDF
+      operationId: getReportViewUrl
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ViewUrlResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/report/{report_id}/view:
+    get:
+      tags: [ Documents ]
+      summary: Inline PDF bytes for report
+      operationId: viewReportPdf
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/report/{report_id}:
+    delete:
+      tags: [ Documents ]
+      summary: Delete a report
+      operationId: deleteReport
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteReportRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteReportResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/report/documents:
+    get:
+      tags: [ Documents ]
+      summary: Workflow documents for reports
+      operationId: listReportWorkflowDocuments
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentsResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/report/document-library:
+    get:
+      tags: [ Documents ]
+      summary: Document library for current or scoped user
+      operationId: getDocumentLibrary
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentLibraryResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/report/document-library/{library_item_id}:
+    delete:
+      tags: [ Documents ]
+      summary: Remove item from document library
+      operationId: deleteDocumentLibraryItem
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: library_item_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/upload/document:
+    post:
+      tags: [ Documents ]
+      summary: Secure document upload
+      operationId: uploadSecureDocument
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [ file ]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                address:
+                  type: string
+      responses:
+        "201":
+          description: HTTP 201
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/upload/image:
+    post:
+      tags: [ Documents ]
+      summary: Secure image upload
+      operationId: uploadSecureImage
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [ file ]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: HTTP 201
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: HTTP 401
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/logger-config:
+    get:
+      tags: [ Admin ]
+      summary: Get server logger configuration
+      operationId: adminGetLoggerConfig
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetLoggerConfigResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ Admin ]
+      summary: Update server logger configuration
+      operationId: adminUpdateLoggerConfig
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLoggerConfigRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetLoggerConfigResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/current-user-agent-status:
+    post:
+      tags: [ Admin ]
+      summary: Set current user agent flag (admin)
+      operationId: adminSetCurrentUserAgentStatus
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAgentStatusRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateAgentStatusResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/users/delete:
+    post:
+      tags: [ Admin ]
+      summary: Hard-delete a user (admin)
+      operationId: adminDeleteUser
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteUserRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteUserResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/oauth/start:
+    get:
+      tags: [ DocuSign ]
+      summary: Start DocuSign OAuth (returns auth_url JSON)
+      operationId: docusignOAuthStart
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocusignOAuthStartResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/oauth/callback:
+    get:
+      tags: [ DocuSign ]
+      summary: DocuSign OAuth callback
+      operationId: docusignOAuthCallback
+      parameters:
+        - name: code
+          in: query
+          schema: { type: string }
+        - name: state
+          in: query
+          schema: { type: string }
+      responses:
+        "302":
+          description: Redirect after OAuth token exchange
+          headers:
+            Location:
+              schema: { type: string, format: uri }
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/templates:
+    get:
+      tags: [ DocuSign ]
+      summary: List DocuSign templates
+      operationId: docusignListTemplates
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocusignListTemplatesResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/templates/sync:
+    post:
+      tags: [ DocuSign ]
+      summary: Sync DocuSign templates
+      operationId: docusignSyncTemplates
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocusignSyncTemplatesResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements:
+    get:
+      tags: [ DocuSign ]
+      summary: List agreements
+      operationId: docusignListAgreements
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListAgreementsResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [ DocuSign ]
+      summary: Create agreement
+      operationId: docusignCreateAgreement
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAgreementRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateAgreementResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}:
+    get:
+      tags: [ DocuSign ]
+      summary: Get agreement
+      operationId: docusignGetAgreement
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAgreementResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: HTTP 404
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/participants:
+    post:
+      tags: [ DocuSign ]
+      summary: Add agreement participant
+      operationId: docusignAddParticipant
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateParticipantRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateParticipantResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/participants/{participant_id}:
+    delete:
+      tags: [ DocuSign ]
+      summary: Remove participant
+      operationId: docusignRemoveParticipant
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: participant_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/participants/{participant_id}/routing-order:
+    patch:
+      tags: [ DocuSign ]
+      summary: Update participant routing order
+      operationId: docusignUpdateParticipantRoutingOrder
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: participant_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoutingOrderRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateRoutingOrderResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/signing-url:
+    post:
+      tags: [ DocuSign ]
+      summary: Create recipient signing URL
+      operationId: docusignGetSigningUrl
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetSigningUrlRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSigningUrlResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/sender-view:
+    get:
+      tags: [ DocuSign ]
+      summary: Sender view URL (embedded sending)
+      operationId: docusignGetSenderView
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSenderViewUrlResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/revisions:
+    post:
+      tags: [ DocuSign ]
+      summary: Create agreement revision
+      operationId: docusignCreateRevision
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateRevisionResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/send:
+    post:
+      tags: [ DocuSign ]
+      summary: Send agreement for signature
+      operationId: docusignSendAgreement
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendAgreementRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendAgreementResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/docusign/agreements/{agreement_id}/void:
+    post:
+      tags: [ DocuSign ]
+      summary: Void agreement
+      operationId: docusignVoidAgreement
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoidAgreementRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidAgreementResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/webhooks/docusign/connect:
+    post:
+      tags: [ DocuSign ]
+      summary: DocuSign Connect webhook
+      operationId: docusignConnectWebhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocusignWebhookPayload"
+      responses:
+        "200":
+          description: Acknowledged
+  /healthz:
+    get:
+      tags: [ Health ]
+      summary: Liveness and database connectivity
+      operationId: healthz
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: HTTP 503
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /api/v1/chat/address/{report_id}:
+    post:
+      tags:
+        - Chatbot
+      summary: Send message to property chatbot
+      description: Send a message to the chatbot for a specific property report
+      operationId: sendChatMessage
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Property report ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatbotSendRequest"
+      responses:
+        "200":
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatbotResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/chat/history/{report_id}:
+    get:
+      tags:
+        - Chatbot
+      summary: Get chat history for property
+      description: Get the conversation history for a specific property report
+      operationId: getChatHistory
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Property report ID
+      responses:
+        "200":
+          description: Chat history retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatbotHistoryResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Report not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/agent/chats/messages:
+    post:
+      tags:
+        - Agent
+      summary: Send message
+      description: Send a message in a conversation
+      operationId: sendMessage
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "200":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMessageResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

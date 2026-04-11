@@ -1,0 +1,13 @@
+type: object
+required:
+  - address
+properties:
+  address:
+    type: string
+  user_id:
+    type: string
+    nullable: true
+    description: "For agent client selection"
+  marketing_model:
+    type: boolean
+    nullable: true

@@ -1,13 +1,24 @@
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import Button from "packages/ui/components/button/Button";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Text } from "packages/ui/components/primitives";
 import { dateNow, dayjs } from "packages/utils/date";
 
-import { useGoogleCalendarPermissions, useGoogleEvents } from "@/features/calendar/hooks/data";
+import {
+  useGoogleCalendarPermissions,
+  useGoogleEvents,
+} from "@/features/calendar/hooks/data";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
-import type { AgendaTodoDTO, AgendaTodoPriority } from "@/features/calendar/types/agenda";
+import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
 import {
   filterCalendarsToAgentOwned,
   findSilverKeyCalendar,
@@ -21,13 +32,15 @@ import {
 import {
   filterTodosInRange,
   mergeUpcomingAgendaItems,
+  sortCompletedAgendaTodosForDisplay,
 } from "@/features/calendar/utils/mergeUpcomingAgenda";
 
 import { CalendarConnectionPrompt } from "./view/CalendarConnectionPrompt";
+import { CompletedAgendaTodosModal } from "./view/CompletedAgendaTodosModal";
 import { EventList } from "./view/EventList";
 import { UpcomingAgendaList } from "./view/UpcomingAgendaList";
 
-const AGENDA_TITLE = "This week";
+const AGENDA_TITLE = "Agenda";
 
 type UpcomingEventsProps = {
   /** When true, EventList renders without FlatList (for use inside another VirtualizedList). */
@@ -39,7 +52,6 @@ type UpcomingEventsProps = {
   /** When set (e.g. for agents), to-dos are merged into the upcoming list. Omit for non-agents. */
   agendaTodos?: AgendaTodoDTO[];
   onToggleAgendaTodo?: (id: string) => void;
-  onUpdateAgendaTodoPriority?: (id: string, priority: AgendaTodoPriority | null) => void;
   canEditAgendaTodos?: boolean;
   headerActions?: ReactNode;
   /** Agent dashboard: only fetch/display events from calendars the user owns. */
@@ -52,7 +64,6 @@ export function UpcomingEvents({
   sectionTitle,
   agendaTodos,
   onToggleAgendaTodo,
-  onUpdateAgendaTodoPriority,
   canEditAgendaTodos = false,
   headerActions,
   ownedCalendarsOnly = false,
@@ -69,17 +80,26 @@ export function UpcomingEvents({
 
   const { userPreferences } = useUserPreferences();
 
-  const { permissionsLoading, hasRequiredPermissions, isPartiallyEnabled, permissions } =
-    useGoogleCalendarPermissions();
+  const {
+    permissionsLoading,
+    hasRequiredPermissions,
+    isPartiallyEnabled,
+    permissions,
+  } = useGoogleCalendarPermissions();
 
-  const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(() => new Set());
+  const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [completedTodosModalOpen, setCompletedTodosModalOpen] = useState(false);
 
   const silverKeyCalendarIdRef = useRef<string | null>(null);
   const initializedFromPreferencesRef = useRef(false);
   const lastCalendarsRef = useRef<string>("");
   const hadDisabledCalendarsRef = useRef(false);
 
-  const [todayDateString, setTodayDateString] = useState(() => dateNow().format("ddd MMM DD YYYY"));
+  const [todayDateString, setTodayDateString] = useState(() =>
+    dateNow().format("ddd MMM DD YYYY"),
+  );
   const lastCheckedDateRef = useRef<string>(todayDateString);
 
   useEffect(() => {
@@ -107,7 +127,8 @@ export function UpcomingEvents({
 
     const disabledCalendars = userPreferences?.disabled_calendars;
     const hasDisabledCalendars = Array.isArray(disabledCalendars);
-    const disabledCalendarsJustLoaded = !hadDisabledCalendarsRef.current && hasDisabledCalendars;
+    const disabledCalendarsJustLoaded =
+      !hadDisabledCalendarsRef.current && hasDisabledCalendars;
 
     if (hasDisabledCalendars) {
       hadDisabledCalendarsRef.current = true;
@@ -118,11 +139,15 @@ export function UpcomingEvents({
       silverKeyCalendarIdRef.current = silverKeyCalendar.id;
     }
 
-    if (!initializedFromPreferencesRef.current || calendarsChanged || disabledCalendarsJustLoaded) {
+    if (
+      !initializedFromPreferencesRef.current ||
+      calendarsChanged ||
+      disabledCalendarsJustLoaded
+    ) {
       const enabledSet = initializeEnabledCalendars(
         scopedCalendars,
         hasDisabledCalendars ? disabledCalendars : undefined,
-        silverKeyCalendarIdRef.current
+        silverKeyCalendarIdRef.current,
       );
       setEnabledCalendarIds(enabledSet);
       initializedFromPreferencesRef.current = true;
@@ -131,9 +156,13 @@ export function UpcomingEvents({
   }, [scopedCalendars, userPreferences]);
 
   const upcomingDateRange = useMemo(() => {
-    const parsed = todayDateString ? dayjs(todayDateString, "ddd MMM DD YYYY") : null;
+    const parsed = todayDateString
+      ? dayjs(todayDateString, "ddd MMM DD YYYY")
+      : null;
     const todayStart =
-      parsed?.isValid() && parsed ? parsed.startOf("day") : dateNow().startOf("day");
+      parsed?.isValid() && parsed
+        ? parsed.startOf("day")
+        : dateNow().startOf("day");
     const nextWeek = todayStart.add(7, "day").endOf("day");
     return {
       timeMin: todayStart.toISOString(),
@@ -143,7 +172,7 @@ export function UpcomingEvents({
 
   const enabledCalendarIdsArray = useMemo(
     () => Array.from(enabledCalendarIds),
-    [enabledCalendarIds]
+    [enabledCalendarIds],
   );
 
   const {
@@ -161,25 +190,52 @@ export function UpcomingEvents({
 
   const filteredUpcomingEvents = useMemo(
     () =>
-      filterEventsByCalendars(upcomingEventsRaw, enabledCalendarIds, scopedCalendars),
-    [upcomingEventsRaw, enabledCalendarIds, scopedCalendars]
+      filterEventsByCalendars(
+        upcomingEventsRaw,
+        enabledCalendarIds,
+        scopedCalendars,
+      ),
+    [upcomingEventsRaw, enabledCalendarIds, scopedCalendars],
   );
 
   const upcomingEvents = useMemo(
-    () => filterUpcomingEvents(filteredUpcomingEvents, silverKeyCalendarIdRef.current),
-    [filteredUpcomingEvents]
+    () =>
+      filterUpcomingEvents(
+        filteredUpcomingEvents,
+        silverKeyCalendarIdRef.current,
+      ),
+    [filteredUpcomingEvents],
   );
 
   const agendaTodosInRange = useMemo(() => {
     if (!agendaTodos?.length) {
       return [];
     }
-    return filterTodosInRange(agendaTodos, upcomingDateRange.timeMin, upcomingDateRange.timeMax);
+    return filterTodosInRange(
+      agendaTodos,
+      upcomingDateRange.timeMin,
+      upcomingDateRange.timeMax,
+    );
   }, [agendaTodos, upcomingDateRange.timeMin, upcomingDateRange.timeMax]);
 
+  const agendaTodosIncompleteInRange = useMemo(
+    () => agendaTodosInRange.filter((t) => !t.completed),
+    [agendaTodosInRange],
+  );
+
+  const completedAgendaTodosSorted = useMemo(() => {
+    if (!agendaTodos?.length) {
+      return [];
+    }
+    return sortCompletedAgendaTodosForDisplay(
+      agendaTodos.filter((t) => t.completed),
+    );
+  }, [agendaTodos]);
+
   const mergedAgendaItems = useMemo(
-    () => mergeUpcomingAgendaItems(upcomingEvents, agendaTodosInRange),
-    [upcomingEvents, agendaTodosInRange]
+    () =>
+      mergeUpcomingAgendaItems(upcomingEvents, agendaTodosIncompleteInRange),
+    [upcomingEvents, agendaTodosIncompleteInRange],
   );
 
   const handleConnect = useCallback(() => {
@@ -189,7 +245,9 @@ export function UpcomingEvents({
   const wrapWithSectionTitle = (body: ReactNode) => (
     <Box className="mt-6 gap-3">
       {sectionTitle ? (
-        <Text className="text-text-primary text-lg font-medium">{sectionTitle}</Text>
+        <Text className="text-text-primary text-lg font-medium">
+          {sectionTitle}
+        </Text>
       ) : null}
       {body}
     </Box>
@@ -211,21 +269,50 @@ export function UpcomingEvents({
 
   const useAgendaList = agendaTodos !== undefined;
 
+  const agendaHeaderActions = useMemo(() => {
+    if (!useAgendaList || completedAgendaTodosSorted.length === 0) {
+      return headerActions;
+    }
+    return (
+      <Box className="flex flex-wrap items-center justify-end gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-haspopup="dialog"
+          onPress={() => setCompletedTodosModalOpen(true)}
+        >
+          View all
+        </Button>
+        {headerActions ?? null}
+      </Box>
+    );
+  }, [useAgendaList, completedAgendaTodosSorted.length, headerActions]);
+
   const agendaListProps = {
     embedInListHeader,
     border: "light" as const,
     title: AGENDA_TITLE,
     emptyMessage: "No upcoming events or to-dos in the next week",
-    headerActions,
+    headerActions: agendaHeaderActions,
     silverKeyCalendarId: silverKeyCalendarIdRef.current,
     refreshEvents,
     updateEvent,
     deleteEvent,
     calendars: scopedCalendars,
     onToggleAgendaTodo,
-    onUpdateAgendaTodoPriority,
     canEditAgendaTodos,
   };
+
+  const completedTodosModalEl =
+    useAgendaList && completedAgendaTodosSorted.length > 0 ? (
+      <CompletedAgendaTodosModal
+        isOpen={completedTodosModalOpen}
+        onClose={() => setCompletedTodosModalOpen(false)}
+        completedTodos={completedAgendaTodosSorted}
+        onToggleAgendaTodo={onToggleAgendaTodo}
+        canEditAgendaTodos={canEditAgendaTodos}
+      />
+    ) : null;
 
   if (!permissionsReady) {
     const loadingCard = (
@@ -244,7 +331,10 @@ export function UpcomingEvents({
   }
 
   if (shouldShowConnectionPrompt) {
-    const hasTodosWhileDisconnected = useAgendaList && agendaTodosInRange.length > 0;
+    const hasTodosWhileDisconnected =
+      useAgendaList &&
+      (agendaTodosIncompleteInRange.length > 0 ||
+        completedAgendaTodosSorted.length > 0);
 
     if (suppressConnectionPrompt) {
       if (!hasTodosWhileDisconnected) {
@@ -253,9 +343,10 @@ export function UpcomingEvents({
       const todosOnly = (
         <Box className={sectionTitle ? "w-full" : "mt-4 w-full"}>
           <UpcomingAgendaList
-            items={mergeUpcomingAgendaItems([], agendaTodosInRange)}
+            items={mergeUpcomingAgendaItems([], agendaTodosIncompleteInRange)}
             {...agendaListProps}
           />
+          {completedTodosModalEl}
         </Box>
       );
       return sectionTitle ? wrapWithSectionTitle(todosOnly) : todosOnly;
@@ -269,7 +360,10 @@ export function UpcomingEvents({
           padding="sm"
           hover={false}
         >
-          <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
+          <CalendarConnectionPrompt
+            onConnect={handleConnect}
+            isLoading={calendarsLoading}
+          />
         </Card>
       );
       return sectionTitle ? wrapWithSectionTitle(promptCard) : promptCard;
@@ -278,15 +372,21 @@ export function UpcomingEvents({
     const disconnectedBody = (
       <Box className={sectionTitle ? "w-full gap-4" : "mt-4 w-full gap-4"}>
         <Card border="charcoal" className="w-full" padding="sm" hover={false}>
-          <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
+          <CalendarConnectionPrompt
+            onConnect={handleConnect}
+            isLoading={calendarsLoading}
+          />
         </Card>
         <UpcomingAgendaList
-          items={mergeUpcomingAgendaItems([], agendaTodosInRange)}
+          items={mergeUpcomingAgendaItems([], agendaTodosIncompleteInRange)}
           {...agendaListProps}
         />
+        {completedTodosModalEl}
       </Box>
     );
-    return sectionTitle ? wrapWithSectionTitle(disconnectedBody) : disconnectedBody;
+    return sectionTitle
+      ? wrapWithSectionTitle(disconnectedBody)
+      : disconnectedBody;
   }
 
   const list = (
@@ -298,6 +398,7 @@ export function UpcomingEvents({
           events={upcomingEvents}
           title={AGENDA_TITLE}
           emptyMessage="No upcoming events or to-dos in the next week"
+          headerActions={headerActions}
           embedInListHeader={embedInListHeader}
           border="light"
           silverKeyCalendarId={silverKeyCalendarIdRef.current}
@@ -307,6 +408,7 @@ export function UpcomingEvents({
           calendars={scopedCalendars}
         />
       )}
+      {completedTodosModalEl}
     </Box>
   );
   return sectionTitle ? wrapWithSectionTitle(list) : list;

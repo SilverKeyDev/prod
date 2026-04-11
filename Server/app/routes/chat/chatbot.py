@@ -5,12 +5,14 @@ import traceback
 from flask import Blueprint, jsonify, request
 
 from app.models import ChatHistory
+from app.schemas import ChatbotResponse, ChatbotSendRequest
 from app.services.auth import get_current_user
 from app.services.chatbot.chatbot_utils import (
     get_chat_response,
     get_preferences,
     summarize_user_message,
 )
+from app.utils.validation import validate_request, validate_response
 
 from ... import db
 from ...utils.security.app_logging import get_logger
@@ -24,7 +26,9 @@ chatbot_bp = Blueprint("chatbot", __name__)
 
 
 @chatbot_bp.route("/api/v1/chat/address/<string:report_id>", methods=["POST"])
-def chat_for_address(report_id):
+@validate_request(ChatbotSendRequest)
+@validate_response(ChatbotResponse)
+def chat_for_address(report_id, data: ChatbotSendRequest | None = None):
     try:
         try:
             user = get_current_user()
@@ -33,7 +37,11 @@ def chat_for_address(report_id):
             logger.error(f"[CHAT_ROUTE] Authentication failed: {str(auth_error)}")
             return jsonify({"error": "Authentication required"}), 401
 
-        user_message = request.json.get("message", "").strip() if request.json else ""
+        if data is None:
+            raw = request.get_json(silent=True) or {}
+            user_message = str(raw.get("message") or "").strip()
+        else:
+            user_message = str(data.message or "").strip()
 
         if not user_message:
             logger.warning(f"[CHAT_ROUTE] Empty message received from user {user_id}")
@@ -116,7 +124,7 @@ def chat_for_address(report_id):
             {
                 "response": reply,
                 "function_call": function_call,
-                "message_id": ai_chat.id,
+                "message_id": str(ai_chat.id),
                 "message_summary": message_summary,
             }
         )

@@ -38,13 +38,13 @@ Invariants:
 
 1. **Attaching forms and creating agreements**
    - Agent uses the documents UI to:
-     - Choose forms/templates (via SkySlope; see dedicated doc).
+     - Choose **DocuSign** templates and/or upload PDFs (revisions stored in **S3**); see `integrations/09-documents-docusign-and-s3.md`.
      - Create one or more `Agreement` records linked to a `Transaction`.
    - System creates `AgreementLink` entries and associates them with the correct checklist items/milestones.
 
 2. **Sending for signature**
    - Agent initiates signing via:
-     - `SignatureProvider` (SkySlope-backed in v1).
+     - **DocuSign** (`Server/app/services/docusign/`), with `SignatureProvider` as the abstraction where used.
    - Relevant checklist items move to `in_progress`.
 
 3. **Signature status updates**
@@ -73,9 +73,9 @@ Invariants:
 - **Signature abstraction**
   - `Server/app/services/signature/base.py`:
     - Defines `SignatureProvider`, `SignatureRequest`, and `SignatureRecipient`.
-    - Currently uses `NoOpSignatureProvider` as a stub while migrating to SkySlope.
-  - This should be **extended**, not bypassed, to support SkySlope:
-    - Preserve provider-agnostic interface where possible.
+    - Uses `NoOpSignatureProvider` when DocuSign is not fully configured.
+  - **DocuSign** is the concrete signing implementation:
+    - `Server/app/services/docusign/` and routes under `Server/app/routes/documents/docusign/`.
 
 - **Agreement models and APIs**
   - `Server/app/models/documents/agreement.py` and `agreement_participant.py`:
@@ -84,8 +84,8 @@ Invariants:
     - These should be extended with transaction context and additional fields needed for checklist links.
 
 - **Client documents and signature UI**
-  - `Client/packages/features/documents/hooks/data/useAgreementSignature.ts`:
-    - Currently returns a provider-agnostic “unconfigured” status; will be the main hook for signature state.
+  - `Client/packages/features/documents/hooks/data/useDocusignAgreement.ts`, `useDocusignActions.ts`, `useDocusignAgreements.ts`, and related hooks:
+    - Drive signing state and actions against DocuSign-backed APIs.
   - `Client/packages/features/documents/components/*`:
     - `AgreementListItem`, `AgreementCard`, `AgreementDetailModal`, etc.
   - These should be extended with:
@@ -106,11 +106,11 @@ Invariants:
       - Agreement status changes.
       - Review actions occur.
 
-- **SkySlope-backed SignatureProvider implementation**
-  - Concrete implementation of `SignatureProvider` that:
-    - Creates SkySlope signing envelopes/transactions.
-    - Maps SkySlope statuses into our normalized agreement statuses.
-    - Supports URL generation and cancellation.
+- **Transaction-scoped DocuSign UX**
+  - Ensure all document/signing flows pass **transaction context** where the product requires checklist linkage end-to-end.
+
+- **Checklist ↔ agreement sync edge cases**
+  - Harden webhook/Celery ordering, retries, and idempotency so agreement status and checklist completion stay consistent.
 
 - **Review UX and APIs**
   - Server:
@@ -119,4 +119,3 @@ Invariants:
     - UI surfaces near checklist and document detail views to:
       - Request review.
       - Approve or request changes.
-

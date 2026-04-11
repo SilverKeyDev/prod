@@ -7,6 +7,8 @@ from collections.abc import Callable
 
 from botocore.exceptions import ClientError
 
+from ..utils.code_delivery import normalize_cognito_code_delivery
+
 logger = logging.getLogger(__name__)
 
 
@@ -97,7 +99,7 @@ def forgot_password(
             )
         return {
             "success": True,
-            "code_delivery": code_delivery,
+            "code_delivery": normalize_cognito_code_delivery(code_delivery),
             "delivery_medium": delivery_medium,
             "destination": destination,
             "attribute_name": attribute_name,

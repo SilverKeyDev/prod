@@ -4,8 +4,10 @@ import traceback
 
 from flask import current_app, jsonify, make_response
 
+from app.schemas.generated import SuccessResponse
 from app.services.auth.flows import handle_refresh_token
 from app.services.auth.utils import clear_auth_cookies, create_error_response, generate_request_id
+from app.utils.validation import validate_response
 
 
 def refresh_token():
@@ -30,6 +32,7 @@ def refresh_token():
         return jsonify(error_response), status_code
 
 
+@validate_response(SuccessResponse)
 def logout():
     """Logout user and clear HttpOnly cookies"""
     try:

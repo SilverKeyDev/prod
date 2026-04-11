@@ -56,19 +56,29 @@ export default function DashboardLayout({
     const from = prevRef.current;
     const toPathname = location.pathname;
     const toActiveKey = route.activeKey;
-    log.debug(LOG_CATEGORIES.ROUTING, "[NAV] DashboardLayout mounted or location changed", {
-      from: from.pathname,
-      to: toPathname,
-      fromActiveKey: from.activeKey,
-      toActiveKey: toActiveKey,
-      isFullHeightRoute: route.isFullHeightRoute,
-      isSearch: route.isSearch,
-    });
+    log.debug(
+      LOG_CATEGORIES.ROUTING,
+      "[NAV] DashboardLayout mounted or location changed",
+      {
+        from: from.pathname,
+        to: toPathname,
+        fromActiveKey: from.activeKey,
+        toActiveKey: toActiveKey,
+        isFullHeightRoute: route.isFullHeightRoute,
+        isSearch: route.isSearch,
+      },
+    );
     prevRef.current = { pathname: toPathname, activeKey: toActiveKey };
-  }, [location.pathname, route.activeKey, route.isFullHeightRoute, route.isSearch]);
+  }, [
+    location.pathname,
+    route.activeKey,
+    route.isFullHeightRoute,
+    route.isSearch,
+  ]);
 
   // Mobile header slot (e.g. messaging header). Cleared when navigating to dashboard.
-  const [mobileHeaderActions, setMobileHeaderActions] = useState<ReactNode | null>(null);
+  const [mobileHeaderActions, setMobileHeaderActions] =
+    useState<ReactNode | null>(null);
   React.useEffect(() => {
     if (isDashboard) setMobileHeaderActions(null);
   }, [isDashboard]);
@@ -117,8 +127,10 @@ export default function DashboardLayout({
         <main
           id="main-content"
           tabIndex={-1}
-          className={`relative z-0 ml-0 min-w-0 flex-1 transition-all duration-200 md:ml-0 max-md:pb-mobile-nav ${
-            isFullHeightRoute ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
+          className={`max-md:pb-mobile-nav relative z-0 ml-0 min-w-0 flex-1 transition-all duration-200 md:ml-0 ${
+            isFullHeightRoute
+              ? "flex h-full min-h-0 flex-col overflow-hidden"
+              : ""
           }`}
         >
           <DashboardHeader

@@ -4,6 +4,7 @@
 
 import { getMapFocusedProperty } from "packages/features/search/types/search/mapCardFocus";
 import { calculatePropertyCardCenter } from "packages/features/search/types/search/propertyCardCenter";
+import { applyListingFocusCamera } from "packages/features/search/utils/googleMaps/mapCamera";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
 import { getWindow } from "packages/utils/platform";
@@ -23,8 +24,15 @@ export type EnsureIsochroneParams = {
   onRenderImportant: (data: unknown) => void;
 };
 
-export async function ensureIsochroneAndRender(params: EnsureIsochroneParams): Promise<void> {
-  const { isochroneData, setIsochroneData, fetchIsochroneForMapOnly, onRenderImportant } = params;
+export async function ensureIsochroneAndRender(
+  params: EnsureIsochroneParams,
+): Promise<void> {
+  const {
+    isochroneData,
+    setIsochroneData,
+    fetchIsochroneForMapOnly,
+    onRenderImportant,
+  } = params;
   if (isochroneData) {
     onRenderImportant(isochroneData);
     return;
@@ -39,7 +47,7 @@ export async function ensureIsochroneAndRender(params: EnsureIsochroneParams): P
 export function centerMapOnFocusedProperty(
   results: SearchResult[],
   currentPage: number,
-  googleMapRef: MapRef
+  googleMapRef: MapRef,
 ): void {
   const focusedProperty = getMapFocusedProperty(results, currentPage);
   if (
@@ -53,10 +61,9 @@ export function centerMapOnFocusedProperty(
   const center = calculatePropertyCardCenter(
     focusedProperty.lat,
     focusedProperty.lng,
-    focusedProperty.id
+    focusedProperty.id,
   );
-  googleMapRef.current.setCenter(center);
-  googleMapRef.current.setZoom(13);
+  applyListingFocusCamera(googleMapRef.current, center);
 }
 
 export function getAdvancedMarkerElement():
@@ -65,13 +72,14 @@ export function getAdvancedMarkerElement():
       position: { lat: number; lng: number };
       title: string;
       content: HTMLElement;
+      zIndex?: number | null;
     }) => GoogleAdvancedMarkerElement)
   | null {
   const win = getWindow() as (Window & { google: typeof google }) | null;
   if (!win?.google?.maps?.marker?.AdvancedMarkerElement) {
     log.error(
       LOG_CATEGORIES.MAP_RENDERING,
-      "❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update"
+      "❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update",
     );
     return null;
   }
@@ -80,5 +88,6 @@ export function getAdvancedMarkerElement():
     position: { lat: number; lng: number };
     title: string;
     content: HTMLElement;
+    zIndex?: number | null;
   }) => GoogleAdvancedMarkerElement;
 }

@@ -10,8 +10,6 @@ Now supports HTML rendering via React Email components.
 import logging
 from typing import Any
 
-from app.models import HomeUniversal
-
 logger = logging.getLogger(__name__)
 
 # Import HTML renderer (optional - used only when HTML_RENDERING_AVAILABLE is True)
@@ -83,13 +81,13 @@ class EmailFormatter:
             self.use_llm = False
 
     def format_listings_text(
-        self, listings: list[HomeUniversal], max_items: int = 10, user_id: str | None = None
+        self, listings: list[Any], max_items: int = 10, user_id: str | None = None
     ) -> str:
         """
         Format a list of homes into plaintext email body content.
 
         Args:
-            listings: List of HomeUniversal objects to format
+            listings: List of property-like objects (must have address, price, beds, baths, sqft, score)
             max_items: Maximum number of listings to include
             user_id: Optional user ID for future LLM personalization
 
@@ -161,7 +159,7 @@ class EmailFormatter:
     def format_email_message(
         self,
         recipient_email: str,
-        listings: list[HomeUniversal],
+        listings: list[Any],
         user_id: str | None = None,
         max_items: int = 10,
         custom_subject: str | None = None,
@@ -172,7 +170,7 @@ class EmailFormatter:
 
         Args:
             recipient_email: Email address of recipient
-            listings: List of HomeUniversal objects to include
+            listings: List of property-like objects to include
             user_id: Optional user ID for future personalization
             max_items: Maximum number of listings to include
             custom_subject: Optional custom subject line (overrides default)
@@ -226,7 +224,7 @@ class EmailFormatter:
     def format_email_with_llm(
         self,
         recipient_email: str,
-        listings: list[HomeUniversal],
+        listings: list[Any],
         user_data: dict[str, Any],
         max_items: int = 10,
     ) -> tuple[str, str, str]:
@@ -238,7 +236,7 @@ class EmailFormatter:
 
         Args:
             recipient_email: Email address of recipient
-            listings: List of HomeUniversal objects to include
+            listings: List of property-like objects to include
             user_data: User data dict for personalization
             max_items: Maximum number of listings to include
 
@@ -287,7 +285,7 @@ class EmailFormatter:
 
 
 def format_email_messages(
-    user_listings: list[tuple[str, str, list[HomeUniversal]]],
+    user_listings: list[tuple[str, str, list[Any]]],
     max_items_per_user: int = 10,
     use_llm: bool = False,
     use_html: bool = True,

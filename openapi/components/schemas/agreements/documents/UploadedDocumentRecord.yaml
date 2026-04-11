@@ -1,0 +1,41 @@
+type: object
+description: >
+  Row from the `documents` table / GET /api/v1/report/documents — file storage and processing
+  pipeline (upload, processing, report generation). Distinct from dashboard workflow docs and
+  unified library rows.
+required:
+  - document_record_kind
+  - id
+  - filename
+  - file_path
+  - status
+  - user_id
+properties:
+  document_record_kind:
+    type: string
+    const: pipeline
+    description: Discriminator for OpenAPI tooling; always `pipeline` for documents-table / pipeline rows.
+  id:
+    type: string
+  filename:
+    type: string
+  file_path:
+    type: string
+  status:
+    type: string
+    description: Pipeline state for the stored file (DB allows additional legacy values).
+    enum: [uploaded, processing, processed, error, generating]
+  user_id:
+    type: string
+  created_at:
+    type: string
+    nullable: true
+  updated_at:
+    type: string
+    nullable: true
+  document_type:
+    type: string
+    nullable: true
+  address:
+    type: string
+    nullable: true

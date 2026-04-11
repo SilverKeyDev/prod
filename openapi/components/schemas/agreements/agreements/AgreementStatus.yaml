@@ -1,0 +1,11 @@
+type: string
+description: |
+  Internal agreement lifecycle (aligned with DocuSign envelope progression):
+  - `draft`: Built locally, not yet sent to signers
+  - `sent`: Envelope dispatched to recipients
+  - `delivered`: At least one recipient has opened the envelope
+  - `signed`: All required signatures captured (may still be processing)
+  - `completed`: Envelope finished and artifacts stored
+  - `voided`: Canceled per agent or system; not legally effective
+  - `declined`: A recipient explicitly declined to sign
+enum: [draft, sent, delivered, signed, completed, voided, declined]

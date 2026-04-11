@@ -1,0 +1,7 @@
+allOf:
+  - $ref: '../core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      config:
+        $ref: './ServerLoggerConfig.yaml'
+        nullable: true

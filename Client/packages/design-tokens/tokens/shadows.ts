@@ -2,7 +2,7 @@
  * Shared shadow tokens (platform-agnostic).
  * Values are numeric; platform adapters (shadows.native.ts, shadows.web.ts) map to
  * RN StyleSheet shadow props or CSS box-shadow.
- * No React, no platform imports — pure data.
+ * No React, no platform imports - pure data.
  */
 
 export type ShadowToken = {

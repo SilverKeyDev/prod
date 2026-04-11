@@ -1,0 +1,340 @@
+# OpenAPI Type Management
+
+## Overview
+
+The SilverKey codebase uses a centralized OpenAPI 3.1.0 specification as the single source of truth for all API types. TypeScript types are auto-generated from this specification.
+
+## File Structure
+
+```
+/
+├── openapi/
+│   ├── openapi.yaml                      # Main spec with $ref to components
+│   └── components/
+│       └── schemas/                      # Modular schema definitions by domain
+│           ├── agent/                    # Agent workspace schemas
+│           ├── auth/                     # Authentication schemas
+│           ├── calendar/                 # Calendar and events
+│           ├── search/                   # Property search
+│           ├── user/                     # User-related schemas
+│           └── shared/                   # Shared/common types
+├── Server/
+│   ├── scripts/
+│   │   └── generate-pydantic-models.sh   # Backend codegen script
+│   └── app/schemas/
+│       └── generated.py                  # 🔥 AUTO-GENERATED (DO NOT EDIT)
+└── Client/
+    ├── scripts/
+    │   └── generate-api-types.sh         # Frontend codegen script
+    ├── package.json                       # Contains generate:api-types script
+    └── packages/
+        └── types/
+            └── api.generated.ts           # 🔥 AUTO-GENERATED (DO NOT EDIT)
+```
+
+**Note**: Schemas are organized in separate YAML files under `openapi/components/schemas/` by domain. See `openapi-schema-organization.mdc` for details on file organization.
+
+## Rules
+
+### 1. Never Edit Generated Types
+
+**FORBIDDEN:**
+```typescript
+// ❌ NEVER edit this file
+// Client/packages/types/api.generated.ts
+export interface components {
+  schemas: {
+    User: { ... } // DO NOT MODIFY
+  }
+}
+```
+
+**CORRECT:**
+```yaml
+# ✅ Edit openapi.yaml instead
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        # ... more fields
+```
+
+### 2. Adding or Modifying API Types
+
+**Always follow this workflow:**
+
+1. **Edit the OpenAPI schema:**
+   ```bash
+   # Option A: Edit individual schema file
+   vim openapi/components/schemas/user/profile/UserProfile.yaml
+
+   # Option B: Edit main spec
+   vim openapi/openapi.yaml
+   ```
+
+2. **Validate the spec:**
+   ```bash
+   swagger-cli validate openapi/openapi.yaml
+   ```
+
+3. **Regenerate types:**
+   ```bash
+   # Client (TypeScript)
+   cd Client
+   pnpm generate:api-types
+
+   # Server (Pydantic)
+   cd Server
+   bash scripts/generate-pydantic-models.sh
+   ```
+
+4. **Use the generated types:**
+   ```typescript
+   import type { components } from "packages/types/api.generated";
+
+   type User = components["schemas"]["UserProfile"];
+   ```
+
+### 3. Never Add Types to Shim Files
+
+Many existing type files are now "shims" that re-export from `api.generated.ts`. **Do not add new types to these files.**
+
+**Shim files are marked with this header:**
+```typescript
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
+```
+
+**FORBIDDEN:**
+```typescript
+// ❌ NEVER add types to shimmed files
+// Client/packages/api/admin.ts
+
+export type NewType = { ... }; // WRONG!
+```
+
+**CORRECT:**
+```yaml
+# ✅ Add to openapi.yaml
+components:
+  schemas:
+    NewType:
+      type: object
+      properties:
+        # ... fields
+```
+
+### 4. Marking Unverified Backend Behavior
+
+When the backend contract is ambiguous or unverified, use `x-unverified: true`:
+
+```yaml
+components:
+  schemas:
+    MySchema:
+      properties:
+        someField:
+          type: string
+          nullable: true
+          x-unverified: true
+          description: "TODO: Verify with backend - observed in responses but not documented"
+```
+
+### 5. Import Patterns
+
+**Prefer direct imports from generated schema:**
+```typescript
+// ✅ PREFERRED: Direct import from generated schema
+import type { components } from "packages/types/api.generated";
+type User = components["schemas"]["UserProfile"];
+```
+
+**Shimmed imports still work (backward compatibility):**
+```typescript
+// ✅ STILL WORKS: Import from shimmed file
+import type { User } from "packages/features/homeauth/types/auth/user";
+```
+
+## Common Tasks
+
+### Adding a New API Type
+
+1. **Define in openapi.yaml:**
+   ```yaml
+   components:
+     schemas:
+       NewFeatureRequest:
+         type: object
+         required:
+           - field1
+           - field2
+         properties:
+           field1:
+             type: string
+           field2:
+             type: number
+   ```
+
+2. **Regenerate types:**
+   ```bash
+   cd Client && pnpm generate:api-types
+   ```
+
+3. **Use in code:**
+   ```typescript
+   import type { components } from "packages/types/api.generated";
+
+   type NewFeatureRequest = components["schemas"]["NewFeatureRequest"];
+
+   export const featureApi = {
+     create: (data: NewFeatureRequest) => apiPost("/api/feature", data)
+   };
+   ```
+
+### Modifying an Existing Type
+
+1. **Find the schema in openapi.yaml:**
+   ```bash
+   grep -n "UserProfile:" openapi.yaml
+   ```
+
+2. **Edit the schema:**
+   ```yaml
+   UserProfile:
+     properties:
+       newField:  # Add new field
+         type: string
+         nullable: true
+   ```
+
+3. **Regenerate and verify:**
+   ```bash
+   cd Client && pnpm generate:api-types
+   pnpm typecheck
+   ```
+
+### Creating a New API Module
+
+When creating a new API client module, follow the shim pattern:
+
+```typescript
+// Client/packages/features/myfeature/api/myapi.ts
+
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ */
+
+import type { components } from "packages/types/api.generated";
+import { apiGet, apiPost } from "packages/services/http/compatibility";
+
+// Re-export types from generated schema
+export type MyFeatureRequest = components["schemas"]["MyFeatureRequest"];
+export type MyFeatureResponse = components["schemas"]["MyFeatureResponse"];
+
+// API client implementation
+export const myFeatureApi = {
+  get: () => apiGet<MyFeatureResponse>("/api/myfeature"),
+  create: (data: MyFeatureRequest) => apiPost<MyFeatureResponse>("/api/myfeature", data),
+};
+```
+
+## Verification
+
+After regenerating types, always verify:
+
+```bash
+cd Client
+
+# Type check
+pnpm typecheck
+
+# Lint check
+pnpm lint
+
+# Build check
+pnpm build:web
+```
+
+## Common Issues
+
+### Issue: Type not found in api.generated.ts
+**Solution:** The schema might not be defined in `openapi.yaml`. Add it and regenerate.
+
+### Issue: Shim file has "Type 'X' does not satisfy..."
+**Solution:** The OpenAPI schema definition doesn't match the shim re-export. Update `openapi.yaml` to match the expected shape.
+
+### Issue: Import path breaks after shimming
+**Solution:** This shouldn't happen - shims preserve all import paths. If it does, check that the shim correctly re-exports the type.
+
+### Issue: Build fails with "Cannot find module 'api.generated'"
+**Solution:** Run `pnpm generate:api-types` to create the generated types file.
+
+## Backend Integration
+
+### Phase 3 (Future): Backend Pydantic Validation
+
+⚠️ **DO NOT** proceed without backend validation. The OpenAPI spec contains many `x-unverified: true` fields that need manual verification against Python backend code.
+
+**Tasks:**
+1. Review each `x-unverified: true` field in `openapi.yaml`
+2. Cross-reference with Python route handlers and models
+3. Update OpenAPI schema with verified contracts
+4. Regenerate types: `pnpm generate:api-types`
+
+### Phase 4 (Future): Generate Backend Models
+
+Use `datamodel-code-generator` to generate Pydantic models from `openapi.yaml`:
+
+```bash
+# Install datamodel-code-generator
+pip install datamodel-code-generator
+
+# Generate Pydantic models
+datamodel-code-generator \
+  --input openapi.yaml \
+  --output Server/app/models/generated/ \
+  --output-model-type pydantic_v2.BaseModel \
+  --use-standard-collections \
+  --use-union-operator
+```
+
+## Reference
+
+- **OpenAPI Organization:** `.cursor/rules/shared/openapi-schema-organization.mdc`
+- **Editing Patterns:** `.cursor/rules/shared/openapi-editing-patterns.mdc`
+- **CI Workflow:** `.cursor/rules/shared/openapi-workflow.mdc`
+- **Main Spec:** `openapi/openapi.yaml`
+- **Schema Components:** `openapi/components/schemas/`
+- **Generated Client Types:** `Client/packages/types/api.generated.ts`
+- **Generated Server Schemas:** `Server/app/schemas/generated.py`
+
+## Summary
+
+1. ✅ **DO:** Edit `openapi.yaml` for all API type changes
+2. ✅ **DO:** Regenerate with `pnpm generate:api-types`
+3. ✅ **DO:** Import from `api.generated.ts` or shimmed files
+4. ❌ **DON'T:** Edit `api.generated.ts` manually
+5. ❌ **DON'T:** Add types to shimmed files
+6. ❌ **DON'T:** Skip regeneration after editing `openapi.yaml`

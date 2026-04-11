@@ -8,25 +8,32 @@ from typing import cast
 
 from flask import Response, current_app, jsonify, request
 
+from app.schemas import AuthResponse, ForgotPasswordData, ResetPasswordData, SuccessResponse
 from app.services.auth.core import AWS_COGNITO_service
 from app.services.auth.flows import ensure_cognito_account_for_user
 from app.services.auth.utils import (
     create_error_response,
     generate_request_id,
     mask_email,
-    validate_required_fields,
 )
+from app.utils.validation import validate_request, validate_response
 
 
-def forgot_password():
+@validate_request(ForgotPasswordData)
+@validate_response(SuccessResponse)
+def forgot_password(data: ForgotPasswordData | None = None):
     """Initiate forgot password flow"""
     request_id = generate_request_id("forgot_password")
-    data = request.get_json()
-    is_valid, error_msg = validate_required_fields(data, ["email"])
-    if not is_valid:
-        error_response, status_code = create_error_response("MISSING_EMAIL", "Email is required")
-        return jsonify(error_response), status_code
-    email = data["email"]
+    if data is None:
+        request_data = request.get_json()
+        if not request_data or "email" not in request_data:
+            error_response, status_code = create_error_response(
+                "MISSING_EMAIL", "Email is required"
+            )
+            return jsonify(error_response), status_code
+    else:
+        request_data = data.model_dump()
+    email = request_data["email"]
     masked_email = mask_email(email)
     current_app.logger.info(
         "FORGOT_PASSWORD_START", extra={"request_id": request_id, "email": masked_email}
@@ -266,24 +273,40 @@ def forgot_password():
     )
 
 
-def reset_password():
+@validate_request(ResetPasswordData)
+@validate_response(AuthResponse)
+def reset_password(data: ResetPasswordData | None = None):
     """Confirm forgot password with code, set new password, and auto-login"""
     request_id = generate_request_id("reset_password")
-    data = request.get_json()
     start_time = time.time()
-    is_valid, error_msg = validate_required_fields(data, ["email", "code", "new_password"])
-    if not is_valid:
-        error_response, status_code = create_error_response(
-            "MISSING_FIELDS", "Email, code, and new password are required"
-        )
-        return jsonify(error_response), status_code
-    email = data["email"]
+    if data is None:
+        request_data = request.get_json()
+        if not request_data or not all(
+            k in request_data for k in ["email", "code", "new_password"]
+        ):
+            error_response, status_code = create_error_response(
+                "MISSING_FIELDS", "Email, code, and new password are required"
+            )
+            return jsonify(error_response), status_code
+    else:
+        # Extract SecretStr new_password value for Cognito
+        email = data.email
+        code = data.code
+        new_password = data.new_password.get_secret_value()
+        request_data = {
+            "email": email,
+            "code": code,
+            "new_password": new_password,
+        }
+    email = request_data["email"]
     masked_email = mask_email(email)
     current_app.logger.info(
         "RESET_PASSWORD_START", extra={"request_id": request_id, "email": masked_email}
     )
     result = AWS_COGNITO_service.confirm_forgot_password(
-        username=email, confirmation_code=data["code"], new_password=data["new_password"]
+        username=email,
+        confirmation_code=request_data["code"],
+        new_password=request_data["new_password"],
     )
     if not result["success"]:
         duration_ms = int((time.time() - start_time) * 1000)
@@ -313,7 +336,9 @@ def reset_password():
             decode_cognito_token,
         )
 
-        login_result = AWS_COGNITO_service.sign_in(username=email, password=data["new_password"])
+        login_result = AWS_COGNITO_service.sign_in(
+            username=email, password=request_data["new_password"]
+        )
         if not login_result["success"]:
             duration_ms = int((time.time() - start_time) * 1000)
             current_app.logger.warning(

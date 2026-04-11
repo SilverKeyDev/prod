@@ -3,7 +3,7 @@ Permission checking and management for Google Calendar
 """
 
 from .constants import permissions
-from .helpers import (
+from .google_calendar_oauth import (
     check_multiple_permissions,
     check_permission,
     get_missing_permissions,

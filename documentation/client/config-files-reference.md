@@ -13,7 +13,7 @@ All paths below are relative to **`Client/`**.
 | **tsconfig.base.json** | Defines shared `baseUrl`, `paths` (aliases like `@/*`, `@ui`, `logger`, `packages/*`) and `exclude`. No `compilerOptions` for target/lib — those live in the app config. | **Yes.** Single source for path aliases used by the app and by tooling. | No — other configs extend it. |
 | **apps/web/tsconfig.json** | Entry point for **typecheck** and **IDE**: extends base, adds `module`/`moduleResolution`/`types`, and **project references** to the two configs in `packages/config/tsconfig/`. | **Yes.** Used by `pnpm typecheck` and editors. | No — it’s the thin orchestrator. |
 | **packages/config/tsconfig/tsconfig.app.json** | **Main app + packages** config: strict options, `include` for `apps/web`, all shared packages, and `packages/config/vite-env.d.ts`. Used by **madge** (`lint:cycles`) and by Vite’s type-aware tooling. | **Yes.** Defines the real “app + packages” boundary and strict compiler options. | No — this is the heavy, canonical app config. |
-| **packages/config/tsconfig/tsconfig.node.json** | **Node/Vite config** only: `include` is just `apps/web/vite.config.ts`. Used so `vite.config.ts` is type-checked with Node-friendly settings (e.g. `moduleResolution: "bundler"`). | **Yes.** Keeps `vite.config.ts` in the reference graph without pulling in React/DOM. | No — different “environment” (Node vs browser). |
+| **packages/config/tsconfig/tsconfig.node.json** | **Node/Vite config** only: `include` is just `apps/web/vite.config.js`. Used so `vite.config.js` is type-checked with Node-friendly settings (e.g. `moduleResolution: "bundler"`). | **Yes.** Keeps `vite.config.js` in the reference graph without pulling in React/DOM. | No — different “environment” (Node vs browser). |
 
 **Summary**
 
@@ -47,7 +47,8 @@ All in **`Client/apps/web/`**. Only one file exists (recommendations applied).
 
 | File | Purpose | Necessary? | Can merge? |
 |------|---------|------------|------------|
-| **vite.config.ts** | **Canonical config**: root, base, plugins (React), envDir, publicDir, PostCSS, server (port, proxy, HMR), optimizeDeps, build (target, rollup manualChunks, aliases), resolve (alias, extensions, dedupe). Referenced by `package.json` (`vite --config vite.config.ts`). | **Yes.** This is the single source of truth for the Vite build. | N/A. |
+| **vite.config.js** | **Canonical config**: root, base, plugins (React, React Native stubbing, process shim), envDir, publicDir, PostCSS, server (port, proxy, HMR), optimizeDeps, build (target, rollup manualChunks, aliases), resolve (via `buildWebViteResolve` from `vite.config.resolve.js`). Referenced by `package.json` (`vite --config vite.config.js`). | **Yes.** This is the single source of truth for the Vite build. | N/A. |
+| **vite.config.resolve.js** | **Resolve helper**: Extracted `buildWebViteResolve()` function defining all path aliases, extensions, and dedupe settings. Keeps the main config under the max-lines-per-function limit. | **Yes.** Imported by `vite.config.js`. | N/A. |
 
 ---
 
@@ -67,7 +68,7 @@ All in **`Client/apps/web/`**. Only one file exists (recommendations applied).
 |------|--------|
 | **tsconfig** | Done. Four configs in use; optional root `tsconfig.json` removed. Clear split: base (paths) → app (references) → app + node configs. |
 | **package.json** | No change required. Root + app + two packages; workspace yaml in place. |
-| **Vite** | Done. Only `vite.config.ts` remains; duplicates removed. |
+| **Vite** | Done. Only `vite.config.js` and `vite.config.resolve.js` remain; duplicates removed. |
 | **Tailwind** | Done. Only `tailwind.config.ts` remains; duplicate removed. |
 
 ---
@@ -81,16 +82,17 @@ Client/
 ├── tsconfig.base.json        → path aliases (@/*, @ui, logger, packages/*)
 │
 ├── apps/web/
-│   ├── package.json          → vite --config vite.config.ts, typecheck, lint
+│   ├── package.json          → vite --config vite.config.js, typecheck, lint
 │   ├── tsconfig.json          → extends base, references → tsconfig.app + tsconfig.node
-│   ├── vite.config.ts         → single Vite config
+│   ├── vite.config.js         → main Vite config (with React Native stubbing, process shim)
+│   ├── vite.config.resolve.js → Vite resolve helpers (extracted to reduce file size)
 │   ├── tailwind.config.ts     → single Tailwind config
 │   └── postcss.config.js      → tailwindcss(), autoprefixer() [no config path → Tailwind finds .ts in same dir]
 │
 └── packages/config/
     ├── tsconfig/
     │   ├── tsconfig.app.json   → full app + packages include; used by madge & tooling
-    │   └── tsconfig.node.json  → only vite.config.ts (Node env)
+    │   └── tsconfig.node.json  → only vite.config.js + vite.config.resolve.js (Node env)
     └── vite-env.d.ts           → included by tsconfig.app; Vite/Google types
 ```
 
@@ -98,6 +100,6 @@ Client/
 
 ## 7. References
 
-- **Path aliases:** `Client/tsconfig.base.json` and `Client/apps/web/vite.config.ts` (resolve.alias) must stay in sync for builds and types.
+- **Path aliases:** `Client/tsconfig.base.json` and `Client/apps/web/vite.config.js` (resolve.alias) must stay in sync for builds and types.
 - **Lint/typecheck:** `.cursor/rules/shared/ci-gates.mdc` — typecheck and lint:cycles are required; they depend on `apps/web/tsconfig.json` and `tsconfig.app.json`.
 - **Design tokens:** `Client/packages/design-tokens/README.md` — Tailwind and others consume this; `tailwind.config.ts` imports from it.

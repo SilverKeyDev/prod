@@ -1,5 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -9,65 +12,71 @@ class CalendarEvent(db.Model):
 
     __tablename__ = "calendar_events"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    calendar_id = db.Column(
-        db.String(255), nullable=True
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    calendar_id: Mapped[str | None] = mapped_column(
+        db.String(255)
     )  # Google Calendar ID (e.g., "primary" or calendar ID)
 
     # Event identification
-    google_event_id = db.Column(
-        db.String(255), unique=True, nullable=True
+    google_event_id: Mapped[str | None] = mapped_column(
+        db.String(255), unique=True
     )  # Google Calendar event ID
-    summary = db.Column(db.String(500), nullable=False)  # Event title
-    description = db.Column(db.Text, nullable=True)
-    location = db.Column(db.String(500), nullable=True)
+    summary: Mapped[str] = mapped_column(db.String(500))  # Event title
+    description: Mapped[str | None] = mapped_column(db.Text)
+    location: Mapped[str | None] = mapped_column(db.String(500))
 
     # Event type/category
-    event_type = db.Column(
-        db.String(100), nullable=True
+    event_type: Mapped[str | None] = mapped_column(
+        db.String(100)
     )  # e.g., "property_viewing", "inspection", "closing", "meeting", etc.
 
     # Creator information
-    creator_id = db.Column(
-        db.String(36), db.ForeignKey("users.id"), nullable=False
+    creator_id: Mapped[str] = mapped_column(
+        db.ForeignKey("users.id")
     )  # ID of user who created the event
 
     # Calendar sharing information
-    target_user_id = db.Column(
-        db.String(36), db.ForeignKey("users.id"), nullable=True
+    target_user_id: Mapped[str | None] = mapped_column(
+        db.ForeignKey("users.id")
     )  # ID of user whose calendar the event was created in (if different from creator)
-    shared_with_user_ids = db.Column(
-        db.JSON, nullable=True
+    shared_with_user_ids: Mapped[list[Any] | None] = mapped_column(
+        db.JSON
     )  # Array of user IDs the event is shared with (for tracking bidirectional sharing with multiple users)
 
-    # Date and time
-    start_datetime = db.Column(db.DateTime, nullable=False)
-    end_datetime = db.Column(db.DateTime, nullable=False)
-    timezone = db.Column(db.String(100), default="UTC")
+    # Date and time (all-day Google events: naive UTC, start=midnight first day, end=last inclusive day 23:59:59.999999)
+    start_datetime: Mapped[datetime] = mapped_column(db.DateTime)
+    end_datetime: Mapped[datetime] = mapped_column(db.DateTime)
+    timezone: Mapped[str] = mapped_column(db.String(100), default="UTC")
 
     # Duration (calculated field, stored for convenience)
-    duration_minutes = db.Column(db.Integer, nullable=True)  # Duration in minutes
+    duration_minutes: Mapped[int | None] = mapped_column(db.Integer)  # Duration in minutes
 
     # Attendees (stored as JSON)
-    attendees = db.Column(
-        db.JSON, nullable=True
+    attendees: Mapped[list[Any] | None] = mapped_column(
+        db.JSON
     )  # List of attendee objects with email, displayName, etc.
 
     # Reminders
-    reminders = db.Column(db.JSON, nullable=True)  # Reminder settings
+    reminders: Mapped[dict[str, Any] | None] = mapped_column(db.JSON)  # Reminder settings
 
     # Event status
-    status = db.Column(db.String(50), default="confirmed")  # confirmed, tentative, cancelled
+    status: Mapped[str] = mapped_column(
+        db.String(50), default="confirmed"
+    )  # confirmed, tentative, cancelled
 
     # Sync information
-    is_synced = db.Column(db.Boolean, default=False)
-    last_synced_at = db.Column(db.DateTime, nullable=True)
-    sync_source = db.Column(db.String(50), default="google")  # google, local, etc.
+    is_synced: Mapped[bool] = mapped_column(default=False)
+    last_synced_at: Mapped[datetime | None] = mapped_column(db.DateTime)
+    sync_source: Mapped[str] = mapped_column(db.String(50), default="google")  # google, local, etc.
 
     # Metadata
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationships
     user = db.relationship(

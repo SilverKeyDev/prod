@@ -38,10 +38,11 @@ export function MapControlsNative({
   const bottom = insets.bottom + CONTROLS_BOTTOM_OFFSET;
 
   const showNavigation = total > perPage;
-  const currentItem = Math.min((page + 1) * perPage, total);
+  const currentItem = Math.min(page + perPage, total);
   const isPrevDisabled = page === 0;
-  const isNextDisabled = (page + 1) * perPage >= total;
-  const pageOf = SEARCH_TRANSLATIONS["search.page_of"] ?? "{{current}} of {{total}}";
+  const isNextDisabled = page + perPage >= total;
+  const pageOf =
+    SEARCH_TRANSLATIONS["search.page_of"] ?? "{{current}} of {{total}}";
   const pageLabel = pageOf
     .replace("{{current}}", String(currentItem))
     .replace("{{total}}", String(total));
@@ -52,7 +53,10 @@ export function MapControlsNative({
         <Pressable
           onPress={onZoomOut}
           disabled={disabled}
-          style={[styles.controlButton, disabled && styles.controlButtonDisabled]}
+          style={[
+            styles.controlButton,
+            disabled && styles.controlButtonDisabled,
+          ]}
         >
           <Text className="text-text-secondary text-base font-medium">
             {SEARCH_TRANSLATIONS["search.zoom_out_symbol"] ?? "−"}
@@ -61,7 +65,10 @@ export function MapControlsNative({
         <Pressable
           onPress={onZoomIn}
           disabled={disabled}
-          style={[styles.controlButton, disabled && styles.controlButtonDisabled]}
+          style={[
+            styles.controlButton,
+            disabled && styles.controlButtonDisabled,
+          ]}
         >
           <Text className="text-text-secondary text-base font-medium">
             {SEARCH_TRANSLATIONS["search.zoom_in_symbol"] ?? "+"}
@@ -81,7 +88,9 @@ export function MapControlsNative({
             <Icon name="chevron-left" size={18} color={color("neutral.700")} />
           </Pressable>
           <Box style={styles.pageLabel}>
-            <Text className="text-text-secondary text-xs font-medium">{pageLabel}</Text>
+            <Text className="text-text-secondary text-xs font-medium">
+              {pageLabel}
+            </Text>
           </Box>
           <Pressable
             onPress={onNext}

@@ -21,13 +21,13 @@ import type { SearchPageMapViewProps } from "./SearchPageMapView";
  * when content is rendered inside map/portal-like hierarchies.
  */
 
-const PROPERTIES_PER_PAGE = 1;
-
 type MapProperty = SearchResult;
 
 type NativeSearchPageMapViewProps = SearchPageMapViewProps;
 
-export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Element {
+export function SearchPageMapView(
+  props: NativeSearchPageMapViewProps,
+): JSX.Element {
   const {
     activeTab,
     onTabChange,
@@ -45,6 +45,8 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
     mapZoomIn,
     mapZoomOut,
     isochroneData,
+    showCommuteOverlay = true,
+    mapHomeCardsCount,
   } = props;
 
   const properties = useMemo<MapProperty[]>(() => {
@@ -57,16 +59,22 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
         onTabChange(tab);
       }
     },
-    [activeTab, onTabChange]
+    [activeTab, onTabChange],
   );
 
   const renderPropertyItem: ListRenderItem<MapProperty> = useCallback(
     ({ item }) => {
       return (
-        <Pressable style={styles.propertyCard} onPress={() => onViewPropertyDetails(item)}>
+        <Pressable
+          style={styles.propertyCard}
+          onPress={() => onViewPropertyDetails(item)}
+        >
           <Box style={styles.propertyCardRow}>
             <Box style={styles.propertyCardContent}>
-              <Text className="text-text-primary text-base font-medium" numberOfLines={2}>
+              <Text
+                className="text-text-primary text-base font-medium"
+                numberOfLines={2}
+              >
                 {item.address}
               </Text>
               <Text className="text-primary mt-1 text-sm">{item.price}</Text>
@@ -79,7 +87,7 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
         </Pressable>
       );
     },
-    [onViewPropertyDetails]
+    [onViewPropertyDetails],
   );
 
   useEffect(() => {
@@ -93,13 +101,14 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
 
   const total = properties.length;
   const isLoading = isSearching && !hasSearched && properties.length === 0;
-  const focusedIndex = Math.min(currentPage, Math.max(0, properties.length - 1));
+  const perPage = mapHomeCardsCount;
+  const maxCardStart = Math.max(0, total - perPage);
 
   const handleMarkerSelect = useCallback(
     (index: number) => {
       setCurrentPage(index);
     },
-    [setCurrentPage]
+    [setCurrentPage],
   );
 
   return (
@@ -114,17 +123,17 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
           }
           page={currentPage}
           total={total}
-          perPage={PROPERTIES_PER_PAGE}
+          perPage={perPage}
           onPrev={() => setCurrentPage(Math.max(0, currentPage - 1))}
-          onNext={() => setCurrentPage(Math.min(currentPage + 1, Math.max(0, total - 1)))}
+          onNext={() => setCurrentPage(Math.min(maxCardStart, currentPage + 1))}
           onZoomIn={mapZoomIn}
           onZoomOut={mapZoomOut}
           disabled={!hasSearched}
           isSearching={isSearching}
           properties={properties}
-          focusedIndex={focusedIndex}
           onMarkerSelect={handleMarkerSelect}
           isochroneData={isochroneData}
+          showCommuteOverlay={showCommuteOverlay}
         />
       </Box>
 
@@ -169,10 +178,10 @@ export function SearchPageMapView(props: NativeSearchPageMapViewProps): JSX.Elem
             <Box style={styles.emptyContainer}>
               <Text className="text-text-secondary text-center text-sm">
                 {hasSearched
-                  ? (SEARCH_TRANSLATIONS["search.no_results_try_adjusting"] ??
-                    "No homes match your search yet. Try adjusting your preferences.")
-                  : (SEARCH_TRANSLATIONS["search.run_search_to_see_homes"] ??
-                    "Run a search to see homes that match your profile.")}
+                  ? SEARCH_TRANSLATIONS["search.no_results_try_adjusting"] ??
+                    "No homes match your search yet. Try adjusting your preferences."
+                  : SEARCH_TRANSLATIONS["search.run_search_to_see_homes"] ??
+                    "Run a search to see homes that match your profile."}
               </Text>
             </Box>
           }

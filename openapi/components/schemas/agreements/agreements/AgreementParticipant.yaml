@@ -1,0 +1,61 @@
+type: object
+required:
+  - id
+  - agreement_id
+  - email
+  - name
+  - role
+  - routing_order
+properties:
+  id:
+    type: string
+  agreement_id:
+    type: string
+  user_id:
+    type: string
+    nullable: true
+  email:
+    type: string
+    format: email
+  name:
+    type: string
+  role:
+    $ref: './ParticipantRole.yaml'
+  docusign_recipient_id:
+    type: string
+    nullable: true
+  recipient_id:
+    type: string
+    nullable: true
+  recipient_status:
+    type: string
+    nullable: true
+  status:
+    $ref: './ParticipantStatus.yaml'
+    nullable: true
+  routing_order:
+    type: integer
+  signing_order:
+    type: integer
+    nullable: true
+  sent_at:
+    type: string
+    nullable: true
+  delivered_at:
+    type: string
+    nullable: true
+  signed_at:
+    type: string
+    nullable: true
+  declined_at:
+    type: string
+    nullable: true
+  declined_reason:
+    type: string
+    nullable: true
+  created_at:
+    type: string
+    nullable: true
+  updated_at:
+    type: string
+    nullable: true

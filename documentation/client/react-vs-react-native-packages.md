@@ -184,7 +184,7 @@ When adding a new file under `apps/web`, check this list and the two criteria (w
 
 - Resolves **`.web.tsx`** / **`.web.ts`** when present (e.g. via plugin or default resolver order).
 - For `import './Button'`, if `Button.web.tsx` and `Button.native.tsx` exist, Vite uses **Button.web.tsx**.
-- Build and dev run in `Client/` with config under `apps/web/` (e.g. `apps/web/vite.config.ts`).
+- Build and dev run in `Client/` with config under `apps/web/` (e.g. `apps/web/vite.config.js`).
 
 ### Metro (React Native)
 

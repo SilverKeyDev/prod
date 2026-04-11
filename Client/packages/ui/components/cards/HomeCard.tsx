@@ -8,8 +8,9 @@ import {
   truncateText,
 } from "packages/features/search/types/search/address";
 import { Box } from "packages/ui/components/primitives";
+import { displayListingPriceForCard } from "packages/utils/search/formatPropertySearchListingPrice";
 
-import { CardHeartSaveWithProps, CardViewDetailsButton, TrianglePointer } from "./base/index";
+import { CardHeartSaveWithProps, TrianglePointer } from "./base/index";
 import PropertyCard from "./PropertyCard";
 
 export type HomeDescription = {
@@ -31,7 +32,10 @@ export type HomeDescription = {
 export type HomeCardSaveState = {
   isHomeSaved: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome: (property: CardHeartSavePropertyLike) => Promise<void>;
-  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
+  removeSavedHome: (
+    propertyId: string,
+    propertyAddress?: string,
+  ) => Promise<void>;
 };
 
 type HomeCardProps = {
@@ -45,20 +49,16 @@ type HomeCardProps = {
   onViewDetails: (property: Property) => Promise<void>;
 };
 
-function convertHomeToProperty(home: HomeDescription, formattedAddress: string): Property {
+function convertHomeToProperty(
+  home: HomeDescription,
+  formattedAddress: string,
+): Property {
   const lat = home.lat ?? 37.7749;
   const lng = home.lng ?? -122.4194;
   return {
     id: home.home_id,
     address: home.address ?? formattedAddress ?? home.home_id,
-    price:
-      typeof home.price === "string"
-        ? home.price.startsWith("$")
-          ? home.price
-          : `$${home.price}`
-        : typeof home.price === "number"
-          ? `$${home.price.toLocaleString()}`
-          : "Price not available",
+    price: displayListingPriceForCard(home.price),
     bedrooms: home.bedrooms ?? 3,
     bathrooms: home.bathrooms ?? 2,
     sqft: home.sqft ?? 1500,
@@ -68,12 +68,6 @@ function convertHomeToProperty(home: HomeDescription, formattedAddress: string):
     longitude: lng,
     images: home.image_url ? [home.image_url] : undefined,
   };
-}
-
-function formatHomePrice(price: string | number | undefined): string {
-  if (typeof price === "number") return `$${price.toLocaleString()}`;
-  if (typeof price === "string" && !price.startsWith("$")) return `$${price}`;
-  return (price as string) ?? "N/A";
 }
 
 type HomeCardViewProps = {
@@ -87,7 +81,6 @@ type HomeCardViewProps = {
   showScore: boolean;
   property: Property;
   saveState: HomeCardSaveState | undefined;
-  onViewDetails: () => Promise<void>;
 };
 
 function HomeCardView({
@@ -101,11 +94,11 @@ function HomeCardView({
   showScore,
   property,
   saveState,
-  onViewDetails,
 }: HomeCardViewProps) {
   const propertyLike: CardHeartSavePropertyLike = {
     id: property.id,
-    address: typeof property.address === "string" ? property.address : undefined,
+    address:
+      typeof property.address === "string" ? property.address : undefined,
   };
   const topContent = saveState ? (
     <CardHeartSaveWithProps
@@ -122,7 +115,9 @@ function HomeCardView({
     <Box
       role="button"
       tabIndex={0}
-      className={`relative cursor-pointer ${isOnMap ? "scale-90 transform" : ""}`}
+      className={`relative cursor-pointer ${
+        isOnMap ? "scale-90 transform" : ""
+      }`}
       onClick={onCardClick}
       onKeyDown={onKeyDown}
     >
@@ -142,15 +137,6 @@ function HomeCardView({
         showScore={showScore}
         isOnMap={isOnMap}
         topContent={topContent}
-        bottomContent={
-          <CardViewDetailsButton
-            onClick={onViewDetails}
-            size="sm"
-            variant="unlock"
-            fullWidth
-            text="View"
-          />
-        }
       />
     </Box>
   );
@@ -165,16 +151,18 @@ export default function HomeCard({
   onViewDetails,
 }: HomeCardProps) {
   const formattedAddress = formatFilenameToAddress(home.home_id);
-  const displayName = truncateText(home.address ?? formattedAddress ?? `Home ${home.home_id}`, 35);
+  const displayName = truncateText(
+    home.address ?? formattedAddress ?? `Home ${home.home_id}`,
+    35,
+  );
   const property = convertHomeToProperty(home, formattedAddress);
   const score = showScore ? home.calculatedScore : undefined;
-  const price = formatHomePrice(home.price);
+  const price = displayListingPriceForCard(home.price);
 
-  const handleViewDetails = async () => {
-    await onViewDetails(property);
+  const handleCardClick = () => {
+    onFocus?.(property);
+    void onViewDetails(property);
   };
-
-  const handleCardClick = () => onFocus?.(property);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -195,7 +183,6 @@ export default function HomeCard({
       showScore={showScore}
       property={property}
       saveState={saveState}
-      onViewDetails={handleViewDetails}
     />
   );
 }

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { type ReactNode, useMemo } from "react";
 
 import { color } from "packages/design-tokens";
 import type { CardBorderVariant } from "packages/ui/components/cards/Card";
@@ -16,12 +16,17 @@ type EventListProps = {
   events: ExtendedGoogleEvent[];
   title?: string;
   emptyMessage?: string;
+  headerActions?: ReactNode;
   onEventClick?: (event: ExtendedGoogleEvent) => void;
   /** When true, render list only (no ScrollView) for embedding in another scroll/list. */
   embedInListHeader?: boolean;
   silverKeyCalendarId?: string | null;
   refreshEvents?: () => Promise<void>;
-  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
+  updateEvent?: (
+    eventId: string,
+    event: GoogleEvent,
+    calendarId?: string,
+  ) => Promise<unknown>;
   deleteEvent?: (eventId: string, calendarId?: string) => Promise<void>;
   calendars?: Calendar[];
   /** Card border variant. Default charcoal; use "light" for upcoming-events style. */
@@ -61,6 +66,7 @@ export function EventList({
   events,
   title = "Upcoming Events",
   emptyMessage = "No upcoming events",
+  headerActions,
   onEventClick,
   embedInListHeader = false,
   silverKeyCalendarId = null,
@@ -125,8 +131,24 @@ export function EventList({
     );
 
   return (
-    <Card border={border} className="w-full text-left" padding="md" hover={false}>
-      {title ? <Text style={titleStyle}>{title}</Text> : null}
+    <Card
+      border={border}
+      className="w-full text-left"
+      padding="md"
+      hover={false}
+    >
+      {title || headerActions ? (
+        <Box className="mb-3 flex flex-row flex-wrap items-center gap-2">
+          {title ? (
+            <Text style={{ ...titleStyle, flex: 1 }}>{title}</Text>
+          ) : (
+            <Box className="flex-1" />
+          )}
+          {headerActions ? (
+            <Box className="flex-shrink-0">{headerActions}</Box>
+          ) : null}
+        </Box>
+      ) : null}
       {listContent}
     </Card>
   );

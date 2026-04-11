@@ -5,8 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { useSearchHeaderLocations } from "packages/features/search/components/header/SearchHeaderLocations/useSearchHeaderLocations"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds search location UI; shared composition. */
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations"; /* eslint-disable-line silverkey/no-cross-feature-internals -- Checklist embeds search location UI; shared composition. */
+import { useGoogleMaps } from "packages/hooks/data";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
 import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
@@ -19,17 +19,25 @@ type ChooseAreasSectionProps = {
   onComplete?: () => void;
 };
 
-export default function ChooseAreasSection({ onComplete: _onComplete }: ChooseAreasSectionProps) {
+export default function ChooseAreasSection({
+  onComplete: _onComplete,
+}: ChooseAreasSectionProps) {
   const queryClient = useQueryClient();
   const { refreshUserPreferences } = useUserPreferences();
 
   const onPreferencesChanged = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: queryKeys.search.isochrone() });
+    void queryClient.invalidateQueries({
+      queryKey: [...queryKeys.search.all, "isochrone"],
+    });
     void refreshUserPreferences();
   }, [queryClient, refreshUserPreferences]);
 
-  const { locations, localLocations, updateFormData, syncLocalFromPreferences } =
-    useSearchHeaderLocations(onPreferencesChanged);
+  const {
+    locations,
+    localLocations,
+    updateFormData,
+    syncLocalFromPreferences,
+  } = useSearchHeaderLocations(onPreferencesChanged);
 
   const { isLoaded: googleMapsLoaded } = useGoogleMaps();
   const win = getWindow();
@@ -64,8 +72,9 @@ export default function ChooseAreasSection({ onComplete: _onComplete }: ChooseAr
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
         <BodyText size="sm" className="text-text-secondary">
-          Add work, family, or other important places. Set how far you&apos;re willing to commute
-          from each. The map will show your search area (isochrones) based on these locations.
+          Add work, family, or other important places. Set how far you&apos;re
+          willing to commute from each. The map will show your search area
+          (isochrones) based on these locations.
         </BodyText>
 
         <LocationSection

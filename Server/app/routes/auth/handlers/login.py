@@ -1,38 +1,59 @@
-"""Login handler."""
+"""Login handler with OpenAPI validation."""
 
 import traceback
 
 from flask import current_app, jsonify, request
 
+from app.schemas import AuthResponse, LoginData
 from app.services.auth.flows import handle_login
-from app.services.auth.utils import (
-    create_error_response,
-    generate_request_id,
-    validate_required_fields,
-)
+from app.services.auth.utils import create_error_response, generate_request_id
+from app.utils.validation import validate_request, validate_response
 
 
-def login():
-    """Authenticate user and return Cognito JWT tokens directly"""
+@validate_request(LoginData)
+@validate_response(AuthResponse)
+def login(data: LoginData | None = None):
+    """
+    Authenticate user and return Cognito JWT tokens directly.
+
+    Request body validated against OpenAPI LoginData schema.
+    """
     request_id = generate_request_id("login")
     try:
-        data = request.get_json()
-        is_valid, error_msg = validate_required_fields(data, ["email", "password"])
-        if not is_valid:
-            current_app.logger.error(
-                "AUTH_LOGIN_MISSING_FIELDS",
-                extra={
-                    "request_id": request_id,
-                    "missing_fields": [f for f in ["email", "password"] if f not in (data or {})],
-                    "provided_fields": list(data.keys()) if data else [],
-                },
+        # In gradual mode, data may be None if validation failed
+        # Fall back to manual parsing for backward compatibility
+        if data is None:
+            current_app.logger.warning(
+                "AUTH_LOGIN_VALIDATION_FAILED_GRADUAL_MODE",
+                extra={"request_id": request_id, "message": "Using fallback validation"},
             )
-            error_response, status_code = create_error_response(
-                "MISSING_FIELDS", "Email and password are required"
-            )
-            return jsonify(error_response), status_code
-        resp, status_code = handle_login(data, request_id)
-        return resp
+            # Match validate_request (silent=True); avoid raising on empty/invalid body.
+            request_data = request.get_json(silent=True) or {}
+            if not isinstance(request_data, dict):
+                error_response, status_code = create_error_response(
+                    "MISSING_FIELDS", "Email and password are required"
+                )
+                return jsonify(error_response), status_code
+            pw = request_data.get("password")
+            if (
+                not request_data.get("email")
+                or pw is None
+                or (isinstance(pw, str) and not pw.strip())
+            ):
+                error_response, status_code = create_error_response(
+                    "MISSING_FIELDS", "Email and password are required"
+                )
+                return jsonify(error_response), status_code
+        else:
+            # Validated data from OpenAPI schema
+            # Extract SecretStr password value for Cognito
+            request_data = {
+                "email": data.email,
+                "password": data.password.get_secret_value(),
+            }
+
+        resp, status_code = handle_login(request_data, request_id)
+        return resp, status_code
     except Exception as e:
         current_app.logger.error(
             "AUTH_LOGIN_EXCEPTION",

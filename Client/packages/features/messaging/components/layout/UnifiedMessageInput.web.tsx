@@ -63,7 +63,7 @@ export default function UnifiedMessageInputWeb({
   };
 
   const hasAttachments = Boolean(
-    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument
+    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument,
   );
 
   return (
@@ -89,7 +89,7 @@ export default function UnifiedMessageInputWeb({
             disabled={isTyping || disabled}
             minHeight={44}
             maxHeight={120}
-            className="focus:border-primary focus:ring-accent-muted border-border bg-background-surface rounded-lg text-sm transition-colors duration-150 focus:outline-none focus:ring-2 sm:text-base"
+            className="focus:border-input-variant-focus-border border-border bg-background-surface rounded-lg text-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-neutral-400 sm:text-base"
           />
         </Box>
 

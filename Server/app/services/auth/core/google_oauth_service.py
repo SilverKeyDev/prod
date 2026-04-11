@@ -1,6 +1,42 @@
 """
-Google OAuth Service for Authentication
-Handles Google OAuth sign-up and sign-in flow
+Google OAuth Service for Authentication.
+
+Purpose:
+    Handles Google OAuth 2.0 sign-up and sign-in flow for users who prefer Google authentication
+    over Cognito. Creates or retrieves SilverKey user accounts based on Google profile.
+
+Public API:
+    - get_authorization_url(redirect_uri): Generate OAuth URL for client redirect
+    - handle_callback(code, state, redirect_uri): Exchange auth code for tokens, create/get user
+    - validate_state(state): Validate CSRF state token
+
+Token Lifecycle:
+    1. Client requests auth URL with state token
+    2. User authorizes at Google
+    3. Google redirects with code and state
+    4. Service exchanges code for access_token
+    5. Service fetches user profile from Google
+    6. Service creates or retrieves SilverKey User
+    7. Returns user and session token to client
+
+Dependencies (Environment Variables):
+    - GOOGLE_OAUTH_CLIENT_ID: OAuth app client ID
+    - GOOGLE_OAUTH_CLIENT_SECRET: OAuth app secret
+    - FRONTEND_URL: Redirect target (default: http://localhost:5173)
+
+Side Effects:
+    - Creates OAuthState records in database (CSRF protection)
+    - Creates or updates User records based on Google profile
+    - Creates UserSession for authenticated user
+
+Error Handling:
+    - Raises ValueError for invalid state or missing credentials
+    - Raises requests.HTTPError for Google API failures
+    - Logs all OAuth attempts (success and failure) via app logger
+
+See Also:
+    - .cursor/rules/backend/backend-architecture.mdc (auth patterns)
+    - Server/ARCHITECTURE.md (auth pipeline)
 """
 
 import base64
@@ -18,6 +54,11 @@ from app import db
 from app.models import OAuthState
 from app.utils.security.app_logging import get_logger
 
+from ....config.constants._constants_public_urls import (
+    API_PATH_GOOGLE_AUTH_CALLBACK,
+    url_for_public_api,
+)
+
 logger = get_logger()
 
 
@@ -34,14 +75,9 @@ class GoogleOAuthService:
         self.client_id = Config.GOOGLE_CLIENT_ID
         self.client_secret = Config.GOOGLE_CALENDAR_SECRET  # Same secret as calendar
 
-        # Determine redirect URI based on environment
+        # Backend URL for OAuth callback (not frontend); must match Google Cloud Console
         flask_env = os.getenv("FLASK_ENV", "development")
-        if flask_env == "production":
-            self.redirect_uri = "https://usesilverkey.com/api/v1/auth/google/callback"
-        else:
-            # Backend URL for OAuth callback (not frontend)
-            # This must match what's configured in Google Cloud Console
-            self.redirect_uri = "http://localhost:5000/api/v1/auth/google/callback"
+        self.redirect_uri = url_for_public_api(flask_env, API_PATH_GOOGLE_AUTH_CALLBACK)
 
         # Scopes are loaded lazily to avoid circular import with calendar.permissions
         self._scopes = None

@@ -1,5 +1,5 @@
 /**
- * Box and Row default layout classes — single source of truth for web and native.
+ * Box and Row default layout classes - single source of truth for web and native.
  * Platform files must import from here; they must NOT define local DEFAULT_*_CLASSES.
  *
  * Note: We omit items-stretch so that items-center/justify-center passed via className

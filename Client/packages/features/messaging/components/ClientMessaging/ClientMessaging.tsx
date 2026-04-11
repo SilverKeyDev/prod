@@ -3,8 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import MessagingModals from "packages/features/messaging/components/layout/MessagingModals";
+import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
-import { useMessaging } from "packages/hooks/data/chat/useMessaging";
 import { useClientMessagingModals, useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
@@ -14,26 +14,35 @@ import { useConnectionRequests } from "@/features/agent/hooks/data/useConnection
 import UnifiedMessageInput from "@/features/messaging/components/layout/UnifiedMessageInput";
 import UnifiedMessagesList from "@/features/messaging/components/layout/UnifiedMessagesList";
 import UnifiedMessagingSidebar from "@/features/messaging/components/layout/UnifiedMessagingSidebar";
-import { resolvePrimaryAgentId } from "@/features/messaging/utils";
+import {
+  isSameMessagingUserId,
+  resolvePrimaryAgentId,
+} from "@/features/messaging/utils";
 
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
 
 type ClientMessagingProps = {
-  setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
+  setMobileHeaderActions?: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
 };
 
-export default function ClientMessaging({ setMobileHeaderActions }: ClientMessagingProps = {}) {
+export default function ClientMessaging({
+  setMobileHeaderActions,
+}: ClientMessagingProps = {}) {
   const { userProfile } = useUserData();
   const agentId = useMemo(
     () => resolvePrimaryAgentId(userProfile?.agent_id),
-    [userProfile?.agent_id]
+    [userProfile?.agent_id],
   );
 
   const {
     localMessages,
     activeConversationId,
     isLoadingHistory,
+    isChatsLoading,
     activeConversation,
+    conversations,
     sendMessage: sendMessageApi,
     sendSharedHome,
     sendSharedDocument,
@@ -48,6 +57,15 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     conversationSelector: userProfile?.id,
     agentId: agentId ?? null,
   });
+
+  const clientConversations = useMemo(() => {
+    if (!conversations.length) return [];
+    if (!userProfile?.id) return conversations;
+    const mine = conversations.filter((c) =>
+      isSameMessagingUserId(c.client_id, userProfile.id),
+    );
+    return mine.length > 0 ? mine : conversations;
+  }, [conversations, userProfile?.id]);
 
   const [message, setMessage] = useState("");
   const [isTyping] = useState(false);
@@ -91,7 +109,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
   const { messagesEndRef } = useMessageScroll(
     localMessages,
     activeConversationId,
-    isLoadingHistory
+    isLoadingHistory,
   );
 
   const messageRef = useRef(message);
@@ -99,15 +117,17 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
 
   const getHeaderMode = () => {
     if (showInbox) return "connection-requests";
-    if (!activeConversationId) return "no-agent";
+    if (isChatsLoading) return "chat";
+    if (clientConversations.length === 0) return "no-agent";
     return "chat";
   };
 
   const headerMode = useMemo(() => {
     if (showInbox) return "connection-requests";
-    if (!agentId) return "no-agent";
+    if (isChatsLoading) return "chat";
+    if (clientConversations.length === 0) return "no-agent";
     return "chat";
-  }, [showInbox, agentId]);
+  }, [showInbox, isChatsLoading, clientConversations.length]);
 
   const handleSendMessage = useCallback(async () => {
     const msg = messageRef.current.trim();
@@ -119,7 +139,9 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
   const headerContentKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (!setMobileHeaderActions) return;
-    const contentKey = `${headerMode}-${isSidebarExpanded}-${activeConversation?.agent_name ?? ""}-${pendingConnectionRequestCount}`;
+    const contentKey = `${headerMode}-${isSidebarExpanded}-${
+      activeConversation?.agent_name ?? ""
+    }-${pendingConnectionRequestCount}`;
     if (headerContentKeyRef.current === contentKey) return;
     headerContentKeyRef.current = contentKey;
     setMobileHeaderActions(
@@ -132,7 +154,7 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
         onBackClick={() => setShowInbox(false)}
         pendingConnectionRequestCount={pendingConnectionRequestCount}
         agentName={activeConversation?.agent_name}
-      />
+      />,
     );
     return () => {
       headerContentKeyRef.current = null;
@@ -147,6 +169,8 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
     setShowInbox,
     pendingConnectionRequestCount,
     activeConversation?.agent_name,
+    isChatsLoading,
+    clientConversations.length,
   ]);
 
   return (
@@ -158,11 +182,11 @@ export default function ClientMessaging({ setMobileHeaderActions }: ClientMessag
           setIsSidebarExpanded={setIsSidebarExpanded}
           showInbox={showInbox}
           setShowInbox={setShowInbox}
-          agentId={agentId}
-          activeConversation={activeConversation ?? undefined}
           activeConversationId={activeConversationId}
           setActiveConversationId={setActiveConversationId}
-          localMessages={localMessages}
+          clientConversations={clientConversations}
+          isLoadingClientConversations={isChatsLoading}
+          onSearchClick={() => setShowSearchModal(true)}
         />
         <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
           <Box className="flex min-h-0 flex-1 flex-col">

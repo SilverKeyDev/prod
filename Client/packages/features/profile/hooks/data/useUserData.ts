@@ -38,6 +38,10 @@ export function useUserData(): UseUserDataReturn {
         throw new Error("No user data received");
       }
 
+      const raw = userData as Record<string, unknown>;
+      const closing =
+        typeof raw.is_closing_mode === "boolean" ? raw.is_closing_mode : false;
+
       // Convert User to UserProfile by adding missing properties
       const profile: UserProfile = {
         ...userData,
@@ -45,7 +49,7 @@ export function useUserData(): UseUserDataReturn {
         subscription: userData.subscription ?? null,
         has_preferences: userData.has_preferences ?? false,
         is_agent: userData.is_agent ?? false,
-        is_closing_mode: userData.is_closing_mode ?? false,
+        is_closing_mode: closing,
         client_ids: Array.isArray(userData.client_ids)
           ? userData.client_ids.join(",")
           : userData.client_ids,
@@ -79,9 +83,16 @@ export type UseUserPreferencesReturn = {
   refreshUserPreferences: () => Promise<void>;
 };
 
-export function useUserPreferences(): UseUserPreferencesReturn {
+export type ProfileUseUserPreferencesOptions = {
+  preferencesSubjectUserId?: string | null;
+};
+
+export function useUserPreferences(
+  options?: ProfileUseUserPreferencesOptions,
+): UseUserPreferencesReturn {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
+  const subjectId = options?.preferencesSubjectUserId ?? null;
 
   const {
     data: userPreferences,
@@ -89,13 +100,16 @@ export function useUserPreferences(): UseUserPreferencesReturn {
     error: preferencesError,
     refetch: refetchUserPreferences,
   } = useQuery({
-    queryKey: queryKeys.user.preferences(),
+    queryKey: queryKeys.user.preferences(subjectId),
     queryFn: async () => {
-      const response = await preferencesApi.get();
+      const response =
+        subjectId != null && subjectId !== ""
+          ? await preferencesApi.getByUserId(subjectId)
+          : await preferencesApi.get();
       if (!response.success) {
         throw new Error(response.error ?? "Failed to fetch user preferences");
       }
-      return response.preferences;
+      return response.preferences ?? null;
     },
     enabled: authReady && isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes

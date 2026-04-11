@@ -1,5 +1,5 @@
 /**
- * Dashed divider — web uses CSS border-dashed.
+ * Dashed divider - web uses CSS border-dashed.
  * Native uses react-native-svg for reliable dashed rendering.
  */
 

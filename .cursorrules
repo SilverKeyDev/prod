@@ -1,3 +1,17 @@
+# Critical File Creation Constraint
+
+**NEVER create markdown files (.md, .mdc, .markdown) or summary/documentation files unless the user explicitly requests one.**
+
+Examples of forbidden behavior:
+- ❌ Creating summary files after completing a task
+- ❌ Creating documentation of changes
+- ❌ Creating "fix summary" or "implementation summary" files
+- ❌ Any unsolicited .md file creation
+
+The ONLY exceptions:
+- ✅ User explicitly says "create an .md file" or "write documentation"
+- ✅ User asks for a specific markdown document by name
+
 # Post-Generation Quality Assurance
 
 After generating any code, you must perform a self-correction pass:
@@ -7,4 +21,4 @@ After generating any code, you must perform a self-correction pass:
 
 **Behavioral Constraint:**
 - You are strictly forbidden from leaving "unused imports" or "any" types unless explicitly requested.
-- Always assume the user wants the code to pass `npm run lint` (or equivalent) immediately. 
+- Always assume the user wants the code to pass `npm run lint` (or equivalent) immediately.

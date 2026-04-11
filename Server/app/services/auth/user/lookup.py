@@ -2,7 +2,7 @@
 User lookup utilities for authentication.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import current_app
 
@@ -30,7 +30,7 @@ def find_or_create_user_by_cognito(
 
         # Update last_logged_in timestamp
         if user and update_last_login:
-            user.last_logged_in = datetime.utcnow()
+            user.last_logged_in = datetime.now(timezone.utc)
             db.session.commit()
 
         return user

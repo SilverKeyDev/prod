@@ -1,37 +1,34 @@
-"""Sync HomeUniversal records to HomeLikes and HomeNotInterested."""
+"""Sync UserPropertyLink+PropertyCache records to HomeLikes and HomeNotInterested."""
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from app import db
-from app.models import HomeLikes, HomeNotInterested, HomeUniversal
+from app.models import HomeLikes, HomeNotInterested
 from app.utils.address_format import normalize_address
 
+if TYPE_CHECKING:
+    from app.models.property.property_cache import PropertyCache
+    from app.models.property.user_property_link import UserPropertyLink
 
-def sync_to_home_likes(home_universal: HomeUniversal, action: str = "liked") -> HomeLikes:
-    """
-    Sync a HomeUniversal record to HomeLikes and add a timestamp entry to like_history.
 
-    Args:
-        home_universal: The HomeUniversal record to sync
-        action: Either "liked" or "unliked"
-
-    Returns:
-        The HomeLikes record (created or updated)
-    """
+def sync_to_home_likes(
+    link: UserPropertyLink, prop: PropertyCache, action: str = "liked"
+) -> HomeLikes:
+    """Sync a UserPropertyLink + PropertyCache pair to the HomeLikes table."""
     if action not in ("liked", "unliked"):
         raise ValueError("action must be 'liked' or 'unliked'")
 
-    # Find existing HomeLikes record by normalized address
     existing_likes: HomeLikes | None = None
-    if home_universal.address:
+    if prop.address:
         try:
-            norm = normalize_address(home_universal.address)
+            norm = normalize_address(prop.address)
         except Exception:
-            norm = home_universal.address.strip().lower()
+            norm = prop.address.strip().lower()
 
-        for rec in HomeLikes.query.filter_by(user_id=str(home_universal.user_id)).all():
+        for rec in HomeLikes.query.filter_by(user_id=str(link.user_id)).all():
             if not rec.address:
                 continue
             try:
@@ -42,19 +39,18 @@ def sync_to_home_likes(home_universal: HomeUniversal, action: str = "liked") -> 
                 existing_likes = rec
                 break
 
-    # Prepare only fields that exist in HomeLikes model
     fields = {
-        "user_id": str(home_universal.user_id),
-        "is_liked": home_universal.is_liked,
-        "address": home_universal.address,
-        "zpid": home_universal.zpid,
-        "mls_home_id": home_universal.mls_home_id,
-        "score": home_universal.score,
-        "latitude": home_universal.latitude,
-        "longitude": home_universal.longitude,
+        "user_id": str(link.user_id),
+        "is_liked": link.is_liked,
+        "address": prop.address,
+        "zpid": prop.zpid,
+        "mls_home_id": prop.mls_home_id,
+        "score": link.score,
+        "latitude": prop.latitude,
+        "longitude": prop.longitude,
     }
 
-    timestamp_entry = {"timestamp": datetime.utcnow().isoformat(), "action": action}
+    timestamp_entry = {"timestamp": datetime.now(timezone.utc).isoformat(), "action": action}
 
     if existing_likes:
         for k, v in fields.items():
@@ -73,30 +69,23 @@ def sync_to_home_likes(home_universal: HomeUniversal, action: str = "liked") -> 
 
 
 def sync_to_home_not_interested(
-    home_universal: HomeUniversal, action: str = "not_interested", why: str | None = None
+    link: UserPropertyLink,
+    prop: PropertyCache,
+    action: str = "not_interested",
+    why: str | None = None,
 ) -> HomeNotInterested:
-    """
-    Sync a HomeUniversal record to HomeNotInterested and add a timestamp entry to not_interested_history.
-
-    Args:
-        home_universal: The HomeUniversal record to sync
-        action: Either "not_interested" or "undo"
-        why: Optional reason why not interested
-
-    Returns:
-        The HomeNotInterested record (created or updated)
-    """
+    """Sync a UserPropertyLink + PropertyCache pair to the HomeNotInterested table."""
     if action not in ("not_interested", "undo"):
         raise ValueError("action must be 'not_interested' or 'undo'")
 
     existing_not_interested: HomeNotInterested | None = None
-    if home_universal.address:
+    if prop.address:
         try:
-            norm = normalize_address(home_universal.address)
+            norm = normalize_address(prop.address)
         except Exception:
-            norm = home_universal.address.strip().lower()
+            norm = prop.address.strip().lower()
 
-        for rec in HomeNotInterested.query.filter_by(user_id=str(home_universal.user_id)).all():
+        for rec in HomeNotInterested.query.filter_by(user_id=str(link.user_id)).all():
             if not rec.address:
                 continue
             try:
@@ -108,17 +97,17 @@ def sync_to_home_not_interested(
                 break
 
     fields = {
-        "user_id": str(home_universal.user_id),
+        "user_id": str(link.user_id),
         "is_not_interested": action == "not_interested",
-        "address": home_universal.address,
-        "zpid": home_universal.zpid,
-        "mls_home_id": home_universal.mls_home_id,
-        "score": home_universal.score,
-        "latitude": home_universal.latitude,
-        "longitude": home_universal.longitude,
+        "address": prop.address,
+        "zpid": prop.zpid,
+        "mls_home_id": prop.mls_home_id,
+        "score": link.score,
+        "latitude": prop.latitude,
+        "longitude": prop.longitude,
     }
 
-    timestamp_entry = {"timestamp": datetime.utcnow().isoformat(), "action": action}
+    timestamp_entry = {"timestamp": datetime.now(timezone.utc).isoformat(), "action": action}
     if why and action == "not_interested":
         timestamp_entry["why"] = why
 

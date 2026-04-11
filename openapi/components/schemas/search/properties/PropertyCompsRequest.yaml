@@ -1,0 +1,12 @@
+type: object
+required:
+  - address
+properties:
+  address:
+    type: string
+  radius:
+    type: number
+    nullable: true
+  count:
+    type: integer
+    nullable: true

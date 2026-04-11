@@ -1,0 +1,64 @@
+type: object
+description: Property features, amenities, and characteristics
+properties:
+  homeType:
+    type: string
+    enum: [SINGLE_FAMILY, CONDO, TOWNHOUSE, MULTI_FAMILY, LAND, MANUFACTURED, CO_OP, OTHER]
+    nullable: true
+    description: Type of residential property
+  parking:
+    type: object
+    nullable: true
+    properties:
+      spaces:
+        type: integer
+        minimum: 0
+        description: Number of parking spaces
+      type:
+        type: string
+        enum: [garage, attached_garage, detached_garage, carport, driveway, street, covered, none]
+        description: Type of parking
+  amenities:
+    type: array
+    nullable: true
+    items:
+      type: string
+    description: List of property amenities (pool, fireplace, deck, etc.)
+  appliances:
+    type: array
+    nullable: true
+    items:
+      type: string
+    description: Included appliances
+  heating:
+    type: string
+    nullable: true
+    description: Heating system type
+  cooling:
+    type: string
+    nullable: true
+    description: Cooling system type
+  flooring:
+    type: array
+    nullable: true
+    items:
+      type: string
+    description: Flooring types (hardwood, carpet, tile, etc.)
+  exterior:
+    type: string
+    nullable: true
+    description: Exterior material (brick, vinyl, stucco, etc.)
+  roof:
+    type: string
+    nullable: true
+    description: Roof material and age
+example:
+  homeType: "SINGLE_FAMILY"
+  parking:
+    spaces: 2
+    type: "attached_garage"
+  amenities: ["pool", "fireplace", "hardwood_floors", "granite_countertops"]
+  appliances: ["refrigerator", "dishwasher", "microwave", "washer", "dryer"]
+  heating: "forced_air_gas"
+  cooling: "central_air"
+  flooring: ["hardwood", "carpet", "tile"]

@@ -1,0 +1,17 @@
+type: object
+required:
+  - start_date
+  - end_date
+properties:
+  start_date:
+    type: string
+    format: date-time
+    description: Start of availability window
+  end_date:
+    type: string
+    format: date-time
+    description: End of availability window
+  timezone:
+    type: string
+    nullable: true
+    description: Timezone for results

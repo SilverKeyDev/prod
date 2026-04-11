@@ -9,6 +9,8 @@ from typing import Any
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from app import db
+from app.models import User
 from app.utils.security.app_logging import get_logger
 from app.utils.security.security import (
     log_oauth_event,
@@ -168,7 +170,7 @@ def get_or_create_silverkey_calendar(
 
     Args:
         user_id: User ID
-        buyer_name: Ignored - calendar is always named "SilverKey"
+        buyer_name: Optional override name (if None, fetches from User model)
         client_id: Google OAuth client ID
         client_secret: Google OAuth client secret
         token_endpoint: OAuth token endpoint
@@ -188,10 +190,11 @@ def get_or_create_silverkey_calendar(
 
         try:
             calendar_list = service.calendarList().list().execute()
+            # Find all SilverKey calendars (matches "SilverKey ~ *" pattern or exact "SilverKey")
             silverkey_calendars = [
                 cal
                 for cal in calendar_list.get("items", [])
-                if cal.get("summary", "") == "SilverKey"
+                if cal.get("summary", "").startswith("SilverKey")
             ]
         except HttpError as e:
             # If we get 403 (insufficient scopes), we can't list calendars
@@ -276,8 +279,16 @@ def get_or_create_silverkey_calendar(
         # So with restricted scope, we can't prevent duplicates. We'll create and hope for the best.
         # The user will need full scope to properly manage duplicates.
 
-        # Create new SilverKey calendar with exact name "SilverKey"
-        calendar_name = "SilverKey"
+        # Get user's name from database to create calendar name
+        user = db.session.get(User, user_id)
+        if not user:
+            logger.warning(f"User {user_id} not found in database, using 'User' as default name")
+            user_name = "User"
+        else:
+            user_name = user.name if user.name else "User"
+
+        # Create new SilverKey calendar with format "SilverKey ~ [Name]"
+        calendar_name = f"SilverKey ~ {user_name}"
         calendar_body = {
             "summary": calendar_name,
             "description": "Calendar created by SilverKey for managing home tours and real estate events",

@@ -1,0 +1,2 @@
+type: string
+enum: [agent, buyer, seller, other, signer, carbon_copy]

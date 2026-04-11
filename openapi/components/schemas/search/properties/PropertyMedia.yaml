@@ -1,0 +1,58 @@
+type: object
+description: Property photos, videos, and virtual tours
+properties:
+  primaryImageUrl:
+    type: string
+    format: uri
+    nullable: true
+    description: Primary/hero image URL
+  images:
+    type: array
+    nullable: true
+    items:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Image URL
+        caption:
+          type: string
+          nullable: true
+          description: Image caption or description
+        order:
+          type: integer
+          description: Display order (0-based)
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+  virtualTourUrl:
+    type: string
+    format: uri
+    nullable: true
+    description: 3D virtual tour or Matterport URL
+  videoUrl:
+    type: string
+    format: uri
+    nullable: true
+    description: Property video URL
+  floorPlanUrl:
+    type: string
+    format: uri
+    nullable: true
+    description: Floor plan image URL
+example:
+  primaryImageUrl: "https://photos.example.com/listings/12345678/hero.jpg"
+  images:
+    - url: "https://photos.example.com/listings/12345678/1.jpg"
+      caption: "Front exterior"
+      order: 0
+    - url: "https://photos.example.com/listings/12345678/2.jpg"
+      caption: "Living room"
+      order: 1
+  virtualTourUrl: "https://my.matterport.com/show/?m=abc123"

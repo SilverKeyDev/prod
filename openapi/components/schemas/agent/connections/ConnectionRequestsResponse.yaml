@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      requests:
+        type: array
+        items:
+          $ref: '../core/AgentConnectionRequest.yaml'
+        nullable: true

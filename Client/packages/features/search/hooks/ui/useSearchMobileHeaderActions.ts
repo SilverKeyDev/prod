@@ -6,10 +6,10 @@ import { screenDown } from "packages/ui/types/screens";
 
 export type UseSearchMobileHeaderActionsParams = {
   isSearching: boolean;
-  /** Called when filters are changed (e.g. trigger search) */
-  onPreferencesChanged?: () => void | Promise<void>;
   onSearch: () => void;
   onCancelSearch?: () => void;
+  /** When false, Search is disabled until user adds a location in Preferences */
+  hasLocations?: boolean;
   selectedClientId: string | null;
   onClientChange: (clientId: string | null) => void;
   mode?: "map" | "reels";
@@ -21,28 +21,25 @@ export type UseSearchMobileHeaderActionsParams = {
  * Returns stable header props and compact-header flag for SearchMobileHeader.
  * Caller (SearchPage) builds the header node and sets it via setMobileHeaderActions.
  */
-export function useSearchMobileHeaderActions(params: UseSearchMobileHeaderActionsParams): {
+export function useSearchMobileHeaderActions(
+  params: UseSearchMobileHeaderActionsParams,
+): {
   isCompactHeader: boolean;
   headerProps: SearchMobileHeaderProps;
 } {
   const isCompactHeader = useMediaQuery(screenDown("lg"));
 
-  const onPreferencesChangedRef = useRef(params.onPreferencesChanged);
   const onSearchRef = useRef(params.onSearch);
   const onCancelSearchRef = useRef(params.onCancelSearch);
   const onClientChangeRef = useRef(params.onClientChange);
   const onToggleModeRef = useRef(params.onToggleMode);
   const onBeforeSwitchToReelsRef = useRef(params.onBeforeSwitchToReels);
-  onPreferencesChangedRef.current = params.onPreferencesChanged;
   onSearchRef.current = params.onSearch;
   onCancelSearchRef.current = params.onCancelSearch;
   onClientChangeRef.current = params.onClientChange;
   onToggleModeRef.current = params.onToggleMode;
   onBeforeSwitchToReelsRef.current = params.onBeforeSwitchToReels;
 
-  const stableOnPreferencesChanged = useCallback(() => {
-    void onPreferencesChangedRef.current?.();
-  }, []);
   const stableOnSearch = useCallback(() => {
     void onSearchRef.current();
   }, []);
@@ -61,10 +58,10 @@ export function useSearchMobileHeaderActions(params: UseSearchMobileHeaderAction
 
   const headerProps = useMemo<SearchMobileHeaderProps>(
     () => ({
-      onPreferencesChanged: stableOnPreferencesChanged,
       onSearch: stableOnSearch,
       onCancelSearch: stableOnCancelSearch,
       isSearching: params.isSearching,
+      hasLocations: params.hasLocations ?? true,
       selectedClientId: params.selectedClientId,
       onClientChange: stableOnClientChange,
       mode: params.mode,
@@ -73,16 +70,16 @@ export function useSearchMobileHeaderActions(params: UseSearchMobileHeaderAction
     }),
     [
       params.isSearching,
+      params.hasLocations,
       params.selectedClientId,
       params.mode,
       params.onToggleMode,
-      stableOnPreferencesChanged,
       stableOnSearch,
       stableOnCancelSearch,
       stableOnClientChange,
       stableOnToggleMode,
       stableOnBeforeSwitchToReels,
-    ]
+    ],
   );
 
   return { isCompactHeader, headerProps };

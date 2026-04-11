@@ -1,0 +1,12 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      messages:
+        type: array
+        items:
+          $ref: './AgentChatMessage.yaml'
+        nullable: true
+      conversation:
+        $ref: './AgentConversation.yaml'
+        nullable: true

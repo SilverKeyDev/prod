@@ -165,7 +165,7 @@ export function estimateAffordableHomePrice({
 
   if (interestRate >= 7.0) {
     warnings.push(
-      "Current rates are elevated. Consider waiting for potential decreases or rate buydown options."
+      "Current rates are elevated. Consider waiting for potential decreases or rate buydown options.",
     );
   }
 
@@ -242,6 +242,121 @@ export type MonthlyPaymentParams = {
   creditScore: number;
 };
 
+const DEFAULT_INSURANCE_ANNUAL_PCT = 0.5;
+const DEFAULT_LOAN_TERM_YEARS = 30;
+
+function resolveConventionalApr(creditScore: number): number | null {
+  if (creditScore >= 780) return 6.5;
+  if (creditScore >= 740) return 6.75;
+  if (creditScore >= 700) return 7.0;
+  if (creditScore >= 660) return 7.25;
+  if (creditScore >= 620) return 7.75;
+  if (creditScore >= 580) return 8.0;
+  return null;
+}
+
+export type MonthlyPaymentBreakdownParams = {
+  homePrice: number;
+  zipCode: string;
+  /** When true, P&amp;I is zero; tax and insurance still apply. Credit/down payment not required. */
+  payingCash?: boolean;
+  downPayment?: number;
+  creditScore?: number;
+  insuranceRateAnnualPct?: number;
+  loanTermYears?: number;
+  /** Monthly HOA from server or manual override; default 0. */
+  hoaMonthly?: number;
+  /** Monthly utilities estimate from server or manual override; default 0. */
+  utilitiesMonthly?: number;
+};
+
+export type MonthlyPaymentBreakdownResult = {
+  payingCash: boolean;
+  principalAndInterest: number;
+  propertyTax: number;
+  homeownersInsurance: number;
+  hoaMonthly: number;
+  utilitiesMonthly: number;
+  /** Sum of all rounded monthly components (matches legacy feed total when HOA/utilities are 0 and not cash). */
+  totalMonthly: number;
+  loanAmount: number;
+  interestRateApr: number | null;
+  propertyTaxRateAnnual: number;
+};
+
+/**
+ * Line-item monthly housing cost. Cash buyers get tax + insurance + HOA + utilities only.
+ * Returns null when ZIP is unsupported, or when financing is implied but credit is below 580.
+ */
+export function estimateMonthlyPaymentBreakdown({
+  homePrice,
+  zipCode,
+  payingCash = false,
+  downPayment = 0,
+  creditScore = 0,
+  insuranceRateAnnualPct = DEFAULT_INSURANCE_ANNUAL_PCT,
+  loanTermYears = DEFAULT_LOAN_TERM_YEARS,
+  hoaMonthly = 0,
+  utilitiesMonthly = 0,
+}: MonthlyPaymentBreakdownParams): MonthlyPaymentBreakdownResult | null {
+  const zipPrefix = zipCode.slice(0, 2);
+  const taxRate = STATE_TAX_RATES[zipPrefix];
+  if (taxRate === undefined) return null;
+
+  const monthlyTax = (homePrice * taxRate) / 12;
+  const monthlyInsurance = (homePrice * insuranceRateAnnualPct) / 100 / 12;
+  const hoa = Math.max(0, hoaMonthly);
+  const util = Math.max(0, utilitiesMonthly);
+
+  if (payingCash) {
+    const principalAndInterest = 0;
+    const propertyTax = Math.round(monthlyTax);
+    const homeownersInsurance = Math.round(monthlyInsurance);
+    const coreTotal = Math.round(monthlyTax + monthlyInsurance);
+    const totalMonthly = coreTotal + Math.round(hoa) + Math.round(util);
+    return {
+      payingCash: true,
+      principalAndInterest,
+      propertyTax,
+      homeownersInsurance,
+      hoaMonthly: Math.round(hoa),
+      utilitiesMonthly: Math.round(util),
+      totalMonthly,
+      loanAmount: 0,
+      interestRateApr: null,
+      propertyTaxRateAnnual: taxRate,
+    };
+  }
+
+  const interestRate = resolveConventionalApr(creditScore);
+  if (interestRate === null) return null;
+
+  const r = interestRate / 100 / 12;
+  const n = loanTermYears * 12;
+  const loanAmount = Math.max(0, homePrice - downPayment);
+  const monthlyPI =
+    (loanAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+
+  const principalAndInterest = Math.round(monthlyPI);
+  const propertyTax = Math.round(monthlyTax);
+  const homeownersInsurance = Math.round(monthlyInsurance);
+  const coreTotal = Math.round(monthlyPI + monthlyTax + monthlyInsurance);
+  const totalMonthly = coreTotal + Math.round(hoa) + Math.round(util);
+
+  return {
+    payingCash: false,
+    principalAndInterest,
+    propertyTax,
+    homeownersInsurance,
+    hoaMonthly: Math.round(hoa),
+    utilitiesMonthly: Math.round(util),
+    totalMonthly,
+    loanAmount,
+    interestRateApr: interestRate,
+    propertyTaxRateAnnual: taxRate,
+  };
+}
+
 /**
  * Estimate monthly housing cost for a given home price.
  * Used for feed "Financial Hook" - show estimated monthly payment on listings.
@@ -252,24 +367,17 @@ export function estimateMonthlyPayment({
   zipCode,
   creditScore,
 }: MonthlyPaymentParams): number | null {
-  const zipPrefix = zipCode.slice(0, 2);
-  const taxRate = STATE_TAX_RATES[zipPrefix];
-  if (taxRate === undefined) return null;
-
-  let interestRate: number;
-  if (creditScore >= 780) interestRate = 6.5;
-  else if (creditScore >= 740) interestRate = 6.75;
-  else if (creditScore >= 700) interestRate = 7.0;
-  else if (creditScore >= 660) interestRate = 7.25;
-  else if (creditScore >= 620) interestRate = 7.75;
-  else if (creditScore >= 580) interestRate = 8.0;
-  else return null;
-
-  const r = interestRate / 100 / 12;
-  const n = 30 * 12;
-  const loanAmount = Math.max(0, homePrice - downPayment);
-  const monthlyPI = (loanAmount * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-  const monthlyTax = (homePrice * taxRate) / 12;
-  const monthlyInsurance = (homePrice * 0.5) / 100 / 12;
-  return Math.round(monthlyPI + monthlyTax + monthlyInsurance);
+  const breakdown = estimateMonthlyPaymentBreakdown({
+    homePrice,
+    zipCode,
+    payingCash: false,
+    downPayment,
+    creditScore,
+    hoaMonthly: 0,
+    utilitiesMonthly: 0,
+  });
+  if (!breakdown) return null;
+  return (
+    breakdown.totalMonthly - breakdown.hoaMonthly - breakdown.utilitiesMonthly
+  );
 }

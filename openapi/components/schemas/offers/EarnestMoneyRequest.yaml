@@ -1,0 +1,12 @@
+type: object
+required:
+  - property_address
+  - earnest_amount
+  - escrow_company
+properties:
+  property_address:
+    type: string
+  earnest_amount:
+    type: number
+  escrow_company:
+    type: string

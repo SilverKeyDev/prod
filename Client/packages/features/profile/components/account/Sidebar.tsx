@@ -31,7 +31,10 @@ export default function PersonalizationSidebar({
   onScrollToSection,
 }: PersonalizationSidebarProps) {
   const isAgent = useIsAgent();
-  const steps = useMemo(() => getPersonalizationNavItems({ isAgent }), [isAgent]);
+  const steps = useMemo(
+    () => getPersonalizationNavItems({ isAgent }),
+    [isAgent],
+  );
   // This sidebar historically treated "mobile" as `< lg` (<=1024px). Preserve that intent.
   const { isLgUp } = useResponsive();
   const isLargeScreen = isLgUp;
@@ -55,28 +58,36 @@ export default function PersonalizationSidebar({
       >
         {/* Edit/Save Buttons - Full width on desktop, centered on mobile */}
         <Box
-          className={`${isLargeScreen ? "mb-8" : "mb-4"} ${isLargeScreen ? "w-full" : "flex justify-center"}`}
+          className={`${isLargeScreen ? "mb-8" : "mb-4"} ${
+            isLargeScreen ? "w-full" : "flex justify-center"
+          }`}
         >
           {!isEditMode ? (
             <Button
               onClick={onEdit}
               variant="primary"
               size="md"
-              className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
+              className={`focus:ring-0 focus:ring-offset-0 ${
+                isLargeScreen ? "w-full" : ""
+              }`}
               icon={<Icon name="edit" />}
             >
               {isLargeScreen ? "Edit" : ""}
             </Button>
           ) : (
             <Box
-              className={`flex flex-col space-y-2 ${isLargeScreen ? "w-full" : "w-full items-center"}`}
+              className={`flex flex-col space-y-2 ${
+                isLargeScreen ? "w-full" : "w-full items-center"
+              }`}
             >
               <Button
                 onClick={onSave}
                 disabled={isSaving}
                 variant="primary"
                 size="md"
-                className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
+                className={`focus:ring-0 focus:ring-offset-0 ${
+                  isLargeScreen ? "w-full" : ""
+                }`}
                 icon={<Icon name="save" />}
               >
                 {isLargeScreen ? (isSaving ? "Saving..." : "Save") : ""}
@@ -85,7 +96,9 @@ export default function PersonalizationSidebar({
                 <CancelButton
                   onClick={onCancel}
                   size="md"
-                  className={`focus:ring-0 focus:ring-offset-0 ${isLargeScreen ? "w-full" : ""}`}
+                  className={`focus:ring-0 focus:ring-offset-0 ${
+                    isLargeScreen ? "w-full" : ""
+                  }`}
                 >
                   {isLargeScreen ? "Cancel" : ""}
                 </CancelButton>
@@ -94,7 +107,7 @@ export default function PersonalizationSidebar({
           )}
         </Box>
 
-        {/* Navigation Links - Left aligned on desktop, icon only on mobile */}
+        {/* Navigation Links — left-aligned; labels shown from lg up */}
         {steps.map((step) => {
           const stepIconName = step.icon as IconName | undefined;
           return (
@@ -102,8 +115,9 @@ export default function PersonalizationSidebar({
               key={step.key}
               variant="ghost"
               size="sm"
+              contentAlign="start"
               onClick={() => onScrollToSection(step.key)}
-              className={`group flex min-h-9 w-full items-center justify-center rounded-lg px-3 py-2 transition-colors ${isLargeScreen ? "justify-start gap-3" : "justify-center"} ${
+              className={`group flex min-h-9 w-full items-center justify-start gap-3 rounded-lg px-3 py-2 transition-colors ${
                 currentActiveSection === step.key
                   ? "bg-neutral-100 text-neutral-800"
                   : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-800"

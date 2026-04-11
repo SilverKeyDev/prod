@@ -1,7 +1,5 @@
 import React from "react";
 
-import BodyText from "./BodyText";
-
 export type LabelProps = {
   children: React.ReactNode;
   htmlFor?: string;
@@ -16,7 +14,7 @@ export type LabelProps = {
 const Label: React.FC<LabelProps> = ({
   children,
   htmlFor,
-  required = false,
+  required: _required = false,
   variant = "default",
   size = "sm",
   color = "default",
@@ -70,11 +68,6 @@ const Label: React.FC<LabelProps> = ({
     // eslint-disable-next-line silverkey/no-primitive-components -- base implementation
     <label htmlFor={htmlFor} className={labelClasses}>
       {children}
-      {required && (
-        <BodyText as="span" className="text-red-500" aria-hidden>
-          *
-        </BodyText>
-      )}
     </label>
   );
 };

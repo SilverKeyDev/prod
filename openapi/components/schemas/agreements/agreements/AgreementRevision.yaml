@@ -1,0 +1,53 @@
+type: object
+required:
+  - id
+  - agreement_id
+  - version_number
+  - filename
+  - file_path
+  - created_by
+  - created_at
+properties:
+  id:
+    type: string
+  agreement_id:
+    type: string
+  version_number:
+    type: integer
+  revision_number:
+    type: integer
+    nullable: true
+    description: "Legacy field"
+  filename:
+    type: string
+  file_name:
+    type: string
+    nullable: true
+    description: "Alternative field name"
+  file_path:
+    type: string
+  s3_key:
+    type: string
+    nullable: true
+  file_size:
+    type: integer
+    nullable: true
+  created_by:
+    type: string
+  notes:
+    type: string
+    nullable: true
+  created_at:
+    type: string
+  created_by_name:
+    type: string
+    nullable: true
+  file_hash:
+    type: string
+    nullable: true
+  mime_type:
+    type: string
+    nullable: true
+  template_id:
+    type: string
+    nullable: true

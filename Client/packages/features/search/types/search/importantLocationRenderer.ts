@@ -3,6 +3,8 @@
  */
 
 import type { IsochroneData } from "packages/features/search/types/isochrone";
+import { searchMapOverlayBaseZIndex } from "packages/features/search/types/search/mapOverlayLayerOrder";
+import { importantWaypointsFromIsochrone } from "packages/features/search/utils/importantWaypointsFromIsochrone";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { escapeHtml } from "packages/utils/dom/escapeHtml";
 import { getDocument, getWindow } from "packages/utils/platform";
@@ -28,16 +30,24 @@ export interface GoogleAdvancedMarkerElement {
 export type ImportantLocationRenderOptions = {
   map: GoogleMap;
   importantMarkersRef: React.MutableRefObject<GoogleAdvancedMarkerElement[]>;
-  setImportantLocationMarkers?: (markers: GoogleAdvancedMarkerElement[]) => void;
+  setImportantLocationMarkers?: (
+    markers: GoogleAdvancedMarkerElement[],
+  ) => void;
   resetToDefaultZoom: () => void;
 }; // Updated interface - force refresh
 
-type ImportantLocation = {
-  address: string;
-  lat?: number | null;
-  lng?: number | null;
-  commute_tolerance?: number;
-  icon?: string;
+/** Remove important-location pins from the map. */
+export const clearImportantLocationMarkers = (
+  importantMarkersRef: React.MutableRefObject<GoogleAdvancedMarkerElement[]>,
+): void => {
+  if (importantMarkersRef.current?.length) {
+    importantMarkersRef.current.forEach((marker) => {
+      if ("map" in marker && marker.map) {
+        marker.map = null;
+      }
+    });
+    importantMarkersRef.current = [];
+  }
 };
 
 /** Truncate address for marker display when name is not available */
@@ -47,50 +57,18 @@ const truncateAddress = (address: string, maxLen = 25): string => {
 };
 
 /**
- * Build list of important locations from isochrone data
- */
-const buildImportantLocationsList = (isochroneData: IsochroneData): ImportantLocation[] => {
-  const importantLocations: ImportantLocation[] = [];
-
-  if (isochroneData.locations) {
-    isochroneData.locations.forEach(
-      (location: {
-        address: string;
-        commute_tolerance?: number;
-        lat?: number | null;
-        lng?: number | null;
-        name?: string;
-      }) => {
-        if (!location.address) return;
-        const dup = importantLocations.some((e) => e.address === location.address);
-        if (!dup) {
-          importantLocations.push({
-            address: location.address,
-            lat: location.lat,
-            lng: location.lng,
-            commute_tolerance: location.commute_tolerance ?? 30,
-          });
-        }
-      }
-    );
-  }
-
-  return importantLocations;
-};
-
-/**
  * Render important location markers on the map
  */
 export const renderImportantLocationMarkers = (
   isochroneData: IsochroneData,
-  options: ImportantLocationRenderOptions
+  options: ImportantLocationRenderOptions,
 ) => {
   const { map, importantMarkersRef, setImportantLocationMarkers } = options;
 
   if (!map || !isochroneData?.center) {
     log.warn(
       LOG_CATEGORIES.MAP_RENDERING,
-      "Cannot render important location markers: map or data not available"
+      "Cannot render important location markers: map or data not available",
     );
     log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map ref available", {
       mapAvailable: !!map,
@@ -105,7 +83,7 @@ export const renderImportantLocationMarkers = (
   if (!win?.google?.maps?.marker?.AdvancedMarkerElement) {
     log.warn(
       LOG_CATEGORIES.MAP_RENDERING,
-      "AdvancedMarkerElement not available for important location markers"
+      "AdvancedMarkerElement not available for important location markers",
     );
     log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Maps API status", {
       google: !!win?.google,
@@ -116,18 +94,9 @@ export const renderImportantLocationMarkers = (
     return;
   }
 
-  // Clear existing important location markers
-  if (importantMarkersRef.current) {
-    importantMarkersRef.current.forEach((marker) => {
-      // Type-safe marker cleanup
-      if ("map" in marker && marker.map) {
-        marker.map = null;
-      }
-    });
-    importantMarkersRef.current = [];
-  }
+  clearImportantLocationMarkers(importantMarkersRef);
 
-  const importantLocations = buildImportantLocationsList(isochroneData);
+  const importantLocations = importantWaypointsFromIsochrone(isochroneData);
   if (importantLocations.length === 0) {
     return;
   }
@@ -135,11 +104,6 @@ export const renderImportantLocationMarkers = (
   const markers: GoogleAdvancedMarkerElement[] = [];
 
   for (const loc of importantLocations) {
-    // Skip locations without coordinates - this is normal and not an error
-    if (!loc.lat || !loc.lng) {
-      continue;
-    }
-
     const { address } = loc;
     const position = { lat: loc.lat, lng: loc.lng };
     const displayLabel = truncateAddress(address);
@@ -166,17 +130,17 @@ export const renderImportantLocationMarkers = (
         white-space: nowrap;
       ">
         <div style="
-          color: #4A3228; 
-          font-size: 11px; 
+          color: #4A3228;
+          font-size: 11px;
           font-weight: 600;
           margin-bottom: 1px;
         ">${escapeHtml(displayLabel)}</div>
         <div style="
-          color: #8B7355; 
-          font-size: 9px; 
+          color: #8B7355;
+          font-size: 9px;
           font-weight: 500;
         ">${commuteTime} min</div>
-        
+
         <!-- Triangle pointer -->
         <div style="
           position: absolute;
@@ -213,6 +177,7 @@ export const renderImportantLocationMarkers = (
       position: { lat: number; lng: number };
       content: HTMLElement;
       title: string;
+      zIndex?: number | null;
     }) => GoogleAdvancedMarkerElement;
 
     const marker = new AdvancedMarkerCtor({
@@ -220,6 +185,7 @@ export const renderImportantLocationMarkers = (
       position,
       content: markerElement,
       title: addressForMarkerTitle(address),
+      zIndex: searchMapOverlayBaseZIndex("waypoints"),
     });
 
     markers.push(marker);

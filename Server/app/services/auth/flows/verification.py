@@ -11,6 +11,7 @@ from flask import Response, current_app, make_response
 
 from ..core.cognito_service import AWS_COGNITO_service
 from ..user.lookup import find_or_create_user_by_cognito
+from ..utils.code_delivery import normalize_cognito_code_delivery
 from ..utils.cookies import set_auth_cookies
 from ..utils.helpers import mask_email
 from ..utils.responses import create_auth_response
@@ -156,7 +157,9 @@ def handle_resend_code(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
         return {
             "success": True,
             "message": "Verification code has been resent to your email",
-            "code_delivery": response.get("CodeDeliveryDetails", {}),
+            "code_delivery": normalize_cognito_code_delivery(
+                response.get("CodeDeliveryDetails", {})
+            ),
         }, 200
 
     except AWS_COGNITO_service.client.exceptions.UserNotFoundException:

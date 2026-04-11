@@ -1,0 +1,8 @@
+allOf:
+  - $ref: '../core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - user
+    properties:
+      user:
+        $ref: '../../user/profile/UserProfile.yaml'

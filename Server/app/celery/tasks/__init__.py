@@ -9,6 +9,12 @@ Tasks are organized into separate files by category:
 """
 
 # Import all tasks to ensure they are registered with Celery
+from .docusign import (
+    fetch_completed_documents_task,
+    process_webhook_task,
+    send_envelope_task,
+    sync_templates_task,
+)
 from .home_matching import find_best_matches_task
 from .property_research import compare_property_task, research_property_task
 from .weight_training import train_all_eligible_users_task, train_user_weights_task
@@ -19,4 +25,8 @@ __all__ = [
     "compare_property_task",
     "train_user_weights_task",
     "train_all_eligible_users_task",
+    "send_envelope_task",
+    "process_webhook_task",
+    "fetch_completed_documents_task",
+    "sync_templates_task",
 ]

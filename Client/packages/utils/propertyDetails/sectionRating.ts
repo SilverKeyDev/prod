@@ -5,6 +5,31 @@
 
 const RATING_KEY = (k: string) => k === "rating" || k.endsWith("_rating");
 
+/**
+ * If the payload was double-wrapped (e.g. `{ commute: { commute_rating, ... } }`), unwrap so
+ * `stripSectionRatingField` sees flat fields like other sections.
+ */
+export function unwrapPropertyAnalysisSection(
+  sectionKey: string,
+  data: unknown,
+): unknown {
+  if (data === null || typeof data !== "object" || Array.isArray(data)) {
+    return data;
+  }
+  const obj = data as Record<string, unknown>;
+  const keys = Object.keys(obj);
+  if (
+    keys.length === 1 &&
+    keys[0] === sectionKey &&
+    obj[sectionKey] !== null &&
+    typeof obj[sectionKey] === "object" &&
+    !Array.isArray(obj[sectionKey])
+  ) {
+    return obj[sectionKey];
+  }
+  return data;
+}
+
 export function parseSectionRatingValue(raw: unknown): number | null {
   if (raw === null || raw === undefined || raw === "") return null;
   if (typeof raw === "number") {
@@ -22,7 +47,10 @@ export function parseSectionRatingValue(raw: unknown): number | null {
   return null;
 }
 
-export function stripSectionRatingField(data: unknown): { rest: unknown; rating: number | null } {
+export function stripSectionRatingField(data: unknown): {
+  rest: unknown;
+  rating: number | null;
+} {
   if (data === null || typeof data !== "object" || Array.isArray(data)) {
     return { rest: data, rating: null };
   }

@@ -1,0 +1,7 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      deleted:
+        type: boolean
+        description: Whether event was successfully deleted

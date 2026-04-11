@@ -18,6 +18,20 @@ interface DocumentCardHeaderProps {
    * Formatted upload date string
    */
   uploadedDate: string;
+  status?: string;
+  isAgreement?: boolean;
+  /**
+   * Name of the sender (when document was sent from elsewhere)
+   */
+  sentByName?: string | null;
+  /**
+   * Email of the sender (when document was sent from elsewhere)
+   */
+  sentByEmail?: string | null;
+  /**
+   * Whether the document was uploaded by someone other than the current user
+   */
+  isFromOtherUser?: boolean;
 }
 /**
  * Maps document type to appropriate icon name.
@@ -36,21 +50,6 @@ function getDocumentIconName(documentType: string | null): IconName {
   }
 }
 /**
- * Formats document type for display, returning 'other' if type is null or unknown
- */
-function formatDocumentType(documentType: string | null): string {
-  if (!documentType) {
-    return "other";
-  }
-  const normalizedType = documentType.toLowerCase();
-  const validTypes = ["report", "contract", "inspection", "financial"];
-  if (validTypes.includes(normalizedType)) {
-    // Capitalize first letter
-    return normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1);
-  }
-  return "other";
-}
-/**
  * Document card header component displaying icon, title, and upload date.
  * Icon changes based on document type.
  */
@@ -58,10 +57,35 @@ export default function DocumentCardHeader({
   title,
   documentType,
   uploadedDate,
+  status,
+  isAgreement = false,
+  sentByName,
+  sentByEmail,
+  isFromOtherUser = false,
 }: DocumentCardHeaderProps) {
   const { t } = useLocalization();
   const documentIconName = getDocumentIconName(documentType);
-  const displayType = formatDocumentType(documentType);
+  const normalizedStatus = (status ?? "").toLowerCase();
+  const shouldShowStatus = isAgreement && normalizedStatus.length > 0;
+  const statusLabel =
+    normalizedStatus.length > 0
+      ? normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1)
+      : null;
+  const statusClassName =
+    normalizedStatus === "completed"
+      ? "bg-green-100 text-green-700"
+      : normalizedStatus === "signed"
+        ? "bg-purple-100 text-purple-700"
+        : normalizedStatus === "sent" || normalizedStatus === "delivered"
+          ? "bg-blue-100 text-blue-700"
+          : normalizedStatus === "voided" || normalizedStatus === "declined"
+            ? "bg-red-100 text-red-700"
+            : "bg-gray-100 text-gray-700";
+
+  // Determine sender display name and whether to show "Sent by" text
+  const senderDisplayName = sentByName || sentByEmail || "someone";
+  const shouldShowSentBy = isFromOtherUser;
+
   return (
     <>
       {/* Header with icon and title */}
@@ -76,18 +100,55 @@ export default function DocumentCardHeader({
         </Box>
       </Box>
 
-      {/* Document type */}
-      <Box className="mb-2">
-        <BodyText size="xs" className="font-medium text-gray-600">
-          {displayType}
-        </BodyText>
+      {/* Document type temporarily hidden from display */}
+      {/*
+      <Box className="mb-2 min-h-5">
+        {displayType ? (
+          <BodyText size="xs" className="font-medium text-gray-600">
+            {displayType}
+          </BodyText>
+        ) : (
+          <BodyText size="xs" className="font-medium text-transparent" aria-hidden="true">
+            Placeholder
+          </BodyText>
+        )}
+      </Box>
+      */}
+
+      {/* Status row keeps reserved height even when status is missing */}
+      <Box className="mb-2 min-h-7">
+        {shouldShowStatus && statusLabel ? (
+          <BodyText
+            size="xs"
+            className={`inline-flex rounded-full px-2 py-1 font-medium ${statusClassName}`}
+          >
+            {statusLabel}
+          </BodyText>
+        ) : (
+          <BodyText
+            size="xs"
+            className="inline-flex rounded-full px-2 py-1 font-medium text-transparent"
+            aria-hidden="true"
+          >
+            Placeholder
+          </BodyText>
+        )}
       </Box>
 
-      {/* Upload date */}
+      {/* Upload/Send date */}
       <Box className="mb-4 flex flex-row items-center gap-2">
-        <Icon name="calendar" size={14} className="flex-shrink-0 text-gray-400" />
+        <Icon
+          name="calendar"
+          size={14}
+          className="flex-shrink-0 text-gray-400"
+        />
         <BodyText size="xs" muted>
-          {t("documents.uploaded", { date: uploadedDate })}
+          {shouldShowSentBy
+            ? t("documents.sent_by", {
+                name: senderDisplayName,
+                date: uploadedDate,
+              })
+            : t("documents.uploaded", { date: uploadedDate })}
         </BodyText>
       </Box>
     </>

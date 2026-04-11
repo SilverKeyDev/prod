@@ -6,10 +6,12 @@ from datetime import datetime, timezone
 
 from flask import jsonify, make_response
 
+from app.schemas import ConnectionStatusResponse
 from app.services.auth.tokens import tokens_get
 from app.services.calendar.core import get_authenticated_user_id, google_calendar_service
 from app.utils.security.app_logging import get_logger
 from app.utils.security.security import rate_limit
+from app.utils.validation import validate_response
 
 logger = get_logger()
 
@@ -40,6 +42,7 @@ def health_check():
 
 
 @rate_limit(max_requests=100, window_seconds=60)
+@validate_response(ConnectionStatusResponse)
 def connection_status():
     """Check if Google Calendar is connected for the current user"""
     user_id, error_response = get_authenticated_user_id()
@@ -52,7 +55,7 @@ def connection_status():
         token_data = tokens_get(user_id)
         is_connected = token_data is not None
 
-        return jsonify({"success": True, "data": {"isConnected": is_connected}})
+        return jsonify({"success": True, "connected": is_connected})
     except Exception as e:
         logger.error(
             f"Error checking connection status for user {user_id}: {str(e)}", exc_info=True

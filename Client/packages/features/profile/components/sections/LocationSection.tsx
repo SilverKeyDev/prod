@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useCallback } from "react";
 
-// Constants
+import {
+  ProfileSectionBody,
+  ProfileSectionCallout,
+} from "packages/features/profile/components/layout";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { Box } from "packages/ui/components/primitives";
 
-// Components
-import Card from "@/components/layout/Card.web";
 import { BodyText, Subtitle, Title } from "@/components/ui";
+import { SearchPrefsLocation } from "@/features/profile/components/profileScreen/searchPreferences/SearchPrefsLocation";
+import { SearchPrefsNeighborhood } from "@/features/profile/components/profileScreen/searchPreferences/SearchPrefsNeighborhood";
+import type { PatchBuyerPreferenceExtensions } from "@/features/profile/components/profileScreen/searchPreferences/types";
+import { withBuyerExtV1 } from "@/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import ImportantLocationsInput from "@/features/profile/components/settings/inputs/ImportantLocationsInput.web";
 import {
   AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
@@ -15,16 +21,14 @@ import {
   type OnboardingData,
   SECTION_TITLES,
 } from "@/features/profile/utils";
+
 type LocationSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
-  updateFormData: (field: string | number | symbol, value: unknown) => void;
+  updateFormData: (field: keyof OnboardingData, value: unknown) => void;
   scriptsReady: boolean;
   loadError?: string | null;
-  /** Optional class for the Card wrapper (e.g. transparent + dotted for search header) */
-  cardClassName?: string;
-  /** When false, render content in a div instead of Card (e.g. when embedded in onboarding page Card). Default true. */
-  wrapInCard?: boolean;
+  patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   /** Optional label for the add location button */
   addButtonLabel?: string;
   /** Optional id for the section title (e.g. for aria-labelledby on dialog) */
@@ -37,8 +41,7 @@ export default function LocationSection({
   updateFormData,
   scriptsReady,
   loadError,
-  cardClassName,
-  wrapInCard = true,
+  patchBuyerPreferenceExtensions,
   addButtonLabel,
   titleId,
 }: LocationSectionProps) {
@@ -47,47 +50,69 @@ export default function LocationSection({
     authIsAgent,
     formIsAgent: formData.is_agent,
   });
-  const content = (
+
+  const patch = useCallback(
+    (
+      fn: (
+        prev: BuyerPreferenceExtensions | undefined,
+      ) => BuyerPreferenceExtensions,
+    ) => {
+      patchBuyerPreferenceExtensions(fn);
+    },
+    [patchBuyerPreferenceExtensions],
+  );
+
+  const ext = withBuyerExtV1(formData.buyerPreferenceExtensions);
+
+  return (
     <>
       <Title size="md" as="h2" id={titleId}>
         {SECTION_TITLES.LOCATION_PREFERENCES}
       </Title>
       {showAgentOptionalBuyerCallout && (
-        <Box className="border-border bg-background-surface rounded-lg border px-3 py-2">
-          <BodyText size="xs" muted>
-            {AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT}
-          </BodyText>
-        </Box>
+        <ProfileSectionCallout>
+          {AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT}
+        </ProfileSectionCallout>
       )}
 
-      {/* Important Locations for Commute */}
-      <Box className="flex w-full flex-col">
-        <Subtitle size="xs" muted className="mb-4">
-          {LOCATION_SUBTITLE}
-        </Subtitle>
-        <ImportantLocationsInput
-          locations={
-            Array.isArray(formData.important_locations) ? formData.important_locations : []
-          }
-          onChange={(locations) => updateFormData("important_locations", locations)}
-          scriptsReady={scriptsReady}
-          isEditMode={isEditMode}
-          addButtonLabel={addButtonLabel}
-        />
-        {loadError && (
-          <BodyText as="p" size="xs" className="mt-2 text-red-500">
-            {loadError}
-          </BodyText>
-        )}
-      </Box>
+      <ProfileSectionBody>
+        <Box className="flex w-full flex-col">
+          <Subtitle size="xs" muted className="mb-4">
+            {LOCATION_SUBTITLE}
+          </Subtitle>
+          <ImportantLocationsInput
+            locations={
+              Array.isArray(formData.important_locations)
+                ? formData.important_locations
+                : []
+            }
+            onChange={(locations) =>
+              updateFormData("important_locations", locations)
+            }
+            scriptsReady={scriptsReady}
+            isEditMode={isEditMode}
+            addButtonLabel={addButtonLabel}
+          />
+          {loadError && (
+            <BodyText as="p" size="xs" className="mt-2 text-red-500">
+              {loadError}
+            </BodyText>
+          )}
+        </Box>
+
+        <Box className="flex flex-col gap-6">
+          <SearchPrefsLocation
+            isEditMode={isEditMode}
+            patch={patch}
+            loc={ext.location_prefs ?? {}}
+          />
+          <SearchPrefsNeighborhood
+            isEditMode={isEditMode}
+            patch={patch}
+            neigh={ext.neighborhood ?? {}}
+          />
+        </Box>
+      </ProfileSectionBody>
     </>
-  );
-  const className = cardClassName ? `${cardClassName} space-y-2` : "space-y-2";
-  return wrapInCard ? (
-    <Card border="light" className={className}>
-      {content}
-    </Card>
-  ) : (
-    <Box className={className}>{content}</Box>
   );
 }

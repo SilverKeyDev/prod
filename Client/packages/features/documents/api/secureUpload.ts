@@ -1,27 +1,23 @@
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
+
 import { apiRequest, apiUpload } from "packages/services/http/compatibility";
+import type { components } from "packages/types/api.generated";
 import { createBlob, getDocument, getWindow } from "packages/utils";
 
-// Types for secure upload API
-export type UploadResponse = {
-  success: boolean;
-  message?: string;
-  error?: string;
-  // Backend returns document nested in response
-  document?: {
-    id: string;
-    filename: string;
-    size: number;
-    type: string;
-    hash?: string;
-    uploaded_at?: string;
-  };
-  // Legacy fields for backward compatibility
-  file_id?: string;
-  file_url?: string;
-  filename?: string;
-  file_size?: number;
-  content_type?: string;
-};
+// Re-export type from generated schema
+export type UploadResponse = components["schemas"]["UploadResponse"];
 
 /**
  * Secure Upload API client using centralized utilities
@@ -44,7 +40,10 @@ export const secureUploadApi = {
   /**
    * Upload an image file
    */
-  uploadImage: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
+  uploadImage: (
+    file: File,
+    metadata?: Record<string, unknown>,
+  ): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("file", file);
     if (metadata) {
@@ -71,7 +70,9 @@ export const secureUploadApi = {
       const doc = getDocument();
       if (!win || !doc) return;
       const urlCreator = (
-        typeof URL !== "undefined" ? URL : (win as Window & { URL?: typeof URL }).URL
+        typeof URL !== "undefined"
+          ? URL
+          : (win as Window & { URL?: typeof URL }).URL
       ) as typeof URL | undefined;
       if (!urlCreator) return;
       const blob = createBlob([responseData.data as BlobPart]);
@@ -89,8 +90,13 @@ export const secureUploadApi = {
   /**
    * Delete a document by ID
    */
-  deleteDocument: (docId: string): Promise<{ success: boolean; error?: string }> =>
-    apiRequest<{ success: boolean; error?: string }>(`/api/v1/documents/${docId}`, {
-      method: "DELETE",
-    }),
+  deleteDocument: (
+    docId: string,
+  ): Promise<{ success: boolean; error?: string }> =>
+    apiRequest<{ success: boolean; error?: string }>(
+      `/api/v1/documents/${docId}`,
+      {
+        method: "DELETE",
+      },
+    ),
 };

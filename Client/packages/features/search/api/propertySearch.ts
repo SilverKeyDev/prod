@@ -1,4 +1,5 @@
 import { searchApi } from "packages/config/http/api";
+import { transformPropertySearchResult } from "packages/features/search/utils/searchTransform";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchFilterOverrides } from "packages/store";
 import type {
@@ -9,7 +10,6 @@ import type {
   UserPreferencesData,
   ViewportPolygonPoint,
 } from "packages/types/api";
-import { formatPropertySearchListingPrice } from "packages/utils/search/formatPropertySearchListingPrice";
 
 export type LatLng = {
   lat: number;
@@ -73,7 +73,7 @@ const POLYGON_SEARCH_LIST_OVERRIDE_KEYS: (keyof SearchFilterOverrides)[] = [
 
 /** Build non-empty user_preferences for polygon search when any slider override is set. */
 export function compactSearchFilterOverridesForPolygon(
-  overrides: SearchFilterOverrides
+  overrides: SearchFilterOverrides,
 ): SearchByPolygonRequest["user_preferences"] | undefined {
   const out: Record<string, number | string[]> = {};
   for (const k of POLYGON_SEARCH_OVERRIDE_KEYS) {
@@ -109,18 +109,22 @@ async function handlePolygonSearchResponse(
   setIsSearching: (searching: boolean) => void,
   setHasSearched: (searched: boolean) => void,
   setCurrentPage: (page: number) => void,
-  setShowPropertyModals: (show: boolean) => void
+  setShowPropertyModals: (show: boolean) => void,
 ): Promise<void> {
   if (!searchResult.success) {
     throw new Error(searchResult.error ?? "Search failed");
   }
 
   const apiPropertyCount = searchResult.properties?.length ?? 0;
-  log.info(LOG_CATEGORIES.SEARCH, "Polygon search: raw API homes before client transform", {
-    propertiesCount: apiPropertyCount,
-    totalCount: searchResult.total_count,
-    meta: searchResult.meta,
-  });
+  log.info(
+    LOG_CATEGORIES.SEARCH,
+    "Polygon search: raw API homes before client transform",
+    {
+      propertiesCount: apiPropertyCount,
+      totalCount: searchResult.total_count,
+      meta: searchResult.meta,
+    },
+  );
 
   if (searchResult.meta?.cached !== undefined) {
     if (searchResult.meta.cached) {
@@ -144,53 +148,55 @@ async function handlePolygonSearchResponse(
   if (searchResult.properties && searchResult.properties.length > 0) {
     const firstProp = searchResult.properties[0];
     if (firstProp) {
+      const fp = firstProp as PropertySearchResult | Record<string, unknown>;
+      const keys = Object.keys(fp);
+      const scoreVal =
+        "score" in fp && fp.score != null
+          ? fp.score
+          : "_score" in fp
+            ? (fp as { _score?: number })._score
+            : undefined;
       log.debug(LOG_CATEGORIES.SEARCH, "First Property Raw Data", {
-        zpid: firstProp.zpid,
-        address: firstProp.address,
-        _score: firstProp._score,
-        scoreType: typeof firstProp._score,
-        hasScore: firstProp._score !== undefined && firstProp._score !== null,
-        allKeys: Object.keys(firstProp),
+        keys,
+        score: scoreVal,
+        scoreType: typeof scoreVal,
+        hasScore: scoreVal !== undefined && scoreVal !== null,
       });
     }
   }
 
-  const transformedResults: SearchResult[] = (searchResult.properties ?? []).map(
-    (property: PropertySearchResult, index: number) => {
-      const score = property._score ?? 0;
-      if (score === 0 || score === undefined || score === null) {
-        log.warn(LOG_CATEGORIES.SEARCH, "Property missing score", {
-          zpid: property.zpid,
-          address: property.address,
-          _score: property._score,
-          scoreType: typeof property._score,
-        });
-      }
-      return {
-        id: property.zpid ?? `${Date.now()}-${index}`,
-        address: property.address ?? "Address not available",
-        price: formatPropertySearchListingPrice(property),
-        bedrooms: property.bedrooms ?? 0,
-        bathrooms: property.bathrooms ?? 0,
-        sqft:
-          typeof property.livingArea === "number"
-            ? property.livingArea
-            : typeof property.livingArea === "string"
-              ? parseInt((property.livingArea as string).replace(/,/g, "")) || 0
-              : 0,
-        lat: property.latitude ?? center.lat + (Math.random() - 0.5) * 0.01,
-        lng: property.longitude ?? center.lng + (Math.random() - 0.5) * 0.01,
-        lotSize:
-          property.lotAreaValue && property.lotAreaUnit
-            ? `${property.lotAreaValue.toLocaleString()} ${property.lotAreaUnit}`
-            : undefined,
-        propertyType: property.propertyType ?? "Single Family",
-        listingStatus: property.listingStatus ?? "For Sale",
-        imageUrl: property.imgSrc ?? "/default-home.jpg",
-        _score: score,
-      };
+  const transformedResults: SearchResult[] = (
+    searchResult.properties ?? []
+  ).map((property, index) => {
+    const p = property as PropertySearchResult | Record<string, unknown>;
+    const rawScore =
+      "score" in p && p.score != null
+        ? p.score
+        : "_score" in p
+          ? (p as { _score?: number })._score
+          : undefined;
+    if (rawScore === 0 || rawScore === undefined || rawScore === null) {
+      const listingId =
+        "id" in p && typeof (p as PropertySearchResult).id === "string"
+          ? (p as PropertySearchResult).id
+          : (p as { zpid?: string }).zpid;
+      const addr =
+        "location" in p && (p as PropertySearchResult).location != null
+          ? (p as PropertySearchResult).location.address
+          : (p as { address?: string }).address;
+      log.warn(LOG_CATEGORIES.SEARCH, "Property missing score", {
+        listingId,
+        address: addr,
+        rawScore,
+        scoreType: typeof rawScore,
+      });
     }
-  );
+    return transformPropertySearchResult(
+      property as PropertySearchResult,
+      index,
+      center,
+    );
+  });
 
   setSearchStage("Extracting property images...");
   await new Promise((resolve) => setTimeout(resolve, 800));
@@ -202,11 +208,15 @@ async function handlePolygonSearchResponse(
   setCurrentPage(0);
   setShowPropertyModals(true);
 
-  log.info(LOG_CATEGORIES.SEARCH, "Successfully found properties (after home matching transform)", {
-    rawApiCount: apiPropertyCount,
-    transformedCount: transformedResults.length,
-    sampleIds: transformedResults.slice(0, 5).map((r) => r.id),
-  });
+  log.info(
+    LOG_CATEGORIES.SEARCH,
+    "Successfully found properties (after home matching transform)",
+    {
+      rawApiCount: apiPropertyCount,
+      transformedCount: transformedResults.length,
+      sampleIds: transformedResults.slice(0, 5).map((r) => r.id),
+    },
+  );
 }
 
 /**
@@ -226,21 +236,26 @@ export const searchPropertiesInIsochrone = async (
   searchFilterOverrides: SearchFilterOverrides,
   preferencesStrictFilter: boolean,
   preferencesUserId?: string | null,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<void> => {
   setIsSearching(true);
   setSearchStage("Locating homes in your area...");
   setSearchResults([]);
 
   if (!isochroneData?.isochrone?.geometry) {
-    log.warn(LOG_CATEGORIES.SEARCH, "No isochrone geometry available for property search");
+    log.warn(
+      LOG_CATEGORIES.SEARCH,
+      "No isochrone geometry available for property search",
+    );
     setIsSearching(false);
     return;
   }
 
   const centerLat = isochroneData.center?.lat ?? 0;
   const centerLng =
-    isochroneData.center?.lon ?? (isochroneData.center as { lng?: number } | undefined)?.lng ?? 0;
+    isochroneData.center?.lon ??
+    (isochroneData.center as { lng?: number } | undefined)?.lng ??
+    0;
 
   try {
     setSearchStage("Extracting property data...");
@@ -257,18 +272,24 @@ export const searchPropertiesInIsochrone = async (
         : {}),
     };
 
-    log.info(LOG_CATEGORIES.SEARCH, "Isochrone search: request filters (overrides + payload)", {
-      overrideBedMin: overrides.preferred_bedrooms_min ?? null,
-      overrideBedMax: overrides.preferred_bedrooms_max ?? null,
-      overrideBathMin: overrides.preferred_bathrooms_min ?? null,
-      overrideBathMax: overrides.preferred_bathrooms_max ?? null,
-      overrideLotHomeKeys: userPrefsOverride ? Object.keys(userPrefsOverride) : [],
-      includesUserPreferenceOverrides:
-        searchRequest.user_preferences != null &&
-        typeof searchRequest.user_preferences === "object",
-      perBucketPages: searchRequest.perBucketPages,
-      forceSearch: searchRequest.forceSearch,
-    });
+    log.info(
+      LOG_CATEGORIES.SEARCH,
+      "Isochrone search: request filters (overrides + payload)",
+      {
+        overrideBedMin: overrides.preferred_bedrooms_min ?? null,
+        overrideBedMax: overrides.preferred_bedrooms_max ?? null,
+        overrideBathMin: overrides.preferred_bathrooms_min ?? null,
+        overrideBathMax: overrides.preferred_bathrooms_max ?? null,
+        overrideLotHomeKeys: userPrefsOverride
+          ? Object.keys(userPrefsOverride)
+          : [],
+        includesUserPreferenceOverrides:
+          searchRequest.user_preferences != null &&
+          typeof searchRequest.user_preferences === "object",
+        perBucketPages: searchRequest.perBucketPages,
+        forceSearch: searchRequest.forceSearch,
+      },
+    );
 
     const searchResult = (await searchApi.searchByPolygon(searchRequest, {
       signal,
@@ -282,7 +303,7 @@ export const searchPropertiesInIsochrone = async (
       setIsSearching,
       setHasSearched,
       setCurrentPage,
-      setShowPropertyModals
+      setShowPropertyModals,
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -290,7 +311,11 @@ export const searchPropertiesInIsochrone = async (
       setSearchStage("");
       return;
     }
-    log.error(LOG_CATEGORIES.ERRORS, "Error in automatic isochrone property search", error);
+    log.error(
+      LOG_CATEGORIES.ERRORS,
+      "Error in automatic isochrone property search",
+      error,
+    );
     log.error(LOG_CATEGORIES.ERRORS, "Error details", {
       message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
@@ -316,7 +341,7 @@ export const searchPropertiesInViewport = async (
   searchFilterOverrides: SearchFilterOverrides,
   preferencesStrictFilter: boolean,
   preferencesUserId?: string | null,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<void> => {
   setIsSearching(true);
   setSearchStage("Searching this area...");
@@ -361,7 +386,7 @@ export const searchPropertiesInViewport = async (
       setIsSearching,
       setHasSearched,
       setCurrentPage,
-      setShowPropertyModals
+      setShowPropertyModals,
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -369,7 +394,11 @@ export const searchPropertiesInViewport = async (
       setSearchStage("");
       return;
     }
-    log.error(LOG_CATEGORIES.ERRORS, "Error in viewport property search", error);
+    log.error(
+      LOG_CATEGORIES.ERRORS,
+      "Error in viewport property search",
+      error,
+    );
     setIsSearching(false);
     setSearchStage("");
   }

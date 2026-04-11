@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Run backend, web, and iOS in three separate Terminal windows, then open localhost in browser.
+# Run backend, web, and iOS in three separate Terminal windows.
 # macOS only (uses osascript + Terminal.app).
 #
 # On start: kills existing processes on dev ports, closes all Terminal.app windows,
-# then opens fresh terminals. Opens browser tabs only if not already open; always opens /admin.
+# then opens fresh terminals.
 #
 # Debugging:
 #   DEBUG_NATIVEWIND=1  - Enable NativeWind debug logs in Metro (e.g. DEBUG_NATIVEWIND=1 ./scripts/run/run-all.sh)
@@ -56,60 +56,6 @@ close_all_terminal_windows() {
   log "${GREEN}✅ Terminal windows closed${NC}"
 }
 
-# Check if any browser tab already has a URL containing the given pattern (e.g. "localhost:5173" or "localhost:5173/admin").
-# Returns 0 if found (skip opening), 1 if not found (ok to open).
-url_tab_exists() {
-  local pattern="$1"
-  # Chrome
-  if osascript -e 'application "Google Chrome" is running' 2>/dev/null; then
-    if osascript 2>/dev/null <<AS
-      tell application "Google Chrome"
-        repeat with w in windows
-          repeat with t in tabs of w
-            if (URL of t) contains "$pattern" then return true
-          end repeat
-        end repeat
-        return false
-      end tell
-AS
-    then
-      return 0
-    fi
-  fi
-  # Safari
-  if osascript -e 'application "Safari" is running' 2>/dev/null; then
-    if osascript 2>/dev/null <<AS
-      tell application "Safari"
-        repeat with w in windows
-          repeat with t in tabs of w
-            if (URL of t) contains "$pattern" then return true
-          end repeat
-        end repeat
-        return false
-      end tell
-AS
-    then
-      return 0
-    fi
-  fi
-  return 1
-}
-
-# Open URL only if a tab with that URL (or matching pattern) is not already open.
-open_url_if_not_open() {
-  local url="$1"
-  local pattern="$2"  # e.g. "localhost:5173" or "localhost:5173/admin"
-  if url_tab_exists "$pattern"; then
-    log "Tab with $pattern already open; skipping duplicate"
-    return 0
-  fi
-  if open "$url" 2>/dev/null; then
-    log "${GREEN}✅ Opened $url${NC}"
-  else
-    osascript -e "open location \"$url\"" 2>/dev/null || warn "Could not open: $url"
-  fi
-}
-
 log "Starting run-all.sh | PROJECT_ROOT=$PROJECT_ROOT | FLASK_PORT=$FLASK_PORT | VITE_PORT=$VITE_PORT"
 
 if [[ "$(uname)" != "Darwin" ]]; then
@@ -149,7 +95,7 @@ for i in $(seq 1 45); do
     log "${GREEN}✅ Backend is ready${NC}"
     break
   fi
-  [[ $i -eq 45 ]] && { 
+  [[ $i -eq 45 ]] && {
     err "Backend did not respond on port ${FLASK_PORT} within 45s. Check the backend Terminal for errors (Flask, Redis, DB)."
     break
   }
@@ -171,7 +117,7 @@ for i in $(seq 1 60); do
     log "${GREEN}✅ Vite is ready at http://localhost:${VITE_PORT}${NC}"
     break
   fi
-  [[ $i -eq 60 ]] && { 
+  [[ $i -eq 60 ]] && {
     err "Vite did not start on port ${VITE_PORT} within 60s. Check the web Terminal for errors (pnpm, Vite, typecheck)."
     break
   }
@@ -190,12 +136,4 @@ done
 #   exit 1
 # fi
 
-# Open web app in browser (base + admin); skip if tabs already open
-sleep 3
-BASE_URL="http://localhost:${VITE_PORT}"
-ADMIN_URL="${BASE_URL}/admin"
-log "Opening web app in browser (base + admin)..."
-open_url_if_not_open "$BASE_URL" "localhost:${VITE_PORT}"
-open_url_if_not_open "$ADMIN_URL" "localhost:${VITE_PORT}/admin"
-
-log "${GREEN}✅ All terminals launched. Backend, Web.${NC}"
+log "${GREEN}✅ All terminals launched. Backend, Web running at http://localhost:${VITE_PORT}${NC}"

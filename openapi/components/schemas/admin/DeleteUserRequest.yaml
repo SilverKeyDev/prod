@@ -1,0 +1,15 @@
+type: object
+required:
+  - user_id
+  - confirm
+properties:
+  user_id:
+    type: string
+    description: ID of user to delete
+  confirm:
+    type: boolean
+    description: Must be true to confirm deletion
+  confirmation:
+    type: string
+    nullable: true
+    description: Legacy confirmation text (optional)

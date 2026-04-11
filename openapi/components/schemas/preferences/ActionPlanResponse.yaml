@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      plan:
+        type: object
+        additionalProperties: true
+        description: "Generated action plan structure"
+        nullable: true

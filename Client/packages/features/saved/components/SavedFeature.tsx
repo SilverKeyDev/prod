@@ -7,24 +7,29 @@ import {
   useSavedPageDocumentHandlers,
   useSavedPageView,
 } from "packages/features/documents";
-import { useSavedPageMobileHeader } from "packages/features/saved/hooks/data/useSavedPageMobileHeader";
-import {
-  convertSavedHomeToProperty,
-  filterHomesBySearchTerm,
-} from "packages/features/saved/types/savedHomeUtils";
+import { useSavedFeatureSignatureFlow } from "packages/features/saved/hooks/useSavedFeatureSignatureFlow";
+import type { SavedFeatureProps } from "packages/features/saved/types/savedFeatureProps";
+import { filterHomesBySearchTerm } from "packages/features/saved/types/savedHomeUtils";
 import { usePropertyDetails } from "packages/features/search";
-import { useIsMobile, useSavedPageEffects, useSavedPageModals } from "packages/hooks/ui";
+import {
+  useIsMobile,
+  useSavedPageEffects,
+  useSavedPageModals,
+} from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { useAgentDashboardStore, useAuthStore, useSavedHomesStore } from "packages/store";
+import { useNavigation } from "packages/navigation";
+import {
+  useAgentDashboardStore,
+  useAuthStore,
+  useSavedHomesStore,
+  useUIStore,
+} from "packages/store";
 import type { SavedHome } from "packages/types";
 import { dateNow } from "packages/utils/date";
+import { buildPropertyUrl } from "packages/utils/property/slug";
 
 import SavedHomesHeader from "./header/SavedHomesHeader";
 import { SavedPageLayout } from "./layout/SavedPageLayout";
-
-type SavedFeatureProps = {
-  setMobileHeaderActions?: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
-};
 
 export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const isMobile = useIsMobile();
@@ -32,13 +37,17 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const [refreshing, setRefreshing] = useState(false);
   const { viewType, setViewType } = useSavedPageView();
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
-  const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
+  const setSelectedClientId = useAgentDashboardStore(
+    (s) => s.setSelectedClientId,
+  );
   const [eventTypeFilter, setEventTypeFilter] = useState<
     "listed" | "price_change" | "sold" | "withdrawn" | ""
   >("");
-  const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] = useState(false);
+  const [isDocumentUploadModalOpen, setIsDocumentUploadModalOpen] =
+    useState(false);
   const user = useAuthStore((s) => s.user);
   const isAgent = user?.is_agent ?? false;
+  const enqueueToast = useUIStore((s) => s.enqueueToast);
 
   const homes = useSavedHomesStore((s) => s.savedHomes);
   const loading = useSavedHomesStore((s) => s.savedHomesLoading);
@@ -53,20 +62,58 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     handleDownloadDocument,
     handleShareDocument,
   } = useDocumentActions();
+
+  const documentHandlers = useMemo(
+    () => ({
+      handleViewDocument,
+      handleDownloadDocument,
+      handleShareDocument,
+    }),
+    [handleViewDocument, handleDownloadDocument, handleShareDocument],
+  );
+
   const {
     documents,
     documentsLoading: documentsLoadingState,
     documentsError: documentsErrorState,
     refetchDocuments,
+    handleViewDocument: documentListView,
+    handleDownloadDocument: documentListDownload,
+    handleShareDocument: documentListShare,
     handleDelete,
-  } = useDocumentsDataIntegration(selectedClientId ?? undefined, {
-    handleViewDocument,
-    handleDownloadDocument,
-    handleShareDocument,
+    isSendingForSignature,
+    sendDocumentForSignature,
+    signAgreementNow,
+    getDefaultAgreementTitle,
+    sendForSignatureDisabledReason,
+  } = useDocumentsDataIntegration(
+    selectedClientId ?? undefined,
+    documentHandlers,
+  );
+
+  const {
+    isSendForSignatureModalOpen,
+    sendForSignatureTitle,
+    setSendForSignatureTitle,
+    sendForSignatureRecipientClientId,
+    setSendForSignatureRecipientClientId,
+    sendForSignatureDocument,
+    openSendForSignatureModal,
+    openSendForSignatureModalForForm,
+    closeSendForSignatureModal,
+    submitSendForSignature,
+    sendForSignatureDirect,
+    signNowDirect,
+  } = useSavedFeatureSignatureFlow(documents, selectedClientId, enqueueToast, {
+    sendDocumentForSignature,
+    getDefaultAgreementTitle,
+    sendForSignatureDisabledReason,
+    refetchDocuments,
+    signAgreementNow,
   });
+
   const {
     selectedProperty,
-    fetchPropertyDetails,
     clearSelectedProperty,
     isLoading: isLoadingPropertyDetails,
   } = usePropertyDetails();
@@ -85,9 +132,9 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     handleCloseNegotiation,
   } = useSavedPageModals();
   const { handleDocumentDelete } = useSavedPageDocumentHandlers({
-    handleViewDocument,
-    handleDownloadDocument,
-    handleShareDocument,
+    handleViewDocument: documentListView,
+    handleDownloadDocument: documentListDownload,
+    handleShareDocument: documentListShare,
     handleDelete,
     documents,
   });
@@ -122,43 +169,73 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const filteredHomes = filterHomesBySearchTerm(homes, searchTerm);
   const filteredDocuments = useMemo(() => {
     if (eventTypeFilter === "") return documents;
-    return documents.filter((doc) => doc.event_type === eventTypeFilter);
+    // Event types apply to property reports; keep agreements visible when a filter is active.
+    return documents.filter(
+      (doc) =>
+        doc.library_kind === "agreement" || doc.event_type === eventTypeFilter,
+    );
   }, [documents, eventTypeFilter]);
+
+  const { navigateToPath } = useNavigation();
 
   const handleUnlockHome = useCallback(
     async (home: SavedHome) => {
-      await fetchPropertyDetails(convertSavedHomeToProperty(home));
+      const zpid = home.home_id;
+      const address =
+        typeof home.address === "string"
+          ? home.address
+          : home.description ?? "";
+      navigateToPath(buildPropertyUrl(zpid, address));
     },
-    [fetchPropertyDetails]
+    [navigateToPath],
   );
 
-  const headerProps = useSavedPageMobileHeader({
+  // Render mobile header directly in parent instead of via effect
+  // This avoids the infinite loop caused by effect → state update → re-render → effect
+  const mobileHeader = isMobile ? (
+    <SavedHomesHeader
+      isMobile={true}
+      isAgent={isAgent}
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      viewType={viewType}
+      onViewTypeChange={setViewType}
+      onRefresh={refresh}
+      isRefreshing={refreshing}
+      isLoading={viewType === "homes" ? loading : documentsLoadingState}
+      homesCount={filteredHomes.length}
+      documentsCount={filteredDocuments.length}
+      selectedClientId={selectedClientId}
+      onClientChange={setSelectedClientId}
+      eventTypeFilter={eventTypeFilter}
+      onEventTypeFilterChange={setEventTypeFilter}
+    />
+  ) : null;
+
+  // Set mobile header once on mount and when it changes, but avoid effect loop
+  useEffect(() => {
+    setMobileHeaderActions?.(mobileHeader);
+    return () => {
+      setMobileHeaderActions?.(null);
+    };
+    // Only depend on whether we have a header to set, not the header itself
+    // This breaks the loop since mobileHeader JSX creates new objects
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isMobile,
+    setMobileHeaderActions,
+    // Depend on primitive values that determine if header should update
     isAgent,
     searchTerm,
-    setSearchTerm,
     viewType,
-    setViewType,
-    refresh,
     refreshing,
     loading,
     documentsLoadingState,
-    filteredHomesLength: filteredHomes.length,
-    documentsLength: filteredDocuments.length,
+    filteredHomes.length,
+    filteredDocuments.length,
     selectedClientId,
-    setSelectedClientId,
     eventTypeFilter,
-    setEventTypeFilter,
-  });
-
-  const mobileHeaderNode = useMemo(
-    () => (isMobile && setMobileHeaderActions ? <SavedHomesHeader {...headerProps} /> : null),
-    [isMobile, setMobileHeaderActions, headerProps]
-  );
-
-  useEffect(() => {
-    setMobileHeaderActions?.(mobileHeaderNode ?? null);
-    return () => setMobileHeaderActions?.(null);
-  }, [mobileHeaderNode, setMobileHeaderActions]);
+  ]);
 
   const handleCompare = useCallback(() => {
     if (selectedHomesData.length >= 2) setIsCompareModalOpen(true);
@@ -195,14 +272,44 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       currentDocumentId={currentDocumentId}
       currentDocumentName={currentDocumentName}
       closePdfModal={closePdfModal}
-      onViewDocument={handleViewDocument}
-      onDownloadDocument={handleDownloadDocument}
-      onShareDocument={handleShareDocument}
+      onViewDocument={documentListView}
+      onDownloadDocument={documentListDownload}
+      onShareDocument={documentListShare}
+      onSendForSignature={
+        isAgent
+          ? isMobile
+            ? sendForSignatureDirect
+            : openSendForSignatureModal
+          : undefined
+      }
+      onFormSendForSignature={
+        isAgent ? openSendForSignatureModalForForm : undefined
+      }
+      onSignNow={signNowDirect}
+      sendForSignatureModal={
+        isAgent && !isMobile
+          ? {
+              isOpen: isSendForSignatureModalOpen,
+              title: sendForSignatureTitle,
+              recipientClientId: sendForSignatureRecipientClientId,
+              isSubmitting: isSendingForSignature,
+              disabledReason:
+                sendForSignatureDocument != null
+                  ? sendForSignatureDisabledReason(sendForSignatureDocument)
+                  : null,
+              onTitleChange: setSendForSignatureTitle,
+              onRecipientClientChange: setSendForSignatureRecipientClientId,
+              onClose: closeSendForSignatureModal,
+              onConfirm: () => {
+                void submitSendForSignature();
+              },
+            }
+          : undefined
+      }
       onToggleHomeSelection={handleToggleHomeSelection}
       onUnlockHome={handleUnlockHome}
-      onDocumentDelete={(docId) => {
-        const doc = documents.find((d) => d.id === docId);
-        if (doc) void handleDocumentDelete(doc);
+      onDocumentDelete={(doc) => {
+        void handleDocumentDelete(doc);
       }}
       onRemoveFromComparison={handleRemoveFromComparison}
       onCloseNegotiation={handleCloseNegotiation}

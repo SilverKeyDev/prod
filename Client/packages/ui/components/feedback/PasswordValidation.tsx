@@ -12,7 +12,7 @@ type PasswordValidationProps = {
 };
 
 /**
- * Shared PasswordValidation — uses Box, Text, Icon. Works on web and native.
+ * Shared PasswordValidation - uses Box, Text, Icon. Works on web and native.
  */
 export function PasswordValidation({
   password,
@@ -22,7 +22,7 @@ export function PasswordValidation({
     return null;
   }
   return (
-    <Box className="border-primary bg-primary-muted mt-3 gap-2 rounded-lg border p-3">
+    <Box className="border-border bg-primary-muted mt-3 gap-2 rounded-lg border p-3">
       {validationRules.map((rule) => {
         const isValid = rule.test(password);
         return (
@@ -39,7 +39,11 @@ export function PasswordValidation({
               )}
             </Box>
             <Text
-              className={`text-sm ${isValid ? "text-primary font-semibold" : "text-text-secondary font-medium"}`}
+              className={`text-sm ${
+                isValid
+                  ? "text-primary font-semibold"
+                  : "text-text-secondary font-medium"
+              }`}
             >
               {rule.label}
             </Text>

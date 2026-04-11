@@ -1,7 +1,14 @@
 import { dashboardApi, secureUploadApi } from "packages/config/http/api";
-import type { Document, DocumentCategory } from "packages/features/documents/types/documents";
+import type {
+  DocumentCategory,
+  WorkflowDocument,
+} from "packages/features/documents/types/documents";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { createAbortManager, HttpError, isAbortError } from "packages/services/http";
+import {
+  createAbortManager,
+  HttpError,
+  isAbortError,
+} from "packages/services/http";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 /** Client-side category when upload UI does not collect one (not sent on multipart upload). */
@@ -18,9 +25,12 @@ export class DocumentService {
      Fetch Methods
      ========================= */
 
-  async fetchDocuments(): Promise<Document[]> {
+  async fetchDocuments(): Promise<WorkflowDocument[]> {
     // getDocuments should not be called - return empty array
-    log.warn(LOG_CATEGORIES.API, "fetchDocuments called but getDocuments should not be used");
+    log.warn(
+      LOG_CATEGORIES.API,
+      "fetchDocuments called but getDocuments should not be used",
+    );
     return [];
   }
 
@@ -64,15 +74,16 @@ export class DocumentService {
     category?: string,
     propertyId?: string,
     offerId?: string,
-    address?: string
-  ): Promise<Document> {
+    address?: string,
+  ): Promise<WorkflowDocument> {
     const resolvedCategory = category ?? DEFAULT_UPLOAD_DOCUMENT_CATEGORY;
     try {
       const result = await secureUploadApi.uploadDocument(file, address);
 
       // Backend returns: { success: true, document: { id, filename, size, type, hash, uploaded_at } }
       if (result.success && result.document?.id) {
-        const newDocument: Document = {
+        const newDocument: WorkflowDocument = {
+          document_record_kind: "workflow",
           id: result.document.id,
           name: file.name,
           file_path: result.document.filename ?? "",
@@ -126,11 +137,14 @@ export class DocumentService {
     }
   }
 
-  async updateDocumentStatus(docId: string, status: Document["status"]): Promise<Document> {
+  async updateDocumentStatus(
+    docId: string,
+    status: WorkflowDocument["status"],
+  ): Promise<WorkflowDocument> {
     try {
       const response = await dashboardApi.updateDocumentStatus(docId, status);
       if (response.success && response.document) {
-        const updatedDocument: Document = {
+        const updatedDocument: WorkflowDocument = {
           ...response.document,
           uploaded_at: dateParseISO(response.document.uploaded_at).toDate(),
           expiry_date: response.document.expiry_date
@@ -151,11 +165,11 @@ export class DocumentService {
     }
   }
 
-  async signDocument(docId: string): Promise<Document> {
+  async signDocument(docId: string): Promise<WorkflowDocument> {
     try {
       const response = await dashboardApi.signDocument(docId);
       if (response.success && response.document) {
-        const signedDocument: Document = {
+        const signedDocument: WorkflowDocument = {
           ...response.document,
           uploaded_at: dateParseISO(response.document.uploaded_at).toDate(),
           expiry_date: response.document.expiry_date
@@ -208,15 +222,24 @@ export class DocumentService {
      Helper Methods
      ========================= */
 
-  getDocumentsByCategory(documents: Document[], category: string): Document[] {
+  getDocumentsByCategory(
+    documents: WorkflowDocument[],
+    category: string,
+  ): WorkflowDocument[] {
     return documents.filter((doc) => doc.category === category);
   }
 
-  getDocumentsByProperty(documents: Document[], propertyId: string): Document[] {
+  getDocumentsByProperty(
+    documents: WorkflowDocument[],
+    propertyId: string,
+  ): WorkflowDocument[] {
     return documents.filter((doc) => doc.property_id === propertyId);
   }
 
-  getDocumentsByOffer(documents: Document[], offerId: string): Document[] {
+  getDocumentsByOffer(
+    documents: WorkflowDocument[],
+    offerId: string,
+  ): WorkflowDocument[] {
     return documents.filter((doc) => doc.offer_id === offerId);
   }
 

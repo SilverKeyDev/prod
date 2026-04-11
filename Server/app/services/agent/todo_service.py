@@ -2,12 +2,14 @@
 Service functions for managing agent todos
 """
 
+import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ... import db
-from ...models import Todo
+from ...dtos.todo import TodoDTO
+from ...models import Todo, User
 
 # Initialize centralized logger
 server_dir = os.path.dirname(
@@ -53,7 +55,7 @@ def get_agent_todos(agent_id: str, include_completed: bool = False) -> list[dict
         result = []
         for todo in todos:
             try:
-                result.append(todo.to_dict())
+                result.append(TodoDTO.from_orm(todo).model_dump(mode="json"))
             except Exception as e:
                 log.error(LOG_CATEGORIES["ERRORS"], f"Error serializing todo {todo.id} to dict", e)
                 # Continue with other todos even if one fails
@@ -66,11 +68,78 @@ def get_agent_todos(agent_id: str, include_completed: bool = False) -> list[dict
         raise
 
 
+def _parse_buyer_linked_agent_ids(client_user: User) -> list[str]:
+    """Parse legacy `users.agent_id` JSON/text into ordered agent id strings."""
+    if not client_user.agent_id:
+        return []
+    try:
+        if isinstance(client_user.agent_id, str):
+            try:
+                raw = json.loads(client_user.agent_id)
+            except json.JSONDecodeError:
+                return [x.strip() for x in client_user.agent_id.split(",") if x.strip()]
+        else:
+            raw = client_user.agent_id
+        if not isinstance(raw, list):
+            return []
+        return [str(x).strip() for x in raw if str(x).strip()]
+    except (TypeError, ValueError):
+        return []
+
+
+def resolve_primary_agent_id_for_client(client_user: User) -> str | None:
+    """
+    First linked agent id that is still an agent account (preserves user preference order).
+    Client-created todos are stored under this agent so the agent sees them in their list.
+    """
+    agent_ids = _parse_buyer_linked_agent_ids(client_user)
+    if not agent_ids:
+        return None
+    agents = User.query.filter(
+        User.id.in_(agent_ids),  # pyright: ignore[reportAttributeAccessIssue]
+        User.is_agent.is_(True),
+    ).all()
+    by_id = {a.id for a in agents}
+    for aid in agent_ids:
+        if aid in by_id:
+            return aid
+    return None
+
+
+def get_client_todos(client_user_id: str, include_completed: bool = False) -> list[dict]:
+    """To-dos assigned to this client (same rows the agent sees when filtered by client_id)."""
+    try:
+        query = Todo.query.filter_by(client_id=client_user_id)
+
+        if not include_completed:
+            query = query.filter_by(completed=False)
+
+        try:
+            from sqlalchemy import nullslast
+
+            todos = query.order_by(nullslast(Todo.due_date.asc())).all()
+        except (ImportError, AttributeError):
+            todos = query.order_by(Todo.due_date.asc()).all()
+
+        result = []
+        for todo in todos:
+            try:
+                result.append(TodoDTO.from_orm(todo).model_dump(mode="json"))
+            except Exception as e:
+                log.error(LOG_CATEGORIES["ERRORS"], f"Error serializing todo {todo.id} to dict", e)
+                continue
+
+        return result
+
+    except Exception as e:
+        log.error(LOG_CATEGORIES["ERRORS"], f"Error getting todos for client {client_user_id}", e)
+        raise
+
+
 def create_todo(
     agent_id: str,
     title: str,
     due_date: datetime | None = None,
-    priority: str | None = None,
     todo_type: str = "manual",
     client_id: str | None = None,
     description: str | None = None,
@@ -82,7 +151,6 @@ def create_todo(
         agent_id: The ID of the agent
         title: The todo title
         due_date: Optional due date (omit for no deadline)
-        priority: Optional priority (low, medium, high, urgent)
         todo_type: The type (deadline, follow_up, inspection, offer_expiration, closing, manual)
         client_id: Optional client ID
         description: Optional description
@@ -98,7 +166,6 @@ def create_todo(
             agent_id=agent_id,
             title=title.strip(),
             due_date=due_date,
-            priority=priority,
             type=todo_type,
             client_id=client_id,
             description=description,
@@ -107,7 +174,7 @@ def create_todo(
         db.session.add(todo)
         db.session.commit()
 
-        return todo.to_dict()
+        return TodoDTO.from_orm(todo).model_dump(mode="json")
 
     except Exception as e:
         db.session.rollback()
@@ -115,48 +182,62 @@ def create_todo(
         raise
 
 
-def update_todo(todo_id: str, agent_id: str, **kwargs) -> dict:
+def update_todo(
+    todo_id: str,
+    *,
+    acting_agent_id: str | None = None,
+    acting_client_id: str | None = None,
+    **kwargs: object,
+) -> dict:
     """
-    Update a todo
+    Update a todo. Exactly one of acting_agent_id or acting_client_id must be set.
 
     Args:
         todo_id: The ID of the todo
-        agent_id: The ID of the agent (for authorization)
-        **kwargs: Fields to update (title, description, priority, type, due_date, completed)
+        acting_agent_id: Agent owning the todo row
+        acting_client_id: Client assigned to the todo (may only update their own rows)
+        **kwargs: Fields to update (title, description, type, due_date, completed, client_id)
 
     Returns:
         Dictionary with updated todo data
     """
+    has_agent = acting_agent_id is not None
+    has_client = acting_client_id is not None
+    if has_agent == has_client:
+        raise ValueError("Specify exactly one of acting_agent_id or acting_client_id")
+    effective: dict[str, object] = dict(kwargs)
+    if acting_client_id is not None:
+        effective.pop("client_id", None)
     try:
-        todo = Todo.query.filter_by(id=todo_id, agent_id=agent_id).first()
+        if acting_agent_id is not None:
+            todo = Todo.query.filter_by(id=todo_id, agent_id=acting_agent_id).first()
+        else:
+            todo = Todo.query.filter_by(id=todo_id, client_id=acting_client_id).first()
         if not todo:
             raise ValueError(f"Todo {todo_id} not found")
 
-        # Update fields
-        if "title" in kwargs:
-            todo.title = kwargs["title"]
-        if "description" in kwargs:
-            todo.description = kwargs["description"]
-        if "priority" in kwargs:
-            todo.priority = kwargs["priority"]
-        if "type" in kwargs:
-            todo.type = kwargs["type"]
-        if "due_date" in kwargs:
-            todo.due_date = kwargs["due_date"]
-        if "completed" in kwargs:
-            todo.completed = kwargs["completed"]
-            if kwargs["completed"] and not todo.completed_at:
-                todo.completed_at = datetime.utcnow()
-            elif not kwargs["completed"]:
+        if "title" in effective:
+            todo.title = effective["title"]  # type: ignore[assignment]
+        if "description" in effective:
+            todo.description = effective["description"]  # type: ignore[assignment]
+        if "type" in effective:
+            todo.type = effective["type"]  # type: ignore[assignment]
+        if "due_date" in effective:
+            todo.due_date = effective["due_date"]  # type: ignore[assignment]
+        if "completed" in effective:
+            todo.completed = effective["completed"]  # type: ignore[assignment]
+            if effective["completed"] and not todo.completed_at:
+                todo.completed_at = datetime.now(timezone.utc)
+            elif not effective["completed"]:
                 todo.completed_at = None
-        if "client_id" in kwargs:
-            todo.client_id = kwargs["client_id"]
+        if "client_id" in effective:
+            todo.client_id = effective["client_id"]  # type: ignore[assignment]
 
-        todo.updated_at = datetime.utcnow()
+        todo.updated_at = datetime.now(timezone.utc)
 
         db.session.commit()
 
-        return todo.to_dict()
+        return TodoDTO.from_orm(todo).model_dump(mode="json")
 
     except Exception as e:
         db.session.rollback()
@@ -164,19 +245,32 @@ def update_todo(todo_id: str, agent_id: str, **kwargs) -> dict:
         raise
 
 
-def delete_todo(todo_id: str, agent_id: str) -> bool:
+def delete_todo(
+    todo_id: str,
+    *,
+    acting_agent_id: str | None = None,
+    acting_client_id: str | None = None,
+) -> bool:
     """
-    Delete a todo
+    Delete a todo. Exactly one of acting_agent_id or acting_client_id must be set.
 
     Args:
         todo_id: The ID of the todo
-        agent_id: The ID of the agent (for authorization)
+        acting_agent_id: Agent owning the row
+        acting_client_id: Client assigned to the todo
 
     Returns:
         True if deleted successfully
     """
+    has_agent = acting_agent_id is not None
+    has_client = acting_client_id is not None
+    if has_agent == has_client:
+        raise ValueError("Specify exactly one of acting_agent_id or acting_client_id")
     try:
-        todo = Todo.query.filter_by(id=todo_id, agent_id=agent_id).first()
+        if acting_agent_id is not None:
+            todo = Todo.query.filter_by(id=todo_id, agent_id=acting_agent_id).first()
+        else:
+            todo = Todo.query.filter_by(id=todo_id, client_id=acting_client_id).first()
         if not todo:
             raise ValueError(f"Todo {todo_id} not found")
 

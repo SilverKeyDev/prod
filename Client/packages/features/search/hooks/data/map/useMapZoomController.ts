@@ -1,6 +1,10 @@
 import { type MutableRefObject, useCallback } from "react";
 
 import { calculatePropertyCardCenter } from "packages/features/search/types/search/propertyCardCenter";
+import {
+  adjustMapZoomByDelta,
+  applyListingFocusCamera,
+} from "packages/features/search/utils/googleMaps/mapCamera";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
 
@@ -12,7 +16,10 @@ export type MapZoomControllerProps = {
   currentPage: number;
 };
 
-export const DEFAULT_ZOOM = 13;
+export {
+  DEFAULT_ZOOM,
+  SEARCH_MAP_LISTING_FOCUS_ZOOM,
+} from "packages/features/search/utils/googleMaps/mapCamera";
 
 export const useMapZoomController = ({
   googleMapRef,
@@ -31,7 +38,7 @@ export const useMapZoomController = ({
       return calculatePropertyCardCenter(
         currentProperty.lat,
         currentProperty.lng,
-        currentProperty.id
+        currentProperty.id,
       );
     }
 
@@ -56,12 +63,18 @@ export const useMapZoomController = ({
             lat: currentProperty.lat,
             lng: currentProperty.lng,
           },
-        }
+        },
       );
-      googleMapRef.current.setCenter(center);
-      googleMapRef.current.setZoom(DEFAULT_ZOOM);
+      applyListingFocusCamera(googleMapRef.current, center);
     }
-  }, [activeTab, calculateMapCenter, currentPage, googleMapRef, savedHomes, searchResults]);
+  }, [
+    activeTab,
+    calculateMapCenter,
+    currentPage,
+    googleMapRef,
+    savedHomes,
+    searchResults,
+  ]);
 
   const resetToDefaultZoom = useCallback(() => {
     if (!googleMapRef.current) return;
@@ -69,16 +82,16 @@ export const useMapZoomController = ({
   }, [focusOnCurrentProperty, googleMapRef]);
 
   const zoomIn = useCallback(() => {
-    if (googleMapRef.current) {
-      const currentZoom = googleMapRef.current.getZoom() ?? DEFAULT_ZOOM;
-      googleMapRef.current.setZoom(currentZoom + 1);
+    const map = googleMapRef.current;
+    if (map) {
+      adjustMapZoomByDelta(map, 1);
     }
   }, [googleMapRef]);
 
   const zoomOut = useCallback(() => {
-    if (googleMapRef.current) {
-      const currentZoom = googleMapRef.current.getZoom() ?? DEFAULT_ZOOM;
-      googleMapRef.current.setZoom(currentZoom - 1);
+    const map = googleMapRef.current;
+    if (map) {
+      adjustMapZoomByDelta(map, -1);
     }
   }, [googleMapRef]);
 

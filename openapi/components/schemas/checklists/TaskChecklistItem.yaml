@@ -1,0 +1,62 @@
+type: object
+required:
+  - id
+  - label
+  - explanation
+properties:
+  id:
+    type: integer
+  label:
+    type: string
+  explanation:
+    type: string
+  bullets:
+    type: array
+    items:
+      type: string
+    nullable: true
+  tip:
+    type: string
+    nullable: true
+  resource:
+    type: object
+    properties:
+      label:
+        type: string
+      href:
+        type: string
+        nullable: true
+    nullable: true
+  order:
+    type: integer
+    nullable: true
+  integration_key:
+    type: string
+    nullable: true
+  component_key:
+    type: string
+    nullable: true
+  allow_unordered_check:
+    type: boolean
+    nullable: true
+  suggestedFormIds:
+    type: array
+    items:
+      type: string
+    nullable: true
+  optional:
+    type: boolean
+    nullable: true
+  calendar:
+    type: object
+    properties:
+      hasDates:
+        type: boolean
+      days:
+        type: integer
+      eventSchedule:
+        type: array
+        items:
+          type: integer
+        nullable: true
+    nullable: true

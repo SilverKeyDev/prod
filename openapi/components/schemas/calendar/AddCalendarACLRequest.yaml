@@ -1,0 +1,21 @@
+type: object
+required:
+  - role
+  - scope
+properties:
+  role:
+    type: string
+    enum: [owner, writer, reader, freeBusyReader]
+    description: Access role to grant
+  scope:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        type: string
+        enum: [user, group, domain, default]
+      value:
+        type: string
+        nullable: true
+        description: Email or domain (required for user/group/domain types)

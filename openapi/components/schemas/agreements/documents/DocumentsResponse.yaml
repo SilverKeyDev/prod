@@ -1,0 +1,24 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      documents:
+        type: array
+        items:
+          $ref: './UploadedDocumentRecord.yaml'
+        nullable: true
+      count:
+        type: integer
+        nullable: true
+      total:
+        type: integer
+        nullable: true
+      limit:
+        type: integer
+        nullable: true
+      offset:
+        type: integer
+        nullable: true
+      hasMore:
+        type: boolean
+        nullable: true

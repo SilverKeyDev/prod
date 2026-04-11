@@ -29,6 +29,7 @@ export const ROUTES = {
   MESSAGING: "/messaging",
   SEARCH: "/search",
   PROPERTY_DETAILS: "/property-details",
+  PROPERTY: "/property/:zpid/:slug?",
 
   // Legacy redirects
   APP: "/app/*",

@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      templates:
+        type: array
+        items:
+          $ref: '../docusign/DocusignTemplate.yaml'
+        nullable: true

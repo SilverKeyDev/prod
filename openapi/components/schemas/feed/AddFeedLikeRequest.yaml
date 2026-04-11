@@ -1,0 +1,7 @@
+type: object
+required:
+  - home_id
+properties:
+  home_id:
+    type: string
+    description: ID of the home/listing to like

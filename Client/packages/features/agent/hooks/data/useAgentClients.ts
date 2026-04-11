@@ -30,7 +30,7 @@ export function useAgentClients(): UseAgentClientsReturn {
   // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(
     () => authReady && isAuthenticated && isAgent,
-    [authReady, isAuthenticated, isAgent]
+    [authReady, isAuthenticated, isAgent],
   );
 
   const {
@@ -52,8 +52,8 @@ export function useAgentClients(): UseAgentClientsReturn {
     placeholderData: () => {
       return queryClient.getQueryData<AgentClient[]>(queryKeys.agent.clients());
     },
-    staleTime: 3 * 60 * 1000, // 3 minutes
-    refetchOnMount: false,
+    staleTime: 30 * 1000, // 30 seconds - keep in sync with dataConfig.agentClients
+    refetchOnMount: "always",
     // Don't retry on client errors (4xx), but retry once on server errors (5xx)
     retry: (failureCount, error) => {
       // Check HttpError status directly

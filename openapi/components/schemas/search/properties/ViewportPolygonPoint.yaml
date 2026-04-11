@@ -1,0 +1,11 @@
+type: object
+required:
+  - lat
+  - lng
+properties:
+  lat:
+    type: number
+    format: double
+  lng:
+    type: number
+    format: double

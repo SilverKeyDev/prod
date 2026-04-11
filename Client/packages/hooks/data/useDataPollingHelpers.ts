@@ -19,12 +19,17 @@ export type RunCheckForNewMessagesParams = {
   previousConversationsRef: { current: AgentConversation[] };
   isCheckingRef: { current: boolean };
   incrementUnreadCount: (conversationId: string) => void;
-  updateLastSeenMessageTimestamp: (conversationId: string, timestamp: number) => void;
+  updateLastSeenMessageTimestamp: (
+    conversationId: string,
+    timestamp: number,
+  ) => void;
   authReady: boolean;
   isAuthenticated: boolean;
 };
 
-export async function runCheckForNewMessages(params: RunCheckForNewMessagesParams): Promise<void> {
+export async function runCheckForNewMessages(
+  params: RunCheckForNewMessagesParams,
+): Promise<void> {
   const {
     queryClient,
     notificationStoreRef,
@@ -69,14 +74,18 @@ export async function runCheckForNewMessages(params: RunCheckForNewMessagesParam
 
       if (!lastMessageAt) continue;
 
-      const previousConversation = previousConversations.find((c) => c.id === conversationId);
+      const previousConversation = previousConversations.find(
+        (c) => c.id === conversationId,
+      );
       const previousLastMessageAt = previousConversation?.last_message_at
         ? dateParseISO(previousConversation.last_message_at).valueOf()
         : 0;
 
-      const lastSeenTimestamp = storeState.lastSeenMessageTimestamp[conversationId] ?? 0;
+      const lastSeenTimestamp =
+        storeState.lastSeenMessageTimestamp[conversationId] ?? 0;
       const isNewMessage =
-        lastMessageAt > previousLastMessageAt && lastMessageAt > lastSeenTimestamp;
+        lastMessageAt > previousLastMessageAt &&
+        lastMessageAt > lastSeenTimestamp;
 
       if (isNewMessage) {
         if (conversationId !== activeConversationId) {
@@ -90,17 +99,19 @@ export async function runCheckForNewMessages(params: RunCheckForNewMessagesParam
 
     queryClient.setQueryData(queryKey, conversations);
 
+    // Invalidate client-specific conversation queries so they refetch with their own filter,
+    // rather than overwriting them with the full unfiltered list.
     const queryCache = queryClient.getQueryCache();
     const allQueries = queryCache.getAll();
     for (const query of allQueries) {
-      const queryKeyArray = query.queryKey;
+      const k = query.queryKey;
       if (
-        Array.isArray(queryKeyArray) &&
-        queryKeyArray.length >= 2 &&
-        queryKeyArray[0] === "agent" &&
-        queryKeyArray[1] === "conversations"
+        Array.isArray(k) &&
+        k.length > 2 &&
+        k[0] === "agent" &&
+        k[1] === "conversations"
       ) {
-        queryClient.setQueryData(queryKeyArray, conversations);
+        void queryClient.invalidateQueries({ queryKey: k });
       }
     }
 
@@ -130,7 +141,9 @@ export type SetupPollingEffectParams = {
   doc: Document | null;
 };
 
-export function setupPollingEffect(params: SetupPollingEffectParams): () => void {
+export function setupPollingEffect(
+  params: SetupPollingEffectParams,
+): () => void {
   const {
     inRouter,
     authReady,
@@ -145,10 +158,14 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
   } = params;
 
   if (!inRouter) {
-    log.debug(LOG_CATEGORIES.POLLING, "Polling not started - router context not available", {
-      inRouter,
-      pathname,
-    });
+    log.debug(
+      LOG_CATEGORIES.POLLING,
+      "Polling not started - router context not available",
+      {
+        inRouter,
+        pathname,
+      },
+    );
     return () => {};
   }
 
@@ -203,7 +220,10 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
   };
 
   if (docForVisibility) {
-    docForVisibility.addEventListener("visibilitychange", handleVisibilityChange);
+    docForVisibility.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange,
+    );
     visibilityChangeHandlerRef.current = handleVisibilityChange;
   }
 
@@ -214,7 +234,10 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
       pollingIntervalRef.current = null;
     }
     if (visibilityChangeHandlerRef.current && docForVisibility) {
-      docForVisibility.removeEventListener("visibilitychange", visibilityChangeHandlerRef.current);
+      docForVisibility.removeEventListener(
+        "visibilitychange",
+        visibilityChangeHandlerRef.current,
+      );
       visibilityChangeHandlerRef.current = null;
     }
   };
@@ -222,10 +245,12 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
 
 export function setupSyncNotificationEffect(
   queryClient: QueryClient,
-  setTotalUnreadCount: (count: number) => void
+  setTotalUnreadCount: (count: number) => void,
 ): () => void {
   const syncNotificationCounter = () => {
-    const cachedCounter = queryClient.getQueryData<number>(queryKeys.agent.notificationCounter());
+    const cachedCounter = queryClient.getQueryData<number>(
+      queryKeys.agent.notificationCounter(),
+    );
     if (
       cachedCounter !== undefined &&
       typeof cachedCounter === "number" &&
@@ -246,7 +271,12 @@ export function setupSyncNotificationEffect(
       event.query.queryKey[1] === "notification-counter"
     ) {
       const data = event.query.state.data as number | undefined;
-      if (data !== undefined && typeof data === "number" && !isNaN(data) && data >= 0) {
+      if (
+        data !== undefined &&
+        typeof data === "number" &&
+        !isNaN(data) &&
+        data >= 0
+      ) {
         setTotalUnreadCount(data);
       }
     }

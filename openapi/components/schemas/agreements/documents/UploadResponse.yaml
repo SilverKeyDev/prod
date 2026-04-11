@@ -1,0 +1,23 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      file_id:
+        type: string
+        nullable: true
+      file_url:
+        type: string
+        format: uri
+        nullable: true
+      filename:
+        type: string
+        nullable: true
+      file_size:
+        type: integer
+        nullable: true
+      content_type:
+        type: string
+        nullable: true
+      document:
+        $ref: './SecureUploadDocumentPayload.yaml'
+        nullable: true

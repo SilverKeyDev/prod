@@ -35,7 +35,9 @@ sudo docker run -d \
   -e PLAID_SECRET="${PLAID_SECRET}" \
   -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
   -e SERP_API="${SERP_API}" \
-  -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
+  -e SLIPSTREAM_PRIVATE="${SLIPSTREAM_PRIVATE}" \
+  -e SLIPSTREAM_PUBLIC="${SLIPSTREAM_PUBLIC}" \
+  -e SLIPSTREAM_LIC_KEY="${SLIPSTREAM_LIC_KEY}" \
   "$IMAGE" \
   celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1
 

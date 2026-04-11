@@ -28,7 +28,8 @@ export function HousingNumberFields({
           tickValues={BEDROOMS_TICK_VALUES}
           minValue={formData.preferred_bedrooms_min ?? BEDROOMS_TICK_VALUES[0]}
           maxValue={
-            formData.preferred_bedrooms_max ?? BEDROOMS_TICK_VALUES[BEDROOMS_TICK_VALUES.length - 1]
+            formData.preferred_bedrooms_max ??
+            BEDROOMS_TICK_VALUES[BEDROOMS_TICK_VALUES.length - 1]
           }
           onChange={(minVal, maxVal) => {
             updateFormData("preferred_bedrooms_min", minVal);
@@ -45,9 +46,12 @@ export function HousingNumberFields({
         </Text>
         <BudgetRangeSlider
           tickValues={BATHROOMS_TICK_VALUES}
-          minValue={formData.preferred_bathrooms_min ?? BATHROOMS_TICK_VALUES[0]}
+          minValue={
+            formData.preferred_bathrooms_min ?? BATHROOMS_TICK_VALUES[0]
+          }
           maxValue={
-            formData.preferred_bathrooms_max ?? BATHROOMS_TICK_VALUES[BATHROOMS_TICK_VALUES.length - 1]
+            formData.preferred_bathrooms_max ??
+            BATHROOMS_TICK_VALUES[BATHROOMS_TICK_VALUES.length - 1]
           }
           onChange={(minVal, maxVal) => {
             updateFormData("preferred_bathrooms_min", minVal);

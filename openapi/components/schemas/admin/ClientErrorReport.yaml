@@ -1,0 +1,24 @@
+type: object
+required:
+  - error_message
+properties:
+  error_message:
+    type: string
+    description: Error message or stack trace
+  url:
+    type: string
+    nullable: true
+    description: URL where error occurred
+  user_agent:
+    type: string
+    nullable: true
+    description: Browser user agent
+  timestamp:
+    type: string
+    nullable: true
+    description: Client-side timestamp
+  metadata:
+    type: object
+    additionalProperties: true
+    nullable: true
+    description: Additional error context

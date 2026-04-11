@@ -58,7 +58,11 @@ ignore = [
 # Lint scripts are CLI tools that intentionally write to stderr for tool output.
 [tool.ruff.lint.per-file-ignores]
 "**/*.ipynb" = ["T201"]
+"app/__init__.py" = ["E402"]
 "scripts/lint_*.py" = ["T201"]
+"scripts/check_coverage_thresholds.py" = ["T201"]
+"scripts/validate-schema-coverage.py" = ["T201"]
+"scripts/seed_georgia_forms.py" = ["T201", "E402"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
@@ -84,3 +88,20 @@ reportMissingImports = true
 reportMissingModuleSource = true
 reportUndefinedVariable = true
 exclude = ["venv", ".venv", "**/node_modules", "**/__pycache__", "**/.*", "migrations/versions"]
+
+# --- Mypy: Optional gradual type checking ---
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Gradual: enable per-module when ready
+ignore_missing_imports = true  # Ignore third-party packages without stubs
+exclude = [
+    "venv",
+    ".venv",
+    "migrations/versions",
+]
+# For stricter checking, progressively enable:
+# disallow_untyped_defs = true
+# disallow_any_unimported = true
+# no_implicit_optional = true

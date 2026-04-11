@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app import db
 from app.models import User
@@ -16,7 +16,7 @@ def get_recently_logged_in_users_with_preferences() -> list[dict[str, str]]:
         Format: [{'user_id': 'xxx', 'email': 'user@example.com'}, ...]
     """
     # Calculate the date one month ago
-    one_month_ago = datetime.utcnow() - timedelta(days=30)
+    one_month_ago = datetime.now(timezone.utc) - timedelta(days=30)
 
     # Query users meeting all three conditions
     users = (

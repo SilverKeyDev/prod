@@ -37,7 +37,11 @@ export default function HomePage() {
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Google Maps loading error",
+        googleMapsError,
+      );
       void void setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -78,14 +82,16 @@ export default function HomePage() {
           componentRestrictions: { country: "US" },
         };
         const { suggestions: fetched } =
-          await g.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+          await g.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+            request,
+          );
         const built = fetched.flatMap(
           (
             s:
               | AutocompleteSuggestion
               | {
                   placePrediction: unknown;
-                }
+                },
           ) => {
             const sWithPred = s as {
               placePrediction: google.maps.places.PlacePrediction | null;
@@ -101,7 +107,7 @@ export default function HomePage() {
                 },
               },
             ];
-          }
+          },
         );
         setSuggestions(built);
       } catch (err: unknown) {
@@ -116,18 +122,18 @@ export default function HomePage() {
   return (
     <Box className="hide-scrollbar bg-background-surface flex min-h-screen flex-col">
       {/* Header */}
-      <header className="px-responsive-sm border-border bg-background-surface fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between border-b py-2 shadow-lg sm:py-3">
+      <header className="px-responsive-sm border-border bg-background-surface z-header fixed left-0 right-0 top-0 flex w-full items-center justify-between border-b py-2 shadow-lg sm:py-3">
         <Image src={LOGO} alt="SilverKey Logo" className="h-8 w-auto" />
-        <Box className="text-responsive-sm flex gap-1.5 font-medium sm:gap-2">
+        <Box className="text-responsive-sm flex items-center gap-1.5 font-medium sm:gap-2">
           <Link
             to={ROUTES.LOGIN}
-            className="rounded-md px-3 py-2 hover:underline sm:px-4 sm:py-2.5 md:px-5"
+            className="inline-flex min-h-10 items-center rounded-md px-3 py-2 hover:underline sm:min-h-11 sm:px-4 sm:py-2.5 md:px-5"
           >
             Login
           </Link>
           <Link
             to={ROUTES.SIGNUP}
-            className="bg-olive hover:bg-olive-hover rounded-md px-3 py-2 text-white transition-colors sm:px-4 sm:py-2.5"
+            className="bg-olive hover:bg-olive-hover inline-flex min-h-10 items-center rounded-md px-3 py-2 text-white transition-colors sm:min-h-11 sm:px-4 sm:py-2.5"
           >
             Sign Up
           </Link>
@@ -148,10 +154,10 @@ export default function HomePage() {
           <Box className="mx-auto w-full max-w-3xl text-center">
             <Box className="bg-background-surface rounded-lg p-6 shadow-lg sm:p-8">
               <Title size="xl" as="h1" className="mb-4">
-                Discover a New Way to Buy
+                Home purchase, end to end
               </Title>
               <BodyText size="lg" className="mb-6">
-                Onboard, Search, Decide, Negotiate, Close
+                Onboard, search, decide, negotiate, close
               </BodyText>
             </Box>
           </Box>
@@ -160,27 +166,48 @@ export default function HomePage() {
           <Box className="z-12 gap-responsive-sm relative mx-auto mt-20 grid w-full max-w-6xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                title: "Find Properties",
-                description: "Select your preferences and let our AI find the best homes for you",
-                icon: <Icon name="building-2" className="mobile-icon-lg text-text-secondary" />,
+                title: "Search",
+                description:
+                  "Encode preferences; the product returns ranked listings consistent with those constraints.",
+                icon: (
+                  <Icon
+                    name="building-2"
+                    className="mobile-icon-lg text-text-secondary"
+                  />
+                ),
               },
               {
-                title: "Decide on a Home",
+                title: "Decide",
                 description:
-                  "Input the facts of homes into spreadsheets or reports and get detailed analysis of the neighborhood.",
-                icon: <Icon name="bar-chart-2" className="mobile-icon-lg text-text-secondary" />,
+                  "Export property facts into structured reports and neighborhood memos for comparison.",
+                icon: (
+                  <Icon
+                    name="bar-chart-2"
+                    className="mobile-icon-lg text-text-secondary"
+                  />
+                ),
               },
               {
                 title: "Negotiate",
                 description:
-                  "Analyze the market and home to draft a competitive offer and automate the associated paperwork.",
-                icon: <Icon name="lightbulb" className="mobile-icon-lg text-text-secondary" />,
+                  "Use market and comp inputs to draft offers and queue related forms; counsel remains your own.",
+                icon: (
+                  <Icon
+                    name="lightbulb"
+                    className="mobile-icon-lg text-text-secondary"
+                  />
+                ),
               },
               {
-                title: "Purchase",
+                title: "Close",
                 description:
-                  "Use our timelines and paperwork to find and submit the appropriate paperwork, disclosures, etc, without paying legal fees.",
-                icon: <Icon name="folder-lock" className="mobile-icon-lg text-text-secondary" />,
+                  "Track disclosure and deadline artifacts in one place. Not a substitute for licensed legal review.",
+                icon: (
+                  <Icon
+                    name="folder-lock"
+                    className="mobile-icon-lg text-text-secondary"
+                  />
+                ),
               },
             ].map((f, i) => (
               <Box
@@ -224,11 +251,14 @@ export default function HomePage() {
 
       {/* Auth Modal */}
       {showAuthModal && (
-        <Box className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <Box className="space-responsive-sm z-modal fixed inset-0 flex items-center justify-center bg-black/50">
           <Box className="space-responsive-lg bg-background-surface w-full max-w-md rounded-2xl shadow">
             <Box className="mb-4 flex justify-between">
               <Box className="gap-responsive-xs flex items-center">
-                <Icon name="lock" className="mobile-icon-sm text-text-secondary" />
+                <Icon
+                  name="lock"
+                  className="mobile-icon-sm text-text-secondary"
+                />
                 Account Required
               </Box>
               <CloseButton onClick={() => setShowAuthModal(false)} />

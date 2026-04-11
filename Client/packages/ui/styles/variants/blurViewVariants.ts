@@ -1,5 +1,5 @@
 /**
- * BlurView style constants — single source of truth for web and native.
+ * BlurView style constants - single source of truth for web and native.
  * Platform files must import from here per require-shared-platform-styles.
  *
  * Native: Numeric intensity map for expo-blur API (this file).

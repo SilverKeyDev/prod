@@ -21,7 +21,9 @@ def train_user_weights_task(self, user_id: str, force: bool = False):
             state="PROGRESS", meta={"status": "Training user weights", "progress": 10}
         )
 
-        from ...home_matching.postprocessing.weight_training_job import weight_training_job
+        from app.services.search.home_matching.postprocessing.weight_training_job import (
+            weight_training_job,
+        )
 
         self.update_state(
             state="PROGRESS", meta={"status": "Extracting training data", "progress": 30}
@@ -62,7 +64,9 @@ def train_all_eligible_users_task(self, limit: int = 100):
             state="PROGRESS", meta={"status": "Starting batch weight training", "progress": 5}
         )
 
-        from ...home_matching.postprocessing.weight_training_job import weight_training_job
+        from app.services.search.home_matching.postprocessing.weight_training_job import (
+            weight_training_job,
+        )
 
         self.update_state(state="PROGRESS", meta={"status": "Processing users", "progress": 30})
 

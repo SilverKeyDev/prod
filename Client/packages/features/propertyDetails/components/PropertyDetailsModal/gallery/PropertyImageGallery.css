@@ -1,0 +1,64 @@
+/* Custom styling for yet-another-react-lightbox to match SilverKey design tokens */
+
+/* Cover / modals use z-index 10000; YARL defaults to 9999, so the lightbox was invisible behind the sheet */
+.yarl__portal {
+  z-index: 10050;
+}
+
+/* Override lightbox colors to match SilverKey design tokens */
+.yarl__root {
+  --yarl__color_backdrop: rgba(0, 0, 0, 0.95);
+  --yarl__color_button: #ffffff;
+  --yarl__color_button_active: var(--brand-accent); /* olive */
+}
+
+/* Custom thumbnail styling */
+.yarl__thumbnails_thumbnail {
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.yarl__thumbnails_thumbnail_active {
+  border-color: var(--brand-accent); /* olive accent */
+}
+
+/* Ensure thumbnails container has proper styling */
+.yarl__thumbnails_container {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+/* Button hover states */
+.yarl__button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.yarl__button:active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Navigation arrows positioning and styling */
+.yarl__navigation_prev,
+.yarl__navigation_next {
+  padding: 12px;
+}
+
+/* Zoom controls positioning */
+.yarl__toolbar {
+  gap: 8px;
+}
+
+/* Ensure images are properly centered */
+.yarl__slide_image {
+  object-fit: contain;
+}
+
+/* Counter styling to match design */
+.yarl__counter {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}

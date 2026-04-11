@@ -15,15 +15,21 @@ export type LogCategory =
   | "SEARCH"
   | "POLYGON_SEARCH"
   | "MAP_RENDERING"
+  | "PROPERTY_DETAILS"
   | "NEGOTIATION"
   | "CHECKLISTS"
   | "CALENDAR"
   | "DASHBOARD"
   | "MESSAGES"
   | "FEED"
-  | "ROUTING";
+  | "ROUTING"
+  | "DOCUSIGN";
 
-export type ApiSubcategory = "INITIAL_LOAD" | "POLLING" | "PAGE_MOUNT" | "OTHER";
+export type ApiSubcategory =
+  | "INITIAL_LOAD"
+  | "POLLING"
+  | "PAGE_MOUNT"
+  | "OTHER";
 
 export const LOG_CATEGORIES = {
   POLLING: "POLLING",
@@ -37,6 +43,7 @@ export const LOG_CATEGORIES = {
   SEARCH: "SEARCH",
   POLYGON_SEARCH: "POLYGON_SEARCH",
   MAP_RENDERING: "MAP_RENDERING",
+  PROPERTY_DETAILS: "PROPERTY_DETAILS",
   NEGOTIATION: "NEGOTIATION",
   CHECKLISTS: "CHECKLISTS",
   CALENDAR: "CALENDAR",
@@ -44,6 +51,7 @@ export const LOG_CATEGORIES = {
   MESSAGES: "MESSAGES",
   FEED: "FEED",
   ROUTING: "ROUTING",
+  DOCUSIGN: "DOCUSIGN",
 } as const;
 
 export const API_SUBCATEGORIES = {
@@ -82,6 +90,7 @@ export function categoryToConfigKey(category: LogCategory): string {
     SEARCH: "search",
     POLYGON_SEARCH: "polygonSearch",
     MAP_RENDERING: "mapRendering",
+    PROPERTY_DETAILS: "propertyDetails",
     NEGOTIATION: "negotiation",
     CHECKLISTS: "checklists",
     CALENDAR: "calendar",
@@ -89,6 +98,7 @@ export function categoryToConfigKey(category: LogCategory): string {
     MESSAGES: "messages",
     FEED: "feed",
     ROUTING: "routing",
+    DOCUSIGN: "docusign",
   };
   return mapping[category];
 }

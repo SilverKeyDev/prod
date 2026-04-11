@@ -1,0 +1,7 @@
+type: object
+description: >
+  Flexible home object accepted by favorite/not-interested upsert (search listing shape,
+  alternate keys like imageUrl/beds/bedrooms). Validated in handlers; address required
+  where the route documents it. additionalProperties is true because upstream listing and client
+  payloads use many optional, versioned, or provider-specific keys.
+additionalProperties: true

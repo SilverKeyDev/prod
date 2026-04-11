@@ -1,11 +1,20 @@
-import React from "react";
+import React, { useCallback } from "react";
 
+import {
+  ProfileSectionBody,
+  ProfileSectionCallout,
+  useHidePersonalizationStepHeading,
+} from "packages/features/profile/components/layout";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { Box } from "packages/ui/components/primitives";
+import OliveCheckbox from "packages/ui/components/form/OliveCheckbox";
+import { Box, Pressable } from "packages/ui/components/primitives";
 
 import AlignedRow from "@/components/layout/AlignedRow";
-import Card from "@/components/layout/Card.web";
 import { BodyText, Dropdown, Input, Title } from "@/components/ui";
+import { SearchPrefsPriceFinancing } from "@/features/profile/components/profileScreen/searchPreferences/SearchPrefsPriceFinancing";
+import type { PatchBuyerPreferenceExtensions } from "@/features/profile/components/profileScreen/searchPreferences/types";
+import { withBuyerExtV1 } from "@/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import BudgetSlider from "@/features/profile/components/settings/inputs/BudgetSlider";
 import Label from "@/features/profile/components/settings/inputs/Label";
 import PriceRangeSlider from "@/features/profile/components/settings/inputs/PriceRangeSlider";
@@ -17,44 +26,103 @@ import {
   type OnboardingData,
   PROFILE_NOT_SPECIFIED_LABEL,
   profileFieldValueClassName,
+  setPayingCash,
 } from "@/features/profile/utils";
 
 type SettingsFinancialSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
-  updateFormData: (field: string | number | symbol, value: unknown) => void;
+  updateFormData: (field: keyof OnboardingData, value: unknown) => void;
+  patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
 };
 
 export function SettingsFinancialSection({
   formData,
   isEditMode,
   updateFormData,
+  patchBuyerPreferenceExtensions,
 }: SettingsFinancialSectionProps) {
+  const hideStepHeading = useHidePersonalizationStepHeading();
   const authIsAgent = useIsAgent();
   const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
     formIsAgent: formData.is_agent,
   });
+
+  const patch = useCallback(
+    (
+      fn: (
+        prev: BuyerPreferenceExtensions | undefined,
+      ) => BuyerPreferenceExtensions,
+    ) => {
+      patchBuyerPreferenceExtensions(fn);
+    },
+    [patchBuyerPreferenceExtensions],
+  );
+
+  const minB = formData.home_budget_min;
+  const maxB = formData.home_budget_max;
+  const budgetSummary =
+    minB != null || maxB != null
+      ? `${minB != null ? `$${Math.round(minB).toLocaleString()}` : "—"} – ${
+          maxB != null ? `$${Math.round(maxB).toLocaleString()}` : "—"
+        }`
+      : PROFILE_NOT_SPECIFIED_LABEL;
+
+  const ext = withBuyerExtV1(formData.buyerPreferenceExtensions);
+
   return (
-    <Card border="light" className="mb-64 space-y-6">
-      <Title size="md" className="mb-6">
-        Financial Information
-      </Title>
-      {showAgentOptionalBuyerCallout && (
-        <Box className="border-border bg-background-surface mb-4 rounded-lg border px-3 py-2">
-          <BodyText size="xs" muted>
-            {AGENT_OPTIONAL_BUYER_FINANCIAL_HINT}
-          </BodyText>
-        </Box>
-      )}
-      <Box className="col-span-1 flex flex-col items-center md:col-span-2">
-        <Title size="sm" className="mb-2 w-full text-center text-base">
-          {FIELD_LABELS.HOME_BUDGET}
+    <ProfileSectionBody>
+      {!hideStepHeading && (
+        <Title size="md" className="mb-6">
+          Financial Information
         </Title>
+      )}
+      {showAgentOptionalBuyerCallout && (
+        <ProfileSectionCallout>
+          {AGENT_OPTIONAL_BUYER_FINANCIAL_HINT}
+        </ProfileSectionCallout>
+      )}
+
+      <Box className="col-span-1 flex flex-col items-center md:col-span-2">
+        <Box className="mb-2 flex w-full flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <Title
+            size="sm"
+            as="h3"
+            className="min-w-0 flex-1 text-left text-base"
+          >
+            {FIELD_LABELS.HOME_BUDGET}
+          </Title>
+          {isEditMode ? (
+            <Pressable
+              type="button"
+              onPress={() =>
+                setPayingCash(!formData.paying_cash, (field, value) =>
+                  updateFormData(field, value),
+                )
+              }
+              className="flex shrink-0 flex-row items-center gap-2 bg-transparent p-0 text-left"
+              label={FIELD_LABELS.PAYING_WITH_CASH}
+            >
+              <OliveCheckbox checked={!!formData.paying_cash} />
+              <BodyText size="sm" className="text-text-primary">
+                {FIELD_LABELS.PAYING_WITH_CASH}
+              </BodyText>
+            </Pressable>
+          ) : (
+            <Box className="flex shrink-0 flex-row items-center gap-2">
+              <OliveCheckbox checked={!!formData.paying_cash} />
+              <BodyText size="sm" className="text-text-primary">
+                {FIELD_LABELS.PAYING_WITH_CASH}
+              </BodyText>
+            </Box>
+          )}
+        </Box>
         {isEditMode ? (
           <BudgetSlider
             tickValues={[
-              200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000, 6000000, 10000000,
+              200000, 400000, 600000, 1000000, 1500000, 2500000, 4000000,
+              6000000, 10000000,
             ]}
             minValue={formData.home_budget_min ?? 200000}
             maxValue={formData.home_budget_max ?? 1000000}
@@ -77,107 +145,137 @@ export function SettingsFinancialSection({
         )}
       </Box>
 
-      <AlignedRow
-        breakIntoRows="md"
-        gap="lg"
-        justify="start"
-        items={[
-          {
-            title: <Label>Gross Annual Income (after debts)</Label>,
-            content: isEditMode ? (
-              <PriceRangeSlider
-                tickValues={[50000, 100000, 200000, 300000, 500000, 750000, 1000000]}
-                value={formData.gross_income ?? 100000}
-                onChange={(value) => {
-                  const roundedValue = Math.round(value / 5000) * 5000;
-                  updateFormData("gross_income", roundedValue);
-                }}
-                formatPrefix="$"
-                className="mt-2"
-              />
-            ) : (
-              <Box
-                className={`mobile-input bg-background-base text-left ${formData.gross_income ? "text-text-primary" : "text-text-secondary"}`}
-              >
-                {formData.gross_income
-                  ? `$${formData.gross_income.toLocaleString()}`
-                  : PROFILE_NOT_SPECIFIED_LABEL}
-              </Box>
-            ),
-          },
-          {
-            title: <Label>Down Payment</Label>,
-            content: isEditMode ? (
-              <PriceRangeSlider
-                tickValues={[100000, 250000, 500000, 1000000, 2000000, 5000000]}
-                value={formData.down_payment ?? 100000}
-                onChange={(value) => {
-                  const roundedValue = Math.round(value / 5000) * 5000;
-                  updateFormData("down_payment", roundedValue);
-                }}
-                formatPrefix="$"
-                className="mt-2"
-              />
-            ) : (
-              <Box
-                className={`mobile-input bg-background-base text-left ${formData.down_payment ? "text-text-primary" : "text-text-secondary"}`}
-              >
-                {formData.down_payment
-                  ? `$${formData.down_payment.toLocaleString()}`
-                  : PROFILE_NOT_SPECIFIED_LABEL}
-              </Box>
-            ),
-          },
-        ]}
+      <SearchPrefsPriceFinancing
+        isEditMode={isEditMode}
+        patch={patch}
+        budgetSummary={budgetSummary}
+        pf={ext.price_financing ?? {}}
       />
 
-      <AlignedRow
-        breakIntoRows="md"
-        gap="lg"
-        justify="evenly"
-        items={[
-          {
-            title: <Label>Ideal Zip Code</Label>,
-            content: isEditMode ? (
-              <Input
-                type="text"
-                value={formData.ideal_zip_code ?? ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  updateFormData("ideal_zip_code", e.target.value)
-                }
-                placeholder="Enter zip code"
-              />
-            ) : (
-              <Box
-                className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.ideal_zip_code)}`}
-              >
-                {formData.ideal_zip_code ?? PROFILE_NOT_SPECIFIED_LABEL}
-              </Box>
-            ),
-          },
-          {
-            title: <Label>{FIELD_LABELS.CREDIT_SCORE_RANGE}</Label>,
-            content: isEditMode ? (
-              <Dropdown
-                value={formData.credit_score_range ?? ""}
-                onChange={(value) => updateFormData("credit_score_range", value)}
-                options={CREDIT_SCORE_OPTIONS}
-                placeholder="Select..."
-              />
-            ) : (
-              <Box
-                className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.credit_score_range)}`}
-              >
-                {formData.credit_score_range
-                  ? (CREDIT_SCORE_OPTIONS.find(
-                      (option) => option.value === formData.credit_score_range
-                    )?.label ?? PROFILE_NOT_SPECIFIED_LABEL)
-                  : PROFILE_NOT_SPECIFIED_LABEL}
-              </Box>
-            ),
-          },
-        ]}
-      />
-    </Card>
+      {!formData.paying_cash && (
+        <>
+          <AlignedRow
+            breakIntoRows="lg"
+            gap="lg"
+            justify="start"
+            items={[
+              {
+                title: <Label>Gross Annual Income (after debts)</Label>,
+                content: isEditMode ? (
+                  <PriceRangeSlider
+                    tickValues={[
+                      50000, 100000, 200000, 300000, 500000, 750000, 1000000,
+                    ]}
+                    value={formData.gross_income ?? 100000}
+                    onChange={(value) => {
+                      const roundedValue = Math.round(value / 5000) * 5000;
+                      updateFormData("gross_income", roundedValue);
+                    }}
+                    formatPrefix="$"
+                    className="mt-2"
+                  />
+                ) : (
+                  <Box
+                    className={`mobile-input bg-background-base text-left ${
+                      formData.gross_income
+                        ? "text-text-primary"
+                        : "text-text-secondary"
+                    }`}
+                  >
+                    {formData.gross_income
+                      ? `$${formData.gross_income.toLocaleString()}`
+                      : PROFILE_NOT_SPECIFIED_LABEL}
+                  </Box>
+                ),
+              },
+              {
+                title: <Label>Down Payment</Label>,
+                content: isEditMode ? (
+                  <PriceRangeSlider
+                    tickValues={[
+                      100000, 250000, 500000, 1000000, 2000000, 5000000,
+                    ]}
+                    value={formData.down_payment ?? 100000}
+                    onChange={(value) => {
+                      const roundedValue = Math.round(value / 5000) * 5000;
+                      updateFormData("down_payment", roundedValue);
+                    }}
+                    formatPrefix="$"
+                    className="mt-2"
+                  />
+                ) : (
+                  <Box
+                    className={`mobile-input bg-background-base text-left ${
+                      formData.down_payment
+                        ? "text-text-primary"
+                        : "text-text-secondary"
+                    }`}
+                  >
+                    {formData.down_payment
+                      ? `$${formData.down_payment.toLocaleString()}`
+                      : PROFILE_NOT_SPECIFIED_LABEL}
+                  </Box>
+                ),
+              },
+            ]}
+          />
+
+          <AlignedRow
+            breakIntoRows="lg"
+            gap="lg"
+            justify="evenly"
+            items={[
+              {
+                title: <Label>Ideal Zip Code</Label>,
+                content: isEditMode ? (
+                  <Input
+                    type="text"
+                    value={formData.ideal_zip_code ?? ""}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      updateFormData("ideal_zip_code", e.target.value)
+                    }
+                    placeholder="Enter zip code"
+                  />
+                ) : (
+                  <Box
+                    className={`mobile-input bg-background-base ${profileFieldValueClassName(
+                      formData.ideal_zip_code,
+                    )}`}
+                  >
+                    {formData.ideal_zip_code ?? PROFILE_NOT_SPECIFIED_LABEL}
+                  </Box>
+                ),
+              },
+              {
+                title: <Label>{FIELD_LABELS.CREDIT_SCORE_RANGE}</Label>,
+                content: isEditMode ? (
+                  <Dropdown
+                    value={formData.credit_score_range ?? ""}
+                    onChange={(value) =>
+                      updateFormData("credit_score_range", value)
+                    }
+                    options={CREDIT_SCORE_OPTIONS}
+                    placeholder="Select..."
+                  />
+                ) : (
+                  <Box
+                    className={`mobile-input bg-background-base ${profileFieldValueClassName(
+                      formData.credit_score_range,
+                    )}`}
+                  >
+                    {formData.credit_score_range
+                      ? CREDIT_SCORE_OPTIONS.find(
+                          (option) =>
+                            option.value === formData.credit_score_range,
+                        )?.label ?? PROFILE_NOT_SPECIFIED_LABEL
+                      : PROFILE_NOT_SPECIFIED_LABEL}
+                  </Box>
+                ),
+              },
+            ]}
+          />
+        </>
+      )}
+    </ProfileSectionBody>
   );
 }

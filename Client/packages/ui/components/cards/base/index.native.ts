@@ -1,4 +1,4 @@
-// Base card components (native) — force HeartSave.native so RN never loads web <button>
+// Base card components (native) - force HeartSave.native so RN never loads web <button>
 export {
   CardViewButton,
   type CardViewButtonProps,
@@ -13,7 +13,11 @@ export {
   type CardPropertyDetailsProps,
 } from "./display";
 export { CardImageContainer, StyledImage } from "./image";
-export { getCardHoverClasses, getInteractiveCardClasses, TrianglePointer } from "./styles";
+export {
+  getCardHoverClasses,
+  getInteractiveCardClasses,
+  TrianglePointer,
+} from "./styles";
 export {
   default as CardHeartSave,
   type CardHeartSavePropertyLike,

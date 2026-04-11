@@ -11,6 +11,7 @@ import StaticPageLayout, {
   Paragraph,
   Section,
 } from "packages/features/homeauth/components/core/StaticPageLayout.native";
+import { LEGAL_PAGES_LAST_UPDATED } from "packages/features/homeauth/utils/staticLegalContact";
 import { Icon } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
@@ -20,13 +21,23 @@ function ContactInfoContainer({ children }: { children: React.ReactNode }) {
   return <View style={contactStyles.container}>{children}</View>;
 }
 
-function ContactInfoBlock({ label, value }: { label: string; value: React.ReactNode }) {
+function ContactInfoBlock({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   const isEmail = label === "Email";
   return (
     <View style={contactStyles.block}>
       <View style={contactStyles.blockRow}>
         <View style={contactStyles.blockIcon}>
-          <Icon name={isEmail ? "mail" : "phone"} size={18} color={color("brown.DEFAULT")} />
+          <Icon
+            name={isEmail ? "mail" : "phone"}
+            size={18}
+            color={color("brown.DEFAULT")}
+          />
         </View>
         <View style={contactStyles.blockContent}>
           <Text style={contactStyles.blockLabel}>{label}</Text>
@@ -43,7 +54,13 @@ function ContactInfoBlock({ label, value }: { label: string; value: React.ReactN
   );
 }
 
-function FAQItem({ question, children }: { question: string; children: React.ReactNode }) {
+function FAQItem({
+  question,
+  children,
+}: {
+  question: string;
+  children: React.ReactNode;
+}) {
   return (
     <View style={contactStyles.faqItem}>
       <Text style={contactStyles.faqQuestion}>{question}</Text>
@@ -101,7 +118,7 @@ const contactStyles = StyleSheet.create({
 
 export function ContactUsScreenNative() {
   return (
-    <StaticPageLayout title="Contact Us" subtitle="Last updated: 8/27/2025" centered>
+    <StaticPageLayout title="Contact us" subtitle={LEGAL_PAGES_LAST_UPDATED}>
       <ContactUsContent
         Section={Section}
         Paragraph={Paragraph}

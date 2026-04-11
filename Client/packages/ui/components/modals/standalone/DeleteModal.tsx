@@ -26,7 +26,7 @@ function DeleteModal({
   if (!isOpen) return null;
 
   return (
-    <Box className="space-responsive-sm bg-overlay-backdrop fixed inset-0 z-50 flex items-center justify-center">
+    <Box className="space-responsive-sm bg-overlay-backdrop z-modal fixed inset-0 flex items-center justify-center">
       <Box className="space-responsive-sm bg-background-surface mx-4 w-full max-w-md rounded-xl">
         <Box className="text-center">
           <Box className="mobile-icon-lg space-y-responsive-sm bg-destructive mx-auto flex items-center justify-center rounded-full">
@@ -54,7 +54,12 @@ function DeleteModal({
             <CancelButton onClick={onClose} size="md">
               {cancelText}
             </CancelButton>
-            <Button type="button" variant="danger" size="md" onClick={onConfirm}>
+            <Button
+              type="button"
+              variant="danger"
+              size="md"
+              onClick={onConfirm}
+            >
               {confirmText}
             </Button>
           </Box>

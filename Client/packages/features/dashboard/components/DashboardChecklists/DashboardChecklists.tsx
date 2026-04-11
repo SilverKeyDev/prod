@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -16,10 +22,9 @@ import {
 import { useViewStore, type ViewState } from "packages/store";
 import { Loading } from "packages/ui/components/asset/loading/Loading";
 import ClientSelector from "packages/ui/components/button/ClientSelector";
+import IconButton from "packages/ui/components/button/IconButton";
 import Card from "packages/ui/components/cards/Card";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
-
-import { IconButton } from "@/components/ui";
 
 import DashboardChecklistsHeader from "./DashboardChecklistsHeader";
 
@@ -39,7 +44,9 @@ export default function DashboardChecklists() {
     isItemCheckable,
     isLoading: progressLoading,
   } = useChecklistProgress();
-  const setDropdownSelection = useViewStore((s: ViewState) => s.setDropdownSelection);
+  const setDropdownSelection = useViewStore(
+    (s: ViewState) => s.setDropdownSelection,
+  );
   const hasInitializedTabRef = useRef(false);
 
   // Default tab: the one with the earliest unchecked item (currentSection from useChecklistProgress)
@@ -59,10 +66,20 @@ export default function DashboardChecklists() {
     setDropdownSelection("buyerChecklists.activeTab", activeTab as string);
   }, [activeTab, setDropdownSelection]);
 
-  const checklistType = useMemo<ChecklistType>(() => TAB_TO_CHECKLIST_TYPE[activeTab], [activeTab]);
+  const checklistType = useMemo<ChecklistType>(
+    () => TAB_TO_CHECKLIST_TYPE[activeTab],
+    [activeTab],
+  );
 
-  const { items, checkedIds, activeItemId, isLoading, error, toggleItem, refreshChecklist } =
-    useChecklistData(checklistType);
+  const {
+    items,
+    checkedIds,
+    activeItemId,
+    isLoading,
+    error,
+    toggleItem,
+    refreshChecklist,
+  } = useChecklistData(checklistType);
 
   const sortedItems = useMemo(() => {
     const indexMap = new Map(items.map((it, i) => [it.id, i]));
@@ -86,7 +103,7 @@ export default function DashboardChecklists() {
       if (!isItemCheckable(activeTab, id)) return;
       await toggleItem(id);
     },
-    [toggleItem, isItemCheckable, activeTab]
+    [toggleItem, isItemCheckable, activeTab],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -95,7 +112,7 @@ export default function DashboardChecklists() {
 
   // Expansion state: active item starts expanded; sync when activeItemId or checkedIds change
   const [expandedIds, setExpandedIds] = useState<Set<number>>(() =>
-    activeItemId != null ? new Set([activeItemId]) : new Set()
+    activeItemId != null ? new Set([activeItemId]) : new Set(),
   );
   useEffect(() => {
     setExpandedIds((prev) => {
@@ -134,7 +151,10 @@ export default function DashboardChecklists() {
   return (
     <Box className="flex w-full flex-row flex-col gap-3">
       <Box className="mb-2">
-        <ClientSelector selectedClientId={selectedClientId} onClientChange={setSelectedClientId} />
+        <ClientSelector
+          selectedClientId={selectedClientId}
+          onClientChange={setSelectedClientId}
+        />
       </Box>
 
       <DashboardChecklistsHeader
@@ -148,7 +168,12 @@ export default function DashboardChecklists() {
         isSectionUnlocked={isSectionUnlocked}
       />
 
-      <Card border="light" className="bg-background-base" padding="md" hover={false}>
+      <Card
+        border="light"
+        className="bg-background-base"
+        padding="md"
+        hover={false}
+      >
         {isLoading ? (
           <Box className="flex flex-row items-center justify-center py-12">
             <Loading />
@@ -165,15 +190,21 @@ export default function DashboardChecklists() {
           </Box>
         ) : items.length === 0 ? (
           <Box className="flex flex-row items-center justify-center py-12">
-            <Text className="text-warm-stone text-base">No checklist items yet.</Text>
+            <Text className="text-warm-stone text-base">
+              No checklist items yet.
+            </Text>
           </Box>
         ) : (
           <Box className="flex flex-row flex-col gap-2">
             {isSectionLocked && (
               <Box className="border-border bg-background-base mt-2 flex flex-row items-center gap-2 rounded-lg border px-4 py-3">
-                <Icon name="lock" className="text-text-muted h-4 w-4 shrink-0" />
+                <Icon
+                  name="lock"
+                  className="text-text-muted h-4 w-4 shrink-0"
+                />
                 <Text className="text-text-muted text-sm">
-                  Complete all items in the previous section to unlock this section.
+                  Complete all items in the previous section to unlock this
+                  section.
                 </Text>
               </Box>
             )}
@@ -181,40 +212,65 @@ export default function DashboardChecklists() {
               const checked = checkedIds.includes(item.id);
               const checkable = isItemCheckable(activeTab, item.id);
               const isActive = activeItemId != null && item.id === activeItemId;
-              const shouldShowIntegration = item.component_key != null && !isSectionLocked;
+              const shouldShowIntegration =
+                item.component_key != null && !isSectionLocked;
               const isExpanded = expandedIds.has(item.id);
-              const itemBorder = isActive ? "none" : checked ? "dotted" : "light";
+              const itemBorder = isActive
+                ? "none"
+                : checked
+                  ? "dotted"
+                  : "light";
               return (
                 <Card
                   border={itemBorder}
                   key={item.id}
                   padding="none"
                   hover={false}
-                  className={`m-1.5 w-full overflow-hidden ${isActive ? "ring-gold shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1" : ""}`}
+                  className={`m-1.5 w-full overflow-hidden ${
+                    isActive
+                      ? "ring-gold shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1"
+                      : ""
+                  }`}
                 >
                   <Box
                     role="button"
-                    tabIndex={checkable ? 0 : -1}
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
                     onClick={() => {
                       if (checkable) void handleToggleItem(item.id);
+                      else toggleExpand(item.id);
                     }}
                     onKeyDown={(e: React.KeyboardEvent) => {
-                      if (checkable && (e.key === "Enter" || e.key === " ")) {
-                        e.preventDefault();
-                        void handleToggleItem(item.id);
-                      }
+                      if (e.key !== "Enter" && e.key !== " ") return;
+                      e.preventDefault();
+                      if (checkable) void handleToggleItem(item.id);
+                      else toggleExpand(item.id);
                     }}
-                    aria-disabled={!checkable}
-                    className={`flex w-full cursor-pointer flex-row items-stretch ${checkable ? "bg-background-surface active:opacity-90" : "bg-background-base cursor-not-allowed opacity-75"}`}
+                    className={`flex w-full cursor-pointer flex-row items-stretch ${
+                      checkable
+                        ? "bg-background-surface active:opacity-90"
+                        : "bg-background-base opacity-75"
+                    }`}
                   >
                     <Box className="flex min-w-0 flex-1 flex-row items-start gap-4 px-4 py-3">
                       <Box
-                        className={`mt-0.5 flex h-6 w-6 flex-row items-center justify-center rounded-md border-2 ${checked ? "border-primary bg-primary" : checkable ? "border-border bg-background-surface hover:border-border active:border-border active:opacity-90" : "border-border bg-primary-muted"}`}
+                        className={`mt-0.5 flex h-6 w-6 flex-row items-center justify-center rounded-md border ${
+                          checked
+                            ? "border-primary bg-primary"
+                            : checkable
+                              ? "border-border bg-background-surface hover:border-border active:border-border active:opacity-90"
+                              : "border-border bg-primary-muted"
+                        }`}
                       >
                         {checked ? (
-                          <Text className="text-sm font-bold text-white">✓</Text>
+                          <Text className="text-sm font-bold text-white">
+                            ✓
+                          </Text>
                         ) : !checkable ? (
-                          <Icon name="lock" className="text-text-disabled h-3 w-3" />
+                          <Icon
+                            name="lock"
+                            className="text-text-disabled h-3 w-3"
+                          />
                         ) : null}
                       </Box>
                       <Box className="min-w-0 flex-1 text-left">
@@ -231,7 +287,10 @@ export default function DashboardChecklists() {
                             {item.bullets && item.bullets.length > 0 ? (
                               <Box className="mt-1.5 flex flex-row flex-col gap-1.5">
                                 {item.bullets.map((bullet) => (
-                                  <Box key={bullet} className="flex flex-row items-start gap-2">
+                                  <Box
+                                    key={bullet}
+                                    className="flex flex-row items-start gap-2"
+                                  >
                                     <Text className="text-warm-stone mt-0.5 text-sm leading-none">
                                       •
                                     </Text>
@@ -252,12 +311,16 @@ export default function DashboardChecklists() {
                       </Box>
                       <Box
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                        onKeyDown={(e) => e.key === "Enter" && e.stopPropagation()}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && e.stopPropagation()
+                        }
                       >
                         <IconButton
                           variant="ghost"
                           size="sm"
-                          iconName={isExpanded ? "chevron-down" : "chevron-right"}
+                          iconName={
+                            isExpanded ? "chevron-down" : "chevron-right"
+                          }
                           label={isExpanded ? "Collapse step" : "Expand step"}
                           onPress={() => toggleExpand(item.id)}
                           className="text-text-secondary hover:text-text-primary mt-0.5 flex h-6 w-6 flex-shrink-0"

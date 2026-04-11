@@ -5,12 +5,15 @@ import logging
 import os
 import traceback
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
-import requests
 from flask import Blueprint, current_app, jsonify, request
 
+from app.schemas import NegotiationStrategyRequest, NegotiationStrategyResponse
+from app.utils.validation import validate_request, validate_response
+
 from ..services.auth import get_current_user
+from ..services.search.data import get_property_detail
 from ..utils.security.secure_errors import SecureErrorHandler
 from ..utils.security.security import security_error_response
 
@@ -22,7 +25,9 @@ offer_bp = Blueprint("offer", __name__, url_prefix="/api/v1/offer")
 
 
 @offer_bp.route("/generate-strategy", methods=["POST"])
-def generate_negotiation_strategy():
+@validate_request(NegotiationStrategyRequest)
+@validate_response(NegotiationStrategyResponse)
+def generate_negotiation_strategy(data: NegotiationStrategyRequest | None = None):
     """
     Generate a negotiation strategy for a specific property.
 
@@ -50,13 +55,17 @@ def generate_negotiation_strategy():
             current_app.logger.error(f"🔐 [NEGOTIATION_STRATEGY] Unexpected auth error: {e}")
             return jsonify({"error": "Authentication failed", "success": False}), 401
 
-        data = request.get_json()
-        if not data:
-            current_app.logger.error("No JSON data provided in request")
-            return jsonify({"error": "No data provided", "success": False}), 400
-
-        address = data.get("address")
-        target_user_id = data.get("user_id", None)  # For agent client selection
+        if data is not None:
+            request_data = data.model_dump()
+            address = request_data.get("address")
+            target_user_id = request_data.get("user_id")
+        else:
+            request_data = request.get_json(silent=True)
+            if not request_data:
+                current_app.logger.error("No JSON data provided in request")
+                return jsonify({"error": "No data provided", "success": False}), 400
+            address = request_data.get("address")
+            target_user_id = request_data.get("user_id", None)
 
         if not address:
             current_app.logger.error("No address provided in request data")
@@ -141,7 +150,7 @@ def generate_negotiation_strategy():
 
         try:
             # Import necessary modules for property data fetching
-            from app.services.research.perplexity_analysis import analyze_property_with_sonar_pro
+            from app.services.research.perplexity import analyze_property_with_sonar_pro
 
             from ..services.research.graphs.graphic_generation import (
                 GOOGLE_MAPS_ID,
@@ -149,145 +158,138 @@ def generate_negotiation_strategy():
                 generate_static_map_url,
             )
 
-            # Get API keys
-            RAPI_HOST = os.getenv("RAPIDAPI_HOST", "us-housing-market-data1.p.rapidapi.com")
-            RAPI_KEY = os.getenv("RAPIDAPI_KEY")
             GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
-            if RAPI_KEY:
-                # Call property API to get property details
-                url = f"https://{RAPI_HOST}/property"
-                headers = {
-                    "x-rapidapi-host": RAPI_HOST,
-                    "x-rapidapi-key": RAPI_KEY,
-                    "Accept": "application/json",
-                }
-                params = {"address": address.strip()}
+            property_data, prop_err = get_property_detail(address=address.strip())
 
-                r = requests.get(url, headers=headers, params=params, timeout=120)
+            if property_data:
+                property_address = address.strip()
+                if isinstance(property_data, dict):
+                    street = property_data.get("streetAddress", "")
+                    city = property_data.get("city", "")
+                    state = property_data.get("state", "")
+                    zipcode = property_data.get("zipcode", "")
+                    if street and city and state:
+                        property_address = f"{street}, {city}, {state} {zipcode}".strip()
 
-                if r.ok:
-                    property_data = r.json()
+                if user_preferences and GOOGLE_MAPS_API_KEY:
+                    commute_data = {"travel_times": [], "property_address": property_address}
 
-                    # Extract property address for commute calculations
-                    property_address = address.strip()
-                    if isinstance(property_data, dict):
-                        street = property_data.get("streetAddress", "")
-                        city = property_data.get("city", "")
-                        state = property_data.get("state", "")
-                        zipcode = property_data.get("zipcode", "")
-                        if street and city and state:
-                            property_address = f"{street}, {city}, {state} {zipcode}".strip()
+                    important_locations = []
+                    locations_data = user_preferences.get("important_locations", [])
 
-                    # Get commute data if user preferences and Google Maps API available
-                    if user_preferences and GOOGLE_MAPS_API_KEY:
-                        commute_data = {"travel_times": [], "property_address": property_address}
+                    if isinstance(locations_data, str):
+                        try:
+                            locations_data = json.loads(locations_data)
+                        except json.JSONDecodeError:
+                            locations_data = []
 
-                        # Parse important locations from user preferences
-                        important_locations = []
-                        locations_data = user_preferences.get("important_locations", [])
+                    if isinstance(locations_data, list):
+                        important_locations = locations_data
 
-                        if isinstance(locations_data, str):
-                            try:
-                                locations_data = json.loads(locations_data)
-                            except json.JSONDecodeError:
-                                locations_data = []
+                    secondary_locations = []
 
-                        if isinstance(locations_data, list):
-                            important_locations = locations_data
-
-                        # Prepare secondary locations for map generation
-                        secondary_locations = []
-
-                        # Calculate travel times for each important location
-                        for i, location in enumerate(important_locations):
-                            if isinstance(location, dict) and "address" in location:
-                                location_address = location["address"]
-                                location_name = (
-                                    location.get("name")
-                                    or location_address[:40]
-                                    or f"Location {i + 1}"
-                                )
-
-                                travel_time = fetch_travel_time(
-                                    property_address, location_address, GOOGLE_MAPS_API_KEY
-                                )
-
-                                commute_data["travel_times"].append(
-                                    {
-                                        "name": location_name,
-                                        "address": location_address,
-                                        "travel_time": travel_time,
-                                        "commute_tolerance": location.get("commute_tolerance", 30),
-                                    }
-                                )
-
-                                # Prepare for map generation
-                                secondary_locations.append(
-                                    {"name": location_name, "address": location_address}
-                                )
-
-                        # Generate static map URL with commute routes
-                        map_url = None
-                        if secondary_locations:
-                            try:
-                                map_url = generate_static_map_url(
-                                    property_address,
-                                    secondary_locations,
-                                    GOOGLE_MAPS_API_KEY,
-                                    map_id=GOOGLE_MAPS_ID,
-                                )
-                            except Exception as e:
-                                current_app.logger.error(f"🗺️ [OFFER] Error generating map URL: {e}")
-
-                        commute_data["map_url"] = map_url
-
-                    # Get property analysis using Perplexity Sonar Pro
-                    if user_preferences and isinstance(property_data, dict):
-                        # Prepare home object for analysis
-                        home_object = {
-                            "address": property_address,
-                            "price": property_data.get("price", property_data.get("listPrice", 0)),
-                            "bedrooms": property_data.get("bedrooms", property_data.get("beds", 0)),
-                            "bathrooms": property_data.get(
-                                "bathrooms", property_data.get("baths", 0)
-                            ),
-                            "livingArea": property_data.get(
-                                "livingArea", property_data.get("sqft", 0)
-                            ),
-                            "propertyType": property_data.get(
-                                "propertyType", property_data.get("homeType", "Unknown")
-                            ),
-                            "lotAreaValue": property_data.get("lotAreaValue"),
-                            "lotAreaUnit": property_data.get("lotAreaUnit"),
-                            "listingStatus": property_data.get("listingStatus"),
-                            "city": property_data.get("city"),
-                            "state": property_data.get("state"),
-                            "zipcode": property_data.get("zipcode"),
-                        }
-
-                        # Call the property analysis function
-                        analysis_result = analyze_property_with_sonar_pro(
-                            user_preferences, home_object
-                        )
-
-                        if analysis_result:
-                            property_analysis = {
-                                "pros": analysis_result.pros,
-                                "cons": analysis_result.cons,
-                            }
-
-                        else:
-                            current_app.logger.warning(
-                                "⚠️ [NEGOTIATION_STRATEGY] Property analysis returned no results"
+                    for i, location in enumerate(important_locations):
+                        if isinstance(location, dict) and "address" in location:
+                            location_address = location["address"]
+                            location_name = (
+                                location.get("name") or location_address[:40] or f"Location {i + 1}"
                             )
-                else:
-                    current_app.logger.warning(
-                        f"⚠️ [NEGOTIATION_STRATEGY] Property API call failed: {r.status_code}"
+
+                            travel_time = fetch_travel_time(
+                                property_address, location_address, GOOGLE_MAPS_API_KEY
+                            )
+
+                            commute_data["travel_times"].append(
+                                {
+                                    "name": location_name,
+                                    "address": location_address,
+                                    "travel_time": travel_time,
+                                    "commute_tolerance": location.get("commute_tolerance", 30),
+                                }
+                            )
+
+                            secondary_locations.append(
+                                {"name": location_name, "address": location_address}
+                            )
+
+                    map_url = None
+                    if secondary_locations:
+                        try:
+                            map_url = generate_static_map_url(
+                                property_address,
+                                secondary_locations,
+                                GOOGLE_MAPS_API_KEY,
+                                map_id=GOOGLE_MAPS_ID,
+                            )
+                        except Exception as e:
+                            current_app.logger.error(f"🗺️ [OFFER] Error generating map URL: {e}")
+
+                    commute_data["map_url"] = map_url
+
+                if user_preferences and isinstance(property_data, dict):
+                    home_object = {
+                        "address": property_address,
+                        "price": property_data.get("price", property_data.get("listPrice", 0)),
+                        "bedrooms": property_data.get("bedrooms", property_data.get("beds", 0)),
+                        "bathrooms": property_data.get("bathrooms", property_data.get("baths", 0)),
+                        "livingArea": property_data.get("livingArea", property_data.get("sqft", 0)),
+                        "propertyType": property_data.get(
+                            "propertyType", property_data.get("homeType", "Unknown")
+                        ),
+                        "lotAreaValue": property_data.get("lotAreaValue"),
+                        "lotAreaUnit": property_data.get("lotAreaUnit"),
+                        "listingStatus": property_data.get("listingStatus"),
+                        "city": property_data.get("city"),
+                        "state": property_data.get("state"),
+                        "zipcode": property_data.get("zipcode"),
+                    }
+
+                    from app.services.search.home_matching.mcda.score import get_mcda_config
+                    from app.services.search.scoring import (
+                        adjust_pros_cons_counts,
+                        compute_listing_match_score,
+                        highlights_context_payload,
                     )
+
+                    _cfg = get_mcda_config()
+                    _lo = float(_cfg["output_display_min"])
+                    _hi = float(_cfg["output_display_max"])
+                    _mscore = compute_listing_match_score(
+                        user_preferences, property_data, config=_cfg
+                    )
+                    if _mscore is None:
+                        _p, _c = 3, 3
+                    else:
+                        _p, _c = adjust_pros_cons_counts(3, 3, _mscore, _lo, _hi)
+                    sonar_ctx = {
+                        "viewer_is_agent": bool(getattr(user, "is_agent", False)),
+                        "profile_subject": (
+                            "client" if str(preferences_user_id) != str(user.id) else "self"
+                        ),
+                        "pros_count": _p,
+                        "cons_count": _c,
+                        "bullet_style": "medium",
+                    }
+                    analysis_result = analyze_property_with_sonar_pro(
+                        user_preferences, home_object, analysis_context=sonar_ctx
+                    )
+
+                    if analysis_result:
+                        property_analysis = {
+                            "pros": analysis_result.pros,
+                            "cons": analysis_result.cons,
+                        }
+                        _hc = highlights_context_payload(_mscore)
+                        if _hc:
+                            property_analysis["highlights_context"] = _hc
+                    else:
+                        current_app.logger.warning(
+                            "⚠️ [NEGOTIATION_STRATEGY] Property analysis returned no results"
+                        )
             else:
                 current_app.logger.warning(
-                    "⚠️ [NEGOTIATION_STRATEGY] RapidAPI key not configured, skipping property data fetch"
+                    "⚠️ [NEGOTIATION_STRATEGY] Slipstream property fetch failed, skipping"
                 )
 
         except Exception as e:
@@ -327,7 +329,7 @@ def generate_negotiation_strategy():
                 "property_address": address,
                 "strategy_id": strategy_id,
                 "filename": filename,
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
                 "generated_for_user": preferences_user_id,
             }
 

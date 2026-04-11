@@ -10,9 +10,20 @@ import Card from "packages/ui/components/cards/Card";
 import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 import { getSessionStorage } from "packages/utils/storage";
-import { applyCodeChange, applyPaste, getBackspaceFocusIndex } from "packages/utils/verification";
+import {
+  applyCodeChange,
+  applyPaste,
+  getBackspaceFocusIndex,
+} from "packages/utils/verification";
 
-import { BodyText, Button, Input, Label, MiniLogo, Title } from "@/components/ui";
+import {
+  BodyText,
+  Button,
+  Input,
+  Label,
+  MiniLogo,
+  Title,
+} from "@/components/ui";
 type LocationState = {
   email?: string;
   fromLogin?: boolean;
@@ -30,7 +41,7 @@ export default function VerificationPage() {
   const { navigate, goBack, getCurrentRoute } = useNavigation();
   const locationState = getCurrentRoute().state as LocationState;
   const inputRefs = useRef<Array<HTMLInputElement | null>>(
-    Array(6).fill(null) as Array<HTMLInputElement | null>
+    Array(6).fill(null) as Array<HTMLInputElement | null>,
   );
   // Pre-fill email if coming from signup or login
   useEffect(() => {
@@ -54,14 +65,20 @@ export default function VerificationPage() {
       void handleVerify();
     }
   };
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
+  const handlePaste = (
+    e: React.ClipboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text/plain");
     const { nextCode, nextFocusIndex } = applyPaste(code, pasteData, index);
     setCode(nextCode);
     inputRefs.current[nextFocusIndex]?.focus();
   };
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number,
+  ) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       const focusIndex = getBackspaceFocusIndex(code, index);
       if (focusIndex !== null) {
@@ -119,8 +136,13 @@ export default function VerificationPage() {
         email: userEmail,
       });
       if (!userEmail || !storedPassword) {
-        log.error(LOG_CATEGORIES.AUTH, "Verification missing email or password");
-        throw new Error("Email or password not found. Please go back and sign up again.");
+        log.error(
+          LOG_CATEGORIES.AUTH,
+          "Verification missing email or password",
+        );
+        throw new Error(
+          "Email or password not found. Please go back and sign up again.",
+        );
       }
       log.debug(LOG_CATEGORIES.AUTH, "Verification calling authApi.verify");
       // Call the verify API
@@ -135,9 +157,14 @@ export default function VerificationPage() {
         message,
       });
       if (!success) {
-        throw new Error(apiError ?? message ?? "Failed to verify email. Please try again.");
+        throw new Error(
+          apiError ?? message ?? "Failed to verify email. Please try again.",
+        );
       }
-      log.debug(LOG_CATEGORIES.AUTH, "Verification successful, clearing storage and navigating");
+      log.debug(
+        LOG_CATEGORIES.AUTH,
+        "Verification successful, clearing storage and navigating",
+      );
       // Clear the stored signup data
       session.removeItem("signupEmail");
       session.removeItem("signupPassword");
@@ -149,7 +176,9 @@ export default function VerificationPage() {
     } catch (error: unknown) {
       log.error(LOG_CATEGORIES.AUTH, "Verification error", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Invalid verification code. Please try again.";
+        error instanceof Error
+          ? error.message
+          : "Invalid verification code. Please try again.";
       setError(errorMessage);
       // Clear the code on error
       setCode(["", "", "", "", "", ""]);
@@ -211,7 +240,7 @@ export default function VerificationPage() {
           }
           onPaste={(e) => handlePaste(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
-          className="border-primary focus:ring-primary text-text-secondary h-12 w-12 rounded-lg border-2 text-center text-lg font-bold focus:border-transparent focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="border-border text-text-secondary h-12 w-12 rounded-lg border-2 text-center text-lg font-bold focus:border-transparent focus:outline-none focus:ring-2 focus:ring-neutral-400 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={loading}
         />
       ))}
@@ -235,9 +264,15 @@ export default function VerificationPage() {
 
           {/* Header */}
           <Box className="text-center">
-            <Title size="lg" as="h2" className="mb-4 flex items-center justify-center gap-2">
+            <Title
+              size="lg"
+              as="h2"
+              className="mb-4 flex items-center justify-center gap-2"
+            >
               <MiniLogo size="md" />
-              {activeStep === "email" ? "Verify your email" : "Enter verification code"}
+              {activeStep === "email"
+                ? "Verify your email"
+                : "Enter verification code"}
             </Title>
           </Box>
 
@@ -251,8 +286,8 @@ export default function VerificationPage() {
           {/* Warning Message - shown when redirected from login */}
           {isFromLogin && !error && (
             <Box className="space-y-responsive-md space-responsive-sm text-responsive-sm rounded-md bg-yellow-50 p-3 text-yellow-800">
-              Please verify your email address to continue. A verification code has been sent to
-              your email.
+              Please verify your email address to continue. A verification code
+              has been sent to your email.
             </Box>
           )}
 
@@ -265,7 +300,10 @@ export default function VerificationPage() {
 
           {/* Email Step */}
           {activeStep === "email" && (
-            <form onSubmit={handleEmailSubmit} className="space-y-responsive-md">
+            <form
+              onSubmit={handleEmailSubmit}
+              className="space-y-responsive-md"
+            >
               <Box>
                 <Label
                   id="verification-email-label"
@@ -306,7 +344,9 @@ export default function VerificationPage() {
           {/* Verification Code Step */}
           {activeStep === "code" && (
             <form
-              onSubmit={(e: React.FormEvent<HTMLFormElement>) => e.preventDefault()}
+              onSubmit={(e: React.FormEvent<HTMLFormElement>) =>
+                e.preventDefault()
+              }
               className="space-y-responsive-md"
             >
               {renderCodeInputs()}
@@ -320,7 +360,11 @@ export default function VerificationPage() {
                   size="sm"
                   disabled={!canResend || loading}
                   loading={loading}
-                  className={canResend ? "text-accent hover:text-accent" : "text-text-disabled"}
+                  className={
+                    canResend
+                      ? "text-accent hover:text-accent"
+                      : "text-text-disabled"
+                  }
                 >
                   {canResend ? "Resend code" : `Resend in ${countdown}s`}
                 </Button>

@@ -56,7 +56,7 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
     <Box className={checkboxContainerClass}>
       <AccessibleCheckboxInput
         id={`item-${item.id}`}
-        className="peer sr-only"
+        className="peer sr-only focus:outline-none focus:ring-0"
         checked={checked}
         onChange={handleToggle}
         label={ariaLabel}
@@ -67,7 +67,13 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
-        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 flex-row items-center justify-center rounded border ${HOVER_BG_CLASSES} lg:h-6 lg:w-6 ${disabled ? "border-border bg-disabled cursor-not-allowed" : checked ? "border-primary bg-primary cursor-pointer" : "border-border-input cursor-pointer"}`}
+        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 flex-row items-center justify-center rounded border ${HOVER_BG_CLASSES} lg:h-6 lg:w-6 ${
+          disabled
+            ? "border-border bg-disabled cursor-not-allowed"
+            : checked
+              ? "border-primary bg-primary cursor-pointer"
+              : "border-border-input cursor-pointer"
+        }`}
         onClick={handleToggle}
         onKeyDown={(e) => {
           if (disabled) return;
@@ -78,9 +84,15 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
         }}
       >
         {checked && (
-          <Icon name="check" className="h-3.5 w-3.5 text-white lg:h-4 lg:w-4" strokeWidth={4} />
+          <Icon
+            name="check"
+            className="h-3.5 w-3.5 text-white lg:h-4 lg:w-4"
+            strokeWidth={4}
+          />
         )}
-        {!checked && disabled && <Icon name="lock" className="text-text-secondary h-3 w-3" />}
+        {!checked && disabled && (
+          <Icon name="lock" className="text-text-secondary h-3 w-3" />
+        )}
       </Box>
       <Box className="flex-1 text-left">
         <Label htmlFor={`item-${item.id}`} className={itemLabelClass}>
@@ -92,12 +104,19 @@ const ChecklistCheckbox: React.FC<ChecklistCheckboxProps> = ({
             <BodyText size="xs" className={itemExplanationClass}>
               {item.explanation}
             </BodyText>
-            {item.bullets && (
-              <ul className="text-text-secondary ml-4 flex list-inside list-disc flex-col gap-1.5 text-left text-xs">
-                {item.bullets.map((b, idx) => (
-                  <li key={idx}>{b}</li>
+            {item.bullets && item.bullets.length > 0 && (
+              <Box className="mt-1 flex flex-col gap-1.5">
+                {item.bullets.map((bullet, idx) => (
+                  <Box key={idx} className="flex flex-row items-start gap-2">
+                    <BodyText size="xs" className="text-text-secondary">
+                      •
+                    </BodyText>
+                    <BodyText size="xs" className="text-text-secondary flex-1">
+                      {bullet}
+                    </BodyText>
+                  </Box>
                 ))}
-              </ul>
+              </Box>
             )}
             {item.resource && (
               <BodyText size="xs" className="text-responsive-xs text-primary">

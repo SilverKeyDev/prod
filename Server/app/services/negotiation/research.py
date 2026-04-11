@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import time
 import uuid
 from typing import Any
@@ -9,24 +8,22 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from app.config.llm_models import perplexity_model_negotiation
+
+from ..research.perplexity.perplexity_config import (
+    PERPLEXITY_API_KEY,
+    PERPLEXITY_HEADERS,
+    PERPLEXITY_URL,
+)
 from .json_utils import _safe_parse_json, validate_address
 from .payload_builder import build_payload
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 if not PERPLEXITY_API_KEY:
     logger.critical("PERPLEXITY_API_KEY environment variable is not set.")
     raise ValueError("PERPLEXITY_API_KEY environment variable is not set")
-
-HEADERS = {
-    "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
-    "Content-Type": "application/json",
-}
-
-PPLX_URL = "https://api.perplexity.ai/chat/completions"
-PPLX_MODEL = os.getenv("PERPLEXITY_MODEL", "sonar-pro")
 
 
 def _requests_session() -> requests.Session:
@@ -67,7 +64,7 @@ def generate_report(
     payload = build_payload(
         section_type,
         address,
-        PPLX_MODEL,
+        perplexity_model_negotiation(),
         params=params,
         report_customization=report_customization,
         user_preferences=user_preferences,
@@ -78,7 +75,9 @@ def generate_report(
     for attempt in range(max_retries + 1):
         start_time = time.perf_counter()
         try:
-            resp = session.post(PPLX_URL, headers=HEADERS, json=payload, timeout=300)
+            resp = session.post(
+                PERPLEXITY_URL, headers=PERPLEXITY_HEADERS, json=payload, timeout=300
+            )
         except Exception as e:
             duration = time.perf_counter() - start_time
             last_error = f"Request error: {e}"

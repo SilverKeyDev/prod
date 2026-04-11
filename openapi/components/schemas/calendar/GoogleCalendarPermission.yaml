@@ -1,0 +1,12 @@
+type: object
+required:
+  - granted
+  - description
+  - scope
+properties:
+  granted:
+    type: boolean
+  description:
+    type: string
+  scope:
+    type: string

@@ -4,6 +4,7 @@ import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 
 import type {
   GoogleCalendar,
+  GoogleCalendarEventCreateBody,
   GoogleEvent,
   GoogleEventCreateResponse,
 } from "packages/config/http/api";
@@ -29,12 +30,14 @@ export type UseGoogleEventsReturn = {
   eventsLoading: boolean;
   eventsError: string | null;
   refreshEvents: () => Promise<void>;
-  createEvent: (event: GoogleEvent) => Promise<GoogleEventCreateResponse>;
+  createEvent: (
+    event: GoogleCalendarEventCreateBody,
+  ) => Promise<GoogleEventCreateResponse>;
   isCreatingEvent: boolean;
   updateEvent: (
     eventId: string,
     event: GoogleEvent,
-    calendarId?: string
+    calendarId?: string,
   ) => Promise<GoogleEventCreateResponse>;
   deleteEvent: (eventId: string, calendarId?: string) => Promise<void>;
   isUpdatingEvent: boolean;
@@ -48,7 +51,7 @@ function useGoogleEventsMerge(
   shouldLoadData: boolean,
   calendarIds: string[] | null,
   isFetching: boolean,
-  fetchError: string | null
+  fetchError: string | null,
 ) {
   const [events, setEvents] = useState<GoogleEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState<boolean>(false);
@@ -72,14 +75,19 @@ function useGoogleEventsMerge(
       .map((e) => e.id)
       .sort()
       .join(",");
-    if (currentIds !== prevIds || allEvents.length !== previousEventsRef.current.length) {
+    if (
+      currentIds !== prevIds ||
+      allEvents.length !== previousEventsRef.current.length
+    ) {
       setEvents(allEvents);
       previousEventsRef.current = allEvents;
     }
   }, [shouldLoadData, allCachedEvents, fetchedEvents]);
 
   useEffect(() => {
-    setEventsLoading(!!(shouldLoadData && calendarIds && calendarIds.length > 0 && isFetching));
+    setEventsLoading(
+      !!(shouldLoadData && calendarIds && calendarIds.length > 0 && isFetching),
+    );
   }, [shouldLoadData, calendarIds, isFetching]);
 
   useEffect(() => {
@@ -94,14 +102,16 @@ function useGoogleEventsMerge(
 function useGoogleEventsCore(
   params: Parameters<typeof useGoogleEvents>[0],
   queryClient: ReturnType<typeof useQueryClient>,
-  shouldLoadData: boolean
+  shouldLoadData: boolean,
 ) {
   const cachedCalendars = useMemo(
     () =>
       shouldLoadData
-        ? (queryClient.getQueryData<GoogleCalendar[]>(queryKeys.googleCalendar.calendars()) ?? [])
+        ? queryClient.getQueryData<GoogleCalendar[]>(
+            queryKeys.googleCalendar.calendars(),
+          ) ?? []
         : [],
-    [shouldLoadData, queryClient]
+    [shouldLoadData, queryClient],
   );
 
   const resolveCalendarId = useCallback(
@@ -116,17 +126,17 @@ function useGoogleEventsCore(
               id: cal.id,
               summary: cal.summary,
             })),
-          }
+          },
         );
       }
       return resolved;
     },
-    [cachedCalendars]
+    [cachedCalendars],
   );
 
   const calendarIds = useMemo(
     () => resolveCalendarIds(params ?? {}, resolveCalendarId),
-    [params, resolveCalendarId]
+    [params, resolveCalendarId],
   );
 
   const memoizedParams = useMemo(
@@ -135,7 +145,7 @@ function useGoogleEventsCore(
       timeMin: params?.timeMin,
       timeMax: params?.timeMax,
     }),
-    [calendarIds, params]
+    [calendarIds, params],
   );
 
   const allCachedEvents = useMemo(
@@ -145,9 +155,15 @@ function useGoogleEventsCore(
         calendarIds,
         memoizedParams.timeMin,
         memoizedParams.timeMax,
-        shouldLoadData
+        shouldLoadData,
       ),
-    [shouldLoadData, calendarIds, memoizedParams.timeMin, memoizedParams.timeMax, queryClient]
+    [
+      shouldLoadData,
+      calendarIds,
+      memoizedParams.timeMin,
+      memoizedParams.timeMax,
+      queryClient,
+    ],
   );
 
   const getCached = useCallback(
@@ -157,14 +173,14 @@ function useGoogleEventsCore(
           calendarId,
           timeMin: memoizedParams.timeMin,
           timeMax: memoizedParams.timeMax,
-        })
+        }),
       ),
-    [queryClient, memoizedParams.timeMin, memoizedParams.timeMax]
+    [queryClient, memoizedParams.timeMin, memoizedParams.timeMax],
   );
 
   const calendarsToFetch = useMemo(
     () => getCalendarsWithoutCache(calendarIds, getCached),
-    [calendarIds, getCached]
+    [calendarIds, getCached],
   );
 
   const needsFetching = calendarsToFetch.length > 0;
@@ -175,15 +191,28 @@ function useGoogleEventsCore(
         timeMin: memoizedParams.timeMin,
         timeMax: memoizedParams.timeMax,
       }),
-      queryFn: buildEventsListQueryFn(calendarId, memoizedParams.timeMin, memoizedParams.timeMax),
+      queryFn: buildEventsListQueryFn(
+        calendarId,
+        memoizedParams.timeMin,
+        memoizedParams.timeMax,
+      ),
       enabled: shouldLoadData && needsFetching,
       staleTime: 2 * 60 * 1000,
     })),
   });
 
-  const fetchedEvents = useMemo(() => aggregateFetchedEvents(fetchResults), [fetchResults]);
-  const isFetching = useMemo(() => fetchResults.some((r) => r.isLoading), [fetchResults]);
-  const fetchError = useMemo(() => getFirstFetchError(fetchResults), [fetchResults]);
+  const fetchedEvents = useMemo(
+    () => aggregateFetchedEvents(fetchResults),
+    [fetchResults],
+  );
+  const isFetching = useMemo(
+    () => fetchResults.some((r) => r.isLoading),
+    [fetchResults],
+  );
+  const fetchError = useMemo(
+    () => getFirstFetchError(fetchResults),
+    [fetchResults],
+  );
 
   const { events, eventsLoading, eventsError } = useGoogleEventsMerge(
     allCachedEvents,
@@ -191,11 +220,15 @@ function useGoogleEventsCore(
     shouldLoadData,
     calendarIds,
     isFetching,
-    fetchError
+    fetchError,
   );
 
   const refreshEvents = useCallback(async () => {
-    if (calendarIds?.length && memoizedParams.timeMin && memoizedParams.timeMax) {
+    if (
+      calendarIds?.length &&
+      memoizedParams.timeMin &&
+      memoizedParams.timeMax
+    ) {
       for (const calendarId of calendarIds) {
         const queryKey = queryKeys.googleCalendar.eventsList({
           calendarId,
@@ -211,7 +244,12 @@ function useGoogleEventsCore(
       });
     }
     log.debug(LOG_CATEGORIES.CALENDAR, "Refreshed Google Calendar events");
-  }, [calendarIds, memoizedParams.timeMin, memoizedParams.timeMax, queryClient]);
+  }, [
+    calendarIds,
+    memoizedParams.timeMin,
+    memoizedParams.timeMax,
+    queryClient,
+  ]);
 
   return { events, eventsLoading, eventsError, refreshEvents };
 }
@@ -232,7 +270,7 @@ export function useGoogleEvents(params?: {
   const authReady = useAuthStore((s) => s.authReady);
   const shouldLoadData = useMemo(
     () => (params?.enabled ?? true) && authReady && isAuthenticated,
-    [params?.enabled, authReady, isAuthenticated]
+    [params?.enabled, authReady, isAuthenticated],
   );
 
   const core = useGoogleEventsCore(params, queryClient, shouldLoadData);
@@ -247,7 +285,7 @@ export function useGoogleEvents(params?: {
   }, [queryClient]);
 
   const createEventMutation = useMutation({
-    mutationFn: async (event: GoogleEvent) => {
+    mutationFn: async (event: GoogleCalendarEventCreateBody) => {
       const response = await googleCalendarApi.createEvent(event);
       if (!response.success) {
         throw new Error(response.error ?? "Failed to create event");
@@ -284,7 +322,13 @@ export function useGoogleEvents(params?: {
   });
 
   const deleteEventMutation = useMutation({
-    mutationFn: async ({ eventId, calendarId }: { eventId: string; calendarId?: string }) => {
+    mutationFn: async ({
+      eventId,
+      calendarId,
+    }: {
+      eventId: string;
+      calendarId?: string;
+    }) => {
       const response = await googleCalendarApi.deleteEvent(eventId, calendarId);
       if (!response.success) {
         throw new Error(response.error ?? "Failed to delete event");
@@ -298,29 +342,33 @@ export function useGoogleEvents(params?: {
   });
 
   const createEvent = useCallback(
-    async (event: GoogleEvent): Promise<GoogleEventCreateResponse> =>
-      createEventMutation.mutateAsync(event) as Promise<GoogleEventCreateResponse>,
-    [createEventMutation]
+    async (
+      event: GoogleCalendarEventCreateBody,
+    ): Promise<GoogleEventCreateResponse> =>
+      createEventMutation.mutateAsync(
+        event,
+      ) as Promise<GoogleEventCreateResponse>,
+    [createEventMutation],
   );
 
   const updateEvent = useCallback(
     async (
       eventId: string,
       event: GoogleEvent,
-      calendarId?: string
+      calendarId?: string,
     ): Promise<GoogleEventCreateResponse> =>
       updateEventMutation.mutateAsync({
         eventId,
         event,
         calendarId,
       }) as Promise<GoogleEventCreateResponse>,
-    [updateEventMutation]
+    [updateEventMutation],
   );
 
   const deleteEvent = useCallback(
     async (eventId: string, calendarId?: string): Promise<void> =>
       deleteEventMutation.mutateAsync({ eventId, calendarId }),
-    [deleteEventMutation]
+    [deleteEventMutation],
   );
 
   return {

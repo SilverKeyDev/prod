@@ -1,0 +1,38 @@
+type: object
+description: >
+  Logger category toggles (booleans) plus logLevel. additionalProperties allows future category keys
+  to be boolean or string without breaking older clients when the server adds flags.
+additionalProperties:
+  oneOf:
+    - type: boolean
+    - type: string
+required:
+  - polling
+  - pages
+  - hooks
+  - auth
+  - http
+  - api
+  - errors
+  - security
+  - logLevel
+properties:
+  polling:
+    type: boolean
+  pages:
+    type: boolean
+  hooks:
+    type: boolean
+  auth:
+    type: boolean
+  http:
+    type: boolean
+  api:
+    type: boolean
+  errors:
+    type: boolean
+  security:
+    type: boolean
+  logLevel:
+    type: string
+    enum: [DEBUG, INFO, WARN, ERROR]

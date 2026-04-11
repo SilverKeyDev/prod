@@ -1,0 +1,50 @@
+allOf:
+  - $ref: './GoogleEvent.yaml'
+  - type: object
+    required:
+      - kind
+      - etag
+      - htmlLink
+      - created
+      - updated
+      - creator
+      - organizer
+      - sequence
+      - iCalUID
+      - status
+    properties:
+      kind:
+        type: string
+      etag:
+        type: string
+      htmlLink:
+        type: string
+        format: uri
+      created:
+        type: string
+      updated:
+        type: string
+      creator:
+        type: object
+        properties:
+          email:
+            type: string
+            format: email
+          displayName:
+            type: string
+            nullable: true
+      organizer:
+        type: object
+        properties:
+          email:
+            type: string
+            format: email
+          displayName:
+            type: string
+            nullable: true
+      sequence:
+        type: integer
+      iCalUID:
+        type: string
+      status:
+        type: string

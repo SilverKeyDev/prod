@@ -1,60 +1,35 @@
-import type { UserProfile } from "packages/features/homeauth/types/index";
-import { apiDelete, apiGet, apiPatch, apiPost } from "packages/services/http/compatibility";
-
 /**
- * Document shape as returned by dashboard API (ISO date strings).
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
  */
-export type Document = {
-  id: string;
-  name: string;
-  file_path: string;
-  file_size: number;
-  file_type: string;
-  category: string;
-  property_id?: string;
-  offer_id?: string;
-  uploaded_by: string;
-  uploaded_at: string;
-  is_signed?: boolean;
-  expiry_date?: string | null;
-  status: "pending" | "approved" | "rejected" | "expired";
-  address?: string;
-  document_type?: string;
-};
 
-export type GetDashboardResponse = {
-  success: boolean;
-  user: UserProfile;
-};
+import {
+  apiDelete,
+  apiGet,
+  apiPatch,
+  apiPost,
+} from "packages/services/http/compatibility";
+import type { components } from "packages/types/api.generated";
 
-/** Response for updateDocumentStatus and signDocument */
-export type DashboardResponse = {
-  success: boolean;
-  document?: Document;
-  error?: string;
-};
-
-export type ReportsResponse = {
-  success: boolean;
-  documents?: Document[];
-  reports?: unknown[];
-  message?: string;
-  error?: string;
-};
-
-export type DocumentsResponse = {
-  success: boolean;
-  documents?: Document[];
-  message?: string;
-  error?: string;
-};
-
-export type UploadResponse = {
-  success: boolean;
-  document?: Document;
-  message?: string;
-  error?: string;
-};
+// Re-export types from generated schema
+export type WorkflowDocumentRecord =
+  components["schemas"]["WorkflowDocumentRecord"];
+export type GetDashboardResponse =
+  components["schemas"]["GetDashboardResponse"];
+export type DashboardResponse = components["schemas"]["DashboardResponse"];
+export type ReportsResponse = components["schemas"]["ReportsResponse"];
+export type DocumentsResponse = components["schemas"]["DocumentsResponse"];
+export type UploadResponse = components["schemas"]["UploadResponse"];
+export type SuccessResponse = components["schemas"]["SuccessResponse"];
 
 /**
  * Dashboard API client using centralized utilities
@@ -69,7 +44,8 @@ export const dashboardApi = {
   /**
    * Get all reports for current user
    */
-  getReports: (): Promise<ReportsResponse> => apiGet<ReportsResponse>("/api/dashboard/reports"),
+  getReports: (): Promise<ReportsResponse> =>
+    apiGet<ReportsResponse>("/api/dashboard/reports"),
 
   /**
    * Get all documents for current user
@@ -86,8 +62,8 @@ export const dashboardApi = {
   /**
    * Delete a document
    */
-  deleteDocument: (documentId: string): Promise<{ success: boolean; message?: string }> =>
-    apiDelete<{ success: boolean; message?: string }>(`/api/v1/documents/${documentId}`),
+  deleteDocument: (documentId: string): Promise<SuccessResponse> =>
+    apiDelete<SuccessResponse>(`/api/v1/documents/${documentId}`),
 
   /**
    * Get documents by property
@@ -104,7 +80,10 @@ export const dashboardApi = {
   /**
    * Update document status
    */
-  updateDocumentStatus: (docId: string, status: Document["status"]): Promise<DashboardResponse> =>
+  updateDocumentStatus: (
+    docId: string,
+    status: WorkflowDocumentRecord["status"],
+  ): Promise<DashboardResponse> =>
     apiPatch<DashboardResponse>(`/api/v1/documents/${docId}`, { status }),
 
   /**

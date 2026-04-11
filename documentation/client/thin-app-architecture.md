@@ -13,7 +13,7 @@ So the “app” is not the star of the show — the shared packages are. The ap
 
 | Category | Web | Mobile |
 |----------|-----|--------|
-| **Config & entry** | `vite.config.ts`, `index.html`, `main.tsx` | `metro.config.js`, `app.json`, `App.tsx` |
+| **Config & entry** | `vite.config.js`, `index.html`, `main.tsx` | `metro.config.js`, `app.json`, `App.tsx` |
 | **Environment** | App-level `.env` (build-time via Vite) | App-level env (build-time or runtime; see Config & Environment) |
 | **Routing** | `<BrowserRouter>`, route list (`/login`, `/dashboard`, etc.) | `<Stack.Navigator>`, bottom tabs, screen list |
 | **Pages/screens** | Thin composition only (~50–150 LOC; see below) | Thin composition only (~50–150 LOC) |
@@ -105,7 +105,7 @@ You don’t need to name every package today — the important part is **directi
 
 ## Config & Environment
 
-- **Web (Vite):** env is **build-time** (injected at build via `define` in vite.config.ts so `process.env` is populated; use `VITE_*` in .env).
+- **Web (Vite):** env is **build-time** (injected at build via `define` in vite.config.js so `process.env` is populated; use `VITE_*` in .env).
 - **Mobile (Expo):** env is **build-time** (Expo injects `EXPO_PUBLIC_*` into `process.env`).
 
 **Packages must not read env directly.** Apps pass configuration in via:
@@ -117,16 +117,16 @@ That keeps packages portable and testable; the app is the single place that know
 
 ## Why This Is the Gold Standard
 
-1. **Scale to new platforms**  
+1. **Scale to new platforms**
    If you add `apps/desktop` (e.g. Electron or Tauri) later, you only add a new entry point, router, and composition layer. All existing logic and UI in `packages/` are reused.
 
-2. **Single source of truth**  
+2. **Single source of truth**
    Features are implemented once in `packages/`. Web and mobile (and future clients) stay in sync by composing the same pieces.
 
-3. **Easier testing and refactors**  
+3. **Easier testing and refactors**
    Logic and UI in packages can be tested and refactored without touching app-specific routing or delivery.
 
-4. **Clear boundaries**  
+4. **Clear boundaries**
    “Where does this go?” has a simple answer: if it’s reusable or logic-heavy, it goes in `packages/`; if it’s “how we mount and route this app,” it stays in `apps/`.
 
 ## Relation to Other Docs

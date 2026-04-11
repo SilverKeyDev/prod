@@ -1,5 +1,5 @@
 /**
- * Modal panel variant and size styles — single source of truth for web and native.
+ * Modal panel variant and size styles - single source of truth for web and native.
  * Platform files (.web, .native) must import from here; they must NOT define local
  * SIZE_STYLES, panelClasses, etc.
  *
@@ -10,7 +10,7 @@
 
 export type ModalSize = "xs" | "sm" | "md" | "lg" | "xl" | "full";
 
-/** Shared border color — use for header and footer borders on both platforms */
+/** Shared border color - use for header and footer borders on both platforms */
 export const MODAL_PANEL_BORDER_COLOR = "border-neutral-200";
 
 /** Web: max-width and margin for panel sizing */
@@ -32,9 +32,10 @@ export const MODAL_PANEL_HEADER_WEB =
 
 export const MODAL_PANEL_HEADER_BORDER_WEB = `border-b ${MODAL_PANEL_BORDER_COLOR}`;
 
-export const MODAL_PANEL_BODY_WEB = "min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6";
+export const MODAL_PANEL_BODY_WEB =
+  "min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6";
 
-/** Shared footer base — both platforms */
+/** Shared footer base - both platforms */
 export const MODAL_PANEL_FOOTER_BASE = `flex-shrink-0 border-t ${MODAL_PANEL_BORDER_COLOR}`;
 
 export const MODAL_PANEL_FOOTER_WEB = `${MODAL_PANEL_FOOTER_BASE} p-3 sm:p-4 md:p-6`;
@@ -63,4 +64,5 @@ export const MODAL_PANEL_BODY_LARGE_NATIVE = "max-h-[700px]";
 
 export const MODAL_PANEL_FOOTER_NATIVE = `${MODAL_PANEL_FOOTER_BASE} p-4`;
 
-export const MODAL_BACKDROP_NATIVE = "flex-1 items-center justify-center bg-neutral-900 p-4";
+export const MODAL_BACKDROP_NATIVE =
+  "flex-1 items-center justify-center bg-neutral-900 p-4";

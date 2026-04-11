@@ -14,14 +14,17 @@ export function getSignupPayload(form: SignupFormPayload): SignupData {
     email: form.email,
     password: form.password,
     ...(form.phone?.trim() ? { phone: form.phone.trim() } : {}),
-    ...(form.agencyName?.trim() ? { agency_name: form.agencyName.trim() } : {}),
+    ...(form.agencyName?.trim() ? { brokerage: form.agencyName.trim() } : {}),
   };
 }
 
 /**
  * Persist email and password in session for the verification step. Shared by web and native.
  */
-export function persistSignupEmailForVerification(email: string, password: string): void {
+export function persistSignupEmailForVerification(
+  email: string,
+  password: string,
+): void {
   const session = getSessionStorage();
   session.setItem("signupEmail", email);
   session.setItem("signupPassword", password);

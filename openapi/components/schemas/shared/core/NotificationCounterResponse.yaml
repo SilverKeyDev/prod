@@ -1,0 +1,7 @@
+allOf:
+  - $ref: './SuccessResponse.yaml'
+  - type: object
+    properties:
+      total_count:
+        type: integer
+        description: Total unread/pending notifications; typically present when success is true.

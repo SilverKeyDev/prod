@@ -1,0 +1,8 @@
+type: object
+required:
+  - messages
+properties:
+  messages:
+    type: array
+    items:
+      $ref: './ChatbotHistoryMessage.yaml'

@@ -4,7 +4,7 @@ Service functions for managing agent-client connection requests
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ... import db
 from ...models import AgentConnectionRequest, AgentConnections, User
@@ -39,13 +39,16 @@ def search_agents(query: str, limit: int = 20) -> list[dict]:
 
         result = []
         for agent in agents:
+            created = agent.created_at
+            if created is not None and created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
             result.append(
                 {
                     "id": agent.id,
                     "name": agent.name,
                     "email": agent.email,
                     "phone": agent.phone,
-                    "created_at": agent.created_at.isoformat() if agent.created_at else None,
+                    "created_at": created.isoformat() if created else None,
                 }
             )
 
@@ -238,8 +241,8 @@ def respond_to_connection_request(
             raise ValueError(f"Request already {request.status}")
 
         request.status = "accepted" if accept else "rejected"
-        request.responded_at = datetime.utcnow()
-        request.updated_at = datetime.utcnow()
+        request.responded_at = datetime.now(timezone.utc)
+        request.updated_at = datetime.now(timezone.utc)
 
         # If accepted, create a conversation
         if accept:

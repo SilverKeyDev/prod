@@ -4,10 +4,14 @@ import time
 
 from flask import Blueprint, current_app, jsonify, request
 
-from ...services.search.api_client import (
-    API_BASE,
-    build_session,
-    get_rapidapi_headers,
+from app.schemas import SearchByPolygonRequest, SearchByPolygonResponse
+from app.utils.validation import validate_request, validate_response
+
+from ...services.search.data import get_property_comps as slipstream_get_comps
+from ...services.search.data.neighborhood_boundaries import (
+    geojson_to_viewport_ring,
+    get_area_boundary,
+    search_areas,
 )
 from ...services.search.helpers.geometry_helpers import geocode_address_google
 from ...services.search.helpers.preferences_helpers import (
@@ -15,11 +19,14 @@ from ...services.search.helpers.preferences_helpers import (
     get_user_preferences_parsed,
     parse_important_locations,
 )
-from ...services.search.locationPolygon import isochrone_union_for_addresses
-from ...services.search.polygon_search_runner import run_polygon_search
+from ...services.search.polygon.locationPolygon import isochrone_union_for_addresses
+from ...services.search.polygon.polygon_search_runner import run_polygon_search
+from ...services.search.property.monthly_cost import monthly_cost_addon_estimates
+from ...services.search.scoring.research_preferences_context import (
+    parse_research_request_body,
+    resolve_preferences_user_id_for_research,
+)
 from ...utils.security.secure_errors import SecureErrorHandler
-
-_SESSION = build_session()
 
 search_bp = Blueprint("search", __name__, url_prefix="/api/v1/search")
 
@@ -27,70 +34,46 @@ search_bp = Blueprint("search", __name__, url_prefix="/api/v1/search")
 @search_bp.route("/propertyComps", methods=["GET"])
 def get_property_comps():
     """
-    Get property comparables using property API.
-    Prioritizes address parameter, with zpid and property_url as fallbacks.
+    Get property comparables via Slipstream geographic proximity search.
+    Prioritizes address parameter, with zpid as fallback.
     """
     try:
-        # Get query parameters
         address = request.args.get("address")
         zpid = request.args.get("zpid")
-        property_url = request.args.get("property_url")
 
-        # Validate that at least one parameter is provided
-        if not address and not zpid and not property_url:
+        if not address and not zpid:
             return jsonify(
                 {
                     "success": False,
                     "error": "BAD_REQUEST",
-                    "message": "Provide one of: address, zpid, or property_url",
+                    "message": "Provide address or zpid",
                 }
             ), 400
 
-        # Build API request parameters - prioritize address
-        params = {}
-        if address and str(address).strip():
-            params["address"] = str(address).strip()
-        elif zpid:
-            try:
-                params["zpid"] = str(int(str(zpid).strip()))
-            except (ValueError, TypeError):
-                return jsonify(
-                    {"success": False, "error": "BAD_REQUEST", "message": "Invalid zpid format"}
-                ), 400
-        elif property_url:
-            params["property_url"] = str(property_url).strip()
+        listing_id = None
+        if zpid:
+            listing_id = str(zpid).strip()
 
-        # Make API request to Zillow
-        url = f"{API_BASE}/propertyComps"
-        headers = get_rapidapi_headers()
+        comps, err = slipstream_get_comps(
+            listing_id=listing_id,
+            address=str(address).strip() if address else None,
+        )
 
-        response = _SESSION.get(url, headers=headers, params=params, timeout=300)
-
-        # Handle API response
-        if not response.ok:
-            current_app.logger.error(f"🏠 [PROPERTY_COMPS] API Error: {response.status_code}")
+        if err:
+            current_app.logger.error(f"🏠 [PROPERTY_COMPS] Slipstream error: {err}")
             return SecureErrorHandler.handle_external_api_error(
-                Exception(f"API returned status {response.status_code}"),
-                "Property API",
-                {"endpoint": "propertyComps", "status_code": response.status_code},
+                Exception(err.get("details", "Unknown error")),
+                "Slipstream API",
+                {"endpoint": "propertyComps"},
             )
 
-        # Parse response data
-        try:
-            data = response.json()
-        except ValueError as e:
-            current_app.logger.error(f"🏠 [PROPERTY_COMPS] JSON Parse Error: {e}")
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "PARSE_ERROR",
-                    "message": "Failed to parse API response",
-                }
-            ), 500
-
-        # Return successful response
         return jsonify(
-            {"success": True, "query": params, "data": data, "source": "zillow_rapidapi"}
+            {
+                "success": True,
+                "query": {"address": address, "zpid": zpid},
+                "data": comps,
+                "source": "slipstream_gamls",
+            }
         ), 200
 
     except Exception as e:
@@ -104,8 +87,44 @@ def get_property_comps():
         ), 500
 
 
+@search_bp.route("/monthly-cost-estimates", methods=["GET"])
+def get_monthly_cost_estimates():
+    """
+    Placeholder HOA and area-average utilities (USD/month). Both zero until APIs are wired.
+    Query: zipcode or zip (at least five digits).
+    """
+    zipcode = request.args.get("zipcode") or request.args.get("zip")
+    if not zipcode or not str(zipcode).strip():
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": "BAD_REQUEST",
+                    "message": "Provide zipcode (or zip) query parameter",
+                }
+            ),
+            400,
+        )
+    try:
+        data = monthly_cost_addon_estimates(str(zipcode).strip())
+    except ValueError as e:
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": "BAD_REQUEST",
+                    "message": str(e),
+                }
+            ),
+            400,
+        )
+    return jsonify({"success": True, **data}), 200
+
+
 @search_bp.route("/properties-by-polygon", methods=["POST"])
-def search_properties_by_polygon():
+@validate_request(SearchByPolygonRequest)
+@validate_response(SearchByPolygonResponse)
+def search_properties_by_polygon(data: SearchByPolygonRequest | None = None):
     """
     Polygon search endpoint. Without forceSearch: read-only response from persisted results (no new search).
     With forceSearch: run full pipeline (isochrone, search, filters, score, persist).
@@ -120,9 +139,23 @@ def search_properties_by_polygon():
         return jsonify(
             {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required"}
         ), 401
-    data = request.get_json(silent=True) or {}
+    if data is None:
+        request_data = request.get_json(silent=True) or {}
+    else:
+        request_data = data.model_dump()
+    parsed = parse_research_request_body(request_data)
+    resolved_pref_uid, resolve_err = resolve_preferences_user_id_for_research(
+        user, parsed.get("preferences_user_id")
+    )
+    if resolve_err is not None:
+        return jsonify(resolve_err), 403
+    assert resolved_pref_uid is not None
     try:
-        result = run_polygon_search(str(user.id), data)
+        result = run_polygon_search(
+            str(user.id),
+            request_data,
+            preferences_subject_user_id=str(resolved_pref_uid),
+        )
         if result[0] is None:
             return result[1]
         return jsonify(result[0]), result[1]
@@ -160,8 +193,14 @@ def get_isochrone():
                 {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required"}
             ), 401
 
+        requested = request.args.get("preferences_user_id")
+        resolved_prefs_uid, resolve_err = resolve_preferences_user_id_for_research(user, requested)
+        if resolve_err is not None:
+            return jsonify(resolve_err), 403
+        assert resolved_prefs_uid is not None
+
         # Get and parse user preferences
-        user_preferences, pref_error = get_user_preferences_parsed(str(user.id))
+        user_preferences, pref_error = get_user_preferences_parsed(str(resolved_prefs_uid))
         if pref_error:
             return pref_error
 
@@ -335,5 +374,91 @@ def get_isochrone():
                 "success": False,
                 "error": "INTERNAL_ERROR",
                 "message": f"Internal server error: {str(e)}",
+            }
+        ), 500
+
+
+@search_bp.route("/area-suggestions", methods=["GET"])
+def get_area_suggestions():
+    """
+    Autocomplete for geographic areas (neighborhoods, cities, ZIP codes, counties)
+    via Slipstream /ws/areas/search. Returns matching areas with IDs for boundary lookup.
+    Query: keyword (required), state (optional, e.g. "GA"), limit (optional, default 10).
+    """
+    keyword = request.args.get("keyword", "").strip()
+    if not keyword or len(keyword) < 2:
+        return jsonify({"success": True, "areas": []}), 200
+
+    state = request.args.get("state")
+    try:
+        limit = min(int(request.args.get("limit", "10")), 25)
+    except (ValueError, TypeError):
+        limit = 10
+
+    try:
+        areas, err = search_areas(keyword, state=state, limit=limit)
+        if err:
+            current_app.logger.warning(f"[AREA_SUGGESTIONS] ⚠️ {err}")
+            return jsonify({"success": False, "error": "SEARCH_FAILED", "message": err}), 502
+
+        return jsonify({"success": True, "areas": areas}), 200
+
+    except Exception as e:
+        current_app.logger.error(f"[AREA_SUGGESTIONS] ❌ Unexpected error: {e}", exc_info=True)
+        return jsonify(
+            {"success": False, "error": "INTERNAL_ERROR", "message": "Failed to search areas"}
+        ), 500
+
+
+@search_bp.route("/area-boundary", methods=["GET"])
+def get_area_boundary_route():
+    """
+    Get the boundary polygon for a Slipstream area by ID.
+    Returns GeoJSON geometry and a viewport ring suitable for polygon search.
+    Query: id (required).
+    """
+    area_id = request.args.get("id", "").strip()
+    if not area_id:
+        return jsonify(
+            {"success": False, "error": "BAD_REQUEST", "message": "Provide area id parameter"}
+        ), 400
+
+    try:
+        area_data, err = get_area_boundary(area_id)
+        if err:
+            current_app.logger.warning(f"[AREA_BOUNDARY] ⚠️ {err}")
+            status = 404 if "Invalid" in err or "No area" in err else 502
+            return jsonify({"success": False, "error": "BOUNDARY_FAILED", "message": err}), status
+
+        geometry = area_data.get("geometry") if area_data else None
+        viewport_ring = None
+        if geometry:
+            ring = geojson_to_viewport_ring(geometry)
+            if ring:
+                viewport_ring = [{"lat": p["lat"], "lng": p["lon"]} for p in ring]
+
+        return jsonify(
+            {
+                "success": True,
+                "area": {
+                    "id": area_data.get("id"),
+                    "name": area_data.get("name"),
+                    "label": area_data.get("label"),
+                    "geoType": area_data.get("geoType"),
+                    "state": area_data.get("state"),
+                    "center": area_data.get("center"),
+                },
+                "geometry": geometry,
+                "viewport_ring": viewport_ring,
+            }
+        ), 200
+
+    except Exception as e:
+        current_app.logger.error(f"[AREA_BOUNDARY] ❌ Unexpected error: {e}", exc_info=True)
+        return jsonify(
+            {
+                "success": False,
+                "error": "INTERNAL_ERROR",
+                "message": "Failed to fetch area boundary",
             }
         ), 500

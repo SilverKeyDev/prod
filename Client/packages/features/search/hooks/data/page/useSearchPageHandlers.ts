@@ -2,7 +2,9 @@ import { useCallback } from "react";
 
 import { getEnv } from "packages/config";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { useNavigation } from "packages/navigation";
 import { dateNow } from "packages/utils/date";
+import { buildPropertyUrl } from "packages/utils/property";
 
 import type { SearchResult } from "@/features/search/types";
 
@@ -21,12 +23,13 @@ export function useSearchPageHandlers({
   activeTab,
   filteredSearchResults,
   savedHomes,
-  setCurrentPage,
+  setCurrentPage: _setCurrentPage,
   selectedPropertyId,
   setAnchor,
   fetchPropertyDetails,
   currentPage,
 }: UseSearchPageHandlersParams) {
+  const { navigateToPath } = useNavigation();
   const handleViewPropertyDetails = useCallback(
     async (property: SearchResult) => {
       const isDev = getEnv().isDevelopment;
@@ -54,11 +57,15 @@ export function useSearchPageHandlers({
 
         await fetchPropertyDetails(propertyForDetails);
 
-        log.debug(LOG_CATEGORIES.SEARCH, "fetchPropertyDetails completed successfully", {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          propertyId: propertyForDetails.id,
-          timestamp: dateNow().toISOString(),
-        });
+        log.debug(
+          LOG_CATEGORIES.SEARCH,
+          "fetchPropertyDetails completed successfully",
+          {
+            environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+            propertyId: propertyForDetails.id,
+            timestamp: dateNow().toISOString(),
+          },
+        );
       } catch (error) {
         log.error(LOG_CATEGORIES.ERRORS, "Failed to fetch property details", {
           environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
@@ -69,58 +76,102 @@ export function useSearchPageHandlers({
         throw error;
       }
     },
-    [fetchPropertyDetails]
+    [fetchPropertyDetails],
   );
 
   const handleNavigateToProperty = useCallback(
     (property: SearchResult) => {
-      const currentData = activeTab === "results" ? filteredSearchResults : savedHomes;
-      const propertyIndex = currentData.findIndex((p) => p.id === property.id);
+      log.debug(LOG_CATEGORIES.SEARCH, "handleNavigateToProperty called", {
+        propertyId: property.id,
+      });
+      try {
+        // Get the zpid from the property
+        const zpid = property.zpid ?? property.id;
 
-      if (propertyIndex !== -1) {
-        setCurrentPage(propertyIndex);
-      } else {
-        log.error(LOG_CATEGORIES.SEARCH, "Property not found in current data", {
-          propertyId: property.id,
-          activeTab,
-          searchResultsCount: filteredSearchResults.length,
-          savedHomesCount: savedHomes.length,
+        if (!zpid) {
+          log.error(LOG_CATEGORIES.SEARCH, "Property missing zpid/id", {
+            propertyId: property.id,
+            timestamp: dateNow().toISOString(),
+          });
+          return;
+        }
+
+        // Format the address for the URL slug
+        const address =
+          typeof property.address === "string"
+            ? property.address
+            : property.address && typeof property.address === "object"
+              ? Object.values(property.address).filter(Boolean).join(" ")
+              : "property";
+
+        // Build and navigate to the property URL
+        const propertyUrl = buildPropertyUrl(zpid, address);
+
+        log.debug(LOG_CATEGORIES.SEARCH, "Navigating to property URL", {
+          zpid,
+          address: address.substring(0, 50),
+          url: propertyUrl,
           timestamp: dateNow().toISOString(),
         });
+
+        navigateToPath(propertyUrl);
+      } catch (error) {
+        log.error(LOG_CATEGORIES.ERRORS, "Failed to navigate to property", {
+          propertyId: property.id,
+          error: error instanceof Error ? error.message : String(error),
+          timestamp: dateNow().toISOString(),
+        });
+
+        // Fallback: just try to view details in modal
+        void handleViewPropertyDetails(property);
       }
     },
-    [activeTab, filteredSearchResults, savedHomes, setCurrentPage]
+    [navigateToPath, handleViewPropertyDetails],
   );
 
   const handleOpenPropertyDetails = useCallback(
     (propertyId: string) => {
-      const currentData = activeTab === "results" ? filteredSearchResults : savedHomes;
+      const currentData =
+        activeTab === "results" ? filteredSearchResults : savedHomes;
       const property = currentData.find((p) => p.id === propertyId);
 
       if (property) {
-        void handleViewPropertyDetails(property);
+        // Navigate to the property URL instead of opening modal
+        handleNavigateToProperty(property);
       } else {
-        log.error(LOG_CATEGORIES.SEARCH, "MAP MODAL: Property not found with ID", {
-          propertyId,
-          availableProperties: currentData.map((p) => ({
-            id: p.id,
-            address: p.address,
-          })),
-        });
+        log.error(
+          LOG_CATEGORIES.SEARCH,
+          "MAP MODAL: Property not found with ID",
+          {
+            propertyId,
+            availableProperties: currentData.map((p) => ({
+              id: p.id,
+              address: p.address,
+            })),
+          },
+        );
       }
     },
-    [activeTab, filteredSearchResults, savedHomes, handleViewPropertyDetails]
+    [activeTab, filteredSearchResults, savedHomes, handleNavigateToProperty],
   );
 
   const handleBeforeSwitchToReels = useCallback(() => {
-    const currentData = activeTab === "results" ? filteredSearchResults : savedHomes;
+    const currentData =
+      activeTab === "results" ? filteredSearchResults : savedHomes;
     const currentItem = currentData[currentPage];
     const firstItem = currentData[0];
     const listingId = selectedPropertyId ?? currentItem?.id ?? firstItem?.id;
     if (listingId) {
       setAnchor({ listingId });
     }
-  }, [activeTab, currentPage, filteredSearchResults, savedHomes, selectedPropertyId, setAnchor]);
+  }, [
+    activeTab,
+    currentPage,
+    filteredSearchResults,
+    savedHomes,
+    selectedPropertyId,
+    setAnchor,
+  ]);
 
   return {
     handleViewPropertyDetails,

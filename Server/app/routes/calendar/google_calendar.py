@@ -25,7 +25,7 @@ from .handlers.events import (
 # Import route handlers
 from .handlers.health import connection_status, health_check
 from .handlers.oauth import oauth_callback, oauth_enhance, oauth_start, revoke
-from .handlers.permissions import manage_permissions
+from .handlers.permissions import get_calendar_permissions, put_calendar_permissions
 from .handlers.webhooks import calendar_webhook
 
 # Create blueprint
@@ -64,14 +64,8 @@ google_calendar_bp.route("/me/events/<event_id>", methods=["PATCH"])(update_even
 google_calendar_bp.route("/me/events/<event_id>", methods=["DELETE"])(delete_event)
 
 # Permission endpoints
-
-
-def _manage_permissions_route() -> Response | tuple[Response, int]:
-    """Wrapper so route() receives a handler with a return type that excludes None."""
-    return cast(Response | tuple[Response, int], manage_permissions())
-
-
-google_calendar_bp.route("/me/permissions", methods=["GET", "PUT"])(_manage_permissions_route)  # type: ignore[reportArgumentType]
+google_calendar_bp.route("/me/permissions", methods=["GET"])(get_calendar_permissions)
+google_calendar_bp.route("/me/permissions", methods=["PUT"])(put_calendar_permissions)
 
 # Availability endpoints
 google_calendar_bp.route("/me/freebusy", methods=["POST"])(query_freebusy)

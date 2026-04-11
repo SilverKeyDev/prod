@@ -1,0 +1,12 @@
+allOf:
+  - $ref: './SuccessResponse.yaml'
+  - type: object
+    properties:
+      count:
+        type: integer
+      next_page_token:
+        type: string
+        nullable: true
+      next_sync_token:
+        type: string
+        nullable: true

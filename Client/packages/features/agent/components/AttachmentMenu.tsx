@@ -12,12 +12,14 @@ type AttachmentMenuProps = {
   onSelectHome: () => void;
   onSelectCalendar: () => void;
   onSelectDocument?: () => void;
+  onSelectForm?: () => void;
   disabled?: boolean;
 };
 export default function AttachmentMenu({
   onSelectHome,
   onSelectCalendar,
   onSelectDocument,
+  onSelectForm,
   disabled = false,
 }: AttachmentMenuProps) {
   const { t } = useLocalization();
@@ -63,14 +65,24 @@ export default function AttachmentMenu({
           label={t("agent.add_attachment")}
         >
           <Box
-            className={`transition-transform duration-200 ease-out ${isOpen ? "rotate-45" : "rotate-0"}`}
+            className={`transition-transform duration-200 ease-out ${
+              isOpen ? "rotate-45" : "rotate-0"
+            }`}
           >
             {isOpen ? (
-              <BodyText as="span" size="md" className="text-lg font-light leading-none">
+              <BodyText
+                as="span"
+                size="md"
+                className="text-lg font-light leading-none"
+              >
                 +
               </BodyText>
             ) : (
-              <BodyText as="span" size="md" className="text-lg font-light leading-none">
+              <BodyText
+                as="span"
+                size="md"
+                className="text-lg font-light leading-none"
+              >
                 +
               </BodyText>
             )}
@@ -79,8 +91,16 @@ export default function AttachmentMenu({
       </Card>
 
       {isOpen && (
-        <Box ref={menuRef} className="absolute bottom-full left-0 z-50 mb-2 w-56">
-          <Card border="light" padding="none" hover={false} className="overflow-hidden">
+        <Box
+          ref={menuRef}
+          className="z-dropdown absolute bottom-full left-0 mb-2 w-56"
+        >
+          <Card
+            border="light"
+            padding="none"
+            hover={false}
+            className="overflow-hidden"
+          >
             <Box className="px-3 py-2">
               <AttachmentMenuItem
                 iconName="home"
@@ -92,6 +112,13 @@ export default function AttachmentMenu({
                   iconName="file-text"
                   title={t("agent.share_document")}
                   onClick={closeAnd(onSelectDocument)}
+                />
+              )}
+              {onSelectForm && (
+                <AttachmentMenuItem
+                  iconName="file-text"
+                  title={t("agent.share_form", { defaultValue: "Share Form" })}
+                  onClick={closeAnd(onSelectForm)}
                 />
               )}
               <AttachmentMenuItem

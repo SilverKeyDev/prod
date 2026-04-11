@@ -1,0 +1,124 @@
+type: object
+description: |
+  Property search result with essential details for list views.
+  For complete property details, use PropertyComplete.
+required:
+  - id
+  - essentials
+  - location
+properties:
+  id:
+    type: string
+    description: Property ID (ZPID or internal)
+  essentials:
+    type: object
+    description: Core property characteristics
+    required:
+      - bedrooms
+      - bathrooms
+    properties:
+      bedrooms:
+        type: integer
+        minimum: 0
+      bathrooms:
+        type: number
+        minimum: 0
+      livingAreaSqft:
+        type: integer
+        nullable: true
+      yearBuilt:
+        type: integer
+        nullable: true
+  location:
+    type: object
+    description: Property location
+    required:
+      - address
+      - city
+      - state
+      - zipcode
+    properties:
+      address:
+        type: string
+      city:
+        type: string
+      state:
+        type: string
+      zipcode:
+        type: string
+      latitude:
+        type: number
+        format: double
+        nullable: true
+      longitude:
+        type: number
+        format: double
+        nullable: true
+  financials:
+    type: object
+    nullable: true
+    description: Pricing information
+    properties:
+      price:
+        type: number
+        nullable: true
+      pricePerSqft:
+        type: number
+        nullable: true
+  media:
+    type: object
+    nullable: true
+    description: Property images
+    properties:
+      primaryImageUrl:
+        type: string
+        format: uri
+        nullable: true
+  metadata:
+    type: object
+    nullable: true
+    description: Listing metadata
+    properties:
+      listingStatus:
+        type: string
+        enum: [FOR_SALE, PENDING, SOLD, OFF_MARKET, COMING_SOON, CONTINGENT, ACTIVE]
+        nullable: true
+      homeType:
+        type: string
+        nullable: true
+      daysOnMarket:
+        type: integer
+        nullable: true
+  score:
+    type: number
+    nullable: true
+    description: Match score based on preferences
+  ranking:
+    type: integer
+    nullable: true
+    description: Position in search results
+example:
+  id: "12345678"
+  essentials:
+    bedrooms: 4
+    bathrooms: 2.5
+    livingAreaSqft: 2400
+    yearBuilt: 2015
+  location:
+    address: "742 Evergreen Terrace"
+    city: "Springfield"
+    state: "IL"
+    zipcode: "62704"
+    latitude: 39.7817
+    longitude: -89.6501
+  financials:
+    price: 425000
+    pricePerSqft: 177
+  media:
+    primaryImageUrl: "https://photos.examplecdn.com/listings/12345678/hero.jpg"
+  metadata:
+    listingStatus: "FOR_SALE"
+    homeType: "SINGLE_FAMILY"
+    daysOnMarket: 12
+  score: 87.5
+  ranking: 3

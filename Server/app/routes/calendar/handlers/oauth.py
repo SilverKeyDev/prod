@@ -5,6 +5,7 @@ OAuth flow endpoints for Google Calendar
 from flask import jsonify, make_response, redirect, request, session
 
 from app.config import Config
+from app.schemas import RevokeResponse
 from app.services.calendar.core import (
     get_authenticated_user_id,
     google_calendar_service,
@@ -17,6 +18,7 @@ from app.utils.security.security import (
     rate_limit,
     sanitize_error_message,
 )
+from app.utils.validation import validate_response
 
 logger = get_logger()
 
@@ -207,6 +209,7 @@ def oauth_callback():
 
 
 @rate_limit(max_requests=10, window_seconds=60)
+@validate_response(RevokeResponse)
 def revoke():
     """Revoke Google OAuth access"""
     user_id, error_response = get_authenticated_user_id()
@@ -217,7 +220,7 @@ def revoke():
 
     try:
         success = google_calendar_service.revoke_access(user_id)
-        return jsonify({"success": True, "data": {"ok": success}})
+        return jsonify({"success": True, "revoked": bool(success)})
 
     except Exception as e:
         error_msg = sanitize_error_message(e)

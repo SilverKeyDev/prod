@@ -4,11 +4,12 @@ import { FlatList, Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { useSingleSelectionModal } from "packages/features/agent/hooks/ui/useSingleSelectionModal";
-import { useDocumentsStore } from "packages/store";
-import type { DocumentData } from "packages/ui/components/cards/document/DocumentCard";
+import {
+  type DocumentData,
+  useDocumentsData,
+} from "packages/features/documents";
 import { Loading } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
-import { mapStoreDocumentsToDocumentData } from "packages/utils/documents";
 
 type SelectDocumentModalNativeProps = {
   isOpen: boolean;
@@ -21,19 +22,19 @@ export default function SelectDocumentModalNative({
   onClose,
   onSelect,
 }: SelectDocumentModalNativeProps) {
-  const documents = useDocumentsStore((s) => s.documents);
-  const documentsLoading = useDocumentsStore((s) => s.documentsLoading);
-  const mappedDocuments = mapStoreDocumentsToDocumentData(documents);
+  const { documents: documentsList, isLoading: documentsLoading } =
+    useDocumentsData();
   const {
     selectedId,
     setSelectedId,
     handleConfirm,
     isLoading: documentsLoadingFromHook,
-  } = useSingleSelectionModal<DocumentData>(mappedDocuments, (d) => d.id, {
+  } = useSingleSelectionModal<DocumentData>(documentsList, (d) => d.id, {
     isLoading: documentsLoading,
   });
 
-  const onConfirm = () => handleConfirm(onSelect, { onClose, closeOnConfirm: true });
+  const onConfirm = () =>
+    handleConfirm(onSelect, { onClose, closeOnConfirm: true });
 
   if (!isOpen) return null;
 
@@ -46,14 +47,16 @@ export default function SelectDocumentModalNative({
               Select Document to Share
             </Text>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Text className="text-text-secondary text-base font-medium">Cancel</Text>
+              <Text className="text-text-secondary text-base font-medium">
+                Cancel
+              </Text>
             </Pressable>
           </View>
           {documentsLoadingFromHook ? (
             <View style={styles.centered}>
               <Loading />
             </View>
-          ) : mappedDocuments.length === 0 ? (
+          ) : documentsList.length === 0 ? (
             <View style={styles.centered}>
               <Text className="text-text-secondary text-center text-sm">
                 No documents found. Upload documents to share them in messages.
@@ -61,7 +64,7 @@ export default function SelectDocumentModalNative({
             </View>
           ) : (
             <FlatList
-              data={mappedDocuments}
+              data={documentsList}
               keyExtractor={(item) => item.id}
               style={styles.list}
               renderItem={({ item }) => {
@@ -71,21 +74,29 @@ export default function SelectDocumentModalNative({
                     onPress={() => setSelectedId(isSelected ? null : item.id)}
                     style={[styles.docRow, isSelected && styles.docRowSelected]}
                   >
-                    <Text className="text-text-primary font-medium" numberOfLines={1}>
+                    <Text
+                      className="text-text-primary font-medium"
+                      numberOfLines={1}
+                    >
                       {item.filename}
                     </Text>
-                    <Text className="text-text-secondary text-sm">{item.status}</Text>
+                    <Text className="text-text-secondary text-sm">
+                      {item.status}
+                    </Text>
                   </Pressable>
                 );
               }}
             />
           )}
-          {!documentsLoading && mappedDocuments.length > 0 && (
+          {!documentsLoading && documentsList.length > 0 && (
             <View style={styles.footer}>
               <Pressable
                 onPress={onConfirm}
                 disabled={!selectedId}
-                style={[styles.shareButton, !selectedId && styles.shareButtonDisabled]}
+                style={[
+                  styles.shareButton,
+                  !selectedId && styles.shareButtonDisabled,
+                ]}
               >
                 <Text className="font-semibold text-white">Share Document</Text>
               </Pressable>

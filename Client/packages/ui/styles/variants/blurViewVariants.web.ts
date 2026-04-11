@@ -1,6 +1,6 @@
 /**
  * Web-only BlurView CSS classes (backdrop-blur).
- * Native uses expo-blur; import from blurViewVariants — bundler resolves to .web or base.
+ * Native uses expo-blur; import from blurViewVariants - bundler resolves to .web or base.
  */
 
 import type { BlurViewIntensity } from "./blurViewVariants";

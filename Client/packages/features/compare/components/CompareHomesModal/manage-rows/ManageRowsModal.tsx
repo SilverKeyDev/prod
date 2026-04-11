@@ -108,28 +108,29 @@ export function ManageRowsModal({
 
   const allFieldKeys = allFields.map((f) => f.key);
 
-  const handleFieldToggle = (fieldKey: string, hasData: boolean) => (checked: boolean) => {
-    if (checked) {
-      const newOmittedRows = new Set(omittedRows);
-      newOmittedRows.delete(fieldKey);
-      setOmittedRows(newOmittedRows);
-      if (!hasData) {
+  const handleFieldToggle =
+    (fieldKey: string, hasData: boolean) => (checked: boolean) => {
+      if (checked) {
+        const newOmittedRows = new Set(omittedRows);
+        newOmittedRows.delete(fieldKey);
+        setOmittedRows(newOmittedRows);
+        if (!hasData) {
+          const newManuallyEnabled = new Set(manuallyEnabledRows);
+          newManuallyEnabled.add(fieldKey);
+          setManuallyEnabledRows(newManuallyEnabled);
+        }
+      } else {
+        const newOmittedRows = new Set(omittedRows);
+        newOmittedRows.add(fieldKey);
+        setOmittedRows(newOmittedRows);
         const newManuallyEnabled = new Set(manuallyEnabledRows);
-        newManuallyEnabled.add(fieldKey);
+        newManuallyEnabled.delete(fieldKey);
         setManuallyEnabledRows(newManuallyEnabled);
       }
-    } else {
-      const newOmittedRows = new Set(omittedRows);
-      newOmittedRows.add(fieldKey);
-      setOmittedRows(newOmittedRows);
-      const newManuallyEnabled = new Set(manuallyEnabledRows);
-      newManuallyEnabled.delete(fieldKey);
-      setManuallyEnabledRows(newManuallyEnabled);
-    }
-  };
+    };
 
   return (
-    <Box className="bg-overlay-backdrop fixed inset-0 z-50 flex flex-row items-center justify-center p-4">
+    <Box className="bg-overlay-backdrop z-modal fixed inset-0 flex flex-row items-center justify-center p-4">
       <Box className="bg-background-surface flex min-h-0 w-full max-w-2xl flex-1 flex-row flex-col rounded-lg shadow-xl">
         <ManageRowsModalHeader onClose={() => setShowRowModal(false)} />
         <Box className="flex-1 overflow-hidden p-6">
@@ -149,11 +150,15 @@ export function ManageRowsModal({
                   totalCount={allFields.length}
                   isOmitted={
                     omittedRows.has(field.key) ||
-                    (!hasDataForAnyProperty(field.key) && !manuallyEnabledRows.has(field.key))
+                    (!hasDataForAnyProperty(field.key) &&
+                      !manuallyEnabledRows.has(field.key))
                   }
                   hasData={hasDataForAnyProperty(field.key)}
                   isManuallyEnabled={manuallyEnabledRows.has(field.key)}
-                  onToggle={handleFieldToggle(field.key, hasDataForAnyProperty(field.key))}
+                  onToggle={handleFieldToggle(
+                    field.key,
+                    hasDataForAnyProperty(field.key),
+                  )}
                 />
               ))}
             </Box>

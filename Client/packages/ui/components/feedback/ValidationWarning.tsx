@@ -32,7 +32,7 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
     bottom: spacing(0),
   };
   const dialogContent = (
-    <Box className="fixed inset-0 z-50 overflow-y-auto" style={insetZero}>
+    <Box className="z-modal fixed inset-0 overflow-y-auto" style={insetZero}>
       <Box
         className="space-responsive-md flex min-h-screen items-center justify-center"
         style={{ width: "100vw", height: "100vh" }}
@@ -75,7 +75,11 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
             >
               {t("validation.complete_required_title")}
             </Title>
-            <BodyText as="p" size="sm" className="text-responsive-sm text-gray-600">
+            <BodyText
+              as="p"
+              size="sm"
+              className="text-responsive-sm text-gray-600"
+            >
               {t("validation.complete_required_description")}
             </BodyText>
           </Box>
@@ -113,7 +117,7 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
               >
                 {t("validation.issues_to_fix_label")}
               </Title>
-              <Box className="max-h-40 overflow-y-auto rounded-lg border border-red-200 bg-red-50 p-4">
+              <Box className="border-border max-h-40 overflow-y-auto rounded-lg border bg-red-50 p-4">
                 <ul className="space-y-2">
                   {errors.map((error, index) => (
                     <li key={index} className="flex items-start gap-2">

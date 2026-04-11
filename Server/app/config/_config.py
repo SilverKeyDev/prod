@@ -2,7 +2,12 @@ import logging
 import os
 from datetime import timedelta
 
-from ._urls import get_frontend_url, get_google_redirect_uri
+from ._urls import (
+    get_docusign_oauth_redirect_uri,
+    get_docusign_webhook_connect_url,
+    get_frontend_url,
+    get_google_redirect_uri,
+)
 from .aws import (
     AWS_ACCESS_KEY_ID,
     AWS_COGNITO_CLIENT_ID,
@@ -18,6 +23,13 @@ from .constants import (
     API_VERSION,
     AWS_COGNITO_TIMEOUT,
     DEV_CORS_ORIGINS_DEFAULT,
+    DOCUSIGN_ACCOUNT_ID_DEFAULT,
+    DOCUSIGN_BASE_URL_DEFAULT,
+    DOCUSIGN_IMPERSONATED_USER_ID_DEFAULT,
+    DOCUSIGN_OAUTH_AUTHORIZATION_URL_DEMO,
+    DOCUSIGN_OAUTH_AUTHORIZATION_URL_PROD,
+    DOCUSIGN_OAUTH_TOKEN_URL_DEMO,
+    DOCUSIGN_OAUTH_TOKEN_URL_PROD,
     EC2_HOST,
     GOOGLE_CLIENT_ID,
     GOOGLE_SCOPES,
@@ -110,6 +122,59 @@ class Config:
 
     # Google OAuth Redirect URI - set as class attribute
     GOOGLE_REDIRECT_URI = get_google_redirect_uri()
+
+    # DocuSign (JWT + per-agent OAuth + Connect webhooks)
+    DOCUSIGN_INTEGRATION_KEY = os.getenv("DOCUSIGN_INTEGRATION_KEY")
+    DOCUSIGN_IMPERSONATED_USER_ID = os.getenv(
+        "DOCUSIGN_IMPERSONATED_USER_ID", DOCUSIGN_IMPERSONATED_USER_ID_DEFAULT
+    )
+    DOCUSIGN_PRIVATE_KEY = os.getenv("DOCUSIGN_PRIVATE_KEY")
+    DOCUSIGN_PRIVATE_KEY_PATH = os.getenv("DOCUSIGN_PRIVATE_KEY_PATH")
+
+    # Per-user OAuth: prefer explicit names; fall back to keys used in AWS Secrets Manager JSON
+    # (docusign-integration) so oauth_start works without duplicating integration key / secret.
+    DOCUSIGN_CLIENT_ID = os.getenv("DOCUSIGN_CLIENT_ID") or os.getenv("DOCUSIGN_INTEGRATION_KEY")
+    DOCUSIGN_CLIENT_SECRET = (
+        os.getenv("DOCUSIGN_CLIENT_SECRET")
+        or os.getenv("DOCUSIGN_USER_CLIENT_SECRET")
+        or os.getenv("DOCUSIGN_ORG_CLIENT_SECRET")
+    )
+    DOCUSIGN_OAUTH_REDIRECT_URI = (
+        os.getenv("DOCUSIGN_OAUTH_REDIRECT_URI", "").strip() or get_docusign_oauth_redirect_uri()
+    )
+
+    DOCUSIGN_ACCOUNT_ID = os.getenv("DOCUSIGN_ACCOUNT_ID", DOCUSIGN_ACCOUNT_ID_DEFAULT)
+    DOCUSIGN_BASE_URL = os.getenv("DOCUSIGN_BASE_URL", DOCUSIGN_BASE_URL_DEFAULT)
+
+    _docusign_is_production = (
+        os.getenv("FLASK_ENV") == "production" and "demo" not in DOCUSIGN_BASE_URL.lower()
+    )
+    DOCUSIGN_OAUTH_AUTHORIZATION_URL = (
+        DOCUSIGN_OAUTH_AUTHORIZATION_URL_PROD
+        if _docusign_is_production
+        else DOCUSIGN_OAUTH_AUTHORIZATION_URL_DEMO
+    )
+    DOCUSIGN_OAUTH_TOKEN_URL = (
+        DOCUSIGN_OAUTH_TOKEN_URL_PROD if _docusign_is_production else DOCUSIGN_OAUTH_TOKEN_URL_DEMO
+    )
+
+    DOCUSIGN_WEBHOOK_CONNECT_URL = get_docusign_webhook_connect_url()
+
+    # Shared Connect HMAC secret fallback:
+    # allows a single env var to back both user/account and org webhook verification.
+    DOCUSIGN_CONNECT_HMAC_SECRET = os.getenv("DOCUSIGN_CONNECT_HMAC_SECRET")
+    DOCUSIGN_USER_CONNECT_HMAC_SECRET = (
+        os.getenv("DOCUSIGN_USER_CONNECT_HMAC_SECRET") or DOCUSIGN_CONNECT_HMAC_SECRET
+    )
+    DOCUSIGN_ORG_CONNECT_HMAC_SECRET = (
+        os.getenv("DOCUSIGN_ORG_CONNECT_HMAC_SECRET") or DOCUSIGN_CONNECT_HMAC_SECRET
+    )
+
+    DOCUSIGN_CONNECT_OAUTH_ENABLED = (
+        os.getenv("DOCUSIGN_CONNECT_OAUTH_ENABLED", "false").lower() == "true"
+    )
+    DOCUSIGN_CONNECT_OAUTH_ISSUER = os.getenv("DOCUSIGN_CONNECT_OAUTH_ISSUER")
+    DOCUSIGN_CONNECT_OAUTH_AUDIENCE = os.getenv("DOCUSIGN_CONNECT_OAUTH_AUDIENCE")
 
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", UPLOAD_FOLDER_DEFAULT)
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", MAX_CONTENT_LENGTH_DEFAULT))

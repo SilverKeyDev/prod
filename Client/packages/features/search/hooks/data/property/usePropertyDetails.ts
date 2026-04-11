@@ -1,13 +1,36 @@
 import { useCallback, useState } from "react";
 
+import { useIsAgent } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import { useAgentDashboardStore } from "packages/store";
 
+import type { PropertyRequest } from "@/features/search/api/research";
 import { researchApi } from "@/features/search/api/research";
 
-import { applyStreamUpdate, parseStreamError } from "./propertyDetailsStreamHelpers";
+import {
+  applyStreamUpdate,
+  parseStreamError,
+} from "./propertyDetailsStreamHelpers";
 import type { Property } from "./propertyDetailsTypes";
 
 export type { Property } from "./propertyDetailsTypes";
+
+/** Coerce listing id for research API (`PropertyRequest.zpid` is string). Search results use numeric `zpid`. */
+export function researchListingZpid(
+  property: Pick<Property, "id" | "zpid">,
+): string | undefined {
+  if (typeof property.zpid === "string") {
+    const s = property.zpid.trim();
+    if (s !== "") return s;
+  }
+  if (typeof property.zpid === "number" && Number.isFinite(property.zpid)) {
+    return String(Math.trunc(property.zpid));
+  }
+  if (typeof property.id === "string" && /^\d+$/.test(property.id)) {
+    return property.id;
+  }
+  return undefined;
+}
 
 export type UsePropertyDetailsReturn = {
   /** Whether property details are currently being fetched */
@@ -27,42 +50,63 @@ export type UsePropertyDetailsReturn = {
  * Opens modal immediately when basic info arrives, then updates as sections are generated
  */
 export function usePropertyDetails(): UsePropertyDetailsReturn {
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isAgent = useIsAgent();
+  const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
 
-  const fetchPropertyDetails = useCallback(async (property: Property) => {
-    setIsLoading(true);
-    setError(null);
-    setSelectedProperty(property);
-    try {
-      for await (const update of researchApi.streamProperty({
-        address: property.address,
-      })) {
-        if (update.type === "error") {
-          throw new Error(
-            parseStreamError(
-              update.data as {
-                error?: string;
-                message?: string;
-                details?: string;
-                status_code?: number;
-              }
-            )
+  const fetchPropertyDetails = useCallback(
+    async (property: Property) => {
+      setIsLoading(true);
+      setError(null);
+      setSelectedProperty(property);
+      try {
+        const zpid = researchListingZpid(property);
+        const payload: PropertyRequest = {
+          address: property.address,
+          ...(zpid ? { zpid } : {}),
+        };
+        if (isAgent && selectedClientId) {
+          payload.preferences_user_id = selectedClientId;
+        }
+        for await (const update of researchApi.streamProperty(payload)) {
+          if (update.type === "error") {
+            throw new Error(
+              parseStreamError(
+                update.data as {
+                  error?: string;
+                  message?: string;
+                  details?: string;
+                  status_code?: number;
+                },
+              ),
+            );
+          }
+          applyStreamUpdate(
+            update as { type: string; data: unknown },
+            setSelectedProperty,
+            setIsLoading,
           );
         }
-        applyStreamUpdate(
-          update as { type: string; data: unknown },
-          setSelectedProperty,
-          setIsLoading
+      } catch (err) {
+        log.error(
+          LOG_CATEGORIES.SEARCH,
+          "Error streaming property details",
+          err,
         );
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to fetch property details",
+        );
+        setIsLoading(false);
       }
-    } catch (err) {
-      log.error(LOG_CATEGORIES.SEARCH, "Error streaming property details", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch property details");
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [isAgent, selectedClientId],
+  );
 
   const clearSelectedProperty = useCallback(() => {
     setSelectedProperty(null);

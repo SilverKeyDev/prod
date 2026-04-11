@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import uuid
+import warnings
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, cast
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -16,43 +19,52 @@ class Agreement(db.Model):
     __tablename__ = "agreements"
 
     # Core fields
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    status = db.Column(
-        db.String(20), nullable=False, default="draft"
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    library_item_id: Mapped[str | None] = mapped_column(
+        db.ForeignKey("document_library_items.id"), unique=True
+    )
+    status: Mapped[str] = mapped_column(
+        db.String(20), default="draft"
     )  # draft, sent, delivered, signed, completed, voided, declined
-    title = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text, nullable=True)
+    title: Mapped[str] = mapped_column(db.String(255))
+    description: Mapped[str | None] = mapped_column(db.Text)
 
     # Parties
-    agent_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    buyer_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
+    agent_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    buyer_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
 
     # DocuSign integration (nullable until sent)
-    docusign_envelope_id = db.Column(db.String(100), nullable=True, unique=True)
-    docusign_status = db.Column(db.String(50), nullable=True)  # Raw DocuSign status
+    docusign_envelope_id: Mapped[str | None] = mapped_column(db.String(100), unique=True)
+    docusign_status: Mapped[str | None] = mapped_column(db.String(50))  # Raw DocuSign status
 
     # Metadata
-    property_address = db.Column(db.Text, nullable=True)
-    agreement_type = db.Column(
-        db.String(50), nullable=False
+    property_address: Mapped[str | None] = mapped_column(db.Text)
+    agreement_type: Mapped[str] = mapped_column(
+        db.String(50)
     )  # offer, inspection_contingency, financing, etc.
 
     # Timestamps
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(
-        db.DateTime,
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
-    sent_at = db.Column(db.DateTime, nullable=True)
-    completed_at = db.Column(db.DateTime, nullable=True)
-    voided_at = db.Column(db.DateTime, nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(db.DateTime)
+    completed_at: Mapped[datetime | None] = mapped_column(db.DateTime)
+    voided_at: Mapped[datetime | None] = mapped_column(db.DateTime)
 
     # S3 paths for completed documents
-    signed_document_path = db.Column(db.String(512), nullable=True)
-    certificate_path = db.Column(db.String(512), nullable=True)
+    signed_document_path: Mapped[str | None] = mapped_column(db.String(512))
+    certificate_path: Mapped[str | None] = mapped_column(db.String(512))
 
     # Relationships
+    library_item = db.relationship(
+        "DocumentLibraryItem",
+        back_populates="agreement",
+        foreign_keys=[library_item_id],
+    )
     participants = db.relationship(
         "AgreementParticipant",
         back_populates="agreement",
@@ -95,6 +107,11 @@ class Agreement(db.Model):
             self.id = str(uuid.uuid4())
 
     def to_dict(self, include_relationships=False):
+        warnings.warn(
+            "Agreement.to_dict() is deprecated; use app.dtos.agreement.AgreementDTO.from_orm",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         result = {
             "id": self.id,
             "status": self.status,

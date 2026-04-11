@@ -1,0 +1,56 @@
+type: object
+description: |
+  Google Calendar API event subset used by Silver Key for scheduling and messaging.
+  `start`/`end` use `GoogleEventDateTime` (dateTime or all-day date); optional
+  `conferenceData` holds Meet links when created with conference support.
+required:
+  - summary
+  - start
+  - end
+properties:
+  id:
+    type: string
+    nullable: true
+  summary:
+    type: string
+    description: Event title as shown in Google Calendar and in-app agendas.
+  description:
+    type: string
+    nullable: true
+    description: Optional HTML or plain details synced from Google.
+  start:
+    $ref: './GoogleEventDateTime.yaml'
+  end:
+    $ref: './GoogleEventDateTime.yaml'
+  attendees:
+    type: array
+    items:
+      $ref: './GoogleEventAttendee.yaml'
+    nullable: true
+  reminders:
+    $ref: './GoogleEventReminders.yaml'
+    nullable: true
+  location:
+    type: string
+    nullable: true
+  conferenceData:
+    $ref: './GoogleConferenceData.yaml'
+    nullable: true
+example:
+  id: "evt-google-a1b2c3d4e5f6"
+  summary: "Home tour — 742 Evergreen Terrace"
+  description: "Meet at the property; allow 45 minutes."
+  start:
+    dateTime: "2026-04-10T15:00:00-05:00"
+    timeZone: "America/Chicago"
+  end:
+    dateTime: "2026-04-10T15:45:00-05:00"
+    timeZone: "America/Chicago"
+  location: "742 Evergreen Terrace, Springfield, IL 62704"
+  attendees:
+    - email: "jane.buyer@example.com"
+      displayName: "Jane Buyer"
+      responseStatus: "accepted"
+  reminders:
+    useDefault: true
+  conferenceData: null

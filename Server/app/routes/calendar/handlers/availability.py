@@ -2,11 +2,13 @@
 Availability query endpoints for Google Calendar
 """
 
-from typing import cast
+from datetime import datetime
+from typing import Any, cast
 
 from flask import Response, jsonify, make_response, request
 
 from app.models import AgentConnections, User
+from app.schemas import ClientAvailabilityRequest, FreebusyRequest, GoogleCalendarApiResponse
 from app.services.calendar.core import (
     get_authenticated_user_id,
     google_calendar_service,
@@ -19,12 +21,21 @@ from app.services.calendar.permissions import (
 from app.services.calendar.permissions.constants import permissions
 from app.utils.security.app_logging import get_logger
 from app.utils.security.security import rate_limit
+from app.utils.validation import validate_request, validate_response
 
 logger = get_logger()
 
 
+def _aware_to_iso(value: Any) -> str:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return str(value)
+
+
 @rate_limit(max_requests=100, window_seconds=60)
-def query_freebusy() -> Response | tuple[Response, int]:
+@validate_request(FreebusyRequest)
+@validate_response(GoogleCalendarApiResponse)
+def query_freebusy(data: FreebusyRequest | None = None) -> Response | tuple[Response, int]:
     """Query free/busy information for user's calendars"""
     user_id, error_response = get_authenticated_user_id()
     if error_response is not None:
@@ -33,13 +44,19 @@ def query_freebusy() -> Response | tuple[Response, int]:
         return make_response(("Unauthorized", 401))
 
     try:
-        data = request.get_json()
-        if not data:
-            return make_response(("Request body is required", 400))
-
-        time_min = data.get("timeMin")
-        time_max = data.get("timeMax")
-        calendar_ids = data.get("calendarIds", ["primary"])
+        if data is None:
+            raw = request.get_json(silent=True) or {}
+            if not raw:
+                return make_response(("Request body is required", 400))
+            time_min = raw.get("timeMin")
+            time_max = raw.get("timeMax")
+            calendar_ids = raw.get("calendarIds", ["primary"])
+            if not time_min or not time_max:
+                return make_response(("timeMin and timeMax are required", 400))
+        else:
+            time_min = _aware_to_iso(data.timeMin)
+            time_max = _aware_to_iso(data.timeMax)
+            calendar_ids = [item.id for item in data.items]
 
         if not time_min or not time_max:
             return make_response(("timeMin and timeMax are required", 400))
@@ -66,7 +83,11 @@ def query_freebusy() -> Response | tuple[Response, int]:
 
 
 @rate_limit(max_requests=100, window_seconds=60)
-def query_client_availability(client_id: str) -> Response | tuple[Response, int]:
+@validate_request(ClientAvailabilityRequest)
+@validate_response(GoogleCalendarApiResponse)
+def query_client_availability(
+    client_id: str, data: ClientAvailabilityRequest | None = None
+) -> Response | tuple[Response, int]:
     """Query availability (free/busy) for a client's calendars
 
     This endpoint allows agents to view client availability without seeing specific event details.
@@ -109,17 +130,20 @@ def query_client_availability(client_id: str) -> Response | tuple[Response, int]
                 }
             ), 403
 
-        # Get request data
-        data = request.get_json()
-        if not data:
-            return make_response(("Request body is required", 400))
-
-        time_min = data.get("timeMin")
-        time_max = data.get("timeMax")
-        calendar_ids = data.get("calendarIds", ["primary"])
-
-        if not time_min or not time_max:
-            return make_response(("timeMin and timeMax are required", 400))
+        if data is None:
+            raw = request.get_json(silent=True) or {}
+            if not raw:
+                return make_response(("Request body is required", 400))
+            time_min = raw.get("timeMin")
+            time_max = raw.get("timeMax")
+            calendar_ids = raw.get("calendarIds", ["primary"])
+            if not time_min or not time_max:
+                return make_response(("timeMin and timeMax are required", 400))
+        else:
+            time_min = _aware_to_iso(data.start_date)
+            time_max = _aware_to_iso(data.end_date)
+            raw = request.get_json(silent=True) or {}
+            calendar_ids = raw.get("calendarIds", ["primary"])
 
         # Check if client has calendar_freebusy permission
         has_permission = check_permission(client_id, "calendar_freebusy")

@@ -1,0 +1,171 @@
+type: object
+description: >
+  A single saved or tracked listing row (`HomeUniversal.to_dict()`). Numeric facts
+  (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored
+  as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether
+  the row reflects the latest MLS snapshot the server holds.
+required:
+  - id
+  - user_id
+  - isLiked
+  - current
+properties:
+  id:
+    type: string
+  user_id:
+    type: string
+  address:
+    type: string
+    nullable: true
+  isLiked:
+    type: boolean
+    description: User has actively saved (“liked”) this home in the product UI.
+  current:
+    type: boolean
+    description: Listing row is the latest synced version; false may indicate stale or archived data.
+  score:
+    type: number
+    format: float
+    nullable: true
+    description: Search or recommendation match score when the row was added or refreshed.
+  ranking:
+    type: integer
+    nullable: true
+    description: Ordinal position within a sorted list (e.g. search results) when applicable.
+  city:
+    type: string
+    nullable: true
+  state:
+    type: string
+    nullable: true
+  zipcode:
+    type: string
+    nullable: true
+  beds:
+    type: string
+    nullable: true
+  baths:
+    type: string
+    nullable: true
+  sqft:
+    type: string
+    nullable: true
+  lot_size:
+    type: string
+    nullable: true
+  price:
+    type: string
+    nullable: true
+  created_at:
+    type: string
+    format: date-time
+    nullable: true
+  updated_at:
+    type: string
+    format: date-time
+    nullable: true
+  image_url:
+    type: string
+    format: uri
+    nullable: true
+  image_urls:
+    type: object
+    description: Map of provider-specific keys to image URLs (absolute https preferred).
+    additionalProperties:
+      type: string
+      format: uri
+    nullable: true
+  zpid:
+    type: string
+    nullable: true
+  mls_home_id:
+    type: string
+    nullable: true
+  listing_status:
+    type: string
+    nullable: true
+  property_type:
+    type: string
+    nullable: true
+  home_type:
+    type: string
+    nullable: true
+  year_built:
+    type: string
+    nullable: true
+  mls_agent_id:
+    type: string
+    nullable: true
+  listing_agent_phone:
+    type: string
+    nullable: true
+  listing_agent_email:
+    type: string
+    format: email
+    nullable: true
+  brokerage:
+    type: string
+    nullable: true
+  mls_region:
+    type: string
+    nullable: true
+  latitude:
+    type: number
+    format: float
+    nullable: true
+  longitude:
+    type: number
+    format: float
+    nullable: true
+  living_area:
+    type: string
+    nullable: true
+  lot_area_value:
+    type: string
+    nullable: true
+  lot_area_unit:
+    type: string
+    nullable: true
+  features:
+    type: object
+    description: Opaque listing feature map from upstream property data.
+    additionalProperties: true
+    nullable: true
+  property_analysis:
+    type: object
+    description: Serialized analysis blob from property pipeline (structure varies).
+    additionalProperties: true
+    nullable: true
+  commute_data:
+    type: object
+    description: Commute or isochrone-related payload attached to the saved row.
+    additionalProperties: true
+    nullable: true
+  raw_data:
+    type: object
+    description: Raw provider/listing JSON retained for debugging or reprocessing.
+    additionalProperties: true
+    nullable: true
+example:
+  id: "fav-8c2e9b1a-4d3f-5e6a-7b8c-9d0e1f2a3b4c"
+  user_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  isLiked: true
+  current: true
+  address: "742 Evergreen Terrace"
+  city: "Springfield"
+  state: "IL"
+  zipcode: "62704"
+  beds: "4"
+  baths: "2.5"
+  sqft: "2400"
+  price: "425000"
+  zpid: "12345678"
+  listing_status: "FOR_SALE"
+  property_type: "SingleFamily"
+  latitude: 39.7817
+  longitude: -89.6501
+  image_url: "https://photos.examplecdn.com/listings/12345678/hero.jpg"
+  created_at: "2025-11-20T18:00:00.000Z"
+  updated_at: "2026-04-01T12:00:00.000Z"
+  score: 0.92
+  ranking: 1

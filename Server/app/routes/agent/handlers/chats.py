@@ -6,6 +6,15 @@ import logging
 from flask import jsonify, request
 from jose.exceptions import ExpiredSignatureError, JWTError
 
+from app.schemas import (
+    CreateConversationRequest,
+    CreateConversationResponse,
+    MarkMessagesAsReadResponse,
+    SendMessageRequest,
+    SendMessageResponse,
+    SuccessResponse,
+    UpdateEventRequestStatusRequest,
+)
 from app.services.agent import (
     create_conversation,
     get_conversation,
@@ -25,6 +34,8 @@ from app.utils.common_patterns import (
 )
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.security.security import SecurityError, rate_limit, security_error_response
+from app.utils.validation import validate_request, validate_response
+from logger import LOG_CATEGORIES, log
 
 logger = logging.getLogger(__name__)
 
@@ -41,19 +52,35 @@ def get_chats(user):
     conversations = get_conversations(str(user.id), bool(user.is_agent))
     if client_id and user.is_agent:
         conversations = [c for c in conversations if c.get("client_id") == client_id]
+    log.info(
+        LOG_CATEGORIES["API"],
+        "get_chats",
+        {
+            "user_id": str(user.id),
+            "is_agent": bool(user.is_agent),
+            "filter_client_id": client_id,
+            "conversation_count": len(conversations),
+        },
+    )
     return jsonify({"success": True, "conversations": conversations})
 
 
 @rate_limit(max_requests=100, window_seconds=60)
 @handle_exceptions_with_logging
 @require_agent_access
-def create_chat(user):
+@validate_request(CreateConversationRequest)
+@validate_response(CreateConversationResponse)
+def create_chat(user, data: CreateConversationRequest | None = None):
     """Create a new conversation between agent and client"""
     try:
-        data = request.get_json(force=True)
-        client_id = data.get("client_id")
-        if not client_id:
-            return jsonify({"success": False, "error": "client_id is required"}), 400
+        if data is None:
+            request_data = request.get_json(silent=True) or {}
+            client_id = request_data.get("client_id")
+            if not client_id:
+                return jsonify({"success": False, "error": "client_id is required"}), 400
+        else:
+            request_data = data.model_dump(mode="json")
+            client_id = request_data["client_id"]
         conversation = create_conversation(user.id, client_id)
         return jsonify({"success": True, "conversation": conversation}), 201
     except (SecurityException, ExpiredSignatureError, JWTError):
@@ -94,17 +121,28 @@ def get_chat_history(conversation_id):
 
 
 @rate_limit(max_requests=100, window_seconds=60)
-def send_message():
+@validate_request(SendMessageRequest)
+@validate_response(SendMessageResponse)
+def send_message(data: SendMessageRequest | None = None):
     """Send a message in a conversation"""
     try:
         user = get_current_user()
         if not user:
             return security_error_response(SecurityError.UNAUTHORIZED)
-        data = request.get_json(force=True)
-        conversation_id = data.get("conversation_id")
-        message = data.get("message")
-        shared_home_id = data.get("shared_home_id")
-        shared_document_id = data.get("shared_document_id")
+        if data is None:
+            raw = request.get_json(silent=True) or {}
+            conversation_id = raw.get("conversation_id")
+            message = raw.get("message")
+            shared_home_id = raw.get("shared_home_id")
+            shared_document_id = raw.get("shared_document_id")
+            client_id_for_new = raw.get("client_id")
+        else:
+            raw = data.model_dump(mode="json")
+            conversation_id = raw["conversation_id"]
+            message = raw["message"]
+            shared_home_id = raw.get("shared_home_id")
+            shared_document_id = raw.get("shared_document_id")
+            client_id_for_new = raw.get("client_id")
         logger.info(
             f"[SEND_MESSAGE] Request data: conversation_id={conversation_id}, "
             f"message_length={len(message) if message else 0}, "
@@ -133,7 +171,7 @@ def send_message():
                 logger.error("User ID is None when creating conversation")
                 return jsonify({"success": False, "error": "Invalid user session"}), 401
             if user.is_agent:
-                client_id = data.get("client_id")
+                client_id = client_id_for_new
                 if not client_id:
                     return jsonify(
                         {"success": False, "error": "client_id is required to create conversation"}
@@ -202,7 +240,11 @@ def send_message():
 
 
 @rate_limit(max_requests=60, window_seconds=60)
-def update_event_request_status_route(message_id):
+@validate_request(UpdateEventRequestStatusRequest)
+@validate_response(SuccessResponse)
+def update_event_request_status_route(
+    message_id, data: UpdateEventRequestStatusRequest | None = None
+):
     """Update event request status (accepted or cancelled) for a calendar event request message."""
     try:
         user = get_current_user()
@@ -210,12 +252,15 @@ def update_event_request_status_route(message_id):
             return security_error_response(SecurityError.UNAUTHORIZED)
         if not user.id:
             return jsonify({"success": False, "error": "Invalid user session"}), 401
-        data = request.get_json(force=True) or {}
-        status = data.get("status")
-        if status not in ("accepted", "cancelled"):
-            return jsonify(
-                {"success": False, "error": "status must be 'accepted' or 'cancelled'"}
-            ), 400
+        if data is None:
+            request_data = request.get_json(silent=True) or {}
+            status = request_data.get("status")
+            if status not in ("accepted", "cancelled"):
+                return jsonify(
+                    {"success": False, "error": "status must be 'accepted' or 'cancelled'"}
+                ), 400
+        else:
+            status = data.model_dump(mode="json")["status"]
         update_event_request_status(str(message_id), str(user.id), status)
         return jsonify({"success": True})
     except ValueError as e:
@@ -232,6 +277,7 @@ def update_event_request_status_route(message_id):
 @rate_limit(max_requests=100, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
+@validate_response(MarkMessagesAsReadResponse)
 def mark_chat_as_read(user, conversation_id):
     """Mark all messages in a conversation as read"""
     if not user.id:

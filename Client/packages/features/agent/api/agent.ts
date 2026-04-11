@@ -1,240 +1,70 @@
-import { apiGet, apiPatch, apiPost, apiPut } from "packages/services/http/compatibility";
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
 
-// Types for agent API
-export type AgentClient = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  profile_picture?: string | null;
-  created_at?: string;
-};
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  apiPut,
+} from "packages/services/http/compatibility";
+import type { components } from "packages/types/api.generated";
 
-export type AgentConversation = {
-  id: string;
-  agent_id: string;
-  client_id: string;
-  client_name?: string;
-  client_email?: string;
-  client_profile_picture?: string | null;
-  agent_name?: string;
-  agent_email?: string;
-  agent_profile_picture?: string | null;
-  last_message?: string;
-  last_message_at?: string;
-  created_at: string;
-  updated_at: string;
-  unread_count?: number;
-  last_read_at?: string;
-};
-
-export type EventRequestStatus = "pending" | "accepted" | "cancelled";
-
-export type AgentChatMessage = {
-  id: string;
-  conversation_id: string;
-  sender_id: string;
-  role: "user" | "agent" | "assistant";
-  message: string;
-  shared_home_id?: string | null;
-  shared_document_id?: string | null;
-  timestamp: string;
-  is_read?: boolean;
-  read_at?: string | null;
-  event_request_status?: EventRequestStatus | null;
-};
-
-export type AgentClientsResponse = {
-  success: boolean;
-  clients?: AgentClient[];
-  message?: string;
-  error?: string;
-};
-
-export type AgentConversationsResponse = {
-  success: boolean;
-  conversations?: AgentConversation[];
-  message?: string;
-  error?: string;
-};
-
-export type AgentChatHistoryResponse = {
-  success: boolean;
-  messages?: AgentChatMessage[];
-  conversation?: AgentConversation;
-  message?: string;
-  error?: string;
-};
-
-export type SendMessageRequest = {
-  conversation_id: string;
-  message: string;
-  client_id?: string; // Required when conversation_id is "new" and user is an agent
-  shared_home_id?: string;
-  shared_document_id?: string;
-};
-
-export type SendMessageResponse = {
-  success: boolean;
-  message_id?: string;
-  message?: string;
-  error?: string;
-};
-
-export type CreateConversationRequest = {
-  client_id: string;
-};
-
-export type CreateConversationResponse = {
-  success: boolean;
-  conversation?: AgentConversation;
-  message?: string;
-  error?: string;
-};
-
-export type AgentSearchResult = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  created_at?: string;
-};
-
-export type ClientSearchResult = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  profile_picture?: string | null;
-  created_at?: string;
-};
-
-export type AgentConnectionRequest = {
-  id: string;
-  agent_id: string;
-  client_id: string;
-  requested_by_agent: boolean;
-  status: "pending" | "accepted" | "rejected";
-  message?: string;
-  other_party_name?: string;
-  other_party_email?: string;
-  created_at: string;
-};
-
-export type SearchAgentsResponse = {
-  success: boolean;
-  agents?: AgentSearchResult[];
-  message?: string;
-  error?: string;
-};
-
-export type SearchClientsResponse = {
-  success: boolean;
-  clients?: ClientSearchResult[];
-  message?: string;
-  error?: string;
-};
-
-export type ConnectionRequestsResponse = {
-  success: boolean;
-  requests?: AgentConnectionRequest[];
-  message?: string;
-  error?: string;
-};
-
-export type CreateConnectionRequestRequest = {
-  agent_id: string;
-  client_id: string;
-  message?: string;
-};
-
-export type CreateConnectionRequestResponse = {
-  success: boolean;
-  request?: AgentConnectionRequest;
-  /** True when a pending request already existed for this agent–client pair */
-  already_pending?: boolean;
-  message?: string;
-  error?: string;
-};
-
-export type RespondToConnectionRequestRequest = {
-  accept: boolean;
-};
-
-export type RespondToConnectionRequestResponse = {
-  success: boolean;
-  request?: AgentConnectionRequest;
-  message?: string;
-  error?: string;
-};
-
-export type MarkMessagesAsReadResponse = {
-  success: boolean;
-  marked_count?: number;
-  message?: string;
-  error?: string;
-};
-
-export type NotificationCounterResponse = {
-  success: boolean;
-  total_count: number;
-  error?: string;
-};
-
-export type TodoItem = {
-  id: string;
-  agent_id: string;
-  client_id?: string;
-  title: string;
-  description?: string;
-  priority: "low" | "medium" | "high" | "urgent" | null;
-  type: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
-  due_date: string | null;
-  completed: boolean;
-  completed_at?: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type GetTodosResponse = {
-  success: boolean;
-  todos?: TodoItem[];
-  message?: string;
-  error?: string;
-};
-
-export type CreateTodoRequest = {
-  title: string;
-  due_date?: string;
-  priority?: "low" | "medium" | "high" | "urgent";
-  type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
-  client_id?: string;
-  description?: string;
-};
-
-export type CreateTodoResponse = {
-  success: boolean;
-  todo?: TodoItem;
-  message?: string;
-  error?: string;
-};
-
-export type UpdateTodoRequest = {
-  title?: string;
-  description?: string;
-  priority?: "low" | "medium" | "high" | "urgent" | null;
-  type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
-  due_date?: string | null;
-  completed?: boolean;
-  client_id?: string;
-};
-
-export type UpdateTodoResponse = {
-  success: boolean;
-  todo?: TodoItem;
-  message?: string;
-  error?: string;
-};
+// Re-export types from generated schema
+export type AgentClient = components["schemas"]["AgentClient"];
+export type AgentConversation = components["schemas"]["AgentConversation"];
+export type EventRequestStatus = components["schemas"]["EventRequestStatus"];
+export type AgentChatMessage = components["schemas"]["AgentChatMessage"];
+export type AgentClientsResponse =
+  components["schemas"]["AgentClientsResponse"];
+export type AgentConversationsResponse =
+  components["schemas"]["AgentConversationsResponse"];
+export type AgentChatHistoryResponse =
+  components["schemas"]["AgentChatHistoryResponse"];
+export type SendMessageRequest = components["schemas"]["SendMessageRequest"];
+export type SendMessageResponse = components["schemas"]["SendMessageResponse"];
+export type CreateConversationRequest =
+  components["schemas"]["CreateConversationRequest"];
+export type CreateConversationResponse =
+  components["schemas"]["CreateConversationResponse"];
+export type AgentSearchResult = components["schemas"]["AgentSearchResult"];
+export type ClientSearchResult = components["schemas"]["ClientSearchResult"];
+export type AgentConnectionRequest =
+  components["schemas"]["AgentConnectionRequest"];
+export type SearchAgentsResponse =
+  components["schemas"]["SearchAgentsResponse"];
+export type SearchClientsResponse =
+  components["schemas"]["SearchClientsResponse"];
+export type ConnectionRequestsResponse =
+  components["schemas"]["ConnectionRequestsResponse"];
+export type CreateConnectionRequestRequest =
+  components["schemas"]["CreateConnectionRequestRequest"];
+export type CreateConnectionRequestResponse =
+  components["schemas"]["CreateConnectionRequestResponse"];
+export type RespondToConnectionRequestRequest =
+  components["schemas"]["RespondToConnectionRequestRequest"];
+export type RespondToConnectionRequestResponse =
+  components["schemas"]["RespondToConnectionRequestResponse"];
+export type MarkMessagesAsReadResponse =
+  components["schemas"]["MarkMessagesAsReadResponse"];
+export type NotificationCounterResponse =
+  components["schemas"]["NotificationCounterResponse"];
+export type TodoItem = components["schemas"]["TodoItem"];
+export type GetTodosResponse = components["schemas"]["GetTodosResponse"];
+export type CreateTodoRequest = components["schemas"]["CreateTodoRequest"];
+export type CreateTodoResponse = components["schemas"]["CreateTodoResponse"];
+export type UpdateTodoRequest = components["schemas"]["UpdateTodoRequest"];
+export type UpdateTodoResponse = components["schemas"]["UpdateTodoResponse"];
 
 /**
  * Agent API client using centralized utilities
@@ -258,7 +88,9 @@ export const agentApi = {
    * Get chat history for a specific conversation
    */
   getChatHistory: (conversationId: string): Promise<AgentChatHistoryResponse> =>
-    apiGet<AgentChatHistoryResponse>(`/api/v1/agent/chats/${conversationId}/history`),
+    apiGet<AgentChatHistoryResponse>(
+      `/api/v1/agent/chats/${conversationId}/history`,
+    ),
 
   /**
    * Send a message in a conversation
@@ -268,7 +100,7 @@ export const agentApi = {
     message: string,
     clientId?: string,
     sharedHomeId?: string,
-    sharedDocumentId?: string
+    sharedDocumentId?: string,
   ): Promise<SendMessageResponse> => {
     // Import log here to avoid circular dependencies
     const { log, LOG_CATEGORIES } = await import("../../../logger");
@@ -294,7 +126,7 @@ export const agentApi = {
     try {
       const response = await apiPost<SendMessageResponse>(
         "/api/v1/agent/chats/message",
-        requestBody
+        requestBody,
       );
 
       log.debug(LOG_CATEGORIES.API, "Message request response", {
@@ -326,19 +158,29 @@ export const agentApi = {
   /**
    * Search for agents (for clients)
    */
-  searchAgents: (query: string, limit?: number): Promise<SearchAgentsResponse> => {
+  searchAgents: (
+    query: string,
+    limit?: number,
+  ): Promise<SearchAgentsResponse> => {
     const params = new URLSearchParams({ q: query });
     if (limit) params.append("limit", limit.toString());
-    return apiGet<SearchAgentsResponse>(`/api/v1/agent/search-agents?${params.toString()}`);
+    return apiGet<SearchAgentsResponse>(
+      `/api/v1/agent/search-agents?${params.toString()}`,
+    );
   },
 
   /**
    * Search for clients (for agents)
    */
-  searchClients: (query: string, limit?: number): Promise<SearchClientsResponse> => {
+  searchClients: (
+    query: string,
+    limit?: number,
+  ): Promise<SearchClientsResponse> => {
     const params = new URLSearchParams({ q: query });
     if (limit) params.append("limit", limit.toString());
-    return apiGet<SearchClientsResponse>(`/api/v1/agent/search-clients?${params.toString()}`);
+    return apiGet<SearchClientsResponse>(
+      `/api/v1/agent/search-clients?${params.toString()}`,
+    );
   },
 
   /**
@@ -353,42 +195,50 @@ export const agentApi = {
   createConnectionRequest: (
     agentId: string,
     clientId: string,
-    message?: string
+    message?: string,
   ): Promise<CreateConnectionRequestResponse> =>
-    apiPost<CreateConnectionRequestResponse>("/api/v1/agent/connection-requests", {
-      agent_id: agentId,
-      client_id: clientId,
-      message,
-    }),
+    apiPost<CreateConnectionRequestResponse>(
+      "/api/v1/agent/connection-requests",
+      {
+        agent_id: agentId,
+        client_id: clientId,
+        message,
+      },
+    ),
 
   /**
    * Respond to a connection request (accept or reject)
    */
   respondToConnectionRequest: (
     requestId: string,
-    accept: boolean
+    accept: boolean,
   ): Promise<RespondToConnectionRequestResponse> =>
     apiPost<RespondToConnectionRequestResponse>(
       `/api/v1/agent/connection-requests/${requestId}/respond`,
-      { accept }
+      { accept },
     ),
 
   /**
    * Mark all messages in a conversation as read
    */
-  markMessagesAsRead: (conversationId: string): Promise<MarkMessagesAsReadResponse> =>
-    apiPost<MarkMessagesAsReadResponse>(`/api/v1/agent/chats/${conversationId}/read`, {}),
+  markMessagesAsRead: (
+    conversationId: string,
+  ): Promise<MarkMessagesAsReadResponse> =>
+    apiPost<MarkMessagesAsReadResponse>(
+      `/api/v1/agent/chats/${conversationId}/read`,
+      {},
+    ),
 
   /**
    * Update event request status (accepted or cancelled) for a calendar event request message
    */
   updateEventRequestStatus: (
     messageId: string,
-    status: "accepted" | "cancelled"
+    status: "accepted" | "cancelled",
   ): Promise<{ success: boolean; error?: string }> =>
     apiPatch<{ success: boolean; error?: string }>(
       `/api/v1/agent/chats/messages/${messageId}/event-request-status`,
-      { status }
+      { status },
     ),
 
   /**
@@ -414,6 +264,9 @@ export const agentApi = {
   /**
    * Update a todo
    */
-  updateTodo: (todoId: string, data: UpdateTodoRequest): Promise<UpdateTodoResponse> =>
+  updateTodo: (
+    todoId: string,
+    data: UpdateTodoRequest,
+  ): Promise<UpdateTodoResponse> =>
     apiPut<UpdateTodoResponse>(`/api/v1/agent/todos/${todoId}`, data),
 };

@@ -13,6 +13,8 @@ from typing import Any, cast
 
 from openai import APIError, OpenAI, RateLimitError
 
+from app.config.llm_models import openai_chat_token_limit_params, openai_model_feature_overlap
+
 logger = logging.getLogger(__name__)
 
 
@@ -177,17 +179,18 @@ def check_feature_overlap(
             )
 
         response_format_param = cast(Any, {"type": "json_schema", "json_schema": schema})
+        overlap_model = openai_model_feature_overlap()
 
         def make_request():
             return client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=overlap_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
                 response_format=response_format_param,
-                max_tokens=500,
                 temperature=0,
+                **openai_chat_token_limit_params(overlap_model, 500),
             )
 
         response = _make_openai_request_with_retry(client, make_request)

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo } from "react";
 
 import { useViewStore } from "packages/store";
-import type { Document } from "packages/types";
+import type { WorkflowDocument } from "packages/types";
 
 type UseDocumentSelectionReturn = {
   selectedDocuments: Set<string>;
-  selectedDocumentsData: Document[];
+  selectedDocumentsData: WorkflowDocument[];
   handleToggleDocumentSelection: (documentId: string) => void;
   handleRemoveDocument: (documentId: string) => void;
   handleClearSelection: () => void;
@@ -13,7 +13,10 @@ type UseDocumentSelectionReturn = {
 
 const SELECTION_KEY = "documents.selectedIds";
 
-function getValidSelectedIds(documents: Document[], persistedSelectedIds: string[]): string[] {
+function getValidSelectedIds(
+  documents: WorkflowDocument[],
+  persistedSelectedIds: string[],
+): string[] {
   if (documents.length === 0) return [];
   const validDocumentIds = new Set(documents.map((d) => d.id));
   return persistedSelectedIds.filter((id) => validDocumentIds.has(id));
@@ -23,7 +26,9 @@ function getValidSelectedIds(documents: Document[], persistedSelectedIds: string
  * Hook for managing document selection state with Zustand persistence
  * Uses viewStore.dropdownSelections (same pattern as checklists and homes)
  */
-export function useDocumentSelection(documents: Document[]): UseDocumentSelectionReturn {
+export function useDocumentSelection(
+  documents: WorkflowDocument[],
+): UseDocumentSelectionReturn {
   const dropdownSelections = useViewStore((s) => s.dropdownSelections);
   const setDropdownSelection = useViewStore((s) => s.setDropdownSelection);
   const clearDropdownSelection = useViewStore((s) => s.clearDropdownSelection);
@@ -39,14 +44,22 @@ export function useDocumentSelection(documents: Document[]): UseDocumentSelectio
 
   useEffect(() => {
     if (documents.length === 0 || persistedSelectedIds.length === 0) return;
-    const validSelections = getValidSelectedIds(documents, persistedSelectedIds);
+    const validSelections = getValidSelectedIds(
+      documents,
+      persistedSelectedIds,
+    );
     if (validSelections.length === persistedSelectedIds.length) return;
     if (validSelections.length > 0) {
       setDropdownSelection(SELECTION_KEY, validSelections);
     } else {
       clearDropdownSelection(SELECTION_KEY);
     }
-  }, [documents, persistedSelectedIds, setDropdownSelection, clearDropdownSelection]);
+  }, [
+    documents,
+    persistedSelectedIds,
+    setDropdownSelection,
+    clearDropdownSelection,
+  ]);
 
   const handleToggleDocumentSelection = useCallback(
     (documentId: string) => {
@@ -61,7 +74,7 @@ export function useDocumentSelection(documents: Document[]): UseDocumentSelectio
         clearDropdownSelection(SELECTION_KEY);
       }
     },
-    [selectedDocuments, setDropdownSelection, clearDropdownSelection]
+    [selectedDocuments, setDropdownSelection, clearDropdownSelection],
   );
 
   const handleRemoveDocument = useCallback(
@@ -75,7 +88,7 @@ export function useDocumentSelection(documents: Document[]): UseDocumentSelectio
         clearDropdownSelection(SELECTION_KEY);
       }
     },
-    [selectedDocuments, setDropdownSelection, clearDropdownSelection]
+    [selectedDocuments, setDropdownSelection, clearDropdownSelection],
   );
 
   const handleClearSelection = useCallback(() => {
@@ -85,7 +98,7 @@ export function useDocumentSelection(documents: Document[]): UseDocumentSelectio
   // Get selected documents data
   const selectedDocumentsData = useMemo(
     () => documents.filter((document) => selectedDocuments.has(document.id)),
-    [documents, selectedDocuments]
+    [documents, selectedDocuments],
   );
 
   return {

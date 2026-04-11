@@ -1,0 +1,8 @@
+type: object
+required:
+  - status
+properties:
+  status:
+    type: string
+    enum: [accepted, cancelled]
+    description: New status for the event request (pending cannot be set manually)

@@ -1,6 +1,8 @@
 """Demographics (rarely changes). Name stays on users; do not duplicate."""
 
-from datetime import datetime
+from datetime import datetime, timezone
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -8,15 +10,19 @@ from app import db
 class UserDemographics(db.Model):
     __tablename__ = "user_demographics"
 
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), primary_key=True)
-    age = db.Column(db.Integer, nullable=True)
-    pets = db.Column(db.String(100), nullable=True)
-    occupation = db.Column(db.String(100), nullable=True)
-    gender = db.Column(db.String(50), nullable=True)
-    why_joining_silverkey = db.Column(db.Text, nullable=True)  # JSON array of strings
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
-    updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True
+    user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"), primary_key=True)
+    age: Mapped[int | None] = mapped_column(db.Integer)
+    pets: Mapped[str | None] = mapped_column(db.String(100))
+    occupation: Mapped[str | None] = mapped_column(db.String(100))
+    gender: Mapped[str | None] = mapped_column(db.String(50))
+    why_joining_silverkey: Mapped[str | None] = mapped_column(db.Text)  # JSON array of strings
+    created_at: Mapped[datetime | None] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     user = db.relationship(

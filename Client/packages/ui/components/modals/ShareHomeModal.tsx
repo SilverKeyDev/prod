@@ -5,10 +5,11 @@ import CancelButton from "@ui/button/CancelButton";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import type { Property, SearchResult } from "packages/features/search/types";
 import { formatAddress } from "packages/features/search/types/search/propertyDetailsFormatters";
-import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
 import { useIsAgent } from "packages/hooks/store";
+import { useSecureClipboardCopy } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import { Textarea } from "packages/ui/components/form/FormField";
@@ -16,7 +17,12 @@ import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 import Label from "packages/ui/components/text/Label.web";
 import Title from "packages/ui/components/text/Title";
-import { getShareHomeConversationId, getShareHomePropertyId } from "packages/utils/share";
+import { getWindow } from "packages/utils/platform";
+import { buildPropertyUrl } from "packages/utils/property";
+import {
+  getShareHomeConversationId,
+  getShareHomePropertyId,
+} from "packages/utils/share";
 
 import BaseModal from "@/components/modals/BaseModal";
 import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
@@ -34,18 +40,53 @@ export default function ShareHomeModal({
 }: ShareHomeModalProps) {
   const { t } = useLocalization();
   const isAgent = useIsAgent();
+  const copyToClipboard = useSecureClipboardCopy();
   // For agents: get list of clients
   const { clients, isLoading: isLoadingClients } = useAgentClients();
   // For both: get conversations
-  const { conversations, isLoading: isLoadingConversations, sendMessage } = useAgentChats();
+  const {
+    conversations,
+    isLoading: isLoadingConversations,
+    sendMessage,
+  } = useAgentChats();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [shareMessage, setShareMessage] = useState("");
   const propertyId = getShareHomePropertyId(property);
   const propertyAddress =
-    formatAddress(property?.address as string | object | null | undefined) || "this property";
+    formatAddress(property?.address as string | object | null | undefined) ||
+    "this property";
   // For clients: get their agent conversation
-  const clientConversation = !isAgent && conversations.length > 0 ? conversations[0] : null;
+  const clientConversation =
+    !isAgent && conversations.length > 0 ? conversations[0] : null;
+
+  // Build shareable property URL
+  const getPropertyUrl = (): string | null => {
+    if (!property) return null;
+
+    try {
+      const zpid = (property as SearchResult).zpid ?? (property as Property).id;
+      if (!zpid) return null;
+
+      const win = getWindow();
+      const base = win?.location?.origin ?? "";
+      const address =
+        formatAddress(property.address as string | object | null | undefined) ||
+        "property";
+
+      return `${base}${buildPropertyUrl(zpid, address)}`;
+    } catch (error) {
+      log.error(LOG_CATEGORIES.ERRORS, "Error building property URL", error);
+      return null;
+    }
+  };
+
+  const handleCopyLink = async () => {
+    const url = getPropertyUrl();
+    if (url) {
+      await copyToClipboard(url);
+    }
+  };
   const handleShare = async () => {
     if (!propertyId) {
       return;
@@ -56,7 +97,10 @@ export default function ShareHomeModal({
       if (!selectedClientId) {
         return;
       }
-      conversationId = getShareHomeConversationId(conversations, selectedClientId);
+      conversationId = getShareHomeConversationId(
+        conversations,
+        selectedClientId,
+      );
       if (!conversationId) {
         // Create conversation if it doesn't exist
         conversationId = "new";
@@ -72,8 +116,14 @@ export default function ShareHomeModal({
     try {
       const message = shareMessage.trim() || `Check out ${propertyAddress}!`;
       // Pass client_id when creating a new conversation (for agents)
-      const clientIdToPass = isAgent && conversationId === "new" ? selectedClientId : undefined;
-      await sendMessage(conversationId, message, clientIdToPass ?? undefined, propertyId);
+      const clientIdToPass =
+        isAgent && conversationId === "new" ? selectedClientId : undefined;
+      await sendMessage(
+        conversationId,
+        message,
+        clientIdToPass ?? undefined,
+        propertyId,
+      );
       // Reset state
       setSelectedClientId(null);
       setShareMessage("");
@@ -109,14 +159,20 @@ export default function ShareHomeModal({
         {/* Property Info */}
         {property && (
           <Box className="border-border bg-primary-muted rounded-lg border p-3">
-            <BodyText as="p" size="sm" className="text-text-primary font-medium">
+            <BodyText
+              as="p"
+              size="sm"
+              className="text-text-primary font-medium"
+            >
               {propertyAddress}
             </BodyText>
             {property.price != null && property.price !== "" && (
               <BodyText as="p" size="sm" className="text-text-secondary">
                 {(() => {
                   const price = property.price as string | number;
-                  return typeof price === "number" ? `$${price.toLocaleString()}` : price;
+                  return typeof price === "number"
+                    ? `$${price.toLocaleString()}`
+                    : price;
                 })()}
               </BodyText>
             )}
@@ -148,7 +204,7 @@ export default function ShareHomeModal({
                     onClick={() => setSelectedClientId(client.id)}
                     className={`w-full rounded-lg border p-3 text-left transition-colors ${
                       selectedClientId === client.id
-                        ? "border-primary bg-primary-muted"
+                        ? "border-border bg-primary-muted"
                         : "border-border hover:border-border hover:bg-accent-muted"
                     }`}
                   >
@@ -157,10 +213,18 @@ export default function ShareHomeModal({
                         <Icon name="user" className="h-4 w-4 text-black" />
                       </Box>
                       <Box className="min-w-0 flex-1">
-                        <BodyText as="p" size="sm" className="text-text-primary font-medium">
+                        <BodyText
+                          as="p"
+                          size="sm"
+                          className="text-text-primary font-medium"
+                        >
                           {client.name}
                         </BodyText>
-                        <BodyText as="p" size="xs" className="text-text-secondary">
+                        <BodyText
+                          as="p"
+                          size="xs"
+                          className="text-text-secondary"
+                        >
                           {client.email}
                         </BodyText>
                       </Box>
@@ -189,10 +253,17 @@ export default function ShareHomeModal({
               <Box className="border-border bg-primary-muted rounded-lg border p-3">
                 <Box className="flex items-center gap-2">
                   <Box className="bg-accent flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
-                    <Icon name="message-circle" className="h-4 w-4 text-black" />
+                    <Icon
+                      name="message-circle"
+                      className="h-4 w-4 text-black"
+                    />
                   </Box>
                   <Box>
-                    <BodyText as="p" size="sm" className="text-text-primary font-medium">
+                    <BodyText
+                      as="p"
+                      size="sm"
+                      className="text-text-primary font-medium"
+                    >
                       {t("modals.share_home.your_agent")}
                     </BodyText>
                     <BodyText as="p" size="xs" className="text-text-secondary">
@@ -219,14 +290,31 @@ export default function ShareHomeModal({
             value={shareMessage}
             onChange={(e) => setShareMessage(e.target.value)}
             placeholder={`Check out ${propertyAddress}!`}
-            className="focus:border-primary focus:ring-accent-muted border-border w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+            className="focus:border-input-variant-focus-border border-border w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400"
             rows={3}
           />
         </Box>
 
+        {/* Copy Link Button */}
+        <Box className="pt-2">
+          <Button
+            variant="outline"
+            onClick={handleCopyLink}
+            disabled={!getPropertyUrl()}
+            className="w-full"
+            icon={<Icon name="link" className="h-4 w-4" />}
+          >
+            {t("modals.share_home.copy_link", "Copy Property Link")}
+          </Button>
+        </Box>
+
         {/* Actions */}
         <Box className="flex gap-3 pt-2">
-          <CancelButton onClick={onClose} className="flex-1" disabled={isSharing}>
+          <CancelButton
+            onClick={onClose}
+            className="flex-1"
+            disabled={isSharing}
+          >
             {t("common.cancel")}
           </CancelButton>
           <Button
@@ -235,7 +323,9 @@ export default function ShareHomeModal({
             disabled={!canShare || isSharing}
             className="flex-1"
           >
-            {isSharing ? t("modals.share_home.sharing") : t("modals.share_home.share")}
+            {isSharing
+              ? t("modals.share_home.sharing")
+              : t("modals.share_home.share")}
           </Button>
         </Box>
       </Box>

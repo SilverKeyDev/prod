@@ -19,14 +19,18 @@ import {
 type HousingRangeRowsProps = {
   formData: OnboardingData;
   isEditMode: boolean;
-  updateFormData: (field: string | number | symbol, value: unknown) => void;
+  updateFormData: (field: keyof OnboardingData, value: unknown) => void;
 };
 
-export function HousingRangeRows({ formData, isEditMode, updateFormData }: HousingRangeRowsProps) {
+export function HousingRangeRows({
+  formData,
+  isEditMode,
+  updateFormData,
+}: HousingRangeRowsProps) {
   return (
     <>
       <AlignedRow
-        breakIntoRows="md"
+        breakIntoRows="sm"
         gap="lg"
         justify="start"
         items={[
@@ -37,7 +41,8 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
                 tickValues={SQFT_TICK_VALUES}
                 minValue={formData.preferred_sqft_min ?? SQFT_TICK_VALUES[0]}
                 maxValue={
-                  formData.preferred_sqft_max ?? SQFT_TICK_VALUES[SQFT_TICK_VALUES.length - 1]
+                  formData.preferred_sqft_max ??
+                  SQFT_TICK_VALUES[SQFT_TICK_VALUES.length - 1]
                 }
                 onChange={(minVal, maxVal) => {
                   updateFormData("preferred_sqft_min", minVal);
@@ -49,10 +54,19 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
               />
             ) : (
               <Box
-                className={`mobile-input bg-background-base ${profileRangeValueClassName(formData.preferred_sqft_min, formData.preferred_sqft_max)}`}
+                className={`mobile-input bg-background-base ${profileRangeValueClassName(
+                  formData.preferred_sqft_min,
+                  formData.preferred_sqft_max,
+                )}`}
               >
-                {formData.preferred_sqft_min != null || formData.preferred_sqft_max != null
-                  ? `${(formData.preferred_sqft_min ?? SQFT_TICK_VALUES[0]).toLocaleString()} – ${(formData.preferred_sqft_max ?? SQFT_TICK_VALUES[SQFT_TICK_VALUES.length - 1]).toLocaleString()} sq ft`
+                {formData.preferred_sqft_min != null ||
+                formData.preferred_sqft_max != null
+                  ? `${(
+                      formData.preferred_sqft_min ?? SQFT_TICK_VALUES[0]
+                    ).toLocaleString()} – ${(
+                      formData.preferred_sqft_max ??
+                      SQFT_TICK_VALUES[SQFT_TICK_VALUES.length - 1]
+                    ).toLocaleString()} sq ft`
                   : PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
@@ -62,10 +76,14 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
             content: isEditMode ? (
               <BudgetRangeSlider
                 tickValues={DAYS_ON_MARKET_TICK_VALUES}
-                minValue={formData.days_on_market_min ?? DAYS_ON_MARKET_TICK_VALUES[0]}
+                minValue={
+                  formData.days_on_market_min ?? DAYS_ON_MARKET_TICK_VALUES[0]
+                }
                 maxValue={
                   formData.days_on_market_max ??
-                  DAYS_ON_MARKET_TICK_VALUES[DAYS_ON_MARKET_TICK_VALUES.length - 1]
+                  DAYS_ON_MARKET_TICK_VALUES[
+                    DAYS_ON_MARKET_TICK_VALUES.length - 1
+                  ]
                 }
                 onChange={(minVal, maxVal) => {
                   updateFormData("days_on_market_min", minVal);
@@ -77,10 +95,22 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
               />
             ) : (
               <Box
-                className={`mobile-input bg-background-base ${profileRangeValueClassName(formData.days_on_market_min, formData.days_on_market_max)}`}
+                className={`mobile-input bg-background-base ${profileRangeValueClassName(
+                  formData.days_on_market_min,
+                  formData.days_on_market_max,
+                )}`}
               >
-                {formData.days_on_market_min != null || formData.days_on_market_max != null
-                  ? `${formData.days_on_market_min ?? DAYS_ON_MARKET_TICK_VALUES[0]} – ${formData.days_on_market_max ?? DAYS_ON_MARKET_TICK_VALUES[DAYS_ON_MARKET_TICK_VALUES.length - 1]} days`
+                {formData.days_on_market_min != null ||
+                formData.days_on_market_max != null
+                  ? `${
+                      formData.days_on_market_min ??
+                      DAYS_ON_MARKET_TICK_VALUES[0]
+                    } – ${
+                      formData.days_on_market_max ??
+                      DAYS_ON_MARKET_TICK_VALUES[
+                        DAYS_ON_MARKET_TICK_VALUES.length - 1
+                      ]
+                    } days`
                   : PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
@@ -89,7 +119,7 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
       />
 
       <AlignedRow
-        breakIntoRows="md"
+        breakIntoRows="sm"
         gap="lg"
         justify="start"
         items={[
@@ -98,10 +128,15 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
             content: isEditMode ? (
               <BudgetRangeSlider
                 tickValues={LOT_SIZE_ACRES_TICK_VALUES}
-                minValue={formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]}
+                minValue={
+                  formData.preferred_lot_size_min ??
+                  LOT_SIZE_ACRES_TICK_VALUES[0]
+                }
                 maxValue={
                   formData.preferred_lot_size_max ??
-                  LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]
+                  LOT_SIZE_ACRES_TICK_VALUES[
+                    LOT_SIZE_ACRES_TICK_VALUES.length - 1
+                  ]
                 }
                 onChange={(minVal, maxVal) => {
                   updateFormData("preferred_lot_size_min", minVal);
@@ -114,10 +149,22 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
               />
             ) : (
               <Box
-                className={`mobile-input bg-background-base ${profileRangeValueClassName(formData.preferred_lot_size_min, formData.preferred_lot_size_max)}`}
+                className={`mobile-input bg-background-base ${profileRangeValueClassName(
+                  formData.preferred_lot_size_min,
+                  formData.preferred_lot_size_max,
+                )}`}
               >
-                {formData.preferred_lot_size_min != null || formData.preferred_lot_size_max != null
-                  ? `${(formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]).toFixed(2)} – ${(formData.preferred_lot_size_max ?? LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]).toFixed(2)} acres`
+                {formData.preferred_lot_size_min != null ||
+                formData.preferred_lot_size_max != null
+                  ? `${(
+                      formData.preferred_lot_size_min ??
+                      LOT_SIZE_ACRES_TICK_VALUES[0]
+                    ).toFixed(2)} – ${(
+                      formData.preferred_lot_size_max ??
+                      LOT_SIZE_ACRES_TICK_VALUES[
+                        LOT_SIZE_ACRES_TICK_VALUES.length - 1
+                      ]
+                    ).toFixed(2)} acres`
                   : PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
             ),
@@ -127,10 +174,15 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
             content: isEditMode ? (
               <BudgetRangeSlider
                 tickValues={HOME_AGE_YEARS_TICK_VALUES}
-                minValue={formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]}
+                minValue={
+                  formData.preferred_home_age_min ??
+                  HOME_AGE_YEARS_TICK_VALUES[0]
+                }
                 maxValue={
                   formData.preferred_home_age_max ??
-                  HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
+                  HOME_AGE_YEARS_TICK_VALUES[
+                    HOME_AGE_YEARS_TICK_VALUES.length - 1
+                  ]
                 }
                 onChange={(minVal, maxVal) => {
                   updateFormData("preferred_home_age_min", minVal);
@@ -142,12 +194,21 @@ export function HousingRangeRows({ formData, isEditMode, updateFormData }: Housi
               />
             ) : (
               <Box
-                className={`mobile-input bg-background-base ${profileRangeValueClassName(formData.preferred_home_age_min, formData.preferred_home_age_max)}`}
+                className={`mobile-input bg-background-base ${profileRangeValueClassName(
+                  formData.preferred_home_age_min,
+                  formData.preferred_home_age_max,
+                )}`}
               >
-                {formData.preferred_home_age_min != null || formData.preferred_home_age_max != null
-                  ? `${formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]} – ${
+                {formData.preferred_home_age_min != null ||
+                formData.preferred_home_age_max != null
+                  ? `${
+                      formData.preferred_home_age_min ??
+                      HOME_AGE_YEARS_TICK_VALUES[0]
+                    } – ${
                       formData.preferred_home_age_max ??
-                      HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
+                      HOME_AGE_YEARS_TICK_VALUES[
+                        HOME_AGE_YEARS_TICK_VALUES.length - 1
+                      ]
                     } years`
                   : PROFILE_NOT_SPECIFIED_LABEL}
               </Box>

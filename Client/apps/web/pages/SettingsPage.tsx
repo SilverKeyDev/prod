@@ -25,13 +25,15 @@ import {
   convertStepsToNavItems,
   getPersonalizationStepsUi,
 } from "@/features/profile/components/profilePicture/profileStepsUi";
+import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/ProfileHousingEssentialsSection";
+import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/ProfileHousingRangesSection";
+import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/ProfileSearchPropertySection";
 // Features
 import {
   AgentBrokerageSection,
   AgentLicensingSection,
   AgentProfileServiceSection,
   DemographicsSection,
-  HousingSection,
   LocationSection,
 } from "@/features/profile/components/sections/index.web";
 import { SettingsFinancialSection } from "@/features/profile/components/sections/SettingsFinancialSection";
@@ -42,10 +44,14 @@ import { SettingsFinancialSection } from "@/features/profile/components/sections
 export { default as SettingsModal } from "packages/features/agent/components/modals/SettingsModal";
 
 type PersonalizationPageProps = {
-  setMobileHeaderActions: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
+  setMobileHeaderActions: React.Dispatch<
+    React.SetStateAction<React.ReactNode | null>
+  >;
 };
 
-export default function PersonalizationPage({ setMobileHeaderActions }: PersonalizationPageProps) {
+export default function PersonalizationPage({
+  setMobileHeaderActions,
+}: PersonalizationPageProps) {
   const isAgent = useIsAgent();
   const STEPS = useMemo(() => getPersonalizationStepsUi(isAgent), [isAgent]);
   const { userPreferences, refreshUserPreferences } = useUserPreferences();
@@ -54,7 +60,9 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState(STEPS[0]?.id ?? "demographics");
+  const [activeSection, setActiveSection] = useState(
+    STEPS[0]?.id ?? "demographics",
+  );
   // Modal state variables removed - modals not currently implemented
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -74,7 +82,11 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
         setOriginalData(userPreferences as OnboardingData);
       }
     } catch (error: unknown) {
-      log.error(LOG_CATEGORIES.ERRORS, "Failed to load user preferences from context", error);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Failed to load user preferences from context",
+        error,
+      );
     } finally {
       setIsLoading(false);
     }
@@ -175,12 +187,17 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
   }, [STEPS]);
 
   // Use centralized Google Maps loading
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMapsStore();
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
+    useGoogleMapsStore();
 
   // Update scriptsReady based on centralized Google Maps loading
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "Google Maps loading error",
+        googleMapsError,
+      );
       void setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -190,9 +207,26 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
     }
   }, [googleMapsLoaded, googleMapsError]);
 
-  const updateFormData = useCallback((field: string | number | symbol, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const updateFormData = useCallback(
+    (field: string | number | symbol, value: unknown) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
+
+  const patchBuyerPreferenceExtensions = useCallback(
+    (
+      fn: (
+        prev: OnboardingData["buyerPreferenceExtensions"],
+      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>,
+    ) => {
+      setFormData((prev) => ({
+        ...prev,
+        buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
+      }));
+    },
+    [],
+  );
 
   const handleSaveChanges = useCallback(async () => {
     // Increment version for this update
@@ -235,10 +269,9 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
   }, [originalData]);
 
   // Handle mobile header actions based on screen size
-  const { isMdDown, isMdUp } = useResponsive();
+  const { isMdDown } = useResponsive();
   const isMobile = isMdDown; // canonical: strictly < md
   const isUltraSmallScreen = isMdDown; // used for spacing adjustments (Tailwind `md:*` aligned)
-  const isDesktop = isMdUp; // >= md
 
   useEffect(() => {
     if (isMobile) {
@@ -249,12 +282,19 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
           onEdit={() => setIsEditMode(true)}
           onCancel={handleCancel}
           onSave={handleSaveChanges}
-        />
+        />,
       );
     } else {
       setMobileHeaderActions(null);
     }
-  }, [isMobile, isEditMode, isSaving, setMobileHeaderActions, handleCancel, handleSaveChanges]);
+  }, [
+    isMobile,
+    isEditMode,
+    isSaving,
+    setMobileHeaderActions,
+    handleCancel,
+    handleSaveChanges,
+  ]);
 
   // Modal handlers removed - modals not currently implemented
 
@@ -320,16 +360,25 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
             formData={formData}
             isEditMode={isEditMode}
             updateFormData={updateFormData}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           />
         );
 
-      case "housing":
+      case "housing_essentials":
         return (
-          <HousingSection
+          <ProfileHousingEssentialsSection
             formData={formData}
             isEditMode={isEditMode}
-            updateFormData={updateFormData}
-            isDesktop={isDesktop}
+            updateField={(field, value) => updateFormData(field, value)}
+          />
+        );
+
+      case "housing_ranges":
+        return (
+          <ProfileHousingRangesSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateField={(field, value) => updateFormData(field, value)}
           />
         );
 
@@ -341,6 +390,17 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
             updateFormData={updateFormData}
             scriptsReady={scriptsReady}
             loadError={loadError}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+          />
+        );
+
+      case "search_property":
+        return (
+          <ProfileSearchPropertySection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateField={(field, value) => updateFormData(field, value)}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           />
         );
 
@@ -368,7 +428,9 @@ export default function PersonalizationPage({ setMobileHeaderActions }: Personal
           {/* Content area: use Box with region role to avoid duplicate main landmark (top-level main is in DashboardLayout). */}
           <Box
             role="region"
-            className={`w-full flex-1 space-y-8 ${!isUltraSmallScreen ? "lg:ml-0" : ""}`}
+            className={`w-full flex-1 space-y-8 ${
+              !isUltraSmallScreen ? "lg:ml-0" : ""
+            }`}
           >
             {STEPS.map((step) => (
               <section id={step.id} key={step.id}>

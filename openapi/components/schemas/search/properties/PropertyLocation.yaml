@@ -1,0 +1,63 @@
+type: object
+description: Property address and geographic information
+required:
+  - address
+  - city
+  - state
+  - zipcode
+  - latitude
+  - longitude
+properties:
+  address:
+    type: string
+    description: Full street address
+  city:
+    type: string
+    description: City name
+  state:
+    type: string
+    description: State abbreviation (e.g., CA, NY)
+  zipcode:
+    type: string
+    pattern: '^\d{5}(-\d{4})?$'
+    description: ZIP code (5 or 9 digits)
+  county:
+    type: string
+    nullable: true
+    description: County name
+  neighborhood:
+    type: string
+    nullable: true
+    description: Neighborhood or area name
+  latitude:
+    type: number
+    format: double
+    minimum: -90
+    maximum: 90
+    description: Latitude coordinate
+  longitude:
+    type: number
+    format: double
+    minimum: -180
+    maximum: 180
+    description: Longitude coordinate
+  boundaries:
+    type: object
+    nullable: true
+    description: GeoJSON polygon boundaries
+  schoolDistrict:
+    type: string
+    nullable: true
+    description: School district name
+  commuteData:
+    $ref: './CommuteData.yaml'
+example:
+  address: "742 Evergreen Terrace"
+  city: "Springfield"
+  state: "IL"
+  zipcode: "62704"
+  county: "Sangamon"
+  neighborhood: "Downtown"
+  latitude: 39.7817
+  longitude: -89.6501
+  schoolDistrict: "Springfield District 186"

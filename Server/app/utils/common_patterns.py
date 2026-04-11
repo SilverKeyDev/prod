@@ -352,3 +352,78 @@ def api_route(require_auth=True, require_json=False, required_fields=None, requi
         return decorated
 
     return decorator
+
+
+# OpenAPI Validation Integration (Phase 1: Migration Support)
+def require_validated_user(request_schema=None):
+    """
+    Combines user authentication with optional OpenAPI request validation.
+
+    This decorator provides a migration path to OpenAPI validation while
+    maintaining compatibility with existing authentication patterns.
+
+    Args:
+        request_schema: Optional Pydantic model class from app.schemas.generated
+                       If provided, validates request body against schema
+
+    Usage:
+        from app.schemas import LoginData
+
+        @auth_bp.route('/login', methods=['POST'])
+        @require_validated_user(LoginData)
+        def login(user, data: LoginData):
+            # user: authenticated User model
+            # data: validated Pydantic model (or None in gradual mode)
+            return handle_login(data.model_dump())
+
+        # Without validation (existing pattern):
+        @user_bp.route('/profile', methods=['GET'])
+        @require_validated_user()
+        def get_profile(user):
+            return jsonify({"success": True, "user": user.to_dict()})
+    """
+    from app.utils.validation import validate_request
+
+    def decorator(f):
+        # Start with authentication
+        decorated = require_authenticated_user(f)
+
+        # Add request validation if schema provided
+        if request_schema:
+            decorated = validate_request(request_schema)(decorated)
+
+        return decorated
+
+    return decorator
+
+
+def require_validated_agent(request_schema=None):
+    """
+    Combines agent authorization with optional OpenAPI request validation.
+
+    Args:
+        request_schema: Optional Pydantic model class from app.schemas.generated
+
+    Usage:
+        from app.schemas import CreateTodoRequest
+
+        @agent_bp.route('/todos', methods=['POST'])
+        @require_validated_agent(CreateTodoRequest)
+        def create_todo(user, data: CreateTodoRequest):
+            # user: authenticated agent User model
+            # data: validated Pydantic model (or None in gradual mode)
+            return create_agent_todo(user.id, data.model_dump())
+    """
+    from app.utils.validation import validate_request
+
+    def decorator(f):
+        # Start with agent authorization
+        decorated = require_agent_access(f)
+
+        # Add request validation if schema provided
+        if request_schema:
+            decorated = validate_request(request_schema)(decorated)
+
+        return decorated
+
+    return decorator

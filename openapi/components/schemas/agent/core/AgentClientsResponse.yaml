@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      clients:
+        type: array
+        items:
+          $ref: './AgentClient.yaml'
+        nullable: true

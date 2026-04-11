@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { color } from "packages/design-tokens";
 import { PropertyDetailsBody } from "packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsBody";
 import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
-import { usePropertyDetails } from "packages/hooks/data/usePropertyDetails";
+import { usePropertyDetails } from "packages/hooks/data";
 import type { PropertyDetailsStreamProperty } from "packages/types";
 import { ScrollView } from "packages/ui/components/primitives";
 import { setToStorage } from "packages/utils/storage";
@@ -17,7 +17,10 @@ export type PropertyDetailsScreenParams = {
   propertyId?: string;
 };
 
-function buildMinimalProperty(address: string, propertyId?: string): PropertyDetailsStreamProperty {
+function buildMinimalProperty(
+  address: string,
+  propertyId?: string,
+): PropertyDetailsStreamProperty {
   return {
     id: propertyId ?? "",
     address,
@@ -39,8 +42,12 @@ export function PropertyDetailsScreenNative() {
   const address = params?.address ?? "";
   const propertyId = params?.propertyId;
 
-  const { selectedProperty, isLoading, fetchPropertyDetails, clearSelectedProperty } =
-    usePropertyDetails();
+  const {
+    selectedProperty,
+    isLoading,
+    fetchPropertyDetails,
+    clearSelectedProperty,
+  } = usePropertyDetails();
 
   useEffect(() => {
     if (address && address.trim().length > 0) {
@@ -52,6 +59,9 @@ export function PropertyDetailsScreenNative() {
     };
   }, [address, propertyId, fetchPropertyDetails, clearSelectedProperty]);
 
+  const property =
+    selectedProperty ?? buildMinimalProperty(address, propertyId);
+
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -59,38 +69,39 @@ export function PropertyDetailsScreenNative() {
   }, [navigation]);
 
   const handleGenerateReport = useCallback(() => {
+    const p = selectedProperty ?? buildMinimalProperty(address, propertyId);
     const generateReportState = {
-      address: typeof property?.address === "string" ? property.address : address,
+      address: typeof p.address === "string" ? p.address : address,
       reportType: "detailed",
       selectedClientId: "",
     };
     setToStorage("generateReportState", generateReportState);
     navigation.navigate("SAVED");
-  }, [address, navigation, property?.address]);
+  }, [address, navigation, propertyId, selectedProperty]);
 
   if (!address || address.trim().length === 0) {
     return null;
   }
 
-  const property = selectedProperty ?? buildMinimalProperty(address, propertyId);
-
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <PropertyHeader
-        property={property}
-        onClose={handleBack}
-        onBack={handleBack}
-        onGenerateReport={handleGenerateReport}
-        toolbarButtonSize="medium"
-      />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <PropertyDetailsBody property={property} isLoading={isLoading} />
-      </ScrollView>
-    </SafeAreaView>
+    <>
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
+        <PropertyHeader
+          property={property}
+          onClose={handleBack}
+          onBack={handleBack}
+          onGenerateReport={handleGenerateReport}
+          toolbarButtonSize="medium"
+        />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <PropertyDetailsBody property={property} isLoading={isLoading} />
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }
 

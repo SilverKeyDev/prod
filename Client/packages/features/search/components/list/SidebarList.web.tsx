@@ -3,23 +3,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
-import { formatPropertyType } from "packages/features/search/types/search/propertyFormatters";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import CardNotInterested from "packages/ui/components/button/NotInterested";
 import { Box } from "packages/ui/components/primitives";
 import { getWindow } from "packages/utils/platform";
 
-import {
-  CardHeartSaveWithProps,
-  CardImageContainer,
-  CardMatchScore,
-  CardPropertyDetails,
-} from "@/components/cards/base/index.web";
+import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "@/components/cards/perfectMatchCardGlowClasses";
 import WhyNotInterestedCard from "@/components/cards/WhyNotInterestedCard.web";
-import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
+import { BodyText, KeyTurnLoader } from "@/components/ui";
+import { SearchResultListingCard } from "@/features/search/components/list/SearchResultListingCard.web";
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
-import { getMatchScore, type SearchResult } from "@/features/search/types";
+import {
+  isListingFullCriteriaMatch,
+  type SearchResult,
+} from "@/features/search/types";
 
 export function SidebarList(props: {
   items: SearchResult[];
@@ -45,14 +41,21 @@ export function SidebarList(props: {
   const SIDEBAR_INITIAL = 10;
   const SIDEBAR_PAGE_SIZE = 10;
   // Track which property is showing the reason card
-  const [reasonCardPropertyId, setReasonCardPropertyId] = useState<string | null>(null);
+  const [reasonCardPropertyId, setReasonCardPropertyId] = useState<
+    string | null
+  >(null);
   const { t } = useLocalization();
-  const { markNotInterested, removeNotInterested, isNotInterested } = useNotInterestedHomesData();
+  const { markNotInterested, removeNotInterested, isNotInterested } =
+    useNotInterestedHomesData();
   // Filter out not-interested homes from results tab so they disappear after marking
   const filteredByTab =
     activeTab === "results"
       ? items.filter(
-          (p) => !isNotInterested(p.id, typeof p.address === "string" ? p.address : undefined)
+          (p) =>
+            !isNotInterested(
+              p.id,
+              typeof p.address === "string" ? p.address : undefined,
+            ),
         )
       : items;
   // Deduplicate by id so React keys are unique (API may return same listing twice)
@@ -63,9 +66,10 @@ export function SidebarList(props: {
     return true;
   });
   // Results tab with many items: show 10 initially, then +10 on scroll to bottom
-  const useIncrementalLoad = activeTab === "results" && displayItems.length > SIDEBAR_INITIAL;
+  const useIncrementalLoad =
+    activeTab === "results" && displayItems.length > SIDEBAR_INITIAL;
   const [visibleCount, setVisibleCount] = useState(() =>
-    useIncrementalLoad ? SIDEBAR_INITIAL : displayItems.length
+    useIncrementalLoad ? SIDEBAR_INITIAL : displayItems.length,
   );
   // Reset visible count when items or tab change
   useEffect(() => {
@@ -77,7 +81,9 @@ export function SidebarList(props: {
   }, [activeTab, displayItems.length]);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadMore = useCallback(() => {
-    setVisibleCount((prev) => Math.min(prev + SIDEBAR_PAGE_SIZE, displayItems.length));
+    setVisibleCount((prev) =>
+      Math.min(prev + SIDEBAR_PAGE_SIZE, displayItems.length),
+    );
   }, [displayItems.length]);
   useEffect(() => {
     if (!useIncrementalLoad || visibleCount >= displayItems.length) return;
@@ -100,21 +106,20 @@ export function SidebarList(props: {
         root: el.closest(".overflow-y-auto") ?? null,
         rootMargin: "100px",
         threshold: 0,
-      }
+      },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [useIncrementalLoad, visibleCount, displayItems.length, loadMore]);
-  // Use centralized score calculation
-  const calculatePropertyScore = (property: SearchResult) => {
-    return getMatchScore(property);
-  };
   if (items.length === 0) {
     return (
       <Box className="py-8 text-center text-neutral-600">
         {activeTab === "results" ? (
           <>
-            <Icon name="map-pin" className="mobile-icon-lg mx-auto mb-2 text-neutral-400" />
+            <Icon
+              name="map-pin"
+              className="mobile-icon-lg mx-auto mb-2 text-neutral-400"
+            />
             <BodyText as="p" size="sm">
               {t("search.click_map_to_search")}
             </BodyText>
@@ -149,7 +154,8 @@ export function SidebarList(props: {
   };
   // Handle undo
   const handleUndo = async (property: SearchResult) => {
-    const propertyAddress = typeof property.address === "string" ? property.address : "";
+    const propertyAddress =
+      typeof property.address === "string" ? property.address : "";
     try {
       await removeNotInterested(property.id, propertyAddress);
       setReasonCardPropertyId(null);
@@ -158,22 +164,34 @@ export function SidebarList(props: {
       throw error;
     }
   };
-  const itemsToRender = useIncrementalLoad ? displayItems.slice(0, visibleCount) : displayItems;
+  const itemsToRender = useIncrementalLoad
+    ? displayItems.slice(0, visibleCount)
+    : displayItems;
   return (
     <Box className="scrollbar-hide h-full space-y-3 overflow-y-auto pr-2">
       {itemsToRender.map((property: SearchResult) => {
-        const showReasonCard = reasonCardPropertyId === property.id && activeTab === "results";
+        const showReasonCard =
+          reasonCardPropertyId === property.id && activeTab === "results";
+        const fullCriteriaMatch = isListingFullCriteriaMatch(property);
         return (
           <Box
             key={property.id}
             role={showReasonCard ? undefined : "button"}
             tabIndex={showReasonCard ? undefined : 0}
-            className={`relative overflow-hidden rounded-lg border transition-all ${showReasonCard ? "" : "cursor-pointer"} ${
+            className={`border-border relative overflow-hidden rounded-lg border bg-white transition-all ${
+              showReasonCard ? "" : "cursor-pointer"
+            } ${
               selectedId === property.id
-                ? "border-olive bg-olive/5"
-                : "border-border hover:border-olive/50 hover:bg-neutral-50"
+                ? "bg-olive/5 border-neutral-400"
+                : "hover:border-neutral-400 hover:bg-neutral-50"
+            }${
+              fullCriteriaMatch
+                ? ` ${PERFECT_CRITERIA_MATCH_CARD_CLASSNAME}`
+                : ""
             }`}
-            onClick={showReasonCard ? undefined : () => onNavigateToProperty(property)}
+            onClick={
+              showReasonCard ? undefined : () => onNavigateToProperty(property)
+            }
             onKeyDown={
               showReasonCard
                 ? undefined
@@ -212,145 +230,15 @@ export function SidebarList(props: {
                 />
               </Box>
             ) : (
-              <>
-                {/* Property Image */}
-                <Box className="relative">
-                  <CardImageContainer
-                    imageUrl={property.imageUrl}
-                    alt={property.address ?? "Property image"}
-                    height={activeTab === "results" ? "sm" : "responsive"}
-                    imageVariant="professional"
-                    className={activeTab === "saved" ? "rounded-t-lg" : ""}
-                  />
-
-                  {/* Top Content (buttons) - positioned on image overlay like PropertyCard */}
-                  {activeTab === "results" && (
-                    <Box className="pointer-events-none absolute inset-0">
-                      <Box className="pointer-events-auto relative h-full w-full">
-                        <CardNotInterested
-                          property={property}
-                          size="sm"
-                          position="top-left"
-                          onMarkNotInterested={() => setReasonCardPropertyId(property.id)}
-                        />
-                        {isHomeSaved && saveHome && removeSavedHome ? (
-                          <CardHeartSaveWithProps
-                            property={{
-                              id: property.id,
-                              address:
-                                typeof property.address === "string" ? property.address : undefined,
-                            }}
-                            isSaved={isHomeSaved(
-                              property.id,
-                              typeof property.address === "string" ? property.address : undefined
-                            )}
-                            saveHome={async () => saveHome(property)}
-                            removeSavedHome={removeSavedHome}
-                            size="sm"
-                            position="top-right"
-                          />
-                        ) : (
-                          <ConnectedCardHeartSave
-                            property={property}
-                            size="sm"
-                            position="top-right"
-                          />
-                        )}
-                      </Box>
-                    </Box>
-                  )}
-                  {activeTab === "saved" && (
-                    <Box className="pointer-events-none absolute inset-0">
-                      <Box className="pointer-events-auto relative h-full w-full">
-                        {isHomeSaved && saveHome && removeSavedHome ? (
-                          <CardHeartSaveWithProps
-                            property={{
-                              id: property.id,
-                              address:
-                                typeof property.address === "string" ? property.address : undefined,
-                            }}
-                            isSaved={isHomeSaved(
-                              property.id,
-                              typeof property.address === "string" ? property.address : undefined
-                            )}
-                            saveHome={async () => saveHome(property)}
-                            removeSavedHome={removeSavedHome}
-                            size="sm"
-                            position="top-right"
-                          />
-                        ) : (
-                          <ConnectedCardHeartSave
-                            property={property}
-                            size="sm"
-                            position="top-right"
-                          />
-                        )}
-                      </Box>
-                    </Box>
-                  )}
-                </Box>
-
-                <Box className={activeTab === "results" ? "p-3" : "space-responsive-xs"}>
-                  <Box className="min-w-0 flex-1">
-                    {activeTab === "saved" && (
-                      <Box className="mb-1 flex items-center gap-2">
-                        {typeof property.propertyType === "string" &&
-                          property.propertyType.toLowerCase() !== "single_family" && (
-                            <BodyText as="span" size="xs" className="text-neutral-600">
-                              {formatPropertyType(property.propertyType)}
-                            </BodyText>
-                          )}
-                      </Box>
-                    )}
-
-                    {/* Address */}
-                    <Title
-                      as="h3"
-                      size="sm"
-                      className="mb-1 line-clamp-2 font-medium text-neutral-800"
-                    >
-                      {typeof property.address === "string" || typeof property.address === "number"
-                        ? property.address
-                        : "[Invalid address]"}
-                    </Title>
-
-                    {/* Price and Match Score */}
-                    <Box className="justify-left flex">
-                      <BodyText
-                        as="p"
-                        size="sm"
-                        className={`flex-1 font-semibold text-neutral-800 ${activeTab === "saved" ? "text-responsive-lg mb-2" : ""}`}
-                      >
-                        {typeof property.price === "string"
-                          ? property.price.startsWith("$")
-                            ? property.price
-                            : `$${property.price}`
-                          : typeof property.price === "number"
-                            ? `$${property.price}`
-                            : "[Invalid price]"}
-                      </BodyText>
-                      {activeTab === "results" && (
-                        <CardMatchScore
-                          score={calculatePropertyScore(property)}
-                          size="xs"
-                          useColorStyling={true}
-                          className="ml-2"
-                        />
-                      )}
-                    </Box>
-
-                    {/* Property Details */}
-                    <CardPropertyDetails
-                      bedrooms={property.bedrooms}
-                      bathrooms={property.bathrooms}
-                      sqft={property.sqft}
-                      lotSize={property.lotSize}
-                      variant="horizontal"
-                      className="mb-2 sm:mb-3 [&_*]:!text-neutral-600"
-                    />
-                  </Box>
-                </Box>
-              </>
+              <SearchResultListingCard
+                property={property}
+                activeTab={activeTab}
+                isHomeSaved={isHomeSaved}
+                saveHome={saveHome}
+                removeSavedHome={removeSavedHome}
+                showNotInterested={activeTab === "results"}
+                onMarkNotInterested={() => setReasonCardPropertyId(property.id)}
+              />
             )}
           </Box>
         );

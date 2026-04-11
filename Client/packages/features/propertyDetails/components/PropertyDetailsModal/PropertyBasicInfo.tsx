@@ -1,7 +1,10 @@
 import React from "react";
 
 import { Box } from "packages/ui/components/primitives";
-import { formatStructuredAddress } from "packages/utils/format/property/addressFormatting";
+import {
+  formatLotSize,
+  formatStructuredAddress,
+} from "packages/utils/format/property/addressFormatting";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
@@ -9,33 +12,51 @@ import { BodyText, Title } from "@/components/ui";
 import type { PropertyComponentProps } from "./types";
 import { formatPrice, formatPropertyType } from "./utils";
 
-export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }) => {
+export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({
+  property,
+}) => {
   const propertyPrice = property.price;
   const propertySqft = property.sqft;
   const propertyBedrooms = property.bedrooms;
   const propertyBathrooms = property.bathrooms;
-  const propertyYearBuilt = "yearBuilt" in property ? property.yearBuilt : undefined;
+  const propertyYearBuilt =
+    "yearBuilt" in property ? property.yearBuilt : undefined;
   const propertyLotSize = "lotSize" in property ? property.lotSize : undefined;
-  const propertyHomeType = "homeType" in property ? property.homeType : undefined;
-  const propertyPropertyType = "propertyType" in property ? property.propertyType : undefined;
+  const propertyHomeType =
+    "homeType" in property ? property.homeType : undefined;
+  const propertyPropertyType =
+    "propertyType" in property ? property.propertyType : undefined;
   const propertyPricePerSquareFoot =
     "pricePerSquareFoot" in property ? property.pricePerSquareFoot : undefined;
-  const propertyGarageSpaces = "garageSpaces" in property ? property.garageSpaces : undefined;
+  const propertyGarageSpaces =
+    "garageSpaces" in property ? property.garageSpaces : undefined;
   const propertyParking = "parking" in property ? property.parking : undefined;
-  const propertyDaysOnZillow = "daysOnZillow" in property ? property.daysOnZillow : undefined;
-  const propertyZestimate = "zestimate" in property ? property.zestimate : undefined;
-  const propertyRentZestimate = "rentZestimate" in property ? property.rentZestimate : undefined;
+  const propertyDaysOnZillow =
+    "daysOnZillow" in property ? property.daysOnZillow : undefined;
+  const propertyZestimate =
+    "zestimate" in property ? property.zestimate : undefined;
+  const propertyRentZestimate =
+    "rentZestimate" in property ? property.rentZestimate : undefined;
 
   return (
     <Box className="p-6">
       <Box className="mb-6 flex flex-row items-start justify-between">
         <Box className="flex-1">
-          <Title as="h2" size="lg" className="mb-2 font-bold text-gray-900 sm:text-3xl md:text-4xl">
+          <Title
+            as="h2"
+            size="lg"
+            className="mb-2 font-bold text-gray-900 sm:text-3xl md:text-4xl"
+          >
             {formatPrice(propertyPrice)}
           </Title>
-          <BodyText as="p" size="sm" className="text-gray-700 sm:text-base md:text-lg">
+          <BodyText
+            as="p"
+            size="sm"
+            className="text-gray-700 sm:text-base md:text-lg"
+          >
             {(() => {
-              const addr = (property as unknown as { address?: unknown }).address;
+              const addr = (property as unknown as { address?: unknown })
+                .address;
               if (!addr) return "Address not available";
               if (typeof addr === "string") return addr;
               if (
@@ -52,7 +73,7 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
                     city: string;
                     state: string;
                     zipcode: string;
-                  }
+                  },
                 );
               }
               try {
@@ -115,7 +136,11 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
       </Box>
 
       <Card className="p-4">
-        <Title as="h3" size="sm" className="text-brown mb-4 text-lg font-semibold">
+        <Title
+          as="h3"
+          size="sm"
+          className="text-brown mb-4 text-lg font-semibold"
+        >
           Property Details
         </Title>
         <Box className="flex flex-col gap-3">
@@ -139,25 +164,36 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
                 Lot Size:
               </BodyText>
               <BodyText as="span" size="sm">
-                {String(propertyLotSize)}
+                {formatLotSize(
+                  typeof propertyLotSize === "number"
+                    ? propertyLotSize
+                    : String(propertyLotSize),
+                )}
               </BodyText>
             </Box>
           ) : null}
-          {(propertyHomeType && propertyHomeType !== "" && propertyHomeType !== "0") ||
-          (propertyPropertyType && propertyPropertyType !== "" && propertyPropertyType !== "0") ? (
+          {(propertyHomeType &&
+            propertyHomeType !== "" &&
+            propertyHomeType !== "0") ||
+          (propertyPropertyType &&
+            propertyPropertyType !== "" &&
+            propertyPropertyType !== "0") ? (
             <Box className="flex flex-row justify-between">
               <BodyText as="span" size="sm">
                 Property Type:
               </BodyText>
               <BodyText as="span" size="sm">
                 {formatPropertyType(
-                  (propertyHomeType as string) ?? (propertyPropertyType as string) ?? ""
+                  (propertyHomeType as string) ??
+                    (propertyPropertyType as string) ??
+                    "",
                 )}
               </BodyText>
             </Box>
           ) : null}
           {propertyPricePerSquareFoot &&
-          ((typeof propertyPricePerSquareFoot === "number" && propertyPricePerSquareFoot > 0) ||
+          ((typeof propertyPricePerSquareFoot === "number" &&
+            propertyPricePerSquareFoot > 0) ||
             (typeof propertyPricePerSquareFoot === "string" &&
               propertyPricePerSquareFoot !== "0" &&
               propertyPricePerSquareFoot.trim() !== "")) ? (
@@ -177,14 +213,16 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
               </BodyText>
             </Box>
           ) : null}
-          {((typeof propertyGarageSpaces === "number" && propertyGarageSpaces > 0) ||
+          {((typeof propertyGarageSpaces === "number" &&
+            propertyGarageSpaces > 0) ||
             (typeof propertyParking === "number" && propertyParking > 0)) && (
             <Box className="flex flex-row justify-between">
               <BodyText as="span" size="sm">
                 Parking:
               </BodyText>
               <BodyText as="span" size="sm">
-                {typeof propertyGarageSpaces === "number" && propertyGarageSpaces > 0
+                {typeof propertyGarageSpaces === "number" &&
+                propertyGarageSpaces > 0
                   ? `${propertyGarageSpaces}-car garage`
                   : typeof propertyParking === "number" && propertyParking > 0
                     ? `${propertyParking} spaces`
@@ -193,7 +231,8 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
             </Box>
           )}
           {propertyDaysOnZillow &&
-          ((typeof propertyDaysOnZillow === "number" && propertyDaysOnZillow > 0) ||
+          ((typeof propertyDaysOnZillow === "number" &&
+            propertyDaysOnZillow > 0) ||
             (typeof propertyDaysOnZillow === "string" &&
               propertyDaysOnZillow !== "0" &&
               propertyDaysOnZillow.trim() !== "")) ? (
@@ -216,16 +255,17 @@ export const PropertyBasicInfo: React.FC<PropertyComponentProps> = ({ property }
               </BodyText>
             </Box>
           )}
-          {typeof propertyRentZestimate === "number" && propertyRentZestimate > 0 && (
-            <Box className="flex flex-row justify-between">
-              <BodyText as="span" size="sm">
-                Rent Estimate:
-              </BodyText>
-              <BodyText as="span" size="sm">
-                ${propertyRentZestimate.toLocaleString()}/month
-              </BodyText>
-            </Box>
-          )}
+          {typeof propertyRentZestimate === "number" &&
+            propertyRentZestimate > 0 && (
+              <Box className="flex flex-row justify-between">
+                <BodyText as="span" size="sm">
+                  Rent Estimate:
+                </BodyText>
+                <BodyText as="span" size="sm">
+                  ${propertyRentZestimate.toLocaleString()}/month
+                </BodyText>
+              </Box>
+            )}
         </Box>
       </Card>
     </Box>

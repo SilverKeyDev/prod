@@ -191,23 +191,17 @@ def render_email_html(template_name: str, props: dict[str, Any]) -> str:
 
 
 def convert_home_universal_to_listing_dict(home) -> dict[str, Any]:
-    """
-    Convert a HomeUniversal model instance to a listing dictionary
-    for use in email templates.
+    """Convert a property-like object to a listing dictionary for email templates.
 
-    Args:
-        home: HomeUniversal model instance
-
-    Returns:
-        Dictionary with listing data
+    Accepts any object with address, price, beds, baths, sqft, score, image_url attrs.
     """
     return {
         "id": str(home.id),
         "address": home.address or "Address not available",
         "price": home.price or "Price not available",
-        "bedrooms": int(home.beds) if home.beds and home.beds.isdigit() else None,
-        "bathrooms": int(home.baths) if home.baths and home.baths.isdigit() else None,
-        "sqft": int(home.sqft) if home.sqft and home.sqft.isdigit() else None,
+        "bedrooms": int(home.beds) if home.beds and str(home.beds).isdigit() else None,
+        "bathrooms": int(home.baths) if home.baths and str(home.baths).isdigit() else None,
+        "sqft": int(home.sqft) if home.sqft and str(home.sqft).isdigit() else None,
         "score": float(home.score) if home.score is not None else None,
-        "imageUrl": home.image_url,
+        "imageUrl": getattr(home, "image_url", None) or getattr(home, "primary_image_url", None),
     }

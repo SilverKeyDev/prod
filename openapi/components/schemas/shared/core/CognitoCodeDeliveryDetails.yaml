@@ -1,0 +1,11 @@
+type: object
+description: AWS Cognito CodeDeliveryDetails — where a verification code was sent.
+properties:
+  DeliveryMedium:
+    $ref: './CognitoEmailSmsMedium.yaml'
+  Destination:
+    type: string
+    description: Masked destination (e.g., 'j***@example.com' or '+1***1234')
+  AttributeName:
+    type: string
+    description: Attribute being verified (e.g., 'email')

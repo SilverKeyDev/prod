@@ -4,6 +4,7 @@ Extract property features from images using OpenAI Vision API.
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import os
@@ -12,10 +13,80 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, cast
 
+import requests
 from openai import APIError, OpenAI, RateLimitError
+
+from app.config.llm_models import (
+    openai_chat_token_limit_params,
+    openai_model_text_cleanup,
+    openai_model_vision_batch,
+)
 
 client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
 logger = logging.getLogger(__name__)
+
+_IMAGE_DOWNLOAD_TIMEOUT = 15
+_IMAGE_DOWNLOAD_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
+}
+
+
+def _download_image_as_data_url(url: str) -> str | None:
+    """Download an image and return it as a base64 data URL.
+
+    Some listing-image CDNs (e.g. homejunction) block requests from
+    OpenAI's servers, causing ``invalid_image_url`` errors.  By
+    downloading ourselves and sending the base64 payload we avoid that.
+    Returns None on any failure so the caller can fall back to the raw URL.
+    """
+    try:
+        resp = requests.get(
+            url,
+            timeout=_IMAGE_DOWNLOAD_TIMEOUT,
+            headers=_IMAGE_DOWNLOAD_HEADERS,
+        )
+        if resp.status_code != 200:
+            logger.debug("Image download returned %d for %s", resp.status_code, url)
+            return None
+        content_type = resp.headers.get("Content-Type", "image/jpeg")
+        if not content_type.startswith("image/"):
+            content_type = "image/jpeg"
+        b64 = base64.b64encode(resp.content).decode("utf-8")
+        return f"data:{content_type};base64,{b64}"
+    except Exception as exc:
+        logger.debug("Failed to download image %s: %s", url, exc)
+        return None
+
+
+def _resolve_image_urls(urls: list[str]) -> list[str]:
+    """Pre-download images and convert to base64 data URLs.
+
+    Downloads are done concurrently.  If a download fails the original
+    URL is kept so OpenAI can still attempt it directly.
+    """
+    if not urls:
+        return urls
+
+    resolved: list[str | None] = [None] * len(urls)
+
+    def _download(index: int, url: str) -> tuple[int, str]:
+        data_url = _download_image_as_data_url(url)
+        return index, data_url or url
+
+    with ThreadPoolExecutor(max_workers=min(5, len(urls))) as executor:
+        futures = [executor.submit(_download, i, u) for i, u in enumerate(urls)]
+        for future in as_completed(futures):
+            try:
+                idx, result = future.result()
+                resolved[idx] = result
+            except Exception:
+                pass
+
+    return [r if r is not None else urls[i] for i, r in enumerate(resolved)]
 
 
 def _extract_retry_after_time(error_message: str) -> float | None:
@@ -111,6 +182,7 @@ def extract_features_from_batch(image_batch: list[str], batch_num: int) -> list[
         List of raw feature strings
     """
     try:
+        resolved_urls = _resolve_image_urls(image_batch)
         content = [
             {
                 "type": "text",
@@ -123,7 +195,7 @@ def extract_features_from_batch(image_batch: list[str], batch_num: int) -> list[
                     "Return strictly valid JSON with a top-level 'features' array of strings."
                 ),
             }
-        ] + [{"type": "image_url", "image_url": {"url": url}} for url in image_batch]
+        ] + [{"type": "image_url", "image_url": {"url": url}} for url in resolved_urls]
 
         schema = {
             "name": "RawFeatureList",
@@ -143,14 +215,15 @@ def extract_features_from_batch(image_batch: list[str], batch_num: int) -> list[
 
         user_message: list[Any] = [cast(Any, {"role": "user", "content": content})]
         response_format_param = cast(Any, {"type": "json_schema", "json_schema": schema})
+        vision_model = openai_model_vision_batch()
 
         def make_request():
             return client.chat.completions.create(
-                model="gpt-4o-mini",  # vision-capable + cheap
+                model=vision_model,
                 messages=user_message,
                 response_format=response_format_param,
-                max_tokens=600,
                 temperature=0,
+                **openai_chat_token_limit_params(vision_model, 600),
             )
 
         resp = _make_openai_request_with_retry(make_request)
@@ -210,7 +283,7 @@ def extract_features_from_images(image_urls: list[str]) -> list[str]:
 
 def normalize_and_dedupe_features(raw_features: list[str]) -> list[str]:
     """
-    Use GPT-4o to normalize synonyms and remove duplicates.
+    Use OpenAI to normalize synonyms and remove duplicates.
 
     Args:
         raw_features: List of raw feature strings
@@ -256,14 +329,15 @@ def normalize_and_dedupe_features(raw_features: list[str]) -> list[str]:
         cast(Any, {"role": "user", "content": user}),
     ]
     normalize_response_format = cast(Any, {"type": "json_schema", "json_schema": schema})
+    cleanup_model = openai_model_text_cleanup()
 
     def make_request():
         return client.chat.completions.create(
-            model="gpt-4o",
+            model=cleanup_model,
             messages=normalize_messages,
             response_format=normalize_response_format,
-            max_tokens=600,
             temperature=0,
+            **openai_chat_token_limit_params(cleanup_model, 600),
         )
 
     resp = _make_openai_request_with_retry(make_request)

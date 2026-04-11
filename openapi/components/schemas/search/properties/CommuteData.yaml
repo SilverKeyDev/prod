@@ -1,0 +1,20 @@
+type: object
+required:
+  - travel_times
+  - property_address
+properties:
+  travel_times:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        travel_time:
+          type: string
+        commute_tolerance:
+          type: number
+  property_address:
+    type: string

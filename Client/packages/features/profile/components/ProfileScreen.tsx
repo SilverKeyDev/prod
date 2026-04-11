@@ -1,11 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { useLocalization } from "packages/contexts";
+import {
+  PersonalizationSectionLayoutProvider,
+  PersonalizationSectionPanel,
+} from "packages/features/profile/components/layout";
 import { getPersonalizationStepsUi } from "packages/features/profile/components/profilePicture/profileStepsUi";
 import { ProfileDemographicsSection } from "packages/features/profile/components/profileScreen/ProfileDemographicsSection";
 import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/ProfileFinancialSection";
-import { ProfileHousingSection } from "packages/features/profile/components/profileScreen/ProfileHousingSection";
+import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/ProfileHousingEssentialsSection";
+import { ProfileHousingRangesSection } from "packages/features/profile/components/profileScreen/ProfileHousingRangesSection";
 import { ProfileLocationSection } from "packages/features/profile/components/profileScreen/ProfileLocationSection";
+import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/ProfileSearchPropertySection";
 import {
   AgentBrokerageSection,
   AgentLicensingSection,
@@ -15,12 +27,15 @@ import type { OnboardingData } from "packages/features/profile/utils";
 import {
   getProfileSectionCompletion,
   handleSubmit as handleSubmitUtil,
+  nextPreferencesVersion,
   userPreferencesToOnboardingData,
-  validateProfileSave,
 } from "packages/features/profile/utils";
 import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
-import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import {
+  useUserData,
+  useUserPreferences,
+} from "packages/hooks/data/auth/useUserData";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
 import { showErrorToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
@@ -50,8 +65,12 @@ function validateProfilePhotoFile(file: File): string | null {
 export function ProfileScreen() {
   const { t } = useLocalization();
   const { userProfile } = useUserData();
-  const { userPreferences, preferencesLoading, preferencesError, refreshUserPreferences } =
-    useUserPreferences();
+  const {
+    userPreferences,
+    preferencesLoading,
+    preferencesError,
+    refreshUserPreferences,
+  } = useUserPreferences();
   const submitPreferences = usePreferencesSubmit();
   const {
     uploadProfilePicture,
@@ -73,7 +92,9 @@ export function ProfileScreen() {
 
   const isAgent = useIsAgent();
   const STEPS = useMemo(() => getPersonalizationStepsUi(isAgent), [isAgent]);
-  const [activeSection, setActiveSection] = useState<string>(STEPS[0]?.id ?? "demographics");
+  const [activeSection, setActiveSection] = useState<string>(
+    STEPS[0]?.id ?? "demographics",
+  );
   const hasInitializedFormRef = useRef(false);
 
   useEffect(() => {
@@ -82,7 +103,14 @@ export function ProfileScreen() {
     }
   }, [STEPS, activeSection]);
 
-  const sectionCompletion = useMemo(() => getProfileSectionCompletion(formData), [formData]);
+  const sectionCompletion = useMemo(
+    () => getProfileSectionCompletion(formData),
+    [formData],
+  );
+  const currentStep = useMemo(
+    () => STEPS.find((s) => s.id === activeSection),
+    [STEPS, activeSection],
+  );
 
   const handleChangeProfilePhoto = useCallback(() => {
     if (!isWeb) {
@@ -112,15 +140,19 @@ export function ProfileScreen() {
         e.target.value = "";
       }
     },
-    [uploadProfilePicture]
+    [uploadProfilePicture],
   );
 
   useEffect(() => {
     if (
       showValidationWarning &&
-      (validationResult.missingFields.length > 0 || validationResult.errors.length > 0)
+      (validationResult.missingFields.length > 0 ||
+        validationResult.errors.length > 0)
     ) {
-      const message = [...validationResult.missingFields, ...validationResult.errors].join("\n");
+      const message = [
+        ...validationResult.missingFields,
+        ...validationResult.errors,
+      ].join("\n");
       // Platform-specific alert - web would use a modal, native uses Alert
       log.warn(LOG_CATEGORIES.ERRORS, "Profile validation issues", { message });
       setShowValidationWarning(false);
@@ -140,7 +172,7 @@ export function ProfileScreen() {
     hasInitializedFormRef.current = true;
     const data = userPreferencesToOnboardingData(
       userPreferences as Record<string, unknown>,
-      userProfile ?? undefined
+      userProfile ?? undefined,
     );
     setFormData(data);
     setOriginalData(data);
@@ -151,17 +183,40 @@ export function ProfileScreen() {
   useEffect(() => {
     if (!hasInitializedFormRef.current) return;
     const nameFromProfile =
-      userProfile != null && typeof userProfile.name === "string" && userProfile.name.trim() !== ""
+      userProfile != null &&
+      typeof userProfile.name === "string" &&
+      userProfile.name.trim() !== ""
         ? userProfile.name.trim()
         : undefined;
     if (!nameFromProfile) return;
-    setFormData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
-    setOriginalData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
+    setFormData((prev) =>
+      prev.name ? prev : { ...prev, name: nameFromProfile },
+    );
+    setOriginalData((prev) =>
+      prev.name ? prev : { ...prev, name: nameFromProfile },
+    );
   }, [userProfile]);
 
-  const updateField = useCallback((field: keyof OnboardingData, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const updateField = useCallback(
+    (field: keyof OnboardingData, value: unknown) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
+
+  const patchBuyerPreferenceExtensions = useCallback(
+    (
+      fn: (
+        prev: OnboardingData["buyerPreferenceExtensions"],
+      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>,
+    ) => {
+      setFormData((prev) => ({
+        ...prev,
+        buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
+      }));
+    },
+    [],
+  );
 
   const handleStartEdit = useCallback(() => {
     setIsEditMode(true);
@@ -173,11 +228,7 @@ export function ProfileScreen() {
   }, [originalData]);
 
   const handleSave = useCallback(async () => {
-    const currentVersion = formData.preferences_version ?? "1.0";
-    const versionParts = currentVersion.split(".");
-    const majorVersion = parseInt(versionParts[0] ?? "1", 10) || 1;
-    const minorVersion = parseInt(versionParts[1] ?? "0", 10) || 0;
-    const newVersion = `${majorVersion}.${minorVersion + 1}`;
+    const newVersion = nextPreferencesVersion(formData.preferences_version);
 
     const dataToSave: OnboardingData = {
       ...formData,
@@ -190,7 +241,7 @@ export function ProfileScreen() {
       setLoading,
       setValidationResult,
       setShowValidationWarning,
-      validateFunction: validateProfileSave,
+      skipValidation: true,
       onSuccess: () => {
         setFormData(dataToSave);
         setOriginalData(dataToSave);
@@ -278,13 +329,18 @@ export function ProfileScreen() {
           <UnderlineTabs
             items={STEPS.map((step) => {
               const status =
-                sectionCompletion[step.id as keyof typeof sectionCompletion] ?? "empty";
+                sectionCompletion[step.id as keyof typeof sectionCompletion] ??
+                "empty";
               const isComplete = status === "complete";
               const needsAttention = status === "needs_attention";
               const icon = step.icon
                 ? React.createElement(step.icon, { className: "h-4 w-4" })
                 : undefined;
-              const suffix = isComplete ? " ✓" : !isComplete && needsAttention ? " •" : "";
+              const suffix = isComplete
+                ? " ✓"
+                : !isComplete && needsAttention
+                  ? " •"
+                  : "";
               return {
                 id: step.id,
                 label: `${step.title}${suffix}`,
@@ -297,66 +353,92 @@ export function ProfileScreen() {
             className="mb-4"
           />
 
-          {activeSection === "agent_brokerage" && (
-            <AgentBrokerageSection
-              formData={formData}
-              isEditMode={isEditMode}
-              updateFormData={updateField}
-            />
-          )}
-
-          {activeSection === "agent_licensing" && (
-            <AgentLicensingSection
-              formData={formData}
-              isEditMode={isEditMode}
-              updateFormData={updateField}
-            />
-          )}
-
-          {activeSection === "agent_profile" && (
-            <AgentProfileServiceSection
-              formData={formData}
-              isEditMode={isEditMode}
-              updateFormData={updateField}
-            />
-          )}
-
-          {activeSection === "demographics" && (
-            <ProfileDemographicsSection
-              formData={formData}
-              isEditMode={isEditMode}
-              updateField={updateField}
-              profilePictureUrl={userProfile?.profile_picture_url}
-              onUploadPhoto={handleChangeProfilePhoto}
-              isUploadingProfilePicture={isUploadingProfilePicture}
-              profilePictureError={profilePictureError}
-              userDisplayName={userProfile?.name}
-            />
-          )}
-
-          {activeSection === "financial" && (
-            <ProfileFinancialSection
-              formData={formData}
-              isEditMode={isEditMode}
-              updateField={updateField}
-            />
-          )}
-
-          {activeSection === "location" && (
-            <ProfileLocationSection
-              formData={formData}
-              isEditMode={isEditMode}
-              updateField={updateField}
-            />
-          )}
-
-          {activeSection === "housing" && (
-            <ProfileHousingSection
-              formData={formData}
-              isEditMode={isEditMode}
-              updateField={updateField}
-            />
-          )}
+          {currentStep ? (
+            <PersonalizationSectionLayoutProvider>
+              <PersonalizationSectionPanel
+                sectionId={currentStep.id}
+                screenReaderHeading={currentStep.title}
+              >
+                {activeSection === "agent_brokerage" && (
+                  <AgentBrokerageSection
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateFormData={updateField}
+                  />
+                )}
+                {activeSection === "agent_licensing" && (
+                  <AgentLicensingSection
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateFormData={updateField}
+                  />
+                )}
+                {activeSection === "agent_profile" && (
+                  <AgentProfileServiceSection
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateFormData={updateField}
+                  />
+                )}
+                {activeSection === "demographics" && (
+                  <ProfileDemographicsSection
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateField={updateField}
+                    profilePictureUrl={userProfile?.profile_picture_url}
+                    onUploadPhoto={handleChangeProfilePhoto}
+                    isUploadingProfilePicture={isUploadingProfilePicture}
+                    profilePictureError={profilePictureError}
+                    userDisplayName={userProfile?.name}
+                  />
+                )}
+                {activeSection === "financial" && (
+                  <ProfileFinancialSection
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateField={updateField}
+                    patchBuyerPreferenceExtensions={
+                      patchBuyerPreferenceExtensions
+                    }
+                  />
+                )}
+                {activeSection === "location" && (
+                  <ProfileLocationSection
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateField={updateField}
+                    patchBuyerPreferenceExtensions={
+                      patchBuyerPreferenceExtensions
+                    }
+                  />
+                )}
+                {activeSection === "housing_essentials" && (
+                  <ProfileHousingEssentialsSection
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateField={updateField}
+                  />
+                )}
+                {activeSection === "housing_ranges" && (
+                  <ProfileHousingRangesSection
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateField={updateField}
+                  />
+                )}
+                {activeSection === "search_property" && (
+                  <ProfileSearchPropertySection
+                    formData={formData}
+                    isEditMode={isEditMode}
+                    updateField={updateField}
+                    patchBuyerPreferenceExtensions={
+                      patchBuyerPreferenceExtensions
+                    }
+                  />
+                )}
+              </PersonalizationSectionPanel>
+            </PersonalizationSectionLayoutProvider>
+          ) : null}
         </Box>
       </ScrollView>
     </Box>

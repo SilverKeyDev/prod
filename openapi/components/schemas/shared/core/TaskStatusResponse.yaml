@@ -1,0 +1,35 @@
+allOf:
+  - $ref: './SuccessResponse.yaml'
+  - type: object
+    required:
+      - task_id
+      - status
+    properties:
+      task_id:
+        type: string
+      status:
+        type: string
+        enum: [SUCCESS, PENDING, PROGRESS, FAILURE]
+      result:
+        type: object
+        nullable: true
+        description: >
+          Task result payload when status is SUCCESS; shape depends on task type (Celery/async jobs).
+          additionalProperties stays open because each task defines its own result keys.
+        additionalProperties: true
+      meta:
+        type: object
+        nullable: true
+        description: >
+          Progress metadata when status is PROGRESS; may include arbitrary progress fields per task.
+        properties:
+          status:
+            type: string
+            nullable: true
+        additionalProperties: true
+      status_code:
+        type: integer
+        nullable: true
+      elapsed_time:
+        type: number
+        nullable: true

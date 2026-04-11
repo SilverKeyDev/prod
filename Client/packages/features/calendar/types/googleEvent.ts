@@ -1,41 +1,20 @@
 /**
- * Google Calendar API event type (shared by config/api and utils to avoid cycles).
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
  */
 
-export interface GoogleEvent {
-  id?: string;
-  summary: string;
-  description?: string;
-  start: {
-    dateTime?: string;
-    date?: string;
-    timeZone?: string;
-  };
-  end: {
-    dateTime?: string;
-    date?: string;
-    timeZone?: string;
-  };
-  attendees?: Array<{
-    email: string;
-    displayName?: string;
-    responseStatus?: string;
-  }>;
-  reminders?: {
-    useDefault?: boolean;
-    overrides?: Array<{
-      method: string;
-      minutes: number;
-    }>;
-  };
-  location?: string;
-  conferenceData?: {
-    createRequest: {
-      requestId: string;
-      conferenceSolutionKey: {
-        type: string;
-      };
-    };
-  };
-  calendarId?: string;
-}
+import type { components } from "packages/types/api.generated";
+
+// Re-export from generated schema
+export type GoogleEvent = components["schemas"]["GoogleEvent"];
+export type GoogleCalendarEventCreateBody =
+  components["schemas"]["GoogleCalendarEventCreateBody"];

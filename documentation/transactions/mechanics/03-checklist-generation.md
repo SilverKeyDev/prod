@@ -134,7 +134,7 @@ The **location enrichment layer** (see `mechanics/04-location-enrichment.md`) is
 
 ---
 
-### 6. Integration-backed items (HomeConcierge, loans, Plaid, SkySlope/Dotloop)
+### 6. Integration-backed items (HomeConcierge, loans, Plaid, brokerage platforms)
 
 Some tasks represent **integration-backed flows** rather than simple checkboxes:
 
@@ -151,15 +151,15 @@ Some tasks represent **integration-backed flows** rather than simple checkboxes:
   - Plaid/earnest money:
     - Items like “Send earnest money” backed by ACH/transfer flows.
 
-- Brokerage transaction platforms (SkySlope/Dotloop):
-  - Certain compliance or “official paperwork” steps may be represented as items whose **source of truth** lives in SkySlope/Dotloop.
+- Brokerage transaction platforms (e.g. **Dotloop** or similar, if integrated in the future):
+  - Certain compliance or “official paperwork” steps may be represented as items whose **source of truth** lives in that vendor.
   - Integration behavior is always **agent-scoped**:
-    - A licensed agent connects their own SkySlope/Dotloop account inside SilverKey.
+    - A licensed agent connects their own vendor account inside SilverKey.
     - We call the vendor API on behalf of that agent to pull only **their** checklists/forms for the relevant transaction.
   - Checklist items in SilverKey:
-    - Store an `integration_key` such as `"skyslope"` or `"dotloop"` and an `external_id` from the vendor.
+    - Store an `integration_key` (e.g. `"dotloop"`) and an `external_id` from the vendor.
     - Can be marked complete when the corresponding item is completed in the external system.
-    - Are shown to clients as part of the transaction checklist, but clients never log into SkySlope/Dotloop directly.
+    - Are shown to clients as part of the transaction checklist, but clients never log into the brokerage platform directly.
 
 The templates themselves only need to know **which integration key** (if any) applies; the integration infrastructure (see `integrations/12-financial-and-service-integrations.md`) handles actual API calls and status updates.
 
@@ -199,4 +199,3 @@ Client hooks like `useChecklistData` should:
   - Add props/context for `transactionId` and richer item metadata instead of rebuilding the UI.
 
 The design options for storage layout and migration from `TransactionTask` are covered in `options/03-checklist-modeling.md`.
-

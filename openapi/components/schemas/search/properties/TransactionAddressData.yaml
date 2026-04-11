@@ -1,0 +1,24 @@
+type: object
+required:
+  - address
+properties:
+  address:
+    type: string
+  street:
+    type: string
+    nullable: true
+  city:
+    type: string
+    nullable: true
+  state:
+    type: string
+    nullable: true
+  postal_code:
+    type: string
+    nullable: true
+  country:
+    type: string
+    nullable: true
+  place_id:
+    type: string
+    nullable: true

@@ -1,0 +1,207 @@
+# User Preferences Schema Contract
+
+## Overview
+
+User preferences in SilverKey are stored in a **normalized database schema** across multiple related tables, but presented to the client as a **flattened JSON structure**. This document defines the contract between client and server, the database models, and the sync pipeline.
+
+## Database Models
+
+### Core User Model
+
+Located at `Server/app/models/user/user.py`:
+
+```python
+class User(db.Model):
+    __tablename__ = "users"
+
+    # Identity
+    id = db.Column(db.String(36), primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+
+    # Preferences metadata
+    has_preferences = db.Column(db.Boolean, default=False)
+    preferences_version = db.Column(db.String(10), nullable=True)  # e.g. "v1"
+```
+
+### Related Preference Tables
+
+Preferences are split across domain-specific tables (all located in `Server/app/models/user/`):
+
+| Table | Fields | Purpose |
+|-------|--------|---------|
+| **`user_demographics`** | age_range, household_size, household_income_range, move_in_timeline, etc. | Buyer demographics and timeline |
+| **`user_financials`** | budget_min, budget_max, down_payment_percentage, credit_score_range, loan_pre_approval, etc. | Financial capacity and constraints |
+| **`user_search_intent`** | preferred_bedrooms, preferred_bathrooms, preferred_housing_type, preferred_home_age, preferred_sqft_min/max, must_have, deal_breakers, listing_status, extended_buyer_preferences (JSON for v1+ fields) | Core search criteria and must-haves |
+| **`user_intent_attribute`** | importance ratings for individual features (pool, garage, etc.) | Weighted feature preferences (used by MCDA scoring) |
+| **`user_important_location`** | address, lat, lng, commute_tolerance, location_type (work/school/etc.) | Commute destinations and tolerances |
+| **`user_communication_prefs`** | preferred_contact_method, email_notifications_enabled, etc. | Communication preferences |
+
+Each table has:
+- `user_id` foreign key to `users.id`
+- `created_at`, `updated_at` timestamps
+
+### Relationships
+
+```python
+# In User model (backref from child models, not explicitly defined in current schema)
+user.user_demographics  # UserDemographics (one-to-one)
+user.user_financials    # UserFinancials (one-to-one)
+user.user_search_intent # UserSearchIntent (one-to-one)
+user.user_intent_attributes  # List[UserIntentAttribute] (one-to-many)
+user.user_important_locations  # List[UserImportantLocation] (one-to-many)
+```
+
+## Client API Shape
+
+### Type Definition
+
+Located at `Client/packages/features/search/types/api.ts`:
+
+```typescript
+export type UserPreferencesData = {
+  // Financials
+  home_budget_min?: number;
+  home_budget_max?: number;
+  priceRange?: { min?: number; max?: number; };  // Alias for budget
+
+  // Search Intent (core filters)
+  preferred_bedrooms?: number;
+  preferred_bathrooms?: number;
+  preferred_bedrooms_max?: number;
+  preferred_bathrooms_max?: number;
+  preferred_housing_type?: string;  // e.g. "single_family", "condo"
+  preferred_home_age?: string;
+  preferred_home_age_min?: number;
+  preferred_home_age_max?: number;
+  preferred_lot_size?: string;
+  preferred_lot_size_min?: number;
+  preferred_lot_size_max?: number;
+  preferred_sqft_min?: number;
+  preferred_sqft_max?: number;
+  must_have?: string[];  // e.g. ["pool", "garage"]
+  deal_breakers?: string[];
+  listing_type?: string[];  // e.g. ["for_sale", "pending"]
+  days_on_market_min?: number;
+  days_on_market_max?: number;
+  preferred_home_features?: string[];  // Alias for must_have
+
+  // Important Locations
+  important_locations?: Array<{
+    address: string;
+    commute_tolerance?: number;  // minutes
+    lat?: number | null;
+    lng?: number | null;
+  }>;
+
+  // Additional fields (extend as needed, stored in extended_buyer_preferences JSON)
+  [key: string]: unknown;
+};
+```
+
+This shape is also used in `SearchByPolygonRequest.user_preferences` for search operations.
+
+### Flattened vs Normalized
+
+- **Client sends/receives**: Flattened JSON (all fields at one level)
+- **Server stores**: Normalized across multiple tables
+- **Sync layer**: `Server/app/services/aggregation/preferences_aggregation_write.py` handles mapping
+
+## Write Pipeline
+
+### Entry Point
+
+`write_preferences_from_payload(user_id: str, payload: dict) -> User`
+
+Located in `Server/app/services/aggregation/preferences_aggregation_write.py` (429 lines, candidate for splitting).
+
+### Process
+
+1. **Parse payload**: Extract fields by domain (demographics, financials, search_intent, locations)
+2. **Upsert domain models**: Create or update each related table
+3. **Set metadata**: Update `user.has_preferences = True`, `user.preferences_version = "v1"`
+4. **Commit**: Transaction via `db.session.commit()`
+
+### Example Mapping
+
+```python
+# Client payload:
+{
+  "home_budget_min": 300000,
+  "home_budget_max": 500000,
+  "preferred_bedrooms": 3,
+  "must_have": ["pool", "garage"],
+  "important_locations": [{"address": "123 Main St", "commute_tolerance": 30}]
+}
+
+# Server creates/updates:
+UserFinancials(user_id=..., budget_min=300000, budget_max=500000)
+UserSearchIntent(user_id=..., preferred_bedrooms=3, must_have=["pool", "garage"])
+UserImportantLocation(user_id=..., address="123 Main St", commute_tolerance=30)
+```
+
+## Read Pipeline (profileFormSync)
+
+### Client-Side Sync
+
+Located at `Client/packages/features/profile/utils/profileFormSync.ts` (406 lines).
+
+Converts **flattened API response** to **structured form state** and vice versa.
+
+**Key functions**:
+- `syncApiToFormState`: API → form (splits into sections: demographics, financials, housing, location, search)
+- `syncFormStateToApi`: Form → API (flattens back to single-level payload)
+
+## Versioning Strategy
+
+### Current: v1 (implicit)
+
+- `user.preferences_version = "v1"` (or NULL for legacy)
+- New fields added to `extended_buyer_preferences` JSON column in `user_search_intent`
+- Client sends all fields; server ignores unknown ones
+
+### Future: v2+ (when schema changes)
+
+- Add migration for new columns or tables
+- Update `preferences_version` on write
+- Server read pipeline checks version and maps accordingly
+- Client remains backward-compatible (missing fields = defaults)
+
+## Extension Points
+
+### Adding New Preference Fields
+
+1. **Determine domain**: Demographics, financials, search intent, or locations?
+2. **Add column** (if typed) or **extend JSON** (if untyped):
+   - Typed: Add column to appropriate table (requires migration - see `.cursor/rules/backend/database.mdc` for restrictions)
+   - Untyped: Store in `extended_buyer_preferences` JSON column
+3. **Update write pipeline**: Modify `preferences_aggregation_write.py` to parse new field
+4. **Update client type**: Add to `UserPreferencesData` in `Client/packages/features/search/types/api.ts`
+5. **Update profileFormSync**: Map new field in `syncApiToFormState` and `syncFormStateToApi`
+
+### Validation
+
+- **Client-side**: Form validation in profile components (see `Client/packages/features/profile/components/`)
+- **Server-side**: Field validation in write pipeline; database constraints enforce nullability and types
+
+## Common Pitfalls
+
+1. **Forgetting to sync both directions**: When adding a field, update both `syncApiToFormState` AND `syncFormStateToApi`
+2. **Type mismatches**: Client sends string, server expects number (or vice versa)
+3. **Missing upsert logic**: Always check if related model exists before creating new one
+4. **Stale metadata**: Remember to set `user.has_preferences = True` after successful write
+5. **Lost fields on partial updates**: Server must merge partial updates, not replace entire preference set
+
+## Cross-References
+
+- **Database models**: `Server/app/models/user/*.py`
+- **Write pipeline**: `Server/app/services/aggregation/preferences_aggregation_write.py`
+- **Client types**: `Client/packages/features/search/types/api.ts`
+- **Form sync**: `Client/packages/features/profile/utils/profileFormSync.ts`
+- **Profile UI**: `Client/packages/features/profile/components/`
+- **SQLAlchemy patterns**: `.cursor/rules/backend/sqlalchemy-patterns.mdc`
+- **Database constraints**: `.cursor/rules/backend/database.mdc`
+
+## Migration Note
+
+Per `.cursor/rules/backend/database.mdc`, **do not create or run database migrations**. Schema changes require separate migration process outside of normal development workflow.

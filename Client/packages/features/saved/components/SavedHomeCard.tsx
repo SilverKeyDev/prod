@@ -6,7 +6,6 @@ import { ConnectedCardHeartSave } from "packages/ui/components/button/ConnectedC
 import { Box } from "packages/ui/components/primitives";
 
 import { PropertyCard } from "@/components/cards";
-import { CardViewDetailsButton } from "@/components/cards/base/index.web";
 
 export type SavedHomeCardProps = {
   home: SavedHome;
@@ -20,7 +19,9 @@ function toCardProperty(home: SavedHome) {
     id: home.home_id,
     address: home.address ?? home.description ?? "",
     price:
-      typeof home.price === "string" || typeof home.price === "number" ? String(home.price) : "",
+      typeof home.price === "string" || typeof home.price === "number"
+        ? String(home.price)
+        : "",
     bedrooms: home.bedrooms ?? 0,
     bathrooms: home.bathrooms ?? 0,
     sqft: home.sqft ?? 0,
@@ -31,15 +32,19 @@ function toCardProperty(home: SavedHome) {
 }
 
 /**
- * Saved home card for web: matches the exact implementation used on the Saved page —
- * PropertyCard with image, compare checkbox (top-left), heart save (top-right),
- * Unlock button below.
+ * Saved home card for web: PropertyCard with image, compare checkbox (top-left),
+ * heart save (top-right). Clicking the card navigates to property details.
  */
-export function SavedHomeCard({ home, isSelected, onToggleCompare, onUnlock }: SavedHomeCardProps) {
+export function SavedHomeCard({
+  home,
+  isSelected,
+  onToggleCompare,
+  onUnlock,
+}: SavedHomeCardProps) {
   const address =
     typeof home.address === "string" || typeof home.address === "number"
       ? home.address.toString()
-      : (home.description ?? "[Invalid address]");
+      : home.description ?? "[Invalid address]";
   const price =
     typeof home.price === "string" || typeof home.price === "number"
       ? home.price.toString()
@@ -47,7 +52,18 @@ export function SavedHomeCard({ home, isSelected, onToggleCompare, onUnlock }: S
   const property = toCardProperty(home);
 
   return (
-    <Box className="group relative w-full">
+    <Box
+      role="button"
+      tabIndex={0}
+      className="group relative w-full cursor-pointer"
+      onClick={() => onUnlock(home)}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onUnlock(home);
+        }
+      }}
+    >
       <PropertyCard
         id={home.home_id}
         imageUrl={home.image_url}
@@ -69,17 +85,12 @@ export function SavedHomeCard({ home, isSelected, onToggleCompare, onUnlock }: S
               position="top-left"
               size="sm"
             />
-            <ConnectedCardHeartSave property={property} position="top-right" size="sm" />
+            <ConnectedCardHeartSave
+              property={property}
+              position="top-right"
+              size="sm"
+            />
           </>
-        }
-        bottomContent={
-          <CardViewDetailsButton
-            onClick={() => onUnlock(home)}
-            size="sm"
-            variant="unlock"
-            fullWidth
-            text="View"
-          />
         }
       />
     </Box>

@@ -76,7 +76,9 @@ export default function NotInterestedModal({
   };
 
   const canConfirm =
-    selectedReason === "other" ? customReason.trim().length > 0 : selectedReason !== null;
+    selectedReason === "other"
+      ? customReason.trim().length > 0
+      : selectedReason !== null;
 
   return (
     <BaseModal
@@ -124,7 +126,7 @@ export default function NotInterestedModal({
               htmlFor={`not-interested-reason-${reason.id}`}
               className={`flex cursor-pointer items-center rounded-md border p-3 transition-colors ${
                 selectedReason === reason.id
-                  ? "border-primary bg-primary-muted"
+                  ? "border-border bg-primary-muted"
                   : "border-border hover:border-border"
               }`}
             >
@@ -157,7 +159,7 @@ export default function NotInterestedModal({
               value={customReason}
               onChange={(e) => setCustomReason(e.target.value)}
               placeholder={t("why_not.reason_placeholder")}
-              className="border-border focus:border-primary w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-neutral-400"
+              className="border-border focus:border-input-variant-focus-border w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-neutral-400"
             />
           </Box>
         )}

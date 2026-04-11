@@ -9,6 +9,7 @@ Docs for the SilverKey frontend: TypeScript/React (web) and React Native (mobile
 | [LINTING.md](./LINTING.md) | How to run lint and platform checks locally; ESLint and SilverKey rules. |
 | [typescript-files.md](./typescript-files.md) | Where `.ts` (non-TSX) files live and their roles by package. |
 | [shared-packages.md](./shared-packages.md) | Exhaustive reference for all shared packages under `Client/packages/`. |
+| [../OPENAPI_MIGRATION.md](../../OPENAPI_MIGRATION.md) | OpenAPI 3.1.0 type system: single source of truth in `openapi.yaml`, auto-generated types, migration guide. See also `.cursor/rules/shared/openapi-types.mdc`. |
 | [react-vs-react-native-packages.md](./react-vs-react-native-packages.md) | React (web) vs React Native: extensions (`.web` / `.native`), APIs, enforcement. |
 | [shared-ui-package.md](./shared-ui-package.md) | Option 2: shared `packages/ui` for cross-platform primitives (doc only). |
 | [thin-app-architecture.md](./thin-app-architecture.md) | Thin App (Fat Packages): apps as composition layer only; what lives in apps vs packages. |

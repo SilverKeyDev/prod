@@ -1,0 +1,42 @@
+type: object
+required:
+  - page
+  - per_page
+  - total
+  - total_pages
+properties:
+  page:
+    type: integer
+    minimum: 1
+    description: Current page number (1-indexed)
+    example: 1
+  per_page:
+    type: integer
+    minimum: 1
+    maximum: 100
+    description: Items per page
+    example: 20
+  total:
+    type: integer
+    minimum: 0
+    description: Total number of items
+    example: 145
+  total_pages:
+    type: integer
+    minimum: 0
+    description: Total number of pages
+    example: 8
+  has_next:
+    type: boolean
+    description: True if there are more pages
+  has_prev:
+    type: boolean
+    description: True if there are previous pages
+  next_page:
+    type: integer
+    nullable: true
+    description: Next page number, null if on last page
+  prev_page:
+    type: integer
+    nullable: true
+    description: Previous page number, null if on first page

@@ -1,0 +1,9 @@
+type: object
+required:
+  - method
+  - minutes
+properties:
+  method:
+    type: string
+  minutes:
+    type: integer

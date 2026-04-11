@@ -14,8 +14,11 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
+  test:
+    uses: ./.github/workflows/test.yml
+
   build-and-deploy:
-    needs: [lint]
+    needs: [lint, test]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -63,7 +66,7 @@ jobs:
           perplexity_json="$(fetch_json perplexity)"
           plaid_json="$(fetch_json plaid)"
           serp_json="$(fetch_json serp)"
-          rapidapi_json="$(fetch_json rapidapi)"
+          slipstream_json="$(fetch_json slipstream)"
           skyslope_json="$(fetch_json skyslope)"
 
           export_if_present () {
@@ -102,7 +105,9 @@ jobs:
           export_if_present "$plaid_json" "VITE_PLAID_CLIENT_ID" "VITE_PLAID_CLIENT_ID"
 
           export_if_present "$serp_json" "SERP_API" "SERP_API"
-          export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
+          export_if_present "$slipstream_json" "SLIPSTREAM_PRIVATE" "SLIPSTREAM_PRIVATE"
+          export_if_present "$slipstream_json" "SLIPSTREAM_PUBLIC" "SLIPSTREAM_PUBLIC"
+          export_if_present "$slipstream_json" "SLIPSTREAM_LIC_KEY" "SLIPSTREAM_LIC_KEY"
           export_if_present "$skyslope_json" "SKYSLOPE_ACCESS_KEY" "SKYSLOPE_ACCESS_KEY"
           export_if_present "$skyslope_json" "SKYSLOPE_SECRET" "SKYSLOPE_SECRET"
 
@@ -184,7 +189,9 @@ jobs:
           PLAID_SECRET: ${{ env.PLAID_SECRET }}
           VITE_PLAID_CLIENT_ID: ${{ env.VITE_PLAID_CLIENT_ID }}
           SERP_API: ${{ env.SERP_API }}
-          RAPIDAPI_KEY: ${{ env.RAPIDAPI_KEY }}
+          SLIPSTREAM_PRIVATE: ${{ env.SLIPSTREAM_PRIVATE }}
+          SLIPSTREAM_PUBLIC: ${{ env.SLIPSTREAM_PUBLIC }}
+          SLIPSTREAM_LIC_KEY: ${{ env.SLIPSTREAM_LIC_KEY }}
           SKYSLOPE_ACCESS_KEY: ${{ env.SKYSLOPE_ACCESS_KEY }}
           SKYSLOPE_SECRET: ${{ env.SKYSLOPE_SECRET }}
         with:
@@ -198,7 +205,7 @@ jobs:
             GOOGLE_MAPS_API_KEY,GOOGLE_CALENDAR_SECRET,GOOGLE_CLIENT_ID,
             CENSUS_API_KEY,MAPBOX_API_KEY,OPENAI_KEY,PERPLEXITY_API_KEY,
             PLAID_SANDBOX_KEY,PLAID_SECRET,VITE_PLAID_CLIENT_ID,
-            SERP_API,RAPIDAPI_KEY,
+            SERP_API,SLIPSTREAM_PRIVATE,SLIPSTREAM_PUBLIC,SLIPSTREAM_LIC_KEY,
             SKYSLOPE_ACCESS_KEY,SKYSLOPE_SECRET
           script: |
             set -euo pipefail
@@ -334,7 +341,9 @@ jobs:
               -e PLAID_SECRET="${PLAID_SECRET}" \
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
-              -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
+              -e SLIPSTREAM_PRIVATE="${SLIPSTREAM_PRIVATE}" \
+              -e SLIPSTREAM_PUBLIC="${SLIPSTREAM_PUBLIC}" \
+              -e SLIPSTREAM_LIC_KEY="${SLIPSTREAM_LIC_KEY}" \
               -e SKYSLOPE_ACCESS_KEY="${SKYSLOPE_ACCESS_KEY}" \
               -e SKYSLOPE_SECRET="${SKYSLOPE_SECRET}" \
               "$IMAGE" >/dev/null
@@ -394,7 +403,9 @@ jobs:
               -e PLAID_SECRET="${PLAID_SECRET}" \
               -e VITE_PLAID_CLIENT_ID="${VITE_PLAID_CLIENT_ID}" \
               -e SERP_API="${SERP_API}" \
-              -e RAPIDAPI_KEY="${RAPIDAPI_KEY}" \
+              -e SLIPSTREAM_PRIVATE="${SLIPSTREAM_PRIVATE}" \
+              -e SLIPSTREAM_PUBLIC="${SLIPSTREAM_PUBLIC}" \
+              -e SLIPSTREAM_LIC_KEY="${SLIPSTREAM_LIC_KEY}" \
               -e SKYSLOPE_ACCESS_KEY="${SKYSLOPE_ACCESS_KEY}" \
               -e SKYSLOPE_SECRET="${SKYSLOPE_SECRET}" \
               "$IMAGE" \

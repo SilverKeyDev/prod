@@ -1,0 +1,7 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      revoked:
+        type: boolean
+        description: Whether OAuth token was successfully revoked

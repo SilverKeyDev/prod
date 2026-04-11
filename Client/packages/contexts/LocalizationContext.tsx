@@ -1,4 +1,12 @@
-import React, { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { dateParseISO } from "packages/utils/date";
 import { getDocument as _getDocument } from "packages/utils/platform";
@@ -25,13 +33,21 @@ export type LocalizationContextType = {
 
   // Translation utilities (non-state)
   t: (key: string, params?: Record<string, unknown>) => string;
-  formatDate: (date: Date | string, options?: Intl.DateTimeFormatOptions) => string;
-  formatTime: (date: Date | string, options?: Intl.DateTimeFormatOptions) => string;
+  formatDate: (
+    date: Date | string,
+    options?: Intl.DateTimeFormatOptions,
+  ) => string;
+  formatTime: (
+    date: Date | string,
+    options?: Intl.DateTimeFormatOptions,
+  ) => string;
   formatNumber: (number: number, options?: Intl.NumberFormatOptions) => string;
   formatCurrency: (amount: number, currency?: string) => string;
 };
 
-const LocalizationContext = createContext<LocalizationContextType | undefined>(undefined);
+const LocalizationContext = createContext<LocalizationContextType | undefined>(
+  undefined,
+);
 
 export type LocalizationProviderProps = {
   children: ReactNode;
@@ -58,10 +74,13 @@ const defaultConfig: LocaleConfig = {
 import { TRANSLATIONS } from "./translations";
 
 const translate = (key: string, params?: Record<string, unknown>): string => {
-  const translation = TRANSLATIONS[key] ?? key;
+  const raw = TRANSLATIONS[key];
+  const translation =
+    raw ?? (params?.defaultValue as string | undefined) ?? key;
 
   if (params) {
     return translation.replace(/\{\{(\w+)\}\}/g, (_match, param) => {
+      if (param === "defaultValue") return _match;
       return String(params[param] ?? _match);
     });
   }
@@ -69,7 +88,10 @@ const translate = (key: string, params?: Record<string, unknown>): string => {
   return translation;
 };
 
-export function LocalizationProvider({ children, initialConfig }: LocalizationProviderProps) {
+export function LocalizationProvider({
+  children,
+  initialConfig,
+}: LocalizationProviderProps) {
   const [config] = useState<LocaleConfig>({
     ...defaultConfig,
     ...initialConfig,
@@ -81,62 +103,86 @@ export function LocalizationProvider({ children, initialConfig }: LocalizationPr
     if (doc?.documentElement) doc.documentElement.lang = "en";
   }, []);
 
-  const t = (key: string, params?: Record<string, unknown>): string => {
-    return translate(key, params);
-  };
+  const t = useCallback(
+    (key: string, params?: Record<string, unknown>): string => {
+      return translate(key, params);
+    },
+    [],
+  );
 
-  const formatDate = (date: Date | string, options?: Intl.DateTimeFormatOptions): string => {
-    const dateObj = typeof date === "string" ? dateParseISO(date).toDate() : date;
-    const defaultOptions: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    };
+  const formatDate = useCallback(
+    (date: Date | string, options?: Intl.DateTimeFormatOptions): string => {
+      const dateObj =
+        typeof date === "string" ? dateParseISO(date).toDate() : date;
+      const defaultOptions: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      };
 
-    return new Intl.DateTimeFormat(config.locale, {
-      ...defaultOptions,
-      ...options,
-    }).format(dateObj);
-  };
+      return new Intl.DateTimeFormat(config.locale, {
+        ...defaultOptions,
+        ...options,
+      }).format(dateObj);
+    },
+    [config.locale],
+  );
 
-  const formatTime = (date: Date | string, options?: Intl.DateTimeFormatOptions): string => {
-    const dateObj = typeof date === "string" ? dateParseISO(date).toDate() : date;
-    const defaultOptions: Intl.DateTimeFormatOptions = {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    };
+  const formatTime = useCallback(
+    (date: Date | string, options?: Intl.DateTimeFormatOptions): string => {
+      const dateObj =
+        typeof date === "string" ? dateParseISO(date).toDate() : date;
+      const defaultOptions: Intl.DateTimeFormatOptions = {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      };
 
-    return new Intl.DateTimeFormat(config.locale, {
-      ...defaultOptions,
-      ...options,
-    }).format(dateObj);
-  };
+      return new Intl.DateTimeFormat(config.locale, {
+        ...defaultOptions,
+        ...options,
+      }).format(dateObj);
+    },
+    [config.locale],
+  );
 
-  const formatNumber = (number: number, options?: Intl.NumberFormatOptions): string => {
-    const defaultOptions = { ...config.numberFormat, ...options };
-    return new Intl.NumberFormat(config.locale, defaultOptions).format(number);
-  };
+  const formatNumber = useCallback(
+    (number: number, options?: Intl.NumberFormatOptions): string => {
+      const defaultOptions = { ...config.numberFormat, ...options };
+      return new Intl.NumberFormat(config.locale, defaultOptions).format(
+        number,
+      );
+    },
+    [config.locale, config.numberFormat],
+  );
 
-  const formatCurrency = (amount: number, currency?: string): string => {
-    const options = {
-      ...config.currencyFormat,
-      currency: currency || config.currencyFormat.currency,
-    };
-    return new Intl.NumberFormat(config.locale, options).format(amount);
-  };
+  const formatCurrency = useCallback(
+    (amount: number, currency?: string): string => {
+      const options = {
+        ...config.currencyFormat,
+        currency: currency || config.currencyFormat.currency,
+      };
+      return new Intl.NumberFormat(config.locale, options).format(amount);
+    },
+    [config.locale, config.currencyFormat],
+  );
 
-  const value: LocalizationContextType = {
-    config,
-    t,
-    formatDate,
-    formatTime,
-    formatNumber,
-    formatCurrency,
-  };
+  const value = useMemo<LocalizationContextType>(
+    () => ({
+      config,
+      t,
+      formatDate,
+      formatTime,
+      formatNumber,
+      formatCurrency,
+    }),
+    [config, t, formatDate, formatTime, formatNumber, formatCurrency],
+  );
 
   return (
-    <LocalizationContext.Provider value={value}>{children ?? null}</LocalizationContext.Provider>
+    <LocalizationContext.Provider value={value}>
+      {children ?? null}
+    </LocalizationContext.Provider>
   );
 }
 
@@ -144,7 +190,9 @@ export function LocalizationProvider({ children, initialConfig }: LocalizationPr
 export function useLocalization() {
   const context = useContext(LocalizationContext);
   if (!context) {
-    throw new Error("useLocalization must be used within a LocalizationProvider");
+    throw new Error(
+      "useLocalization must be used within a LocalizationProvider",
+    );
   }
   return context;
 }

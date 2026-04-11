@@ -29,7 +29,7 @@ const ExternalLinkIcon = () => (
   </svg>
 );
 const headerButtonClass =
-  "text-white hover:bg-primary-muted rounded-lg p-2 transition-colors duration-200";
+  "text-text-secondary hover:bg-accent-muted hover:text-text-primary rounded-md p-2 transition-colors duration-200";
 export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
   title,
   onDownload,
@@ -37,15 +37,16 @@ export const PdfModalHeader: React.FC<PdfModalHeaderProps> = ({
   onShare,
   onClose,
 }) => (
-  <Box
-    className="from-primary to-primary-hover flex items-center justify-between bg-gradient-to-r px-4 py-3"
-    style={{ borderRadius: "24px 24px 0 0" }}
-  >
+  <Box className="border-border bg-background-surface flex items-center justify-between border-b px-4 py-3">
     <Box className="gap-responsive-sm flex min-w-0 flex-1 items-center">
-      <Box className="flex-shrink-0 text-white" style={{ filter: "brightness(0) invert(1)" }}>
+      <Box className="flex-shrink-0">
         <MiniLogo className="mobile-icon-lg" />
       </Box>
-      <Title size="lg" as="h2" className="min-w-0 truncate font-semibold text-white">
+      <Title
+        size="lg"
+        as="h2"
+        className="text-text-primary min-w-0 truncate font-semibold"
+      >
         {title}
       </Title>
     </Box>

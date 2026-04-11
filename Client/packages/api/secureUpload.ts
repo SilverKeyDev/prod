@@ -1,17 +1,23 @@
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
+
 import { apiRequest, apiUpload } from "packages/services/http/compatibility";
+import type { components } from "packages/types/api.generated";
 import { createBlob, getDocument } from "packages/utils/platform";
 
-// Types for secure upload API
-export type UploadResponse = {
-  success: boolean;
-  file_id?: string;
-  file_url?: string;
-  filename?: string;
-  file_size?: number;
-  content_type?: string;
-  message?: string;
-  error?: string;
-};
+// Re-export type from generated schema
+export type UploadResponse = components["schemas"]["UploadResponse"];
 
 /**
  * Secure Upload API client using centralized utilities
@@ -20,7 +26,10 @@ export const secureUploadApi = {
   /**
    * Upload a document file
    */
-  uploadDocument: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
+  uploadDocument: (
+    file: File,
+    metadata?: Record<string, unknown>,
+  ): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("file", file);
     if (metadata) {
@@ -32,7 +41,10 @@ export const secureUploadApi = {
   /**
    * Upload an image file
    */
-  uploadImage: (file: File, metadata?: Record<string, unknown>): Promise<UploadResponse> => {
+  uploadImage: (
+    file: File,
+    metadata?: Record<string, unknown>,
+  ): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("file", file);
     if (metadata) {
@@ -73,8 +85,13 @@ export const secureUploadApi = {
   /**
    * Delete a document by ID
    */
-  deleteDocument: (docId: string): Promise<{ success: boolean; error?: string }> =>
-    apiRequest<{ success: boolean; error?: string }>(`/api/v1/documents/${docId}`, {
-      method: "DELETE",
-    }),
+  deleteDocument: (
+    docId: string,
+  ): Promise<{ success: boolean; error?: string }> =>
+    apiRequest<{ success: boolean; error?: string }>(
+      `/api/v1/documents/${docId}`,
+      {
+        method: "DELETE",
+      },
+    ),
 };

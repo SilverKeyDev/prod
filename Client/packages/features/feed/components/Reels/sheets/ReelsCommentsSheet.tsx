@@ -67,7 +67,11 @@ export function ReelsCommentsSheet({
   }, [draft, onAddComment]);
   return (
     <Transition show={isOpen} as={Box}>
-      <AccessibleDialog onClose={onClose} className="relative z-50" label="Comments">
+      <AccessibleDialog
+        onClose={onClose}
+        className="z-modal relative"
+        label="Comments"
+      >
         {}
         <Transition.Child
           enter="ease-out duration-200"
@@ -77,7 +81,11 @@ export function ReelsCommentsSheet({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Box className="bg-overlay-backdrop fixed inset-0" aria-hidden onClick={onClose} />
+          <Box
+            className="bg-overlay-backdrop fixed inset-0"
+            aria-hidden
+            onClick={onClose}
+          />
         </Transition.Child>
         {}
         <Box className="pointer-events-none fixed inset-0 flex flex-row items-end justify-center p-0">
@@ -94,16 +102,23 @@ export function ReelsCommentsSheet({
               className="bg-background-surface pointer-events-auto flex min-h-0 w-full flex-[0.75] flex-row flex-col rounded-t-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header — Instagram: "Comments" with top drag handle */}
+              {/* Header - Instagram: "Comments" with top drag handle */}
               <Box className="border-border flex shrink-0 flex-row flex-col items-center border-b pt-2">
-                <Box className="bg-border mb-2 h-1 w-10 rounded-full" aria-hidden />
+                <Box
+                  className="bg-border mb-2 h-1 w-10 rounded-full"
+                  aria-hidden
+                />
                 <Box className="flex w-full flex-row items-center justify-between gap-2 px-4 pb-3">
                   <Box className="w-9 shrink-0" aria-hidden />
                   <Title size="sm" as="h2" className="flex-1 text-center">
                     Comments
                   </Title>
                   <Box className="flex w-9 shrink-0 flex-row justify-end">
-                    <CloseButton onClick={onClose} size="sm" label="Close comments" />
+                    <CloseButton
+                      onClick={onClose}
+                      size="sm"
+                      label="Close comments"
+                    />
                   </Box>
                 </Box>
               </Box>
@@ -122,7 +137,10 @@ export function ReelsCommentsSheet({
                 ) : (
                   <ul className="divide-border divide-y">
                     {comments.map((comment) => (
-                      <li key={comment.id} className="flex flex-row gap-3 px-4 py-3">
+                      <li
+                        key={comment.id}
+                        className="flex flex-row gap-3 px-4 py-3"
+                      >
                         <Box className="shrink-0">
                           <Image
                             src={comment.user.avatarUrl ?? DEFAULT_AVATAR_IMAGE}
@@ -131,16 +149,32 @@ export function ReelsCommentsSheet({
                           />
                         </Box>
                         <Box className="min-w-0 flex-1">
-                          <BodyText as="p" size="sm" className="text-text-primary">
-                            <BodyText as="span" size="sm" className="font-semibold">
+                          <BodyText
+                            as="p"
+                            size="sm"
+                            className="text-text-primary"
+                          >
+                            <BodyText
+                              as="span"
+                              size="sm"
+                              className="font-semibold"
+                            >
                               {comment.user.name}
                             </BodyText>{" "}
-                            <BodyText as="span" size="sm" className="font-normal">
+                            <BodyText
+                              as="span"
+                              size="sm"
+                              className="font-normal"
+                            >
                               {comment.text}
                             </BodyText>
                           </BodyText>
                           <Box className="mt-1 flex flex-row items-center gap-4">
-                            <BodyText as="span" size="xs" className="text-text-secondary">
+                            <BodyText
+                              as="span"
+                              size="xs"
+                              className="text-text-secondary"
+                            >
                               {formatCommentTime(comment.createdAt)}
                             </BodyText>
                             <Button
@@ -190,7 +224,7 @@ export function ReelsCommentsSheet({
                 )}
               </Box>
 
-              {/* Bottom input bar — Instagram: avatar + input + Post */}
+              {/* Bottom input bar - Instagram: avatar + input + Post */}
               {item && (
                 <Box className="border-border flex shrink-0 flex-row items-center gap-2 border-t px-4 py-3">
                   <Image

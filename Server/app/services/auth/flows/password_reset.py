@@ -4,7 +4,7 @@ Password reset flow helper - ensures Cognito account exists for users.
 
 import secrets
 import string
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import current_app
 
@@ -119,7 +119,7 @@ def ensure_cognito_account_for_user(email: str) -> tuple[str | None, str | None,
         cognito_id = result["user_sub"]
         try:
             user.cognito_id = cognito_id
-            user.updated_at = datetime.utcnow()
+            user.updated_at = datetime.now(timezone.utc)
             db.session.commit()
 
             current_app.logger.info(

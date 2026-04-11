@@ -1,19 +1,23 @@
-import type { ReactNode } from "react";
+import { lazy, type ReactNode, Suspense } from "react";
 
 import { useIsMobile } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
 import AgentPage from "@/pages/AgentPage";
-import DashboardPage from "@/pages/DashboardPage";
-import ProfilePage from "@/pages/ProfilePage";
-import SavedHomes from "@/pages/SavedPage";
-import SearchPage from "@/pages/SearchPage";
 
 import { useDashboardRoute } from "./useDashboardRoute";
 
+// Lazy-load heavy routes; `AgentPage` is static to avoid a separate dev-server fetch for messaging.
+const SearchPage = lazy(() => import("@/pages/SearchPage"));
+const SavedHomes = lazy(() => import("@/pages/SavedPage"));
+const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
+
 type DashboardContentProps = {
-  setMobileHeaderActions: React.Dispatch<React.SetStateAction<ReactNode | null>>;
+  setMobileHeaderActions: React.Dispatch<
+    React.SetStateAction<ReactNode | null>
+  >;
   searchPageRef: React.RefObject<{
     triggerSearch: () => Promise<void>;
   }>;
@@ -32,7 +36,8 @@ export function DashboardContent({
 
   const { activeKey, isSearch, isMessaging, widthPercent } = route;
   const contentTopMargin = route.isDashboard || route.isProfile;
-  const contentBottomMargin = route.isDashboard || route.isProfile || route.isSaved;
+  const contentBottomMargin =
+    route.isDashboard || route.isProfile || route.isSaved;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -45,7 +50,9 @@ export function DashboardContent({
     ? searchHeightClass
     : isMessaging
       ? "relative mx-0 flex max-h-full min-h-0 w-full flex-1 flex-col overflow-hidden"
-      : `mx-auto ${MOBILE_SIDE_PX} md:px-0 ${contentTopMargin ? "pt-4 md:pt-8" : ""} ${contentBottomMargin ? "pb-4 sm:pb-6 md:pb-8" : ""}`;
+      : `mx-auto ${MOBILE_SIDE_PX} md:px-0 ${
+          contentTopMargin ? "pt-4 md:pt-8" : ""
+        } ${contentBottomMargin ? "pb-4 sm:pb-6 md:pb-8" : ""}`;
 
   const fullWidth = isSearch || isMessaging;
   const style = fullWidth
@@ -56,29 +63,45 @@ export function DashboardContent({
         "--max-width-desktop": `${widthPercent}`,
       } as React.CSSProperties & { "--max-width-desktop": string });
 
-  const content =
-    activeKey === "search" ? (
-      <PageErrorBoundary key="search" pageLabel="Search">
-        <SearchPage setMobileHeaderActions={setMobileHeaderActions} searchRef={searchPageRef} />
-      </PageErrorBoundary>
-    ) : activeKey === "profile" ? (
-      <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />
-    ) : activeKey === "saved" ? (
-      <PageErrorBoundary key="saved" pageLabel="Saved">
-        <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
-      </PageErrorBoundary>
-    ) : activeKey === "messaging" ? (
-      <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
-    ) : activeKey === "dashboard" ? (
-      <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
-    ) : null;
-
-  // When activeKey is null (e.g. brief match lag), show placeholder so main area is never blank.
-  const displayContent = content ?? (
+  // Loading fallback for lazy-loaded components
+  const LoadingFallback = (
     <Box className="flex min-h-[200px] items-center justify-center text-sm text-text-secondary">
       Loading…
     </Box>
   );
+
+  const content =
+    activeKey === "search" ? (
+      <PageErrorBoundary key="search" pageLabel="Search">
+        <Suspense fallback={LoadingFallback}>
+          <SearchPage
+            setMobileHeaderActions={setMobileHeaderActions}
+            searchRef={searchPageRef}
+          />
+        </Suspense>
+      </PageErrorBoundary>
+    ) : activeKey === "profile" ? (
+      <Suspense fallback={LoadingFallback}>
+        <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />
+      </Suspense>
+    ) : activeKey === "saved" ? (
+      <PageErrorBoundary key="saved" pageLabel="Saved">
+        <Suspense fallback={LoadingFallback}>
+          <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
+        </Suspense>
+      </PageErrorBoundary>
+    ) : activeKey === "messaging" ? (
+      <PageErrorBoundary key="messaging" pageLabel="Messaging">
+        <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
+      </PageErrorBoundary>
+    ) : activeKey === "dashboard" ? (
+      <Suspense fallback={LoadingFallback}>
+        <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
+      </Suspense>
+    ) : null;
+
+  // When activeKey is null (e.g. brief match lag), show placeholder so main area is never blank.
+  const displayContent = content ?? LoadingFallback;
 
   // Key by pathname so content remounts when navigating (e.g. from search to saved), avoiding stale UI.
   return (

@@ -1,0 +1,16 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      query:
+        type: object
+        description: "Request parameters used for the API call"
+        additionalProperties: true
+      data:
+        type: object
+        description: "Property comparables data from Slipstream API"
+        nullable: true
+        additionalProperties: true
+      source:
+        type: string
+        enum: ["slipstream_gamls"]

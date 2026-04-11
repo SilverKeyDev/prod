@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
+import { useAgentChats } from "packages/features/messaging";
 import type { AgentNote, DecisionLogEntry } from "packages/schemas/agent";
 import SectionCard from "packages/ui/components/cards/SectionCard";
 import { Box } from "packages/ui/components/primitives";
@@ -14,7 +14,11 @@ type CommunicationLogProps = {
   decisions: DecisionLogEntry[];
   notes: AgentNote[];
 };
-const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions, notes }) => {
+const CommunicationLog: React.FC<CommunicationLogProps> = ({
+  clientId,
+  decisions,
+  notes,
+}) => {
   const { conversations } = useAgentChats(clientId);
   const conversation = conversations.find((c) => c.client_id === clientId);
   const formatDate = (dateString: string) => {
@@ -43,7 +47,9 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
       content: n.content,
       context: undefined,
     })),
-  ].sort((a, b) => dateParseISO(b.date).valueOf() - dateParseISO(a.date).valueOf());
+  ].sort(
+    (a, b) => dateParseISO(b.date).valueOf() - dateParseISO(a.date).valueOf(),
+  );
   return (
     <SectionCard title="Communication Log" iconName="message-square">
       <Box className="flex flex-col space-y-6">
@@ -51,7 +57,11 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
         {conversation && (
           <Box className="border-border bg-background-surface rounded-lg border p-4">
             <Box className="mb-2 flex items-center justify-between">
-              <Title as="h3" size="md" className="text-text-primary font-semibold">
+              <Title
+                as="h3"
+                size="md"
+                className="text-text-primary font-semibold"
+              >
                 Messages
               </Title>
               <BodyText as="span" size="sm" className="text-text-secondary">
@@ -61,7 +71,11 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
               </BodyText>
             </Box>
             {conversation.last_message && (
-              <BodyText as="p" size="sm" className="text-text-secondary line-clamp-2">
+              <BodyText
+                as="p"
+                size="sm"
+                className="text-text-secondary line-clamp-2"
+              >
                 {conversation.last_message}
               </BodyText>
             )}
@@ -70,7 +84,11 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
 
         {/* Decisions and Notes */}
         <Box>
-          <Title as="h3" size="md" className="text-text-primary mb-4 font-semibold">
+          <Title
+            as="h3"
+            size="md"
+            className="text-text-primary mb-4 font-semibold"
+          >
             Decisions & Notes
           </Title>
           {allItems.length === 0 ? (
@@ -88,7 +106,10 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
                 >
                   <Box className="mt-1 flex-shrink-0">
                     {item.type === "decision" ? (
-                      <Icon name="check-circle" className="text-primary h-5 w-5" />
+                      <Icon
+                        name="check-circle"
+                        className="text-primary h-5 w-5"
+                      />
                     ) : (
                       <Icon name="file-text" className="text-accent h-5 w-5" />
                     )}
@@ -102,15 +123,27 @@ const CommunicationLog: React.FC<CommunicationLogProps> = ({ clientId, decisions
                       >
                         {item.type === "decision" ? "Decision" : "Note"}
                       </BodyText>
-                      <BodyText as="span" size="xs" className="text-text-disabled">
+                      <BodyText
+                        as="span"
+                        size="xs"
+                        className="text-text-disabled"
+                      >
                         {formatDate(item.date)}
                       </BodyText>
                     </Box>
-                    <BodyText as="p" size="sm" className="text-text-primary mb-1">
+                    <BodyText
+                      as="p"
+                      size="sm"
+                      className="text-text-primary mb-1"
+                    >
                       {item.content}
                     </BodyText>
                     {item.context && (
-                      <BodyText as="p" size="xs" className="text-text-secondary italic">
+                      <BodyText
+                        as="p"
+                        size="xs"
+                        className="text-text-secondary italic"
+                      >
                         {item.context}
                       </BodyText>
                     )}

@@ -24,7 +24,7 @@ export const StyledImage: React.FC<StyledImageProps> = ({
   alt,
   variant = "professional",
   className = "",
-  placeholder = "/api/placeholder/400/300",
+  placeholder = "/placeholders/dummy-photo.svg",
   onError,
   loading = "lazy",
   style = {},

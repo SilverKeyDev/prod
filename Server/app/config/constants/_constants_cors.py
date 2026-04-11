@@ -1,11 +1,20 @@
+from ._constants_public_urls import (
+    DEV_FRONTEND_ORIGIN,
+    DEV_FRONTEND_ORIGIN_ALT,
+    DEV_FRONTEND_ORIGIN_LOOPBACK,
+    PUBLIC_PRODUCTION_ORIGIN,
+    PUBLIC_PRODUCTION_ORIGIN_WWW,
+)
+
 PROD_CORS_ORIGINS_DEFAULT = [
-    "https://usesilverkey.com",
-    "https://www.usesilverkey.com",
+    PUBLIC_PRODUCTION_ORIGIN,
+    PUBLIC_PRODUCTION_ORIGIN_WWW,
 ]
 
 DEV_CORS_ORIGINS_DEFAULT = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://usesilverkey.com",
-    "https://www.usesilverkey.com",
+    DEV_FRONTEND_ORIGIN,
+    DEV_FRONTEND_ORIGIN_LOOPBACK,
+    DEV_FRONTEND_ORIGIN_ALT,
+    PUBLIC_PRODUCTION_ORIGIN,
+    PUBLIC_PRODUCTION_ORIGIN_WWW,
 ]

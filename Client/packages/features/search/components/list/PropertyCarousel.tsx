@@ -3,7 +3,10 @@ import { ConnectedCardHeartSave } from "packages/features/search/components/Conn
 import { Box } from "packages/ui/components/primitives";
 
 import { PropertyCard } from "@/components/cards";
-import { CardCarousel, CardHeartSaveWithProps } from "@/components/cards/base/index.web";
+import {
+  CardCarousel,
+  CardHeartSaveWithProps,
+} from "@/components/cards/base/index.web";
 import { BodyText } from "@/components/ui";
 import { useNotInterestedHomesData } from "@/features/search/hooks/data/saved/useNotInterestedHomesData";
 import type { SearchResult } from "@/features/search/types";
@@ -11,6 +14,7 @@ export function PropertyCarousel(props: {
   items: SearchResult[];
   currentPage: number;
   onViewDetails: (p: SearchResult) => void;
+  onNavigateToProperty?: (p: SearchResult) => void;
   onSlideChange?: (index: number) => void;
   cardMinWidth?: number;
   cardGap?: number;
@@ -25,6 +29,7 @@ export function PropertyCarousel(props: {
     items,
     currentPage,
     onViewDetails,
+    onNavigateToProperty,
     onSlideChange,
     infiniteLoop,
     activeTab = "results",
@@ -34,7 +39,8 @@ export function PropertyCarousel(props: {
   } = props;
 
   const { t } = useLocalization();
-  const { markNotInterested, removeNotInterested } = useNotInterestedHomesData();
+  const { markNotInterested, removeNotInterested } =
+    useNotInterestedHomesData();
 
   if (items.length === 0) {
     return (
@@ -53,26 +59,35 @@ export function PropertyCarousel(props: {
     <CardCarousel
       items={items}
       renderItem={(property: SearchResult, _index: number) => {
-        const propertyAddress = typeof property.address === "string" ? property.address : "";
+        const propertyAddress =
+          typeof property.address === "string" ? property.address : "";
 
         return (
           <PropertyCard
             id={property.id}
             imageUrl={property.imageUrl}
             address={
-              typeof property.address === "string" || typeof property.address === "number"
+              typeof property.address === "string" ||
+              typeof property.address === "number"
                 ? property.address.toString()
                 : "[Invalid address]"
             }
             price={
-              typeof property.price === "string" || typeof property.price === "number"
+              typeof property.price === "string" ||
+              typeof property.price === "number"
                 ? property.price.toString()
                 : "[Invalid price]"
             }
             bedrooms={property.bedrooms}
             bathrooms={property.bathrooms}
             sqft={property.sqft}
-            onViewDetails={() => onViewDetails(property)}
+            onClick={() => {
+              if (onNavigateToProperty) {
+                onNavigateToProperty(property);
+              } else {
+                onViewDetails(property);
+              }
+            }}
             cardType="searchpage"
             hideImage={true}
             property={property}
@@ -96,11 +111,16 @@ export function PropertyCarousel(props: {
                 <CardHeartSaveWithProps
                   property={{
                     id: property.id,
-                    address: typeof property.address === "string" ? property.address : undefined,
+                    address:
+                      typeof property.address === "string"
+                        ? property.address
+                        : undefined,
                   }}
                   isSaved={isHomeSaved(
                     property.id,
-                    typeof property.address === "string" ? property.address : undefined
+                    typeof property.address === "string"
+                      ? property.address
+                      : undefined,
                   )}
                   saveHome={async () => saveHome(property)}
                   removeSavedHome={removeSavedHome}
@@ -108,7 +128,11 @@ export function PropertyCarousel(props: {
                   position="top-right"
                 />
               ) : (
-                <ConnectedCardHeartSave property={property} size="sm" position="top-right" />
+                <ConnectedCardHeartSave
+                  property={property}
+                  size="sm"
+                  position="top-right"
+                />
               )
             }
           />

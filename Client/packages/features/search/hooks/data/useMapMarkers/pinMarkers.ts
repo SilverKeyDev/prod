@@ -1,4 +1,5 @@
 import { addressForMarkerTitle } from "packages/features/search/types/search/address";
+import { searchMapOverlayBaseZIndex } from "packages/features/search/types/search/mapOverlayLayerOrder";
 import { createScorePinElement } from "packages/features/search/types/search/scorePinMarker";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { SearchResult } from "packages/types";
@@ -14,6 +15,7 @@ type PinMarkersOptions = {
     position: { lat: number; lng: number };
     title: string;
     content: HTMLElement;
+    zIndex?: number | null;
   }) => GoogleAdvancedMarkerElement;
   calculatePropertyScore: (property: SearchResult) => number;
   onMarkerClick?: (property: SearchResult) => void;
@@ -23,7 +25,7 @@ type PinMarkersOptions = {
 export async function createPinMarkersBatch(
   data: SearchResult[],
   options: PinMarkersOptions,
-  pinStartIndex = 0
+  pinStartIndex = 0,
 ): Promise<void> {
   const {
     map,
@@ -45,7 +47,8 @@ export async function createPinMarkersBatch(
         : calculatePropertyScore(result);
     let lat = result.lat;
     let lng = result.lng;
-    const hasZeroOrNullCoords = lat == null || lng == null || lat === 0 || lng === 0;
+    const hasZeroOrNullCoords =
+      lat == null || lng == null || lat === 0 || lng === 0;
     if (hasZeroOrNullCoords && result.address) {
       const coords = await geocodeAddress(result.address);
       if (coords) {
@@ -57,11 +60,19 @@ export async function createPinMarkersBatch(
     } else if (hasZeroOrNullCoords) {
       continue;
     }
-    if (typeof lat !== "number" || typeof lng !== "number" || isNaN(lat) || isNaN(lng)) {
+    if (
+      typeof lat !== "number" ||
+      typeof lng !== "number" ||
+      isNaN(lat) ||
+      isNaN(lng)
+    ) {
       continue;
     }
 
-    const pinElement = createScorePinElement(score);
+    const pinElement = createScorePinElement(score, {
+      listingStatus: result.listingStatus,
+      homeStatus: result.homeStatus,
+    });
     pinElement.dataset.markerType = "pin";
 
     try {
@@ -70,6 +81,7 @@ export async function createPinMarkersBatch(
         position: { lat, lng },
         title: addressForMarkerTitle(result.address),
         content: pinElement,
+        zIndex: searchMapOverlayBaseZIndex("homeMarkers"),
       }) as unknown as GoogleAdvancedMarkerElement;
 
       marker.addListener("gmp-click", () => {
@@ -82,13 +94,15 @@ export async function createPinMarkersBatch(
       log.error(
         LOG_CATEGORIES.MAP_RENDERING,
         `Error creating score pin marker for property ${result.id}:`,
-        error
+        error,
       );
     }
   }
 
   if (pinEndIndex < data.length) {
-    requestAnimationFrame(() => createPinMarkersBatch(data, options, pinEndIndex));
+    requestAnimationFrame(() =>
+      createPinMarkersBatch(data, options, pinEndIndex),
+    );
   } else {
     onBatchComplete();
   }

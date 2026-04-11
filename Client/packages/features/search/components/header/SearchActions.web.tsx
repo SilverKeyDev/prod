@@ -7,14 +7,14 @@ import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { Button, CancelButton, IconButton } from "@/components/ui";
 
-import SearchFiltersDropdown from "./SearchFiltersDropdown.web";
+import SearchDisplayDropdown from "./display/SearchDisplayDropdown.web";
+import SearchFiltersDropdown from "./filters/SearchFiltersDropdown.web";
 
 type SearchActionsProps = {
-  /** Called when filters dropdown is closed and preferences were changed (e.g. trigger search) */
-  onPreferencesChanged?: () => void | Promise<void>;
-  onSearchProperties: () => void;
+  /** Preferences / isochrone search (explicit Search control). */
+  onSearchProperties?: () => void;
   onCancelSearch?: () => void;
-  isSearching: boolean;
+  isSearching?: boolean;
   /** When false, Search is disabled and click shows toast to add a location (default true for backward compat) */
   hasLocations?: boolean;
   variant?: "desktop" | "mobile";
@@ -26,18 +26,24 @@ type SearchActionsProps = {
   showReelsButton?: boolean;
   /** Show Map button to switch back from reels - only in reels mode */
   showMapButton?: boolean;
+  selectedClientId?: string | null;
+  onClientChange?: (clientId: string | null) => void;
+  /** Desktop: only Filters / Display / Reels — Search+Cancel rendered beside the location bar */
+  desktopToolsOnly?: boolean;
 };
 export default function SearchActions({
-  onPreferencesChanged,
   onSearchProperties,
   onCancelSearch,
-  isSearching,
+  isSearching = false,
   hasLocations = true,
   variant = "desktop",
   onToggleMode,
   onBeforeSwitchToReels,
   showReelsButton = false,
   showMapButton = false,
+  selectedClientId,
+  onClientChange,
+  desktopToolsOnly = false,
 }: SearchActionsProps) {
   const { t } = useLocalization();
   const showReels = showReelsButton && onToggleMode != null;
@@ -47,21 +53,30 @@ export default function SearchActions({
       showErrorToast(t("search.add_location_to_search"));
       return;
     }
-    onSearchProperties();
+    onSearchProperties?.();
   };
   const btnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
   if (variant === "mobile") {
     return (
-      <Box className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}>
+      <Box
+        className={`flex w-full flex-shrink-0 items-center gap-2 ${HEADER_ROW_HEIGHT}`}
+      >
         <Box className="flex min-w-0 flex-1 items-center gap-2">
-          <SearchFiltersDropdown onPreferencesChanged={onPreferencesChanged} variant="mobile" />
+          <SearchFiltersDropdown
+            variant="mobile"
+            selectedClientId={selectedClientId}
+            onClientChange={onClientChange}
+          />
+          <SearchDisplayDropdown variant="mobile" />
           <Button
             variant="tertiary"
             size="sm"
             loading={isSearching}
             onClick={handleSearchClick}
             disabled={isSearching || !hasLocations}
-            title={!hasLocations ? t("search.add_location_to_search") : undefined}
+            title={
+              !hasLocations ? t("search.add_location_to_search") : undefined
+            }
             iconName={!isSearching ? "search" : undefined}
             className={`touch-friendly min-w-min flex-1 px-4 ${HEADER_ROW_HEIGHT}`}
           >
@@ -105,25 +120,42 @@ export default function SearchActions({
     );
   }
   return (
-    <Box className={`flex flex-shrink-0 flex-nowrap items-center gap-3 ${HEADER_ROW_HEIGHT}`}>
-      <SearchFiltersDropdown onPreferencesChanged={onPreferencesChanged} variant="desktop" />
-      <Button
-        variant="tertiary"
-        size="sm"
-        loading={isSearching}
-        onClick={handleSearchClick}
-        disabled={isSearching || !hasLocations}
-        title={!hasLocations ? t("search.add_location_to_search") : undefined}
-        iconName={!isSearching ? "search" : undefined}
-        className={`min-w-min shrink-0 px-4 ${btnClass}`}
-      >
-        {isSearching ? t("search.searching") : t("search.search")}
-      </Button>
-      {isSearching && onCancelSearch && (
-        <CancelButton onClick={onCancelSearch} size="sm" className={btnClass}>
-          {t("common.cancel")}
-        </CancelButton>
-      )}
+    <Box
+      className={`flex flex-shrink-0 flex-nowrap items-center gap-3 ${HEADER_ROW_HEIGHT}`}
+    >
+      <SearchFiltersDropdown
+        variant="desktop"
+        selectedClientId={selectedClientId}
+        onClientChange={onClientChange}
+      />
+      <SearchDisplayDropdown variant="desktop" />
+      {!desktopToolsOnly ? (
+        <>
+          <Button
+            variant="tertiary"
+            size="sm"
+            loading={isSearching}
+            onClick={handleSearchClick}
+            disabled={isSearching || !hasLocations}
+            title={
+              !hasLocations ? t("search.add_location_to_search") : undefined
+            }
+            iconName={!isSearching ? "search" : undefined}
+            className={btnClass}
+          >
+            {isSearching ? t("search.searching") : t("search.search")}
+          </Button>
+          {isSearching && onCancelSearch ? (
+            <CancelButton
+              onClick={onCancelSearch}
+              size="sm"
+              className={btnClass}
+            >
+              {t("common.cancel")}
+            </CancelButton>
+          ) : null}
+        </>
+      ) : null}
       {showReels && (
         <IconButton
           variant="toolbar"

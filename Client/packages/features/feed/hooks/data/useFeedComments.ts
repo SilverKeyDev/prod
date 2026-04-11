@@ -13,6 +13,7 @@ export function useFeedComments(homeId: string | null, enabled: boolean) {
     queryKey,
     queryFn: () => feedReelApi.getFeedComments(homeId!),
     enabled: Boolean(homeId && enabled),
+    staleTime: 2 * 60 * 1000, // 2 minutes - comments are more dynamic but not real-time
   });
 
   const comments: FeedComment[] = query.data ?? [];

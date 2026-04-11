@@ -6,7 +6,10 @@ export { type ResponsiveState, useIsMobile, useResponsive } from "./responsive";
 export { useFeedGestureTrap } from "../../features/feed/hooks/ui";
 export { useFeedAxisLock } from "../../features/feed/hooks/ui";
 export { useHlsVideo } from "../../features/feed/hooks/ui";
-export { useReelsShortcuts, type UseReelsShortcutsParams } from "../../features/feed/hooks/ui";
+export {
+  useReelsShortcuts,
+  type UseReelsShortcutsParams,
+} from "../../features/feed/hooks/ui";
 export { useReelsCleanup } from "../../features/feed/hooks/ui";
 export {
   useFeedScrollContainer,
@@ -18,8 +21,14 @@ export { useSavedPageEffects } from "../../features/documents/hooks/ui";
 export { useSavedPageModals } from "../../features/documents/hooks/ui";
 
 // Auth
-export { formatTimeRemaining, useSessionTimeout } from "../../features/homeauth/hooks/ui";
-export { useLocalStorage, type UseLocalStorageReturn } from "../../features/homeauth/hooks/ui";
+export {
+  formatTimeRemaining,
+  useSessionTimeout,
+} from "../../features/homeauth/hooks/ui";
+export {
+  useLocalStorage,
+  type UseLocalStorageReturn,
+} from "../../features/homeauth/hooks/ui";
 export {
   checkStepUpRequired,
   useStepUpAuth,
@@ -45,7 +54,10 @@ export { useClientMessagingModals } from "../../features/messaging/hooks/ui/useC
 export { useMessagingModals } from "../../features/messaging/hooks/ui/useMessagingModals";
 
 // Container width
-export { useContainerWidth, type UseContainerWidthOptions } from "./useContainerWidth";
+export {
+  useContainerWidth,
+  type UseContainerWidthOptions,
+} from "./useContainerWidth";
 
 // Clipboard
 export { useSecureClipboardCopy } from "./clipboard";
@@ -57,3 +69,7 @@ export { useWhyRender } from "./core";
 export { useHealthCheck } from "./core";
 export { useModal, type UseModalReturn } from "./core";
 export { useOnceEffect } from "./core";
+
+// Error reporting and logging (architecture: components use hooks, not services directly)
+export { useErrorReporting } from "./useErrorReporting";
+export { useSecureLogger } from "./useSecureLogger";

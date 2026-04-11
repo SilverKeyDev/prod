@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { Icon } from "@ui/icons";
 
@@ -11,33 +11,27 @@ import { Cover, Title } from "@/components/ui";
 import { ComparablesSection } from "@/features/negotiate/components/ComparablesSection";
 import { DebugSection } from "@/features/negotiate/components/DebugSection";
 import { ErrorSection } from "@/features/negotiate/components/ErrorSection";
-import { HomeSelectorSection } from "@/features/negotiate/components/HomeSelectorSection";
 import { LoadingSection } from "@/features/negotiate/components/LoadingSection";
 import { OpeningOfferSection } from "@/features/negotiate/components/OpeningOfferSection";
 import { StrategyDisplaySection } from "@/features/negotiate/components/StrategyDisplaySection";
 import { useNegotiation } from "@/features/negotiate/hooks/data/useNegotiation";
-type FavoriteHome = {
-  user_id: string;
-  address: string;
-  beds: string;
-  baths: string;
-  sqft: string;
-  lot_size: string;
-  price: string;
-  image_url: string;
-  created_at: string;
-  updated_at: string;
-};
+import type { NegotiationInitialHome } from "@/features/negotiate/types/negotiationInitialHome";
+
 type NegotiationModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  initialHome?: FavoriteHome | null;
+  initialHome?: NegotiationInitialHome | null;
 };
-export default function NegotiationModal({ isOpen, onClose, initialHome }: NegotiationModalProps) {
+export default function NegotiationModal({
+  isOpen,
+  onClose,
+  initialHome,
+}: NegotiationModalProps) {
   const { t } = useLocalization();
-  const { selectedHome, strategyData, compsData, isLoading, error, setLoading, setError } =
+  const { strategyData, compsData, isLoading, error, setLoading, setError } =
     useNegotiationStore();
-  const { generateStrategy, cancelGeneration, selectHome, shareStrategyJson } = useNegotiation();
+  const { generateStrategy, cancelGeneration, selectHome, shareStrategyJson } =
+    useNegotiation();
   // Ref for the price element to scroll to
   const priceElementRef = useRef<HTMLDivElement>(null);
   const previousLoadingRef = useRef<boolean>(false);
@@ -45,11 +39,6 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
   const lastGeneratedHomeRef = useRef<string | null>(null);
   // Normalized boolean flag so we never treat `unknown` as a ReactNode
   const hasStrategyData = Boolean(strategyData);
-  const handleGenerate = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    await generateStrategy();
-  }, [setLoading, setError, generateStrategy]);
   // Cancel generation when modal closes
   useEffect(() => {
     if (!isOpen) {
@@ -90,19 +79,21 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
     cancelGeneration,
   ]); // Only depend on address, not the whole object
   // Create handler functions for compatibility
-  const handleHomeSelection = (home: unknown) => {
-    selectHome(home);
-  };
   const handleShareJson = async () => {
     await shareStrategyJson();
   };
   // Extract error message for proper type handling
   const errorMessage: string | null =
-    error && typeof error !== "object" ? (typeof error === "string" ? error : String(error)) : null;
+    error && typeof error !== "object"
+      ? typeof error === "string"
+        ? error
+        : String(error)
+      : null;
   // Auto-scroll to price element when strategy finishes loading
   useEffect(() => {
     // Check if loading just finished (was true, now false)
-    const loadingJustFinished = previousLoadingRef.current === true && isLoading === false;
+    const loadingJustFinished =
+      previousLoadingRef.current === true && isLoading === false;
     if (loadingJustFinished && priceElementRef.current && strategyData) {
       // Small delay to ensure DOM is updated
       setTimeout(() => {
@@ -121,10 +112,18 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
       isOpen={isOpen}
       onClose={onClose}
       showCloseButton
+      maxWidth="80vw"
       headerContent={
         <Box className="flex min-w-0 items-center gap-2">
-          <Icon name="handshake" className="text-text-secondary h-5 w-5 flex-shrink-0" />
-          <Title as="h3" size="sm" className="text-text-primary truncate font-sans font-medium">
+          <Icon
+            name="handshake"
+            className="text-text-secondary h-5 w-5 flex-shrink-0"
+          />
+          <Title
+            as="h3"
+            size="sm"
+            className="text-text-primary truncate font-sans font-medium"
+          >
             {t("negotiation.title")}
           </Title>
         </Box>
@@ -133,19 +132,6 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
       <Box>
         {/* Main Content */}
         <Box>
-          {/* Home selector */}
-          <HomeSelectorSection
-            selectedHome={
-              selectedHome && typeof selectedHome === "object"
-                ? (selectedHome as FavoriteHome)
-                : null
-            }
-            isLoading={isLoading}
-            onHomeSelect={handleHomeSelection}
-            onGenerate={handleGenerate}
-            onCancel={cancelGeneration}
-          />
-
           {/* Loading state */}
           {isLoading && <LoadingSection />}
 
@@ -155,14 +141,20 @@ export default function NegotiationModal({ isOpen, onClose, initialHome }: Negot
           <ComparablesSection compsData={compsData} isLoading={isLoading} />
 
           {/* Recommended Opening Offer - Displayed after comps */}
-          <OpeningOfferSection strategyData={strategyData} priceElementRef={priceElementRef} />
+          <OpeningOfferSection
+            strategyData={strategyData}
+            priceElementRef={priceElementRef}
+          />
 
           {/* Property Comps Debug JSON (fallback) */}
           <DebugSection compsData={compsData} isLoading={isLoading} />
 
           {/* Strategy output - Dynamic display of all AI fields */}
           {hasStrategyData && !isLoading && (
-            <StrategyDisplaySection strategyData={strategyData} onShareJson={handleShareJson} />
+            <StrategyDisplaySection
+              strategyData={strategyData}
+              onShareJson={handleShareJson}
+            />
           )}
         </Box>
       </Box>

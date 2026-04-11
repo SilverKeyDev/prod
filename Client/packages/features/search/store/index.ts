@@ -17,7 +17,7 @@ import { initialState } from "./types";
 
 const withReset = withResettable<ConsolidatedSearchState>(
   baseCreator,
-  createResettableState
+  createResettableState,
 ) as unknown as import("zustand").StateCreator<ConsolidatedSearchState>;
 
 const withPersist = persistSafe<ConsolidatedSearchState>(withReset, {
@@ -42,7 +42,8 @@ const withPersist = persistSafe<ConsolidatedSearchState>(withReset, {
     const pd = persisted as Record<string, unknown>;
     return {
       ...base,
-      searchResults: (pd.searchResults as ConsolidatedSearchState["searchResults"]) ?? [],
+      searchResults:
+        (pd.searchResults as ConsolidatedSearchState["searchResults"]) ?? [],
       totalCount: (pd.totalCount as number) ?? 0,
       hasMore: (pd.hasMore as boolean) ?? false,
       lastSearchQuery: (pd.lastSearchQuery as string) ?? null,
@@ -58,22 +59,24 @@ const withPersist = persistSafe<ConsolidatedSearchState>(withReset, {
 }) as unknown as import("zustand").StateCreator<ConsolidatedSearchState>;
 
 const withDev = withDevtools<ConsolidatedSearchState>("consolidated-search")(
-  withPersist
+  withPersist,
 ) as unknown as import("zustand").StateCreator<ConsolidatedSearchState>;
 
 export const useConsolidatedSearchStore = create<ConsolidatedSearchState>()(
-  subscribeWithSelector(withDev)
+  subscribeWithSelector(withDev),
 );
 
 export function toConsolidatedQueryParams(
   state: Pick<
     ConsolidatedSearchState,
     "searchStage" | "favoriteAddresses" | "currentPage" | "activeTab"
-  >
+  >,
 ) {
   return {
     stage: state.searchStage ?? undefined,
-    favorites: state.favoriteAddresses.length ? state.favoriteAddresses : undefined,
+    favorites: state.favoriteAddresses.length
+      ? state.favoriteAddresses
+      : undefined,
     page: state.currentPage,
     tab: state.activeTab,
   } as const;
@@ -107,10 +110,21 @@ export const selectToasts = (state: ConsolidatedSearchState) => ({
   currentToast: state.toastQueue.find((t) => t.id === state.activeToastId),
 });
 
-export type { ActiveTab, ConsolidatedSearchState, ToastItem, ToastType } from "./types";
+export type {
+  ActiveTab,
+  ConsolidatedSearchState,
+  ToastItem,
+  ToastType,
+} from "./types";
 
 // Search context, view, and filters (legacy slices; prefer useConsolidatedSearchStore for new code)
-export { toQueryParams, useFiltersStore } from "./filters.slice";
+export {
+  type MapRegionSnapshot,
+  type SearchSource,
+  toQueryParams,
+  useFiltersStore,
+  type WebMapCameraSnapshot,
+} from "./filters.slice";
 export {
   type SearchContextAnchor,
   type SearchFilterOverrides,

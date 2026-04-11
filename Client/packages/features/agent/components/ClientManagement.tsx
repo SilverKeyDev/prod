@@ -5,7 +5,8 @@ import { Icon } from "@ui/icons";
 import type { AgentClient } from "packages/config/http/api";
 import { useLocalization } from "packages/contexts";
 import { ClientSearchModal } from "packages/features/agent/components/modals";
-import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
+import { getMessagePreview } from "packages/features/messaging";
+import { useAgentChats } from "packages/features/messaging";
 import MiniLogo from "packages/ui/components/asset/MiniLogo";
 import { Box } from "packages/ui/components/primitives";
 
@@ -27,15 +28,23 @@ export default function ClientManagement({
   const [showSearchModal, setShowSearchModal] = useState(false);
   const { conversations } = useAgentChats();
   // Create a map of client_id -> conversation for quick lookup
-  const conversationMap = new Map(conversations.map((conv) => [conv.client_id, conv]));
+  const conversationMap = new Map(
+    conversations.map((conv) => [conv.client_id, conv]),
+  );
   return (
     <aside
-      className={`${isSidebarExpanded ? "flex translate-x-0" : "hidden -translate-x-full"} flex-col transition-transform duration-300 ease-in-out xl:flex xl:w-80 xl:translate-x-0`}
+      className={`${
+        isSidebarExpanded ? "flex translate-x-0" : "hidden -translate-x-full"
+      } flex-col transition-transform duration-300 ease-in-out xl:flex xl:w-80 xl:translate-x-0`}
     >
       {/* Fixed Header */}
       <Box className="border-border bg-background-surface flex-shrink-0 rounded-t-xl border-b p-3">
         <Box className="mb-2 flex items-center justify-between">
-          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
+          <Title
+            as="h2"
+            size="lg"
+            className="flex items-center gap-2 font-medium text-neutral-800"
+          >
             <MiniLogo size="sm" />
             {t("agent.clients")}
           </Title>
@@ -61,7 +70,10 @@ export default function ClientManagement({
                 label={t("agent.collapse_client_list")}
                 aria-expanded={isSidebarExpanded}
               >
-                <Icon name="chevron-left" className="h-4 w-4 text-neutral-700" />
+                <Icon
+                  name="chevron-left"
+                  className="h-4 w-4 text-neutral-700"
+                />
               </Button>
             )}
           </Box>
@@ -78,7 +90,10 @@ export default function ClientManagement({
           </Box>
         ) : clients.length === 0 ? (
           <Box className="p-3 text-center">
-            <Icon name="message-circle" className="mx-auto mb-3 h-12 w-12 text-neutral-400" />
+            <Icon
+              name="message-circle"
+              className="mx-auto mb-3 h-12 w-12 text-neutral-400"
+            />
             <BodyText as="p" size="sm" className="text-neutral-600">
               {t("agent.no_clients_yet")}
             </BodyText>
@@ -89,6 +104,9 @@ export default function ClientManagement({
         ) : (
           clients.map((client) => {
             const conversation = conversationMap.get(client.id);
+            const messagePreview = conversation?.last_message
+              ? getMessagePreview({ content: conversation.last_message })
+              : null;
             return (
               <Box
                 key={client.id}
@@ -105,27 +123,44 @@ export default function ClientManagement({
                     setIsSidebarExpanded(false);
                   }
                 }}
-                className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${selectedClientId === client.id ? "bg-olive/10 border-l-olive border-l-4" : ""}`}
+                className={`border-border group cursor-pointer border-b p-3 transition-colors hover:bg-neutral-50 ${
+                  selectedClientId === client.id
+                    ? "bg-olive/10 border-l-olive border-l-4"
+                    : ""
+                }`}
               >
                 <Box className="flex items-start gap-3">
                   <Box className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100">
                     <Icon name="user" className="h-5 w-5 text-neutral-600" />
                   </Box>
                   <Box className="min-w-0 flex-1">
-                    <Title as="h3" size="sm" className="mb-1 truncate font-medium text-neutral-800">
+                    <Title
+                      as="h3"
+                      size="sm"
+                      className="mb-1 truncate font-medium text-neutral-800"
+                    >
                       {client.name}
                     </Title>
-                    {conversation?.last_message ? (
-                      <BodyText as="p" className="truncate text-xs text-neutral-600">
-                        {conversation.last_message}
+                    {messagePreview ? (
+                      <BodyText
+                        as="p"
+                        className="truncate text-xs text-neutral-600"
+                      >
+                        {messagePreview}
                       </BodyText>
                     ) : (
-                      <BodyText as="p" className="truncate text-xs text-neutral-600">
+                      <BodyText
+                        as="p"
+                        className="truncate text-xs text-neutral-600"
+                      >
                         {client.email}
                       </BodyText>
                     )}
-                    {client.phone && !conversation?.last_message && (
-                      <BodyText as="p" className="truncate text-xs text-neutral-500">
+                    {client.phone && !messagePreview && (
+                      <BodyText
+                        as="p"
+                        className="truncate text-xs text-neutral-500"
+                      >
                         {client.phone}
                       </BodyText>
                     )}
@@ -138,7 +173,10 @@ export default function ClientManagement({
       </Box>
 
       {/* Search Modal */}
-      <ClientSearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} />
+      <ClientSearchModal
+        isOpen={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+      />
     </aside>
   );
 }

@@ -5,6 +5,7 @@
 import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
 
 import type {
+  FreebusyResponse,
   FreebusyTimeBlock,
   TimeSlot,
   WorkingHours,
@@ -23,11 +24,17 @@ export function getDefaultWorkingHours(): WorkingHours {
 /**
  * Check if a time slot conflicts with any busy blocks
  */
-export function isTimeSlotAvailable(slot: TimeSlot, busyBlocks: FreebusyTimeBlock[]): boolean {
+export function isTimeSlotAvailable(
+  slot: TimeSlot,
+  busyBlocks: FreebusyTimeBlock[],
+): boolean {
   const slotStart = slot.start.getTime();
   const slotEnd = slot.end.getTime();
 
   for (const busy of busyBlocks) {
+    if (busy.start == null || busy.end == null) {
+      continue;
+    }
     const busyStart = dateParseISO(busy.start).valueOf();
     const busyEnd = dateParseISO(busy.end).valueOf();
 
@@ -48,7 +55,7 @@ export function generateTimeSlots(
   startDate: Date,
   endDate: Date,
   slotDurationMinutes: number = 30,
-  workingHours?: WorkingHours
+  workingHours?: WorkingHours,
 ): TimeSlot[] {
   const hours = workingHours || getDefaultWorkingHours();
   const slots: TimeSlot[] = [];
@@ -57,8 +64,16 @@ export function generateTimeSlots(
   const finalDate = dayjs(endDate).endOf("day");
 
   while (currentDate.isSameOrBefore(finalDate)) {
-    const dayStart = currentDate.hour(hours.start).minute(0).second(0).millisecond(0);
-    const dayEnd = currentDate.hour(hours.end).minute(0).second(0).millisecond(0);
+    const dayStart = currentDate
+      .hour(hours.start)
+      .minute(0)
+      .second(0)
+      .millisecond(0);
+    const dayEnd = currentDate
+      .hour(hours.end)
+      .minute(0)
+      .second(0)
+      .millisecond(0);
 
     let slotStart = dayStart;
     while (slotStart.isBefore(dayEnd)) {
@@ -138,19 +153,23 @@ export function formatTimeSlotRange(slot: TimeSlot): string {
  * Get busy blocks from freebusy response
  */
 export function getBusyBlocksFromResponse(
-  freebusyResponse: Record<string, { busy: FreebusyTimeBlock[] }>
+  calendars: FreebusyResponse["calendars"],
 ): FreebusyTimeBlock[] {
   const allBusyBlocks: FreebusyTimeBlock[] = [];
 
-  for (const calendarId in freebusyResponse) {
-    const calendar = freebusyResponse[calendarId];
+  for (const calendarId in calendars) {
+    const calendar = calendars[calendarId];
     if (calendar.busy) {
-      allBusyBlocks.push(...calendar.busy);
+      for (const block of calendar.busy) {
+        if (block.start != null && block.end != null) {
+          allBusyBlocks.push(block);
+        }
+      }
     }
   }
 
   // Sort by start time
   return allBusyBlocks.sort(
-    (a, b) => dateParseISO(a.start).valueOf() - dateParseISO(b.start).valueOf()
+    (a, b) => dateParseISO(a.start).valueOf() - dateParseISO(b.start).valueOf(),
   );
 }

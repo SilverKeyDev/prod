@@ -1,0 +1,20 @@
+type: object
+required:
+  - kind
+  - etag
+  - items
+properties:
+  kind:
+    type: string
+  etag:
+    type: string
+  nextPageToken:
+    type: string
+    nullable: true
+  nextSyncToken:
+    type: string
+    nullable: true
+  items:
+    type: array
+    items:
+      $ref: './GoogleCalendar.yaml'

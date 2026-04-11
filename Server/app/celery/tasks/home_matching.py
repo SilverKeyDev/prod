@@ -31,7 +31,7 @@ def find_best_matches_task(
         )
 
         # Import the home matching function
-        from ...home_matching.config.match import find_best_matches
+        from app.services.search.home_matching.config.match import find_best_matches
 
         # Update progress
         self.update_state(state="PROGRESS", meta={"status": "Finding best matches", "progress": 50})

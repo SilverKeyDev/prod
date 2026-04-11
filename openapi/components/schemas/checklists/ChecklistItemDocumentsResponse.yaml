@@ -1,0 +1,14 @@
+type: object
+required:
+  - success
+properties:
+  success:
+    type: boolean
+  documents:
+    type: array
+    items:
+      $ref: '../agreements/agreements/Agreement.yaml'
+    nullable: true
+  error:
+    type: string
+    nullable: true

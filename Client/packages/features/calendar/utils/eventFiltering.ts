@@ -1,4 +1,7 @@
-import type { Calendar, ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
+import type {
+  Calendar,
+  ExtendedGoogleEvent,
+} from "packages/features/calendar/types/calendar";
 import { dateNow, dateParseISO } from "packages/utils/date";
 
 import { calculateCalendarDateRange } from "./date";
@@ -10,14 +13,16 @@ import { getEventStartDate } from "./eventParsing";
 export function filterEventsByCalendars(
   events: ExtendedGoogleEvent[],
   enabledCalendarIds: Set<string>,
-  calendars: Calendar[]
+  calendars: Calendar[],
 ): ExtendedGoogleEvent[] {
   if (enabledCalendarIds.size === 0) {
     return [];
   }
 
   if (!calendars || calendars.length === 0) {
-    return events.filter((event) => event.calendarId && enabledCalendarIds.has(event.calendarId));
+    return events.filter(
+      (event) => event.calendarId && enabledCalendarIds.has(event.calendarId),
+    );
   }
 
   return events.filter((event) => {
@@ -30,13 +35,14 @@ export function filterEventsByCalendars(
       return enabledCalendarIds.has(event.calendarId);
     }
     // For events without calendarId, check if primary calendar is enabled
-    const primaryCalendar = calendars.find((cal) => cal.primary) || calendars[0];
+    const primaryCalendar =
+      calendars.find((cal) => cal.primary) || calendars[0];
     return primaryCalendar?.id && enabledCalendarIds.has(primaryCalendar.id);
   });
 }
 
 /**
- * Filter events for current 5-week period
+ * Filter events for current 4-week period
  * Uses calculateCalendarDateRange to get the standard date range
  *
  * @param events - Events to filter
@@ -44,7 +50,7 @@ export function filterEventsByCalendars(
  */
 export function filterCurrentPeriodEvents(
   events: ExtendedGoogleEvent[],
-  date?: Date
+  date?: Date,
 ): ExtendedGoogleEvent[] {
   const { timeMin, timeMax } = calculateCalendarDateRange(date);
   const start = dateParseISO(timeMin).toDate();
@@ -63,7 +69,7 @@ export function filterCurrentPeriodEvents(
  */
 export function filterUpcomingEvents(
   events: ExtendedGoogleEvent[],
-  silverKeyCalendarId: string | null
+  silverKeyCalendarId: string | null,
 ): ExtendedGoogleEvent[] {
   const today = dateNow().startOf("day").toDate();
   const nextWeek = dateNow().startOf("day").add(7, "day").endOf("day").toDate();

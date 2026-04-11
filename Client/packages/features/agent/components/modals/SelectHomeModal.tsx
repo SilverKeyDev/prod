@@ -17,7 +17,11 @@ type SelectHomeModalProps = {
   onSelect: (home: SavedHome) => void;
 };
 
-export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHomeModalProps) {
+export default function SelectHomeModal({
+  isOpen,
+  onClose,
+  onSelect,
+}: SelectHomeModalProps) {
   const { savedHomes, savedHomesLoading } = useSavedHomesData();
   const {
     selectedId: selectedHomeId,
@@ -36,8 +40,15 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
       onClose={onClose}
       headerContent={
         <Box className="flex items-center gap-2">
-          <Icon name="home" className="text-text-primary h-5 w-5 flex-shrink-0" />
-          <Title as="h3" size="lg" className="text-text-primary truncate font-medium sm:text-lg">
+          <Icon
+            name="home"
+            className="text-text-primary h-5 w-5 flex-shrink-0"
+          />
+          <Title
+            as="h3"
+            size="lg"
+            className="text-text-primary truncate font-medium sm:text-lg"
+          >
             Select Home to Share
           </Title>
         </Box>
@@ -67,7 +78,7 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
                 onClick={() => setSelectedHomeId(home.home_id)}
                 className={`h-auto min-h-0 w-full justify-start rounded-lg border p-3 text-left ${
                   selectedHomeId === home.home_id
-                    ? "border-primary bg-primary-muted"
+                    ? "border-border bg-primary-muted"
                     : "border-border hover:border-border hover:bg-primary-muted"
                 }`}
               >
@@ -76,20 +87,34 @@ export default function SelectHomeModal({ isOpen, onClose, onSelect }: SelectHom
                     <Icon name="home" className="text-primary h-5 w-5" />
                   </Box>
                   <Box className="min-w-0 flex-1">
-                    <BodyText as="p" size="sm" className="text-text-primary font-medium">
+                    <BodyText
+                      as="p"
+                      size="sm"
+                      className="text-text-primary font-medium"
+                    >
                       {home.address || `Property ${home.home_id}`}
                     </BodyText>
                     {home.price && (
-                      <BodyText as="p" size="xs" className="text-text-secondary mt-1">
+                      <BodyText
+                        as="p"
+                        size="xs"
+                        className="text-text-secondary mt-1"
+                      >
                         {typeof home.price === "number"
                           ? `$${home.price.toLocaleString()}`
                           : home.price}
                       </BodyText>
                     )}
                     {home.bedrooms && home.bathrooms && (
-                      <BodyText as="p" size="xs" className="text-text-secondary mt-1">
+                      <BodyText
+                        as="p"
+                        size="xs"
+                        className="text-text-secondary mt-1"
+                      >
                         {home.bedrooms} bed • {home.bathrooms} bath
-                        {home.sqft ? ` • ${home.sqft.toLocaleString()} sqft` : ""}
+                        {home.sqft
+                          ? ` • ${home.sqft.toLocaleString()} sqft`
+                          : ""}
                       </BodyText>
                     )}
                   </Box>

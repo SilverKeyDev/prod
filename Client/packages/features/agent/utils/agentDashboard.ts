@@ -11,14 +11,17 @@ import type {
   DealStage,
   DecisionLogEntry,
   RiskFlag,
-  UrgentAlert,
 } from "packages/schemas/agent";
+import type { UrgentAlert } from "packages/types/ui";
 import { dateNow } from "packages/utils/date";
 
 /**
  * Generate mock todos for a client or all clients
  */
-export function generateMockTodos(clients: AgentClient[], clientId?: string): TodoItem[] {
+export function generateMockTodos(
+  clients: AgentClient[],
+  clientId?: string,
+): TodoItem[] {
   const todos: TodoItem[] = [];
   const now = dateNow();
 
@@ -28,24 +31,26 @@ export function generateMockTodos(clients: AgentClient[], clientId?: string): To
     // Add some sample todos
     todos.push({
       id: `todo-${client.id}-1`,
+      agent_id: "mock-agent-id",
       title: `Follow up with ${client.name}`,
       due_date: now.add(24, "hour").toISOString(),
-      priority: "medium",
       client_id: client.id,
       type: "follow_up",
       completed: false,
       created_at: now.toISOString(),
+      updated_at: now.toISOString(),
     });
 
     todos.push({
       id: `todo-${client.id}-2`,
+      agent_id: "mock-agent-id",
       title: `Review offer for ${client.name}`,
       due_date: now.add(3, "hour").toISOString(),
-      priority: "urgent",
       client_id: client.id,
       type: "offer_expiration",
       completed: false,
       created_at: now.toISOString(),
+      updated_at: now.toISOString(),
     });
   });
 
@@ -55,7 +60,10 @@ export function generateMockTodos(clients: AgentClient[], clientId?: string): To
 /**
  * Generate mock urgent alerts
  */
-export function generateMockAlerts(clients: AgentClient[], clientId?: string): UrgentAlert[] {
+export function generateMockAlerts(
+  clients: AgentClient[],
+  clientId?: string,
+): UrgentAlert[] {
   const alerts: UrgentAlert[] = [];
   const now = dateNow();
 
@@ -78,6 +86,7 @@ export function generateMockAlerts(clients: AgentClient[], clientId?: string): U
       type: "client_waiting",
       message: `${client.name} waiting on reply (24h+)`,
       client_id: client.id,
+      deadline: now.toISOString(),
       severity: "high",
       created_at: now.subtract(25, "hour").toISOString(),
     });
@@ -91,7 +100,7 @@ export function generateMockAlerts(clients: AgentClient[], clientId?: string): U
  */
 export function enhanceClientWithDealInfo(
   client: AgentClient,
-  dealStage: DealStage = "search"
+  dealStage: DealStage = "search",
 ): ClientDealInfo {
   const riskFlags: RiskFlag[] = [];
 
@@ -206,7 +215,9 @@ export function generateMockNotes(clientId: string): AgentNote[] {
 /**
  * Generate mock timeline events
  */
-export function generateMockTimelineEvents(clientId: string): ClientTimelineEvent[] {
+export function generateMockTimelineEvents(
+  clientId: string,
+): ClientTimelineEvent[] {
   const now = dateNow();
   return [
     {

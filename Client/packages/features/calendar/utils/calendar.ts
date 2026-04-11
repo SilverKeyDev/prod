@@ -6,20 +6,25 @@ import type { Calendar } from "@/features/calendar/types/calendar";
  * Calendars the signed-in user owns (excludes others’ calendars shared in as reader/freeBusy).
  * Primary is always included when present.
  */
-export function filterCalendarsToAgentOwned<T extends { accessRole?: string; primary?: boolean }>(
-  calendars: T[]
-): T[] {
-  return calendars.filter((cal) => cal.primary === true || cal.accessRole === "owner");
+export function filterCalendarsToAgentOwned<
+  T extends { accessRole?: string; primary?: boolean },
+>(calendars: T[]): T[] {
+  return calendars.filter(
+    (cal) => cal.primary === true || cal.accessRole === "owner",
+  );
 }
 
 /**
  * Find SilverKey calendar from calendars list
+ * Matches both old format "SilverKey" and new format "SilverKey ~ [Name]"
  */
-export function findSilverKeyCalendar(calendars: Calendar[]): Calendar | undefined {
+export function findSilverKeyCalendar(
+  calendars: Calendar[],
+): Calendar | undefined {
   if (!calendars || calendars.length === 0) {
     return undefined;
   }
-  return calendars.find((cal) => cal.summary === "SilverKey");
+  return calendars.find((cal) => cal.summary?.startsWith("SilverKey"));
 }
 
 /**
@@ -41,7 +46,7 @@ export function getCalendarsKey(calendars: Calendar[]): string {
 export function calculateEnabledCalendarIds(
   calendars: Calendar[],
   disabledCalendars: string[] | undefined,
-  silverKeyCalendarId: string | null
+  silverKeyCalendarId: string | null,
 ): Set<string> {
   if (!calendars || calendars.length === 0) {
     return new Set();
@@ -55,7 +60,7 @@ export function calculateEnabledCalendarIds(
           return true; // Always include SilverKey calendar
         }
         return !disabledSet.has(id);
-      })
+      }),
   );
 }
 
@@ -65,7 +70,7 @@ export function calculateEnabledCalendarIds(
 export function calculateDisabledCalendarIds(
   calendars: Calendar[],
   enabledCalendarIds: Set<string>,
-  silverKeyCalendarId: string | null
+  silverKeyCalendarId: string | null,
 ): string[] {
   if (!calendars || calendars.length === 0) {
     return [];
@@ -86,9 +91,13 @@ export function calculateDisabledCalendarIds(
 export function initializeEnabledCalendars(
   calendars: Calendar[],
   disabledCalendars: string[] | undefined,
-  silverKeyCalendarId: string | null
+  silverKeyCalendarId: string | null,
 ): Set<string> {
-  return calculateEnabledCalendarIds(calendars, disabledCalendars, silverKeyCalendarId);
+  return calculateEnabledCalendarIds(
+    calendars,
+    disabledCalendars,
+    silverKeyCalendarId,
+  );
 }
 
 /**
@@ -113,7 +122,7 @@ function getCalendarColorPalette(): string[] {
  * Uses API backgroundColor when present (hex), otherwise design-token palette by index.
  */
 export function getCalendarColorMap(
-  calendars: Array<{ id: string; backgroundColor?: string }>
+  calendars: Array<{ id: string; backgroundColor?: string }>,
 ): Record<string, string> {
   const palette = getCalendarColorPalette();
   const map: Record<string, string> = {};

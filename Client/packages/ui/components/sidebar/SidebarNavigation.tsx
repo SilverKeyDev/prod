@@ -42,7 +42,9 @@ export default function SidebarNavigation({
     >
       <Card
         border="light"
-        className={`!bg-background-surface ${isLargeScreen ? "space-y-4" : "flex flex-col items-center space-y-2"}`}
+        className={`!bg-background-surface ${
+          isLargeScreen ? "space-y-4" : "flex flex-col items-stretch space-y-2"
+        }`}
         padding={isLargeScreen ? "md" : "none"}
         hover={false}
       >
@@ -53,12 +55,16 @@ export default function SidebarNavigation({
             padding={isLargeScreen ? "sm" : "none"}
             hover={false}
             className={
-              isLargeScreen ? "!bg-background-surface w-full" : "!bg-background-surface w-full"
+              isLargeScreen
+                ? "!bg-background-surface w-full"
+                : "!bg-background-surface w-full"
             }
           >
             <Box
-              className={`${isLargeScreen ? "" : "flex flex-col items-center p-3"} ${
-                isLargeScreen ? "w-full" : "flex w-full flex-col items-center"
+              className={`${
+                isLargeScreen ? "" : "flex flex-col items-stretch p-3"
+              } ${
+                isLargeScreen ? "w-full" : "flex w-full flex-col items-stretch"
               }`}
             >
               {headerContent}
@@ -72,19 +78,24 @@ export default function SidebarNavigation({
           padding={isLargeScreen ? "sm" : "none"}
           hover={false}
           className={
-            isLargeScreen ? "!bg-background-surface w-full" : "!bg-background-surface w-full"
+            isLargeScreen
+              ? "!bg-background-surface w-full"
+              : "!bg-background-surface w-full"
           }
         >
           <Box className={isLargeScreen ? "" : "p-3"}>
             {sectionTitle && (
-              <Box className={isLargeScreen ? "mb-3" : "mb-2"}>
-                <Subtitle size="xs" className="text-text-secondary uppercase tracking-wide">
+              <Box className={`${isLargeScreen ? "mb-3" : "mb-2"} w-full`}>
+                <Subtitle
+                  size="xs"
+                  className="text-text-secondary w-full text-left uppercase tracking-wide"
+                >
                   {sectionTitle}
                 </Subtitle>
               </Box>
             )}
 
-            {/* Navigation Links - Left aligned on desktop, icon only on mobile; uniform styling for all items */}
+            {/* Navigation Links — icon + label left-aligned; labels hidden below lg via children guard */}
             <nav className="flex flex-col gap-1" aria-label="Settings sections">
               {items.map((item) => {
                 const isActive = currentActiveItem === item.key;
@@ -95,17 +106,18 @@ export default function SidebarNavigation({
                     type="button"
                     variant="ghost"
                     size="sm"
+                    contentAlign="start"
                     onClick={() => onItemClick(item.key)}
                     disabled={item.disabled}
-                    className={`group flex min-h-9 items-center rounded-lg transition-colors ${
-                      isLargeScreen
-                        ? "w-full gap-3 px-3 py-2"
-                        : "h-9 min-h-9 w-9 min-w-9 justify-center p-0"
-                    } ${
+                    className={`group flex min-h-9 w-full items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
                       isActive
                         ? "!bg-neutral-100 !text-neutral-800 hover:!bg-neutral-100 hover:font-semibold hover:!text-neutral-800 active:!bg-neutral-100 active:font-semibold active:!text-neutral-800"
                         : "text-neutral-700 hover:!bg-neutral-100 hover:text-neutral-800 active:!bg-neutral-100 active:text-neutral-800"
-                    } ${item.disabled ? "bg-disabled text-text-disabled cursor-not-allowed" : ""}`}
+                    } ${
+                      item.disabled
+                        ? "bg-disabled text-text-disabled cursor-not-allowed"
+                        : ""
+                    }`}
                     title={!isLargeScreen ? item.label : undefined}
                     icon={
                       IconComponent ? (

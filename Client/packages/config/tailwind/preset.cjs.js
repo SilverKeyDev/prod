@@ -6,7 +6,9 @@
 
 const path = require("node:path");
 
-const colors = require(path.resolve(__dirname, "../../design-tokens/tokens/colors.json"));
+const colors = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/colors.json"),
+);
 
 const breakpoints = {
   xs: "475px",
@@ -99,11 +101,32 @@ module.exports = {
         },
       },
       spacing: spacingMap,
-      minHeight: { touch: "44px", "touch-lg": "48px", button: "44px", input: "44px" },
+      minHeight: {
+        touch: "44px",
+        "touch-lg": "48px",
+        button: "44px",
+        input: "44px",
+      },
       minWidth: { touch: "44px", "touch-lg": "48px", button: "44px" },
       maxWidth: { mobile: "100vw", "touch-target": "44px" },
       aspectRatio: { "mobile-card": "16 / 9", "mobile-hero": "4 / 3" },
-      zIndex: { modal: "50", overlay: "40", dropdown: "30", header: "20", sidebar: "25" },
+      // Stacking: base content < header < sidebar/dock < dropdowns < toasts < sheet overlays < modals < modal-popover < skip
+      zIndex: {
+        header: "100",
+        sidebar: "200",
+        dock: "300",
+        /** Menus, selects, autocomplete, portaled popovers - above layout chrome and map markers (~1000) */
+        dropdown: "5000",
+        toast: "8000",
+        /** Dimmed backdrops for sheets / nested overlays */
+        overlay: "9000",
+        /** Dialogs and full-screen modal stacks */
+        modal: "10000",
+        /** Portaled pickers/menus opened from inside a modal (must sit above z-modal) */
+        "modal-popover": "10020",
+        /** Skip link when focused - above modals for keyboard escape hatch */
+        skip: "10050",
+      },
     },
   },
   plugins: [],

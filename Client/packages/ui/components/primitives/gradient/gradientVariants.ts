@@ -1,5 +1,5 @@
 /**
- * Shared UniversalGradient variant styles — single source of truth for web and native.
+ * Shared UniversalGradient variant styles - single source of truth for web and native.
  * Platform files must import from here per require-shared-platform-styles.
  *
  * Web-only gradient classes below; native uses UNIVERSAL_GRADIENT_VARIANT_CONFIG (expo-linear-gradient).
@@ -9,7 +9,10 @@ import { color } from "packages/design-tokens";
 import type { UniversalGradientVariant } from "./types";
 
 /** Web: Tailwind gradient classes per variant. Used by UniversalGradient.web.tsx; native uses UNIVERSAL_GRADIENT_VARIANT_CONFIG (expo-linear-gradient). */
-export const UNIVERSAL_GRADIENT_VARIANT_CLASSES: Record<UniversalGradientVariant, string> = {
+export const UNIVERSAL_GRADIENT_VARIANT_CLASSES: Record<
+  UniversalGradientVariant,
+  string
+> = {
   "accent-header": "bg-gradient-to-r from-accent-header to-accent-header",
   "overlay-dark": "bg-gradient-to-t from-neutral-900 to-transparent",
   "overlay-dark-bottom": "bg-gradient-to-t from-neutral-900 to-transparent",
@@ -18,7 +21,11 @@ export const UNIVERSAL_GRADIENT_VARIANT_CLASSES: Record<UniversalGradientVariant
 /** Native: expo-linear-gradient colors and direction per variant */
 export const UNIVERSAL_GRADIENT_VARIANT_CONFIG: Record<
   UniversalGradientVariant,
-  { colors: string[]; start: { x: number; y: number }; end: { x: number; y: number } }
+  {
+    colors: string[];
+    start: { x: number; y: number };
+    end: { x: number; y: number };
+  }
 > = {
   "accent-header": {
     colors: [color("accent-header"), "rgba(210, 195, 161, 0.9)"],

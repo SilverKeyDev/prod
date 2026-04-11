@@ -1,0 +1,16 @@
+type: object
+properties:
+  preferences_user_id:
+    type: string
+    nullable: true
+    description: "When set by agent, load this client's preferences"
+  pros_count:
+    type: integer
+    nullable: true
+  cons_count:
+    type: integer
+    nullable: true
+  detail_level:
+    type: string
+    enum: [compact, standard, detailed]
+    nullable: true

@@ -25,4 +25,6 @@ export type CoverProps = {
   headerContainerClassName?: string;
   /** Native: merged into header container; use e.g. `{ paddingHorizontal: 0, paddingVertical: 0 }` for flush header. */
   headerContainerStyle?: StyleProp<ViewStyle>;
+  /** Optional max width for the modal (e.g. "80vw", "1200px"). When set, modal will be centered. Default: "100vw" (full width) */
+  maxWidth?: string;
 };

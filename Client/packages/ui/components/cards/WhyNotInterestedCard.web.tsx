@@ -55,7 +55,9 @@ const REASON_LABEL_KEYS: Record<string, string> = {
   other: "why_not.other",
 };
 
-function getPropertyImage(property: SearchResult | Property): string | undefined {
+function getPropertyImage(
+  property: SearchResult | Property,
+): string | undefined {
   if ("images" in property && property.images?.length) {
     const first = property.images[0];
     return typeof first === "string" ? first : undefined;
@@ -79,7 +81,8 @@ function WhyNotInterestedImageSection({
   isDisabled: boolean;
   t: (key: string) => string;
 }) {
-  const heightClass = cardType === "searchpage" ? "h-24 sm:h-28 md:h-32" : "h-32 sm:h-40 md:h-48";
+  const heightClass =
+    cardType === "searchpage" ? "h-24 sm:h-28 md:h-32" : "h-32 sm:h-40 md:h-48";
   return (
     <Box className={`relative overflow-hidden ${heightClass}`}>
       <StyledImage
@@ -131,7 +134,7 @@ function WhyNotInterestedReasonList({
           htmlFor={`not-interested-reason-${reason.id}`}
           className={`flex cursor-pointer items-center rounded-md border p-3 transition-colors ${
             selectedReason === reason.id
-              ? "border-primary bg-primary-muted"
+              ? "border-border bg-primary-muted"
               : "border-border hover:border-border"
           } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
         >
@@ -177,15 +180,19 @@ function WhyNotInterestedCustomReason({
         onChange={(e) => setCustomReason(e.target.value)}
         disabled={disabled}
         placeholder={t("why_not.reason_placeholder")}
-        className="border-border focus:border-primary disabled:bg-disabled disabled:text-text-disabled w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-neutral-400 disabled:cursor-not-allowed"
+        className="border-border focus:border-input-variant-focus-border disabled:bg-disabled disabled:text-text-disabled w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-neutral-400 disabled:cursor-not-allowed"
       />
     </Box>
   );
 }
 
-function getConfirmReason(selectedReason: string | null, customReason: string): string | undefined {
+function getConfirmReason(
+  selectedReason: string | null,
+  customReason: string,
+): string | undefined {
   if (selectedReason === "other") return customReason.trim() || undefined;
-  if (selectedReason) return ALL_REASONS.find((r) => r.id === selectedReason)?.label;
+  if (selectedReason)
+    return ALL_REASONS.find((r) => r.id === selectedReason)?.label;
   return undefined;
 }
 
@@ -273,11 +280,14 @@ export default function WhyNotInterestedCard({
     return [...shuffled.slice(0, 2), { id: "other", label: "Other" }];
   }, []);
 
-  const propertyAddress = typeof property.address === "string" ? property.address : undefined;
+  const propertyAddress =
+    typeof property.address === "string" ? property.address : undefined;
   const propertyImage = getPropertyImage(property);
   const disabled = isSubmitting || isUndoing;
   const canConfirm =
-    selectedReason === "other" ? customReason.trim().length > 0 : selectedReason !== null;
+    selectedReason === "other"
+      ? customReason.trim().length > 0
+      : selectedReason !== null;
 
   const handleUndo = async () => {
     setIsUndoing(true);

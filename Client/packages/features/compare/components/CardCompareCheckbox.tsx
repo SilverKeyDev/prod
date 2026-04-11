@@ -14,19 +14,28 @@ export type CardCompareCheckboxProps = {
   ariaLabel?: string;
 };
 /** Same sizing as CardHeartSave for consistent overlay buttons across all breakpoints */
-const TOGGLE_SIZE: Record<NonNullable<CardCompareCheckboxProps["size"]>, string> = {
+const TOGGLE_SIZE: Record<
+  NonNullable<CardCompareCheckboxProps["size"]>,
+  string
+> = {
   xs: "w-8 h-8",
   sm: "w-9 h-9",
   md: "w-11 h-11",
   lg: "w-13 h-13",
 };
-const ICON_SIZE_FALLBACK: Record<NonNullable<CardCompareCheckboxProps["size"]>, string> = {
+const ICON_SIZE_FALLBACK: Record<
+  NonNullable<CardCompareCheckboxProps["size"]>,
+  string
+> = {
   xs: "w-3.5 h-3.5",
   sm: "w-4 h-4",
   md: "w-5 h-5",
   lg: "w-6 h-6",
 };
-const POSITION_MAP: Record<NonNullable<CardCompareCheckboxProps["position"]>, string> = {
+const POSITION_MAP: Record<
+  NonNullable<CardCompareCheckboxProps["position"]>,
+  string
+> = {
   "top-left": "top-2 left-2",
   "top-right": "top-2 right-2",
   "bottom-left": "bottom-2 left-2",
@@ -48,13 +57,15 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
     onToggle();
   };
   const baseButtonClasses =
-    "touch-friendly group relative inline-flex items-center justify-center rounded-lg backdrop-blur-sm bg-background-surface shadow-md ring-1 ring-black/5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:ring-black/10 focus:outline-none focus:ring-2 focus:ring-black/20 focus:ring-offset-2 active:scale-95";
+    "touch-friendly group relative inline-flex items-center justify-center rounded-lg backdrop-blur-sm bg-background-surface shadow-md ring-1 ring-black/5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:ring-black/10 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0 active:scale-95";
   const stateClasses = isSelected
     ? "text-primary"
     : "text-text-secondary hover:text-text-secondary";
   // Check if this is being used as an inline button (no position specified or position is not absolute)
   const isInlineButton =
-    !position || className.includes("border") || className.includes("rounded-md");
+    !position ||
+    className.includes("border") ||
+    className.includes("rounded-md");
   if (isInlineButton) {
     return (
       <Button
@@ -63,7 +74,10 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
         onClick={handleClick}
         aria-pressed={isSelected}
         className={`${baseButtonClasses} ${stateClasses} ${toggleClass} ${className}`}
-        label={ariaLabel ?? (isSelected ? "Remove from comparison" : "Add to comparison")}
+        label={
+          ariaLabel ??
+          (isSelected ? "Remove from comparison" : "Add to comparison")
+        }
         title={isSelected ? "Remove from comparison" : "Add to comparison"}
       >
         {isSelected ? (
@@ -88,7 +102,10 @@ const CardCompareCheckbox: React.FC<CardCompareCheckboxProps> = ({
         onClick={handleClick}
         aria-pressed={isSelected}
         className={`${baseButtonClasses} ${stateClasses} ${toggleClass}`}
-        label={ariaLabel ?? (isSelected ? "Remove from comparison" : "Add to comparison")}
+        label={
+          ariaLabel ??
+          (isSelected ? "Remove from comparison" : "Add to comparison")
+        }
         title={isSelected ? "Remove from comparison" : "Add to comparison"}
       >
         {isSelected ? (

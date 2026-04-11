@@ -15,6 +15,7 @@ export * from "./components/ClientMessaging";
 
 // Hooks
 export * from "./hooks/data/messaging";
+export * from "./hooks/data/useAgentChats";
 export * from "./hooks/ui";
 
 // Utils

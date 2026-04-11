@@ -2,7 +2,7 @@
 
 ### Problem / goal
 
-Documents and agreements (especially those sourced via SkySlope) must be:
+Documents and agreements (**DocuSign** agreements and **S3**-stored files) must be:
 - Shared across all relevant participants in a transaction.
 - Governed by role-based permissions for viewing, uploading, sending, and voiding.
 - Linked to checklists, milestones, and notifications.
@@ -37,7 +37,7 @@ Invariants:
 2. **Role-based actions**
    - Agent:
      - Can upload documents.
-     - Attach SkySlope forms and send for signature.
+     - Attach templates or files and send for signature via **DocuSign**.
      - Archive or void agreements (subject to signing provider rules).
    - Buyer:
      - Can view their agreements and certain supporting documents.
@@ -90,4 +90,3 @@ Invariants:
     - Which milestones it is associated with.
   - Navigation paths:
     - From checklist/milestone to documents and back.
-

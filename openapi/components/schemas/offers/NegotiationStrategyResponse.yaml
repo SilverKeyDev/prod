@@ -1,0 +1,81 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - property_address
+      - strategy_id
+      - filename
+      - generated_at
+      - generated_for_user
+    properties:
+      strategy:
+        type: object
+        description: "Generated negotiation strategy with price and market analysis"
+        properties:
+          price_section:
+            type: object
+            properties:
+              opening_offer:
+                type: number
+                description: "Recommended opening offer amount"
+              price_rationale:
+                type: string
+                description: "Detailed justification based on comparable sales"
+              credits_and_terms:
+                type: array
+                items:
+                  type: string
+                description: "Requested seller credits and terms"
+              inspection_plan:
+                type: string
+                description: "Inspection strategy and repair tolerance"
+              timeline:
+                type: string
+                description: "Proposed closing timeline"
+              offer_strength:
+                type: string
+                description: "What makes this offer strong"
+            required: ["opening_offer", "price_rationale", "inspection_plan", "timeline", "offer_strength"]
+          market_section:
+            type: object
+            properties:
+              local_market_stats:
+                type: array
+                items:
+                  type: string
+                description: "3-4 key local market statistics"
+              buyer_leverage:
+                type: string
+                description: "Overall buyer leverage assessment"
+              national_snapshot:
+                type: string
+                description: "Brief national market context"
+              neighborhood_snapshot:
+                type: string
+                description: "Brief neighborhood-specific market context"
+            required: ["local_market_stats", "buyer_leverage", "national_snapshot", "neighborhood_snapshot"]
+        required: ["price_section", "market_section"]
+      property_address:
+        type: string
+      strategy_id:
+        type: string
+      filename:
+        type: string
+      generated_at:
+        type: string
+      generated_for_user:
+        type: string
+      property_data:
+        $ref: '../search/properties/PropertyData.yaml'
+        nullable: true
+      commute_data:
+        $ref: '../search/properties/CommuteData.yaml'
+        nullable: true
+      property_analysis:
+        type: object
+        nullable: true
+        description: "Property analysis from research endpoint (same structure as in PropertyResponse)"
+        additionalProperties: true
+      traceback:
+        type: string
+        nullable: true

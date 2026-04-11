@@ -28,7 +28,7 @@ export function todoAgendaSortTimestamp(todo: AgendaTodoDTO): number {
 export function filterTodosInRange(
   todos: AgendaTodoDTO[],
   timeMin: string,
-  timeMax: string
+  timeMax: string,
 ): AgendaTodoDTO[] {
   let minMs: number;
   let maxMs: number;
@@ -52,9 +52,35 @@ export function filterTodosInRange(
   });
 }
 
+/**
+ * Completed to-dos in "View all" — due date descending; undated last; then title.
+ */
+export function sortCompletedAgendaTodosForDisplay(
+  todos: AgendaTodoDTO[],
+): AgendaTodoDTO[] {
+  return [...todos].sort((a, b) => {
+    const aHas = a.due_date != null && a.due_date !== "";
+    const bHas = b.due_date != null && b.due_date !== "";
+    if (aHas && bHas) {
+      try {
+        const da = dateParseISO(a.due_date as string).valueOf();
+        const db = dateParseISO(b.due_date as string).valueOf();
+        if (db !== da) {
+          return db - da;
+        }
+      } catch {
+        /* fall through */
+      }
+    } else if (aHas !== bHas) {
+      return aHas ? -1 : 1;
+    }
+    return a.title.localeCompare(b.title);
+  });
+}
+
 export function mergeUpcomingAgendaItems(
   events: ExtendedGoogleEvent[],
-  todos: AgendaTodoDTO[]
+  todos: AgendaTodoDTO[],
 ): UpcomingAgendaItem[] {
   const items: UpcomingAgendaItem[] = [
     ...events.map((event) => ({ kind: "event" as const, event })),
@@ -64,11 +90,11 @@ export function mergeUpcomingAgendaItems(
   return items.sort((a, b) => {
     const ta =
       a.kind === "event"
-        ? (getEventStartDate(a.event)?.getTime() ?? Number.MAX_SAFE_INTEGER)
+        ? getEventStartDate(a.event)?.getTime() ?? Number.MAX_SAFE_INTEGER
         : todoAgendaSortTimestamp(a.todo);
     const tb =
       b.kind === "event"
-        ? (getEventStartDate(b.event)?.getTime() ?? Number.MAX_SAFE_INTEGER)
+        ? getEventStartDate(b.event)?.getTime() ?? Number.MAX_SAFE_INTEGER
         : todoAgendaSortTimestamp(b.todo);
     return ta - tb;
   });

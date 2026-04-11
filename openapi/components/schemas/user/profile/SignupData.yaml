@@ -1,0 +1,39 @@
+type: object
+description: |
+  Self-service registration payload. Creates a Cognito user and application row;
+  agents may supply optional `brokerage` and `phone` for CRM and notification defaults.
+required:
+  - name
+  - email
+  - password
+properties:
+  name:
+    type: string
+    description: Display name stored on the user profile and shown in messaging and agreements.
+    example: "Alex Agent"
+  email:
+    type: string
+    format: email
+    description: Unique account email; becomes the username for Cognito email flows.
+    example: "alex.agent@example.com"
+  password:
+    type: string
+    format: password
+    description: Initial password meeting Cognito policy; user may change after first login.
+    example: "Str0ng!Passw0rd"
+  phone:
+    type: string
+    nullable: true
+    description: E.164-style phone when SMS or voice verification is enabled for the pool.
+    example: "+15559876543"
+  brokerage:
+    type: string
+    nullable: true
+    description: Optional `users.brokerage` for agents at signup; shown on agent-facing surfaces.
+    example: "Silver Key Realty"
+example:
+  name: "Alex Agent"
+  email: "alex.agent@example.com"
+  password: "Str0ng!Passw0rd"
+  phone: "+15559876543"
+  brokerage: "Silver Key Realty"

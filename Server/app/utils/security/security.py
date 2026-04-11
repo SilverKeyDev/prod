@@ -336,6 +336,12 @@ def validate_event_data(event_data: dict[str, Any]) -> bool:
         if not isinstance(end["date"], str) or not date_pattern.match(end["date"]):
             logger.warning("Event validation failed: invalid all-day end date")
             return False
+        # Google requires exclusive end strictly after inclusive start (ISO dates compare lexicographically).
+        if start["date"] >= end["date"]:
+            logger.warning(
+                "Event validation failed: all-day end date must be after start (exclusive end)"
+            )
+            return False
         return True
 
     # Timed events: dateTime on start/end

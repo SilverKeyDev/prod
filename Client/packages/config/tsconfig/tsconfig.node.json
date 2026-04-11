@@ -7,5 +7,9 @@
     "allowSyntheticDefaultImports": true,
     "rootDir": "../../.."
   },
-  "include": ["../../../apps/web/vite.config.ts"]
+  "include": [
+    "../../../apps/web/vite.config.js",
+    "../../../apps/web/vite.config.resolve.js",
+    "../../../apps/web/vite.config.d.ts"
+  ]
 }

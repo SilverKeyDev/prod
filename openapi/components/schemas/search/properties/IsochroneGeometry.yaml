@@ -1,0 +1,17 @@
+type: object
+required:
+  - type
+  - coordinates
+properties:
+  type:
+    type: string
+    enum: [Polygon]
+  coordinates:
+    type: array
+    items:
+      type: array
+      items:
+        type: array
+        items:
+          type: number
+          format: double

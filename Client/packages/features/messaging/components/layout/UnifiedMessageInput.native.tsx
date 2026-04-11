@@ -111,7 +111,7 @@ export default function UnifiedMessageInputNative({
       : config.input.placeholder);
 
   const hasAttachments = Boolean(
-    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument
+    onAttachmentHome || onAttachmentCalendar || onAttachmentDocument,
   );
 
   const canSend = message.trim() && !isTyping && !disabled;
@@ -167,7 +167,9 @@ export default function UnifiedMessageInputNative({
             <Icon
               name="send"
               size={20}
-              color={canSend ? color("background-surface") : color("neutral.400")}
+              color={
+                canSend ? color("background-surface") : color("neutral.400")
+              }
             />
           </TouchableOpacity>
         </View>

@@ -1,15 +1,21 @@
-import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import { useLocalization } from "packages/contexts";
+import { SEARCH_TRANSLATIONS } from "packages/features/search/types/translations";
+import { useGoogleMaps } from "packages/hooks/data";
+import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { Box } from "packages/ui/components/primitives";
 import { HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
-import { ClientSelector } from "@/components/ui";
+import { Button, CancelButton } from "@/components/ui";
 
+import {
+  type PreciseStreetAddressPayload,
+  SearchLocationBarWeb,
+} from "./location-bar/SearchLocationBar.web";
 import SearchActions from "./SearchActions.web";
-import SearchHeaderLocations from "./SearchHeaderLocations.web";
+
 type SearchHeaderProps = {
-  /** Called when filters are changed (e.g. trigger search) */
-  onPreferencesChanged?: () => void | Promise<void>;
   onSearchProperties: () => void;
+  onLocationSearchSubmit: () => void | Promise<void>;
   onCancelSearch?: () => void;
   isSearching: boolean;
   selectedClientId?: string | null;
@@ -24,11 +30,17 @@ type SearchHeaderProps = {
   onToggleMode?: () => void;
   onBeforeSwitchToReels?: () => void;
   hasSearched?: boolean;
+  /** When false, preferences Search is disabled until user adds an important location */
+  hasLocations?: boolean;
+  fitMapToBounds: (bounds: google.maps.LatLngBounds) => void;
+  onPreciseStreetAddressSelected?: (
+    payload: PreciseStreetAddressPayload,
+  ) => void;
 };
 
 export default function SearchHeader({
-  onPreferencesChanged,
   onSearchProperties,
+  onLocationSearchSubmit,
   onCancelSearch,
   isSearching,
   selectedClientId,
@@ -36,40 +48,69 @@ export default function SearchHeader({
   mode,
   onToggleMode,
   onBeforeSwitchToReels,
+  hasLocations = true,
+  fitMapToBounds,
+  onPreciseStreetAddressSelected,
 }: SearchHeaderProps) {
-  const { userPreferences } = useUserPreferences();
-  const locations = userPreferences?.important_locations;
-  const hasLocations = Array.isArray(locations) && locations.length > 0;
+  const { isLoaded: scriptsReady } = useGoogleMaps();
+  const { t } = useLocalization();
+  const btnClass = `shrink-0 ${HEADER_ROW_HEIGHT}`;
+  const handleSearchClick = () => {
+    if (!hasLocations) {
+      showErrorToast(t("search.add_location_to_search"));
+      return;
+    }
+    onSearchProperties();
+  };
 
   return (
     <Box
-      className={`mb-responsive-md mb-6 mt-6 flex w-full flex-shrink-0 flex-nowrap items-center justify-between gap-3 pr-8 ${HEADER_ROW_HEIGHT}`}
+      className={`mb-responsive-md mb-6 mt-6 flex w-full min-w-0 flex-shrink-0 flex-row flex-nowrap items-center gap-3 pr-8 ${HEADER_ROW_HEIGHT}`}
     >
-      {selectedClientId !== undefined && onClientChange ? (
-        <Box className="flex shrink-0">
-          <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
+      <Box className="flex min-w-0 flex-1 flex-row flex-nowrap items-center gap-2">
+        <Box className="min-w-0 flex-1">
+          <SearchLocationBarWeb
+            scriptsReady={scriptsReady}
+            fitMapToBounds={fitMapToBounds}
+            onSearch={onLocationSearchSubmit}
+            onPreciseStreetAddressSelected={onPreciseStreetAddressSelected}
+            locationPlaceholder={
+              SEARCH_TRANSLATIONS["search.location_bar_placeholder"] ??
+              "City, neighborhood, or ZIP"
+            }
+          />
         </Box>
-      ) : (
-        <Box className="min-w-0 flex-1" />
-      )}
-
-      <Box className="flex min-w-0 flex-1 items-center">
-        <SearchHeaderLocations onPreferencesChanged={onPreferencesChanged} />
+        <Button
+          variant="tertiary"
+          size="sm"
+          loading={isSearching}
+          onClick={handleSearchClick}
+          disabled={isSearching || !hasLocations}
+          title={!hasLocations ? t("search.add_location_to_search") : undefined}
+          iconName={!isSearching ? "search" : undefined}
+          className={btnClass}
+        >
+          {isSearching ? t("search.searching") : t("search.search")}
+        </Button>
+        {isSearching && onCancelSearch ? (
+          <CancelButton onClick={onCancelSearch} size="sm" className={btnClass}>
+            {t("common.cancel")}
+          </CancelButton>
+        ) : null}
       </Box>
-
-      <Box className="ml-auto flex items-center gap-2">
-        <SearchActions
-          onPreferencesChanged={onPreferencesChanged}
-          onSearchProperties={onSearchProperties}
-          onCancelSearch={onCancelSearch}
-          isSearching={isSearching}
-          hasLocations={hasLocations}
-          variant="desktop"
-          showReelsButton={mode === "map"}
-          onToggleMode={onToggleMode}
-          onBeforeSwitchToReels={onBeforeSwitchToReels}
-        />
-      </Box>
+      <SearchActions
+        onSearchProperties={onSearchProperties}
+        onCancelSearch={onCancelSearch}
+        isSearching={isSearching}
+        hasLocations={hasLocations}
+        variant="desktop"
+        desktopToolsOnly
+        showReelsButton={mode === "map"}
+        onToggleMode={onToggleMode}
+        onBeforeSwitchToReels={onBeforeSwitchToReels}
+        selectedClientId={selectedClientId}
+        onClientChange={onClientChange}
+      />
     </Box>
   );
 }

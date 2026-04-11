@@ -1,6 +1,10 @@
 import React, { forwardRef } from "react";
 
-import { StyleSheet, TextInput as RNTextInput, type TextInputProps } from "react-native";
+import {
+  StyleSheet,
+  TextInput as RNTextInput,
+  type TextInputProps,
+} from "react-native";
 
 import { color } from "packages/design-tokens";
 
@@ -11,13 +15,21 @@ export type InputProps = TextInputProps & {
 };
 
 /**
- * Base Input primitive — TextInput for React Native.
+ * Base Input primitive - TextInput for React Native.
  * Web uses <input> (Input.web.tsx). Use onValueChange for unified change handling.
  * Uses StyleSheet for reliable border/background (NativeWind className can be unreliable on TextInput).
  */
 const Input = forwardRef<RNTextInput, InputProps>(function Input(
-  { className, style, onChangeText, onValueChange, label, accessibilityLabel, ...props },
-  ref
+  {
+    className,
+    style,
+    onChangeText,
+    onValueChange,
+    label,
+    accessibilityLabel,
+    ...props
+  },
+  ref,
 ) {
   const handleChangeText = (text: string) => {
     onChangeText?.(text);
@@ -26,7 +38,9 @@ const Input = forwardRef<RNTextInput, InputProps>(function Input(
 
   const baseClassName =
     "w-full rounded-lg border border-border bg-background-surface px-4 py-3 text-text-primary";
-  const combinedClassName = className ? `${baseClassName} ${className}` : baseClassName;
+  const combinedClassName = className
+    ? `${baseClassName} ${className}`
+    : baseClassName;
 
   return (
     <RNTextInput

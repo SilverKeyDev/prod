@@ -7,6 +7,7 @@ import Label from "@ui/text/Label.web";
 
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
+import { INPUT_AUTOFILL_CLASS_NAME } from "packages/ui/styles/variants/inputVariants";
 import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
 export type InputProps = {
   variant?: "default" | "mobile" | "compact" | "search";
@@ -33,7 +34,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       size = "md",
       error,
       label,
-      required,
+      required: _required,
       leftIcon,
       rightIcon,
       clearable,
@@ -49,7 +50,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       placeholder,
       ...props
     },
-    ref
+    ref,
   ) => {
     const { t } = useLocalization();
     const [showPassword, setShowPassword] = useState(false);
@@ -62,17 +63,18 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     }, [showPassword, showPasswordToggle, type]);
     // Base styles - using exact onboarding styling via InputStyles (placeholder matches dropdown empty state)
     const baseStyles =
-      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input placeholder:text-text-secondary";
+      "w-full border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input placeholder:text-text-secondary " +
+      INPUT_AUTOFILL_CLASS_NAME;
     // Variant styles - using exact onboarding styling
     const variantStyles = {
       default:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
       mobile:
-        "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary touch-friendly autofill-gold",
+        "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
       compact:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
       search:
-        "border-border bg-background-surface hover:bg-accent-muted focus:ring-accent-muted focus:border-primary",
+        "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
     };
     // Size styles - using exact onboarding sizing
     const sizeStyles = {
@@ -82,7 +84,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     };
     // Error styles
     const errorStyles = error
-      ? "border-destructive focus:border-destructive focus:ring-destructive"
+      ? "border-neutral-600 focus:border-neutral-700 focus:ring-neutral-400"
       : "";
     // Disabled styles - already included in base styles
     const disabledStyles = "";
@@ -95,7 +97,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       errorStyles,
       disabledStyles,
       leftIcon ? "has-left-icon" : "",
-      (rightIcon ?? (clearable || showPasswordToggle)) ? "has-right-icon" : "",
+      rightIcon ?? (clearable || showPasswordToggle) ? "has-right-icon" : "",
       className,
     ]
       .filter(Boolean)
@@ -105,19 +107,18 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     // Icon positioning classes
     const iconClasses = {
       left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
-      right: "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
+      right:
+        "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary",
     };
     return (
       <Box className="w-full">
         {/* Label */}
         {label && (
-          <Label htmlFor={props.id} className="text-text-primary mb-2 block text-sm font-medium">
+          <Label
+            htmlFor={props.id}
+            className="text-text-primary mb-2 block text-sm font-medium"
+          >
             {label}
-            {required && (
-              <BodyText as="span" className="text-destructive">
-                {t("form.required_indicator")}
-              </BodyText>
-            )}
           </Label>
         )}
 
@@ -202,7 +203,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
       </Box>
     );
-  }
+  },
 );
 Input.displayName = "Input";
 // Export both named and default for compatibility

@@ -3,12 +3,15 @@ import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
-import { useIsAgent } from "packages/features/homeauth";
 import { showErrorToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 
-import type { CreateTodoRequest, TodoItem, UpdateTodoRequest } from "@/features/agent/api/agent";
+import type {
+  CreateTodoRequest,
+  TodoItem,
+  UpdateTodoRequest,
+} from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";
 
 export type UseAgentTodosReturn = {
@@ -29,12 +32,10 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
-  const isAgent = useIsAgent();
-
   // Check cache first when enabled becomes true (cache-first strategy)
   const shouldLoadData = useMemo(
-    () => authReady && isAuthenticated && isAgent,
-    [authReady, isAuthenticated, isAgent]
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
   );
 
   // Fetch todos
@@ -57,7 +58,9 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     // Note: Only use cached data if we're querying with includeCompleted=false (what's prefetched)
     placeholderData: () => {
       if (includeCompleted === false) {
-        return queryClient.getQueryData<TodoItem[]>(queryKeys.agent.todos(false));
+        return queryClient.getQueryData<TodoItem[]>(
+          queryKeys.agent.todos(false),
+        );
       }
       return undefined;
     },
@@ -85,7 +88,13 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
 
   // Update todo mutation
   const updateTodoMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateTodoRequest }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateTodoRequest;
+    }) => {
       const response = await agentApi.updateTodo(id, data);
       if (!response.success) {
         throw new Error(response.error ?? "Failed to update todo");
@@ -109,14 +118,14 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     async (data: CreateTodoRequest) => {
       return await createTodoMutation.mutateAsync(data);
     },
-    [createTodoMutation]
+    [createTodoMutation],
   );
 
   const updateTodo = useCallback(
     async (id: string, data: UpdateTodoRequest) => {
       return await updateTodoMutation.mutateAsync({ id, data });
     },
-    [updateTodoMutation]
+    [updateTodoMutation],
   );
 
   return {

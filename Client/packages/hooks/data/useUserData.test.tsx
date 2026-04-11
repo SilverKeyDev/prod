@@ -1,10 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach,beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { preferencesApi,userApi } from "packages/config/http/api";
-import type { UserPreferences,UserProfile } from "packages/schemas";
+import { preferencesApi, userApi } from "packages/config/http/api";
+import type { UserPreferences, UserProfile } from "packages/schemas";
 import { useAuthStore } from "packages/store";
 
 import { useUserData, useUserPreferences } from "./useUserData";
@@ -15,6 +15,19 @@ vi.mock("packages/config/http/api");
 vi.mock("packages/utils/media/prefetchRemoteImage", () => ({
   prefetchRemoteImage: vi.fn(),
 }));
+
+function mockAuthSelectors(
+  partial: { isAuthenticated?: boolean; authReady?: boolean } = {},
+): void {
+  const isAuthenticated = partial.isAuthenticated ?? true;
+  const authReady = partial.authReady ?? true;
+  vi.mocked(useAuthStore).mockImplementation((selector) =>
+    selector({
+      isAuthenticated,
+      authReady,
+    } as ReturnType<typeof useAuthStore>),
+  );
+}
 
 describe("useUserData", () => {
   let queryClient: QueryClient;
@@ -33,11 +46,7 @@ describe("useUserData", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default auth state: authenticated and ready
-    vi.mocked(useAuthStore).mockReturnValue({
-      isAuthenticated: true,
-      authReady: true,
-    } as ReturnType<typeof useAuthStore>);
+    mockAuthSelectors({ isAuthenticated: true, authReady: true });
   });
 
   afterEach(() => {
@@ -57,6 +66,7 @@ describe("useUserData", () => {
         is_closing_mode: false,
         client_ids: "client1,client2",
         profile_picture_url: null,
+        roles: [],
       };
 
       vi.mocked(userApi.getProfile).mockResolvedValue({
@@ -77,10 +87,7 @@ describe("useUserData", () => {
     });
 
     it("should not fetch when not authenticated", async () => {
-      vi.mocked(useAuthStore).mockReturnValue({
-        isAuthenticated: false,
-        authReady: true,
-      } as ReturnType<typeof useAuthStore>);
+      mockAuthSelectors({ isAuthenticated: false, authReady: true });
 
       const { result } = renderHook(() => useUserData(), {
         wrapper: createWrapper(),
@@ -91,10 +98,7 @@ describe("useUserData", () => {
     });
 
     it("should not fetch when auth not ready", async () => {
-      vi.mocked(useAuthStore).mockReturnValue({
-        isAuthenticated: true,
-        authReady: false,
-      } as ReturnType<typeof useAuthStore>);
+      mockAuthSelectors({ isAuthenticated: true, authReady: false });
 
       const { result } = renderHook(() => useUserData(), {
         wrapper: createWrapper(),
@@ -151,6 +155,7 @@ describe("useUserData", () => {
         is_agent: false,
         is_closing_mode: false,
         client_ids: undefined,
+        roles: [],
       });
     });
 
@@ -166,6 +171,7 @@ describe("useUserData", () => {
         is_closing_mode: false,
         client_ids: null,
         profile_picture_url: null,
+        roles: [],
       };
 
       vi.mocked(userApi.getProfile).mockResolvedValue({
@@ -214,10 +220,7 @@ describe("useUserPreferences", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useAuthStore).mockReturnValue({
-      isAuthenticated: true,
-      authReady: true,
-    } as ReturnType<typeof useAuthStore>);
+    mockAuthSelectors({ isAuthenticated: true, authReady: true });
   });
 
   afterEach(() => {
@@ -233,7 +236,9 @@ describe("useUserPreferences", () => {
         preferred_bedrooms_max: 4,
         preferred_bathrooms_min: 2,
         preferred_bathrooms_max: 3,
-        important_locations: [{ address: "123 Main St", max_commute_minutes: 30 }],
+        important_locations: [
+          { address: "123 Main St", max_commute_minutes: 30 },
+        ],
       };
 
       vi.mocked(preferencesApi.get).mockResolvedValue({
@@ -272,7 +277,7 @@ describe("useUserPreferences", () => {
         () => useUserPreferences({ preferencesSubjectUserId: "client-456" }),
         {
           wrapper: createWrapper(),
-        }
+        },
       );
 
       await waitFor(() => {
@@ -341,7 +346,10 @@ describe("useUserPreferences", () => {
 
       expect(result.current.userPreferences).toEqual(initialPreferences);
 
-      await result.current.updatePreferences({ budget_max: 600000, budget_min: 350000 });
+      await result.current.updatePreferences({
+        budget_max: 600000,
+        budget_min: 350000,
+      });
 
       await waitFor(() => {
         expect(result.current.isUpdating).toBe(false);
@@ -362,7 +370,7 @@ describe("useUserPreferences", () => {
             setTimeout(() => {
               resolve({ success: true, preferences: { budget_max: 600000 } });
             }, 100);
-          })
+          }),
       );
 
       const { result } = renderHook(() => useUserPreferences(), {
@@ -373,7 +381,9 @@ describe("useUserPreferences", () => {
         expect(result.current.preferencesLoading).toBe(false);
       });
 
-      const updatePromise = result.current.updatePreferences({ budget_max: 600000 });
+      const updatePromise = result.current.updatePreferences({
+        budget_max: 600000,
+      });
 
       // Should be updating
       await waitFor(() => {
@@ -407,9 +417,9 @@ describe("useUserPreferences", () => {
         expect(result.current.preferencesLoading).toBe(false);
       });
 
-      await expect(result.current.updatePreferences({ budget_max: 600000 })).rejects.toThrow(
-        "Update failed"
-      );
+      await expect(
+        result.current.updatePreferences({ budget_max: 600000 }),
+      ).rejects.toThrow("Update failed");
     });
   });
 });

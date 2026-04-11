@@ -1,0 +1,8 @@
+type: object
+required:
+  - likes
+properties:
+  likes:
+    type: object
+    additionalProperties:
+      $ref: './FeedLikeEntry.yaml'

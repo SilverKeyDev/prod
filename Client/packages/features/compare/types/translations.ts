@@ -7,7 +7,8 @@ export const COMPARE_TRANSLATIONS: Record<string, string> = {
   "compare.compare": "Compare",
   "compare.comparison": "Comparison",
   "compare.manage_fields_title": "Manage Comparison Fields",
-  "compare.manage_fields_subtitle": "Select which fields to include in your comparison table",
+  "compare.manage_fields_subtitle":
+    "Select which fields to include in your comparison table",
   "compare.show_all": "Show All ({{count}})",
   "compare.hide_all": "Hide All",
   "compare.auto_hide_empty": "Auto-Hide Empty",
@@ -35,5 +36,6 @@ export const COMPARE_TRANSLATIONS: Record<string, string> = {
   "compare_floating.property_fallback": "Property",
   "compare_floating.remove_aria": "Remove from comparison",
   "compare_floating.clear": "Clear",
+  "compare_floating.clear_aria": "Clear selection",
   "compare_floating.compare": "Compare",
 };

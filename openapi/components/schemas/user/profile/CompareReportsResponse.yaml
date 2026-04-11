@@ -1,0 +1,14 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      comparison_data:
+        type: object
+        nullable: true
+        description: "LLM-generated comparison structure (shape varies by comparison type)"
+        additionalProperties: true
+      table:
+        type: object
+        nullable: true
+        description: "Structured comparison table (shape varies by properties being compared)"
+        additionalProperties: true

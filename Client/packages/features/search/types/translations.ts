@@ -1,5 +1,8 @@
 /** Search feature translation strings. */
 export const SEARCH_TRANSLATIONS: Record<string, string> = {
+  "search.location_bar_placeholder": "City, neighborhood, or ZIP",
+  "search.show_commute_area": "Show commute area",
+  "search.map_area_unavailable": "Move the map, then search this area.",
   "search.search": "Search",
   "search.searching": "Searching...",
   "search.searching_properties": "Searching properties...",
@@ -7,6 +10,8 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.list": "List",
   "search.add_location_to_search": "Add at least one location to search",
   "search.reels": "Reels",
+  "search.reels_empty_title": "Search to get results",
+  "search.reels_empty_subtitle": "Run a search to browse homes here in reels.",
   "search.map": "Map",
   "search.add_location": "Add location",
   "search.add_important_locations": "Add important locations",
@@ -21,7 +26,7 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.sale_type_for_sale": "For sale",
   "search.sale_type_pending": "Pending",
   "search.sale_type_sold": "Sold",
-  "search.more": "More",
+  "search.more": "Preferences",
   "search.search_tab": "Results",
   "search.saved_tab": "Saved",
   "search.close_filters": "Close filters",
@@ -40,13 +45,38 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.click_map_to_search": "Click on the map to search this area",
   "search.no_saved_homes_yet": "No saved homes yet",
   "search.click_heart_to_save": "Click the heart on a home to save it",
+  "search.current_location": "Current Location",
+  "search.locating": "Finding your location...",
+  "search.location_unavailable":
+    "Unable to determine your location. Please allow location access and try again.",
   "search.no_properties_yet": "No properties yet",
-  "search.tap_search_to_find": "Tap Search to find homes that match your preferences",
+  "search.tap_search_to_find":
+    "Tap Search to find homes that match your preferences",
   "search.no_results_try_adjusting":
     "No homes match your search yet. Try adjusting your preferences.",
-  "search.run_search_to_see_homes": "Run a search to see homes that match your profile.",
+  "search.run_search_to_see_homes":
+    "Run a search to see homes that match your profile.",
   "search.price_range": "Price range",
   "search.filters_beds_baths_range": "Beds and baths",
+  "search.must_have_features": "Must-have features",
+  "search.must_have_features_hint":
+    "Every home in your results must include all of these (garage, pool, AC, etc.).",
+  "search.preferred_features_ranking": "Features that boost match score",
+  "search.preferred_features_hint":
+    "Optional. We rank homes higher when the listing mentions these.",
   "search.beds": "Beds",
   "search.baths": "Baths",
+  "search.display": "Display",
+  "search.display_order_by": "Order by",
+  "search.display_map_cards": "Homes on map",
+  "search.strict_preferences": "Match all preferences strictly",
+  "search.strict_preferences_hint":
+    "When off, we only apply every preference filter when there are more than 100 homes in the search area, so small result sets stay broader.",
+  "search.order_match_score": "Match score",
+  "search.order_price": "Price",
+  "search.order_distance": "Distance",
+  "search.order_bedrooms": "Bedrooms",
+  "search.order_bathrooms": "Bathrooms",
+  "search.order_lot_size": "Lot size",
+  "search.order_home_age": "Home age",
 };

@@ -7,6 +7,11 @@ import { Pressable, View } from "react-native";
 import { Box } from "packages/ui/components/primitives";
 import { Text } from "packages/ui/components/primitives";
 
+import {
+  UNDERLINE_TAB_SIZE_STYLES,
+  type UnderlineTabsSize,
+} from "./underlineTabSizeStyles";
+
 export type UnderlineTabItem = {
   id: string;
   label: React.ReactNode;
@@ -22,6 +27,8 @@ export type UnderlineTabsProps = {
   onChange: (id: string) => void;
   /** When true, uses tighter padding for mobile. */
   compact?: boolean;
+  /** Tab label scale; default matches previous sizing. */
+  size?: UnderlineTabsSize;
   /** Optional class for the container. */
   className?: string;
   /** Underline color class (default: bg-gold, matching search Results/Saved). */
@@ -29,7 +36,7 @@ export type UnderlineTabsProps = {
 };
 
 /**
- * Native UnderlineTabs — matches web: horizontal row, border-b, ghost-style tab buttons,
+ * Native UnderlineTabs - matches web: horizontal row, border-b, ghost-style tab buttons,
  * gold underline under active. Same API and look as web UnderlineTabs (search Results/Saved).
  */
 export function UnderlineTabs({
@@ -37,23 +44,31 @@ export function UnderlineTabs({
   activeId,
   onChange,
   compact = false,
+  size: tabSize = "sm",
   className = "",
   underlineColor = "bg-gold",
 }: UnderlineTabsProps): JSX.Element {
+  const sizeStyles = UNDERLINE_TAB_SIZE_STYLES[tabSize];
   const containerClass = compact
     ? "flex flex-row items-center justify-center rounded-none border-b border-border"
     : "flex flex-row flex-shrink-0 rounded-none border-b border-border";
-  const tabLayoutClass = compact
-    ? "relative flex flex-row items-center justify-center gap-2 px-responsive-sm py-responsive-xs"
-    : "relative flex flex-1 flex-row items-center justify-center gap-2 px-responsive-md py-responsive-sm";
+  const tabLayoutClass = `${
+    compact ? sizeStyles.paddingCompact : sizeStyles.paddingDefault
+  } gap-2`;
 
   return (
-    <Box className={className ? `${containerClass} ${className}` : containerClass}>
+    <Box
+      className={className ? `${containerClass} ${className}` : containerClass}
+    >
       {items.map((item) => {
         const isActive = activeId === item.id;
         const isLocked = item.locked === true;
-        const textSizeClass = isActive ? "text-responsive-md" : "text-responsive-sm";
-        const iconSizeClass = isActive ? "h-5 w-5" : "h-4 w-4";
+        const textSizeClass = isActive
+          ? sizeStyles.activeText
+          : sizeStyles.inactiveText;
+        const iconSizeClass = isActive
+          ? sizeStyles.activeIcon
+          : sizeStyles.inactiveIcon;
         const fontWeightClass = isActive ? "font-bold" : "font-medium";
         return (
           <Pressable
@@ -66,11 +81,15 @@ export function UnderlineTabs({
             {isLocked ? (
               <Icon name="lock" className={`${iconSizeClass} shrink-0`} />
             ) : (
-              item.icon != null && <Box className={`${iconSizeClass} shrink-0`}>{item.icon}</Box>
+              item.icon != null && (
+                <Box className={`${iconSizeClass} shrink-0`}>{item.icon}</Box>
+              )
             )}
             {typeof item.label === "string" ? (
               <Text
-                className={`${textSizeClass} ${fontWeightClass} ${isLocked ? "text-neutral-400 opacity-75" : "text-neutral-600"}`}
+                className={`${textSizeClass} ${fontWeightClass} ${
+                  isLocked ? "text-neutral-400 opacity-75" : "text-neutral-600"
+                }`}
               >
                 {item.label}
               </Text>

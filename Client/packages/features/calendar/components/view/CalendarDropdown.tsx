@@ -25,11 +25,15 @@ export function CalendarDropdown({
   useEffect(() => {
     const doc = getDocument();
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
-    if (isDropdownOpen && doc) doc.addEventListener("mousedown", handleClickOutside);
+    if (isDropdownOpen && doc)
+      doc.addEventListener("mousedown", handleClickOutside);
     return () => {
       if (doc) doc.removeEventListener("mousedown", handleClickOutside);
     };
@@ -49,7 +53,7 @@ export function CalendarDropdown({
         <Icon name="chevron-down" className="text-text-secondary h-4 w-4" />
       </Button>
       {isDropdownOpen && (
-        <Box className="border-border bg-background-surface absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border shadow-lg">
+        <Box className="border-border bg-background-surface z-dropdown absolute right-0 top-full mt-1 w-64 rounded-lg border shadow-lg">
           <Box className="p-2">
             <Box className="text-text-secondary mb-2 px-2 text-xs font-semibold uppercase tracking-wide">
               Calendars
@@ -76,21 +80,37 @@ export function CalendarDropdown({
                     return (
                       <Box
                         key={calendar.id}
-                        className={`flex items-center justify-between gap-2 rounded px-2 py-2 ${isDisabled ? "cursor-not-allowed opacity-60" : "hover:bg-primary-muted"}`}
+                        className={`flex items-center justify-between gap-2 rounded px-2 py-2 ${
+                          isDisabled
+                            ? "cursor-not-allowed opacity-60"
+                            : "hover:bg-primary-muted"
+                        }`}
                       >
                         <BodyText
                           as="span"
                           size="sm"
-                          className={`flex-1 truncate ${isSilverKey ? "font-medium text-amber-600" : "text-text-primary"}`}
+                          className={`flex-1 truncate ${
+                            isSilverKey
+                              ? "font-medium text-amber-600"
+                              : "text-text-primary"
+                          }`}
                         >
                           {calendar.summary}
                           {isSilverKey && (
-                            <BodyText as="span" size="xs" className="ml-1 text-amber-500">
+                            <BodyText
+                              as="span"
+                              size="xs"
+                              className="ml-1 text-amber-500"
+                            >
                               (Required)
                             </BodyText>
                           )}
                         </BodyText>
-                        <Box className={isDisabled ? "cursor-not-allowed opacity-50" : ""}>
+                        <Box
+                          className={
+                            isDisabled ? "cursor-not-allowed opacity-50" : ""
+                          }
+                        >
                           <OliveCheckbox
                             checked={isEnabled}
                             onToggle={() => {

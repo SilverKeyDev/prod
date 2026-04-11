@@ -1,4 +1,5 @@
 export * from "./agentProfileFields";
+export * from "./buyerPreferenceExtensions";
 export * from "./onboarding";
 export * from "./profileFormSync";
 export * from "./profileSections";

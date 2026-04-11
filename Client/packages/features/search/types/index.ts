@@ -34,6 +34,8 @@ export type {
   HomeUniversal,
   Property,
   PropertyAnalysis,
+  PropertyConItem,
+  PropertyProItem,
   PropertySearchResult,
   PropertyWithAnalysis,
   SavedHome,
@@ -45,7 +47,11 @@ export type {
   PropertyType,
   SearchResult,
 } from "./result";
-export { getMatchScore, isPropertyDetails } from "./result";
+export {
+  getMatchScore,
+  isListingFullCriteriaMatch,
+  isPropertyDetails,
+} from "./result";
 export {
   SEARCH_HEADER_FILTER_GAP_PX,
   SEARCH_HEADER_FILTER_PROMOTION_ORDER,

@@ -85,7 +85,7 @@ jobs:
           perplexity_json="$(fetch_json perplexity)"
           plaid_json="$(fetch_json plaid)"
           serp_json="$(fetch_json serp)"
-          rapidapi_json="$(fetch_json rapidapi)"
+          slipstream_json="$(fetch_json slipstream)"
 
           export_if_present "$db_url_json" "DATABASE_URL" "DATABASE_URL"
 
@@ -112,7 +112,7 @@ jobs:
           export_if_present "$plaid_json" "VITE_PLAID_CLIENT_ID" "VITE_PLAID_CLIENT_ID"
 
           export_if_present "$serp_json" "SERP_API" "SERP_API"
-          export_if_present "$rapidapi_json" "RAPIDAPI_KEY" "RAPIDAPI_KEY"
+          export_if_present "$slipstream_json" "SLIPSTREAM_PRIVATE" "SLIPSTREAM_PRIVATE"
 
       - name: Set up Python
         uses: actions/setup-python@v5

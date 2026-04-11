@@ -3,13 +3,18 @@
  * Apps (e.g. apps/web) set implementations at bootstrap; packages use getters.
  */
 
-type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+type FetchFn = (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => Promise<Response>;
 
 /** Stored references; set by app at bootstrap. */
 let platformWindow: Window | null = null;
 let platformDocument: Document | null = null;
 let platformNavigator: Navigator | null = null;
-let platformBlobCtor: ((parts: BlobPart[], options?: BlobPropertyBag) => Blob) | null = null;
+let platformBlobCtor:
+  | ((parts: BlobPart[], options?: BlobPropertyBag) => Blob)
+  | null = null;
 let platformFileCtor:
   | ((parts: BlobPart[], name: string, options?: FilePropertyBag) => File)
   | null = null;
@@ -56,7 +61,9 @@ export function getNavigator(): Navigator | null {
  */
 export function getFetch(): FetchFn {
   if (platformFetch) return platformFetch;
-  throw new Error("Platform fetch not set; setPlatformGlobals({ fetch }) in app.");
+  throw new Error(
+    "Platform fetch not set; setPlatformGlobals({ fetch }) in app.",
+  );
 }
 
 /**
@@ -71,14 +78,35 @@ export function getFetchIfAvailable(): FetchFn | null {
  * Create a Blob using the platform constructor. Throws if not set (e.g. in RN use a polyfill or set from app).
  */
 export function createBlob(parts: BlobPart[], options?: BlobPropertyBag): Blob {
-  if (platformBlobCtor) return platformBlobCtor(parts, options);
-  throw new Error("Platform Blob not set; setPlatformGlobals({ Blob }) in app.");
+  if (!platformBlobCtor) {
+    throw new Error(
+      "Platform Blob not set; setPlatformGlobals({ Blob }) in app.",
+    );
+  }
+  const Ctor = platformBlobCtor as unknown as new (
+    parts: BlobPart[],
+    options?: BlobPropertyBag,
+  ) => Blob;
+  return new Ctor(parts, options);
 }
 
 /**
  * Create a File using the platform constructor. Throws if not set.
  */
-export function createFile(parts: BlobPart[], name: string, options?: FilePropertyBag): File {
-  if (platformFileCtor) return platformFileCtor(parts, name, options);
-  throw new Error("Platform File not set; setPlatformGlobals({ File }) in app.");
+export function createFile(
+  parts: BlobPart[],
+  name: string,
+  options?: FilePropertyBag,
+): File {
+  if (!platformFileCtor) {
+    throw new Error(
+      "Platform File not set; setPlatformGlobals({ File }) in app.",
+    );
+  }
+  const Ctor = platformFileCtor as unknown as new (
+    parts: BlobPart[],
+    fileName: string,
+    options?: FilePropertyBag,
+  ) => File;
+  return new Ctor(parts, name, options);
 }

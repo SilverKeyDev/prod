@@ -90,4 +90,19 @@
   .pac-matched {
     font-size: 12px !important;
   }
+
+  /*
+   * Non-button elements with role="button" + tabIndex (Box-as-button): the UA :focus-visible outline is thick and dark.
+   * Align with input/button focus rings. Real <button> elements use component-level classes only.
+   */
+  [role="button"]:not(button):focus-visible {
+    @apply outline-none ring-2 ring-neutral-400 ring-offset-2;
+  }
+
+  /*
+   * Full-bleed dismiss layers (fixed + inset-0): a focus ring traces the viewport and reads as a heavy black border.
+   */
+  .fixed.inset-0[role="button"]:focus-visible {
+    @apply shadow-none outline-none ring-0 ring-offset-0;
+  }
 }

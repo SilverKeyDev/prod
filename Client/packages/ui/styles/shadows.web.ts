@@ -1,11 +1,14 @@
 /**
  * Web shadow adapter: maps shared design tokens to CSS box-shadow.
- * No React, no DOM — pure function.
+ * No React, no DOM - pure function.
  */
 
 import { type ShadowTokenName, shadowTokens } from "packages/design-tokens";
 
-function buildCss(t: (typeof shadowTokens)[ShadowTokenName], color: string): string {
+function buildCss(
+  t: (typeof shadowTokens)[ShadowTokenName],
+  color: string,
+): string {
   return `${t.offsetX}px ${t.offsetY}px ${t.blur}px ${t.spread}px ${color}`;
 }
 

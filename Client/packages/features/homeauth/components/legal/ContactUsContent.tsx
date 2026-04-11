@@ -1,7 +1,9 @@
+import { STATIC_LEGAL_CONTACT } from "packages/features/homeauth/utils/staticLegalContact";
+
 import type { ContactUsLayoutPrimitives } from "./types";
 
-const CONTACT_EMAIL = "walzerjayce@gmail.com";
-const CONTACT_PHONE = "+1 (858) 265-9936";
+const { generalEmail, phoneDisplay, phoneTelHref } = STATIC_LEGAL_CONTACT;
+const GENERAL_MAILTO = `mailto:${generalEmail}`;
 
 export function ContactUsContent({
   Section,
@@ -13,48 +15,55 @@ export function ContactUsContent({
 }: ContactUsLayoutPrimitives) {
   return (
     <>
-      <Section title="Get in Touch">
-        <Paragraph className="space-y-responsive-md">
-          We're here to help! Whether you have questions about our services, need technical support,
-          or want to provide feedback, we'd love to hear from you.
+      <Section title="Get in touch">
+        <Paragraph>
+          Use the contacts below for accounts, product questions, and
+          partnerships. Privacy requests should go to the address listed in the
+          Privacy Policy.
         </Paragraph>
       </Section>
 
-      <Section title="Contact Information">
+      <Section title="Contact information">
         <ContactInfoContainer>
           <ContactInfoBlock
             label="Email"
-            value={<EmailLink href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</EmailLink>}
+            value={<EmailLink href={GENERAL_MAILTO}>{generalEmail}</EmailLink>}
           />
-          <ContactInfoBlock label="Phone" value={CONTACT_PHONE} />
+          <ContactInfoBlock
+            label="Phone"
+            value={<EmailLink href={phoneTelHref}>{phoneDisplay}</EmailLink>}
+          />
         </ContactInfoContainer>
       </Section>
 
-      <Section title="Frequently Asked Questions">
-        <FAQItem question="How quickly will I receive my property report?">
-          Most reports are generated within 2-5 minutes. Complex properties or high-demand periods
-          may take up to 15 minutes.
+      <Section title="Common questions">
+        <FAQItem question="What is SilverKey?">
+          Agent-facing software that ties MLS-backed search, neighborhood
+          writeups, and offer-related documentation into one workflow. Buyers
+          interact through their agent.
         </FAQItem>
-        <FAQItem question="What areas do you cover?">
-          We provide comprehensive property reports for all 50 US states, covering residential,
-          commercial, and investment properties, with solid but slightly less accurate coverage
-          globally.
+        <FAQItem question="Who can use SilverKey?">
+          SilverKey is built for licensed real estate professionals and teams.
+          Availability may be limited during early access; sign up or contact us
+          to learn whether your market and brokerage are supported.
         </FAQItem>
-        <FAQItem question="Can I get a refund if I'm not satisfied?">
-          Yes! We offer a 30-day money-back guarantee. If you're not completely satisfied with your
-          report, contact us for a full refund.
+        <FAQItem question="How quickly will you respond?">
+          We aim to reply to email within one business day. Complex technical or
+          data issues may take longer; include your brokerage name and a short
+          description of the issue to help us route your message.
         </FAQItem>
       </Section>
 
-      <Section title="Send Us a Message" isLast>
+      <Section title="Send a message" isLast>
         <Paragraph>
-          For specific inquiries or detailed questions, please email us at{" "}
-          <EmailLink href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</EmailLink> and we'll get back
-          to you within 24 hours during business days.
+          For detailed questions, email{" "}
+          <EmailLink href={GENERAL_MAILTO}>{generalEmail}</EmailLink> with as
+          much context as possible (browser, steps to reproduce, screenshots if
+          relevant).
         </Paragraph>
-        <Paragraph className="text-responsive-sm text-text-secondary">
-          Please include as much detail as possible about your question or issue so we can provide
-          you with the most helpful response.
+        <Paragraph className="text-text-secondary text-xs sm:text-sm">
+          SilverKey does not provide legal advice. For contract or compliance
+          questions, consult your broker or qualified counsel.
         </Paragraph>
       </Section>
     </>

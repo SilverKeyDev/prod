@@ -5,12 +5,14 @@ import { Box, Image } from "packages/ui/components/primitives";
 import Card from "@/components/layout/Card.web";
 import { BodyText, NavigationButtons, Title } from "@/components/ui";
 import OnboardingHeader from "@/features/profile/components/onboard/Header";
+import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/ProfileHousingEssentialsSection";
+import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/ProfileHousingRangesSection";
+import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/ProfileSearchPropertySection";
 import {
   AgentBrokerageSection,
   AgentLicensingSection,
   AgentProfileServiceSection,
   DemographicsSection,
-  HousingSection,
   LocationSection,
 } from "@/features/profile/components/sections/index.web";
 
@@ -19,6 +21,7 @@ export function OnboardingFeature() {
     steps,
     formData,
     updateFormData,
+    patchBuyerPreferenceExtensions,
     currentStep,
     nextStep,
     prevStep,
@@ -27,7 +30,6 @@ export function OnboardingFeature() {
     scriptsReady,
     loadError,
     handleSubmit,
-    isDesktop,
     showSkipOnNext,
   } = useOnboardingForm();
 
@@ -78,14 +80,21 @@ export function OnboardingFeature() {
           />
         );
 
-      case "housing":
+      case "housing_essentials":
         return (
-          <HousingSection
+          <ProfileHousingEssentialsSection
             formData={formData}
             isEditMode={true}
-            updateFormData={updateFormData}
-            isDesktop={isDesktop}
-            wrapInCard={false}
+            updateField={(field, value) => updateFormData(field, value)}
+          />
+        );
+
+      case "housing_ranges":
+        return (
+          <ProfileHousingRangesSection
+            formData={formData}
+            isEditMode={true}
+            updateField={(field, value) => updateFormData(field, value)}
           />
         );
 
@@ -98,6 +107,17 @@ export function OnboardingFeature() {
             scriptsReady={scriptsReady}
             loadError={loadError}
             wrapInCard={false}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+          />
+        );
+
+      case "search_property":
+        return (
+          <ProfileSearchPropertySection
+            formData={formData}
+            isEditMode={true}
+            updateField={(field, value) => updateFormData(field, value)}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           />
         );
 
@@ -121,13 +141,21 @@ export function OnboardingFeature() {
         {/* Header */}
         <Box className="mb-3 mt-4 flex items-center justify-between sm:mb-4 sm:mt-6">
           <Box className="flex items-center">
-            <Image src={LOGO} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
+            <Image
+              src={LOGO}
+              alt="SilverKey Logo"
+              className="h-6 sm:h-8 md:h-10"
+            />
           </Box>
           <Box className="flex items-center gap-4" />
         </Box>
 
         {/* Progress Bar */}
-        <OnboardingHeader steps={steps} currentStep={currentStep} onStepClick={goToStep} />
+        <OnboardingHeader
+          steps={steps}
+          currentStep={currentStep}
+          onStepClick={goToStep}
+        />
 
         {/* Step Content */}
         <Box className="bg-background-surface mt-4 rounded-2xl shadow-sm">

@@ -12,11 +12,9 @@ export {
   type TransactionAddressData,
   updateTaskChecklist,
 } from "./api/checklists";
-export { default as AddDocumentToStepModal } from "./components/AddDocumentToStepModal";
-export { default as AddFromSkySlopeModal } from "./components/AddFromSkySlopeModal";
 export { default as ChecklistIntegrationSlot } from "./components/ChecklistIntegrationSlot";
-export { default as ChecklistItemDocuments } from "./components/ChecklistItemDocuments";
 export { default as ChecklistLayout } from "./components/ChecklistLayout";
+export { default as ChecklistStepForms } from "./components/ChecklistStepForms";
 export { default as CloseLayout } from "./components/CloseLayout";
 export { default as ChooseAreasSection } from "./components/integrations/ChooseAreasSection"; // eslint-disable-line import/no-unresolved -- Platform-specific: .web.tsx | .native.tsx
 export { default as FindingHome } from "./components/integrations/FindingHome";
@@ -28,7 +26,10 @@ export { default as FinancingInsurance } from "./components/subheaders/Financing
 export { default as InspectionsDueDiligence } from "./components/subheaders/InspectionsDueDiligence";
 export { default as OfferSection } from "./components/subheaders/OfferSection";
 export { default as SearchSection } from "./components/subheaders/SearchSection";
-export { useChecklistData, type UseChecklistDataReturn } from "./hooks/data/useChecklistData";
+export {
+  useChecklistData,
+  type UseChecklistDataReturn,
+} from "./hooks/data/useChecklistData";
 export {
   useChecklistProgress,
   type UseChecklistProgressReturn,

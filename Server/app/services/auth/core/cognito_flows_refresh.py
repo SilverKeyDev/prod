@@ -4,7 +4,7 @@ import logging
 import random
 import time
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timezone
 
 from botocore.exceptions import ClientError
 
@@ -103,7 +103,7 @@ def refresh_access_token(
                     "RequestId", "unknown"
                 ),
                 "duration_ms": dm,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         if error_code == "NotAuthorizedException":
@@ -134,7 +134,7 @@ def refresh_access_token(
                 "error_type": type(e).__name__,
                 "error_message": str(e),
                 "duration_ms": duration_ms(),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
         return {

@@ -1,0 +1,10 @@
+type: object
+properties:
+  s3_key:
+    type: string
+    nullable: true
+    description: Optional S3 key for the report to delete
+  file_path:
+    type: string
+    nullable: true
+    description: Optional legacy file path (alias of s3_key)

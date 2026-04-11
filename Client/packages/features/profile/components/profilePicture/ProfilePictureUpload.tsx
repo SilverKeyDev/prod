@@ -28,7 +28,8 @@ function validateFile(file: File): string | null {
 export default function ProfilePictureUpload() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { userProfile } = useUserData();
-  const { uploadProfilePicture, isUploading, error } = useProfilePictureUpload();
+  const { uploadProfilePicture, isUploading, error } =
+    useProfilePictureUpload();
   const [remoteLoadFailed, setRemoteLoadFailed] = useState(false);
 
   const profilePictureUrl = userProfile?.profile_picture_url ?? null;
@@ -74,27 +75,6 @@ export default function ProfilePictureUpload() {
             fetchPriority={showRemote ? "high" : "low"}
             className={`h-full w-full ${FEED_AVATAR_IMAGE_CLASS}`}
             onError={() => {
-              // #region agent log
-              // eslint-disable-next-line no-restricted-globals -- debug NDJSON ingest (session 244579)
-              fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "X-Debug-Session-Id": "244579",
-                },
-                body: JSON.stringify({
-                  sessionId: "244579",
-                  location: "ProfilePictureUpload.tsx:Image.onError",
-                  message: "profile image load failed",
-                  data: {
-                    wasTryingRemote: showRemote,
-                    urlLen: trimmedUrl?.length ?? 0,
-                  },
-                  timestamp: Date.now(),
-                  hypothesisId: "C",
-                }),
-              }).catch(() => {});
-              // #endregion
               setRemoteLoadFailed(true);
             }}
           />

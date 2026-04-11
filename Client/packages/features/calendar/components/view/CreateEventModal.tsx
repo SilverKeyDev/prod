@@ -1,23 +1,32 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
-import type { Calendar, ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
-import type { GoogleEvent } from "packages/features/calendar/types/googleEvent";
+import { useIsAgent } from "packages/hooks/store";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useGoogleMapsStore, useUIStore } from "packages/store";
-import type {
-  AutocompleteRequest,
-  AutocompleteSuggestion,
-  GoogleMapsWindow,
-} from "packages/types/google-maps";
-import { asError } from "packages/utils";
-import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
 
+import { useAgentClients } from "@/features/agent/hooks/data/useAgentClients";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/useGoogleEvents";
+import { useCreateEventModalEffects } from "@/features/calendar/hooks/ui/useCreateEventModalEffects";
+import type {
+  Calendar,
+  ExtendedGoogleEvent,
+} from "@/features/calendar/types/calendar";
+import type { CreateEventModalAddWithoutSchedulePayload } from "@/features/calendar/types/createEventModal";
+import type {
+  GoogleCalendarEventCreateBody,
+  GoogleEvent,
+} from "@/features/calendar/types/googleEvent";
+import { defaultCreateEventTimedRange } from "@/features/calendar/utils/createEventModalDefaults";
 import { detectEventTypeFromTitle } from "@/features/calendar/utils/createEventModalDetectEventType";
+import {
+  buildCreateEventGoogleStartEnd,
+  CREATE_EVENT_TIME_STEP_MINUTES,
+} from "@/features/calendar/utils/eventFormGooglePayload";
 
 import { CreateEventModalForm } from "./CreateEventModalForm";
+
+export type { CreateEventModalAddWithoutSchedulePayload } from "@/features/calendar/types/createEventModal";
 
 type CreateEventModalProps = {
   isOpen: boolean;
@@ -26,9 +35,17 @@ type CreateEventModalProps = {
   calendars: Calendar[];
   defaultCalendarId?: string | null;
   onEventCreated?: () => void;
+  /** When set (e.g. agent dashboard), saves title/description/client as a to-do with no due date. */
+  onAddWithoutSchedule?: (
+    payload: CreateEventModalAddWithoutSchedulePayload,
+  ) => Promise<void>;
   mode?: "create" | "edit";
   existingEvent?: ExtendedGoogleEvent;
-  updateEvent?: (eventId: string, event: GoogleEvent, calendarId?: string) => Promise<unknown>;
+  updateEvent?: (
+    eventId: string,
+    event: GoogleEvent,
+    calendarId?: string,
+  ) => Promise<unknown>;
 };
 
 export function CreateEventModal({
@@ -38,11 +55,14 @@ export function CreateEventModal({
   calendars,
   defaultCalendarId,
   onEventCreated,
+  onAddWithoutSchedule,
   mode = "create",
   existingEvent,
   updateEvent: updateEventProp,
 }: CreateEventModalProps) {
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
+  const isAgent = useIsAgent();
+  const { clients: _agentClients } = useAgentClients();
   const {
     createEvent,
     updateEvent: updateEventFromHook,
@@ -51,177 +71,100 @@ export function CreateEventModal({
   } = useGoogleEvents();
   const updateEvent = updateEventProp ?? updateEventFromHook;
   const isSubmitting = isCreatingEvent || isUpdatingEvent;
-  const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMapsStore();
+  const { isLoaded: googleMapsLoaded, error: googleMapsError } =
+    useGoogleMapsStore();
 
   const [eventTitle, setEventTitle] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [eventLocation, setEventLocation] = useState("");
-  const [locationSuggestions, setLocationSuggestions] = useState<
-    Array<{ description: string; placePrediction: AutocompleteSuggestion["placePrediction"] }>
-  >([]);
-  const [hasSelectedLocation, setHasSelectedLocation] = useState(false);
   const [scriptsReady, setScriptsReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState("");
-  const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [selectedCalendarId, setSelectedCalendarId] = useState<string>("primary");
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("10:00");
+  const [isAllDay, setIsAllDay] = useState(false);
+  const [selectedCalendarId, setSelectedCalendarId] =
+    useState<string>("primary");
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [isSavingUnscheduled, setIsSavingUnscheduled] = useState(false);
 
-  // Initialize form with initial date if provided (use initialDate timestamp to avoid Date ref churn)
   const initialDateMs = initialDate?.getTime();
 
-  // Populate form when editing existing event
-  useEffect(() => {
-    if (isOpen && mode === "edit" && existingEvent) {
-      setEventTitle(existingEvent.summary || "");
-      setEventDescription(existingEvent.description || "");
-      setEventLocation(existingEvent.location || "");
-      const start = existingEvent.start?.dateTime ?? existingEvent.start?.date;
-      const end = existingEvent.end?.dateTime ?? existingEvent.end?.date;
-      if (start) {
-        const startD = dateParseISO(start);
-        setStartDate(startD.format("YYYY-MM-DD"));
-        setStartTime(startD.format("HH:mm"));
+  const showAgentClientPicker = mode === "create" && isAgent;
+
+  useCreateEventModalEffects({
+    isOpen,
+    mode,
+    existingEvent,
+    initialDateMs,
+    calendars,
+    defaultCalendarId,
+    googleMapsLoaded,
+    googleMapsError,
+    scriptsReady,
+    setEventTitle,
+    setEventDescription,
+    setEventLocation,
+    setIsAllDay,
+    setStartDate,
+    setEndDate,
+    setStartTime,
+    setEndTime,
+    setSelectedCalendarId,
+    setSelectedClientId,
+    setScriptsReady,
+    setLoadError,
+    setIsSavingUnscheduled,
+  });
+
+  const onDateRangeChange = useCallback(
+    (lo: string, hi: string) => {
+      setStartDate(lo);
+      setEndDate(hi);
+
+      if (mode === "edit") {
+        return;
       }
-      if (end) {
-        const endD = dateParseISO(end);
-        setEndDate(endD.format("YYYY-MM-DD"));
-        setEndTime(endD.format("HH:mm"));
+
+      const rawStart = lo.trim();
+      const rawEnd = hi.trim();
+      const scheduleStart = rawStart || rawEnd;
+      const scheduleEnd = rawEnd || rawStart || scheduleStart;
+      if (!scheduleStart || !scheduleEnd) {
+        return;
       }
-      if (existingEvent.calendarId) {
-        setSelectedCalendarId(existingEvent.calendarId);
-      }
+
+      setIsAllDay(scheduleStart !== scheduleEnd);
+    },
+    [mode],
+  );
+
+  const onIsAllDayChange = useCallback((next: boolean) => {
+    setIsAllDay(next);
+    if (!next) {
+      const { startTime: st, endTime: et } = defaultCreateEventTimedRange();
+      setStartTime(st);
+      setEndTime(et);
     }
-  }, [isOpen, mode, existingEvent]);
-
-  useEffect(() => {
-    if (initialDateMs != null && isOpen && mode !== "edit") {
-      const d = dayjs(initialDateMs);
-      const dateStr = d.format("YYYY-MM-DD");
-      const hasTime = d.hour() !== 0 || d.minute() !== 0;
-      const defaultHour = hasTime ? d.hour() : 9;
-      const defaultMinute = hasTime ? d.minute() : 0;
-
-      const startDateTime = d.hour(defaultHour).minute(defaultMinute).second(0).millisecond(0);
-      const timeStr = `${String(defaultHour).padStart(2, "0")}:${String(defaultMinute).padStart(2, "0")}`;
-
-      setStartDate(dateStr);
-      setStartTime(timeStr);
-
-      const endDateTime = startDateTime.add(1, "hour");
-      setEndDate(endDateTime.format("YYYY-MM-DD"));
-      setEndTime(endDateTime.format("HH:mm"));
-    } else if (isOpen && initialDateMs == null && mode !== "edit") {
-      const now = dateNow();
-      const dateStr = now.format("YYYY-MM-DD");
-      const timeStr = now.format("HH:mm");
-
-      setStartDate(dateStr);
-      setStartTime(timeStr);
-
-      const endDateTime = now.add(1, "hour");
-      setEndDate(endDateTime.format("YYYY-MM-DD"));
-      setEndTime(endDateTime.format("HH:mm"));
-    }
-  }, [initialDateMs, isOpen, mode]);
-
-  // Update scriptsReady based on centralized Google Maps loading
-  useEffect(() => {
-    if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
-      setLoadError("Failed to load Google Maps script.");
-      return;
-    }
-
-    const win = getWindow();
-    if (googleMapsLoaded && (win as unknown as GoogleMapsWindow | null)?.google?.maps?.places) {
-      setScriptsReady(true);
-    }
-  }, [googleMapsLoaded, googleMapsError]);
-
-  // Fetch autocomplete suggestions for event location as the user types
-  useEffect(() => {
-    if (!scriptsReady || !isOpen || eventLocation.trim().length < 3 || hasSelectedLocation) {
-      setLocationSuggestions([]);
-      return;
-    }
-
-    const fetchSuggestions = async () => {
-      try {
-        const win = getWindow();
-        const googleMapsWindow = win as unknown as GoogleMapsWindow | null;
-        if (!googleMapsWindow?.google?.maps?.places) {
-          setLocationSuggestions([]);
-          return;
-        }
-
-        const sessionToken = new googleMapsWindow.google.maps.places.AutocompleteSessionToken();
-        const request: AutocompleteRequest = {
-          input: eventLocation,
-          sessionToken,
-          componentRestrictions: {
-            country: "US",
-          },
-        };
-
-        const { suggestions } =
-          await googleMapsWindow.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request
-          );
-
-        const built =
-          suggestions?.map((s) => ({
-            description: s.placePrediction.text.text,
-            placePrediction: s.placePrediction,
-          })) ?? [];
-
-        setLocationSuggestions(built);
-      } catch (err: unknown) {
-        const error = asError(err);
-        log.error(LOG_CATEGORIES.ERRORS, "Event location autocomplete error", error);
-        setLocationSuggestions([]);
-      }
-    };
-
-    const win = getWindow();
-    const timeoutId = win ? win.setTimeout(fetchSuggestions, 400) : 0;
-    return () => {
-      if (win && timeoutId) win.clearTimeout(timeoutId);
-    };
-  }, [eventLocation, hasSelectedLocation, isOpen, scriptsReady]);
-
-  // Set default calendar when calendars are loaded (only update when value actually changes)
-  useEffect(() => {
-    if (calendars.length === 0 || !isOpen) return;
-
-    const nextId = (() => {
-      if (defaultCalendarId) {
-        const silverKeyCalendar = calendars.find((cal) => cal.id === defaultCalendarId);
-        if (silverKeyCalendar) return defaultCalendarId;
-      }
-      const primaryCalendar = calendars.find((cal) => cal.primary) || calendars[0];
-      return primaryCalendar?.id;
-    })();
-
-    if (nextId) {
-      setSelectedCalendarId((prev) => (prev === nextId ? prev : nextId));
-    }
-  }, [calendars, defaultCalendarId, isOpen]);
-
-  // Reset form when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setEventTitle("");
-      setEventDescription("");
-      setEventLocation("");
-      setLocationSuggestions([]);
-      setHasSelectedLocation(false);
-    }
-  }, [isOpen]);
+  }, []);
 
   const handleSubmit = async () => {
-    if (!eventTitle.trim() || !startDate || !startTime || !endDate || !endTime) {
+    if (!eventTitle.trim()) {
+      enqueueToast({
+        type: "error",
+        message: "Please enter a title",
+      });
+      return;
+    }
+
+    const rawStart = startDate.trim();
+    const rawEnd = endDate.trim();
+    const scheduleStartYmd = rawStart || rawEnd;
+    const scheduleEndYmd = rawEnd || rawStart || scheduleStartYmd;
+    const hasSchedule = Boolean(scheduleStartYmd && scheduleEndYmd);
+
+    if (mode === "edit" && !hasSchedule) {
       enqueueToast({
         type: "error",
         message: "Please fill in all required fields",
@@ -229,45 +172,107 @@ export function CreateEventModal({
       return;
     }
 
-    // Validate that end time is after start time
-    const startDateTime = dateParseISO(`${startDate}T${startTime}`);
-    const endDateTime = dateParseISO(`${endDate}T${endTime}`);
+    if (mode === "create" && !hasSchedule) {
+      if (!onAddWithoutSchedule) {
+        enqueueToast({
+          type: "error",
+          message: "Add a date to save to your SilverKey calendar",
+        });
+        return;
+      }
+      setIsSavingUnscheduled(true);
+      try {
+        const descTrimmed = eventDescription.trim();
+        const locTrimmed = eventLocation.trim();
+        const descriptionForTodo =
+          !descTrimmed && !locTrimmed
+            ? null
+            : !locTrimmed
+              ? descTrimmed
+              : !descTrimmed
+                ? `Location: ${locTrimmed}`
+                : `${descTrimmed}\n\nLocation: ${locTrimmed}`;
 
-    if (!endDateTime.isAfter(startDateTime)) {
+        await onAddWithoutSchedule({
+          title: eventTitle.trim(),
+          description: descriptionForTodo,
+          clientId: selectedClientId,
+        });
+        enqueueToast({ type: "success", message: "Added to agenda" });
+        onEventCreated?.();
+        onClose();
+      } catch (error) {
+        log.error(LOG_CATEGORIES.CALENDAR, "Error adding agenda item", error);
+        enqueueToast({
+          type: "error",
+          message:
+            error instanceof Error ? error.message : "Failed to add item",
+        });
+      } finally {
+        setIsSavingUnscheduled(false);
+      }
+      return;
+    }
+
+    if (!isAllDay && (!startTime || !endTime)) {
       enqueueToast({
         type: "error",
-        message: "End time must be after start time",
+        message: "Please select start and end time",
+      });
+      return;
+    }
+
+    let startEnd: Pick<GoogleEvent, "start" | "end">;
+    try {
+      startEnd = buildCreateEventGoogleStartEnd({
+        isAllDay,
+        startDate: scheduleStartYmd,
+        endDate: scheduleEndYmd,
+        startTime,
+        endTime,
+        timeStepMinutes: CREATE_EVENT_TIME_STEP_MINUTES,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Invalid date or time";
+      enqueueToast({ type: "error", message: msg });
+      return;
+    }
+
+    const calendarIdForCreate =
+      mode === "create" && defaultCalendarId
+        ? defaultCalendarId
+        : selectedCalendarId;
+
+    if (mode === "create" && !calendarIdForCreate) {
+      enqueueToast({
+        type: "error",
+        message:
+          "Calendar is not available. Connect Google Calendar and try again.",
       });
       return;
     }
 
     try {
-      // Format dates to ISO 8601 format
-      const startISO = startDateTime.toISOString();
-      const endISO = endDateTime.toISOString();
-
-      // Get user's timezone
-      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-      const eventData: GoogleEvent & { eventType?: string } = {
+      const eventData: GoogleCalendarEventCreateBody = {
         summary: eventTitle.trim(),
         description: eventDescription.trim() || undefined,
         location: eventLocation.trim() || undefined,
-        start: {
-          dateTime: startISO,
-          timeZone: timeZone,
-        },
-        end: {
-          dateTime: endISO,
-          timeZone: timeZone,
-        },
-        calendarId: selectedCalendarId,
-        // Optional: Add event type detection based on title keywords
+        start: startEnd.start,
+        end: startEnd.end,
+        calendarId: calendarIdForCreate,
         eventType: detectEventTypeFromTitle(eventTitle.trim()),
       };
 
+      if (mode === "create" && selectedClientId) {
+        eventData.target_user_id = selectedClientId;
+      }
+
       if (mode === "edit" && existingEvent?.id && updateEvent) {
-        await updateEvent(existingEvent.id, eventData, existingEvent.calendarId);
+        await updateEvent(
+          existingEvent.id,
+          eventData,
+          existingEvent.calendarId,
+        );
         enqueueToast({
           type: "success",
           message: "Event updated successfully",
@@ -276,40 +281,61 @@ export function CreateEventModal({
         await createEvent(eventData);
         enqueueToast({
           type: "success",
-          message: "Event created successfully",
+          message: "Added to calendar",
         });
       }
 
-      // Call callback to refresh events
-      if (onEventCreated) {
-        onEventCreated();
-      }
-
+      onEventCreated?.();
       onClose();
     } catch (error) {
       log.error(LOG_CATEGORIES.CALENDAR, "Error creating event", error);
       enqueueToast({
         type: "error",
-        message: error instanceof Error ? error.message : "Failed to create event",
+        message:
+          error instanceof Error ? error.message : "Failed to create event",
       });
     }
   };
 
-  const canSubmit = eventTitle.trim() && startDate && startTime && endDate && endTime;
+  const rawStartForUi = startDate.trim();
+  const rawEndForUi = endDate.trim();
+  const scheduleStartForUi = rawStartForUi || rawEndForUi;
+  const scheduleEndForUi = rawEndForUi || rawStartForUi || scheduleStartForUi;
+  const hasSchedule = Boolean(scheduleStartForUi && scheduleEndForUi);
+  const canSubmitUnscheduled = Boolean(
+    eventTitle.trim() && onAddWithoutSchedule,
+  );
+  const canSubmitScheduled = Boolean(
+    eventTitle.trim() &&
+      hasSchedule &&
+      (isAllDay || (startTime && endTime)) &&
+      (mode === "edit" || Boolean(defaultCalendarId)),
+  );
 
-  const handleEventLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHasSelectedLocation(false);
-    setEventLocation(e.target.value);
-  };
+  const canSubmit =
+    mode === "edit"
+      ? canSubmitScheduled
+      : hasSchedule
+        ? canSubmitScheduled
+        : canSubmitUnscheduled;
 
-  const handleLocationSelect = (suggestion: {
-    description: string;
-    placePrediction: AutocompleteSuggestion["placePrediction"];
-  }) => {
-    setHasSelectedLocation(true);
-    setEventLocation(suggestion.description);
-    setLocationSuggestions([]);
-  };
+  const formSubmitting = isSubmitting || isSavingUnscheduled;
+  const primaryActionLabel =
+    mode === "edit"
+      ? isUpdatingEvent
+        ? "Updating..."
+        : "Update Event"
+      : hasSchedule
+        ? isCreatingEvent
+          ? "Adding..."
+          : "Add"
+        : isSavingUnscheduled
+          ? "Adding..."
+          : "Add";
+
+  const handleEventLocationChange = useCallback((value: string) => {
+    setEventLocation(value);
+  }, []);
 
   return (
     <CreateEventModalForm
@@ -319,27 +345,30 @@ export function CreateEventModal({
       calendars={calendars}
       selectedCalendarId={selectedCalendarId}
       onCalendarChange={setSelectedCalendarId}
+      hideCalendarPicker={mode === "create"}
       eventTitle={eventTitle}
       onEventTitleChange={(e) => setEventTitle(e.target.value)}
+      showAgentClientPicker={showAgentClientPicker}
+      selectedClientId={selectedClientId}
+      onSelectedClientIdChange={setSelectedClientId}
+      isAllDay={isAllDay}
+      onIsAllDayChange={onIsAllDayChange}
       startDate={startDate}
-      onStartDateChange={(e) => setStartDate(e.target.value)}
-      startTime={startTime}
-      onStartTimeChange={(e) => setStartTime(e.target.value)}
       endDate={endDate}
-      onEndDateChange={(e) => setEndDate(e.target.value)}
+      onDateRangeChange={onDateRangeChange}
+      startTime={startTime}
       endTime={endTime}
-      onEndTimeChange={(e) => setEndTime(e.target.value)}
+      onStartTimeChange={setStartTime}
+      onEndTimeChange={setEndTime}
       eventLocation={eventLocation}
       onEventLocationChange={handleEventLocationChange}
-      locationSuggestions={locationSuggestions}
-      onLocationSelect={handleLocationSelect}
+      locationScriptsReady={scriptsReady}
       loadError={loadError}
       eventDescription={eventDescription}
       onEventDescriptionChange={(e) => setEventDescription(e.target.value)}
-      canSubmit={Boolean(canSubmit)}
-      isSubmitting={isSubmitting}
-      isCreatingEvent={isCreatingEvent}
-      isUpdatingEvent={isUpdatingEvent}
+      canSubmit={canSubmit}
+      isSubmitting={formSubmitting}
+      primaryActionLabel={primaryActionLabel}
       onSubmit={handleSubmit}
     />
   );

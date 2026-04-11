@@ -1,13 +1,18 @@
 import { useCallback, useRef, useState } from "react";
 
 import { renderImportantLocationMarkers } from "packages/features/search/types/search/importantLocationRenderer";
+import { resetMapToListingFocusZoom } from "packages/features/search/utils/googleMaps/mapCamera";
 import type { SearchResult } from "packages/types";
 import type { IsochroneData } from "packages/types/api";
 
 import { clearMapMarkers } from "./clearMarkers";
-import { addFocusedCardMarker } from "./focusedCardMarker";
+import { addFocusedCardMarkers } from "./focusedCardMarker";
 import { createPinMarkersBatch } from "./pinMarkers";
-import type { GoogleAdvancedMarkerElement, UseMapMarkersProps, UseMapMarkersReturn } from "./types";
+import type {
+  GoogleAdvancedMarkerElement,
+  UseMapMarkersProps,
+  UseMapMarkersReturn,
+} from "./types";
 import {
   centerMapOnFocusedProperty,
   ensureIsochroneAndRender,
@@ -17,8 +22,10 @@ import {
 export type { MapPropertyCardRenderProps, UseMapMarkersProps } from "./types";
 
 export const useMapMarkers = ({
+  activeTab,
   googleMapRef,
   currentPage,
+  propertiesPerPage,
   isochroneData,
   setIsochroneData,
   fetchIsochroneForMapOnly,
@@ -49,11 +56,13 @@ export const useMapMarkers = ({
           if (Array.isArray(markers)) importantMarkersRef.current = markers;
         },
         resetToDefaultZoom: () => {
-          if (googleMapRef.current) googleMapRef.current.setZoom(13);
+          if (googleMapRef.current) {
+            resetMapToListingFocusZoom(googleMapRef.current);
+          }
         },
       });
     },
-    [googleMapRef]
+    [googleMapRef],
   );
 
   const clearMapMarkersCallback = useCallback(() => {
@@ -90,7 +99,8 @@ export const useMapMarkers = ({
         calculatePropertyScore,
         onMarkerClick,
         onBatchComplete: () => {
-          addFocusedCardMarker(results, currentPage, {
+          addFocusedCardMarkers(results, currentPage, propertiesPerPage, {
+            activeTab,
             map: googleMapRef.current! as google.maps.Map,
             markersRef,
             AdvancedMarkerElement,
@@ -109,8 +119,10 @@ export const useMapMarkers = ({
       });
     },
     [
+      activeTab,
       googleMapRef,
       currentPage,
+      propertiesPerPage,
       isochroneData,
       setIsochroneData,
       fetchIsochroneForMapOnly,
@@ -126,7 +138,7 @@ export const useMapMarkers = ({
       renderMapPropertyCard,
       cleanupMapPropertyCard,
       contextKey,
-    ]
+    ],
   );
 
   return {

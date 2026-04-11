@@ -1,10 +1,10 @@
 """
-Preferences API blueprint. Route handlers live in preferences_handlers/.
+Preferences API blueprint. Route handlers live in handlers/.
 """
 
 from flask import Blueprint
 
-from .preferences_handlers import (
+from .handlers import (
     create_or_update_preferences,
     generate_client_action_plan,
     get_agents,

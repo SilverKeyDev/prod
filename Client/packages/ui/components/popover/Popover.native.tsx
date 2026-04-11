@@ -20,31 +20,54 @@ export default function Popover({
   className = "",
   triggerWrapperClassName = "",
 }: PopoverProps): React.ReactElement {
-  const { open, onToggle, onClose } = usePopoverState(controlledOpen, onOpenChange);
+  const { open, onToggle, onClose } = usePopoverState(
+    controlledOpen,
+    onOpenChange,
+  );
 
   const maxHeight = panelMaxHeight
     ? parseInt(String(panelMaxHeight).replace(/\D/g, ""), 10) || 400
     : 400;
   const panelContent = open ? (
-    <Box className="min-w-72 max-w-full rounded-2xl bg-neutral-50 p-6" style={{ maxHeight }}>
+    <Box
+      className="min-w-72 max-w-full rounded-2xl bg-neutral-50 p-6"
+      style={{ maxHeight }}
+    >
       <ScrollView
         className="max-h-80"
         contentContainerStyle={{ paddingVertical: 4 }}
         keyboardShouldPersistTaps="handled"
         bounces={false}
       >
-        {children({ onClose })}
+        {children({
+          onClose,
+          registerOutsideClickSafeTarget: () => () => {
+            /* no-op on native */
+          },
+        })}
       </ScrollView>
     </Box>
   ) : null;
 
   return (
     <Box className={`relative ${className}`.trim()}>
-      <Box className={triggerWrapperClassName || undefined}>{trigger({ open, onToggle })}</Box>
-      <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-        <Pressable className="absolute inset-0 bg-neutral-800" onPress={onClose} />
+      <Box className={triggerWrapperClassName || undefined}>
+        {trigger({ open, onToggle })}
+      </Box>
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={onClose}
+      >
+        <Pressable
+          className="absolute inset-0 bg-neutral-800"
+          onPress={onClose}
+        />
         <Box className="flex-1 items-center justify-end px-4 pb-6">
-          <Pressable onPress={(e) => e.stopPropagation()}>{panelContent}</Pressable>
+          <Pressable onPress={(e) => e.stopPropagation()}>
+            {panelContent}
+          </Pressable>
         </Box>
       </Modal>
     </Box>

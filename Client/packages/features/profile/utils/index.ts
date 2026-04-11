@@ -4,6 +4,7 @@ export * from "./fieldContract";
 export * from "./housingOptions";
 export * from "./importantLocations";
 export * from "./onboardingStepCompletion";
+export * from "./payingCashFinancials";
 export * from "./preferencesUtils";
 export * from "./profileEmptyDisplay";
 export * from "./profileFormSync";

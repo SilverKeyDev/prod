@@ -8,6 +8,9 @@ from typing import Any
 
 from app.services.auth.tokens import tokens_get, tokens_upsert
 from app.services.calendar.permissions import get_scopes_from_tokeninfo
+from app.services.calendar.permissions.google_calendar_oauth import (
+    normalize_google_oauth_scope_list,
+)
 from app.utils.security.app_logging import get_logger
 from app.utils.security.security import (
     log_oauth_event,
@@ -199,6 +202,10 @@ def exchange_code_for_tokens(
             logger.warning(
                 f"Tokeninfo failed for user {user_id}, using scopes from token response: {' '.join(granted_scopes)}"
             )
+
+        granted_scopes = normalize_google_oauth_scope_list(
+            [str(s).strip() for s in granted_scopes if str(s).strip()]
+        )
 
         # Get existing tokens to preserve refresh_token if Google doesn't return one
         existing_tokens = tokens_get(user_id)

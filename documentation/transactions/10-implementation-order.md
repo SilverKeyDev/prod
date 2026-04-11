@@ -107,24 +107,19 @@ Each step includes:
 
 ---
 
-### Phase 5 – Documents, forms (FMLS / eXp / SkySlope), and signature-driven completion
+### Phase 5 – Documents, DocuSign + S3, optional FMLS/eXp forms, and signature-driven completion
 
-11. **Forms integration (agent side)** – FMLS, eXp API, and/or SkySlope
-   - Implement server-side endpoints to:
-     - Authenticate the agent with FMLS, eXp, and/or SkySlope as configured.
-     - List available forms/templates from the configured source(s) for that agent/brokerage.
-   - Add an **“Attach form from SkySlope”** flow in the transaction documents UI.
-   - **Checklist-step file mapping:** Per `integrations/11-skyslope-checklist-step-file-mapping.md`, add optional `suggested_form_ids` to checklist item templates (see `integrations/12-skyslope-full-stack-implementation.md`) and implement step-contextual "Add from SkySlope" so agents/buyers find the right files for each step automatically.
+11. **Documents and templates (agent side)** – DocuSign + optional FMLS / eXp
+   - Use **DocuSign** for template sync (system/JWT), per-agent OAuth, envelope create/send, Connect webhooks, and completed-document fetch to **S3** — see `integrations/09-documents-docusign-and-s3.md` and `Server/app/services/docusign/README.md`.
+   - Where product requirements call for it, add or extend **FMLS** and/or **eXp API** flows to list brokerage forms separately from DocuSign templates.
+   - **Checklist linkage:** Associate agreements with checklist items/milestones (e.g. `AgreementLink` per `integrations/07-signing-review-and-completion.md`) so the right documents appear per step.
    - **Existing infra to check/extend:**
-     - Agreement models and document service in `Server/app/services/documents/`.
+     - Agreement models and document service in `Server/app/services/documents/`; DocuSign under `Server/app/services/docusign/`.
      - Client documents UI (`Client/packages/features/documents/*`).
 
-12. **Signature provider wiring (SkySlope)**
-   - Replace `NoOpSignatureProvider` with a SkySlope-backed implementation:
-     - `create_signature_request`, `get_signature_status`, `get_signing_url`, `cancel_signature`.
-   - Add endpoints for the client to:
-     - Start signing flows.
-     - Poll or receive webhooks for status updates.
+12. **Signature and status wiring (DocuSign)**
+   - Ensure `SignatureProvider` / DocuSign routes cover: create/send, status, embedded signing URL, cancel — aligned with `Server/app/services/docusign/`.
+   - Wire **Connect webhooks** and client polling as needed so agreement status stays in sync.
 
 13. **Checklist completion from signature status**
    - For items tagged as `signature_based` or `signature_plus_review`:
@@ -182,7 +177,7 @@ Each step includes:
      - Start with 1–2 key states (e.g. home markets) and general rules elsewhere.
 
 20. **Compliance and external data**
-   - Evaluate whether any vendor (including SkySlope) exposes structured timing/compliance metadata.
+   - Evaluate whether any vendor exposes structured timing/compliance metadata.
    - If not, rely on:
      - Internal tables + curated content.
    - Keep the compliance API integration as a **future extension**.
@@ -202,10 +197,9 @@ Each step includes:
 22. **Security and permissions review**
    - Validate that:
      - Only authorized roles can see/edit sensitive transaction data.
-     - External integrations (SkySlope, HomeConcierge, financial rails) use secure tokens and webhooks.
+     - External integrations (DocuSign, HomeConcierge, financial rails) use secure tokens and webhooks.
 
 23. **End-to-end tests and roll-out**
    - Add end-to-end tests for:
      - “New transaction → address → checklists → milestones → docs/signing.”
    - Gate the feature behind a **feature flag** and roll out progressively.
-

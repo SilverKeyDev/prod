@@ -1,0 +1,11 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      downloadUrl:
+        type: string
+        format: uri
+        nullable: true
+      expires_at:
+        type: string
+        nullable: true

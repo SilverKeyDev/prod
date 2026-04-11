@@ -1,0 +1,14 @@
+type: object
+required:
+  - property_address
+  - buyer_story
+  - offer_highlights
+properties:
+  property_address:
+    type: string
+  buyer_story:
+    type: string
+  offer_highlights:
+    type: array
+    items:
+      type: string

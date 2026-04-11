@@ -1,0 +1,23 @@
+type: object
+description: |
+  Base success envelope extended via `allOf` across many routes. `success` is always
+  true; `message` is optional human copy; `error` is normally null on success responses.
+required:
+  - success
+properties:
+  success:
+    type: boolean
+    enum: [true]
+    description: Always true for this schema; failed requests use ErrorResponse instead.
+  message:
+    type: string
+    nullable: true
+    description: Optional short status (e.g. OK or operation-specific confirmation).
+  error:
+    type: string
+    nullable: true
+    description: Reserved for symmetry with errors; keep null on success.
+example:
+  success: true
+  message: "OK"
+  error: null

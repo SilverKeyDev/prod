@@ -10,7 +10,10 @@ import {
   type OnboardingData,
 } from "@/features/profile/utils";
 
-import { getOnboardingDraftFromStorage, persistOnboardingDraft } from "./useOnboardingForm.helpers";
+import {
+  getOnboardingDraftFromStorage,
+  persistOnboardingDraft,
+} from "./useOnboardingForm.helpers";
 
 export type UseOnboardingFormCoreOptions = {
   /** Steps depend on formData so agent steps can be included when is_agent is yes/am_agent. */
@@ -37,9 +40,26 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
 
   const [loading, setLoading] = useState(false);
 
-  const updateFormData = useCallback((field: string | number | symbol, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const updateFormData = useCallback(
+    (field: string | number | symbol, value: unknown) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
+
+  const patchBuyerPreferenceExtensions = useCallback(
+    (
+      fn: (
+        prev: OnboardingData["buyerPreferenceExtensions"],
+      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>,
+    ) => {
+      setFormData((prev) => ({
+        ...prev,
+        buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
+      }));
+    },
+    [],
+  );
 
   useEffect(() => {
     if (skipNextPersistRef.current) {
@@ -81,6 +101,7 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
     steps,
     formData,
     updateFormData,
+    patchBuyerPreferenceExtensions,
     currentStep,
     setCurrentStep,
     nextStep,

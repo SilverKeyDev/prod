@@ -9,7 +9,14 @@ import { ProfileAvatar } from "packages/ui/components/avatar";
 import { Textarea } from "packages/ui/components/form/FormField";
 import { Box } from "packages/ui/components/primitives";
 
-import { BodyText, Button, CancelButton, CloseButton, Input, Title } from "@/components/ui";
+import {
+  BodyText,
+  Button,
+  CancelButton,
+  CloseButton,
+  Input,
+  Title,
+} from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messagingConfig";
 import { useClientSearch } from "@/features/agent/hooks/data/useAgentSearch";
 import { useConnectionRequests } from "@/features/agent/hooks/data/useConnectionRequests";
@@ -18,13 +25,17 @@ type ClientSearchModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
-export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModalProps) {
+export default function ClientSearchModal({
+  isOpen,
+  onClose,
+}: ClientSearchModalProps) {
   const config = getMessagingConfig("agent");
   const [searchQuery, setSearchQuery] = useState("");
   const [message, setMessage] = useState("");
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const { clients, isLoading } = useClientSearch(searchQuery, isOpen);
-  const { createRequestAsInitiator, isCreatingRequest } = useConnectionRequests();
+  const { createRequestAsInitiator, isCreatingRequest } =
+    useConnectionRequests();
   const { userProfile } = useUserData();
   const authUser = useAuthStore((s) => s.user);
   const initiatorId = userProfile?.id ?? authUser?.id;
@@ -48,14 +59,16 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
         initiatorId,
         clientId,
         true,
-        message.trim() || undefined
+        message.trim() || undefined,
       );
-      enqueueToast({
-        type: "success",
-        message: alreadyPending
-          ? "A connection request is already pending with this client."
-          : "Request sent",
-      });
+      if (alreadyPending) {
+        enqueueToast({
+          type: "warning",
+          message: "A connection request is already pending with this client.",
+        });
+        return;
+      }
+      enqueueToast({ type: "success", message: "Request sent" });
       setMessage("");
       setSelectedClientId(null);
       onClose();
@@ -68,7 +81,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
   };
   if (!isOpen) return null;
   return (
-    <Box className="bg-overlay-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+    <Box className="bg-overlay-backdrop z-modal fixed inset-0 flex items-center justify-center p-4">
       <Box className="bg-background-surface relative w-full max-w-2xl rounded-xl shadow-lg">
         {/* Header */}
         <Box className="border-border flex items-center justify-between border-b p-4">
@@ -91,7 +104,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={config.searchModal.searchPlaceholder}
-              className="border-border focus:border-primary focus:ring-accent-muted bg-background-surface w-full rounded-lg border px-10 py-2.5 text-base focus:outline-none focus:ring-2"
+              className="border-border focus:border-input-variant-focus-border bg-background-surface w-full rounded-lg border px-10 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-neutral-400"
             />
           </Box>
         </Box>
@@ -113,7 +126,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                   key={client.id}
                   className={`rounded-lg border p-3 transition-colors ${
                     selectedClientId === client.id
-                      ? "border-primary bg-primary-muted"
+                      ? "border-border bg-primary-muted"
                       : "border-border hover:bg-accent-muted"
                   }`}
                 >
@@ -128,10 +141,18 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                           />
                         </Box>
                         <Box className="flex-1">
-                          <Title as="h3" size="md" className="text-text-primary font-semibold">
+                          <Title
+                            as="h3"
+                            size="md"
+                            className="text-text-primary font-semibold"
+                          >
                             {client.name}
                           </Title>
-                          <BodyText as="p" size="md" className="text-text-secondary font-medium">
+                          <BodyText
+                            as="p"
+                            size="md"
+                            className="text-text-secondary font-medium"
+                          >
                             {client.email}
                           </BodyText>
                         </Box>
@@ -140,7 +161,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Add a message (optional)..."
-                        className="border-border focus:border-primary focus:ring-accent-muted w-full rounded-lg border px-3 py-2 text-base focus:outline-none focus:ring-2"
+                        className="border-border focus:border-input-variant-focus-border w-full rounded-lg border px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-neutral-400"
                         rows={3}
                       />
                       <Box className="flex gap-2">
@@ -182,14 +203,26 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                         />
                       </Box>
                       <Box className="flex-1">
-                        <Title as="h3" size="md" className="text-text-primary font-semibold">
+                        <Title
+                          as="h3"
+                          size="md"
+                          className="text-text-primary font-semibold"
+                        >
                           {client.name}
                         </Title>
-                        <BodyText as="p" size="md" className="text-text-secondary font-medium">
+                        <BodyText
+                          as="p"
+                          size="md"
+                          className="text-text-secondary font-medium"
+                        >
                           {client.email}
                         </BodyText>
                         {client.phone && (
-                          <BodyText as="p" size="sm" className="text-text-disabled font-medium">
+                          <BodyText
+                            as="p"
+                            size="sm"
+                            className="text-text-disabled font-medium"
+                          >
                             {client.phone}
                           </BodyText>
                         )}

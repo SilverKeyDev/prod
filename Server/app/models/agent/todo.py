@@ -1,5 +1,8 @@
 import uuid
-from datetime import datetime
+import warnings
+from datetime import datetime, timezone
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -9,30 +12,34 @@ class Todo(db.Model):
 
     __tablename__ = "todos"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    agent_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    client_id = db.Column(
-        db.String(36), db.ForeignKey("users.id"), nullable=True
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    agent_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    client_id: Mapped[str | None] = mapped_column(
+        db.ForeignKey("users.id")
     )  # Optional: associated client
 
     # Todo details
-    title = db.Column(db.String(500), nullable=False)
-    description = db.Column(db.Text, nullable=True)
+    title: Mapped[str] = mapped_column(db.String(500))
+    description: Mapped[str | None] = mapped_column(db.Text)
 
     # Priority and type (nullable = unset / optional)
-    priority = db.Column(db.String(20), nullable=True)  # low, medium, high, urgent
-    type = db.Column(
-        db.String(50), nullable=False, default="manual"
+    priority: Mapped[str | None] = mapped_column(db.String(20))  # low, medium, high, urgent
+    type: Mapped[str] = mapped_column(
+        db.String(50), default="manual"
     )  # deadline, follow_up, inspection, offer_expiration, closing, manual
 
     # Dates (nullable = no deadline)
-    due_date = db.Column(db.DateTime, nullable=True)
-    completed = db.Column(db.Boolean, default=False, nullable=False)
-    completed_at = db.Column(db.DateTime, nullable=True)
+    due_date: Mapped[datetime | None] = mapped_column(db.DateTime)
+    completed: Mapped[bool] = mapped_column(default=False)
+    completed_at: Mapped[datetime | None] = mapped_column(db.DateTime)
 
     # Metadata
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationships
     agent = db.relationship("User", foreign_keys=[agent_id], backref=db.backref("todos", lazy=True))
@@ -47,13 +54,17 @@ class Todo(db.Model):
 
     def to_dict(self):
         """Convert todo to dictionary"""
+        warnings.warn(
+            "Todo.to_dict() is deprecated; use app.dtos.todo.TodoDTO.from_orm",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return {
             "id": self.id,
             "agent_id": self.agent_id,
             "client_id": self.client_id,
             "title": self.title,
             "description": self.description,
-            "priority": self.priority,
             "type": self.type,
             "due_date": self.due_date.isoformat() if self.due_date else None,
             "completed": self.completed,
@@ -63,4 +74,4 @@ class Todo(db.Model):
         }
 
     def __repr__(self):
-        return f"<Todo {self.title} - {self.priority or 'none'}>"
+        return f"<Todo {self.title}>"

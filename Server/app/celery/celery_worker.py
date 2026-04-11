@@ -141,4 +141,5 @@ def worker_stopped(**_):
     log.info(LOG_CATEGORIES["API"], "Celery worker process shutting down")
 
 
-# Register all tasks
+# Register all tasks (import side effects register @celery.task definitions)
+import app.celery.tasks  # noqa: F401, E402

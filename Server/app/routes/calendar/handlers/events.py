@@ -6,6 +6,11 @@ from flask import jsonify, make_response, request
 
 from app import db
 from app.models import AgentConnections, User
+from app.schemas import (
+    DeleteEventResponse,
+    GoogleCalendarApiResponse,
+    GoogleCalendarEventCreateBody,
+)
 from app.services.calendar.core import (
     get_authenticated_user_id,
     google_calendar_service,
@@ -21,12 +26,14 @@ from app.services.calendar.events.creation import (
     get_client_events_permission_error,
     resolve_create_event_target,
 )
+from app.services.calendar.events.sync import delete_event_from_db, sync_event_to_db
 from app.services.calendar.permissions import require_permission
 from app.utils.security.app_logging import get_logger
 from app.utils.security.security import (
     rate_limit,
     validate_event_data,
 )
+from app.utils.validation import validate_request, validate_response
 
 logger = get_logger()
 
@@ -70,7 +77,9 @@ def list_events():
 
 
 @rate_limit(max_requests=50, window_seconds=60)
-def create_event():
+@validate_response(GoogleCalendarApiResponse)
+@validate_request(GoogleCalendarEventCreateBody)
+def create_event(data: GoogleCalendarEventCreateBody | None = None):
     """Create a new event in user's Google calendar and save to database
 
     Supports cross-calendar event creation for agent-client relationships:
@@ -85,7 +94,9 @@ def create_event():
         return make_response(("Unauthorized", 401))
 
     try:
-        event_data = request.get_json()
+        event_data = request.get_json(silent=True)
+        if not event_data:
+            return make_response(("Request body is required", 400))
         if not validate_event_data(event_data):
             return make_response(("Invalid event data", 400))
 
@@ -102,7 +113,8 @@ def create_event():
         result = resolve_create_event_target(user_id, event_data, current_user)
         event_data.pop("target_user_id", None)
         event_data.pop("create_in_agent_calendar", True)
-        if isinstance(result[1], int):
+        # bool subclasses int; exclude bool so (primary_target, True) is not treated as HTTP status.
+        if isinstance(result[1], int) and not isinstance(result[1], bool):
             return make_response((result[0], result[1])), result[1]
 
         primary_target, should_create_in_agent_calendar = result
@@ -137,7 +149,9 @@ def create_event():
 
 
 @rate_limit(max_requests=50, window_seconds=60)
-def update_event(event_id):
+@validate_response(GoogleCalendarApiResponse)
+@validate_request(GoogleCalendarEventCreateBody)
+def update_event(event_id, data: GoogleCalendarEventCreateBody | None = None):
     """Update an existing event in user's Google calendar"""
     user_id, error_response = get_authenticated_user_id()
     if error_response:
@@ -154,12 +168,18 @@ def update_event(event_id):
             return jsonify(error_response), 403
 
         # Validate event data
-        event_data = request.get_json()
+        event_data = request.get_json(silent=True)
+        if not event_data:
+            return make_response(("Request body is required", 400))
         if not validate_event_data(event_data):
             return make_response(("Invalid event data", 400))
 
         calendar_id = extract_calendar_id_from_request(event_data)
         event = google_calendar_service.update_event(user_id, event_id, event_data, calendar_id)
+
+        # Sync the updated event to the database
+        sync_event_to_db(event_id, event, user_id)
+
         return jsonify({"success": True, "data": event}), 200
 
     except Exception as e:
@@ -167,6 +187,7 @@ def update_event(event_id):
 
 
 @rate_limit(max_requests=50, window_seconds=60)
+@validate_response(DeleteEventResponse)
 def delete_event(event_id):
     """Delete an event from user's Google calendar"""
     user_id, error_response = get_authenticated_user_id()
@@ -184,7 +205,12 @@ def delete_event(event_id):
             return jsonify(error_response), 403
         calendar_id = request.args.get("calendarId", "primary")
         success = google_calendar_service.delete_event(user_id, event_id, calendar_id)
-        return jsonify({"success": True, "data": {"ok": success}}), 200
+
+        # Delete the event from the database
+        if success:
+            delete_event_from_db(event_id, user_id)
+
+        return jsonify({"success": True, "deleted": bool(success)}), 200
 
     except Exception as e:
         return handle_google_api_error(e, user_id, "delete event")

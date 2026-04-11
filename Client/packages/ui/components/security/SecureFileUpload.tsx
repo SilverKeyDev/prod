@@ -13,7 +13,10 @@ import Label from "@ui/text/Label.web";
 import Title from "@ui/text/Title";
 
 import { useLocalization } from "packages/contexts";
-import { formatFileSize, processImage } from "packages/services/security/imageProcessor";
+import {
+  formatFileSize,
+  processImage,
+} from "packages/services/security/imageProcessor";
 import { log } from "packages/services/security/secureLogger";
 import { DROP_ZONE_BORDER_BASE } from "packages/ui/components/form/fileUploadStyles";
 import { Box, Image } from "packages/ui/components/primitives";
@@ -49,7 +52,6 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   autoProcess = true,
   showPreview = true,
   label,
-  required,
   disabled,
   className = "",
 }) => {
@@ -65,17 +67,21 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       const errors: string[] = [];
       if (file.size > maxSize) {
         errors.push(
-          `File "${file.name}" is too large (${formatFileSize(file.size)}). Maximum size is ${formatFileSize(maxSize)}.`
+          `File "${file.name}" is too large (${formatFileSize(
+            file.size,
+          )}). Maximum size is ${formatFileSize(maxSize)}.`,
         );
       }
       if (!acceptedTypes.includes(file.type)) {
         errors.push(
-          `File "${file.name}" has unsupported type (${file.type}). Accepted types: ${acceptedTypes.join(", ")}.`
+          `File "${file.name}" has unsupported type (${
+            file.type
+          }). Accepted types: ${acceptedTypes.join(", ")}.`,
         );
       }
       return errors;
     },
-    [maxSize, acceptedTypes]
+    [maxSize, acceptedTypes],
   );
   const processFiles = useCallback(
     (fileList: File[]) => {
@@ -94,31 +100,39 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
           setProcessing(false);
           return;
         }
-        const validFiles = fileList.filter((file) => file.type.startsWith("image/"));
-        const processedFiles: ProcessedImage[] = validFiles.map((file): ProcessedImage => {
-          try {
-            return processImage(file, {
-              maxWidth: 2048,
-              maxHeight: 2048,
-              quality: 0.8,
-              stripAllMetadata: true,
-            });
-          } catch (error: unknown) {
-            log.error("SECURE_UPLOAD", "Image processing failed", error);
-            return {
-              file,
-              originalSize: file.size,
-              processedSize: file.size,
-              metadataRemoved: [],
-              warnings: [],
-            };
-          }
-        });
-        const filesWithPreview: FileWithPreview[] = processedFiles.map((processed, index) => ({
-          ...processed,
-          preview: showPreview ? URL.createObjectURL(processed.file) : undefined,
-          id: `file-${Date.now()}-${index}`,
-        }));
+        const validFiles = fileList.filter((file) =>
+          file.type.startsWith("image/"),
+        );
+        const processedFiles: ProcessedImage[] = validFiles.map(
+          (file): ProcessedImage => {
+            try {
+              return processImage(file, {
+                maxWidth: 2048,
+                maxHeight: 2048,
+                quality: 0.8,
+                stripAllMetadata: true,
+              });
+            } catch (error: unknown) {
+              log.error("SECURE_UPLOAD", "Image processing failed", error);
+              return {
+                file,
+                originalSize: file.size,
+                processedSize: file.size,
+                metadataRemoved: [],
+                warnings: [],
+              };
+            }
+          },
+        );
+        const filesWithPreview: FileWithPreview[] = processedFiles.map(
+          (processed, index) => ({
+            ...processed,
+            preview: showPreview
+              ? URL.createObjectURL(processed.file)
+              : undefined,
+            id: `file-${Date.now()}-${index}`,
+          }),
+        );
         setFiles((prev) => [...prev, ...filesWithPreview]);
         if (autoProcess) {
           onFilesProcessed(processedFiles);
@@ -127,17 +141,21 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
           totalFiles: processedFiles.length,
           totalSizeReduction: processedFiles.reduce(
             (acc, f) => acc + (f.originalSize - f.processedSize),
-            0
+            0,
           ),
         });
       } catch (error: unknown) {
         log.error("SECURE_UPLOAD", "File processing failed", error);
-        setError(`Processing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+        setError(
+          `Processing failed: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`,
+        );
       } finally {
         setProcessing(false);
       }
     },
-    [showPreview, autoProcess, onFilesProcessed, validateFile]
+    [showPreview, autoProcess, onFilesProcessed, validateFile],
   );
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -151,7 +169,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       }
       void processFiles(droppedFiles);
     },
-    [files.length, maxFiles, processFiles]
+    [files.length, maxFiles, processFiles],
   );
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -191,21 +209,20 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
   }, [files]);
   return (
     <Card border="light" className={`w-full ${className}`} padding="md">
-      {label && (
-        <Label className="mb-4 flex flex-col">
-          {label}
-          {required && (
-            <BodyText as="span" className="text-red-500">
-              {t("form.required_indicator")}
-            </BodyText>
-          )}
-        </Label>
-      )}
+      {label && <Label className="mb-4 flex flex-col">{label}</Label>}
 
       <Box
         role="button"
         tabIndex={disabled ? -1 : 0}
-        className={`relative ${DROP_ZONE_BORDER_BASE} p-6 text-center ${CARD_TRANSITION_CLASSES} ${isDragOver ? "border-primary bg-primary-muted" : "hover:border-primary active:border-primary border-border"} ${disabled ? "bg-disabled text-text-disabled cursor-not-allowed" : "hover:bg-accent-muted cursor-pointer active:bg-neutral-100"} active:bg-accent-muted`}
+        className={`relative ${DROP_ZONE_BORDER_BASE} p-6 text-center ${CARD_TRANSITION_CLASSES} ${
+          isDragOver
+            ? "bg-primary-muted border-neutral-500"
+            : "border-border hover:border-neutral-400 active:border-neutral-500"
+        } ${
+          disabled
+            ? "bg-disabled text-text-disabled cursor-not-allowed"
+            : "hover:bg-accent-muted cursor-pointer active:bg-neutral-100"
+        } active:bg-accent-muted`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -244,15 +261,18 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
 
         {processing && (
           <Box className="absolute inset-0 flex flex-row items-center justify-center bg-white bg-opacity-75">
-            <Box className="border-brand-accent h-8 w-8 animate-spin rounded-full border-b-2"></Box>
+            <Box className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-b-neutral-700"></Box>
           </Box>
         )}
       </Box>
 
       {error && (
-        <Box className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3">
+        <Box className="border-border mt-4 rounded-lg border bg-red-50 p-3">
           <Box className="flex flex-row items-center gap-2">
-            <Icon name="alert-triangle" className="h-4 w-4 flex-shrink-0 text-red-600" />
+            <Icon
+              name="alert-triangle"
+              className="h-4 w-4 flex-shrink-0 text-red-600"
+            />
             <BodyText as="p" size="sm" className="text-red-800">
               {error}
             </BodyText>
@@ -303,19 +323,28 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                     ) : (
                       <Box className="flex h-12 w-12 flex-row items-center justify-center rounded-lg bg-gray-200">
                         <BodyText as="span" className="text-xs text-gray-600">
-                          {`${(file.processedSize / 1024 / 1024).toFixed(2)}${t("common.mb")}`}
+                          {`${(file.processedSize / 1024 / 1024).toFixed(2)}${t(
+                            "common.mb",
+                          )}`}
                         </BodyText>
                       </Box>
                     )}
                   </Box>
                   <Box className="min-w-0 flex-1">
-                    <BodyText as="p" size="sm" className="truncate font-medium text-gray-900">
+                    <BodyText
+                      as="p"
+                      size="sm"
+                      className="truncate font-medium text-gray-900"
+                    >
                       {file.file.name}
                     </BodyText>
                     <Box className="mt-1 flex flex-row items-center gap-3 text-xs text-gray-500">
                       {formatFileSize(file.processedSize)}
                       {file.originalSize !== file.processedSize && (
-                        <BodyText as="span" className="flex flex-row items-center">
+                        <BodyText
+                          as="span"
+                          className="flex flex-row items-center"
+                        >
                           <Icon name="check-circle" className="mr-1 h-3 w-3" />
                           {t("secure_upload.exif_stripped")}
                         </BodyText>
@@ -324,7 +353,12 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
                     {file.warnings.length > 0 && (
                       <Box className="mt-1">
                         {file.warnings.map((warning, index) => (
-                          <BodyText key={index} as="p" size="xs" className="text-yellow-600">
+                          <BodyText
+                            key={index}
+                            as="p"
+                            size="xs"
+                            className="text-yellow-600"
+                          >
                             {t("secure_upload.warning_prefix")}
                             {warning}
                           </BodyText>
@@ -347,7 +381,7 @@ export const SecureFileUpload: React.FC<SecureFileUploadProps> = ({
       )}
 
       {previewFile && (
-        <Box className="fixed inset-0 z-50 flex flex-row items-center justify-center bg-neutral-900 p-4">
+        <Box className="z-modal fixed inset-0 flex flex-row items-center justify-center bg-neutral-900 p-4">
           <Card
             border="light"
             className="relative max-h-full min-h-0 max-w-4xl flex-1 overflow-hidden"

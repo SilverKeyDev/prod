@@ -12,111 +12,133 @@ from flask import current_app, jsonify
 from ....utils.security.security import security_error_response
 from ...aggregation import get_preferences_dict_for_user
 from ...auth import get_current_user
-from ..locationPolygon import isochrone_union_for_addresses
 
 
 def map_user_preferences_to_filters(
     user_preferences: dict[str, Any], status_type: str = "ForSale"
 ) -> dict[str, Any]:
-    """Map user preferences to property API filters."""
-    filters = {}
+    """Map user preferences to Slipstream API filter params.
 
-    # Map budget to price filters using range
+    Slipstream uses operator-based syntax:
+      beds=>=3, baths=>=2, listPrice=min:max, size=min:max,
+      propertyType=Single Family Residence, sortField/sortOrder.
+    """
+    filters: dict[str, Any] = {}
+
     budget_min = user_preferences.get("home_budget_min")
     budget_max = user_preferences.get("home_budget_max")
 
     if budget_max:
-        if status_type == "ForRent":
-            filters["rentMaxPrice"] = int(budget_max / 12)  # Convert annual to monthly
-            if budget_min:
-                filters["rentMinPrice"] = int(budget_min / 12)
-            else:
-                filters["rentMinPrice"] = int(budget_max * 0.7 / 12)
-        else:
-            filters["maxPrice"] = int(budget_max)
-            if budget_min:
-                filters["minPrice"] = int(budget_min)
-            else:
-                filters["minPrice"] = int(budget_max * 0.65)
+        price_min = int(budget_min) if budget_min else int(budget_max * 0.65)
+        price_max = int(budget_max)
+        filters["listPrice"] = f"{price_min}:{price_max}"
 
-    # Map preferred bedrooms / bathrooms (min for API floor filters; max handled in post-filters)
     beds_min = user_preferences.get("preferred_bedrooms_min")
     if beds_min is not None:
         try:
-            filters["bedsMin"] = int(beds_min)
-        except (TypeError, ValueError):
-            pass
-    baths_min = user_preferences.get("preferred_bathrooms_min")
-    if baths_min is not None:
-        try:
-            filters["bathsMin"] = int(baths_min)
+            filters["beds"] = f">={int(beds_min)}"
         except (TypeError, ValueError):
             pass
 
-    # Map housing type based on status type
+    baths_min = user_preferences.get("preferred_bathrooms_min")
+    if baths_min is not None:
+        try:
+            filters["baths"] = f">={int(baths_min)}"
+        except (TypeError, ValueError):
+            pass
+
+    # Slipstream property types from GAMLS market
+    _SLIPSTREAM_TYPE_MAP = {
+        "single_family": "Single Family Residence",
+        "house": "Single Family Residence",
+        "houses": "Single Family Residence",
+        "condo": "Condominium",
+        "condos": "Condominium",
+        "townhouse": "Townhouse",
+        "townhomes": "Townhouse",
+        "apartment": "Condominium",
+        "apartments": "Condominium",
+        "multi_family": "Multi-Family",
+        "multifamily": "Multi-Family",
+        "manufactured": "Manufactured Home",
+        "mobile": "Manufactured Home",
+        "land": "Land",
+        "lot": "Land",
+        "lots": "Land",
+    }
+
     raw_type = str(
         user_preferences.get("preferred_housing_type", user_preferences.get("housing_type", ""))
     )
     if raw_type:
-        user_type = raw_type.lower()
+        mapped = _SLIPSTREAM_TYPE_MAP.get(raw_type.lower())
+        if mapped:
+            filters["propertyType"] = mapped
 
-        if status_type == "ForRent":
-            # For Rent: Townhomes, Houses, Apartments_Condos_Co-ops
-            rent_type_map = {
-                "single_family": "Houses",
-                "house": "Houses",
-                "houses": "Houses",
-                "townhouse": "Townhomes",
-                "townhomes": "Townhomes",
-                "condo": "Apartments_Condos_Co-ops",
-                "condos": "Apartments_Condos_Co-ops",
-                "apartment": "Apartments_Condos_Co-ops",
-                "apartments": "Apartments_Condos_Co-ops",
-                "co-op": "Apartments_Condos_Co-ops",
-                "coop": "Apartments_Condos_Co-ops",
-            }
-            mapped_type = rent_type_map.get(user_type)
-            if mapped_type:
-                filters["home_type"] = mapped_type
-        else:
-            # For Sale/RecentlySold: Multi-family, Apartments, Houses, Manufactured, Condos, LotsLand, Townhomes
-            sale_type_map = {
-                "single_family": "Houses",
-                "house": "Houses",
-                "houses": "Houses",
-                "condo": "Condos",
-                "condos": "Condos",
-                "townhouse": "Townhomes",
-                "townhomes": "Townhomes",
-                "apartment": "Apartments",
-                "apartments": "Apartments",
-                "multi_family": "Multi-family",
-                "multifamily": "Multi-family",
-                "manufactured": "Manufactured",
-                "mobile": "Manufactured",
-                "land": "LotsLand",
-                "lot": "LotsLand",
-                "lots": "LotsLand",
-            }
-            mapped_type = sale_type_map.get(user_type)
-            if mapped_type:
-                filters["home_type"] = mapped_type
-
-    # Sqft range (for API if supported, else post-filter uses user_preferences)
     sqft_min = user_preferences.get("preferred_sqft_min")
     sqft_max = user_preferences.get("preferred_sqft_max")
-    if sqft_min is not None:
-        filters["minSqft"] = int(sqft_min)
-    if sqft_max is not None:
-        filters["maxSqft"] = int(sqft_max)
+    if sqft_min is not None and sqft_max is not None:
+        filters["size"] = f"{int(sqft_min)}:{int(sqft_max)}"
+    elif sqft_min is not None:
+        filters["size"] = f">={int(sqft_min)}"
+    elif sqft_max is not None:
+        filters["size"] = f"<={int(sqft_max)}"
 
-    # Days on market range (for API if supported, else post-filter)
     dom_min = user_preferences.get("days_on_market_min")
     dom_max = user_preferences.get("days_on_market_max")
-    if dom_min is not None:
-        filters["daysOnMarketMin"] = int(dom_min)
-    if dom_max is not None:
-        filters["daysOnMarketMax"] = int(dom_max)
+    if dom_min is not None and dom_max is not None:
+        filters["daysOnMarket"] = f"{int(dom_min)}:{int(dom_max)}"
+    elif dom_max is not None:
+        filters["daysOnMarket"] = f"<={int(dom_max)}"
+
+    lot_min = user_preferences.get("preferred_lot_size_min")
+    lot_max = user_preferences.get("preferred_lot_size_max")
+    if lot_min is not None and lot_max is not None:
+        filters["lotSize"] = f"{float(lot_min)}:{float(lot_max)}"
+    elif lot_min is not None:
+        filters["lotSize"] = f">={float(lot_min)}"
+    elif lot_max is not None:
+        filters["lotSize"] = f"<={float(lot_max)}"
+
+    age_min = user_preferences.get("preferred_home_age_min")
+    age_max = user_preferences.get("preferred_home_age_max")
+    if age_min is not None or age_max is not None:
+        import datetime as _dt
+
+        current_year = _dt.datetime.now(tz=_dt.timezone.utc).year
+        if age_min is not None and age_max is not None:
+            year_newest = current_year - int(age_min)
+            year_oldest = current_year - int(age_max)
+            filters["yearBuilt"] = f"{year_oldest}:{year_newest}"
+        elif age_min is not None:
+            year_newest = current_year - int(age_min)
+            filters["yearBuilt"] = f"<={year_newest}"
+        elif age_max is not None:
+            year_oldest = current_year - int(age_max)
+            filters["yearBuilt"] = f">={year_oldest}"
+
+    listing_type_prefs = user_preferences.get("listing_type")
+    if isinstance(listing_type_prefs, list):
+        for lt in listing_type_prefs:
+            lt_norm = str(lt).strip().lower().replace("-", "_")
+            if lt_norm == "new_construction":
+                filters["newConstruction"] = "true"
+                break
+
+    listing_status = user_preferences.get("listing_status")
+    if isinstance(listing_status, str) and listing_status.strip():
+        _STATUS_MAP = {
+            "active": "Active",
+            "pending": "Pending",
+            "contingent": "Contingent",
+            "coming_soon": "Coming Soon",
+        }
+        mapped_status = _STATUS_MAP.get(listing_status.strip().lower())
+        if mapped_status:
+            filters["status"] = mapped_status
+
+    filters["sortField"] = "listPrice"
+    filters["sortOrder"] = "asc"
 
     return filters
 
@@ -128,6 +150,9 @@ def generate_isochrone_polygon_from_preferences(
     Generate an isochrone polygon from user preferences using ALL important locations
     and their respective commute tolerances. Returns union polygon coordinates as list of {lat, lon} dicts.
     """
+    # Lazy import to avoid circular dependency
+    from ..polygon.locationPolygon import isochrone_union_for_addresses
+
     try:
         # Extract important locations
         important_locations = []

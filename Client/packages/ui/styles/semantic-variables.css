@@ -1,0 +1,17 @@
+/**
+ * Semantic CSS variables for marketing surfaces. Values resolve via Tailwind theme()
+ * from packages/design-tokens/tokens/colors.json - no duplicate hex in application code.
+ */
+@layer base {
+  :root {
+    --color-brand-primary: theme("colors.brand.primary");
+    --color-brand-accent: theme("colors.brand.accent");
+    --color-brand-secondary: theme("colors.brand.secondary");
+    --color-brand-tertiary: theme("colors.brand.tertiary");
+    --color-background-base: theme("colors.background-base");
+    --color-background-surface: theme("colors.background-surface");
+    --color-text-primary: theme("colors.text-primary");
+    --color-text-secondary: theme("colors.text-secondary");
+    --color-border: theme("colors.border");
+  }
+}

@@ -1,0 +1,165 @@
+/// <reference types="google.maps" />
+import { searchApi } from "packages/features/search/api/search";
+import { buildIsochroneOverlayFromViewportRing } from "packages/features/search/utils/locationBoundsOverlay";
+import {
+  boundsToViewportPolygon,
+  centroidOfViewportRing,
+} from "packages/features/search/utils/mapViewport";
+import { log, LOG_CATEGORIES } from "packages/logger";
+import { getWindow } from "packages/utils/platform";
+
+import type { SearchLocationBarMapDeps } from "./searchLocationBarMapDeps";
+import { boundsFromViewportRing } from "./searchLocationBarTypes";
+
+export async function reverseGeocodeAndSearchForLocationBar(
+  lat: number,
+  lng: number,
+  deps: SearchLocationBarMapDeps,
+): Promise<void> {
+  const {
+    fitMapToBounds,
+    setSearchAnchor,
+    setLocationPlaceViewportFromBar,
+    setLocalValue,
+    setHasSelected,
+    setSuggestions,
+    setIsFocused,
+    onSearch,
+  } = deps;
+
+  const win = getWindow() as Window & { google?: typeof google };
+  const geocoder = win?.google?.maps?.Geocoder
+    ? new win.google.maps.Geocoder()
+    : null;
+
+  let label = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  let resolvedViaSlipstream = false;
+
+  if (geocoder) {
+    try {
+      const result = await geocoder.geocode({ location: { lat, lng } });
+      const results = result?.results;
+      if (results && results.length > 0) {
+        const localityResult = results.find((r) =>
+          r.types.includes("locality"),
+        );
+        const neighborhoodResult = results.find((r) =>
+          r.types.includes("neighborhood"),
+        );
+        const postalResult = results.find((r) =>
+          r.types.includes("postal_code"),
+        );
+        const best =
+          neighborhoodResult ?? localityResult ?? postalResult ?? results[0];
+        label = best.formatted_address;
+
+        const cityComponent = best.address_components.find((c) =>
+          c.types.includes("locality"),
+        );
+        const stateComponent = best.address_components.find((c) =>
+          c.types.includes("administrative_area_level_1"),
+        );
+        const searchName = cityComponent?.long_name ?? label.split(",")[0];
+
+        try {
+          const resp = await searchApi.getAreaSuggestions({
+            keyword: searchName,
+            state: stateComponent?.short_name,
+            limit: 1,
+          });
+          if (resp.success && resp.areas && resp.areas.length > 0) {
+            const topArea = resp.areas[0];
+            const boundaryResp = await searchApi.getAreaBoundary({
+              id: topArea.id,
+            });
+            if (
+              boundaryResp.success &&
+              boundaryResp.viewport_ring &&
+              boundaryResp.viewport_ring.length >= 3
+            ) {
+              const ring = boundaryResp.viewport_ring as Array<{
+                lat: number;
+                lng: number;
+              }>;
+              const apiCenter = boundaryResp.area?.center;
+              const center: { lat: number; lng: number } =
+                apiCenter &&
+                typeof apiCenter.lat === "number" &&
+                typeof apiCenter.lng === "number"
+                  ? { lat: apiCenter.lat, lng: apiCenter.lng }
+                  : centroidOfViewportRing(ring);
+              const areaLabel = boundaryResp.area?.label ?? searchName;
+
+              setLocalValue(areaLabel);
+              const bounds = boundsFromViewportRing(ring);
+              if (bounds) fitMapToBounds(bounds);
+              setSearchAnchor({ lat: center.lat, lng: center.lng });
+              setLocationPlaceViewportFromBar({
+                ring,
+                label: areaLabel,
+                overlay: buildIsochroneOverlayFromViewportRing(
+                  ring,
+                  center,
+                  areaLabel,
+                ),
+              });
+              resolvedViaSlipstream = true;
+
+              log.info(
+                LOG_CATEGORIES.SEARCH,
+                "Current location resolved via Slipstream",
+                {
+                  searchName,
+                  areaId: topArea.id,
+                  areaLabel,
+                },
+              );
+            }
+          }
+        } catch (err: unknown) {
+          log.warn(
+            LOG_CATEGORIES.ERRORS,
+            "Slipstream fallback for current location failed",
+            err,
+          );
+        }
+      }
+    } catch (err: unknown) {
+      log.warn(
+        LOG_CATEGORIES.ERRORS,
+        "Reverse geocode failed for current location",
+        err,
+      );
+    }
+  }
+
+  if (!resolvedViaSlipstream) {
+    setLocalValue(label);
+    setSearchAnchor({ lat, lng });
+    const win2 = getWindow() as Window & { google?: typeof google };
+    const g = win2?.google;
+    if (g?.maps?.LatLngBounds) {
+      const delta = 0.06;
+      const bounds = new g.maps.LatLngBounds(
+        { lat: lat - delta, lng: lng - delta },
+        { lat: lat + delta, lng: lng + delta },
+      );
+      fitMapToBounds(bounds);
+      const ring = boundsToViewportPolygon(bounds);
+      setLocationPlaceViewportFromBar({
+        ring,
+        label,
+        overlay: buildIsochroneOverlayFromViewportRing(
+          ring,
+          { lat, lng },
+          label,
+        ),
+      });
+    }
+  }
+
+  setHasSelected(true);
+  setSuggestions([]);
+  setIsFocused(false);
+  void onSearch();
+}

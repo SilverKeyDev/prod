@@ -1,0 +1,21 @@
+type: object
+description: |
+  Email and password credentials for Cognito-backed login. Sent over HTTPS; never
+  logged or stored client-side beyond the password field during entry.
+required:
+  - email
+  - password
+properties:
+  email:
+    type: string
+    format: email
+    description: Primary login email on the user row (must match verified Cognito attribute when required).
+    example: "jane.buyer@example.com"
+  password:
+    type: string
+    format: password
+    description: Plaintext password for this request only; use a strong unique password in production accounts.
+    example: "Str0ng!Passw0rd"
+example:
+  email: "jane.buyer@example.com"
+  password: "Str0ng!Passw0rd"

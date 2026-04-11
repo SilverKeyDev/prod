@@ -30,9 +30,14 @@ export default function CardMatchScore({
 
   // Normalize score so getScoreBasedColor never receives NaN/Non-finite
   const safeScore =
-    typeof score === "number" && Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0;
+    typeof score === "number" && Number.isFinite(score)
+      ? Math.max(0, Math.min(100, score))
+      : 0;
   const safeMaxScore =
-    typeof maxScore === "number" && Number.isFinite(maxScore) && maxScore > 0 ? maxScore : 100;
+    typeof maxScore === "number" && Number.isFinite(maxScore) && maxScore > 0
+      ? maxScore
+      : 100;
+  const displayPercent = Math.round((safeScore / safeMaxScore) * 100);
 
   const getSizeClasses = () => {
     switch (size) {
@@ -58,35 +63,47 @@ export default function CardMatchScore({
   const sizeClasses = getSizeClasses();
   const colors = useColorStyling ? getScoreBasedColor(safeScore) : null;
 
+  const valueNode =
+    useColorStyling && colors ? (
+      <Box
+        className={`font-medium ${sizeClasses.text} whitespace-nowrap rounded px-2 py-1`}
+        style={{
+          backgroundColor: colors.fillColor,
+          color: colors.textColor,
+        }}
+      >
+        <BodyText as="span" style={{ color: "inherit" }}>
+          {t("house.match_score_value", {
+            percent: displayPercent,
+          })}
+        </BodyText>
+      </Box>
+    ) : (
+      <BodyText
+        as="span"
+        className={`font-medium ${sizeClasses.text} whitespace-nowrap`}
+      >
+        {t("house.match_score_value", {
+          percent: displayPercent,
+        })}
+      </BodyText>
+    );
+
   if (useColorStyling && colors) {
     return (
-      <Box className={`gap-responsive-xs flex flex-shrink-0 items-center ${className}`}>
-        <Box
-          className={`font-medium ${sizeClasses.text} whitespace-nowrap rounded px-2 py-1`}
-          style={{
-            backgroundColor: colors.fillColor,
-            color: colors.textColor,
-          }}
-        >
-          <BodyText as="span" style={{ color: "inherit" }}>
-            {t("house.match_score_value", {
-              score: safeScore,
-              maxScore: safeMaxScore,
-            })}
-          </BodyText>
-        </Box>
+      <Box
+        className={`gap-responsive-xs flex flex-shrink-0 items-center ${className}`}
+      >
+        {valueNode}
       </Box>
     );
   }
 
   return (
-    <Box className={`gap-responsive-xs text-brown flex flex-shrink-0 items-center ${className}`}>
-      <BodyText as="span" className={`font-medium ${sizeClasses.text} whitespace-nowrap`}>
-        {t("house.match_score_value", {
-          score: safeScore,
-          maxScore: safeMaxScore,
-        })}
-      </BodyText>
+    <Box
+      className={`gap-responsive-xs text-brown flex flex-shrink-0 items-center ${className}`}
+    >
+      {valueNode}
     </Box>
   );
 }

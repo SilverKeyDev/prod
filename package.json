@@ -1,0 +1,20 @@
+{
+  "name": "silverkey-monorepo",
+  "version": "1.0.0",
+  "description": "SilverKey real estate AI platform",
+  "private": true,
+  "scripts": {
+    "openapi:bundle": "redocly bundle openapi/openapi.yaml -o openapi.yaml",
+    "openapi:validate": "npm run openapi:bundle && swagger-cli validate openapi.yaml",
+    "openapi:generate": "npm run openapi:bundle && cd Server && bash scripts/generate-pydantic-models.sh && cd ../Client && pnpm generate:api-types",
+    "openapi:generate:server": "npm run openapi:bundle && cd Server && bash scripts/generate-pydantic-models.sh",
+    "openapi:generate:client": "npm run openapi:bundle && cd Client && pnpm generate:api-types"
+  },
+  "keywords": ["openapi", "api", "real-estate"],
+  "author": "SilverKey",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@redocly/cli": "^1.25.14",
+    "@apidevtools/swagger-cli": "^4.0.4"
+  }
+}

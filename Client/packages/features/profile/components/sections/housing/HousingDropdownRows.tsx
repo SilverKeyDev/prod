@@ -5,12 +5,10 @@ import { Box } from "packages/ui/components/primitives";
 import AlignedRow from "@/components/layout/AlignedRow";
 import { Dropdown } from "@/components/ui";
 import Label from "@/features/profile/components/settings/inputs/Label";
-import OptionTagInput from "@/features/profile/components/settings/inputs/OptionTagInput.web";
 import {
   ARCHITECTURAL_STYLE_OPTIONS,
   FIELD_LABELS,
   INTENDED_USE_OPTIONS,
-  LISTING_TYPE_OPTIONS,
   type OnboardingData,
   PROFILE_NOT_SPECIFIED_LABEL,
   profileFieldValueClassName,
@@ -20,7 +18,7 @@ import { WALKABILITY_OPTIONS } from "@/features/profile/utils/constants";
 type HousingDropdownRowsProps = {
   formData: OnboardingData;
   isEditMode: boolean;
-  updateFormData: (field: string | number | symbol, value: unknown) => void;
+  updateFormData: (field: keyof OnboardingData, value: unknown) => void;
   isDesktop: boolean;
 };
 
@@ -36,17 +34,21 @@ export function HousingDropdownRows({
       content: isEditMode ? (
         <Dropdown
           value={formData.preferred_architectural_style ?? ""}
-          onChange={(value) => updateFormData("preferred_architectural_style", value)}
+          onChange={(value) =>
+            updateFormData("preferred_architectural_style", value)
+          }
           options={ARCHITECTURAL_STYLE_OPTIONS}
           placeholder="Select..."
         />
       ) : (
         <Box
-          className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.preferred_architectural_style)}`}
+          className={`mobile-input bg-background-base ${profileFieldValueClassName(
+            formData.preferred_architectural_style,
+          )}`}
         >
           {formData.preferred_architectural_style
             ? ARCHITECTURAL_STYLE_OPTIONS.find(
-                (opt) => opt.value === formData.preferred_architectural_style
+                (opt) => opt.value === formData.preferred_architectural_style,
               )?.label
             : PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
@@ -63,11 +65,14 @@ export function HousingDropdownRows({
         />
       ) : (
         <Box
-          className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.walkability_importance)}`}
+          className={`mobile-input bg-background-base ${profileFieldValueClassName(
+            formData.walkability_importance,
+          )}`}
         >
           {formData.walkability_importance
-            ? WALKABILITY_OPTIONS.find((opt) => opt.value === formData.walkability_importance)
-                ?.label
+            ? WALKABILITY_OPTIONS.find(
+                (opt) => opt.value === formData.walkability_importance,
+              )?.label
             : PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),
@@ -83,11 +88,14 @@ export function HousingDropdownRows({
         />
       ) : (
         <Box
-          className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.intended_property_use)}`}
+          className={`mobile-input bg-background-base ${profileFieldValueClassName(
+            formData.intended_property_use,
+          )}`}
         >
           {formData.intended_property_use
-            ? INTENDED_USE_OPTIONS.find((opt) => opt.value === formData.intended_property_use)
-                ?.label
+            ? INTENDED_USE_OPTIONS.find(
+                (opt) => opt.value === formData.intended_property_use,
+              )?.label
             : PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),
@@ -103,10 +111,14 @@ export function HousingDropdownRows({
         />
       ) : (
         <Box
-          className={`mobile-input bg-background-base ${profileFieldValueClassName(formData.renovation_preference)}`}
+          className={`mobile-input bg-background-base ${profileFieldValueClassName(
+            formData.renovation_preference,
+          )}`}
         >
           {formData.renovation_preference
-            ? RENOVATION_OPTIONS.find((opt) => opt.value === formData.renovation_preference)?.label
+            ? RENOVATION_OPTIONS.find(
+                (opt) => opt.value === formData.renovation_preference,
+              )?.label
             : PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),
@@ -114,29 +126,27 @@ export function HousingDropdownRows({
     ...(isDesktop
       ? [
           {
-            title: <Box className="mb-2 block text-sm font-medium text-transparent">&nbsp;</Box>,
-            content: <Box className="mobile-input bg-background-base opacity-0">&nbsp;</Box>,
+            title: (
+              <Box className="mb-2 block text-sm font-medium text-transparent">
+                &nbsp;
+              </Box>
+            ),
+            content: (
+              <Box className="mobile-input bg-background-base opacity-0">
+                &nbsp;
+              </Box>
+            ),
           },
         ]
       : []),
   ];
 
-  const listingTypeItem = {
-    title: <Label>{FIELD_LABELS.LISTING_TYPE}</Label>,
-    content: (
-      <OptionTagInput
-        options={LISTING_TYPE_OPTIONS}
-        value={(formData.listing_type as string[]) ?? []}
-        onChange={(arr) => updateFormData("listing_type", arr)}
-        isEditMode={isEditMode}
-      />
-    ),
-  };
-
   return (
-    <>
-      <AlignedRow breakIntoRows="md" gap="lg" justify="start" items={firstRowItems} />
-      <AlignedRow breakIntoRows="md" gap="lg" justify="start" items={[listingTypeItem]} />
-    </>
+    <AlignedRow
+      breakIntoRows="sm"
+      gap="lg"
+      justify="start"
+      items={firstRowItems}
+    />
   );
 }

@@ -1,0 +1,68 @@
+# Pre-commit hooks for SilverKey
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Python: Ruff (linting + formatting)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      # Linter
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        files: ^Server/
+      # Formatter
+      - id: ruff-format
+        files: ^Server/
+
+  # Mypy is not run in pre-commit: the Server gate is ruff + pyright (see
+  # scripts/run-all-linters.sh). Full-tree mypy reports hundreds of gradual-
+  # typing issues; run manually: (cd Server && mypy app/).
+
+  # JavaScript/TypeScript: ESLint (Client workspace — same deps as pnpm run lint)
+  - repo: local
+    hooks:
+      - id: eslint-client
+        name: eslint (Client)
+        language: system
+        entry: scripts/pre-commit-eslint-client.sh
+        files: ^Client/.*\.(ts|tsx|js|jsx)$
+        exclude: ^Client/(dist|coverage|node_modules|build)/.*
+
+  # JavaScript/TypeScript: Prettier (formatting)
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        files: ^Client/.*\.(ts|tsx|js|jsx|json|css|scss|md)$
+        args: [--write]
+
+  # General: Trailing whitespace and EOF
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        exclude: ^Client/apps/mobile/
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-merge-conflict
+      - id: detect-private-key
+        exclude: |
+          (?x)^(
+            .*\.pem\.example$|
+            documentation/client/docusign-integration\.md$|
+            Server/app/services/docusign/README\.md$|
+            Server/app/services/docusign/TESTING\.md$
+          )
+
+  # No focused tests
+  - repo: local
+    hooks:
+      - id: no-focused-tests
+        name: No focused tests (it.only, describe.only)
+        entry: '\b(it|test|describe)\.only\b'
+        language: pygrep
+        files: ^Client/.*\.(test|spec)\.(ts|tsx|js|jsx)$
+        types: [text]

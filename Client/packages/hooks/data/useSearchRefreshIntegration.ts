@@ -23,10 +23,12 @@ export function useSearchRefreshIntegration(): UseSearchRefreshIntegrationReturn
   const invalidateSearchAndFeed = useCallback(async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: FEED_QUERY_KEY }),
-      // Invalidate isochrone only — not queryKeys.search.all. The latter refetches
+      // Invalidate isochrone only - not queryKeys.search.all. The latter refetches
       // ["search","results"] (onlyCached) and can overwrite a fresh setSearchResults()
       // payload with a stale or smaller DB snapshot (intermittent "one property").
-      queryClient.invalidateQueries({ queryKey: queryKeys.search.isochrone() }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.search.all, "isochrone"],
+      }),
     ]);
   }, [queryClient]);
 

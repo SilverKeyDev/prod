@@ -114,9 +114,7 @@ def send_message(
             raise ValueError("sender_id is required")
         has_attachment = bool(shared_home_id or shared_document_id)
         if not (message or "").strip() and not has_attachment:
-            raise ValueError(
-                "message is required unless sharing a home or document"
-            )
+            raise ValueError("message is required unless sharing a home or document")
 
         conversation = AgentConnections.query.filter_by(id=conversation_id).first()
         if not conversation:

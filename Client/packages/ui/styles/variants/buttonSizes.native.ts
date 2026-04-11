@@ -1,5 +1,5 @@
 /**
- * Native button size map — inline styles for RN since CVA-assembled native: classes
+ * Native button size map - inline styles for RN since CVA-assembled native: classes
  * don't apply at Babel transform time. Used by Button when isNative.
  */
 import { Platform } from "react-native";
@@ -17,4 +17,7 @@ export const buttonNativeSizes = Platform.select({
     string,
     { paddingHorizontal: number; paddingVertical: number; minHeight: number }
   >,
-}) as Record<string, { paddingHorizontal: number; paddingVertical: number; minHeight: number }>;
+}) as Record<
+  string,
+  { paddingHorizontal: number; paddingVertical: number; minHeight: number }
+>;

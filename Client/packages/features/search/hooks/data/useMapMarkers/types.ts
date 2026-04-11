@@ -3,6 +3,7 @@ import type { Property } from "packages/types";
 
 /** Props passed to renderMapPropertyCard (injected from apps/web to avoid packages depending on components). */
 export type MapPropertyCardRenderProps = {
+  activeTab: "results" | "saved";
   property: {
     id: string;
     address: string;
@@ -23,10 +24,14 @@ export type MapPropertyCardRenderProps = {
   showScore?: boolean;
   isHomeSaved?: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome?: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome?: (propertyId: string, propertyAddress?: string) => Promise<void>;
+  removeSavedHome?: (
+    propertyId: string,
+    propertyAddress?: string,
+  ) => Promise<void>;
 };
 
 export type UseMapMarkersProps = {
+  activeTab: "results" | "saved";
   googleMapRef: React.RefObject<{
     getDiv: () => HTMLElement;
     setCenter: (center: { lat: number; lng: number }) => void;
@@ -40,14 +45,17 @@ export type UseMapMarkersProps = {
   calculatePropertyScore: (property: SearchResult) => number;
   isHomeSaved: (propertyId: string, propertyAddress?: string) => boolean;
   saveHome: (property: SearchResult | Property) => Promise<void>;
-  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
+  removeSavedHome: (
+    propertyId: string,
+    propertyAddress?: string,
+  ) => Promise<void>;
   onMarkerClick?: (property: SearchResult) => void;
   onUnlockClick?: (property: SearchResult) => void | Promise<void>;
   contextKey?: string;
   renderMapPropertyCard: (
     container: HTMLElement,
     props: MapPropertyCardRenderProps,
-    onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void
+    onCardRendered?: (property: MapPropertyCardRenderProps["property"]) => void,
   ) => void;
   cleanupMapPropertyCard: (container: HTMLElement) => void;
 };

@@ -106,14 +106,17 @@ export function formatFilenameToAddress(filename: string): string {
     // Soft guess: if address starts with a number, keep tokens until we hit something
     // that looks like a city start (usually after the number + a couple tokens).
     const startsWithNumber = /^\d+[A-Za-z]?$/.test(parts[0]);
-    const cutoff = startsWithNumber ? Math.min(4, stateIndex) : Math.min(3, stateIndex);
+    const cutoff = startsWithNumber
+      ? Math.min(4, stateIndex)
+      : Math.min(3, stateIndex);
     streetParts = parts.slice(0, cutoff);
     cityParts = parts.slice(cutoff, stateIndex);
   }
 
   const state = parts[stateIndex];
   const zip = zipIndex === stateIndex + 1 ? parts[zipIndex] : undefined;
-  const tail = zipIndex > -1 ? parts.slice(zipIndex + 1) : parts.slice(stateIndex + 1); // country already removed
+  const tail =
+    zipIndex > -1 ? parts.slice(zipIndex + 1) : parts.slice(stateIndex + 1); // country already removed
 
   const formatted: string[] = [];
   if (streetParts.length) formatted.push(streetParts.join(" "));
@@ -157,7 +160,8 @@ export function addressForMarkerTitle(address: string | undefined): string {
     // State + Zip: CA 94043 or NY 10001-1234
     if (/^[A-Z]{2}\s+\d{5}(-\d{4})?$/.test(part)) return false;
     // Country
-    if (/^(USA|US|United States|United States of America)$/i.test(part)) return false;
+    if (/^(USA|US|United States|United States of America)$/i.test(part))
+      return false;
     return true;
   });
   return filtered.join(", ").trim() || address;
@@ -256,49 +260,47 @@ export function formatSquareFootage(value: number, units?: string): string {
     return `${value.toFixed(2)} ${units.toLowerCase()}`;
   } else {
     // Always round to integer and format with commas for consistency
-    return `${Math.round(value).toLocaleString()} ${units?.toLowerCase() ?? "sqft"}`;
+    return `${Math.round(value).toLocaleString()} ${
+      units?.toLowerCase() ?? "sqft"
+    }`;
   }
 }
 
 /**
- * Formats lot size from various input formats.
+ * Formats lot size for display in acres.
+ * - Numeric values and bare numbers (and strings with sq ft / sqft) are treated as square feet and converted to acres.
+ * - Values already in acres are normalized to two decimal places with an "acres" suffix.
  */
 export function formatLotSize(lotSize: string | number | undefined): string {
-  if (!lotSize) return "N/A";
-
-  if (typeof lotSize === "number") {
-    return formatSquareFootage(lotSize, "sqft");
-  }
-
-  if (typeof lotSize === "string") {
-    // If it already contains units, return as-is
-    if (lotSize.toLowerCase().includes("acre") || lotSize.toLowerCase().includes("sqft")) {
-      return lotSize;
-    }
-
-    // Try to parse as number and format
-    const numValue = parseFloat(lotSize.replace(/[^\d.]/g, ""));
-    if (!isNaN(numValue)) {
-      return formatSquareFootage(numValue, "sqft");
-    }
-
-    return lotSize;
-  }
-
-  return "N/A";
+  if (lotSize === undefined || lotSize === null) return "N/A";
+  const formatted = formatLotSizeInAcres(lotSize);
+  return formatted ?? "N/A";
 }
 
 /**
- * Format lot size string for display, converting sqft to acres when appropriate.
- * Returns null for zero/empty to show em-dash.
+ * Format lot size for display in acres.
+ * Square feet (number, plain number string, or string containing sqft) → acres.
+ * Returns null for zero/empty/invalid to allow callers to show a placeholder.
  */
-export function formatLotSizeInAcres(lotSizeStr: string): string | null {
+export function formatLotSizeInAcres(lotSize: string | number): string | null {
+  if (typeof lotSize === "number") {
+    if (isNaN(lotSize) || lotSize <= 0) return null;
+    const acres = lotSize / 43560;
+    const formatted = formatSquareFootage(acres, "acres");
+    if (formatted === "0.00 acres" || formatted === "0 acres") return null;
+    return formatted;
+  }
+
+  const lotSizeStr = lotSize.trim();
+  if (!lotSizeStr) return null;
+
   const lowerStr = lotSizeStr.toLowerCase();
   if (lowerStr.includes("acre")) {
     const acreValue = parseFloat(lotSizeStr.replace(/[^\d.]/g, ""));
-    if (!isNaN(acreValue) && acreValue === 0) return null;
-    return lotSizeStr;
+    if (isNaN(acreValue) || acreValue <= 0) return null;
+    return formatSquareFootage(acreValue, "acres");
   }
+
   const numValue = parseFloat(lotSizeStr.replace(/[^\d.]/g, ""));
   if (isNaN(numValue) || numValue <= 0) return null;
   const acres = numValue / 43560;

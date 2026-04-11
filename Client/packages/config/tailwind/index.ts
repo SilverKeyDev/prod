@@ -4,11 +4,18 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { breakpoints, fontFamily, fontSize, spacing as spacingMap } from "../../design-tokens";
+import {
+  breakpoints,
+  fontFamily,
+  fontSize,
+  spacing as spacingMap,
+} from "../../design-tokens";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const colors = require(path.resolve(__dirname, "../../design-tokens/tokens/colors.json"));
+const colors = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/colors.json"),
+);
 
 /**
  * Shared Tailwind preset for apps/web and apps/mobile.
@@ -63,12 +70,18 @@ const sharedTailwindPreset = {
         "mobile-hero": "4 / 3",
       },
       zIndex: {
-        modal: "50",
-        overlay: "40",
-        dropdown: "30",
-        header: "20",
-        /** Above main content (e.g. search map/reels z-10) so nav stays clickable when on full-height routes. */
-        sidebar: "25",
+        header: "100",
+        sidebar: "200",
+        dock: "300",
+        /** Menus, selects, autocomplete, portaled popovers - above layout chrome and map markers (~1000) */
+        dropdown: "5000",
+        toast: "8000",
+        overlay: "9000",
+        modal: "10000",
+        /** Portaled pickers/menus opened from inside a modal (must sit above z-modal) */
+        "modal-popover": "10020",
+        /** Skip link when focused - above modals for keyboard escape hatch */
+        skip: "10050",
       },
     },
   },

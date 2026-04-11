@@ -1,0 +1,9 @@
+type: object
+required:
+  - count
+  - isLikedByMe
+properties:
+  count:
+    type: integer
+  isLikedByMe:
+    type: boolean

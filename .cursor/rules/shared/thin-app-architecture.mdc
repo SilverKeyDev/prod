@@ -17,7 +17,7 @@ alwaysApply: true
 ### Allowed in `apps/web` and `apps/mobile`
 
 1. **Configurations and entry points**
-   - Web: `vite.config.ts`, `index.html`, `main.tsx`
+   - Web: `vite.config.js`, `index.html`, `main.tsx`
    - Mobile: `metro.config.js`, `app.json`, `App.tsx`
 
 2. **Environment variables**

@@ -1,5 +1,5 @@
 /**
- * Universal gradient — native uses expo-linear-gradient.
+ * Universal gradient - native uses expo-linear-gradient.
  * CSS gradients are not supported on React Native.
  */
 

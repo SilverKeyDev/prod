@@ -1,77 +1,73 @@
+import type {
+  AddFavoriteRequest,
+  FavoriteHomesReplaceResponse,
+  RemoveFavoriteRequest,
+} from "packages/api";
 import { authApi, userApi } from "packages/config/http/api";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import type { AuthenticationError } from "packages/services/http";
-import { handleAuthenticationError, isAuthenticationError } from "packages/services/http";
+import {
+  handleAuthenticationError,
+  isAuthenticationError,
+} from "packages/services/http";
 import type { SavedHome } from "packages/types";
-import type {
-  AddFavoriteHomeRequest,
-  FavoriteHomeResponse,
-  HomeUniversal,
-  RemoveFavoriteHomeRequest,
-} from "packages/types/api";
-import { isNumber, isObject } from "packages/utils";
+import { mapHomeUniversalToSavedHome } from "packages/utils/saved";
 
 /**
- * Map home data to SavedHome format
+ * Map arbitrary property input to AddFavoriteRequest.home payload (FavoriteHomePayload).
  */
-const mapHomeUniversalToSavedHome = (home: HomeUniversal, index: number): SavedHome => {
-  if (!isObject(home)) {
-    // Fallback for invalid data
-    return {
-      home_id: `home_${index}_${Date.now()}`,
-      description: "",
-      address: "",
-      price: "",
-      bedrooms: 0,
-      bathrooms: 0,
-      sqft: 0,
-      lot_size: "",
-      image_url: undefined,
-      lat: 0,
-      lng: 0,
-    };
-  }
-
-  return {
-    home_id: home.address || `home_${index}_${Date.now()}`,
-    description: home.address || "",
-    address: home.address || "",
-    price: home.price || "",
-    bedrooms: isNumber(home.beds) ? home.beds : 0,
-    bathrooms: isNumber(home.baths) ? home.baths : 0,
-    sqft: isNumber(home.sqft) ? home.sqft : 0,
-    lot_size: home.lot_size || "",
-    image_url: home.image_url,
-    lat: home.lat,
-    lng: home.lng,
-  };
-};
-
-/**
- * Map arbitrary property input to AddFavoriteHomeRequest.home payload
- */
-const mapToAddFavoriteHomePayload = (input: unknown): AddFavoriteHomeRequest["home"] => {
+const mapToAddFavoriteHomePayload = (
+  input: unknown,
+): AddFavoriteRequest["home"] => {
   const obj = (input ?? {}) as Record<string, unknown>;
   const getString = (v: unknown, fallback = ""): string =>
     typeof v === "string" ? v : typeof v === "number" ? String(v) : fallback;
-  const getNumber = (v: unknown, fallback = 0): number => {
-    if (typeof v === "number") return v;
+  const getInt = (v: unknown, fallback = 0): number => {
+    if (typeof v === "number") return Math.round(v);
     if (typeof v === "string") {
       const parsed = parseInt(v.replace(/,/g, ""), 10);
       return isNaN(parsed) ? fallback : parsed;
     }
     return fallback;
   };
+  const getFloat = (v: unknown, fallback = 0): number => {
+    if (typeof v === "number") return v;
+    if (typeof v === "string") {
+      const parsed = parseFloat(v.replace(/,/g, ""));
+      return isNaN(parsed) ? fallback : parsed;
+    }
+    return fallback;
+  };
+  const normalizePrice = (v: unknown): string => {
+    if (typeof v === "number" && Number.isFinite(v)) return String(v);
+    if (typeof v === "string" && v.trim() !== "") {
+      let stripped = v.replace(/[$\s]/g, "");
+      const dots = (stripped.match(/\./g) || []).length;
+      if (dots > 1) {
+        stripped = stripped.replace(/\./g, "");
+      } else if (
+        dots === 1 &&
+        /^\d+\.\d{3}$/.test(stripped.replace(/,/g, ""))
+      ) {
+        stripped = stripped.replace(/\./g, "");
+      }
+      stripped = stripped.replace(/,/g, "");
+      const n = parseFloat(stripped);
+      return Number.isFinite(n) ? String(n) : v;
+    }
+    return "";
+  };
 
   const id = getString(obj.id ?? obj.address ?? obj.home_id);
   const address = getString(obj.address ?? obj.description);
-  const price = getString(obj.price);
-  const bedrooms = getNumber(obj.bedrooms ?? obj.beds);
-  const bathrooms = getNumber(obj.bathrooms ?? obj.baths);
-  const sqft = getNumber(obj.sqft ?? obj.livingArea);
-  const lat = getNumber(obj.lat ?? obj.latitude);
-  const lng = getNumber(obj.lng ?? obj.longitude);
-  const lotSize = obj.lotSize !== undefined ? getString(obj.lotSize) : undefined;
+  const price = normalizePrice(obj.price);
+  const bedrooms = getInt(obj.bedrooms ?? obj.beds);
+  const bathrooms = getInt(obj.bathrooms ?? obj.baths);
+  const sqft = getInt(obj.sqft ?? obj.livingArea);
+  const lat = getFloat(obj.lat ?? obj.latitude);
+  const lng = getFloat(obj.lng ?? obj.longitude);
+  const lotSize =
+    obj.lotSize !== undefined ? getString(obj.lotSize) : undefined;
   const propertyType = getString(obj.propertyType ?? obj.property_type);
   const listingStatus = getString(obj.listingStatus ?? obj.listing_status);
   const imageUrl =
@@ -153,7 +149,9 @@ export class SavedHomesService {
           Array.isArray(typedResponse.favorites)
             ? typedResponse.favorites
             : [];
-        const homeObjects: SavedHome[] = rawHomes.map(mapHomeUniversalToSavedHome);
+        const homeObjects: SavedHome[] = rawHomes.map(
+          mapHomeUniversalToSavedHome,
+        );
         return homeObjects;
       } else {
         const errorMsg =
@@ -182,16 +180,18 @@ export class SavedHomesService {
   /**
    * Save a home to favorites
    */
-  public async saveHome(property: unknown): Promise<{ success: boolean; error?: string }> {
+  public async saveHome(
+    property: unknown,
+  ): Promise<{ success: boolean; error?: string }> {
     try {
-      const request: AddFavoriteHomeRequest = {
+      const request: AddFavoriteRequest = {
         home: mapToAddFavoriteHomePayload(property),
       };
       const response = await userApi.addFavoriteHome(request);
       if (!response || typeof response !== "object") {
         throw new Error("Invalid API response structure");
       }
-      const typedResponse = response as FavoriteHomeResponse;
+      const typedResponse = response as FavoriteHomesReplaceResponse;
 
       if (
         typedResponse &&
@@ -228,9 +228,11 @@ export class SavedHomesService {
   /**
    * Remove a home from favorites
    */
-  public async removeSavedHome(address: string): Promise<{ success: boolean; error?: string }> {
+  public async removeSavedHome(
+    address: string,
+  ): Promise<{ success: boolean; error?: string }> {
     try {
-      const request: RemoveFavoriteHomeRequest = { address };
+      const request: RemoveFavoriteRequest = { address };
       const response = await userApi.removeFavoriteHome(request);
       if (!response || typeof response !== "object") {
         throw new Error("Invalid API response structure");

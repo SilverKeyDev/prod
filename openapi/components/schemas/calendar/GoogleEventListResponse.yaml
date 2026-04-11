@@ -1,0 +1,35 @@
+type: object
+required:
+  - kind
+  - etag
+  - summary
+  - updated
+  - timeZone
+  - accessRole
+  - items
+properties:
+  kind:
+    type: string
+  etag:
+    type: string
+  summary:
+    type: string
+  description:
+    type: string
+    nullable: true
+  updated:
+    type: string
+  timeZone:
+    type: string
+  accessRole:
+    type: string
+  nextPageToken:
+    type: string
+    nullable: true
+  nextSyncToken:
+    type: string
+    nullable: true
+  items:
+    type: array
+    items:
+      $ref: './GoogleEvent.yaml'

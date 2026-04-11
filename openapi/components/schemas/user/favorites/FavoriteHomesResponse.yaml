@@ -1,0 +1,50 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    description: |
+      Paginated saved homes (`favorites`) and, when applicable, listing rows the user
+      tracks (`listings`). Both arrays use the same `SavedHome` shape; `pagination`
+      carries cursor-style totals for infinite scroll or paged UIs.
+    properties:
+      favorites:
+        type: array
+        items:
+          $ref: './SavedHome.yaml'
+        nullable: true
+        description: Explicitly saved (liked) properties for the authenticated user.
+      listings:
+        type: array
+        items:
+          $ref: './SavedHome.yaml'
+        nullable: true
+        description: Additional tracked listings (e.g. pipeline) when the endpoint returns both buckets.
+      pagination:
+        $ref: './FavoriteHomesPagination.yaml'
+        nullable: true
+        description: Limits, offsets, and totals for favorites and listings lists.
+example:
+  success: true
+  message: null
+  error: null
+  favorites:
+    - id: "fav-8c2e9b1a-4d3f-5e6a-7b8c-9d0e1f2a3b4c"
+      user_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      isLiked: true
+      current: true
+      address: "742 Evergreen Terrace"
+      city: "Springfield"
+      state: "IL"
+      zipcode: "62704"
+      beds: "4"
+      baths: "2.5"
+      sqft: "2400"
+      price: "425000"
+      zpid: "12345678"
+  listings: []
+  pagination:
+    limit: 20
+    offset: 0
+    totalFavorites: 12
+    totalListings: 0
+    hasMoreFavorites: false
+    hasMoreListings: false

@@ -1,6 +1,8 @@
 """Financial profile (queried a lot). Indexes: (home_budget_min, home_budget_max), credit_score_range in migration."""
 
-from datetime import datetime
+from datetime import datetime, timezone
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -8,15 +10,19 @@ from app import db
 class UserFinancials(db.Model):
     __tablename__ = "user_financials"
 
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), primary_key=True)
-    gross_income = db.Column(db.Float, nullable=True)
-    home_budget_min = db.Column(db.Float, nullable=True)
-    home_budget_max = db.Column(db.Float, nullable=True)
-    credit_score_range = db.Column(db.String(20), nullable=True)
-    down_payment = db.Column(db.Float, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
-    updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True
+    user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"), primary_key=True)
+    gross_income: Mapped[float | None] = mapped_column(db.Float)
+    home_budget_min: Mapped[float | None] = mapped_column(db.Float)
+    home_budget_max: Mapped[float | None] = mapped_column(db.Float)
+    credit_score_range: Mapped[str | None] = mapped_column(db.String(20))
+    down_payment: Mapped[float | None] = mapped_column(db.Float)
+    created_at: Mapped[datetime | None] = mapped_column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
     )
 
     user = db.relationship(

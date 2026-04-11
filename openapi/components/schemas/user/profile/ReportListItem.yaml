@@ -1,0 +1,27 @@
+type: object
+description: >
+  Entry returned by GET /api/v1/report/list — property PDF reports for the current user
+  (camelCase fields as produced by the API). Not the same shape as `UploadedDocumentRecord`.
+required:
+  - id
+  - status
+  - generatedAt
+  - address
+properties:
+  id:
+    type: string
+  status:
+    type: string
+    enum: [generating, completed, error]
+  generatedAt:
+    type: integer
+    description: Unix timestamp in seconds
+  address:
+    type: string
+  pdfUrl:
+    type: string
+    format: uri
+    nullable: true
+  s3Key:
+    type: string
+    nullable: true

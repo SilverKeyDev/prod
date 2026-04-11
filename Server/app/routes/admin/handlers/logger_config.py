@@ -1,15 +1,20 @@
-from flask import jsonify
+from flask import jsonify, request
 
+from app.schemas import GetLoggerConfigResponse, UpdateLoggerConfigRequest
 from app.utils.admin import user_has_admin_role
 from app.utils.common_patterns import (
-    api_route,
+    handle_exceptions_with_logging,
+    require_authenticated_user,
     standardize_error_response,
     standardize_success_response,
 )
+from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, LoggerConfig, log
 
 
-@api_route(require_auth=True, require_json=False)
+@handle_exceptions_with_logging
+@require_authenticated_user
+@validate_response(GetLoggerConfigResponse)
 def get_logger_config(user):
     if not user_has_admin_role(user):
         log.security(
@@ -28,8 +33,11 @@ def get_logger_config(user):
     return standardize_success_response({"config": config_dict})
 
 
-@api_route(require_auth=True, require_json=True, required_fields=["updates"])
-def update_logger_config(data, user):
+@handle_exceptions_with_logging
+@require_authenticated_user
+@validate_request(UpdateLoggerConfigRequest)
+@validate_response(GetLoggerConfigResponse)
+def update_logger_config(user, data: UpdateLoggerConfigRequest | None = None):
     if not user_has_admin_role(user):
         log.security(
             LOG_CATEGORIES["SECURITY"],
@@ -38,7 +46,11 @@ def update_logger_config(data, user):
         )
         return standardize_error_response("Admin access required", status_code=403)
 
-    updates = data.get("updates") or {}
+    if data is None:
+        request_data = request.get_json(silent=True) or {}
+    else:
+        request_data = data.model_dump()
+    updates = request_data.get("updates") or {}
     if not isinstance(updates, dict):
         return standardize_error_response("Invalid updates payload", status_code=400)
 
@@ -52,6 +64,7 @@ def update_logger_config(data, user):
         "errors",
         "security",
         "polygonSearch",
+        "docusign",
         "logLevel",
     }
 

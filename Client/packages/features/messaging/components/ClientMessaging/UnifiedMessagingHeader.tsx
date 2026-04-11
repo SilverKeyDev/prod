@@ -5,7 +5,13 @@ import MiniLogo from "packages/ui/components/asset/MiniLogo";
 import { Box } from "packages/ui/components/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
-export type HeaderMode = "inbox" | "connection-requests" | "chat" | "no-agent" | "clients";
+export type HeaderMode =
+  | "inbox"
+  | "connection-requests"
+  | "chat"
+  | "no-agent"
+  | "clients"
+  | "agents";
 type UnifiedMessagingHeaderProps = {
   mode: HeaderMode;
   isSidebarExpanded?: boolean;
@@ -91,7 +97,11 @@ function HeaderLeftContent({
       );
     case "inbox":
       return (
-        <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
+        <Title
+          as="h2"
+          size="lg"
+          className="flex items-center gap-2 font-medium text-neutral-800"
+        >
           <MiniLogo size="sm" />
           {t("agent.inbox")}
         </Title>
@@ -99,9 +109,26 @@ function HeaderLeftContent({
     case "clients":
       return (
         <Box className="flex items-center gap-2">
-          <Title as="h2" size="lg" className="flex items-center gap-2 font-medium text-neutral-800">
+          <Title
+            as="h2"
+            size="lg"
+            className="flex items-center gap-2 font-medium text-neutral-800"
+          >
             <MiniLogo size="sm" />
             {t("agent.clients")}
+          </Title>
+        </Box>
+      );
+    case "agents":
+      return (
+        <Box className="flex items-center gap-2">
+          <Title
+            as="h2"
+            size="lg"
+            className="flex items-center gap-2 font-medium text-neutral-800"
+          >
+            <MiniLogo size="sm" />
+            {t("agent.messaging_sidebar_agents")}
           </Title>
         </Box>
       );
@@ -115,7 +142,11 @@ function HeaderLeftContent({
               size="sm"
               onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
               className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 hover:bg-neutral-100 focus:outline-none xl:hidden"
-              label={isSidebarExpanded ? t("agent.close_sidebar") : t("agent.open_sidebar")}
+              label={
+                isSidebarExpanded
+                  ? t("agent.close_sidebar")
+                  : t("agent.open_sidebar")
+              }
               aria-expanded={isSidebarExpanded}
             >
               {isSidebarExpanded ? (
@@ -206,6 +237,31 @@ function HeaderRightContent({
           {collapseBtn}
         </Box>
       );
+    case "agents":
+      return (
+        <Box className="flex items-center gap-2">
+          {onInboxClick ? (
+            <ConnectionRequestsHeaderButton
+              onClick={onInboxClick}
+              label={t("agent.requests")}
+              pendingCount={pendingConnectionRequestCount}
+            />
+          ) : null}
+          {onSearchClick && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSearchClick}
+              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-neutral-700 transition hover:bg-neutral-100"
+              label={t("agent.search_for_agent")}
+              title={t("agent.search_agent_to_start_messaging")}
+            >
+              <Icon name="plus" className="h-4 w-4 text-neutral-600" />
+            </Button>
+          )}
+          {collapseBtn}
+        </Box>
+      );
     case "chat":
       return (
         <Box className="flex items-center gap-2">
@@ -213,7 +269,9 @@ function HeaderRightContent({
             <Title
               as="h3"
               size="sm"
-              className={`font-medium text-neutral-800 transition-opacity duration-300 ease-in-out ${isSidebarExpanded ? "opacity-0" : "opacity-100"}`}
+              className={`font-medium text-neutral-800 transition-opacity duration-300 ease-in-out ${
+                isSidebarExpanded ? "opacity-0" : "opacity-100"
+              }`}
             >
               {selectedClientName}
             </Title>

@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 
 import { SearchRefreshContext } from "./SearchRefreshContext.context";
 
@@ -13,8 +13,13 @@ export function SearchRefreshProvider({ children }: { children: ReactNode }) {
     setRefreshFn(() => fn);
   }, []);
 
+  const contextValue = useMemo(
+    () => ({ triggerRefresh, setTriggerRefresh }),
+    [triggerRefresh, setTriggerRefresh],
+  );
+
   return (
-    <SearchRefreshContext.Provider value={{ triggerRefresh, setTriggerRefresh }}>
+    <SearchRefreshContext.Provider value={contextValue}>
       {children}
     </SearchRefreshContext.Provider>
   );

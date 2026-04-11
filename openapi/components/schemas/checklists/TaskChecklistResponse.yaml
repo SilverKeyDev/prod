@@ -1,0 +1,25 @@
+type: object
+required:
+  - items
+  - checkedIds
+properties:
+  items:
+    type: array
+    items:
+      $ref: './TaskChecklistItem.yaml'
+  checkedIds:
+    type: array
+    items:
+      type: integer
+  title:
+    type: string
+    nullable: true
+  subtitle:
+    type: string
+    nullable: true
+  deadline:
+    type: string
+    nullable: true
+  date_finished:
+    type: string
+    nullable: true

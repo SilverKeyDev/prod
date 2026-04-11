@@ -4,9 +4,8 @@ import os
 import sys
 from datetime import timezone
 
+from app import db
 from app.models import AgentConnections, ChatHistory, User
-
-from .conversation_messages import get_unread_count
 
 server_dir = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -44,24 +43,87 @@ def get_conversations(user_id: str, is_agent: bool) -> list[dict]:
         else:
             conversations = AgentConnections.query.filter_by(client_id=user_id).all()
 
+        if not conversations:
+            log.info(
+                LOG_CATEGORIES["API"],
+                "get_conversations",
+                {"user_id": user_id, "is_agent": is_agent, "count": 0},
+            )
+            return []
+
+        # Batch load all users
+        all_user_ids = set()
+        for conv in conversations:
+            all_user_ids.add(conv.client_id)
+            all_user_ids.add(conv.agent_id)
+
+        users = User.query.filter(User.id.in_(all_user_ids)).all()
+        users_by_id = {str(u.id): u for u in users}
+
+        # Batch load last messages for all conversations
+        conversation_ids = [conv.id for conv in conversations]
+        from sqlalchemy import func
+
+        # Get last message per conversation using a subquery
+        subq = (
+            db.session.query(
+                ChatHistory.conversation_id, func.max(ChatHistory.timestamp).label("max_timestamp")
+            )
+            .filter(ChatHistory.conversation_id.in_(conversation_ids))
+            .group_by(ChatHistory.conversation_id)
+            .subquery()
+        )
+
+        last_messages = (
+            db.session.query(ChatHistory)
+            .join(
+                subq,
+                db.and_(
+                    ChatHistory.conversation_id == subq.c.conversation_id,
+                    ChatHistory.timestamp == subq.c.max_timestamp,
+                ),
+            )
+            .all()
+        )
+        last_messages_by_conv = {msg.conversation_id: msg for msg in last_messages}
+
+        # Batch calculate unread counts
+        last_reads = {conv.id: conv.get_last_read(user_id) for conv in conversations}
+
+        # Build unread count query with aggregation
+        unread_counts = {}
+        for conv in conversations:
+            if is_agent:
+                other_user_id = conv.client_id
+            else:
+                other_user_id = conv.agent_id
+
+            query = db.session.query(
+                ChatHistory.conversation_id, func.count(ChatHistory.id).label("count")
+            ).filter(ChatHistory.conversation_id == conv.id, ChatHistory.sender_id == other_user_id)
+
+            last_read = last_reads.get(conv.id)
+            if last_read:
+                query = query.filter(ChatHistory.timestamp > last_read)
+
+            result_row = query.group_by(ChatHistory.conversation_id).first()
+            unread_counts[conv.id] = result_row.count if result_row else 0
+
         result = []
         for conv in conversations:
-            client = User.query.filter_by(id=conv.client_id).first()
+            client = users_by_id.get(str(conv.client_id))
             client_name = client.name if client else "Unknown"
             client_email = client.email if client else ""
+            client_profile_picture = client.profile_picture if client else None
 
-            agent = User.query.filter_by(id=conv.agent_id).first()
+            agent = users_by_id.get(str(conv.agent_id))
             agent_name = agent.name if agent else "Unknown"
             agent_email = agent.email if agent else ""
+            agent_profile_picture = agent.profile_picture if agent else None
 
-            last_message_obj = (
-                ChatHistory.query.filter_by(conversation_id=conv.id)
-                .order_by(ChatHistory.timestamp.desc())
-                .first()
-            )
-
-            unread_count = get_unread_count(conv.id, user_id)
-            last_read = conv.get_last_read(user_id)
+            last_message_obj = last_messages_by_conv.get(conv.id)
+            unread_count = unread_counts.get(conv.id, 0)
+            last_read = last_reads.get(conv.id)
 
             conv_dict = {
                 "id": conv.id,
@@ -69,10 +131,10 @@ def get_conversations(user_id: str, is_agent: bool) -> list[dict]:
                 "client_id": conv.client_id,
                 "client_name": client_name,
                 "client_email": client_email,
-                "client_profile_picture": client.profile_picture if client else None,
+                "client_profile_picture": client_profile_picture,
                 "agent_name": agent_name,
                 "agent_email": agent_email,
-                "agent_profile_picture": agent.profile_picture if agent else None,
+                "agent_profile_picture": agent_profile_picture,
                 "last_message": last_message_obj.message if last_message_obj else None,
                 "last_message_at": _format_timestamp(
                     last_message_obj.timestamp if last_message_obj else None
@@ -83,6 +145,11 @@ def get_conversations(user_id: str, is_agent: bool) -> list[dict]:
                 "last_read_at": _format_timestamp(last_read),
             }
             result.append(conv_dict)
+        log.info(
+            LOG_CATEGORIES["API"],
+            "get_conversations",
+            {"user_id": user_id, "is_agent": is_agent, "count": len(result)},
+        )
         return result
 
     except Exception as e:

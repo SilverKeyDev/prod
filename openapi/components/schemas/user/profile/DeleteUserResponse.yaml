@@ -1,0 +1,7 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      deleted_user_id:
+        type: string
+        nullable: true

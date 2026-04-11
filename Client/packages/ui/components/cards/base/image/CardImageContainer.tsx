@@ -29,7 +29,7 @@ export default function CardImageContainer({
   className = "",
   children,
 }: CardImageContainerProps) {
-  const placeholder = "/api/placeholder/400/300";
+  const placeholder = "/placeholders/dummy-photo.svg";
   const getHeightClass = () => {
     switch (height) {
       case "sm":
@@ -45,7 +45,9 @@ export default function CardImageContainer({
     }
   };
   return (
-    <Box className={`relative w-full overflow-hidden bg-gray-100 ${getHeightClass()} ${className}`}>
+    <Box
+      className={`relative w-full overflow-hidden bg-gray-100 ${getHeightClass()} ${className}`}
+    >
       <StyledImage
         src={imageUrl ?? undefined}
         alt={alt}

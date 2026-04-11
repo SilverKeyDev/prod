@@ -14,7 +14,8 @@ const MOVE_CONCIERGE_URL = "https://mc.partners/SilverKey";
  * MoveConcierge image for native. Ensure Client/public/MoveConcierge.jpg exists for Metro.
  */
 /* eslint-disable @typescript-eslint/no-require-imports */
-const moveConciergeSource = require("../../../../../public/MoveConcierge.jpg") as number;
+const moveConciergeSource =
+  require("../../../../../public/MoveConcierge.jpg") as number;
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 export default function HomeConcierge() {
@@ -44,7 +45,7 @@ export default function HomeConcierge() {
               variant="outline"
               size="md"
               onPress={handleStartToday}
-              className="border-olive mt-3 border-dotted"
+              className="mt-3 border-dotted border-neutral-400"
             >
               {t("close.home_concierge.start_today")}
             </Button>

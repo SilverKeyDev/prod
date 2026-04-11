@@ -36,7 +36,8 @@ export function AgentSearchContent({
   const [message, setMessage] = useState("");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const { agents, isLoading } = useAgentSearch(searchQuery, isActive);
-  const { createRequestAsInitiator, isCreatingRequest } = useConnectionRequests();
+  const { createRequestAsInitiator, isCreatingRequest } =
+    useConnectionRequests();
   const { userProfile } = useUserData();
   const authUser = useAuthStore((s) => s.user);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
@@ -57,14 +58,16 @@ export function AgentSearchContent({
         initiatorId,
         agentId,
         false,
-        message.trim() || undefined
+        message.trim() || undefined,
       );
-      enqueueToast({
-        type: "success",
-        message: alreadyPending
-          ? "A connection request is already pending with this agent."
-          : "Request sent",
-      });
+      if (alreadyPending) {
+        enqueueToast({
+          type: "warning",
+          message: "A connection request is already pending with this agent.",
+        });
+        return;
+      }
+      enqueueToast({ type: "success", message: "Request sent" });
       setMessage("");
       setSelectedAgentId(null);
       onSuccess?.();
@@ -77,7 +80,7 @@ export function AgentSearchContent({
   };
 
   return (
-    <Box className={className}>
+    <Box className={`text-left ${className}`.trim()}>
       {/* Search Input */}
       <Box className="border-border border-b p-4">
         <Box className="relative">
@@ -91,7 +94,7 @@ export function AgentSearchContent({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={config.searchPlaceholder}
-            className="border-border bg-background-surface text-text-primary placeholder:text-text-secondary focus:border-primary focus:ring-accent-muted w-full rounded-lg border px-10 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2"
+            className="border-border bg-background-surface text-text-primary placeholder:text-text-secondary focus:border-input-variant-focus-border w-full rounded-lg border px-10 py-2.5 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400"
           />
         </Box>
       </Box>
@@ -99,11 +102,11 @@ export function AgentSearchContent({
       {/* Results */}
       <Box className="max-h-96 overflow-y-auto p-4">
         {searchQuery.length < 2 ? null : isLoading ? (
-          <Box className="py-8 text-center">
+          <Box className="flex justify-start py-8">
             <KeyTurnLoader message={config.searchingMessage} />
           </Box>
         ) : agents.length === 0 ? (
-          <Box className="text-text-secondary py-8 text-center text-sm">
+          <Box className="text-text-secondary py-8 text-left text-sm">
             {config.noResultsMessage} "{searchQuery}"
           </Box>
         ) : (
@@ -121,13 +124,24 @@ export function AgentSearchContent({
                   <Box className="space-y-4">
                     <Box className="border-border flex items-start gap-3 border-b pb-3">
                       <Box className="bg-primary-muted flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full">
-                        <Icon name="user" className="text-text-secondary h-6 w-6" />
+                        <Icon
+                          name="user"
+                          className="text-text-secondary h-6 w-6"
+                        />
                       </Box>
                       <Box className="min-w-0 flex-1">
-                        <Title as="h3" size="md" className="text-text-primary mb-0.5 font-semibold">
+                        <Title
+                          as="h3"
+                          size="md"
+                          className="text-text-primary mb-0.5 font-semibold"
+                        >
                           {agent.name}
                         </Title>
-                        <BodyText as="p" size="sm" className="text-text-secondary truncate">
+                        <BodyText
+                          as="p"
+                          size="sm"
+                          className="text-text-secondary truncate"
+                        >
                           {agent.email}
                         </BodyText>
                       </Box>
@@ -144,11 +158,11 @@ export function AgentSearchContent({
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Add a message..."
-                        className="border-border bg-background-surface text-text-primary placeholder:text-text-secondary focus:border-primary focus:ring-accent-muted w-full resize-none rounded-lg border px-4 py-3 text-sm transition-colors focus:outline-none focus:ring-2"
+                        className="border-border bg-background-surface text-text-primary placeholder:text-text-secondary focus:border-input-variant-focus-border w-full resize-none rounded-lg border px-4 py-3 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400"
                         rows={4}
                       />
                     </Box>
-                    <Box className="flex gap-3 pt-2">
+                    <Box className="flex justify-start gap-3 pt-2">
                       <Button
                         onClick={() => handleSendRequest(agent.id)}
                         disabled={isCreatingRequest || !initiatorId}
@@ -187,14 +201,26 @@ export function AgentSearchContent({
                       <Icon name="user" className="h-5 w-5 text-black" />
                     </Box>
                     <Box className="flex-1">
-                      <Title as="h3" size="sm" className="font-medium text-black">
+                      <Title
+                        as="h3"
+                        size="sm"
+                        className="font-medium text-black"
+                      >
                         {agent.name}
                       </Title>
-                      <BodyText as="p" size="sm" className="text-text-secondary">
+                      <BodyText
+                        as="p"
+                        size="sm"
+                        className="text-text-secondary"
+                      >
                         {agent.email}
                       </BodyText>
                       {agent.phone && (
-                        <BodyText as="p" size="xs" className="text-text-disabled">
+                        <BodyText
+                          as="p"
+                          size="xs"
+                          className="text-text-disabled"
+                        >
                           {agent.phone}
                         </BodyText>
                       )}

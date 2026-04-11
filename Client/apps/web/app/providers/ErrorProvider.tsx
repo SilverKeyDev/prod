@@ -5,8 +5,8 @@
 
 import type { ReactNode } from "react";
 
+import { useErrorReporting } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
-import { reportErrorWithCapture } from "packages/services/security/errorReporting";
 import { dateNow } from "packages/utils/date";
 
 import ErrorBoundary from "@/app/error/ErrorBoundary";
@@ -17,6 +17,8 @@ type ErrorProviderProps = {
 };
 
 export function ErrorProvider({ children, fallback }: ErrorProviderProps) {
+  const { reportError } = useErrorReporting();
+
   const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
     try {
       // Log error details immediately for debugging
@@ -28,7 +30,7 @@ export function ErrorProvider({ children, fallback }: ErrorProviderProps) {
       });
 
       // Additional error handling logic can go here
-      reportErrorWithCapture(error, {
+      reportError(error, {
         componentStack: errorInfo.componentStack,
         errorBoundary: true,
         timestamp: dateNow().toISOString(),
@@ -36,7 +38,10 @@ export function ErrorProvider({ children, fallback }: ErrorProviderProps) {
     } catch (reportingError) {
       // Fail silently to prevent infinite error loops
       log.error(LOG_CATEGORIES.ERRORS, "ErrorProvider error reporting failed", {
-        error: reportingError instanceof Error ? reportingError.message : String(reportingError),
+        error:
+          reportingError instanceof Error
+            ? reportingError.message
+            : String(reportingError),
       });
     }
   };

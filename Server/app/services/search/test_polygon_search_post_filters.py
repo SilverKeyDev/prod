@@ -1,7 +1,9 @@
 """Unit tests for polygon_search_post_filters (bed/bath ranges vs missing listing data)."""
 
-from app.home_matching.mcda.criteria.user_feature_match import user_feature_need_matches_property
-from app.services.search.polygon_search_post_filters import (
+from app.services.search.home_matching.mcda.criteria.user_feature_match import (
+    user_feature_need_matches_property,
+)
+from app.services.search.polygon.polygon_search_post_filters import (
     PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT,
     apply_polygon_search_post_filters,
 )
@@ -169,6 +171,52 @@ def test_bathrooms_range_within_below_above_strict() -> None:
         assert len(out) == expected, baths
 
 
+def test_beds_baths_field_aliases_respected_for_range_strict() -> None:
+    """Listings may expose counts as beds/baths; range filter uses the same rules."""
+    prefs = {
+        "preferred_bedrooms_min": 2,
+        "preferred_bedrooms_max": 4,
+        "preferred_bathrooms_min": 2,
+        "preferred_bathrooms_max": 3,
+    }
+    out = apply_polygon_search_post_filters(
+        [{"zpid": "1", "beds": 3, "baths": 2}],
+        prefs,
+        "req_test",
+        agent_debug_log=_noop_debug_log,
+        strict_preference_filter=True,
+    )
+    assert len(out) == 1
+    out = apply_polygon_search_post_filters(
+        [{"zpid": "1", "beds": 1, "baths": 2}],
+        prefs,
+        "req_test",
+        agent_debug_log=_noop_debug_log,
+        strict_preference_filter=True,
+    )
+    assert len(out) == 0
+    out = apply_polygon_search_post_filters(
+        [{"zpid": "1", "beds": 3, "baths": 5}],
+        prefs,
+        "req_test",
+        agent_debug_log=_noop_debug_log,
+        strict_preference_filter=True,
+    )
+    assert len(out) == 0
+
+
+def test_bedrooms_only_min_no_max_allows_above_range_strict() -> None:
+    """With only preferred_bedrooms_min set, there is no upper cap."""
+    out = apply_polygon_search_post_filters(
+        [{"zpid": "1", "bedrooms": 10}],
+        {"preferred_bedrooms_min": 2},
+        "req_test",
+        agent_debug_log=_noop_debug_log,
+        strict_preference_filter=True,
+    )
+    assert len(out) == 1
+
+
 def test_beds_and_baths_ranges_both_enforced_strict() -> None:
     """Listing must satisfy both bedroom and bathroom ranges when both are set."""
     prefs = {
@@ -268,7 +316,9 @@ def test_must_have_applied_when_strict() -> None:
 
 
 def test_lenient_mode_skips_filters_when_count_at_threshold() -> None:
-    props = [{"zpid": str(i), "bedrooms": 5} for i in range(PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT)]
+    props = [
+        {"zpid": str(i), "bedrooms": 5} for i in range(PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT)
+    ]
     user_preferences = {"preferred_bedrooms_min": 1, "preferred_bedrooms_max": 3}
     out = apply_polygon_search_post_filters(
         props,

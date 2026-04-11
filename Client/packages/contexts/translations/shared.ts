@@ -14,10 +14,13 @@ export const SHARED_TRANSLATIONS: Record<string, string> = {
   "common.share_aria": "Share",
   "common.mb": "MB",
   "common.saved": "Saved",
+  "common.back": "Back",
+  "common.close": "Close",
+  "common.previous": "Previous",
+  "common.next": "Next",
 
   "profile.section_about_you": "About you",
 
-  "form.required_indicator": "*",
   "form.clear_aria": "Clear",
   "form.select_option": "Select an option...",
   "form.search_options": "Search options...",
@@ -47,8 +50,8 @@ export const SHARED_TRANSLATIONS: Record<string, string> = {
   "house.invalid_address": "[Invalid address]",
   "house.invalid_price": "[Invalid price]",
   "house.na_sqft": "n/a sqft",
-  "house.no_data": "—",
-  "house.match_score": "Match score",
+  "house.no_data": "-",
+  "house.match_score": "Match",
   "house.no_match_score": "No match score",
-  "house.match_score_value": "{{score}}/{{maxScore}}",
+  "house.match_score_value": "{{percent}}%",
 };

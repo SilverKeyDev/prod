@@ -20,7 +20,10 @@ type DocumentUploadProps = {
   /** Whether to wrap content in a Card component */
   useCard?: boolean;
 };
-export default function DocumentUpload({ onUploadSuccess, useCard = true }: DocumentUploadProps) {
+export default function DocumentUpload({
+  onUploadSuccess,
+  useCard = true,
+}: DocumentUploadProps) {
   const { t } = useLocalization();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const { uploadDocument, uploadedFiles } = useDocuments();
@@ -30,18 +33,24 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
   // Find current upload status for selected file
   const currentUpload = selectedFile
     ? uploadedFiles.find(
-        (upload) => upload.file.name === selectedFile.name && upload.file.size === selectedFile.size
+        (upload) =>
+          upload.file.name === selectedFile.name &&
+          upload.file.size === selectedFile.size,
       )
     : null;
   const uploadStatus = currentUpload?.status;
   const isUploadComplete = uploadStatus === "completed";
   const isUploadFailed = uploadStatus === "failed";
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  }, []);
+  const isUploadInProgress = isUploading || uploadStatus === "uploading";
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        setSelectedFile(file);
+      }
+    },
+    [],
+  );
   const handleUpload = useCallback(async () => {
     if (!selectedFile) {
       enqueueToast({
@@ -120,7 +129,13 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
           />
           <Label
             htmlFor="document-upload-input"
-            className={`touch-friendly gap-responsive-sm p-responsive-md flex cursor-pointer flex-row items-center justify-between ${DROP_ZONE_BORDER_BASE} ${isUploading ? "border-border bg-background-base cursor-not-allowed" : selectedFile ? "border-primary bg-primary-muted" : "hover:border-primary active:border-primary border-border hover:bg-background-base active:bg-primary-muted active:opacity-90"}`}
+            className={`touch-friendly gap-responsive-sm p-responsive-md flex cursor-pointer flex-row items-center justify-between ${DROP_ZONE_BORDER_BASE} ${
+              isUploading
+                ? "border-border bg-background-base cursor-not-allowed"
+                : selectedFile
+                  ? "bg-primary-muted border-neutral-500"
+                  : "border-border hover:bg-background-base active:bg-primary-muted hover:border-neutral-400 active:border-neutral-500 active:opacity-90"
+            }`}
           >
             <Box className="gap-responsive-sm flex min-w-0 flex-1 flex-row items-center">
               {selectedFile ? (
@@ -133,9 +148,17 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
                     <BodyText size="sm" className="truncate font-medium">
                       {selectedFile.name}
                     </BodyText>
-                    <BodyText size="xs" muted>
-                      {`${(selectedFile.size / 1024 / 1024).toFixed(2)}${t("common.mb")}`}
-                    </BodyText>
+                    {isUploadInProgress ? (
+                      <BodyText size="xs" className="text-text-secondary">
+                        {t("documents_upload.uploading")}
+                      </BodyText>
+                    ) : (
+                      <BodyText size="xs" muted>
+                        {`${(selectedFile.size / 1024 / 1024).toFixed(2)}${t(
+                          "common.mb",
+                        )}`}
+                      </BodyText>
+                    )}
                   </Box>
                 </>
               ) : (
@@ -145,7 +168,9 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
                     className="text-text-disabled h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6"
                   />
                   <Box className="min-w-0 flex-1">
-                    <BodyText size="sm">{t("documents_upload.click_to_select")}</BodyText>
+                    <BodyText size="sm">
+                      {t("documents_upload.click_to_select")}
+                    </BodyText>
                     <BodyText size="xs" muted>
                       {t("documents_upload.file_types")}
                     </BodyText>
@@ -171,15 +196,21 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
         </Box>
       </Box>
 
-      {/* Upload Status */}
-      {currentUpload && (
+      {/* Upload outcome (in-progress message lives under filename above) */}
+      {currentUpload && (isUploadComplete || isUploadFailed) && (
         <Box className="gap-responsive-sm flex flex-row items-center">
           {isUploadComplete ? (
-            <StatusBadge variant="success" size="sm" text={t("documents_upload.upload_success")} />
-          ) : isUploadFailed ? (
-            <StatusBadge variant="error" size="sm" text={t("documents_upload.upload_failed")} />
+            <StatusBadge
+              variant="success"
+              size="sm"
+              text={t("documents_upload.upload_success")}
+            />
           ) : (
-            <StatusBadge variant="processing" size="sm" text={t("documents_upload.uploading")} />
+            <StatusBadge
+              variant="error"
+              size="sm"
+              text={t("documents_upload.upload_failed")}
+            />
           )}
         </Box>
       )}
@@ -195,7 +226,7 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
           fullWidth
           className="sm:w-auto"
         >
-          {isUploading ? t("documents_upload.uploading") : t("documents_upload.upload_document")}
+          {t("documents_upload.upload_document")}
         </Button>
       </Box>
     </Box>

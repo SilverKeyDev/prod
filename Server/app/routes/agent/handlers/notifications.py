@@ -4,14 +4,17 @@ import logging
 
 from flask import jsonify
 
+from app.schemas.generated import NotificationCounterResponse
 from app.services.agent import get_notification_counter
 from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
 from app.utils.security.security import rate_limit
+from app.utils.validation import validate_response
 
 logger = logging.getLogger(__name__)
 
 
 @rate_limit(max_requests=200, window_seconds=60)
+@validate_response(NotificationCounterResponse)
 @handle_exceptions_with_logging
 @require_authenticated_user
 def get_notification_counter_endpoint(user):

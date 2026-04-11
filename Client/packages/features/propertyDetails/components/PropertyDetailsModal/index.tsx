@@ -1,1 +1,1 @@
-export { default } from "./body/PropertyDetailsModal";
+export { default } from "./body/modal-root/PropertyDetailsModal";

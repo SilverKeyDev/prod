@@ -4,9 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getEnv, userApi } from "packages/config";
 import { queryKeys } from "packages/config/query/keys";
-// Direct type/util imports to avoid require cycle: saved barrel -> SavedFeature -> ... -> contexts
-import type { PropertyData, RawHomeData } from "packages/features/saved/types/savedHomeMappers";
-import { mapHomeUniversalToSavedHome } from "packages/features/saved/types/savedHomeMappers";
 import {
   findSavedHomeByIdOrAddress,
   isProcessedSavedHomeList,
@@ -15,6 +12,9 @@ import { log, LOG_CATEGORIES } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import type { SavedHome } from "packages/types";
 import { getWindow } from "packages/utils/platform";
+// Direct type/util imports to avoid require cycle: saved barrel -> SavedFeature -> ... -> contexts
+import type { PropertyData, RawHomeData } from "packages/utils/saved";
+import { mapHomeUniversalToSavedHome } from "packages/utils/saved";
 import { getSessionStorage } from "packages/utils/storage/platformStorage";
 
 interface WindowWithGoogle {
@@ -46,7 +46,10 @@ export const useSavedHomesData = (clientId?: string) => {
   const authReady = useAuthStore((s) => s.authReady);
 
   // Match reports hook: gate loading on auth readiness and authentication
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   // Saved homes query
   const {
@@ -59,11 +62,17 @@ export const useSavedHomesData = (clientId?: string) => {
     queryKey: queryKeys.homes.favorites(clientId),
     queryFn: async () => {
       // Check cache first - if we have processed SavedHome[] data, return it
-      const cached = queryClient.getQueryData<SavedHome[]>(queryKeys.homes.favorites(clientId));
+      const cached = queryClient.getQueryData<SavedHome[]>(
+        queryKeys.homes.favorites(clientId),
+      );
       if (cached && Array.isArray(cached) && cached.length > 0) {
         // Check if it's already processed (has home_id and other SavedHome properties)
         const isProcessed = cached.every(
-          (home) => home && typeof home === "object" && "home_id" in home && "address" in home
+          (home) =>
+            home &&
+            typeof home === "object" &&
+            "home_id" in home &&
+            "address" in home,
         );
         if (isProcessed) {
           // Data is already processed, return it directly
@@ -95,7 +104,7 @@ export const useSavedHomesData = (clientId?: string) => {
             lat: (home as RawHomeData).lat ?? home.latitude,
             lng: (home as RawHomeData).lng ?? home.longitude ?? home.lon,
           })),
-        }
+        },
       );
       // Only log once per session to avoid spam
       if (!sess.getItem("saved_homes_loaded_logged")) {
@@ -106,8 +115,10 @@ export const useSavedHomesData = (clientId?: string) => {
         rawHomes.map(async (home, index) => {
           const existingLat = home?.lat ?? home?.latitude;
           const existingLng = home?.lng ?? home?.longitude ?? home?.lon;
-          const latNum = typeof existingLat === "number" ? existingLat : Number(existingLat);
-          const lngNum = typeof existingLng === "number" ? existingLng : Number(existingLng);
+          const latNum =
+            typeof existingLat === "number" ? existingLat : Number(existingLat);
+          const lngNum =
+            typeof existingLng === "number" ? existingLng : Number(existingLng);
           const hasValid =
             Number.isFinite(latNum) &&
             Number.isFinite(lngNum) &&
@@ -126,7 +137,7 @@ export const useSavedHomesData = (clientId?: string) => {
                 address: home.address,
                 lat: existingLat,
                 lng: existingLng,
-              }
+              },
             );
             return home;
           }
@@ -138,8 +149,14 @@ export const useSavedHomesData = (clientId?: string) => {
               const result = await geocoder.geocode({ address: home.address });
               const location = result?.results?.[0]?.geometry?.location;
               if (location) {
-                const lat = typeof location.lat === "function" ? location.lat() : location.lat;
-                const lng = typeof location.lng === "function" ? location.lng() : location.lng;
+                const lat =
+                  typeof location.lat === "function"
+                    ? location.lat()
+                    : location.lat;
+                const lng =
+                  typeof location.lng === "function"
+                    ? location.lng()
+                    : location.lng;
                 if (Number.isFinite(lat) && Number.isFinite(lng)) {
                   log.debug(
                     LOG_CATEGORIES.MAP_RENDERING,
@@ -148,7 +165,7 @@ export const useSavedHomesData = (clientId?: string) => {
                       address: home.address,
                       lat,
                       lng,
-                    }
+                    },
                   );
                   return { ...home, lat, lng };
                 }
@@ -160,19 +177,21 @@ export const useSavedHomesData = (clientId?: string) => {
 
           // If geocoding unavailable or failed, return as-is (no 0,0)
           return home;
-        })
+        }),
       );
 
       return enriched.map(mapHomeUniversalToSavedHome);
     },
-    enabled: shouldLoadData,
+    enabled: Boolean(shouldLoadData),
     // Use placeholderData to provide cached data immediately when query becomes enabled
     placeholderData: (previousValue) => {
-      const cached = queryClient.getQueryData(queryKeys.homes.favorites(clientId));
+      const cached = queryClient.getQueryData(
+        queryKeys.homes.favorites(clientId),
+      );
       if (cached && isProcessedSavedHomeList(cached)) return cached;
       if (cached && Array.isArray(cached) && cached.length > 0) {
         return cached.map((home: unknown, index: number) =>
-          mapHomeUniversalToSavedHome(home, index)
+          mapHomeUniversalToSavedHome(home, index),
         );
       }
       return previousValue;
@@ -181,7 +200,9 @@ export const useSavedHomesData = (clientId?: string) => {
       if (!data) return [];
       if (isProcessedSavedHomeList(data)) return data;
       if (Array.isArray(data)) {
-        return data.map((home: unknown, index: number) => mapHomeUniversalToSavedHome(home, index));
+        return data.map((home: unknown, index: number) =>
+          mapHomeUniversalToSavedHome(home, index),
+        );
       }
       return [];
     },
@@ -208,13 +229,14 @@ export const useSavedHomesData = (clientId?: string) => {
     onMutate: async (property: unknown) => {
       // Optimistic update - add the home to cache immediately
       const previousHomes = queryClient.getQueryData<SavedHome[]>(
-        queryKeys.homes.favorites(clientId)
+        queryKeys.homes.favorites(clientId),
       );
 
       // Convert property to SavedHome format for optimistic update
       const propertyData = property as PropertyData;
       const optimisticHome: SavedHome = {
-        home_id: propertyData.id || propertyData.home_id || `temp_${Date.now()}`,
+        home_id:
+          propertyData.id || propertyData.home_id || `temp_${Date.now()}`,
         description: propertyData.address || "",
         address: propertyData.address || "",
         price: propertyData.price || "",
@@ -232,9 +254,11 @@ export const useSavedHomesData = (clientId?: string) => {
         (old: SavedHome[] | undefined) => {
           if (!old) return [optimisticHome];
           // Check if home already exists to avoid duplicates
-          const exists = old.some((home) => home.home_id === optimisticHome.home_id);
+          const exists = old.some(
+            (home) => home.home_id === optimisticHome.home_id,
+          );
           return exists ? old : [...old, optimisticHome];
-        }
+        },
       );
 
       return { previousHomes };
@@ -242,7 +266,10 @@ export const useSavedHomesData = (clientId?: string) => {
     onError: (_err, _variables, context) => {
       // Rollback on error
       if (context?.previousHomes) {
-        queryClient.setQueryData(queryKeys.homes.favorites(clientId), context.previousHomes);
+        queryClient.setQueryData(
+          queryKeys.homes.favorites(clientId),
+          context.previousHomes,
+        );
       }
     },
     onSuccess: () => {
@@ -253,7 +280,12 @@ export const useSavedHomesData = (clientId?: string) => {
 
   // Remove saved home mutation
   const removeSavedHomeMutation = useMutation({
-    mutationFn: async ({ address }: { propertyId: string; address: string }) => {
+    mutationFn: async ({
+      address,
+    }: {
+      propertyId: string;
+      address: string;
+    }) => {
       const response = await userApi.removeFavoriteHome({
         address,
         ...(clientId ? { client_id: clientId } : {}),
@@ -266,21 +298,24 @@ export const useSavedHomesData = (clientId?: string) => {
     onMutate: ({ propertyId }) => {
       // Optimistic update - remove the home from cache
       const previousHomes = queryClient.getQueryData<SavedHome[]>(
-        queryKeys.homes.favorites(clientId)
+        queryKeys.homes.favorites(clientId),
       );
       queryClient.setQueryData(
         queryKeys.homes.favorites(clientId),
         (old: SavedHome[] | undefined) => {
           if (!old) return old;
           return old.filter((home) => home.home_id !== propertyId);
-        }
+        },
       );
       return { previousHomes };
     },
     onError: (_err, _variables, context) => {
       // Rollback on error
       if (context?.previousHomes) {
-        queryClient.setQueryData(queryKeys.homes.favorites(clientId), context.previousHomes);
+        queryClient.setQueryData(
+          queryKeys.homes.favorites(clientId),
+          context.previousHomes,
+        );
       }
     },
     onSettled: () => {
@@ -304,14 +339,20 @@ export const useSavedHomesData = (clientId?: string) => {
     async (property: unknown) => {
       return saveHomeMutation.mutateAsync(property);
     },
-    [saveHomeMutation]
+    [saveHomeMutation],
   );
 
   const removeSavedHome = useCallback(
     async (propertyId: string, propertyAddress?: string) => {
       const homes =
-        queryClient.getQueryData<SavedHome[]>(queryKeys.homes.favorites(clientId)) ?? [];
-      const home = findSavedHomeByIdOrAddress(homes, propertyId, propertyAddress);
+        queryClient.getQueryData<SavedHome[]>(
+          queryKeys.homes.favorites(clientId),
+        ) ?? [];
+      const home = findSavedHomeByIdOrAddress(
+        homes,
+        propertyId,
+        propertyAddress,
+      );
 
       if (!home) {
         const allCachedData = queryClient.getQueriesData({
@@ -322,7 +363,7 @@ export const useSavedHomesData = (clientId?: string) => {
             const found = findSavedHomeByIdOrAddress(
               cachedHomes as SavedHome[],
               propertyId,
-              propertyAddress
+              propertyAddress,
             );
             if (found) {
               return removeSavedHomeMutation.mutateAsync({
@@ -343,25 +384,32 @@ export const useSavedHomesData = (clientId?: string) => {
         address: home.address,
       });
     },
-    [removeSavedHomeMutation, queryClient, clientId]
+    [removeSavedHomeMutation, queryClient, clientId],
   );
 
   const isHomeSaved = useCallback(
     (propertyId: string, propertyAddress?: string) => {
       const homes =
-        queryClient.getQueryData<SavedHome[]>(queryKeys.homes.favorites(clientId)) ?? [];
-      return findSavedHomeByIdOrAddress(homes, propertyId, propertyAddress) !== undefined;
+        queryClient.getQueryData<SavedHome[]>(
+          queryKeys.homes.favorites(clientId),
+        ) ?? [];
+      return (
+        findSavedHomeByIdOrAddress(homes, propertyId, propertyAddress) !==
+        undefined
+      );
     },
-    [queryClient, clientId]
+    [queryClient, clientId],
   );
 
   const getSavedHome = useCallback(
     (propertyId: string) => {
       const homes =
-        queryClient.getQueryData<SavedHome[]>(queryKeys.homes.favorites(clientId)) ?? [];
+        queryClient.getQueryData<SavedHome[]>(
+          queryKeys.homes.favorites(clientId),
+        ) ?? [];
       return homes.find((home) => home.home_id === propertyId);
     },
-    [queryClient, clientId]
+    [queryClient, clientId],
   );
 
   return {

@@ -5,7 +5,7 @@ This folder is the **only place** in the codebase with shared React / React Nati
 ## Rule
 
 - **Primitives** = one base component per platform per type. Each file wraps exactly one platform element (e.g. `<button>`, `<Text>`, `<img>`, `<View>`). No composition of other primitives.
-- **Components** = everything that extends primitives (imports from `primitives/` and composes them). If a file does **not** contain a React-specific element (e.g. it only wraps another component), it does **not** belong in primitives — it lives in `components/`.
+- **Components** = everything that extends primitives (imports from `primitives/` and composes them). If a file does **not** contain a React-specific element (e.g. it only wraps another component), it does **not** belong in primitives - it lives in `components/`.
 
 ## Base primitives (stay in `primitives/`)
 

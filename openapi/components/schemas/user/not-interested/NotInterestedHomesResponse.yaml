@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      notInterested:
+        type: array
+        items:
+          $ref: './NotInterestedHomeItem.yaml'
+        nullable: true

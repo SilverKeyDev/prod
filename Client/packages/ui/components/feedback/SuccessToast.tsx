@@ -11,7 +11,11 @@ type SuccessToastProps = {
   onClose: () => void;
   duration?: number;
 };
-export default function SuccessToast({ message, onClose, duration = 3000 }: SuccessToastProps) {
+export default function SuccessToast({
+  message,
+  onClose,
+  duration = 3000,
+}: SuccessToastProps) {
   const { t } = useLocalization();
   const [visible, setVisible] = useState(true);
   useEffect(() => {
@@ -23,8 +27,8 @@ export default function SuccessToast({ message, onClose, duration = 3000 }: Succ
   }, [duration, onClose]);
   if (!visible) return null;
   return (
-    <Box className="fixed bottom-1.5 right-1.5 z-50 sm:bottom-2 sm:right-2">
-      <Box className="max-w-xs rounded-lg border border-green-200 bg-green-50 p-2 sm:max-w-md">
+    <Box className="z-toast fixed bottom-1.5 right-1.5 sm:bottom-2 sm:right-2">
+      <Box className="border-border max-w-xs rounded-lg border bg-green-50 p-2 sm:max-w-md">
         <Box className="flex items-center">
           <Box className="min-w-0 flex-1" />
           {message ? (

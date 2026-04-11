@@ -18,7 +18,7 @@ type BudgetRangeSliderProps = {
   className?: string;
   disabled?: boolean;
   minGap?: number;
-  /** When false, hides the min—max value text below the track. Default true. */
+  /** When false, hides the min-max value text below the track. Default true. */
   showTextHeader?: boolean;
   /** Number of decimal places for computed values (e.g. 2 for lot size in acres). Omit for integers. */
   valueDecimals?: number;
@@ -30,9 +30,6 @@ type BudgetRangeSliderProps = {
 const SLIDER_HIT_HEIGHT = spacing(6); /* 1.5rem = 24px */
 const THUMB_CLASS_BASE =
   "sk-range-slider-thumb pointer-events-none absolute h-full w-full touch-manipulation appearance-none rounded-lg bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto";
-/** Must match `.sk-range-slider-thumb` in components.css (1.25rem thumb, -0.625rem centering). */
-const THUMB_HALF_REM = "0.625rem";
-const THUMB_DIAMETER_REM = "1.25rem";
 
 export default function BudgetRangeSlider({
   tickValues,
@@ -57,10 +54,19 @@ export default function BudgetRangeSlider({
     return `${formatPrefix}${formatNumber(val)}`;
   };
   const formattedValue = formatValue ?? defaultFormatValue;
-  const { toSliderPercent, fromSliderPercent } = useSliderTickMapping(tickValues, valueDecimals);
+  const { toSliderPercent, fromSliderPercent } = useSliderTickMapping(
+    tickValues,
+    valueDecimals,
+  );
 
-  const minSliderValue = useMemo(() => toSliderPercent(minValue), [minValue, toSliderPercent]);
-  const maxSliderValue = useMemo(() => toSliderPercent(maxValue), [maxValue, toSliderPercent]);
+  const minSliderValue = useMemo(
+    () => toSliderPercent(minValue),
+    [minValue, toSliderPercent],
+  );
+  const maxSliderValue = useMemo(
+    () => toSliderPercent(maxValue),
+    [maxValue, toSliderPercent],
+  );
 
   const handleMinSliderChange = (e: { target: { value: string } }) => {
     const raw = parseFloat(e.target.value);
@@ -86,11 +92,12 @@ export default function BudgetRangeSlider({
 
   const isBudgetVariant = variant === "budget";
   const trackHeight = isBudgetVariant ? spacing(2.5) : spacing(2);
-  const fillClassName = isBudgetVariant ? "bg-green-600" : "bg-accent";
   const valueBlock = (
     <Box className="flex flex-row items-center justify-center gap-2">
-      <Text className="text-text-primary text-sm font-medium">{formattedValue(minValue)}</Text>
-      <Text className="text-text-disabled text-sm">—</Text>
+      <Text className="text-text-primary text-sm font-medium">
+        {formattedValue(minValue)}
+      </Text>
+      <Text className="text-text-disabled text-sm">, </Text>
       <Text className="text-text-primary text-sm font-medium">
         {maxValue >= tickValues[tickValues.length - 1]
           ? `${formattedValue(maxValue)}+`
@@ -99,37 +106,32 @@ export default function BudgetRangeSlider({
     </Box>
   );
 
-  const thumbClass = `${THUMB_CLASS_BASE} ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`;
-
-  const fillLeft = `calc(${THUMB_HALF_REM} + ${minSliderValue}% - (${minSliderValue} * ${THUMB_DIAMETER_REM} / 100))`;
-  const fillWidth = `calc(${maxSliderValue - minSliderValue}% - (${maxSliderValue - minSliderValue} * ${THUMB_DIAMETER_REM} / 100))`;
+  const thumbClass = `${THUMB_CLASS_BASE} ${
+    disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+  }`;
 
   return (
     <Box className={`flex w-full flex-col items-center ${className}`}>
       <Box className="mx-auto w-full max-w-xl px-2">
         <Box className="flex flex-col items-center gap-2">
           {showTextHeader ? valueBlock : null}
-          <Box className="relative w-full justify-center" style={{ height: SLIDER_HIT_HEIGHT }}>
+          <Box
+            className="relative w-full justify-center"
+            style={{ height: SLIDER_HIT_HEIGHT }}
+          >
             <Box
-              className="bg-border pointer-events-none absolute left-0 right-0 w-full rounded-lg"
+              className={
+                isBudgetVariant
+                  ? "sk-range-track-dual sk-range-track-dual--budget"
+                  : "sk-range-track-dual sk-range-track-dual--default"
+              }
               style={{
                 height: trackHeight,
-                top: "50%",
-                transform: "translateY(-50%)",
+                ["--sk-range-min" as string]: `${minSliderValue}%`,
+                ["--sk-range-max" as string]: `${maxSliderValue}%`,
               }}
             />
-            <Box
-              className={`pointer-events-none absolute left-0 overflow-hidden rounded-lg ${fillClassName}`}
-              style={{
-                left: fillLeft,
-                width: fillWidth,
-                height: trackHeight,
-                top: "50%",
-                transform: "translateY(-50%)",
-                borderRadius: 4,
-              }}
-            />
-            {/* Wrappers use pointer-events-none so thumbs still receive events; activeThumb raises that slider so overlapping thumbs stay usable. Fill uses same rem geometry as sk-range-slider-thumb. */}
+            {/* Wrappers use pointer-events-none so thumbs still receive events; activeThumb raises that slider so overlapping thumbs stay usable. */}
             <Box
               className="pointer-events-none absolute inset-x-0 top-0"
               style={{

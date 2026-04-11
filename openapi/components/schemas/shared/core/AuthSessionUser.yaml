@@ -1,0 +1,43 @@
+type: object
+description: >
+  User payload returned on successful auth flows (login, refresh, verify) from create_auth_response.
+  This is not a full UserProfile; use GET /api/v1/user/profile for the complete row shape.
+required:
+  - auth_user_kind
+  - email
+  - user_sub
+  - name
+  - is_agent
+  - auth_method
+properties:
+  auth_user_kind:
+    type: string
+    const: session
+    description: Discriminator for auth success payloads; always `session` for create_auth_response users.
+  email:
+    type: string
+    format: email
+  user_sub:
+    type: string
+  name:
+    type: string
+    minLength: 1
+    maxLength: 200
+  id:
+    type: string
+    nullable: true
+    description: Application user id when the row exists; null if not yet linked.
+  phone:
+    type: string
+    nullable: true
+  is_agent:
+    type: boolean
+  auth_method:
+    type: string
+    enum: [unknown, cognito, google, both]
+    description: |
+      How the session authenticated relative to linked identities on the user row:
+      - `unknown`: Could not classify (legacy or transitional row)
+      - `cognito`: Cognito username/password or hosted UI session
+      - `google`: Google OAuth identity supplied the tokens
+      - `both`: User has linked Cognito and Google identities

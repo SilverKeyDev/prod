@@ -39,12 +39,13 @@ def create_auth_response(
     response_data = {
         "success": True,
         "user": {
+            "auth_user_kind": "session",
             "email": email,
             "user_sub": user_sub,
             "name": user.name if user else "Unknown User",
             "id": str(user.id) if user else None,
             "phone": user.phone if user else None,
-            "is_agent": user.is_agent if user else False,
+            "is_agent": bool(user.is_agent) if user else False,
             "auth_method": auth_method,
         },
     }

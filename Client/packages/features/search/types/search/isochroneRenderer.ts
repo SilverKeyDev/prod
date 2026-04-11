@@ -5,6 +5,11 @@
 import { color } from "packages/design-tokens";
 import { log, LOG_CATEGORIES } from "packages/logger";
 
+import {
+  searchMapPolygonIndividualZIndex,
+  searchMapPolygonUnionZIndex,
+} from "./mapOverlayLayerOrder";
+
 export type IsochroneRenderOptions = {
   map: google.maps.Map;
   polygonRef: React.MutableRefObject<google.maps.Polygon | null>;
@@ -12,10 +17,31 @@ export type IsochroneRenderOptions = {
   focusOnCurrentProperty: () => void;
 }; // Updated interface - force refresh
 
+/** Remove commute isochrone layers from the map (main + individual outlines). */
+export const clearIsochroneOverlays = (
+  options: IsochroneRenderOptions,
+): void => {
+  const { map, polygonRef, individualPolygonsRef } = options;
+  if (!map) return;
+  if (polygonRef.current) {
+    polygonRef.current.setMap(null);
+    polygonRef.current = null;
+  }
+  if (individualPolygonsRef.current?.length) {
+    individualPolygonsRef.current.forEach((p: google.maps.Polygon) =>
+      p.setMap(null),
+    );
+    individualPolygonsRef.current = [];
+  }
+};
+
 /**
  * Render isochrone polygon on the map
  */
-export const renderIsochronePolygon = (isochroneData: unknown, options: IsochroneRenderOptions) => {
+export const renderIsochronePolygon = (
+  isochroneData: unknown,
+  options: IsochroneRenderOptions,
+) => {
   const { map, polygonRef, individualPolygonsRef } = options;
 
   if (!map) {
@@ -33,7 +59,7 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
   ) {
     log.warn(
       LOG_CATEGORIES.MAP_RENDERING,
-      "No isochrone geometry data available for map rendering"
+      "No isochrone geometry data available for map rendering",
     );
     log.warn(LOG_CATEGORIES.MAP_RENDERING, "Isochrone data structure", {
       data: isochroneData,
@@ -48,7 +74,9 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
 
   // Clear existing individual polygons
   if (individualPolygonsRef.current) {
-    individualPolygonsRef.current.forEach((polygon: google.maps.Polygon) => polygon.setMap(null));
+    individualPolygonsRef.current.forEach((polygon: google.maps.Polygon) =>
+      polygon.setMap(null),
+    );
     individualPolygonsRef.current = [];
   }
 
@@ -58,7 +86,8 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
       isochroneDataTyped.individual_isochrones &&
       Array.isArray(isochroneDataTyped.individual_isochrones)
     ) {
-      const individualIsochrones = isochroneDataTyped.individual_isochrones as unknown[];
+      const individualIsochrones =
+        isochroneDataTyped.individual_isochrones as unknown[];
       individualIsochrones.forEach((individualData: unknown) => {
         const data = individualData as Record<string, unknown>;
         const geometry = data.isochrone as Record<string, unknown>;
@@ -93,10 +122,12 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
             fillColor: "transparent",
             fillOpacity: 0,
             clickable: false,
+            zIndex: searchMapPolygonIndividualZIndex(),
           });
 
           individualPolygon.setMap(map);
-          if (!individualPolygonsRef.current) individualPolygonsRef.current = [];
+          if (!individualPolygonsRef.current)
+            individualPolygonsRef.current = [];
           individualPolygonsRef.current.push(individualPolygon);
         }
       });
@@ -106,7 +137,9 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
     const isochrone = isochroneDataTyped.isochrone as Record<string, unknown>;
     const geometry = isochrone.geometry as Record<string, unknown>;
     if (!geometry || typeof geometry.type !== "string") {
-      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Invalid geometry object", { geometry });
+      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Invalid geometry object", {
+        geometry,
+      });
       return;
     }
 
@@ -143,6 +176,7 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
       fillColor: color("olive.DEFAULT"),
       fillOpacity: 0.15,
       clickable: false,
+      zIndex: searchMapPolygonUnionZIndex(),
     });
 
     polygon.setMap(map);
@@ -151,7 +185,11 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
     // Do not fit bounds or animate - map center/zoom is already set in useMapMarkers
     // Removing fitBounds to prevent animation on initial load
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.MAP_RENDERING, "Error rendering isochrone polygon", error);
+    log.error(
+      LOG_CATEGORIES.MAP_RENDERING,
+      "Error rendering isochrone polygon",
+      error,
+    );
     log.error(LOG_CATEGORIES.MAP_RENDERING, "Error details", {
       message: (error as Error).message,
       stack: (error as Error).stack,

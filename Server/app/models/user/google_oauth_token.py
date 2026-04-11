@@ -1,5 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -9,32 +11,36 @@ class GoogleOAuthToken(db.Model):
 
     __tablename__ = "user_google_tokens"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(
-        db.String(36), db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(
+        db.String(36), db.ForeignKey("users.id", ondelete="CASCADE"), unique=True
     )
 
     # Token data
-    access_token = db.Column(db.Text, nullable=False)
-    refresh_token = db.Column(db.Text, nullable=True)  # May be None if not provided
-    token_uri = db.Column(db.String(255), nullable=False)
-    client_id = db.Column(db.String(255), nullable=False)
+    access_token: Mapped[str] = mapped_column(db.Text)
+    refresh_token: Mapped[str | None] = mapped_column(db.Text)  # May be None if not provided
+    token_uri: Mapped[str] = mapped_column(db.String(255))
+    client_id: Mapped[str] = mapped_column(db.String(255))
     # client_secret removed - always use config value (same for all users)
-    scopes = db.Column(db.Text, nullable=False)  # Space-separated list of scopes
-    expiry = db.Column(db.DateTime, nullable=True)  # Token expiration time
+    scopes: Mapped[str] = mapped_column(db.Text)  # Space-separated list of scopes
+    expiry: Mapped[datetime | None] = mapped_column(db.DateTime)  # Token expiration time
 
     # Permission flags (boolean fields for each scope)
-    has_userinfo_email = db.Column(db.Boolean, default=False, nullable=False)
-    has_userinfo_profile = db.Column(db.Boolean, default=False, nullable=False)
-    has_openid = db.Column(db.Boolean, default=False, nullable=False)
-    has_calendar_freebusy = db.Column(db.Boolean, default=False, nullable=False)
-    has_calendar_app_created = db.Column(db.Boolean, default=False, nullable=False)
-    has_calendar_calendarlist_readonly = db.Column(db.Boolean, default=False, nullable=False)
-    has_calendar_events_freebusy = db.Column(db.Boolean, default=False, nullable=False)
+    has_userinfo_email: Mapped[bool] = mapped_column(default=False)
+    has_userinfo_profile: Mapped[bool] = mapped_column(default=False)
+    has_openid: Mapped[bool] = mapped_column(default=False)
+    has_calendar_freebusy: Mapped[bool] = mapped_column(default=False)
+    has_calendar_app_created: Mapped[bool] = mapped_column(default=False)
+    has_calendar_calendarlist_readonly: Mapped[bool] = mapped_column(default=False)
+    has_calendar_events_freebusy: Mapped[bool] = mapped_column(default=False)
 
     # Metadata
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationship
     user = db.relationship(

@@ -14,6 +14,10 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from ...config.constants._constants_public_urls import (
+    API_PATH_GOOGLE_AUTH_CALLBACK,
+    url_for_public_api,
+)
 from ...utils.security.app_logging import get_logger
 
 logger = get_logger()
@@ -29,14 +33,9 @@ class GoogleOAuthService:
         self.client_id = Config.GOOGLE_CLIENT_ID
         self.client_secret = Config.GOOGLE_CALENDAR_SECRET  # Same secret as calendar
 
-        # Determine redirect URI based on environment
+        # Backend URL for OAuth callback (not frontend); must match Google Cloud Console
         flask_env = os.getenv("FLASK_ENV", "development")
-        if flask_env == "production":
-            self.redirect_uri = "https://usesilverkey.com/api/v1/auth/google/callback"
-        else:
-            # Backend URL for OAuth callback (not frontend)
-            # This must match what's configured in Google Cloud Console
-            self.redirect_uri = "http://localhost:5000/api/v1/auth/google/callback"
+        self.redirect_uri = url_for_public_api(flask_env, API_PATH_GOOGLE_AUTH_CALLBACK)
 
         # OAuth scopes for user profile and email
         self.scopes = [

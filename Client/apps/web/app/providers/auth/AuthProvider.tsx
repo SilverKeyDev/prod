@@ -8,11 +8,16 @@ import { type ReactNode, useEffect, useRef } from "react";
 
 import { useLocation } from "react-router-dom";
 
-import { secureLogger } from "packages/services/security/secureLogger";
 import { useAuthStore } from "packages/store";
-import { dateNow } from "packages/utils/date";
+import { Box } from "packages/ui/components/primitives";
 
 import { runAuthBootstrap } from "./authBootstrap";
+
+/**
+ * One bootstrap promise per full page load (survives React StrictMode remounts).
+ * Kept after settle so a second dev StrictMode effect does not start another verifySession.
+ */
+let authBootstrapOnce: Promise<void> | null = null;
 
 type AuthProviderProps = {
   children: ReactNode;
@@ -32,26 +37,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   authStatusRef.current = storeAuthStatus;
 
   useEffect(() => {
-    const bootstrapKey = "auth_bootstrap_started";
-    if (sessionStorage.getItem(bootstrapKey)) {
-      secureLogger.info(
-        "🔍 FRONTEND_AUTH_BOOTSTRAP_SKIPPED",
-        "Bootstrap already started, skipping duplicate call",
-        {
-          currentUrl: window.location.href,
-          timestamp: dateNow().toISOString(),
-        }
-      );
-      return;
+    if (!authBootstrapOnce) {
+      authBootstrapOnce = runAuthBootstrap(location.pathname, {
+        setStoreAuthStatus,
+        setStoreAuthReady,
+        setStoreUser,
+        setIsAuthenticated,
+        getAuthStatusRef: () => authStatusRef.current,
+      });
     }
-    sessionStorage.setItem(bootstrapKey, "true");
-    void runAuthBootstrap(location.pathname, {
-      setStoreAuthStatus,
-      setStoreAuthReady,
-      setStoreUser,
-      setIsAuthenticated,
-      getAuthStatusRef: () => authStatusRef.current,
-    });
+    void authBootstrapOnce;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount - no need to re-run on navigation
 
@@ -84,7 +79,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Gate rendering on bootstrap completion
   // Only render children when auth is ready (not checking)
   if (!authReady || storeAuthStatus === "checking") {
-    return null;
+    return (
+      <Box className="flex min-h-screen items-center justify-center bg-background-base">
+        <Box className="shimmer h-8 w-32 rounded-lg" />
+      </Box>
+    );
   }
 
   return <>{children}</>;

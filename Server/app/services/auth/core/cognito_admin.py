@@ -6,6 +6,8 @@ import string
 
 from botocore.exceptions import ClientError
 
+from ..utils.code_delivery import normalize_cognito_code_delivery
+
 logger = logging.getLogger(__name__)
 
 
@@ -238,7 +240,10 @@ def admin_reset_user_password(client, user_pool_id: str, username):
             "Admin reset user password in Cognito",
             extra={"username": username[:3] + "***" + username[-3:] if username else "missing"},
         )
-        return {"success": True, "code_delivery": response.get("CodeDeliveryDetails")}
+        return {
+            "success": True,
+            "code_delivery": normalize_cognito_code_delivery(response.get("CodeDeliveryDetails")),
+        }
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]

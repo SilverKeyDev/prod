@@ -4,8 +4,8 @@ import React from "react";
 import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
 
-import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
+import { INPUT_AUTOFILL_CLASS_NAME } from "packages/ui/styles/variants/inputVariants";
 
 type FormFieldProps = {
   label?: string;
@@ -20,21 +20,16 @@ const FormField = ({
   label,
   children,
   error,
-  required = false,
   className = "",
   labelClassName = "",
 }: FormFieldProps) => {
-  const { t } = useLocalization();
   return (
     <Box className={`mb-4 ${className}`}>
       {label && (
-        <Label className={`text-text-primary mb-2 block font-medium ${labelClassName}`}>
+        <Label
+          className={`text-text-primary mb-2 block font-medium ${labelClassName}`}
+        >
           {label}
-          {required && (
-            <BodyText as="span" className="text-destructive ml-1" aria-hidden="true">
-              {t("form.required_indicator")}
-            </BodyText>
-          )}
         </Label>
       )}
       {children}
@@ -55,10 +50,16 @@ type InputProps = {
 
 export function Input({ error, className = "", ...props }: InputProps) {
   const baseClasses =
-    "w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent-muted focus:border-primary transition-colors";
-  const errorClasses = error ? "border-destructive" : "border-border";
+    "w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:border-input-variant-focus-border transition-colors " +
+    INPUT_AUTOFILL_CLASS_NAME;
+  const errorClasses = error ? "border-neutral-600" : "border-border";
 
-  return <input className={`${baseClasses} ${errorClasses} ${className}`} {...props} />;
+  return (
+    <input
+      className={`${baseClasses} ${errorClasses} ${className}`}
+      {...props}
+    />
+  );
 }
 
 type TextareaProps = {
@@ -67,8 +68,14 @@ type TextareaProps = {
 
 export function Textarea({ error, className = "", ...props }: TextareaProps) {
   const baseClasses =
-    "w-full border rounded-lg px-3 py-2 min-h-20 focus:outline-none focus:ring-2 focus:ring-accent-muted focus:border-primary transition-colors resize-vertical";
-  const errorClasses = error ? "border-destructive" : "border-border";
+    "w-full border rounded-lg px-3 py-2 min-h-20 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:border-input-variant-focus-border transition-colors resize-vertical " +
+    INPUT_AUTOFILL_CLASS_NAME;
+  const errorClasses = error ? "border-neutral-600" : "border-border";
 
-  return <textarea className={`${baseClasses} ${errorClasses} ${className}`} {...props} />;
+  return (
+    <textarea
+      className={`${baseClasses} ${errorClasses} ${className}`}
+      {...props}
+    />
+  );
 }

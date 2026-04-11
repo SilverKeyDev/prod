@@ -1,7 +1,7 @@
 /**
  * Single source of truth for "which dashboard area am I on?" using React Router.
  * Use this instead of pathMatches(pathname) in layout components so the router
- * drives content and layout—no stale pathname or prefix bugs.
+ * drives content and layout, no stale pathname or prefix bugs.
  *
  * Route patterns must match DynamicRoutes (packages/navigation + RouteConfig).
  * When LocationOverrideContext is set (router URL sync workaround), we derive
@@ -43,7 +43,9 @@ export type DashboardRouteResult = {
  * Returns the current dashboard route and layout flags from React Router.
  * Use in DashboardLayout, DashboardContent, DashboardHeader for consistent behavior.
  */
-export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResult {
+export function useDashboardRoute(
+  defaultWidthPercent = 85,
+): DashboardRouteResult {
   const routerLocation = useLocation();
   const locationOverride = useLocationOverride();
   const location = locationOverride ?? routerLocation;

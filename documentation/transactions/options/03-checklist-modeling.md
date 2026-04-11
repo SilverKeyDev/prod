@@ -132,35 +132,35 @@ This keeps the system flexible, maintainable, and aligned with the rest of the t
 
 ---
 
-### Agent-scoped transaction platform integrations (SkySlope / Dotloop)
+### Agent-scoped brokerage platform integrations (e.g. Dotloop)
 
-When we integrate with brokerage transaction platforms like **SkySlope** or **Dotloop**, our app acts purely as an **agent-scoped integration**, not as a replacement transaction system:
+If we integrate **third-party brokerage transaction platforms** (e.g. **Dotloop**), our app acts purely as an **agent-scoped integration**, not as a replacement transaction system:
 
 - **Who connects what**
-  - A **licensed agent** logs into SilverKey and explicitly connects their SkySlope/Dotloop account.
+  - A **licensed agent** logs into SilverKey and explicitly connects their vendor account.
   - We never connect at a whole-brokerage level; all vendor API calls are scoped to the authenticated agent.
 
 - **What we pull**
   - For a connected agent, we may pull:
-    - Their **checklists** and **forms/packages** from SkySlope/Dotloop.
+    - Their **checklists** and **forms/packages** from that vendor.
     - Status and completion information for those items where the vendor exposes it.
   - Data is always associated with:
     - `transaction_id` in our system.
-    - `external_integration_key` (e.g. `skyslope`, `dotloop`).
+    - `external_integration_key` (e.g. `dotloop`).
     - The specific **agent user** who authorized the integration.
 
 - **How it surfaces to clients**
-  - Buyers/clients never authenticate directly with SkySlope/Dotloop inside our product.
+  - Buyers/clients never authenticate directly with the brokerage platform inside our product.
   - Instead, SilverKey:
     - Uses the agent’s integration to **display the agent’s official checklists and forms** alongside our own educational checklist items.
     - May mark certain items as **integration-backed** (see `mechanics/03-checklist-generation.md`) where completion comes from the external platform.
 
 - **Scope and intent**
   - This model keeps:
-    - Compliance and “official” brokerage records in SkySlope/Dotloop.
+    - Compliance and “official” brokerage records in the vendor system.
     - Client-facing education, progress views, and reminders in SilverKey.
   - Our transaction data model must therefore:
-    - Treat SkySlope/Dotloop artifacts as **per-agent, per-transaction attachments**, not global templates.
+    - Treat vendor artifacts as **per-agent, per-transaction attachments**, not global templates.
     - Store stable references (`external_id`, `integration_key`) so we can safely sync and display only the **agent’s own** checklists and forms to their clients.
 
-
+**Note:** **Documents and e-sign** for SilverKey agreements are **DocuSign + S3** (see `integrations/09-documents-docusign-and-s3.md`), not a generic brokerage-platform mirror.

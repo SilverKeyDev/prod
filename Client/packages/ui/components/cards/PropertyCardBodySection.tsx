@@ -7,7 +7,11 @@ import { Box } from "packages/ui/components/primitives";
 
 import type { SearchResult } from "@/features/search/types";
 
-import { CardAddressDisplay, CardMatchScore, CardPropertyDetails } from "./base/index.web";
+import {
+  CardAddressDisplay,
+  CardMatchScore,
+  CardPropertyDetails,
+} from "./base/index.web";
 
 function formatPriceDisplay(price: string): string {
   return price.startsWith("$") ? price : `$${price}`;
@@ -28,7 +32,9 @@ export function PropertyCardHideImageHeader({
 }) {
   return (
     <Box className="relative flex w-full items-center justify-center">
-      <Box className="text-primary text-lg font-bold sm:text-xl">{formatPriceDisplay(price)}</Box>
+      <Box className="text-primary text-lg font-bold sm:text-xl">
+        {formatPriceDisplay(price)}
+      </Box>
       {(topContent || (showNotInterested && property)) && (
         <Box className="absolute right-0 flex-shrink-0">
           {showNotInterested && property && (
@@ -76,21 +82,22 @@ export function PropertyCardPriceRow({
         </Box>
       )}
       {pricePosition === "below-address" && (
-        <Box className="flex w-full items-center gap-2">
+        <Box className="flex w-full min-w-0 flex-row flex-nowrap items-center justify-center gap-2 sm:gap-3">
           {showScore && score !== undefined ? (
-            <Box className="flex flex-1 items-center gap-2">
-              <Box className="text-primary text-lg font-bold sm:text-xl">
+            <>
+              <Box className="text-primary min-w-0 shrink truncate text-lg font-bold leading-none sm:text-xl">
                 {formatPriceDisplay(price)}
               </Box>
-              <Box className="mr-3 sm:mr-4">
-                <CardMatchScore score={score} size="xs" useColorStyling={true} />
-              </Box>
-            </Box>
+              <CardMatchScore
+                score={score}
+                size="xs"
+                useColorStyling={true}
+                className="shrink-0"
+              />
+            </>
           ) : (
-            <Box className="flex flex-1 justify-center">
-              <Box className="text-primary text-lg font-bold sm:text-xl">
-                {formatPriceDisplay(price)}
-              </Box>
+            <Box className="text-primary text-lg font-bold sm:text-xl">
+              {formatPriceDisplay(price)}
             </Box>
           )}
         </Box>

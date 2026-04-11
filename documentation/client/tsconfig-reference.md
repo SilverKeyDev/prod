@@ -12,7 +12,7 @@ Reference for every **tsconfig** in the Client monorepo: roles, how they extend 
 | **tsconfig.base.json** | Shared base for **web + packages**: path aliases (`@/*` → apps/web, `packages/*`, etc.), target ES2020, lib DOM. | — |
 | **apps/web/tsconfig.json** | Web app entry for `pnpm typecheck` and Vite. | Root `tsconfig.base.json`; **references** `tsconfig.app.json` and `tsconfig.node.json` |
 | **packages/config/tsconfig/tsconfig.app.json** | Canonical strict config for **web app + packages**. Used by ESLint type-aware lint and madge (`lint:cycles`). | Root `tsconfig.base.json` |
-| **packages/config/tsconfig/tsconfig.node.json** | Build config for **vite.config.ts** only (composite). | — |
+| **packages/config/tsconfig/tsconfig.node.json** | Build config for **vite.config.js** only (composite). | — |
 | **apps/mobile/tsconfig.json** | Mobile app TypeScript. Isolated from web (different JSX, target, module resolution). | **Local** `./tsconfig.base.json` |
 | **apps/mobile/tsconfig.base.json** | Expo/React Native–style base: ESNext, `react-native` JSX, `bundler` resolution. | — |
 | **packages/api/tsconfig.json** | Typecheck for the API client package (`packages/api`). | Root `tsconfig.base.json` |
@@ -24,7 +24,7 @@ Reference for every **tsconfig** in the Client monorepo: roles, how they extend 
 - **Root `tsconfig.json`** includes only **apps/web** and **packages**. It **excludes** `apps/mobile` so the IDE does not apply web path aliases and web-only settings to mobile code when the workspace root is `Client`.
 - **apps/web/tsconfig.json** extends the root base and adds Vite-specific options (`types: ["vite/client"]`, module settings). It uses **project references** to:
   - **tsconfig.app.json** — the full app + packages graph (used by madge and ESLint).
-  - **tsconfig.node.json** — only `vite.config.ts` (Node environment).
+  - **tsconfig.node.json** — only `vite.config.js` and `vite.config.resolve.js` (Node environment).
 - **Typecheck script:** `pnpm typecheck` runs `tsc -p apps/web/tsconfig.json`, so the default typecheck is web + packages only.
 
 ---
@@ -42,7 +42,7 @@ Reference for every **tsconfig** in the Client monorepo: roles, how they extend 
 - **packages/config/tsconfig/tsconfig.app.json** — Strict options (strict, noImplicitAny, noUncheckedIndexedAccess, etc.), `baseUrl: "../../.."`, `include` for `apps/web` and `packages`. This is the single “app + packages” config used by:
   - **madge** (`pnpm lint:cycles`) for circular dependency checks.
   - **ESLint** type-aware rules for files in that graph.
-- **packages/config/tsconfig/tsconfig.node.json** — Composite config whose `include` is only `apps/web/vite.config.ts`. Keeps the Vite config in the reference graph with Node-friendly settings.
+- **packages/config/tsconfig/tsconfig.node.json** — Composite config whose `include` is only `apps/web/vite.config.js` and `vite.config.resolve.js`. Keeps the Vite config in the reference graph with Node-friendly settings.
 
 ---
 
@@ -62,7 +62,7 @@ Client/
 │
 ├── packages/config/tsconfig/
 │   ├── tsconfig.app.json      → extends root base; full app + packages; used by madge & ESLint
-│   └── tsconfig.node.json     → vite.config.ts only (composite)
+│   └── tsconfig.node.json     → vite.config.js + vite.config.resolve.js only (composite)
 │
 └── packages/api/
     └── tsconfig.json          → extends root base; include packages/api
@@ -82,6 +82,6 @@ Client/
 
 ## 7. References
 
-- **Path aliases:** `Client/tsconfig.base.json` and `Client/apps/web/vite.config.ts` (resolve.alias) must stay in sync for web builds and types.
+- **Path aliases:** `Client/tsconfig.base.json` and `Client/apps/web/vite.config.js` (resolve.alias) must stay in sync for web builds and types.
 - **CI:** `.cursor/rules/shared/ci-gates.mdc` — typecheck and lint:cycles are required; they use `apps/web/tsconfig.json` and `tsconfig.app.json`.
 - **High-level config overview:** [config-files-reference.md](./config-files-reference.md).

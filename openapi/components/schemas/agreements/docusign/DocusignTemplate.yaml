@@ -1,0 +1,30 @@
+type: object
+required:
+  - id
+  - template_id
+  - name
+  - is_active
+  - last_synced_at
+  - created_at
+  - updated_at
+properties:
+  id:
+    type: string
+  template_id:
+    type: string
+  name:
+    type: string
+  description:
+    type: string
+    nullable: true
+  agreement_type:
+    $ref: '../agreements/AgreementType.yaml'
+    nullable: true
+  is_active:
+    type: boolean
+  last_synced_at:
+    type: string
+  created_at:
+    type: string
+  updated_at:
+    type: string

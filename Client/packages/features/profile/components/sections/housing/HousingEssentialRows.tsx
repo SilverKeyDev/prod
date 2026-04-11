@@ -41,9 +41,12 @@ export function HousingEssentialRows({
             content: isEditMode ? (
               <BudgetRangeSlider
                 tickValues={BEDROOMS_TICK_VALUES}
-                minValue={formData.preferred_bedrooms_min ?? BEDROOMS_TICK_VALUES[0]}
+                minValue={
+                  formData.preferred_bedrooms_min ?? BEDROOMS_TICK_VALUES[0]
+                }
                 maxValue={
-                  formData.preferred_bedrooms_max ?? BEDROOMS_TICK_VALUES[BEDROOMS_TICK_VALUES.length - 1]
+                  formData.preferred_bedrooms_max ??
+                  BEDROOMS_TICK_VALUES[BEDROOMS_TICK_VALUES.length - 1]
                 }
                 onChange={(minVal, maxVal) => {
                   updateFormData("preferred_bedrooms_min", minVal);
@@ -55,13 +58,21 @@ export function HousingEssentialRows({
               />
             ) : (
               <Box
-                className={`mobile-input bg-background-base ${profileRangeValueClassName(formData.preferred_bedrooms_min, formData.preferred_bedrooms_max)}`}
+                className={`mobile-input bg-background-base ${profileRangeValueClassName(
+                  formData.preferred_bedrooms_min,
+                  formData.preferred_bedrooms_max,
+                )}`}
               >
-                {formData.preferred_bedrooms_min != null || formData.preferred_bedrooms_max != null
-                  ? `${formData.preferred_bedrooms_min ?? BEDROOMS_TICK_VALUES[0]} – ${
-                      formData.preferred_bedrooms_max === BEDROOMS_TICK_VALUES[BEDROOMS_TICK_VALUES.length - 1]
+                {formData.preferred_bedrooms_min != null ||
+                formData.preferred_bedrooms_max != null
+                  ? `${
+                      formData.preferred_bedrooms_min ?? BEDROOMS_TICK_VALUES[0]
+                    } – ${
+                      formData.preferred_bedrooms_max ===
+                      BEDROOMS_TICK_VALUES[BEDROOMS_TICK_VALUES.length - 1]
                         ? "8+"
-                        : formData.preferred_bedrooms_max ?? BEDROOMS_TICK_VALUES[BEDROOMS_TICK_VALUES.length - 1]
+                        : formData.preferred_bedrooms_max ??
+                          BEDROOMS_TICK_VALUES[BEDROOMS_TICK_VALUES.length - 1]
                     } beds`
                   : PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
@@ -72,9 +83,12 @@ export function HousingEssentialRows({
             content: isEditMode ? (
               <BudgetRangeSlider
                 tickValues={BATHROOMS_TICK_VALUES}
-                minValue={formData.preferred_bathrooms_min ?? BATHROOMS_TICK_VALUES[0]}
+                minValue={
+                  formData.preferred_bathrooms_min ?? BATHROOMS_TICK_VALUES[0]
+                }
                 maxValue={
-                  formData.preferred_bathrooms_max ?? BATHROOMS_TICK_VALUES[BATHROOMS_TICK_VALUES.length - 1]
+                  formData.preferred_bathrooms_max ??
+                  BATHROOMS_TICK_VALUES[BATHROOMS_TICK_VALUES.length - 1]
                 }
                 onChange={(minVal, maxVal) => {
                   updateFormData("preferred_bathrooms_min", minVal);
@@ -86,13 +100,24 @@ export function HousingEssentialRows({
               />
             ) : (
               <Box
-                className={`mobile-input bg-background-base ${profileRangeValueClassName(formData.preferred_bathrooms_min, formData.preferred_bathrooms_max)}`}
+                className={`mobile-input bg-background-base ${profileRangeValueClassName(
+                  formData.preferred_bathrooms_min,
+                  formData.preferred_bathrooms_max,
+                )}`}
               >
-                {formData.preferred_bathrooms_min != null || formData.preferred_bathrooms_max != null
-                  ? `${formData.preferred_bathrooms_min ?? BATHROOMS_TICK_VALUES[0]} – ${
-                      formData.preferred_bathrooms_max === BATHROOMS_TICK_VALUES[BATHROOMS_TICK_VALUES.length - 1]
+                {formData.preferred_bathrooms_min != null ||
+                formData.preferred_bathrooms_max != null
+                  ? `${
+                      formData.preferred_bathrooms_min ??
+                      BATHROOMS_TICK_VALUES[0]
+                    } – ${
+                      formData.preferred_bathrooms_max ===
+                      BATHROOMS_TICK_VALUES[BATHROOMS_TICK_VALUES.length - 1]
                         ? "8+"
-                        : formData.preferred_bathrooms_max ?? BATHROOMS_TICK_VALUES[BATHROOMS_TICK_VALUES.length - 1]
+                        : formData.preferred_bathrooms_max ??
+                          BATHROOMS_TICK_VALUES[
+                            BATHROOMS_TICK_VALUES.length - 1
+                          ]
                     } baths`
                   : PROFILE_NOT_SPECIFIED_LABEL}
               </Box>
@@ -113,7 +138,10 @@ export function HousingEssentialRows({
                 options={HOUSING_TYPE_OPTIONS}
                 value={parseHousingTypes(formData.preferred_housing_type)}
                 onChange={(arr) =>
-                  updateFormData("preferred_housing_type", serializeHousingTypes(arr))
+                  updateFormData(
+                    "preferred_housing_type",
+                    serializeHousingTypes(arr),
+                  )
                 }
                 isEditMode={isEditMode}
               />

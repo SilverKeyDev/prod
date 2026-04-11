@@ -1,5 +1,9 @@
 import type { CompareHomesComparisonField } from "packages/features/compare/types/compareHomes";
-import { formatPrice, formatPropertyType } from "packages/utils/format/property";
+import {
+  formatPrice,
+  formatPropertyType,
+} from "packages/utils/format/property";
+import { formatLotSize } from "packages/utils/format/property/addressFormatting";
 
 export function getCoreFields(): CompareHomesComparisonField[] {
   return [
@@ -7,26 +11,27 @@ export function getCoreFields(): CompareHomesComparisonField[] {
       key: "price",
       label: "Price",
       getValue: (h) => {
-        if (!h.price || h.price === "—") return "—";
+        if (!h.price || h.price === "-") return "-";
         return formatPrice(h.price);
       },
     },
     {
       key: "bedrooms",
       label: "Bedrooms",
-      getValue: (h) => String(h.bedrooms ?? "—"),
+      getValue: (h) => String(h.bedrooms ?? "-"),
     },
     {
       key: "bathrooms",
       label: "Bathrooms",
-      getValue: (h) => String(h.bathrooms ?? "—"),
+      getValue: (h) => String(h.bathrooms ?? "-"),
     },
     {
       key: "sqft",
       label: "Sqft",
       getValue: (h) => {
-        if (!h.sqft || h.sqft === "—") return "—";
-        const sqftValue = typeof h.sqft === "number" ? h.sqft : parseFloat(String(h.sqft));
+        if (!h.sqft || h.sqft === "-") return "-";
+        const sqftValue =
+          typeof h.sqft === "number" ? h.sqft : parseFloat(String(h.sqft));
         if (isNaN(sqftValue)) return String(h.sqft);
         return `${sqftValue.toLocaleString()} ft`;
       },
@@ -35,35 +40,21 @@ export function getCoreFields(): CompareHomesComparisonField[] {
       key: "lotSize",
       label: "Lot Size",
       getValue: (h) => {
-        if (!h.lotSize || h.lotSize === "—") return "—";
-        const lotSizeStr = String(h.lotSize).toLowerCase();
-
-        if (lotSizeStr.includes("acre")) {
-          const acreValue = parseFloat(lotSizeStr.replace(/[^\d.]/g, ""));
-          if (!isNaN(acreValue)) {
-            return `${acreValue.toFixed(2)} acres`;
-          }
-        }
-
-        const sqftValue = parseFloat(lotSizeStr.replace(/[^\d.]/g, ""));
-        if (!isNaN(sqftValue) && sqftValue > 0) {
-          const acres = sqftValue / 43560;
-          return `${acres.toFixed(2)} acres`;
-        }
-
-        return String(h.lotSize);
+        if (!h.lotSize || h.lotSize === "-") return "-";
+        const formatted = formatLotSize(String(h.lotSize));
+        return formatted === "N/A" ? String(h.lotSize) : formatted;
       },
     },
     {
       key: "yearBuilt",
       label: "Year Built",
-      getValue: (h) => String(h.yearBuilt ?? "—"),
+      getValue: (h) => String(h.yearBuilt ?? "-"),
     },
     {
       key: "propertyType",
       label: "Property Type",
       getValue: (h) => {
-        if (!h.propertyType || h.propertyType === "—") return "—";
+        if (!h.propertyType || h.propertyType === "-") return "-";
         return formatPropertyType(h.propertyType);
       },
     },

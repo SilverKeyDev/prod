@@ -3,7 +3,6 @@ import BodyText from "@ui/text/BodyText";
 import Label from "@ui/text/Label.web";
 import type { ReactNode } from "react";
 
-import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/primitives";
 
 type FieldShellProps = {
@@ -38,9 +37,7 @@ export default function FieldShell({
   children,
   variant = "mobile",
   size = "md",
-  required,
 }: FieldShellProps) {
-  const { t } = useLocalization();
   // Base styles - enhanced for nested component support
   const baseStyles =
     "w-full border rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-disabled transition-colors duration-150 touch-friendly mobile-input group";
@@ -48,13 +45,13 @@ export default function FieldShell({
   // Variant styles - enhanced for nested component hover support
   const variantStyles = {
     default:
-      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-accent-muted focus-within:border-primary",
+      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
     mobile:
-      "mobile-input border-border bg-background-surface hover:bg-accent-muted focus-within:ring-accent-muted focus-within:border-primary touch-friendly autofill-parent",
+      "mobile-input border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly autofill-parent",
     compact:
-      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-accent-muted focus-within:border-primary",
+      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
     search:
-      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-accent-muted focus-within:border-primary",
+      "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
   };
 
   // Size styles - copied exactly from Input.tsx
@@ -66,7 +63,7 @@ export default function FieldShell({
 
   // Error styles - copied exactly from Input.tsx
   const errorStyles = error
-    ? "border-destructive focus-within:border-destructive focus-within:ring-destructive"
+    ? "border-neutral-600 focus-within:border-neutral-700 focus-within:ring-neutral-400"
     : "";
 
   // Container classes - copied exactly from Input.tsx
@@ -95,34 +92,32 @@ export default function FieldShell({
   return (
     <Box className={cx("w-full space-y-1.5", className)}>
       {label && (
-        <Label htmlFor={id} className="text-text-primary mb-1 block text-sm font-medium">
+        <Label
+          htmlFor={id}
+          className="text-text-primary mb-1 block text-sm font-medium"
+        >
           {label}
-          {required && (
-            <BodyText as="span" className="text-destructive">
-              {t("form.required_indicator")}
-            </BodyText>
-          )}
         </Label>
       )}
-      {/* Security: static CSS only—no user or server data. Safe for dangerouslySetInnerHTML. */}
+      {/* Security: static CSS only, no user or server data. Safe for dangerouslySetInnerHTML. */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
           .autofill-parent {
             position: relative;
           }
-          
+
           /* FieldShell autofill styling - apply to field container only, not label */
           .autofill-parent:has(.PhoneInputInput:-webkit-autofill) > div:last-child > div:first-child {
             background-color: hsl(42, 45%, 92%) !important;
             -webkit-box-shadow: 0 0 0 30px hsl(42, 45%, 92%) inset !important;
             transition: background-color 5000s ease-in-out 0s !important;
           }
-          
+
           .autofill-parent:has(.PhoneInputInput:-moz-autofill) > div:last-child > div:first-child {
             background-color: hsl(42, 45%, 92%) !important;
           }
-          
+
           /* PhoneInput autofill styling - match Input component behavior */
           .autofill-parent .PhoneInputInput:-webkit-autofill,
           .autofill-parent .PhoneInputInput:-webkit-autofill:hover,
@@ -133,13 +128,13 @@ export default function FieldShell({
             caret-color: hsl(25, 25%, 30%) !important;
             transition: background-color 5000s ease-in-out 0s !important;
           }
-          
+
           /* Firefox autofill support */
           .autofill-parent .PhoneInputInput:-moz-autofill {
             background-color: hsl(42, 45%, 92%) !important;
             color: hsl(25, 25%, 30%) !important;
           }
-          
+
           /* PhoneInput container styling */
           .group .PhoneInput {
             width: 100% !important;
@@ -153,7 +148,7 @@ export default function FieldShell({
             position: relative !important;
             z-index: 2 !important;
           }
-          
+
           .group .PhoneInputInput {
             background: transparent !important;
             border: none !important;
@@ -168,19 +163,19 @@ export default function FieldShell({
             z-index: 2 !important;
             position: relative !important;
           }
-          
+
           /* Focus and selection styling */
           .group:focus-within {
             border-color: rgb(120 53 15) !important;
             box-shadow: 0 0 0 2px rgb(120 53 15 / 0.2) !important;
           }
-          
+
           /* Selection color matching Input.tsx */
           .group .PhoneInputInput::selection {
             background-color: rgb(120 53 15 / 0.2);
             color: rgb(120 53 15);
           }
-          
+
           /* Placeholder styling matching Input.tsx */
           .group .PhoneInputInput::placeholder {
             color: rgb(156 163 175) !important; /* text-gray-400 */
@@ -204,7 +199,9 @@ export default function FieldShell({
       <Box className={containerClasses}>
         {/* Field Container with exact Input.tsx styling */}
         <Box className={fieldClasses}>
-          <Box className="nested-input flex h-full w-full items-center">{children}</Box>
+          <Box className="nested-input flex h-full w-full items-center">
+            {children}
+          </Box>
         </Box>
 
         {/* Left Icon - always visible on top of input */}

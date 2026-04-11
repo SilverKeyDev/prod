@@ -1,10 +1,13 @@
 /**
- * Typography variant styles — maps TextVariant to Tailwind classes.
+ * Typography variant styles - maps TextVariant to Tailwind classes.
  * Web and Native both use className (NativeWind on RN).
  * RN font-weight routing (Inter-Bold, etc.) deferred until font loading is configured.
  */
 
-import type { TextVariant, TypographyVariantConfig } from "packages/ui/types/typography";
+import type {
+  TextVariant,
+  TypographyVariantConfig,
+} from "packages/ui/types/typography";
 
 export const TYPOGRAPHY_VARIANTS: Record<
   TextVariant,
@@ -32,7 +35,8 @@ export const TYPOGRAPHY_VARIANTS: Record<
     sizeClass: "text-sm sm:text-base md:text-lg",
     lineHeightMultiplier: 1.5,
     fontWeight: 400,
-    className: "font-sans text-sm sm:text-base md:text-lg font-normal leading-relaxed",
+    className:
+      "font-sans text-sm sm:text-base md:text-lg font-normal leading-relaxed",
   },
   "body-sm": {
     sizeClass: "text-sm sm:text-base",
@@ -50,7 +54,8 @@ export const TYPOGRAPHY_VARIANTS: Record<
     sizeClass: "text-xs",
     lineHeightMultiplier: 1.4,
     fontWeight: 400,
-    className: "font-sans text-xs font-normal leading-normal text-text-secondary",
+    className:
+      "font-sans text-xs font-normal leading-normal text-text-secondary",
   },
   label: {
     sizeClass: "text-sm",

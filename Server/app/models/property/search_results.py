@@ -1,7 +1,9 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -17,11 +19,13 @@ from app import db
 class Search(db.Model):
     __tablename__ = "search_session"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    query_params = db.Column(JSONB, nullable=False)
-    mls_home_id = db.Column(db.String(64))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(db.String(36), db.ForeignKey("users.id"))
+    query_params: Mapped[dict[str, Any]] = mapped_column(JSONB().with_variant(db.JSON, "sqlite"))
+    mls_home_id: Mapped[str | None] = mapped_column(db.String(64))
+    created_at: Mapped[datetime | None] = mapped_column(default=lambda: datetime.now(timezone.utc))
 
     # relationships
     user = db.relationship("User", backref=db.backref("search_sessions", lazy="dynamic"))

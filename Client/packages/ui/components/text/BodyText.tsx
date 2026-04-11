@@ -23,42 +23,49 @@ const sizeClasses: Record<BodyTextSize, string> = {
 };
 
 /**
- * Shared BodyText — uses Text primitive. Web keeps semantic `as`; native uses Text.
+ * Shared BodyText - uses Text primitive. Web keeps semantic `as`; native uses Text.
  */
-const BodyText = forwardRef<React.ComponentRef<typeof Text>, BodyTextProps>(function BodyText(
-  {
-    children,
-    size = "md",
-    className = "",
-    muted = false,
-    as: asProp = "p",
-    title,
-    style,
-    numberOfLines,
-    ...textProps
-  },
-  ref
-) {
-  const baseClasses = "font-normal leading-relaxed";
-  const colorClass = muted ? "text-warm-stone" : "text-gray-900";
-  const combinedClasses = [baseClasses, sizeClasses[size], colorClass, className]
-    .filter(Boolean)
-    .join(" ");
+const BodyText = forwardRef<React.ComponentRef<typeof Text>, BodyTextProps>(
+  function BodyText(
+    {
+      children,
+      size = "md",
+      className = "",
+      muted = false,
+      as: asProp = "p",
+      title,
+      style,
+      numberOfLines,
+      ...textProps
+    },
+    ref,
+  ) {
+    const baseClasses = "font-normal leading-relaxed";
+    const colorClass = muted ? "text-warm-stone" : "text-gray-900";
+    const combinedClasses = [
+      baseClasses,
+      sizeClasses[size],
+      colorClass,
+      className,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
-  return (
-    <Text
-      ref={ref}
-      as={asProp}
-      className={combinedClasses}
-      style={style}
-      title={title}
-      numberOfLines={numberOfLines}
-      {...textProps}
-    >
-      {children}
-    </Text>
-  );
-});
+    return (
+      <Text
+        ref={ref}
+        as={asProp}
+        className={combinedClasses}
+        style={style}
+        title={title}
+        numberOfLines={numberOfLines}
+        {...textProps}
+      >
+        {children}
+      </Text>
+    );
+  },
+);
 
 BodyText.displayName = "BodyText";
 

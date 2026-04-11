@@ -12,7 +12,7 @@ const RN_ACCESSIBILITY_KEYS = [
 ] as const;
 
 function omitRnAccessibilityProps<T extends Record<string, unknown>>(
-  props: T
+  props: T,
 ): Omit<T, (typeof RN_ACCESSIBILITY_KEYS)[number]> {
   const { ...rest } = props;
   for (const key of RN_ACCESSIBILITY_KEYS) {
@@ -28,7 +28,7 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   };
 
 /**
- * Base Button primitive — one <button> for React (web).
+ * Base Button primitive - one <button> for React (web).
  * Native uses Pressable (Button.native.tsx). Accepts onPress (mapped to onClick) for cross-platform API.
  * Strips RN accessibility props and maps them to web equivalents (aria-label, role).
  */
@@ -47,7 +47,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
     accessibilityRole,
     ...props
   },
-  ref
+  ref,
 ) {
   const handleClick = onClick ?? onPress;
   const domProps = omitRnAccessibilityProps(props);
@@ -63,7 +63,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       role={resolvedRole}
       aria-label={resolvedAriaLabel}
       style={{
-        border: "none",
+        /* Do not set border: none — it overrides Tailwind border utilities (e.g. dropdown triggers). */
         cursor: "pointer",
         ...(style as React.CSSProperties),
       }}

@@ -1,0 +1,100 @@
+type: object
+required:
+  - isochrone
+  - individual_isochrones
+  - center
+  - locations
+  - commute_tolerance
+  - mode
+properties:
+  isochrone:
+    type: object
+    properties:
+      type:
+        type: string
+      geometry:
+        type: object
+        properties:
+          type:
+            type: string
+          coordinates:
+            type: array
+            items:
+              type: array
+              items:
+                type: array
+                items:
+                  type: number
+  individual_isochrones:
+    type: array
+    items:
+      type: object
+      properties:
+        address:
+          type: string
+        commute_tolerance:
+          type: number
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        isochrone:
+          type: object
+          description: "GeoJSON Feature for this location's isochrone"
+          properties:
+            type:
+              type: string
+              enum: ["Feature"]
+            geometry:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: ["Polygon", "MultiPolygon"]
+                coordinates:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+            properties:
+              type: object
+              nullable: true
+              additionalProperties: true
+  center:
+    type: object
+    properties:
+      lat:
+        type: number
+      lon:
+        type: number
+      address:
+        type: string
+      name:
+        type: string
+        nullable: true
+  locations:
+    type: array
+    items:
+      type: object
+      properties:
+        address:
+          type: string
+        commute_tolerance:
+          type: number
+          nullable: true
+        lat:
+          type: number
+          nullable: true
+        lng:
+          type: number
+          nullable: true
+        name:
+          type: string
+          nullable: true
+  commute_tolerance:
+    type: number
+  mode:
+    type: string

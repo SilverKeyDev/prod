@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { useGoogleMaps } from "packages/hooks/data/useGoogleMaps";
+import { useGoogleMaps } from "packages/hooks/data/property/useGoogleMaps";
 import { useGoogleMapsStore } from "packages/store";
 
 /**
@@ -8,7 +8,11 @@ import { useGoogleMapsStore } from "packages/store";
  * This replaces the GoogleMapsProvider functionality
  */
 export function useGoogleMapsStoreIntegration() {
-  const { isLoaded: dataIsLoaded, error: dataError, scriptUrl: dataScriptUrl } = useGoogleMaps();
+  const {
+    isLoaded: dataIsLoaded,
+    error: dataError,
+    scriptUrl: dataScriptUrl,
+  } = useGoogleMaps();
 
   const {
     isLoaded,

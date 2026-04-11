@@ -3,7 +3,11 @@ import React from "react";
 import { FlatList, View } from "react-native";
 
 import { useLocalization } from "packages/contexts";
-import type { AgentClient, AgentConnectionRequest } from "packages/features/agent/api/agent";
+import type {
+  AgentClient,
+  AgentConnectionRequest,
+} from "packages/features/agent/api/agent";
+import { getMessagePreview } from "packages/features/messaging";
 import { Pressable } from "packages/ui/components/primitives";
 import { Loading } from "packages/ui/components/primitives";
 import { Box } from "packages/ui/components/primitives";
@@ -24,7 +28,11 @@ type MessagingAgentListSubviewProps = {
   inboxMode: "conversations" | "requests";
   setInboxMode: (mode: "conversations" | "requests") => void;
   conversationMap: Map<string, { last_message?: string }>;
-  listContentStyle: { padding: number; paddingBottom: number; flexGrow: number };
+  listContentStyle: {
+    padding: number;
+    paddingBottom: number;
+    flexGrow: number;
+  };
   centeredStyle: {
     flex: number;
     justifyContent: "center";
@@ -74,19 +82,25 @@ export function MessagingAgentListSubview({
     <View style={containerStyle}>
       <Box className="border-border bg-background-base border-b px-4 py-3">
         <Box className="mb-2 flex-row items-center justify-between">
-          <Text className="text-text-primary text-base font-semibold">{config.sidebar.title}</Text>
+          <Text className="text-text-primary text-base font-semibold">
+            {config.sidebar.title}
+          </Text>
           <Pressable
             onPress={refreshChats}
             className="border-border bg-background-surface rounded-lg border px-3 py-2"
           >
-            <Text className="text-text-primary text-sm font-medium">{t("agent.refresh")}</Text>
+            <Text className="text-text-primary text-sm font-medium">
+              {t("agent.refresh")}
+            </Text>
           </Pressable>
         </Box>
         <Box className="bg-primary-muted mt-1 flex-row rounded-lg p-1">
           <Pressable
             onPress={() => setInboxMode("conversations")}
             className={`flex-1 rounded-md px-3 py-1.5 ${
-              inboxMode === "conversations" ? "bg-background-surface" : "bg-transparent"
+              inboxMode === "conversations"
+                ? "bg-background-surface"
+                : "bg-transparent"
             }`}
           >
             <Text
@@ -102,7 +116,9 @@ export function MessagingAgentListSubview({
           <Pressable
             onPress={() => setInboxMode("requests")}
             className={`flex-1 rounded-md px-3 py-1.5 ${
-              inboxMode === "requests" ? "bg-background-surface" : "bg-transparent"
+              inboxMode === "requests"
+                ? "bg-background-surface"
+                : "bg-transparent"
             }`}
           >
             <Text
@@ -123,6 +139,9 @@ export function MessagingAgentListSubview({
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const conversation = conversationMap.get(item.id);
+            const messagePreview = conversation?.last_message
+              ? getMessagePreview({ content: conversation.last_message })
+              : null;
             return (
               <Pressable
                 onPress={() => setSelectedClientId(item.id)}
@@ -131,9 +150,12 @@ export function MessagingAgentListSubview({
                 <Text className="text-text-primary font-medium">
                   {item.name ?? item.email ?? "Client"}
                 </Text>
-                {conversation?.last_message && (
-                  <Text className="text-text-secondary mt-1 text-sm" numberOfLines={1}>
-                    {conversation.last_message}
+                {messagePreview && (
+                  <Text
+                    className="text-text-secondary mt-1 text-sm"
+                    numberOfLines={1}
+                  >
+                    {messagePreview}
                   </Text>
                 )}
               </Pressable>
@@ -161,10 +183,14 @@ export function MessagingAgentListSubview({
                 {item.other_party_name ?? "Unknown"}
               </Text>
               {!!item.other_party_email && (
-                <Text className="text-text-secondary mt-1 text-sm">{item.other_party_email}</Text>
+                <Text className="text-text-secondary mt-1 text-sm">
+                  {item.other_party_email}
+                </Text>
               )}
               {!!item.message && (
-                <Text className="text-text-primary mt-2 text-sm">{item.message}</Text>
+                <Text className="text-text-primary mt-2 text-sm">
+                  {item.message}
+                </Text>
               )}
               <Text className="text-text-secondary mt-1 text-xs">
                 {item.requested_by_agent
@@ -177,7 +203,9 @@ export function MessagingAgentListSubview({
                   disabled={isResponding}
                   className="bg-primary flex-1 items-center rounded-lg px-3 py-2"
                 >
-                  <Text className="text-sm font-semibold text-white">{t("agent.accept")}</Text>
+                  <Text className="text-sm font-semibold text-white">
+                    {t("agent.accept")}
+                  </Text>
                 </Pressable>
                 <Pressable
                   onPress={() => respondToRequest(item.id, false)}

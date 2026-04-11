@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useNavigation } from "packages/navigation";
 
-export type SavedPageViewType = "homes" | "documents";
+export type SavedPageViewType = "homes" | "documents" | "agreements";
 
 type UseSavedPageViewReturn = {
   viewType: SavedPageViewType;
@@ -22,14 +22,14 @@ type UseSavedPageViewReturn = {
 function getViewTypeFromSearch(search: string): SavedPageViewType {
   const params = new URLSearchParams(search);
   const p = params.get("saved") ?? params.get("view");
-  return p === "homes" || p === "documents" ? p : "homes";
+  return p === "homes" || p === "documents" || p === "agreements" ? p : "homes";
 }
 
 export function useSavedPageView(): UseSavedPageViewReturn {
   const { getCurrentRoute, setSearchParams } = useNavigation();
   const route = getCurrentRoute();
   const [viewType, setViewType] = useState<SavedPageViewType>(() =>
-    getViewTypeFromSearch(route.search)
+    getViewTypeFromSearch(route.search),
   );
 
   // Keep the `saved` search param in sync with the current view type.
@@ -49,7 +49,7 @@ export function useSavedPageView(): UseSavedPageViewReturn {
         params.delete("view");
         return params;
       },
-      { replace: true }
+      { replace: true },
     );
   }, [viewType, route.search, route.pathname, setSearchParams]);
 

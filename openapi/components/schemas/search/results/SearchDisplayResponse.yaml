@@ -1,0 +1,7 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      search_display:
+        $ref: './SearchDisplayPayload.yaml'
+        nullable: true

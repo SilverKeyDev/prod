@@ -1,0 +1,19 @@
+type: object
+description: "User search preferences for polygon search"
+additionalProperties: true
+properties:
+  max_price:
+    type: number
+    nullable: true
+  min_price:
+    type: number
+    nullable: true
+  bedrooms:
+    type: integer
+    nullable: true
+  bathrooms:
+    type: number
+    nullable: true
+  homeType:
+    type: string
+    nullable: true

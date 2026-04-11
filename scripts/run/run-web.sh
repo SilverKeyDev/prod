@@ -162,21 +162,6 @@ if [[ "${1:-}" != "--production" ]]; then
   log_web "[Phase 4/4] Waiting for Vite TCP on localhost:${VITE_PORT} (up to 60s for first-run optimizeDeps)..."
   if wait_for_port localhost "${VITE_PORT}" 60 1; then
     log_web "${GREEN}✅ Vite TCP is accepting on localhost:${VITE_PORT}${NC}"
-    # Open browser to localhost (skip when --no-browser, e.g. from run-all.sh)
-    # Open /admin manually after logging in
-    if [[ "$NO_BROWSER" != "true" ]]; then
-      sleep 2
-      BASE_URL="http://localhost:${VITE_PORT}"
-      CHROME_APP="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-      if [[ -x "$CHROME_APP" ]]; then
-        "$CHROME_APP" --auto-open-devtools-for-tabs "$BASE_URL" >/dev/null 2>&1 &
-        disown 2>/dev/null || true
-        log_web "${GREEN}✅ Chrome opened at $BASE_URL${NC}"
-      else
-        open "$BASE_URL" 2>/dev/null || true
-        log_web "${GREEN}✅ Browser opened at $BASE_URL${NC}"
-      fi
-    fi
   else
     err_web "Vite did not start on localhost:${VITE_PORT} within 60s. Possible causes: port in use, pnpm/node failure, Vite config error."
     warn_web "Diagnostics: lsof -i :${VITE_PORT} | head -5; cd Client && pnpm typecheck; try --skip-typecheck if typecheck passes"

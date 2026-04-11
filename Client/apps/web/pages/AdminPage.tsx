@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { useQueryClient } from "@tanstack/react-query";
-
-import { adminApi } from "packages/api/admin";
-import { queryKeys } from "packages/config/query/keys";
-import { AdminDeleteUserSection } from "packages/features/admin";
-import { useUserData } from "packages/hooks/data/useUserData";
+import {
+  AdminDeleteUserSection,
+  AdminDocuSignDiagnosticsSection,
+} from "packages/features/admin";
 import { useStepUpAuth } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES, type LoggerConfig } from "packages/logger";
 import { useAuthStore } from "packages/store";
@@ -21,12 +19,14 @@ import {
   Label,
   Select,
   Title,
-  Toggle,
 } from "@/components/ui";
 
 type FrontendLoggerConfigState = LoggerConfig;
 
-type BooleanConfigKey = Exclude<keyof FrontendLoggerConfigState, "logLevel" | "api" | string>;
+type BooleanConfigKey = Exclude<
+  keyof FrontendLoggerConfigState,
+  "logLevel" | "api" | string
+>;
 
 const BOOLEAN_KEYS: BooleanConfigKey[] = [
   "polling",
@@ -38,66 +38,45 @@ const BOOLEAN_KEYS: BooleanConfigKey[] = [
   "security",
 ];
 
-const LOG_LEVELS: FrontendLoggerConfigState["logLevel"][] = ["DEBUG", "INFO", "WARN", "ERROR"];
+const LOG_LEVELS: FrontendLoggerConfigState["logLevel"][] = [
+  "DEBUG",
+  "INFO",
+  "WARN",
+  "ERROR",
+];
 
 export default function AdminPage() {
-  const { isStepUpRequired, requestStepUpAuth, stepUpModalProps } = useStepUpAuth();
+  const { isStepUpRequired, requestStepUpAuth, stepUpModalProps } =
+    useStepUpAuth();
   const [stepUpSatisfied, setStepUpSatisfied] = useState(false);
 
-  const [frontendConfig, setFrontendConfig] = useState<FrontendLoggerConfigState | null>(null);
+  const [frontendConfig, setFrontendConfig] =
+    useState<FrontendLoggerConfigState | null>(null);
   const [frontendSaving, setFrontendSaving] = useState(false);
-  const [skyslopeConnected, setSkyslopeConnected] = useState<boolean | null>(null);
-  const [agentStatusSaving, setAgentStatusSaving] = useState(false);
-  const [agentStatusError, setAgentStatusError] = useState<string | null>(null);
 
-  const user = useAuthStore((s) => s.user);
-  const setUser = useAuthStore((s) => s.setUser);
-  const queryClient = useQueryClient();
-  const { refreshUserProfile } = useUserData();
-  const isAgent = user?.is_agent ?? false;
-
-  const handleToggleAgentStatus = useCallback(async () => {
-    if (!user) return;
-    setAgentStatusError(null);
-    setAgentStatusSaving(true);
-    try {
-      const result = await adminApi.setCurrentUserAgentStatus(!isAgent);
-      setUser({ ...user, is_agent: result.is_agent });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.user.profile() });
-      await refreshUserProfile();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to update agent status";
-      setAgentStatusError(message);
-      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] setCurrentUserAgentStatus failed", err);
-    } finally {
-      setAgentStatusSaving(false);
-    }
-  }, [user, isAgent, setUser, queryClient, refreshUserProfile]);
+  const isAgent = useAuthStore((s) => s.user?.is_agent ?? false);
 
   useEffect(() => {
     let mounted = true;
 
     const ensureStepUp = async () => {
       if (!isStepUpRequired("access_admin_panel")) {
-        setStepUpSatisfied(true);
+        if (mounted) setStepUpSatisfied(true);
         return;
       }
 
       const ok = await requestStepUpAuth(
         "access_admin_panel",
-        "Confirm your identity to access the SilverKey admin logger console."
+        "Confirm your identity to access the SilverKey admin logger console.",
       );
 
-      setStepUpSatisfied(ok);
+      if (mounted) setStepUpSatisfied(ok);
     };
 
     void ensureStepUp();
 
     return () => {
       mounted = false;
-      if (!mounted) {
-        setStepUpSatisfied(false);
-      }
     };
   }, [isStepUpRequired, requestStepUpAuth]);
 
@@ -108,30 +87,18 @@ export default function AdminPage() {
       const config = log.getConfig();
       setFrontendConfig(config);
     } catch (error) {
-      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_PAGE] Failed to read frontend logger config", error);
+      log.error(
+        LOG_CATEGORIES.ERRORS,
+        "[ADMIN_PAGE] Failed to read frontend logger config",
+        error,
+      );
     }
   }, [stepUpSatisfied]);
 
-  useEffect(() => {
-    if (!stepUpSatisfied) return;
-
-    let mounted = true;
-    const fetchStatus = async () => {
-      try {
-        const status = await adminApi.getSkyslopeStatus();
-        if (mounted) setSkyslopeConnected(status.connected);
-      } catch {
-        if (mounted) setSkyslopeConnected(false);
-      }
-    };
-    void fetchStatus();
-    return () => {
-      mounted = false;
-    };
-  }, [stepUpSatisfied]);
-
   const apiConfig =
-    frontendConfig && typeof frontendConfig.api === "object" ? frontendConfig.api : undefined;
+    frontendConfig && typeof frontendConfig.api === "object"
+      ? frontendConfig.api
+      : undefined;
 
   const handleToggleBoolean = (key: BooleanConfigKey) => {
     setFrontendConfig((prev) => {
@@ -140,7 +107,9 @@ export default function AdminPage() {
     });
   };
 
-  const handleApiToggle = (key: keyof NonNullable<FrontendLoggerConfigState["api"]>) => {
+  const handleApiToggle = (
+    key: keyof NonNullable<FrontendLoggerConfigState["api"]>,
+  ) => {
     setFrontendConfig((prev) => {
       if (!prev || !apiConfig) return prev;
       return {
@@ -153,7 +122,9 @@ export default function AdminPage() {
     });
   };
 
-  const handleLogLevelChange = (value: FrontendLoggerConfigState["logLevel"]) => {
+  const handleLogLevelChange = (
+    value: FrontendLoggerConfigState["logLevel"],
+  ) => {
     setFrontendConfig((prev) => {
       if (!prev) return prev;
       return { ...prev, logLevel: value };
@@ -172,13 +143,22 @@ export default function AdminPage() {
         }
       });
 
-      if (typeof frontendConfig.api === "object" && typeof current.api === "object") {
+      if (
+        typeof frontendConfig.api === "object" &&
+        typeof current.api === "object"
+      ) {
         const apiChanges: Record<string, boolean> = {};
-        (["initialLoad", "polling", "pageMount", "other"] as const).forEach((k) => {
-          if (frontendConfig.api && current.api && frontendConfig.api[k] !== current.api[k]) {
-            apiChanges[k] = frontendConfig.api[k];
-          }
-        });
+        (["initialLoad", "polling", "pageMount", "other"] as const).forEach(
+          (k) => {
+            if (
+              frontendConfig.api &&
+              current.api &&
+              frontendConfig.api[k] !== current.api[k]
+            ) {
+              apiChanges[k] = frontendConfig.api[k];
+            }
+          },
+        );
         if (Object.keys(apiChanges).length > 0) {
           changed.api = {
             ...(current.api as NonNullable<FrontendLoggerConfigState["api"]>),
@@ -202,16 +182,20 @@ export default function AdminPage() {
     setFrontendSaving(true);
     try {
       log.updateConfig(diff);
-      log.security(LOG_CATEGORIES.SECURITY, "[ADMIN_PAGE] Updated frontend logger config", {
-        fields: Object.keys(diff),
-      });
+      log.security(
+        LOG_CATEGORIES.SECURITY,
+        "[ADMIN_PAGE] Updated frontend logger config",
+        {
+          fields: Object.keys(diff),
+        },
+      );
       const updated = log.getConfig();
       setFrontendConfig(updated);
     } catch (error) {
       log.error(
         LOG_CATEGORIES.ERRORS,
         "[ADMIN_PAGE] Failed to update frontend logger config",
-        error
+        error,
       );
     } finally {
       setFrontendSaving(false);
@@ -222,7 +206,7 @@ export default function AdminPage() {
     if (!stepUpModalProps.isOpen) return null;
 
     return (
-      <Box className="fixed inset-0 z-[10000] flex items-center justify-center bg-overlay-backdrop p-4">
+      <Box className="fixed inset-0 z-modal flex items-center justify-center bg-overlay-backdrop p-4">
         <Card border="light" className="w-full max-w-md" padding="lg">
           <Title size="lg" as="h2" className="mb-2">
             Confirm your identity
@@ -268,8 +252,8 @@ export default function AdminPage() {
             Admin Logger Console
           </Title>
           <BodyText size="sm" muted className="mb-4">
-            Adjust frontend logging behavior at runtime. Changes apply immediately for your session
-            and other open tabs.
+            Adjust frontend logging behavior at runtime. Changes apply
+            immediately for your session and other open tabs.
           </BodyText>
 
           <Box className="grid gap-4 md:grid-cols-2">
@@ -281,7 +265,7 @@ export default function AdminPage() {
                 <Label key={key} size="sm" className="flex items-center gap-2">
                   <AccessibleCheckboxInput
                     checked={Boolean(frontendConfig[key])}
-                    className="h-4 w-4"
+                    className="h-4 w-4 rounded border-border accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0"
                     label={`Toggle ${key}`}
                     onChange={() => handleToggleBoolean(key)}
                   />
@@ -297,10 +281,15 @@ export default function AdminPage() {
                 <Label size="sm">Log level</Label>
                 <Select
                   className="mt-1"
-                  options={LOG_LEVELS.map((lvl) => ({ value: lvl, label: lvl }))}
+                  options={LOG_LEVELS.map((lvl) => ({
+                    value: lvl,
+                    label: lvl,
+                  }))}
                   value={frontendConfig.logLevel}
                   onChange={(value) =>
-                    handleLogLevelChange(value as FrontendLoggerConfigState["logLevel"])
+                    handleLogLevelChange(
+                      value as FrontendLoggerConfigState["logLevel"],
+                    )
                   }
                 />
               </Box>
@@ -310,11 +299,17 @@ export default function AdminPage() {
                   <Title size="sm" as="h2" className="mb-1">
                     API subcategories
                   </Title>
-                  {(["initialLoad", "polling", "pageMount", "other"] as const).map((k) => (
-                    <Label key={k} size="sm" className="flex items-center gap-2">
+                  {(
+                    ["initialLoad", "polling", "pageMount", "other"] as const
+                  ).map((k) => (
+                    <Label
+                      key={k}
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
                       <AccessibleCheckboxInput
                         checked={Boolean(apiConfig[k])}
-                        className="h-4 w-4"
+                        className="h-4 w-4 rounded border-border accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-0"
                         label={`Toggle API ${k}`}
                         onChange={() => handleApiToggle(k)}
                       />
@@ -330,8 +325,8 @@ export default function AdminPage() {
 
           <Box className="mt-6 flex items-center justify-between gap-4">
             <BodyText size="xs" muted>
-              Changes are applied only to the frontend logger. Backend logger config is managed
-              separately.
+              Changes are applied only to the frontend logger. Backend logger
+              config is managed separately.
             </BodyText>
             <Button
               variant="primary"
@@ -344,92 +339,12 @@ export default function AdminPage() {
           </Box>
         </Card>
 
-        <Card border="light" padding="lg" className="w-full">
-          <Title size="lg" as="h2" className="mb-2">
-            Current account: Agent status
-          </Title>
-          <BodyText size="sm" muted className="mb-4">
-            Toggle whether the currently signed-in account is treated as an agent. This updates
-            immediately across the app (sidebar, dashboard, messaging, etc.).
-          </BodyText>
-          <Box className="flex flex-col gap-3">
-            <Box className="flex items-center gap-3">
-              <Toggle
-                checked={isAgent}
-                disabled={agentStatusSaving || !user}
-                label={isAgent ? "Agent" : "Not an agent"}
-                onChange={handleToggleAgentStatus}
-                size="md"
-              />
-            </Box>
-            {agentStatusError && (
-              <BodyText size="sm" className="text-red-600">
-                {agentStatusError}
-              </BodyText>
-            )}
-            {agentStatusSaving && (
-              <BodyText size="xs" muted>
-                Updating…
-              </BodyText>
-            )}
-          </Box>
-        </Card>
-
-        <Card border="light" padding="lg" className="w-full border-rose-200">
+        <Card border="light" padding="lg" className="w-full border-border">
           <AdminDeleteUserSection />
         </Card>
 
         <Card border="light" padding="lg" className="w-full">
-          <Title size="lg" as="h2" className="mb-2">
-            SkySlope integration
-          </Title>
-          <BodyText size="sm" muted className="mb-4">
-            Connect your SkySlope account to verify the integration. This will redirect you to
-            SkySlope to authorize, then show your profile on success.
-          </BodyText>
-          <BodyText size="xs" muted className="mb-4">
-            Put only <code>SKYSLOPE_ACCESS_KEY</code> and <code>SKYSLOPE_SECRET</code> in Server{" "}
-            <code>.env</code>. OAuth authorize/token URLs, issuer, and callback URL come from{" "}
-            <code>Server/app/config/_urls.py</code> (Okta issuer matches SkySlope OIDC discovery; set{" "}
-            <code>SKYSLOPE_OAUTH_USE_LEGACY_ACCOUNTS</code> there if you must use{" "}
-            <code>accounts.skyslope.com</code>). If you see <strong>400 Bad Request</strong> on{" "}
-            <code>/v1/authorize</code>, common causes are a redirect URI mismatch or an OAuth{" "}
-            <strong>scope</strong> this Okta server does not allow (defaults use{" "}
-            <code>openid profile offline_access</code> per OIDC discovery; edit{" "}
-            <code>SKYSLOPE_OAUTH_SCOPE_OKTA</code> in <code>_urls.py</code> if SkySlope specifies
-            different scopes). CSP / <code>cloudflareinsights.com</code> warnings on their login page are
-            unrelated.
-          </BodyText>
-          {skyslopeConnected === null ? (
-            <BodyText size="sm" muted>
-              Checking connection status…
-            </BodyText>
-          ) : skyslopeConnected ? (
-            <Box className="flex flex-col gap-3">
-              <BodyText size="sm" className="text-green-600">
-                SkySlope connected
-              </BodyText>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  window.location.href = "/api/v1/skyslope/connect";
-                }}
-              >
-                Reconnect SkySlope
-              </Button>
-            </Box>
-          ) : (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                window.location.href = "/api/v1/skyslope/connect";
-              }}
-            >
-              Connect SkySlope
-            </Button>
-          )}
+          <AdminDocuSignDiagnosticsSection isAgent={isAgent} />
         </Card>
       </Box>
     );

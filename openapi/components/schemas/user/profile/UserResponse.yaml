@@ -1,0 +1,28 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    description: |
+      Standard success envelope with the current user in `user`. Some handlers also
+      populate `data` with the same object for backward compatibility—clients should
+      prefer `user` when both are present.
+    properties:
+      user:
+        $ref: './User.yaml'
+        nullable: true
+      data:
+        $ref: './User.yaml'
+        nullable: true
+        description: "Alternative field name for user data"
+example:
+  success: true
+  message: null
+  error: null
+  user:
+    id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    email: "jane.buyer@example.com"
+    name: "Jane Buyer"
+    is_active: true
+    is_agent: false
+    roles:
+      - buyer
+  data: null

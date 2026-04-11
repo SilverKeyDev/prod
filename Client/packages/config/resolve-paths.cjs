@@ -4,7 +4,7 @@
  * CommonJS (.cjs) so Metro's require() works when package.json has "type": "module".
  *
  * Used by: apps/mobile/metro.config.cjs
- * Same paths are reflected in: apps/web/vite.config.ts (see tsconfig.base.json paths)
+ * Same paths are reflected in: apps/web/vite.config.js (see tsconfig.base.json paths)
  */
 /* global require, module */
 

@@ -1,4 +1,7 @@
-export { type AgentDashboardState, useAgentDashboardStore } from "./slices/agentDashboard";
+export {
+  type AgentDashboardState,
+  useAgentDashboardStore,
+} from "./slices/agentDashboard";
 export { useFeatureFlagsStore } from "./slices/featureFlags";
 export { useGoogleMapsStore } from "./slices/maps";
 export { useNotificationStore } from "./slices/notifications";
@@ -20,7 +23,13 @@ export {
 } from "packages/features/homeauth/store";
 export { useNegotiationStore } from "packages/features/negotiate/store";
 export { useSavedHomesStore } from "packages/features/saved/store";
-export { toQueryParams, useFiltersStore } from "packages/features/search/store";
+export {
+  type MapRegionSnapshot,
+  type SearchSource,
+  toQueryParams,
+  useFiltersStore,
+  type WebMapCameraSnapshot,
+} from "packages/features/search/store";
 export {
   SEARCH_VIEW_MODE_CHANGED_EVENT,
   type SearchViewMode,
@@ -52,7 +61,12 @@ export const selectIsAuthenticated = (s: unknown): boolean =>
   );
 
 export const selectAuthReady = (s: unknown): boolean =>
-  !!(s && typeof s === "object" && "authReady" in s && (s as Record<string, unknown>).authReady);
+  !!(
+    s &&
+    typeof s === "object" &&
+    "authReady" in s &&
+    (s as Record<string, unknown>).authReady
+  );
 
 export const selectUserMeta = (s: unknown): unknown =>
   s && typeof s === "object" && "userMeta" in s

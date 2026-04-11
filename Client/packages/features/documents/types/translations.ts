@@ -1,7 +1,12 @@
-/** Documents feature translation strings (documents, documents_upload, secure_upload, reports, pdf). */
+/** Documents feature translation strings (documents, documents_upload, secure_upload, reports, pdf, forms). */
 export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "documents.header": "Documents",
   "documents.uploaded": "Uploaded {{date}}",
+  "documents.sent_by": "Sent by {{name}} {{date}}",
+  "documents.my_documents_tab": "My Documents",
+  "documents.upload_tab": "Upload File",
+  "documents.forms_tab": "Select from Forms",
+  "documents.forms_library_tab": "Forms Library",
 
   "documents_upload.category_label": "Document Category",
   "documents_upload.address_optional": "Address (Optional)",
@@ -15,6 +20,10 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "documents_upload.upload_failed": "Upload failed. Please try again.",
   "documents_upload.uploading": "Uploading...",
   "documents_upload.upload_document": "Upload Document",
+  "documents_upload.modal_title": "Upload Document",
+  "documents_upload.error_selecting_file":
+    "Unable to select file. Please try again.",
+  "documents_upload.change_file": "Change file",
   "documents_upload.missing_file": "Please select a file to upload.",
 
   "secure_upload.click_or_drag": "Click to upload or drag and drop",
@@ -24,7 +33,8 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "secure_upload.exif_stripped": "EXIF Stripped",
   "secure_upload.warning_prefix": "⚠️ ",
   "secure_upload.title_mobile_fallback": "Document upload",
-  "secure_upload.mobile_description": "Documents added by your team will appear here.",
+  "secure_upload.mobile_description":
+    "Documents added by your team will appear here.",
 
   "reports.delete": "Delete",
   "reports.delete_report": "Delete report",
@@ -47,5 +57,21 @@ export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
     'Mobile browsers may not display PDFs in this viewer. Please use the "Open in New Tab" button above to view the PDF.',
   "pdf.open_in_new_tab": "Open PDF in New Tab",
 
-  "documents.revision_download_unavailable": "Download is not available for this revision.",
+  "forms.library_title": "Forms Library",
+  "forms.library_description":
+    "Browse and download pre-filled forms. Select a category to view available forms, or download directly.",
+  "forms.loading_library": "Loading forms...",
+  "forms.error_loading_library": "Error loading forms. Please try again.",
+  "forms.no_forms_available": "No forms available",
+  "forms.select_category": "Select a category",
+  "forms.category_description": "Choose a folder to browse available forms.",
+  "forms.form": "form",
+  "forms.forms": "forms",
+  "forms.form_available": "form available",
+  "forms.forms_available": "forms available",
+  "forms.use_form": "Use This Form",
+  "forms.send_for_signature": "Send for Signature",
+
+  "documents.revision_download_unavailable":
+    "Download is not available for this revision.",
 };

@@ -1,5 +1,5 @@
 /**
- * Color tokens — single source of truth.
+ * Color tokens - single source of truth.
  * All hex/hsl values live in colors.json. This file re-exports for TypeScript.
  * Consumers must use color() helper or Tailwind theme classes.
  */

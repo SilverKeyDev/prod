@@ -1,0 +1,18 @@
+type: object
+required:
+  - title
+  - agreement_type
+  - buyer_id
+properties:
+  title:
+    type: string
+  agreement_type:
+    $ref: './AgreementType.yaml'
+  buyer_id:
+    type: string
+  property_address:
+    type: string
+    nullable: true
+  description:
+    type: string
+    nullable: true

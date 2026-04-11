@@ -6,9 +6,11 @@ import { useMediaQuery } from "packages/hooks/ui";
 import { useUIStore } from "packages/store";
 import type { UIState } from "packages/store/ui.slice";
 import Card from "packages/ui/components/cards/Card";
+import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
 import { Box, Text } from "packages/ui/components/primitives";
 import { screenUp } from "packages/ui/types/screens";
-import { dateNow } from "packages/utils/date";
+import { dateNow, dayjs } from "packages/utils/date";
+import { getDocument } from "packages/utils/platform";
 
 import {
   useCalendarErrorToasts,
@@ -30,7 +32,7 @@ import {
   getVisibleDateRange,
 } from "@/features/calendar/utils/date";
 import { filterEventsByCalendars } from "@/features/calendar/utils/eventFiltering";
-import { getEventStartDate } from "@/features/calendar/utils/eventParsing";
+import { getEventLocalDayKeys } from "@/features/calendar/utils/eventParsing";
 
 import { CalendarMonthBody } from "./CalendarMonthBody";
 import { buildCalendarMonthGridStyles } from "./calendarMonthGridStyles";
@@ -45,7 +47,17 @@ type CalendarProps = {
   clientUserId?: string;
   /** Agent dashboard: only calendars the user owns (not shared-in / subscription feeds). */
   ownedCalendarsOnly?: boolean;
+  /**
+   * When false, omit the expandable day list above the grid.
+   * When true (default), tapping a day shows that day’s events above the month; pointer-down outside the calendar clears the selection.
+   */
+  showSelectedDayEventList?: boolean;
 };
+
+function formatDayEventsTitle(dateKey: string): string {
+  const d = dayjs(dateKey, "YYYY-MM-DD", true);
+  return d.isValid() ? d.format("dddd, MMMM D, YYYY") : "Selected day";
+}
 
 function toDateKey(d: Date) {
   try {
@@ -62,6 +74,7 @@ export function Calendar({
   sectionTitle,
   clientUserId,
   ownedCalendarsOnly = false,
+  showSelectedDayEventList = true,
 }: CalendarProps) {
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const {
@@ -92,21 +105,57 @@ export function Calendar({
   });
 
   const { userPreferences } = useUserPreferences();
-  const { permissionsLoading, hasRequiredPermissions, isPartiallyEnabled, permissions } =
-    useGoogleCalendarPermissions();
+  const {
+    permissionsLoading,
+    hasRequiredPermissions,
+    isPartiallyEnabled,
+    permissions,
+  } = useGoogleCalendarPermissions();
 
-  const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(() => new Set());
+  const [enabledCalendarIds, setEnabledCalendarIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const silverKeyCalendarIdRef = useRef<string | null>(null);
   const initializedFromPreferencesRef = useRef(false);
   const lastCalendarsRef = useRef<string>("");
   const hadDisabledCalendarsRef = useRef(false);
 
   const [monthAnchor, setMonthAnchor] = useState(() =>
-    dateNow().subtract(dateNow().day(), "day").startOf("day")
+    dateNow().subtract(dateNow().day(), "day").startOf("day"),
   );
-  const [selectedDayKey, setSelectedDayKey] = useState(() => toDateKey(dateNow().toDate()));
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
+  const calendarShellRef = useRef<HTMLDivElement | null>(null);
 
   const isLargeScreen = useMediaQuery(screenUp("md"));
+
+  useEffect(() => {
+    if (!showSelectedDayEventList || selectedDayKey === null) {
+      return;
+    }
+    const doc = getDocument();
+    if (!doc) {
+      return;
+    }
+    const onPointerDown = (e: PointerEvent) => {
+      const el = calendarShellRef.current;
+      if (!el) {
+        return;
+      }
+      const target = e.target;
+      if (
+        target instanceof Element &&
+        target.closest(SILVERKEY_MODAL_ROOT_SELECTOR)
+      ) {
+        return;
+      }
+      if (target instanceof Node && el.contains(target)) {
+        return;
+      }
+      setSelectedDayKey(null);
+    };
+    doc.addEventListener("pointerdown", onPointerDown);
+    return () => doc.removeEventListener("pointerdown", onPointerDown);
+  }, [showSelectedDayEventList, selectedDayKey]);
 
   useEffect(() => {
     if (isClientView) {
@@ -121,17 +170,23 @@ export function Calendar({
 
     const disabledCalendars = userPreferences?.disabled_calendars;
     const hasDisabledCalendars = Array.isArray(disabledCalendars);
-    const disabledCalendarsJustLoaded = !hadDisabledCalendarsRef.current && hasDisabledCalendars;
+    const disabledCalendarsJustLoaded =
+      !hadDisabledCalendarsRef.current && hasDisabledCalendars;
     if (hasDisabledCalendars) hadDisabledCalendarsRef.current = true;
 
     const silverKeyCalendar = findSilverKeyCalendar(scopedCalendars);
-    if (silverKeyCalendar) silverKeyCalendarIdRef.current = silverKeyCalendar.id;
+    if (silverKeyCalendar)
+      silverKeyCalendarIdRef.current = silverKeyCalendar.id;
 
-    if (!initializedFromPreferencesRef.current || calendarsChanged || disabledCalendarsJustLoaded) {
+    if (
+      !initializedFromPreferencesRef.current ||
+      calendarsChanged ||
+      disabledCalendarsJustLoaded
+    ) {
       const enabledSet = initializeEnabledCalendars(
         scopedCalendars,
         hasDisabledCalendars ? disabledCalendars : undefined,
-        silverKeyCalendarIdRef.current
+        silverKeyCalendarIdRef.current,
       );
       setEnabledCalendarIds(enabledSet);
       initializedFromPreferencesRef.current = true;
@@ -140,13 +195,15 @@ export function Calendar({
   }, [scopedCalendars, userPreferences, isClientView]);
 
   const range = useMemo(() => {
-    const { timeMin, timeMax } = calculateCalendarDateRange(monthAnchor.toDate());
+    const { timeMin, timeMax } = calculateCalendarDateRange(
+      monthAnchor.toDate(),
+    );
     return { timeMin, timeMax };
   }, [monthAnchor]);
 
   const enabledCalendarIdsArray = useMemo(
     () => Array.from(enabledCalendarIds),
-    [enabledCalendarIds]
+    [enabledCalendarIds],
   );
 
   const {
@@ -159,14 +216,17 @@ export function Calendar({
     timeMin: range.timeMin,
     timeMax: range.timeMax,
     enabled:
-      !isClientView && isConnected && scopedCalendars.length > 0 && enabledCalendarIds.size > 0,
+      !isClientView &&
+      isConnected &&
+      scopedCalendars.length > 0 &&
+      enabledCalendarIds.size > 0,
   });
 
   const clientEventsQuery = useClientCalendarEventsQuery(
     isClientView ? clientUserId! : null,
     range.timeMin,
     range.timeMax,
-    "primary"
+    "primary",
   );
 
   const rawEvents = useMemo((): ExtendedGoogleEvent[] => {
@@ -184,19 +244,21 @@ export function Calendar({
     if (isClientView) {
       return rawEvents;
     }
-    return filterEventsByCalendars(rawEvents, enabledCalendarIds, scopedCalendars);
+    return filterEventsByCalendars(
+      rawEvents,
+      enabledCalendarIds,
+      scopedCalendars,
+    );
   }, [isClientView, rawEvents, enabledCalendarIds, scopedCalendars]);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, ExtendedGoogleEvent[]>();
     for (const ev of visibleEvents) {
-      const start = getEventStartDate(ev);
-      if (!start) continue;
-      const key = toDateKey(start);
-      if (!key) continue;
-      const arr = map.get(key);
-      if (arr) arr.push(ev);
-      else map.set(key, [ev]);
+      for (const key of getEventLocalDayKeys(ev)) {
+        const arr = map.get(key);
+        if (arr) arr.push(ev);
+        else map.set(key, [ev]);
+      }
     }
     return map;
   }, [visibleEvents]);
@@ -206,7 +268,7 @@ export function Calendar({
     if (!gridDays) return [];
     return gridDays.map((day) => {
       const key = toDateKey(day.date);
-      const count = key ? (eventsByDay.get(key)?.length ?? 0) : 0;
+      const count = key ? eventsByDay.get(key)?.length ?? 0 : 0;
       return {
         key,
         date: day.date,
@@ -218,7 +280,7 @@ export function Calendar({
   }, [monthAnchor, eventsByDay]);
 
   const selectedEvents = useMemo(() => {
-    return selectedDayKey ? (eventsByDay.get(selectedDayKey) ?? []) : [];
+    return selectedDayKey ? eventsByDay.get(selectedDayKey) ?? [] : [];
   }, [eventsByDay, selectedDayKey]);
 
   const visibleRangeLabel = useMemo(() => {
@@ -228,7 +290,7 @@ export function Calendar({
 
   const thisWeekSunday = useMemo(
     () => dateNow().subtract(dateNow().day(), "day").startOf("day"),
-    []
+    [],
   );
   const canGoPrev = monthAnchor.isAfter(thisWeekSunday);
 
@@ -256,14 +318,27 @@ export function Calendar({
       if (!hasRequiredPermissions || isPartiallyEnabled) return true;
     }
     return false;
-  }, [isClientView, isConnected, permissions, hasRequiredPermissions, isPartiallyEnabled]);
+  }, [
+    isClientView,
+    isConnected,
+    permissions,
+    hasRequiredPermissions,
+    isPartiallyEnabled,
+  ]);
 
-  const permissionsReady = isClientView || (!permissionsLoading && permissions !== undefined);
+  const permissionsReady =
+    isClientView || (!permissionsLoading && permissions !== undefined);
 
   if (!permissionsReady) {
     return (
       <Card border="light" className="w-full" padding="md" hover={false}>
-        <Text style={{ textAlign: "center", fontSize: 14, color: color("neutral.500") }}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontSize: 14,
+            color: color("neutral.500"),
+          }}
+        >
           Loading calendar permissions…
         </Text>
       </Card>
@@ -273,7 +348,13 @@ export function Calendar({
   if (isClientView && clientEventsQuery.isLoading) {
     return (
       <Card border="light" className="w-full" padding="md" hover={false}>
-        <Text style={{ textAlign: "center", fontSize: 14, color: color("neutral.500") }}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontSize: 14,
+            color: color("neutral.500"),
+          }}
+        >
           Loading client calendar…
         </Text>
       </Card>
@@ -287,7 +368,13 @@ export function Calendar({
         : "Could not load this client’s calendar.";
     return (
       <Card border="light" className="w-full" padding="md" hover={false}>
-        <Text style={{ textAlign: "center", fontSize: 14, color: color("neutral.500") }}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontSize: 14,
+            color: color("neutral.500"),
+          }}
+        >
           {message}
         </Text>
       </Card>
@@ -297,7 +384,10 @@ export function Calendar({
   if (shouldShowConnectionPrompt) {
     return (
       <Card border="light" className="w-full" padding="md" hover={false}>
-        <CalendarConnectionPrompt onConnect={handleConnect} isLoading={calendarsLoading} />
+        <CalendarConnectionPrompt
+          onConnect={handleConnect}
+          isLoading={calendarsLoading}
+        />
       </Card>
     );
   }
@@ -305,9 +395,41 @@ export function Calendar({
   const cellWidth = `${100 / 7}%` as const;
   const styles = buildCalendarMonthGridStyles(cellWidth, spacing);
 
+  const bodySelectedKey = showSelectedDayEventList ? selectedDayKey : null;
+
   return (
     <Card border="none" className="w-full" padding="none" hover={false}>
-      <Box style={styles.container}>
+      <Box ref={calendarShellRef} style={styles.container}>
+        {showSelectedDayEventList && selectedDayKey !== null ? (
+          <Box
+            style={{
+              paddingHorizontal: spacing(4),
+              paddingTop: spacing(3),
+              width: "100%",
+            }}
+          >
+            <EventList
+              events={selectedEvents}
+              title={formatDayEventsTitle(selectedDayKey)}
+              emptyMessage="No events for this day"
+              silverKeyCalendarId={
+                isClientView ? null : silverKeyCalendarIdRef.current
+              }
+              refreshEvents={
+                isClientView
+                  ? async () => {
+                      await clientEventsQuery.refetch();
+                    }
+                  : refetchEvents
+              }
+              updateEvent={isClientView ? undefined : updateEvent}
+              deleteEvent={isClientView ? undefined : deleteEvent}
+              calendars={isClientView ? [] : scopedCalendars}
+              border="light"
+            />
+          </Box>
+        ) : null}
+
         <CalendarMonthViewHeader
           sectionTitle={sectionTitle}
           monthLabel={visibleRangeLabel}
@@ -319,27 +441,11 @@ export function Calendar({
             styles={styles}
             days={days}
             eventsByDay={eventsByDay}
-            selectedDayKey={selectedDayKey}
-            onSelectDay={setSelectedDayKey}
+            selectedDayKey={bodySelectedKey}
+            onSelectDay={(key) => setSelectedDayKey(key)}
             isLargeScreen={isLargeScreen}
           />
         </CalendarMonthViewHeader>
-
-        <EventList
-          events={selectedEvents}
-          emptyMessage="No events for this day"
-          silverKeyCalendarId={isClientView ? null : silverKeyCalendarIdRef.current}
-          refreshEvents={
-            isClientView
-              ? async () => {
-                  await clientEventsQuery.refetch();
-                }
-              : refetchEvents
-          }
-          updateEvent={isClientView ? undefined : updateEvent}
-          deleteEvent={isClientView ? undefined : deleteEvent}
-          calendars={isClientView ? [] : scopedCalendars}
-        />
       </Box>
     </Card>
   );

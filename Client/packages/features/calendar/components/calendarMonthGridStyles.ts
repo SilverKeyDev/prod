@@ -4,7 +4,10 @@ const MAX_ASPECT_RATIO = 1.5;
 
 type SpacingFn = (n: number) => string | number;
 
-export function buildCalendarMonthGridStyles(cellWidth: `${number}%`, spacingFn: SpacingFn) {
+export function buildCalendarMonthGridStyles(
+  cellWidth: `${number}%`,
+  spacingFn: SpacingFn,
+) {
   return {
     container: {
       width: "100%" as const,
@@ -97,6 +100,18 @@ export function buildCalendarMonthGridStyles(cellWidth: `${number}%`, spacingFn:
       backgroundColor: "rgba(163, 177, 138, 0.12)",
       alignSelf: "flex-start" as const,
     },
+    /** Multi-day / range event — first (or only) day shown in a cell */
+    eventChipMultiDay: {
+      borderLeftStyle: "dashed" as const,
+      borderLeftColor: color("brand.accent"),
+      backgroundColor: "rgba(163, 177, 138, 0.16)",
+    },
+    /** Same event on later days of a range */
+    eventChipMultiDayContinuation: {
+      borderLeftStyle: "dashed" as const,
+      borderLeftColor: color("neutral.400"),
+      backgroundColor: "rgba(120, 120, 120, 0.08)",
+    },
     eventChipText: {
       fontSize: 10,
       fontWeight: "600" as const,
@@ -106,4 +121,6 @@ export function buildCalendarMonthGridStyles(cellWidth: `${number}%`, spacingFn:
   };
 }
 
-export type CalendarMonthGridStyles = ReturnType<typeof buildCalendarMonthGridStyles>;
+export type CalendarMonthGridStyles = ReturnType<
+  typeof buildCalendarMonthGridStyles
+>;

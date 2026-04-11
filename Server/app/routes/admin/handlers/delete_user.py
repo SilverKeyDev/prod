@@ -1,16 +1,24 @@
 """Admin-only endpoint to hard-delete a user and related application data."""
 
+from flask import request
+
+from app.schemas import DeleteUserRequest, DeleteUserResponse
 from app.services.user.delete_user import delete_user_and_all_related_data
 from app.utils.common_patterns import (
-    api_route,
+    handle_exceptions_with_logging,
+    require_authenticated_user,
     standardize_error_response,
     standardize_success_response,
 )
+from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
 
 
-@api_route(require_auth=True, require_json=True, required_fields=["user_id"])
-def delete_user_account(data, user):
+@handle_exceptions_with_logging
+@require_authenticated_user
+@validate_request(DeleteUserRequest)
+@validate_response(DeleteUserResponse)
+def delete_user_account(user, data: DeleteUserRequest | None = None):
     """
     Permanently delete a user by primary key (users.id).
 
@@ -23,13 +31,22 @@ def delete_user_account(data, user):
         {"actor_id": getattr(user, "id", None)},
     )
 
-    if data.get("confirm") is not True:
-        return standardize_error_response(
-            'confirm must be true (JSON boolean). Send {"confirm": true}',
-            status_code=400,
-        )
+    if data is None:
+        request_data = request.get_json(silent=True) or {}
+        if request_data.get("confirm") is not True:
+            return standardize_error_response(
+                'confirm must be true (JSON boolean). Send {"confirm": true}',
+                status_code=400,
+            )
+        target_id = request_data.get("user_id")
+    else:
+        if data.confirm is not True:
+            return standardize_error_response(
+                'confirm must be true (JSON boolean). Send {"confirm": true}',
+                status_code=400,
+            )
+        target_id = data.user_id
 
-    target_id = data.get("user_id")
     if not isinstance(target_id, str) or not target_id.strip():
         return standardize_error_response("user_id must be a non-empty string", status_code=400)
 

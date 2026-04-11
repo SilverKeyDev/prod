@@ -30,7 +30,9 @@ export function TimeSlotPicker({
           size="sm"
           onClick={() => onSelectSlot(slot)}
           className={`w-full rounded border p-2 text-left text-sm ${
-            selectedSlot === slot ? "border-primary bg-primary-muted" : "border-border"
+            selectedSlot === slot
+              ? "border-border bg-primary-muted"
+              : "border-border"
           }`}
           disabled={!slot.isAvailable}
         >

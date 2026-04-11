@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app import db
 
 
@@ -9,27 +11,27 @@ class AgreementRevision(db.Model):
 
     __tablename__ = "agreement_revisions"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    agreement_id = db.Column(
-        db.String(36), db.ForeignKey("agreements.id"), nullable=False, index=True
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    version_number = db.Column(db.Integer, nullable=False)  # Auto-increment per agreement
+    agreement_id: Mapped[str] = mapped_column(db.ForeignKey("agreements.id"), index=True)
+    version_number: Mapped[int] = mapped_column(db.Integer)  # Auto-increment per agreement
 
     # Document storage
-    file_path = db.Column(db.String(512), nullable=False)  # S3 key
-    filename = db.Column(db.String(255), nullable=False)
-    file_size = db.Column(db.Integer)
-    file_hash = db.Column(db.String(64), nullable=False)  # SHA-256 for integrity
-    mime_type = db.Column(db.String(100), default="application/pdf")
+    file_path: Mapped[str] = mapped_column(db.String(512))  # S3 key
+    filename: Mapped[str] = mapped_column(db.String(255))
+    file_size: Mapped[int | None] = mapped_column(db.Integer)
+    file_hash: Mapped[str] = mapped_column(db.String(64))  # SHA-256 for integrity
+    mime_type: Mapped[str] = mapped_column(db.String(100), default="application/pdf")
 
     # Template info (if generated from template)
-    template_id = db.Column(db.String(100), nullable=True)  # DocuSign template ID
-    template_variables = db.Column(db.Text, nullable=True)  # JSON of filled variables
+    template_id: Mapped[str | None] = mapped_column(db.String(100))  # DocuSign template ID
+    template_variables: Mapped[str | None] = mapped_column(db.Text)  # JSON of filled variables
 
     # Metadata
-    created_by = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    notes = db.Column(db.Text, nullable=True)
+    created_by: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    notes: Mapped[str | None] = mapped_column(db.Text)
 
     # Relationships
     agreement = db.relationship(

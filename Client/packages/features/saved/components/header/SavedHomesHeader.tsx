@@ -20,7 +20,7 @@ export type SavedHomesHeaderProps = {
   onClientChange: (clientId: string | null) => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
   onEventTypeFilterChange?: (
-    eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
   ) => void;
 };
 
@@ -44,11 +44,18 @@ export default function SavedHomesHeader({
   const searchPlaceholder =
     viewType === "homes"
       ? "Search saved homes..."
-      : viewType === "documents"
-        ? "Search documents..."
-        : "Filter by address";
+      : viewType === "agreements"
+        ? "Search agreements..."
+        : viewType === "documents"
+          ? "Search documents..."
+          : "Filter by address";
 
-  const refreshTitle = viewType === "homes" ? "Refresh saved homes" : "Refresh documents";
+  const refreshTitle =
+    viewType === "homes"
+      ? "Refresh saved homes"
+      : viewType === "agreements"
+        ? "Refresh agreements"
+        : "Refresh documents";
 
   const rightText =
     viewType === "homes"
@@ -58,12 +65,18 @@ export default function SavedHomesHeader({
         : "";
 
   const clientToolbar = isAgent ? (
-    <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
+    <ClientSelector
+      selectedClientId={selectedClientId}
+      onClientChange={onClientChange}
+    />
   ) : undefined;
 
   if (isMobile) {
     return (
-      <Box className="flex w-full flex-col justify-center gap-1.5" key={viewType}>
+      <Box
+        className="flex w-full flex-col justify-center gap-1.5"
+        key={viewType}
+      >
         <SavedLayout
           key={`saved-layout-${viewType}`}
           toolbarLeading={clientToolbar}
@@ -79,8 +92,12 @@ export default function SavedHomesHeader({
           rightText={rightText}
           viewType={viewType}
           onViewTypeChange={onViewTypeChange}
-          eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
-          onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
+          eventTypeFilter={
+            viewType === "documents" ? eventTypeFilter : undefined
+          }
+          onEventTypeFilterChange={
+            viewType === "documents" ? onEventTypeFilterChange : undefined
+          }
         />
       </Box>
     );
@@ -102,7 +119,9 @@ export default function SavedHomesHeader({
       viewType={viewType}
       onViewTypeChange={onViewTypeChange}
       eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
-      onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
+      onEventTypeFilterChange={
+        viewType === "documents" ? onEventTypeFilterChange : undefined
+      }
     />
   );
 }

@@ -55,9 +55,18 @@ export function Bold({ children }: { children: React.ReactNode }) {
   return <Text style={styles.bold}>{children}</Text>;
 }
 
-export function EmailLink({ href, children }: { href: string; children: React.ReactNode }) {
+export function EmailLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
   const isExternal =
-    href.startsWith("mailto:") || href.startsWith("http://") || href.startsWith("https://");
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:") ||
+    href.startsWith("http://") ||
+    href.startsWith("https://");
   const handlePress = () => {
     if (isExternal) void Linking.openURL(href);
   };
@@ -81,13 +90,12 @@ type StaticPageLayoutProps = {
   backButtonTo?: string;
   backButtonText?: string;
   children: React.ReactNode;
-  centered?: boolean;
 };
 
 export default function StaticPageLayout({
   title,
   subtitle,
-  backButtonText = "Back to Home",
+  backButtonText = "Back to home",
   children,
 }: StaticPageLayoutProps) {
   const navigation = useNavigation();
@@ -95,7 +103,10 @@ export default function StaticPageLayout({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Text style={styles.backButtonText}>{backButtonText}</Text>
         </Pressable>
         <Text style={styles.title}>{title}</Text>

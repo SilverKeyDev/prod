@@ -2,7 +2,7 @@
 User signup flow handler.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from flask import current_app
@@ -39,13 +39,14 @@ def handle_signup(data: dict[str, Any]) -> tuple[dict[str, Any], int]:
 
     # Create user in database (non-blocking)
     try:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         user = User(
             id=result["user_sub"],
             cognito_id=result["user_sub"],
             email=data["email"],
             name=data["name"],
             phone=data.get("phone"),
+            brokerage=(str(data["brokerage"]).strip() if data.get("brokerage") else None),
             created_at=now,
             updated_at=now,
             last_logged_in=now,

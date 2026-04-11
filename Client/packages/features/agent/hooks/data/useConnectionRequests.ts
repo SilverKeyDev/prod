@@ -16,14 +16,14 @@ export type UseConnectionRequestsReturn = {
   createRequest: (
     agentId: string,
     clientId: string,
-    message?: string
+    message?: string,
   ) => Promise<{ alreadyPending: boolean }>;
   /** Create a connection request. Pass initiator (current user) and other party. Handles agentId/clientId order. */
   createRequestAsInitiator: (
     initiatorId: string,
     otherPartyId: string,
     isAgent: boolean,
-    message?: string
+    message?: string,
   ) => Promise<{ alreadyPending: boolean }>;
   respondToRequest: (requestId: string, accept: boolean) => Promise<void>;
   isCreatingRequest: boolean;
@@ -49,13 +49,15 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
     queryFn: async () => {
       const response = await agentApi.getConnectionRequests();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch connection requests");
+        throw new Error(
+          response.error ?? "Failed to fetch connection requests",
+        );
       }
       return response.requests ?? [];
     },
     enabled: authReady && isAuthenticated,
-    staleTime: 1 * 60 * 1000, // 1 minute
-    refetchOnMount: false, // Don't refetch if data exists (use cached data from initial load)
+    staleTime: 30 * 1000, // 30 seconds - keep in sync with dataConfig
+    refetchOnMount: "always",
   });
 
   // Create request mutation
@@ -69,9 +71,15 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
       clientId: string;
       message?: string;
     }) => {
-      const response = await agentApi.createConnectionRequest(agentId, clientId, message);
+      const response = await agentApi.createConnectionRequest(
+        agentId,
+        clientId,
+        message,
+      );
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to create connection request");
+        throw new Error(
+          response.error ?? "Failed to create connection request",
+        );
       }
       return {
         request: response.request,
@@ -87,10 +95,21 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
 
   // Respond to request mutation
   const respondMutation = useMutation({
-    mutationFn: async ({ requestId, accept }: { requestId: string; accept: boolean }) => {
-      const response = await agentApi.respondToConnectionRequest(requestId, accept);
+    mutationFn: async ({
+      requestId,
+      accept,
+    }: {
+      requestId: string;
+      accept: boolean;
+    }) => {
+      const response = await agentApi.respondToConnectionRequest(
+        requestId,
+        accept,
+      );
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to respond to connection request");
+        throw new Error(
+          response.error ?? "Failed to respond to connection request",
+        );
       }
       return response.request;
     },
@@ -114,27 +133,36 @@ export function useConnectionRequests(): UseConnectionRequestsReturn {
 
   const createRequest = useCallback(
     async (agentId: string, clientId: string, message?: string) => {
-      const result = await createRequestMutation.mutateAsync({ agentId, clientId, message });
+      const result = await createRequestMutation.mutateAsync({
+        agentId,
+        clientId,
+        message,
+      });
       return { alreadyPending: result.alreadyPending };
     },
-    [createRequestMutation]
+    [createRequestMutation],
   );
 
   const createRequestAsInitiator = useCallback(
-    async (initiatorId: string, otherPartyId: string, isAgent: boolean, message?: string) => {
+    async (
+      initiatorId: string,
+      otherPartyId: string,
+      isAgent: boolean,
+      message?: string,
+    ) => {
       if (isAgent) {
         return createRequest(initiatorId, otherPartyId, message);
       }
       return createRequest(otherPartyId, initiatorId, message);
     },
-    [createRequest]
+    [createRequest],
   );
 
   const respondToRequest = useCallback(
     async (requestId: string, accept: boolean) => {
       await respondMutation.mutateAsync({ requestId, accept });
     },
-    [respondMutation]
+    [respondMutation],
   );
 
   return {

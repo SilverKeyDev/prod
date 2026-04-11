@@ -6,10 +6,15 @@ import CardNotInterested from "packages/ui/components/button/NotInterested";
 import { Box } from "packages/ui/components/primitives";
 import BodyText from "packages/ui/components/text/BodyText";
 
-import type { Property, SearchResult } from "@/features/search/types";
+import {
+  isListingFullCriteriaMatch,
+  type Property,
+  type SearchResult,
+} from "@/features/search/types";
 
 import { StyledImage } from "./base/index.web";
 import BaseCard from "./BaseCard";
+import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "./perfectMatchCardGlowClasses";
 import {
   PropertyCardDetailsRow,
   PropertyCardHideImageHeader,
@@ -73,6 +78,19 @@ export type PropertyCardProps = {
   width?: "auto" | "full" | "standard" | "wide" | "narrow";
 };
 
+function propertyCardShowsPerfectCriteriaMatch(
+  props: PropertyCardProps,
+): boolean {
+  const fromListing =
+    props.property &&
+    typeof props.property === "object" &&
+    "_score" in props.property &&
+    typeof (props.property as SearchResult)._score === "number"
+      ? (props.property as SearchResult)._score
+      : undefined;
+  return isListingFullCriteriaMatch({ _score: fromListing ?? props.score });
+}
+
 function formatPrice(price: string | number): string {
   if (typeof price === "number") {
     return `$${price.toLocaleString()}`;
@@ -104,8 +122,9 @@ function PropertyCardImageSection({
   property?: SearchResult | Property;
   onMarkNotInterested: () => void;
 }) {
-  const placeholder = "/api/placeholder/400/300";
-  const heightClass = cardType === "searchpage" ? "h-24 sm:h-28 md:h-32" : "h-32 sm:h-40 md:h-48";
+  const placeholder = "/placeholders/dummy-photo.svg";
+  const heightClass =
+    cardType === "searchpage" ? "h-32 sm:h-36 md:h-40" : "h-32 sm:h-40 md:h-48";
   return (
     <Box className={`relative overflow-hidden ${heightClass}`}>
       <StyledImage
@@ -128,10 +147,15 @@ function PropertyCardImageSection({
       {pricePosition !== "below-address" && (
         <Box
           className={`absolute top-3 sm:top-4 ${
-            pricePosition === "top-left" ? "left-3 sm:left-4" : "right-3 sm:right-4"
+            pricePosition === "top-left"
+              ? "left-3 sm:left-4"
+              : "right-3 sm:right-4"
           } border-border bg-primary-muted rounded-full border px-2 py-1 backdrop-blur-sm sm:px-3 sm:py-1.5`}
         >
-          <BodyText as="span" className="text-primary text-xs font-medium sm:text-sm">
+          <BodyText
+            as="span"
+            className="text-primary text-xs font-medium sm:text-sm"
+          >
             {formatPrice(price)}
           </BodyText>
         </Box>
@@ -178,7 +202,8 @@ type PropertyCardBodyProps = {
 };
 
 function PropertyCardBody(props: PropertyCardBodyProps) {
-  const addressClassName = props.pricePosition === "below-address" ? "mb-0 w-full" : "mb-1 w-full";
+  const addressClassName =
+    props.pricePosition === "below-address" ? "mb-0 w-full" : "mb-1 w-full";
   return (
     <>
       <Box className="space-y-2 p-3 sm:space-y-3 sm:p-4">
@@ -326,7 +351,20 @@ function PropertyCardMainView({
   props: PropertyCardProps;
   setShowReasonCard: (v: boolean) => void;
 }) {
-  const { cardType = "regular", loading = false, onClick, className = "", width } = props;
+  const {
+    cardType = "regular",
+    loading = false,
+    onClick,
+    className = "",
+    width,
+  } = props;
+  const perfectCriteria = propertyCardShowsPerfectCriteriaMatch(props);
+  const cardClassName = [
+    className,
+    perfectCriteria ? PERFECT_CRITERIA_MATCH_CARD_CLASSNAME : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
     <BaseCard
       hover
@@ -336,10 +374,13 @@ function PropertyCardMainView({
       cardType={cardType}
       width={width}
       background="white"
-      className={className}
+      className={cardClassName}
       onClick={onClick}
     >
-      <PropertyCardMainContent props={props} setShowReasonCard={setShowReasonCard} />
+      <PropertyCardMainContent
+        props={props}
+        setShowReasonCard={setShowReasonCard}
+      />
     </BaseCard>
   );
 }
@@ -382,7 +423,10 @@ function PropertyCardImpl(props: PropertyCardProps) {
   };
 
   const showReasonView =
-    showReasonCard && property && onSelectNotInterestedReason && onUndoNotInterested;
+    showReasonCard &&
+    property &&
+    onSelectNotInterestedReason &&
+    onUndoNotInterested;
 
   if (showReasonView && property) {
     return (
@@ -394,7 +438,9 @@ function PropertyCardImpl(props: PropertyCardProps) {
       />
     );
   }
-  return <PropertyCardMainView props={props} setShowReasonCard={setShowReasonCard} />;
+  return (
+    <PropertyCardMainView props={props} setShowReasonCard={setShowReasonCard} />
+  );
 }
 
 export const PropertyCard = PropertyCardImpl;

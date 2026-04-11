@@ -18,40 +18,40 @@ Reference for **Tailwind** and **PostCSS** configs in the Client monorepo: web v
 
 ## 2. Web (Vite + PostCSS)
 
-- **apps/web/tailwind.config.ts**  
-  - Imports the shared preset from **packages/config/tailwind** (ESM: `index.ts`).  
-  - **Content** paths: `./index.html`, `./app/**/*`, `./pages/**/*`, `./components/**/*`, `./features/**/*`, and package globs for `packages/ui`, `packages/features`, `packages/contexts`, `packages/email-templates`.  
+- **apps/web/tailwind.config.ts**
+  - Imports the shared preset from **packages/config/tailwind** (ESM: `index.ts`).
+  - **Content** paths: `./index.html`, `./app/**/*`, `./pages/**/*`, `./components/**/*`, `./features/**/*`, and package globs for `packages/ui`, `packages/features`, `packages/contexts`, `packages/email-templates`.
   - Tailwind is invoked via PostCSS.
 
-- **apps/web/postcss.config.js**  
-  - Plugins: `tailwindcss()`, `autoprefixer()`.  
-  - Referenced by **Vite** via `vite.config.ts` → `css.postcss: "./postcss.config.js"`.  
+- **apps/web/postcss.config.js**
+  - Plugins: `tailwindcss()`, `autoprefixer()`.
+  - Referenced by **Vite** via `vite.config.js` → `css.postcss: "./postcss.config.js"`.
   - No explicit config path is passed to `tailwindcss()`; it resolves **tailwind.config.ts** in the same app directory.
 
 ---
 
 ## 3. Mobile (Metro + NativeWind)
 
-- **apps/mobile/tailwind.config.js**  
-  - **Presets:** `nativewind/preset` first, then the shared CJS preset:  
-    `require(path.resolve(__dirname, "../../packages/config/tailwind/preset.cjs.js"))`.  
-  - **Content:** `./App.{js,jsx,ts,tsx}`, `./app/**/*`, `./components/**/*`, and `packages/ui/**/*`.  
+- **apps/mobile/tailwind.config.js**
+  - **Presets:** `nativewind/preset` first, then the shared CJS preset:
+    `require(path.resolve(__dirname, "../../packages/config/tailwind/preset.cjs.js"))`.
+  - **Content:** `./App.{js,jsx,ts,tsx}`, `./app/**/*`, `./components/**/*`, and `packages/ui/**/*`.
   - Used by **NativeWind** via Metro (`withNativeWind` in `metro.config.js`); there is no PostCSS step for the mobile app.
 
-- **No postcss.config in apps/mobile**  
+- **No postcss.config in apps/mobile**
   - NativeWind runs in the Metro bundler pipeline, not through Vite or PostCSS. A separate PostCSS config is not required for mobile.
 
 ---
 
 ## 4. Shared preset (ESM vs CJS)
 
-- **packages/config/tailwind/index.ts**  
-  - Imports design tokens from **packages/design-tokens** (breakpoints, colors, fontFamily, fontSize, spacing, etc.) and exports a single preset object.  
+- **packages/config/tailwind/index.ts**
+  - Imports design tokens from **packages/design-tokens** (breakpoints, colors, fontFamily, fontSize, spacing, etc.) and exports a single preset object.
   - ESM only; used by **web** `tailwind.config.ts`.
 
-- **packages/config/tailwind/preset.cjs.js**  
-  - Inlines the same theme (breakpoints, colors, fontFamily, fontSize, spacing, animations, keyframes, zIndex, etc.) in CommonJS.  
-  - Used by **mobile** `tailwind.config.js` because Metro/Node need a CJS-requireable file.  
+- **packages/config/tailwind/preset.cjs.js**
+  - Inlines the same theme (breakpoints, colors, fontFamily, fontSize, spacing, animations, keyframes, zIndex, etc.) in CommonJS.
+  - Used by **mobile** `tailwind.config.js` because Metro/Node need a CJS-requireable file.
   - **Sync:** The comment in the file says to keep it in sync with `index.ts` and `packages/design-tokens`. When you change the shared theme, update both the ESM preset and this CJS file (or add a script to generate it from the ESM preset).
 
 ---
@@ -80,6 +80,6 @@ Client/
 ## 6. References
 
 - **Design tokens:** `Client/packages/design-tokens/` — Tailwind presets and other consumers use these; `index.ts` imports from here; `preset.cjs.js` inlines a copy.
-- **Vite CSS:** `Client/apps/web/vite.config.ts` → `css.postcss: "./postcss.config.js"`.
+- **Vite CSS:** `Client/apps/web/vite.config.js` → `css.postcss: "./postcss.config.js"`.
 - **NativeWind:** `Client/apps/mobile/metro.config.js` → `withNativeWind(config, { input: "./global.css" })`.
 - **High-level config overview:** [config-files-reference.md](./config-files-reference.md).

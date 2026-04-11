@@ -1,0 +1,48 @@
+type: object
+required:
+  - id
+  - agent_id
+  - client_id
+  - created_at
+  - updated_at
+properties:
+  id:
+    type: string
+  agent_id:
+    type: string
+  client_id:
+    type: string
+  client_name:
+    type: string
+    nullable: true
+  client_email:
+    type: string
+    nullable: true
+  client_profile_picture:
+    type: string
+    nullable: true
+  agent_name:
+    type: string
+    nullable: true
+  agent_email:
+    type: string
+    nullable: true
+  agent_profile_picture:
+    type: string
+    nullable: true
+  last_message:
+    type: string
+    nullable: true
+  last_message_at:
+    type: string
+    nullable: true
+  created_at:
+    type: string
+  updated_at:
+    type: string
+  unread_count:
+    type: integer
+    nullable: true
+  last_read_at:
+    type: string
+    nullable: true

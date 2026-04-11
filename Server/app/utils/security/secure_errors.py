@@ -24,6 +24,12 @@ GENERIC_ERROR_MESSAGES = {
     "database_error": "Unable to process request",
     "external_api_error": "External service temporarily unavailable",
     "configuration_error": "Service temporarily unavailable",
+    "agreement_state_error": "Agreement cannot be sent in its current state",
+    "agreement_not_found": "Agreement not found",
+    "participant_not_found": "Participant not found",
+    "revision_not_found": "Agreement revision not found",
+    "template_not_found": "Template not found",
+    "docusign_error": "Document signing service error",
 }
 
 
@@ -178,6 +184,20 @@ class SecureErrorHandler:
 
         # Never expose configuration details to users
         return SecureErrorHandler.create_secure_response("configuration_error", 503, error_id)
+
+    @staticmethod
+    def handle_docusign_error(
+        error: Exception,
+        error_type: str = "docusign_error",
+        status_code: int = 400,
+        context: dict[str, Any] | None = None,
+    ) -> tuple:
+        """Handle DocuSign-related errors securely."""
+        error_id = SecureErrorHandler.generate_error_id()
+        SecureErrorHandler.log_error_details(error_id, error, context)
+
+        # Provide user-friendly messages for common DocuSign errors
+        return SecureErrorHandler.create_secure_response(error_type, status_code, error_id)
 
     @staticmethod
     def handle_error(

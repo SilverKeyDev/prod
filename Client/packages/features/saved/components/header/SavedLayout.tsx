@@ -28,11 +28,11 @@ type SavedLayoutProps = {
   isLoading?: boolean;
   refreshTitle?: string;
   rightText?: string;
-  viewType?: "homes" | "documents";
-  onViewTypeChange?: (type: "homes" | "documents") => void;
+  viewType?: "homes" | "documents" | "agreements";
+  onViewTypeChange?: (type: "homes" | "documents" | "agreements") => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
   onEventTypeFilterChange?: (
-    eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
+    eventType: "listed" | "price_change" | "sold" | "withdrawn" | "",
   ) => void;
 };
 const SavedLayout: React.FC<SavedLayoutProps> = ({
@@ -59,7 +59,11 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
         variant={viewMode === "grid" ? "primary" : "secondary"}
         size="sm"
         onClick={() => onViewModeChange("grid")}
-        className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "grid" ? "bg-primary text-white" : "bg-accent-muted hover:bg-primary text-white"}`}
+        className={`touch-friendly rounded px-3 py-2.5 ${
+          viewMode === "grid"
+            ? "bg-primary text-white"
+            : "bg-accent-muted hover:bg-primary text-white"
+        }`}
       >
         <Box className="mobile-icon-xs grid grid-cols-2 gap-1">
           <Box className="rounded-sm bg-current" />
@@ -72,7 +76,11 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
         variant={viewMode === "list" ? "primary" : "secondary"}
         size="sm"
         onClick={() => onViewModeChange("list")}
-        className={`touch-friendly rounded px-3 py-2.5 ${viewMode === "list" ? "bg-primary text-white" : "bg-accent-muted hover:bg-primary text-white"}`}
+        className={`touch-friendly rounded px-3 py-2.5 ${
+          viewMode === "list"
+            ? "bg-primary text-white"
+            : "bg-accent-muted hover:bg-primary text-white"
+        }`}
       >
         <Box className="mobile-icon-xs space-y-1">
           <Box className="h-0.5 rounded-sm bg-current" />
@@ -91,7 +99,7 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
         onClick={() => onViewTypeChange("homes")}
         className={`-mb-px rounded-none border-b-2 ${
           viewType === "homes"
-            ? "border-accent text-text-secondary text-base font-semibold"
+            ? "text-text-secondary border-neutral-500 text-base font-semibold"
             : "text-text-secondary hover:text-text-secondary border-transparent text-sm font-medium"
         }`}
       >
@@ -103,11 +111,23 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
         onClick={() => onViewTypeChange("documents")}
         className={`-mb-px rounded-none border-b-2 ${
           viewType === "documents"
-            ? "border-accent text-text-secondary text-base font-semibold"
+            ? "text-text-secondary border-neutral-500 text-base font-semibold"
             : "text-text-secondary hover:text-text-secondary border-transparent text-sm font-medium"
         }`}
       >
         {t("saved.tab_documents")}
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onViewTypeChange("agreements")}
+        className={`-mb-px rounded-none border-b-2 ${
+          viewType === "agreements"
+            ? "text-text-secondary border-neutral-500 text-base font-semibold"
+            : "text-text-secondary hover:text-text-secondary border-transparent text-sm font-medium"
+        }`}
+      >
+        {t("saved.tab_agreements", { defaultValue: "DocuSign" })}
       </Button>
     </Box>
   );
@@ -117,7 +137,9 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
       <Card border="light" padding="none" className="w-full p-3">
         <Box className="flex flex-wrap items-center justify-between gap-3">
           {toolbarLeading ? (
-            <Box className="flex w-full shrink-0 items-center sm:w-auto">{toolbarLeading}</Box>
+            <Box className="flex w-full shrink-0 items-center sm:w-auto">
+              {toolbarLeading}
+            </Box>
           ) : null}
           {/* Separate div for left content */}
           {leftContent && !showSearch && (
@@ -132,11 +154,19 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
 
           {/* Separate div for everything else (search, dropdown, refresh, view toggle, etc.) */}
           <Box
-            className={`flex flex-1 flex-wrap items-center justify-between ${isMobile && viewType !== "homes" && viewType !== "documents" ? "hidden" : ""}`}
+            className={`flex flex-1 flex-wrap items-center justify-between ${
+              isMobile && viewType !== "homes" && viewType !== "documents"
+                ? "hidden"
+                : ""
+            }`}
           >
             {/* Left side: Search input or empty space */}
             <Box
-              className={`flex min-w-0 items-center gap-3 ${showSearch ? "w-full flex-1 justify-center sm:w-auto sm:justify-start" : "shrink-0"}`}
+              className={`flex min-w-0 items-center gap-3 ${
+                showSearch
+                  ? "w-full flex-1 justify-center sm:w-auto sm:justify-start"
+                  : "shrink-0"
+              }`}
             >
               {showSearch ? (
                 <Box className="relative min-w-48 flex-1">
@@ -163,7 +193,9 @@ const SavedLayout: React.FC<SavedLayoutProps> = ({
 
             {/* Right side: View toggle, refresh, dropdown, etc. */}
             <Box
-              className={`flex shrink-0 items-center justify-end ${viewType === "homes" && isMobile ? "gap-3" : "gap-2"}`}
+              className={`flex shrink-0 items-center justify-end ${
+                viewType === "homes" && isMobile ? "gap-3" : "gap-2"
+              }`}
             >
               {ViewToggle}
             </Box>

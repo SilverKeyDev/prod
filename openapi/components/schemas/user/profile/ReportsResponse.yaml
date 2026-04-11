@@ -1,0 +1,15 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      documents:
+        type: array
+        items:
+          $ref: '../../agreements/documents/UploadedDocumentRecord.yaml'
+        nullable: true
+      reports:
+        type: array
+        items:
+          $ref: './ReportListItem.yaml'
+        nullable: true
+        description: Property report list entries (GET /api/v1/report/list shape); legacy clients may have conflated this with upload rows.

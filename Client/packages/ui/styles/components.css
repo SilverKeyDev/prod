@@ -23,16 +23,16 @@
     @apply btn-responsive-md bg-primary hover:bg-primary-hover text-white shadow-sm hover:shadow-md active:scale-95;
   }
   .btn-secondary {
-    @apply btn-responsive-md border-primary text-primary hover:bg-primary border bg-transparent hover:text-white active:scale-95;
+    @apply btn-responsive-md border-border text-primary hover:bg-primary border bg-transparent hover:text-white active:scale-95;
   }
   .btn-danger {
-    @apply btn-responsive-md border-destructive text-destructive hover:bg-destructive-hover border bg-white shadow-sm hover:text-white hover:shadow-md active:scale-95;
+    @apply btn-responsive-md border-border text-destructive hover:bg-destructive-hover border bg-white shadow-sm hover:text-white hover:shadow-md active:scale-95;
   }
   .btn-success {
     @apply btn-responsive-md bg-primary hover:bg-primary-hover text-white shadow-sm hover:shadow-md active:scale-95;
   }
   .btn-warning {
-    @apply btn-responsive-md bg-accent hover:bg-accent-hover border-2 border-black text-white shadow-sm hover:shadow-md active:scale-95;
+    @apply btn-responsive-md bg-accent hover:bg-accent-hover text-white shadow-sm hover:shadow-md active:scale-95;
   }
   .btn-info {
     @apply btn-responsive-md bg-neutral-600 text-white shadow-sm hover:bg-neutral-700 hover:shadow-md active:scale-95;
@@ -49,7 +49,7 @@
   /* Inputs */
   .input-field,
   .mobile-input {
-    @apply border-border focus:border-accent focus:ring-accent-muted w-full rounded-lg border bg-white px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3.5 lg:px-6 lg:py-4;
+    @apply border-border w-full rounded-lg border bg-white px-3 py-2 transition-all duration-200 focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-200 sm:px-4 sm:py-2.5 md:px-5 md:py-3.5 lg:px-6 lg:py-4;
     font-size: 1rem; /* prevents iOS zoom */
   }
 
@@ -113,9 +113,59 @@
   }
 
   /*
-   * Range slider (web): reset host + tracks so thumb centers traverse the same width as the
-   * custom overlay track/fill in BudgetRangeSlider / PriceRangeSlider (rem-based calc).
+   * Range slider (web): one gradient track layer (CSS vars for stops) + stacked inputs with
+   * transparent native tracks and visible thumbs only. Stops use the same 0–100% as input values.
    */
+  .sk-range-track-dual {
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(
+      to right,
+      var(--sk-track) 0%,
+      var(--sk-track) var(--sk-range-min, 0%),
+      var(--sk-fill) var(--sk-range-min, 0%),
+      var(--sk-fill) var(--sk-range-max, 100%),
+      var(--sk-track) var(--sk-range-max, 100%),
+      var(--sk-track) 100%
+    );
+  }
+
+  .sk-range-track-dual--default {
+    --sk-track: theme("colors.border");
+    --sk-fill: theme("colors.accent");
+  }
+
+  .sk-range-track-dual--budget {
+    --sk-track: theme("colors.border");
+    --sk-fill: theme("colors.green.600");
+  }
+
+  .sk-range-track-single {
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    --sk-track: theme("colors.border");
+    --sk-fill: theme("colors.accent");
+    background: linear-gradient(
+      to right,
+      var(--sk-fill) 0%,
+      var(--sk-fill) var(--sk-range-val, 0%),
+      var(--sk-track) var(--sk-range-val, 0%),
+      var(--sk-track) 100%
+    );
+  }
+
   .sk-range-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -166,7 +216,7 @@
   .sk-range-slider-thumb::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 1.25rem; /* keep in sync with profile slider fill calc (THUMB_DIAMETER_REM) */
+    width: 1.25rem;
     height: 1.25rem;
     border: none;
     border-radius: 50%;

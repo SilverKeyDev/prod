@@ -1,0 +1,22 @@
+type: object
+properties:
+  title:
+    type: string
+    nullable: true
+  description:
+    type: string
+    nullable: true
+  type:
+    type: string
+    enum: [deadline, follow_up, inspection, offer_expiration, closing, manual]
+    nullable: true
+  due_date:
+    anyOf:
+      - type: string
+      - type: "null"
+  completed:
+    type: boolean
+    nullable: true
+  client_id:
+    type: string
+    nullable: true

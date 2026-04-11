@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { formatFilenameToAddress } from "packages/features/search/types/search/address";
 import { useResponsive } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
+import ModalPortal from "packages/ui/components/modals/ModalPortal";
 import { Box } from "packages/ui/components/primitives";
 import { dateNow } from "packages/utils/date";
 import { getDocument, getWindow } from "packages/utils/platform";
@@ -51,7 +52,10 @@ const PdfModal: React.FC<PdfModalProps> = ({
     const doc = getDocument();
     if (!doc) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         onClose();
       }
     };
@@ -59,8 +63,20 @@ const PdfModal: React.FC<PdfModalProps> = ({
     return () => doc.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
+  useEffect(() => {
+    if (!currentPdf) return;
+    const doc = getDocument();
+    if (!doc?.body) return;
+    const prev = doc.body.style.overflow;
+    doc.body.style.overflow = "hidden";
+    return () => {
+      doc.body.style.overflow = prev;
+    };
+  }, [currentPdf]);
+
   const getReportTitle = () => {
-    if (currentReportAddress) return formatFilenameToAddress(currentReportAddress);
+    if (currentReportAddress)
+      return formatFilenameToAddress(currentReportAddress);
     if (!currentPdf) return "Property Report";
     return formatFilenameToAddress(currentPdf);
   };
@@ -90,54 +106,57 @@ const PdfModal: React.FC<PdfModalProps> = ({
     return generateOptimizedPdfUrl(currentPdf, {}, reportId || undefined);
   }, [currentPdf, reportId]);
 
-  const { onLoad, onError } = usePdfIframeHandlers(reportId, currentReportAddress, currentPdf);
+  const { onLoad, onError } = usePdfIframeHandlers(
+    reportId,
+    currentReportAddress,
+    currentPdf,
+  );
 
   useEffect(() => {
     if (optimizedPdfUrl) {
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Generated optimized URL for iframe", {
-        originalUrl: currentPdf,
-        optimizedUrl: optimizedPdfUrl,
-        reportId,
-        timestamp: dateNow().toISOString(),
-      });
+      log.debug(
+        LOG_CATEGORIES.HTTP,
+        "[PdfModal] Generated optimized URL for iframe",
+        {
+          originalUrl: currentPdf,
+          optimizedUrl: optimizedPdfUrl,
+          reportId,
+          timestamp: dateNow().toISOString(),
+        },
+      );
     }
   }, [optimizedPdfUrl, currentPdf, reportId]);
 
   if (!currentPdf) return null;
 
   return (
-    <Box className="space-responsive-sm fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-      <Box
-        ref={modalRef}
-        className="viewer-container flex h-[95vh] w-full max-w-5xl flex-col sm:h-[90vh]"
-        role="dialog"
-        aria-modal="true"
-        style={{
-          borderRadius: "24px 24px 0 0",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15)",
-          backdropFilter: "blur(12px)",
-          background: "rgba(255, 255, 255, 0.1)",
-          overflow: "hidden",
-        }}
-      >
-        <PdfModalHeader
-          title={getReportTitle()}
-          onDownload={handleDownload}
-          onOpenInNewTab={handleOpenInNewTab}
-          onShare={onShare}
-          onClose={onClose}
-        />
-        <PdfModalContent
-          optimizedPdfUrl={optimizedPdfUrl}
-          reportId={reportId}
-          currentPdf={currentPdf}
-          isMobile={isMobile}
-          onLoad={onLoad}
-          onError={onError}
-          onOpenInNewTab={handleOpenInNewTab}
-        />
+    <ModalPortal>
+      <Box className="space-responsive-sm z-modal fixed inset-0 flex items-center justify-center bg-black/75">
+        <Box
+          ref={modalRef}
+          className="viewer-container bg-background-surface flex h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-lg shadow-xl sm:h-[90vh]"
+          role="dialog"
+          aria-modal="true"
+        >
+          <PdfModalHeader
+            title={getReportTitle()}
+            onDownload={handleDownload}
+            onOpenInNewTab={handleOpenInNewTab}
+            onShare={onShare}
+            onClose={onClose}
+          />
+          <PdfModalContent
+            optimizedPdfUrl={optimizedPdfUrl}
+            reportId={reportId}
+            currentPdf={currentPdf}
+            isMobile={isMobile}
+            onLoad={onLoad}
+            onError={onError}
+            onOpenInNewTab={handleOpenInNewTab}
+          />
+        </Box>
       </Box>
-    </Box>
+    </ModalPortal>
   );
 };
 

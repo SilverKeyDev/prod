@@ -14,6 +14,20 @@
     "reason": "Integrates with react-router on web and react-navigation on native."
   },
   {
+    "id": "navigation-home-hash-link",
+    "description": "Home landing in-page section links: smooth scroll on web, plain home navigation on native.",
+    "webPath": "packages/navigation/link/HomeHashLink.web.tsx",
+    "nativePath": "packages/navigation/link/HomeHashLink.native.tsx",
+    "reason": "Web uses DOM scrollIntoView and react-router hash updates; native has no document/anchors, so link targets ROUTES.HOME only."
+  },
+  {
+    "id": "navigation-landing-hash-scroll",
+    "description": "Scroll to hash section after navigating to home landing (web only).",
+    "webPath": "packages/navigation/hooks/useLandingHashScroll.web.ts",
+    "nativePath": "packages/navigation/hooks/useLandingHashScroll.native.ts",
+    "reason": "Uses document.getElementById and useLocation from react-router-dom; no-op on native."
+  },
+  {
     "id": "virtuoso-adapter",
     "description": "Virtualized list adapter uses different implementations on web and native.",
     "webPath": "packages/ui/components/adapters/virtuoso/Virtuoso.web.tsx",
@@ -103,6 +117,27 @@
     "webPath": "packages/features/agent/components/modals/CalendarEventRequestModal.tsx",
     "nativePath": "packages/features/agent/components/modals/CalendarEventRequestModal.native.tsx",
     "reason": "RN modal presentation."
+  },
+  {
+    "id": "calendar-event-request-form-core",
+    "description": "Calendar event request form body: web DOM vs RN ScrollView/TextInput.",
+    "webPath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestFormCore.web.tsx",
+    "nativePath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestFormCore.native.tsx",
+    "reason": "Web uses shared Input/Textarea; native uses RN TextInput and ScrollView layout."
+  },
+  {
+    "id": "event-request-date-dropdown",
+    "description": "Date picker sheet for calendar event request.",
+    "webPath": "packages/features/agent/components/modals/calendarEventRequest/EventRequestDateDropdown.web.tsx",
+    "nativePath": "packages/features/agent/components/modals/calendarEventRequest/EventRequestDateDropdown.native.tsx",
+    "reason": "Web uses design-system Dropdown; native uses RN Modal + scrollable list."
+  },
+  {
+    "id": "event-request-time-dropdown",
+    "description": "Time slot picker for calendar event request.",
+    "webPath": "packages/features/agent/components/modals/calendarEventRequest/EventRequestTimeDropdown.web.tsx",
+    "nativePath": "packages/features/agent/components/modals/calendarEventRequest/EventRequestTimeDropdown.native.tsx",
+    "reason": "Web uses design-system Dropdown; native uses RN Modal + scrollable list."
   },
   {
     "id": "client-search-modal",
@@ -240,8 +275,8 @@
   {
     "id": "property-details-modal",
     "description": "Property details modal with platform-specific presentation.",
-    "webPath": "packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsModal.tsx",
-    "nativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsModal.native.tsx",
+    "webPath": "packages/features/propertyDetails/components/PropertyDetailsModal/body/modal-root/PropertyDetailsModal.tsx",
+    "nativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/body/modal-root/PropertyDetailsModal.native.tsx",
     "reason": "Native modal presentation; web uses overlay modal."
   },
   {
@@ -294,6 +329,13 @@
     "reason": "Web uses DOM; native uses RN touch targets."
   },
   {
+    "id": "search-display-sheet",
+    "description": "Search display settings UI: popover on web, bottom sheet on native.",
+    "webPath": "packages/features/search/components/header/display/SearchDisplayDropdown.web.tsx",
+    "nativePath": "packages/features/search/components/header/display/SearchDisplaySheet.native.tsx",
+    "reason": "Web uses Headless UI Popover with shared controls; native uses React Native Modal bottom sheet, Pressable chips, and RN Switch."
+  },
+  {
     "id": "reels-view",
     "description": "Reels view with platform-specific video and gestures.",
     "webPath": "packages/features/search/components/reels/ReelsView.web.tsx",
@@ -306,6 +348,20 @@
     "webPath": "packages/navigation/hooks/useNavigation.web.ts",
     "nativePath": "packages/navigation/hooks/useNavigation.native.ts",
     "reason": "Web uses react-router; native uses react-navigation."
+  },
+  {
+    "id": "use-route-params",
+    "description": "Typed path/route params from react-router vs React Navigation.",
+    "webPath": "packages/navigation/hooks/useRouteParams.web.ts",
+    "nativePath": "packages/navigation/hooks/useRouteParams.native.ts",
+    "reason": "Web uses useParams; native reads route.params from the current screen."
+  },
+  {
+    "id": "search-location-bar-suggestion-effects",
+    "description": "Web-only Slipstream and Google Places suggestion fetching for the search location bar.",
+    "webPath": "packages/features/search/components/header/location-bar/useSearchLocationBarSuggestionEffects.web.ts",
+    "nativePath": null,
+    "reason": "Uses Google Places AutocompleteSessionToken and browser globals; native search location UI does not use this hook."
   },
   {
     "id": "router-context",
@@ -621,5 +677,61 @@
     "webPath": "packages/utils/platform/platform.ts",
     "nativePath": "packages/utils/platform/platform.native.ts",
     "reason": "Different platform APIs for detection."
+  },
+  {
+    "id": "saved-homes-docusign-hook",
+    "description": "Saved homes DocuSign actions use web confirm vs native Alert.",
+    "webPath": "packages/features/documents/hooks/ui/useSavedHomesDocuSign.ts",
+    "nativePath": "packages/features/documents/hooks/ui/useSavedHomesDocuSign.native.ts",
+    "reason": "Web uses window.confirm; React Native uses Alert.alert for void confirmation."
+  },
+  {
+    "id": "property-details-location-map",
+    "description": "Property details neighborhood map: Google Maps JS on web vs react-native-maps on native.",
+    "webPath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/map/PropertyLocationMapSection.web.tsx",
+    "nativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/map/PropertyLocationMapSection.native.tsx",
+    "reason": "Web uses Google Maps JavaScript API (AdvancedMarkerElement, Street View control). Native uses react-native-maps with Google Cloud Map ID and an external Street View deep link."
+  },
+  {
+    "id": "property-details-map-overlay-controls",
+    "description": "Property details map overlay controls: Tailwind Box on web vs React Native View layout.",
+    "webPath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/map/PropertyDetailsMapOverlayControls.web.tsx",
+    "nativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/map/PropertyDetailsMapOverlayControls.native.tsx",
+    "reason": "Web uses shared UI Box and Tailwind classes. Native uses React Native View with StyleSheet positioning and pointerEvents for map touch passthrough."
+  },
+  {
+    "id": "property-details-commute",
+    "description": "Property commute section: shared TSX on web; native uses react-native-maps for the interactive map.",
+    "webPath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/commute/PropertyCommute.tsx",
+    "nativePath": "packages/features/propertyDetails/components/PropertyDetailsModal/sections/location/commute/PropertyCommute.native.tsx",
+    "reason": "Native uses react-native-maps, Google Cloud Map ID, and Linking for Street View; web uses Google Maps JS API (usePropertyCommuteLocationMap.web) with directions polylines."
+  },
+  {
+    "id": "native-google-maps-cloud-config",
+    "description": "Google Cloud Map ID and provider selection for react-native-maps.",
+    "webPath": "packages/utils/maps/nativeGoogleMapsCloudConfig.ts",
+    "nativePath": "packages/utils/maps/nativeGoogleMapsCloudConfig.native.ts",
+    "reason": "Native implementation uses Expo Constants and React Native Platform; web uses a no-op stub."
+  },
+  {
+    "id": "pros-cons-star-row",
+    "description": "Pros/cons 1–5 star row: Tailwind fill classes on web vs explicit SVG color/fill on native.",
+    "webPath": "packages/ui/components/ui/ProsConsStarRow.tsx",
+    "nativePath": "packages/ui/components/ui/ProsConsStarRow.native.tsx",
+    "reason": "Web uses lucide-react with Tailwind fill/text utilities. Native uses lucide-react-native with explicit color and fill props and a React Native View for the grouped image accessibility label."
+  },
+  {
+    "id": "embedded-signing",
+    "description": "DocuSign embedded signing: web uses iframe, native uses WebView.",
+    "webPath": "packages/features/documents/components/EmbeddedSigning.tsx",
+    "nativePath": "packages/features/documents/components/EmbeddedSigning.native.tsx",
+    "reason": "Web renders signing URL in an iframe. Native uses react-native-webview to embed the signing experience."
+  },
+  {
+    "id": "view-signed-document",
+    "description": "View signed document: web uses iframe/window.open, native uses react-native-pdf.",
+    "webPath": "packages/features/documents/components/ViewSignedDocument.tsx",
+    "nativePath": "packages/features/documents/components/ViewSignedDocument.native.tsx",
+    "reason": "Web uses window.open or iframe for PDF viewing. Native uses react-native-pdf and Linking for external viewer."
   }
 ]

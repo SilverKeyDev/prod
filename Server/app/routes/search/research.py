@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
-import os
 from typing import Any, Protocol, cast
 
 from flask import Blueprint, Response, current_app, jsonify, stream_with_context
 from flask import request as req
 
+from app.schemas import PropertyRequest
+from app.utils.validation import validate_request
 from logger import LOG_CATEGORIES, log
 
 from ...celery.celery_worker import celery
@@ -18,24 +19,27 @@ from ...utils.security.secure_errors import SecureErrorHandler
 class _CeleryTaskWithDelay(Protocol):
     """Protocol for Celery task so Pyright accepts .delay()."""
 
-    def delay(self, **kwargs: Any) -> Any: ...
+    def delay(self, **kwargs: Any) -> Any:
+        ...
 
-
-RAPI_KEY = os.getenv("RAPIDAPI_KEY")
 
 research_bp = Blueprint("research", __name__, url_prefix="/api/v1/research")
 
 
 @research_bp.route("/property", methods=["POST"])
-def get_property_via_address():
+@validate_request(PropertyRequest)
+def get_property_via_address(data: PropertyRequest | None = None):
     """
-    Call RapidAPI property /property using exactly one of:
+    Fetch property detail using exactly one of:
     zpid, property_url, or address (address-only is fine).
     Enhanced with commute map visualization data.
     Supports streaming via ?stream=true query parameter.
     Non-streaming requests are processed via Celery tasks.
     """
-    body = req.get_json(silent=True) or {}
+    if data is None:
+        body = req.get_json(silent=True) or {}
+    else:
+        body = data.model_dump()
     zpid = body.get("zpid")
     property_url = body.get("property_url")
     address = body.get("address")
@@ -59,10 +63,10 @@ def get_property_via_address():
 
     # Streaming mode: yield chunks as they're generated (synchronous)
     if stream_mode:
-        from ...services.search.property_stream import generate_property_stream
+        from ...services.search.property.property_stream import generate_property_stream
 
         return Response(
-            stream_with_context(generate_property_stream(params, address)),
+            stream_with_context(generate_property_stream(params, address, research_body=body)),
             mimetype="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -73,7 +77,7 @@ def get_property_via_address():
 
     # Non-streaming mode: use Celery task
     task = cast(_CeleryTaskWithDelay, research_property_task).delay(
-        params=params, address=address, skip_pros_cons=False
+        params=params, address=address, skip_pros_cons=False, research_body=body
     )
 
     return jsonify(
@@ -87,14 +91,18 @@ def get_property_via_address():
 
 
 @research_bp.route("/compare", methods=["POST"])
-def compare_property():
+@validate_request(PropertyRequest)
+def compare_property(data: PropertyRequest | None = None):
     """
     Compare property endpoint - same as /property but skips pros/cons generation.
     Optimized for comparison use cases where pros/cons are not needed.
     Supports streaming via ?stream=true query parameter.
     Non-streaming requests are processed via Celery tasks.
     """
-    body = req.get_json(silent=True) or {}
+    if data is None:
+        body = req.get_json(silent=True) or {}
+    else:
+        body = data.model_dump()
     zpid = body.get("zpid")
     property_url = body.get("property_url")
     address = body.get("address")
@@ -128,10 +136,12 @@ def compare_property():
         current_app.logger.info(
             "[COMPARE] Streaming mode enabled - response will be streamed incrementally"
         )
-        from ...services.search.property_stream import generate_property_stream_compare
+        from ...services.search.property.property_stream import generate_property_stream_compare
 
         return Response(
-            stream_with_context(generate_property_stream_compare(params, address)),
+            stream_with_context(
+                generate_property_stream_compare(params, address, research_body=body)
+            ),
             mimetype="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -141,7 +151,9 @@ def compare_property():
         )
 
     # Non-streaming mode: use Celery task
-    task = cast(_CeleryTaskWithDelay, compare_property_task).delay(params=params, address=address)
+    task = cast(_CeleryTaskWithDelay, compare_property_task).delay(
+        params=params, address=address, research_body=body
+    )
 
     return jsonify(
         {

@@ -1,0 +1,7 @@
+type: object
+required:
+  - routing_order
+properties:
+  routing_order:
+    type: integer
+    description: New routing order for the participant

@@ -1,0 +1,30 @@
+type: object
+required:
+  - id
+  - agreement_id
+  - event_type
+  - created_at
+properties:
+  id:
+    type: string
+  agreement_id:
+    type: string
+  event_type:
+    type: string
+  status:
+    $ref: './AgreementStatus.yaml'
+    nullable: true
+  actor_id:
+    type: string
+    nullable: true
+  metadata:
+    type: object
+    description: DocuSign or workflow-specific event payload (keys vary by event_type).
+    additionalProperties: true
+    nullable: true
+  created_at:
+    type: string
+    format: date-time
+  actor_name:
+    type: string
+    nullable: true

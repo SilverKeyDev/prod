@@ -8,29 +8,38 @@ import {
   cleanupMapPropertyCard,
   renderMapPropertyCard,
 } from "packages/features/search/components/cards/MapPropertyCardUtils";
+import type { PreciseStreetAddressPayload } from "packages/features/search/components/header/location-bar/SearchLocationBar.web";
 import SearchMobileHeader from "packages/features/search/components/header/SearchMobileHeader";
 import { SearchPageMapView } from "packages/features/search/components/layout/SearchPageMapView";
 import { SearchPageModals } from "packages/features/search/components/layout/SearchPageModals";
 import { DesktopReelsView } from "packages/features/search/components/reels/DesktopReelsView";
+import { useLastSearchPersistence } from "packages/features/search/hooks/data/page/useLastSearchPersistence";
 import { useSearchPageData } from "packages/features/search/hooks/data/page/useSearchPageData";
 import { useSearchPageHandlers } from "packages/features/search/hooks/data/page/useSearchPageHandlers";
 import { useSearchPageMap } from "packages/features/search/hooks/data/page/useSearchPageMap";
 import type { Property } from "packages/features/search/hooks/data/property/usePropertyDetails";
+import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useSearchViewIntegration } from "packages/features/search/hooks/store/useSearchViewIntegration";
+import { useSearchFeatureLifecycle } from "packages/features/search/hooks/ui/useSearchFeatureLifecycle";
 import { useSearchMobileHeaderActions } from "packages/features/search/hooks/ui/useSearchMobileHeaderActions";
 import type { SearchResult } from "packages/features/search/types";
 import { useSearchRefreshIntegration } from "packages/hooks/data/useSearchRefreshIntegration";
+import { useUserPreferences } from "packages/hooks/data/useUserData";
 import { usePreActionSnapshot } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
 import {
   useAgentDashboardStore,
+  useAuthStore,
+  useFiltersStore,
   useSearchContextStore,
   useSearchViewStore,
 } from "packages/store";
 import { MotionView } from "packages/ui/components/adapters/motion";
 import { Box } from "packages/ui/components/primitives";
+import { simpleHash } from "packages/utils";
 type SearchFeatureProps = {
-  setMobileHeaderActions: React.Dispatch<React.SetStateAction<React.ReactNode | null>>;
+  setMobileHeaderActions: React.Dispatch<
+    React.SetStateAction<React.ReactNode | null>
+  >;
   onSearchProperties?: () => Promise<void>;
   searchRef?: React.MutableRefObject<{
     triggerSearch: () => Promise<void>;
@@ -50,7 +59,25 @@ export function SearchFeature({
   const setAnchor = useSearchContextStore((s) => s.setAnchor);
   const searchAbortControllerRef = useRef<AbortController | null>(null);
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
-  const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
+  const setSelectedClientId = useAgentDashboardStore(
+    (s) => s.setSelectedClientId,
+  );
+  const setSearchSource = useFiltersStore((s) => s.setSearchSource);
+  const showCommuteOverlay = useFiltersStore((s) => s.showCommuteOverlay);
+  const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
+  const setUserGeolocation = useFiltersStore((s) => s.setUserGeolocation);
+  const authReady = useAuthStore((s) => s.authReady);
+  useSearchDisplaySettings(authReady);
+  const { saveLastSearchContext } = useLastSearchPersistence();
+  const { userPreferences } = useUserPreferences({
+    preferencesSubjectUserId: selectedClientId,
+  });
+  const hasLocations = useMemo(
+    () =>
+      Array.isArray(userPreferences?.important_locations) &&
+      (userPreferences?.important_locations?.length ?? 0) > 0,
+    [userPreferences?.important_locations],
+  );
 
   const data = useSearchPageData();
   const {
@@ -68,6 +95,7 @@ export function SearchFeature({
     selectedProperty,
     clearSelectedProperty,
     isochroneData,
+    displayIsochroneData,
     fetchIsochrone,
     isSearching,
     isLoadingSearchResults,
@@ -96,16 +124,44 @@ export function SearchFeature({
     },
   });
 
+  const { handleBeforeSwitchToReels, handleViewPropertyDetails } = handlers;
+
+  const handlePreciseStreetAddressSelected = useCallback(
+    (payload: PreciseStreetAddressPayload) => {
+      const id =
+        payload.placeId && payload.placeId.length > 0
+          ? payload.placeId
+          : `geocode:${simpleHash(payload.formattedAddress)}`;
+      const property: SearchResult = {
+        id,
+        address: payload.formattedAddress,
+        price: "",
+        bedrooms: 0,
+        bathrooms: 0,
+        sqft: 0,
+        lat: payload.lat,
+        lng: payload.lng,
+        propertyType: "SINGLE_FAMILY",
+        listingStatus: "FOR_SALE",
+      };
+      void handleViewPropertyDetails(property);
+    },
+    [handleViewPropertyDetails],
+  );
+
   const handleToggleMode = useCallback(() => {
     if (searchViewMode === "map") {
-      handlers.handleBeforeSwitchToReels();
+      handleBeforeSwitchToReels();
     }
     toggleMode();
-  }, [searchViewMode, toggleMode, handlers]);
+  }, [searchViewMode, toggleMode, handleBeforeSwitchToReels]);
 
   const map = useSearchPageMap({
     isochroneData,
+    displayIsochroneData,
     fetchIsochrone,
+    showCommuteOverlay,
+    mapHomeCardsCount,
     filteredSearchResults,
     savedHomes,
     activeTab,
@@ -128,18 +184,21 @@ export function SearchFeature({
       await removeSavedHome(id, addr);
     },
     onMarkerClick: handlers.handleNavigateToProperty,
-    onUnlockClick: handlers.handleViewPropertyDetails,
+    onUnlockClick: handleViewPropertyDetails,
     onOpenDetails: handlers.handleOpenPropertyDetails,
     getSearchAbortSignal: () => searchAbortControllerRef.current?.signal,
     renderMapPropertyCard,
     cleanupMapPropertyCard,
+    preferencesSubjectUserId: selectedClientId,
+    saveLastSearchContext,
   });
 
-  const { snapshot: snapshotPreSearch, restore: restorePreSearch } = usePreActionSnapshot<{
-    results: SearchResult[];
-    currentPage: number;
-    showPropertyModals: boolean;
-  }>("search_pre_cancel_snapshot");
+  const { snapshot: snapshotPreSearch, restore: restorePreSearch } =
+    usePreActionSnapshot<{
+      results: SearchResult[];
+      currentPage: number;
+      showPropertyModals: boolean;
+    }>("search_pre_cancel_snapshot");
 
   const handleTabChange = useCallback(
     (tab: "results" | "saved") => {
@@ -150,11 +209,12 @@ export function SearchFeature({
         void map.updateMapMarkers(nextData);
       });
     },
-    [setActiveTab, setCurrentPage, filteredSearchResults, savedHomes, map]
+    [setActiveTab, setCurrentPage, filteredSearchResults, savedHomes, map],
   );
 
   const handleSearchUpdated = useCallback(async () => {
     if (!isSearching) {
+      setSearchSource("preferences");
       snapshotPreSearch({
         results: searchResults,
         currentPage,
@@ -162,9 +222,11 @@ export function SearchFeature({
       });
       searchAbortControllerRef.current = new AbortController();
       if (onSearchProperties) {
+        setIsSearching(true);
+        setSearchStage("Preparing search...");
         await onSearchProperties();
       } else {
-        await map.runIsochroneSearch();
+        await map.runPreferencesSearch();
       }
     }
   }, [
@@ -175,6 +237,29 @@ export function SearchFeature({
     currentPage,
     showPropertyModals,
     snapshotPreSearch,
+    setSearchSource,
+    setIsSearching,
+    setSearchStage,
+  ]);
+
+  const handleLocationSearchSubmit = useCallback(async () => {
+    if (isSearching) return;
+    setSearchSource("location");
+    snapshotPreSearch({
+      results: searchResults,
+      currentPage,
+      showPropertyModals,
+    });
+    searchAbortControllerRef.current = new AbortController();
+    await map.runViewportSearch();
+  }, [
+    isSearching,
+    map,
+    searchResults,
+    currentPage,
+    showPropertyModals,
+    snapshotPreSearch,
+    setSearchSource,
   ]);
 
   const handleCancelSearch = useCallback(() => {
@@ -185,77 +270,53 @@ export function SearchFeature({
       setCurrentPage(restored.currentPage);
       setShowPropertyModals(restored.showPropertyModals);
     }
-  }, [restorePreSearch, setSearchResults, setCurrentPage, setShowPropertyModals]);
+  }, [
+    restorePreSearch,
+    setSearchResults,
+    setCurrentPage,
+    setShowPropertyModals,
+  ]);
 
   const memoizedSearchFunction = useCallback(async () => {
     if (!isSearching) {
-      await map.runIsochroneSearch();
+      setSearchSource("preferences");
+      await map.runPreferencesSearch();
     }
-  }, [isSearching, map]);
+  }, [isSearching, map, setSearchSource]);
 
-  useEffect(() => {
-    if (!searchRefresh?.setTriggerRefresh) return;
-    searchRefresh.setTriggerRefresh(() => {
-      feedScrollRef.current?.scrollToIndex({ index: 0, behavior: "smooth" });
-      void invalidateSearchAndFeed();
-    });
-    return () => searchRefresh.setTriggerRefresh(null);
-  }, [searchRefresh, invalidateSearchAndFeed]);
-
-  // Trigger map resize when switching back to map so it repaints (stays preloaded but was hidden)
-  useEffect(() => {
-    if (searchViewMode === "map") {
-      const t = setTimeout(() => map.triggerMapResize(), 50);
-      return () => clearTimeout(t);
-    }
-  }, [searchViewMode, map]);
-
-  useEffect(() => {
-    if (searchRef) {
-      searchRef.current = { triggerSearch: memoizedSearchFunction };
-    }
-  }, [searchRef, memoizedSearchFunction]);
-
-  // Mount/unmount logging for navigation debugging
-  useEffect(() => {
-    log.info(LOG_CATEGORIES.ROUTING, "[SEARCH] SearchFeature mounted", {
-      mode: searchViewMode,
-      activeTab,
-      resultsCount: filteredSearchResults.length,
-      savedCount: savedHomes.length,
-    });
-    return () => {
-      log.info(LOG_CATEGORIES.ROUTING, "[SEARCH] SearchFeature unmounted", {});
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount logging only; adding deps would log on every navigation/result change
-  }, []);
-
-  // Self-cleanup when leaving /search: abort in-flight search so no state updates after unmount
-  useEffect(() => {
-    return () => {
-      if (searchAbortControllerRef.current) {
-        log.debug(LOG_CATEGORIES.ROUTING, "[SEARCH] Aborting in-flight search on unmount", {});
-        searchAbortControllerRef.current.abort();
-      }
-    };
-  }, []);
+  useSearchFeatureLifecycle({
+    setTriggerRefresh: searchRefresh?.setTriggerRefresh,
+    feedScrollRef,
+    invalidateSearchAndFeed,
+    searchViewMode,
+    map,
+    searchRef,
+    memoizedSearchFunction,
+    setUserGeolocation,
+    searchAbortControllerRef,
+    activeTab,
+    filteredSearchResultsLength: filteredSearchResults.length,
+    savedHomesLength: savedHomes.length,
+  });
 
   const { isCompactHeader, headerProps } = useSearchMobileHeaderActions({
     isSearching,
-    onPreferencesChanged: handleSearchUpdated,
     onSearch: handleSearchUpdated,
     onCancelSearch: handleCancelSearch,
+    hasLocations,
     selectedClientId,
     onClientChange: setSelectedClientId,
     mode: searchViewMode,
     onToggleMode: handleToggleMode,
-    onBeforeSwitchToReels: handlers.handleBeforeSwitchToReels,
+    onBeforeSwitchToReels: handleBeforeSwitchToReels,
   });
 
   const mobileHeaderNode = useMemo(
     () =>
-      isCompactHeader && searchViewMode === "map" ? <SearchMobileHeader {...headerProps} /> : null,
-    [isCompactHeader, headerProps, searchViewMode]
+      isCompactHeader && searchViewMode === "map" ? (
+        <SearchMobileHeader {...headerProps} />
+      ) : null,
+    [isCompactHeader, headerProps, searchViewMode],
   );
 
   useEffect(() => {
@@ -282,7 +343,11 @@ export function SearchFeature({
       {/* Both views stay mounted so the map stays preloaded; visibility toggles for instant switch */}
       <Box className="relative h-full">
         <Box
-          className={`absolute inset-0 h-full ${searchViewMode === "map" ? "z-10" : "pointer-events-none invisible z-0"}`}
+          className={`absolute inset-0 h-full ${
+            searchViewMode === "map"
+              ? "z-10"
+              : "pointer-events-none invisible z-0"
+          }`}
           aria-hidden={searchViewMode !== "map"}
         >
           <SearchPageMapView
@@ -293,7 +358,7 @@ export function SearchFeature({
             savedHomes={savedHomes}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
-            onViewPropertyDetails={handlers.handleViewPropertyDetails}
+            onViewPropertyDetails={handleViewPropertyDetails}
             onNavigateToProperty={handlers.handleNavigateToProperty}
             isHomeSaved={isHomeSaved}
             saveHome={async (p) => {
@@ -315,19 +380,28 @@ export function SearchFeature({
             setShowPropertyModals={setShowPropertyModals}
             setHasSearched={setHasSearched}
             selectedPropertyId={(selectedProperty as { id?: string })?.id}
-            onPreferencesChanged={handleSearchUpdated}
+            hasLocations={hasLocations}
             onSearchProperties={handleSearchUpdated}
+            onLocationSearchSubmit={handleLocationSearchSubmit}
             onCancelSearch={handleCancelSearch}
             selectedClientId={selectedClientId}
             onClientChange={setSelectedClientId}
             isLoadingPropertyDetails={isLoadingPropertyDetails}
             isLoadingSearchResults={isLoadingSearchResults}
             isLoadingIsochrone={isLoadingIsochrone}
-            isochroneData={isochroneData}
+            isochroneData={displayIsochroneData}
+            fitMapToBounds={map.fitMapToBounds}
+            showCommuteOverlay={showCommuteOverlay}
+            mapHomeCardsCount={mapHomeCardsCount}
+            onPreciseStreetAddressSelected={handlePreciseStreetAddressSelected}
           />
         </Box>
         <Box
-          className={`absolute inset-0 h-full ${searchViewMode === "reels" ? "z-10" : "pointer-events-none invisible z-0"}`}
+          className={`absolute inset-0 h-full ${
+            searchViewMode === "reels"
+              ? "z-10"
+              : "pointer-events-none invisible z-0"
+          }`}
           aria-hidden={searchViewMode !== "reels"}
         >
           <MotionView
@@ -337,7 +411,12 @@ export function SearchFeature({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            <DesktopReelsView virtuosoRef={feedScrollRef} />
+            <DesktopReelsView
+              virtuosoRef={feedScrollRef}
+              filteredSearchResults={filteredSearchResults}
+              onRunSearch={handleSearchUpdated}
+              isSearching={isSearching}
+            />
           </MotionView>
         </Box>
       </Box>

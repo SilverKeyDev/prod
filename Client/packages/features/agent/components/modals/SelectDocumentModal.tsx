@@ -1,13 +1,14 @@
 import { Icon } from "@ui/icons";
 
-import { useDocumentsStore } from "packages/store";
+import {
+  type DocumentData,
+  useDocumentsData,
+} from "packages/features/documents";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
 import Button from "packages/ui/components/button/Button";
 import CancelButton from "packages/ui/components/button/CancelButton";
-import type { DocumentData } from "packages/ui/components/cards/document/DocumentCard";
 import { Box } from "packages/ui/components/primitives";
 import { dateParseISO } from "packages/utils/date";
-import { mapStoreDocumentsToDocumentData } from "packages/utils/documents";
 
 import BaseModal from "@/components/modals/BaseModal";
 import { BodyText, Title } from "@/components/ui";
@@ -24,16 +25,15 @@ export default function SelectDocumentModal({
   onClose,
   onSelect,
 }: SelectDocumentModalProps) {
-  const documents = useDocumentsStore((s) => s.documents);
-  const documentsLoading = useDocumentsStore((s) => s.documentsLoading);
-  const mappedDocuments = mapStoreDocumentsToDocumentData(documents);
+  const { documents: documentsList, isLoading: documentsLoading } =
+    useDocumentsData();
   const {
     selectedId: selectedDocumentId,
     setSelectedId: setSelectedDocumentId,
     selectedItem: selectedDocument,
     handleConfirm,
     isLoading: documentsLoadingFromHook,
-  } = useSingleSelectionModal<DocumentData>(mappedDocuments, (d) => d.id, {
+  } = useSingleSelectionModal<DocumentData>(documentsList, (d) => d.id, {
     isLoading: documentsLoading,
   });
 
@@ -44,8 +44,15 @@ export default function SelectDocumentModal({
       onClose={onClose}
       headerContent={
         <Box className="flex items-center gap-2">
-          <Icon name="file-text" className="text-text-primary h-5 w-5 flex-shrink-0" />
-          <Title as="h3" size="lg" className="text-text-primary truncate font-medium sm:text-lg">
+          <Icon
+            name="file-text"
+            className="text-text-primary h-5 w-5 flex-shrink-0"
+          />
+          <Title
+            as="h3"
+            size="lg"
+            className="text-text-primary truncate font-medium sm:text-lg"
+          >
             Select Document to Share
           </Title>
         </Box>
@@ -57,7 +64,7 @@ export default function SelectDocumentModal({
           <Box className="flex items-center justify-center py-8">
             <KeyTurnLoader message="Loading documents..." />
           </Box>
-        ) : mappedDocuments.length === 0 ? (
+        ) : documentsList.length === 0 ? (
           <Box className="py-8 text-center">
             <BodyText as="p" size="sm" className="text-text-secondary">
               No documents found. Upload documents to share them in messages.
@@ -65,7 +72,7 @@ export default function SelectDocumentModal({
           </Box>
         ) : (
           <Box className="max-h-96 space-y-2 overflow-y-auto">
-            {mappedDocuments.map((document, index) => (
+            {documentsList.map((document, index) => (
               <Button
                 key={document.id || `document-${index}`}
                 type="button"
@@ -75,7 +82,7 @@ export default function SelectDocumentModal({
                 onClick={() => setSelectedDocumentId(document.id)}
                 className={`h-auto min-h-0 w-full justify-start rounded-lg border p-3 text-left ${
                   selectedDocumentId === document.id
-                    ? "border-primary bg-primary-muted"
+                    ? "border-border bg-primary-muted"
                     : "border-border hover:border-border hover:bg-primary-muted"
                 }`}
               >
@@ -84,16 +91,33 @@ export default function SelectDocumentModal({
                     <Icon name="file-text" className="text-primary h-5 w-5" />
                   </Box>
                   <Box className="min-w-0 flex-1">
-                    <BodyText as="p" size="sm" className="text-text-primary font-medium">
-                      {document.address || document.filename || `Document ${document.id}`}
+                    <BodyText
+                      as="p"
+                      size="sm"
+                      className="text-text-primary font-medium"
+                    >
+                      {document.address ||
+                        document.filename ||
+                        `Document ${document.id}`}
                     </BodyText>
                     {document.created_at ? (
-                      <BodyText as="p" size="xs" className="text-text-secondary mt-1">
-                        Uploaded {dateParseISO(document.created_at).toDate().toLocaleDateString()}
+                      <BodyText
+                        as="p"
+                        size="xs"
+                        className="text-text-secondary mt-1"
+                      >
+                        Uploaded{" "}
+                        {dateParseISO(document.created_at)
+                          .toDate()
+                          .toLocaleDateString()}
                       </BodyText>
                     ) : null}
                     {document.document_type ? (
-                      <BodyText as="p" size="xs" className="text-text-secondary mt-1">
+                      <BodyText
+                        as="p"
+                        size="xs"
+                        className="text-text-secondary mt-1"
+                      >
                         Type: {document.document_type}
                       </BodyText>
                     ) : null}

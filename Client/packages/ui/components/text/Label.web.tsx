@@ -1,9 +1,5 @@
 import React from "react";
 
-import { useLocalization } from "packages/contexts";
-
-import BodyText from "./BodyText";
-
 export type LabelProps = {
   children: React.ReactNode;
   htmlFor?: string;
@@ -20,14 +16,13 @@ const Label: React.FC<LabelProps> = ({
   children,
   htmlFor,
   id,
-  required = false,
+  required: _required = false,
   variant = "default",
   size = "sm",
   color = "default",
   className = "",
   disabled = false,
 }) => {
-  const { t } = useLocalization();
   // Base styles
   const baseStyles = "block transition-colors duration-150";
 
@@ -75,11 +70,6 @@ const Label: React.FC<LabelProps> = ({
     // eslint-disable-next-line silverkey/no-primitive-components -- base implementation
     <label id={id} htmlFor={htmlFor} className={labelClasses}>
       {children}
-      {required && (
-        <BodyText as="span" className="text-red-500" aria-hidden="true">
-          {t("form.required_indicator")}
-        </BodyText>
-      )}
     </label>
   );
 };

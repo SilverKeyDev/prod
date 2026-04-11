@@ -1,0 +1,11 @@
+type: object
+required:
+  - home_id
+  - text
+properties:
+  home_id:
+    type: string
+    description: ID of the home/listing to comment on
+  text:
+    type: string
+    description: Comment text

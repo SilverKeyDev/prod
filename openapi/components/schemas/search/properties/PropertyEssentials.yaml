@@ -1,0 +1,50 @@
+type: object
+description: Core property characteristics - bedrooms, bathrooms, size, and age
+required:
+  - bedrooms
+  - bathrooms
+properties:
+  bedrooms:
+    type: integer
+    minimum: 0
+    description: Number of bedrooms
+  bathrooms:
+    type: number
+    format: float
+    minimum: 0
+    description: Number of bathrooms (e.g., 2.5 for 2 full, 1 half)
+  livingAreaSqft:
+    type: integer
+    minimum: 0
+    nullable: true
+    description: Living area in square feet
+  lotSizeSqft:
+    type: integer
+    minimum: 0
+    nullable: true
+    description: Lot size in square feet
+  lotSizeUnit:
+    type: string
+    enum: [sqft, acres]
+    default: sqft
+    nullable: true
+    description: Unit for lot size measurement
+  yearBuilt:
+    type: integer
+    minimum: 1700
+    maximum: 2100
+    nullable: true
+    description: Year property was built
+  stories:
+    type: integer
+    minimum: 1
+    nullable: true
+    description: Number of stories/floors
+example:
+  bedrooms: 4
+  bathrooms: 2.5
+  livingAreaSqft: 2400
+  lotSizeSqft: 8000
+  lotSizeUnit: sqft
+  yearBuilt: 2015
+  stories: 2

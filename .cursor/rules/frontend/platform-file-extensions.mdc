@@ -18,7 +18,6 @@ alwaysApply: true
 **Check before adding `.web`:**
 - Uses only React + shared packages (no DOM-only APIs)? → use `.tsx` / `.ts`.
 - Could mobile use this same file or the same API with a `.native` variant? → do **not** use `.web`.
-- Canonical list of desktop-only files and reasons: `Client/MOBILE_MIGRATION_DESKTOP_FILES.md`.
 
 ## Goal
 

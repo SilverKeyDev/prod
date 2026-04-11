@@ -4,10 +4,18 @@
 
 import { useCallback } from "react";
 
-import type { SavedHome } from "packages/schemas/property";
+import {
+  buildSharedDocumentAttachmentMessage,
+  buildSharedHomeAttachmentMessage,
+} from "packages/features/messaging/utils/sharedAttachmentSnapshot";
+import type { SavedHome } from "packages/types/savedHome";
 import type { DocumentData } from "packages/ui/components/cards/document/types";
 
-import type { ChatMessage, MessagingSendMessageOptions, UseMessagingConfig } from "./types";
+import type {
+  ChatMessage,
+  MessagingSendMessageOptions,
+  UseMessagingConfig,
+} from "./types";
 import {
   executeRetryMessage,
   executeSendMessage,
@@ -24,7 +32,7 @@ export type UseMessagingSendParams = {
     message: string,
     clientId?: string,
     sharedHomeId?: string,
-    sharedDocumentId?: string
+    sharedDocumentId?: string,
   ) => Promise<void>;
   refreshChats: () => Promise<void>;
   setLocalMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
@@ -35,13 +43,18 @@ export type UseMessagingSendParams = {
 };
 
 export type UseMessagingSendReturn = {
-  sendMessage: (messageText: string, options?: MessagingSendMessageOptions) => Promise<void>;
+  sendMessage: (
+    messageText: string,
+    options?: MessagingSendMessageOptions,
+  ) => Promise<void>;
   sendSharedHome: (home: SavedHome) => Promise<void>;
   sendSharedDocument: (document: DocumentData) => Promise<void>;
   retryMessage: (messageId: string) => Promise<void>;
 };
 
-export function useMessagingSend(params: UseMessagingSendParams): UseMessagingSendReturn {
+export function useMessagingSend(
+  params: UseMessagingSendParams,
+): UseMessagingSendReturn {
   const {
     config,
     activeConversationId,
@@ -69,7 +82,7 @@ export function useMessagingSend(params: UseMessagingSendParams): UseMessagingSe
         });
       if (conversationId === null) return;
       const effectiveClientId =
-        mode === "agent" ? (options?.clientIdForAgent ?? clientId) : undefined;
+        mode === "agent" ? options?.clientIdForAgent ?? clientId : undefined;
       await executeSendMessage({
         userMessage: messageText.trim(),
         conversationId,
@@ -95,7 +108,7 @@ export function useMessagingSend(params: UseMessagingSendParams): UseMessagingSe
       loadedHistoryIdsRef,
       clientId,
       messageRole,
-    ]
+    ],
   );
 
   const sendSharedHome = useCallback(
@@ -109,14 +122,13 @@ export function useMessagingSend(params: UseMessagingSendParams): UseMessagingSe
       if (conversationId === null) return;
       const propertyId = home.home_id || home.address || "";
       if (!propertyId) return;
-      const preview =
-        home.address?.trim() || home.description?.trim() || propertyId;
+      const messageBody = buildSharedHomeAttachmentMessage(home);
       await executeSendSharedAttachment({
         conversationId,
         mode,
         clientIdForSending: clientId,
         messageRole,
-        previewContent: preview,
+        messageBody,
         sharedHomeId: propertyId,
         sendMessageApi,
         refreshChats,
@@ -137,7 +149,7 @@ export function useMessagingSend(params: UseMessagingSendParams): UseMessagingSe
       setLocalMessages,
       getChatHistoryRef,
       loadedHistoryIdsRef,
-    ]
+    ],
   );
 
   const sendSharedDocument = useCallback(
@@ -149,16 +161,13 @@ export function useMessagingSend(params: UseMessagingSendParams): UseMessagingSe
         clientIdForSending,
       });
       if (conversationId === null) return;
-      const preview =
-        document.filename?.trim() ||
-        document.address?.trim() ||
-        "Document";
+      const messageBody = buildSharedDocumentAttachmentMessage(document);
       await executeSendSharedAttachment({
         conversationId,
         mode,
         clientIdForSending: clientId,
         messageRole,
-        previewContent: preview,
+        messageBody,
         sharedDocumentId: document.id,
         sendMessageApi,
         refreshChats,
@@ -179,13 +188,13 @@ export function useMessagingSend(params: UseMessagingSendParams): UseMessagingSe
       setLocalMessages,
       getChatHistoryRef,
       loadedHistoryIdsRef,
-    ]
+    ],
   );
 
   const retryMessage = useCallback(
     async (messageId: string) => {
       const failedMessage = localMessages.find(
-        (msg) => msg.id === messageId && msg.status === "failed"
+        (msg) => msg.id === messageId && msg.status === "failed",
       );
       if (!failedMessage) return;
       const conversationId = resolveConversationIdForSend({
@@ -223,7 +232,7 @@ export function useMessagingSend(params: UseMessagingSendParams): UseMessagingSe
       getChatHistoryRef,
       loadedHistoryIdsRef,
       clientId,
-    ]
+    ],
   );
 
   return { sendMessage, sendSharedHome, sendSharedDocument, retryMessage };

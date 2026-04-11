@@ -1,9 +1,20 @@
 /**
- * Search and isochrone API contracts (requests, responses, preferences).
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * Search and isochrone API contracts.
  */
 
-import type { PropertySearchResult } from "./property";
+import type { components } from "packages/types/api.generated";
 
+// UI utility type (stays local)
 export type ApiResponse<T = unknown> = {
   success: boolean;
   data?: T;
@@ -11,88 +22,26 @@ export type ApiResponse<T = unknown> = {
   message?: string;
 };
 
-export type PreferencesResponse = {
-  preferences: {
-    preferences_version: string;
-    [key: string]: unknown;
-  };
-};
-
-export type IsochroneGeometry = {
-  geometry: {
-    coordinates: number[][][];
-    type: string;
-  };
-};
-
-export type UserPreferencesData = {
-  home_budget_min?: number;
-  home_budget_max?: number;
-  priceRange?: {
-    min?: number;
-    max?: number;
-  };
-  preferredBedrooms?: number;
-};
-
-export type SearchByPolygonRequest = {
-  user_preferences?: {
-    home_budget_min?: number;
-    home_budget_max?: number;
-    preferred_bedrooms?: number;
-    preferred_bathrooms?: number;
-    preferred_bedrooms_max?: number;
-    preferred_bathrooms_max?: number;
-    preferred_housing_type?: string;
-    preferred_home_age?: string;
-    preferred_lot_size?: string;
-    preferred_lot_size_min?: number;
-    preferred_lot_size_max?: number;
-    preferred_home_age_min?: number;
-    preferred_home_age_max?: number;
-    must_have?: string[];
-    preferred_sqft_min?: number;
-    preferred_sqft_max?: number;
-    listing_type?: string[];
-    days_on_market_min?: number;
-    days_on_market_max?: number;
-    preferred_home_features?: string[];
-    deal_breakers?: string[];
-    important_locations?: Array<{
-      address: string;
-      commute_tolerance?: number;
-      lat?: number | null;
-      lng?: number | null;
-    }>;
-  };
-  perBucketPages?: number;
-  onlyCached?: boolean;
-  forceSearch?: boolean;
-};
-
-export type SearchByPolygonResponse = {
-  success: boolean;
-  properties?: PropertySearchResult[];
-  total_count?: number;
-  has_more?: boolean;
-  error?: string;
-  meta?: {
-    cached?: boolean;
-    cacheAge?: string;
-    requestsMade?: number;
-    deduped?: number;
-    errors?: unknown[];
-    status_type?: string;
-    pagesTried?: number;
-    searchTime?: number;
-    scored?: boolean;
-    requestId?: string;
-    limit?: number;
-  };
-};
+// Re-export from generated schema
+export type AreaBoundaryResponse =
+  components["schemas"]["AreaBoundaryResponse"];
+export type AreaSearchResult = components["schemas"]["AreaSearchResult"];
+export type AreaSuggestionsResponse =
+  components["schemas"]["AreaSuggestionsResponse"];
+export type PreferencesResponse = components["schemas"]["PreferencesResponse"];
+export type IsochroneGeometry = components["schemas"]["IsochroneGeometry"];
+export type UserPreferencesData = components["schemas"]["UserPreferencesData"];
+export type ViewportPolygonPoint =
+  components["schemas"]["ViewportPolygonPoint"];
+export type SearchByPolygonRequest =
+  components["schemas"]["SearchByPolygonRequest"];
+export type SearchByPolygonResponse =
+  components["schemas"]["SearchByPolygonResponse"];
 
 export function isApiResponse<T>(obj: unknown): obj is ApiResponse<T> {
   return (
-    typeof obj === "object" && obj !== null && typeof (obj as ApiResponse<T>).success === "boolean"
+    typeof obj === "object" &&
+    obj !== null &&
+    typeof (obj as ApiResponse<T>).success === "boolean"
   );
 }

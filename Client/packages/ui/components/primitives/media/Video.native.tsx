@@ -7,7 +7,7 @@ export type VideoProps = {
   source?: { uri?: string };
   style?: StyleProp<ViewStyle>;
   className?: string;
-  /** "cover" | "contain" | "stretch" — maps to expo-av ResizeMode. */
+  /** "cover" | "contain" | "stretch" - maps to expo-av ResizeMode. */
   resizeMode?: "cover" | "contain" | "stretch";
   /** Control playback; defaults to true for backwards-compat. */
   shouldPlay?: boolean;
@@ -19,20 +19,30 @@ export type VideoProps = {
   children?: React.ReactNode;
 };
 
-const RESIZE_MODE_MAP: Record<NonNullable<VideoProps["resizeMode"]>, ExpoResizeMode> = {
+const RESIZE_MODE_MAP: Record<
+  NonNullable<VideoProps["resizeMode"]>,
+  ExpoResizeMode
+> = {
   cover: ExpoResizeMode.COVER,
   contain: ExpoResizeMode.CONTAIN,
   stretch: ExpoResizeMode.STRETCH,
 };
 
 /**
- * Base Video primitive — expo-av Video for React Native.
+ * Base Video primitive - expo-av Video for React Native.
  * Supports HLS and standard video URLs via native player.
  * Web uses <video> (Video.web.tsx).
  */
 const Video = forwardRef<ExpoVideo, VideoProps>(function Video(
-  { source, style, resizeMode = "cover", shouldPlay = true, isLooping = true, isMuted = true },
-  ref
+  {
+    source,
+    style,
+    resizeMode = "cover",
+    shouldPlay = true,
+    isLooping = true,
+    isMuted = true,
+  },
+  ref,
 ) {
   const uri = source?.uri;
   const videoSource = useMemo(() => (uri ? { uri } : undefined), [uri]);

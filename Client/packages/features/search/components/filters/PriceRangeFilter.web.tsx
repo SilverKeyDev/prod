@@ -9,8 +9,8 @@ import BudgetSlider from "@/features/profile/components/settings/inputs/BudgetSl
 const DEFAULT_MIN = 100_000;
 const DEFAULT_MAX = 2_000_000;
 const TICK_VALUES = [
-  100_000, 250_000, 500_000, 750_000, 1_000_000, 1_500_000, 2_000_000, 3_000_000, 5_000_000,
-  10_000_000,
+  100_000, 250_000, 500_000, 750_000, 1_000_000, 1_500_000, 2_000_000,
+  3_000_000, 5_000_000, 10_000_000,
 ];
 
 export type PriceRangeFilterProps = {
@@ -45,7 +45,9 @@ export default function PriceRangeFilter({
     <Box className={className}>
       <BodyText
         size="sm"
-        className={`text-text-secondary font-medium ${compact ? "mb-1" : "mb-2"}`}
+        className={`text-text-secondary font-medium ${
+          compact ? "mb-1" : "mb-2"
+        }`}
       >
         {t("search.price_range")}
       </BodyText>
@@ -58,7 +60,7 @@ export default function PriceRangeFilter({
         formatValue={(v) => `$${formatCompactNumber(v)}`}
         disabled={disabled}
         minGap={25000}
-        showTextHeader={false}
+        showTextHeader={!compact}
       />
     </Box>
   );

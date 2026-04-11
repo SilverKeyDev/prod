@@ -10,10 +10,12 @@ type ErrorSectionProps = {
   errorMessage: string;
 };
 
-export function ErrorSection({ errorMessage }: ErrorSectionProps): React.JSX.Element {
+export function ErrorSection({
+  errorMessage,
+}: ErrorSectionProps): React.JSX.Element {
   const { t } = useLocalization();
   return (
-    <SectionBox className="border-destructive bg-primary-muted">
+    <SectionBox className="border-border bg-primary-muted">
       <Box className="text-responsive-sm text-destructive text-center">
         <BodyText as="p" className="mb-2 font-semibold">
           {t("negotiate.error_generating_strategy")}

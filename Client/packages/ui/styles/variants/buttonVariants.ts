@@ -1,9 +1,9 @@
 /**
- * Button variant and size styles — single source of truth for web and native.
+ * Button variant and size styles - single source of truth for web and native.
  * Platform files (.web, .native) must import from here; they must NOT define local
  * VARIANT_CLASSES, SIZE_CLASSES, etc.
  *
- * Unified raw Tailwind strings — no @apply CSS classes. Same string for both web and native.
+ * Unified raw Tailwind strings - no @apply CSS classes. Same string for both web and native.
  */
 
 export type ButtonStyleVariant =
@@ -18,7 +18,7 @@ export type ButtonStyleVariant =
 const FILLED_PRIMARY =
   "bg-primary text-white shadow-sm hover:bg-primary-hover hover:shadow active:bg-primary-hover active:shadow web:active:scale-[0.98] focus:ring-neutral-400 disabled:bg-disabled disabled:text-text-disabled disabled:shadow-none";
 const FILLED_TERTIARY =
-  "border-2 border-black bg-accent text-white shadow-sm hover:bg-accent-hover hover:shadow active:bg-accent-hover active:shadow focus:ring-neutral-400 disabled:bg-gold-locked disabled:text-white disabled:shadow-none disabled:border-neutral-400";
+  "bg-accent text-white shadow-sm hover:bg-accent-hover hover:shadow active:bg-accent-hover active:shadow web:active:scale-[0.98] focus:ring-neutral-400 disabled:bg-gold-locked disabled:text-white disabled:shadow-none";
 const FILLED_DANGER =
   "bg-destructive text-white shadow-sm hover:bg-destructive-hover hover:shadow active:bg-destructive-hover active:shadow focus:ring-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:shadow-none";
 const FILLED_SUCCESS =
@@ -44,13 +44,16 @@ export const BUTTON_VARIANT_STYLES: Record<ButtonStyleVariant, string> = {
 };
 
 /**
- * Applied when `loading` is true. Uses `!` so fill/border wins over base variant utilities.
- * Lighter fill + dark rim; `BUTTON_LOADING_FRAME_CLASSES` adds the shared border width.
+ * Applied when `loading` is true. Uses `!` so fill wins over base variant utilities.
+ * No emphasis border while loading (variant borders become transparent so nothing reads as a black rim).
  */
 export const BUTTON_LOADING_FRAME_CLASSES =
-  "relative overflow-hidden border-2 !border-neutral-800 !shadow-none";
+  "relative overflow-hidden !border-transparent !shadow-none";
 
-export const BUTTON_LOADING_VARIANT_OVERRIDES: Record<ButtonStyleVariant, string> = {
+export const BUTTON_LOADING_VARIANT_OVERRIDES: Record<
+  ButtonStyleVariant,
+  string
+> = {
   primary: "!bg-primary/70",
   secondary: "!bg-neutral-50",
   tertiary: "!bg-accent/70",
@@ -61,7 +64,7 @@ export const BUTTON_LOADING_VARIANT_OVERRIDES: Record<ButtonStyleVariant, string
 };
 
 /**
- * Unified size classes — raw Tailwind, same for web and native.
+ * Unified size classes - raw Tailwind, same for web and native.
  * Minimum horizontal padding from text/icon to outer rim: 16px (px-4) for sm/md, 20px (px-5) for lg
  * so buttons are never cramped. Native sizing uses buttonNativeSizes (inline styles) since
  * CVA-assembled native: classes don't apply at Babel transform time.
@@ -83,13 +86,16 @@ export const BUTTON_TEXT_COLOR_CLASSES: Record<ButtonStyleVariant, string> = {
 };
 
 /**
- * Base row layout without main-axis justify — Button appends justify-center,
+ * Base row layout without main-axis justify - Button appends justify-center,
  * justify-start (contentAlign="start"), or justify-between (icon edge layout).
  */
 export const BUTTON_BASE_CLASSES =
   "flex flex-row items-center gap-2 font-medium leading-none focus:outline-none focus:ring-2 focus:ring-offset-2 web:active:translate-y-[0.5px]";
 
-export const BUTTON_ROUNDED_CLASSES: Record<"none" | "sm" | "md" | "lg" | "xl" | "full", string> = {
+export const BUTTON_ROUNDED_CLASSES: Record<
+  "none" | "sm" | "md" | "lg" | "xl" | "full",
+  string
+> = {
   none: "rounded-none",
   sm: "rounded-sm",
   md: "rounded-md",

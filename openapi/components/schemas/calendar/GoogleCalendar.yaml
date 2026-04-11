@@ -1,0 +1,38 @@
+type: object
+description: |
+  Calendar list entry from Google Calendar API (`calendarList`). `accessRole` controls
+  what the connected user may do (e.g. owner vs reader). Colors mirror Google’s UI chips.
+required:
+  - id
+  - summary
+  - accessRole
+properties:
+  id:
+    type: string
+  summary:
+    type: string
+  description:
+    type: string
+    nullable: true
+  primary:
+    type: boolean
+    nullable: true
+  accessRole:
+    type: string
+    description: |
+      Google Calendar ACL role for this user on the calendar, e.g. `owner`, `writer`,
+      `reader`, `freeBusyReader`—drives whether events can be created or only viewed.
+  backgroundColor:
+    type: string
+    nullable: true
+  foregroundColor:
+    type: string
+    nullable: true
+example:
+  id: "primary@group.calendar.google.com"
+  summary: "Alex Agent — Silver Key"
+  description: "Primary scheduling calendar"
+  primary: true
+  accessRole: "owner"
+  backgroundColor: "#9fe1e7"
+  foregroundColor: "#000000"

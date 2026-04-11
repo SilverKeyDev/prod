@@ -10,6 +10,7 @@ from flask import Response, current_app, make_response
 
 from ..core.cognito_service import AWS_COGNITO_service
 from ..user.lookup import find_or_create_user_by_cognito
+from ..utils.code_delivery import normalize_cognito_code_delivery
 from ..utils.cookies import set_auth_cookies
 from ..utils.helpers import mask_email
 from ..utils.responses import create_auth_response
@@ -64,7 +65,9 @@ def handle_login(data: dict[str, Any], request_id: str) -> tuple[Response, int]:
                         "error": "USER_NOT_VERIFIED",
                         "message": "Please verify your email address. A verification code has been sent to your email.",
                         "needs_verification": True,
-                        "code_delivery": resend_response.get("CodeDeliveryDetails", {}),
+                        "code_delivery": normalize_cognito_code_delivery(
+                            resend_response.get("CodeDeliveryDetails", {})
+                        ),
                     }
                 ), 401
             except Exception as resend_error:

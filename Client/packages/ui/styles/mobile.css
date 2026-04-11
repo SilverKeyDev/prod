@@ -65,7 +65,8 @@
     :root {
       /* Match MobileBottomNav: 4rem row + top/bottom padding max(safe-area, 4px) */
       --mobile-bottom-reserved: calc(
-        4rem + max(env(safe-area-inset-bottom, 0), 4px) + max(env(safe-area-inset-bottom, 0), 4px)
+        4rem + max(env(safe-area-inset-bottom, 0), 4px) +
+          max(env(safe-area-inset-bottom, 0), 4px)
       );
     }
     .bottom-reserved {
@@ -123,7 +124,7 @@
   }
 
   .mobile-form-input {
-    @apply focus:border-primary focus:ring-accent-muted border-border w-full rounded-lg border px-3 py-3 text-base focus:ring-2;
+    @apply focus:border-input-variant-focus-border border-border w-full rounded-lg border px-3 py-3 text-base focus:ring-2 focus:ring-neutral-400;
   }
 
   .mobile-form-button {
@@ -266,7 +267,7 @@
   }
 
   .btn-mobile-outline {
-    @apply mobile-form-button border-primary text-primary hover:bg-primary border-2 bg-transparent hover:text-white;
+    @apply mobile-form-button border-border text-primary hover:bg-primary border-2 bg-transparent hover:text-white;
   }
 
   /* Legacy aliases - deprecated, use btn-mobile-* instead */
@@ -299,7 +300,7 @@
 
   /* Mobile accessibility */
   .mobile-focus {
-    @apply focus:border-primary focus:ring-accent-muted focus:outline-none focus:ring-2;
+    @apply focus:border-input-variant-focus-border focus:outline-none focus:ring-2 focus:ring-neutral-400;
   }
 
   .mobile-sr-only {
@@ -391,7 +392,9 @@
     }
 
     /* Only scale buttons without responsive classes */
-    button:not([class*="text-"]):not(input):not(.mobile-input):not(.input-field) {
+    button:not([class*="text-"]):not(input):not(.mobile-input):not(
+        .input-field
+      ) {
       font-size: 0.75rem;
     }
 

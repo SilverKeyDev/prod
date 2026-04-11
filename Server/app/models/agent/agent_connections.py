@@ -2,6 +2,8 @@ import json
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app import db
 
 
@@ -10,16 +12,20 @@ class AgentConnections(db.Model):
 
     __tablename__ = "agent_conversations"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    agent_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    client_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    last_message_at = db.Column(db.DateTime, nullable=True)
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    agent_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    client_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
+    last_message_at: Mapped[datetime | None] = mapped_column(db.DateTime)
 
     # Read receipt tracking - JSON object mapping user_id to last_read_at timestamp
-    last_read_at = db.Column(
-        db.Text, nullable=True
+    last_read_at: Mapped[str | None] = mapped_column(
+        db.Text
     )  # JSON: {"agent_id": "2024-01-01T00:00:00", "client_id": "2024-01-01T00:00:00"}
 
     # Relationships

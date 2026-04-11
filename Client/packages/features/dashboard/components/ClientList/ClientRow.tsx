@@ -14,7 +14,12 @@ type ClientRowProps = {
 };
 const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
   return (
-    <Card border="light" onClick={onClick} hover={true} className="cursor-pointer transition-all">
+    <Card
+      border="light"
+      onClick={onClick}
+      hover={true}
+      className="cursor-pointer transition-all"
+    >
       <Box className="flex flex-col gap-4 sm:flex-row sm:items-center">
         {/* Avatar and Name */}
         <Box className="flex flex-shrink-0 items-center gap-3">
@@ -26,7 +31,11 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
             />
           </Box>
           <Box>
-            <Title as="h3" size="md" className="text-text-primary font-semibold">
+            <Title
+              as="h3"
+              size="md"
+              className="text-text-primary font-semibold"
+            >
               {client.name}
             </Title>
             <BodyText as="p" size="sm" className="text-text-secondary">
@@ -35,7 +44,7 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
           </Box>
         </Box>
 
-        {/* Deal Stage (hidden for search — default early stage) */}
+        {/* Deal Stage (hidden for search - default early stage) */}
         {client.deal_stage !== "search" && (
           <Box className="flex-shrink-0">
             <DealStageBadge stage={client.deal_stage} />
@@ -46,10 +55,18 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onClick }) => {
         {client.risk_flags.length > 0 && (
           <Box className="flex flex-wrap gap-2">
             {client.risk_flags.slice(0, 2).map((flag, index) => (
-              <RiskFlag key={index} severity={flag.severity} message={flag.type} />
+              <RiskFlag
+                key={index}
+                severity={flag.severity}
+                message={flag.type}
+              />
             ))}
             {client.risk_flags.length > 2 && (
-              <BodyText as="span" size="sm" className="text-text-secondary text-xs sm:text-sm">
+              <BodyText
+                as="span"
+                size="sm"
+                className="text-text-secondary text-xs sm:text-sm"
+              >
                 +{client.risk_flags.length - 2} more
               </BodyText>
             )}

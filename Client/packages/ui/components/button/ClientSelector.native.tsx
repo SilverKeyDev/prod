@@ -14,11 +14,14 @@ type ClientSelectorNativeProps = {
   selectedClientId: string | null;
   onClientChange: (clientId: string | null) => void;
   className?: string;
+  /** When true, omits the "Me" row so agents only pick among clients (e.g. client hub). */
+  hideMeOption?: boolean;
 };
 
 export default function ClientSelectorNative({
   selectedClientId,
   onClientChange,
+  hideMeOption = false,
 }: ClientSelectorNativeProps) {
   const { clients, isLoading } = useAgentClients();
   const isAgent = useIsAgent();
@@ -30,16 +33,18 @@ export default function ClientSelectorNative({
       onClientChange(clientId);
       setIsOpen(false);
     },
-    [onClientChange]
+    [onClientChange],
   );
 
   if (!isAgent) return null;
 
   const displayLabel =
     selectedClientId === null
-      ? t("client_selector.me")
-      : (clients.find((c) => c.id === selectedClientId)?.name ??
-        t("client_selector.select_client"));
+      ? hideMeOption
+        ? t("client_selector.select_client")
+        : t("client_selector.me")
+      : clients.find((c) => c.id === selectedClientId)?.name ??
+        t("client_selector.select_client");
 
   return (
     <Box>
@@ -49,32 +54,40 @@ export default function ClientSelectorNative({
         onPress={() => setIsOpen(true)}
         className="flex-row items-center gap-2"
       >
-        <Text className="text-text-primary text-sm font-medium">{displayLabel}</Text>
+        <Text className="text-text-primary text-sm font-medium">
+          {displayLabel}
+        </Text>
         <Text className="text-text-secondary text-sm">▼</Text>
       </Button>
 
       <BaseModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title={t("client_selector.select_client", { defaultValue: "Select client" })}
+        title={t("client_selector.select_client", {
+          defaultValue: "Select client",
+        })}
       >
         <Box className="gap-2">
-          <Pressable
-            onPress={() => handleSelect(null)}
-            className={`rounded-lg border px-4 py-3 ${
-              selectedClientId === null
-                ? "border-primary bg-primary-muted"
-                : "border-border bg-background-surface"
-            }`}
-          >
-            <Text
-              className={`text-sm font-medium ${
-                selectedClientId === null ? "text-primary" : "text-text-primary"
+          {!hideMeOption ? (
+            <Pressable
+              onPress={() => handleSelect(null)}
+              className={`rounded-lg border px-4 py-3 ${
+                selectedClientId === null
+                  ? "border-border bg-primary-muted"
+                  : "border-border bg-background-surface"
               }`}
             >
-              {t("client_selector.me")}
-            </Text>
-          </Pressable>
+              <Text
+                className={`text-sm font-medium ${
+                  selectedClientId === null
+                    ? "text-primary"
+                    : "text-text-primary"
+                }`}
+              >
+                {t("client_selector.me")}
+              </Text>
+            </Pressable>
+          ) : null}
 
           {isLoading ? (
             <Text className="text-text-secondary px-4 py-2 text-sm">
@@ -91,19 +104,23 @@ export default function ClientSelectorNative({
                 onPress={() => handleSelect(client.id)}
                 className={`rounded-lg border px-4 py-3 ${
                   selectedClientId === client.id
-                    ? "border-primary bg-primary-muted"
+                    ? "border-border bg-primary-muted"
                     : "border-border bg-background-surface"
                 }`}
               >
                 <Text
                   className={`text-sm font-medium ${
-                    selectedClientId === client.id ? "text-primary" : "text-text-primary"
+                    selectedClientId === client.id
+                      ? "text-primary"
+                      : "text-text-primary"
                   }`}
                 >
                   {client.name}
                 </Text>
                 {client.email ? (
-                  <Text className="text-text-secondary mt-0.5 text-xs">{client.email}</Text>
+                  <Text className="text-text-secondary mt-0.5 text-xs">
+                    {client.email}
+                  </Text>
                 ) : null}
               </Pressable>
             ))

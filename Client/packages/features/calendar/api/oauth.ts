@@ -1,14 +1,24 @@
 /**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This module re-exports types from the generated API contract (api.generated.ts).
+ * To add/modify API types: edit openapi, then run `pnpm generate:api-types` in Client.
+ *
  * Google Calendar OAuth and connection status.
  * Web-only: uses platform window/document for redirects and cookie checks; no-op when adapter not set (e.g. RN).
  */
 
 import { apiGet, apiPost } from "packages/services/http/compatibility";
+import type { components } from "packages/types/api.generated";
 import { getDocument, getWindow } from "packages/utils/platform";
 
-import type { GoogleCalendarApiResponse } from "./types";
+export type RevokeResponse = components["schemas"]["RevokeResponse"];
+export type ConnectionStatusResponse =
+  components["schemas"]["ConnectionStatusResponse"];
 
-export async function startOAuth(useSchedulingScopes: boolean = false): Promise<void> {
+export async function startOAuth(
+  useSchedulingScopes: boolean = false,
+): Promise<void> {
   const win = getWindow();
   if (!win) return;
   const url = useSchedulingScopes
@@ -17,12 +27,9 @@ export async function startOAuth(useSchedulingScopes: boolean = false): Promise<
   win.location.href = url;
 }
 
-export async function revokeAccess(): Promise<GoogleCalendarApiResponse<{ ok: boolean }>> {
+export async function revokeAccess(): Promise<RevokeResponse> {
   try {
-    return await apiPost<GoogleCalendarApiResponse<{ ok: boolean }>>(
-      "/api/v1/google/oauth/revoke",
-      {}
-    );
+    return await apiPost<RevokeResponse>("/api/v1/google/oauth/revoke", {});
   } catch (error) {
     return {
       success: false,
@@ -38,10 +45,10 @@ export async function startOAuthWithFullScope(): Promise<void> {
 
 export async function isConnected(): Promise<boolean> {
   try {
-    const response = await apiGet<GoogleCalendarApiResponse<{ isConnected: boolean }>>(
-      "/api/v1/google/connection-status"
+    const response = await apiGet<ConnectionStatusResponse>(
+      "/api/v1/google/connection-status",
     );
-    return response.success && response.data?.isConnected === true;
+    return response.success === true && response.connected === true;
   } catch {
     const doc = getDocument();
     return doc?.cookie?.includes("google_calendar_connected=true") ?? false;
@@ -51,6 +58,7 @@ export async function isConnected(): Promise<boolean> {
 export function clearConnectionStatus(): void {
   const doc = getDocument();
   if (doc) {
-    doc.cookie = "google_calendar_connected=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+    doc.cookie =
+      "google_calendar_connected=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
   }
 }

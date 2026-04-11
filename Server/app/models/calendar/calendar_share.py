@@ -1,5 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -9,13 +11,19 @@ class CalendarShare(db.Model):
 
     __tablename__ = "calendar_shares"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    calendar_owner_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    shared_with_user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    calendar_id = db.Column(db.String(255), nullable=False)  # Google Calendar ID
-    role = db.Column(db.String(20), default="writer")  # "reader", "writer", "owner"
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    calendar_owner_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    shared_with_user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    calendar_id: Mapped[str] = mapped_column(db.String(255))  # Google Calendar ID
+    role: Mapped[str] = mapped_column(
+        db.String(20), default="writer"
+    )  # "reader", "writer", "owner"
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationships
     calendar_owner = db.relationship(

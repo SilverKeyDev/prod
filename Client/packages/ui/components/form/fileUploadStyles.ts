@@ -1,5 +1,5 @@
 /**
- * FileUpload styles — single source of truth for web and native.
+ * FileUpload styles - single source of truth for web and native.
  * Platform files must import from here; they must NOT define local style strings.
  */
 
@@ -13,22 +13,22 @@ import {
 export { DOTTED_BORDER_LIGHT_GRAY };
 import { HOVER_BG_CLASSES } from "packages/ui/styles/transitions/transitionClasses";
 
-/** Drop zone border — web uses dashed; native uses solid (dashed unreliable on RN) */
+/** Drop zone border - web uses dashed; native uses solid (dashed unreliable on RN) */
 export const DROP_ZONE_BORDER_WEB = DASHED_BORDER_BOX_NEUTRAL_300;
 export const DROP_ZONE_BORDER_NATIVE = "border-2 border-border";
 
-/** Drop zone base — dashed border (web), padding */
+/** Drop zone base - dashed border (web), padding */
 export const FILE_UPLOAD_DROP_ZONE_BASE = `rounded-lg p-8 text-center ${DROP_ZONE_BORDER_WEB} ${HOVER_BG_CLASSES}`;
 
-/** Drop zone compact — for ImagePicker (p-6) */
+/** Drop zone compact - for ImagePicker (p-6) */
 export const FILE_UPLOAD_DROP_ZONE_COMPACT = `rounded-lg p-6 text-center ${DROP_ZONE_BORDER_WEB} ${HOVER_BG_CLASSES}`;
 
 /** Drop zone default state */
 export const FILE_UPLOAD_DROP_ZONE_DEFAULT =
-  "border-border hover:border-primary active:border-primary";
+  "border-border hover:border-neutral-400 active:border-neutral-500";
 
 /** Drop zone drag-over state */
-export const FILE_UPLOAD_DROP_ZONE_DRAG = "border-brand-accent bg-neutral-100";
+export const FILE_UPLOAD_DROP_ZONE_DRAG = "border-neutral-500 bg-neutral-100";
 
 /** Drop zone with items-center (native uses solid border, rounded-xl for touch) */
 export const FILE_UPLOAD_DROP_ZONE_NATIVE =
@@ -55,5 +55,5 @@ export const ADD_BUTTON_DASHED_BORDER = `rounded-lg ${DASHED_BORDER_BOX_GRAY_300
 /** Trigger/input-style dashed border (e.g. location picker trigger) */
 export const TRIGGER_DASHED_BORDER = DASHED_BORDER_BOX_GRAY_300;
 
-/** Location input container — dotted light gray outline, high contrast */
+/** Location input container - dotted light gray outline, high contrast */
 export const LOCATION_INPUT_CONTAINER = `rounded-lg bg-background-surface p-4 ${DOTTED_BORDER_LIGHT_GRAY}`;

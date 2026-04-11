@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from "react";
 
-interface AutoExpandingTextareaProps extends Omit<
-  React.TextareaHTMLAttributes<HTMLTextAreaElement>,
-  "rows"
-> {
+import { INPUT_AUTOFILL_CLASS_NAME } from "packages/ui/styles/variants/inputVariants";
+
+interface AutoExpandingTextareaProps
+  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "rows"> {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   minHeight?: number;
@@ -27,10 +27,11 @@ export const AutoExpandingTextarea = React.forwardRef<
       onKeyDown,
       ...props
     },
-    forwardedRef
+    forwardedRef,
   ) => {
     const internalRef = useRef<HTMLTextAreaElement>(null);
-    const textareaRef = (forwardedRef as React.RefObject<HTMLTextAreaElement>) || internalRef;
+    const textareaRef =
+      (forwardedRef as React.RefObject<HTMLTextAreaElement>) || internalRef;
 
     // Auto-resize functionality
     useEffect(() => {
@@ -41,7 +42,10 @@ export const AutoExpandingTextarea = React.forwardRef<
         textarea.style.height = "auto";
 
         // Calculate new height within constraints
-        const newHeight = Math.min(Math.max(textarea.scrollHeight, minHeight), maxHeight);
+        const newHeight = Math.min(
+          Math.max(textarea.scrollHeight, minHeight),
+          maxHeight,
+        );
 
         // Set the height
         textarea.style.height = `${newHeight}px`;
@@ -74,11 +78,12 @@ export const AutoExpandingTextarea = React.forwardRef<
       "text-sm sm:text-base leading-tight sm:leading-normal",
       // iOS zoom prevention - ensure minimum 16px font size
       "text-base sm:text-base",
+      INPUT_AUTOFILL_CLASS_NAME,
     ].join(" ");
 
     const stateClasses = error
-      ? "border-destructive focus:ring-destructive focus:border-destructive"
-      : "border-border focus:ring-accent-muted focus:border-primary";
+      ? "border-neutral-600 focus:ring-neutral-400 focus:border-neutral-700"
+      : "border-border focus:ring-neutral-400 focus:border-input-variant-focus-border";
 
     const combinedStyle = {
       minHeight: `${minHeight}px`,
@@ -100,7 +105,7 @@ export const AutoExpandingTextarea = React.forwardRef<
         {...props}
       />
     );
-  }
+  },
 );
 
 AutoExpandingTextarea.displayName = "AutoExpandingTextarea";

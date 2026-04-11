@@ -2,6 +2,10 @@ import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
 } from "packages/features/compare/types/compareHomes";
+import {
+  normalizeConEntry,
+  normalizeProEntry,
+} from "packages/utils/search/normalizeProsConsItems";
 
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 
@@ -14,28 +18,33 @@ type SectionField = {
 function makeGetValueForSection(
   sectionKey: string,
   key: string,
-  isArray: boolean
+  isArray: boolean,
 ): (h: CompareHomesPropertyDetails) => string {
   return (h) => {
     if (!h.propertyAnalysis || typeof h.propertyAnalysis !== "object") {
-      return "—";
+      return "-";
     }
     const secData = (h.propertyAnalysis as Record<string, unknown>)[sectionKey];
     if (!secData || typeof secData !== "object") {
-      return "—";
+      return "-";
     }
     const fieldValue = (secData as Record<string, unknown>)[key];
     if (isArray && Array.isArray(fieldValue) && fieldValue.length > 0) {
-      return fieldValue.slice(0, 3).join("; ") + (fieldValue.length > 3 ? "..." : "");
+      return (
+        fieldValue.slice(0, 3).join("; ") + (fieldValue.length > 3 ? "..." : "")
+      );
     }
     if (fieldValue === null || fieldValue === undefined || fieldValue === "") {
-      return "—";
+      return "-";
     }
     return String(fieldValue);
   };
 }
 
-function extractSectionFields(sectionData: unknown, sectionKey: string): SectionField[] {
+function extractSectionFields(
+  sectionData: unknown,
+  sectionKey: string,
+): SectionField[] {
   if (!sectionData || typeof sectionData !== "object") {
     return [];
   }
@@ -65,7 +74,11 @@ function extractSectionFields(sectionData: unknown, sectionKey: string): Section
       return;
     }
 
-    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
       sectionFields.push({
         fieldKey: `${sectionKey}_${key}`,
         label: displayKey,
@@ -79,21 +92,27 @@ function extractSectionFields(sectionData: unknown, sectionKey: string): Section
 
 function pushProsConsFields(
   fields: CompareHomesComparisonField[],
-  comparisonData: CompareHomesPropertyDetails[]
+  comparisonData: CompareHomesPropertyDetails[],
 ): void {
   const hasPros = comparisonData.some(
     (h) =>
       h.propertyAnalysis &&
       typeof h.propertyAnalysis === "object" &&
-      Array.isArray((h.propertyAnalysis as Record<string, unknown>).pros)
+      Array.isArray((h.propertyAnalysis as Record<string, unknown>).pros),
   );
   if (hasPros) {
     fields.push({
       key: "pros",
       label: "Pros",
       getValue: (h) => {
-        const pros = ((h.propertyAnalysis as Record<string, unknown>)?.pros as string[]) || [];
-        return pros.slice(0, 3).join("; ") || "—";
+        const prosRaw =
+          ((h.propertyAnalysis as Record<string, unknown>)
+            ?.pros as unknown[]) || [];
+        const texts = prosRaw
+          .slice(0, 3)
+          .map((item) => normalizeProEntry(item).text)
+          .filter((s) => s.length > 0);
+        return texts.join("; ") || "-";
       },
     });
   }
@@ -101,15 +120,21 @@ function pushProsConsFields(
     (h) =>
       h.propertyAnalysis &&
       typeof h.propertyAnalysis === "object" &&
-      Array.isArray((h.propertyAnalysis as Record<string, unknown>).cons)
+      Array.isArray((h.propertyAnalysis as Record<string, unknown>).cons),
   );
   if (hasCons) {
     fields.push({
       key: "cons",
       label: "Cons",
       getValue: (h) => {
-        const cons = ((h.propertyAnalysis as Record<string, unknown>)?.cons as string[]) || [];
-        return cons.slice(0, 3).join("; ") || "—";
+        const consRaw =
+          ((h.propertyAnalysis as Record<string, unknown>)
+            ?.cons as unknown[]) || [];
+        const texts = consRaw
+          .slice(0, 3)
+          .map((item) => normalizeConEntry(item).text)
+          .filter((s) => s.length > 0);
+        return texts.join("; ") || "-";
       },
     });
   }
@@ -119,7 +144,7 @@ function pushSectionFields(
   fields: CompareHomesComparisonField[],
   comparisonData: CompareHomesPropertyDetails[],
   loadingStates: Record<string, boolean> | undefined,
-  sectionsToProcess: Array<{ key: string; label: string }>
+  sectionsToProcess: Array<{ key: string; label: string }>,
 ): void {
   sectionsToProcess.forEach((section) => {
     const sectionKey = section.key;
@@ -127,23 +152,26 @@ function pushSectionFields(
       (h) =>
         h.propertyAnalysis &&
         typeof h.propertyAnalysis === "object" &&
-        (h.propertyAnalysis as Record<string, unknown>)[sectionKey] != null
+        (h.propertyAnalysis as Record<string, unknown>)[sectionKey] != null,
     );
     const homesWithSection = comparisonData.filter(
       (h) =>
         h.propertyAnalysis &&
         typeof h.propertyAnalysis === "object" &&
-        (h.propertyAnalysis as Record<string, unknown>)[sectionKey] != null
+        (h.propertyAnalysis as Record<string, unknown>)[sectionKey] != null,
     );
     const homesWithoutSection = comparisonData.filter(
       (h) =>
         !h.propertyAnalysis ||
         typeof h.propertyAnalysis !== "object" ||
-        (h.propertyAnalysis as Record<string, unknown>)[sectionKey] == null
+        (h.propertyAnalysis as Record<string, unknown>)[sectionKey] == null,
     );
-    const hasExplicitLoading = comparisonData.some((h) => loadingStates?.[h.id] || h.isLoading);
+    const hasExplicitLoading = comparisonData.some(
+      (h) => loadingStates?.[h.id] || h.isLoading,
+    );
     const isSectionLoading =
-      hasExplicitLoading || (homesWithSection.length > 0 && homesWithoutSection.length > 0);
+      hasExplicitLoading ||
+      (homesWithSection.length > 0 && homesWithoutSection.length > 0);
 
     fields.push({
       key: `section_header_${sectionKey}`,
@@ -162,7 +190,9 @@ function pushSectionFields(
           typeof home.propertyAnalysis === "object" &&
           (home.propertyAnalysis as Record<string, unknown>)[sectionKey] != null
         ) {
-          const sectionData = (home.propertyAnalysis as Record<string, unknown>)[sectionKey];
+          const sectionData = (
+            home.propertyAnalysis as Record<string, unknown>
+          )[sectionKey];
           const extracted = extractSectionFields(sectionData, sectionKey);
           extracted.forEach((field) => {
             allSectionFieldsMap.set(field.fieldKey, field);
@@ -188,10 +218,12 @@ export function addAnalysisFields(
   fields: CompareHomesComparisonField[],
   comparisonData: CompareHomesPropertyDetails[],
   loadingStates?: Record<string, boolean>,
-  orderedSections?: Array<{ key: string; label: string }>
+  orderedSections?: Array<{ key: string; label: string }>,
 ): void {
   pushProsConsFields(fields, comparisonData);
   const sectionsToProcess =
-    orderedSections && orderedSections.length > 0 ? orderedSections : DEFAULT_REPORT_SECTIONS;
+    orderedSections && orderedSections.length > 0
+      ? orderedSections
+      : DEFAULT_REPORT_SECTIONS;
   pushSectionFields(fields, comparisonData, loadingStates, sectionsToProcess);
 }

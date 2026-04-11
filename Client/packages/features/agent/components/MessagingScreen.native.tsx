@@ -1,16 +1,27 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import Loading from "@ui/asset/loading/Loading";
 import Input from "@ui/form/Input";
-import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  View,
+} from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useAgentClients } from "packages/features/agent/hooks/data/useAgentClients";
 import { useIsAgent } from "packages/features/homeauth";
+import { useAgentChats, useMessaging } from "packages/features/messaging";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
-import { useAgentChats } from "packages/hooks/data/chat/useAgentChats";
-import { useMessaging } from "packages/hooks/data/chat/useMessaging";
 import { useMessagingHandlers } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
 import { Box, Pressable, Text } from "packages/ui/components/primitives";
@@ -57,7 +68,7 @@ export function MessagingScreenNative() {
 
   const agentId = useMemo(
     () => resolvePrimaryAgentId(userProfile?.agent_id),
-    [userProfile?.agent_id]
+    [userProfile?.agent_id],
   );
 
   const clientMessaging = useMessaging({
@@ -69,7 +80,7 @@ export function MessagingScreenNative() {
   const [selectedClientId, setSelectedClientId] = useAgentAutoSelectClient(
     clients,
     agentConversations,
-    isLoadingClients
+    isLoadingClients,
   );
 
   const agentMessaging = useMessaging({
@@ -93,15 +104,22 @@ export function MessagingScreenNative() {
     refreshActiveConversationHistory,
   } = messaging;
 
-  const config = useMemo(() => getMessagingConfig(isAgent ? "agent" : "client"), [isAgent]);
+  const config = useMemo(
+    () => getMessagingConfig(isAgent ? "agent" : "client"),
+    [isAgent],
+  );
 
   const [inputText, setInputText] = useState("");
-  const [inboxMode, setInboxMode] = useState<"conversations" | "requests">("conversations");
+  const [inboxMode, setInboxMode] = useState<"conversations" | "requests">(
+    "conversations",
+  );
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showSelectHomeModal, setShowSelectHomeModal] = useState(false);
   const [showSelectDocumentModal, setShowSelectDocumentModal] = useState(false);
   const [showCalendarEventModal, setShowCalendarEventModal] = useState(false);
-  const [acceptingEventRequestId, setAcceptingEventRequestId] = useState<string | null>(null);
+  const [acceptingEventRequestId, setAcceptingEventRequestId] = useState<
+    string | null
+  >(null);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const listRef = useRef<FlatList>(null);
 
@@ -154,12 +172,15 @@ export function MessagingScreenNative() {
 
   const conversationMap = useMemo(
     () => new Map(conversations.map((conv) => [conv.client_id, conv])),
-    [conversations]
+    [conversations],
   );
 
   const selectedClient = useMemo(
-    () => (isAgent ? (clients.find((client) => client.id === selectedClientId) ?? null) : null),
-    [clients, isAgent, selectedClientId]
+    () =>
+      isAgent
+        ? clients.find((client) => client.id === selectedClientId) ?? null
+        : null,
+    [clients, isAgent, selectedClientId],
   );
 
   const handleSend = useCallback(async () => {
@@ -223,7 +244,9 @@ export function MessagingScreenNative() {
       <Box className="border-border bg-background-base flex-row items-center justify-between border-b px-4 py-3">
         <Text className="text-text-primary text-base font-semibold">
           {isAgent && selectedClient
-            ? `Chat with ${selectedClient.name ?? selectedClient.email ?? "Client"}`
+            ? `Chat with ${
+                selectedClient.name ?? selectedClient.email ?? "Client"
+              }`
             : !isAgent && activeConversation?.agent_name
               ? `Chat with ${activeConversation.agent_name}`
               : config.header.chatTitle}
@@ -232,7 +255,9 @@ export function MessagingScreenNative() {
           onPress={refreshChats}
           className="border-border bg-background-surface rounded-lg border px-3 py-2"
         >
-          <Text className="text-text-primary text-sm font-medium">{t("agent.refresh")}</Text>
+          <Text className="text-text-primary text-sm font-medium">
+            {t("agent.refresh")}
+          </Text>
         </Pressable>
       </Box>
       {isAgent && selectedClientId && (
@@ -240,7 +265,9 @@ export function MessagingScreenNative() {
           onPress={() => setSelectedClientId(null)}
           className="border-border bg-background-base border-b px-4 py-2"
         >
-          <Text className="text-primary">{t("agent.back_to_conversations")}</Text>
+          <Text className="text-primary">
+            {t("agent.back_to_conversations")}
+          </Text>
         </Pressable>
       )}
 
@@ -313,7 +340,10 @@ export function MessagingScreenNative() {
         onCalendarEvent={() => setShowCalendarEventModal(true)}
       />
 
-      <ClientSearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} />
+      <ClientSearchModal
+        isOpen={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+      />
       <SelectHomeModal
         isOpen={showSelectHomeModal}
         onClose={() => setShowSelectHomeModal(false)}

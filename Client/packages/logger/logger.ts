@@ -24,6 +24,7 @@ import {
   isAlwaysEnabled,
   LOG_CATEGORIES,
 } from "./categories";
+import bundledLoggerConfig from "./logger.config.json";
 import { createSafeLogObject, maskSensitiveData } from "./pii";
 
 type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
@@ -52,6 +53,9 @@ export interface LoggerConfig {
   dashboard?: boolean;
   messages?: boolean;
   routing?: boolean;
+  docusign?: boolean;
+  mapRendering?: boolean;
+  propertyDetails?: boolean;
   logLevel: LogLevel;
   // Allow additional category flags for future categories
   [key: string]: boolean | LogLevel | ApiSubcategoryConfig | undefined;
@@ -97,7 +101,7 @@ class Logger {
    * For now, we'll use a default config and allow runtime updates
    */
   private loadConfig(): LoggerConfig {
-    // Default config
+    // Defaults when a key is missing from logger.config.json
     const defaultConfig: LoggerConfig = {
       polling: true,
       pages: true,
@@ -113,12 +117,14 @@ class Logger {
       errors: true,
       security: true,
       polygonSearch: true,
+      docusign: true,
+      mapRendering: false,
+      propertyDetails: false,
       logLevel: "DEBUG",
     };
 
-    // Try to load from config file (async, but we'll handle it)
-    // For runtime reloading, we'll provide a method to update config
-    return defaultConfig;
+    const bundled = bundledLoggerConfig as Partial<LoggerConfig>;
+    return { ...defaultConfig, ...bundled };
   }
 
   /**
@@ -133,7 +139,10 @@ class Logger {
       }
     } catch (error) {
       // If config file doesn't exist or can't be loaded, use defaults
-      this.originalConsole.warn("[Logger] Failed to reload config, using current config", error);
+      this.originalConsole.warn(
+        "[Logger] Failed to reload config, using current config",
+        error,
+      );
     }
   }
 
@@ -156,7 +165,10 @@ class Logger {
    * Handles both defined categories (from categories.ts) and future categories (from config JSON)
    * Supports API subcategories when category is "API"
    */
-  private isCategoryEnabled(category: LogCategory | string, subcategory?: ApiSubcategory): boolean {
+  private isCategoryEnabled(
+    category: LogCategory | string,
+    subcategory?: ApiSubcategory,
+  ): boolean {
     // Safety check: handle undefined/null categories
     if (!category || typeof category !== "string") {
       return false;
@@ -181,7 +193,9 @@ class Logger {
         configKey = category
           .toLowerCase()
           .split("_")
-          .map((word, index) => (index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)))
+          .map((word, index) =>
+            index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1),
+          )
           .join("");
       }
     } catch {
@@ -189,7 +203,9 @@ class Logger {
       configKey = category
         .toLowerCase()
         .split("_")
-        .map((word, index) => (index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)))
+        .map((word, index) =>
+          index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1),
+        )
         .join("");
     }
 
@@ -203,7 +219,9 @@ class Logger {
         const apiConfig = configValue as ApiSubcategoryConfig;
         if (subcategory) {
           const subcategoryKey = apiSubcategoryToConfigKey(subcategory);
-          return apiConfig[subcategoryKey as keyof ApiSubcategoryConfig] === true;
+          return (
+            apiConfig[subcategoryKey as keyof ApiSubcategoryConfig] === true
+          );
         }
         // If no subcategory specified, check if any subcategory is enabled
         return (
@@ -237,7 +255,7 @@ class Logger {
     level: LogLevel,
     category: LogCategory | string,
     message: string,
-    data?: unknown
+    data?: unknown,
   ): string {
     if (this.isProcessing) {
       const timestamp = new Date().toISOString();
@@ -251,7 +269,9 @@ class Logger {
 
       if (data) {
         const scrubbedData = createSafeLogObject(data);
-        return `${prefix} ${maskSensitiveData(message)} ${JSON.stringify(scrubbedData)}`;
+        return `${prefix} ${maskSensitiveData(message)} ${JSON.stringify(
+          scrubbedData,
+        )}`;
       }
 
       return `${prefix} ${maskSensitiveData(message)}`;
@@ -270,16 +290,26 @@ class Logger {
     category: LogCategory,
     message: string,
     data?: unknown,
-    subcategory?: ApiSubcategory
+    subcategory?: ApiSubcategory,
   ): void {
-    if (!this.isCategoryEnabled(category, subcategory) || !this.isLevelEnabled("DEBUG")) {
+    if (
+      !this.isCategoryEnabled(category, subcategory) ||
+      !this.isLevelEnabled("DEBUG")
+    ) {
       return;
     }
 
     try {
       const categoryLabel =
-        subcategory && category === "API" ? `${category}:${subcategory}` : category;
-      const formatted = this.formatMessage("DEBUG", categoryLabel, message, data);
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
+      const formatted = this.formatMessage(
+        "DEBUG",
+        categoryLabel,
+        message,
+        data,
+      );
       this.originalConsole.debug(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Debug error:", error);
@@ -289,15 +319,30 @@ class Logger {
   /**
    * Info logging
    */
-  info(category: LogCategory, message: string, data?: unknown, subcategory?: ApiSubcategory): void {
-    if (!this.isCategoryEnabled(category, subcategory) || !this.isLevelEnabled("INFO")) {
+  info(
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ): void {
+    if (
+      !this.isCategoryEnabled(category, subcategory) ||
+      !this.isLevelEnabled("INFO")
+    ) {
       return;
     }
 
     try {
       const categoryLabel =
-        subcategory && category === "API" ? `${category}:${subcategory}` : category;
-      const formatted = this.formatMessage("INFO", categoryLabel, message, data);
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
+      const formatted = this.formatMessage(
+        "INFO",
+        categoryLabel,
+        message,
+        data,
+      );
       this.originalConsole.info(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Info error:", error);
@@ -307,15 +352,30 @@ class Logger {
   /**
    * Warning logging
    */
-  warn(category: LogCategory, message: string, data?: unknown, subcategory?: ApiSubcategory): void {
-    if (!this.isCategoryEnabled(category, subcategory) || !this.isLevelEnabled("WARN")) {
+  warn(
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ): void {
+    if (
+      !this.isCategoryEnabled(category, subcategory) ||
+      !this.isLevelEnabled("WARN")
+    ) {
       return;
     }
 
     try {
       const categoryLabel =
-        subcategory && category === "API" ? `${category}:${subcategory}` : category;
-      const formatted = this.formatMessage("WARN", categoryLabel, message, data);
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
+      const formatted = this.formatMessage(
+        "WARN",
+        categoryLabel,
+        message,
+        data,
+      );
       this.originalConsole.warn(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Warn error:", error);
@@ -329,9 +389,12 @@ class Logger {
     category: LogCategory,
     message: string,
     error?: unknown,
-    subcategory?: ApiSubcategory
+    subcategory?: ApiSubcategory,
   ): void {
-    if (!this.isCategoryEnabled(category, subcategory) || !this.isLevelEnabled("ERROR")) {
+    if (
+      !this.isCategoryEnabled(category, subcategory) ||
+      !this.isLevelEnabled("ERROR")
+    ) {
       return;
     }
 
@@ -348,8 +411,15 @@ class Logger {
       }
 
       const categoryLabel =
-        subcategory && category === "API" ? `${category}:${subcategory}` : category;
-      const formatted = this.formatMessage("ERROR", categoryLabel, message, errorData);
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
+      const formatted = this.formatMessage(
+        "ERROR",
+        categoryLabel,
+        message,
+        errorData,
+      );
       this.originalConsole.error(formatted);
     } catch (err) {
       this.originalConsole.error("[Logger] Error logging error:", err);
@@ -363,13 +433,20 @@ class Logger {
     category: LogCategory,
     event: string,
     data?: unknown,
-    subcategory?: ApiSubcategory
+    subcategory?: ApiSubcategory,
   ): void {
     try {
       const scrubbedData = data ? createSafeLogObject(data) : undefined;
       const categoryLabel =
-        subcategory && category === "API" ? `${category}:${subcategory}` : category;
-      const formatted = this.formatMessage("WARN", categoryLabel, `🔒 ${event}`, scrubbedData);
+        subcategory && category === "API"
+          ? `${category}:${subcategory}`
+          : category;
+      const formatted = this.formatMessage(
+        "WARN",
+        categoryLabel,
+        `🔒 ${event}`,
+        scrubbedData,
+      );
       this.originalConsole.warn(formatted);
     } catch (error) {
       this.originalConsole.error("[Logger] Security logging error:", error);
@@ -382,17 +459,38 @@ export const logger = new Logger();
 
 // Convenience exports
 export const log = {
-  debug: (category: LogCategory, message: string, data?: unknown, subcategory?: ApiSubcategory) =>
-    logger.debug(category, message, data, subcategory),
-  info: (category: LogCategory, message: string, data?: unknown, subcategory?: ApiSubcategory) =>
-    logger.info(category, message, data, subcategory),
-  warn: (category: LogCategory, message: string, data?: unknown, subcategory?: ApiSubcategory) =>
-    logger.warn(category, message, data, subcategory),
-  error: (category: LogCategory, message: string, error?: unknown, subcategory?: ApiSubcategory) =>
-    logger.error(category, message, error, subcategory),
-  security: (category: LogCategory, event: string, data?: unknown, subcategory?: ApiSubcategory) =>
-    logger.security(category, event, data, subcategory),
+  debug: (
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.debug(category, message, data, subcategory),
+  info: (
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.info(category, message, data, subcategory),
+  warn: (
+    category: LogCategory,
+    message: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.warn(category, message, data, subcategory),
+  error: (
+    category: LogCategory,
+    message: string,
+    error?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.error(category, message, error, subcategory),
+  security: (
+    category: LogCategory,
+    event: string,
+    data?: unknown,
+    subcategory?: ApiSubcategory,
+  ) => logger.security(category, event, data, subcategory),
   reloadConfig: () => logger.reloadConfig(),
-  updateConfig: (updates: Partial<LoggerConfig>) => logger.updateConfig(updates),
+  updateConfig: (updates: Partial<LoggerConfig>) =>
+    logger.updateConfig(updates),
   getConfig: () => logger.getConfig(),
 };

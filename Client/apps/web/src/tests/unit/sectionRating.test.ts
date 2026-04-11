@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { parseSectionRatingValue, stripSectionRatingField } from "packages/utils/propertyDetails";
+import {
+  parseSectionRatingValue,
+  stripSectionRatingField,
+  unwrapPropertyAnalysisSection,
+} from "packages/utils/propertyDetails";
 
 describe("parseSectionRatingValue", () => {
   it("parses finite numbers and clamps to 0–10", () => {
@@ -51,7 +55,10 @@ describe("stripSectionRatingField", () => {
 
   it("passes through non-objects", () => {
     expect(stripSectionRatingField(null)).toEqual({ rest: null, rating: null });
-    expect(stripSectionRatingField([1, 2])).toEqual({ rest: [1, 2], rating: null });
+    expect(stripSectionRatingField([1, 2])).toEqual({
+      rest: [1, 2],
+      rating: null,
+    });
     expect(stripSectionRatingField("x")).toEqual({ rest: "x", rating: null });
   });
 
@@ -62,5 +69,24 @@ describe("stripSectionRatingField", () => {
     });
     expect(rating).toBeNull();
     expect(rest).toEqual({ note: "x" });
+  });
+});
+
+describe("unwrapPropertyAnalysisSection", () => {
+  it("unwraps single-key section wrapper", () => {
+    const inner = { commute_rating: "7.5", traffic: "Light" };
+    expect(
+      unwrapPropertyAnalysisSection("commute", { commute: inner }),
+    ).toEqual(inner);
+  });
+
+  it("passes through flat payloads", () => {
+    const flat = { commute_rating: "8", public_transport: "Bus" };
+    expect(unwrapPropertyAnalysisSection("commute", flat)).toEqual(flat);
+  });
+
+  it("does not unwrap when multiple top-level keys", () => {
+    const obj = { commute: { a: 1 }, other: 2 };
+    expect(unwrapPropertyAnalysisSection("commute", obj)).toEqual(obj);
   });
 });

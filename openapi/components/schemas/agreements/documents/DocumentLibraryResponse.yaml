@@ -1,0 +1,16 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: './DocumentLibraryListItem.yaml'
+        nullable: true
+      count:
+        type: integer
+        nullable: true
+        description: Number of items in this response page; `pagination.total` is the full library size
+      pagination:
+        $ref: '../../shared/core/Pagination.yaml'
+        nullable: true

@@ -1,5 +1,7 @@
 """Insurance checklist task definitions (Inspections / Due Diligence content; API type=insurance)."""
 
+from ....config.constants._constants_public_urls import PUBLIC_PRODUCTION_ORIGIN
+
 INSURANCE_ITEMS = [
     {
         "id": 1,
@@ -108,6 +110,6 @@ INSURANCE_ITEMS = [
             "Use public records or request a SilverKey Report for one-click answers.",
             "Check utility averages and verify school ratings.",
         ],
-        "resource": {"label": "Check Home Data with SilverKey", "href": "https://usesilverkey.com"},
+        "resource": {"label": "Check Home Data with SilverKey", "href": PUBLIC_PRODUCTION_ORIGIN},
     },
 ]

@@ -3,7 +3,10 @@ Category: escrow, financing, closing, insurance, timeline.
 Stored in table user_tasks for backward compatibility."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
 
@@ -11,16 +14,20 @@ from app import db
 class TransactionTask(db.Model):
     __tablename__ = "user_tasks"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
-    category = db.Column(db.String(50), nullable=False)
-    title = db.Column(db.String(500), nullable=False)
-    status = db.Column(db.String(20), nullable=False, default="todo")
-    due_date = db.Column(db.DateTime, nullable=True)
-    order_index = db.Column(db.Integer, nullable=True)
-    task_metadata = db.Column("metadata", db.JSON, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    category: Mapped[str] = mapped_column(db.String(50))
+    title: Mapped[str] = mapped_column(db.String(500))
+    status: Mapped[str] = mapped_column(db.String(20), default="todo")
+    due_date: Mapped[datetime | None] = mapped_column(db.DateTime)
+    order_index: Mapped[int | None] = mapped_column(db.Integer)
+    task_metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", db.JSON)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     user = db.relationship("User", backref=db.backref("user_tasks", lazy="dynamic"))
 

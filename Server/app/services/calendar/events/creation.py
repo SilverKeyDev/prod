@@ -15,7 +15,7 @@ from app.services.auth.tokens import tokens_get
 from app.services.calendar.core import google_calendar_service
 from app.utils.security.app_logging import get_logger
 
-from .helpers import extract_event_datetimes
+from .google_event_datetime import extract_event_datetimes
 
 logger = get_logger()
 

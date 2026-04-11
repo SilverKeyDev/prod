@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 
 import { log, LOG_CATEGORIES } from "packages/logger";
-import type { SavedHome } from "packages/schemas/property";
 import { useUIStore } from "packages/store";
+import type { SavedHome } from "packages/types/savedHome";
 import type { DocumentData } from "packages/ui/components/cards/document/types";
 
 import { useEventRequests } from "@/features/agent/hooks/data/useEventRequests";
@@ -51,7 +51,8 @@ export function useMessagingHandlers({
   const { updateEventRequestStatus } = useEventRequests();
   const { createEvent } = useGoogleEvents({ enabled: false });
 
-  const canShare = mode === "agent" ? !!selectedClientId : !!(activeConversationId || agentId);
+  const canShare =
+    mode === "agent" ? !!selectedClientId : !!(activeConversationId || agentId);
 
   const handleSelectHome = useCallback(
     async (home: SavedHome) => {
@@ -63,7 +64,7 @@ export function useMessagingHandlers({
         log.error(LOG_CATEGORIES.MESSAGES, "Error sharing home", error);
       }
     },
-    [canShare, sendSharedHome, setShowSelectHomeModal]
+    [canShare, sendSharedHome, setShowSelectHomeModal],
   );
 
   const handleSelectDocument = useCallback(
@@ -76,7 +77,7 @@ export function useMessagingHandlers({
             {
               hasActiveConversationId: !!activeConversationId,
               hasAgentId: !!agentId,
-            }
+            },
           );
         }
         return;
@@ -107,7 +108,7 @@ export function useMessagingHandlers({
       agentId,
       sendSharedDocument,
       setShowSelectDocumentModal,
-    ]
+    ],
   );
 
   const handleCalendarEventSuccess = useCallback(() => {
@@ -115,7 +116,9 @@ export function useMessagingHandlers({
   }, [setShowCalendarEventModal]);
 
   const otherEmail =
-    mode === "agent" ? activeConversation?.client_email : activeConversation?.agent_email;
+    mode === "agent"
+      ? activeConversation?.client_email
+      : activeConversation?.agent_email;
   const otherEmailError =
     mode === "agent"
       ? "Could not add event. Client email is missing."
@@ -140,10 +143,12 @@ export function useMessagingHandlers({
           });
           return;
         }
-        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "UTC";
+        const timeZone =
+          Intl.DateTimeFormat().resolvedOptions().timeZone ?? "UTC";
         const event = {
           summary: payload.title,
           description: payload.description ?? undefined,
+          location: payload.location?.trim() || undefined,
           start: { dateTime: payload.start, timeZone },
           end: { dateTime: payload.end, timeZone },
           attendees: [{ email: otherEmail }],
@@ -159,7 +164,11 @@ export function useMessagingHandlers({
           message: "Event added to your calendar and invite sent.",
         });
       } catch (error) {
-        log.error(LOG_CATEGORIES.CALENDAR, "Error creating event from request", error);
+        log.error(
+          LOG_CATEGORIES.CALENDAR,
+          "Error creating event from request",
+          error,
+        );
         enqueueToast({
           type: "error",
           message: "Could not add event. Connect Google Calendar in Settings.",
@@ -178,7 +187,7 @@ export function useMessagingHandlers({
       refreshActiveConversationHistory,
       refreshChats,
       setAcceptingEventRequestId,
-    ]
+    ],
   );
 
   const handleCancelEventRequest = useCallback(
@@ -195,14 +204,23 @@ export function useMessagingHandlers({
           });
         }
       } catch (error) {
-        log.error(LOG_CATEGORIES.CALENDAR, "Error cancelling event request", error);
+        log.error(
+          LOG_CATEGORIES.CALENDAR,
+          "Error cancelling event request",
+          error,
+        );
         enqueueToast({
           type: "error",
           message: "Could not cancel event request.",
         });
       }
     },
-    [enqueueToast, updateEventRequestStatus, refreshActiveConversationHistory, refreshChats]
+    [
+      enqueueToast,
+      updateEventRequestStatus,
+      refreshActiveConversationHistory,
+      refreshChats,
+    ],
   );
 
   return {

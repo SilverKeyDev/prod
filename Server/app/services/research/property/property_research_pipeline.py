@@ -11,8 +11,14 @@ from flask import current_app
 from app.services.auth import SecurityException, get_current_user
 from app.services.search.features.image_features import extract_and_clean_features
 from app.services.search.features.property_features import extract_property_features
+from app.services.search.scoring import (
+    ResearchAnalysisOptions,
+    build_research_analysis_options,
+    public_property_analysis,
+)
 
 from .property_analysis import get_property_analysis_for_property
+from .property_analysis_payload import finalize_property_analysis_payload
 from .property_commute import get_commute_data_for_property
 from .property_images import extract_primary_image, fetch_zillow_images
 from .property_params import (
@@ -35,23 +41,24 @@ def process_property_data(
     cached_property_analysis: dict[str, Any] | None,
     cached_features: dict[str, Any] | None,
     google_maps_api_key: str,
-    rapidapi_key: str,
+    rapidapi_key: str = "",
     log_prefix: str = "[PROPERTY]",
     skip_pros_cons: bool = False,
+    analysis_options: ResearchAnalysisOptions | None = None,
 ) -> dict[str, Any]:
     """
     Process property data: generate commute, analysis, images, features, etc.
     This function orchestrates the complete property research pipeline.
 
     Args:
-        data: Property data dict from RapidAPI
+        data: Normalized property data dict
         params: API parameters dict
         address: Address string from request
         cached_commute_data: Cached commute data if available
         cached_property_analysis: Cached property analysis if available
         cached_features: Cached features if available
         google_maps_api_key: Google Maps API key
-        rapidapi_key: RapidAPI key
+        rapidapi_key: Unused (kept for backward compat)
         log_prefix: Logging prefix
         skip_pros_cons: If True, skip pros/cons generation in property analysis
 
@@ -75,11 +82,12 @@ def process_property_data(
         data=data,
         cached_property_analysis=cached_property_analysis,
         skip_pros_cons=skip_pros_cons,
+        analysis_options=analysis_options,
     )
 
     # Fetch images
     zpid_val = extract_zpid(params, data)
-    zillow_api_images = fetch_zillow_images(zpid_val, rapidapi_key) if zpid_val else []
+    zillow_api_images = fetch_zillow_images(zpid_val) if zpid_val else []
 
     # Extract image features
     image_features = None
@@ -120,14 +128,14 @@ def process_property_data(
             f"{log_prefix} ⚠️ Failed to persist property details: {persist_err}", exc_info=True
         )
 
-    # Build response
+    # Build response (strip server-only analysis keys for clients)
     response_data = {
         "success": True,
         "query": params,
         "data": data,
         "features": features,
         "commute_data": commute_data,
-        "property_analysis": property_analysis,
+        "property_analysis": public_property_analysis(property_analysis),
         "image_features": image_features,
         "images": zillow_api_images,
     }
@@ -135,14 +143,21 @@ def process_property_data(
     return response_data
 
 
+def _forbidden_research_response(
+    err_payload: dict[str, Any],
+) -> tuple[dict[str, Any], int]:
+    return err_payload, 403
+
+
 def handle_property_request_non_streaming(
     params: dict[str, Any],
     address: str | None,
     google_maps_api_key: str,
-    rapidapi_key: str,
-    start_time: float,
+    rapidapi_key: str = "",
+    start_time: float = 0.0,
     log_prefix: str = "[PROPERTY]",
     skip_pros_cons: bool = False,
+    research_body: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], int]:
     """
     Handle non-streaming property request - main processing pipeline.
@@ -152,7 +167,7 @@ def handle_property_request_non_streaming(
         params: API parameters dict
         address: Address string from request
         google_maps_api_key: Google Maps API key
-        rapidapi_key: RapidAPI key
+        rapidapi_key: Unused (kept for backward compat)
         start_time: Start time for elapsed calculation
         log_prefix: Logging prefix
         skip_pros_cons: If True, skip pros/cons generation
@@ -160,6 +175,18 @@ def handle_property_request_non_streaming(
     Returns:
         Tuple of (response_data, status_code)
     """
+    analysis_options: ResearchAnalysisOptions | None = None
+    try:
+        user = get_current_user()
+        if user:
+            analysis_options, opt_err = build_research_analysis_options(user, research_body or {})
+            if opt_err is not None:
+                return _forbidden_research_response(opt_err)
+    except SecurityException:
+        analysis_options = None
+
+    cache_sig = analysis_options.cache_signature if analysis_options else None
+
     # Fast-path: check cache for fully populated record
     cache_result = check_cache_fast_path(
         params=params,
@@ -167,20 +194,40 @@ def handle_property_request_non_streaming(
         start_time=start_time,
         log_prefix=log_prefix,
         remove_pros_cons=skip_pros_cons,
+        analysis_cache_signature=cache_sig,
     )
     if cache_result:
-        return cache_result
+        resp_dict, code = cache_result
+        if isinstance(resp_dict, dict) and resp_dict.get("property_analysis"):
+            pa = resp_dict["property_analysis"]
+            data_blob = resp_dict.get("data") if isinstance(resp_dict.get("data"), dict) else {}
+            prop_addr = extract_property_address(address, data_blob)
+            finalized = finalize_property_analysis_payload(
+                pa if isinstance(pa, dict) else {},
+                prop_addr,
+                for_compare_stream=skip_pros_cons,
+            )
+            resp_dict = {
+                **resp_dict,
+                "property_analysis": public_property_analysis(finalized),
+            }
+        return resp_dict, code
 
-    # Fetch property data from RapidAPI
-    data, error_response = fetch_property_from_rapidapi(params, rapidapi_key)
+    data, error_response = fetch_property_from_rapidapi(params)
     if error_response:
         return error_response
 
     # Check for cached details
-    cached_commute_data, cached_property_analysis, cached_features = (
-        get_cached_details_with_pros_cons_removal(
-            params=params, address=address, log_prefix=log_prefix, remove_pros_cons=skip_pros_cons
-        )
+    (
+        cached_commute_data,
+        cached_property_analysis,
+        cached_features,
+    ) = get_cached_details_with_pros_cons_removal(
+        params=params,
+        address=address,
+        log_prefix=log_prefix,
+        remove_pros_cons=skip_pros_cons,
+        analysis_cache_signature=cache_sig,
     )
 
     # Process property data
@@ -192,9 +239,9 @@ def handle_property_request_non_streaming(
         cached_property_analysis=cached_property_analysis,
         cached_features=cached_features,
         google_maps_api_key=google_maps_api_key,
-        rapidapi_key=rapidapi_key,
         log_prefix=log_prefix,
         skip_pros_cons=skip_pros_cons,
+        analysis_options=analysis_options,
     )
 
     return response_data, 200

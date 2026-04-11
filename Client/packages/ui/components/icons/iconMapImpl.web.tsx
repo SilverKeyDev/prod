@@ -76,6 +76,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Square,
+  Star,
   Target,
   Trash2,
   TrendingDown,
@@ -171,6 +172,7 @@ const ICONS: Record<IconName, React.ComponentType<Omit<LucideProps, "ref">>> = {
   "sliders-horizontal": SlidersHorizontal,
   sparkles: Sparkles,
   square: Square,
+  star: Star,
   target: Target,
   trash: Trash2,
   "trash-2": Trash2,
@@ -187,6 +189,8 @@ const ICONS: Record<IconName, React.ComponentType<Omit<LucideProps, "ref">>> = {
   "x-circle": XCircle,
 };
 
-export function getIcon(name: IconName): React.ComponentType<Omit<LucideProps, "ref">> | undefined {
+export function getIcon(
+  name: IconName,
+): React.ComponentType<Omit<LucideProps, "ref">> | undefined {
   return ICONS[name];
 }

@@ -54,7 +54,7 @@ def simplify_polygon(
 
 
 def to_polygon_param(ring: list[dict[str, float]]) -> str:
-    """Convert polygon coordinates to API parameter format."""
+    """Convert polygon coordinates to comma-separated lat/lon pairs (legacy, unused)."""
     if len(ring) < 3:
         raise ValueError("Polygon needs at least 3 points")
 
@@ -64,6 +64,23 @@ def to_polygon_param(ring: list[dict[str, float]]) -> str:
 
     # Format: "lon lat,lon lat,..."
     return ", ".join([f"{p['lon']} {p['lat']}" for p in ring])
+
+
+def to_geojson_polygon(ring: list[dict[str, float]]) -> dict:
+    """Convert internal polygon coords to GeoJSON Polygon for Slipstream.
+
+    Input:  [{lat: 33.7, lon: -84.3}, ...]
+    Output: {"type": "Polygon", "coordinates": [[[-84.3, 33.7], ...]]}
+
+    GeoJSON uses [longitude, latitude] order.  The polygon is closed automatically.
+    """
+    if len(ring) < 3:
+        raise ValueError("Polygon needs at least 3 points")
+
+    coords = [[p["lon"], p["lat"]] for p in ring]
+    if coords[0] != coords[-1]:
+        coords.append(coords[0])
+    return {"type": "Polygon", "coordinates": [coords]}
 
 
 def geocode_address_google(address: str) -> tuple[float, float] | None:
@@ -118,3 +135,62 @@ def geocode_address_google(address: str) -> tuple[float, float] | None:
         current_app.logger.error(f"🗺️ GEOCODING: ❌ Error type: {type(e)}")
         current_app.logger.error("🗺️ GEOCODING: ❌ Error traceback:", exc_info=True)
         return None
+
+
+# Max ~85 mi N–S / E–W at mid-latitudes; rejects continent-scale viewports.
+_MAX_VIEWPORT_LAT_SPAN = 1.25
+_MAX_VIEWPORT_LON_SPAN = 1.25
+_MIN_VIEWPORT_RING_POINTS = 4
+_MAX_VIEWPORT_RING_POINTS = 50
+
+
+def parse_viewport_polygon_ring(raw: object) -> tuple[list[dict[str, float]] | None, str | None]:
+    """
+    Parse JSON `viewport_polygon`: list of {lat, lng} or {lat, lon}.
+
+    Returns:
+        (None, None) — field omitted or JSON null; use preference isochrone.
+        (None, err) — invalid payload (stable error codes for clients).
+        (points, None) — success; closed ring as [{"lat","lon"}, ...] for simplify/to_polygon_param.
+
+    Error codes: INVALID_VIEWPORT_POLYGON, VIEWPORT_TOO_LARGE
+    """
+    if raw is None:
+        return (None, None)
+    if not isinstance(raw, list):
+        return (None, "INVALID_VIEWPORT_POLYGON")
+    if len(raw) < _MIN_VIEWPORT_RING_POINTS or len(raw) > _MAX_VIEWPORT_RING_POINTS:
+        return (None, "INVALID_VIEWPORT_POLYGON")
+
+    out: list[dict[str, float]] = []
+    for pt in raw:
+        if not isinstance(pt, dict):
+            return (None, "INVALID_VIEWPORT_POLYGON")
+        lat_v = pt.get("lat")
+        lon_v = pt.get("lon")
+        if lon_v is None and pt.get("lng") is not None:
+            lon_v = pt.get("lng")
+        try:
+            lat_f = float(lat_v)
+            lon_f = float(lon_v)
+        except (TypeError, ValueError):
+            return (None, "INVALID_VIEWPORT_POLYGON")
+        if not (-90.0 <= lat_f <= 90.0 and -180.0 <= lon_f <= 180.0):
+            return (None, "INVALID_VIEWPORT_POLYGON")
+        out.append({"lat": lat_f, "lon": lon_f})
+
+    lats = [p["lat"] for p in out]
+    lons = [p["lon"] for p in out]
+    lat_span = max(lats) - min(lats)
+    lon_span = max(lons) - min(lons)
+    if lat_span <= 0 or lon_span <= 0:
+        return (None, "INVALID_VIEWPORT_POLYGON")
+    if lat_span > _MAX_VIEWPORT_LAT_SPAN or lon_span > _MAX_VIEWPORT_LON_SPAN:
+        return (None, "VIEWPORT_TOO_LARGE")
+
+    first = out[0]
+    last = out[-1]
+    if first["lat"] != last["lat"] or first["lon"] != last["lon"]:
+        out = out + [{"lat": first["lat"], "lon": first["lon"]}]
+
+    return (out, None)

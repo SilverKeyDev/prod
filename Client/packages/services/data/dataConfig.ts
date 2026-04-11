@@ -9,7 +9,6 @@ import { queryKeys } from "packages/config/query/keys";
 import { getTaskChecklist } from "packages/features/checklists";
 import type { UserProfile } from "packages/types";
 
-import { agentService } from "@/features/agent/utils/agent";
 import { calculateCalendarDateRange } from "@/features/calendar/utils/date";
 import { transformSearchResponse } from "@/features/search/utils/searchTransform";
 
@@ -58,13 +57,17 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
       if (!userData) {
         throw new Error("No user data received");
       }
+      const raw = userData as Record<string, unknown>;
+      const closing =
+        typeof raw.is_closing_mode === "boolean" ? raw.is_closing_mode : false;
+
       return {
         ...userData,
         has_subscription: userData.has_subscription ?? false,
         subscription: userData.subscription ?? null,
         has_preferences: userData.has_preferences ?? false,
         is_agent: userData.is_agent ?? false,
-        is_closing_mode: userData.is_closing_mode ?? false,
+        is_closing_mode: closing,
         client_ids: Array.isArray(userData.client_ids)
           ? userData.client_ids.join(",")
           : userData.client_ids,
@@ -78,7 +81,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
 
   userPreferences: {
     key: "userPreferences",
-    queryKey: () => queryKeys.user.preferences(),
+    queryKey: () => queryKeys.user.preferences(null),
     queryFn: async () => {
       const response = await preferencesApi.get();
       if (!response.success) {
@@ -113,7 +116,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
 
   isochrone: {
     key: "isochrone",
-    queryKey: () => queryKeys.search.isochrone(),
+    queryKey: () => queryKeys.search.isochrone(null),
     queryFn: async () => {
       const response = await searchApi.getIsochrone();
       if (!response.success || !response.data) {
@@ -159,7 +162,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     shouldPoll: false,
     staleTime: Number.POSITIVE_INFINITY, // Never stale - results stay until new search or explicit refetch
     userType: "all",
-    // Do not prefetch at login: same key as useSearchResultsData — duplicate queryFn + refetchOnMount:false
+    // Do not prefetch at login: same key as useSearchResultsData - duplicate queryFn + refetchOnMount:false
     // could leave a truncated onlyCached snapshot stuck until manual search. Search page owns first fetch.
     initialLoad: false,
   },
@@ -172,20 +175,29 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     key: "agentClients",
     queryKey: () => queryKeys.agent.clients(),
     queryFn: async () => {
-      return agentService.fetchClients();
+      const response = await agentApi.getClients();
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to fetch clients");
+      }
+      return response.clients ?? [];
     },
     shouldPoll: true,
-    pollingInterval: 3 * 60 * 1000, // 3 minutes
-    staleTime: 3 * 60 * 1000, // 3 minutes
+    pollingInterval: 3 * 60 * 1000, // 3 minutes (background)
+    pollingIntervalActive: 15000, // 15 seconds (when on messaging page)
+    staleTime: 30 * 1000, // 30 seconds
     userType: "agent",
-    initialLoad: false,
+    initialLoad: true,
   },
 
   agentTodos: {
     key: "agentTodos",
     queryKey: () => queryKeys.agent.todos(false),
     queryFn: async () => {
-      return agentService.fetchTodos(false);
+      const response = await agentApi.getTodos(false);
+      if (!response.success) {
+        throw new Error(response.error ?? "Failed to fetch todos");
+      }
+      return response.todos ?? [];
     },
     shouldPoll: true,
     pollingInterval: 60 * 1000, // 1 minute
@@ -222,7 +234,9 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryFn: async (_user: UserProfile | null) => {
       const response = await agentApi.getNotificationCounter();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch notification counter");
+        throw new Error(
+          response.error ?? "Failed to fetch notification counter",
+        );
       }
       return response.total_count;
     },
@@ -239,13 +253,17 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
     queryFn: async () => {
       const response = await agentApi.getConnectionRequests();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch connection requests");
+        throw new Error(
+          response.error ?? "Failed to fetch connection requests",
+        );
       }
       return response.requests ?? [];
     },
-    shouldPoll: false,
-    staleTime: 1 * 60 * 1000, // 1 minute
-    userType: "agent",
+    shouldPoll: true,
+    pollingInterval: 60 * 1000, // 1 minute (background)
+    pollingIntervalActive: 15000, // 15 seconds (when on messaging page)
+    staleTime: 30 * 1000, // 30 seconds
+    userType: "all",
     initialLoad: true,
   },
 
@@ -329,7 +347,7 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
 
       const calendars = calendarsResponse.data.items;
 
-      // Calculate 5-week date range aligned to week boundaries (same as Calendar.tsx)
+      // Calculate 4-week date range aligned to week boundaries (same as Calendar.tsx)
       const { timeMin, timeMax } = calculateCalendarDateRange();
 
       // Fetch events for all calendars using /api/v1/google/me/events? for each calendar
@@ -427,10 +445,17 @@ export const DATA_ROUTES: Record<string, RouteConfig> = {
  */
 export function getInitialLoadRoutes(user: UserProfile | null): RouteConfig[] {
   const isAgent = user?.is_agent ?? false;
-  return Object.values(DATA_ROUTES).filter(
-    (route) =>
-      route.initialLoad && (route.userType === "all" || (route.userType === "agent" && isAgent))
-  );
+  const authed = Boolean(user);
+  return Object.values(DATA_ROUTES).filter((route) => {
+    if (!route.initialLoad) {
+      return false;
+    }
+    // Dashboard to-dos: same API for agents (all rows) and clients (their rows only)
+    if (route.key === "agentTodos") {
+      return authed;
+    }
+    return route.userType === "all" || (route.userType === "agent" && isAgent);
+  });
 }
 
 /**
@@ -440,6 +465,7 @@ export function getPollingRoutes(user: UserProfile | null): RouteConfig[] {
   const isAgent = user?.is_agent ?? false;
   return Object.values(DATA_ROUTES).filter(
     (route) =>
-      route.shouldPoll && (route.userType === "all" || (route.userType === "agent" && isAgent))
+      route.shouldPoll &&
+      (route.userType === "all" || (route.userType === "agent" && isAgent)),
   );
 }

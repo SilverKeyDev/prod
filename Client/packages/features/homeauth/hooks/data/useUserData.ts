@@ -23,7 +23,10 @@ export function useUserData(): UseUserDataReturn {
   const authReady = useAuthStore((s) => s.authReady);
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   const {
     data: userProfile,
@@ -44,40 +47,21 @@ export function useUserData(): UseUserDataReturn {
       }
 
       // Convert User to UserProfile by adding missing properties
+      const raw = userData as Record<string, unknown>;
+      const closing =
+        typeof raw.is_closing_mode === "boolean" ? raw.is_closing_mode : false;
+
       const profile: UserProfile = {
         ...userData,
         has_subscription: userData.has_subscription ?? false,
         subscription: userData.subscription ?? null,
         has_preferences: userData.has_preferences ?? false,
         is_agent: userData.is_agent ?? false,
-        is_closing_mode: userData.is_closing_mode ?? false,
+        is_closing_mode: closing,
         client_ids: Array.isArray(userData.client_ids)
           ? userData.client_ids.join(",")
           : userData.client_ids,
       };
-
-      // #region agent log
-      // eslint-disable-next-line no-restricted-globals -- debug NDJSON ingest (session 244579)
-      fetch("http://127.0.0.1:7449/ingest/62a2c70d-285c-439c-8ad0-211f81794197", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "244579",
-        },
-        body: JSON.stringify({
-          sessionId: "244579",
-          location: "homeauth/hooks/data/useUserData.ts:queryFn",
-          message: "user profile cache row",
-          data: {
-            hasPictureKey: Boolean(profile.profile_picture),
-            hasPictureUrl: Boolean(profile.profile_picture_url),
-            pictureUrlLen: profile.profile_picture_url?.length ?? 0,
-          },
-          timestamp: Date.now(),
-          hypothesisId: "B",
-        }),
-      }).catch(() => {});
-      // #endregion
 
       prefetchRemoteImage(profile.profile_picture_url);
 
@@ -113,13 +97,23 @@ export type UseUserPreferencesReturn = {
   isUpdating: boolean;
 };
 
-export function useUserPreferences(): UseUserPreferencesReturn {
+export type UseUserPreferencesOptions = {
+  preferencesSubjectUserId?: string | null;
+};
+
+export function useUserPreferences(
+  options?: UseUserPreferencesOptions,
+): UseUserPreferencesReturn {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
+  const subjectId = options?.preferencesSubjectUserId ?? null;
 
   // Check cache first when enabled becomes true (cache-first strategy)
-  const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
+  const shouldLoadData = useMemo(
+    () => authReady && isAuthenticated,
+    [authReady, isAuthenticated],
+  );
 
   const {
     data: userPreferences,
@@ -127,18 +121,23 @@ export function useUserPreferences(): UseUserPreferencesReturn {
     error: preferencesError,
     refetch: refetchUserPreferences,
   } = useQuery({
-    queryKey: queryKeys.user.preferences(),
+    queryKey: queryKeys.user.preferences(subjectId),
     queryFn: async () => {
-      const response = await preferencesApi.get();
+      const response =
+        subjectId != null && subjectId !== ""
+          ? await preferencesApi.getByUserId(subjectId)
+          : await preferencesApi.get();
       if (!response.success) {
         throw new Error(response.error ?? "Failed to fetch user preferences");
       }
-      return response.preferences;
+      return response.preferences ?? null;
     },
     enabled: shouldLoadData,
     // Use placeholderData function to check cache reactively when enabled changes
     placeholderData: () => {
-      return queryClient.getQueryData<UserPreferences>(queryKeys.user.preferences());
+      return queryClient.getQueryData<UserPreferences | null>(
+        queryKeys.user.preferences(subjectId),
+      );
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnMount: false, // Don't refetch if data exists (matches reports)
@@ -154,7 +153,10 @@ export function useUserPreferences(): UseUserPreferencesReturn {
     },
     onSuccess: (updatedPreferences) => {
       // Update cache optimistically
-      queryClient.setQueryData(queryKeys.user.preferences(), updatedPreferences);
+      queryClient.setQueryData(
+        queryKeys.user.preferences(null),
+        updatedPreferences,
+      );
     },
   });
 
@@ -166,7 +168,7 @@ export function useUserPreferences(): UseUserPreferencesReturn {
     async (preferences: Partial<UserPreferences>) => {
       await updatePreferencesMutation.mutateAsync(preferences);
     },
-    [updatePreferencesMutation]
+    [updatePreferencesMutation],
   );
 
   return {

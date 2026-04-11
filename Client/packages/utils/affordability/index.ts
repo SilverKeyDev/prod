@@ -1,6 +1,9 @@
 export {
   estimateAffordableHomePrice,
   estimateMonthlyPayment,
+  estimateMonthlyPaymentBreakdown,
+  type MonthlyPaymentBreakdownParams,
+  type MonthlyPaymentBreakdownResult,
   type MonthlyPaymentParams,
 } from "./affordabilityCalculator";
 export {

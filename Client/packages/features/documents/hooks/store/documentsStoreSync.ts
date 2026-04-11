@@ -1,14 +1,17 @@
 import { useEffect, useRef } from "react";
 
-import type { Document, DocumentCategory } from "packages/features/documents/types/documents";
+import type {
+  DocumentCategory,
+  WorkflowDocument,
+} from "packages/features/documents/types/documents";
 
 /**
  * Syncs documents hook data to store with ref guards.
  * Extracted to satisfy max-lines-per-function in useDocumentsStoreIntegration.
  */
 export function useDocumentsStoreSync(
-  documents: Document[],
-  setDocuments: (v: Document[]) => void,
+  documents: WorkflowDocument[],
+  setDocuments: (v: WorkflowDocument[]) => void,
   documentCategories: DocumentCategory[],
   setDocumentCategories: (v: DocumentCategory[]) => void,
   uploadedFiles: unknown[],
@@ -20,9 +23,9 @@ export function useDocumentsStoreSync(
   documentsError: string | null,
   setDocumentsError: (v: string | null) => void,
   categoriesError: string | null,
-  setCategoriesError: (v: string | null) => void
+  setCategoriesError: (v: string | null) => void,
 ) {
-  const r1 = useRef<Document[]>();
+  const r1 = useRef<WorkflowDocument[]>();
   const r2 = useRef<DocumentCategory[]>();
   const r3 = useRef<unknown[]>();
   const r4 = useRef<boolean>();

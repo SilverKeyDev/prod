@@ -1,6 +1,11 @@
 /**
- * Shared SavedHome domain type used across features.
- * Re-exported from the saved feature to avoid cross-feature internal imports.
+ * API wire type: HomeUniversal.to_dict() (OpenAPI SavedHome).
+ * UI code uses {@link SavedHome} (normalized shape from mapHomeUniversalToSavedHome).
  */
+import type { components } from "packages/types/api.generated";
+import type { NormalizedSavedHome } from "packages/types/normalizedSavedHome";
 
-export type { SavedHome } from "packages/features/saved/types/savedHome";
+export type SavedHomeRecord = components["schemas"]["SavedHome"];
+
+/** Normalized saved home for components, cache, and mappers (legacy name). */
+export type SavedHome = NormalizedSavedHome;

@@ -1,14 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { handleSubmit, type PreferencesSubmitResult } from "packages/features/profile";
+import {
+  handleSubmit,
+  type PreferencesSubmitResult,
+} from "packages/features/profile";
 
-const removeItemMock = vi.fn();
-
-vi.mock("packages/utils/storage/platformStorage", () => ({
-  getLocalStorage: () => ({
-    removeItem: removeItemMock,
-  }),
+const { removeItemMock } = vi.hoisted(() => ({
+  removeItemMock: vi.fn(),
 }));
+
+vi.mock("packages/utils/storage/platformStorage", async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import("packages/utils/storage/platformStorage")
+    >();
+  return {
+    ...actual,
+    getLocalStorage: () => ({
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      removeItem: removeItemMock,
+      clear: vi.fn(),
+    }),
+  };
+});
 
 describe("onboarding submission validation bypass", () => {
   beforeEach(() => {

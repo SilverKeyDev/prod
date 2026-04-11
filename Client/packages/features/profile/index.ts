@@ -8,7 +8,17 @@ export {
   type LotSizeHomeAgeFormSlice,
   type LotSizeHomeAgeSearchOverridesPatch,
 } from "./components/LotSizeAndHomeAgeSliders";
-export type { AgentProfileFormFieldKey, ProfileStepId, ProfileUiSurface } from "./types";
+export { ProfileHousingEssentialsSection } from "./components/profileScreen/ProfileHousingEssentialsSection";
+export { ProfileHousingRangesSection } from "./components/profileScreen/ProfileHousingRangesSection";
+export { ProfileSearchPropertySection } from "./components/profileScreen/ProfileSearchPropertySection";
+export type { PatchBuyerPreferenceExtensions } from "./components/profileScreen/searchPreferences/types";
+export { default as LocationSection } from "./components/sections/LocationSection";
+export { ImportantLocationsInput } from "./components/settings/inputs/ImportantLocationsInput";
+export type {
+  AgentProfileFormFieldKey,
+  ProfileStepId,
+  ProfileUiSurface,
+} from "./types";
 export {
   AGENT_ONLY_SECTION_IDS,
   AGENT_PROFILE_FORM_FIELD_KEYS,
@@ -18,12 +28,15 @@ export {
   isBuyerFacingDemographicsOptionalForAgent,
   PROFILE_STEP_IDS,
 } from "./types";
+export type { BuyerPreferenceExtensions } from "./types/buyerPreferenceExtensions";
+export { toBuyerPreferenceExtensions } from "./types/buyerPreferenceExtensions";
 export type { OnboardingData, PreferencesSubmitResult } from "./utils";
 export {
   FIELD_LABELS,
   formDataToPreferencesPayload,
   handleSubmit,
   mergeOnboardingServerAndDraft,
+  MUST_HAVE_OPTIONS,
   nextPreferencesVersion,
   SECTION_TITLES,
   userPreferencesToOnboardingData,

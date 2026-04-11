@@ -1,36 +1,36 @@
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
+
 import { apiGet, apiPost } from "packages/services/http/compatibility";
+import type { components } from "packages/types/api.generated";
 
-/** Request body for sending a message to the property chatbot */
-export type ChatbotSendRequest = {
-  message: string;
-};
-
-/** Response from property chatbot after sending a message */
-export type ChatbotResponse = {
-  response: string;
-  function_call?: unknown;
-  message_id: string;
-  message_summary: string;
-};
-
-/** Single message in chatbot history (API shape) */
-export type ChatbotHistoryMessage = {
-  id: string;
-  role: "user" | "assistant";
-  message: string;
-  timestamp: string;
-};
-
-/** Response from get chat history for a property report */
-export type ChatbotHistoryResponse = {
-  messages: ChatbotHistoryMessage[];
-};
+// Re-export types from generated schema
+export type ChatbotSendRequest = components["schemas"]["ChatbotSendRequest"];
+export type ChatbotResponse = components["schemas"]["ChatbotResponse"];
+export type ChatbotHistoryMessage =
+  components["schemas"]["ChatbotHistoryMessage"];
+export type ChatbotHistoryResponse =
+  components["schemas"]["ChatbotHistoryResponse"];
 
 /**
  * Chatbot API client for property-report chat (send message, get history).
  */
 export const chatbotApi = {
-  chatForAddress: (reportId: string, message: string): Promise<ChatbotResponse> =>
+  chatForAddress: (
+    reportId: string,
+    message: string,
+  ): Promise<ChatbotResponse> =>
     apiPost<ChatbotResponse>(`/api/v1/chat/address/${reportId}`, { message }),
 
   getChatHistory: (reportId: string): Promise<ChatbotHistoryResponse> =>

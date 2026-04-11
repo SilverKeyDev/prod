@@ -1,0 +1,16 @@
+type: object
+required:
+  - id
+  - role
+  - message
+  - timestamp
+properties:
+  id:
+    type: string
+  role:
+    type: string
+    enum: [user, assistant]
+  message:
+    type: string
+  timestamp:
+    type: string

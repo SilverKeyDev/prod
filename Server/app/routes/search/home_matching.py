@@ -3,19 +3,24 @@ from typing import Any, Protocol, cast
 from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 
+from app.schemas import FindMatchesRequest, TaskStatusResponse
+from app.services.search.home_matching.preprocessing.home_input_data import (
+    format_homes_data_from_api,
+)
+from app.services.search.home_matching.preprocessing.user_input_data import get_user_data_from_dict
+from app.utils.validation import validate_request, validate_response
 from logger import LOG_CATEGORIES, log
 
 from ...celery.celery_worker import celery
 from ...celery.tasks import find_best_matches_task
-from ...home_matching.preprocessing.home_input_data import format_homes_data_from_api
-from ...home_matching.preprocessing.user_input_data import get_user_data_from_dict
 from ...utils.security.secure_errors import SecureErrorHandler
 
 
 class _CeleryTaskWithDelay(Protocol):
     """Protocol for Celery task so Pyright accepts .delay()."""
 
-    def delay(self, **kwargs: Any) -> Any: ...
+    def delay(self, **kwargs: Any) -> Any:
+        ...
 
 
 # Create blueprint
@@ -24,7 +29,9 @@ home_matching_bp = Blueprint("home_matching", __name__, url_prefix="/api/home-ma
 
 @home_matching_bp.route("/find-matches", methods=["POST"])
 @login_required
-def find_matches():
+@validate_request(FindMatchesRequest)
+@validate_response(TaskStatusResponse)
+def find_matches(data: FindMatchesRequest | None = None):
     """
     Start a background task to find the best home matches for a user.
 
@@ -46,31 +53,41 @@ def find_matches():
     }
     """
     try:
-        # Get request data
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "No JSON data provided"}), 400
-
-        # Validate required fields
-        if "user_data" not in data:
-            return jsonify({"success": False, "error": "user_data is required"}), 400
-
-        if "homes_data" not in data:
-            return jsonify({"success": False, "error": "homes_data is required"}), 400
-
-        # Extract parameters with defaults
-        user_data = data["user_data"]
-        homes_data = data["homes_data"]
-        top_k = data.get("top_k", 10)
-        include_explanations = data.get("include_explanations", False)
-        embedding_provider = data.get("embedding_provider", "sentence_transformer")
-
-        # Validate data types
-        if not isinstance(homes_data, list):
-            return jsonify({"success": False, "error": "homes_data must be a list"}), 400
-
-        if len(homes_data) == 0:
-            return jsonify({"success": False, "error": "homes_data cannot be empty"}), 400
+        if data is None:
+            payload = request.get_json()
+            if not payload:
+                return jsonify({"success": False, "error": "No JSON data provided"}), 400
+            if "user_data" not in payload:
+                return jsonify({"success": False, "error": "user_data is required"}), 400
+            if "homes_data" not in payload:
+                return jsonify({"success": False, "error": "homes_data is required"}), 400
+            homes_data_raw = payload["homes_data"]
+            if not isinstance(homes_data_raw, list):
+                return jsonify({"success": False, "error": "homes_data must be a list"}), 400
+            if len(homes_data_raw) == 0:
+                return jsonify({"success": False, "error": "homes_data cannot be empty"}), 400
+            user_data = payload["user_data"]
+            homes_data = homes_data_raw
+            top_k = payload.get("top_k", 10)
+            include_explanations = payload.get("include_explanations", False)
+            embedding_provider = payload.get("embedding_provider", "sentence_transformer")
+        else:
+            dumped = data.model_dump()
+            user_data = dumped["user_data"]
+            homes_data = dumped["homes_data"]
+            top_k = dumped.get("top_k") if dumped.get("top_k") is not None else 10
+            include_explanations = (
+                dumped["include_explanations"]
+                if dumped.get("include_explanations") is not None
+                else False
+            )
+            embedding_provider = (
+                dumped["embedding_provider"]
+                if dumped.get("embedding_provider") is not None
+                else "sentence_transformer"
+            )
+            if len(homes_data) == 0:
+                return jsonify({"success": False, "error": "homes_data cannot be empty"}), 400
 
         # Add current user info to user_data if not present
         if "user_id" not in user_data and current_user:
@@ -116,6 +133,7 @@ def find_matches():
 
 @home_matching_bp.route("/task-status/<task_id>", methods=["GET"])
 @login_required
+@validate_response(TaskStatusResponse)
 def get_task_status(task_id: str):
     """
     Get the status of a home matching task.

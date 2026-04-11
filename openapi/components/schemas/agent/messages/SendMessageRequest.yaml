@@ -1,0 +1,20 @@
+type: object
+required:
+  - conversation_id
+  - message
+properties:
+  conversation_id:
+    type: string
+    description: "Use 'new' to create conversation, requires client_id"
+  message:
+    type: string
+  client_id:
+    type: string
+    nullable: true
+    description: "Required when conversation_id is 'new' and user is agent"
+  shared_home_id:
+    type: string
+    nullable: true
+  shared_document_id:
+    type: string
+    nullable: true

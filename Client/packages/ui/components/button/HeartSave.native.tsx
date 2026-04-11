@@ -20,7 +20,10 @@ export type CardHeartSaveWithPropsProps = {
   property: CardHeartSavePropertyLike;
   isSaved: boolean;
   saveHome: (property: CardHeartSavePropertyLike) => Promise<void>;
-  removeSavedHome: (propertyId: string, propertyAddress?: string) => Promise<void>;
+  removeSavedHome: (
+    propertyId: string,
+    propertyAddress?: string,
+  ) => Promise<void>;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
   inline?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "small" | "medium" | "large";
@@ -32,7 +35,7 @@ const CIRCLE_SIZE = 36;
 const ICON_SIZE = 16;
 
 /**
- * Native heart save overlay — visually identical to web CardHeartSave overlay
+ * Native heart save overlay - visually identical to web CardHeartSave overlay
  * (circular white button, shadow, heart icon, red when saved).
  */
 export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
@@ -44,7 +47,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
   ariaLabel,
 }) => {
   const enqueueToast = useUIStore((s) => s.enqueueToast);
-  const propertyAddress = typeof property.address === "string" ? property.address : undefined;
+  const propertyAddress =
+    typeof property.address === "string" ? property.address : undefined;
 
   const handlePress = async () => {
     try {
@@ -54,7 +58,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
         await saveHome(property);
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       log.error(LOG_CATEGORIES.SEARCH, "Error updating favorites", {
         propertyId: property.id,
         address: propertyAddress,
@@ -69,7 +74,8 @@ export const CardHeartSaveWithProps: React.FC<CardHeartSaveWithPropsProps> = ({
     }
   };
 
-  const label = ariaLabel ?? (isSaved ? "Remove from saved homes" : "Save to favorites");
+  const label =
+    ariaLabel ?? (isSaved ? "Remove from saved homes" : "Save to favorites");
 
   return (
     <Pressable

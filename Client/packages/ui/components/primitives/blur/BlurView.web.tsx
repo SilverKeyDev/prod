@@ -1,5 +1,5 @@
 /**
- * BlurView — web uses CSS backdrop-blur.
+ * BlurView - web uses CSS backdrop-blur.
  * This file is .web.tsx so backdrop-blur is allowed (excluded from no-backdrop-blur rule).
  */
 

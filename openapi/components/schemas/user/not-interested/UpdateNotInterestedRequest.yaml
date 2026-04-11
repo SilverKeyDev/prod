@@ -1,0 +1,9 @@
+type: object
+required:
+  - address
+  - why
+properties:
+  address:
+    type: string
+  why:
+    type: string

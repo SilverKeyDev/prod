@@ -1,80 +1,54 @@
-import { apiDelete, apiGet, apiHead, apiPost } from "packages/services/http/compatibility";
+/**
+ * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
+ *
+ * This file re-exports types from the generated API contract (api.generated.ts).
+ * All type definitions have been moved to openapi.yaml.
+ *
+ * To add/modify API types:
+ * 1. Edit openapi.yaml
+ * 2. Run `pnpm generate:api-types`
+ * 3. Types will be auto-generated in packages/types/api.generated.ts
+ *
+ * This shim maintains backward compatibility for existing imports.
+ */
+
+import {
+  apiDelete,
+  apiGet,
+  apiHead,
+  apiPost,
+} from "packages/services/http/compatibility";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
 import { captureError } from "packages/services/security/errorReporting";
 import { log } from "packages/services/security/secureLogger";
+import type { components } from "packages/types/api.generated";
+import type { ShareDocumentResult } from "packages/types/ui";
 import { asError, getNavigator } from "packages/utils";
 
-// Types for report API
-export type GenerateReportRequest = {
-  address: string;
-  user_id?: string; // For agent client selection
-  marketing_model?: boolean;
-};
+// Re-export types from generated schema
+export type GenerateReportRequest =
+  components["schemas"]["GenerateReportRequest"];
+/** Report /documents rows — same shape as `UploadedDocumentRecord` in OpenAPI */
+export type ReportDocument = components["schemas"]["UploadedDocumentRecord"];
+export type ReportDocumentsListResponse =
+  components["schemas"]["ReportDocumentsListResponse"];
+export type DocumentLibraryResponse =
+  components["schemas"]["DocumentLibraryResponse"];
+export type GenerateReportResponse =
+  components["schemas"]["GenerateReportResponse"];
+export type ReportsListResponse = components["schemas"]["ReportsListResponse"];
+export type PollReportResponse = components["schemas"]["PollReportResponse"];
+export type DownloadUrlResponse = components["schemas"]["DownloadUrlResponse"];
+export type ViewUrlResponse = components["schemas"]["ViewUrlResponse"];
+export type CompareReportsRequest =
+  components["schemas"]["CompareReportsRequest"];
+export type CompareReportsResponse =
+  components["schemas"]["CompareReportsResponse"];
+export type DeleteReportResponse =
+  components["schemas"]["DeleteReportResponse"];
+export type SuccessResponse = components["schemas"]["SuccessResponse"];
 
-export type ReportDocument = {
-  id: string;
-  user_id: string;
-  filename: string;
-  file_path: string;
-  created_at: string;
-  updated_at: string;
-  status: "generating" | "completed" | "error" | "processed";
-  address?: string;
-  document_type?: string;
-  event_type?: "listed" | "price_change" | "sold" | "withdrawn" | null;
-};
-
-export type GenerateReportResponse = {
-  success: boolean;
-  document_id?: string;
-  message?: string;
-  error?: string;
-};
-
-export type ReportsListResponse = {
-  success: boolean;
-  reports?: ReportDocument[];
-  message?: string;
-  error?: string;
-};
-
-export type PollReportResponse = {
-  success: boolean;
-  report?: ReportDocument;
-  error?: string;
-};
-
-export type DownloadUrlResponse = {
-  success: boolean;
-  downloadUrl?: string;
-  expires_at?: string;
-  error?: string;
-};
-
-export type ViewUrlResponse = {
-  success: boolean;
-  viewUrl?: string;
-  expires_at?: string;
-  error?: string;
-};
-
-export type CompareReportsRequest = {
-  report_ids: string[];
-  s3Keys?: string[];
-};
-
-export type CompareReportsResponse = {
-  success: boolean;
-  comparison_data?: unknown;
-  table?: unknown;
-  error?: string;
-};
-
-export type DeleteReportResponse = {
-  success: boolean;
-  message?: string;
-  error?: string;
-};
+export type { ShareDocumentResult };
 
 /**
  * Report API client using centralized utilities
@@ -83,7 +57,8 @@ export const reportApi = {
   /**
    * List all reports
    */
-  list: (): Promise<ReportsListResponse> => apiGet<ReportsListResponse>("/api/v1/report/list"),
+  list: (): Promise<ReportsListResponse> =>
+    apiGet<ReportsListResponse>("/api/v1/report/list"),
 
   /**
    * Poll for a specific report's status by document ID
@@ -112,15 +87,16 @@ export const reportApi = {
   /**
    * HEAD request to check view endpoint (for diagnostics: headers, status)
    */
-  checkViewUrl: (reportId: string) => apiHead(`/api/v1/report/${reportId}/view`),
+  checkViewUrl: (reportId: string) =>
+    apiHead(`/api/v1/report/${reportId}/view`),
 
   /**
    * Share document using Web Share API or fallback to URL sharing
    */
   shareDocument: async (
     documentId: string,
-    documentName: string
-  ): Promise<{ success: boolean; message: string }> => {
+    documentName: string,
+  ): Promise<ShareDocumentResult> => {
     try {
       // Get a fresh view URL for sharing
       const viewResponse = await reportApi.getViewUrl(documentId);
@@ -128,7 +104,10 @@ export const reportApi = {
         return { success: false, message: "Unable to generate shareable link" };
       }
 
-      const shareTitle = `Property Report - ${documentName.replace(/_/g, " ").slice(0, -18).trim()}`;
+      const shareTitle = `Property Report - ${documentName
+        .replace(/_/g, " ")
+        .slice(0, -18)
+        .trim()}`;
       const shareUrl = viewResponse.viewUrl;
 
       // Try Web Share API first (mobile/modern browsers). RN-safe via platform adapter.
@@ -168,7 +147,8 @@ export const reportApi = {
       captureError(asError(error), { context: "shareDocument", documentName });
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to share report",
+        message:
+          error instanceof Error ? error.message : "Failed to share report",
       };
     }
   },
@@ -186,26 +166,30 @@ export const reportApi = {
    * Note: Backend returns 'documents' field, not 'reports'
    * @param clientId - Optional client ID for agents to view client's documents
    */
-  getDocuments: (
-    clientId?: string
-  ): Promise<{
-    success: boolean;
-    documents?: ReportDocument[];
-    reports?: ReportDocument[]; // For backward compatibility
-    count?: number;
-    message?: string;
-    error?: string;
-  }> => {
+  getDocuments: (clientId?: string): Promise<ReportDocumentsListResponse> => {
     const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
-    return apiGet<{
-      success: boolean;
-      documents?: ReportDocument[];
-      reports?: ReportDocument[];
-      count?: number;
-      message?: string;
-      error?: string;
-    }>(`/api/v1/report/documents${params}`);
+    return apiGet<ReportDocumentsListResponse>(
+      `/api/v1/report/documents${params}`,
+    );
   },
+
+  /**
+   * Unified library: file uploads + DocuSign agreements (Saved / documents).
+   */
+  getDocumentLibrary: (clientId?: string): Promise<DocumentLibraryResponse> => {
+    const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
+    return apiGet<DocumentLibraryResponse>(
+      `/api/v1/report/document-library${params}`,
+    );
+  },
+
+  /**
+   * Remove a document from the user's library (does not delete the actual document)
+   */
+  removeFromLibrary: (libraryItemId: string): Promise<SuccessResponse> =>
+    apiDelete<SuccessResponse>(
+      `/api/v1/report/document-library/${libraryItemId}`,
+    ),
 
   /**
    * Serve static report file (fallback for local files)

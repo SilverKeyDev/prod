@@ -1,5 +1,5 @@
 /**
- * Auth card variant — single source of truth for auth form containers
+ * Auth card variant - single source of truth for auth form containers
  * (login, signup, reset password, verification). Web and native parity.
  *
  * Uses raw Tailwind strings; no hover/transition so NativeWind translates correctly.

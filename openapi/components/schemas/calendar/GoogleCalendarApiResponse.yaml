@@ -1,0 +1,14 @@
+type: object
+required:
+  - success
+properties:
+  success:
+    type: boolean
+  data:
+    type: object
+    nullable: true
+    description: "Generic data field - shape depends on endpoint"
+    additionalProperties: true
+  error:
+    type: string
+    nullable: true

@@ -2,14 +2,22 @@ import { useRef } from "react";
 
 import type { VirtuosoHandle } from "react-virtuoso";
 
-import { DEFAULT_PLACEHOLDER_IMAGE, type FeedScrollController } from "packages/features/feed";
+import {
+  DEFAULT_PLACEHOLDER_IMAGE,
+  type FeedScrollController,
+} from "packages/features/feed";
+import type { SearchResult } from "packages/features/search/types";
 import { useIsMobile } from "packages/hooks/ui";
 import { useReelsShortcuts } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/primitives";
 
 import { ReelsView } from "./ReelsView";
-type DesktopReelsViewProps = {
+
+export type DesktopReelsViewProps = {
   virtuosoRef?: React.RefObject<VirtuosoHandle | null>;
+  filteredSearchResults: SearchResult[];
+  onRunSearch: () => void | Promise<void>;
+  isSearching?: boolean;
 };
 
 /**
@@ -18,7 +26,12 @@ type DesktopReelsViewProps = {
  * - Centered 9:16 video area
  * - Side wings: blurred background, metadata panel
  */
-export function DesktopReelsView({ virtuosoRef }: DesktopReelsViewProps) {
+export function DesktopReelsView({
+  virtuosoRef,
+  filteredSearchResults,
+  onRunSearch,
+  isSearching,
+}: DesktopReelsViewProps) {
   const isMobile = useIsMobile();
   const scrollControllerRef = useRef<FeedScrollController | null>(null);
 
@@ -30,6 +43,9 @@ export function DesktopReelsView({ virtuosoRef }: DesktopReelsViewProps) {
   if (isMobile) {
     return (
       <ReelsView
+        filteredSearchResults={filteredSearchResults}
+        onRunSearch={onRunSearch}
+        isSearching={isSearching}
         virtuosoRef={virtuosoRef}
         scrollControllerRef={scrollControllerRef}
         className="h-full"
@@ -47,7 +63,13 @@ export function DesktopReelsView({ virtuosoRef }: DesktopReelsViewProps) {
         aria-hidden
       />
       <Box className="relative z-10 flex h-full w-full max-w-[80vw] shrink-0 items-center justify-center">
-        <ReelsView virtuosoRef={virtuosoRef} scrollControllerRef={scrollControllerRef} />
+        <ReelsView
+          filteredSearchResults={filteredSearchResults}
+          onRunSearch={onRunSearch}
+          isSearching={isSearching}
+          virtuosoRef={virtuosoRef}
+          scrollControllerRef={scrollControllerRef}
+        />
       </Box>
     </Box>
   );
