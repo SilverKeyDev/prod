@@ -48,6 +48,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Hosted runners have limited disk; full requirements.txt pulls torch/tf/cuda (~10GB+).
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker system prune -af || true
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -55,8 +64,9 @@ jobs:
 
       - name: Install Server dependencies and linters
         run: |
-          pip install -r Server/requirements.txt
-          pip install ruff pyright
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir -r Server/requirements-ci.txt
+          pip install --no-cache-dir ruff pyright
 
       - name: Run all server linters (root script)
         run: ./scripts/run-all-linters.sh server
