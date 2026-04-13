@@ -2276,7 +2276,7 @@ paths:
     get:
       tags:
         - Search
-      summary: Property comparables (Zillow via RapidAPI)
+      summary: Property comparables (Slipstream GAMLS)
       operationId: getPropertyComps
       parameters:
         - name: address
@@ -2362,6 +2362,76 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/search/area-suggestions:
+    get:
+      tags:
+        - Search
+      summary: Autocomplete for geographic areas (neighborhoods, cities, ZIP codes)
+      operationId: getAreaSuggestions
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search keyword (min 2 characters)
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: State postal abbreviation filter (e.g. "GA")
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 25
+          description: Maximum number of results
+      responses:
+        '200':
+          description: Matching geographic areas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AreaSuggestionsResponse'
+        '502':
+          description: Upstream API error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/search/area-boundary:
+    get:
+      tags:
+        - Search
+      summary: Get boundary polygon for a Slipstream area
+      operationId: getAreaBoundary
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Slipstream area ID
+      responses:
+        '200':
+          description: Area boundary with GeoJSON geometry and viewport ring
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AreaBoundaryResponse'
+        '400':
+          description: Missing area ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Area not found
           content:
             application/json:
               schema:
@@ -2892,105 +2962,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: HTTP 500
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/documents:
-    get:
-      tags:
-        - Tasks
-      summary: List agreements linked to a checklist item
-      operationId: getChecklistItemDocuments
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      parameters:
-        - name: transaction_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: section
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: item_id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ChecklistItemDocumentsResponse'
-        '400':
-          description: HTTP 400
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    post:
-      tags:
-        - Tasks
-      summary: Link agreement or uploaded document to checklist item
-      operationId: linkAgreementToChecklistItem
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      parameters:
-        - name: transaction_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: section
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: item_id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LinkDocumentToChecklistRequest'
-      responses:
-        '200':
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
-          description: HTTP 400
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: HTTP 404
           content:
             application/json:
               schema:
@@ -4977,6 +4948,108 @@ components:
           imageUrl: https://photos.examplecdn.com/listings/12345678/hero.jpg
           listingStatus: FOR_SALE
         client_id: c3d4e5f6-a7b8-9012-cdef-345678901234
+    AreaBoundaryResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+        area:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            label:
+              type: string
+            geoType:
+              type: string
+            state:
+              type: string
+            center:
+              type: object
+              nullable: true
+              properties:
+                lat:
+                  type: number
+                lng:
+                  type: number
+          description: Area metadata
+        geometry:
+          type: object
+          nullable: true
+          description: GeoJSON Polygon or MultiPolygon boundary geometry
+          properties:
+            type:
+              type: string
+              enum:
+                - Polygon
+                - MultiPolygon
+            coordinates:
+              type: array
+              items: {}
+              description: GeoJSON coordinate arrays
+        viewport_ring:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ViewportPolygonPoint'
+          description: Boundary as viewport-compatible ring of {lat, lng} points. Can be sent directly as viewport_polygon in polygon search.
+        error:
+          type: string
+          nullable: true
+        message:
+          type: string
+          nullable: true
+    AreaSearchResult:
+      type: object
+      required:
+        - id
+        - name
+        - label
+        - geoType
+        - state
+      properties:
+        id:
+          type: string
+          description: Slipstream area ID (hex hash)
+        name:
+          type: string
+          description: Area name (e.g. "Atlanta", "Sandy Springs")
+        label:
+          type: string
+          description: Formatted label (e.g. "Sandy Springs, GA")
+        geoType:
+          type: string
+          description: Slipstream area type (area/neighborhood, area/postal-city, area/census-place, area/county, area/zipcode, area/township)
+        state:
+          type: string
+          description: State postal abbreviation (e.g. "GA")
+        place:
+          type: string
+          nullable: true
+          description: Parent place name for neighborhoods and ZIP codes
+    AreaSuggestionsResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/AreaSearchResult'
+          description: Matching geographic areas from Slipstream
+        error:
+          type: string
+          nullable: true
+        message:
+          type: string
+          nullable: true
     AddFeedLikeRequest:
       type: object
       required:
@@ -5719,21 +5792,6 @@ components:
       properties:
         message:
           type: string
-    ChecklistItemDocumentsResponse:
-      type: object
-      required:
-        - success
-      properties:
-        success:
-          type: boolean
-        documents:
-          type: array
-          items:
-            $ref: '#/components/schemas/Agreement'
-          nullable: true
-        error:
-          type: string
-          nullable: true
     ChecklistResponse:
       allOf:
         - $ref: '#/components/schemas/SuccessResponse'
@@ -6647,10 +6705,21 @@ components:
               items:
                 type: string
             - type: 'null'
-      example:
-        success: false
-        error: INVALID_CREDENTIALS
-        message: The provided email or password is incorrect
+      examples:
+        invalidCredentials:
+          summary: Wrong email or password
+          value:
+            success: false
+            error: INVALID_CREDENTIALS
+            message: The provided email or password is incorrect
+            error_id: a1b2c3d4
+            retryable: false
+            status_code: 401
+            field_errors: null
+            validation_errors: null
+            details: null
+            retry_after: null
+            allowed_types: null
     EventRequestStatus:
       type: string
       enum:
@@ -7539,19 +7608,6 @@ components:
                     nullable: true
               nullable: true
               description: Legacy field
-    LinkDocumentResponse:
-      $ref: '#/components/schemas/SuccessResponse'
-    LinkDocumentToChecklistRequest:
-      type: object
-      properties:
-        document_id:
-          type: string
-          nullable: true
-          description: ID of the document to link to checklist item
-        agreement_id:
-          type: string
-          nullable: true
-          description: ID of the agreement to link to checklist item
     ListAgreementsResponse:
       allOf:
         - $ref: '#/components/schemas/SuccessResponse'
@@ -7940,13 +7996,13 @@ components:
               additionalProperties: true
             data:
               type: object
-              description: Raw property comparables data from Zillow API
+              description: Property comparables data from Slipstream API
               nullable: true
               additionalProperties: true
             source:
               type: string
               enum:
-                - zillow_rapidapi
+                - slipstream_gamls
     PropertyData:
       type: object
       description: |
@@ -7998,7 +8054,7 @@ components:
           nullable: true
     PropertyAgent:
       type: object
-      description: Listing agent and brokerage information
+      description: Agent and brokerage information
       properties:
         listingAgentId:
           type: string
@@ -8267,11 +8323,11 @@ components:
           items:
             type: object
             required:
-              - date
+              - eventDate
               - price
               - event
             properties:
-              date:
+              eventDate:
                 type: string
                 format: date
                 description: Date of price event
@@ -8443,7 +8499,7 @@ components:
         zpid:
           type: string
           nullable: true
-          description: Zillow property ID
+          description: Property listing ID (MLS ID from Slipstream)
         mlsHomeId:
           type: string
           nullable: true
@@ -8553,7 +8609,7 @@ components:
             data:
               type: object
               nullable: true
-              description: Raw Zillow property data from RapidAPI (fields vary, see Zillow API docs)
+              description: Normalized property data from Slipstream API
               additionalProperties: true
             features:
               type: object
@@ -9132,16 +9188,19 @@ components:
       description: |
         Map-bounded property search. `viewport_polygon` is an ordered ring of points with
         explicit `lat` and `lng` (WGS-84 decimal degrees), closing implicitly by edge order.
+        Omit `viewport_polygon` for read-only `onlyCached` requests (hydrate persisted results).
+        For `forceSearch`, include `viewport_polygon` for map-bounded search or rely on server isochrone from preferences when omitted.
         Optional filters come from `user_preferences` and strictness flags; results are
         scored server-side unless overridden by route-specific sort parameters.
-      required:
-        - viewport_polygon
       properties:
         viewport_polygon:
           type: array
           items:
             $ref: '#/components/schemas/ViewportPolygonPoint'
-          description: Closed polygon covering the visible map region (typically 4+ corners).
+          nullable: true
+          description: |
+            Closed polygon covering the visible map region (typically 4+ corners).
+            Optional when `onlyCached` is true (no new search); recommended when driving `forceSearch` from the map.
         user_preferences:
           $ref: '#/components/schemas/UserPreferencesData'
           nullable: true
@@ -9257,7 +9316,61 @@ components:
               nullable: true
     SearchDisplayPayload:
       type: object
-      description: Search display state
+      description: Search display state including persisted UI settings and last search context.
+      properties:
+        show_commute_overlay:
+          type: boolean
+          description: Whether the commute isochrone overlay is visible on the map.
+        map_home_cards_count:
+          type: integer
+          description: Number of property cards shown on the map at once.
+        results_order_by:
+          type: string
+          description: Sort key for the search results list.
+        preferences_strict_filter:
+          type: boolean
+          description: When true, preference post-filters always apply server-side.
+        last_search_context:
+          type: object
+          nullable: true
+          description: Snapshot of the user's last executed search for restoring polygon and map state on page load.
+          properties:
+            search_source:
+              type: string
+              enum:
+                - preferences
+                - location
+              description: Whether the search was driven by user preferences/commute or a location bar entry.
+            viewport_ring:
+              type: array
+              nullable: true
+              items:
+                $ref: '#/components/schemas/ViewportPolygonPoint'
+              description: Closed polygon ring from the last search viewport or place bounds.
+            place_label:
+              type: string
+              nullable: true
+              description: Formatted label for the searched place (e.g. "Atlanta, GA").
+            map_center:
+              type: object
+              nullable: true
+              properties:
+                lat:
+                  type: number
+                  format: double
+                lng:
+                  type: number
+                  format: double
+              description: Map center at the time of the last search.
+            map_zoom:
+              type: integer
+              nullable: true
+              description: Map zoom level at the time of the last search.
+            searched_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: ISO 8601 timestamp of when the search was executed.
       additionalProperties: true
     SearchDisplayResponse:
       allOf:
@@ -9644,11 +9757,11 @@ components:
             - `closing`: Closing or escrow milestone
             - `manual`: User-defined task without automatic rules
         due_date:
+          description: Optional ISO 8601 due date or datetime; null for undated backlog items.
           anyOf:
             - type: string
               format: date-time
             - type: 'null'
-          description: Optional ISO 8601 due date or datetime; null for undated backlog items.
         completed:
           type: boolean
           description: Whether the task is closed in the agent dashboard.

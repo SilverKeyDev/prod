@@ -25,6 +25,16 @@ import {
   apiUpload,
 } from "packages/services/http/compatibility";
 
+function resolveRevisionUploadFileName(file: File | Blob): string {
+  if (file instanceof File) {
+    const name = file.name?.trim();
+    if (name && name.toLowerCase() !== "blob") {
+      return name;
+    }
+  }
+  return "agreement.pdf";
+}
+
 export const docusignApi = {
   createAgreement: (
     data: CreateAgreementRequest,
@@ -57,19 +67,20 @@ export const docusignApi = {
 
   createRevision: (
     agreementId: string,
-    file: File,
+    file: File | Blob,
     notes?: string,
   ): Promise<CreateRevisionResponse> => {
+    const uploadName = resolveRevisionUploadFileName(file);
     log.debug(LOG_CATEGORIES.DOCUSIGN, "Creating DocuSign revision", {
       agreementId,
-      fileName: file.name,
+      fileName: uploadName,
       fileSize: file.size,
       fileType: file.type,
       hasNotes: !!notes,
     });
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", file, uploadName);
     if (notes) {
       formData.append("notes", notes);
     }

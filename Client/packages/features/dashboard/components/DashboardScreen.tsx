@@ -15,6 +15,10 @@ import {
   submitAgendaItemAsGoogleCalendarEvent,
   submitAgentAgendaTodo,
 } from "packages/hooks/data/agentAgendaTodoSubmit";
+import {
+  useCompletedSigningTodos,
+  useSigningTodos,
+} from "packages/hooks/data/useSigningTodos";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useUIStore } from "packages/store";
@@ -129,7 +133,7 @@ function MobileAgendaAddButton({ onSubmitTodo }: MobileAgendaAddButtonProps) {
     <>
       <Pressable
         onPress={() => setModalOpen(true)}
-        className="border-border rounded-lg border border-dashed px-3 py-2 active:opacity-80"
+        className="border-border flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-dashed px-3 py-2 active:opacity-80"
       >
         <Text className="text-primary text-center text-sm font-medium">
           Add
@@ -246,10 +250,27 @@ export function DashboardScreen() {
   const useCalendarEventForTodo = Boolean(canCreateEvent && defaultCalendarId);
 
   const { todos, createTodo, updateTodo } = useAgentTodos(false);
+  const signingTodos = useSigningTodos(isAgent);
+  const completedSigningTodos = useCompletedSigningTodos();
 
   const agendaTodos = useMemo<AgendaTodoDTO[]>(
-    () => mapTodosToAgendaDTO(todos),
-    [todos],
+    () => [
+      ...mapTodosToAgendaDTO(todos),
+      ...signingTodos,
+      ...completedSigningTodos,
+    ],
+    [todos, signingTodos, completedSigningTodos],
+  );
+
+  const handleSigningAgendaPress = useCallback(
+    (_agreementId: string) => {
+      navigateToPath("/saved");
+      enqueueToast({
+        type: "info",
+        message: "Open Documents on Saved to complete signing.",
+      });
+    },
+    [enqueueToast, navigateToPath],
   );
 
   const handleToggleAgendaTodo = async (id: string) => {
@@ -438,6 +459,7 @@ export function DashboardScreen() {
           agendaTodos={agendaTodos}
           onToggleAgendaTodo={handleToggleAgendaTodo}
           canEditAgendaTodos={true}
+          onSigningAgendaPress={handleSigningAgendaPress}
           headerActions={headerActions}
           ownedCalendarsOnly={isAgent}
         />

@@ -47,7 +47,11 @@ export function useSavedPageMobileHeader(
   } = params;
 
   const isLoading =
-    viewType === "homes" ? loading : viewType === "documents" ? documentsLoadingState : loading;
+    viewType === "homes"
+      ? loading
+      : viewType === "documents" || viewType === "agreements"
+        ? documentsLoadingState
+        : loading;
 
   return useMemo<SavedHomesHeaderProps>(
     () => ({

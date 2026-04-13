@@ -14,6 +14,7 @@ from app.models import DocusignOAuthToken
 from logger import LOG_CATEGORIES, get_logger
 
 from ..errors import DocusignAuthError
+from .api_client_rest import configure_rest_api_root
 from .auth_oauth_flow import (
     build_auth_url as flow_build_auth_url,
 )
@@ -188,6 +189,26 @@ class DocusignOAuthService:
             )
 
     @staticmethod
+    def api_client_for_token(token: DocusignOAuthToken) -> ApiClient:
+        """
+        Build an ApiClient that uses the access token and base URI from a token row.
+
+        Callers should obtain ``token`` via :meth:`get_valid_token` once and use both
+        this method and ``token.account_id`` so the client and account ID stay in sync.
+        """
+        api_client = ApiClient()
+        configure_rest_api_root(api_client, token.base_uri)
+        api_client.set_default_header("Authorization", f"Bearer {token.access_token}")
+
+        logger.info(
+            LOG_CATEGORIES["DOCUSIGN"],
+            "OAuth API client created successfully",
+            {"user_id": token.user_id, "base_uri": token.base_uri},
+        )
+
+        return api_client
+
+    @staticmethod
     def get_api_client(user_id: str) -> ApiClient | None:
         """
         Get configured API client for user with OAuth token.
@@ -210,14 +231,4 @@ class DocusignOAuthService:
             )
             return None
 
-        api_client = ApiClient()
-        api_client.set_base_path(f"{token.base_uri}/restapi")
-        api_client.set_default_header("Authorization", f"Bearer {token.access_token}")
-
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
-            "OAuth API client created successfully",
-            {"user_id": user_id, "base_uri": token.base_uri},
-        )
-
-        return api_client
+        return DocusignOAuthService.api_client_for_token(token)

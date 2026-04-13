@@ -21,7 +21,17 @@ def get_google_redirect_uri():
 
 
 def get_frontend_url():
-    """Get frontend URL based on environment."""
+    """
+    Base origin for the SPA (OAuth redirects, DocuSign return_url, etc.).
+
+    Set ``FRONTEND_URL`` or ``FRONTEND_BASE_URL`` (either name; ``FRONTEND_URL`` wins
+    if both are set) when the app is not served from the default dev origin, e.g.
+    ``https://….ngrok-free.app`` for embedded DocuSign in Chrome (PNA blocks redirects
+    to ``http://localhost`` from the DocuSign iframe).
+    """
+    explicit = (os.getenv("FRONTEND_URL", "").strip() or os.getenv("FRONTEND_BASE_URL", "").strip())
+    if explicit:
+        return explicit.rstrip("/")
     flask_env = os.getenv("FLASK_ENV", "development")
     return public_frontend_origin_for_flask_env(flask_env)
 

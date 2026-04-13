@@ -142,7 +142,7 @@ export function useDocusignActions(): UseDocusignActionsReturn {
   const createRevisionMutation = useMutation<
     AgreementRevision | undefined,
     Error,
-    { agreementId: string; file: File; notes?: string }
+    { agreementId: string; file: File | Blob; notes?: string }
   >({
     mutationFn: ({
       agreementId,
@@ -150,11 +150,14 @@ export function useDocusignActions(): UseDocusignActionsReturn {
       notes,
     }: {
       agreementId: string;
-      file: File;
+      file: File | Blob;
       notes?: string;
     }) =>
       runDocusignApi(
-        { agreementId, fileName: file.name },
+        {
+          agreementId,
+          fileName: file instanceof File ? file.name : "upload",
+        },
         "Failed to create revision",
         () => docusignApi.createRevision(agreementId, file, notes),
         (r) => r.revision,

@@ -65,6 +65,7 @@ def update_logger_config(user, data: UpdateLoggerConfigRequest | None = None):
         "security",
         "polygonSearch",
         "docusign",
+        "documents",
         "logLevel",
     }
 

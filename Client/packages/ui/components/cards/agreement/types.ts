@@ -21,6 +21,8 @@ export interface AgreementData extends DocumentData {
   /** Participants array from the agreement (needed for contextual status). */
   participants?: Array<{
     user_id?: string;
+    name?: string;
+    email?: string;
     role?: string;
     routing_order?: number;
     recipient_status?: string;
@@ -42,7 +44,8 @@ export interface AgreementCardExternalActionHandlers {
     documentId: string,
     documentName: string,
   ) => Promise<{ success: boolean; message: string }>;
-  handleSignNow?: (document: AgreementData) => void;
+   handleSignNow?: (document: AgreementData) => void;
+  handleViewSignedAgreement?: (document: AgreementData) => void;
 }
 
 export interface AgreementCardProps {

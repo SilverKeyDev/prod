@@ -31,6 +31,7 @@ type UpcomingAgendaListProps = {
   onEventClick?: (event: ExtendedGoogleEvent) => void;
   onToggleAgendaTodo?: (id: string) => void;
   canEditAgendaTodos?: boolean;
+  onSigningAgendaPress?: (agreementId: string) => void;
   border?: CardBorderVariant;
 };
 
@@ -97,6 +98,7 @@ function renderRow(
       canEditComplete={Boolean(
         props.canEditAgendaTodos && props.onToggleAgendaTodo,
       )}
+      onSigningPress={props.onSigningAgendaPress}
     />
   );
 }
@@ -104,7 +106,7 @@ function renderRow(
 export function UpcomingAgendaList({
   items,
   title = "Upcoming",
-  emptyMessage = "No upcoming events or to-dos in the next week",
+  emptyMessage = "No upcoming events, to-dos, or signatures in the next week",
   headerActions,
   embedInListHeader = false,
   silverKeyCalendarId = null,
@@ -115,6 +117,7 @@ export function UpcomingAgendaList({
   onEventClick,
   onToggleAgendaTodo,
   canEditAgendaTodos = false,
+  onSigningAgendaPress,
   border = "charcoal",
 }: UpcomingAgendaListProps) {
   const rowProps = {
@@ -126,6 +129,7 @@ export function UpcomingAgendaList({
     onEventClick,
     onToggleAgendaTodo,
     canEditAgendaTodos,
+    onSigningAgendaPress,
   };
 
   const listContent =

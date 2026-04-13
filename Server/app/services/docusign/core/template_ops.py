@@ -3,7 +3,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from docusign_esign import TemplatesApi
+from docusign_esign import ApiClient, TemplatesApi
 from docusign_esign.client.api_exception import ApiException
 
 from logger import LOG_CATEGORIES, get_logger
@@ -17,7 +17,9 @@ def _handle(handle_exception: Callable[[ApiException, str], None], e: ApiExcepti
 
 
 def list_templates(
-    api_client, account_id: str, handle_exception: Callable[[ApiException, str], None]
+    api_client: ApiClient,
+    account_id: str,
+    handle_exception: Callable[[ApiException, str], None],
 ) -> list[dict[str, Any]]:
     """List available templates."""
     try:
@@ -52,7 +54,7 @@ def list_templates(
 
 
 def get_template(
-    api_client,
+    api_client: ApiClient,
     account_id: str,
     template_id: str,
     handle_exception: Callable[[ApiException, str], None],

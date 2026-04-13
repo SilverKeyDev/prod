@@ -217,8 +217,19 @@ export const usePdfModal = (): PdfModalHooks => {
 
   const handleShareDocument = useCallback(
     async (documentId: string, documentName: string) => {
+      log.info(LOG_CATEGORIES.DOCUMENTS, "handleShareDocument invoked", {
+        documentId,
+        documentName,
+      });
       try {
-        return await shareDocument(documentId, documentName);
+        const result = await shareDocument(documentId, documentName);
+        log.info(LOG_CATEGORIES.DOCUMENTS, "handleShareDocument finished", {
+          documentId,
+          documentName,
+          success: result.success,
+          message: result.message,
+        });
+        return result;
       } catch (error: unknown) {
         log.error(LOG_CATEGORIES.ERRORS, "Error sharing document", {
           error,

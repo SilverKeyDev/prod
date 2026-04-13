@@ -14,6 +14,7 @@ from app.services.docusign.errors import (
     DocusignAPIError,
     DocusignAuthError,
     DocusignError,
+    InvalidRevisionFileError,
     ParticipantNotFoundError,
     RevisionNotFoundError,
     TemplateNotFoundError,
@@ -318,6 +319,15 @@ def register_error_handlers(app):
             error,
             error_type="revision_not_found",
             status_code=404,
+            context={"error_message": str(error)},
+        )
+
+    @app.errorhandler(InvalidRevisionFileError)
+    def handle_invalid_revision_file_error(error):
+        return SecureErrorHandler.handle_docusign_error(
+            error,
+            error_type="invalid_revision_file",
+            status_code=400,
             context={"error_message": str(error)},
         )
 

@@ -22,7 +22,7 @@ Token Lifecycle:
 Dependencies (Environment Variables):
     - GOOGLE_OAUTH_CLIENT_ID: OAuth app client ID
     - GOOGLE_OAUTH_CLIENT_SECRET: OAuth app secret
-    - FRONTEND_URL: Redirect target (default: http://localhost:5173)
+    - FRONTEND_URL or FRONTEND_BASE_URL: Redirect target (default: http://localhost:5173)
 
 Side Effects:
     - Creates OAuthState records in database (CSRF protection)

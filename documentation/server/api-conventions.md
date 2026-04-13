@@ -317,27 +317,18 @@ Client uploads directly to S3 using the presigned URL.
 
 ## Webhooks
 
-### DocuSign Webhook
+### DocuSign Connect webhook
 
-**POST** `/api/v1/webhooks/docusign`
+**POST** `/api/v1/webhooks/docusign/connect`
 
-```python
-@webhooks_bp.route('/docusign', methods=['POST'])
-def docusign_webhook():
-    # Validate HMAC signature
-    signature = request.headers.get('X-DocuSign-Signature')
-    if not validate_docusign_signature(request.data, signature):
-        return jsonify({'error': 'Invalid signature'}), 401
+DocuSign Connect must use this exact path (blueprint prefix `/api/v1/webhooks/docusign` plus route `/connect`). Implementation: [`Server/app/routes/documents/docusign/handlers/webhooks.py`](../../Server/app/routes/documents/docusign/handlers/webhooks.py) (`methods=['POST']`), registered in [`Server/app/__init__.py`](../../Server/app/__init__.py).
 
-    # Process webhook
-    data = request.json
-    envelope_id = data['envelopeId']
-    status = data['status']
+The handler verifies HMAC (`X-DocuSign-Signature-1` and related headers), persists a [`DocusignConnectEvent`](../../Server/app/models/documents/docusign_connect_event.py), and enqueues `process_webhook_task` for async processing. See [`Server/app/services/docusign/TESTING.md`](../../Server/app/services/docusign/TESTING.md) for curl checks and 405 troubleshooting.
 
-    # Update agreement status
-    update_agreement_status(envelope_id, status)
-
-    return jsonify({'success': True})
+```text
+POST /api/v1/webhooks/docusign/connect
+Content-Type: application/json
+X-DocuSign-Signature-1: <HMAC>
 ```
 
 ## Rate Limiting

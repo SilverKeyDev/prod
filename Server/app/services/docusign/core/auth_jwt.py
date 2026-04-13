@@ -4,19 +4,117 @@ DocuSign JWT authentication
 Implements JWT-based authentication for service account operations.
 """
 
-import os
+import json
+import re
+import time
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
+from urllib.parse import quote, urlparse
 
+import jwt as pyjwt
 from docusign_esign import ApiClient
+from docusign_esign.client.api_client import OAuth
 from docusign_esign.client.api_exception import ApiException
 
 from app.config import Config
 from logger import LOG_CATEGORIES, get_logger
 
 from ..errors import DocusignAuthError
+from .api_client_rest import configure_rest_api_root
 from .types import parse_jwt_token_response, parse_user_info
 
 logger = get_logger()
+
+_PRIVATE_PEM_MARKERS = (
+    "-----BEGIN RSA PRIVATE KEY-----",
+    "-----BEGIN PRIVATE KEY-----",
+    "-----BEGIN ENCRYPTED PRIVATE KEY-----",
+)
+
+_PEM_HEADER_FOOTER_REPAIRS = (
+    ("-----BEGIN\nRSA\nPRIVATE\nKEY-----", "-----BEGIN RSA PRIVATE KEY-----"),
+    ("-----END\nRSA\nPRIVATE\nKEY-----", "-----END RSA PRIVATE KEY-----"),
+    ("-----BEGIN\nPRIVATE\nKEY-----", "-----BEGIN PRIVATE KEY-----"),
+    ("-----END\nPRIVATE\nKEY-----", "-----END PRIVATE KEY-----"),
+    (
+        "-----BEGIN\nENCRYPTED\nPRIVATE\nKEY-----",
+        "-----BEGIN ENCRYPTED PRIVATE KEY-----",
+    ),
+    (
+        "-----END\nENCRYPTED\nPRIVATE\nKEY-----",
+        "-----END ENCRYPTED PRIVATE KEY-----",
+    ),
+)
+
+
+def _repair_pem_headers_broken_by_whitespace(text: str) -> str:
+    """Undo ``str.replace(' ', '\\n')`` on PEM wrappers (BEGIN/END split across lines)."""
+    for broken, fixed in _PEM_HEADER_FOOTER_REPAIRS:
+        text = text.replace(broken, fixed)
+    return text
+
+
+def _canonicalize_pem_block(text: str) -> str:
+    """
+    Normalize one PEM block: strip all whitespace from the base64 body and re-wrap at 64 cols.
+
+    Handles .env / secrets that store the whole key on one line with spaces instead of newlines.
+    """
+    m = re.search(
+        r"-----BEGIN (?P<label>[^-]+)-----\s*(?P<body>.*?)\s*-----END (?P=label)-----",
+        text,
+        re.DOTALL,
+    )
+    if not m:
+        return text
+    label = m.group("label").strip()
+    body = m.group("body")
+    body_clean = re.sub(r"\s+", "", body)
+    if not body_clean:
+        return text
+    wrapped = "\n".join(body_clean[i : i + 64] for i in range(0, len(body_clean), 64))
+    return f"-----BEGIN {label}-----\n{wrapped}\n-----END {label}-----"
+
+
+def _normalize_private_key_pem(raw: str | bytes) -> bytes:
+    """
+    Turn env-sourced PEM into bytes OpenSSL can load.
+
+    - Literal \\n sequences (common in .env / JSON secrets) become real newlines.
+    - Headers broken by replacing every space with newline are repaired.
+    - Single-line keys with spaces (instead of newlines) are canonicalized to standard PEM.
+    - Collapsed header like ``-----BEGIN ...----- MIIE...`` gets a newline after the header.
+    - Rejects obvious public-key PEM mistakes with a clear error.
+    """
+    if isinstance(raw, bytes):
+        text = raw.decode("utf-8")
+    else:
+        text = raw
+    text = text.replace("\\n", "\n").strip()
+    if not text:
+        raise DocusignAuthError("Private key value is empty")
+
+    text = _repair_pem_headers_broken_by_whitespace(text)
+    canonical = _canonicalize_pem_block(text)
+    if canonical != text:
+        text = canonical
+    else:
+        text = re.sub(r"(-----BEGIN [^-]+-----)\s+", r"\1\n", text, count=1)
+
+    has_private = any(marker in text for marker in _PRIVATE_PEM_MARKERS)
+    if not has_private:
+        if "-----BEGIN PUBLIC KEY-----" in text or "-----BEGIN RSA PUBLIC KEY-----" in text:
+            raise DocusignAuthError(
+                "DocuSign JWT requires the RSA private key PEM "
+                "(-----BEGIN RSA PRIVATE KEY----- or -----BEGIN PRIVATE KEY-----). "
+                "The value looks like a public key; use the private key from DocuSign Apps and Keys."
+            )
+        raise DocusignAuthError(
+            "Private key PEM is missing a recognized private-key header "
+            "(-----BEGIN RSA PRIVATE KEY----- or -----BEGIN PRIVATE KEY-----)."
+        )
+
+    return text.encode("utf-8")
 
 
 class DocusignJWTAuth:
@@ -31,9 +129,13 @@ class DocusignJWTAuth:
         self.integration_key = Config.DOCUSIGN_INTEGRATION_KEY
         self.impersonated_user_id = Config.DOCUSIGN_IMPERSONATED_USER_ID
         self.private_key = Config.DOCUSIGN_PRIVATE_KEY
-        self.private_key_path = Config.DOCUSIGN_PRIVATE_KEY_PATH
+        self.rsa_key_id = Config.DOCUSIGN_RSA_ID
         self.base_url = Config.DOCUSIGN_BASE_URL
         self.account_id = Config.DOCUSIGN_ACCOUNT_ID
+        # JWT must use the OAuth host (account-d.docusign.com / account.docusign.com), not the REST API base
+        # (e.g. demo.docusign.net). DOCUSIGN_OAUTH_TOKEN_URL is derived from FLASK_ENV + demo vs prod.
+        token_url = Config.DOCUSIGN_OAUTH_TOKEN_URL
+        self.oauth_host_name = urlparse(token_url).netloc
 
         # Token cache
         self._access_token: str | None = None
@@ -52,12 +154,14 @@ class DocusignJWTAuth:
         if not self.impersonated_user_id:
             missing_vars.append("DOCUSIGN_IMPERSONATED_USER_ID")
 
-        # Check for either private key content or path
-        if not self.private_key and not self.private_key_path:
-            missing_vars.append("DOCUSIGN_PRIVATE_KEY or DOCUSIGN_PRIVATE_KEY_PATH")
+        if not self.private_key:
+            missing_vars.append("DOCUSIGN_PRIVATE_KEY or DOCUSIGN_RSA_SECRET (PEM)")
 
         if not self.base_url:
             missing_vars.append("DOCUSIGN_BASE_URL")
+
+        if not self.oauth_host_name:
+            missing_vars.append("DOCUSIGN_OAUTH_TOKEN_URL (invalid or empty host)")
 
         if missing_vars:
             error_msg = (
@@ -73,17 +177,11 @@ class DocusignJWTAuth:
                 "has_integration_key": bool(self.integration_key),
                 "has_impersonated_user_id": bool(self.impersonated_user_id),
                 "has_private_key": bool(self.private_key),
-                "has_private_key_path": bool(self.private_key_path),
+                "has_rsa_key_id": bool(self.rsa_key_id),
                 "base_url": self.base_url,
+                "oauth_host_name": self.oauth_host_name,
             },
         )
-
-        # If using file path, verify it exists
-        if self.private_key_path and not self.private_key:
-            if not os.path.exists(self.private_key_path):
-                error_msg = f"DocuSign private key file not found: {self.private_key_path}"
-                logger.error(LOG_CATEGORIES["ERRORS"], error_msg)
-                raise DocusignAuthError(error_msg)
 
         if not self.account_id:
             logger.warn(
@@ -92,53 +190,60 @@ class DocusignJWTAuth:
             )
 
     def _read_private_key(self) -> bytes:
-        """
-        Read private key from environment variable or file.
-
-        Prefers DOCUSIGN_PRIVATE_KEY (direct content) over DOCUSIGN_PRIVATE_KEY_PATH (file path).
-        """
+        """Return private key PEM from env (DOCUSIGN_PRIVATE_KEY or DOCUSIGN_RSA_SECRET)."""
         try:
-            # Prefer direct key content from environment variable
-            if self.private_key:
-                logger.debug(
-                    LOG_CATEGORIES["DOCUSIGN"],
-                    "Using DocuSign private key from environment variable",
-                )
-                # Handle both string and bytes
-                if isinstance(self.private_key, bytes):
-                    return self.private_key
-                return self.private_key.encode("utf-8")
-
-            # Fall back to reading from file
-            if self.private_key_path:
-                logger.debug(
-                    LOG_CATEGORIES["DOCUSIGN"],
-                    "Reading DocuSign private key from file",
-                    {"path": self.private_key_path},
-                )
-                with open(self.private_key_path, "rb") as f:
-                    key_content = f.read()
-                    logger.info(
-                        LOG_CATEGORIES["DOCUSIGN"],
-                        "Private key loaded from file successfully",
-                        {"path": self.private_key_path, "size_bytes": len(key_content)},
-                    )
-                    return key_content
-
-            # Should never reach here due to validation
-            raise DocusignAuthError("No private key source configured")
-
+            if not self.private_key:
+                raise DocusignAuthError("No private key configured")
+            logger.debug(
+                LOG_CATEGORIES["DOCUSIGN"],
+                "Using DocuSign private key from environment",
+            )
+            return _normalize_private_key_pem(self.private_key)
+        except DocusignAuthError:
+            raise
         except Exception as e:
             logger.error(
                 LOG_CATEGORIES["ERRORS"],
                 "Failed to read DocuSign private key",
-                {
-                    "error": str(e),
-                    "has_key_content": bool(self.private_key),
-                    "has_key_path": bool(self.private_key_path),
-                },
+                {"error": str(e)},
             )
             raise DocusignAuthError(f"Failed to read private key: {str(e)}") from e
+
+    def _encode_jwt_assertion(self, private_key: bytes, expires_in: int, scopes: list[str]) -> str:
+        """Build JWT assertion for DocuSign (matches SDK claims; adds ``kid`` when rsa_key_id is set)."""
+        now = int(time.time())
+        later = now + expires_in
+        claim = {
+            "iss": self.integration_key,
+            "sub": self.impersonated_user_id,
+            "aud": self.oauth_host_name,
+            "iat": now,
+            "exp": later,
+            "scope": " ".join(scopes),
+        }
+        headers = {"kid": self.rsa_key_id} if self.rsa_key_id else None
+        token = pyjwt.encode(claim, private_key, algorithm="RS256", headers=headers)
+        return token if isinstance(token, str) else token.decode("utf-8")
+
+    def _exchange_jwt_assertion(self, api_client: ApiClient, assertion: str) -> SimpleNamespace:
+        """POST jwt-bearer assertion to OAuth token endpoint (same contract as SDK)."""
+        response = api_client.request(
+            "POST",
+            f"https://{self.oauth_host_name}/oauth/token",
+            headers=api_client.sanitize_for_serialization(
+                {"Content-Type": "application/x-www-form-urlencoded"}
+            ),
+            post_params=api_client.sanitize_for_serialization(
+                {"assertion": assertion, "grant_type": OAuth.GRANT_TYPE_JWT}
+            ),
+        )
+        response_data = json.loads(response.data)
+        if "token_type" not in response_data or "access_token" not in response_data:
+            raise ApiException(http_resp=response)
+        return SimpleNamespace(
+            access_token=str(response_data["access_token"]),
+            expires_in=int(response_data.get("expires_in", 3600)),
+        )
 
     def _is_token_valid(self) -> bool:
         """Check if current token is valid"""
@@ -190,29 +295,38 @@ class DocusignJWTAuth:
             logger.debug(
                 LOG_CATEGORIES["DOCUSIGN"],
                 "Requesting DocuSign JWT token",
-                {"impersonated_user_id": self.impersonated_user_id, "base_url": self.base_url},
+                {
+                    "impersonated_user_id": self.impersonated_user_id,
+                    "oauth_host_name": self.oauth_host_name,
+                    "rest_base_url": self.base_url,
+                    "jwt_uses_rsa_key_id": bool(self.rsa_key_id),
+                },
             )
 
-            # Create API client
+            # Create API client (host must match REST root; SDK default host is prod www)
             api_client = ApiClient()
-            api_client.set_base_path(self.base_url)
+            configure_rest_api_root(api_client, self.base_url)
 
             # Read private key
             private_key = self._read_private_key()
 
-            # Request JWT token
             # Scopes for JWT: signature, impersonation
             scopes = ["signature", "impersonation"]
+            expires_in = 3600
 
-            # Request token with 1 hour expiration
-            raw_response = api_client.request_jwt_user_token(
-                client_id=self.integration_key,
-                user_id=self.impersonated_user_id,
-                oauth_host_name=self.base_url.replace("https://", "").replace("http://", ""),
-                private_key_bytes=private_key,
-                expires_in=3600,  # 1 hour
-                scopes=scopes,
-            )
+            # DocuSign SDK omits JWT ``kid``; multiple registered keys require DOCUSIGN_RSA_ID.
+            if self.rsa_key_id:
+                assertion = self._encode_jwt_assertion(private_key, expires_in, scopes)
+                raw_response = self._exchange_jwt_assertion(api_client, assertion)
+            else:
+                raw_response = api_client.request_jwt_user_token(
+                    client_id=self.integration_key,
+                    user_id=self.impersonated_user_id,
+                    oauth_host_name=self.oauth_host_name,
+                    private_key_bytes=private_key,
+                    expires_in=expires_in,
+                    scopes=scopes,
+                )
             oauth_response = parse_jwt_token_response(raw_response)
 
             # Cache token
@@ -265,9 +379,15 @@ class DocusignJWTAuth:
             raise DocusignAuthError(f"JWT authentication failed: {str(e)}") from e
 
     def _get_consent_url(self) -> str:
-        """Generate consent URL for JWT grant"""
-        base = self.base_url.replace("/restapi", "")
-        return f"{base}/oauth/auth?response_type=code&scope=signature%20impersonation&client_id={self.integration_key}&redirect_uri=https://developers.docusign.com/platform/auth/consent"
+        """Generate consent URL for JWT grant (OAuth account host, not REST API base)."""
+        auth_base = Config.DOCUSIGN_OAUTH_AUTHORIZATION_URL
+        sep = "&" if "?" in auth_base else "?"
+        redirect_uri = quote(Config.DOCUSIGN_OAUTH_REDIRECT_URI, safe="")
+        return (
+            f"{auth_base}{sep}response_type=code&scope=signature%20impersonation"
+            f"&client_id={self.integration_key}"
+            f"&redirect_uri={redirect_uri}"
+        )
 
     def get_api_client(self) -> ApiClient:
         """
@@ -283,7 +403,7 @@ class DocusignJWTAuth:
         access_token = self.get_access_token()
 
         api_client = ApiClient()
-        api_client.set_base_path(f"{self.base_url}/restapi")
+        configure_rest_api_root(api_client, self.base_url)
         api_client.set_default_header("Authorization", f"Bearer {access_token}")
 
         logger.info(LOG_CATEGORIES["DOCUSIGN"], "DocuSign API client created successfully")

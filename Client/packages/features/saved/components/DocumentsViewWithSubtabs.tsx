@@ -8,7 +8,6 @@ import { useState } from "react";
 import { useLocalization } from "packages/contexts";
 import type { DocumentData } from "packages/features/documents";
 import { FormsLibraryTab } from "packages/features/documents";
-import { AgreementCard } from "packages/ui/components/cards/agreement";
 import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
 import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
 import { Box } from "packages/ui/components/primitives";
@@ -109,33 +108,11 @@ export default function DocumentsViewWithSubtabs({
             >
               {documents.map((doc) => (
                 <Box key={`doc-${doc.id}`} className="group relative w-full">
-                  {doc.library_kind === "agreement" ? (
-                    <AgreementCard
-                      doc={doc}
-                      onDelete={onDocumentDelete}
-                      isAgent={isAgent}
-                      externalActionHandlers={
-                        documentActionHandlers
-                          ? {
-                              handleViewDocument:
-                                documentActionHandlers.handleViewDocument,
-                              handleDownloadDocument:
-                                documentActionHandlers.handleDownloadDocument,
-                              handleShareDocument:
-                                documentActionHandlers.handleShareDocument,
-                              handleSignNow:
-                                documentActionHandlers.handleSignNow,
-                            }
-                          : undefined
-                      }
-                    />
-                  ) : (
-                    <DocumentCard
-                      doc={doc}
-                      onDelete={onDocumentDelete}
-                      externalActionHandlers={documentActionHandlers}
-                    />
-                  )}
+                  <DocumentCard
+                    doc={doc}
+                    onDelete={onDocumentDelete}
+                    externalActionHandlers={documentActionHandlers}
+                  />
                 </Box>
               ))}
             </Box>

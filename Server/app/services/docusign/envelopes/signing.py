@@ -4,6 +4,8 @@ DocuSign signing URL generation
 Generate embedded signing URLs for recipients.
 """
 
+import os
+
 from app.config import DOCUSIGN_SENDER_VIEW_PATH, DOCUSIGN_SIGNING_COMPLETE_PATH, Config
 from app.models import Agreement, AgreementParticipant
 from logger import LOG_CATEGORIES, get_logger
@@ -12,6 +14,20 @@ from ..core.client import DocusignClient
 from ..errors import AgreementStateError
 
 logger = get_logger()
+
+
+def _docusign_return_url_base() -> str:
+    """
+    Origin used in DocuSign ``return_url`` (must match the browser origin hosting the iframe).
+
+    Prefer ``DOCUSIGN_EMBEDDED_RETURN_URL_ORIGIN`` when it differs from the SPA origin
+    (uncommon). Otherwise uses ``Config.FRONTEND_URL`` from ``FRONTEND_URL`` or ``FRONTEND_BASE_URL`` — in local dev set one of those to your HTTPS tunnel (ngrok)
+    so Chrome Private Network Access does not block the post-sign redirect.
+    """
+    override = (os.getenv("DOCUSIGN_EMBEDDED_RETURN_URL_ORIGIN") or "").strip()
+    if override:
+        return override.rstrip("/")
+    return Config.FRONTEND_URL.rstrip("/")
 
 
 class SigningService:
@@ -48,7 +64,7 @@ class SigningService:
             )
             raise AgreementStateError("Agreement not sent to DocuSign")
 
-        if agreement.status not in ["sent", "delivered"]:
+        if agreement.status not in ("sent", "delivered", "signed"):
             logger.warn(
                 LOG_CATEGORIES["DOCUSIGN"],
                 "Cannot get signing URL - invalid status",
@@ -56,8 +72,8 @@ class SigningService:
             )
             raise AgreementStateError(f"Cannot sign agreement with status: {agreement.status}")
 
-        # Get return URL from config
-        return_url = f"{Config.FRONTEND_URL}{DOCUSIGN_SIGNING_COMPLETE_PATH.format(agreement_id=agreement.id)}"
+        # Return URL must be publicly reachable HTTPS in dev (Chrome PNA) — see _docusign_return_url_base
+        return_url = f"{_docusign_return_url_base()}{DOCUSIGN_SIGNING_COMPLETE_PATH.format(agreement_id=agreement.id)}"
 
         logger.debug(
             LOG_CATEGORIES["DOCUSIGN"],
@@ -130,9 +146,8 @@ class SigningService:
             )
             raise AgreementStateError("Agreement not sent to DocuSign")
 
-        # Get return URL
         return_url = (
-            f"{Config.FRONTEND_URL}{DOCUSIGN_SENDER_VIEW_PATH.format(agreement_id=agreement.id)}"
+            f"{_docusign_return_url_base()}{DOCUSIGN_SENDER_VIEW_PATH.format(agreement_id=agreement.id)}"
         )
 
         logger.debug(

@@ -452,6 +452,37 @@ signature_b64 = base64.b64encode(signature).decode()
 
 ---
 
+### Connect endpoint reachability (DocuSign "405 Method Not Allowed")
+
+Symptoms: DocuSign Connect logs show `405 Method Not Allowed` for the webhook URL.
+
+**Quick check** (use the same public host your API uses—not necessarily the marketing site if the API is on another hostname):
+
+```bash
+curl -i -X POST "https://YOUR_API_HOST/api/v1/webhooks/docusign/connect" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+**Interpret responses** (a healthy route hits the Flask/Gunicorn app):
+
+| HTTP | Meaning |
+|------|---------|
+| **400** `Invalid payload` | Route accepts **POST**; body lacks `envelopeId` and event fields (expected for `{}`). |
+| **401** `Webhook verification failed` | Route accepts **POST**; HMAC/signature invalid or missing (expected without a real Connect signature). |
+| **404** | Path not served on this host—wrong host, typo, or API not mounted here. |
+| **405** | POST not allowed at this URL—often wrong edge target (static CDN, wrong ALB rule), or Connect pointed at a host that does not proxy `/api/v1/*` to Flask. |
+
+If you see **400** or **401** from Gunicorn, routing is correct; set DocuSign Connect to **`POST https://YOUR_API_HOST/api/v1/webhooks/docusign/connect`** (same host).
+
+**After a real delivery, confirm processing**:
+
+1. Database: `SELECT * FROM docusign_connect_events ORDER BY created_at DESC LIMIT 20;`
+2. Celery: worker running; `docusign.process_webhook` tasks succeeding (no stuck failures).
+3. Logs: `Webhook event stored`, `Webhook processing task enqueued`.
+
+---
+
 ## Integration Testing
 
 ### Full End-to-End Flow

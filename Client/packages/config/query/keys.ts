@@ -168,6 +168,13 @@ export const queryKeys = {
     agreements: () => [...queryKeys.docusign.all, "agreements"] as const,
     agreement: (agreementId: string) =>
       [...queryKeys.docusign.agreements(), agreementId] as const,
+    /** Embedded signing URL (deduped per mount; short staleTime matches DocuSign TTL). */
+    embeddedSigningUrl: (agreementId: string, participantId: string) =>
+      [
+        ...queryKeys.docusign.agreement(agreementId),
+        "embeddedSigningUrl",
+        participantId,
+      ] as const,
     templates: () => [...queryKeys.docusign.all, "templates"] as const,
   },
 } as const;

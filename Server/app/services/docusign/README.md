@@ -120,12 +120,14 @@ DOCUSIGN_INTEGRATION_KEY=your-integration-key
 # Default: d3fa0f3e-253a-44df-8b0e-ae74dad062d4 (can override)
 DOCUSIGN_IMPERSONATED_USER_ID=d3fa0f3e-253a-44df-8b0e-ae74dad062d4
 
-# Private Key for JWT (choose ONE method)
-# Method 1: Direct key content (preferred for Docker/cloud)
+# Private key PEM for JWT (inline env only; pick one name)
 DOCUSIGN_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIE...your key...\n-----END RSA PRIVATE KEY-----"
+# Alias for the same private PEM (e.g. secrets-manager JSON)
+# DOCUSIGN_RSA_SECRET="-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
 
-# Method 2: Path to .pem file (local development)
-DOCUSIGN_PRIVATE_KEY_PATH=/path/to/private.pem
+# Optional: public PEM (registered in DocuSign; not used to sign JWTs but often stored alongside private)
+# DOCUSIGN_RSA_PUBLIC="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+# DOCUSIGN_RSA_ID="<keypair-id-from-apps-and-keys>"  # JWT ``kid`` when multiple RSA keys are registered
 ```
 
 #### 2. OAuth Authentication (Per-Agent)
@@ -158,9 +160,9 @@ DOCUSIGN_CONNECT_OAUTH_AUDIENCE=https://usesilverkey.com  # Your API audience
 #### 4. Account Configuration (Optional)
 
 ```bash
-# Account ID (numeric format)
-# Default: 45173452 (Demo account)
-DOCUSIGN_ACCOUNT_ID=45173452
+# API Account ID = GUID from DocuSign Apps and Keys / Settings (not the numeric "Account ID" shown in the UI)
+# Example shape only — use your real GUID:
+DOCUSIGN_ACCOUNT_ID=d020d926-48cc-4081-9179-46cb3c0a24f3
 
 # Base URL
 # Default: https://demo.docusign.net
@@ -187,10 +189,8 @@ In the same **Apps and Keys** section:
 
 1. Scroll to **"Authentication"** section
 2. Click **"Generate RSA"** or **"Add RSA Keypair"**
-3. Download the private key file (`.pem`)
-4. Either:
-   - Copy the file content to `DOCUSIGN_PRIVATE_KEY` environment variable
-   - OR set `DOCUSIGN_PRIVATE_KEY_PATH` to the file path
+3. Copy the **private** key PEM into `DOCUSIGN_PRIVATE_KEY` or `DOCUSIGN_RSA_SECRET`
+4. Optionally store the **public** PEM in `DOCUSIGN_RSA_PUBLIC` (JWT signing uses the private key only)
 
 **Important**: After generating the RSA key, you must grant consent. See [Consent Required](#consent-required) section.
 
@@ -236,8 +236,7 @@ In **Settings** → **Apps and Keys**:
 
 1. In the app configuration, scroll to **Authentication**
 2. Click **"Generate RSA"**
-3. Download the private key (`.pem` file)
-4. Save to your environment variables
+3. Copy the private key PEM into `DOCUSIGN_PRIVATE_KEY` or `DOCUSIGN_RSA_SECRET` (and optionally the public PEM into `DOCUSIGN_RSA_PUBLIC`)
 
 ### 4. Generate Client Secret (OAuth)
 
@@ -253,9 +252,9 @@ JWT authentication requires one-time user consent:
 1. Start your backend server
 2. Run the JWT auth flow (it will fail with a consent error)
 3. The error will include a consent URL
-4. OR manually visit:
+4. OR manually visit (replace `YOUR_INTEGRATION_KEY`; `redirect_uri` must exactly match a URI registered for the app and the same value as `DOCUSIGN_OAUTH_REDIRECT_URI`, e.g. dev `http://localhost:5000/api/v1/docusign/oauth/callback` — URL-encode it in the query string):
    ```
-   https://account-d.docusign.com/oauth/auth?response_type=code&scope=signature%20impersonation&client_id=YOUR_INTEGRATION_KEY&redirect_uri=https://developers.docusign.com/platform/auth/consent
+   https://account-d.docusign.com/oauth/auth?response_type=code&scope=signature%20impersonation&client_id=YOUR_INTEGRATION_KEY&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Fapi%2Fv1%2Fdocusign%2Foauth%2Fcallback
    ```
 5. Click **"Allow Access"**
 6. JWT auth will now work
@@ -291,8 +290,8 @@ DOCUSIGN_CLIENT_SECRET=def456uvw
 # Webhook
 DOCUSIGN_USER_CONNECT_HMAC_SECRET=your-hmac-secret
 
-# Optional
-DOCUSIGN_ACCOUNT_ID=45173452
+# Optional (must be API Account GUID if set — not the numeric display account id)
+DOCUSIGN_ACCOUNT_ID=d020d926-48cc-4081-9179-46cb3c0a24f3
 DOCUSIGN_BASE_URL=https://demo.docusign.net
 ```
 
@@ -563,11 +562,11 @@ All DocuSign API endpoints are rate-limited:
 
 **Solution**: Agent must reconnect via OAuth flow
 
-### "Account not found" Error
+### "Account not found" or 401 on envelope calls
 
-**Cause**: `DOCUSIGN_ACCOUNT_ID` is wrong or not set
+**Cause**: `DOCUSIGN_ACCOUNT_ID` is wrong, not set, or set to the **numeric display** account id instead of the **API Account ID (GUID)**.
 
-**Solution**: Remove `DOCUSIGN_ACCOUNT_ID` from env vars to auto-detect, or verify the account ID in DocuSign
+**Solution**: In DocuSign Admin, copy the API Account ID (UUID). Remove `DOCUSIGN_ACCOUNT_ID` from env to let JWT user-info auto-detect the first account, or set the correct GUID explicitly.
 
 ## Production Deployment
 
@@ -600,7 +599,7 @@ DOCUSIGN_PRIVATE_KEY="<production-private-key>"
 DOCUSIGN_CLIENT_ID=<production-integration-key>
 DOCUSIGN_CLIENT_SECRET=<production-client-secret>
 DOCUSIGN_USER_CONNECT_HMAC_SECRET=<production-hmac-secret>
-DOCUSIGN_ACCOUNT_ID=<production-account-id>
+DOCUSIGN_ACCOUNT_ID=<production-api-account-guid>
 DOCUSIGN_BASE_URL=https://na3.docusign.net  # or your region
 ```
 

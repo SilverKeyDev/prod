@@ -69,6 +69,7 @@ export type SavedPageLayoutProps = {
   ) => Promise<{ success: boolean; message: string }>;
   onSendForSignature?: (document: DocumentData) => void;
   onSignNow?: (document: DocumentData) => void;
+  onViewSignedAgreement?: (document: DocumentData) => void;
   onFormSendForSignature?: (
     form: import("packages/features/documents").ChecklistForm,
   ) => void;
@@ -132,6 +133,7 @@ export function SavedPageLayout({
   onShareDocument,
   onSendForSignature,
   onSignNow,
+  onViewSignedAgreement,
   sendForSignatureModal,
 }: SavedPageLayoutProps) {
   return (
@@ -180,7 +182,11 @@ export function SavedPageLayout({
                   viewType === "homes"
                     ? `${filteredHomes.length} saved`
                     : viewType === "documents"
-                      ? `${filteredDocuments.length} documents`
+                      ? `${
+                          filteredDocuments.filter(
+                            (d) => d.library_kind !== "agreement",
+                          ).length
+                        } documents`
                       : viewType === "agreements"
                         ? `${
                             filteredDocuments.filter(
@@ -211,6 +217,7 @@ export function SavedPageLayout({
                     handleShareDocument: onShareDocument,
                     handleSendForSignature: onSendForSignature,
                     handleSignNow: onSignNow,
+                    handleViewSignedAgreement: onViewSignedAgreement,
                     isAgent,
                   }
                 : undefined

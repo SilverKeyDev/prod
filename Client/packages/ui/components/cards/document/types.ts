@@ -35,6 +35,8 @@ export type DocumentCardExternalActionHandlers = {
   ) => Promise<{ success: boolean; message: string }>;
   handleSendForSignature?: (document: DocumentData) => void;
   handleSignNow?: (document: DocumentData) => void;
+  /** Completed DocuSign agreement: in-app PDF viewer (Saved page). */
+  handleViewSignedAgreement?: (document: DocumentData) => void;
   isAgent?: boolean;
 };
 

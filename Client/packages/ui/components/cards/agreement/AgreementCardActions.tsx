@@ -21,6 +21,10 @@ interface AgreementCardActionsProps {
   contextualStatus: ContextualAgreementStatus;
   onDelete?: (doc: AgreementData) => void;
   showDelete?: boolean;
+  /** When true, copy explains DocuSign void + removal for all parties. */
+  deleteVoidsEnvelope?: boolean;
+  deleteModalTitle?: string;
+  deleteModalMessage?: string;
   externalActionHandlers?: AgreementCardExternalActionHandlers;
 }
 
@@ -29,6 +33,9 @@ export default function AgreementCardActions({
   contextualStatus,
   onDelete,
   showDelete = false,
+  deleteVoidsEnvelope = false,
+  deleteModalTitle,
+  deleteModalMessage,
   externalActionHandlers,
 }: AgreementCardActionsProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -44,6 +51,8 @@ export default function AgreementCardActions({
     ? externalActionHandlers.handleShareDocument
     : internal.handleShareDocument;
   const handleSignNow = externalActionHandlers?.handleSignNow;
+  const handleViewSignedAgreement =
+    externalActionHandlers?.handleViewSignedAgreement;
 
   const showInlinePdfModal = !externalActionHandlers && internal.currentPdf;
 
@@ -52,34 +61,76 @@ export default function AgreementCardActions({
     setIsDeleteModalOpen(false);
   };
 
-  const showSignNow = contextualStatus === "sign_now" && handleSignNow;
   const showViewSigned = contextualStatus === "completed";
+  const showPrimarySign =
+    Boolean(handleSignNow) && !showViewSigned && doc.library_kind === "agreement";
+  const isMyTurnToSign = contextualStatus === "sign_now";
+  const isAwaitingOtherSigner =
+    contextualStatus === "waiting_for_signature" ||
+    contextualStatus === "waiting_for_review";
+
+  const resolvedDeleteTitle =
+    deleteModalTitle ??
+    (deleteVoidsEnvelope ? "Cancel agreement" : "Remove Agreement");
+  const resolvedDeleteMessage =
+    deleteModalMessage ??
+    (deleteVoidsEnvelope
+      ? "This voids the DocuSign envelope for every signer and removes it from everyone's saved documents. You can't undo this."
+      : "Are you sure you want to remove this agreement from your library? This will not delete the agreement from DocuSign.");
 
   return (
     <>
       <Box className="flex flex-col gap-2">
-        {/* Primary CTA adapts to contextual status */}
-        {showSignNow ? (
+        {/* Primary CTA: sign in-app when it's your turn; otherwise view + disabled sign while others sign */}
+        {showPrimarySign && handleSignNow && isAwaitingOtherSigner ? (
+          <>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => handleViewDocument(doc.id, doc.filename)}
+              icon={<Icon name="eye" size={16} />}
+              fullWidth
+              className="justify-center"
+            >
+              View document
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled
+              icon={<Icon name="pen-tool" size={16} />}
+              fullWidth
+              className="justify-center"
+              label="Not your turn to sign yet"
+            >
+              Sign
+            </Button>
+          </>
+        ) : showPrimarySign && handleSignNow ? (
           <Button
             variant="primary"
             size="sm"
             onClick={() => handleSignNow(doc)}
             icon={<Icon name="pen-tool" size={16} />}
             fullWidth
-            className="justify-center bg-amber-600 hover:bg-amber-700"
+            className="justify-center"
           >
-            Sign Now
+            {isMyTurnToSign ? "Sign now" : "Sign"}
           </Button>
         ) : showViewSigned ? (
           <Button
             variant="success"
             size="sm"
-            onClick={() => handleViewDocument(doc.id, doc.filename)}
+            onClick={() =>
+              handleViewSignedAgreement
+                ? handleViewSignedAgreement(doc)
+                : handleViewDocument(doc.id, doc.filename)
+            }
             icon={<Icon name="check-circle" size={16} />}
             fullWidth
             className="justify-center"
           >
-            View Signed Document
+            View signed document
           </Button>
         ) : (
           <Button
@@ -90,7 +141,7 @@ export default function AgreementCardActions({
             fullWidth
             className="justify-center"
           >
-            View Document
+            View document
           </Button>
         )}
 
@@ -139,8 +190,8 @@ export default function AgreementCardActions({
             isOpen={isDeleteModalOpen}
             onClose={() => setIsDeleteModalOpen(false)}
             onConfirm={handleDeleteConfirm}
-            title="Remove Agreement"
-            message="Are you sure you want to remove this agreement from your library? This will not delete the agreement from DocuSign."
+            title={resolvedDeleteTitle}
+            message={resolvedDeleteMessage}
           />
         </Portal>
       )}

@@ -16,7 +16,13 @@ import { getWidthPercent } from "packages/utils/layout/dashboardLayoutConfig";
 
 import { useLocationOverride } from "@/app/routes/locationOverrideContext";
 
-function activeKeyFromPathname(pathname: string): PathPrefix | null {
+/** Dashboard shell area; includes DocuSign return route outside /saved prefix. */
+export type DashboardAreaKey = PathPrefix | "agreement_signing_complete";
+
+function activeKeyFromPathname(pathname: string): DashboardAreaKey | null {
+  if (/^\/agreements\/[^/]+\/complete\/?$/.test(pathname)) {
+    return "agreement_signing_complete";
+  }
   if (pathname.startsWith("/search")) return "search";
   if (pathname.startsWith("/messaging")) return "messaging";
   if (pathname.startsWith("/dashboard")) return "dashboard";
@@ -27,7 +33,7 @@ function activeKeyFromPathname(pathname: string): PathPrefix | null {
 
 export type DashboardRouteResult = {
   /** Current dashboard area from router match; null if not a dashboard route. */
-  activeKey: PathPrefix | null;
+  activeKey: DashboardAreaKey | null;
   pathname: string;
   search: string;
   isSearch: boolean;
@@ -35,6 +41,7 @@ export type DashboardRouteResult = {
   isProfile: boolean;
   isSaved: boolean;
   isMessaging: boolean;
+  isAgreementSigningComplete: boolean;
   isFullHeightRoute: boolean;
   widthPercent: number;
 };
@@ -54,28 +61,34 @@ export function useDashboardRoute(
 
   // When override is set (browser URL diverged from router), derive activeKey from pathname.
   // Otherwise use useMatch so the router drives the result.
+  const agreementSigningCompleteMatch = useMatch(ROUTES.AGREEMENT_SIGNING_COMPLETE);
   const searchMatch = useMatch(ROUTES.SEARCH);
   const messagingMatch = useMatch(ROUTES.MESSAGING);
   const dashboardMatch = useMatch(ROUTES.DASHBOARD);
   const savedMatch = useMatch(ROUTES.SAVED);
   const profileMatch = useMatch(ROUTES.PROFILE);
 
-  const activeKey: PathPrefix | null = locationOverride
+  const activeKey: DashboardAreaKey | null = locationOverride
     ? activeKeyFromPathname(pathname)
-    : searchMatch
-      ? "search"
-      : messagingMatch
-        ? "messaging"
-        : dashboardMatch
-          ? "dashboard"
-          : savedMatch
-            ? "saved"
-            : profileMatch
-              ? "profile"
-              : null;
+    : agreementSigningCompleteMatch
+      ? "agreement_signing_complete"
+      : searchMatch
+        ? "search"
+        : messagingMatch
+          ? "messaging"
+          : dashboardMatch
+            ? "dashboard"
+            : savedMatch
+              ? "saved"
+              : profileMatch
+                ? "profile"
+                : null;
 
   const isFullHeightRoute = activeKey === "search" || activeKey === "messaging";
-  const widthPercent = getWidthPercent(pathname, defaultWidthPercent);
+  const widthPercent =
+    activeKey === "agreement_signing_complete"
+      ? 90
+      : getWidthPercent(pathname, defaultWidthPercent);
 
   return {
     activeKey,
@@ -86,6 +99,7 @@ export function useDashboardRoute(
     isProfile: activeKey === "profile",
     isSaved: activeKey === "saved",
     isMessaging: activeKey === "messaging",
+    isAgreementSigningComplete: activeKey === "agreement_signing_complete",
     isFullHeightRoute,
     widthPercent,
   };

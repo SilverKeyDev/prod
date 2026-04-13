@@ -4,6 +4,7 @@ DocuSign Celery tasks
 Async tasks for DocuSign operations with automatic retry and error handling.
 """
 
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -22,6 +23,35 @@ from logger import LOG_CATEGORIES, get_logger
 
 logger = get_logger()
 
+_SEND_FAILED_META_MAX = 2000
+
+
+def _record_send_failure_event(
+    agreement_id: str,
+    actor_id: str,
+    description: str,
+    *,
+    error_message: str,
+    retryable: bool,
+) -> None:
+    """Persist a send failure on the agreement timeline (no envelope id yet)."""
+    meta = json.dumps(
+        {
+            "error": error_message[:_SEND_FAILED_META_MAX],
+            "retryable": retryable,
+        }
+    )
+    event = AgreementEvent(
+        id=str(uuid.uuid4()),
+        agreement_id=agreement_id,
+        event_type="send_failed",
+        description=description,
+        actor_id=actor_id,
+        event_metadata=meta,
+    )
+    db.session.add(event)
+    db.session.commit()
+
 
 @celery.task(
     name="docusign.send_envelope",
@@ -36,7 +66,7 @@ def send_envelope_task(self, agreement_id: str, signing_method: str, actor_id: s
     Send agreement envelope to DocuSign.
 
     Automatically retries on transient failures with exponential backoff.
-    Sets error state on agreement if all retries fail.
+    Records a ``send_failed`` agreement event if the send cannot complete.
 
     Args:
         agreement_id: Agreement ID
@@ -78,8 +108,6 @@ def send_envelope_task(self, agreement_id: str, signing_method: str, actor_id: s
         agreement.docusign_envelope_id = envelope_response["envelopeId"]
         agreement.status = "sent"
         agreement.sent_at = datetime.now(timezone.utc)
-        agreement.error_message = None  # Clear any previous errors
-
         # Create event
         event = AgreementEvent(
             id=str(uuid.uuid4()),
@@ -114,8 +142,13 @@ def send_envelope_task(self, agreement_id: str, signing_method: str, actor_id: s
         error_msg = f"DocuSign authentication failed: {str(exc)}"
 
         if agreement:
-            agreement.error_message = error_msg
-            db.session.commit()
+            _record_send_failure_event(
+                agreement_id,
+                actor_id,
+                "Failed to send agreement: DocuSign authentication error",
+                error_message=str(exc),
+                retryable=False,
+            )
 
         logger.error(
             LOG_CATEGORIES["ERRORS"],
@@ -129,12 +162,6 @@ def send_envelope_task(self, agreement_id: str, signing_method: str, actor_id: s
     except DocusignAPIError as exc:
         # API errors might be transient - retry
         error_msg = f"DocuSign API error: {str(exc)}"
-
-        if agreement:
-            agreement.error_message = (
-                f"{error_msg} (attempt {self.request.retries + 1}/{self.max_retries})"
-            )
-            db.session.commit()
 
         logger.error(
             LOG_CATEGORIES["ERRORS"],
@@ -157,8 +184,13 @@ def send_envelope_task(self, agreement_id: str, signing_method: str, actor_id: s
         error_msg = f"Unexpected error: {str(exc)}"
 
         if agreement:
-            agreement.error_message = error_msg
-            db.session.commit()
+            _record_send_failure_event(
+                agreement_id,
+                actor_id,
+                "Failed to send agreement: unexpected error",
+                error_message=str(exc),
+                retryable=False,
+            )
 
         logger.error(
             LOG_CATEGORIES["ERRORS"],
@@ -292,12 +324,6 @@ def fetch_completed_documents_task(self, agreement_id: str):
 
     except DocusignAPIError as exc:
         # Retry on API errors
-        if agreement:
-            agreement.error_message = (
-                f"Failed to fetch documents (attempt {self.request.retries + 1}): {str(exc)}"
-            )
-            db.session.commit()
-
         logger.error(
             LOG_CATEGORIES["ERRORS"],
             "API error fetching documents (retrying)",
@@ -312,10 +338,6 @@ def fetch_completed_documents_task(self, agreement_id: str):
 
     except Exception as exc:
         # Don't retry on unexpected errors
-        if agreement:
-            agreement.error_message = f"Failed to fetch documents: {str(exc)}"
-            db.session.commit()
-
         logger.error(
             LOG_CATEGORIES["ERRORS"],
             "Unexpected error fetching documents (not retrying)",

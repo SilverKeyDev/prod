@@ -10,6 +10,8 @@ from app.schemas import DeleteReportRequest, DeleteReportResponse, DocumentLibra
 from app.utils.pagination import build_pagination, parse_query_pagination_args
 from app.utils.security.app_logging import get_logger
 from app.utils.validation import validate_request, validate_response
+from logger import LOG_CATEGORIES
+from logger import log as category_log
 
 from ... import db
 from ...models import Document, DocumentLibraryItem
@@ -17,7 +19,7 @@ from ...services.auth import SecurityException, get_current_user
 from ...services.documents import DocumentService, s3_service
 from ...utils.common_patterns import require_authenticated_user, resolve_agent_scoped_user_id
 from ...utils.security import rate_limit
-from .report_document_library_rows import document_library_rows_for_user
+from .report_document_library_rows import document_library_rows_for_agent_request
 
 # Get logger using centralized utility
 logger = get_logger()
@@ -155,12 +157,32 @@ def get_view_url(user, report_id):
     try:
         report = Document.query.filter_by(id=report_id, user_id=user.id).first()
         if not report or not report.file_path:
+            category_log.info(
+                LOG_CATEGORIES["DOCUMENTS"],
+                "Report view-url: document not found or missing file",
+                {"report_id": report_id, "user_id": user.id},
+            )
             return jsonify({"error": "Report not found"}), 404
 
+        storage_kind = "remote_http" if str(report.file_path).startswith("http") else "s3"
         fresh_url = s3_service.generate_view_url(report.file_path)
         if not fresh_url:
+            category_log.warn(
+                LOG_CATEGORIES["DOCUMENTS"],
+                "Report view-url: failed to generate presigned URL",
+                {"report_id": report_id, "user_id": user.id, "storage_kind": storage_kind},
+            )
             return jsonify({"error": "Failed to generate view URL"}), 500
 
+        category_log.info(
+            LOG_CATEGORIES["DOCUMENTS"],
+            "Report view-url issued (share/view client)",
+            {
+                "report_id": report_id,
+                "user_id": user.id,
+                "storage_kind": storage_kind,
+            },
+        )
         return jsonify({"success": True, "viewUrl": fresh_url})
 
     except (SecurityException, ExpiredSignatureError, JWTError):
@@ -317,7 +339,7 @@ def get_document_library(user):
         target_uid, scope_err = resolve_agent_scoped_user_id(user)
         if scope_err:
             return scope_err[0], scope_err[1]
-        rows = document_library_rows_for_user(target_uid)
+        rows = document_library_rows_for_agent_request(target_uid, user)
         page, per_page = parse_query_pagination_args(request.args, default_per_page=20)
         total = len(rows)
         offset = (page - 1) * per_page

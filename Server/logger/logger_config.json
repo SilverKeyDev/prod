@@ -9,5 +9,6 @@
   "security": false,
   "polygonSearch": false,
   "docusign": true,
-  "logLevel": "ERROR"
+  "documents": true,
+  "logLevel": "INFO"
 }

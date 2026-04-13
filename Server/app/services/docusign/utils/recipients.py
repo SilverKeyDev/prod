@@ -13,15 +13,14 @@ def build_tabs_for_recipient(
     participant: AgreementParticipant, document_id: str = "1"
 ) -> dict[str, Any]:
     """
-    Build signature tabs for a recipient using anchor-based positioning.
+    Build signature tabs using coordinate-based positioning on page 1.
 
-    Anchor-based tabs search for specific text in the PDF and position the tab near it.
-    This is preferred over coordinate-based positioning as it works regardless of PDF layout.
+    Agent-uploaded PDFs typically lack anchor strings (e.g. "SIGN HERE"), so we use
+    absolute positions. Routing order stacks signers vertically so multiple signers
+    do not overlap.
 
-    The PDF generation process should embed anchor text strings at appropriate positions:
-    - "SIGN HERE" for signature fields
-    - "DATE SIGNED" for date fields
-    - "INITIAL HERE" for initial fields (optional)
+    DocuSign measures from the top-left; y=700 is near the bottom of a US Letter
+    page (~792pt tall). Adjust if PDFs differ.
 
     Args:
         participant: AgreementParticipant model
@@ -30,27 +29,28 @@ def build_tabs_for_recipient(
     Returns:
         Dictionary of tabs for this recipient
     """
+    # Routing order determines vertical stacking so multiple signers don't overlap
+    # Page bottom ~700pt, each signer offset up by 60px per routing slot
+    slot = (participant.routing_order or 1) - 1
+    y_position = str(700 - (slot * 60))
+
     tabs = {
         "signHereTabs": [
             {
-                "anchorString": "SIGN HERE",
-                "anchorXOffset": "0",
-                "anchorYOffset": "-10",
                 "documentId": document_id,
                 "recipientId": str(participant.id),
-                "anchorUnits": "pixels",
-                "anchorIgnoreIfNotPresent": "false",
+                "pageNumber": "1",
+                "xPosition": "100",
+                "yPosition": y_position,
             }
         ],
         "dateSignedTabs": [
             {
-                "anchorString": "DATE SIGNED",
-                "anchorXOffset": "0",
-                "anchorYOffset": "-10",
                 "documentId": document_id,
                 "recipientId": str(participant.id),
-                "anchorUnits": "pixels",
-                "anchorIgnoreIfNotPresent": "true",
+                "pageNumber": "1",
+                "xPosition": "300",
+                "yPosition": y_position,
                 "fontSize": "size9",
             }
         ],
@@ -72,8 +72,8 @@ def build_tabs_coordinate_fallback(
     Use this when PDFs don't have anchor text. Coordinates are in pixels from
     top-left corner of the page.
 
-    Note: Coordinate-based tabs are fragile and will break if PDF layout changes.
-    Prefer anchor-based tabs whenever possible.
+    Note: Coordinate-based tabs are fragile if PDF layout changes; use explicit
+    x/y when you need placement different from build_tabs_for_recipient.
 
     Args:
         participant: AgreementParticipant model
@@ -114,8 +114,7 @@ def build_recipient_from_participant(participant: AgreementParticipant) -> dict[
     """
     Build a DocuSign recipient object from an AgreementParticipant.
 
-    Includes signature tabs using anchor-based positioning. The tabs define where
-    signature and date fields appear on the document.
+    Includes signature tabs using coordinate-based positioning (see build_tabs_for_recipient).
 
     Args:
         participant: AgreementParticipant model

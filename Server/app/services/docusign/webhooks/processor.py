@@ -15,6 +15,7 @@ from logger import LOG_CATEGORIES, get_logger
 from .processor_helpers import (
     build_event_description,
     enqueue_fetch_documents,
+    extract_recipients_for_webhook,
     map_event_type,
 )
 from .processor_participants import update_participants
@@ -232,10 +233,11 @@ class WebhookProcessor:
 
             agreement.docusign_status = new_docusign_status
 
-            # Map DocuSign status to our status
+            # Map DocuSign status to our status (delivered = opened email → keep as sent)
             status_mapping = {
                 "sent": "sent",
-                "delivered": "delivered",
+                "delivered": "sent",
+                "signed": "signed",
                 "completed": "completed",
                 "declined": "declined",
                 "voided": "voided",
@@ -305,8 +307,21 @@ class WebhookProcessor:
                     },
                 )
 
-        # Process recipient status changes
-        recipients = envelope_data.get("recipients", {})
+        # Process recipient status changes (normalize Connect JSON shape)
+        recipients = extract_recipients_for_webhook(envelope_data, payload)
+        if (
+            not recipients.get("signers")
+            and not recipients.get("carbonCopies")
+            and "recipient" in event_type
+        ):
+            logger.debug(
+                LOG_CATEGORIES["DOCUSIGN"],
+                "Connect payload had no signer/CC blocks for a recipient event",
+                {
+                    "agreement_id": agreement.id,
+                    "event_type": event_type,
+                },
+            )
         update_participants(agreement, recipients)
 
         # Create timeline event

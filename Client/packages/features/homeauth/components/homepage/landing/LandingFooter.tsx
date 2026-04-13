@@ -23,7 +23,7 @@ export function LandingFooter() {
             {footer.description}
           </BodyText>
         </Box>
-        <Box className="grid grid-cols-2 gap-8 md:gap-12">
+        <Box className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:gap-12">
           {footer.columns.map((col) => (
             <Box key={col.heading} className="flex flex-col gap-3">
               <BodyText
@@ -37,7 +37,7 @@ export function LandingFooter() {
                 {col.links.map((l) => {
                   const sectionId = homeLandingSectionIdFromHref(l.href);
                   const linkClass =
-                    "text-text-secondary hover:text-text-primary inline-flex min-h-10 max-w-full items-center break-words text-xs motion-safe:transition-colors touch-manipulation";
+                    "text-text-secondary hover:text-text-primary inline-flex min-h-11 max-w-full items-center break-words py-1 text-xs motion-safe:transition-colors touch-manipulation";
                   return (
                     <li key={l.href}>
                       {sectionId ? (

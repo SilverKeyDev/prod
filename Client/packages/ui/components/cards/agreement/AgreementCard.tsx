@@ -88,6 +88,29 @@ function getContextualStatus(
   return (status as ContextualAgreementStatus) || "draft";
 }
 
+function getSentToLabel(
+  doc: AgreementCardProps["doc"],
+  isAgent: boolean,
+): string | null {
+  if (!isAgent || !doc.buyer_id) return null;
+  const buyer = doc.participants?.find((p) => p.user_id === doc.buyer_id);
+  if (buyer?.name?.trim()) return buyer.name.trim();
+  if (buyer?.email?.trim()) return buyer.email.trim();
+  return "Client";
+}
+
+function canVoidAgreementAsSender(
+  doc: AgreementCardProps["doc"],
+  viewerUserId: string | undefined,
+): boolean {
+  if (doc.library_kind !== "agreement" || !viewerUserId || !doc.agent_id) {
+    return false;
+  }
+  if (viewerUserId !== doc.agent_id) return false;
+  const terminal = ["completed", "voided", "declined"];
+  return !terminal.includes((doc.status ?? "").toLowerCase());
+}
+
 /**
  * Agreement card with distinct visual identity from DocumentCard.
  * Uses the same BaseCard foundation (same height) with a coloured left accent,
@@ -96,7 +119,7 @@ function getContextualStatus(
 export default function AgreementCard({
   doc,
   onDelete,
-  showDelete = false,
+  showDelete: showDeleteProp = false,
   externalActionHandlers,
   viewerUserId: viewerUserIdProp,
   isAgent: isAgentProp,
@@ -107,6 +130,10 @@ export default function AgreementCard({
 
   const contextualStatus = getContextualStatus(doc, viewerUserId, isAgent);
   const accentBorder = getAccentBorder(contextualStatus);
+  const sentToLabel = getSentToLabel(doc, isAgent);
+  const deleteVoidsEnvelope = canVoidAgreementAsSender(doc, viewerUserId);
+  const showDelete =
+    showDeleteProp || (Boolean(onDelete) && deleteVoidsEnvelope);
 
   const baseName = doc.file_path
     ? extractReportTitleFromPath(doc.file_path)
@@ -140,6 +167,7 @@ export default function AgreementCard({
         signedCount={signedCount}
         totalSigners={signers.length}
         uploadedDate={formattedDate}
+        sentToLabel={sentToLabel}
       />
 
       <AgreementCardActions
@@ -147,6 +175,7 @@ export default function AgreementCard({
         contextualStatus={contextualStatus}
         onDelete={onDelete}
         showDelete={showDelete}
+        deleteVoidsEnvelope={deleteVoidsEnvelope}
         externalActionHandlers={externalActionHandlers}
       />
     </BaseCard>

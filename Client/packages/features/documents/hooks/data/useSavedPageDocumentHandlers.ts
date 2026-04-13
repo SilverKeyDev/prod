@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 
-import { useUIStore } from "packages/store";
+import { useAuthStore, useUIStore } from "packages/store";
 
 import type { DocumentData } from "./useDocumentsData";
 
@@ -32,6 +32,7 @@ export function useSavedPageDocumentHandlers({
   handleDelete,
 }: UseSavedPageDocumentHandlersProps): UseSavedPageDocumentHandlersReturn {
   const enqueueToast = useUIStore((s) => s.enqueueToast);
+  const user = useAuthStore((s) => s.user);
 
   const handleDocumentView = useCallback(
     (document: DocumentData) => {
@@ -56,11 +57,19 @@ export function useSavedPageDocumentHandlers({
 
   const handleDocumentDelete = useCallback(
     async (document: DocumentData) => {
+      const voidedAgreementAsAgent =
+        document.library_kind === "agreement" &&
+        user?.id === document.agent_id &&
+        !["completed", "voided", "declined"].includes(
+          (document.status ?? "").toLowerCase(),
+        );
       try {
         await handleDelete(document);
         enqueueToast({
           type: "success",
-          message: "Document deleted successfully",
+          message: voidedAgreementAsAgent
+            ? "Agreement cancelled in DocuSign and removed from saved for everyone."
+            : "Document deleted successfully",
         });
       } catch (error) {
         enqueueToast({
@@ -69,7 +78,7 @@ export function useSavedPageDocumentHandlers({
         });
       }
     },
-    [handleDelete, enqueueToast]
+    [handleDelete, enqueueToast, user?.id]
   );
 
   return {

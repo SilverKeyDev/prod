@@ -69,10 +69,14 @@ export default function SavedHomesContent({
       return dateB - dateA;
     });
   }, [documents]);
+  const sortedDocumentsExcludingAgreements = useMemo(
+    () => sortedDocuments.filter((d) => d.library_kind !== "agreement"),
+    [sortedDocuments],
+  );
   if (viewType === "documents") {
     return (
       <DocumentsViewWithSubtabs
-        documents={sortedDocuments}
+        documents={sortedDocumentsExcludingAgreements}
         documentsLoading={documentsLoading}
         onDocumentDelete={onDocumentDelete}
         documentActionHandlers={documentActionHandlers}
@@ -128,6 +132,8 @@ export default function SavedHomesContent({
                       handleShareDocument:
                         documentActionHandlers.handleShareDocument,
                       handleSignNow: documentActionHandlers.handleSignNow,
+                      handleViewSignedAgreement:
+                        documentActionHandlers.handleViewSignedAgreement,
                     }
                   : undefined
               }

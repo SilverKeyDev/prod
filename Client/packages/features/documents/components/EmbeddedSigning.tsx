@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { AlertCircle } from "lucide-react";
 
-import { useDocusignActions } from "packages/features/documents/hooks/data/useDocusignActions";
+import { useEmbeddedSigningUrlQuery } from "packages/features/documents/hooks/data/useEmbeddedSigningUrlQuery";
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
 import { Box } from "packages/ui/components/primitives";
@@ -74,36 +74,30 @@ export default function EmbeddedSigning({
   onComplete,
   height = "600px",
 }: EmbeddedSigningProps) {
-  const [signingUrl, setSigningUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const { getSigningUrl, isGettingSigningUrl } = useDocusignActions();
+  const { data: signingUrl, isPending, isError, error } =
+    useEmbeddedSigningUrlQuery(agreementId, participantId);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
+  const errorToastSentRef = useRef(false);
 
-  // Fetch signing URL on mount
   useEffect(() => {
-    const fetchSigningUrl = async () => {
-      try {
-        const url = await getSigningUrl({ agreementId, participantId });
-        if (url) {
-          setSigningUrl(url);
-        } else {
-          setError("Unable to get signing URL");
-        }
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to load signing interface";
-        setError(errorMessage);
-        enqueueToast({
-          type: "error",
-          message: errorMessage,
-        });
-      }
-    };
+    errorToastSentRef.current = false;
+  }, [agreementId, participantId]);
 
-    void fetchSigningUrl();
-  }, [agreementId, participantId, getSigningUrl, enqueueToast]);
+  const errorMessage =
+    isError && error instanceof Error
+      ? error.message
+      : isError
+        ? "Failed to load signing interface"
+        : null;
+
+  useEffect(() => {
+    if (!isError || !errorMessage || errorToastSentRef.current) return;
+    errorToastSentRef.current = true;
+    enqueueToast({
+      type: "error",
+      message: errorMessage,
+    });
+  }, [isError, errorMessage, enqueueToast]);
 
   // Listen for DocuSign completion event via postMessage
   // DocuSign iframe sends this event when signing is complete
@@ -135,7 +129,7 @@ export default function EmbeddedSigning({
   }, [onComplete, enqueueToast]);
 
   // Loading state while fetching signing URL
-  if (isGettingSigningUrl) {
+  if (isPending) {
     return (
       <Box className="flex items-center justify-center py-12">
         <KeyTurnLoader message="Loading signing interface..." />
@@ -144,7 +138,7 @@ export default function EmbeddedSigning({
   }
 
   // Error state if URL fetch failed
-  if (error) {
+  if (errorMessage) {
     return (
       <Box className="flex flex-col items-center justify-center py-12 text-center">
         <AlertCircle className="mb-3 h-12 w-12 text-red-500" />
@@ -152,7 +146,7 @@ export default function EmbeddedSigning({
           Unable to Load Signing Interface
         </BodyText>
         <BodyText size="sm" muted>
-          {error}
+          {errorMessage}
         </BodyText>
       </Box>
     );

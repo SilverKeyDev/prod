@@ -55,6 +55,7 @@ type UpcomingEventsProps = {
   agendaTodos?: AgendaTodoDTO[];
   onToggleAgendaTodo?: (id: string) => void;
   canEditAgendaTodos?: boolean;
+  onSigningAgendaPress?: (agreementId: string) => void;
   headerActions?: ReactNode;
   /** Agent dashboard: only fetch/display events from calendars the user owns. */
   ownedCalendarsOnly?: boolean;
@@ -67,6 +68,7 @@ export function UpcomingEvents({
   agendaTodos,
   onToggleAgendaTodo,
   canEditAgendaTodos = false,
+  onSigningAgendaPress,
   headerActions,
   ownedCalendarsOnly = false,
 }: UpcomingEventsProps = {}) {
@@ -328,6 +330,7 @@ export function UpcomingEvents({
     calendars: scopedCalendars,
     onToggleAgendaTodo,
     canEditAgendaTodos,
+    onSigningAgendaPress,
   };
 
   const completedTodosModalEl =
@@ -354,6 +357,7 @@ export function UpcomingEvents({
       calendars={scopedCalendars}
       onToggleAgendaTodo={onToggleAgendaTodo}
       canEditAgendaTodos={canEditAgendaTodos}
+      onSigningAgendaPress={onSigningAgendaPress}
     />
   ) : null;
 
@@ -442,7 +446,7 @@ export function UpcomingEvents({
         <EventList
           events={upcomingEvents}
           title={AGENDA_TITLE}
-          emptyMessage="No upcoming events or to-dos in the next week"
+          emptyMessage="No upcoming events, to-dos, or signatures in the next week"
           headerActions={eventListHeaderActions}
           embedInListHeader={embedInListHeader}
           border="light"

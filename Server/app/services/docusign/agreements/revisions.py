@@ -2,6 +2,7 @@
 Agreement revision management
 """
 
+import io
 import uuid
 
 from app import db
@@ -9,9 +10,49 @@ from app.models import Agreement, AgreementEvent, AgreementRevision
 from app.services.documents.s3_service import s3_service
 from logger import LOG_CATEGORIES, get_logger
 
+from ..errors import InvalidRevisionFileError
 from ..utils.idempotency import generate_file_hash
 
 logger = get_logger()
+
+_PYPDF_WARNED_MISSING = False
+
+
+def _assert_readable_pdf(file_content: bytes) -> None:
+    """Reject corrupt or non-PDF uploads before S3/DocuSign."""
+    global _PYPDF_WARNED_MISSING
+
+    if not file_content:
+        raise InvalidRevisionFileError("Uploaded file is empty")
+    if not file_content.startswith(b"%PDF-"):
+        raise InvalidRevisionFileError("Uploaded file is not a valid PDF")
+
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        if not _PYPDF_WARNED_MISSING:
+            _PYPDF_WARNED_MISSING = True
+            logger.warn(
+                LOG_CATEGORIES["DOCUSIGN"],
+                "pypdf not installed; only PDF magic-byte check runs. "
+                "Install dependencies (pip install -r requirements.txt) for full validation.",
+                {},
+            )
+        return
+
+    try:
+        reader = PdfReader(io.BytesIO(file_content), strict=False)
+        if len(reader.pages) < 1:
+            raise InvalidRevisionFileError("Uploaded file is not a valid PDF")
+    except InvalidRevisionFileError:
+        raise
+    except Exception as e:
+        logger.warn(
+            LOG_CATEGORIES["DOCUSIGN"],
+            "Revision upload failed PDF validation",
+            {"error": str(e)},
+        )
+        raise InvalidRevisionFileError("Uploaded file is not a valid PDF") from e
 
 
 class RevisionService:
@@ -60,6 +101,8 @@ class RevisionService:
                 {"agreement_id": agreement_id},
             )
             raise AgreementNotFoundError(f"Agreement {agreement_id} not found")
+
+        _assert_readable_pdf(file_content)
 
         # Calculate version number
         existing_revisions = AgreementRevision.query.filter_by(agreement_id=agreement_id).count()
@@ -121,6 +164,7 @@ class RevisionService:
             filename=filename,
             file_size=len(file_content),
             file_hash=file_hash,
+            mime_type="application/pdf",
             created_by=created_by,
             notes=notes,
         )

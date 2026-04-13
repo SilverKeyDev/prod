@@ -164,7 +164,7 @@ start_backend() {
     err "redis-server not found in PATH. Install Redis (brew install redis) or ensure it is on PATH."
     exit 1
   fi
-  redis-server --daemonize no --port 6379 >/dev/null 2>&1 &
+  redis-server --daemonize no --port 6379 &
   REDIS_PID=$!
   log "Redis started (PID ${REDIS_PID}). Waiting for redis-cli ping..."
   local redis_wait=0
@@ -181,9 +181,9 @@ start_backend() {
     pushd "${ROOT_DIR}/Server" >/dev/null
     if [[ -d ".venv" ]]; then
       source .venv/bin/activate
-      gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - >/dev/null 2>&1 &
+      gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - &
     else
-      python3 -m gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - >/dev/null 2>&1 &
+      python3 -m gunicorn -w 4 -b "0.0.0.0:${FLASK_PORT}" run:app --access-logfile - --error-logfile - &
     fi
     FLASK_PID=$!
     popd >/dev/null
@@ -228,9 +228,9 @@ start_backend() {
   pushd "${ROOT_DIR}/Server" >/dev/null
   if [[ -d ".venv" ]]; then
     source .venv/bin/activate
-    celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1 &
+    celery -A app.celery.celery_worker:celery worker --loglevel=info &
   else
-    python3 -m celery -A app.celery.celery_worker:celery worker --loglevel=info >/dev/null 2>&1 &
+    python3 -m celery -A app.celery.celery_worker:celery worker --loglevel=info &
   fi
   CELERY_PID=$!
   popd >/dev/null

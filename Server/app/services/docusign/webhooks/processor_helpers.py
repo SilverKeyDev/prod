@@ -24,6 +24,33 @@ def map_event_type(docusign_event: str) -> str:
     return mapping.get(docusign_event, "other")
 
 
+def extract_recipients_for_webhook(
+    envelope_data: dict[str, Any], payload: dict[str, Any]
+) -> dict[str, Any]:
+    """
+    Return DocuSign Connect recipients object (signers / carbonCopies).
+
+    Connect payloads vary slightly by configuration; try envelope summary paths
+    before falling back to an empty dict.
+    """
+
+    def _usable(rec: Any) -> bool:
+        return isinstance(rec, dict) and bool(rec.get("signers") or rec.get("carbonCopies"))
+
+    for get_recipients in (
+        lambda: envelope_data.get("recipients"),
+        lambda: (payload.get("envelopeStatus") or {}).get("recipients"),
+        lambda: (payload.get("data") or {}).get("envelopeSummary", {}).get("recipients"),
+        lambda: payload.get("recipients"),
+    ):
+        rec = get_recipients()
+        if _usable(rec):
+            return rec
+
+    fallback = envelope_data.get("recipients")
+    return fallback if isinstance(fallback, dict) else {}
+
+
 def build_event_description(
     event_type: str, old_status: str, new_status: str, envelope_data: dict[str, Any]
 ) -> str:
@@ -33,6 +60,7 @@ def build_event_description(
         status_descriptions = {
             "sent": "Agreement sent for signature",
             "delivered": "Agreement delivered to recipients",
+            "signed": "All signers completed; envelope finalizing",
             "completed": "Agreement signed by all parties",
             "declined": "Agreement declined",
             "voided": "Agreement voided",

@@ -26,6 +26,8 @@ export const ROUTES = {
   PROFILE: "/profile/*",
   SAVED: "/saved/*",
   DASHBOARD: "/dashboard/*",
+  /** DocuSign embedded signing return URL (see Server DOCUSIGN_SIGNING_COMPLETE_PATH). */
+  AGREEMENT_SIGNING_COMPLETE: "/agreements/:agreementId/complete",
   MESSAGING: "/messaging",
   SEARCH: "/search",
   PROPERTY_DETAILS: "/property-details",

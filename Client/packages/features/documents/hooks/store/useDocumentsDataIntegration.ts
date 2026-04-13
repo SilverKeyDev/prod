@@ -15,8 +15,8 @@ import {
   getDefaultAgreementTitle,
   sendForSignatureDisabledReason,
 } from "packages/features/documents/hooks/store/documentSignature";
-import { runSignAgreementNowFlow } from "packages/features/documents/utils/signAgreementNowFlow";
-import { showInfoToast } from "packages/hooks/ui";
+import { prepareAgreementSigningSession } from "packages/features/documents/utils/signAgreementNowFlow";
+import { showErrorToast, showInfoToast } from "packages/hooks/ui";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { apiDownloadBlob } from "packages/services/http/compatibility";
 import { useAuthStore } from "packages/store";
@@ -71,6 +71,36 @@ export function useDocumentsDataIntegration(
   const handleShareDocument =
     handlers?.handleShareDocument ?? defaultHandlers.handleShareDocument;
   const [isSendingForSignature, setIsSendingForSignature] = useState(false);
+  const [agreementSigningSession, setAgreementSigningSession] = useState<
+    | { kind: "embedded"; agreementId: string; participantId: string }
+    | { kind: "sender_url"; url: string }
+    | null
+  >(null);
+  const [viewSignedAgreement, setViewSignedAgreement] = useState<{
+    agreementId: string;
+    title: string;
+  } | null>(null);
+
+  const dismissAgreementSigning = useCallback(() => {
+    setAgreementSigningSession(null);
+  }, []);
+
+  const dismissViewSignedAgreement = useCallback(() => {
+    setViewSignedAgreement(null);
+  }, []);
+
+  const openViewSignedAgreement = useCallback((doc: DocumentData) => {
+    if (doc.library_kind !== "agreement") return;
+    setViewSignedAgreement({
+      agreementId: doc.id,
+      title: doc.filename ?? "Signed document",
+    });
+  }, []);
+
+  const onAgreementSigningComplete = useCallback(() => {
+    setAgreementSigningSession(null);
+    void refetchDocuments();
+  }, [refetchDocuments]);
 
   const resolveAgreementId = useCallback(
     (document: DocumentData): string | null => {
@@ -78,6 +108,26 @@ export function useDocumentsDataIntegration(
       return document.id ?? document.library_item_id ?? null;
     },
     [],
+  );
+
+  const beginInAppAgreementSigning = useCallback(
+    async (document: DocumentData) => {
+      const agreementId = resolveAgreementId(document);
+      if (!agreementId) {
+        throw new Error("Unable to resolve agreement id");
+      }
+      const session = await prepareAgreementSigningSession(agreementId, user);
+      if (session.type === "sender_iframe") {
+        setAgreementSigningSession({ kind: "sender_url", url: session.url });
+      } else {
+        setAgreementSigningSession({
+          kind: "embedded",
+          agreementId: session.agreementId,
+          participantId: session.participantId,
+        });
+      }
+    },
+    [resolveAgreementId, user],
   );
 
   const getSigningFileFromDocument = useCallback(
@@ -91,9 +141,9 @@ export function useDocumentsDataIntegration(
         document.filename && document.filename.trim().length > 0
           ? document.filename
           : "document.pdf";
-      const blobWithName = blob as Blob & { name?: string };
-      blobWithName.name = inferredFileName;
-      return blobWithName as unknown as File;
+      return new File([blob], inferredFileName, {
+        type: blob.type && blob.type.length > 0 ? blob.type : "application/pdf",
+      });
     },
     [],
   );
@@ -114,11 +164,25 @@ export function useDocumentsDataIntegration(
           throw new Error("Agreement title is required");
         }
 
+        log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature started", {
+          documentId: document.id,
+          libraryKind: document.library_kind,
+          signingMethod,
+          agreementType,
+          buyerId: buyerId ?? document.user_id ?? null,
+          recipientUserId: recipientUserId ?? null,
+        });
+
         if (document.library_kind === "agreement") {
           const agreementId = resolveAgreementId(document);
           if (!agreementId) {
             throw new Error("Unable to resolve agreement id");
           }
+          log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature: existing agreement path", {
+            agreementId,
+            signingMethod,
+            participantUserId: recipientUserId ?? buyerId ?? null,
+          });
           const sendResponse = await docusignApi.sendAgreement(agreementId, {
             signing_method: signingMethod,
             participant_user_id: recipientUserId ?? buyerId,
@@ -128,6 +192,9 @@ export function useDocumentsDataIntegration(
           }
           void queryClient.invalidateQueries({
             queryKey: queryKeys.documents.all,
+          });
+          log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature completed (existing agreement)", {
+            agreementId,
           });
           return agreementId;
         }
@@ -157,6 +224,11 @@ export function useDocumentsDataIntegration(
         }
 
         const agreementId = createAgreementResponse.agreement.id;
+        log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature: agreement created from upload", {
+          agreementId,
+          buyerId: resolvedBuyerId,
+        });
+
         const file = await getSigningFileFromDocument(document);
         const revisionResponse = await docusignApi.createRevision(
           agreementId,
@@ -168,6 +240,10 @@ export function useDocumentsDataIntegration(
             revisionResponse.error ?? "Failed to attach revision",
           );
         }
+        log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature: revision attached", {
+          agreementId,
+          revisionId: revisionResponse.revision.id,
+        });
 
         const sendResponse = await docusignApi.sendAgreement(agreementId, {
           signing_method: signingMethod,
@@ -180,7 +256,17 @@ export function useDocumentsDataIntegration(
         void queryClient.invalidateQueries({
           queryKey: queryKeys.documents.all,
         });
+        log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature completed (upload → agreement)", {
+          agreementId,
+        });
         return agreementId;
+      } catch (error: unknown) {
+        log.error(LOG_CATEGORIES.ERRORS, "Send for signature failed", {
+          error,
+          documentId: document.id,
+          libraryKind: document.library_kind,
+        });
+        throw error;
       } finally {
         setIsSendingForSignature(false);
       }
@@ -190,27 +276,36 @@ export function useDocumentsDataIntegration(
 
   const signAgreementNow = useCallback(
     async (document: DocumentData): Promise<void> => {
-      const agreementId = resolveAgreementId(document);
-      if (!agreementId) {
-        throw new Error("Unable to resolve agreement id");
+      if (document.library_kind !== "agreement") {
+        throw new Error("Sign is only available for agreements");
       }
-      await runSignAgreementNowFlow(agreementId, user);
+      await beginInAppAgreementSigning(document);
     },
-    [resolveAgreementId, user],
+    [beginInAppAgreementSigning],
   );
 
   const handleViewDocumentForList = useCallback(
     (documentId: string, documentName: string) => {
       const row = documents.find((d) => d.id === documentId);
       if (row?.library_kind === "agreement") {
-        showInfoToast(
-          "Signing agreements are managed in DocuSign. PDF preview applies to uploaded files only.",
-        );
+        const st = (row.status ?? "").toLowerCase();
+        if (st === "completed") {
+          setViewSignedAgreement({
+            agreementId: row.id,
+            title: row.filename || documentName,
+          });
+          return;
+        }
+        void beginInAppAgreementSigning(row).catch((err) => {
+          showErrorToast(
+            err instanceof Error ? err.message : "Failed to open signing",
+          );
+        });
         return;
       }
       handleViewDocument(documentId, documentName);
     },
-    [documents, handleViewDocument],
+    [documents, handleViewDocument, beginInAppAgreementSigning],
   );
 
   const handleDownloadDocumentForList = useCallback(
@@ -347,10 +442,29 @@ export function useDocumentsDataIntegration(
       const isFromOtherUser =
         currentUserId && doc.user_id && currentUserId !== doc.user_id;
 
-      // For agreements: always remove from library only (doesn't delete from DocuSign)
+      // Agreements sent by this agent: void in DocuSign and remove library row (server).
       if (doc.library_kind === "agreement") {
+        if (
+          currentUserId &&
+          doc.agent_id === currentUserId &&
+          !["completed", "voided", "declined"].includes(
+            (doc.status ?? "").toLowerCase(),
+          )
+        ) {
+          const voidResponse = await docusignApi.voidAgreement(doc.id, {
+            reason: "Cancelled by agent from Saved",
+          });
+          if (!voidResponse.success) {
+            throw new Error(
+              voidResponse.error ?? "Failed to cancel agreement",
+            );
+          }
+          void queryClient.invalidateQueries({
+            queryKey: queryKeys.documents.all,
+          });
+          return;
+        }
         if (doc.library_item_id) {
-          // Remove from library only (doesn't delete the agreement from DocuSign)
           await removeFromLibraryMutation.mutateAsync(doc.library_item_id);
         }
         return;
@@ -367,7 +481,12 @@ export function useDocumentsDataIntegration(
         });
       }
     },
-    [deleteDocumentMutation, removeFromLibraryMutation, user],
+    [
+      deleteDocumentMutation,
+      removeFromLibraryMutation,
+      queryClient,
+      user,
+    ],
   );
 
   return {
@@ -386,5 +505,11 @@ export function useDocumentsDataIntegration(
     canSendForSignature,
     sendForSignatureDisabledReason,
     signingRecipientLabel: "Buyer",
+    agreementSigningSession,
+    dismissAgreementSigning,
+    viewSignedAgreement,
+    dismissViewSignedAgreement,
+    openViewSignedAgreement,
+    onAgreementSigningComplete,
   };
 }

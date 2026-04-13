@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import Button from "@ui/button/Button";
 import { RefreshControl } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useLocalization } from "packages/contexts";
 import { useAgentClients } from "packages/features/agent";
@@ -32,6 +33,7 @@ function formatPrice(value: string | number | null | undefined): string {
 }
 
 export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const {
     viewType,
@@ -67,6 +69,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     onShareDocument,
     onSendForSignature,
     onSignNow,
+    onViewSignedAgreement: _onViewSignedAgreement,
     onToggleHomeSelection,
     onUnlockHome: _onUnlockHome,
     onDocumentDelete,
@@ -98,6 +101,16 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
     });
   }, [filteredDocuments]);
 
+  const sortedDocumentsExcludingAgreements = useMemo(
+    () => sortedDocuments.filter((d) => d.library_kind !== "agreement"),
+    [sortedDocuments],
+  );
+
+  const sortedAgreementDocuments = useMemo(
+    () => sortedDocuments.filter((d) => d.library_kind === "agreement"),
+    [sortedDocuments],
+  );
+
   const [isClientSelectorOpen, setIsClientSelectorOpen] = useState(false);
 
   const handleRefresh = useCallback(() => {
@@ -106,7 +119,12 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
   }, [refresh]);
 
   const homesCount = filteredHomes.length;
-  const documentsCount = (filteredDocuments as DocumentData[]).length;
+  const documentsCount =
+    viewType === "documents"
+      ? sortedDocumentsExcludingAgreements.length
+      : viewType === "agreements"
+        ? sortedAgreementDocuments.length
+        : (filteredDocuments as DocumentData[]).length;
 
   const isRefreshing = Boolean(refresh && refreshing);
 
@@ -156,7 +174,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
   const showEmptyDocuments =
     isDocumentsView &&
     !documentsLoadingCombined &&
-    sortedDocuments.length === 0;
+    sortedDocumentsExcludingAgreements.length === 0;
 
   const handleEventTypeFilterChange = useCallback(
     (next: _EventTypeFilter) => {
@@ -189,7 +207,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
           paddingLeft: 16,
           paddingRight: 16,
           paddingTop: 24,
-          paddingBottom: 32,
+          paddingBottom: Math.max(32, 16 + insets.bottom),
         }}
       >
         <SavedHeader
@@ -222,7 +240,7 @@ export function SavedPageLayout(nativeProps: SavedPageLayoutProps) {
         {/* Documents content */}
         {isDocumentsView && (
           <SavedDocumentsList
-            sortedDocuments={sortedDocuments}
+            sortedDocuments={sortedDocumentsExcludingAgreements}
             loading={documentsLoadingCombined}
             showEmpty={showEmptyDocuments}
             isAgent={isAgent}

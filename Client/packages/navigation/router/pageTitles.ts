@@ -16,6 +16,7 @@ const ROUTE_TITLE_MAP: Array<{ pattern: string | RegExp; title: string }> = [
   { pattern: /^\/dashboard/, title: "Dashboard" },
   { pattern: "/search", title: "Search" },
   { pattern: /^\/saved/, title: "Saved" },
+  { pattern: /^\/agreements\/[^/]+\/complete/, title: "Signing complete" },
   { pattern: "/messaging", title: "Messaging" },
   { pattern: /^\/profile/, title: "Profile" },
 ];

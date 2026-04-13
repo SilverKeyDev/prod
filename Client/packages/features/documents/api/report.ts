@@ -12,6 +12,7 @@
  * This shim maintains backward compatibility for existing imports.
  */
 
+import { log, LOG_CATEGORIES } from "packages/logger";
 import {
   apiDelete,
   apiGet,
@@ -20,7 +21,6 @@ import {
 } from "packages/services/http/compatibility";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
 import { captureError } from "packages/services/security/errorReporting";
-import { log } from "packages/services/security/secureLogger";
 import type { components } from "packages/types/api.generated";
 import type { ShareDocumentResult } from "packages/types/ui";
 import { asError, getNavigator } from "packages/utils";
@@ -97,12 +97,25 @@ export const reportApi = {
     documentId: string,
     documentName: string,
   ): Promise<ShareDocumentResult> => {
+    log.info(LOG_CATEGORIES.DOCUMENTS, "Document share started", {
+      documentId,
+      documentName,
+    });
     try {
-      // Get a fresh view URL for sharing
       const viewResponse = await reportApi.getViewUrl(documentId);
       if (!viewResponse.success || !viewResponse.viewUrl) {
+        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: view URL not available", {
+          documentId,
+          documentName,
+          viewUrlSuccess: viewResponse.success,
+        });
         return { success: false, message: "Unable to generate shareable link" };
       }
+
+      log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: presigned view URL obtained", {
+        documentId,
+        documentName,
+      });
 
       const shareTitle = `Property Report - ${documentName
         .replace(/_/g, " ")
@@ -110,7 +123,6 @@ export const reportApi = {
         .trim()}`;
       const shareUrl = viewResponse.viewUrl;
 
-      // Try Web Share API first (mobile/modern browsers). RN-safe via platform adapter.
       const nav = getNavigator();
       if (nav?.share) {
         try {
@@ -119,31 +131,49 @@ export const reportApi = {
             text: "Check out this property report",
             url: shareUrl,
           });
-          log.info("REPORT_API", "Report shared via Web Share API", {
+          log.info(LOG_CATEGORIES.DOCUMENTS, "Document share completed", {
+            documentId,
             documentName,
+            channel: "web_share",
+            success: true,
           });
           return { success: true, message: "Report shared successfully" };
         } catch (shareError: unknown) {
           const error = asError(shareError);
-          // User cancelled or share failed, fall through to clipboard
           if (error instanceof Error && error.name === "AbortError") {
+            log.info(LOG_CATEGORIES.DOCUMENTS, "Document share cancelled by user", {
+              documentId,
+              documentName,
+              channel: "web_share",
+            });
             return { success: false, message: "Share cancelled" };
           }
+          log.info(LOG_CATEGORIES.DOCUMENTS, "Document share: Web Share failed, trying clipboard", {
+            documentId,
+            documentName,
+            errorName: error instanceof Error ? error.name : "unknown",
+          });
         }
       }
 
-      // Fallback to clipboard copy
       const success = await secureClipboardCopy(shareUrl);
       if (success) {
-        log.info("REPORT_API", "Report URL copied to clipboard", {
+        log.info(LOG_CATEGORIES.DOCUMENTS, "Document share completed", {
+          documentId,
           documentName,
+          channel: "clipboard",
+          success: true,
         });
         return { success: true, message: "Report link copied to clipboard" };
-      } else {
-        return { success: false, message: "Failed to copy link to clipboard" };
       }
+      log.info(LOG_CATEGORIES.DOCUMENTS, "Document share failed: clipboard copy unsuccessful", {
+        documentId,
+        documentName,
+        channel: "clipboard",
+      });
+      return { success: false, message: "Failed to copy link to clipboard" };
     } catch (error: unknown) {
-      log.error("REPORT_API", "Share failed", error);
+      log.error(LOG_CATEGORIES.ERRORS, "Document share failed", error);
       captureError(asError(error), { context: "shareDocument", documentName });
       return {
         success: false,

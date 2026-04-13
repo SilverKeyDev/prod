@@ -40,7 +40,7 @@ export function LandingNav({ onSignUp }: LandingNavProps) {
     ? "text-text-primary hover:text-text-primary/80"
     : "max-lg:text-white max-lg:hover:text-white/90 lg:text-text-primary lg:hover:text-text-primary/80";
 
-  const sectionLinkClass = `inline-flex min-h-10 shrink-0 items-center rounded-lg px-2 py-2 text-sm font-medium motion-safe:transition-colors sm:min-h-9 sm:px-3 sm:py-2 ${linkColor} touch-manipulation max-lg:active:bg-white/15 max-lg:hover:bg-white/10 lg:hover:opacity-90`;
+  const sectionLinkClass = `inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg px-2 py-2 text-sm font-medium motion-safe:transition-colors sm:min-h-11 sm:min-w-0 sm:px-3 sm:py-2 ${linkColor} touch-manipulation max-lg:active:bg-white/15 max-lg:hover:bg-white/10 lg:hover:opacity-90`;
 
   return (
     <header
@@ -75,7 +75,7 @@ export function LandingNav({ onSignUp }: LandingNavProps) {
         <Box className="flex shrink-0 items-center gap-1">
           <Link
             to={ROUTES.LOGIN}
-            className={`inline-flex min-h-10 shrink-0 items-center rounded-lg px-3 py-2 text-sm font-medium motion-safe:transition-colors sm:min-h-9 sm:py-2 ${linkColor} touch-manipulation max-lg:hover:bg-white/10 max-lg:active:bg-white/15 lg:hover:opacity-90`}
+            className={`inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium motion-safe:transition-colors sm:min-h-11 sm:min-w-0 sm:py-2 ${linkColor} touch-manipulation max-lg:hover:bg-white/10 max-lg:active:bg-white/15 lg:hover:opacity-90`}
           >
             {nav.loginLabel}
           </Link>

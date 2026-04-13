@@ -38,6 +38,7 @@ osmnx==1.9.4
 shapely==2.0.4
 
 # --- PDF, API, and Web ---
+pypdf==5.1.0
 reportlab==4.0.4
 stripe==9.4.0
 requests==2.31.0

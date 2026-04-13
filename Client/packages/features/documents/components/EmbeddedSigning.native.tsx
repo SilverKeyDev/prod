@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { AlertCircle } from "lucide-react-native";
 import { StyleSheet } from "react-native";
 import WebView from "react-native-webview";
 
 import { color } from "packages/design-tokens";
-import { useDocusignActions } from "packages/features/documents/hooks/data/useDocusignActions";
+import { useEmbeddedSigningUrlQuery } from "packages/features/documents/hooks/data/useEmbeddedSigningUrlQuery";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useUIStore } from "packages/store";
 import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader";
@@ -69,36 +69,30 @@ export default function EmbeddedSigning({
   participantId,
   onComplete,
 }: EmbeddedSigningProps) {
-  const [signingUrl, setSigningUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const { getSigningUrl, isGettingSigningUrl } = useDocusignActions();
+  const { data: signingUrl, isPending, isError, error } =
+    useEmbeddedSigningUrlQuery(agreementId, participantId);
   const enqueueToast = useUIStore((s) => s.enqueueToast);
+  const errorToastSentRef = useRef(false);
 
-  // Fetch signing URL on mount
   useEffect(() => {
-    const fetchSigningUrl = async () => {
-      try {
-        const url = await getSigningUrl({ agreementId, participantId });
-        if (url) {
-          setSigningUrl(url);
-        } else {
-          setError("Unable to get signing URL");
-        }
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to load signing interface";
-        setError(errorMessage);
-        enqueueToast({
-          type: "error",
-          message: errorMessage,
-        });
-      }
-    };
+    errorToastSentRef.current = false;
+  }, [agreementId, participantId]);
 
-    void fetchSigningUrl();
-  }, [agreementId, participantId, getSigningUrl, enqueueToast]);
+  const errorMessage =
+    isError && error instanceof Error
+      ? error.message
+      : isError
+        ? "Failed to load signing interface"
+        : null;
+
+  useEffect(() => {
+    if (!isError || !errorMessage || errorToastSentRef.current) return;
+    errorToastSentRef.current = true;
+    enqueueToast({
+      type: "error",
+      message: errorMessage,
+    });
+  }, [isError, errorMessage, enqueueToast]);
 
   // Handle messages from DocuSign WebView
   const handleMessage = (event: { nativeEvent: { data: string } }) => {
@@ -142,7 +136,7 @@ export default function EmbeddedSigning({
   };
 
   // Loading state while fetching signing URL
-  if (isGettingSigningUrl) {
+  if (isPending) {
     return (
       <Box style={styles.centerContainer}>
         <KeyTurnLoader message="Loading signing interface..." />
@@ -151,7 +145,7 @@ export default function EmbeddedSigning({
   }
 
   // Error state if URL fetch failed
-  if (error) {
+  if (errorMessage) {
     return (
       <Box style={styles.centerContainer}>
         <AlertCircle
@@ -163,7 +157,7 @@ export default function EmbeddedSigning({
           Unable to Load Signing Interface
         </BodyText>
         <BodyText size="sm" muted style={styles.errorMessage}>
-          {error}
+          {errorMessage}
         </BodyText>
       </Box>
     );

@@ -1,0 +1,32 @@
+---
+description: Responsive UI — breakpoints, web/RN patterns, safe area, overflow, touch targets; full detail in documentation
+globs:
+  - "Client/apps/web/**/*.{ts,tsx}"
+  - "Client/apps/mobile/**/*.{ts,tsx}"
+  - "Client/packages/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Responsive UI (SilverKey)
+
+**Canonical reference:** [documentation/client/responsive-ui-standards.md](../../../documentation/client/responsive-ui-standards.md) — read it for WEB-1–WEB-8, RN-1–RN-10, BOTH-1–BOTH-5, SilverKey route notes, and the seven-area path map.
+
+## Must follow (summary)
+
+- **Mobile-first (web):** Base layout for small screens; add `sm:` / `md:` / `lg:` only to enhance. Do not use `max-width` hacks to bolt mobile onto desktop-first layouts.
+- **No accidental desktop changes:** Preserve desktop appearance unless fixing a real bug or applying a necessary global rule. Prefer minimal diffs.
+- **Overflow:** Use `min-w-0` on flex children with long text; wrap tables in `overflow-x-auto`. Do not add `overflow-x-hidden` to ancestors of `position: sticky` without checking sticky behavior.
+- **Touch targets:** ≥44×44px (web: min size / padding; RN: `minHeight`/`minWidth` or `hitSlop`).
+- **Forms (web):** Inputs use at least `text-base` on touch devices to reduce iOS zoom-on-focus.
+- **React Native:** `SafeAreaView` from `react-native-safe-area-context` on root screens; keyboard + `ScrollView` patterns per doc; bounded images (`width: '100%'` + `aspectRatio` where appropriate).
+- **Design system:** Keep using standardized `Button`, `Title`, `BodyText`, etc. from `Client/apps/web/components/ui/` — responsive work adjusts layout and primitives, not one-off raw `<button>`/heading styles.
+
+## SilverKey specifics
+
+- Public **landing** lives under `packages/features/homeauth/.../landing/` (web `HomeFeature.web.tsx`).
+- **Post-login (web):** default is **`/dashboard`**, not a separate home route.
+- **Mobile auth welcome:** `HomeScreenNative` is pre-login; first tab after auth is **Dashboard**.
+
+## After edits
+
+Run `pnpm lint` and `pnpm typecheck` in `Client/` when touching responsive code (see `documentation/client/LINTING.md`).

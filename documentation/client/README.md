@@ -7,6 +7,7 @@ Docs for the SilverKey frontend: TypeScript/React (web) and React Native (mobile
 | Doc | Description |
 |-----|--------------|
 | [LINTING.md](./LINTING.md) | How to run lint and platform checks locally; ESLint and SilverKey rules. |
+| [responsive-ui-standards.md](./responsive-ui-standards.md) | Breakpoints, web/RN responsive rules, SilverKey path map for audits; pair with `.cursor/rules/frontend/responsive-ui.mdc`. |
 | [typescript-files.md](./typescript-files.md) | Where `.ts` (non-TSX) files live and their roles by package. |
 | [shared-packages.md](./shared-packages.md) | Exhaustive reference for all shared packages under `Client/packages/`. |
 | [../OPENAPI_MIGRATION.md](../../OPENAPI_MIGRATION.md) | OpenAPI 3.1.0 type system: single source of truth in `openapi.yaml`, auto-generated types, migration guide. See also `.cursor/rules/shared/openapi-types.mdc`. |

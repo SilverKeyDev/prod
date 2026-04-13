@@ -9,6 +9,7 @@ import type { ParamListBase } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
@@ -35,7 +36,7 @@ export function HomeScreenNative() {
   const navigation = useNavigation<AuthHomeNavigation>();
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top", "left", "right", "bottom"]}>
       <RippleBackground />
       <ScrollView
         style={styles.scroll}
@@ -55,7 +56,7 @@ export function HomeScreenNative() {
 
           <View style={styles.loginRow}>
             <Text style={styles.loginPrompt}>Have an account? </Text>
-            <Pressable onPress={() => navigation.navigate("Login")} hitSlop={8}>
+            <Pressable onPress={() => navigation.navigate("Login")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={styles.loginLink}>Log in</Text>
             </Pressable>
           </View>
@@ -75,7 +76,7 @@ export function HomeScreenNative() {
           </Pressable>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -113,6 +114,8 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: color("brand.accent"),
+    minHeight: 44,
+    justifyContent: "center",
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 10,
@@ -145,8 +148,10 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   footerLink: {
-    paddingVertical: 4,
-    paddingHorizontal: 2,
+    minHeight: 44,
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   footerLinkText: {
     fontSize: 12,

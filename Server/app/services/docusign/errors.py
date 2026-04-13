@@ -56,6 +56,12 @@ class RevisionNotFoundError(DocusignError):
     pass
 
 
+class InvalidRevisionFileError(DocusignError):
+    """Uploaded revision bytes are not a readable PDF (or empty)."""
+
+    pass
+
+
 class TemplateNotFoundError(DocusignError):
     """Template not found"""
 

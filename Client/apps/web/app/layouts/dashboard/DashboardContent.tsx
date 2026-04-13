@@ -13,6 +13,9 @@ const SearchPage = lazy(() => import("@/pages/SearchPage"));
 const SavedHomes = lazy(() => import("@/pages/SavedPage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
+const AgreementSigningCompletePage = lazy(
+  () => import("@/pages/AgreementSigningCompletePage"),
+);
 
 type DashboardContentProps = {
   setMobileHeaderActions: React.Dispatch<
@@ -37,7 +40,10 @@ export function DashboardContent({
   const { activeKey, isSearch, isMessaging, widthPercent } = route;
   const contentTopMargin = route.isDashboard || route.isProfile;
   const contentBottomMargin =
-    route.isDashboard || route.isProfile || route.isSaved;
+    route.isDashboard ||
+    route.isProfile ||
+    route.isSaved ||
+    route.isAgreementSigningComplete;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -98,6 +104,12 @@ export function DashboardContent({
       <Suspense fallback={LoadingFallback}>
         <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
       </Suspense>
+    ) : activeKey === "agreement_signing_complete" ? (
+      <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
+        <Suspense fallback={LoadingFallback}>
+          <AgreementSigningCompletePage />
+        </Suspense>
+      </PageErrorBoundary>
     ) : null;
 
   // When activeKey is null (e.g. brief match lag), show placeholder so main area is never blank.
@@ -107,7 +119,7 @@ export function DashboardContent({
   return (
     <Box
       key={route.pathname}
-      className={`dashboard-content w-full ${wrapperClass}`}
+      className={`dashboard-content w-full min-w-0 ${wrapperClass}`}
       style={style}
     >
       {displayContent}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -10,15 +10,24 @@ import {
   findSilverKeyCalendar,
   UpcomingEvents,
 } from "packages/features/calendar";
+import {
+  EmbeddedSigning,
+  useDocumentsDataIntegration,
+} from "packages/features/documents";
 import { useIsAgent } from "packages/features/homeauth";
 import { submitAgentAgendaTodo } from "packages/hooks/data/agentAgendaTodoSubmit";
-import { useSigningTodos } from "packages/hooks/data/useSigningTodos";
+import {
+  useCompletedSigningTodos,
+  useSigningTodos,
+} from "packages/hooks/data/useSigningTodos";
 import { log, LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useUIStore } from "packages/store";
 import type { UIState } from "packages/store/ui.slice";
 import Button from "packages/ui/components/button/Button";
+import { BaseModal } from "packages/ui/components/modals";
 import { Box } from "packages/ui/components/primitives";
+import BodyText from "packages/ui/components/text/BodyText";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/useAgentTodos";
 import type { TodoItem } from "@/features/agent/types/agent";
@@ -55,6 +64,14 @@ export function DashboardFeature({
 
   const { todos, createTodo, updateTodo } = useAgentTodos(false);
   const signingTodos = useSigningTodos(isAgent);
+  const completedSigningTodos = useCompletedSigningTodos();
+  const {
+    documents,
+    signAgreementNow,
+    agreementSigningSession,
+    dismissAgreementSigning,
+    onAgreementSigningComplete,
+  } = useDocumentsDataIntegration();
   const { isConnected, calendars, refreshEvents } =
     useGoogleCalendarStoreIntegration();
   const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
@@ -72,8 +89,12 @@ export function DashboardFeature({
   );
 
   const agendaTodos = useMemo<AgendaTodoDTO[]>(
-    () => [...mapTodosToAgendaDTO(todos), ...signingTodos],
-    [todos, signingTodos],
+    () => [
+      ...mapTodosToAgendaDTO(todos),
+      ...signingTodos,
+      ...completedSigningTodos,
+    ],
+    [todos, signingTodos, completedSigningTodos],
   );
 
   const handleToggleAgendaTodo = async (id: string) => {
@@ -87,6 +108,34 @@ export function DashboardFeature({
       log.error(LOG_CATEGORIES.DASHBOARD, "Failed to update todo", error);
     }
   };
+
+  const handleSigningAgendaPress = useCallback(
+    async (agreementId: string) => {
+      const doc = documents.find(
+        (d) => d.id === agreementId && d.library_kind === "agreement",
+      );
+      if (!doc) {
+        enqueueToast({
+          type: "error",
+          message: "Could not open that document. Try refreshing the page.",
+        });
+        return;
+      }
+      try {
+        await signAgreementNow(doc);
+      } catch (error) {
+        log.error(LOG_CATEGORIES.ERRORS, "Agenda DocuSign signing failed", error);
+        enqueueToast({
+          type: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Signing could not start.",
+        });
+      }
+    },
+    [documents, enqueueToast, signAgreementNow],
+  );
 
   const defaultCalendarId =
     silverKeyCalendar?.id ?? scopedCalendars[0]?.id ?? null;
@@ -133,57 +182,98 @@ export function DashboardFeature({
   }
 
   return (
-    <Box className="flex flex-col gap-6 sm:gap-8">
-      <UpcomingEvents
-        suppressConnectionPrompt
-        agendaTodos={agendaTodos}
-        onToggleAgendaTodo={handleToggleAgendaTodo}
-        canEditAgendaTodos={true}
-        headerActions={headerActions}
-        ownedCalendarsOnly={isAgent}
-      />
-
-      {isAgent ? <ClientList onClientClick={handleClientClick} /> : null}
-
-      {!isAgent ? <DashboardChecklists /> : null}
-
-      <Calendar ownedCalendarsOnly={isAgent} />
-
-      {showAddButton ? (
-        <CreateEventModal
-          isOpen={createEventModalOpen}
-          onClose={() => setCreateEventModalOpen(false)}
-          calendars={scopedCalendars}
-          defaultCalendarId={defaultCalendarId}
-          onEventCreated={() => void refreshEvents()}
-          onAddWithoutSchedule={async (payload) => {
-            try {
-              await submitAgentAgendaTodo(
-                {
-                  title: payload.title,
-                  description: payload.description,
-                  deadlineDate: null,
-                  deadlineTime: null,
-                  clientId: isAgent ? payload.clientId : undefined,
-                },
-                {
-                  useCalendarEvent: false,
-                  defaultCalendarId,
-                  createTodo,
-                  queryClient,
-                },
-              );
-            } catch (error) {
-              log.error(
-                LOG_CATEGORIES.DASHBOARD,
-                "Failed to create agenda to-do",
-                error,
-              );
-              throw error;
-            }
-          }}
+    <>
+      <Box className="flex flex-col gap-6 sm:gap-8">
+        <UpcomingEvents
+          suppressConnectionPrompt
+          agendaTodos={agendaTodos}
+          onToggleAgendaTodo={handleToggleAgendaTodo}
+          canEditAgendaTodos={true}
+          onSigningAgendaPress={handleSigningAgendaPress}
+          headerActions={headerActions}
+          ownedCalendarsOnly={isAgent}
         />
+
+        {isAgent ? <ClientList onClientClick={handleClientClick} /> : null}
+
+        {!isAgent ? <DashboardChecklists /> : null}
+
+        <Calendar ownedCalendarsOnly={isAgent} />
+
+        {showAddButton ? (
+          <CreateEventModal
+            isOpen={createEventModalOpen}
+            onClose={() => setCreateEventModalOpen(false)}
+            calendars={scopedCalendars}
+            defaultCalendarId={defaultCalendarId}
+            onEventCreated={() => void refreshEvents()}
+            onAddWithoutSchedule={async (payload) => {
+              try {
+                await submitAgentAgendaTodo(
+                  {
+                    title: payload.title,
+                    description: payload.description,
+                    deadlineDate: null,
+                    deadlineTime: null,
+                    clientId: isAgent ? payload.clientId : undefined,
+                  },
+                  {
+                    useCalendarEvent: false,
+                    defaultCalendarId,
+                    createTodo,
+                    queryClient,
+                  },
+                );
+              } catch (error) {
+                log.error(
+                  LOG_CATEGORIES.DASHBOARD,
+                  "Failed to create agenda to-do",
+                  error,
+                );
+                throw error;
+              }
+            }}
+          />
+        ) : null}
+      </Box>
+      {agreementSigningSession?.kind === "embedded" ? (
+        <BaseModal
+          isOpen
+          onClose={dismissAgreementSigning}
+          title="Sign document"
+          size="full"
+          showCloseButton
+          closeOnBackdropClick={false}
+        >
+          <EmbeddedSigning
+            agreementId={agreementSigningSession.agreementId}
+            participantId={agreementSigningSession.participantId}
+            onComplete={onAgreementSigningComplete}
+            height="min(72vh, 820px)"
+          />
+        </BaseModal>
+      ) : agreementSigningSession?.kind === "sender_url" ? (
+        <BaseModal
+          isOpen
+          onClose={dismissAgreementSigning}
+          title="Sign or correct document"
+          size="full"
+          showCloseButton
+          closeOnBackdropClick={false}
+        >
+          <Box className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <BodyText size="sm" className="text-blue-900">
+              Complete signing in the window below. Close this dialog when you
+              are done.
+            </BodyText>
+          </Box>
+          <iframe
+            src={agreementSigningSession.url}
+            title="DocuSign signing"
+            className="min-h-[72vh] w-full rounded-lg border border-gray-300"
+          />
+        </BaseModal>
       ) : null}
-    </Box>
+    </>
   );
 }

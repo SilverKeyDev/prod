@@ -4,6 +4,7 @@ DocuSign API client
 Low-level DocuSign API client wrapper with automatic retry logic.
 """
 
+import json
 import logging
 from typing import Any, cast
 
@@ -19,12 +20,29 @@ from tenacity import (
 
 from logger import LOG_CATEGORIES, get_logger
 
-from ..errors import DocusignAPIError, DocusignAuthError
+from ..errors import AgreementStateError, DocusignAPIError, DocusignAuthError
 from . import envelope_ops, template_ops
 from .auth_jwt import get_jwt_auth
 from .auth_oauth import DocusignOAuthService
 
 logger = get_logger()
+
+
+def _docusign_api_error_payload(body: object) -> dict[str, Any]:
+    if body is None:
+        return {}
+    if isinstance(body, bytes):
+        try:
+            body = body.decode("utf-8")
+        except UnicodeDecodeError:
+            return {}
+    if not isinstance(body, str):
+        return {}
+    try:
+        data = json.loads(body)
+    except json.JSONDecodeError:
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 def is_retryable_api_exception(exception):
@@ -91,12 +109,12 @@ class DocusignClient:
             if not user_id:
                 raise DocusignAuthError("user_id required for OAuth authentication")
 
-            self.api_client = DocusignOAuthService.get_api_client(user_id)
-            if not self.api_client:
+            token = DocusignOAuthService.get_valid_token(user_id)
+            if not token:
                 raise DocusignAuthError(f"User {user_id} not connected to DocuSign")
 
-            token = DocusignOAuthService.get_valid_token(user_id)
-            self.account_id = token.account_id if token else None
+            self.api_client = DocusignOAuthService.api_client_for_token(token)
+            self.account_id = token.account_id
 
             logger.info(
                 LOG_CATEGORIES["DOCUSIGN"],
@@ -111,6 +129,24 @@ class DocusignClient:
 
     def _handle_api_exception(self, e: ApiException, operation: str):
         """Handle DocuSign API exception"""
+        payload = _docusign_api_error_payload(e.body)
+        error_code = payload.get("errorCode")
+        if error_code == "ENVELOPE_CANNOT_VOID_INVALID_STATE" and operation == "void envelope":
+            message = payload.get("message") or (
+                "Only envelopes in the Sent or Delivered states may be voided."
+            )
+            logger.warn(
+                LOG_CATEGORIES["DOCUSIGN"],
+                "DocuSign void rejected: invalid envelope state",
+                {
+                    "operation": operation,
+                    "error_code": error_code,
+                    "auth_type": self.auth_type,
+                    "account_id": self.account_id,
+                },
+            )
+            raise AgreementStateError(message)
+
         logger.error(
             LOG_CATEGORIES["ERRORS"],
             f"DocuSign API error: {operation}",

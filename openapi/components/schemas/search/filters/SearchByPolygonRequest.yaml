@@ -2,16 +2,19 @@ type: object
 description: |
   Map-bounded property search. `viewport_polygon` is an ordered ring of points with
   explicit `lat` and `lng` (WGS-84 decimal degrees), closing implicitly by edge order.
+  Omit `viewport_polygon` for read-only `onlyCached` requests (hydrate persisted results).
+  For `forceSearch`, include `viewport_polygon` for map-bounded search or rely on server isochrone from preferences when omitted.
   Optional filters come from `user_preferences` and strictness flags; results are
   scored server-side unless overridden by route-specific sort parameters.
-required:
-  - viewport_polygon
 properties:
   viewport_polygon:
     type: array
     items:
       $ref: '../properties/ViewportPolygonPoint.yaml'
-    description: Closed polygon covering the visible map region (typically 4+ corners).
+    nullable: true
+    description: |
+      Closed polygon covering the visible map region (typically 4+ corners).
+      Optional when `onlyCached` is true (no new search); recommended when driving `forceSearch` from the map.
   user_preferences:
     $ref: '../../user/profile/UserPreferencesData.yaml'
     nullable: true

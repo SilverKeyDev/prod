@@ -210,11 +210,11 @@ class EnvelopeBuilder:
 
         recipients_dict = build_recipients_from_participants(participants_list)
 
-        # If embedded signing, set clientUserId for signers
-        if self.signing_method == "embedded" and "signers" in recipients_dict:
+        # Always set clientUserId so embedded signing works; DocuSign may still email signers.
+        if "signers" in recipients_dict:
             logger.debug(
                 LOG_CATEGORIES["DOCUSIGN"],
-                "Setting clientUserId for embedded signing",
+                "Setting clientUserId for signers",
                 {
                     "agreement_id": self.agreement.id,
                     "signer_count": len(recipients_dict["signers"]),
@@ -231,7 +231,7 @@ class EnvelopeBuilder:
             {
                 "agreement_id": self.agreement.id,
                 "signer_count": len(recipients_dict.get("signers", [])),
-                "cc_count": len(recipients_dict.get("carbon_copies", [])),
+                "cc_count": len(recipients_dict.get("carbonCopies", [])),
             },
         )
 

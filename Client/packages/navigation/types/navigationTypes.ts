@@ -14,6 +14,7 @@ export type RouteParamsMap = {
   PROFILE?: { splat?: string };
   SAVED?: { splat?: string };
   DASHBOARD?: { splat?: string };
+  AGREEMENT_SIGNING_COMPLETE?: { agreementId: string };
   PROPERTY_DETAILS?: { address?: string; propertyId?: string };
 };
 

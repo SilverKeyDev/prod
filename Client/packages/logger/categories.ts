@@ -23,7 +23,8 @@ export type LogCategory =
   | "MESSAGES"
   | "FEED"
   | "ROUTING"
-  | "DOCUSIGN";
+  | "DOCUSIGN"
+  | "DOCUMENTS";
 
 export type ApiSubcategory =
   | "INITIAL_LOAD"
@@ -52,6 +53,7 @@ export const LOG_CATEGORIES = {
   FEED: "FEED",
   ROUTING: "ROUTING",
   DOCUSIGN: "DOCUSIGN",
+  DOCUMENTS: "DOCUMENTS",
 } as const;
 
 export const API_SUBCATEGORIES = {
@@ -99,6 +101,7 @@ export function categoryToConfigKey(category: LogCategory): string {
     FEED: "feed",
     ROUTING: "routing",
     DOCUSIGN: "docusign",
+    DOCUMENTS: "documents",
   };
   return mapping[category];
 }

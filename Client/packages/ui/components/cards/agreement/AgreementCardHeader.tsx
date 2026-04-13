@@ -12,6 +12,8 @@ interface AgreementCardHeaderProps {
   signedCount: number;
   totalSigners: number;
   uploadedDate: string;
+  /** Primary signer / recipient label (e.g. when agent sent to a client). */
+  sentToLabel?: string | null;
 }
 
 const STATUS_BADGE: Record<
@@ -66,6 +68,7 @@ export default function AgreementCardHeader({
   signedCount,
   totalSigners,
   uploadedDate,
+  sentToLabel,
 }: AgreementCardHeaderProps) {
   const badge = STATUS_BADGE[contextualStatus] ?? STATUS_BADGE.draft;
 
@@ -102,6 +105,14 @@ export default function AgreementCardHeader({
           </BodyText>
         </Box>
       )}
+
+      {sentToLabel ? (
+        <Box className="mb-2 min-h-5">
+          <BodyText size="xs" muted>
+            Sent to: {sentToLabel}
+          </BodyText>
+        </Box>
+      ) : null}
 
       {/* Date */}
       <Box className="mb-4 flex flex-row items-center gap-2">

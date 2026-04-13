@@ -9,14 +9,15 @@
 # The webhook endpoint receives events at the URL defined in _urls.py
 
 # JWT Authentication Configuration
-# User ID: impersonated user GUID (My Account > User ID)
-DOCUSIGN_IMPERSONATED_USER_ID_DEFAULT = "913d2db7-1b75-4822-9b8b-2684fdc702e8"
-# API Account ID (GUID from My Account > API Account ID)
-DOCUSIGN_API_ACCOUNT_ID_DEFAULT = "65188d17-04f7-4a5b-9384-c42879c08cf5"
+# DocuSign User ID GUID (Apps & Keys / same user you grant consent for). Never an internal app user id.
+DOCUSIGN_IMPERSONATED_USER_ID_DEFAULT = "d3fa0f3e-253a-44df-8b0e-ae74dad062d4"
+# API Account ID (GUID from Apps & Keys → API Account ID; demo example in README)
+DOCUSIGN_API_ACCOUNT_ID_DEFAULT = "d020d926-48cc-4081-9179-46cb3c0a24f3"
 # Primary account id for REST paths (/v2.1/accounts/{accountId}); same GUID as API Account ID
-DOCUSIGN_ACCOUNT_ID_DEFAULT = "65188d17-04f7-4a5b-9384-c42879c08cf5"
-# Account Base URI (My Account > Account Base URI) — e.g. na3 for US
-DOCUSIGN_BASE_URL_DEFAULT = "https://na3.docusign.net"
+DOCUSIGN_ACCOUNT_ID_DEFAULT = "d020d926-48cc-4081-9179-46cb3c0a24f3"
+# REST base for demo (pairs with account-d.docusign.com OAuth). Prod uses regional *.docusign.net from Apps & Keys.
+DOCUSIGN_REST_BASE_URL_DEMO = "https://demo.docusign.net"
+DOCUSIGN_BASE_URL_DEFAULT = DOCUSIGN_REST_BASE_URL_DEMO
 
 # OAuth URLs (for app OAuth flow - agents connecting their DocuSign accounts)
 # Demo environment

@@ -5,11 +5,12 @@ Agreement signature flow operations: send for signature and void.
 from datetime import datetime, timezone
 
 from app import db
-from app.models import AgreementEvent, AgreementParticipant, User
+from app.models import AgreementEvent, AgreementParticipant, DocumentLibraryItem, User
 from app.utils.database import transactional
 from logger import LOG_CATEGORIES, get_logger
 
-from ..errors import AgreementStateError
+from ..core.client import DocusignClient
+from ..errors import AgreementStateError, DocusignAuthError
 from .agreement_crud import get_agreement
 from .participant_operations import sync_signer_participant
 
@@ -137,6 +138,18 @@ def send_for_signature(
         },
     )
 
+    # Ensure JWT + account resolve in this process before we commit participants or enqueue.
+    # Otherwise the API returns 202 while the worker fails with auth errors and leaves a misleading draft.
+    try:
+        DocusignClient(auth_type="jwt")
+    except DocusignAuthError:
+        logger.error(
+            LOG_CATEGORIES["DOCUSIGN"],
+            "DocuSign JWT preflight failed; send aborted (transaction will roll back)",
+            {"agreement_id": agreement_id, "actor_id": actor_id},
+        )
+        raise
+
     # Import here to avoid circular dependency
     from app.celery.tasks.docusign import send_envelope_task
 
@@ -238,16 +251,35 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
         agreement.status = "voided"
         agreement.voided_at = datetime.now(timezone.utc)
     else:
-        # Void in DocuSign
+        # Void in DocuSign (only Sent/Delivered are voidable; voided is idempotent)
         logger.debug(
             LOG_CATEGORIES["DOCUSIGN"],
             "Voiding agreement in DocuSign",
             {"agreement_id": agreement_id, "envelope_id": agreement.docusign_envelope_id},
         )
-        from ..core.client import DocusignClient
-
         client = DocusignClient(auth_type="jwt")
-        client.void_envelope(agreement.docusign_envelope_id, reason)
+        envelope_id = agreement.docusign_envelope_id
+        env_info = client.get_envelope(envelope_id)
+        ds_status = (env_info.get("status") or "").strip().lower()
+
+        if ds_status == "voided":
+            logger.info(
+                LOG_CATEGORIES["DOCUSIGN"],
+                "Envelope already voided in DocuSign; syncing local state only",
+                {"agreement_id": agreement_id, "envelope_id": envelope_id},
+            )
+        elif ds_status == "completed":
+            raise AgreementStateError(
+                "This agreement is already completed in DocuSign and cannot be voided."
+            )
+        elif ds_status and ds_status not in ("sent", "delivered"):
+            raise AgreementStateError(
+                "This agreement cannot be voided in DocuSign right now. "
+                f"The envelope is in state '{ds_status}'; only Sent or Delivered "
+                "envelopes can be voided."
+            )
+        else:
+            client.void_envelope(envelope_id, reason)
 
         agreement.status = "voided"
         agreement.voided_at = datetime.now(timezone.utc)
@@ -261,9 +293,13 @@ def void_agreement(agreement_id: str, reason: str, actor_id: str):
     )
     db.session.add(event)
 
-    from app.services.documents.document_library_items import sync_agreement_library_item
-
-    sync_agreement_library_item(agreement)
+    # Drop the shared library row so the agreement disappears from the buyer’s and agent’s Saved lists.
+    lib_item_id = agreement.library_item_id
+    agreement.library_item_id = None
+    if lib_item_id:
+        item = DocumentLibraryItem.query.get(lib_item_id)
+        if item is not None:
+            db.session.delete(item)
 
     logger.info(
         LOG_CATEGORIES["DOCUSIGN"],

@@ -16,9 +16,9 @@ export function LandingHeroSplit() {
   return (
     <section
       id="agents"
-      className={`grid w-full grid-cols-1 lg:grid-cols-[55fr_45fr] ${LANDING_NAV_SCROLL_MARGIN_CLASS} ${HERO_MIN_H}`}
+      className={`grid w-full min-w-0 grid-cols-1 lg:grid-cols-[55fr_45fr] ${LANDING_NAV_SCROLL_MARGIN_CLASS} ${HERO_MIN_H}`}
     >
-      <Box className="px-responsive-sm relative flex flex-col justify-center overflow-hidden bg-[color:var(--color-brand-primary)] py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-20">
+      <Box className="px-responsive-sm relative flex min-w-0 flex-col justify-center overflow-hidden bg-[color:var(--color-brand-primary)] py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-20">
         <Box className="pointer-events-none absolute inset-0 z-0 opacity-[0.35]">
           <RippleBackground overlay />
         </Box>
@@ -68,7 +68,7 @@ export function LandingHeroSplit() {
         </Box>
       </Box>
 
-      <Box className="px-responsive-sm flex flex-col justify-center bg-[color:var(--color-background-base)] py-12 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
+      <Box className="px-responsive-sm flex min-w-0 flex-col justify-center bg-[color:var(--color-background-base)] py-12 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
         <BodyText
           as="p"
           size="sm"

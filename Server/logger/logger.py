@@ -37,6 +37,7 @@ class LoggerConfig:
         self.security: bool = config_dict.get("security", True)
         self.polygonSearch: bool = config_dict.get("polygonSearch", True)
         self.docusign: bool = config_dict.get("docusign", True)
+        self.documents: bool = config_dict.get("documents", True)
         self.logLevel: LogLevel = config_dict.get("logLevel", "DEBUG")
 
     def to_dict(self) -> dict[str, Any]:
@@ -52,6 +53,7 @@ class LoggerConfig:
             "security": self.security,
             "polygonSearch": self.polygonSearch,
             "docusign": self.docusign,
+            "documents": self.documents,
             "logLevel": self.logLevel,
         }
 
@@ -127,6 +129,7 @@ class Logger:
             "security": True,
             "polygonSearch": True,
             "docusign": True,
+            "documents": True,
             "logLevel": "DEBUG",
         }
 

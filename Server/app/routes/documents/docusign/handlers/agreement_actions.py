@@ -44,14 +44,11 @@ def create_revision_action(agreement_id):
             )
             return jsonify({"success": False, "error": "No file provided"}), 400
         file = request.files["file"]
-        filename = file.filename
-        if not filename or not isinstance(filename, str):
-            log.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
-                "Revision creation without filename",
-                {"agreement_id": agreement_id, "user_id": user.id},
-            )
-            return jsonify({"success": False, "error": "File must have a filename"}), 400
+        raw_name = file.filename if isinstance(file.filename, str) else ""
+        filename = raw_name.strip()
+        # Browsers send multipart filename "blob" when FormData omits the third argument
+        if not filename or filename.lower() == "blob":
+            filename = "agreement.pdf"
         file_content = file.read()
         log.debug(
             LOG_CATEGORIES["DOCUSIGN"],

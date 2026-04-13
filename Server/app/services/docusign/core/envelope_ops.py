@@ -4,13 +4,14 @@ from collections.abc import Callable
 from typing import Any
 
 from docusign_esign import (
-    Envelope as EnvelopeModel,
-)
-from docusign_esign import (
+    ApiClient,
     EnvelopeDefinition,
     EnvelopesApi,
     RecipientViewRequest,
     ReturnUrlRequest,
+)
+from docusign_esign import (
+    Envelope as EnvelopeModel,
 )
 from docusign_esign.client.api_exception import ApiException
 
@@ -25,7 +26,7 @@ def _handle(handle_exception: Callable[[ApiException, str], None], e: ApiExcepti
 
 
 def create_envelope(
-    api_client,
+    api_client: ApiClient,
     account_id: str,
     envelope_definition: EnvelopeDefinition,
     handle_exception: Callable[[ApiException, str], None],
@@ -67,7 +68,7 @@ def create_envelope(
 
 
 def get_envelope(
-    api_client,
+    api_client: ApiClient,
     account_id: str,
     envelope_id: str,
     handle_exception: Callable[[ApiException, str], None],
@@ -100,7 +101,7 @@ def get_envelope(
 
 
 def void_envelope(
-    api_client,
+    api_client: ApiClient,
     account_id: str,
     envelope_id: str,
     reason: str,
@@ -130,7 +131,7 @@ def void_envelope(
 
 
 def create_recipient_view(
-    api_client,
+    api_client: ApiClient,
     account_id: str,
     envelope_id: str,
     recipient: dict[str, Any],
@@ -175,7 +176,7 @@ def create_recipient_view(
 
 
 def get_sender_view(
-    api_client,
+    api_client: ApiClient,
     account_id: str,
     envelope_id: str,
     return_url: str,
@@ -205,7 +206,7 @@ def get_sender_view(
 
 
 def get_envelope_documents(
-    api_client,
+    api_client: ApiClient,
     account_id: str,
     envelope_id: str,
     handle_exception: Callable[[ApiException, str], None],
@@ -237,7 +238,7 @@ def get_envelope_documents(
 
 
 def get_envelope_certificate(
-    api_client,
+    api_client: ApiClient,
     account_id: str,
     envelope_id: str,
     handle_exception: Callable[[ApiException, str], None],

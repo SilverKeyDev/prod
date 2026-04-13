@@ -54,6 +54,7 @@ export interface LoggerConfig {
   messages?: boolean;
   routing?: boolean;
   docusign?: boolean;
+  documents?: boolean;
   mapRendering?: boolean;
   propertyDetails?: boolean;
   logLevel: LogLevel;
@@ -118,6 +119,7 @@ class Logger {
       security: true,
       polygonSearch: true,
       docusign: true,
+      documents: true,
       mapRendering: false,
       propertyDetails: false,
       logLevel: "DEBUG",

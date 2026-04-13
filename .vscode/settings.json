@@ -4,6 +4,7 @@
   "markdown.validate.enabled": false,
   "markdownlint.config": { "default": false },
 
+  "python.defaultInterpreterPath": "${workspaceFolder}/Server/.venv/bin/python",
   "python.analysis.extraPaths": ["Server"],
   "python.analysis.diagnosticMode": "workspace",
 

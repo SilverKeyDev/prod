@@ -30,6 +30,7 @@ from .constants import (
     DOCUSIGN_OAUTH_AUTHORIZATION_URL_PROD,
     DOCUSIGN_OAUTH_TOKEN_URL_DEMO,
     DOCUSIGN_OAUTH_TOKEN_URL_PROD,
+    DOCUSIGN_REST_BASE_URL_DEMO,
     EC2_HOST,
     GOOGLE_CLIENT_ID,
     GOOGLE_SCOPES,
@@ -49,6 +50,15 @@ from .database import (
 from .error_codes import build_error_codes
 
 logger = logging.getLogger(__name__)
+
+
+def _optional_stripped_env(var_name: str) -> str | None:
+    """Return stripped env value, or None if unset or whitespace-only."""
+    raw = os.getenv(var_name)
+    if raw is None:
+        return None
+    stripped = raw.strip()
+    return stripped if stripped else None
 
 
 class Config:
@@ -122,11 +132,18 @@ class Config:
 
     # DocuSign (JWT + per-agent OAuth + Connect webhooks)
     DOCUSIGN_INTEGRATION_KEY = os.getenv("DOCUSIGN_INTEGRATION_KEY")
+    # DocuSign Apps & Keys → User ID (API account impersonation). Not your app's DB user id.
     DOCUSIGN_IMPERSONATED_USER_ID = os.getenv(
         "DOCUSIGN_IMPERSONATED_USER_ID", DOCUSIGN_IMPERSONATED_USER_ID_DEFAULT
     )
-    DOCUSIGN_PRIVATE_KEY = os.getenv("DOCUSIGN_PRIVATE_KEY")
-    DOCUSIGN_PRIVATE_KEY_PATH = os.getenv("DOCUSIGN_PRIVATE_KEY_PATH")
+    # JWT: private key PEM or file path. DOCUSIGN_RSA_* names match common secrets-manager layouts.
+    DOCUSIGN_PRIVATE_KEY = _optional_stripped_env("DOCUSIGN_PRIVATE_KEY") or _optional_stripped_env(
+        "DOCUSIGN_RSA_SECRET"
+    )
+    # Public key PEM is registered with DocuSign; stored for parity with secrets layouts (JWT uses private only).
+    DOCUSIGN_RSA_PUBLIC = _optional_stripped_env("DOCUSIGN_RSA_PUBLIC")
+    # RSA keypair id from Apps & Keys (JWT header ``kid``). Required when multiple keys are registered.
+    DOCUSIGN_RSA_ID = _optional_stripped_env("DOCUSIGN_RSA_ID")
 
     # Per-user OAuth: prefer explicit names; fall back to keys used in AWS Secrets Manager JSON
     # (docusign-integration) so oauth_start works without duplicating integration key / secret.
@@ -141,11 +158,22 @@ class Config:
     )
 
     DOCUSIGN_ACCOUNT_ID = os.getenv("DOCUSIGN_ACCOUNT_ID", DOCUSIGN_ACCOUNT_ID_DEFAULT)
-    DOCUSIGN_BASE_URL = os.getenv("DOCUSIGN_BASE_URL", DOCUSIGN_BASE_URL_DEFAULT)
+    _raw_docusign_base_url = os.getenv("DOCUSIGN_BASE_URL", DOCUSIGN_BASE_URL_DEFAULT)
 
     _docusign_is_production = (
-        os.getenv("FLASK_ENV") == "production" and "demo" not in DOCUSIGN_BASE_URL.lower()
+        os.getenv("FLASK_ENV") == "production" and "demo" not in _raw_docusign_base_url.lower()
     )
+    # Demo OAuth (account-d) issues tokens that prod REST (*.docusign.net except demo) rejects.
+    if not _docusign_is_production and "demo.docusign.net" not in _raw_docusign_base_url.lower():
+        logger.warning(
+            "DOCUSIGN_BASE_URL %s does not match demo OAuth; using %s (set DOCUSIGN_BASE_URL in "
+            "production with FLASK_ENV=production for regional prod REST).",
+            _raw_docusign_base_url,
+            DOCUSIGN_REST_BASE_URL_DEMO,
+        )
+        DOCUSIGN_BASE_URL = DOCUSIGN_REST_BASE_URL_DEMO
+    else:
+        DOCUSIGN_BASE_URL = _raw_docusign_base_url
     DOCUSIGN_OAUTH_AUTHORIZATION_URL = (
         DOCUSIGN_OAUTH_AUTHORIZATION_URL_PROD
         if _docusign_is_production
@@ -191,7 +219,8 @@ class Config:
         if flask_env == "production":
             CORS_ORIGINS = PROD_CORS_ORIGINS_DEFAULT
         else:
-            # Development: include localhost:5173 (Vite dev server)
+            # Development: localhost:5173. For DocuSign embedded signing via an HTTPS tunnel,
+            # set CORS_ORIGINS to include it, e.g. https://….ngrok-free.app,http://localhost:5173
             CORS_ORIGINS = DEV_CORS_ORIGINS_DEFAULT
 
     API_BASE_URL = f"/api/{API_VERSION}"
