@@ -218,23 +218,70 @@ jobs:
               exit 1
             fi
 
-            # Merge app secrets from AWS Secrets Manager (EC2 instance role or host credentials)
-            fetch_secret() {
+            # Merge app secrets from AWS Secrets Manager (EC2 instance role or host credentials).
+            # Supports JSON objects (flatten key=value), JSON strings, and plaintext secrets (e.g. db_url → DATABASE_URL).
+            fetch_secret_raw() {
               aws secretsmanager get-secret-value \
                 --secret-id "$1" --region "$REGION" \
-                --query SecretString --output text 2>/dev/null || echo '{}'
+                --query SecretString --output text 2>/dev/null || true
+            }
+
+            merge_sm_secret_into_env() {
+              local id="$1"
+              local raw
+              raw="$(fetch_secret_raw "$id")"
+              raw="${raw//$'\r'/}"
+              [ -z "$raw" ] && return 0
+
+              if jq -e 'type == "object"' <<<"$raw" >/dev/null 2>&1; then
+                jq -r 'to_entries[] | select(.value | type == "string" or type == "number" or type == "boolean") | "\(.key)=\(.value)"' <<<"$raw" >> "$ENV_FILE" 2>/dev/null || true
+                return 0
+              fi
+
+              if jq -e 'type == "string"' <<<"$raw" >/dev/null 2>&1; then
+                local val
+                val="$(jq -r '.' <<<"$raw")"
+                case "$id" in
+                  db_url) printf 'DATABASE_URL=%s\n' "$val" >> "$ENV_FILE" ;;
+                esac
+                return 0
+              fi
+
+              case "$id" in
+                db_url) printf 'DATABASE_URL=%s\n' "$raw" >> "$ENV_FILE" ;;
+              esac
             }
 
             SECRET_IDS=(db_url AWS_Access cognito gmaps google_calendar census_api mapbox openai perplexity plaid serp slipstream skyslope docusign)
 
-            ENV_FILE=$(mktemp)
-            chmod 600 "$ENV_FILE" 2>/dev/null || true
-            trap 'rm -f "$ENV_FILE"' EXIT
+            # Build env as ubuntu (merge writes need a writable file), then copy to a root-owned path for sudo docker --env-file.
+            ENV_BUILD=$(mktemp)
+            chmod 600 "$ENV_BUILD" 2>/dev/null || true
+            ENV_FILE="$ENV_BUILD"
+            DEPLOY_ENV_FILE="/root/.deploy_env"
+            cleanup_deploy_env_files() {
+              rm -f "$ENV_BUILD" 2>/dev/null || true
+              sudo rm -f "$DEPLOY_ENV_FILE" 2>/dev/null || true
+            }
+            trap cleanup_deploy_env_files EXIT
 
             for id in "${SECRET_IDS[@]}"; do
-              json=$(fetch_secret "$id")
-              jq -r 'to_entries[] | "\(.key)=\(.value)"' <<<"$json" >> "$ENV_FILE" 2>/dev/null || true
+              merge_sm_secret_into_env "$id"
             done
+
+            if ! grep -q '^DATABASE_URL=' "$ENV_FILE"; then
+              echo "ERROR: DATABASE_URL missing after merging Secrets Manager."
+              echo "Fix: ensure secret db_url is readable (instance role secretsmanager:GetSecretValue) and is either:"
+              echo "  - JSON object including key DATABASE_URL, or"
+              echo "  - plaintext connection string, or"
+              echo "  - JSON string (quoted URL)."
+              exit 1
+            fi
+
+            sudo cp "$ENV_BUILD" "$DEPLOY_ENV_FILE"
+            sudo chmod 600 "$DEPLOY_ENV_FILE"
+            rm -f "$ENV_BUILD"
+            ENV_FILE="$DEPLOY_ENV_FILE"
 
             # 2) App
             echo "🚀 Starting App..."
