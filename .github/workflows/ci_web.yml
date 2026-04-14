@@ -102,16 +102,18 @@ jobs:
           AWS_REGION: ${{ env.REGION }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
           REPO: ${{ env.REPO }}
+          DB_URL_SECRET_ID: ${{ vars.DB_URL_SECRET_ID }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,REPO
+          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,REPO,DB_URL_SECRET_ID
           script: |
             set -euo pipefail
 
             echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
             REGION="$AWS_REGION"
+            DB_SECRET_NAME="${DB_URL_SECRET_ID:-db_url}"
             REPO="${REPO:-cre}"
             IMAGE_TAG="${IMAGE_TAG:-latest}"
             NETWORK_NAME="cre_network"
@@ -219,11 +221,21 @@ jobs:
             fi
 
             # Merge app secrets from AWS Secrets Manager (EC2 instance role or host credentials).
-            # Supports JSON objects (flatten key=value), JSON strings, and plaintext secrets (e.g. db_url → DATABASE_URL).
+            # Supports JSON objects (flatten key=value), JSON strings, and plaintext secrets (database secret → DATABASE_URL).
+            # Database secret id defaults to db_url; override with repo variable DB_URL_SECRET_ID (forwarded as env).
             fetch_secret_raw() {
               aws secretsmanager get-secret-value \
                 --secret-id "$1" --region "$REGION" \
                 --query SecretString --output text 2>/dev/null || true
+            }
+
+            log_secret_fetch_failure() {
+              local id="$1"
+              echo "--- aws secretsmanager get-secret-value (diagnostic, secret-id=$id region=$REGION) ---"
+              aws secretsmanager get-secret-value \
+                --secret-id "$id" --region "$REGION" \
+                --query SecretString --output text 2>&1 || true
+              echo "--- end diagnostic ---"
             }
 
             merge_sm_secret_into_env() {
@@ -234,8 +246,8 @@ jobs:
               [ -z "$raw" ] && return 0
 
               if jq -e 'type == "object"' <<<"$raw" >/dev/null 2>&1; then
-                # Secret "db_url" is often stored as key/value with field name db_url (not DATABASE_URL).
-                if [ "$id" = "db_url" ]; then
+                # Database secret is often stored as key/value with field name db_url (not DATABASE_URL).
+                if [ "$id" = "$DB_SECRET_NAME" ]; then
                   local _du
                   _du="$(jq -r '
                     [
@@ -255,13 +267,13 @@ jobs:
                 local val
                 val="$(jq -r '.' <<<"$raw")"
                 case "$id" in
-                  db_url) printf 'DATABASE_URL=%s\n' "$val" >> "$ENV_FILE" ;;
+                  "$DB_SECRET_NAME") printf 'DATABASE_URL=%s\n' "$val" >> "$ENV_FILE" ;;
                 esac
                 return 0
               fi
 
               case "$id" in
-                db_url) printf 'DATABASE_URL=%s\n' "$raw" >> "$ENV_FILE" ;;
+                "$DB_SECRET_NAME") printf 'DATABASE_URL=%s\n' "$raw" >> "$ENV_FILE" ;;
               esac
             }
 
@@ -279,7 +291,7 @@ jobs:
               done
             }
 
-            SECRET_IDS=(db_url AWS_Access cognito gmaps google_calendar census_api mapbox openai perplexity plaid serp slipstream skyslope docusign)
+            SECRET_IDS=("$DB_SECRET_NAME" AWS_Access cognito gmaps google_calendar census_api mapbox openai perplexity plaid serp slipstream skyslope docusign)
 
             # Build env as ubuntu (merge writes need a writable file), then copy to a root-owned path for sudo docker --env-file.
             ENV_BUILD=$(mktemp)
@@ -299,12 +311,13 @@ jobs:
 
             if ! grep -q '^DATABASE_URL=' "$ENV_FILE"; then
               echo "ERROR: DATABASE_URL missing after merging Secrets Manager."
-              echo "Fix: ensure secret db_url is readable (instance role secretsmanager:GetSecretValue) and is either:"
+              echo "Fix: ensure secret ${DB_SECRET_NAME} is readable (instance role secretsmanager:GetSecretValue) and uses SecretString (not binary-only). Expected formats:"
               echo "  - JSON object with DATABASE_URL, db_url, database_url, url, or connection_string, or"
               echo "  - plaintext connection string, or"
               echo "  - JSON string (quoted URL)."
-              if [ -z "$(fetch_secret_raw db_url)" ]; then
-                echo "Hint: get-secret-value for db_url returned empty (IAM secretsmanager:GetSecretValue, region ${REGION}, secret id db_url)."
+              if [ -z "$(fetch_secret_raw "$DB_SECRET_NAME")" ]; then
+                echo "Hint: get-secret-value for ${DB_SECRET_NAME} returned empty (check IAM GetSecretValue on arn:aws:secretsmanager:${REGION}:${ACCOUNT_ID}:secret:${DB_SECRET_NAME}*, secret name/region, or SecretString vs SecretBinary)."
+                log_secret_fetch_failure "$DB_SECRET_NAME"
               fi
               exit 1
             fi

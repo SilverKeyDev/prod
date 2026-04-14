@@ -90,7 +90,33 @@ DATABASE_URL=postgresql://user:pass@host:5432/silverkey
 
 **Purpose:** API keys and sensitive configuration
 
-**Secrets:**
+**Naming note:** Some integrations use hierarchical names (examples below). **Production EC2 deploy** (`.github/workflows/ci_web.yml`) loads a fixed set of **short secret ids** in `us-east-2` via the instance IAM role. Those ids must exist (or you must override the database secret id—see below).
+
+**EC2 prod deploy secret ids** (must match Secrets Manager names exactly; default database secret id is `db_url`):
+
+| Secret id | Typical use |
+|-----------|-------------|
+| `db_url` (or override—see below) | `DATABASE_URL` for the app container |
+| `AWS_Access` | AWS-related keys |
+| `cognito` | Cognito |
+| `gmaps` | Google Maps |
+| `google_calendar` | Google Calendar |
+| `census_api` | Census API |
+| `mapbox` | Mapbox |
+| `openai` | OpenAI |
+| `perplexity` | Perplexity |
+| `plaid` | Plaid |
+| `serp` | SERP |
+| `slipstream` | Slipstream |
+| `skyslope` | SkySlope |
+| `docusign` | DocuSign |
+
+**Database secret (`db_url`) format:** Use **SecretString** (plaintext or JSON), not binary-only. Acceptable shapes: plaintext connection string; JSON object with one of `DATABASE_URL`, `database_url`, `db_url`, `url`, `connection_string`, `connectionString`, `uri`, `URI`; or a JSON-encoded string containing the URL.
+
+**Override database secret id:** Set GitHub repository variable `DB_URL_SECRET_ID` to the Secrets Manager name (e.g. `prod/silverkey/database`). The deploy script defaults to `db_url` when unset. IAM on the EC2 instance must allow `GetSecretValue` on that secret’s ARN (with `*` suffix—see IAM section).
+
+**Other documented examples** (may be used by apps or scripts outside this deploy list):
+
 - `prod/silverkey/docusign/integration-key`
 - `prod/silverkey/docusign/client-secret`
 - `prod/silverkey/google/oauth-client-secret`
@@ -107,6 +133,16 @@ secret = response['SecretString']
 
 **Rotation:** Secrets rotated every 90 days (automated via Lambda)
 
+**Verify from the EC2 instance** (after SSH): replace `db_url` with `DB_URL_SECRET_ID` if you overrode it.
+
+```bash
+aws secretsmanager get-secret-value --secret-id db_url --region us-east-2
+```
+
+- `AccessDeniedException` → instance role lacks `secretsmanager:GetSecretValue` on that secret’s ARN (include trailing `*` in IAM resource ARNs).
+- `ResourceNotFoundException` → wrong secret name, region, or AWS account.
+- Success with `SecretString` populated → if deploy still fails, check JSON keys or plaintext format above.
+
 ## IAM Roles and Policies
 
 ### App Role
@@ -115,7 +151,23 @@ secret = response['SecretString']
 
 **Permissions:**
 - S3: Read/write to `prod-silverkey-documents` bucket
-- Secrets Manager: Read secrets with `prod/silverkey/*` prefix
+- Secrets Manager: Read secrets the workload needs. If IAM only allows `prod/silverkey/*`, that **does not** grant access to top-level deploy secrets such as `db_url` or `AWS_Access`. Include **each** secret ARN (or a broader pattern) used by EC2 deploy, for example:
+
+```json
+{
+  "Effect": "Allow",
+  "Action": "secretsmanager:GetSecretValue",
+  "Resource": [
+    "arn:aws:secretsmanager:us-east-2:ACCOUNT_ID:secret:db_url*",
+    "arn:aws:secretsmanager:us-east-2:ACCOUNT_ID:secret:AWS_Access*",
+    "arn:aws:secretsmanager:us-east-2:ACCOUNT_ID:secret:cognito*",
+    "arn:aws:secretsmanager:us-east-2:ACCOUNT_ID:secret:prod/silverkey/*"
+  ]
+}
+```
+
+Replace `ACCOUNT_ID` with the AWS account id. The random suffix on secret ARNs means the trailing `*` on individual secret name patterns is required unless you reference the full ARN from the console.
+
 - RDS: Connect to database (via security group)
 - Cognito: Validate tokens
 
@@ -216,7 +268,9 @@ See: `documentation/compliance/`
 - Lint and test on PR
 - Build Docker image on merge to main
 - Push to ECR
-- Update ECS task definition
+- SSH to EC2 and run deploy (see `.github/workflows/ci_web.yml`), merging Secrets Manager secrets listed above into the app container env file
+
+Optional repository variable **`DB_URL_SECRET_ID`**: overrides the default database secret name (`db_url`) for that workflow.
 
 ## Disaster Recovery
 
