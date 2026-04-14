@@ -16,14 +16,16 @@ export type ScoreColorScaleOptions = {
   lightness?: number;
 };
 
+/** Muted chroma so scores feel at home next to neutrals; still clearly red→green in five steps. */
 const UI_SCALE: Required<Pick<ScoreColorScaleOptions, "saturation" | "lightness">> = {
-  saturation: 70,
-  lightness: 46,
+  saturation: 48,
+  lightness: 50,
 };
 
+/** A bit more saturation + slightly lower lightness than UI so pins read on map tiles without neon UI. */
 const MAP_SCALE: Required<Pick<ScoreColorScaleOptions, "saturation" | "lightness">> = {
-  saturation: 88,
-  lightness: 38,
+  saturation: 62,
+  lightness: 42,
 };
 
 /** sRGB relative luminance (0–1). Used to pick light vs dark text. */

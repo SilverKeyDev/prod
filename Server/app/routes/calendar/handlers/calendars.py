@@ -46,7 +46,7 @@ def list_calendars():
 @validate_response(GoogleCalendarApiResponse)
 @validate_request(CreateCalendarRequest)
 def create_calendar(data: CreateCalendarRequest | None = None):
-    """Create a secondary calendar (requires full calendar scope)"""
+    """Create a secondary calendar (requires app-created calendar scope or broader)"""
     user_id, error_response = get_authenticated_user_id()
     if error_response:
         return error_response
@@ -81,7 +81,11 @@ def add_calendar_acl(calendar_id, data: AddCalendarACLRequest | None = None):
         return make_response(("Unauthorized", 401))
 
     try:
-        ok, perm_err = require_permission(user_id, "calendar", "add sharing rules to your calendar")
+        ok, perm_err = require_permission(
+            user_id,
+            "calendar_app_created",
+            "add sharing rules to your SilverKey calendar",
+        )
         if not ok and perm_err:
             return jsonify(perm_err), 403
 

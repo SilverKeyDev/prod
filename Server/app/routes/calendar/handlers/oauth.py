@@ -11,6 +11,9 @@ from app.services.calendar.core import (
     google_calendar_service,
 )
 from app.services.calendar.permissions import PERMISSIONS, get_permission_scope_map
+from app.services.calendar.permissions.constants import (
+    permissions as calendar_permissions_constants,
+)
 from app.utils.security.app_logging import get_logger
 from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.security.security import (
@@ -22,17 +25,24 @@ from app.utils.validation import validate_response
 
 logger = get_logger()
 
+_PERMISSION_NAMES_EXCLUDED_FROM_OAUTH = frozenset(
+    name
+    for name, data in calendar_permissions_constants.items()
+    if not data.get("include_in_oauth_request", True)
+)
+
 
 @rate_limit(max_requests=10, window_seconds=60)
 def oauth_start():
     """Start Google OAuth flow with incremental authorization
 
-    Always requests all scopes defined in app.services.calendar.permissions.constants.
-    The include_granted_scopes parameter ensures existing permissions are preserved.
+    Requests scopes where include_in_oauth_request is true (full Calendar and
+    calendar.events.freebusy are never requested). include_granted_scopes preserves
+    existing grants.
 
-    Query params (deprecated - all scopes are always requested):
-        full_scope: Deprecated - all scopes are always requested
-        scheduling: Deprecated - all scopes are always requested
+    Query params (deprecated; same authorize URL regardless of values):
+        full_scope: Deprecated
+        scheduling: Deprecated
     """
     user_id, error_response = get_authenticated_user_id()
     if error_response:
@@ -83,7 +93,21 @@ def oauth_enhance():
         ), 400
 
     # Parse permission names
-    permission_names = [p.strip() for p in permissions_param.split(",")]
+    permission_names = [p.strip() for p in permissions_param.split(",") if p.strip()]
+
+    not_requestable = [p for p in permission_names if p in _PERMISSION_NAMES_EXCLUDED_FROM_OAUTH]
+    if not_requestable:
+        return jsonify(
+            {
+                "success": False,
+                "error": "permission_not_requestable",
+                "message": (
+                    "These permissions cannot be requested via OAuth (use a normal calendar "
+                    f"reconnect): {', '.join(not_requestable)}"
+                ),
+                "not_requestable_permissions": not_requestable,
+            }
+        ), 400
 
     # Map permission names to scope URLs
     scope_map = get_permission_scope_map()

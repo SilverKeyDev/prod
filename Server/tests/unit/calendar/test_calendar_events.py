@@ -28,7 +28,7 @@ class TestCalendarEvents:
                         client_id="client-id",
                         client_secret="client-secret",
                         token_endpoint="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/calendar"],
+                        scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                         resolve_calendar_id_func=mock_resolve,
                         time_min="2024-01-01T00:00:00Z",
                         time_max="2024-01-31T23:59:59Z",
@@ -61,7 +61,7 @@ class TestCalendarEvents:
                         client_id="client-id",
                         client_secret="client-secret",
                         token_endpoint="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/calendar"],
+                        scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                         resolve_calendar_id_func=mock_resolve,
                     )
 
@@ -93,7 +93,7 @@ class TestCalendarEvents:
                         client_id="client-id",
                         client_secret="client-secret",
                         token_endpoint="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/calendar"],
+                        scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                         resolve_calendar_id_func=mock_resolve,
                     )
 
@@ -125,7 +125,7 @@ class TestCalendarEvents:
                         client_id="client-id",
                         client_secret="client-secret",
                         token_endpoint="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/calendar"],
+                        scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                         resolve_calendar_id_func=mock_resolve,
                     )
 
@@ -150,7 +150,7 @@ class TestCalendarEvents:
                         client_id="client-id",
                         client_secret="client-secret",
                         token_endpoint="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/calendar"],
+                        scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                         resolve_calendar_id_func=mock_resolve,
                     )
 
@@ -173,7 +173,7 @@ class TestCalendarEvents:
                         client_id="client-id",
                         client_secret="client-secret",
                         token_endpoint="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/calendar"],
+                        scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                         resolve_calendar_id_func=mock_resolve,
                         time_min="2024-02-01T00:00:00Z",
                         time_max="2024-02-28T23:59:59Z",
@@ -229,6 +229,6 @@ class TestCalendarEvents:
                             client_id="client-id",
                             client_secret="client-secret",
                             token_endpoint="https://oauth2.googleapis.com/token",
-                            scopes=["https://www.googleapis.com/auth/calendar"],
+                            scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                             resolve_calendar_id_func=mock_resolve,
                         )

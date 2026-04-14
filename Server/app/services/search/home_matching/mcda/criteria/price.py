@@ -85,7 +85,8 @@ def soft_price_normalized(
         ideal = hi
 
     if p > hi:
-        return 0.15
+        # Soft tail above budget (hard_constraint_multiplier still applies); slightly less harsh.
+        return 0.22
 
     if p < lo:
         if lo <= 0:

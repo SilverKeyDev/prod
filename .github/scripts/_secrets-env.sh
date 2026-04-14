@@ -1,6 +1,31 @@
 #!/usr/bin/env bash
 # _secrets-env.sh — fetch and merge AWS Secrets Manager secrets into $ENV_FILE
 # Expects: REGION, DB_SECRET_NAME, ACCOUNT_ID, ENV_FILE to be set by caller
+#
+# Secret *names* to merge should match Server/secrets.sh / config/.env.example:
+# lines like "# From secret: my_secret (json)" define which Secrets Manager ids to fetch.
+
+# Read .env.example text from stdin; print unique secret ids (same convention as Server/secrets.sh).
+secret_names_from_env_example_stream() {
+  grep -E '^#[[:space:]]*From secret:[[:space:]]+' \
+    | sed -E 's/^#[[:space:]]*From secret:[[:space:]]+([^ (]+).*/\1/' \
+    | sort -u
+}
+
+# Paginated list of all secret names in REGION (matches Server/secrets.sh list_secret_names).
+list_secretsmanager_secret_names() {
+  local next="" page
+  while :; do
+    if [ -z "$next" ]; then
+      page="$(aws secretsmanager list-secrets --region "$REGION" --max-results 100 --output json)" || return 1
+    else
+      page="$(aws secretsmanager list-secrets --region "$REGION" --max-results 100 --next-token "$next" --output json)" || return 1
+    fi
+    echo "$page" | jq -r '.SecretList[]?.Name // empty'
+    next="$(echo "$page" | jq -r '.NextToken // empty')"
+    [ -z "$next" ] && break
+  done
+}
 
 fetch_secret_raw() {
   aws secretsmanager get-secret-value \

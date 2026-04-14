@@ -15,7 +15,7 @@ to ensure only approved permissions are used.
 from dataclasses import dataclass
 
 # Import permissions constants as the single source of truth
-from app.services.calendar.permissions.constants import permissions
+from app.services.calendar.permissions.constants import oauth_requested_scope_urls, permissions
 
 
 @dataclass
@@ -140,7 +140,10 @@ SCHEDULING_SCOPES: list[str] = [
     SCOPE_CALENDAR_FREEBUSY.url,
 ]
 
-# All calendar scopes
+# Calendar scopes actually requested on new OAuth connects (no full Calendar or calendar.events.freebusy).
+OAUTH_REQUESTED_SCOPE_URLS: list[str] = oauth_requested_scope_urls()
+
+# Calendar-related scope URLs (includes legacy / not-requested; use for documentation).
 CALENDAR_SCOPES: list[str] = [
     SCOPE_CALENDAR_APP_CREATED.url,
     SCOPE_CALENDAR_FREEBUSY.url,

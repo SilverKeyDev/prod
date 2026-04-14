@@ -11,8 +11,7 @@ import { useAuthStore } from "packages/store";
  */
 const REQUIRED_PERMISSIONS = [
   "calendar_calendarlist_readonly", // Needed to list calendars
-  "calendar_freebusy", // Needed to see availability (primary)
-  "calendar_events_freebusy", // Alternative to calendar_freebusy
+  "calendar_freebusy", // Needed to see availability (calendar.events.freebusy is not requested on new connects)
 ] as const;
 
 export type UseGoogleCalendarPermissionsReturn = {
@@ -97,9 +96,7 @@ export function useGoogleCalendarPermissions(): UseGoogleCalendarPermissionsRetu
     const missing: string[] = [];
     let hasAnyPermission = false;
 
-    // Check if user has at least one of the freebusy permissions
-    const hasFreebusy =
-      permissions.calendar_freebusy?.granted || permissions.calendar_events_freebusy?.granted;
+    const hasFreebusy = Boolean(permissions.calendar_freebusy?.granted);
 
     // Check required permissions
     if (!permissions.calendar_calendarlist_readonly?.granted) {

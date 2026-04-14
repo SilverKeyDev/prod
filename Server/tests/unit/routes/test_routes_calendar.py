@@ -283,7 +283,7 @@ class TestCalendarRoutes:
                 ),
                 patch(
                     "app.routes.calendar.handlers.oauth.google_calendar_service.exchange_code_for_tokens",
-                    return_value={"scope": "https://www.googleapis.com/auth/calendar"},
+                    return_value={"scope": "https://www.googleapis.com/auth/calendar.app.created"},
                 ),
                 patch(
                     "app.routes.calendar.handlers.oauth.google_calendar_service.get_or_create_silverkey_calendar",

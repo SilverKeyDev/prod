@@ -117,7 +117,33 @@ if ! timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}
 fi
 
 # Merge app secrets from AWS Secrets Manager (EC2 instance role or host credentials).
-SECRET_IDS=("$DB_SECRET_NAME" AWS_Access cognito gmaps google_calendar census_api mapbox openai perplexity plaid serp slipstream skyslope docusign)
+# Secret ids come from the deployed image's Server/config/.env.example ("# From secret: …" lines),
+# same source as Server/app/utils/config_validator.py. If that file is missing or has no markers,
+# fall back to listing all secrets in REGION (same behavior as Server/secrets.sh).
+resolve_deploy_secret_ids() {
+  local tmp
+  tmp="$(mktemp)"
+  if [ -n "${IMAGE:-}" ] && sudo docker run --rm --entrypoint cat "$IMAGE" /app/Server/config/.env.example 2>/dev/null \
+    | secret_names_from_env_example_stream >"$tmp"; then
+    :
+  fi
+  if [ ! -s "$tmp" ]; then
+    echo "Warning: No \"# From secret:\" entries in image config/.env.example (or file unreadable); listing all Secrets Manager secrets in $REGION" >&2
+    if ! list_secretsmanager_secret_names | sort -u >"$tmp"; then
+      echo "ERROR: secretsmanager list-secrets failed and no .env.example secret list available." >&2
+      rm -f "$tmp"
+      exit 1
+    fi
+  fi
+  if ! grep -Fxq "$DB_SECRET_NAME" "$tmp" 2>/dev/null; then
+    { printf '%s\n' "$DB_SECRET_NAME"; cat "$tmp"; } >"${tmp}.out"
+    mv "${tmp}.out" "$tmp"
+  fi
+  cat "$tmp"
+  rm -f "$tmp"
+}
+
+mapfile -t SECRET_IDS < <(resolve_deploy_secret_ids)
 
 # Build env as ubuntu (merge writes need a writable file), then copy to a root-owned path for sudo docker --env-file.
 ENV_BUILD=$(mktemp)

@@ -19,6 +19,15 @@ logger = get_logger()
 _validation_count = 0
 
 
+def _is_scope_included_in_oauth_request(scope_url: str) -> bool:
+    from app.services.calendar.permissions.constants import permissions
+
+    for perm_data in permissions.values():
+        if perm_data["scope_url"] == scope_url:
+            return perm_data.get("include_in_oauth_request", True)
+    return False
+
+
 def generate_state(user_id: str) -> str:
     """Generate CSRF state parameter"""
     timestamp = str(int(time.time()))
@@ -84,7 +93,8 @@ def build_auth_url(
 ) -> tuple[str, str]:
     """Build Google OAuth authorization URL with incremental authorization
 
-    Always requests all scopes defined in app.services.calendar.permissions.constants.
+    Requests scopes from permissions.constants where include_in_oauth_request is true
+    (full Calendar and calendar.events.freebusy are never requested).
     The include_granted_scopes parameter ensures existing permissions are preserved.
 
     Args:
@@ -115,21 +125,25 @@ def build_auth_url(
         # Continue anyway - will fall back to session if DB fails
 
     # Import permissions constants to ensure only allowed scopes are used
-    from app.services.calendar.permissions.constants import permissions
+    from app.services.calendar.permissions.constants import (
+        oauth_requested_scope_urls,
+        permissions,
+    )
 
-    # Always request all scopes from permissions constants
-    # include_granted_scopes will preserve existing permissions (incremental authorization)
-    requested_scopes = [perm_data["scope_url"] for perm_data in permissions.values()]
+    requested_scopes = list(oauth_requested_scope_urls())
 
-    # If additional scopes are explicitly requested, ensure they're included
-    # (though they should already be in the full list)
+    # If additional scopes are explicitly requested, ensure they're included (requestable only)
     if request_additional_scopes:
         valid_scopes = {perm_data["scope_url"] for perm_data in permissions.values()}
         for scope in request_additional_scopes:
-            if scope in valid_scopes and scope not in requested_scopes:
-                requested_scopes.append(scope)
-            elif scope not in valid_scopes:
+            if scope not in valid_scopes:
                 logger.warning(f"Filtered out invalid scope: {scope}")
+                continue
+            if not _is_scope_included_in_oauth_request(scope):
+                logger.warning(f"Filtered out scope not allowed in OAuth request: {scope}")
+                continue
+            if scope not in requested_scopes:
+                requested_scopes.append(scope)
 
     # Validate redirect_uri before building URL
     if not redirect_uri or not redirect_uri.strip():

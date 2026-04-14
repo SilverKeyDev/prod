@@ -24,7 +24,8 @@ from .criteria import (
 # Single tuning surface — adjust weights and multipliers here only.
 # Added housing-range signals (lot, age, DOM, walkability, listing_type): trimmed price/amenities slightly.
 MCDA_CONFIG: dict[str, Any] = {
-    "base_score": 50.0,
+    # Slightly above neutral so typical listings land higher; soft signals still differentiate.
+    "base_score": 52.5,
     "price_peak_ratio": 0.65,
     "beds_baths_diminishing_k": 0.45,
     "soft_signal_weights": {
@@ -41,27 +42,39 @@ MCDA_CONFIG: dict[str, Any] = {
         "listing_type_fit": 1.0,
     },
     "hard_multipliers": {
-        "over_budget_moderate": 0.55,
-        "over_budget_severe": 0.42,
-        "over_budget_extreme": 0.30,
-        "below_min_beds": 0.35,
-        "below_min_baths": 0.35,
-        "above_max_beds": 0.35,
-        "above_max_baths": 0.35,
-        "wrong_property_type": 0.45,
-        "below_min_sqft": 0.50,
-        "above_max_sqft": 0.52,
+        # Moderate misses: a bit more forgiving; severe / wrong-type / extreme over-budget: harsher.
+        "over_budget_moderate": 0.63,
+        "over_budget_severe": 0.38,
+        "over_budget_extreme": 0.26,
+        "below_min_beds": 0.42,
+        "below_min_baths": 0.42,
+        "above_max_beds": 0.42,
+        "above_max_baths": 0.42,
+        "wrong_property_type": 0.40,
+        "below_min_sqft": 0.55,
+        "above_max_sqft": 0.58,
         "multiplier_floor": 0.15,
     },
     "output_display_min": 15.0,
     "output_display_max": 90.0,
+    # Share of *display* score from embedding when enabled; capped so ≥99% stays MCDA (see cap below).
     "embedding_blend_weight": 0.0,
+    "embedding_blend_weight_cap": 0.01,
 }
 
 
 def _soft_contribution(weight: float, signal_01: float) -> float:
-    """Neutral at 0.5; maps [0,1] to [-weight, +weight]."""
-    return weight * ((signal_01 - 0.5) * 2.0)
+    """
+    Neutral at 0.5; maps [0,1] toward [-weight, +weight].
+    Penalties are slightly damped vs rewards so more listings cluster in a higher band; hard
+    multipliers still enforce strong drops for serious constraint violations.
+    """
+    centered = (signal_01 - 0.5) * 2.0
+    if centered < 0:
+        damped = centered * 0.88
+    else:
+        damped = centered * 1.04
+    return weight * max(-1.0, min(1.0, damped))
 
 
 def score_listing_mcda(

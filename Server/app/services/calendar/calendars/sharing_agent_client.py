@@ -84,15 +84,15 @@ def setup_agent_client_calendar_sharing(
             logger.warning(f"Cannot set up calendar sharing: client {client_id} not connected")
             return result
 
-        if not check_permission(agent_id, "calendar"):
+        if not check_permission(agent_id, "calendar_app_created"):
             result["errors"].append(
-                "Agent must reconnect Google Calendar with full calendar access to set up sharing (ACLs)"
+                "Agent must connect Google Calendar with app calendar access to set up sharing (ACLs)"
             )
             result["success"] = False
             return result
-        if not check_permission(client_id, "calendar"):
+        if not check_permission(client_id, "calendar_app_created"):
             result["errors"].append(
-                "Client must reconnect Google Calendar with full calendar access to set up sharing (ACLs)"
+                "Client must connect Google Calendar with app calendar access to set up sharing (ACLs)"
             )
             result["success"] = False
             return result

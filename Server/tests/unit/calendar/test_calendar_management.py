@@ -21,7 +21,7 @@ class TestCalendarManagement:
                     client_id="client-id",
                     client_secret="client-secret",
                     token_endpoint="https://oauth2.googleapis.com/token",
-                    scopes=["https://www.googleapis.com/auth/calendar"],
+                    scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                 )
 
                 assert isinstance(calendars, list)
@@ -47,7 +47,7 @@ class TestCalendarManagement:
                     client_id="client-id",
                     client_secret="client-secret",
                     token_endpoint="https://oauth2.googleapis.com/token",
-                    scopes=["https://www.googleapis.com/auth/calendar"],
+                    scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                 )
 
                 assert result is not None
@@ -72,7 +72,7 @@ class TestCalendarManagement:
                     client_id="client-id",
                     client_secret="client-secret",
                     token_endpoint="https://oauth2.googleapis.com/token",
-                    scopes=["https://www.googleapis.com/auth/calendar"],
+                    scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                 )
 
                 assert result is not None
@@ -89,7 +89,7 @@ class TestCalendarManagement:
                     client_id="client-id",
                     client_secret="client-secret",
                     token_endpoint="https://oauth2.googleapis.com/token",
-                    scopes=["https://www.googleapis.com/auth/calendar"],
+                    scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                 )
 
                 assert result is True
@@ -112,7 +112,7 @@ class TestCalendarSharing:
                     client_id="client-id",
                     client_secret="client-secret",
                     token_endpoint="https://oauth2.googleapis.com/token",
-                    scopes=["https://www.googleapis.com/auth/calendar"],
+                    scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                 )
 
                 assert result["success"] is True
@@ -167,7 +167,7 @@ class TestCalendarSharing:
                     client_id="client-id",
                     client_secret="client-secret",
                     token_endpoint="https://oauth2.googleapis.com/token",
-                    scopes=["https://www.googleapis.com/auth/calendar"],
+                    scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                 )
 
                 assert result["success"] is True
@@ -202,7 +202,7 @@ class TestCalendarSharing:
                         client_id="client-id",
                         client_secret="client-secret",
                         token_endpoint="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/calendar"],
+                        scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                     )
 
                     assert isinstance(result, list)
@@ -244,7 +244,7 @@ class TestCalendarAvailability:
                         client_id="client-id",
                         client_secret="client-secret",
                         token_endpoint="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/calendar"],
+                        scopes=["https://www.googleapis.com/auth/calendar.app.created"],
                     )
 
                     assert "calendars" in result

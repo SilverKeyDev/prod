@@ -69,10 +69,18 @@ export function useSearchFeatureLifecycle({
 
   useEffect(() => {
     const w = getWindow();
-    const geo = w?.navigator?.geolocation;
-    if (!geo) {
+    const nav = w?.navigator;
+    if (!nav || !("geolocation" in nav)) {
       return;
     }
+    const policy = w.document?.permissionsPolicy;
+    if (
+      typeof policy?.allowsFeature === "function" &&
+      !policy.allowsFeature("geolocation")
+    ) {
+      return;
+    }
+    const geo = nav.geolocation;
     const watchId = geo.watchPosition(
       (pos) => {
         setUserGeolocation({

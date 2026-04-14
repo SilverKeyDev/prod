@@ -2,7 +2,7 @@
 Permission checking and management for Google Calendar
 """
 
-from .constants import permissions
+from .constants import oauth_requested_scope_urls, permissions
 from .google_calendar_oauth import (
     check_multiple_permissions,
     check_permission,
@@ -25,6 +25,7 @@ PERMISSION_DESCRIPTIONS = {
 }
 
 __all__ = [
+    "oauth_requested_scope_urls",
     "permissions",
     "PERMISSIONS",  # Backward compatibility
     "PERMISSION_SCOPE_MAP",  # Backward compatibility

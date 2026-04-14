@@ -118,7 +118,7 @@ def create_calendar(
     token_endpoint: str,
     scopes: list,
 ) -> dict[str, Any]:
-    """Create a secondary calendar for the user (requires full calendar scope)
+    """Create a secondary calendar for the user (requires calendar.app.created or broader)
 
     Args:
         user_id: User ID

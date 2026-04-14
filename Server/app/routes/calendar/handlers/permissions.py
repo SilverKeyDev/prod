@@ -58,7 +58,7 @@ def get_calendar_permissions():
                     "success": False,
                     "error": "not_connected",
                     "message": "Google Calendar is not connected. Please connect your account first.",
-                    "reconnect_url": "/api/v1/google-calendar/oauth/start",
+                    "reconnect_url": "/api/v1/google/oauth/start",
                 }
             ), 404
 
@@ -106,7 +106,7 @@ def put_calendar_permissions():
                     "success": False,
                     "error": "not_connected",
                     "message": "Google Calendar is not connected. Please connect your account first.",
-                    "reconnect_url": "/api/v1/google-calendar/oauth/start",
+                    "reconnect_url": "/api/v1/google/oauth/start",
                 }
             ), 404
 

@@ -52,9 +52,9 @@ def share_calendar_with_users(
     result = {"success": True, "shared_with": [], "errors": []}
 
     try:
-        if not check_permission(calendar_owner_id, "calendar"):
+        if not check_permission(calendar_owner_id, "calendar_app_created"):
             result["errors"].append(
-                "Calendar owner must reconnect Google with full calendar access to share calendars (ACLs)"
+                "Calendar owner must connect Google Calendar with app calendar access to share calendars (ACLs)"
             )
             result["success"] = False
             return result

@@ -228,30 +228,13 @@ def get_permission_scope_map() -> dict[str, str]:
     return {perm_name: perm_data["scope_url"] for perm_name, perm_data in permissions.items()}
 
 
-def _build_reconnect_url(permission: str) -> str:
-    """Build OAuth reconnect URL for requesting specific permission
+def _build_reconnect_url(_permission: str) -> str:
+    """Build OAuth reconnect URL for requesting calendar permissions.
 
-    Args:
-        permission: Permission name
-
-    Returns:
-        OAuth start URL with appropriate query parameters
+    All permissions use the same authorize URL; incremental scopes are determined
+    server-side (full Calendar and calendar.events.freebusy are never requested).
     """
-    base_url = "/api/v1/google-calendar/oauth/start"
-
-    # Map permissions to OAuth URL parameters
-    if permission == "calendar_freebusy":
-        return f"{base_url}?scheduling=true"
-    elif permission == "calendar_app_created":
-        return f"{base_url}?full_scope=true"
-    elif permission == "calendar":
-        return base_url
-    elif permission in ["calendar_calendarlist_readonly", "calendar_events_freebusy"]:
-        # These might need special handling, for now use scheduling
-        return f"{base_url}?scheduling=true"
-    else:
-        # Default to base OAuth start
-        return base_url
+    return "/api/v1/google/oauth/start"
 
 
 def check_multiple_permissions(
@@ -274,9 +257,7 @@ def check_multiple_permissions(
 
     # Build error response with all missing permissions
     missing_descriptions = [permissions.get(perm, {}).get("description", perm) for perm in missing]
-    reconnect_url = (
-        _build_reconnect_url(missing[0]) if missing else "/api/v1/google-calendar/oauth/start"
-    )
+    reconnect_url = _build_reconnect_url(missing[0]) if missing else "/api/v1/google/oauth/start"
 
     error_response = {
         "success": False,

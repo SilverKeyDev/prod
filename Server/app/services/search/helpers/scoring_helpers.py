@@ -34,7 +34,10 @@ def score_and_sort_properties(
 
     try:
         preferences = user_data.get("preferences") or {}
-        embed_weight = float(MCDA_CONFIG.get("embedding_blend_weight", 0.0))
+        embed_requested = float(MCDA_CONFIG.get("embedding_blend_weight", 0.0))
+        embed_cap = float(MCDA_CONFIG.get("embedding_blend_weight_cap", 0.01))
+        # At least 99% of the blended score from MCDA (heuristic); cap embedding share.
+        embed_weight = max(0.0, min(embed_requested, embed_cap))
 
         embedding_by_zpid: dict[str, float] = {}
         if embed_weight > 0.0:

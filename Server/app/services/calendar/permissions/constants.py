@@ -1,3 +1,12 @@
+def oauth_requested_scope_urls() -> list[str]:
+    """Scope URLs included in Google OAuth authorize `scope` (excludes legacy-only entries)."""
+    return [
+        perm_data["scope_url"]
+        for perm_data in permissions.values()
+        if perm_data.get("include_in_oauth_request", True)
+    ]
+
+
 permissions = {
     "userinfo_email": {
         "field_name": "has_userinfo_email",
@@ -47,6 +56,8 @@ permissions = {
         "field_name": "has_calendar_events_freebusy",
         "scope_url": "https://www.googleapis.com/auth/calendar.events.freebusy",
         "description": "See the availability on Google calendars you have access to",
+        # Not requested on new OAuth connects; redundant with calendar.freebusy for our usage.
+        "include_in_oauth_request": False,
         # Scopes that also satisfy freebusy.query authorization
         "implied_by": [
             "https://www.googleapis.com/auth/calendar",
@@ -54,11 +65,12 @@ permissions = {
             "https://www.googleapis.com/auth/calendar.freebusy",
         ],
     },
-    # Full Calendar access (required for ACL / calendarList.insert on arbitrary calendars, etc.).
-    # Granted scope is tracked in token.scopes; no separate DB column (field_name None).
+    # Full Calendar access — not requested on new OAuth connects (sensitive scope / verification).
+    # Legacy tokens may still list this in token.scopes; virtual check via check_permission("calendar").
     "calendar": {
         "field_name": None,
         "scope_url": "https://www.googleapis.com/auth/calendar",
         "description": "Full access to your calendars, including sharing and access control (ACLs)",
+        "include_in_oauth_request": False,
     },
 }

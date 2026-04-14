@@ -190,7 +190,7 @@ def handle_google_api_error(
                             "success": False,
                             "error": "permission_required",
                             "message": "Google Calendar authentication failed. Please reconnect your account with appropriate permissions.",
-                            "reconnect_url": "/api/v1/google-calendar/oauth/start?scheduling=true",
+                            "reconnect_url": "/api/v1/google/oauth/start",
                         }
                     ), 403
 

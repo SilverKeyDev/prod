@@ -61,13 +61,9 @@ def query_freebusy(data: FreebusyRequest | None = None) -> Response | tuple[Resp
         if not time_min or not time_max:
             return make_response(("timeMin and timeMax are required", 400))
 
-        # Check if user has calendar_freebusy or calendar_events_freebusy permission
         has_freebusy = check_permission(user_id, "calendar_freebusy")
-        has_events_freebusy = check_permission(user_id, "calendar_events_freebusy")
-
-        if not has_freebusy and not has_events_freebusy:
-            # Return error response
-            has_permission, error_response = require_permission(
+        if not has_freebusy:
+            _ok, error_response = require_permission(
                 user_id, "calendar_freebusy", context="query availability"
             )
             return jsonify(error_response), 403
