@@ -117,18 +117,17 @@ if ! timeout 60s bash -c 'until docker inspect --format="{{.State.Health.Status}
 fi
 
 # Merge app secrets from AWS Secrets Manager (EC2 instance role or host credentials).
-# Secret ids come from the deployed image's Server/config/.env.example ("# From secret: …" lines),
-# same source as Server/app/utils/config_validator.py. If that file is missing or has no markers,
-# fall back to listing all secrets in REGION (same behavior as Server/secrets.sh).
+# Reads Server/config/.env.example once from the image (secret names + required keys for validation).
+# Secret ids come from "# From secret: …" lines. If none, fall back to list-secrets (Server/secrets.sh).
 resolve_deploy_secret_ids() {
+  local ex_path="$1"
   local tmp
   tmp="$(mktemp)"
-  if [ -n "${IMAGE:-}" ] && sudo docker run --rm --entrypoint cat "$IMAGE" /app/Server/config/.env.example 2>/dev/null \
-    | secret_names_from_env_example_stream >"$tmp"; then
+  if [ -n "${ex_path:-}" ] && [ -s "$ex_path" ] && secret_names_from_env_example_stream <"$ex_path" >"$tmp"; then
     :
   fi
   if [ ! -s "$tmp" ]; then
-    echo "Warning: No \"# From secret:\" entries in image config/.env.example (or file unreadable); listing all Secrets Manager secrets in $REGION" >&2
+    echo "Warning: No \"# From secret:\" entries in config/.env.example (or file empty); listing all Secrets Manager secrets in $REGION" >&2
     if ! list_secretsmanager_secret_names | sort -u >"$tmp"; then
       echo "ERROR: secretsmanager list-secrets failed and no .env.example secret list available." >&2
       rm -f "$tmp"
@@ -143,7 +142,15 @@ resolve_deploy_secret_ids() {
   rm -f "$tmp"
 }
 
-mapfile -t SECRET_IDS < <(resolve_deploy_secret_ids)
+DEPLOY_ENV_EXAMPLE="$(mktemp)"
+if ! sudo docker run --rm --entrypoint cat "$IMAGE" /app/Server/config/.env.example >"$DEPLOY_ENV_EXAMPLE" 2>/dev/null \
+  || [ ! -s "$DEPLOY_ENV_EXAMPLE" ]; then
+  echo "ERROR: Could not read /app/Server/config/.env.example from $IMAGE (needed for secret ids and env validation)."
+  rm -f "$DEPLOY_ENV_EXAMPLE"
+  exit 1
+fi
+
+mapfile -t SECRET_IDS < <(resolve_deploy_secret_ids "$DEPLOY_ENV_EXAMPLE")
 
 # Build env as ubuntu (merge writes need a writable file), then copy to a root-owned path for sudo docker --env-file.
 ENV_BUILD=$(mktemp)
@@ -151,12 +158,14 @@ chmod 600 "$ENV_BUILD" 2>/dev/null || true
 ENV_FILE="$ENV_BUILD"
 DEPLOY_ENV_FILE="/root/.deploy_env"
 cleanup_deploy_env_files() {
-  rm -f "$ENV_BUILD" 2>/dev/null || true
+  rm -f "$ENV_BUILD" "$DEPLOY_ENV_EXAMPLE" 2>/dev/null || true
   sudo rm -f "$DEPLOY_ENV_FILE" 2>/dev/null || true
 }
 trap cleanup_deploy_env_files EXIT
 
+export ENV_EXAMPLE_VALIDATION_PATH="$DEPLOY_ENV_EXAMPLE"
 build_env_file "${SECRET_IDS[@]}"
+unset ENV_EXAMPLE_VALIDATION_PATH
 
 sudo cp "$ENV_BUILD" "$DEPLOY_ENV_FILE"
 sudo chmod 600 "$DEPLOY_ENV_FILE"

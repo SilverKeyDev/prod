@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # _secrets-env.sh — fetch and merge AWS Secrets Manager secrets into $ENV_FILE
 # Expects: REGION, DB_SECRET_NAME, ACCOUNT_ID, ENV_FILE to be set by caller
+# Optional: ENV_EXAMPLE_VALIDATION_PATH — if set to a Server/config/.env.example file,
+#           build_env_file() fails unless every KEY= in that template has a non-empty value in $ENV_FILE
+#           (same keys as Server/app/utils/config_validator.py).
 #
 # Secret *names* to merge should match Server/secrets.sh / config/.env.example:
 # lines like "# From secret: my_secret (json)" define which Secrets Manager ids to fetch.
@@ -81,6 +84,53 @@ merge_sm_secret_into_env() {
   esac
 }
 
+# Same key extraction as Server/app/utils/config_validator.py (KEY= lines only).
+required_env_keys_from_example_file() {
+  local f="$1"
+  [ -f "$f" ] || return 1
+  sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "$f" \
+    | grep -v '^#' \
+    | grep -v '^$' \
+    | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)[[:space:]]*=.*/\1/p'
+}
+
+# True if env-file has KEY= with a non-empty value (after trim / simple quote strip).
+env_file_has_nonempty_value() {
+  local file="$1" key="$2"
+  local line val
+  line="$(grep "^${key}=" "$file" 2>/dev/null | tail -n 1 || true)"
+  [ -z "$line" ] && return 1
+  val="${line#*=}"
+  val="${val%$'\r'}"
+  val="${val#"${val%%[![:space:]]*}"}"
+  val="${val%"${val##*[![:space:]]}"}"
+  case "$val" in
+    \"*\") val="${val#\"}"; val="${val%\"}" ;;
+    \'*\') val="${val#\'}"; val="${val%\'}" ;;
+  esac
+  [ -n "$val" ]
+}
+
+# Fail if $ENV_FILE is missing any key required by Server/config/.env.example (non-empty value).
+validate_env_file_against_example() {
+  local envf="$1" exf="$2"
+  local missing=()
+  local key
+  while IFS= read -r key; do
+    [ -z "$key" ] && continue
+    if ! env_file_has_nonempty_value "$envf" "$key"; then
+      missing+=("$key")
+    fi
+  done < <(required_env_keys_from_example_file "$exf" | sort -u)
+
+  if [ ${#missing[@]} -gt 0 ]; then
+    echo "ERROR: Missing or empty required environment variables (from .env.example): ${missing[*]}" >&2
+    echo "Fix: ensure AWS secrets include these keys and the instance role can read them." >&2
+    return 1
+  fi
+  return 0
+}
+
 # If merge flattened JSON to db_url=... (or similar) but not DATABASE_URL=, copy for the app.
 ensure_database_url_alias() {
   grep -q '^DATABASE_URL=' "$ENV_FILE" 2>/dev/null && return 0
@@ -114,5 +164,9 @@ build_env_file() {
       log_secret_fetch_failure "$DB_SECRET_NAME"
     fi
     exit 1
+  fi
+
+  if [ -n "${ENV_EXAMPLE_VALIDATION_PATH:-}" ] && [ -f "$ENV_EXAMPLE_VALIDATION_PATH" ]; then
+    validate_env_file_against_example "$ENV_FILE" "$ENV_EXAMPLE_VALIDATION_PATH" || exit 1
   fi
 }
