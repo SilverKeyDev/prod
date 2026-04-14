@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # _secrets-env.sh — fetch and merge AWS Secrets Manager secrets into $ENV_FILE
-# Expects: REGION, DB_SECRET_NAME, ACCOUNT_ID, ENV_FILE to be set by caller.
+# Expects: REGION, DB_SECRET_NAME, ACCOUNT_ID, ENV_FILE to be set by caller
 
 fetch_secret_raw() {
   aws secretsmanager get-secret-value \
